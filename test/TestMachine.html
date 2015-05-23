@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+
+    <div style="margin: 30px auto; min-height: 457px;">
+        <div id="msx-screen" style="margin: 0 auto; box-shadow: 2px 2px 10px rgb(60, 60, 60);"></div>
+    </div>
+
+    <div style="
+            margin: 0 auto;
+            text-align: center; font: 13px monospace; color: #333;">
+        <div id="traceOutput" style="
+            width: 470px; height: 120px;
+            border: 1px solid darkgray;
+            padding: 10px;
+            margin: 20px auto;
+            text-align: left;">
+        </div>
+        <button onclick="stepClicked();">STEP</button>
+        <button onclick="runClicked();">RUN</button>
+        <input id="cyclesToRun" type="number" value="60000" style="width: 80px; margin-left: 30px; text-align: right;">
+    </div>
+
+    <script src="TestSetup.js"></script>
+
+    <script src="../main/MSX.js"></script>
+    <script src="../main/util/Util.js"></script>
+    <script src="../main/util/MD5.js"></script>
+    <script src="../main/util/ZIP.js"></script>
+    <script src="../main/msx/cpu/Z80.js"></script>
+    <script src="../main/msx/ppi/PPI.js"></script>
+    <script src="../main/msx/vdp/VDP.js"></script>
+    <script src="../main/msx/vdp/VDPVideoSignal.js"></script>
+    <script src="../main/msx/vdp/VideoStandard.js"></script>
+    <script src="../main/msx/psg/PSG.js"></script>
+    <script src="../main/msx/psg/PSGAudioSignal.js"></script>
+    <script src="../main/msx/rom/ROM.js"></script>
+    <script src="../main/msx/rom/BIOS.js"></script>
+    <script src="../main/msx/rom/BIOSCreator.js"></script>
+    <script src="../main/msx/controls/MachineControls.js"></script>
+    <script src="../main/msx/machine/slots/SlotRAM64K.js"></script>
+    <script src="../main/msx/machine/slots/SlotROM64K.js"></script>
+    <script src="../main/msx/machine/Clock.js"></script>
+    <script src="../main/msx/machine/EngineBUS.js"></script>
+    <script src="../main/msx/machine/Machine.js"></script>
+    <script src="../main/room/rom/ROMLoader.js"></script>
+    <script src="../main/room/controls/DOMKeys.js"></script>
+    <script src="../main/room/controls/DOMKeyboard.js"></script>
+    <script src="../main/room/controls/DOMMachineControls.js"></script>
+    <script src="../main/room/savestate/LocalStorageSaveStateMedia.js"></script>
+    <script src="../main/room/screen/Monitor.js"></script>
+    <script src="../main/room/screen/DOMMonitorControls.js"></script>
+    <script src="../main/room/screen/CanvasDisplay.js"></script>
+    <script src="../main/room/screen/MachinePanel.js"></script>
+    <script src="../main/room/speaker/WebAudioSpeaker.js"></script>
+    <script src="../main/room/Preferences.js"></script>
+    <script src="../main/room/Room.js"></script>
+    <script src="../main/room/Launcher.js"></script>
+
+    <script src="TestMachine.js"></script>
+
+</body>
+</html>
