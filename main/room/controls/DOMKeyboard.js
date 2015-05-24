@@ -34,7 +34,7 @@ DOMKeyboard = function() {
     };
 
     this.keyDown = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
+        var modifiers = 0 | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
@@ -73,6 +73,7 @@ DOMKeyboard = function() {
     };
 
     var keyForEvent = function(keyCode, modif) {
+        if (modif & KEY_ALT_MASK) return;
         return normalCodeMap[keyCode];
     };
 
@@ -153,9 +154,9 @@ DOMKeyboard = function() {
         normalCodeMap[KEY_PERIOD]         = [ 2, 3 ];
         normalCodeMap[KEY_SLASH]          = [ 2, 4 ];
         normalCodeMap[KEY_CAPS_LOCK]      = [ 6, 3 ];
-        normalCodeMap[KEY_ALT]            = [ 6, 2 ];   // GRA
-        normalCodeMap[KEY_SPACE]          = [ 8, 0 ];
+        normalCodeMap[KEY_PAGE_UP]        = [ 6, 2 ];   // GRA
         normalCodeMap[KEY_PAGE_DOWN]      = [ 6, 4 ];   // CODE
+        normalCodeMap[KEY_SPACE]          = [ 8, 0 ];
 
         normalCodeMap[KEY_NUM_0]          = [ 9, 3 ];
         normalCodeMap[KEY_NUM_1]          = [ 9, 4 ];
@@ -268,9 +269,9 @@ DOMKeyboard = function() {
     var KEY_ACUTE            = DOMKeys.VK_ACUTE.c;
 
     var KEY_CAPS_LOCK        = DOMKeys.VK_CAPS_LOCK.c;
-    var KEY_ALT              = DOMKeys.VK_ALT.c;
     var KEY_SPACE            = DOMKeys.VK_SPACE.c;
 
+    var KEY_PAGE_UP          = DOMKeys.VK_ALT.c;
     var KEY_PAGE_DOWN        = DOMKeys.VK_PAGE_DOWN.c;
 
     var KEY_NUM_0            = DOMKeys.VK_NUM_0.c;

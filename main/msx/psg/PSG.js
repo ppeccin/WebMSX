@@ -32,8 +32,18 @@ function PSG() {
 
 
     var audioSignal
-
     var engine;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+        };
+    };
+
+    this.loadState = function(s) {
+    };
 
 
     init();

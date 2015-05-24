@@ -23,7 +23,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
     };
 
     this.insertBIOS = function(bios) {
-        slots[0] = new SlotROM64K(bios.rom.content);
+        RO = slots[0] = new SlotROM64K(bios.rom.content);       // TODO remove
         this.setPrimarySlotConfig(0);
     };
 
@@ -55,7 +55,6 @@ function EngineBUS(cpu, ppi, vdp, psg) {
 
     this.setPrimarySlotConfig = function(val) {
         //console.log("PrimarySlot Select: " + val.toString(16));
-
         primarySlotConfig = val;
         slotPages[0] = slots[val & 0x03];
         slotPages[1] = slots[(val >>> 2) & 0x03];
@@ -65,7 +64,6 @@ function EngineBUS(cpu, ppi, vdp, psg) {
 
     this.getPrimarySlotConfig = function() {
         //console.log("PrimarySlot Query: " + primarySlotConfig.toString(16));
-
         return primarySlotConfig;
     };
 
@@ -99,7 +97,8 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         devicesOutputPorts[0xa1] = psg.outputA1;
         devicesInputPorts[0xa2]  = psg.inputA2;
 
-        slots[2] = new SlotRAM64K();
+        slots[0] = new SlotROM64K();
+        RA = slots[2] = new SlotRAM64K();       // TODO Remove
 
         self.setPrimarySlotConfig(0);
     }
@@ -140,6 +139,23 @@ function EngineBUS(cpu, ppi, vdp, psg) {
     this.slotPages = slotPages;
     this.devicesInputPorts = devicesInputPorts;
     this.devicesOutputPorts = devicesOutputPorts;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            p: primarySlotConfig,
+            s0: slots[0].saveState(),
+            s2: slots[2].saveState()
+        };
+    };
+
+    this.loadState = function(s) {
+        slots[0].loadState(s.s0);
+        slots[2].loadState(s.s2);
+        this.setPrimarySlotConfig(s.p);
+    };
 
 
     init();

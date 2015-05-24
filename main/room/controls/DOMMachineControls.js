@@ -128,6 +128,8 @@ DOMMachineControls = function() {
                 return withCTRLCodeMap[keyCode];
             case KEY_ALT_MASK:
                 return withALTCodeMap[keyCode];
+            case KEY_CTRL_MASK | KEY_ALT_MASK:
+                return withCTRLALTCodeMap[keyCode];
         }
         return null;
     };
@@ -149,7 +151,9 @@ DOMMachineControls = function() {
         withALTCodeMap[KEY_CARTRIDGE_REMOVE] = controls.CARTRIDGE_REMOVE;
         withALTCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
 
-        normalCodeMap[KEY_FAST_SPEED] = controls.FAST_SPEED;
+        normalCodeMap[KEY_FAST_SPEED]    = controls.FAST_SPEED;
+
+        withALTCodeMap[KEY_FAST_SPEED]   = controls.FAST_SPEED;
 
         withALTCodeMap[KEY_PAUSE]          = controls.PAUSE;
         withALTCodeMap[KEY_FRAME]          = controls.FRAME;
@@ -158,31 +162,22 @@ DOMMachineControls = function() {
         withALTCodeMap[KEY_NO_COLLISIONS]  = controls.NO_COLLISIONS;
         withALTCodeMap[KEY_VIDEO_STANDARD] = controls.VIDEO_STANDARD;
 
-        withCTRLCodeMap[KEY_PAUSE]          = controls.PAUSE;
-        withCTRLCodeMap[KEY_FRAME]          = controls.FRAME;
-        withCTRLCodeMap[KEY_TRACE]          = controls.TRACE;
-        withCTRLCodeMap[KEY_DEBUG]          = controls.DEBUG;
-        withCTRLCodeMap[KEY_NO_COLLISIONS]  = controls.NO_COLLISIONS;
-        withCTRLCodeMap[KEY_VIDEO_STANDARD] = controls.VIDEO_STANDARD;
-
-        withCTRLCodeMap[KEY_POWER] = controls.POWER_FRY;
-
-        withCTRLCodeMap[KEY_STATE_0] = controls.SAVE_STATE_0;
-        withCTRLCodeMap[KEY_STATE_0a] = controls.SAVE_STATE_0;
-        withCTRLCodeMap[KEY_STATE_1] = controls.SAVE_STATE_1;
-        withCTRLCodeMap[KEY_STATE_2] = controls.SAVE_STATE_2;
-        withCTRLCodeMap[KEY_STATE_3] = controls.SAVE_STATE_3;
-        withCTRLCodeMap[KEY_STATE_4] = controls.SAVE_STATE_4;
-        withCTRLCodeMap[KEY_STATE_5] = controls.SAVE_STATE_5;
-        withCTRLCodeMap[KEY_STATE_6] = controls.SAVE_STATE_6;
-        withCTRLCodeMap[KEY_STATE_7] = controls.SAVE_STATE_7;
-        withCTRLCodeMap[KEY_STATE_8] = controls.SAVE_STATE_8;
-        withCTRLCodeMap[KEY_STATE_9] = controls.SAVE_STATE_9;
-        withCTRLCodeMap[KEY_STATE_10] = controls.SAVE_STATE_10;
-        withCTRLCodeMap[KEY_STATE_11] = controls.SAVE_STATE_11;
-        withCTRLCodeMap[KEY_STATE_11a] = controls.SAVE_STATE_11;
-        withCTRLCodeMap[KEY_STATE_12] = controls.SAVE_STATE_12;
-        withCTRLCodeMap[KEY_STATE_12a] = controls.SAVE_STATE_12;
+        withCTRLALTCodeMap[KEY_STATE_0] = controls.SAVE_STATE_0;
+        withCTRLALTCodeMap[KEY_STATE_0a] = controls.SAVE_STATE_0;
+        withCTRLALTCodeMap[KEY_STATE_1] = controls.SAVE_STATE_1;
+        withCTRLALTCodeMap[KEY_STATE_2] = controls.SAVE_STATE_2;
+        withCTRLALTCodeMap[KEY_STATE_3] = controls.SAVE_STATE_3;
+        withCTRLALTCodeMap[KEY_STATE_4] = controls.SAVE_STATE_4;
+        withCTRLALTCodeMap[KEY_STATE_5] = controls.SAVE_STATE_5;
+        withCTRLALTCodeMap[KEY_STATE_6] = controls.SAVE_STATE_6;
+        withCTRLALTCodeMap[KEY_STATE_7] = controls.SAVE_STATE_7;
+        withCTRLALTCodeMap[KEY_STATE_8] = controls.SAVE_STATE_8;
+        withCTRLALTCodeMap[KEY_STATE_9] = controls.SAVE_STATE_9;
+        withCTRLALTCodeMap[KEY_STATE_10] = controls.SAVE_STATE_10;
+        withCTRLALTCodeMap[KEY_STATE_11] = controls.SAVE_STATE_11;
+        withCTRLALTCodeMap[KEY_STATE_11a] = controls.SAVE_STATE_11;
+        withCTRLALTCodeMap[KEY_STATE_12] = controls.SAVE_STATE_12;
+        withCTRLALTCodeMap[KEY_STATE_12a] = controls.SAVE_STATE_12;
 
         withALTCodeMap[KEY_STATE_0] = controls.LOAD_STATE_0;
         withALTCodeMap[KEY_STATE_0a] = controls.LOAD_STATE_0;
@@ -226,6 +221,7 @@ DOMMachineControls = function() {
     var normalCodeMap = {};
     var withCTRLCodeMap = {};
     var withALTCodeMap = {};
+    var withCTRLALTCodeMap = {};
 
     var controlStateMap =  {};
 
@@ -238,7 +234,7 @@ DOMMachineControls = function() {
     var KEY_FAST_SPEED       = DOMMachineControls.KEY_FAST_SPEED;
     var KEY_PAUSE            = DOMMachineControls.KEY_PAUSE;
 
-    var KEY_POWER            = DOMKeys.VK_F1.c;
+    var KEY_POWER            = DOMKeys.VK_F9.c;
 
     var KEY_FRAME            = DOMKeys.VK_F.c;
     var KEY_TRACE            = DOMKeys.VK_Q.c;
@@ -265,7 +261,7 @@ DOMMachineControls = function() {
 
     var KEY_SAVE_STATE_FILE  = DOMKeys.VK_F8.c;
 
-    var KEY_CARTRIDGE_REMOVE    = DOMKeys.VK_F7.c;
+    var KEY_CARTRIDGE_REMOVE = DOMKeys.VK_F7.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = DOMMachineControls.KEY_ALT_MASK;
@@ -276,10 +272,7 @@ DOMMachineControls = function() {
 
 };
 
-DOMMachineControls.KEY_SELECT     = DOMKeys.VK_F11.c;
-DOMMachineControls.KEY_SELECT2    = DOMKeys.VK_F10.c;
-DOMMachineControls.KEY_RESET      = DOMKeys.VK_F12.c;
-DOMMachineControls.KEY_FAST_SPEED = DOMKeys.VK_TAB.c;
+DOMMachineControls.KEY_FAST_SPEED = DOMKeys.VK_F12.c;
 DOMMachineControls.KEY_PAUSE      = DOMKeys.VK_P.c;
 
 DOMMachineControls.KEY_TOGGLE_JOYSTICK  = DOMKeys.VK_J.c;

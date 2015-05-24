@@ -107,24 +107,26 @@ Machine = function() {
 
     var saveState = function() {
         return {
-            //t: tia.saveState(),
-            //p: pia.saveState(),
-            //r: ram.saveState(),
-            //c: cpu.saveState(),
+            b: bus.saveState(),
+            pp: ppi.saveState(),
+            ps: psg.saveState(),
+            vd: vdp.saveState(),
+            c: cpu.saveState(),
             //ca: getCartridge() && getCartridge().saveState(),
-            //vs: videoStandard.name
+            vs: videoStandard.name
         };
     };
 
     var loadState = function(state) {
-        //if (!self.powerIsOn) self.powerOn();
-        //tia.loadState(state.t);
-        //pia.loadState(state.p);
-        //ram.loadState(state.r);
-        //cpu.loadState(state.c);
+        if (!self.powerIsOn) self.powerOn();
+        bus.loadState(state.b);
+        ppi.loadState(state.pp);
+        psg.loadState(state.ps);
+        vdp.loadState(state.vd);
+        cpu.loadState(state.c);
         //insertCartridge(state.ca && CartridgeDatabase.createCartridgeFromSaveState(state.ca));
-        //setVideoStandard(VideoStandard[state.vs]);
-        //machineControlsSocket.controlsStatesRedefined();
+        setVideoStandard(VideoStandard[state.vs]);
+        machineControlsSocket.controlsStatesRedefined();
     };
 
     var mainClockAdjustToNormal = function() {
@@ -147,7 +149,7 @@ Machine = function() {
         bus = new EngineBUS(cpu, ppi, vdp, psg);
         mainClock = new Clock(self, VideoStandard.NTSC.fps);
 
-        BUS = bus;
+        BUS = bus;              // TODO Remove
         CPU = cpu;
         CLO = mainClock;
     };
@@ -438,10 +440,8 @@ Machine = function() {
             return true;
         };
 
-
         var media;
         var VERSION = 1;
-
     }
 
 
@@ -464,6 +464,10 @@ Machine = function() {
         Util.log("Done running " + frames + " in " + duration + " ms");
         Util.log(frames / (duration/1000) + "frames/sec");
         go();
+    };
+
+    this.eval = function(str) {
+        return eval(str);
     };
 
 

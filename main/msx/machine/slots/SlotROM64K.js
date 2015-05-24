@@ -10,8 +10,8 @@ SlotROM64K = function(rom) {
     }
 
     this.write = function(address, value) {
+        //console.log ("ROM write: " + address.toString(16) + ", " + value.toString(16));
         // ROMs cannot be modified
-        console.log ("ROM write: " + address.toString(16) + ", " + value.toString(16));
     };
 
     this.read = function(address) {
@@ -19,14 +19,14 @@ SlotROM64K = function(rom) {
         return bytes[address];
     };
 
-    this.dump = function(from, to) {
+    this.dump = function(from, quant) {
         var res = "";
         var i;
-        for(i = from; i <= to; i++) {
+        for(i = from; i <= from + quant; i++) {
             res = res + i.toString(16, 2) + " ";
         }
         res += "\n";
-        for(i = from; i <= to; i++) {
+        for(i = from; i <= from + quant; i++) {
             var val = this.read(i);
             res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
         }
@@ -36,6 +36,19 @@ SlotROM64K = function(rom) {
 
     var bytes = Util.arrayFill(new Array(65536), 0xff);
     this.bytes = bytes;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            b: btoa(Util.uInt8ArrayToByteString(bytes))
+        };
+    };
+
+    this.loadState = function(state) {
+        bytes = Util.byteStringToUInt8Array(atob(state.b));
+    };
 
 
     init();

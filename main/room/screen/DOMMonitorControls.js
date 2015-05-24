@@ -51,7 +51,7 @@ DOMMonitorControls = function(monitor) {
     var initKeys = function() {
         var monControls = Monitor.Controls;
 
-        keyCodeMap[KEY_EXIT]            = monControls.EXIT;
+        // keyCodeMap[KEY_EXIT]            = monControls.EXIT;
 
         keyCodeMap[KEY_CART_FILE]       = monControls.LOAD_CARTRIDGE_FILE;
         keyCodeMap[KEY_CART_URL]        = monControls.LOAD_CARTRIDGE_URL;
@@ -68,37 +68,20 @@ DOMMonitorControls = function(monitor) {
         keyAltCodeMap[KEY_CRT_MODES] 	= monControls.CRT_MODES;
         keyAltCodeMap[KEY_FULLSCREEN]  	= monControls.FULLSCREEN;
 
-        keyControlCodeMap[KEY_CRT_FILTER]   = monControls.CRT_FILTER;
-        keyControlCodeMap[KEY_DEBUG]     	= monControls.DEBUG;
-        keyControlCodeMap[KEY_STATS]    	= monControls.STATS;
-        keyControlCodeMap[KEY_CRT_MODES] 	= monControls.CRT_MODES;
-        keyControlCodeMap[KEY_FULLSCREEN]  	= monControls.FULLSCREEN;
+        keyAltCodeMap[KEY_UP]     = monControls.SIZE_MINUS;
+        keyAltCodeMap[KEY_DOWN]   = monControls.SIZE_PLUS;
+        keyAltCodeMap[KEY_LEFT]   = monControls.SIZE_MINUS;
+        keyAltCodeMap[KEY_RIGHT]  = monControls.SIZE_PLUS;
 
+        keyControlAltCodeMap[KEY_UP]     = monControls.SCALE_Y_MINUS;
+        keyControlAltCodeMap[KEY_DOWN]   = monControls.SCALE_Y_PLUS;
+        keyControlAltCodeMap[KEY_LEFT]   = monControls.SCALE_X_MINUS;
+        keyControlAltCodeMap[KEY_RIGHT]  = monControls.SCALE_X_PLUS;
 
-        keyShiftCodeMap[KEY_UP]     = monControls.SIZE_MINUS;
-        keyShiftCodeMap[KEY_DOWN]   = monControls.SIZE_PLUS;
-        keyShiftCodeMap[KEY_LEFT]   = monControls.SIZE_MINUS;
-        keyShiftCodeMap[KEY_RIGHT]  = monControls.SIZE_PLUS;
+        //keyShiftCodeMap[KEY_CART_PASTE_INS] = monControls.LOAD_CARTRIDGE_PASTE;
+        //keyControlCodeMap[KEY_CART_PASTE_V] = monControls.LOAD_CARTRIDGE_PASTE;
 
-        keyShiftAltCodeMap[KEY_UP]     = monControls.SCALE_Y_MINUS;
-        keyShiftAltCodeMap[KEY_DOWN]   = monControls.SCALE_Y_PLUS;
-        keyShiftAltCodeMap[KEY_LEFT]   = monControls.SCALE_X_MINUS;
-        keyShiftAltCodeMap[KEY_RIGHT]  = monControls.SCALE_X_PLUS;
-
-        keyControlAltCodeMap[KEY_UP]     = monControls.ORIGIN_Y_MINUS;
-        keyControlAltCodeMap[KEY_DOWN]   = monControls.ORIGIN_Y_PLUS;
-        keyControlAltCodeMap[KEY_LEFT]   = monControls.ORIGIN_X_MINUS;
-        keyControlAltCodeMap[KEY_RIGHT]  = monControls.ORIGIN_X_PLUS;
-
-        keyShiftControlCodeMap[KEY_UP]    = monControls.HEIGHT_MINUS;
-        keyShiftControlCodeMap[KEY_DOWN]  = monControls.HEIGHT_PLUS;
-        keyShiftControlCodeMap[KEY_LEFT]  = monControls.WIDTH_MINUS;
-        keyShiftControlCodeMap[KEY_RIGHT] = monControls.WIDTH_PLUS;
-
-        keyShiftCodeMap[KEY_CART_PASTE_INS] = monControls.LOAD_CARTRIDGE_PASTE;
-        keyControlCodeMap[KEY_CART_PASTE_V] = monControls.LOAD_CARTRIDGE_PASTE;
-
-        keyCodeMap[KEY_SIZE_DEFAULT] = monControls.SIZE_DEFAULT;
+        keyAltCodeMap[KEY_SIZE_DEFAULT] = monControls.SIZE_DEFAULT;
     };
 
 
@@ -118,8 +101,8 @@ DOMMonitorControls = function(monitor) {
 
     var KEY_SIZE_DEFAULT   = DOMKeys.VK_BACKSPACE.c;
 
-    var KEY_CART_FILE      = DOMKeys.VK_F5.c;
-    var KEY_CART_URL       = DOMKeys.VK_F6.c;
+    var KEY_CART_FILE      = DOMKeys.VK_F10.c;
+    var KEY_CART_URL       = DOMKeys.VK_F11.c;
     var KEY_CART_PASTE_V   = DOMKeys.VK_V.c;
     var KEY_CART_PASTE_INS = DOMKeys.VK_INSERT.c;
 

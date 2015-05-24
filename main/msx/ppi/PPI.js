@@ -50,7 +50,19 @@ function PPI() {
     var keyboardRowSelected = 0;
     var keyboardRowValues = Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
-
     var engine;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+        };
+    };
+
+    this.loadState = function(s) {
+        keyboardRowSelected = 0;
+        keyboardRowValues = Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
+    };
 
 }

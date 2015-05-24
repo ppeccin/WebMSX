@@ -31,23 +31,24 @@ function VDP(cpu) {
     this.frame = function() {
         // Send clock to the CPU
         for (var i = 59736; i > 0; i--)             // 59736 = CPU clocks per frame
-            if (!cpu.trace) cpu.clockPulse();
+            if (!cpu.stop) cpu.clockPulse();
 
         // Update video signal
         updateFrame();
 
         // Request interrupt
         status |= 0x80;
-        if (register1 & 0x80) cpu.INT = 0;
+        if (register1 & 0x20)
+            if (!cpu.stop) cpu.INT = 0;
     };
 
     this.input99 = function(port) {
         // Status Register Read
         var prevStatus = status;
 
+        status &= ~0xa0;
         dataToWrite = null;
-        status &= ~0x80;
-        cpu.INT = 1;
+        if (!cpu.stop) cpu.INT = 1;
 
         return prevStatus;
     };
@@ -71,24 +72,26 @@ function VDP(cpu) {
                     updateMode();
                 } else if (reg === 2) {
                     nameTableAddress = (dataToWrite & 0x0f) * 0x400;
-                    vramNameTable = new Uint8Array(internalVRam, nameTableAddress);
+                    vramNameTable = vram.subarray(nameTableAddress);
                } else if (reg === 3) {
                     colorTableAddress = dataToWrite * 0x40;
-                    vramColorTable = new Uint8Array(internalVRam, colorTableAddress);
-                } else if (reg === 4) {
-                    patternTableAddress = (dataToWrite & 0x07) * 0x800;
-                    vramPatternTable = new Uint8Array(internalVRam, patternTableAddress);
-                } else if (reg === 5) {
-                    spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
-                    vramSpriteAttrTable = new Uint8Array(internalVRam, spriteAttrTableAddress);
+                    if (mode === 1) colorTableAddress &= 0x2000;
+                    vramColorTable = vram.subarray(colorTableAddress);
+               } else if (reg === 4) {
+                   patternTableAddress = (dataToWrite & 0x07) * 0x800;
+                    if (mode === 1) patternTableAddress &= 0x2000;
+                   vramPatternTable = vram.subarray(patternTableAddress);
+               } else if (reg === 5) {
+                   spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
+                   vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
                 } else if (reg === 6) {
-                    spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
-                    vramSpritePatternTable = new Uint8Array(internalVRam, spritePatternTableAddress);
+                   spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
+                   vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
                 } else if (reg === 7) {
-                    // Text Color and Backdrop Color
-                    register7 = dataToWrite;
-                    backdropColor = (register7 & 0x0f) || 1;        // If color 0 (transparent), set to 1 (black);
-                }
+                   // Text Color and Backdrop Color
+                   register7 = dataToWrite;
+                   backdropColor = register7 & 0x0f;
+               }
             } else {
                 // VRAM Address Pointer high and mode (r/w)
                 vramWriteMode = val & 0x40;
@@ -99,44 +102,41 @@ function VDP(cpu) {
     };
 
     this.input98 = function(port) {
-        return vramAll[vramPointer++];              // VRAM Read
+        dataToWrite = null;
+        return vram[vramPointer++];              // VRAM Read
     };
 
     this.output98 = function(port, val) {
-        vramAll[vramPointer++] = val;               // VRAM Write
+        dataToWrite = null;
+        vram[vramPointer++] = val;               // VRAM Write
     };
 
 
     function reset() {
+        status = 0; dataToWrite = null;
         register0 = register1 = register7 = 0;
-        backdropColor = 1;
-        patternPlaneCanvas.backdropColor = -1;
+        backdropColor = 0;
     }
 
     function updateFrame() {
         var blanked = (register1 & 0x40) === 0;
 
-        // Update backdrop if needed
-        if ((patternPlaneCanvas.backdropColor != backdropColor) ||
-            (blanked && !patternPlaneCanvas.lastBlanked)) {
-            patternPlaneCanvas.backdropColor = backdropColor;
+        // Blank if needed
+        if (blanked && !patternPlaneCanvas.blanked) {
             var rgb = colorRGBs[backdropColor];
             if (patternPlaneBackBuffer.fill)
                 patternPlaneBackBuffer.fill(rgb);
             else
                 Util.arrayFill(patternPlaneBackBuffer, rgb);
-
-            console.log("Backdrop updated");
-
         }
+        patternPlaneCanvas.blanked = blanked;
 
         // Update Pattern Plane
         if (!blanked) {
-            if (mode === 0) updatePatternPlaneMode0();
+            if (mode === 1) updatePatternPlaneMode1();
+            else if (mode === 0) updatePatternPlaneMode0();
             else if (mode === 4) updatePatternPlaneMode4();
         }
-
-        patternPlaneCanvas.lastBlanked = blanked;
 
         // Update plane image and send to monitor
         patternPlaneContext.putImageData(patternPlaneImageData, 0, 0);
@@ -170,10 +170,32 @@ function VDP(cpu) {
         }
     }
 
+    function updatePatternPlaneMode1() {                                    // Graphics 2 (Screen 2)
+        var pos = 0;
+        for (var line = 0; line < 24; line++) {
+            var bufferPos = line << 11;                                     // line * 256
+            for (var col = 0; col < 32; col++) {
+                var name = vramNameTable[pos];
+                var patternStart = name << 3;                               // (name * 8) 8 bytes each
+                var patternEnd = patternStart + 8;
+                for (var patternLine = patternStart; patternLine < patternEnd; patternLine++) {
+                    var pattern = vramPatternTable[patternLine];
+                    var colorCode = vramColorTable[patternLine];
+                    if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;   // If background color is 0 (transparent), set to backdrop
+                    var colorCodeValuesStart = colorCode << 8;              // (colorCode * 256) 256 patterns for each colorCode
+                    var values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                    patternPlaneBackBuffer.set(values, bufferPos);
+                    bufferPos += 256;                                       // Advance 1 line
+                }
+                bufferPos -= 2040;                                          // Go back to the next char starting pixel (-256 * 8 + 8)
+                pos++;
+            }
+        }
+    }
+
     function updatePatternPlaneMode4() {                                    // Text (Screen 0)
         var pos = 0;
         var colorCode = register7;                                          // Fixed text color for all screen
-        if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;           // If background color is 0 (transparent), set to backdrop
         var colorCodeValuesStart = colorCode << 8;                          // (colorCode * 256) 256 patterns for each colorCode
         var borderValues = colorCodePatternValues[colorCodeValuesStart];
         for (var line = 0; line < 24; line++) {
@@ -256,20 +278,19 @@ function VDP(cpu) {
     var spriteAttrTableAddress = 0;
     var spritePatternTableAddress = 0;
 
+    var dataToWrite = null;
     var vramPointer = 0;
     var vramWriteMode = false;
-    var dataToWrite = null;
 
 
     // VRAM
 
-    var internalVRam = new ArrayBuffer(16384);
-    var vramAll = new Uint8Array(internalVRam);
-    var vramNameTable = new Uint8Array(internalVRam, nameTableAddress);
-    var vramColorTable = new Uint8Array(internalVRam, colorTableAddress);
-    var vramPatternTable = new Uint8Array(internalVRam, patternTableAddress);
-    var vramSpriteAttrTable = new Uint8Array(internalVRam, spriteAttrTableAddress);
-    var vramSpritePatternTable = new Uint8Array(internalVRam, spritePatternTableAddress);
+    var vram = new Uint8Array(16384);
+    var vramNameTable = vram;
+    var vramColorTable = vram;
+    var vramPatternTable = vram;
+    var vramSpriteAttrTable = vram;
+    var vramSpritePatternTable = vram;
 
 
     // Planes as off-screen canvases
@@ -279,16 +300,40 @@ function VDP(cpu) {
 
     // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations  (actually ABRG)
 
-    var colorRGBs = new Uint32Array([ 0x00000000, 0xff000000, 0xff42c821, 0xff78dc5e, 0xffed5554, 0xfffc767d, 0xff4d52d4, 0xfff5eb42, 0xff5455fc, 0xff7879ff, 0xff54c1d4, 0xff80cee6, 0xff3bb021, 0xffba5bc9, 0xffcccccc, 0xffffffff ]);
-    //var colorRGBs = new Uint32Array([ 0x00000000, 0xff000000, 0xff21c842, 0xff5edc78, 0xff5455ed, 0xff7d76fc, 0xffd4524d, 0xff42ebf5, 0xfffc5554, 0xffff7978, 0xffd4c154, 0xffe6ce80, 0xff21b03b, 0xffc95bba, 0xffcccccc, 0xffffffff ]);
+    var colorRGBs = new Uint32Array([ 0xff000000, 0xff000000, 0xff42c821, 0xff78dc5e, 0xffed5554, 0xfffc767d, 0xff4d52d4, 0xfff5eb42, 0xff5455fc, 0xff7879ff, 0xff54c1d4, 0xff80cee6, 0xff3bb021, 0xffba5bc9, 0xffcccccc, 0xffffffff ]);
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
-    this.colorCodePatternValues = colorCodePatternValues;
 
+
+    // Connections
 
     var videoSignal;
-
     var engine;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            s: status, m: mode, r0: register0, r1: register1, r7: register7, bc: backdropColor,
+            nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
+            d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
+            vram: btoa(Util.uInt8ArrayToByteString(vram))
+        };
+    };
+
+    this.loadState = function(s) {
+        status = s.s; mode = s.m; register0 = s.r0; register1 = s.r1; register7 = s.r7; backdropColor = s.bc;
+        nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
+        dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
+        vram = new Uint8Array(Util.byteStringToUInt8Array(atob(s.vram)));
+        vramNameTable = vram.subarray(nameTableAddress);
+        vramColorTable = vram.subarray(colorTableAddress);
+        vramPatternTable = vram.subarray(patternTableAddress);
+        vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
+        vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
+        patternPlaneCanvas.blanked = null;
+    };
 
 
     init();

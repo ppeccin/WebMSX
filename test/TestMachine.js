@@ -7,31 +7,29 @@ var to = document.getElementById("traceOutput");
 var ctr = document.getElementById("cyclesToRun");
 
 function stepClicked() {
-    CLO.pauseOnNextPulse(function() {
-        CPU.trace = true;
-        CPU.runCycles(1000, false);
-    })
+    CPU.trace = true;
+    CPU.stop = false;
 }
 
 function runClicked() {
     CPU.trace = false;
-    var cycles = Number.parseInt(ctr.value);
-    if (cycles > 0) {
-        // Run CPU for N clocks
-        breakpointOutput("<<<< RUNNING for " + cycles + " cycles >>>>>>");
-        setTimeout(function() {
-            CPU.runCycles(cycles, true);
-            CPU.breakpoint("DONE!");
-        }, 1);
-    } else {
-        // Let Clock run
+    CPU.stop = false;
+    //var cycles = Number.parseInt(ctr.value);
+    //if (cycles > 0) {
+    //    // Run CPU for N clocks
+    //    breakpointOutput("<<<< RUNNING for " + cycles + " cycles >>>>>>");
+    //    setTimeout(function() {
+    //        CPU.runCycles(cycles, true);
+    //        CPU.breakpoint("DONE!");
+    //    }, 1);
+    //} else {
+    //    // Let Clock run
+    //    CLO.go();
         breakpointOutput("<<<< RUNNING CLOCK >>>>>>");
-        CLO.go();
-    }
+    //}
 }
 
 function breakpointOutput(text) {
-    CPU.stop = true;
     text = text.replace(/ /g, "&nbsp;");
     text = text.replace(/\n/g, "<br>");
 

@@ -1,8 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// This implementation fetches all opcodes at the FIRST clock cycle
-// Then executes all operations of the instruction at the LAST clock cycle
-// NMI is not supported
+// This implementation fetches the base opcode at the FIRST clock cycle
+// Then fetches operands and executes all operations of the instruction at the LAST clock cycle
+// NMI is not supported. Only INT 1 mode supported
 // base clock 3584160 Hz
 
 Z80 = function() {
@@ -25,11 +25,9 @@ Z80 = function() {
 
     this.clockPulse = function() {
         cycles++;
-
         if (--T > 1) return;                             // Still counting cycles of current instruction
         if (T === 1) {
             instruction.operation();
-            checkState();
             return;
         }
         fetchNextInstruction();                          // Check for interrupts and fetch new instruction
@@ -41,9 +39,8 @@ Z80 = function() {
 
     this.reset = function() {
         cycles = 0;
-        T = -1;
-        opcode = null; prefix = 0;
-        var instruction;
+        T = -1; opcode = null; prefix = 0;
+        instruction = null;
         PC = 0; I = 0; R = 0; IFF1 = IFF2 = 0; IM = 0;
     };
 
@@ -76,6 +73,10 @@ Z80 = function() {
     var I = 0;
     var R = 0;
 
+    // Interrupt flags and mode
+    var IFF1 = 0, IFF2 = 0;
+    var IM = 0;
+
     // Status Bits references
     var bS =  0x80,  nS =  7;
     var bZ =  0x40,  nZ =  6;
@@ -85,10 +86,6 @@ Z80 = function() {
     var bPV = 0x04,  nPV = 2;
     var bN =  0x02,  nN =  1;
     var bC =  0x01,  nC =  0;
-
-    // Interrupt flags and mode
-    var IFF1 = 0, IFF2 = 0;
-    var IM = 0;
 
 
     // Fetch and Instruction control
@@ -101,19 +98,12 @@ Z80 = function() {
     var prefix = 0;
 
     var instructions =     new Array(258);
-    this.instructions = instructions;
     var instructionsED =   new Array(256);
-    this.instructionsED = instructionsED;
     var instructionsCB =   new Array(256);
-    this.instructionsCB = instructionsCB;
     var instructionsDD =   new Array(256);
-    this.instructionsDD = instructionsDD;
     var instructionsFD =   new Array(256);
-    this.instructionsFD = instructionsFD;
     var instructionsDDCB = new Array(256);
-    this.instructionsDDCB = instructionsDDCB;
     var instructionsFDCB = new Array(256);
-    this.instructionsFDCB = instructionsFDCB;
 
     var instructionADT_CYCLES;
 
@@ -164,12 +154,6 @@ Z80 = function() {
             prefix = 0;
         }
     }
-
-    function processINT() {
-
-
-    }
-
 
 
     var fromA = function() {
@@ -448,8 +432,8 @@ Z80 = function() {
 
     function HALT() {
         Util.log("HALT!");
-        self.breakpoint("HALT");
-        // decPC();    // Keep repeating HALT instruction until an INT or RESET   TODO Uncomment
+        //self.breakpoint("HALT");
+        decPC();    // Keep repeating HALT instruction until an INT or RESET
     }
 
     function newLD(to, from) {
@@ -1315,7 +1299,7 @@ Z80 = function() {
         Xdec16(toHL, fromHL);
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-        | ((B === 0) << nZ);                   // Z = B is 0
+            | ((B === 0) << nZ);                   // Z = B is 0
     }
 
     function OTDR() {
@@ -1416,7 +1400,6 @@ Z80 = function() {
         }
         RET();
     }
-
 
 
     // Instructions Definitions  ---------------------------------------------------
@@ -2490,9 +2473,6 @@ Z80 = function() {
         defineInstruction(null, null, opcode, 4, instr, "++ PRINT ++", false);
 
 
-
-
-
         // ------------------------------
 
         function defineInstruction(prefix1, prefix2, opcode, cycles, operation, mnemonic, undocumented) {
@@ -2514,11 +2494,11 @@ Z80 = function() {
                 return this.opcodeString;
             };
 
-            publish(instr);
+            registerInstruction(instr);
             return instr;
         }
 
-        function publish(instr) {
+        function registerInstruction(instr) {
             if (instr.opcode < 0) return;
 
             self.instructionsAll.push(instr);
@@ -2534,15 +2514,20 @@ Z80 = function() {
         }
     };
 
-    this.printInstructions = function() {
-        this.instructionsAll.sort(function(a,b) {
-            return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
-        });
-        var res = "";
-        for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
-            res += "\n" + this.instructionsAll[i].opcodeString;
-        }
-        return res;
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            PC: PC, SP: SP, A: A, F: F, B: B, C: C, D: D, E: E, H: H, L: L, IX: IX, IY: IY,
+            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, IFF2: IFF2, INT: this.INT,
+            T: T, p: prefix, o: opcode, insIndex: this.instructionsAll.indexOf(instruction)
+        };
+    };
+
+    this.loadState = function(s) {
+        PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; D = s.D; E = s.E; H = s.H; L = s.L; IX = s.IX; IY = s.IY;
+        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; IFF2 = s.IFF2; this.INT = s.INT;
+        T = s.T; prefix = s.p; opcode = s.o; instruction = this.instructionsAll[s.insIndex];
     };
 
 
@@ -2584,10 +2569,22 @@ Z80 = function() {
             "            IFF: " + IFF1 + "     INT: " + self.INT + "     pref: " + Util.toHex2(prefix);
     };
 
+    this.printInstructions = function() {
+        this.instructionsAll.sort(function(a,b) {
+            return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
+        });
+        var res = "";
+        for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
+            res += "\n" + this.instructionsAll[i].opcodeString;
+        }
+        return res;
+    };
+
     this.breakpoint = function(mes) {
+        self.stop = true;
         var text = "CPU Breakpoint!  " + (mes ? "(" + mes + ")" : "") + "\n\n" + this.toString();
-        if (this.breakpointOutput)
-            this.breakpointOutput(text);
+        if (self.breakpointOutput)
+            self.breakpointOutput(text);
         else
             Util.message(text);
     };
