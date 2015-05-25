@@ -1,24 +1,24 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function Room(screenElement, machinePanelElement, romProvided) {
+function Room(screenElement, machinePanelElement, biosProvided) {
     var self = this;
 
     function init() {
         buildPeripherals();
-        buildAndPlugMachine(romProvided);
+        buildAndPlugMachine();
     }
 
     this.powerOn = function(paused) {
 
-        TestMachine();
+        TestMachine();          // TODO Remove
 
         setPageVisibilityHandling();
         self.screen.powerOn();
         if (self.machinePanel) this.machinePanel.powerOn();
         self.speaker.powerOn();
         self.keyboard.powerOn();
-        insertRomProvidedIfNoneInserted();
-        if (self.machine.getCartridgeSocket().inserted() && !self.console.powerIsOn) self.console.powerOn(paused);
+        insertBIOSProvided();
+        if (self.machine.getBIOSSocket().inserted() && !self.machine.powerIsOn) self.machine.powerOn(paused);
     };
 
     this.powerOff = function() {
@@ -27,6 +27,10 @@ function Room(screenElement, machinePanelElement, romProvided) {
         self.speaker.powerOff();
         self.screen.powerOff();
         if (self.machinePanel) this.machinePanel.powerOff();
+    };
+
+    var insertBIOSProvided = function() {
+        if (biosProvided) self.machine.getBIOSSocket().insert(biosProvided, false);
     };
 
     var insertRomProvidedIfNoneInserted = function() {
@@ -58,10 +62,10 @@ function Room(screenElement, machinePanelElement, romProvided) {
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
     };
 
-    var buildAndPlugMachine = function(rom) {
+    var buildAndPlugMachine = function() {
         self.machine = new Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
-        self.romLoader.connect(self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
+        self.romLoader.connect(self.machine.getBIOSSocket(), self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
         self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
         if (self.machinePanel) self.machinePanel.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket(), self.controls);
         self.speaker.connect(self.machine.getAudioOutput());

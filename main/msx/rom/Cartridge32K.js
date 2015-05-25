@@ -1,21 +1,22 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-SlotROM64K = function(rom) {
+Cartridge32K = function(rom) {
+    var self = this;
 
     function init() {
-        if (rom) {
-            for(var i = 0, len = rom.length; i < len; i++)
-                bytes[i] = rom [i];
-        }
+        self.rom = rom;
+        var content = self.rom.content;
+        for(var i = 0, len = content.length; i < len; i++)
+            bytes[16384 + i] = content[i];
     }
 
     this.write = function(address, value) {
-        //console.log ("ROM write: " + address.toString(16) + ", " + value.toString(16));
+        //console.log ("Write over Cartridge ROM at " + address.toString(16) + " := " + value.toString(16));
         // ROMs cannot be modified
     };
 
     this.read = function(address) {
-        //console.log ("ROM read: " + address.toString(16) + ", " + bytes[address].toString(16));
+        //console.log ("Cartridge ROM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
     };
 
@@ -35,6 +36,8 @@ SlotROM64K = function(rom) {
 
 
     var bytes = Util.arrayFill(new Array(65536), 0xff);
+
+    this.rom = null;
     this.bytes = bytes;
 
 
@@ -42,11 +45,13 @@ SlotROM64K = function(rom) {
 
     this.saveState = function() {
         return {
+            r: rom.saveState(),
             b: btoa(Util.uInt8ArrayToByteString(bytes))
         };
     };
 
     this.loadState = function(state) {
+        this.rom = ROM.loadState(state.r);
         bytes = Util.byteStringToUInt8Array(atob(state.b));
     };
 
@@ -54,3 +59,10 @@ SlotROM64K = function(rom) {
     init();
 
 };
+
+// Assumes any 32K or 16K content starting with the Cartridge identifier "AB" is a Cartridge32K
+Cartridge32K.createFromROM = function(rom) {
+    if ((rom.content.length === 32768 || rom.content.length === 16384) && rom.content[0] === 65 && rom.content[1] === 66)
+        return new Cartridge32K(rom);
+};
+

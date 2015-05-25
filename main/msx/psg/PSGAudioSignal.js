@@ -6,11 +6,6 @@ PSGAudioSignal = function() {
         monitor = pMonitor;
     };
 
-    this.cartridgeInserted = function(pCartridge) {
-        if (pCartridge && pCartridge.needsAudioClock()) cartridgeNeedsAudioClock = pCartridge;
-        else cartridgeNeedsAudioClock = null;
-    };
-
     this.getChannel0 = function() {
         return channel0;
     };

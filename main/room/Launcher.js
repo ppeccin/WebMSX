@@ -19,6 +19,9 @@ MSX.start = function () {
     // Build and start emulator
     MSX.room = new Room(MSX.screenElement, MSX.machinePanelElement);
     MSX.room.powerOn();
+    // Auto-load BIOS if specified
+    if (MSX.BIOS_AUTO_LOAD_URL)
+        MSX.room.romLoader.loadFromURL(MSX.BIOS_AUTO_LOAD_URL);
     // Auto-load ROM if specified
     if (MSX.ROM_AUTO_LOAD_URL)
         MSX.room.romLoader.loadFromURL(MSX.ROM_AUTO_LOAD_URL);

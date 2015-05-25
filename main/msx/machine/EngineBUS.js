@@ -5,7 +5,8 @@ function EngineBUS(cpu, ppi, vdp, psg) {
     var self = this;
 
     function init() {
-        setup();
+        create();
+        setupMachine();
     }
 
     this.powerOn = function(paused) {
@@ -22,23 +23,32 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         ppi.powerOff();
     };
 
-    this.insertBIOS = function(bios) {
-        RO = slots[0] = new SlotROM64K(bios.rom.content);       // TODO remove
+    this.setBIOS = function(pBios) {
+        bios = pBios;
+        slots[0] = bios || new SlotEmpty();
         this.setPrimarySlotConfig(0);
     };
 
-    this.read = function(address) {
-        // Special meaning for address 0xffff: secondary slot selection
-        //if (address === 0xffff) this.getSecondarySlotConfig();
+    this.getBIOS = function() {
+        return bios;
+    };
 
+    this.setCartridge = function(pCartridge) {
+        cartridge = pCartridge;
+        slots[1] = cartridge || new SlotEmpty();
+        this.setPrimarySlotConfig(primarySlotConfig);
+    };
+
+    this.getCartridge = function() {
+        return cartridge;
+    };
+
+    this.read = function(address) {
         // Get correct slot
         return slotPages[address >>> 14].read(address);
     };
 
     this.write = function(address, val) {
-        // Special meaning for address 0xffff: secondary slot selection
-        //if (address === 0xffff) this.setSecondarySlotConfig(val);
-
         // Get correct slot
         slotPages[address >>> 14].write(address, val);
     };
@@ -67,20 +77,28 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         return primarySlotConfig;
     };
 
-    this.setSecondarySlotConfig = function(val) {
-        //console.log("SecondarySlot Select try: " + val.toString(16));
-    };
+    function create() {
+        var emptySlot = new SlotEmpty();
+        slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
+        slotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
 
-    this.getSecondarySlotConfig = function() {
-        //console.log("SecondarySlot Query try");
-    };
+        var deviceMissing = new DeviceMissing();
+        devicesInputPorts =  Util.arrayFill(new Array(256), deviceMissing.inputPort);
+        devicesOutputPorts = Util.arrayFill(new Array(256), deviceMissing.outputPort);
 
-    function setup() {
+        this.slots = slots;
+        this.slotPages = slotPages;
+        this.devicesInputPorts = devicesInputPorts;
+        this.devicesOutputPorts = devicesOutputPorts;
+    }
+
+    function setupMachine() {                       // Like a Gradiente Expert 1.1
         cpu.connectBus(self);
         ppi.connectEngine(self);
         vdp.connectEngine(self);
         psg.connectEngine(self);
 
+        // PPI
         devicesInputPorts[0xa8]  = ppi.inputA8;
         devicesOutputPorts[0xa8] = ppi.outputA8;
         devicesInputPorts[0xa9]  = ppi.inputA9;
@@ -88,57 +106,32 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         devicesOutputPorts[0xaa] = ppi.outputAA;
         devicesOutputPorts[0xab] = ppi.outputAA;
 
+        // VDP
         devicesInputPorts[0x98]  = vdp.input98;
         devicesOutputPorts[0x98] = vdp.output98;
         devicesInputPorts[0x99]  = vdp.input99;
         devicesOutputPorts[0x99] = vdp.output99;
 
+        // PSG
         devicesOutputPorts[0xa0] = psg.outputA0;
         devicesOutputPorts[0xa1] = psg.outputA1;
         devicesInputPorts[0xa2]  = psg.inputA2;
 
-        slots[0] = new SlotROM64K();
-        RA = slots[2] = new SlotRAM64K();       // TODO Remove
+        // RAM
+        MSX.ram = slots[2] = new SlotRAM64K();
 
         self.setPrimarySlotConfig(0);
     }
 
+    var slots;
+    var slotPages;
+    var primarySlotConfig = 0;
 
-    // Default empty initial configuration
+    var devicesInputPorts;
+    var devicesOutputPorts;
 
-    var emptySlot = {
-        read: function (address) {
-            //console.log ("Empty Read " + address.toString(16));
-            return 0xff;
-        },
-        write: function (address, val) {
-            //console.log ("Empty Write " + address.toString(16) + ", " + val.toString(16));
-        }
-    };
-
-    var emptyDevice = {
-        inputPort:  function(port) {
-            console.log ("Empty IN " + port.toString(16));
-            return 0xff
-        },
-        outputPort: function(port, val) {
-            //console.log ("Empty OUT " + port.toString(16) + ", " + val.toString(16));
-        }
-    };
-
-
-    var primarySlotConfig =   0;
-
-    var slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
-    var slotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
-
-    var devicesInputPorts =  Util.arrayFill(new Array(256), emptyDevice.inputPort);
-    var devicesOutputPorts = Util.arrayFill(new Array(256), emptyDevice.outputPort);
-
-    this.slots = slots;
-    this.slotPages = slotPages;
-    this.devicesInputPorts = devicesInputPorts;
-    this.devicesOutputPorts = devicesOutputPorts;
+    var bios;
+    var cartridge;
 
 
     // Savestate  -------------------------------------------

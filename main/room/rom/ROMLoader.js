@@ -3,7 +3,8 @@
 ROMLoader = function() {
     var self = this;
 
-    this.connect = function(pCartrigeSocket, pSaveStateSocket) {
+    this.connect = function(pBIOSSocket, pCartrigeSocket, pSaveStateSocket) {
+        biosSocket = pBIOSSocket;
         cartridgeSocket = pCartrigeSocket;
         saveStateSocket = pSaveStateSocket;
     };
@@ -149,14 +150,11 @@ ROMLoader = function() {
             }
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new ROM(name, arrContent);
-            bios = BIOSCreator.createBIOSFromRom(rom);
-            if (bios) {
-                cartridgeSocket.insert(bios, autoPower);
-                return;
-            }
-            //cart = CartridgeDatabase.createCartridgeFromRom(rom);
-            if (cart) {
-                cartridgeSocket.insert(cart, autoPower);
+            var slot = SlotCreator.createFromROM(rom);
+            if (slot.constructor === BIOS) {
+                biosSocket.insert(slot, autoPower);
+            } else if (slot.constructor === Cartridge32K) {
+                cartridgeSocket.insert(slot, autoPower);
             }
         } catch(e) {
             if (!e.msx) {
@@ -176,14 +174,11 @@ ROMLoader = function() {
                         arrContent = new Array(cont.length);
                         Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
                         rom = new ROM(file.name, arrContent);
-                        bios = BIOSCreator.createBIOSFromRom(rom);
-                        if (bios) {
-                            cartridgeSocket.insert(bios, autoPower);
-                            return;
-                        }
-                        //cart = CartridgeDatabase.createCartridgeFromRom(rom);
-                        if (cart) {
-                            cartridgeSocket.insert(cart, autoPower);
+                        slot = SlotCreator.createFromROM(rom);
+                        if (slot.constructor === BIOS) {
+                            biosSocket.insert(slot, autoPower);
+                        } else if (slot.constructor === Cartridge32K) {
+                            cartridgeSocket.insert(slot, autoPower);
                         }
                         return;
                     } catch (ef) {
@@ -214,6 +209,7 @@ ROMLoader = function() {
     };
 
 
+    var biosSocket;
     var cartridgeSocket;
     var saveStateSocket;
 

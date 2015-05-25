@@ -26,7 +26,10 @@
         <input id="cyclesToRun" type="number" value="60000" style="width: 80px; margin-left: 30px; text-align: right;">
     </div>
 
-    <script src="TestSetup.js"></script>
+
+    <script>
+        MSX_IMAGES_PATH = "../main/images/";
+    </script>
 
     <script src="../main/MSX.js"></script>
     <script src="../main/util/Util.js"></script>
@@ -41,10 +44,12 @@
     <script src="../main/msx/psg/PSGAudioSignal.js"></script>
     <script src="../main/msx/rom/ROM.js"></script>
     <script src="../main/msx/rom/BIOS.js"></script>
-    <script src="../main/msx/rom/BIOSCreator.js"></script>
+    <script src="../main/msx/rom/Cartridge32K.js"></script>
+    <script src="../main/msx/rom/SlotCreator.js"></script>
     <script src="../main/msx/controls/MachineControls.js"></script>
+    <script src="../main/msx/machine/slots/SlotEmpty.js"></script>
     <script src="../main/msx/machine/slots/SlotRAM64K.js"></script>
-    <script src="../main/msx/machine/slots/SlotROM64K.js"></script>
+    <script src="../main/msx/machine/slots/DeviceMissing.js"></script>
     <script src="../main/msx/machine/Clock.js"></script>
     <script src="../main/msx/machine/EngineBUS.js"></script>
     <script src="../main/msx/machine/Machine.js"></script>

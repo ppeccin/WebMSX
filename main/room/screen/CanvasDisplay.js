@@ -38,13 +38,24 @@ CanvasDisplay = function(mainElement) {
         mainElement.style.display = "none";
     };
 
-    this.refresh = function(image) {
+    this.refresh = function(image, newContentBorderColor) {
         signalIsOn = true;
-        context.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
+        // Update content border (backdrop) color if needed
+        if (newContentBorderColor !== contentBorderColor) {
+            contentBorderColor = newContentBorderColor;
+            var color = "rgb(" + (newContentBorderColor & 0xff) + "," + ((newContentBorderColor >> 8) & 0xff) + "," + ((newContentBorderColor >>> 16) & 0xff) + ")";
+            canvas.style.borderColor = color;
+        }
+        // Then update content
+        context.drawImage(
+            image, 0, 0, image.width, image.height,
+            0, 0, canvas.width, canvas.height
+        );
     };
 
     this.videoSignalOff = function() {
         signalIsOn = false;
+        //canvas.style.borderColor = "black";
         drawLogo();
     };
 
@@ -69,8 +80,8 @@ CanvasDisplay = function(mainElement) {
             return DEFAULT_OPENING_SCALE_X;
     };
 
-    this.displaySize = function(width, height) {
-        setElementsSizes(width, height);
+    this.displaySize = function(width, height, contentBorderWidth, contentBorderHeight) {
+        setElementsSizes(width, height, contentBorderWidth, contentBorderHeight);
         setCRTFilter();
         if (!signalIsOn) drawLogo();
     };
@@ -170,19 +181,22 @@ CanvasDisplay = function(mainElement) {
             }, 120);
     };
 
-    var setElementsSizes = function (width, height) {
+    var setElementsSizes = function (width, height, cBorderWidth, cBorderHeight) {
+        var contentWidth = width + cBorderWidth * 2;
+        var contentHeigth = height + cBorderHeight * 2;
         canvas.width = width;
         canvas.height = height;
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
+        canvas.style.borderWidth = "" + cBorderWidth + "px " + cBorderHeight + "px";
         // Do not change containers sizes while in fullscreen
         if (isFullscreen) return;
-        borderElement.style.width = "" + width + "px";
-        borderElement.style.height = "" + height + "px";
-        width += borderLateral * 2;
-        height += borderTop + borderBottom;
-        mainElement.style.width = "" + width + "px";
-        mainElement.style.height = "" + height + "px";
+        borderElement.style.width = "" + contentWidth + "px";
+        borderElement.style.height = "" + contentHeigth + "px";
+        contentWidth += borderLateral * 2;
+        contentHeigth += borderTop + borderBottom;
+        mainElement.style.width = "" + contentWidth + "px";
+        mainElement.style.height = "" + contentHeigth + "px";
     };
 
     var setCRTFilter = function() {
@@ -249,9 +263,17 @@ CanvasDisplay = function(mainElement) {
         canvas.style.margin = "auto";
         canvas.tabIndex = "-1";               // Make it focusable
         canvas.style.outline = "none";
+        canvas.style.borderStyle = "solid";
+        canvas.style.borderColor = "black";
+        canvas.style.borderWidth = "" +
+            CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH + "px " +
+            CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT + "px";
         fsElement.appendChild(canvas);
 
-        setElementsSizes(CanvasDisplay.DEFAULT_STARTING_WIDTH, CanvasDisplay.DEFAULT_STARTING_HEIGHT);
+        setElementsSizes(
+            CanvasDisplay.DEFAULT_WIDTH, CanvasDisplay.DEFAULT_HEIGHT,
+            CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH, CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT
+        );
 
         mainElement.appendChild(borderElement);
     };
@@ -395,7 +417,7 @@ CanvasDisplay = function(mainElement) {
             borderTop = 1;
             borderLateral = 1;
             borderBottom = 1;
-        } else {                                                // Always
+        } else {                                       // Always
             borderTop = 1;
             borderLateral = 1;
             borderBottom = 30;
@@ -432,6 +454,8 @@ CanvasDisplay = function(mainElement) {
     var fullscreenButton;
     var settingsButton;
 
+    var contentBorderColor;
+
     var borderTop;
     var borderLateral;
     var borderBottom;
@@ -447,5 +471,7 @@ CanvasDisplay = function(mainElement) {
 
 };
 
-CanvasDisplay.DEFAULT_STARTING_WIDTH = 640;
-CanvasDisplay.DEFAULT_STARTING_HEIGHT = 426;
+CanvasDisplay.DEFAULT_WIDTH = 256 * 2;
+CanvasDisplay.DEFAULT_HEIGHT = 192 * 2;
+CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH = 6;
+CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT = 6;

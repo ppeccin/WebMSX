@@ -84,13 +84,14 @@ function VDP(cpu) {
                } else if (reg === 5) {
                    spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
                    vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
-                } else if (reg === 6) {
+               } else if (reg === 6) {
                    spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
                    vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
-                } else if (reg === 7) {
+               } else if (reg === 7) {
                    // Text Color and Backdrop Color
                    register7 = dataToWrite;
                    backdropColor = register7 & 0x0f;
+                    backdropRGB = colorRGBs[backdropColor];
                }
             } else {
                 // VRAM Address Pointer high and mode (r/w)
@@ -116,20 +117,20 @@ function VDP(cpu) {
         status = 0; dataToWrite = null;
         register0 = register1 = register7 = 0;
         backdropColor = 0;
+        backdropRGB = colorRGBs[backdropColor];
     }
 
     function updateFrame() {
         var blanked = (register1 & 0x40) === 0;
 
         // Blank if needed
-        if (blanked && !patternPlaneCanvas.blanked) {
-            var rgb = colorRGBs[backdropColor];
+        if (blanked && blankedRGB != backdropRGB) {
             if (patternPlaneBackBuffer.fill)
-                patternPlaneBackBuffer.fill(rgb);
+                patternPlaneBackBuffer.fill(backdropRGB);
             else
-                Util.arrayFill(patternPlaneBackBuffer, rgb);
+                Util.arrayFill(patternPlaneBackBuffer, backdropRGB);
         }
-        patternPlaneCanvas.blanked = blanked;
+        blankedRGB = blanked ? backdropRGB : null;
 
         // Update Pattern Plane
         if (!blanked) {
@@ -140,7 +141,7 @@ function VDP(cpu) {
 
         // Update plane image and send to monitor
         patternPlaneContext.putImageData(patternPlaneImageData, 0, 0);
-        videoSignal.newFrame(patternPlaneCanvas);
+        videoSignal.newFrame(patternPlaneCanvas, backdropRGB);
     }
 
     function updateMode() {
@@ -173,9 +174,10 @@ function VDP(cpu) {
     function updatePatternPlaneMode1() {                                    // Graphics 2 (Screen 2)
         var pos = 0;
         for (var line = 0; line < 24; line++) {
+            var nameAdt = (line >> 3 << 8);
             var bufferPos = line << 11;                                     // line * 256
             for (var col = 0; col < 32; col++) {
-                var name = vramNameTable[pos];
+                var name = vramNameTable[pos] + nameAdt;
                 var patternStart = name << 3;                               // (name * 8) 8 bytes each
                 var patternEnd = patternStart + 8;
                 for (var patternLine = patternStart; patternLine < patternEnd; patternLine++) {
@@ -271,6 +273,8 @@ function VDP(cpu) {
     var register7 = 0;
 
     var backdropColor = 0;
+    var backdropRGB = 0;
+    var blankedRGB = 0;
 
     var nameTableAddress = 0;
     var colorTableAddress = 0;
@@ -332,7 +336,8 @@ function VDP(cpu) {
         vramPatternTable = vram.subarray(patternTableAddress);
         vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
         vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
-        patternPlaneCanvas.blanked = null;
+        backdropRGB = colorRGBs[backdropColor];
+        blankedRGB = null;
     };
 
 

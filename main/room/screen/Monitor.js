@@ -25,8 +25,8 @@ Monitor = function() {
         controls.addInputElements(elements);
     };
 
-    this.newFrame = function(image) {
-        display.refresh(image);
+    this.newFrame = function(image, backdropColor) {
+        display.refresh(image, backdropColor);
     };
 
     this.signalOff = function() {
@@ -55,7 +55,10 @@ Monitor = function() {
 
     var displayUpdateSize = function() {
         if (!display) return;
-        display.displaySize((DEFAULT_WIDTH * displayScaleX) | 0, (DEFAULT_HEIGHT * displayScaleY) | 0);
+        display.displaySize(
+            (DEFAULT_WIDTH * displayScaleX) | 0, (DEFAULT_HEIGHT * displayScaleY) | 0,
+            (BORDER_WIDTH * displayScaleX) | 0, (BORDER_HEIGHT * displayScaleY) | 0
+        );
         display.displayMinimumSize((DEFAULT_WIDTH * DEFAULT_SCALE_X / DEFAULT_SCALE_Y) | 0, DEFAULT_HEIGHT);
     };
 
@@ -184,6 +187,8 @@ Monitor = function() {
     var DEFAULT_SCALE_X = 2;
     var DEFAULT_SCALE_Y = 2;
     var DEFAULT_SCALE_ASPECT_X = 1;
+    var BORDER_WIDTH = 6;
+    var BORDER_HEIGHT = 6;
     var CRT_MODE = MSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
 

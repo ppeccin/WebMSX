@@ -6,8 +6,8 @@ VDPVideoSignal = function() {
         this.monitor = pMonitor;
     };
 
-    this.newFrame = function(image) {
-        this.monitor.newFrame(image);
+    this.newFrame = function(image, backdropColor) {
+        this.monitor.newFrame(image, backdropColor);
     };
 
     this.signalOff = function() {

@@ -29,6 +29,10 @@ Machine = function() {
         this.framesGenerated++;
     };
 
+    this.getBIOSSocket = function() {
+        return biosSocket;
+    };
+
     this.getCartridgeSocket = function() {
         return cartridgeSocket;
     };
@@ -65,18 +69,22 @@ Machine = function() {
         mainClock.pauseOnNextPulse();
     };
 
-    var insertCartridge = function(cartridge) {
+    var setBIOS = function(bios) {
+        MSX.bios = bios;
+        bus.setBIOS(bios);
+    };
 
-        bus.insertBIOS(cartridge);
+    var getBIOS = function() {
+        return bus.getBIOS();
+    };
 
-        //MSX.cartridge = cartridge;
-        //var removedCartridge = getCartridge();
-        //bus.insertCartridge(cartridge);
-        //cartridgeSocket.cartridgeInserted(cartridge, removedCartridge);
+    var setCartridge = function(cartridge) {
+        MSX.cartridge = cartridge;
+        bus.setCartridge(cartridge);
     };
 
     var getCartridge = function() {
-        //return bus.getCartridge();
+        return bus.getCartridge();
     };
 
     var setVideoStandard = function(pVideoStandard) {
@@ -157,11 +165,10 @@ Machine = function() {
     var socketsCreate = function() {
         machineControlsSocket = new MachineControlsSocket();
         machineControlsSocket.addForwardedInput(self);
-        keyboardSocket = new KeyboardSocket();
+        biosSocket = new BIOSSocket();
         cartridgeSocket = new CartridgeSocket();
-        //cartridgeSocket.addInsertionListener(tia.getAudioOutput());
+        keyboardSocket = new KeyboardSocket();
         saveStateSocket = new SaveStateSocket();
-        cartridgeSocket.addInsertionListener(saveStateSocket);
     };
 
 
@@ -179,6 +186,7 @@ Machine = function() {
     var videoStandard;
     var machineControlsSocket;
     var keyboardSocket;
+    var biosSocket;
     var cartridgeSocket;
     var saveStateSocket;
 
@@ -276,13 +284,12 @@ Machine = function() {
 
         this.insert = function (cartridge, autoPower) {
             if (autoPower && self.powerIsOn) self.powerOff();
-            insertCartridge(cartridge);
+            setCartridge(cartridge);
             if (autoPower && !self.powerIsOn) self.powerOn();
         };
 
         this.inserted = function () {
-            //return getCartridge();
-            return null;
+            return getCartridge();
         };
 
         this.cartridgeInserted = function (cartridge, removedCartridge) {
@@ -304,6 +311,24 @@ Machine = function() {
         var insertionListeners = [];
 
     }
+
+
+    // BIOS Socket  -----------------------------------------
+
+    function BIOSSocket() {
+
+        this.insert = function (bios, autoPower) {
+            if (autoPower && self.powerIsOn) self.powerOff();
+            setBIOS(bios);
+            if (autoPower && !self.powerIsOn) self.powerOn();
+        };
+
+        this.inserted = function () {
+            return getBIOS();
+        };
+
+    }
+
 
     // MachineControls Socket  -----------------------------------------
 
@@ -382,11 +407,7 @@ Machine = function() {
             return media;
         };
 
-        this.cartridgeInserted = function(cartridge) {
-            if (cartridge) cartridge.connectSaveStateSocket(this);
-        };
-
-        this.externalStateChange = function() {
+            this.externalStateChange = function() {
             // Nothing
         };
 
