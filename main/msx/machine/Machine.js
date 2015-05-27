@@ -159,6 +159,7 @@ Machine = function() {
 
         BUS = bus;              // TODO Remove
         CPU = cpu;
+        VD = vdp;
         CLO = mainClock;
     };
 
@@ -462,7 +463,7 @@ Machine = function() {
         };
 
         var media;
-        var VERSION = 1;
+        var VERSION = 2;
     }
 
 

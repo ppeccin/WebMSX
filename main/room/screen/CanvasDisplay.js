@@ -55,7 +55,7 @@ CanvasDisplay = function(mainElement) {
 
     this.videoSignalOff = function() {
         signalIsOn = false;
-        //canvas.style.borderColor = "black";
+        canvas.style.borderColor = "black";
         drawLogo();
     };
 
@@ -200,6 +200,7 @@ CanvasDisplay = function(mainElement) {
     };
 
     var setCRTFilter = function() {
+        context.globalCompositeOperation = "copy";
         if (context.hasOwnProperty("imageSmoothingEnabled"))
             context.imageSmoothingEnabled = crtFilter;
         else {

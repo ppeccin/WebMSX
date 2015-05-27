@@ -27,11 +27,11 @@ function PSG() {
     };
 
     this.inputA2 = function(port) {
-        return 0;
+        return 0x3f;
     };
 
 
-    var audioSignal
+    var audioSignal;
     var engine;
 
 
