@@ -45,6 +45,7 @@ CanvasDisplay = function(mainElement) {
             contentBorderColor = newContentBorderColor;
             var color = "rgb(" + (newContentBorderColor & 0xff) + "," + ((newContentBorderColor >> 8) & 0xff) + "," + ((newContentBorderColor >>> 16) & 0xff) + ")";
             canvas.style.borderColor = color;
+            canvas.style.background = color;
         }
         // Then update content
         context.drawImage(

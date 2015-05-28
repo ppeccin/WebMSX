@@ -25,6 +25,8 @@ Machine = function() {
     };
 
     this.clockPulse = function() {
+        if (debugPause)
+            if (debugPauseMoreFrames-- <= 0) return;
         vdp.frame();
         this.framesGenerated++;
     };
@@ -184,6 +186,9 @@ Machine = function() {
     var psg;
     var mainClock;
 
+    var debugPause = false;
+    var debugPauseMoreFrames = 0;
+
     var videoStandard;
     var machineControlsSocket;
     var keyboardSocket;
@@ -220,6 +225,13 @@ Machine = function() {
             case controls.POWER_OFF:
                 if (self.powerIsOn) self.powerOff();
                 break;
+            case controls.PAUSE:
+                debugPause = !debugPause; debugPauseMoreFrames = 1;
+                vdp.getVideoOutput().showOSD(debugPause ? "PAUSE" : "RESUME", true);
+                return;
+            case controls.FRAME:
+                if (debugPause) debugPauseMoreFrames = 1;
+                return;
             case controls.POWER_FRY:
                 powerFry();
                 break;

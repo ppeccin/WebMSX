@@ -282,48 +282,36 @@ function VDP(cpu) {
     function updateSpritesPlane() {
         if ((register1 & 0x03) !== 2) return;
         if (vramSpriteAttrTable[0] === 208) return;
-        var collision = null;
         var y, x, name, color;
-        var bufferPos = 32;                                              // First possible sprite pixel (-32, 0) position
-        for (var line = -32; line < 288; line ++) {
-            var atrPos = -4;
+        var bufferPos = 10272;                                              // First pixel (0,0) position
+        for (var line = 0; line < 256; line ++) {
+            var atrPos = 0;
             for (var sprite = 31; sprite >= 0; sprite--) {
-                atrPos += 4;
-                y = vramSpriteAttrTable[atrPos];
-                if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y - 1;                          // Signed value from -31 to -1. -1 (255) is line 0 per spec
-                y++;                                                     // So add 1
-                if (y < line - 15 || y > line) continue;
-                x = vramSpriteAttrTable[atrPos+1];
-                name = vramSpriteAttrTable[atrPos+2];
-                color = vramSpriteAttrTable[atrPos+3];
+                if ((y = vramSpriteAttrTable[atrPos++] + 1) === 209) break;
+                x = vramSpriteAttrTable[atrPos++];
+                name = vramSpriteAttrTable[atrPos++];
+                color = vramSpriteAttrTable[atrPos++];
                 if (color & 0x80) x -= 32;
-                var colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
-                var patternStart = ((name & 0xfc) << 3) + (line - y);
+                var colorCodeValuesStart = ((color & 0x0f) << 4) * 256;
+                if (y < line - 15 || y > line) continue;
+                if (x < 0 || x > 255) continue;
+                var patternStart = (name & 0xfc) * 8 + (line - y);
                 var pattern = vramSpritePatternTable[patternStart];
                 var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                copySprite(patternPlaneBackBuffer, bufferPos + x, values);
+                copySprite(patternPlaneBackBuffer, bufferPos + x, values, 8);
                 pattern = vramSpritePatternTable[patternStart + 16];
                 values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                copySprite(patternPlaneBackBuffer, bufferPos + x + 8, values);
+                copySprite(patternPlaneBackBuffer, bufferPos + x + 8, values, 8);
             }
             bufferPos += 320;
         }
 
-        function copySprite(dest, pos, source) {
-            for (var i = 0; i < 8; i++) {
-                if (source[i] === 0) continue;
-                if (dest[pos + i] < 0xff000000)
+        function copySprite(dest, pos, source, length) {
+            for (var i = 0; i < length; i++)
+                if (source[i] !== 0 && ((dest[pos + i] >>> 24) != 0xff))
                     dest[pos + i] = source[i] + 0x01000000;
-                else
-                    if (collision === null) collision = line;
-            }
         }
 
-        if (collision !== null) {
-            console.log("Collision at " + collision);
-            status |= 0x20;
-        }
     }
 
     function initPlaneResources() {
