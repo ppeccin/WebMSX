@@ -8,8 +8,6 @@ WebAudioSpeaker = function() {
     };
 
     this.powerOn = function() {
-        return;     // TODO Speaker disabled
-
         createAudioContext();
         if (!audioContext) return;
 

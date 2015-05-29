@@ -6,12 +6,8 @@ PSGAudioSignal = function() {
         monitor = pMonitor;
     };
 
-    this.getChannel0 = function() {
-        return channel0;
-    };
-
-    this.getChannel1 = function() {
-        return channel1;
+    this.getMixedAudioChannel = function() {
+        return mixedChannel;
     };
 
     this.audioClockPulse = function() {
@@ -25,12 +21,10 @@ PSGAudioSignal = function() {
 
     this.signalOff = function() {
         signalOn = false;
-        channel0.setVolume(0);
-        channel1.setVolume(0);
+        mixedChannel.setMixerControl(0);
     };
 
     this.setFps = function(fps) {
-        // Normal amount is 2 sample per scanline = 31440, 524 for NTSC(60Hz) and 624 for PAL(50hz)
         // Calculate total samples per frame based on fps
         samplesPerFrame = Math.round(PSGAudioSignal.SAMPLE_RATE / fps);
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
@@ -42,7 +36,6 @@ PSGAudioSignal = function() {
         frameSamples = 0;
     };
 
-    // TODO Verify choppiness in DPC audio
     this.retrieveSamples = function(quant) {
         //Util.log(">>> Samples generated: " + (nextSampleToGenerate - nextSampleToRetrieve));
 
@@ -78,11 +71,8 @@ PSGAudioSignal = function() {
     var generateNextSamples = function(quant, extra) {
         var mixedSample;
         for (var i = quant; i > 0; i--) {
-
-            if (cartridgeNeedsAudioClock) cartridgeNeedsAudioClock.audioClockPulse();
-
             if (signalOn) {
-                mixedSample = channel0.nextSample() - channel1.nextSample();
+                mixedSample = mixedChannel.nextSample();
                 // Add a little damper effect to round the edges of the square wave
                 if (mixedSample !== lastSample) {
                     mixedSample = (mixedSample * 9 + lastSample) / 10;
@@ -104,11 +94,8 @@ PSGAudioSignal = function() {
 
     var monitor;
 
-    var cartridgeNeedsAudioClock;
-
     var signalOn = false;
-    //var channel0 = new TiaAudioChannel();
-    //var channel1 = new TiaAudioChannel();
+    var mixedChannel = new PSGMixedAudioChannel();
 
     var nextSampleToGenerate = 0;
     var nextSampleToRetrieve = 0;
@@ -131,4 +118,4 @@ PSGAudioSignal = function() {
 
 };
 
-PSGAudioSignal.SAMPLE_RATE = 31440;
+PSGAudioSignal.SAMPLE_RATE = 112000;

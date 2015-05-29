@@ -113,7 +113,7 @@ Z80 = function() {
     // Internal operations
 
     var fetchNextInstruction = function() {
-        R++; if (R > 127) R = 0;                        // TODO Verify. R should increse only by 2 for DDCB/FDCB instrictions. Not 3 as its happening (2 per prefix + 1 instr)
+        R++;                                            // TODO Verify. R should increse only by 2 for DDCB/FDCB instrictions. Not 3 as its happening (2 per prefix + 1 instr)
 
         if (self.INT === 0 && IFF1 && prefix === 0) {   // INT = 0 means active
             pINT_1();
@@ -183,6 +183,7 @@ Z80 = function() {
         return I;
     };
     var fromR = function() {
+        if (R > 127) R = 0;
         return R;
     };
     var fromIXh = function() {

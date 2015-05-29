@@ -57,6 +57,7 @@ CanvasDisplay = function(mainElement) {
     this.videoSignalOff = function() {
         signalIsOn = false;
         canvas.style.borderColor = "black";
+        canvas.style.background = "black";
         drawLogo();
     };
 

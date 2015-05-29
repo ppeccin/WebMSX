@@ -154,14 +154,15 @@ Machine = function() {
     var mainComponentsCreate = function() {
         cpu = new Z80();
         ppi = new PPI();
-        vdp = new VDP(cpu);
         psg = new PSG();
+        vdp = new VDP(cpu,psg);
         bus = new EngineBUS(cpu, ppi, vdp, psg);
         mainClock = new Clock(self, VideoStandard.NTSC.fps);
 
         BUS = bus;              // TODO Remove
         CPU = cpu;
         VD = vdp;
+        PS = psg;
         CLO = mainClock;
     };
 

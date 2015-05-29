@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function VDP(cpu) {
+function VDP(cpu, psg) {
     var self = this;
 
     function init() {
@@ -30,8 +30,10 @@ function VDP(cpu) {
 
     this.frame = function() {
         // Send clock to the CPU
-        for (var i = 59736; i > 0; i--)             // 59736 = CPU clocks per frame
+        for (var c = 59736; c > 0; c--)             // 59736 = CPU clocks per frame
             if (!cpu.stop) cpu.clockPulse();
+
+        psg.finishFrame();
 
         // Update video signal
         updateFrame();
@@ -45,10 +47,7 @@ function VDP(cpu) {
         // Status Register Read
         var prevStatus = status;
 
-        if (dataToWrite != null) {
-            dataToWrite = null;
-            console.log("Resetting dataToWrite!");
-        }
+        dataToWrite = null;
         status &= ~0xa0;
         updateIRQ();
 
@@ -117,10 +116,7 @@ function VDP(cpu) {
     };
 
     this.input98 = function(port) {
-        if (dataToWrite != null) {
-            dataToWrite = null;
-            console.log("Resetting dataToWrite!");
-        }
+        dataToWrite = null;
 
         if (vramWriteMode) console.log("Illegal VRAM Read");
 
@@ -128,19 +124,15 @@ function VDP(cpu) {
 
         //console.log("VRAM Read: " + Util.toHex2(vramPointer) + ", " + Util.toHex2(res));
 
-
         if (vramPointer > 16383) {
-            console.log("VRAM Read Wrapped");
+            //console.log("VRAM Read Wrapped");
             vramPointer = 0;
         }
         return res;
     };
 
     this.output98 = function(port, val) {
-        if (dataToWrite != null) {
-            dataToWrite = null;
-            console.log("Resetting dataToWrite!");
-        }
+        dataToWrite = null;
 
         //console.log(">>> VRAM Write: " + Util.toHex2(vramPointer) + ", " + Util.toHex2(val));
 
@@ -149,7 +141,7 @@ function VDP(cpu) {
         if (!vramWriteMode) console.log("Illegal VRAM Write");
 
         if (vramPointer > 16383) {
-            console.log("VRAM Write Wrapped");
+            //console.log("VRAM Write Wrapped");
             vramPointer = 0;
         }
     };
@@ -285,6 +277,7 @@ function VDP(cpu) {
         var collision = null;
         var y, x, name, color;
         var bufferPos = 32;                                              // First possible sprite pixel (-32, 0) position
+
         for (var line = -32; line < 288; line ++) {
             var atrPos = -4;
             for (var sprite = 31; sprite >= 0; sprite--) {
@@ -310,19 +303,19 @@ function VDP(cpu) {
             bufferPos += 320;
         }
 
+        if (collision !== null) {
+            //console.log("Collision at " + collision);
+            status |= 0x20;
+        }
+
         function copySprite(dest, pos, source) {
             for (var i = 0; i < 8; i++) {
                 if (source[i] === 0) continue;
                 if (dest[pos + i] < 0xff000000)
                     dest[pos + i] = source[i] + 0x01000000;
                 else
-                    if (collision === null) collision = line;
+                if (collision === null) collision = line;
             }
-        }
-
-        if (collision !== null) {
-            console.log("Collision at " + collision);
-            status |= 0x20;
         }
     }
 
@@ -444,6 +437,5 @@ function VDP(cpu) {
     this.eval = function(str) {
         return eval(str);
     };
-
 
 }
