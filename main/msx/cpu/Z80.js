@@ -23,14 +23,16 @@ Z80 = function() {
     this.powerOff = function() {
     };
 
-    this.clockPulse = function() {
-        cycles++;
-        if (--T > 1) return;                             // Still counting cycles of current instruction
-        if (T === 1) {
-            instruction.operation();
-            return;
+    this.clockPulses = function(quant) {
+        for (var i = quant; i > 0; i--) {
+            cycles++;
+            if (--T > 1) continue;                   // Still counting cycles of current instruction
+            if (T === 1) {
+                instruction.operation();
+                continue;
+            }
+            fetchNextInstruction();                  // Check for interrupts and fetch new instruction
         }
-        fetchNextInstruction();                          // Check for interrupts and fetch new instruction
     };
 
     this.connectBus = function(aBus) {
@@ -2599,7 +2601,7 @@ Z80 = function() {
         //noinspection JSUnresolvedVariable
         var start = performance.now();
         while(!this.stop && (cycles < runToCycle)) {
-            this.clockPulse();
+            this.clockPulse(1);
         }
         //noinspection JSUnresolvedVariable
         var end = performance.now();

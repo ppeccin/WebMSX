@@ -30,10 +30,16 @@ function VDP(cpu, psg) {
 
     this.frame = function() {
         // Send clock to the CPU
-        for (var c = 59736; c > 0; c--)             // 59736 = CPU clocks per frame
-            if (!cpu.stop) cpu.clockPulse();
+        //if (!cpu.stop) cpu.clockPulses(59736);    // 59736 = CPU clocks per frame
 
-        psg.finishFrame();
+        for (var i = 32; i > 0; i--) {
+            if (!cpu.stop) cpu.clockPulses(1824);
+            psg.getAudioOutput().audioClockPulses(29);
+        }
+        if (!cpu.stop) cpu.clockPulses(1368);
+
+        // Send clock to PSG
+        psg.getAudioOutput().finishFrame();
 
         // Update video signal
         updateFrame();

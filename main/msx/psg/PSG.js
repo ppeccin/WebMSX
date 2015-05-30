@@ -24,14 +24,6 @@ function PSG() {
         return audioSignal;
     };
 
-    this.clockPulse  = function() {
-        audioSignal.audioClockPulse();
-    };
-
-    this.finishFrame = function() {
-        audioSignal.finishFrame();
-    };
-
     this.outputA0 = function(port, val) {
 
         //console.log("Register Select: " + val);
@@ -59,6 +51,10 @@ function PSG() {
             audioChannel.setAmplitudeB(val);
         } else if (registerAddress === 10) {
             audioChannel.setAmplitudeC(val);
+        } else if (registerAddress === 11 || registerAddress === 12) {
+            audioChannel.setPeriodE((registers[12] << 8) | registers[11]);
+        } else if (registerAddress === 13) {
+            audioChannel.setEnvelopeControl(val);
         }
     };
 
