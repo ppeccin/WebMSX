@@ -154,8 +154,8 @@ DOMKeyboard = function() {
         normalCodeMap[KEY_PERIOD]         = [ 2, 3 ];
         normalCodeMap[KEY_SLASH]          = [ 2, 4 ];
         normalCodeMap[KEY_CAPS_LOCK]      = [ 6, 3 ];
-        normalCodeMap[KEY_PAGE_UP]        = [ 6, 2 ];   // GRA
-        normalCodeMap[KEY_PAGE_DOWN]      = [ 6, 4 ];   // CODE
+        normalCodeMap[KEY_PAGE_UP]        = [ 6, 2 ];      // GRA
+        normalCodeMap[KEY_PAGE_DOWN]      = [ 6, 4 ];      // CODE
         normalCodeMap[KEY_SPACE]          = [ 8, 0 ];
 
         normalCodeMap[KEY_NUM_0]          = [ 9, 3 ];
@@ -174,6 +174,8 @@ DOMKeyboard = function() {
         normalCodeMap[KEY_NUM_DIVIDE]     = [ 9, 2 ];
         normalCodeMap[KEY_NUM_PERIOD]     = [ 10, 7 ];
         normalCodeMap[KEY_NUM_COMMA]      = [ 10, 6 ];
+
+        normalCodeMap[KEY_END_IGNORE]     = [ 11, 7 ];      // Just so it won't go to the browser (preventDefault)
     };
 
     this.applyPreferences = function() {
@@ -291,6 +293,7 @@ DOMKeyboard = function() {
     var KEY_NUM_PERIOD       = DOMKeys.VK_NUM_PERIOD.c;
     var KEY_NUM_COMMA        = DOMKeys.VK_NUM_COMMA.c;
 
+    var KEY_END_IGNORE       = DOMKeys.VK_END.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;

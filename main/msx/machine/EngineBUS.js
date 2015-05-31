@@ -118,7 +118,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         devicesInputPorts[0xa2]  = psg.inputA2;
 
         // RAM
-        MSX.ram = slots[2] = new SlotRAM64K();
+        MSX.ram = slots[2] = SlotRAM64K.createNewEmpty();
 
         self.setPrimarySlotConfig(0);
     }
@@ -140,13 +140,17 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         return {
             p: primarySlotConfig,
             s0: slots[0].saveState(),
-            s2: slots[2].saveState()
+            s1: slots[1].saveState(),
+            s2: slots[2].saveState(),
+            s3: slots[3].saveState()
         };
     };
 
     this.loadState = function(s) {
-        slots[0].loadState(s.s0);
-        slots[2].loadState(s.s2);
+        slots[0] = SlotCreator.createFromSaveState(s.s0);
+        slots[1] = SlotCreator.createFromSaveState(s.s1);
+        slots[2] = SlotCreator.createFromSaveState(s.s2);
+        slots[3] = SlotCreator.createFromSaveState(s.s3);
         this.setPrimarySlotConfig(s.p);
     };
 

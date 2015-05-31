@@ -298,6 +298,9 @@ function VDP(cpu, psg) {
                 color = vramSpriteAttrTable[atrPos+3];
                 if (color & 0x80) x -= 32;
                 var colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
+
+                //colorCodeValuesStart = (1 << 4) << 8;
+
                 var patternStart = ((name & 0xfc) << 3) + (line - y);
                 var pattern = vramSpritePatternTable[patternStart];
                 var values = colorCodePatternValues[colorCodeValuesStart + pattern];
@@ -317,10 +320,9 @@ function VDP(cpu, psg) {
         function copySprite(dest, pos, source) {
             for (var i = 0; i < 8; i++) {
                 if (source[i] === 0) continue;
-                if (dest[pos + i] < 0xff000000)
-                    dest[pos + i] = source[i] + 0x01000000;
-                else
-                if (collision === null) collision = line;
+                if (dest[pos + i] >= 0xff000000)
+                    if (collision === null) collision = line;
+                dest[pos + i] = source[i] + 0x01000000;
             }
         }
     }

@@ -5,6 +5,7 @@ BIOS = function(rom) {
 
     function init() {
         self.rom = rom;
+        bytes = Util.arrayFill(new Array(65536), 0xff);
         var content = self.rom.content;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
@@ -35,17 +36,18 @@ BIOS = function(rom) {
     };
 
 
-    var bytes = Util.arrayFill(new Array(65536), 0xff);
+    var bytes;
 
     this.rom = null;
-    this.bytes = bytes;
+    this.format = SlotFormats.BIOS;
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
-            r: rom.saveState(),
+            f: this.format.name,
+            r: this.rom.saveState(),
             b: btoa(Util.uInt8ArrayToByteString(bytes))
         };
     };
@@ -56,15 +58,12 @@ BIOS = function(rom) {
     };
 
 
-    init();
+    if (rom) init();
 
 };
 
-// Assumes any 32K content not starting with the Cartridge identifier "AB" is a BIOS
-BIOS.createFromROM = function(rom) {
-    if (rom.content.length === 32768 && rom.content[0] !== 65 && rom.content[1] !== 66)
-        return new BIOS(rom);
+BIOS.createFromSaveState = function(state) {
+    var bios = new BIOS();
+    bios.loadState(state);
+    return bios;
 };
-
-
-

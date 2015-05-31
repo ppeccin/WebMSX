@@ -75,7 +75,7 @@ PSGAudioSignal = function() {
                 mixedSample = mixedChannel.nextSample();
                 // Add a little damper effect to round the edges of the square wave
                 if (mixedSample !== lastSample) {
-                    mixedSample = (mixedSample * 9 + lastSample) / 10;
+                    mixedSample = (mixedSample * 2 + lastSample) / 3;
                     lastSample = mixedSample;
                 }
             } else {

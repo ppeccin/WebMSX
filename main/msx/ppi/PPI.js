@@ -39,9 +39,6 @@ function PPI() {
     // Keyboard Socket interface
 
     this.keyboardKeyChanged = function(key, press) {
-
-        //console.log("KEY: " + key + (press? " press" : " release"));
-
         if (press) keyboardRowValues[key[0]] &= ~(1 << key[1]);
         else keyboardRowValues[key[0]] |= (1 << key[1]);
     };
@@ -62,7 +59,7 @@ function PPI() {
 
     this.loadState = function(s) {
         keyboardRowSelected = 0;
-        keyboardRowValues = Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
+        keyboardRowValues = Util.arrayFill(new Array(16), 0xff);
     };
 
 }

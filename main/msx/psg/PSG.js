@@ -25,15 +25,10 @@ function PSG() {
     };
 
     this.outputA0 = function(port, val) {
-
-        //console.log("Register Select: " + val);
-
         registerAddress = val > 15 ? 0 : val;
     };
 
     this.outputA1 = function(port, val) {
-        //console.log("Register Write: " + val);
-
         registers[registerAddress] = val;
         if (registerAddress === 0 || registerAddress === 1) {
             audioChannel.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);

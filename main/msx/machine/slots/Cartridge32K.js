@@ -5,6 +5,7 @@ Cartridge32K = function(rom) {
 
     function init() {
         self.rom = rom;
+        bytes = Util.arrayFill(new Array(65536), 0xff);
         var content = self.rom.content;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[16384 + i] = content[i];
@@ -35,17 +36,18 @@ Cartridge32K = function(rom) {
     };
 
 
-    var bytes = Util.arrayFill(new Array(65536), 0xff);
+    var bytes;
 
     this.rom = null;
-    this.bytes = bytes;
+    this.format = SlotFormats.Cartridge32K;
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
-            r: rom.saveState(),
+            f: this.format.name,
+            r: this.rom.saveState(),
             b: btoa(Util.uInt8ArrayToByteString(bytes))
         };
     };
@@ -56,13 +58,12 @@ Cartridge32K = function(rom) {
     };
 
 
-    init();
+    if (rom) init();
 
 };
 
-// Assumes any 32K or 16K content starting with the Cartridge identifier "AB" is a Cartridge32K
-Cartridge32K.createFromROM = function(rom) {
-    if ((rom.content.length === 32768 || rom.content.length === 16384) && rom.content[0] === 65 && rom.content[1] === 66)
-        return new Cartridge32K(rom);
+Cartridge32K.createFromSaveState = function(state) {
+    var cart = new Cartridge32K();
+    cart.loadState(state);
+    return cart;
 };
-

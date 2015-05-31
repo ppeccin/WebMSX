@@ -476,7 +476,7 @@ Machine = function() {
         };
 
         var media;
-        var VERSION = 2;
+        var VERSION = 3;
     }
 
 

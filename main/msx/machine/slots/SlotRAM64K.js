@@ -1,6 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-SlotRAM64K = function() {
+SlotRAM64K = function(content) {
+
+    function init() {
+        bytes = content;
+    }
 
     this.write = function(address, value) {
         //console.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
@@ -27,14 +31,16 @@ SlotRAM64K = function() {
     };
 
 
-    var bytes = Util.arrayFill(new Array(65536), 0xff);
-    this.bytes = bytes;
+    var bytes;
+
+    this.format = SlotFormats.RAM64K;
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
+            f: this.format.name,
             b: btoa(Util.uInt8ArrayToByteString(bytes))
         };
     };
@@ -43,4 +49,17 @@ SlotRAM64K = function() {
         bytes = Util.byteStringToUInt8Array(atob(state.b));
     };
 
+
+    if (content) init();
+
+};
+
+SlotRAM64K.createNewEmpty = function() {
+    return new SlotRAM64K(Util.arrayFill(new Array(65536), 0xff));
+};
+
+SlotRAM64K.createFromSaveState = function(state) {
+    var ram = new SlotRAM64K();
+    ram.loadState(state);
+    return ram;
 };
