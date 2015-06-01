@@ -33,6 +33,7 @@ PSGMixedAudioChannel = function() {
             periodNCountdown -= 2;
             if (periodNCountdown <= 0) {
                 periodNCountdown += periodN;
+                periodNCountdown = periodN;
                 currentSampleN = nextLFSR();
             }
         }
@@ -84,8 +85,8 @@ PSGMixedAudioChannel = function() {
 
     this.setPeriodN = function(newPeriod) {
         if (periodN === newPeriod) return;
-        periodNCountdown = ((periodNCountdown / periodN) * newPeriod) | 0;
-        if (periodNCountdown <= 0) periodBCountdown = newPeriod;
+        //periodNCountdown = (((periodNCountdown < 0 ? 0 : periodNCountdown) / periodN) * newPeriod) | 0;
+        //if (periodNCountdown <= 0) periodBCountdown = newPeriod;
         periodN = newPeriod;
     };
 

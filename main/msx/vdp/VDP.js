@@ -30,13 +30,13 @@ function VDP(cpu, psg) {
 
     this.frame = function() {
         // Send clock to the CPU
-        //if (!cpu.stop) cpu.clockPulses(59736);    // 59736 = CPU clocks per frame
+        if (!cpu.stop) cpu.clockPulses(59736);    // 59736 = CPU clocks per frame
 
-        for (var i = 32; i > 0; i--) {
-            if (!cpu.stop) cpu.clockPulses(1824);
-            psg.getAudioOutput().audioClockPulses(29);
-        }
-        if (!cpu.stop) cpu.clockPulses(1368);
+        //for (var i = 32; i > 0; i--) {
+        //    if (!cpu.stop) cpu.clockPulses(1824);
+        //    psg.getAudioOutput().audioClockPulses(29);
+        //}
+        //if (!cpu.stop) cpu.clockPulses(1368);
 
         // Send clock to PSG
         psg.getAudioOutput().finishFrame();
@@ -54,7 +54,7 @@ function VDP(cpu, psg) {
         var prevStatus = status;
 
         dataToWrite = null;
-        status &= ~0xa0;
+        status = 0;
         updateIRQ();
 
         return prevStatus;
@@ -124,7 +124,7 @@ function VDP(cpu, psg) {
     this.input98 = function(port) {
         dataToWrite = null;
 
-        if (vramWriteMode) console.log("Illegal VRAM Read");
+        //if (vramWriteMode) console.log("Illegal VRAM Read");
 
         var res = vram[vramPointer++];            // VRAM Read
 
@@ -142,9 +142,19 @@ function VDP(cpu, psg) {
 
         //console.log(">>> VRAM Write: " + Util.toHex2(vramPointer) + ", " + Util.toHex2(val));
 
+        //if (vramPointer >= spriteAttrTableAddress && vramPointer <= (spriteAttrTableAddress + 128)) {
+        //    if (((vramPointer - spriteAttrTableAddress) & 0x03) === 3) {
+        //        var sprite = ((vramPointer - spriteAttrTableAddress) >> 2);
+        //        var name = vram[vramPointer - 1];
+        //        var y = vram[vramPointer - 3];
+        //        if (name == 24)
+        //            console.log("Setting color: " + val + " for sprite: " + sprite + " name: " + name + " line: " + y);
+        //    }
+        //}
+
         vram[vramPointer++] = val;               // VRAM Write
 
-        if (!vramWriteMode) console.log("Illegal VRAM Write");
+        //if (!vramWriteMode) console.log("Illegal VRAM Write");
 
         if (vramPointer > 16383) {
             //console.log("VRAM Write Wrapped");
@@ -280,26 +290,38 @@ function VDP(cpu, psg) {
     function updateSpritesPlane() {
         if ((register1 & 0x03) !== 2) return;
         if (vramSpriteAttrTable[0] === 208) return;
-        var collision = null;
+        var collision = false;
+        var invalid = null;
         var y, x, name, color;
         var bufferPos = 32;                                              // First possible sprite pixel (-32, 0) position
 
         for (var line = -32; line < 288; line ++) {
-            var atrPos = -4;
-            for (var sprite = 31; sprite >= 0; sprite--) {
-                atrPos += 4;
+            var drawn = 0;
+            for (var atrPos = 0; atrPos < 128; atrPos += 4) {            // Max of sprites 32
                 y = vramSpriteAttrTable[atrPos];
                 if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y - 1;                          // Signed value from -31 to -1. -1 (255) is line 0 per spec
-                y++;                                                     // So add 1
-                if (y < line - 15 || y > line) continue;
+                if (y >= 225) y = -256 + y - 1;                          // Signed value from -31 to -1
+                y++;                                                     //  -1 (255) is line 0 per spec, so add 1
+                if (y < (line - 15) || y > line) continue;               // Not present at line
+                drawn++;
+                if (drawn > 4) {                                         // Max of 4 sprites drawn. Mark the first invalid 5th
+                    if (!invalid) invalid = atrPos >> 2;
+                    break;
+                }
                 x = vramSpriteAttrTable[atrPos+1];
                 name = vramSpriteAttrTable[atrPos+2];
                 color = vramSpriteAttrTable[atrPos+3];
-                if (color & 0x80) x -= 32;
+                if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
                 var colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
 
-                //colorCodeValuesStart = (1 << 4) << 8;
+                //if (line >= 0 && line <= 191 && (color & 0x0f) === 0) {
+                //    //console.log("Color 0 Sprite: " + sprite + " name: " + name + " y: " + y + " x: " + x);
+                //    color = 13;
+                //    colorCodeValuesStart = (((color & 0x0f) << 4) + 4) << 8;
+                //} else {
+                //    color = 10;
+                //    colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
+                //}
 
                 var patternStart = ((name & 0xfc) << 3) + (line - y);
                 var pattern = vramSpritePatternTable[patternStart];
@@ -312,17 +334,22 @@ function VDP(cpu, psg) {
             bufferPos += 320;
         }
 
-        if (collision !== null) {
-            //console.log("Collision at " + collision);
+        if (collision) {
+            //console.log("Collision");
             status |= 0x20;
+        }
+        if (invalid) {
+            //console.log("Invalid sprite: " + invalid);
+            status &= 0xe0; status |= (0x40 | invalid);
         }
 
         function copySprite(dest, pos, source) {
             for (var i = 0; i < 8; i++) {
                 if (source[i] === 0) continue;
-                if (dest[pos + i] >= 0xff000000)
-                    if (collision === null) collision = line;
-                dest[pos + i] = source[i] + 0x01000000;
+                if (dest[pos + i] < 0xff000000)
+                    dest[pos + i] = source[i] + 0x01000000;
+                else
+                    collision = true;
             }
         }
     }
@@ -435,7 +462,8 @@ function VDP(cpu, psg) {
         vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
         vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
         backdropRGB = colorRGBs[register7 & 0x0f];
-        blanked = (register1 & 0x40) === 0;
+        signalBlanked = (register1 & 0x40) === 0;
+        patternBlanked = false;
     };
 
 

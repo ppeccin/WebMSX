@@ -203,7 +203,7 @@ CanvasDisplay = function(mainElement) {
 
     var setCRTFilter = function() {
         context.globalCompositeOperation = "copy";
-        if (context.hasOwnProperty("imageSmoothingEnabled"))
+        if (context.hasOwnProperty !== undefined)
             context.imageSmoothingEnabled = crtFilter;
         else {
             context.webkitImageSmoothingEnabled = crtFilter;

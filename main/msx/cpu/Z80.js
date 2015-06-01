@@ -115,7 +115,7 @@ Z80 = function() {
     // Internal operations
 
     var fetchNextInstruction = function() {
-        R++;                                            // TODO Verify. R should increse only by 2 for DDCB/FDCB instrictions. Not 3 as its happening (2 per prefix + 1 instr)
+        R++;
 
         if (self.INT === 0 && IFF1 && prefix === 0) {   // INT = 0 means active
             pINT_1();
@@ -185,7 +185,7 @@ Z80 = function() {
         return I;
     };
     var fromR = function() {
-        if (R > 127) R = 0;
+        if (R > 127) R &= 0x7f;         // TODO R can have bit 7 = 1 if set manually. How the increment handles that?
         return R;
     };
     var fromIXh = function() {
@@ -1366,12 +1366,16 @@ Z80 = function() {
 
     function pSET_DDCB() {
         prefix = 0xddcb;
+        // Special case. R should not be incremented next opcode fetch so adjust here
+        R--;
         // Special case. Pre-reads d before the real opcode
         preReadIXYd();
     }
 
     function pSET_FDCB() {
         prefix = 0xfdcb;
+        // Special case. R should not be incremented next opcode fetch so adjust here
+        R--;
         // Special case. Pre-reads d before the real opcode
         preReadIXYd();
     }
