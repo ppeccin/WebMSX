@@ -17,11 +17,15 @@ PSGAudioSignal = function() {
 
     this.signalOn = function() {
         signalOn = true;
+        mixedChannel.reset();
     };
 
     this.signalOff = function() {
         signalOn = false;
-        mixedChannel.setMixerControl(0);
+        mixedChannel.setMixerControl(0xff);
+        mixedChannel.setAmplitudeA(0);
+        mixedChannel.setAmplitudeB(0);
+        mixedChannel.setAmplitudeC(0);
     };
 
     this.setFps = function(fps) {
@@ -118,4 +122,4 @@ PSGAudioSignal = function() {
 
 };
 
-PSGAudioSignal.SAMPLE_RATE = 55980;
+PSGAudioSignal.SAMPLE_RATE = 55980 * 2;

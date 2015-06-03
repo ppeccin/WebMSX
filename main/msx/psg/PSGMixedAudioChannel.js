@@ -8,39 +8,38 @@ PSGMixedAudioChannel = function() {
 
     this.nextSample = function() {
         // Update values
-        if (toneA) {
-            periodACountdown -= 4;
-            if (periodACountdown <= 0) {
-                periodACountdown += periodA;
+        if (amplitudeA > 0 && periodA > 0) {
+            periodACount += 2;
+            if (periodACount >= periodA) {
+                periodACount = (periodACount - periodA) & 1;     // Preserve the remainder (0 or 1) for odd dividers, as the step is 2
                 currentSampleA = currentSampleA ? 0 : 1;
             }
         }
-        if (toneB) {
-            periodBCountdown -= 4;
-            if (periodBCountdown <= 0) {
-                periodBCountdown += periodB;
+        if (amplitudeB > 0 && periodB > 0) {
+            periodBCount += 2;
+            if (periodBCount >= periodB) {
+                periodBCount = (periodBCount - periodB) & 1;
                 currentSampleB = currentSampleB ? 0 : 1;
             }
         }
-        if (toneC) {
-            periodCCountdown -= 4;
-            if (periodCCountdown <= 0) {
-                periodCCountdown += periodC;
+        if (amplitudeC > 0 && periodC > 0) {
+            periodCCount += 2;
+            if (periodCCount >= periodC) {
+                periodCCount = (periodCCount - periodC) & 1;
                 currentSampleC = currentSampleC ? 0 : 1;
             }
         }
         if (noiseA || noiseB || noiseC) {
-            periodNCountdown -= 2;
-            if (periodNCountdown <= 0) {
-                periodNCountdown += periodN;
-                periodNCountdown = periodN;
+            periodNCountdown += 1;
+            if (periodNCountdown >= periodN) {
+                periodNCountdown = 0;
                 currentSampleN = nextLFSR();
             }
         }
-        if ((directionE !== 0)) {  // } && (envelopeA || envelopeB || envelopeC)) {
-            periodECountdown -= 2;
-            if (periodECountdown <= 0) {
-                periodECountdown += periodE;
+        if ((directionE !== 0)) {
+            periodECountdown += 1;
+            if (periodECountdown >= periodE) {
+                periodECountdown = 0;
                 currentValueE += directionE;
                 if (currentValueE < 0 || currentValueE > 15) {
                     if (continueE) {
@@ -54,47 +53,49 @@ PSGMixedAudioChannel = function() {
             }
         }
 
-        // Mix tone with noise
-        var sampleA = (toneA ? currentSampleA : 0) | (noiseA ? currentSampleN : 0);
-        var sampleB = (toneB ? currentSampleB : 0) | (noiseB ? currentSampleN : 0);
-        var sampleC = (toneC ? currentSampleC : 0) | (noiseC ? currentSampleN : 0);
+        // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1)
+        var sampleA = amplitudeA > 0 ? (toneA ? currentSampleA : 1) & (noiseA ? currentSampleN : 1) : 0;
+        var sampleB = amplitudeB > 0 ? (toneB ? currentSampleB : 1) & (noiseB ? currentSampleN : 1) : 0;
+        var sampleC = amplitudeC > 0 ? (toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1) : 0;
 
-        return sampleA * amplitudeA + sampleB * amplitudeB + sampleC * amplitudeC;
+        return sampleA * amplitudeA + sampleB * amplitudeB - sampleC * amplitudeC;
     };
 
     this.setPeriodA = function(newPeriod) {
         if (periodA === newPeriod) return;
-        periodACountdown = ((periodACountdown / periodA) * newPeriod) | 0;
-        if (periodACountdown <= 0) periodBCountdown = newPeriod;
-        periodA = newPeriod;
+        if (newPeriod < 2) {
+            periodA = 0; currentSampleA = 1;        // Dividers 0 and 1 not supported. Fixed high value (1)
+        } else {
+            periodA = newPeriod;
+        }
     };
 
     this.setPeriodB = function(newPeriod) {
         if (periodB === newPeriod) return;
-        periodBCountdown = ((periodBCountdown / periodB) * newPeriod) | 0;
-        if (periodBCountdown <= 0) periodBCountdown = newPeriod;
-        periodB = newPeriod;
+        if (newPeriod < 2) {
+            periodB = 0; currentSampleB = 1;
+        } else {
+            periodB = newPeriod;
+        }
     };
 
     this.setPeriodC = function(newPeriod) {
         if (periodC === newPeriod) return;
-        periodCCountdown = ((periodCCountdown / periodC) * newPeriod) | 0;
-        if (periodCCountdown <= 0) periodBCountdown = newPeriod;
-        periodC = newPeriod;
+        if (newPeriod < 2) {
+            periodC = 0; currentSampleC = 1;
+        } else {
+            periodC = newPeriod;
+        }
     };
 
     this.setPeriodN = function(newPeriod) {
         if (periodN === newPeriod) return;
-        //periodNCountdown = (((periodNCountdown < 0 ? 0 : periodNCountdown) / periodN) * newPeriod) | 0;
-        //if (periodNCountdown <= 0) periodBCountdown = newPeriod;
-        periodN = newPeriod;
+        periodN = newPeriod < 1 ? 1 : newPeriod;    // Dividers0 is the same as 1
     };
 
     this.setPeriodE = function(newPeriod) {
         if (periodE === newPeriod) return;
-        periodECountdown = ((periodECountdown / periodE) * newPeriod) | 0;
-        if (periodECountdown <= 0) periodBCountdown = newPeriod;
-        periodE = newPeriod;
+        periodE = newPeriod < 1 ? 1 : newPeriod;
     };
 
     this.setAmplitudeA = function(newAmplitude) {
@@ -128,15 +129,15 @@ PSGMixedAudioChannel = function() {
     };
 
     this.setEnvelopeControl = function(control) {
-
-        console.log("Envelope Control: " + Util.toHex2(control));
-
         continueE =  (control & 0x08) > 0;
         attackE =    (control & 0x04) > 0;
         alternateE = (control & 0x02) > 0;
         holdE =      (control & 0x01) > 0;
         cycleEnvelope(false, false);
         setEnvelopeAmplitudes();
+    };
+
+    this.reset = function() {
     };
 
     function cycleEnvelope(alternate, hold) {
@@ -152,10 +153,9 @@ PSGMixedAudioChannel = function() {
     }
 
     function nextLFSR() {
-        var carry = lfsr & 0x01;					                // bit 0
-        var push = ((lfsr >> 17) ^ (lfsr >> 6) ^ carry) & 0x01;	    // bit 17 XOR bit 6 XOR bit 0
-        lfsr = (push << 17) | (lfsr >>> 1);			                // shift right, push to left
-        return carry;
+        // bit 16 = bit 2 XOR bit 0
+        lfsr =  (lfsr >>> 1) | ((((lfsr >> 2) ^ (lfsr & 0x01)) & 0x01) << 16);    // shift right, push to left
+        return lfsr & 0x01;
     }
 
     function createVolumeCurve() {
@@ -165,7 +165,7 @@ PSGMixedAudioChannel = function() {
 
 
     var periodA = 0;
-    var periodACountdown = 0;
+    var periodACount = 0;
     var currentSampleA = 0;
     var amplitudeA = 0;
     var toneA = false;
@@ -173,7 +173,7 @@ PSGMixedAudioChannel = function() {
     var envelopeA = false;
 
     var periodB = 0;
-    var periodBCountdown = 0;
+    var periodBCount = 0;
     var currentSampleB = 0;
     var amplitudeB = 0;
     var toneB = false;
@@ -181,19 +181,19 @@ PSGMixedAudioChannel = function() {
     var envelopeB = false;
 
     var periodC = 0;
-    var periodCCountdown = 0;
+    var periodCCount = 0;
     var currentSampleC = 0;
     var amplitudeC = 0;
     var toneC = false;
     var noiseC = false;
     var envelopeC = false;
 
-    var periodN = 0;
-    var periodNCountdown = 0;
+    var periodN = 1;
+    var periodNCountdown = 1;
     var currentSampleN = 0;
 
-    var periodE = 0;
-    var periodECountdown = 0;
+    var periodE = 1;
+    var periodECountdown = 1;
     var currentValueE = 0;
     var directionE = 0;
     var continueE = false;
@@ -201,12 +201,35 @@ PSGMixedAudioChannel = function() {
     var alternateE = false;
     var holdE = false;
 
-    var lfsr = 0x3fffe;             // Noise generator. 18-bit Linear Feedback Shift Register
+    var lfsr = 0x1fffe;             // Noise generator. 17-bit Linear Feedback Shift Register
 
     var volumeCurve = new Array(16);
 
     var CHANNEL_AMP_CURVE_POWER = 16;
-    var CHANNEL_MAX_AMP = 0.25;
+    var CHANNEL_MAX_AMP = 0.3;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            pa: periodA, pac: periodACount, ca: currentSampleA, aa: amplitudeA, ta: toneA, na: noiseA, ea: envelopeA,
+            pb: periodB, pbc: periodBCount, cb: currentSampleB, ab: amplitudeB, tb: toneB, nb: noiseB, eb: envelopeB,
+            pc: periodC, pcc: periodCCount, cc: currentSampleC, ac: amplitudeC, tc: toneC, nc: noiseC, ec: envelopeC,
+            pn: periodN, pnc: periodNCountdown, cn: currentSampleN,
+            pe: periodE, pec: periodECountdown, ce: currentValueE, de: directionE, cne: continueE, ate: attackE, ale: alternateE, he: holdE,
+            lf: lfsr
+        };
+    };
+
+    this.loadState = function(s) {
+        periodA = s.pa; periodACount = s.pac; currentSampleA = s.ca; amplitudeA = s.aa; toneA = s.ta; noiseA = s.na; envelopeA = s.ea;
+        periodB = s.pb; periodBCount = s.pbc; currentSampleB = s.cb; amplitudeB = s.ab; toneB = s.tb; noiseB = s.nb; envelopeB = s.eb;
+        periodC = s.pc; periodCCount = s.pcc; currentSampleC = s.cc; amplitudeC = s.ac; toneC = s.tc; noiseC = s.nc; envelopeC = s.ec;
+        periodN = s.pn; periodNCountdown = s.pnc; currentSampleN = s.cn;
+        periodE = s.pe; periodECountdown = s.pec; currentValueE = s.ce; directionE = s.de; continueE = s.cne; attackE = s.ate; alternateE = s.ale; holdE = s.he;
+        lfsr = s.lf;
+    };
 
 
     init();

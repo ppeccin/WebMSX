@@ -157,4 +157,9 @@ function EngineBUS(cpu, ppi, vdp, psg) {
 
     init();
 
+
+    this.eval = function(str) {
+        return eval(str);
+    };
+
 }

@@ -71,10 +71,17 @@ function PSG() {
 
     this.saveState = function() {
         return {
+            ra: registerAddress,
+            r: btoa(Util.uInt8ArrayToByteString(registers)),
+            a: audioChannel.saveState()
+
         };
     };
 
     this.loadState = function(s) {
+        registerAddress = s.ra;
+        registers = Util.byteStringToUInt8Array(atob(s.r));
+        audioChannel.loadState(s.a);
     };
 
 

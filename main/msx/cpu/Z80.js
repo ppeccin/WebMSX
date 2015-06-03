@@ -108,6 +108,7 @@ Z80 = function() {
     var instructionsFDCB = new Array(256);
 
     var instructionADT_CYCLES;
+    var instructionHALT;
 
     this.instructionsAll  = [];
 
@@ -436,7 +437,7 @@ Z80 = function() {
     }
 
     function HALT() {
-        Util.log("HALT!");
+        //Util.log("HALT!");
         //self.breakpoint("HALT");
         decPC();    // Keep repeating HALT instruction until an INT or RESET
     }
@@ -1340,8 +1341,9 @@ Z80 = function() {
     // Pseudo instructions
 
     function pINT_1() {
-        IFF1 = IFF2 = 0;
+        if (instruction === instructionHALT) PCinc();       // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
+        IFF1 = IFF2 = 0;
         PC = 0x0038;
         T = 13;
         instruction = instructionADT_CYCLES;
@@ -1937,7 +1939,7 @@ Z80 = function() {
         // 1 bytes, 1M, 4T: - HALT
         opcode = 0x76;
         instr = HALT;
-        defineInstruction(null, null, opcode, 4, instr, "HALT", false);
+        instructionHALT = defineInstruction(null, null, opcode, 4, instr, "HALT", false);
 
         // 1 bytes, 1M, 4T: - DI
         opcode = 0xf3;
