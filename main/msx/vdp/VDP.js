@@ -32,14 +32,11 @@ function VDP(cpu, psg) {
         // Send clock to the CPU
         //if (!cpu.stop) cpu.clockPulses(59736);    // 59736 = CPU clocks per frame
 
-        for (var i = 59736; i > 0; i--)
-            if (!cpu.stop) cpu.clockPulses(1);
-
-        //for (var i = 32; i > 0; i--) {
-        //    if (!cpu.stop) cpu.clockPulses(1824);
-        //    psg.getAudioOutput().audioClockPulses(29);
-        //}
-        //if (!cpu.stop) cpu.clockPulses(1368);
+        for (var i = 1866; i > 0; i--) {
+            if (!cpu.stop) cpu.clockPulses(32);
+            psg.getAudioOutput().audioClockPulses(1);
+        }
+        if (!cpu.stop) cpu.clockPulses(24);
 
         // Send clock to PSG
         psg.getAudioOutput().finishFrame();
@@ -291,7 +288,7 @@ function VDP(cpu, psg) {
     }
 
     function updateSpritesPlane() {
-        if ((register1 & 0x03) !== 2) return;
+        //if ((register1 & 0x03) !== 2) return;
         if (vramSpriteAttrTable[0] === 208) return;
         var collision = false;
         var invalid = null;

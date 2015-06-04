@@ -34,6 +34,10 @@ PSGAudioSignal = function() {
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
+    this.setExternalAddedValue = function(val) {
+        externalAddedValue = val;
+    };
+
     this.finishFrame = function() {
         var missingSamples = samplesPerFrame - frameSamples;
         if (missingSamples > 0) generateNextSamples(missingSamples);
@@ -82,6 +86,8 @@ PSGAudioSignal = function() {
                     mixedSample = (mixedSample * 2 + lastSample) / 3;
                     lastSample = mixedSample;
                 }
+                // Add the External value. Used by the PPI to generate the Keyboard Click
+                mixedSample += externalAddedValue;
             } else {
                 mixedSample = 0;
             }
@@ -109,6 +115,8 @@ PSGAudioSignal = function() {
 
     var lastSample = 0;
 
+    var externalAddedValue = 0;
+
     var MAX_SAMPLES = 10 * MSX.AUDIO_BUFFER_SIZE;
     var MAX_AMPLITUDE = 0.5;
 
@@ -122,4 +130,4 @@ PSGAudioSignal = function() {
 
 };
 
-PSGAudioSignal.SAMPLE_RATE = 55980 * 2;
+PSGAudioSignal.SAMPLE_RATE = 111960;

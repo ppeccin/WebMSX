@@ -153,9 +153,9 @@ Machine = function() {
 
     var mainComponentsCreate = function() {
         cpu = new Z80();
-        ppi = new PPI();
         psg = new PSG();
-        vdp = new VDP(cpu,psg);
+        ppi = new PPI(psg.getAudioOutput());
+        vdp = new VDP(cpu, psg);
         bus = new EngineBUS(cpu, ppi, vdp, psg);
         mainClock = new Clock(self, VideoStandard.NTSC.fps);
 

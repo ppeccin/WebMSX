@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function PPI() {
+function PPI(audioOutput) {
 
     this.connectEngine = function(pEngine) {
         engine = pEngine;
@@ -25,15 +25,37 @@ function PPI() {
     };
 
     this.inputAA = function(port) {
-        return keyboardRowSelected | 0x50;
+        return registerC;
     };
 
     this.outputAA = function(port, val) {
-        keyboardRowSelected = val & 0x0f;
+        registerC  = val;
+        updateKeyboardConfig(val);
+        updateCasseteSignal(val);
     };
 
     this.outputAB = function(port, val) {
+        if ((val & 0x01) === 0) registerC &= ~(1 << ((val & 0x0e) >>> 1));
+        else registerC |= (1 << ((val & 0x0e) >>> 1));
+
+        var bit = (val & 0x0e) >>> 1;
+        if (bit <= 3 || bit === 7) {
+            updateKeyboardConfig(registerC);
+        } else if (bit === 5) {
+            updateCasseteSignal(registerC);
+        }
     };
+
+    function updateKeyboardConfig(reg) {
+        keyboardRowSelected = reg & 0x0f;
+        if (keyClickSignal === ((reg & 0x80) > 0)) return;
+        keyClickSignal = !keyClickSignal;
+        audioOutput.setExternalAddedValue(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
+    }
+
+    function updateCasseteSignal(val) {
+        //audioOutput.setExternalAddedValue((registerC & 0x20) > 0 ? KEY_CLICK_AUDIO_VALUE : 0);
+    }
 
 
     // Keyboard Socket interface
@@ -44,21 +66,29 @@ function PPI() {
     };
 
 
+    var registerC = 0;
+    var keyClickSignal = false;
+    var casseteSignal = false;
+
     var keyboardRowSelected = 0;
     var keyboardRowValues = Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var engine;
+
+    var KEY_CLICK_AUDIO_VALUE = 0.24;
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
+            c: registerC
         };
     };
 
     this.loadState = function(s) {
-        keyboardRowSelected = 0;
+        registerC = s.c || 0;
+        updateKeyboardConfig(registerC);
         keyboardRowValues = Util.arrayFill(new Array(16), 0xff);
     };
 

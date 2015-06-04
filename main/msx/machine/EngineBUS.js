@@ -104,7 +104,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         devicesInputPorts[0xa9]  = ppi.inputA9;
         devicesInputPorts[0xaa]  = ppi.inputAA;
         devicesOutputPorts[0xaa] = ppi.outputAA;
-        devicesOutputPorts[0xab] = ppi.outputAA;
+        devicesOutputPorts[0xab] = ppi.outputAB;
 
         // VDP
         devicesInputPorts[0x98]  = vdp.input98;
