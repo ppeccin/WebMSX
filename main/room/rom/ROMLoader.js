@@ -153,7 +153,7 @@ ROMLoader = function() {
             var slot = SlotCreator.createFromROM(rom);
             if (slot.constructor === BIOS) {
                 biosSocket.insert(slot, autoPower);
-            } else if (slot.constructor === Cartridge32K) {
+            } else {
                 cartridgeSocket.insert(slot, autoPower);
             }
         } catch(e) {
@@ -177,7 +177,7 @@ ROMLoader = function() {
                         slot = SlotCreator.createFromROM(rom);
                         if (slot.constructor === BIOS) {
                             biosSocket.insert(slot, autoPower);
-                        } else if (slot.constructor === Cartridge32K) {
+                        } else {
                             cartridgeSocket.insert(slot, autoPower);
                         }
                         return;

@@ -1,14 +1,23 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-BIOS = function(rom) {
+Cartridge32K = function(rom) {
     var self = this;
 
     function init() {
         self.rom = rom;
         bytes = Util.arrayFill(new Array(65536), 0xff);
         var content = self.rom.content;
-        for(var i = 0, len = content.length; i < len; i++)
-            bytes[i] = content[i];
+        if (content.length === 32768) {
+            for(var i = 0, len = content.length; i < len; i++)
+                bytes[16384 + i] = content[i];
+        } else {
+            for(i = 0, len = content.length; i < len; i++) {
+                //bytes[i] = content[i];
+                bytes[0x4000 + i] = content[i];
+                //bytes[0x8000 + i] = content[i];
+                //bytes[0xc000 + i] = content[i];
+            }
+        }
     }
 
     this.powerOn = function(paused) {
@@ -18,12 +27,10 @@ BIOS = function(rom) {
     };
 
     this.write = function(address, value) {
-        //console.log ("Write over BIOS ROM at " + address.toString(16) + " := " + value.toString(16));
         // ROMs cannot be modified
     };
 
     this.read = function(address) {
-        //console.log ("BIOS ROM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
     };
 
@@ -45,7 +52,7 @@ BIOS = function(rom) {
     var bytes;
 
     this.rom = null;
-    this.format = SlotFormats.BIOS;
+    this.format = SlotFormats.Cartridge32K;
 
 
     // Savestate  -------------------------------------------
@@ -68,8 +75,8 @@ BIOS = function(rom) {
 
 };
 
-BIOS.createFromSaveState = function(state) {
-    var bios = new BIOS();
-    bios.loadState(state);
-    return bios;
+Cartridge32K.createFromSaveState = function(state) {
+    var cart = new Cartridge32K();
+    cart.loadState(state);
+    return cart;
 };

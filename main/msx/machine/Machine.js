@@ -142,13 +142,13 @@ Machine = function() {
     var mainClockAdjustToNormal = function() {
         var freq = videoStandard.fps;
         mainClock.setFrequency(freq);
-        //tia.getAudioOutput().setFps(freq);
+        psg.getAudioOutput().setFps(freq);
     };
 
     var mainClockAdjustToFast    = function() {
         var freq = 600;     // About 10x faster
         mainClock.setFrequency(freq);
-        //tia.getAudioOutput().setFps(freq);
+        psg.getAudioOutput().setFps(freq);
     };
 
     var mainComponentsCreate = function() {

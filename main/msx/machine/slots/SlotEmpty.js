@@ -2,6 +2,12 @@
 
 SlotEmpty = function() {
 
+    this.powerOn = function(paused) {
+    };
+
+    this.powerOff = function() {
+    };
+
     this.write = function(address, value) {
         //console.log ("Write over Empty Slot at " + address.toString(16) + " := " + value.toString(16));
         // ROMs cannot be modified

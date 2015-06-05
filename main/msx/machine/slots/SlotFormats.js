@@ -62,6 +62,38 @@ SlotFormats = {
         createFromSaveState: function (state) {
             return Cartridge32K.createFromSaveState(state);
         }
+    },
+
+    "CartridgeASCII8K": {
+        name: "CartridgeASCII8K",
+        desc: "ASCII8K Cartridge",
+        priority: 112,
+        tryFormat: function (rom) {
+            // For now assume any >64K content starting with the Cartridge identifier "AB" is a CartridgeASCII16K
+            if (rom.content.length > 65536 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new CartridgeASCII8K(rom);
+        },
+        createFromSaveState: function (state) {
+            return CartridgeASCII8K.createFromSaveState(state);
+        }
+    },
+
+    "CartridgeASCII16K": {
+        name: "CartridgeASCII16K",
+        desc: "ASCII16K Cartridge",
+        priority: 113,
+        tryFormat: function (rom) {
+            // For now assume any 64K content starting with the Cartridge identifier "AB" is a CartridgeASCII16K
+            if (rom.content.length === 65536 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new CartridgeASCII16K(rom);
+        },
+        createFromSaveState: function (state) {
+            return CartridgeASCII16K.createFromSaveState(state);
+        }
     }
 
 };

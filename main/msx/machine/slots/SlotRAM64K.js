@@ -6,6 +6,12 @@ SlotRAM64K = function(content) {
         bytes = content;
     }
 
+    this.powerOn = function(paused) {
+    };
+
+    this.powerOff = function() {
+    };
+
     this.write = function(address, value) {
         //console.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
         bytes[address] = value;

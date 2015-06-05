@@ -10,6 +10,8 @@ function EngineBUS(cpu, ppi, vdp, psg) {
     }
 
     this.powerOn = function(paused) {
+        for (var i = 0; i < 4; i++) slots[i].powerOn();
+        this.setPrimarySlotConfig(0);
         ppi.powerOn();
         psg.powerOn();
         vdp.powerOn();
@@ -21,6 +23,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         vdp.powerOff();
         psg.powerOff();
         ppi.powerOff();
+        for (var i = 0; i < 4; i++) slots[i].powerOff();
     };
 
     this.setBIOS = function(pBios) {
@@ -86,10 +89,10 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         devicesInputPorts =  Util.arrayFill(new Array(256), deviceMissing.inputPort);
         devicesOutputPorts = Util.arrayFill(new Array(256), deviceMissing.outputPort);
 
-        this.slots = slots;
-        this.slotPages = slotPages;
-        this.devicesInputPorts = devicesInputPorts;
-        this.devicesOutputPorts = devicesOutputPorts;
+        self.slots = slots;
+        self.slotPages = slotPages;
+        self.devicesInputPorts = devicesInputPorts;
+        self.devicesOutputPorts = devicesOutputPorts;
     }
 
     function setupMachine() {                       // Like a Gradiente Expert 1.1
