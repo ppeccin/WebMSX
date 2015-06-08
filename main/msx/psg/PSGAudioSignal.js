@@ -34,7 +34,7 @@ PSGAudioSignal = function() {
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
-    this.setExternalAddedValue = function(val) {
+    this.setExternalSignal = function(val) {
         externalAddedValue = val;
     };
 

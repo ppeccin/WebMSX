@@ -313,16 +313,6 @@ function VDP(cpu, psg) {
                 color = vramSpriteAttrTable[atrPos+3];
                 if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
                 var colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
-
-                //if (line >= 0 && line <= 191 && (color & 0x0f) === 0) {
-                //    //console.log("Color 0 Sprite: " + sprite + " name: " + name + " y: " + y + " x: " + x);
-                //    color = 13;
-                //    colorCodeValuesStart = (((color & 0x0f) << 4) + 4) << 8;
-                //} else {
-                //    color = 10;
-                //    colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
-                //}
-
                 var patternStart = ((name & 0xfc) << 3) + (line - y);
                 var pattern = vramSpritePatternTable[patternStart];
                 var values = colorCodePatternValues[colorCodeValuesStart + pattern];
@@ -343,13 +333,12 @@ function VDP(cpu, psg) {
             status &= 0xe0; status |= (0x40 | invalid);
         }
 
+        // TODO Collisions with transparent (color 0) sprites will not be detected
         function copySprite(dest, pos, source) {
             for (var i = 0; i < 8; i++) {
                 if (source[i] === 0) continue;
-                if (dest[pos + i] < 0xff000000)
-                    dest[pos + i] = source[i] + 0x01000000;
-                else
-                    collision = true;
+                if (dest[pos + i] < 0xff000000) dest[pos + i] = source[i] + 0x01000000;
+                else collision = true;
             }
         }
     }
@@ -444,7 +433,7 @@ function VDP(cpu, psg) {
 
     this.saveState = function() {
         return {
-            s: status, m: mode, r0: register0, r1: register1, r7: register7,
+            s: status, m: mode, r0: register0, r1: register1, r3: register3, r4: register4, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
             vram: btoa(Util.uInt8ArrayToByteString(vram))
@@ -452,7 +441,7 @@ function VDP(cpu, psg) {
     };
 
     this.loadState = function(s) {
-        status = s.s; mode = s.m; register0 = s.r0; register1 = s.r1; register7 = s.r7;
+        status = s.s; mode = s.m; register0 = s.r0; register1 = s.r1; register3 = s.r3; register4 = s.r4; register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
         vram = new Uint8Array(Util.byteStringToUInt8Array(atob(s.vram)));

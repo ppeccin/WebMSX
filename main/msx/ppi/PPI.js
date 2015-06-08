@@ -29,9 +29,10 @@ function PPI(audioOutput) {
     };
 
     this.outputAA = function(port, val) {
+        if (registerC === val) return;
         registerC  = val;
-        updateKeyboardConfig(val);
-        updateCasseteSignal(val);
+        updateKeyboardConfig();
+        updateCasseteSignal();
     };
 
     this.outputAB = function(port, val) {
@@ -40,21 +41,23 @@ function PPI(audioOutput) {
 
         var bit = (val & 0x0e) >>> 1;
         if (bit <= 3 || bit === 7) {
-            updateKeyboardConfig(registerC);
+            updateKeyboardConfig();
         } else if (bit === 5) {
-            updateCasseteSignal(registerC);
+            updateCasseteSignal();
         }
     };
 
-    function updateKeyboardConfig(reg) {
-        keyboardRowSelected = reg & 0x0f;
-        if (keyClickSignal === ((reg & 0x80) > 0)) return;
+    function updateKeyboardConfig() {
+        keyboardRowSelected = registerC & 0x0f;
+        if (keyClickSignal === ((registerC & 0x80) > 0)) return;
         keyClickSignal = !keyClickSignal;
-        audioOutput.setExternalAddedValue(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
+        audioOutput.setExternalSignal(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
     }
 
-    function updateCasseteSignal(val) {
-        //audioOutput.setExternalAddedValue((registerC & 0x20) > 0 ? KEY_CLICK_AUDIO_VALUE : 0);
+    function updateCasseteSignal() {
+        if (keyClickSignal === ((registerC & 0x20) > 0)) return;
+        casseteSignal = !casseteSignal;
+        audioOutput.setExternalSignal(casseteSignal ? KEY_CLICK_AUDIO_VALUE : 0);
     }
 
 
@@ -89,6 +92,7 @@ function PPI(audioOutput) {
     this.loadState = function(s) {
         registerC = s.c || 0;
         updateKeyboardConfig(registerC);
+        updateCasseteSignal(registerC);
         keyboardRowValues = Util.arrayFill(new Array(16), 0xff);
     };
 

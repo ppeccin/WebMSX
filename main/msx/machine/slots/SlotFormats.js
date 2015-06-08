@@ -22,8 +22,8 @@ SlotFormats = {
         desc: "32K BIOS Slot",
         priority: 102,
         tryFormat: function (rom) {
-            // Assumes any 32K content not starting with the Cartridge identifier "AB" is a BIOS
-            if (rom.content.length === 32768 && rom.content[0] !== 65 && rom.content[1] !== 66) return this;
+            // Assumes any 16K or 32K content not starting with the Cartridge identifier "AB" is a BIOS
+            if ((rom.content.length === 16384 || rom.content.length === 32768) && rom.content[0] !== 65 && rom.content[1] !== 66) return this;
         },
         createFromROM: function (rom) {
             return new BIOS(rom);
