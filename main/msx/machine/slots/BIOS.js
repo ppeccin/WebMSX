@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// 16K or 32K BIOS. Always positioned at 0x0000
 BIOS = function(rom) {
     var self = this;
 

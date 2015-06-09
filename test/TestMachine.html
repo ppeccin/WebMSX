@@ -33,7 +33,7 @@
 
     <script src="../main/MSX.js"></script>
     <script src="../main/util/Util.js"></script>
-    <script src="../main/util/MD5.js"></script>
+    <script src="../main/util/SHA1.js"></script>
     <script src="../main/util/ZIP.js"></script>
     <script src="../main/msx/cpu/Z80.js"></script>
     <script src="../main/msx/ppi/PPI.js"></script>
@@ -48,9 +48,12 @@
     <script src="../main/msx/machine/slots/SlotEmpty.js"></script>
     <script src="../main/msx/machine/slots/BIOS.js"></script>
     <script src="../main/msx/machine/slots/SlotRAM64K.js"></script>
-    <script src="../main/msx/machine/slots/cartridges/Cartridge32K.js"></script>
+    <script src="../main/msx/machine/slots/cartridges/CartridgeUnbanked.js"></script>
     <script src="../main/msx/machine/slots/cartridges/CartridgeASCII8K.js"></script>
     <script src="../main/msx/machine/slots/cartridges/CartridgeASCII16K.js"></script>
+    <script src="../main/msx/machine/slots/cartridges/CartridgeKonami.js"></script>
+    <script src="../main/msx/machine/slots/cartridges/CartridgeKonamiSCC.js"></script>
+    <script src="../main/msx/machine/slots/ROMDatabase.js"></script>
     <script src="../main/msx/machine/slots/SlotCreator.js"></script>
     <script src="../main/msx/machine/DeviceMissing.js"></script>
     <script src="../main/msx/machine/Clock.js"></script>

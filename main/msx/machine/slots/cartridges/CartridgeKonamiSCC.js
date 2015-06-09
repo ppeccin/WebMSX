@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
-CartridgeASCII8K = function(rom) {
+CartridgeKonamiSCC = function(rom) {
     var self = this;
 
     function init() {
@@ -21,13 +21,13 @@ CartridgeASCII8K = function(rom) {
     };
 
     this.write = function(address, value) {
-        if (address >= 0x6000 && address < 0x6800)
+        if (address >= 0x5000 && address < 0x57ff)
             bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
-        else if (address >= 0x6800 && address < 0x7000)
+        else if (address >= 0x7000 && address < 0x77ff)
             bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
-        else if (address >= 0x7000 && address < 0x7800)
+        else if (address >= 0x9000 && address < 0x97ff)
             bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
-        else if (address >= 0x7800 && address < 0x8000)
+        else if (address >= 0xb000 && address < 0xb7ff)
             bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
     };
 
@@ -95,12 +95,13 @@ CartridgeASCII8K = function(rom) {
     };
 
 
+
     if (rom) init();
 
 };
 
-CartridgeASCII8K.createFromSaveState = function(state) {
-    var cart = new CartridgeASCII8K();
+CartridgeKonamiSCC.createFromSaveState = function(state) {
+    var cart = new CartridgeKonamiSCC();
     cart.loadState(state);
     return cart;
 };

@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// ROMs with (n >= 2) * 16K banks, mapped in 2 16K banks starting at 0x4000
 CartridgeASCII16K = function(rom) {
     var self = this;
 
@@ -9,11 +10,11 @@ CartridgeASCII16K = function(rom) {
         bytes = Util.arrayFill(new Array(content.length), 0xff);
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
+        numBanks = (content.length / 16384) | 0;
     }
 
     this.powerOn = function(paused) {
-        bank1Offset = -0x4000;
-        bank2Offset = -0x8000;
+        bank1Offset = bank2Offset = -0x4000;
     };
 
     this.powerOff = function() {
@@ -21,9 +22,9 @@ CartridgeASCII16K = function(rom) {
 
     this.write = function(address, value) {
         if (address >= 0x6000 && address < 0x7000)
-            bank1Offset = value * 0x4000 - 0x4000;
+            bank1Offset = (value % numBanks) * 0x4000 - 0x4000;
         else if (address >= 0x7000 && address < 0x8000)
-            bank2Offset = value * 0x4000 - 0x8000;
+            bank2Offset = (value % numBanks) * 0x4000 - 0x8000;
     };
 
     this.read = function(address) {
@@ -52,9 +53,10 @@ CartridgeASCII16K = function(rom) {
 
     var bank1Offset;
     var bank2Offset;
+    var numBanks;
 
     this.rom = null;
-    this.format = SlotFormats.Cartridge32K;
+    this.format = SlotFormats.CartridgeUnbanked;
 
 
     // Savestate  -------------------------------------------
@@ -65,7 +67,8 @@ CartridgeASCII16K = function(rom) {
             r: this.rom.saveState(),
             b: btoa(Util.uInt8ArrayToByteString(bytes)),
             b1: bank1Offset,
-            b2: bank2Offset
+            b2: bank2Offset,
+            n: numBanks
         };
     };
 
@@ -74,6 +77,7 @@ CartridgeASCII16K = function(rom) {
         bytes = Util.byteStringToUInt8Array(atob(s.b));
         bank1Offset = s.b1;
         bank2Offset = s.b2;
+        numBanks = s.n;
     };
 
 
