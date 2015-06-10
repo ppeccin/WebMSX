@@ -52,10 +52,14 @@ SlotFormats = {
         desc: "Unbanked Cartridge",
         priority: 111,
         tryFormat: function (rom) {
-            // Any 8K, 16K or 32K content starting with the Cartridge identifier "AB"
-            if ((rom.content.length === 8192 || rom.content.length === 16384 || rom.content.length === 32768)
+            // Any 8K or 16K content starting with the Cartridge identifier "AB"
+            if ((rom.content.length === 8192 || rom.content.length === 16384)
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
-            // Any 64K content, starting with the Cartridge identifier "AB" at 0x4000
+            // Any 32K with the Cartridge identifier "AB" at 0x0000 or 0x4000
+            if (rom.content.length === 32768
+                && ((rom.content[0] === 65 && rom.content[1] === 66)
+                    || (rom.content[0x4000] === 65 && rom.content[0x4001] === 66))) return this;
+            // Any 64K content, with the Cartridge identifier "AB" at 0x4000
             if (rom.content.length === 65536 && rom.content[0x4000] === 65 && rom.content[0x4001] === 66) return this;
         },
         createFromROM: function (rom) {

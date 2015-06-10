@@ -8,24 +8,51 @@ CartridgeUnbanked = function(rom) {
         self.rom = rom;
         bytes = Util.arrayFill(new Array(65536), 0xff);
         var content = self.rom.content;
-        // If 32K, position at 0x4000
-        if (content.length === 32768) {
-            for (var i = 0; i < 32768; i++)
-                bytes[0x4000 + i] = content[i];
+        // If 64K size, it fits just fine starting at 0x0000
+        if (content.length === 65536) {
+            for (i = 0; i < 65536; i++) bytes[i] = content[i];
+            return
         }
-        // If 8K or 16K, mirror 2 or 1 times starting at 0x4000                 // TODO solve starting position. BASIC roms!
-        else if (content.length === 8192 || content.length === 16384) {
-            for (var n = 0x4000, len = content.length; n < 0x8000; n += len) {
-                for (i = 0; i < len; i++) {
-                    bytes[n + i] = content[i];
+        // Uses position from info if present
+        var position = rom.info.s ? Number.parseInt(rom.info.s) : -1;
+        // If 32K size, position at 0x0000, 0x4000 or 0x8000
+        if (content.length === 32768) {
+            // If no info position present, try to determine by the ROM header
+            if (position < 0) {
+                // Maybe position is 0x4000
+                if ((content[0x0000] === 65 && content[0x0001] === 66 && content[0x0003] >= 0x40 && content[0x0003] < 0x80)
+                    || (content[0x4000] === 65 && content[0x4001] === 66 && content[0x0003] >= 0x40 && content[0x0003] < 0x80)) {
+                    position = 0x4000;
+                } else {
+                    // Maybe position is 0x8000
+                    if (content[0x0000] === 65 && content[0x0001] === 66 && content[0x0003] >= 0x80)
+                        position = 0x8000;
+                    else     // Then it must be 0x0000
+                        position = 0x0000;
                 }
             }
+            for (var i = 0; i < 32768; i++) bytes[position + i] = content[i];
+            return;
         }
-        // If 64K, it fits just fine
-        else if (content.length === 65536) {
-            for (i = 0; i < 65536; i++) {
-                bytes[i] = content[i];
+        // If 8K or 16K size, position at 0x0000, 0x4000 or 0x8000
+        if (content.length === 8192 || content.length === 16384) {
+            // If no info position present, try to determine by the ROM header
+            if (position < 0) {
+                // Maybe position is 0x4000
+                if (content[0x0003] >= 0x40 && content[0x0003] < 0x80) {
+                    position = 0x4000;
+                } else {
+                    // Maybe position is 0x8000
+                    if (content[0x0003] >= 0x80)
+                        position = 0x8000;
+                    else     // Then it must be 0x0000
+                        position = 0x0000;
+                }
             }
+            // Mirror m times so it reaches at least 0x7fff, or 0xbfff
+            var end = position < 0x8000 ? 0x8000 : 0xc000;
+            for (var m = position; m < end; m += content.length)
+                for (i = 0; i < content.length; i++) bytes[m + i] = content[i];
         }
     }
 

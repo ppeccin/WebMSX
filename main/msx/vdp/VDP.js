@@ -1,5 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// Pitfall 2 strange collision
+// Angelo
+// Cross Blain
+
 function VDP(cpu, psg) {
     var self = this;
 
@@ -242,7 +246,7 @@ function VDP(cpu, psg) {
                     var colorCode = vramColorTable[patternLine];
                     var colorCodeValuesStart = colorCode << 8;              // (colorCode * 256) 256 patterns for each colorCode
                     var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                    patternPlaneBackBuffer.set(values, bufferPos);
+                    patternPlaneBackBuffer.set(values, bufferPos);          // TODO length of undefined bug (Angelo)
                     bufferPos += 320;                                       // Advance 1 line
                 }
                 bufferPos -= 2552;                                          // Go back to the next char starting pixel
