@@ -7,6 +7,7 @@ SlotFormats = {
         desc: "Empty Slot",
         priority: 101,
         tryFormat: function (rom) {
+            // Any empty ROM
             if (!rom || !rom.content || rom.content.length === 0) return this;
         },
         createFromROM: function (rom) {
@@ -58,9 +59,11 @@ SlotFormats = {
             // Any 32K with the Cartridge identifier "AB" at 0x0000 or 0x4000
             if (rom.content.length === 32768
                 && ((rom.content[0] === 65 && rom.content[1] === 66)
-                    || (rom.content[0x4000] === 65 && rom.content[0x4001] === 66))) return this;
-            // Any 64K content, with the Cartridge identifier "AB" at 0x4000
-            if (rom.content.length === 65536 && rom.content[0x4000] === 65 && rom.content[0x4001] === 66) return this;
+                || (rom.content[0x4000] === 65 && rom.content[0x4001] === 66))) return this;
+            // Any 64K content, with the Cartridge identifier "AB" at 0x4000 or 0x8000
+            if (rom.content.length === 65536
+                && ((rom.content[0x4000] === 65 && rom.content[0x4001] === 66)
+                || (rom.content[0x8000] === 65 && rom.content[0x8001] === 66))) return this;
         },
         createFromROM: function (rom) {
             return new CartridgeUnbanked(rom);
@@ -75,7 +78,7 @@ SlotFormats = {
         desc: "ASCII 8K Mapper Cartridge",
         priority: 112,
         tryFormat: function (rom) {
-            // Any >32K content, multiple of 8K,. starting with the Cartridge identifier "AB"
+            // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
@@ -109,7 +112,7 @@ SlotFormats = {
         desc: "Konami 8K Mapper Cartridge",
         priority: 114,
         tryFormat: function (rom) {
-            // Any >32K content, multiple of 8K,. starting with the Cartridge identifier "AB"
+            // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
@@ -126,7 +129,7 @@ SlotFormats = {
         desc: "KonamiSCC 8K Mapper Cartridge",
         priority: 114,
         tryFormat: function (rom) {
-            // Any >32K content, multiple of 8K,. starting with the Cartridge identifier "AB"
+            // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
@@ -135,6 +138,22 @@ SlotFormats = {
         },
         createFromSaveState: function (state) {
             return CartridgeKonamiSCC.createFromSaveState(state);
+        }
+    },
+
+    "CrossBlaim": {
+        name: "CrossBlaim",
+        desc: "CrossBlaim 64K Mapper Cartridge",
+        priority: 121,
+        tryFormat: function (rom) {
+            // Only 64 content. Must be selected via info format hint
+            if (rom.content.length === 65536) return this;
+        },
+        createFromROM: function (rom) {
+            return new CartridgeCrossBlaim(rom);
+        },
+        createFromSaveState: function (state) {
+            return CartridgeCrossBlaim.createFromSaveState(state);
         }
     }
 };

@@ -168,8 +168,9 @@ CanvasDisplay = function(mainElement) {
     };
 
     var openSettings = function(page) {
-        if (!settings) settings = new Settings();
-        settings.show(page);
+        // TODO Implement
+        //if (!settings) settings = new Settings();
+        //settings.show(page);
     };
 
     var fullScreenChanged = function() {

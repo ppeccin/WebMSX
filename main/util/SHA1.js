@@ -1,4 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
+
 Util.sha1Generator = {
 
     hex_chr: "0123456789abcdef",

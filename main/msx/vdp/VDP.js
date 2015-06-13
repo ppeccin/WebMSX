@@ -1,8 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Pitfall 2 strange collision
-// Angelo
-// Cross Blain
+// TODO Pitfall 2 strange collision
 
 function VDP(cpu, psg) {
     var self = this;
@@ -74,7 +72,6 @@ function VDP(cpu, psg) {
             if (val & 0x80) {
                 // Register write
                 var reg = val & 0x07;
-                //console.log("VDP Register Write " + Util.toHex2(reg) + " := " + Util.toHex2(dataToWrite));
                 if (reg === 0) {
                     register0 = dataToWrite;
                     updateMode();
@@ -83,8 +80,6 @@ function VDP(cpu, psg) {
                     updateIRQ();
                     updateMode();
                     signalBlanked = (register1 & 0x40) === 0;
-
-                    //console.log("Register1 = " + Util.toHex2(register1));
                 } else if (reg === 2) {
                     nameTableAddress = (dataToWrite & 0x0f) * 0x400;
                     vramNameTable = vram.subarray(nameTableAddress);
@@ -93,15 +88,11 @@ function VDP(cpu, psg) {
                     colorTableAddress = dataToWrite * 0x40;
                     if (mode === 1) colorTableAddress &= 0x2000;
                     vramColorTable = vram.subarray(colorTableAddress);
-
-                    //console.log("Register3 = " + Util.toHex2(register3));
                } else if (reg === 4) {
                     register4 = dataToWrite;
                     patternTableAddress = (dataToWrite & 0x07) * 0x800;
                     if (mode === 1) patternTableAddress &= 0x2000;
                     vramPatternTable = vram.subarray(patternTableAddress);
-
-                    //console.log("Register4 = " + Util.toHex2(register4));
                } else if (reg === 5) {
                    spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
                    vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
@@ -109,16 +100,12 @@ function VDP(cpu, psg) {
                    spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
                    vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
                } else if (reg === 7) {
-                   // Text Color and Backdrop Color
                    register7 = dataToWrite;
                    backdropRGB = colorRGBs[register7 & 0x0f];
                }
             } else {
                 // VRAM Address Pointer high and mode (r/w)
                 vramWriteMode = val & 0x40;
-
-                //if (!vramWriteMode) console.log("Setting VRAM Read Mode");
-
                 vramPointer = ((val & 0x3f) << 8) | dataToWrite;
             }
             dataToWrite = null;
@@ -127,13 +114,7 @@ function VDP(cpu, psg) {
 
     this.input98 = function(port) {
         dataToWrite = null;
-
-        //if (vramWriteMode) console.log("Illegal VRAM Read");
-
         var res = vram[vramPointer++];            // VRAM Read
-
-        //console.log("VRAM Read: " + Util.toHex2(vramPointer) + ", " + Util.toHex2(res));
-
         if (vramPointer > 16383) {
             //console.log("VRAM Read Wrapped");
             vramPointer = 0;
@@ -143,23 +124,7 @@ function VDP(cpu, psg) {
 
     this.output98 = function(port, val) {
         dataToWrite = null;
-
-        //console.log(">>> VRAM Write: " + Util.toHex2(vramPointer) + ", " + Util.toHex2(val));
-
-        //if (vramPointer >= spriteAttrTableAddress && vramPointer <= (spriteAttrTableAddress + 128)) {
-        //    if (((vramPointer - spriteAttrTableAddress) & 0x03) === 3) {
-        //        var sprite = ((vramPointer - spriteAttrTableAddress) >> 2);
-        //        var name = vram[vramPointer - 1];
-        //        var y = vram[vramPointer - 3];
-        //        if (name == 24)
-        //            console.log("Setting color: " + val + " for sprite: " + sprite + " name: " + name + " line: " + y);
-        //    }
-        //}
-
         vram[vramPointer++] = val;               // VRAM Write
-
-        //if (!vramWriteMode) console.log("Illegal VRAM Write");
-
         if (vramPointer > 16383) {
             //console.log("VRAM Write Wrapped");
             vramPointer = 0;
@@ -205,7 +170,17 @@ function VDP(cpu, psg) {
     }
 
     function updateMode() {
+        var oldMode = mode;
         mode = ((register1 & 0x18) >>> 2) | ((register0 & 0x02) >>> 1);
+        if (mode !== oldMode && (mode === 1 || oldMode === 1)) {
+            // Special rule for register 3 and 4 when in mode 1
+            colorTableAddress = register3 * 0x40;
+            if (mode === 1) colorTableAddress &= 0x2000;
+            vramColorTable = vram.subarray(colorTableAddress);
+            patternTableAddress = (register4 & 0x07) * 0x800;
+            if (mode === 1) patternTableAddress &= 0x2000;
+            vramPatternTable = vram.subarray(patternTableAddress);
+        }
     }
 
     function updatePatternPlaneMode0() {                                    // Graphics 1 (Screen 1)
@@ -246,7 +221,7 @@ function VDP(cpu, psg) {
                     var colorCode = vramColorTable[patternLine];
                     var colorCodeValuesStart = colorCode << 8;              // (colorCode * 256) 256 patterns for each colorCode
                     var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                    patternPlaneBackBuffer.set(values, bufferPos);          // TODO length of undefined bug (Angelo)
+                    patternPlaneBackBuffer.set(values, bufferPos);
                     bufferPos += 320;                                       // Advance 1 line
                 }
                 bufferPos -= 2552;                                          // Go back to the next char starting pixel

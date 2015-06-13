@@ -56,7 +56,7 @@ CartridgeASCII16K = function(rom) {
     var numBanks;
 
     this.rom = null;
-    this.format = SlotFormats.CartridgeUnbanked;
+    this.format = SlotFormats.ASCII16;
 
 
     // Savestate  -------------------------------------------

@@ -19,13 +19,13 @@ CartridgeUnbanked = function(rom) {
         if (content.length === 32768) {
             // If no info position present, try to determine by the ROM header
             if (position < 0) {
-                // Maybe position is 0x4000
-                if ((content[0x0000] === 65 && content[0x0001] === 66 && content[0x0003] >= 0x40 && content[0x0003] < 0x80)
-                    || (content[0x4000] === 65 && content[0x4001] === 66 && content[0x0003] >= 0x40 && content[0x0003] < 0x80)) {
+                // Maybe position is 0x4000 (start at 0x4000-0xbfff or BASIC at >= 0x8000
+                if ((content[0x0000] === 65 && content[0x0001] === 66 && ((content[0x0003] >= 0x40 && content[0x0003] < 0xc0) || content[0x0009] >= 0x80))
+                    || (content[0x4000] === 65 && content[0x4001] === 66 && ((content[0x4003] >= 0x40 && content[0x4003] < 0xc0) || content[0x4009] >= 0x80))) {
                     position = 0x4000;
                 } else {
-                    // Maybe position is 0x8000
-                    if (content[0x0000] === 65 && content[0x0001] === 66 && content[0x0003] >= 0x80)
+                    // Maybe position is 0x8000 (start at >= 0x8000 or BASIC at >= 0x0000)
+                    if (content[0x0000] === 65 && content[0x0001] === 66 && (content[0x0003] >= 0x80 || content[0x0009] >= 0x80))
                         position = 0x8000;
                     else     // Then it must be 0x0000
                         position = 0x0000;
@@ -38,12 +38,12 @@ CartridgeUnbanked = function(rom) {
         if (content.length === 8192 || content.length === 16384) {
             // If no info position present, try to determine by the ROM header
             if (position < 0) {
-                // Maybe position is 0x4000
+                // Maybe position is 0x4000 (start < 0x8000)
                 if (content[0x0003] >= 0x40 && content[0x0003] < 0x80) {
                     position = 0x4000;
                 } else {
-                    // Maybe position is 0x8000
-                    if (content[0x0003] >= 0x80)
+                    // Maybe position is 0x8000 (start at >= 0x8000 or BASIC at >= 0x8000)
+                    if (content[0x0003] >= 0x80 || content[0x0009] >= 0x80)
                         position = 0x8000;
                     else     // Then it must be 0x0000
                         position = 0x0000;
