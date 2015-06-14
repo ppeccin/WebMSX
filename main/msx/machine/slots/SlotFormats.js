@@ -23,8 +23,10 @@ SlotFormats = {
         desc: "16K/32K BIOS Slot",
         priority: 102,
         tryFormat: function (rom) {
-            // Assumes any 16K or 32K content not starting with the Cartridge identifier "AB" is a BIOS
-            if ((rom.content.length === 16384 || rom.content.length === 32768) && rom.content[0] !== 65 && rom.content[1] !== 66) return this;
+            // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS
+            if ((rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66))
+                || (rom.content.length === 32768 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0x4000] !== 65 || rom.content[0x4001] !== 66)))
+                return this;
         },
         createFromROM: function (rom) {
             return new BIOS(rom);
@@ -141,12 +143,28 @@ SlotFormats = {
         }
     },
 
+    "R-Type": {
+        name: "R-Type",
+        desc: "R-Type 384K Mapper Cartridge",
+        priority: 121,
+        tryFormat: function (rom) {
+            // Only R-Type 384K content. Must be selected via info format hint
+            if (rom.content.length === 393216) return this;
+        },
+        createFromROM: function (rom) {
+            return new CartridgeRType(rom);
+        },
+        createFromSaveState: function (state) {
+            return CartridgeRType.createFromSaveState(state);
+        }
+    },
+
     "CrossBlaim": {
         name: "CrossBlaim",
         desc: "CrossBlaim 64K Mapper Cartridge",
-        priority: 121,
+        priority: 122,
         tryFormat: function (rom) {
-            // Only 64 content. Must be selected via info format hint
+            // Only CrossNlaim 64K content. Must be selected via info format hint
             if (rom.content.length === 65536) return this;
         },
         createFromROM: function (rom) {

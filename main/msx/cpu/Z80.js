@@ -39,6 +39,10 @@ Z80 = function() {
         bus = aBus;
     };
 
+    this.setExtensionHandler = function(handler) {
+        this.extensionHandler = handler;
+    };
+
     this.reset = function() {
         cycles = 0;
         T = -1; opcode = null; prefix = 0;
@@ -46,6 +50,9 @@ Z80 = function() {
         PC = 0; I = 0; R = 0; IFF1 = IFF2 = 0; IM = 0;
     };
 
+
+    // Extension Handling
+    this.extensionHandler = null;
 
     // Interfaces
     var bus;
@@ -317,64 +324,64 @@ Z80 = function() {
 
     var preReadIXYdOffset = 0;
     var preReadIXYd = function() {
-        preReadIXYdOffset = bus.read(PCinc());
+        preReadIXYdOffset = bus.read(PC++);
     };
 
     var from_IXd_8 = function() {
-        return bus.read(sum16Signed(IX, bus.read(PCinc())));
+        return bus.read(sum16Signed(IX, bus.read(PC++)));
     };
     from_IXd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(IX, preReadIXYdOffset));
     };
 
     var from_IYd_8 = function() {
-        return bus.read(sum16Signed(IY, bus.read(PCinc())));
+        return bus.read(sum16Signed(IY, bus.read(PC++)));
     };
     from_IYd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(IY, preReadIXYdOffset));
     };
 
     var to_IXd_8 = function(val) {
-        bus.write(sum16Signed(IX, bus.read(PCinc())), val);
+        bus.write(sum16Signed(IX, bus.read(PC++)), val);
     };
     to_IXd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(IX, preReadIXYdOffset), val);
     };
 
     var to_IYd_8 = function(val) {
-        bus.write(sum16Signed(IY, bus.read(PCinc())), val);
+        bus.write(sum16Signed(IY, bus.read(PC++)), val);
     };
     to_IYd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(IY, preReadIXYdOffset), val);
     };
 
     var fromN = function() {
-        return bus.read(PCinc());
+        return bus.read(PC++);
     };
     var fromNN = function() {
-        return bus.read(PCinc()) | (bus.read(PCinc()) << 8);
+        return bus.read(PC++) | (bus.read(PC++) << 8);
     };
 
     var from_NN_8 = function() {
-        return bus.read(bus.read(PCinc()) | (bus.read(PCinc()) << 8));
+        return bus.read(bus.read(PC++) | (bus.read(PC++) << 8));
     };
 
     var to_NN_8 = function(val) {
-        var addr = bus.read(PCinc()) | (bus.read(PCinc()) << 8);
+        var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         bus.write(addr, val);
 
         //Util.log("Address: " + Util.toHex2(addr) + " := " + Util.toHex2(val));
     };
 
     var from_NN_16 = function() {
-        var addr = bus.read(PCinc()) | (bus.read(PCinc()) << 8);
+        var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         var low = bus.read(addr);
         addr++; if (addr > 0xffff) addr = 0;
         return (bus.read(addr) << 8) | low;
     };
 
     var to_NN_16 = function(val) {
-        var addr = bus.read(PCinc()) | (bus.read(PCinc()) << 8);
+        var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         bus.write(addr, val & 255);
         addr++; if (addr > 0xffff) addr = 0;
         bus.write(addr, val >>> 8);
@@ -382,16 +389,6 @@ Z80 = function() {
         //Util.log("Address: " + Util.toHex2(addr - 1) + " := " + Util.toHex2(val));
     };
 
-    var PCinc = function() {
-        //var before = PC;
-        //PC = (PC + 1) & 0xffff;
-        //return before;
-        return PC++;
-    };
-    var decPC = function() {
-        //return PC = (PC - 1) & 0xffff;
-        return --PC;
-    };
     var SPinc = function() {
         var before = SP;
         SP = (SP + 1) & 0xffff;
@@ -439,7 +436,7 @@ Z80 = function() {
     function HALT() {
         //Util.log("HALT!");
         //self.breakpoint("HALT");
-        decPC();    // Keep repeating HALT instruction until an INT or RESET
+        PC--;    // Keep repeating HALT instruction until an INT or RESET
     }
 
     function newLD(to, from) {
@@ -535,7 +532,7 @@ Z80 = function() {
         LDI();
         if (F & bPV) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -556,7 +553,7 @@ Z80 = function() {
         LDD();
         if (F & bPV) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -581,7 +578,7 @@ Z80 = function() {
         CPI();
         if ((F & bPV) && !(F & bZ)) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -606,7 +603,7 @@ Z80 = function() {
         CPD();
         if ((F & bPV) && !(F & bZ)) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -1241,7 +1238,7 @@ Z80 = function() {
         INI();
         if (B !== 0) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -1261,7 +1258,7 @@ Z80 = function() {
         IND();
         if (B !== 0) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -1292,7 +1289,7 @@ Z80 = function() {
         OUTI();
         if (B !== 0) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -1312,7 +1309,7 @@ Z80 = function() {
         OUTD();
         if (B !== 0) {
             // Will repeat this instruction
-            decPC(); decPC();
+            PC -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -1341,7 +1338,7 @@ Z80 = function() {
     // Pseudo instructions
 
     function pINT_1() {
-        if (instruction === instructionHALT) PCinc();       // To "escape" from the HALT, and continue in the next instruction after RET
+        if (instruction === instructionHALT) PC++;       // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
         IFF1 = IFF2 = 0;
         PC = 0x0038;
@@ -1384,6 +1381,42 @@ Z80 = function() {
 
     function pADT_CYCLES() {
         // do nothing
+    }
+
+
+    // Extension Point pseudo instructions
+
+    function newpEXT(num) {
+        return function pEXT() {
+            if (!self.extensionHandler) return;
+            // Send state to the handler
+            var res = self.extensionHandler.cpuExtension(
+                num,
+                PC, SP, A, F, B, C, D, E, H, L, IX, IY,
+                AF2, BC2, DE2, HL2, I, R, IFF1, IM);
+            if (!res) return;
+            // Put back state modified by the handler
+            if (res.PC !== undefined) PC = res.PC;
+            if (res.SP !== undefined) SP = res.SP;
+            if (res.A !== undefined) A = res.A;
+            if (res.F !== undefined) F = res.F;
+            if (res.B !== undefined) B = res.B;
+            if (res.C !== undefined) C = res.C;
+            if (res.D !== undefined) D = res.D;
+            if (res.E !== undefined) E = res.E;
+            if (res.H !== undefined) H = res.H;
+            if (res.L !== undefined) L = res.L;
+            if (res.I !== undefined) I = res.I;
+            if (res.R !== undefined) R = res.R;
+            if (res.IX !== undefined) IX = res.IX;
+            if (res.IY !== undefined) IY = res.IY;
+            if (res.AF2 !== undefined) AF2 = res.AF2;
+            if (res.BC2 !== undefined) BC2 = res.BC2;
+            if (res.DE2 !== undefined) DE2 = res.DE2;
+            if (res.HL2 !== undefined) HL2 = res.HL2;
+            if (res.IFF1 !== undefined) IFF1 = res.IFF1;
+            if (res.IM !== undefined) IM = res.IM;
+        }
     }
 
 
@@ -2418,12 +2451,20 @@ Z80 = function() {
         instr = uIN_C;
         defineInstruction(null, 0xed, opcode, 8, instr, "IN (C)", true);
 
-        // 2 bytes, 3M, 12T: - OUT (C)
+        // 2 bytes, 3M, 12T: - uOUT (C)
         opcode = 0x71;
         instr = uOUTC0;
         defineInstruction(null, 0xed, opcode, 8, instr, "OUT (C), 0", true);
 
-        // 2 bytes, 2M, 8T: - uNOP              All ED extended instructions not defined
+        // Extension pseudo Instructions (ED E0 to ED EF)
+
+        for (i = 0x00; i <= 0x0f; i++) {
+            opcode = 0xe0 + i;
+            instr = newpEXT(i);
+            defineInstruction(null, 0xed, opcode, 4, instr, "EXT " + i.toString(16), true);
+        }
+
+        // 2 bytes, 2M, 8T: - uNOP              All ED extended instructions not yet defined are NOPs
         for (i = 0x00; i <= 0xff; i++) {
             if (!instructionsED[i]) {
                 opcode = i;
@@ -2472,14 +2513,13 @@ Z80 = function() {
         instr = pADT_CYCLES;
         instructionADT_CYCLES = defineInstruction(null, null, opcode, 0, instr, "< ADT CYCLES >", false);
 
-
         // Testing pseudo instructions
 
-        opcode = 256;
+        opcode = 257;
         instr = pSTOP;
         defineInstruction(null, null, opcode, 4, instr, "++ STOP ++", false);
 
-        opcode = 257;
+        opcode = 258;
         instr = pCPM_BDOS;
         defineInstruction(null, null, opcode, 4, instr, "++ PRINT ++", false);
 

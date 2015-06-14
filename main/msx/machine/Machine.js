@@ -6,6 +6,7 @@ Machine = function() {
     function init() {
         mainComponentsCreate();
         socketsCreate();
+        extensionsCreate();
         setVideoStandardAuto();
     }
 
@@ -59,6 +60,10 @@ Machine = function() {
         return saveStateSocket;
     };
 
+    this.getCassetteSocket = function() {
+        return cassetteSocket;
+    };
+
     this.showOSD = function(message, overlap) {
         this.getVideoOutput().showOSD(message, overlap);
     };
@@ -72,6 +77,7 @@ Machine = function() {
     };
 
     var setBIOS = function(bios) {
+        if (bios) cassetteBIOSExtension.patchBIOS(bios);
         MSX.bios = bios;
         bus.setBIOS(bios);
     };
@@ -134,7 +140,6 @@ Machine = function() {
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
-        //insertCartridge(state.ca && CartridgeDatabase.createCartridgeFromSaveState(state.ca));
         setVideoStandard(VideoStandard[state.vs]);
         machineControlsSocket.controlsStatesRedefined();
     };
@@ -173,6 +178,12 @@ Machine = function() {
         cartridgeSocket = new CartridgeSocket();
         keyboardSocket = new KeyboardSocket();
         saveStateSocket = new SaveStateSocket();
+        cassetteSocket = new CassetteSocket();
+    };
+
+    var extensionsCreate = function() {
+        cassetteBIOSExtension = new CassetteBIOSExtension();
+        cpu.setExtensionHandler(cassetteBIOSExtension);
     };
 
 
@@ -196,6 +207,9 @@ Machine = function() {
     var biosSocket;
     var cartridgeSocket;
     var saveStateSocket;
+    var cassetteSocket;
+
+    var cassetteBIOSExtension;
 
     var videoStandardIsAuto = false;
 
@@ -299,7 +313,7 @@ Machine = function() {
         this.insert = function (cartridge, autoPower) {
             if (autoPower && self.powerIsOn) self.powerOff();
             setCartridge(cartridge);
-            if (autoPower && !self.powerIsOn) self.powerOn();
+            if (autoPower && getBIOS() && !self.powerIsOn) self.powerOn();
         };
 
         this.inserted = function () {
@@ -318,11 +332,18 @@ Machine = function() {
             }
         };
 
-        this.removeInsertionListener = function (listener) {
-            Util.arrayRemove(insertionListeners, listener);
-        };
-
         var insertionListeners = [];
+
+    }
+
+
+    // Cassette Socket  -----------------------------------------
+
+    function CassetteSocket() {
+
+        this.connectDeck = function (pDeck) {
+            cassetteBIOSExtension.connectDeck(pDeck);
+        };
 
     }
 
@@ -466,6 +487,7 @@ Machine = function() {
             if (!media) return;
             var state = media.loadStateFile(data);
             if (!state) return;
+            Util.log("SaveState file loaded");
             if (state.v !== VERSION) {
                 self.showOSD("State Cartridge load failed, wrong version", true);
                 return true;

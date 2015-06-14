@@ -1,12 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-ROMLoader = function() {
+FileLoader = function() {
     var self = this;
 
-    this.connect = function(pBIOSSocket, pCartrigeSocket, pSaveStateSocket) {
+    this.connect = function(pBIOSSocket, pCartrigeSocket, pSaveStateSocket, pCassetteDeck) {
         biosSocket = pBIOSSocket;
         cartridgeSocket = pCartrigeSocket;
         saveStateSocket = pSaveStateSocket;
+    };
+
+    this.connectPeripherals = function(pCassetteDeck) {
+        cassetteDeck = pCassetteDeck;
     };
 
     this.registerForDnD = function (element) {
@@ -32,7 +36,7 @@ ROMLoader = function() {
         } catch (e) {
             // give up
         }
-        url = prompt("Load ROM from URL:", url || "");
+        url = prompt("Load file from URL:", url || "");
         if (!url) return;
         url = url.toString().trim();
         if (!url) return;
@@ -45,7 +49,7 @@ ROMLoader = function() {
     };
 
     this.loadFromFile = function (file) {
-        Util.log("Reading ROM file: " + file.name);
+        Util.log("Reading file: " + file.name);
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
@@ -59,7 +63,7 @@ ROMLoader = function() {
     };
 
     this.loadFromURL = function (url) {
-        Util.log("Reading ROM from URL: " + url);
+        Util.log("Reading file from URL: " + url);
 
         var req = new XMLHttpRequest();
         req.withCredentials = true;
@@ -91,7 +95,7 @@ ROMLoader = function() {
         if (!this.files || !this.files.length) return;
 
         var file = this.files[0];
-        // Tries to clear the last selected file so the same rom can be chosen
+        // Tries to clear the last selected file so the same file can be chosen
         try {
             fileInputElement.value = "";
         } catch (e) {
@@ -138,16 +142,17 @@ ROMLoader = function() {
     };
 
     var loadContent = function (name, content) {
-        var cart, bios, rom, arrContent;
+        var rom, arrContent;
         // First try reading and creating directly
         try {
             arrContent = new Array(content.length);
             Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
-            // Frist try to load as a SaveState file
-            if (saveStateSocket.loadStateFile(arrContent)) {
-                Util.log("SaveState file loaded");
+            // First try to load as a SaveState file
+            if (saveStateSocket.loadStateFile(arrContent))
                 return;
-            }
+            // Then try to load as a Cassette file
+            if (cassetteDeck.loadTapeFile(name, arrContent))
+                return;
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new ROM(name, arrContent);
             var slot = SlotCreator.createFromROM(rom);
@@ -173,6 +178,13 @@ ROMLoader = function() {
                         var cont = file.asUint8Array();
                         arrContent = new Array(cont.length);
                         Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
+                        // First try to load as a SaveState file
+                        if (saveStateSocket.loadStateFile(arrContent))
+                            return;
+                        // Then try to load as a Cassette file
+                        if (cassetteDeck.loadTapeFile(name, arrContent))
+                            return;
+                        // Then try to load as a ROM (BIOS or Cartridge)
                         rom = new ROM(file.name, arrContent);
                         slot = SlotCreator.createFromROM(rom);
                         if (slot.constructor === BIOS) {
@@ -185,7 +197,7 @@ ROMLoader = function() {
                         // Move on and try the next file
                     }
                 }
-                showError("No valid ROM files inside zip file");
+                showError("No valid ROM, Cassette or Disk files inside zip file");
             } catch(ez) {
                 // Probably not a zip file. Let the original message show
                 showError(e.message);
@@ -212,6 +224,7 @@ ROMLoader = function() {
     var biosSocket;
     var cartridgeSocket;
     var saveStateSocket;
+    var cassetteDeck;
 
     var fileInputElement;
     var fileInputElementParent;

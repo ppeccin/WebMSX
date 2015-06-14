@@ -58,7 +58,7 @@ function startEmulator(rom) {
     RAM.write(0x0007, 0xff);
 
     // CPU Routines to print chars
-    RAM.write(0x0005, 257);     // pPRINT
+    RAM.write(0x0005, 258);     // pPRINT
 
     // Test to start with (frist = 0)
     var test = 0;

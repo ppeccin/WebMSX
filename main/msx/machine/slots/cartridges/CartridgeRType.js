@@ -1,32 +1,35 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// 16K or 32K BIOS. Always positioned at 0x0000
-BIOS = function(rom) {
+// Special 384K ROM with 24 * 16K banks. Bank 1 at 0x4000 fixed at page 0x0f, bank 2 at 0x8000 variable
+CartridgeRType = function(rom) {
     var self = this;
 
     function init() {
         self.rom = rom;
-        bytes = Util.arrayFill(new Array(65536), 0xff);
-        self.bytes = bytes;
         var content = self.rom.content;
+        bytes = Util.arrayFill(new Array(content.length), 0xff);
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
     }
 
     this.powerOn = function(paused) {
+        bank2Offset = -0x8000;
     };
 
     this.powerOff = function() {
     };
 
     this.write = function(address, value) {
-        //console.log ("Write over BIOS ROM at " + address.toString(16) + " := " + value.toString(16));
-        // ROMs cannot be modified
+        // bank1 fixed at page 0x0f
+        if (address >= 0x7000 && address < 0x8000)
+            bank2Offset = (value % 24) * 0x4000 - 0x8000;
     };
 
     this.read = function(address) {
-        //console.log ("BIOS ROM read: " + address.toString(16) + ", " + bytes[address].toString(16));
-        return bytes[address];
+        if (address < 0x8000)
+            return bytes[229376 + address];         // Bank 1 fixed at page 0x0f, so 0x0f * 16304 - 0x4000
+        else
+            return bytes[bank2Offset + address];
     };
 
     this.dump = function(from, quant) {
@@ -45,10 +48,11 @@ BIOS = function(rom) {
 
 
     var bytes;
-    this.bytes = null;
+
+    var bank2Offset;
 
     this.rom = null;
-    this.format = SlotFormats.BIOS;
+    this.format = SlotFormats.ASCII16;
 
 
     // Savestate  -------------------------------------------
@@ -57,13 +61,15 @@ BIOS = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: btoa(Util.uInt8ArrayToByteString(bytes))
+            b: btoa(Util.uInt8ArrayToByteString(bytes)),
+            b2: bank2Offset
         };
     };
 
-    this.loadState = function(state) {
-        this.rom = ROM.loadState(state.r);
-        bytes = Util.byteStringToUInt8Array(atob(state.b));
+    this.loadState = function(s) {
+        this.rom = ROM.loadState(s.r);
+        bytes = Util.byteStringToUInt8Array(atob(s.b));
+        bank2Offset = s.b2;
     };
 
 
@@ -71,8 +77,8 @@ BIOS = function(rom) {
 
 };
 
-BIOS.createFromSaveState = function(state) {
-    var bios = new BIOS();
-    bios.loadState(state);
-    return bios;
+CartridgeRType.createFromSaveState = function(state) {
+    var cart = new CartridgeRType();
+    cart.loadState(state);
+    return cart;
 };

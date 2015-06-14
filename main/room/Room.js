@@ -48,7 +48,9 @@ function Room(screenElement, machinePanelElement, biosProvided) {
 
     var buildPeripherals = function() {
         self.stateMedia = new LocalStorageSaveStateMedia();
-        self.romLoader = new ROMLoader();
+        self.cassetteDeck = new FileCassetteDeck();
+        self.romLoader = new FileLoader();
+        self.romLoader.connectPeripherals(self.cassetteDeck);
         self.screen = new CanvasDisplay(screenElement);
         self.screen.connectPeripherals(self.romLoader, self.stateMedia);
         if (machinePanelElement) {
@@ -60,7 +62,7 @@ function Room(screenElement, machinePanelElement, biosProvided) {
         self.machineControls.connectPeripherals(self.screen, self.machinePanel);
         self.keyboard = new DOMKeyboard();
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
-    };
+   };
 
     var buildAndPlugMachine = function() {
         self.machine = new Machine();
@@ -71,6 +73,7 @@ function Room(screenElement, machinePanelElement, biosProvided) {
         self.speaker.connect(self.machine.getAudioOutput());
         self.machineControls.connect(self.machine.getMachineControlsSocket());
         self.keyboard.connect(self.machine.getKeyboardSocket());
+        self.cassetteDeck.connect(self.machine.getCassetteSocket());
     };
 
 

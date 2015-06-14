@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Pitfall 2 strange collision
+// TODO Pitfall 2, Temptations strange collision
 
 function VDP(cpu, psg) {
     var self = this;

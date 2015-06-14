@@ -173,6 +173,19 @@ Util = new function() {
 
     };
 
+    this.arrayIndexOfSubArray = function(arr, subarr, fromIndex) {
+        var subLen = subarr.length;
+        var len = arr.length + 1 - subLen;
+
+        Loop: for (var i = fromIndex; i < len; i++) {
+            for (var j = 0; j < subLen; j++)
+                if (arr[i + j] !== subarr[j])
+                    continue Loop;
+            return i;
+        }
+        return -1;
+    }
+
 };
 
 
