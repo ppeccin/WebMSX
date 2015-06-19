@@ -73,13 +73,16 @@ Machine = function() {
     };
 
     var pause = function() {
-        mainClock.pauseOnNextPulse();
+        mainClock.pause();
     };
 
     var setBIOS = function(bios) {
-        if (bios) cassetteBIOSExtension.patchBIOS(bios);
         MSX.bios = bios;
         bus.setBIOS(bios);
+        if (bios) {
+            cassetteBIOSExtension.patchBIOS(bios);
+            videoStandardAdjustToBIOS(bios);
+        }
     };
 
     var getBIOS = function() {
@@ -101,17 +104,23 @@ Machine = function() {
             vdp.setVideoStandard(videoStandard);
             mainClockAdjustToNormal();
         }
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name, false);
+        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name + " " + (videoStandard.fps | 0) +"Hz", true);
     };
 
     var setVideoStandardAuto = function() {
         videoStandardIsAuto = true;
-        setVideoStandard(VideoStandard.NTSC);
+        setVideoStandard(videoStandardFromBIOS);
     };
 
     var setVideoStandardForced = function(forcedVideoStandard) {
         videoStandardIsAuto = false;
         setVideoStandard(forcedVideoStandard);
+        // TODO Patch BIOS to forced standard
+    };
+
+    var videoStandardAdjustToBIOS = function(bios) {
+        videoStandardFromBIOS = (!bios || ((bios.bytes[0x2b] & 0x80) === 0)) ? VideoStandard.NTSC : VideoStandard.PAL;
+        setVideoStandardAuto();
     };
 
     var powerFry = function() {
@@ -128,7 +137,6 @@ Machine = function() {
             ps: psg.saveState(),
             vd: vdp.saveState(),
             c: cpu.saveState(),
-            //ca: getCartridge() && getCartridge().saveState(),
             vs: videoStandard.name
         };
     };
@@ -212,6 +220,7 @@ Machine = function() {
     var cassetteBIOSExtension;
 
     var videoStandardIsAuto = false;
+    var videoStandardFromBIOS = VideoStandard.NTSC;
 
 
     // MachineControls interface  --------------------------------------------

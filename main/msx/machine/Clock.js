@@ -8,64 +8,48 @@ Clock = function(clockDriven, pCyclesPerSecond) {
     }
 
     this.go = function() {
-        running = true;
-        if(pausePending)
-            pausePending = false;
-        else
+        if (!running) {
+            running = true;
             pulse();
+        }
     };
 
-    this.pauseOnNextPulse = function(continuation) {
+    this.pause = function(continuation) {
         if (running) {
-            continuationAfterPause = continuation || null;
-            pausePending = true;
-        } else {
-            if (continuation) continuation();
+            running = false;
+            if (animationFrame) {
+                window.cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            if (interval) {
+                window.clearInterval(interval);
+                interval = null;
+            }
         }
     };
 
     this.setFrequency = function(freq) {
-        if (running)
-            this.pauseOnNextPulse(function setFrequencyContinuation() {
-                internalSetFrequency(freq);
-                self.go();
-            });
-        else
+        if (running) {
+            this.pause();
             internalSetFrequency(freq);
+            this.go();
+        } else {
+            internalSetFrequency(freq);
+        }
     };
 
     var internalSetFrequency = function(freq) {
         cyclesPerSecond = freq;
         cycleTimeMs = 1000 / freq;
-        useRequestAnimationFrame = window.requestAnimationFrame && (freq === NATURAL_FPS);
+        useRequestAnimationFrame = freq === NATURAL_FPS;
     };
 
     var pulse = function() {
-        if (pausePending) {
-            pause();
-            if (continuationAfterPause) continuationAfterPause();
-            continuationAfterPause = null;
-            return;
-        }
-
         clockDriven.clockPulse();
         if (useRequestAnimationFrame)
             animationFrame = window.requestAnimationFrame(pulse);
         else
-        if (!interval) interval = window.setInterval(pulse, cycleTimeMs);
-    };
-
-    var pause = function () {
-        if (animationFrame) {
-            window.cancelAnimationFrame(animationFrame);
-            animationFrame = null;
-        }
-        if (interval) {
-            window.clearTimeout(interval);
-            interval = null;
-        }
-        pausePending = false;
-        running = false;
+            if (!interval) interval = window.setInterval(pulse, cycleTimeMs);
     };
 
 
@@ -74,11 +58,8 @@ Clock = function(clockDriven, pCyclesPerSecond) {
     var cyclesPerSecond = null;
     var cycleTimeMs = null;
     var useRequestAnimationFrame = null;
-
     var animationFrame = null;
     var interval = null;
-    var pausePending = false;
-    var continuationAfterPause = null;
 
     var NATURAL_FPS = 60;
 

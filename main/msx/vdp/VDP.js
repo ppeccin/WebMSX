@@ -24,6 +24,7 @@ function VDP(cpu, psg) {
     };
 
     this.setVideoStandard = function(pVideoStandard) {
+        videoStandard = pVideoStandard;
     };
 
     this.getVideoOutput = function() {
@@ -31,16 +32,22 @@ function VDP(cpu, psg) {
     };
 
     this.frame = function() {
-        // Send clock to the CPU
-        //if (!cpu.stop) cpu.clockPulses(59736);    // 59736 = CPU clocks per frame
 
-        for (var i = 1866; i > 0; i--) {
-            if (!cpu.stop) cpu.clockPulses(32);
-            psg.getAudioOutput().audioClockPulses(1);
+        if (videoStandard === VideoStandard.NTSC) {
+            for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
+                cpu.clockPulses(32);
+                psg.getAudioOutput().audioClockPulses(1);
+            }
+            cpu.clockPulses(24);
+        } else {                                                // 71364 CPU clocks, 2230 PSG clocks
+            for (i = 2230; i > 0; i--) {
+                cpu.clockPulses(32);
+                psg.getAudioOutput().audioClockPulses(1);
+            }
+            cpu.clockPulses(4);
         }
-        if (!cpu.stop) cpu.clockPulses(24);
 
-        // Send clock to PSG
+        // Finish audio signal (generate additional samples each frame to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
 
         // Update video signal
@@ -49,6 +56,7 @@ function VDP(cpu, psg) {
         // Request interrupt
         status |= 0x80;
         updateIRQ();
+
     };
 
     this.input99 = function(port) {
@@ -401,6 +409,7 @@ function VDP(cpu, psg) {
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
 
+    var videoStandard = VideoStandard.NTSC;
 
     // Connections
 
@@ -415,7 +424,8 @@ function VDP(cpu, psg) {
             s: status, m: mode, r0: register0, r1: register1, r3: register3, r4: register4, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
-            vram: btoa(Util.uInt8ArrayToByteString(vram))
+            vram: btoa(Util.uInt8ArrayToByteString(vram)),
+            vs: videoStandard.name
         };
     };
 
@@ -432,6 +442,7 @@ function VDP(cpu, psg) {
         backdropRGB = colorRGBs[register7 & 0x0f];
         signalBlanked = (register1 & 0x40) === 0;
         patternBlanked = false;
+        this.setVideoStandard(VideoStandard[s.vs]);
     };
 
 

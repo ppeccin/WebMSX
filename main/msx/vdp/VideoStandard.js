@@ -284,6 +284,7 @@
             name: "NTSC",
             width: 256,
             height: 192,
+            cols: 342,
             lines: 262,
             fps: 60,
             palette: ntscPalette
@@ -292,8 +293,9 @@
             name: "PAL",
             width: 256,
             height: 192,
+            cols: 342,
             lines: 313,
-            fps: 50.3846153846153847,
+            fps: 50,     // So it can match 1 frame each 20ms. Was 50.22364217252396 or 50.3846153846153847
             palette: palPalette
         }
     };

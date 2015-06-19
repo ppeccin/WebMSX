@@ -42,7 +42,7 @@ var to = document.getElementById("traceOutput");
 var ctr = document.getElementById("cyclesToRun");
 
 function stepClicked() {
-    CLO.pauseOnNextPulse(function() {
+    CLO.pause(function() {
         CPU.trace = true;
         CPU.runCycles(1000, false);
     })
