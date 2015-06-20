@@ -39,7 +39,7 @@ function FileCassetteDeck() {
         if (tapeEnd()) return false;
         tapePosition = Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition);
         if (tapeEnd()) return false;
-        console.log("Reading Tape Header");
+        //console.log("Reading Tape Header");
         tapePosition += 8;
         return true;
     };
@@ -50,7 +50,7 @@ function FileCassetteDeck() {
     };
 
     this.motor = function(state) {
-        console.log("Cassette Motor: " + (state !== null ? (state ? "ON" : "OFF") : "TOGGLE"));
+        //console.log("Cassette Motor: " + (state !== null ? (state ? "ON" : "OFF") : "TOGGLE"));
         return true;
     };
 

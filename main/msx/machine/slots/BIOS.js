@@ -11,6 +11,7 @@ BIOS = function(rom) {
         var content = self.rom.content;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
+        self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? VideoStandard.NTSC : VideoStandard.PAL;
     }
 
     this.powerOn = function(paused) {
@@ -27,6 +28,16 @@ BIOS = function(rom) {
     this.read = function(address) {
         //console.log ("BIOS ROM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
+    };
+
+    this.setVideoStandardForced = function(forcedVideoStandard) {
+        if (forcedVideoStandard === VideoStandard.PAL) bytes[0x2b] |= 0x80;
+        else bytes[0x2b] &= ~0x80;
+    };
+
+    this.setVideoStandardUseOriginal = function() {
+        if (this.originalVideoStandard === VideoStandard.PAL) bytes[0x2b] |= 0x80;
+        else bytes[0x2b] &= ~0x80;
     };
 
     this.dump = function(from, quant) {
@@ -50,6 +61,8 @@ BIOS = function(rom) {
     this.rom = null;
     this.format = SlotFormats.BIOS;
 
+    this.originalVideoStandard = null;
+
 
     // Savestate  -------------------------------------------
 
@@ -57,12 +70,14 @@ BIOS = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
+            v: this.originalVideoStandard,
             b: btoa(Util.uInt8ArrayToByteString(bytes))
         };
     };
 
     this.loadState = function(state) {
         this.rom = ROM.loadState(state.r);
+        this.originalVideoStandard = state.v;
         bytes = Util.byteStringToUInt8Array(atob(state.b));
     };
 

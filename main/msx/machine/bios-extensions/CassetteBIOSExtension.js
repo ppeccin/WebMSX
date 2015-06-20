@@ -8,7 +8,7 @@ CassetteBIOSExtension = function(casseteSocket) {
     };
 
     this.patchBIOS = function(bios) {
-        patchBIOS(bios);
+        if (bios) patchBIOS(bios);
     };
 
     this.cpuExtension = function(num, PC, SP, A, F, B, C, D, E, H, L, IX, IY, AF2, BC2, DE2, HL2, I, R, IFF1, IM) {

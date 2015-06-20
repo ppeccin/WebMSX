@@ -79,10 +79,8 @@ Machine = function() {
     var setBIOS = function(bios) {
         MSX.bios = bios;
         bus.setBIOS(bios);
-        if (bios) {
-            cassetteBIOSExtension.patchBIOS(bios);
-            videoStandardAdjustToBIOS(bios);
-        }
+        cassetteBIOSExtension.patchBIOS(bios);
+        setVideoStandardAuto();
     };
 
     var getBIOS = function() {
@@ -109,18 +107,15 @@ Machine = function() {
 
     var setVideoStandardAuto = function() {
         videoStandardIsAuto = true;
-        setVideoStandard(videoStandardFromBIOS);
+        var bios = getBIOS();
+        if (bios) bios.setVideoStandardUseOriginal();
+        setVideoStandard((bios && bios.originalVideoStandard) || VideoStandard.NTSC);
     };
 
     var setVideoStandardForced = function(forcedVideoStandard) {
         videoStandardIsAuto = false;
+        if (getBIOS()) getBIOS().setVideoStandardForced(forcedVideoStandard);
         setVideoStandard(forcedVideoStandard);
-        // TODO Patch BIOS to forced standard
-    };
-
-    var videoStandardAdjustToBIOS = function(bios) {
-        videoStandardFromBIOS = (!bios || ((bios.bytes[0x2b] & 0x80) === 0)) ? VideoStandard.NTSC : VideoStandard.PAL;
-        setVideoStandardAuto();
     };
 
     var powerFry = function() {
@@ -137,6 +132,7 @@ Machine = function() {
             ps: psg.saveState(),
             vd: vdp.saveState(),
             c: cpu.saveState(),
+            va: videoStandardIsAuto,
             vs: videoStandard.name
         };
     };
@@ -148,6 +144,7 @@ Machine = function() {
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
+        videoStandardIsAuto = state.va;
         setVideoStandard(VideoStandard[state.vs]);
         machineControlsSocket.controlsStatesRedefined();
     };
@@ -220,7 +217,6 @@ Machine = function() {
     var cassetteBIOSExtension;
 
     var videoStandardIsAuto = false;
-    var videoStandardFromBIOS = VideoStandard.NTSC;
 
 
     // MachineControls interface  --------------------------------------------
@@ -507,7 +503,7 @@ Machine = function() {
         };
 
         var media;
-        var VERSION = 4;
+        var VERSION = 5;
     }
 
 
