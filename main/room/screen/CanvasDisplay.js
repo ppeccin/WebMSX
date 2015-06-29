@@ -204,27 +204,38 @@ CanvasDisplay = function(mainElement) {
 
     var setCRTFilter = function() {
         context.globalCompositeOperation = "copy";
-        if (context.hasOwnProperty !== undefined)
-            context.imageSmoothingEnabled = crtFilter;
-        else {
-            context.webkitImageSmoothingEnabled = crtFilter;
-            context.mozImageSmoothingEnabled = crtFilter;
-            context.msImageSmoothingEnabled = crtFilter;
-        }
+        setImageSmoothing(crtFilter);
     };
 
-    var drawLogo = function () {
+    var  drawLogo = function () {
         context.fillStyle = "black";
         context.fillRect(0, 0, canvas.width, canvas.height);
+
         if (logoImage.isLoaded) {
             var logoWidth = logoImage.width;
             var logoHeight = logoImage.height;
-            if (logoHeight > canvas.height * 0.7) {
-                var factor = (canvas.height * 0.7) / logoHeight;
+            if (logoWidth > canvas.width * 0.7) {
+                var factor = (canvas.width * 0.7) / logoWidth;
                 logoHeight = (logoHeight * factor) | 0;
                 logoWidth = (logoWidth * factor) | 0;
             }
+            setImageSmoothing(true);
             context.drawImage(logoImage, ((canvas.width - logoWidth) / 2) | 0, ((canvas.height - logoHeight) / 2) | 0, logoWidth, logoHeight);
+            setImageSmoothing(crtFilter);
+        }
+    };
+
+    var setImageSmoothing = function (val) {
+        // TODO Maybe change to canvas CSS resize
+        //canvas.style.imageRendering = val ? "initial" : "pixelated";  "crisp-edges" for FF
+        //return;
+
+        if (context.imageSmoothingEnabled !== undefined)
+            context.imageSmoothingEnabled = val;
+        else {
+            context.webkitImageSmoothingEnabled = val;
+            context.mozImageSmoothingEnabled = val;
+            context.msImageSmoothingEnabled = val;
         }
     };
 
