@@ -321,29 +321,29 @@ CanvasDisplay = function(mainElement) {
             buttonsBar.style.border = "1px solid black";
         }
 
-        powerButton  = addBarButton(6, -26, 24, 23, -436, -208);
+        powerButton  = addBarButton(6, -26, 24, 23, -120, -3);
         consoleControlButton(powerButton, MachineControls.POWER);
         var fsGap = 23;
         if (!MSX.SCREEN_FULLSCREEN_DISABLED) {
-            fullscreenButton = addBarButton(-53, -26, 24, 22, -387, -209);
+            fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4);
             screenControlButton(fullscreenButton, Monitor.Controls.FULLSCREEN);
             fsGap = 0;
         }
         if (!MSX.SCREEN_RESIZE_DISABLED) {
-            scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -342, -209);
+            scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4);
             screenControlButton(scaleDownButton, Monitor.Controls.SIZE_MINUS);
-            scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -364, -209);
+            scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4);
             screenControlButton(scaleUpButton, Monitor.Controls.SIZE_PLUS);
         }
 
-        settingsButton  = addBarButton(-29, -26, 24, 22, -412, -209);
+        settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);
         settingsButton.style.cursor = "pointer";
         settingsButton.addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             openSettings();
         });
 
-        logoButton = addBarButton("CENTER", -26, 24, 24, -388, -181);
+        logoButton = addBarButton("CENTER", -23, 51, 19, -38, -35);
         logoButton.style.cursor = "pointer";
         logoButton.addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();

@@ -8,7 +8,8 @@ MSX = {
     VERSION:                        "version 0.1",              // Don't change this one!
 
     BIOS_AUTO_LOAD_URL:             "",                         // Full or relative URL of BIOS
-    ROM_AUTO_LOAD_URL:              "",                         // Full or relative URL of ROM
+    ROM_AUTO_LOAD_URL:              "",                         // Full or relative URL of ROM  (Cartridge A)
+    TAPE_AUTO_LOAD_URL:             "",                         // Full or relative URL of TAPE
     AUTO_START:                     true,                       // Set false to start emulator manually with MSX.start()
     SCREEN_ELEMENT_ID:              "msx-screen",
     CONSOLE_PANEL_ELEMENT_ID:       "msx-console-panel",

@@ -118,7 +118,7 @@ PSGAudioSignal = function() {
     var externalAddedValue = 0;
 
     var MAX_SAMPLES = 10 * MSX.AUDIO_BUFFER_SIZE;
-    var MAX_AMPLITUDE = 0.5;
+    var MAX_AMPLITUDE = 0.65;
 
     var samples = Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
