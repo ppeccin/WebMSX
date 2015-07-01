@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-SlotEmpty = function() {
+wmsx.SlotEmpty = function() {
 
     this.powerOn = function(paused) {
     };
@@ -18,7 +18,7 @@ SlotEmpty = function() {
         return 0xff;
     };
 
-    this.format = SlotFormats.Empty;
+    this.format = wmsx.SlotFormats.Empty;
 
 
     // Savestate  -------------------------------------------
@@ -31,6 +31,6 @@ SlotEmpty = function() {
 
 };
 
-SlotEmpty.createFromSaveState = function(state) {
-    return new SlotEmpty();
+wmsx.SlotEmpty.createFromSaveState = function(state) {
+    return new wmsx.SlotEmpty();
 };

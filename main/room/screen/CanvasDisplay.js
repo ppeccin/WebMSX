@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Implement phosphor and other CRT modes
-CanvasDisplay = function(mainElement) {
+wmsx.CanvasDisplay = function(mainElement) {
 
     function init(self) {
         setupProperties();
@@ -10,7 +10,7 @@ CanvasDisplay = function(mainElement) {
         setupButtonsBar();
         loadImages();
         context = canvas.getContext("2d");
-        monitor = new Monitor();
+        monitor = new wmsx.Monitor();
         monitor.connectDisplay(self);
         monitor.addControlInputElements(self.keyControlsInputElements());
     }
@@ -130,7 +130,7 @@ CanvasDisplay = function(mainElement) {
 
     //noinspection JSUnresolvedFunction
     this.displayToggleFullscreen = function() {
-        if (MSX.SCREEN_FULLSCREEN_DISABLED) return;
+        if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
 
         if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
             if (fsElement.requestFullscreen)
@@ -159,8 +159,8 @@ CanvasDisplay = function(mainElement) {
     };
 
     this.exit = function() {
-        controlsSocket.controlStateChanged(MachineControls.POWER_OFF, true);
-        monitor.controlActivated(Monitor.Controls.SIZE_DEFAULT);
+        controlsSocket.controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
+        monitor.controlActivated(wmsx.Monitor.Controls.SIZE_DEFAULT);
     };
 
     this.focus = function() {
@@ -176,11 +176,11 @@ CanvasDisplay = function(mainElement) {
     var fullScreenChanged = function() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
-        monitor.controlActivated(Monitor.Controls.SIZE_DEFAULT);
+        monitor.controlActivated(wmsx.Monitor.Controls.SIZE_DEFAULT);
         // Schedule another one to give the browser some time to set full screen properly
         if (isFullscreen)
             setTimeout(function() {
-                monitor.controlActivated(Monitor.Controls.SIZE_DEFAULT);
+                monitor.controlActivated(wmsx.Monitor.Controls.SIZE_DEFAULT);
             }, 120);
     };
 
@@ -251,7 +251,7 @@ CanvasDisplay = function(mainElement) {
         borderElement.style.background = "black";
         borderElement.style.border = "0 solid black";
         borderElement.style.borderWidth = "" + borderTop + "px " + borderLateral + "px " + borderBottom + "px";
-        if (MSX.SCREEN_CONTROL_BAR === 2) {
+        if (WMSX.SCREEN_CONTROL_BAR === 2) {
             borderElement.style.borderImage = "url(" + IMAGE_PATH + "screenborder.png) " +
                 borderTop + " " + borderLateral + " " + borderBottom + " repeat stretch";
         }
@@ -281,13 +281,13 @@ CanvasDisplay = function(mainElement) {
         canvas.style.borderStyle = "solid";
         canvas.style.borderColor = "black";
         canvas.style.borderWidth = "" +
-            CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH + "px " +
-            CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT + "px";
+            wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH + "px " +
+            wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT + "px";
         fsElement.appendChild(canvas);
 
         setElementsSizes(
-            CanvasDisplay.DEFAULT_WIDTH, CanvasDisplay.DEFAULT_HEIGHT,
-            CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH, CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT
+            wmsx.CanvasDisplay.DEFAULT_WIDTH, wmsx.CanvasDisplay.DEFAULT_HEIGHT,
+            wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH, wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT
         );
 
         mainElement.appendChild(borderElement);
@@ -299,10 +299,10 @@ CanvasDisplay = function(mainElement) {
         buttonsBar.style.left = "0";
         buttonsBar.style.right = "0";
         buttonsBar.style.height = "29px";
-        if (MSX.SCREEN_CONTROL_BAR === 2) {
+        if (WMSX.SCREEN_CONTROL_BAR === 2) {
             buttonsBar.style.bottom = "0";
             // No background
-        } else if (MSX.SCREEN_CONTROL_BAR === 1) {
+        } else if (WMSX.SCREEN_CONTROL_BAR === 1) {
             buttonsBar.style.bottom = "-30px";
             buttonsBar.style.background = "rgba(47, 47, 43, .8)";
             buttonsBar.style.transition = "bottom 0.3s ease-in-out";
@@ -322,18 +322,18 @@ CanvasDisplay = function(mainElement) {
         }
 
         powerButton  = addBarButton(6, -26, 24, 23, -120, -3);
-        consoleControlButton(powerButton, MachineControls.POWER);
+        consoleControlButton(powerButton, wmsx.MachineControls.POWER);
         var fsGap = 23;
-        if (!MSX.SCREEN_FULLSCREEN_DISABLED) {
+        if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
             fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4);
-            screenControlButton(fullscreenButton, Monitor.Controls.FULLSCREEN);
+            screenControlButton(fullscreenButton, wmsx.Monitor.Controls.FULLSCREEN);
             fsGap = 0;
         }
-        if (!MSX.SCREEN_RESIZE_DISABLED) {
+        if (!WMSX.SCREEN_RESIZE_DISABLED) {
             scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4);
-            screenControlButton(scaleDownButton, Monitor.Controls.SIZE_MINUS);
+            screenControlButton(scaleDownButton, wmsx.Monitor.Controls.SIZE_MINUS);
             scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4);
-            screenControlButton(scaleUpButton, Monitor.Controls.SIZE_PLUS);
+            screenControlButton(scaleUpButton, wmsx.Monitor.Controls.SIZE_PLUS);
         }
 
         settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);
@@ -424,11 +424,11 @@ CanvasDisplay = function(mainElement) {
     };
 
     var setupProperties = function() {
-        if (MSX.SCREEN_CONTROL_BAR === 2) {            // Legacy
+        if (WMSX.SCREEN_CONTROL_BAR === 2) {            // Legacy
             borderTop = 5;
             borderLateral = 5;
             borderBottom = 31;
-        } else if (MSX.SCREEN_CONTROL_BAR === 1) {     // Hover
+        } else if (WMSX.SCREEN_CONTROL_BAR === 1) {     // Hover
             borderTop = 1;
             borderLateral = 1;
             borderBottom = 1;
@@ -476,17 +476,17 @@ CanvasDisplay = function(mainElement) {
     var borderBottom;
 
 
-    var IMAGE_PATH = MSX.IMAGES_PATH;
+    var IMAGE_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;
     var DEFAULT_SCALE_ASPECT_X = 1;
-    var DEFAULT_OPENING_SCALE_X = (MSX.SCREEN_OPENING_SIZE || 2);
+    var DEFAULT_OPENING_SCALE_X = (WMSX.SCREEN_OPENING_SIZE || 2);
 
 
     init(this);
 
 };
 
-CanvasDisplay.DEFAULT_WIDTH = 256 * 2;
-CanvasDisplay.DEFAULT_HEIGHT = 192 * 2;
-CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH = 6;
-CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT = 6;
+wmsx.CanvasDisplay.DEFAULT_WIDTH = 256 * 2;
+wmsx.CanvasDisplay.DEFAULT_HEIGHT = 192 * 2;
+wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH = 6;
+wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT = 6;

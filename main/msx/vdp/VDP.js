@@ -2,11 +2,11 @@
 
 // TODO Pitfall 2, Temptations strange collision
 
-function VDP(cpu, psg) {
+wmsx.VDP = function(cpu, psg) {
     var self = this;
 
     function init() {
-        videoSignal = new VDPVideoSignal();
+        videoSignal = new wmsx.VDPVideoSignal();
         initColorCodePatternValues();
         initPlaneResources();
     }
@@ -33,7 +33,7 @@ function VDP(cpu, psg) {
 
     this.frame = function() {
 
-        if (videoStandard === VideoStandard.NTSC) {
+        if (videoStandard === wmsx.VideoStandard.NTSC) {
             for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
                 cpu.clockPulses(32);
                 psg.getAudioOutput().audioClockPulses(1);
@@ -161,7 +161,7 @@ function VDP(cpu, psg) {
             // Blank if needed
             if (!patternBlanked) {
                 if (patternPlaneBackBuffer.fill) patternPlaneBackBuffer.fill(0);
-                else Util.arrayFill(patternPlaneBackBuffer, 0);
+                else wmsx.Util.arrayFill(patternPlaneBackBuffer, 0);
                 patternBlanked = true;
             }
         } else {
@@ -409,7 +409,7 @@ function VDP(cpu, psg) {
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
 
-    var videoStandard = VideoStandard.NTSC;
+    var videoStandard = wmsx.VideoStandard.NTSC;
 
     // Connections
 
@@ -424,7 +424,7 @@ function VDP(cpu, psg) {
             s: status, m: mode, r0: register0, r1: register1, r3: register3, r4: register4, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
-            vram: btoa(Util.uInt8ArrayToByteString(vram)),
+            vram: btoa(wmsx.Util.uInt8ArrayToByteString(vram)),
             vs: videoStandard.name
         };
     };
@@ -433,7 +433,7 @@ function VDP(cpu, psg) {
         status = s.s; mode = s.m; register0 = s.r0; register1 = s.r1; register3 = s.r3; register4 = s.r4; register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
-        vram = new Uint8Array(Util.byteStringToUInt8Array(atob(s.vram)));
+        vram = new Uint8Array(wmsx.Util.byteStringToUInt8Array(atob(s.vram)));
         vramNameTable = vram.subarray(nameTableAddress);
         vramColorTable = vram.subarray(colorTableAddress);
         vramPatternTable = vram.subarray(patternTableAddress);
@@ -442,7 +442,7 @@ function VDP(cpu, psg) {
         backdropRGB = colorRGBs[register7 & 0x0f];
         signalBlanked = (register1 & 0x40) === 0;
         patternBlanked = false;
-        this.setVideoStandard(VideoStandard[s.vs]);
+        this.setVideoStandard(wmsx.VideoStandard[s.vs]);
     };
 
 

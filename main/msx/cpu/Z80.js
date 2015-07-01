@@ -7,7 +7,7 @@
 // base clock 3584160 Hz
 
 
-Z80 = function() {
+wmsx.Z80 = function() {
     var self = this;
 
     function init() {
@@ -2507,8 +2507,8 @@ Z80 = function() {
             instr.undocumented = undocumented;
 
             instr.opcodeString =
-                (instr.prefix ? Util.toHex2(instr.prefix) : "") + (instr.prefix === 0xddcb || instr.prefix === 0xfdcb ? " " : "") +
-                Util.toHex2(instr.opcode) + " " +
+                (instr.prefix ? wmsx.Util.toHex2(instr.prefix) : "") + (instr.prefix === 0xddcb || instr.prefix === 0xfdcb ? " " : "") +
+                wmsx.Util.toHex2(instr.opcode) + " " +
                 mnemonic + (undocumented ? "*" : "");
 
             instr.toString = function() {
@@ -2578,14 +2578,14 @@ Z80 = function() {
 
     this.toString = function() {
         return "CPU " +
-            " PC: " + Util.toHex2(PC) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
-            "A: " + Util.toHex2(A) + "     B: " + Util.toHex2(B) + "     C: " + Util.toHex2(C) + "     D: " + Util.toHex2(D >>> 8) +
-            "     E: " + Util.toHex2(DE & 0xff) + "     H: " + Util.toHex2(HL >>> 8) + "     L: " + Util.toHex2(HL & 0xff) + "\n" +
-            "BC: " + Util.toHex2(fromBC()) + "  DE: " + Util.toHex2(DE) + "  HL: " + Util.toHex2(HL) +
-            "  IX: " + Util.toHex2(IX) + "  IY: " + Util.toHex2(IY) + "       SP: " + Util.toHex2(SP) +  "\n\n" +
+            " PC: " + wmsx.Util.toHex2(PC) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
+            "A: " + wmsx.Util.toHex2(A) + "     B: " + wmsx.Util.toHex2(B) + "     C: " + wmsx.Util.toHex2(C) + "     D: " + wmsx.Util.toHex2(D >>> 8) +
+            "     E: " + wmsx.Util.toHex2(DE & 0xff) + "     H: " + wmsx.Util.toHex2(HL >>> 8) + "     L: " + wmsx.Util.toHex2(HL & 0xff) + "\n" +
+            "BC: " + wmsx.Util.toHex2(fromBC()) + "  DE: " + wmsx.Util.toHex2(DE) + "  HL: " + wmsx.Util.toHex2(HL) +
+            "  IX: " + wmsx.Util.toHex2(IX) + "  IY: " + wmsx.Util.toHex2(IY) + "       SP: " + wmsx.Util.toHex2(SP) +  "\n\n" +
             "Flags: " + (F & bS ? "S " : "- ") + (F & bZ ? "Z " : "- ") + (F & bF5 ? "5 " : "- ") + (F & bH ? "H " : "- ") +
             (F & bF3 ? "3 " : "- ") + (F & bPV ? "P " : "- ") + (F & bN ? "N " : "- ") + (F & bC ? "C" : "-") +
-            "            IFF: " + IFF1 + "     INT: " + self.INT + "     pref: " + Util.toHex2(prefix);
+            "            IFF: " + IFF1 + "     INT: " + self.INT + "     pref: " + wmsx.Util.toHex2(prefix);
     };
 
     this.printInstructions = function() {
@@ -2605,7 +2605,7 @@ Z80 = function() {
         if (self.breakpointOutput)
             self.breakpointOutput(text);
         else
-            Util.message(text);
+            wmsx.Util.message(text);
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -2619,7 +2619,7 @@ Z80 = function() {
         }
         //noinspection JSUnresolvedVariable
         var end = performance.now();
-        if (logPerf !== false) Util.log("Done running " + cy + " cycles in " + (end - start) + " ms.");
+        if (logPerf !== false) wmsx.Util.log("Done running " + cy + " cycles in " + (end - start) + " ms.");
     };
 
     this.eval = function(str) {

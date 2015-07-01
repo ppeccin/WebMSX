@@ -1,4 +1,4 @@
-ROMDatabase = {
+wmsx.ROMDatabase = {
 	version: 20150608,
 	"FD15698518172BCDE3318F08EE032531CBBB9F5D":{n:"10 Yard Fight",c:"Irem",y:"1986",p:"JP"},
 	"33536DAC686B375BA13FAF76A3BAF2D6978904E0":{n:"10 Yard Fight",c:"Irem",y:"1986",p:"JP"},

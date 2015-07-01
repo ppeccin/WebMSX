@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-FileLoader = function() {
+wmsx.FileLoader = function() {
     var self = this;
 
     this.connect = function(pBIOSSocket, pCartrigeSocket, pSaveStateSocket, pCassetteDeck) {
@@ -49,7 +49,7 @@ FileLoader = function() {
     };
 
     this.loadFromFile = function (file) {
-        Util.log("Reading file: " + file.name);
+        wmsx.Util.log("Reading file: " + file.name);
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
@@ -63,7 +63,7 @@ FileLoader = function() {
     };
 
     this.loadFromURL = function (url) {
-        Util.log("Reading file from URL: " + url);
+        wmsx.Util.log("Reading file from URL: " + url);
 
         var req = new XMLHttpRequest();
         req.withCredentials = true;
@@ -110,7 +110,7 @@ FileLoader = function() {
         if (event.preventDefault) event.preventDefault();
         if (event.stopPropagation) event.stopPropagation();
 
-        if (MSX.CARTRIDGE_CHANGE_DISABLED)
+        if (WMSX.CARTRIDGE_CHANGE_DISABLED)
             event.dataTransfer.dropEffect = "none";
         else
             event.dataTransfer.dropEffect = "link";
@@ -124,7 +124,7 @@ FileLoader = function() {
 
         autoPower = event.altKey !== true;
 
-        if (MSX.CARTRIDGE_CHANGE_DISABLED) return;
+        if (WMSX.CARTRIDGE_CHANGE_DISABLED) return;
         if (!event.dataTransfer) return;
 
         // First try to get local file
@@ -146,7 +146,7 @@ FileLoader = function() {
         // First try reading and creating directly
         try {
             arrContent = new Array(content.length);
-            Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
+            wmsx.Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
             // First try to load as a SaveState file
             if (saveStateSocket.loadStateFile(arrContent))
                 return;
@@ -154,16 +154,16 @@ FileLoader = function() {
             if (cassetteDeck.loadTapeFile(name, arrContent))
                 return;
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
-            rom = new ROM(name, arrContent);
-            var slot = SlotCreator.createFromROM(rom);
-            if (slot.constructor === BIOS) {
+            rom = new wmsx.ROM(name, arrContent);
+            var slot = wmsx.SlotCreator.createFromROM(rom);
+            if (slot.constructor === wmsx.BIOS) {
                 biosSocket.insert(slot, autoPower);
             } else {
                 cartridgeSocket.insert(slot, autoPower);
             }
         } catch(e) {
             if (!e.msx) {
-                Util.log(e.stack);
+                wmsx.Util.log(e.stack);
                 throw e;
             }
 
@@ -173,11 +173,11 @@ FileLoader = function() {
                 var files = zip.file(ZIP_INNER_FILES_PATTERN);
                 for (var i = 0; i < files.length; i++) {
                     var file = files[i];
-                    Util.log("Trying zip file content: " + file.name);
+                    wmsx.Util.log("Trying zip file content: " + file.name);
                     try {
                         var cont = file.asUint8Array();
                         arrContent = new Array(cont.length);
-                        Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
+                        wmsx.Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
                         // First try to load as a SaveState file
                         if (saveStateSocket.loadStateFile(arrContent))
                             return;
@@ -185,9 +185,9 @@ FileLoader = function() {
                         if (cassetteDeck.loadTapeFile(name, arrContent))
                             return;
                         // Then try to load as a ROM (BIOS or Cartridge)
-                        rom = new ROM(file.name, arrContent);
-                        slot = SlotCreator.createFromROM(rom);
-                        if (slot.constructor === BIOS) {
+                        rom = new wmsx.ROM(file.name, arrContent);
+                        slot = wmsx.SlotCreator.createFromROM(rom);
+                        if (slot.constructor === wmsx.BIOS) {
                             biosSocket.insert(slot, autoPower);
                         } else {
                             cartridgeSocket.insert(slot, autoPower);
@@ -206,8 +206,8 @@ FileLoader = function() {
     };
 
     var showError = function(message) {
-        Util.log("" + message);
-        Util.message("Could not load ROM:\n\n" + message);
+        wmsx.Util.log("" + message);
+        wmsx.Util.message("Could not load ROM:\n\n" + message);
     };
 
     var createFileInputElement = function (element) {
@@ -237,6 +237,6 @@ FileLoader = function() {
     var LOCAL_STOARAGE_LAST_URL_KEY = "msxlasturl";
 
 
-    MSX.loadROMFromURL = this.loadFromURL;
+    WMSX.loadROMFromURL = this.loadFromURL;
 
 };

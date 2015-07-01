@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function PPI(audioOutput) {
+wmsx.PPI = function(audioOutput) {
 
     this.connectEngine = function(pEngine) {
         engine = pEngine;
@@ -74,7 +74,7 @@ function PPI(audioOutput) {
     var casseteSignal = false;
 
     var keyboardRowSelected = 0;
-    var keyboardRowValues = Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
+    var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var engine;
 
@@ -93,7 +93,7 @@ function PPI(audioOutput) {
         registerC = s.c || 0;
         updateKeyboardConfig(registerC);
         updateCasseteSignal(registerC);
-        keyboardRowValues = Util.arrayFill(new Array(16), 0xff);
+        keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);
     };
 
 }

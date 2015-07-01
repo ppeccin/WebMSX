@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-Machine = function() {
+wmsx.Machine = function() {
     var self = this;
 
     function init() {
@@ -77,7 +77,7 @@ Machine = function() {
     };
 
     var setBIOS = function(bios) {
-        MSX.bios = bios;
+        WMSX.bios = bios;
         bus.setBIOS(bios);
         cassetteBIOSExtension.patchBIOS(bios);
         setVideoStandardAuto();
@@ -88,7 +88,7 @@ Machine = function() {
     };
 
     var setCartridge = function(cartridge) {
-        MSX.cartridge = cartridge;
+        WMSX.cartridge = cartridge;
         bus.setCartridge(cartridge);
     };
 
@@ -109,7 +109,7 @@ Machine = function() {
         videoStandardIsAuto = true;
         var bios = getBIOS();
         if (bios) bios.setVideoStandardUseOriginal();
-        setVideoStandard((bios && bios.originalVideoStandard) || VideoStandard.NTSC);
+        setVideoStandard((bios && bios.originalVideoStandard) || wmsx.VideoStandard.NTSC);
     };
 
     var setVideoStandardForced = function(forcedVideoStandard) {
@@ -145,7 +145,7 @@ Machine = function() {
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
         videoStandardIsAuto = state.va;
-        setVideoStandard(VideoStandard[state.vs]);
+        setVideoStandard(wmsx.VideoStandard[state.vs]);
         machineControlsSocket.controlsStatesRedefined();
     };
 
@@ -162,18 +162,15 @@ Machine = function() {
     };
 
     var mainComponentsCreate = function() {
-        cpu = new Z80();
-        psg = new PSG();
-        ppi = new PPI(psg.getAudioOutput());
-        vdp = new VDP(cpu, psg);
-        bus = new EngineBUS(cpu, ppi, vdp, psg);
-        mainClock = new Clock(self, VideoStandard.NTSC.fps);
+        cpu = new wmsx.Z80();
+        psg = new wmsx.PSG();
+        ppi = new wmsx.PPI(psg.getAudioOutput());
+        vdp = new wmsx.VDP(cpu, psg);
+        bus = new wmsx.EngineBUS(cpu, ppi, vdp, psg);
+        mainClock = new wmsx.Clock(self, wmsx.VideoStandard.NTSC.fps);
 
-        BUS = bus;              // TODO Remove
-        CPU = cpu;
-        VD = vdp;
-        PS = psg;
-        CLO = mainClock;
+        // Set variables for debugging
+        WMSX.debug = { BUS: bus, CPU: cpu, VDP: vdp, PSG: psg, CLOCK: mainClock };
     };
 
     var socketsCreate = function() {
@@ -187,7 +184,7 @@ Machine = function() {
     };
 
     var extensionsCreate = function() {
-        cassetteBIOSExtension = new CassetteBIOSExtension();
+        cassetteBIOSExtension = new wmsx.CassetteBIOSExtension();
         cpu.setExtensionHandler(cassetteBIOSExtension);
     };
 
@@ -221,7 +218,7 @@ Machine = function() {
 
     // MachineControls interface  --------------------------------------------
 
-    var controls = MachineControls;
+    var controls = wmsx.MachineControls;
 
     this.controlStateChanged = function (control, state) {
         // Normal state controls
@@ -290,15 +287,15 @@ Machine = function() {
                 break;
             case controls.VIDEO_STANDARD:
                 self.showOSD(null, true);	// Prepares for the upcoming "AUTO" OSD to always show
-                if (videoStandardIsAuto) setVideoStandardForced(VideoStandard.NTSC);
-                else if (videoStandard == VideoStandard.NTSC) setVideoStandardForced(VideoStandard.PAL);
+                if (videoStandardIsAuto) setVideoStandardForced(wmsx.VideoStandard.NTSC);
+                else if (videoStandard == wmsx.VideoStandard.NTSC) setVideoStandardForced(wmsx.VideoStandard.PAL);
                 else setVideoStandardAuto();
                 break;
             case controls.CARTRIDGE_FORMAT:
                 cycleCartridgeFormat();
                 break;
             case controls.CARTRIDGE_REMOVE:
-                if (MSX.CARTRIDGE_CHANGE_DISABLED)
+                if (WMSX.CARTRIDGE_CHANGE_DISABLED)
                     self.showOSD("Cartridge change is disabled", true);
                 else
                     cartridgeSocket.insert(null, false);
@@ -394,7 +391,7 @@ Machine = function() {
         };
 
         this.removeForwardedInput = function(input) {
-            Util.arrayRemove(forwardedInputs, input);
+            wmsx.Util.arrayRemove(forwardedInputs, input);
             forwardedInputsCount = forwardedInputs.length;
         };
 
@@ -492,7 +489,7 @@ Machine = function() {
             if (!media) return;
             var state = media.loadStateFile(data);
             if (!state) return;
-            Util.log("SaveState file loaded");
+            wmsx.Util.log("SaveState file loaded");
             if (state.v !== VERSION) {
                 self.showOSD("State Cartridge load failed, wrong version", true);
                 return true;
@@ -512,7 +509,7 @@ Machine = function() {
     this.startProfiling = function() {
         var lastFrameCount = this.framesGenerated;
         setInterval(function() {
-            Util.log(self.framesGenerated - lastFrameCount);
+            wmsx.Util.log(self.framesGenerated - lastFrameCount);
             lastFrameCount = self.framesGenerated;
         }, 1000);
     };
@@ -523,8 +520,8 @@ Machine = function() {
         for (var i = 0; i < frames; i++)
             self.clockPulse();
         var duration = performance.now() - start;
-        Util.log("Done running " + frames + " in " + duration + " ms");
-        Util.log(frames / (duration/1000) + "frames/sec");
+        wmsx.Util.log("Done running " + frames + " in " + duration + " ms");
+        wmsx.Util.log(frames / (duration/1000) + "frames/sec");
         go();
     };
 

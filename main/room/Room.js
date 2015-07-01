@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function Room(screenElement, machinePanelElement, biosProvided) {
+wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
     var self = this;
 
     function init() {
@@ -47,25 +47,25 @@ function Room(screenElement, machinePanelElement, biosProvided) {
     };
 
     var buildPeripherals = function() {
-        self.stateMedia = new LocalStorageSaveStateMedia();
-        self.cassetteDeck = new FileCassetteDeck();
-        self.romLoader = new FileLoader();
+        self.stateMedia = new wmsx.LocalStorageSaveStateMedia();
+        self.cassetteDeck = new wmsx.FileCassetteDeck();
+        self.romLoader = new wmsx.FileLoader();
         self.romLoader.connectPeripherals(self.cassetteDeck);
-        self.screen = new CanvasDisplay(screenElement);
+        self.screen = new wmsx.CanvasDisplay(screenElement);
         self.screen.connectPeripherals(self.romLoader, self.stateMedia);
         if (machinePanelElement) {
-            self.machinePanel = new MachinePanel(machinePanelElement);
+            self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
             self.machinePanel.connectPeripherals(self.screen, self.romLoader);
         }
-        self.speaker = new WebAudioSpeaker();
-        self.machineControls = new DOMMachineControls();
+        self.speaker = new wmsx.WebAudioSpeaker();
+        self.machineControls = new wmsx.DOMMachineControls();
         self.machineControls.connectPeripherals(self.screen, self.machinePanel);
-        self.keyboard = new DOMKeyboard();
+        self.keyboard = new wmsx.DOMKeyboard();
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
    };
 
     var buildAndPlugMachine = function() {
-        self.machine = new Machine();
+        self.machine = new wmsx.Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
         self.romLoader.connect(self.machine.getBIOSSocket(), self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
         self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());

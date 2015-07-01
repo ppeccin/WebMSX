@@ -1,9 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-Monitor = function() {
+wmsx.Monitor = function() {
 
     function init(self) {
-        controls = new DOMMonitorControls(self);
+        controls = new wmsx.DOMMonitorControls(self);
     }
 
     this.connectDisplay = function(monitorDisplay) {
@@ -101,11 +101,11 @@ Monitor = function() {
 
     var cleanBackBuffer = function() {
         // Put a nice green for detection of undrawn lines, for debug purposes
-        if (backBuffer) Util.arrayFill(backBuffer, 0xff00ff00);
+        if (backBuffer) wmsx.Util.arrayFill(backBuffer, 0xff00ff00);
     };
 
     var cartridgeChangeDisabledWarning = function() {
-        if (MSX.CARTRIDGE_CHANGE_DISABLED) {
+        if (WMSX.CARTRIDGE_CHANGE_DISABLED) {
             display.showOSD("Cartridge change is disabled", true);
             return true;
         }
@@ -115,7 +115,7 @@ Monitor = function() {
 
     // Controls Interface  -----------------------------------------
 
-    var monControls = Monitor.Controls;
+    var monControls = wmsx.Monitor.Controls;
 
     this.controlActivated = function(control) {
         // All controls are Press-only and repeatable
@@ -180,7 +180,7 @@ Monitor = function() {
 
     var debug = 0;
     var showStats = false;
-    var fixedSizeMode = MSX.SCREEN_RESIZE_DISABLED;
+    var fixedSizeMode = WMSX.SCREEN_RESIZE_DISABLED;
 
     var DEFAULT_WIDTH = 256;
     var DEFAULT_HEIGHT = 192;
@@ -189,7 +189,7 @@ Monitor = function() {
     var DEFAULT_SCALE_ASPECT_X = 1;
     var BORDER_WIDTH = 6;
     var BORDER_HEIGHT = 6;
-    var CRT_MODE = MSX.SCREEN_CRT_MODE;
+    var CRT_MODE = WMSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
 
     var crtMode = CRT_MODE < 0 ? 0 : CRT_MODE;
@@ -199,7 +199,7 @@ Monitor = function() {
 
 };
 
-Monitor.Controls = {
+wmsx.Monitor.Controls = {
     WIDTH_PLUS: 1, HEIGHT_PLUS: 2,
     WIDTH_MINUS: 3, HEIGHT_MINUS: 4,
     SCALE_X_PLUS: 9, SCALE_Y_PLUS: 10,

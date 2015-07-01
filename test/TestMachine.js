@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-
 // Trace facility
 
 var to = document.getElementById("traceOutput");
@@ -41,7 +40,7 @@ function breakpointOutput(text) {
 function TestMachine() {
 
     ctr.value = 0;
-    CPU.breakpointOutput = breakpointOutput;
+    WMSX.debug.CPU.breakpointOutput = breakpointOutput;
     // runClicked();
 
 }

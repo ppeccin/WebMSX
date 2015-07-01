@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-DOMMachineControls = function() {
+wmsx.DOMMachineControls = function() {
     var self = this;
 
     function init() {
@@ -208,7 +208,7 @@ DOMMachineControls = function() {
         }
     };
 
-    var controls = MachineControls;
+    var controls = wmsx.MachineControls;
 
     var p1ControlsMode = false;
 
@@ -228,43 +228,43 @@ DOMMachineControls = function() {
 
     // Default Key Values
 
-    var KEY_TOGGLE_JOYSTICK  = DOMMachineControls.KEY_TOGGLE_JOYSTICK;
-    var KEY_TOGGLE_P1_MODE   = DOMMachineControls.KEY_TOGGLE_P1_MODE;
-    var KEY_CARTRIDGE_FORMAT = DOMMachineControls.KEY_CARTRIDGE_FORMAT;
-    var KEY_FAST_SPEED       = DOMMachineControls.KEY_FAST_SPEED;
-    var KEY_PAUSE            = DOMMachineControls.KEY_PAUSE;
+    var KEY_TOGGLE_JOYSTICK  = wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK;
+    var KEY_TOGGLE_P1_MODE   = wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE;
+    var KEY_CARTRIDGE_FORMAT = wmsx.DOMMachineControls.KEY_CARTRIDGE_FORMAT;
+    var KEY_FAST_SPEED       = wmsx.DOMMachineControls.KEY_FAST_SPEED;
+    var KEY_PAUSE            = wmsx.DOMMachineControls.KEY_PAUSE;
 
-    var KEY_POWER            = DOMKeys.VK_F9.c;
+    var KEY_POWER            = wmsx.DOMKeys.VK_F9.c;
 
-    var KEY_FRAME            = DOMKeys.VK_F.c;
-    var KEY_TRACE            = DOMKeys.VK_Q.c;
-    var KEY_DEBUG            = DOMKeys.VK_D.c;
-    var KEY_NO_COLLISIONS    = DOMKeys.VK_C.c;
-    var KEY_VIDEO_STANDARD   = DOMKeys.VK_V.c;
+    var KEY_FRAME            = wmsx.DOMKeys.VK_F.c;
+    var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
+    var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
+    var KEY_NO_COLLISIONS    = wmsx.DOMKeys.VK_C.c;
+    var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_V.c;
 
-    var KEY_STATE_0          = DOMKeys.VK_QUOTE.c;
-    var KEY_STATE_0a         = DOMKeys.VK_TILDE.c;
-    var KEY_STATE_1          = DOMKeys.VK_1.c;
-    var KEY_STATE_2          = DOMKeys.VK_2.c;
-    var KEY_STATE_3          = DOMKeys.VK_3.c;
-    var KEY_STATE_4          = DOMKeys.VK_4.c;
-    var KEY_STATE_5          = DOMKeys.VK_5.c;
-    var KEY_STATE_6          = DOMKeys.VK_6.c;
-    var KEY_STATE_7          = DOMKeys.VK_7.c;
-    var KEY_STATE_8          = DOMKeys.VK_8.c;
-    var KEY_STATE_9          = DOMKeys.VK_9.c;
-    var KEY_STATE_10         = DOMKeys.VK_0.c;
-    var KEY_STATE_11         = DOMKeys.VK_MINUS.c;
-    var KEY_STATE_11a        = DOMKeys.VK_MINUS2.c;
-    var KEY_STATE_12         = DOMKeys.VK_EQUALS.c;
-    var KEY_STATE_12a        = DOMKeys.VK_EQUALS2.c;
+    var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
+    var KEY_STATE_0a         = wmsx.DOMKeys.VK_TILDE.c;
+    var KEY_STATE_1          = wmsx.DOMKeys.VK_1.c;
+    var KEY_STATE_2          = wmsx.DOMKeys.VK_2.c;
+    var KEY_STATE_3          = wmsx.DOMKeys.VK_3.c;
+    var KEY_STATE_4          = wmsx.DOMKeys.VK_4.c;
+    var KEY_STATE_5          = wmsx.DOMKeys.VK_5.c;
+    var KEY_STATE_6          = wmsx.DOMKeys.VK_6.c;
+    var KEY_STATE_7          = wmsx.DOMKeys.VK_7.c;
+    var KEY_STATE_8          = wmsx.DOMKeys.VK_8.c;
+    var KEY_STATE_9          = wmsx.DOMKeys.VK_9.c;
+    var KEY_STATE_10         = wmsx.DOMKeys.VK_0.c;
+    var KEY_STATE_11         = wmsx.DOMKeys.VK_MINUS.c;
+    var KEY_STATE_11a        = wmsx.DOMKeys.VK_MINUS2.c;
+    var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
+    var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS2.c;
 
-    var KEY_SAVE_STATE_FILE  = DOMKeys.VK_F8.c;
+    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F8.c;
 
-    var KEY_CARTRIDGE_REMOVE = DOMKeys.VK_F7.c;
+    var KEY_CARTRIDGE_REMOVE = wmsx.DOMKeys.VK_F7.c;
 
     var KEY_CTRL_MASK  = 1;
-    var KEY_ALT_MASK   = DOMMachineControls.KEY_ALT_MASK;
+    var KEY_ALT_MASK   = wmsx.DOMMachineControls.KEY_ALT_MASK;
     var KEY_SHIFT_MASK = 4;
 
 
@@ -272,12 +272,12 @@ DOMMachineControls = function() {
 
 };
 
-DOMMachineControls.KEY_FAST_SPEED = DOMKeys.VK_F12.c;
-DOMMachineControls.KEY_PAUSE      = DOMKeys.VK_P.c;
+wmsx.DOMMachineControls.KEY_FAST_SPEED = wmsx.DOMKeys.VK_F12.c;
+wmsx.DOMMachineControls.KEY_PAUSE      = wmsx.DOMKeys.VK_P.c;
 
-DOMMachineControls.KEY_TOGGLE_JOYSTICK  = DOMKeys.VK_J.c;
-DOMMachineControls.KEY_TOGGLE_P1_MODE   = DOMKeys.VK_K.c;
-DOMMachineControls.KEY_TOGGLE_PADDLE    = DOMKeys.VK_L.c;
-DOMMachineControls.KEY_CARTRIDGE_FORMAT = DOMKeys.VK_B.c;
+wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK  = wmsx.DOMKeys.VK_J.c;
+wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE   = wmsx.DOMKeys.VK_K.c;
+wmsx.DOMMachineControls.KEY_TOGGLE_PADDLE    = wmsx.DOMKeys.VK_L.c;
+wmsx.DOMMachineControls.KEY_CARTRIDGE_FORMAT = wmsx.DOMKeys.VK_B.c;
 
-DOMMachineControls.KEY_ALT_MASK   = 2;
+wmsx.DOMMachineControls.KEY_ALT_MASK   = 2;

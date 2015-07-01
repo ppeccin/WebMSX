@@ -79,7 +79,7 @@ function breakpointOutput(text) {
 var scr = document.getElementById("screen");
 
 function textModeUpdater(text) {
-    text = Util.escapeHtml(text);
+    text = wmsx.Util.escapeHtml(text);
     text = text.replace(/[\x00-\x20]/g, "&nbsp;");
     text = text.replace(/[\x7f-\xfe]/g, "&nbsp;");
     text = text.replace(/\xff/g, "&#9608;");
@@ -112,7 +112,7 @@ ctr.value = 0;
 
 function startEmulator(rom) {
 
-    R = new Room(rom);
+    R = new wmsx.Room(rom);
     R.powerOn();
 
     CPU.breakpointOutput = breakpointOutput;

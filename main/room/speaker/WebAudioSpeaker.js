@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-WebAudioSpeaker = function() {
+wmsx.WebAudioSpeaker = function() {
 
     this.connect = function(pAudioSignal) {
         audioSignal = pAudioSignal;
@@ -11,7 +11,7 @@ WebAudioSpeaker = function() {
         createAudioContext();
         if (!audioContext) return;
 
-        processor = audioContext.createScriptProcessor(MSX.AUDIO_BUFFER_SIZE, 0, 1);
+        processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 0, 1);
         processor.onaudioprocess = onAudioProcess;
         this.play();
     };
@@ -34,11 +34,11 @@ WebAudioSpeaker = function() {
             var constr = (window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext);
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
-            resamplingFactor = PSGAudioSignal.SAMPLE_RATE / audioContext.sampleRate;
-            Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
+            resamplingFactor = wmsx.PSGAudioSignal.SAMPLE_RATE / audioContext.sampleRate;
+            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
             //Util.log("Audio resampling factor: " + (1/resamplingFactor));
         } catch(e) {
-            Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
+            wmsx.Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
         }
     };
 
@@ -49,10 +49,17 @@ WebAudioSpeaker = function() {
         var outputBuffer = event.outputBuffer.getChannelData(0);
         var input = audioSignal.retrieveSamples((outputBuffer.length * resamplingFactor) | 0);
 
-        Util.arrayCopyCircularSourceWithStep(
-            input.buffer, input.start, input.bufferSize, resamplingFactor,
-            outputBuffer, 0, outputBuffer.length
-        );
+        // Copy to output performing basic re-sampling
+        // Same as Util.arrayCopyCircularSourceWithStep, but optimized with local code
+        var s = input.start;
+        var d = 0;
+        var destEnd = 0 + outputBuffer.length;
+        while (d < destEnd) {
+            outputBuffer[d] = input.buffer[s | 0];   // as integer
+            s += resamplingFactor;
+            if (s >= input.bufferSize) s -= input.bufferSize;
+            d++;
+        }
     };
 
 

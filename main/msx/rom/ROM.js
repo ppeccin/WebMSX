@@ -1,11 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-ROM = function(source, content, info) {
+wmsx.ROM = function(source, content, info) {
 
     this.source = source;
     this.content = content;
     if (info) this.info = info;
-    else this.info = SlotCreator.produceInfo(this);
+    else this.info = wmsx.SlotCreator.produceInfo(this);
 
 
     // Savestate  -------------------------------------------
@@ -20,6 +20,6 @@ ROM = function(source, content, info) {
 
 };
 
-ROM.loadState = function(state) {
-    return new ROM(state.s, null, state.i);
+wmsx.ROM.loadState = function(state) {
+    return new wmsx.ROM(state.s, null, state.i);
 };

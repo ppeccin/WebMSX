@@ -2,7 +2,7 @@
 
 TestRam64K = function(rom, init) {
 
-    var data = Util.arrayFill(new Array(65536), 256);     // pSTOP instruction
+    var data = wmsx.Util.arrayFill(new Array(65536), 256);     // pSTOP instruction
     this.bytes = data;
 
     if (!rom) {
@@ -25,11 +25,11 @@ TestRam64K = function(rom, init) {
     };
 
     this.output = function(port, value) {
-        Util.log("OUT " + (port & 255).toString(16) + ", " + value.toString(16));
+        wmsx.Util.log("OUT " + (port & 255).toString(16) + ", " + value.toString(16));
     };
 
     this.input = function(port) {
-        Util.log("IN " + (port & 255).toString(16));
+        wmsx.Util.log("IN " + (port & 255).toString(16));
         return 0;
     };
 

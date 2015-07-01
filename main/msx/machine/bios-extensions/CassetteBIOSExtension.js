@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-CassetteBIOSExtension = function(casseteSocket) {
+wmsx.CassetteBIOSExtension = function(casseteSocket) {
     var self = this;
 
     this.connectDeck = function(pDeck) {

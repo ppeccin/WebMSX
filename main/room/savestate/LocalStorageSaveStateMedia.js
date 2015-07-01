@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-LocalStorageSaveStateMedia = function() {
+wmsx.LocalStorageSaveStateMedia = function() {
 
     this.connect = function(socket) {
         socket.connectMedia(this);
@@ -76,7 +76,7 @@ LocalStorageSaveStateMedia = function() {
         try {
             var id;
             if (data instanceof Array)
-                id = Util.uInt8ArrayToByteString(data.slice(0, SAVE_STATE_IDENTIFIER.length));
+                id = wmsx.Util.uInt8ArrayToByteString(data.slice(0, SAVE_STATE_IDENTIFIER.length));
             else
                 id = data.substr(0, SAVE_STATE_IDENTIFIER.length);
 
@@ -85,7 +85,7 @@ LocalStorageSaveStateMedia = function() {
 
             var stateData = data.slice(SAVE_STATE_IDENTIFIER.length);
             if (stateData instanceof Array)
-                stateData = Util.uInt8ArrayToByteString(stateData);
+                stateData = wmsx.Util.uInt8ArrayToByteString(stateData);
 
             return stateData && JSON.parse(stateData);
         } catch(e) {

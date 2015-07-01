@@ -279,7 +279,7 @@
 
     // Set Global Constants --------------------------------------------
 
-    VideoStandard = {
+    wmsx.VideoStandard = {
         NTSC: {
             name: "NTSC",
             width: 256,

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-PSGAudioSignal = function() {
+wmsx.PSGAudioSignal = function() {
 
     this.connectMonitor = function(pMonitor) {
         monitor = pMonitor;
@@ -30,7 +30,7 @@ PSGAudioSignal = function() {
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = Math.round(PSGAudioSignal.SAMPLE_RATE / fps);
+        samplesPerFrame = Math.round(wmsx.PSGAudioSignal.SAMPLE_RATE / fps);
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
@@ -105,22 +105,22 @@ PSGAudioSignal = function() {
     var monitor;
 
     var signalOn = false;
-    var mixedChannel = new PSGMixedAudioChannel();
+    var mixedChannel = new wmsx.PSGMixedAudioChannel();
 
     var nextSampleToGenerate = 0;
     var nextSampleToRetrieve = 0;
 
-    var samplesPerFrame =  PSGAudioSignal.SAMPLE_RATE / VideoStandard.NTSC.fps;
+    var samplesPerFrame = wmsx.PSGAudioSignal.SAMPLE_RATE / wmsx.VideoStandard.NTSC.fps;
     var frameSamples = 0;
 
     var lastSample = 0;
 
     var externalAddedValue = 0;
 
-    var MAX_SAMPLES = 10 * MSX.AUDIO_BUFFER_SIZE;
+    var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
     var MAX_AMPLITUDE = 0.65;
 
-    var samples = Util.arrayFill(new Array(MAX_SAMPLES), 0);
+    var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
     var retrieveResult = {
         buffer: samples,
@@ -130,4 +130,4 @@ PSGAudioSignal = function() {
 
 };
 
-PSGAudioSignal.SAMPLE_RATE = 111960;
+wmsx.PSGAudioSignal.SAMPLE_RATE = 111960;

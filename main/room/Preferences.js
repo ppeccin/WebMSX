@@ -1,29 +1,28 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-MSX.preferences = {};
+WMSX.preferences = {};
 
-MSX.preferences.defaults = {
+WMSX.preferences.defaults = {};
+
+WMSX.preferences.loadDefaults = function() {
+    for (var pref in WMSX.preferences.defaults)
+        WMSX.preferences[pref] = WMSX.preferences.defaults[pref];
 };
 
-MSX.preferences.loadDefaults = function() {
-    for (var pref in MSX.preferences.defaults)
-        MSX.preferences[pref] = MSX.preferences.defaults[pref];
-};
-
-MSX.preferences.load = function() {
+WMSX.preferences.load = function() {
     try {
-        MSX.preferences.loadDefaults();
+        WMSX.preferences.loadDefaults();
         var loaded = JSON.parse(localStorage.msxprefs || "{}");
-        for (var pref in MSX.preferences.defaults)
-            if (loaded[pref]) MSX.preferences[pref] = loaded[pref];
+        for (var pref in WMSX.preferences.defaults)
+            if (loaded[pref]) WMSX.preferences[pref] = loaded[pref];
     } catch(e) {
         // giveup
     }
 };
 
-MSX.preferences.save = function() {
+WMSX.preferences.save = function() {
     try {
-        localStorage.msxprefs = JSON.stringify(MSX.preferences);
+        localStorage.msxprefs = JSON.stringify(WMSX.preferences);
     } catch (e) {
         // giveup
     }

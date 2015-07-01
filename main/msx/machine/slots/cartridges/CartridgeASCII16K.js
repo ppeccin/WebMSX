@@ -1,13 +1,13 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // ROMs with (n >= 2) * 16K banks, mapped in 2 16K banks starting at 0x4000
-CartridgeASCII16K = function(rom) {
+wmsx.CartridgeASCII16K = function(rom) {
     var self = this;
 
     function init() {
         self.rom = rom;
         var content = self.rom.content;
-        bytes = Util.arrayFill(new Array(content.length), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(content.length), 0xff);
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
         numBanks = (content.length / 16384) | 0;
@@ -56,7 +56,7 @@ CartridgeASCII16K = function(rom) {
     var numBanks;
 
     this.rom = null;
-    this.format = SlotFormats.ASCII16;
+    this.format = wmsx.SlotFormats.ASCII16;
 
 
     // Savestate  -------------------------------------------
@@ -65,7 +65,7 @@ CartridgeASCII16K = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: btoa(Util.uInt8ArrayToByteString(bytes)),
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes)),
             b1: bank1Offset,
             b2: bank2Offset,
             n: numBanks
@@ -73,8 +73,8 @@ CartridgeASCII16K = function(rom) {
     };
 
     this.loadState = function(s) {
-        this.rom = ROM.loadState(s.r);
-        bytes = Util.byteStringToUInt8Array(atob(s.b));
+        this.rom = wmsx.ROM.loadState(s.r);
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b));
         bank1Offset = s.b1;
         bank2Offset = s.b2;
         numBanks = s.n;
@@ -85,8 +85,8 @@ CartridgeASCII16K = function(rom) {
 
 };
 
-CartridgeASCII16K.createFromSaveState = function(state) {
-    var cart = new CartridgeASCII16K();
+wmsx.CartridgeASCII16K.createFromSaveState = function(state) {
+    var cart = new wmsx.CartridgeASCII16K();
     cart.loadState(state);
     return cart;
 };

@@ -4,7 +4,7 @@
 
 
 
-    Z = new Z80();
+    Z = new wmsx.Z80();
     R = new Ram64K();
 
     Z.connectBus(R);

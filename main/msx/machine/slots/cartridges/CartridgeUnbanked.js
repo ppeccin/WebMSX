@@ -1,12 +1,12 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Unbanked ROMs of size 8K, 16K, 32K or 64K. Position in slot depends on size, header (start address) and info hints
-CartridgeUnbanked = function(rom) {
+wmsx.CartridgeUnbanked = function(rom) {
     var self = this;
 
     function init() {
         self.rom = rom;
-        bytes = Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         var content = self.rom.content;
         // If 64K size, it fits just fine starting at 0x0000
         if (content.length === 65536) {
@@ -88,7 +88,7 @@ CartridgeUnbanked = function(rom) {
     var bytes;
 
     this.rom = null;
-    this.format = SlotFormats.Unbanked;
+    this.format = wmsx.SlotFormats.Unbanked;
 
 
     // Savestate  -------------------------------------------
@@ -97,13 +97,13 @@ CartridgeUnbanked = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: btoa(Util.uInt8ArrayToByteString(bytes))
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
         };
     };
 
     this.loadState = function(state) {
-        this.rom = ROM.loadState(state.r);
-        bytes = Util.byteStringToUInt8Array(atob(state.b));
+        this.rom = wmsx.ROM.loadState(state.r);
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
     };
 
 
@@ -111,8 +111,8 @@ CartridgeUnbanked = function(rom) {
 
 };
 
-CartridgeUnbanked.createFromSaveState = function(state) {
-    var cart = new CartridgeUnbanked();
+wmsx.CartridgeUnbanked.createFromSaveState = function(state) {
+    var cart = new wmsx.CartridgeUnbanked();
     cart.loadState(state);
     return cart;
 };

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-DOMKeys = {
+wmsx.DOMKeys = {
     VK_ESCAPE: {c: 27, n: "Esc"},
     VK_F1: {c: 112, n: "F1"},
     VK_F2: {c: 113, n: "F2"},
@@ -111,6 +111,6 @@ DOMKeys = {
 };
 
 DOMKeysByCode = {};
-for (var key in DOMKeys)
-    DOMKeysByCode[DOMKeys[key].c] = DOMKeys[key];
+for (var key in wmsx.DOMKeys)
+    DOMKeysByCode[wmsx.DOMKeys[key].c] = wmsx.DOMKeys[key];
 

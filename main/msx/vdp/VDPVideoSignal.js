@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-VDPVideoSignal = function() {
+wmsx.VDPVideoSignal = function() {
 
     this.connectMonitor = function(pMonitor) {
         this.monitor = pMonitor;

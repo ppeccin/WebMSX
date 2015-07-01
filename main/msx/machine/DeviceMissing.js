@@ -1,9 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-DeviceMissing = function() {
+wmsx.DeviceMissing = function() {
 
     this.inputPort = function(port) {
-        Util.log ("Empty IN " + port.toString(16));
+        wmsx.Util.log ("Empty IN " + port.toString(16));
         return 0xff
     };
 

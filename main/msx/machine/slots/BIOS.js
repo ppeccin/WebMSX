@@ -1,17 +1,17 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // 16K or 32K BIOS. Always positioned at 0x0000
-BIOS = function(rom) {
+wmsx.BIOS = function(rom) {
     var self = this;
 
     function init() {
         self.rom = rom;
-        bytes = Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
-        self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? VideoStandard.NTSC : VideoStandard.PAL;
+        self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
     }
 
     this.powerOn = function(paused) {
@@ -31,12 +31,12 @@ BIOS = function(rom) {
     };
 
     this.setVideoStandardForced = function(forcedVideoStandard) {
-        if (forcedVideoStandard === VideoStandard.PAL) bytes[0x2b] |= 0x80;
+        if (forcedVideoStandard === wmsx.VideoStandard.PAL) bytes[0x2b] |= 0x80;
         else bytes[0x2b] &= ~0x80;
     };
 
     this.setVideoStandardUseOriginal = function() {
-        if (this.originalVideoStandard === VideoStandard.PAL) bytes[0x2b] |= 0x80;
+        if (this.originalVideoStandard === wmsx.VideoStandard.PAL) bytes[0x2b] |= 0x80;
         else bytes[0x2b] &= ~0x80;
     };
 
@@ -59,7 +59,7 @@ BIOS = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = SlotFormats.BIOS;
+    this.format = wmsx.SlotFormats.BIOS;
 
     this.originalVideoStandard = null;
 
@@ -71,14 +71,14 @@ BIOS = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             v: this.originalVideoStandard,
-            b: btoa(Util.uInt8ArrayToByteString(bytes))
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
         };
     };
 
     this.loadState = function(state) {
-        this.rom = ROM.loadState(state.r);
+        this.rom = wmsx.ROM.loadState(state.r);
         this.originalVideoStandard = state.v;
-        bytes = Util.byteStringToUInt8Array(atob(state.b));
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
     };
 
 
@@ -86,8 +86,8 @@ BIOS = function(rom) {
 
 };
 
-BIOS.createFromSaveState = function(state) {
-    var bios = new BIOS();
+wmsx.BIOS.createFromSaveState = function(state) {
+    var bios = new wmsx.BIOS();
     bios.loadState(state);
     return bios;
 };

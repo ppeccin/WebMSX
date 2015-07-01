@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface, mapped to the configured slots and devices. No expanded slots
-function EngineBUS(cpu, ppi, vdp, psg) {
+wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
     var self = this;
 
     function init() {
@@ -28,7 +28,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
 
     this.setBIOS = function(pBios) {
         bios = pBios;
-        slots[0] = bios || new SlotEmpty();
+        slots[0] = bios || new wmsx.SlotEmpty();
         this.setPrimarySlotConfig(0);
     };
 
@@ -38,7 +38,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
 
     this.setCartridge = function(pCartridge) {
         cartridge = pCartridge;
-        slots[1] = cartridge || new SlotEmpty();
+        slots[1] = cartridge || new wmsx.SlotEmpty();
         this.setPrimarySlotConfig(primarySlotConfig);
     };
 
@@ -81,13 +81,13 @@ function EngineBUS(cpu, ppi, vdp, psg) {
     };
 
     function create() {
-        var emptySlot = new SlotEmpty();
+        var emptySlot = new wmsx.SlotEmpty();
         slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
         slotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
 
-        var deviceMissing = new DeviceMissing();
-        devicesInputPorts =  Util.arrayFill(new Array(256), deviceMissing.inputPort);
-        devicesOutputPorts = Util.arrayFill(new Array(256), deviceMissing.outputPort);
+        var deviceMissing = new wmsx.DeviceMissing();
+        devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceMissing.inputPort);
+        devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceMissing.outputPort);
 
         self.slots = slots;
         self.slotPages = slotPages;
@@ -121,7 +121,7 @@ function EngineBUS(cpu, ppi, vdp, psg) {
         devicesInputPorts[0xa2]  = psg.inputA2;
 
         // RAM
-        MSX.ram = slots[2] = SlotRAM64K.createNewEmpty();
+        WMSX.ram = slots[2] = wmsx.SlotRAM64K.createNewEmpty();
 
         self.setPrimarySlotConfig(0);
     }
@@ -150,10 +150,10 @@ function EngineBUS(cpu, ppi, vdp, psg) {
     };
 
     this.loadState = function(s) {
-        slots[0] = SlotCreator.createFromSaveState(s.s0);
-        slots[1] = SlotCreator.createFromSaveState(s.s1);
-        slots[2] = SlotCreator.createFromSaveState(s.s2);
-        slots[3] = SlotCreator.createFromSaveState(s.s3);
+        slots[0] = wmsx.SlotCreator.createFromSaveState(s.s0);
+        slots[1] = wmsx.SlotCreator.createFromSaveState(s.s1);
+        slots[2] = wmsx.SlotCreator.createFromSaveState(s.s2);
+        slots[3] = wmsx.SlotCreator.createFromSaveState(s.s3);
         this.setPrimarySlotConfig(s.p);
     };
 

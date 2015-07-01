@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-SlotCreator = function () {
+wmsx.SlotCreator = function () {
 
     this.createFromROM = function (rom) {
         // Try to build the Slot if a supported format is found
@@ -9,12 +9,12 @@ SlotCreator = function () {
 
         // Choose the best option
         var bestOption = options[0];
-        Util.log("" + bestOption.name + ": " + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
+        wmsx.Util.log("" + bestOption.name + ": " + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
         return bestOption.createFromROM(rom);
     };
 
     this.createFromSaveState = function (saveState) {
-        var cartridgeFormat = SlotFormats[saveState.f];
+        var cartridgeFormat = wmsx.SlotFormats[saveState.f];
         if (!cartridgeFormat) {
             var ex = new Error("Unsupported ROM Format: " + saveState.f);
             ex.msx = true;
@@ -26,16 +26,16 @@ SlotCreator = function () {
     this.produceInfo = function(rom) {
         // Preserve original length as MD5 computation may increase it
         var origLen = rom.content.length;
-        var hash = Util.sha1Generator.calcSHA1FromByteArray(rom.content).toUpperCase();
+        var hash = wmsx.Util.sha1Generator.calcSHA1FromByteArray(rom.content).toUpperCase();
         if (rom.content.length > origLen) rom.content.splice(origLen);
 
         // Get info from the library
-        var info = ROMDatabase[hash];
+        var info = wmsx.ROMDatabase[hash];
         if (info) {
-            Util.log("" + info.n + (info.f ? " (" + info.f + ")" : ""));
+            wmsx.Util.log("" + info.n + (info.f ? " (" + info.f + ")" : ""));
         } else {
             info = buildInfo(rom.source);
-            Util.log("Unknown ROM (" + hash + "): " + info.n);
+            wmsx.Util.log("Unknown ROM (" + hash + "): " + info.n);
         }
 
         finishInfo(info, rom.source, hash);
@@ -46,9 +46,9 @@ SlotCreator = function () {
         var formatOptions = [];
         var formatOption;
         var denialEx;
-        for (var format in SlotFormats) {
+        for (var format in wmsx.SlotFormats) {
             try {
-                formatOption = SlotFormats[format].tryFormat(rom);
+                formatOption = wmsx.SlotFormats[format].tryFormat(rom);
                 if (!formatOption) continue;	    	    // rejected by format
                 boostPriority(formatOption, rom.info);	    // adjust priority based on ROM info
                 formatOptions.push(formatOption);
@@ -101,7 +101,7 @@ SlotCreator = function () {
         Format: if (!info.f) {
             // First by explicit format hint
             var romURL = romSource.toUpperCase();
-            for (var formatName in SlotFormats)
+            for (var formatName in wmsx.SlotFormats)
                 if (formatMatchesByHint(formatName, name) || formatMatchesByHint(formatName, romURL)) {
                     info.f = formatName;
                     break Format;
@@ -149,4 +149,4 @@ SlotCreator = function () {
 
 };
 
-SlotCreator = new SlotCreator();
+wmsx.SlotCreator = new wmsx.SlotCreator();

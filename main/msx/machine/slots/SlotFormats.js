@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-SlotFormats = {
+wmsx.SlotFormats = {
 
     "Empty": {
         name: "Empty",
@@ -11,10 +11,10 @@ SlotFormats = {
             if (!rom || !rom.content || rom.content.length === 0) return this;
         },
         createFromROM: function (rom) {
-            return new SlotEmpty(this);
+            return new wmsx.SlotEmpty(this);
         },
         createFromSaveState: function (state) {
-            return SlotEmpty.createFromSaveState(state);
+            return wmsx.SlotEmpty.createFromSaveState(state);
         }
     },
 
@@ -29,10 +29,10 @@ SlotFormats = {
                 return this;
         },
         createFromROM: function (rom) {
-            return new BIOS(rom);
+            return new wmsx.BIOS(rom);
         },
         createFromSaveState: function (state) {
-            return BIOS.createFromSaveState(state);
+            return wmsx.BIOS.createFromSaveState(state);
         }
     },
 
@@ -46,7 +46,7 @@ SlotFormats = {
         },
         createFromROM: null,
         createFromSaveState: function (state) {
-            return SlotRAM64K.createFromSaveState(state);
+            return wmsx.SlotRAM64K.createFromSaveState(state);
         }
     },
 
@@ -68,10 +68,10 @@ SlotFormats = {
                 || (rom.content[0x8000] === 65 && rom.content[0x8001] === 66))) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeUnbanked(rom);
+            return new wmsx.CartridgeUnbanked(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeUnbanked.createFromSaveState(state);
+            return wmsx.CartridgeUnbanked.createFromSaveState(state);
         }
     },
 
@@ -85,10 +85,10 @@ SlotFormats = {
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeASCII8K(rom);
+            return new wmsx.CartridgeASCII8K(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeASCII8K.createFromSaveState(state);
+            return wmsx.CartridgeASCII8K.createFromSaveState(state);
         }
     },
 
@@ -102,10 +102,10 @@ SlotFormats = {
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeASCII16K(rom);
+            return new wmsx.CartridgeASCII16K(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeASCII16K.createFromSaveState(state);
+            return wmsx.CartridgeASCII16K.createFromSaveState(state);
         }
     },
 
@@ -119,10 +119,10 @@ SlotFormats = {
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeKonami(rom);
+            return new wmsx.CartridgeKonami(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeKonami.createFromSaveState(state);
+            return wmsx.CartridgeKonami.createFromSaveState(state);
         }
     },
 
@@ -136,10 +136,10 @@ SlotFormats = {
                 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeKonamiSCC(rom);
+            return new wmsx.CartridgeKonamiSCC(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeKonamiSCC.createFromSaveState(state);
+            return wmsx.CartridgeKonamiSCC.createFromSaveState(state);
         }
     },
 
@@ -152,10 +152,10 @@ SlotFormats = {
             if (rom.content.length === 393216) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeRType(rom);
+            return new wmsx.CartridgeRType(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeRType.createFromSaveState(state);
+            return wmsx.CartridgeRType.createFromSaveState(state);
         }
     },
 
@@ -168,10 +168,10 @@ SlotFormats = {
             if (rom.content.length === 65536) return this;
         },
         createFromROM: function (rom) {
-            return new CartridgeCrossBlaim(rom);
+            return new wmsx.CartridgeCrossBlaim(rom);
         },
         createFromSaveState: function (state) {
-            return CartridgeCrossBlaim.createFromSaveState(state);
+            return wmsx.CartridgeCrossBlaim.createFromSaveState(state);
         }
     }
 };

@@ -1,13 +1,13 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Special 64K ROM with 4 16K banks. Bank 1 at 0x4000 fixed at position 0, bank 2 at 0x8000 variable
-CartridgeCrossBlaim = function(rom) {
+wmsx.CartridgeCrossBlaim = function(rom) {
     var self = this;
 
     function init() {
         self.rom = rom;
         var content = self.rom.content;
-        bytes = Util.arrayFill(new Array(content.length), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(content.length), 0xff);
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
     }
@@ -38,7 +38,7 @@ CartridgeCrossBlaim = function(rom) {
     var bank2Offset;
 
     this.rom = null;
-    this.format = SlotFormats.CrossBlaim;
+    this.format = wmsx.SlotFormats.CrossBlaim;
 
 
     // Savestate  -------------------------------------------
@@ -47,14 +47,14 @@ CartridgeCrossBlaim = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: btoa(Util.uInt8ArrayToByteString(bytes)),
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes)),
             b1: bank2Offset
         };
     };
 
     this.loadState = function(s) {
-        this.rom = ROM.loadState(s.r);
-        bytes = Util.byteStringToUInt8Array(atob(s.b));
+        this.rom = wmsx.ROM.loadState(s.r);
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b));
         bank2Offset = s.b1;
     };
 
@@ -63,8 +63,8 @@ CartridgeCrossBlaim = function(rom) {
 
 };
 
-CartridgeCrossBlaim.createFromSaveState = function(state) {
-    var cart = new CartridgeCrossBlaim();
+wmsx.CartridgeCrossBlaim.createFromSaveState = function(state) {
+    var cart = new wmsx.CartridgeCrossBlaim();
     cart.loadState(state);
     return cart;
 };

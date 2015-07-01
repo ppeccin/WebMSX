@@ -3,7 +3,7 @@
 // Main Emulator parameters.
 // You may change any of these after loading the project and before starting the Emulator
 
-MSX = {
+WMSX = {
 
     VERSION:                        "version 0.1",              // Don't change this one!
 
@@ -27,4 +27,4 @@ MSX = {
 
 };
 
-//jt = window.jt || {};
+wmsx = window.wmsx || {};

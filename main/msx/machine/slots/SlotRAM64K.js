@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-SlotRAM64K = function(content) {
+wmsx.SlotRAM64K = function(content) {
 
     function init() {
         bytes = content;
@@ -39,7 +39,7 @@ SlotRAM64K = function(content) {
 
     var bytes;
 
-    this.format = SlotFormats.RAM64K;
+    this.format = wmsx.SlotFormats.RAM64K;
 
 
     // Savestate  -------------------------------------------
@@ -47,12 +47,12 @@ SlotRAM64K = function(content) {
     this.saveState = function() {
         return {
             f: this.format.name,
-            b: btoa(Util.uInt8ArrayToByteString(bytes))
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
         };
     };
 
     this.loadState = function(state) {
-        bytes = Util.byteStringToUInt8Array(atob(state.b));
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
     };
 
 
@@ -60,12 +60,12 @@ SlotRAM64K = function(content) {
 
 };
 
-SlotRAM64K.createNewEmpty = function() {
-    return new SlotRAM64K(Util.arrayFill(new Array(65536), 0xff));
+wmsx.SlotRAM64K.createNewEmpty = function() {
+    return new wmsx.SlotRAM64K(wmsx.Util.arrayFill(new Array(65536), 0xff));
 };
 
-SlotRAM64K.createFromSaveState = function(state) {
-    var ram = new SlotRAM64K();
+wmsx.SlotRAM64K.createFromSaveState = function(state) {
+    var ram = new wmsx.SlotRAM64K();
     ram.loadState(state);
     return ram;
 };

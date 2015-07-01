@@ -1,9 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function PSG() {
+wmsx.PSG = function() {
 
     function init() {
-        audioSignal = new PSGAudioSignal();
+        audioSignal = new wmsx.PSGAudioSignal();
         audioChannel = audioSignal.getMixedAudioChannel();
         registers[14] = registers[15] = 0x3f;
     }
@@ -59,7 +59,7 @@ function PSG() {
 
 
     var registerAddress = 0;
-    var registers = Util.arrayFill(new Array(16), 0);
+    var registers = wmsx.Util.arrayFill(new Array(16), 0);
 
     var audioSignal;
     var audioChannel;
@@ -72,7 +72,7 @@ function PSG() {
     this.saveState = function() {
         return {
             ra: registerAddress,
-            r: btoa(Util.uInt8ArrayToByteString(registers)),
+            r: btoa(wmsx.Util.uInt8ArrayToByteString(registers)),
             a: audioChannel.saveState()
 
         };
@@ -80,7 +80,7 @@ function PSG() {
 
     this.loadState = function(s) {
         registerAddress = s.ra;
-        registers = Util.byteStringToUInt8Array(atob(s.r));
+        registers = wmsx.Util.byteStringToUInt8Array(atob(s.r));
         audioChannel.loadState(s.a);
     };
 

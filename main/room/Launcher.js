@@ -1,51 +1,51 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-MSX.start = function () {
+WMSX.start = function () {
     // Emulator can only be started once
-    delete MSX.start;
-    delete MSX.preLoadImagesAndStart;
+    delete WMSX.start;
+    delete WMSX.preLoadImagesAndStart;
 
     // Init preferences
-    MSX.preferences.load();
+    WMSX.preferences.load();
     // Get container elements
-    if (!MSX.screenElement) {
-        MSX.screenElement = document.getElementById(MSX.SCREEN_ELEMENT_ID);
-        if (!MSX.screenElement)
+    if (!WMSX.screenElement) {
+        WMSX.screenElement = document.getElementById(WMSX.SCREEN_ELEMENT_ID);
+        if (!WMSX.screenElement)
             throw new Error('MSX cannot be started. ' +
-            'HTML document is missing screen element with id "' + MSX.SCREEN_ELEMENT_ID + '"');
+            'HTML document is missing screen element with id "' + WMSX.SCREEN_ELEMENT_ID + '"');
     }
-    if (!MSX.machinePanelElement)
-        MSX.machinePanelElement = document.getElementById(MSX.CONSOLE_PANEL_ELEMENT_ID);
+    if (!WMSX.machinePanelElement)
+        WMSX.machinePanelElement = document.getElementById(WMSX.CONSOLE_PANEL_ELEMENT_ID);
     // Build and start emulator
-    MSX.room = new Room(MSX.screenElement, MSX.machinePanelElement);
-    MSX.room.powerOn();
+    WMSX.room = new wmsx.Room(WMSX.screenElement, WMSX.machinePanelElement);
+    WMSX.room.powerOn();
     // Auto-load BIOS if specified
-    if (MSX.BIOS_AUTO_LOAD_URL)
-        MSX.room.romLoader.loadFromURL(MSX.BIOS_AUTO_LOAD_URL);
+    if (WMSX.BIOS_AUTO_LOAD_URL)
+        WMSX.room.romLoader.loadFromURL(WMSX.BIOS_AUTO_LOAD_URL);
     // Auto-load ROM if specified
-    if (MSX.ROM_AUTO_LOAD_URL)
-        MSX.room.romLoader.loadFromURL(MSX.ROM_AUTO_LOAD_URL);
+    if (WMSX.ROM_AUTO_LOAD_URL)
+        WMSX.room.romLoader.loadFromURL(WMSX.ROM_AUTO_LOAD_URL);
 
-    MSX.shutdown = function () {
-        if (MSX.room) MSX.room.powerOff();
-        Util.log("shutdown");
-        delete MSX;
+    WMSX.shutdown = function () {
+        if (WMSX.room) WMSX.room.powerOff();
+        wmsx.Util.log("shutdown");
+        delete WMSX;
     };
 
-    Util.log(MSX.VERSION + " started");
+    wmsx.Util.log(WMSX.VERSION + " started");
 };
 
 
 // Pre-load images and start emulator as soon as all are loaded and DOM is ready
-MSX.preLoadImagesAndStart = function() {
+WMSX.preLoadImagesAndStart = function() {
     var images = [ "sprites.png", "logo.png", "screenborder.png" ];
     var numImages = images.length;
 
     var domReady = false;
     var imagesToLoad = numImages;
     function tryLaunch(bypass) {
-        if (MSX.start && MSX.AUTO_START !== false && (bypass || (domReady && imagesToLoad === 0)))
-            MSX.start();
+        if (WMSX.start && WMSX.AUTO_START !== false && (bypass || (domReady && imagesToLoad === 0)))
+            WMSX.start();
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -55,7 +55,7 @@ MSX.preLoadImagesAndStart = function() {
 
     for (var i = 0; i < numImages; i++) {
         var img = new Image();
-        img.src = MSX.IMAGES_PATH + images[i];
+        img.src = WMSX.IMAGES_PATH + images[i];
         img.onload = function() {
             imagesToLoad--;
             tryLaunch(false);
@@ -69,4 +69,4 @@ MSX.preLoadImagesAndStart = function() {
 };
 
 // Start pre-loading images right away
-MSX.preLoadImagesAndStart();
+WMSX.preLoadImagesAndStart();

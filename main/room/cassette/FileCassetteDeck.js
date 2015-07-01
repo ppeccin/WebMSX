@@ -1,19 +1,19 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function FileCassetteDeck() {
+wmsx.FileCassetteDeck = function() {
 
     this.connect = function(cassetteSocket) {
         cassetteSocket.connectDeck(this);
     };
 
     this.loadTapeFile = function(name, arrContent) {
-        if (Util.arrayIndexOfSubArray(arrContent, HEADER, 0) < 0)
+        if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) < 0)
             return null;
 
         tapeContent = arrContent.slice(0);
         tapePosition = 0;
 
-        Util.log("Cassette Tape file loaded");
+        wmsx.Util.log("Cassette Tape file loaded");
         return tapeContent;
     };
 
@@ -26,18 +26,18 @@ function FileCassetteDeck() {
     };
 
     this.writeHeader = function(long) {
-        Util.log("Tape is read-only!");
+        wmsx.Util.log("Tape is read-only!");
         return false;
     };
 
     this.writeByte = function(val) {
-        Util.log("Tape is read-only!");
+        wmsx.Util.log("Tape is read-only!");
         return false;
     };
 
     this.readHeader = function() {
         if (tapeEnd()) return false;
-        tapePosition = Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition);
+        tapePosition = wmsx.Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition);
         if (tapeEnd()) return false;
         //console.log("Reading Tape Header");
         tapePosition += 8;

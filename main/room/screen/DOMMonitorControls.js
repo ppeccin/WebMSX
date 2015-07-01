@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-DOMMonitorControls = function(monitor) {
+wmsx.DOMMonitorControls = function(monitor) {
 
     function init() {
         initKeys();
@@ -49,7 +49,7 @@ DOMMonitorControls = function(monitor) {
     };
 
     var initKeys = function() {
-        var monControls = Monitor.Controls;
+        var monControls = wmsx.Monitor.Controls;
 
         // keyCodeMap[KEY_EXIT]            = monControls.EXIT;
 
@@ -94,27 +94,27 @@ DOMMonitorControls = function(monitor) {
     var keyControlAltCodeMap = {};
 
 
-    var KEY_LEFT           = DOMKeys.VK_LEFT.c;
-    var KEY_UP             = DOMKeys.VK_UP.c;
-    var KEY_RIGHT          = DOMKeys.VK_RIGHT.c;
-    var KEY_DOWN           = DOMKeys.VK_DOWN.c;
+    var KEY_LEFT           = wmsx.DOMKeys.VK_LEFT.c;
+    var KEY_UP             = wmsx.DOMKeys.VK_UP.c;
+    var KEY_RIGHT          = wmsx.DOMKeys.VK_RIGHT.c;
+    var KEY_DOWN           = wmsx.DOMKeys.VK_DOWN.c;
 
-    var KEY_SIZE_DEFAULT   = DOMKeys.VK_BACKSPACE.c;
+    var KEY_SIZE_DEFAULT   = wmsx.DOMKeys.VK_BACKSPACE.c;
 
-    var KEY_CART_FILE      = DOMKeys.VK_F10.c;
-    var KEY_CART_URL       = DOMKeys.VK_F11.c;
-    var KEY_CART_PASTE_V   = DOMKeys.VK_V.c;
-    var KEY_CART_PASTE_INS = DOMKeys.VK_INSERT.c;
+    var KEY_CART_FILE      = wmsx.DOMKeys.VK_F10.c;
+    var KEY_CART_URL       = wmsx.DOMKeys.VK_F11.c;
+    var KEY_CART_PASTE_V   = wmsx.DOMKeys.VK_V.c;
+    var KEY_CART_PASTE_INS = wmsx.DOMKeys.VK_INSERT.c;
 
-    var KEY_CRT_FILTER     = DOMKeys.VK_T.c;
-    var KEY_CRT_MODES      = DOMKeys.VK_R.c;
+    var KEY_CRT_FILTER     = wmsx.DOMKeys.VK_T.c;
+    var KEY_CRT_MODES      = wmsx.DOMKeys.VK_R.c;
 
-    var KEY_DEBUG          = DOMKeys.VK_D.c;
-    var KEY_STATS          = DOMKeys.VK_G.c;
+    var KEY_DEBUG          = wmsx.DOMKeys.VK_D.c;
+    var KEY_STATS          = wmsx.DOMKeys.VK_G.c;
 
-    var KEY_FULLSCREEN     = DOMKeys.VK_ENTER.c;
+    var KEY_FULLSCREEN     = wmsx.DOMKeys.VK_ENTER.c;
 
-    var KEY_EXIT           = DOMKeys.VK_ESCAPE.c;
+    var KEY_EXIT           = wmsx.DOMKeys.VK_ESCAPE.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;
