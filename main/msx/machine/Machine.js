@@ -155,22 +155,26 @@ wmsx.Machine = function() {
         psg.getAudioOutput().setFps(freq);
     };
 
-    var mainClockAdjustToFast    = function() {
-        var freq = 600;     // About 10x faster
+    var mainClockAdjustToFast = function() {
+        var freq = 600;     // About 10x faster if host machine is able
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
 
     var mainComponentsCreate = function() {
-        cpu = new wmsx.Z80();
-        psg = new wmsx.PSG();
-        ppi = new wmsx.PPI(psg.getAudioOutput());
-        vdp = new wmsx.VDP(cpu, psg);
-        bus = new wmsx.EngineBUS(cpu, ppi, vdp, psg);
-        mainClock = new wmsx.Clock(self, wmsx.VideoStandard.NTSC.fps);
+        self.cpu = cpu = new wmsx.Z80();
+        self.psg = psg = new wmsx.PSG();
+        self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
+        self.vdp = vdp = new wmsx.VDP(cpu, psg);
+        self.bus = bus = new wmsx.EngineBUS(cpu, ppi, vdp, psg);
+        self.mainClock = mainClock = new wmsx.Clock(self, wmsx.VideoStandard.NTSC.fps);
 
-        // Set variables for debugging
-        WMSX.debug = { BUS: bus, CPU: cpu, VDP: vdp, PSG: psg, CLOCK: mainClock };
+        self.cpu = cpu;
+        self.psg = psg;
+        self.ppi = ppi;
+        self.vdp = vdp;
+        self.bus = bus;
+        self.mainClock = mainClock;
     };
 
     var socketsCreate = function() {

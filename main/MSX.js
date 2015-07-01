@@ -23,7 +23,7 @@ WMSX = {
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover, 2 = Original Javatari
     SCREEN_NATURAL_FPS:             60,                         // 60, 50 fps
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. More buffer = more delay
-    IMAGES_PATH:                    window.MSX_IMAGES_PATH || "msx/"
+    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "msx/"
 
 };
 

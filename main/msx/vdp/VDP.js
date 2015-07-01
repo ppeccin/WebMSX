@@ -33,6 +33,7 @@ wmsx.VDP = function(cpu, psg) {
 
     this.frame = function() {
 
+        // Interleave CPU and PSG cycles
         if (videoStandard === wmsx.VideoStandard.NTSC) {
             for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
                 cpu.clockPulses(32);
@@ -148,8 +149,6 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function updateIRQ() {
-        if (cpu.stop) return;           // Debugging
-
         if ((status & 0x80) && (register1 & 0x20))
             cpu.INT = 0;                // Active
         else
@@ -365,6 +364,7 @@ wmsx.VDP = function(cpu, psg) {
 
     var status = 0;
     var mode = 0;
+    var videoStandard = wmsx.VideoStandard.NTSC;
 
     var register0 = 0;
     var register1 = 0;
@@ -409,7 +409,6 @@ wmsx.VDP = function(cpu, psg) {
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
 
-    var videoStandard = wmsx.VideoStandard.NTSC;
 
     // Connections
 

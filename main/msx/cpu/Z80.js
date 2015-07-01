@@ -2614,7 +2614,7 @@ wmsx.Z80 = function() {
         var runToCycle = cycles + cy;
         //noinspection JSUnresolvedVariable
         var start = performance.now();
-        while(!this.stop && (cycles < runToCycle)) {
+        while((cycles < runToCycle) && !this.stop ) {
             this.clockPulse(1);
         }
         //noinspection JSUnresolvedVariable

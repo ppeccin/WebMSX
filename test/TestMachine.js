@@ -40,7 +40,7 @@ function breakpointOutput(text) {
 function TestMachine() {
 
     ctr.value = 0;
-    WMSX.debug.CPU.breakpointOutput = breakpointOutput;
+    WMSX.room.machine.cpu.breakpointOutput = breakpointOutput;
     // runClicked();
 
 }
