@@ -24,11 +24,11 @@ wmsx.PSG = function() {
         return audioSignal;
     };
 
-    this.outputA0 = function(port, val) {
+    this.outputA0 = function(val) {
         registerAddress = val > 15 ? 0 : val;
     };
 
-    this.outputA1 = function(port, val) {
+    this.outputA1 = function(val) {
         registers[registerAddress] = val;
         if (registerAddress === 0 || registerAddress === 1) {
             audioChannel.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
@@ -53,7 +53,7 @@ wmsx.PSG = function() {
         }
     };
 
-    this.inputA2 = function(port) {
+    this.inputA2 = function() {
         return registers[registerAddress];
     };
 

@@ -58,12 +58,12 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
 
     this.input = function(port) {
         // Get correct device
-        return devicesInputPorts[port & 255](port & 255);
+        return devicesInputPorts[port & 255]();
     };
 
     this.output = function(port, val) {
         // Get correct device
-        devicesOutputPorts[port & 255](port & 255, val);
+        devicesOutputPorts[port & 255](val);
     };
 
     this.setPrimarySlotConfig = function(val) {

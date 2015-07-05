@@ -12,30 +12,30 @@ wmsx.PPI = function(audioOutput) {
     this.powerOff = function() {
     };
 
-    this.inputA8 = function(port) {
+    this.inputA8 = function() {
         return engine.getPrimarySlotConfig();
     };
 
-    this.outputA8 = function(port, val) {
+    this.outputA8 = function(val) {
         engine.setPrimarySlotConfig(val);
     };
 
-    this.inputA9 = function(port) {
+    this.inputA9 = function() {
         return keyboardRowValues[keyboardRowSelected];
     };
 
-    this.inputAA = function(port) {
+    this.inputAA = function() {
         return registerC;
     };
 
-    this.outputAA = function(port, val) {
+    this.outputAA = function(val) {
         if (registerC === val) return;
         registerC  = val;
         updateKeyboardConfig();
         updateCasseteSignal();
     };
 
-    this.outputAB = function(port, val) {
+    this.outputAB = function(val) {
         if ((val & 0x01) === 0) registerC &= ~(1 << ((val & 0x0e) >>> 1));
         else registerC |= (1 << ((val & 0x0e) >>> 1));
 

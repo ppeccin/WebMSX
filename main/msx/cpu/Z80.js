@@ -6,7 +6,6 @@
 // NMI is not supported. Only INT 1 mode supported
 // base clock 3584160 Hz
 
-
 wmsx.Z80 = function() {
     var self = this;
 

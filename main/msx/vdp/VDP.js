@@ -2,6 +2,8 @@
 
 // TODO Pitfall 2, Temptations strange collision
 
+// This implementation is frame-accurate
+
 wmsx.VDP = function(cpu, psg) {
     var self = this;
 
@@ -60,7 +62,7 @@ wmsx.VDP = function(cpu, psg) {
 
     };
 
-    this.input99 = function(port) {
+    this.input99 = function() {
         // Status Register Read
         var prevStatus = status;
 
@@ -71,7 +73,7 @@ wmsx.VDP = function(cpu, psg) {
         return prevStatus;
     };
 
-    this.output99 = function(port, val) {
+    this.output99 = function(val) {
         // Control Write
         if (dataToWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low
@@ -121,7 +123,7 @@ wmsx.VDP = function(cpu, psg) {
         }
     };
 
-    this.input98 = function(port) {
+    this.input98 = function() {
         dataToWrite = null;
         var res = vram[vramPointer++];            // VRAM Read
         if (vramPointer > 16383) {
@@ -131,7 +133,7 @@ wmsx.VDP = function(cpu, psg) {
         return res;
     };
 
-    this.output98 = function(port, val) {
+    this.output98 = function(val) {
         dataToWrite = null;
         vram[vramPointer++] = val;               // VRAM Write
         if (vramPointer > 16383) {
@@ -159,8 +161,8 @@ wmsx.VDP = function(cpu, psg) {
         if (signalBlanked) {
             // Blank if needed
             if (!patternBlanked) {
-                if (patternPlaneBackBuffer.fill) patternPlaneBackBuffer.fill(0);
-                else wmsx.Util.arrayFill(patternPlaneBackBuffer, 0);
+                if (frameBackBuffer.fill) frameBackBuffer.fill(0);
+                else wmsx.Util.arrayFill(frameBackBuffer, 0);
                 patternBlanked = true;
             }
         } else {
@@ -172,8 +174,8 @@ wmsx.VDP = function(cpu, psg) {
         }
 
         // Update plane image and send to monitor
-        patternPlaneContext.putImageData(patternPlaneImageData, -32, -32, 32, 32, 256, 192);
-        videoSignal.newFrame(patternPlaneCanvas, backdropRGB);
+        frameContext.putImageData(frameImageData, -32, -32, 32, 32, 256, 192);
+        videoSignal.newFrame(frameCanvas, backdropRGB);
     }
 
     function updateMode() {
@@ -203,7 +205,7 @@ wmsx.VDP = function(cpu, psg) {
                 for (var patternLine = patternStart; patternLine < patternEnd; patternLine++) {
                     var pattern = vramPatternTable[patternLine];
                     var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                    patternPlaneBackBuffer.set(values, bufferPos);
+                    frameBackBuffer.set(values, bufferPos);
                     bufferPos += 320;                                       // Advance 1 line
                 }
                 bufferPos -= 2552;                                          // Go back to the next char starting pixel
@@ -211,7 +213,7 @@ wmsx.VDP = function(cpu, psg) {
             }
             bufferPos += 2304;                                              // Go to the next line starting char pixel
         }
-        updateSpritesPlane();
+        updateSpritePlanes();
     }
 
     function updatePatternPlaneMode1() {                                    // Graphics 2 (Screen 2)
@@ -228,7 +230,7 @@ wmsx.VDP = function(cpu, psg) {
                     var colorCode = vramColorTable[patternLine];
                     var colorCodeValuesStart = colorCode << 8;              // (colorCode * 256) 256 patterns for each colorCode
                     var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                    patternPlaneBackBuffer.set(values, bufferPos);
+                    frameBackBuffer.set(values, bufferPos);
                     bufferPos += 320;                                       // Advance 1 line
                 }
                 bufferPos -= 2552;                                          // Go back to the next char starting pixel
@@ -236,7 +238,7 @@ wmsx.VDP = function(cpu, psg) {
             }
             bufferPos += 2304;                                              // Go to the next line starting char pixel
         }
-        updateSpritesPlane();
+        updateSpritePlanes();
     }
 
     function updatePatternPlaneMode4() {                                    // Text (Screen 0)
@@ -247,7 +249,7 @@ wmsx.VDP = function(cpu, psg) {
         var borderValues = colorCodePatternValues[colorCodeValuesStart];
         for (var line = 0; line < 24; line++) {
             for (var borderLine = 0; borderLine < 8; borderLine++) {
-                patternPlaneBackBuffer.set(borderValues, bufferPos);        // 8 pixels left border
+                frameBackBuffer.set(borderValues, bufferPos);        // 8 pixels left border
                 bufferPos += 320;
             }
             bufferPos -= 2552;                                              // Go back to the next char starting pixel
@@ -258,14 +260,14 @@ wmsx.VDP = function(cpu, psg) {
                 for (var patternLine = patternStart; patternLine < patternEnd; patternLine++) {
                     var pattern = vramPatternTable[patternLine];
                     var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                    patternPlaneBackBuffer.set(values, bufferPos);
+                    frameBackBuffer.set(values, bufferPos);
                     bufferPos += 320;                                       // Advance 1 line
                 }
                 bufferPos -= 2554;                                          // Go back to the next char starting pixel (-256 * 8 + 6)
                 pos++;
             }
             for (borderLine = 0; borderLine < 8; borderLine++) {
-                patternPlaneBackBuffer.set(borderValues, bufferPos);        // 8 pixels right border
+                frameBackBuffer.set(borderValues, bufferPos);        // 8 pixels right border
                 bufferPos += 320;
             }
             bufferPos += -248;                                              // Go to the next line starting char pixel
@@ -273,50 +275,60 @@ wmsx.VDP = function(cpu, psg) {
         // Sprite System deactivated
     }
 
-    function updateSpritesPlane() {
-        //if ((register1 & 0x03) !== 2) return;
+    function updateSpritePlanes() {
         if (vramSpriteAttrTable[0] === 208) return;
         var collision = false;
         var invalid = null;
         var y, x, name, color;
-        var bufferPos = 32;                                              // First possible sprite pixel (-32, 0) position
+        var bufferPos;
 
-        for (var line = -32; line < 288; line ++) {
-            var drawn = 0;
-            for (var atrPos = 0; atrPos < 128; atrPos += 4) {            // Max of sprites 32
-                y = vramSpriteAttrTable[atrPos];
-                if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y - 1;                          // Signed value from -31 to -1
-                y++;                                                     //  -1 (255) is line 0 per spec, so add 1
-                if (y < (line - 15) || y > line) continue;               // Not present at line
-                drawn++;
-                if (drawn > 4) {                                         // Max of 4 sprites drawn. Mark the first invalid 5th
-                    if (!invalid) invalid = atrPos >> 2;
-                    break;
+        var size = register1 & 0x03;
+
+        if (size === 2) {                                                    // 16x16 normal
+            bufferPos = 32;                                                  // First possible sprite pixel (-32, 0) position
+            for (var line = -32; line < 288; line++) {
+                var drawn = 0;
+                for (var atrPos = 0; atrPos < 128; atrPos += 4) {            // Max of 32 sprites
+                    y = vramSpriteAttrTable[atrPos];
+                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y - 1;                          // Signed value from -31 to -1
+                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
+                    if (y < (line - 15) || y > line) continue;               // Not present at line
+                    drawn++;
+                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Mark the first invalid (5th)
+                        if (!invalid) invalid = atrPos >> 2;
+                        break;
+                    }
+                    x = vramSpriteAttrTable[atrPos + 1];
+                    name = vramSpriteAttrTable[atrPos + 2];
+                    color = vramSpriteAttrTable[atrPos + 3];
+                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
+                    var colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
+                    var patternStart = ((name & 0xfc) << 3) + (line - y);
+                    var pattern = vramSpritePatternTable[patternStart];
+                    var values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                    copySprite(frameBackBuffer, bufferPos + x, values);
+                    pattern = vramSpritePatternTable[patternStart + 16];
+                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                    copySprite(frameBackBuffer, bufferPos + x + 8, values);
                 }
-                x = vramSpriteAttrTable[atrPos+1];
-                name = vramSpriteAttrTable[atrPos+2];
-                color = vramSpriteAttrTable[atrPos+3];
-                if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
-                var colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
-                var patternStart = ((name & 0xfc) << 3) + (line - y);
-                var pattern = vramSpritePatternTable[patternStart];
-                var values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                copySprite(patternPlaneBackBuffer, bufferPos + x, values);
-                pattern = vramSpritePatternTable[patternStart + 16];
-                values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                copySprite(patternPlaneBackBuffer, bufferPos + x + 8, values);
+                bufferPos += 320;
             }
-            bufferPos += 320;
+        } else if (size === 3) {                                             // 16x16 double
+
+        } else if (size === 0) {                                             // 8x8 normal
+
+        } else {                                                             // 8x8 double
+
         }
 
         if (collision) {
             //console.log("Collision");
             status |= 0x20;
         }
-        if (invalid) {
+        if (invalid && ((status & 0x40) === 0)) {
             //console.log("Invalid sprite: " + invalid);
-            status &= 0xe0; status |= (0x40 | invalid);
+            status = status | 0x40 | invalid;
         }
 
         // TODO Collisions with transparent (color 0) sprites will not be detected
@@ -330,12 +342,12 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function initPlaneResources() {
-        patternPlaneCanvas = document.createElement('canvas');
-        patternPlaneCanvas.width = 256;
-        patternPlaneCanvas.height = 192;
-        patternPlaneContext = patternPlaneCanvas.getContext("2d");
-        patternPlaneImageData = patternPlaneContext.createImageData(32 + 256 + 32, 32 + 192 + 32);
-        patternPlaneBackBuffer = new Uint32Array(patternPlaneImageData.data.buffer);
+        frameCanvas = document.createElement('canvas');
+        frameCanvas.width = 256;
+        frameCanvas.height = 192;
+        frameContext = frameCanvas.getContext("2d");
+        frameImageData = frameContext.createImageData(32 + 256 + 32, 32 + 192 + 32);
+        frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
     }
 
     function initColorCodePatternValues() {
@@ -399,10 +411,10 @@ wmsx.VDP = function(cpu, psg) {
 
 
     // Planes as off-screen canvases
-    var patternPlaneCanvas, patternPlaneContext, patternPlaneImageData, patternPlaneBackBuffer;
+    var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
 
-    // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations  (actually ABRG)
+    // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations (actually ABRG endian)
     // Obs: Pattern plane paints with these colors (Alpha = 0xfe), Sprite plane paints with Alpha = 0xff
 
     var colorRGBs = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe42c821, 0xfe78dc5e, 0xfeed5554, 0xfefc767d, 0xfe4d52d4, 0xfef5eb42, 0xfe5455fc, 0xfe7879ff, 0xfe54c1d4, 0xfe80cee6, 0xfe3bb021, 0xfeba5bc9, 0xfecccccc, 0xfeffffff ]);
