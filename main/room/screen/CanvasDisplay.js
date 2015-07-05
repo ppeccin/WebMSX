@@ -1,5 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Cycle filter
+// TODO Fix logo
+
 // TODO Implement phosphor and other CRT modes
 wmsx.CanvasDisplay = function(mainElement) {
 
@@ -38,19 +41,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.style.display = "none";
     };
 
-    this.refresh = function(image, newContentBorderColor) {
+    this.refresh = function(image, originX, originY, newContentBackdrop) {
         signalIsOn = true;
-        // Update content border (backdrop) color if needed
-        if (newContentBorderColor !== contentBorderColor) {
-            contentBorderColor = newContentBorderColor;
-            var color = "rgb(" + (newContentBorderColor & 0xff) + "," + ((newContentBorderColor >> 8) & 0xff) + "," + ((newContentBorderColor >>> 16) & 0xff) + ")";
-            canvas.style.borderColor = color;
-            canvas.style.background = color;
+        // Update content backdrop color if needed
+        if (newContentBackdrop !== contentBackdrop) {
+            contentBackdrop = newContentBackdrop;
+            canvas.style.background = "rgb(" + (newContentBackdrop & 0xff) + "," + ((newContentBackdrop >> 8) & 0xff) + "," + ((newContentBackdrop >>> 16) & 0xff) + ")";
         }
         // Then update content
         context.drawImage(
-            image, 0, 0, image.width, image.height,
-            0, 0, canvas.width, canvas.height
+            image,
+            originX * contentBaseScale, originY * contentBaseScale,
+            image.width * contentBaseScale, image.height * contentBaseScale
         );
     };
 
@@ -65,7 +67,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         return [mainElement];
     };
 
-    //noinspection JSUnusedLocalSymbols
     this.displayDefaultOpeningScaleX = function(displayWidth, displayHeight) {
         if (isFullscreen) {
             var winW = fsElement.clientWidth;
@@ -79,7 +80,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
             return scaleX | 0;
         } else
-            return DEFAULT_OPENING_SCALE_X;
+            return wmsx.Monitor.DEFAULT_SCALE_X;
     };
 
     this.displaySize = function(width, height, contentBorderWidth, contentBorderHeight) {
@@ -184,22 +185,17 @@ wmsx.CanvasDisplay = function(mainElement) {
             }, 120);
     };
 
-    var setElementsSizes = function (width, height, cBorderWidth, cBorderHeight) {
-        var contentWidth = width + cBorderWidth * 2;
-        var contentHeigth = height + cBorderHeight * 2;
-        canvas.width = width;
-        canvas.height = height;
+    var setElementsSizes = function (width, height) {
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
-        canvas.style.borderWidth = "" + cBorderWidth + "px " + cBorderHeight + "px";
         // Do not change containers sizes while in fullscreen
         if (isFullscreen) return;
-        borderElement.style.width = "" + contentWidth + "px";
-        borderElement.style.height = "" + contentHeigth + "px";
-        contentWidth += borderLateral * 2;
-        contentHeigth += borderTop + borderBottom;
-        mainElement.style.width = "" + contentWidth + "px";
-        mainElement.style.height = "" + contentHeigth + "px";
+        borderElement.style.width = "" + width + "px";
+        borderElement.style.height = "" + height + "px";
+        width += borderLateral * 2;
+        height += borderTop + borderBottom;
+        mainElement.style.width = "" + width + "px";
+        mainElement.style.height = "" + height + "px";
     };
 
     var setCRTFilter = function() {
@@ -271,6 +267,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         borderElement.appendChild(fsElement);
 
         canvas = document.createElement('canvas');
+        canvas.width = wmsx.Monitor.CONTENT_WIDTH * contentBaseScale;      // Canvas base size will never chance, only scale via CSS
+        canvas.height = wmsx.Monitor.CONTENT_HEIGHT * contentBaseScale;
         canvas.style.position = "absolute";
         canvas.style.display = "block";
         canvas.style.left = canvas.style.right = 0;
@@ -278,17 +276,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.margin = "auto";
         canvas.tabIndex = "-1";               // Make it focusable
         canvas.style.outline = "none";
-        canvas.style.borderStyle = "solid";
-        canvas.style.borderColor = "black";
-        canvas.style.borderWidth = "" +
-            wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH + "px " +
-            wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT + "px";
+        canvas.style.border = "none";
         fsElement.appendChild(canvas);
 
-        setElementsSizes(
-            wmsx.CanvasDisplay.DEFAULT_WIDTH, wmsx.CanvasDisplay.DEFAULT_HEIGHT,
-            wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH, wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT
-        );
+        setElementsSizes(canvas.width, canvas.height);
 
         mainElement.appendChild(borderElement);
     };
@@ -469,24 +460,20 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullscreenButton;
     var settingsButton;
 
-    var contentBorderColor;
+    var contentBackdrop;
 
     var borderTop;
     var borderLateral;
     var borderBottom;
 
+    var contentBaseScale = WMSX.SCREEN_SHARP_SIZE;
 
     var IMAGE_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;
     var DEFAULT_SCALE_ASPECT_X = 1;
-    var DEFAULT_OPENING_SCALE_X = (WMSX.SCREEN_OPENING_SIZE || 2);
 
 
     init(this);
 
 };
 
-wmsx.CanvasDisplay.DEFAULT_WIDTH = 256 * 2;
-wmsx.CanvasDisplay.DEFAULT_HEIGHT = 192 * 2;
-wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_WIDTH = 6;
-wmsx.CanvasDisplay.DEFAULT_CONTENT_BORDER_HEIGHT = 6;

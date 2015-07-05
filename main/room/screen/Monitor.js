@@ -26,7 +26,7 @@ wmsx.Monitor = function() {
     };
 
     this.newFrame = function(image, backdropColor) {
-        display.refresh(image, backdropColor);
+        display.refresh(image, frameOriginX, frameOriginY, backdropColor);
     };
 
     this.signalOff = function() {
@@ -46,20 +46,17 @@ wmsx.Monitor = function() {
 
     var setDisplayDefaultSize = function() {
         if (display != null) {
-            var scX = display.displayDefaultOpeningScaleX(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.BASE_WIDTH, wmsx.Monitor.BASE_HEIGHT);
             setDisplayScale(scX, scX / DEFAULT_SCALE_ASPECT_X);
         } else
-            setDisplayScale(DEFAULT_SCALE_X, DEFAULT_SCALE_Y);
+            setDisplayScale(wmsx.Monitor.DEFAULT_SCALE_X, wmsx.Monitor.DEFAULT_SCALE_Y);
         displayCenter();
     };
 
     var displayUpdateSize = function() {
         if (!display) return;
-        display.displaySize(
-            (DEFAULT_WIDTH * displayScaleX) | 0, (DEFAULT_HEIGHT * displayScaleY) | 0,
-            (BORDER_WIDTH * displayScaleX) | 0, (BORDER_HEIGHT * displayScaleY) | 0
-        );
-        display.displayMinimumSize((DEFAULT_WIDTH * DEFAULT_SCALE_X / DEFAULT_SCALE_Y) | 0, DEFAULT_HEIGHT);
+        display.displaySize((wmsx.Monitor.CONTENT_WIDTH * displayScaleX) | 0, (wmsx.Monitor.CONTENT_HEIGHT * displayScaleY) | 0);
+        //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
     };
 
     var setDisplayScale = function(x, y) {
@@ -71,7 +68,7 @@ wmsx.Monitor = function() {
     };
 
     var setDisplayScaleDefaultAspect = function(y) {
-        var scaleY = y | 0;
+        var scaleY = y;
         if (scaleY < 1) scaleY = 1;
         setDisplayScale(scaleY * DEFAULT_SCALE_ASPECT_X, scaleY);
     };
@@ -160,9 +157,9 @@ wmsx.Monitor = function() {
             case monControls.SCALE_Y_PLUS:
                 setDisplayScale(displayScaleX, displayScaleY + 0.5); break;
             case monControls.SIZE_MINUS:
-                setDisplayScaleDefaultAspect(displayScaleY - 1); break;
+                setDisplayScaleDefaultAspect(displayScaleY - 0.5); break;
             case monControls.SIZE_PLUS:
-                setDisplayScaleDefaultAspect(displayScaleY + 1); break;
+                setDisplayScaleDefaultAspect(displayScaleY + 0.5); break;
         }
     };
 
@@ -182,13 +179,9 @@ wmsx.Monitor = function() {
     var showStats = false;
     var fixedSizeMode = WMSX.SCREEN_RESIZE_DISABLED;
 
-    var DEFAULT_WIDTH = 256;
-    var DEFAULT_HEIGHT = 192;
-    var DEFAULT_SCALE_X = 2;
-    var DEFAULT_SCALE_Y = 2;
+    var frameOriginX = wmsx.Monitor.BORDER_WIDTH;
+    var frameOriginY = wmsx.Monitor.BORDER_HEIGHT;
     var DEFAULT_SCALE_ASPECT_X = 1;
-    var BORDER_WIDTH = 6;
-    var BORDER_HEIGHT = 6;
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
 
@@ -198,6 +191,15 @@ wmsx.Monitor = function() {
     init(this);
 
 };
+
+wmsx.Monitor.BASE_WIDTH = 256;
+wmsx.Monitor.BASE_HEIGHT = 192;
+wmsx.Monitor.BORDER_WIDTH = 6;
+wmsx.Monitor.BORDER_HEIGHT = 6;
+wmsx.Monitor.CONTENT_WIDTH = wmsx.Monitor.BASE_WIDTH + wmsx.Monitor.BORDER_WIDTH * 2;
+wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.BASE_HEIGHT + wmsx.Monitor.BORDER_HEIGHT * 2;
+wmsx.Monitor.DEFAULT_SCALE_X = WMSX.SCREEN_OPENING_SIZE;
+wmsx.Monitor.DEFAULT_SCALE_Y = WMSX.SCREEN_OPENING_SIZE;
 
 wmsx.Monitor.Controls = {
     WIDTH_PLUS: 1, HEIGHT_PLUS: 2,

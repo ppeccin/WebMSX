@@ -126,12 +126,12 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
         self.setPrimarySlotConfig(0);
     }
 
+    var devicesInputPorts;
+    var devicesOutputPorts;
+
     var slots;
     var slotPages;
     var primarySlotConfig = 0;
-
-    var devicesInputPorts;
-    var devicesOutputPorts;
 
     var bios;
     var cartridge;
@@ -150,11 +150,13 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
     };
 
     this.loadState = function(s) {
-        slots[0] = wmsx.SlotCreator.createFromSaveState(s.s0);
-        slots[1] = wmsx.SlotCreator.createFromSaveState(s.s1);
-        slots[2] = wmsx.SlotCreator.createFromSaveState(s.s2);
+        this.setBIOS(wmsx.SlotCreator.createFromSaveState(s.s0));
+        this.setCartridge(wmsx.SlotCreator.createFromSaveState(s.s1));
+        WMSX.ram = slots[2] = wmsx.SlotCreator.createFromSaveState(s.s2);
         slots[3] = wmsx.SlotCreator.createFromSaveState(s.s3);
         this.setPrimarySlotConfig(s.p);
+
+
     };
 
 
