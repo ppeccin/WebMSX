@@ -1,9 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Cycle filter
-// TODO Fix logo
-
+// TODO Implement Settings
 // TODO Implement phosphor and other CRT modes
+
 wmsx.CanvasDisplay = function(mainElement) {
 
     function init(self) {
@@ -11,8 +10,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupMain();
         setupOSD();
         setupButtonsBar();
-        loadImages();
-        context = canvas.getContext("2d");
+        setupLogo();
         monitor = new wmsx.Monitor();
         monitor.connectDisplay(self);
         monitor.addControlInputElements(self.keyControlsInputElements());
@@ -31,9 +29,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerOn = function() {
+        setCRTFilter(crtFilter);
+        updateLogo();
         mainElement.style.visibility = "visible";
         this.focus();
-        drawLogo();
     };
 
     this.powerOff = function() {
@@ -42,14 +41,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.refresh = function(image, originX, originY, newContentBackdrop) {
-        signalIsOn = true;
+        if (!signalIsOn) {
+            signalIsOn = true;
+            updateLogo();
+        }
         // Update content backdrop color if needed
         if (newContentBackdrop !== contentBackdrop) {
             contentBackdrop = newContentBackdrop;
             canvas.style.background = "rgb(" + (newContentBackdrop & 0xff) + "," + ((newContentBackdrop >> 8) & 0xff) + "," + ((newContentBackdrop >>> 16) & 0xff) + ")";
         }
         // Then update content
-        context.drawImage(
+        canvasContext.drawImage(
             image,
             originX * contentBaseScale, originY * contentBaseScale,
             image.width * contentBaseScale, image.height * contentBaseScale
@@ -58,9 +60,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.videoSignalOff = function() {
         signalIsOn = false;
-        canvas.style.borderColor = "black";
-        canvas.style.background = "black";
-        drawLogo();
+        updateLogo();
     };
 
     this.keyControlsInputElements = function() {
@@ -85,8 +85,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.displaySize = function(width, height, contentBorderWidth, contentBorderHeight) {
         setElementsSizes(width, height, contentBorderWidth, contentBorderHeight);
-        setCRTFilter();
-        if (!signalIsOn) drawLogo();
     };
 
     this.displayMinimumSize = function(width, height) {
@@ -124,12 +122,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.toggleCRTFilter = function() {
-        crtFilter = !crtFilter;
-        this.showOSD(crtFilter ? "CRT Filter: ON" : "CRT Filter: OFF", true);
-        setCRTFilter();
+        var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = 0;
+        this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
+        setCRTFilter(newLevel);
     };
 
-    //noinspection JSUnresolvedFunction
     this.displayToggleFullscreen = function() {
         if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
 
@@ -169,7 +166,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var openSettings = function(page) {
-        // TODO Implement
         //if (!settings) settings = new Settings();
         //settings.show(page);
     };
@@ -198,40 +194,31 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.style.height = "" + height + "px";
     };
 
-    var setCRTFilter = function() {
-        context.globalCompositeOperation = "copy";
-        setImageSmoothing(crtFilter);
+    var setCRTFilter = function(level) {
+        crtFilter = level;
+        updateImageSmoothing();
     };
 
-    var  drawLogo = function () {
-        context.fillStyle = "black";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        if (logoImage.isLoaded) {
-            var logoWidth = logoImage.width;
-            var logoHeight = logoImage.height;
-            if (logoWidth > canvas.width * 0.7) {
-                var factor = (canvas.width * 0.7) / logoWidth;
-                logoHeight = (logoHeight * factor) | 0;
-                logoWidth = (logoWidth * factor) | 0;
-            }
-            setImageSmoothing(true);
-            context.drawImage(logoImage, ((canvas.width - logoWidth) / 2) | 0, ((canvas.height - logoHeight) / 2) | 0, logoWidth, logoHeight);
-            setImageSmoothing(crtFilter);
+    var updateLogo = function () {
+        if (signalIsOn) {
+            logoImage.style.display = "none";
+        } else {
+            canvas.style.background = "black";
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+            if (logoImage.isLoaded) logoImage.style.display = "block";
         }
     };
 
-    var setImageSmoothing = function (val) {
-        // TODO Maybe change to canvas CSS resize
-        //canvas.style.imageRendering = val ? "initial" : "pixelated";  "crisp-edges" for FF
-        //return;
+    var updateImageSmoothing = function () {
+        canvas.style.imageRendering = (crtFilter === 1 || crtFilter === 3) ? "initial" : canvasImageRenderingValue;
 
-        if (context.imageSmoothingEnabled !== undefined)
-            context.imageSmoothingEnabled = val;
+        var smoothing = crtFilter >= 2;
+        if (canvasContext.imageSmoothingEnabled !== undefined)
+            canvasContext.imageSmoothingEnabled = smoothing;
         else {
-            context.webkitImageSmoothingEnabled = val;
-            context.mozImageSmoothingEnabled = val;
-            context.msImageSmoothingEnabled = val;
+            canvasContext.webkitImageSmoothingEnabled = smoothing;
+            canvasContext.mozImageSmoothingEnabled = smoothing;
+            canvasContext.msImageSmoothingEnabled = smoothing;
         }
     };
 
@@ -280,6 +267,19 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.appendChild(canvas);
 
         setElementsSizes(canvas.width, canvas.height);
+
+        // Prepare Context used to draw frame
+        canvasContext = canvas.getContext("2d");
+        canvasContext.globalCompositeOperation = "copy";
+
+        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution
+        switch (wmsx.Util.browserInfo().name) {
+            case "CHROME":
+            case "OPERA":   canvasImageRenderingValue = "pixelated"; break;
+            case "FIREFOX": canvasImageRenderingValue = "-moz-crisp-edges"; break;
+            case "SAFARI":  canvasImageRenderingValue = "-webkit-crisp-edges"; break;
+            default:        canvasImageRenderingValue = "initial";
+        }
 
         mainElement.appendChild(borderElement);
     };
@@ -387,12 +387,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
     };
 
-    var loadImages = function() {
+    var setupLogo = function() {
         logoImage = new Image();
         logoImage.isLoaded = false;
+        logoImage.style.position = "absolute";
+        logoImage.style.display = "none";
+        logoImage.style.top = 0;
+        logoImage.style.bottom = 0;
+        logoImage.style.left = 0;
+        logoImage.style.right = 0;
+        logoImage.style.maxWidth = "60%";
+        logoImage.style.margin = "auto auto";
+        fsElement.appendChild(logoImage);
+
         logoImage.onload = function() {
             logoImage.isLoaded = true;
-            drawLogo();
+            updateLogo();
         };
         logoImage.src = IMAGE_PATH + "logo.png";
     };
@@ -438,7 +448,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fsElement;
 
     var canvas;
-    var context;
+    var canvasContext;
+    var canvasImageRenderingValue;
 
     var buttonsBar;
     var buttonsBarHideTimeout;
@@ -448,8 +459,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var osdShowing = false;
 
     var signalIsOn = false;
-    var crtFilter = false;
     var isFullscreen = false;
+    var crtFilter = WMSX.SCREEN_FILTER_MODE;
 
     var logoImage;
 

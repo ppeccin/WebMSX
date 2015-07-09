@@ -184,7 +184,27 @@ wmsx.Util = new function() {
             return i;
         }
         return -1;
-    }
+    };
+
+    this.browserInfo = function() {
+        var ua = navigator.userAgent;
+        var temp;
+        var m = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        if (/trident/i.test(m[1])) {
+            temp = /\brv[ :]+(\d+)/g.exec(ua) || [];
+            return { name:'IE', version: (temp[1] || '') };
+        }
+        if (m[1] === 'Chrome') {
+            temp = ua.match(/\bOPR\/(\d+)/);
+            if (temp != null) return { name:'Opera', version: temp[1] };
+        }
+        m = m[2] ? [m[1], m[2]]: [ navigator.appName, navigator.appVersion, '-?' ];
+        if ((temp = ua.match(/version\/(\d+)/i)) != null) m.splice(1, 1, temp[1]);
+        return {
+            name: m[0].toUpperCase(),
+            version: m[1]
+        };
+    };
 
 };
 

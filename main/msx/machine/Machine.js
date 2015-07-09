@@ -12,6 +12,12 @@ wmsx.Machine = function() {
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
+
+        if (!getBIOS()) {
+            this.getVideoOutput().showOSD("Please insert BIOS!", true);
+            return;
+        }
+
         bus.powerOn();
         this.powerIsOn = true;
         machineControlsSocket.controlsStatesRedefined();
@@ -319,7 +325,7 @@ wmsx.Machine = function() {
         this.insert = function (cartridge, autoPower) {
             if (autoPower && self.powerIsOn) self.powerOff();
             setCartridge(cartridge);
-            if (autoPower && getBIOS() && !self.powerIsOn) self.powerOn();
+            if (autoPower && !self.powerIsOn) self.powerOn();
         };
 
         this.inserted = function () {
