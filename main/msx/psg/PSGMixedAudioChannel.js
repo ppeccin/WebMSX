@@ -58,7 +58,7 @@ wmsx.PSGMixedAudioChannel = function() {
         var sampleB = amplitudeB > 0 ? (toneB ? currentSampleB : 1) & (noiseB ? currentSampleN : 1) : 0;
         var sampleC = amplitudeC > 0 ? (toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1) : 0;
 
-        return sampleA * amplitudeA + sampleB * amplitudeB - sampleC * amplitudeC;
+        return sampleA * amplitudeA + sampleB * amplitudeB + sampleC * amplitudeC;
     };
 
     this.setPeriodA = function(newPeriod) {
@@ -205,7 +205,7 @@ wmsx.PSGMixedAudioChannel = function() {
 
     var volumeCurve = new Array(16);
 
-    var CHANNEL_AMP_CURVE_POWER = 16;
+    var CHANNEL_AMP_CURVE_POWER = 30;
     var CHANNEL_MAX_AMP = 0.3;
 
 

@@ -12,12 +12,6 @@ wmsx.Machine = function() {
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
-
-        if (!getBIOS()) {
-            this.getVideoOutput().showOSD("Please insert BIOS!", true);
-            return;
-        }
-
         bus.powerOn();
         this.powerIsOn = true;
         machineControlsSocket.controlsStatesRedefined();
@@ -29,6 +23,15 @@ wmsx.Machine = function() {
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.controlsStatesRedefined();
+    };
+
+    this.reset = function(paused) {
+        bus.reset();
+    };
+
+    this.userPowerOn = function() {
+        if (getBIOS()) this.powerOn();
+        else this.getVideoOutput().showOSD("Insert BIOS!", true);
     };
 
     this.clockPulse = function() {
@@ -93,13 +96,14 @@ wmsx.Machine = function() {
         return bus.getBIOS();
     };
 
-    var setCartridge = function(cartridge) {
-        WMSX.cartridge = cartridge;
-        bus.setCartridge(cartridge);
+    var setCartridge = function(cartridge, port) {
+        if (port === 2) WMSX.cartridge2 = cartridge;
+        else WMSX.cartridge1 = cartridge;
+        bus.setCartridge(cartridge, port);
     };
 
-    var getCartridge = function() {
-        return bus.getCartridge();
+    var getCartridge = function(port) {
+        return bus.getCartridge(port);
     };
 
     var setVideoStandard = function(pVideoStandard) {
@@ -163,6 +167,12 @@ wmsx.Machine = function() {
 
     var mainClockAdjustToFast = function() {
         var freq = 600;     // About 10x faster if host machine is able
+        mainClock.setFrequency(freq);
+        psg.getAudioOutput().setFps(freq);
+    };
+
+    var mainClockAdjustToSlow = function() {
+        var freq = 20;     // About 3x slower
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
@@ -242,15 +252,31 @@ wmsx.Machine = function() {
             }
             return;
         }
+        if (control == controls.SLOW_SPEED) {
+            if (state) {
+                self.showOSD("SLOW MOTION", true);
+                mainClockAdjustToSlow();
+            } else {
+                self.showOSD(null, true);
+                mainClockAdjustToNormal();
+            }
+            return;
+        }
         // Toggles
         if (!state) return;
         switch (control) {
             case controls.POWER:
                 if (self.powerIsOn) self.powerOff();
-                else self.powerOn();
+                else self.userPowerOn();
+                break;
+            case controls.RESET:
+                if (self.powerIsOn) self.reset();
                 break;
             case controls.POWER_OFF:
                 if (self.powerIsOn) self.powerOff();
+                break;
+            case controls.POWER_FRY:
+                powerFry();
                 break;
             case controls.PAUSE:
                 debugPause = !debugPause; debugPauseMoreFrames = 1;
@@ -259,9 +285,6 @@ wmsx.Machine = function() {
             case controls.FRAME:
                 if (debugPause) debugPauseMoreFrames = 1;
                 return;
-            case controls.POWER_FRY:
-                powerFry();
-                break;
             case controls.SAVE_STATE_0:
             case controls.SAVE_STATE_1:
             case controls.SAVE_STATE_2:
@@ -304,11 +327,6 @@ wmsx.Machine = function() {
             case controls.CARTRIDGE_FORMAT:
                 cycleCartridgeFormat();
                 break;
-            case controls.CARTRIDGE_REMOVE:
-                if (WMSX.CARTRIDGE_CHANGE_DISABLED)
-                    self.showOSD("Cartridge change is disabled", true);
-                else
-                    cartridgeSocket.insert(null, false);
         }
     };
 
@@ -322,25 +340,26 @@ wmsx.Machine = function() {
 
     function CartridgeSocket() {
 
-        this.insert = function (cartridge, autoPower) {
+        this.insert = function (cartridge, port, autoPower) {
             if (autoPower && self.powerIsOn) self.powerOff();
-            setCartridge(cartridge);
-            if (autoPower && !self.powerIsOn) self.powerOn();
+            setCartridge(cartridge, port);
+            if (autoPower && !self.powerIsOn) self.userPowerOn();
         };
 
-        this.inserted = function () {
-            return getCartridge();
+        this.inserted = function (port) {
+            return getCartridge(port);
         };
 
-        this.cartridgeInserted = function (cartridge, removedCartridge) {
+        this.cartridgeInserted = function (cartridge, port, removedCartridge) {
             for (var i = 0; i < insertionListeners.length; i++)
-                insertionListeners[i].cartridgeInserted(cartridge, removedCartridge);
+                insertionListeners[i].cartridgeInserted(cartridge, port, removedCartridge);
         };
 
         this.addInsertionListener = function (listener) {
             if (insertionListeners.indexOf(listener) < 0) {
                 insertionListeners.push(listener);
-                listener.cartridgeInserted(this.inserted());		// Fire a insertion event
+                listener.cartridgeInserted(this.inserted(1), 1, null);		// Fire a insertion events
+                listener.cartridgeInserted(this.inserted(2), 2, null);
             }
         };
 
@@ -367,7 +386,7 @@ wmsx.Machine = function() {
         this.insert = function (bios, autoPower) {
             if (autoPower && self.powerIsOn) self.powerOff();
             setBIOS(bios);
-            if (autoPower && !self.powerIsOn) self.powerOn();
+            if (autoPower && !self.powerIsOn) self.userPowerOn();
         };
 
         this.inserted = function () {
@@ -486,7 +505,8 @@ wmsx.Machine = function() {
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
             // Use Cartridge label as file name
-            var fileName = cartridgeSocket.inserted() && cartridgeSocket.inserted().rom.info.l;
+            var cart = cartridgeSocket.inserted(1) || cartridgeSocket.inserted(2);
+            var fileName = cart && cart.rom.info.l;
             var state = saveState();
             state.v = VERSION;
             if (media.saveStateFile(fileName, state))

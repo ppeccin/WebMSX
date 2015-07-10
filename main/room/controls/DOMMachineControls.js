@@ -124,6 +124,8 @@ wmsx.DOMMachineControls = function() {
                 var joy = joyKeysCodeMap[keyCode];
                 if (joy) return joy;
                 return normalCodeMap[keyCode];
+            case KEY_SHIFT_MASK:
+                return withSHIFTCodeMap[keyCode];
             case KEY_CTRL_MASK:
                 return withCTRLCodeMap[keyCode];
             case KEY_ALT_MASK:
@@ -144,23 +146,23 @@ wmsx.DOMMachineControls = function() {
         self.applyPreferences();
 
         normalCodeMap[KEY_POWER]            = controls.POWER;
-        normalCodeMap[KEY_CARTRIDGE_REMOVE] = controls.CARTRIDGE_REMOVE;
-        normalCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
+        withCTRLCodeMap[KEY_POWER]          = controls.RESET;
 
-        withALTCodeMap[KEY_POWER]            = controls.POWER;
-        withALTCodeMap[KEY_CARTRIDGE_REMOVE] = controls.CARTRIDGE_REMOVE;
-        withALTCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
+        withCTRLALTCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
 
-        normalCodeMap[KEY_FAST_SPEED]    = controls.FAST_SPEED;
+        normalCodeMap[KEY_SPEED]    = controls.FAST_SPEED;
+        withCTRLCodeMap[KEY_SPEED]  = controls.SLOW_SPEED;
 
-        withALTCodeMap[KEY_FAST_SPEED]   = controls.FAST_SPEED;
+        withALTCodeMap[KEY_POWER]  = controls.POWER;
+        withALTCodeMap[KEY_SPEED]  = controls.FAST_SPEED;
 
-        withALTCodeMap[KEY_PAUSE]          = controls.PAUSE;
-        withALTCodeMap[KEY_FRAME]          = controls.FRAME;
-        withALTCodeMap[KEY_TRACE]          = controls.TRACE;
-        withALTCodeMap[KEY_DEBUG]          = controls.DEBUG;
-        withALTCodeMap[KEY_NO_COLLISIONS]  = controls.NO_COLLISIONS;
-        withALTCodeMap[KEY_VIDEO_STANDARD] = controls.VIDEO_STANDARD;
+        withALTCodeMap[KEY_PAUSE]            = controls.PAUSE;
+        withALTCodeMap[KEY_FRAME]            = controls.FRAME;
+        withALTCodeMap[KEY_TRACE]            = controls.TRACE;
+        withALTCodeMap[KEY_DEBUG]            = controls.DEBUG;
+        withALTCodeMap[KEY_NO_COLLISIONS]    = controls.NO_COLLISIONS;
+        withALTCodeMap[KEY_VIDEO_STANDARD]   = controls.VIDEO_STANDARD;
+        withALTCodeMap[KEY_CARTRIDGE_FORMAT] = controls.CARTRIDGE_FORMAT;
 
         withCTRLALTCodeMap[KEY_STATE_0] = controls.SAVE_STATE_0;
         withCTRLALTCodeMap[KEY_STATE_0a] = controls.SAVE_STATE_0;
@@ -196,9 +198,10 @@ wmsx.DOMMachineControls = function() {
         withALTCodeMap[KEY_STATE_12] = controls.LOAD_STATE_12;
         withALTCodeMap[KEY_STATE_12a] = controls.LOAD_STATE_12;
 
-        withALTCodeMap[KEY_CARTRIDGE_FORMAT]    = controls.CARTRIDGE_FORMAT;
+        normalCodeMap[KEY_IGNORE_F10] = controls.IGNORED;
+        normalCodeMap[KEY_IGNORE_F11] = controls.IGNORED;
 
-        withCTRLCodeMap[KEY_CARTRIDGE_FORMAT]    = controls.CARTRIDGE_FORMAT;
+
     };
 
     this.applyPreferences = function() {
@@ -219,6 +222,7 @@ wmsx.DOMMachineControls = function() {
 
     var joyKeysCodeMap = {};
     var normalCodeMap = {};
+    var withSHIFTCodeMap = {};
     var withCTRLCodeMap = {};
     var withALTCodeMap = {};
     var withCTRLALTCodeMap = {};
@@ -231,7 +235,7 @@ wmsx.DOMMachineControls = function() {
     var KEY_TOGGLE_JOYSTICK  = wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK;
     var KEY_TOGGLE_P1_MODE   = wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE;
     var KEY_CARTRIDGE_FORMAT = wmsx.DOMMachineControls.KEY_CARTRIDGE_FORMAT;
-    var KEY_FAST_SPEED       = wmsx.DOMMachineControls.KEY_FAST_SPEED;
+    var KEY_SPEED            = wmsx.DOMMachineControls.KEY_SPEED;
     var KEY_PAUSE            = wmsx.DOMMachineControls.KEY_PAUSE;
 
     var KEY_POWER            = wmsx.DOMKeys.VK_F9.c;
@@ -259,9 +263,10 @@ wmsx.DOMMachineControls = function() {
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS2.c;
 
-    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F8.c;
+    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F6.c;
 
-    var KEY_CARTRIDGE_REMOVE = wmsx.DOMKeys.VK_F7.c;
+    var KEY_IGNORE_F10       = wmsx.DOMKeys.VK_F10.c;
+    var KEY_IGNORE_F11       = wmsx.DOMKeys.VK_F11.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = wmsx.DOMMachineControls.KEY_ALT_MASK;
@@ -272,8 +277,8 @@ wmsx.DOMMachineControls = function() {
 
 };
 
-wmsx.DOMMachineControls.KEY_FAST_SPEED = wmsx.DOMKeys.VK_F12.c;
-wmsx.DOMMachineControls.KEY_PAUSE      = wmsx.DOMKeys.VK_P.c;
+wmsx.DOMMachineControls.KEY_SPEED  = wmsx.DOMKeys.VK_F12.c;
+wmsx.DOMMachineControls.KEY_PAUSE  = wmsx.DOMKeys.VK_P.c;
 
 wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK  = wmsx.DOMKeys.VK_J.c;
 wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE   = wmsx.DOMKeys.VK_K.c;

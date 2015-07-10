@@ -118,7 +118,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
     var downloadLinkElement;
     var downloadLinkElementParent;
 
-    var SAVE_STATE_IDENTIFIER = "msxsavestate!";
+    var SAVE_STATE_IDENTIFIER = "wmsxsavestate!";
     var SAVE_STATE_FILE_EXTENSION = ".xst";
 
 };

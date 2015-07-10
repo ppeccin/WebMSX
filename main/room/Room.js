@@ -18,6 +18,7 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
         self.speaker.powerOn();
         self.keyboard.powerOn();
         insertBIOSProvided();
+        // TODO insert Cartridge and Tape provided
         if (self.machine.getBIOSSocket().inserted() && !self.machine.powerIsOn) self.machine.powerOn(paused);
     };
 
@@ -50,18 +51,18 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
         self.stateMedia = new wmsx.LocalStorageSaveStateMedia();
         self.cassetteDeck = new wmsx.FileCassetteDeck();
         self.romLoader = new wmsx.FileLoader();
-        self.romLoader.connectPeripherals(self.cassetteDeck);
         self.screen = new wmsx.CanvasDisplay(screenElement);
-        self.screen.connectPeripherals(self.romLoader, self.stateMedia);
-        if (machinePanelElement) {
-            self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
-            self.machinePanel.connectPeripherals(self.screen, self.romLoader);
-        }
         self.speaker = new wmsx.WebAudioSpeaker();
-        self.machineControls = new wmsx.DOMMachineControls();
-        self.machineControls.connectPeripherals(self.screen, self.machinePanel);
         self.keyboard = new wmsx.DOMKeyboard();
+        self.machineControls = new wmsx.DOMMachineControls();
+        if (machinePanelElement) self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
+
+        self.romLoader.connectPeripherals(self.cassetteDeck);
+        self.screen.connectPeripherals(self.romLoader, self.stateMedia);
+        self.machineControls.connectPeripherals(self.screen, self.machinePanel);
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
+        self.cassetteDeck.connectPeripherals(self.screen);
+        if (self.machinePanel) self.machinePanel.connectPeripherals(self.screen, self.romLoader);
    };
 
     var buildAndPlugMachine = function() {

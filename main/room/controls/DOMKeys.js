@@ -59,7 +59,6 @@ wmsx.DOMKeys = {
     VK_K: {c: 75, n: "K"},
     VK_L: {c: 76, n: "L"},
     VK_CEDILLA: {c: 186, n: "Ç"},
-    VK_TILDE: {c: 222, n: "~"},
     VK_ENTER: {c: 13, n: "Enter"},
     VK_SHIFT: {c: 16, n: "Shift"},
     VK_BACK_SLASH: {c: 226, n: "\\"},
@@ -104,7 +103,6 @@ wmsx.DOMKeys = {
     VK_NUM_7: {c: 103, n: "Num 7"},
     VK_NUM_8: {c: 104, n: "Num 8"},
     VK_NUM_9: {c: 105, n: "Num 9"},
-    VK_NUM_CENTER: {c: 12, n: "Num Cntr"},
 
     VK_NUM_CENTER: {c: 12, n: "Num Cntr"}
 

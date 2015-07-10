@@ -273,7 +273,7 @@ wmsx.DOMKeyboard = function() {
     var KEY_CAPS_LOCK        = wmsx.DOMKeys.VK_CAPS_LOCK.c;
     var KEY_SPACE            = wmsx.DOMKeys.VK_SPACE.c;
 
-    var KEY_PAGE_UP          = wmsx.DOMKeys.VK_ALT.c;
+    var KEY_PAGE_UP          = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_PAGE_DOWN        = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
     var KEY_NUM_0            = wmsx.DOMKeys.VK_NUM_0.c;

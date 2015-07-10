@@ -9,7 +9,7 @@ wmsx.SlotCreator = function () {
 
         // Choose the best option
         var bestOption = options[0];
-        wmsx.Util.log("" + bestOption.name + ": " + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
+        wmsx.Util.log("" + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
         return bestOption.createFromROM(rom);
     };
 
@@ -32,7 +32,7 @@ wmsx.SlotCreator = function () {
         // Get info from the library
         var info = wmsx.ROMDatabase[hash];
         if (info) {
-            wmsx.Util.log("" + info.n + (info.f ? " (" + info.f + ")" : ""));
+            wmsx.Util.log("ROM: " + info.n + (info.f ? " (" + info.f + ")" : ""));
         } else {
             info = buildInfo(rom.source);
             wmsx.Util.log("Unknown ROM (" + hash + "): " + info.n);

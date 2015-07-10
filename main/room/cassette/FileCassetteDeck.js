@@ -1,19 +1,26 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Savestates... :-(
+
 wmsx.FileCassetteDeck = function() {
 
     this.connect = function(cassetteSocket) {
         cassetteSocket.connectDeck(this);
     };
 
+    this.connectPeripherals = function(pScreen) {
+        screen = pScreen;
+    };
+
     this.loadTapeFile = function(name, arrContent) {
-        if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) < 0)
+        if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
 
         tapeContent = arrContent.slice(0);
         tapePosition = 0;
 
-        wmsx.Util.log("Cassette Tape file loaded");
+        wmsx.Util.log("Cassette loaded");
+        screen.showOSD("Cassette loaded");
         return tapeContent;
     };
 
@@ -63,6 +70,8 @@ wmsx.FileCassetteDeck = function() {
     var tapeContent;
     var tapePosition = 0;
 
+    var screen;
+
     var HEADER = [ 0x1f, 0xa6, 0xde, 0xba, 0xcc, 0x13, 0x7d, 0x74 ];
 
-}
+};

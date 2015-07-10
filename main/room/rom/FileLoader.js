@@ -22,13 +22,15 @@ wmsx.FileLoader = function() {
         fileInputElementParent = element;
     };
 
-    this.openFileChooserDialog = function(withAutoPower) {
+    this.openFileChooserDialog = function(withAutoPower, inSecondaryPort) {
         if (!fileInputElement) createFileInputElement();
+        secondaryPort = inSecondaryPort === true;
         autoPower = withAutoPower !== false;
         fileInputElement.click();
     };
 
-    this.openURLChooserDialog = function(withAutoPower) {
+    this.openURLChooserDialog = function(withAutoPower, inSecondaryPort) {
+        secondaryPort = inSecondaryPort === true;
         autoPower = withAutoPower !== false;
         var url;
         try {
@@ -122,7 +124,8 @@ wmsx.FileLoader = function() {
         if (event.stopPropagation) event.stopPropagation();
         event.target.focus();
 
-        autoPower = event.altKey !== true;
+        autoPower = event.ctrlKey !== true;
+        secondaryPort = event.altKey === true;
 
         if (WMSX.CARTRIDGE_CHANGE_DISABLED) return;
         if (!event.dataTransfer) return;
@@ -159,7 +162,7 @@ wmsx.FileLoader = function() {
             if (slot.constructor === wmsx.BIOS) {
                 biosSocket.insert(slot, autoPower);
             } else {
-                cartridgeSocket.insert(slot, autoPower);
+                cartridgeSocket.insert(slot, secondaryPort ? 2 : 1, autoPower);
             }
         } catch(e) {
             if (!e.msx) {
@@ -190,7 +193,7 @@ wmsx.FileLoader = function() {
                         if (slot.constructor === wmsx.BIOS) {
                             biosSocket.insert(slot, autoPower);
                         } else {
-                            cartridgeSocket.insert(slot, autoPower);
+                            cartridgeSocket.insert(slot, secondaryPort ? 2 : 1, autoPower);
                         }
                         return;
                     } catch (ef) {
@@ -230,11 +233,12 @@ wmsx.FileLoader = function() {
     var fileInputElementParent;
 
     var autoPower = true;
+    var secondaryPort = false;
 
 
-    var ZIP_INNER_FILES_PATTERN = /^.*\.(bin|BIN|rom|ROM|bios|BIOS|xst|XST)$/;
-    var INPUT_ELEM_ACCEPT_PROP  = ".bin,.rom,.bios,.zip,.xst";
-    var LOCAL_STOARAGE_LAST_URL_KEY = "msxlasturl";
+    var ZIP_INNER_FILES_PATTERN = /^.*\.(bin|BIN|rom|ROM|bios|BIOS|cas|CAS|tape|TAPE|xst|XST)$/;
+    var INPUT_ELEM_ACCEPT_PROP  = ".bin,.rom,.bios,.cas,.tape,.xst,.zip";
+    var LOCAL_STOARAGE_LAST_URL_KEY = "wmsxlasturl";
 
 
     WMSX.loadROMFromURL = this.loadFromURL;

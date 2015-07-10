@@ -51,16 +51,24 @@ wmsx.DOMMonitorControls = function(monitor) {
     var initKeys = function() {
         var monControls = wmsx.Monitor.Controls;
 
-        // keyCodeMap[KEY_EXIT]            = monControls.EXIT;
+        keyCodeMap[KEY_CART1]      = monControls.LOAD_CARTRIDGE1_FILE;
+        keyCodeMap[KEY_CART2]      = monControls.LOAD_CARTRIDGE2_FILE;
+        keyCodeMap[KEY_TAPE]       = monControls.LOAD_TAPE_FILE;
 
-        keyCodeMap[KEY_CART_FILE]       = monControls.LOAD_CARTRIDGE_FILE;
-        keyCodeMap[KEY_CART_URL]        = monControls.LOAD_CARTRIDGE_URL;
+        keyAltCodeMap[KEY_CART1]   = monControls.LOAD_CARTRIDGE1_FILE;
+        keyAltCodeMap[KEY_CART2]   = monControls.LOAD_CARTRIDGE2_FILE;
+        keyAltCodeMap[KEY_TAPE]    = monControls.LOAD_TAPE_FILE;
 
-        keyAltCodeMap[KEY_CART_FILE]    = monControls.LOAD_CARTRIDGE_FILE;
-        keyAltCodeMap[KEY_CART_URL]     = monControls.LOAD_CARTRIDGE_URL;
+        keyControlCodeMap[KEY_CART1] = monControls.LOAD_CARTRIDGE1_URL;
+        keyControlCodeMap[KEY_CART2] = monControls.LOAD_CARTRIDGE2_URL;
+        keyControlCodeMap[KEY_TAPE]  = monControls.LOAD_TAPE_URL;
 
-        keyControlCodeMap[KEY_CART_FILE] = monControls.LOAD_CARTRIDGE_FILE_NO_AUTO_POWER;
-        keyControlCodeMap[KEY_CART_URL]  = monControls.LOAD_CARTRIDGE_URL_NO_AUTO_POWER;
+        keyShiftCodeMap[KEY_CART1] = monControls.REMOVE_CARTRIDGE1;
+        keyShiftCodeMap[KEY_CART2] = monControls.REMOVE_CARTRIDGE2;
+        keyShiftCodeMap[KEY_TAPE]  = monControls.REMOVE_TAPE;
+
+        keyAltCodeMap[KEY_EXIT]         = monControls.EXIT;
+
 
         keyAltCodeMap[KEY_CRT_FILTER]   = monControls.CRT_FILTER;
         keyAltCodeMap[KEY_DEBUG]     	= monControls.DEBUG;
@@ -77,11 +85,10 @@ wmsx.DOMMonitorControls = function(monitor) {
         keyControlAltCodeMap[KEY_DOWN]   = monControls.SCALE_Y_PLUS;
         keyControlAltCodeMap[KEY_LEFT]   = monControls.SCALE_X_MINUS;
         keyControlAltCodeMap[KEY_RIGHT]  = monControls.SCALE_X_PLUS;
+        keyAltCodeMap[KEY_SIZE_DEFAULT]  = monControls.SIZE_DEFAULT;
 
         //keyShiftCodeMap[KEY_CART_PASTE_INS] = monControls.LOAD_CARTRIDGE_PASTE;
         //keyControlCodeMap[KEY_CART_PASTE_V] = monControls.LOAD_CARTRIDGE_PASTE;
-
-        keyAltCodeMap[KEY_SIZE_DEFAULT] = monControls.SIZE_DEFAULT;
     };
 
 
@@ -101,8 +108,10 @@ wmsx.DOMMonitorControls = function(monitor) {
 
     var KEY_SIZE_DEFAULT   = wmsx.DOMKeys.VK_BACKSPACE.c;
 
-    var KEY_CART_FILE      = wmsx.DOMKeys.VK_F10.c;
-    var KEY_CART_URL       = wmsx.DOMKeys.VK_F11.c;
+    var KEY_CART1   = wmsx.DOMKeys.VK_F6.c;
+    var KEY_CART2   = wmsx.DOMKeys.VK_F7.c;
+    var KEY_TAPE    = wmsx.DOMKeys.VK_F8.c;
+
     var KEY_CART_PASTE_V   = wmsx.DOMKeys.VK_V.c;
     var KEY_CART_PASTE_INS = wmsx.DOMKeys.VK_INSERT.c;
 

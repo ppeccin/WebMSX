@@ -20,7 +20,7 @@ wmsx.SlotFormats = {
 
     "BIOS": {
         name: "BIOS",
-        desc: "16K/32K BIOS Slot",
+        desc: "BIOS 16K/32K Slot",
         priority: 102,
         tryFormat: function (rom) {
             // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS

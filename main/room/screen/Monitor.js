@@ -16,7 +16,8 @@ wmsx.Monitor = function() {
     };
 
     this.connect = function(pVideoSignal, pCartridgeSocket) {
-        pCartridgeSocket.addInsertionListener(this);
+        cartridgeSocket = pCartridgeSocket;
+        cartridgeSocket.addInsertionListener(this);
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
     };
@@ -37,7 +38,7 @@ wmsx.Monitor = function() {
         display.showOSD(message, overlap);
     };
 
-    this.cartridgeInserted = function(cartridge) {
+    this.cartridgeInserted = function(cartridge, port) {
         // Only change mode if not forced
         if (CRT_MODE >= 0) return;
         if (crtMode === 0 || crtMode === 1)
@@ -117,17 +118,33 @@ wmsx.Monitor = function() {
     this.controlActivated = function(control) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case monControls.LOAD_CARTRIDGE_FILE:
+            case monControls.LOAD_CARTRIDGE1_FILE:
+                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true, false);
+                break;
+            case monControls.LOAD_CARTRIDGE1_URL:
+                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true, false);
+                break;
+            case monControls.REMOVE_CARTRIDGE1:
+                if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
+                break;
+            case monControls.LOAD_CARTRIDGE2_FILE:
+                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true, true);
+                break;
+            case monControls.LOAD_CARTRIDGE2_URL:
+                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true, true);
+                break;
+            case monControls.REMOVE_CARTRIDGE2:
+                if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 2, true);
+                break;
+            case monControls.LOAD_TAPE_FILE:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true);
                 break;
-            case monControls.LOAD_CARTRIDGE_FILE_NO_AUTO_POWER:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(false);
-                break;
-            case monControls.LOAD_CARTRIDGE_URL:
+            case monControls.LOAD_TAPE_URL:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true);
                 break;
-            case monControls.LOAD_CARTRIDGE_URL_NO_AUTO_POWER:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(false);
+            case monControls.REMOVE_TAPE:
+                // TODO Rewing Tape
+                if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
                 break;
             case monControls.CRT_MODES:
                 crtModeToggle(); break;
@@ -168,6 +185,7 @@ wmsx.Monitor = function() {
     var romLoader;
 
     var videoSignal;
+    var cartridgeSocket;
     var controls;
 
     var backBuffer;
@@ -209,10 +227,10 @@ wmsx.Monitor.Controls = {
     SIZE_PLUS: 13, SIZE_MINUS: 14,
     SIZE_DEFAULT: 15,
     FULLSCREEN: 16,
-    LOAD_CARTRIDGE_FILE: 21, LOAD_CARTRIDGE_FILE_NO_AUTO_POWER: 22,
-    LOAD_CARTRIDGE_URL: 23, LOAD_CARTRIDGE_URL_NO_AUTO_POWER: 24,
-    LOAD_CARTRIDGE_PASTE: 25,
-    CRT_FILTER: 31, CRT_MODES: 32,
-    DEBUG: 41, STATS: 42,
-    EXIT: 51
+    LOAD_CARTRIDGE1_FILE: 21, LOAD_CARTRIDGE2_FILE: 22, LOAD_TAPE_FILE: 23,
+    LOAD_CARTRIDGE1_URL: 25, LOAD_CARTRIDGE2_URL: 26, LOAD_TAPE_URL: 27, LOAD_CARTRIDGE1_PASTE: 29,
+    REMOVE_CARTRIDGE1: 31, REMOVE_CARTRIDGE2: 32, REMOVE_TAPE: 33,
+    CRT_FILTER: 51, CRT_MODES: 52,
+    DEBUG: 53, STATS: 54,
+    EXIT: 61
 };
