@@ -173,11 +173,12 @@ wmsx.Util = new function() {
 
     };
 
-    this.arrayIndexOfSubArray = function(arr, subarr, fromIndex) {
+    this.arrayIndexOfSubArray = function(arr, subarr, fromIndex, step) {
         var subLen = subarr.length;
-        var len = arr.length + 1 - subLen;
+        var len = arr.length;
+        var st = step || 1;
 
-        Loop: for (var i = fromIndex; i < len; i++) {
+        Loop: for (var i = fromIndex; (i >= 0) && (i < len); i += st) {
             for (var j = 0; j < subLen; j++)
                 if (arr[i + j] !== subarr[j])
                     continue Loop;

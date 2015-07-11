@@ -204,8 +204,8 @@ wmsx.Machine = function() {
     };
 
     var extensionsCreate = function() {
-        cassetteBIOSExtension = new wmsx.CassetteBIOSExtension();
-        cpu.setExtensionHandler(cassetteBIOSExtension);
+        cassetteBIOSExtension = new wmsx.CassetteBIOSExtension(cpu);
+        basicExtension = new wmsx.BASICExtension(bus);
     };
 
 
@@ -232,6 +232,7 @@ wmsx.Machine = function() {
     var cassetteSocket;
 
     var cassetteBIOSExtension;
+    var basicExtension;
 
     var videoStandardIsAuto = false;
 
@@ -374,6 +375,7 @@ wmsx.Machine = function() {
 
         this.connectDeck = function (pDeck) {
             cassetteBIOSExtension.connectDeck(pDeck);
+            pDeck.connectBASICExtension(basicExtension);
         };
 
     }

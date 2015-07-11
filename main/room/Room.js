@@ -58,7 +58,7 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
         if (machinePanelElement) self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
 
         self.romLoader.connectPeripherals(self.cassetteDeck);
-        self.screen.connectPeripherals(self.romLoader, self.stateMedia);
+        self.screen.connectPeripherals(self.romLoader, self.stateMedia, self.cassetteDeck);
         self.machineControls.connectPeripherals(self.screen, self.machinePanel);
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
         self.cassetteDeck.connectPeripherals(self.screen);

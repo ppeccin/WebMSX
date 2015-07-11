@@ -16,11 +16,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor.addControlInputElements(self.keyControlsInputElements());
     }
 
-    this.connectPeripherals = function(pROMLoader, stateMedia) {
+    this.connectPeripherals = function(pROMLoader, stateMedia, cassetteDeck) {
         pROMLoader.registerForDnD(mainElement);
         pROMLoader.registerForFileInputElement(mainElement);
         stateMedia.registerForDownloadElement(mainElement);
-        monitor.connectPeripherals(pROMLoader);
+        monitor.connectPeripherals(pROMLoader, cassetteDeck);
     };
 
     this.connect = function(pVideoSignal, pControlsSocket, pCartridgeSocket) {
@@ -158,7 +158,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.exit = function() {
         controlsSocket.controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
-        monitor.controlActivated(wmsx.Monitor.Controls.SIZE_DEFAULT);
+        monitor.controlActivated(wmsx.PeripheralControls.SCREEN_SIZE_DEFAULT);
     };
 
     this.focus = function() {
@@ -173,11 +173,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullScreenChanged = function() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
-        monitor.controlActivated(wmsx.Monitor.Controls.SIZE_DEFAULT);
+        monitor.controlActivated(wmsx.PeripheralControls.SCREEN_SIZE_DEFAULT);
         // Schedule another one to give the browser some time to set full screen properly
         if (isFullscreen)
             setTimeout(function() {
-                monitor.controlActivated(wmsx.Monitor.Controls.SIZE_DEFAULT);
+                monitor.controlActivated(wmsx.PeripheralControls.SCREEN_SIZE_DEFAULT);
             }, 120);
     };
 
@@ -317,14 +317,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
             fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4);
-            screenControlButton(fullscreenButton, wmsx.Monitor.Controls.FULLSCREEN);
+            screenControlButton(fullscreenButton, wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fsGap = 0;
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
             scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4);
-            screenControlButton(scaleDownButton, wmsx.Monitor.Controls.SIZE_MINUS);
+            screenControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SIZE_MINUS);
             scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4);
-            screenControlButton(scaleUpButton, wmsx.Monitor.Controls.SIZE_PLUS);
+            screenControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SIZE_PLUS);
         }
 
         settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);

@@ -3,7 +3,7 @@
 wmsx.Monitor = function() {
 
     function init(self) {
-        controls = new wmsx.DOMMonitorControls(self);
+        controls = new wmsx.DOMPeripheralControls(self);
     }
 
     this.connectDisplay = function(monitorDisplay) {
@@ -11,8 +11,9 @@ wmsx.Monitor = function() {
         setDisplayDefaultSize();
     };
 
-    this.connectPeripherals = function(pROMLoader) {
+    this.connectPeripherals = function(pROMLoader, pCassetteDeck) {
         romLoader = pROMLoader;
+        cassetteDeck = pCassetteDeck;
     };
 
     this.connect = function(pVideoSignal, pCartridgeSocket) {
@@ -113,69 +114,86 @@ wmsx.Monitor = function() {
 
     // Controls Interface  -----------------------------------------
 
-    var monControls = wmsx.Monitor.Controls;
+    var peripheralControls = wmsx.PeripheralControls;
 
     this.controlActivated = function(control) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case monControls.LOAD_CARTRIDGE1_FILE:
+            case peripheralControls.CARTRIDGE1_LOAD_FILE:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true, false);
                 break;
-            case monControls.LOAD_CARTRIDGE1_URL:
+            case peripheralControls.CARTRIDGE1_LOAD_URL:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true, false);
                 break;
-            case monControls.REMOVE_CARTRIDGE1:
+            case peripheralControls.CARTRIDGE1_REMOVE:
                 if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
                 break;
-            case monControls.LOAD_CARTRIDGE2_FILE:
+            case peripheralControls.CARTRIDGE2_LOAD_FILE:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true, true);
                 break;
-            case monControls.LOAD_CARTRIDGE2_URL:
+            case peripheralControls.CARTRIDGE2_LOAD_URL:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true, true);
                 break;
-            case monControls.REMOVE_CARTRIDGE2:
+            case peripheralControls.CARTRIDGE2_REMOVE:
                 if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 2, true);
                 break;
-            case monControls.LOAD_TAPE_FILE:
+            case peripheralControls.TAPE_LOAD_FILE:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true);
                 break;
-            case monControls.LOAD_TAPE_URL:
+            case peripheralControls.TAPE_LOAD_URL:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true);
                 break;
-            case monControls.REMOVE_TAPE:
-                // TODO Rewing Tape
-                if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
+            case peripheralControls.TAPE_LOAD_EMPTY:
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.loadEmpty();
                 break;
-            case monControls.CRT_MODES:
+            case peripheralControls.TAPE_SAVE_FILE:
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.saveFile();
+                break;
+            case peripheralControls.TAPE_REWIND:
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.rewind();
+                break;
+            case peripheralControls.TAPE_TO_END:
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.seekToEnd();
+                break;
+            case peripheralControls.TAPE_SEEK_BACK:
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.seekBackward();
+                break;
+            case peripheralControls.TAPE_SEEK_FWD:
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.seekForward();
+                break;
+            case peripheralControls.TAPE_AUTO_RUN:
+                cassetteDeck.typeCurrentAutoRunCommand();
+                break;
+            case peripheralControls.SCREEN_CRT_MODES:
                 crtModeToggle(); break;
-            case monControls.CRT_FILTER:
+            case peripheralControls.SCREEN_CRT_FILTER:
                 display.toggleCRTFilter(); break;
-            case monControls.STATS:
+            case peripheralControls.SCREEN_STATS:
                 showStats = !showStats; display.showOSD(null, true); break;
-            case monControls.DEBUG:
+            case peripheralControls.SCREEN_DEBUG:
                 debug++;
                 if (debug > 4) debug = 0;
                 break;
-            case monControls.SIZE_DEFAULT:
+            case peripheralControls.SCREEN_SIZE_DEFAULT:
                 setDisplayDefaultSize(); break;
-            case monControls.FULLSCREEN:
+            case peripheralControls.SCREEN_FULLSCREEN:
                 toggleFullscreen(); break;
-            case monControls.EXIT:
+            case peripheralControls.EXIT:
                 exit(); break;
         }
         if (fixedSizeMode) return;
         switch(control) {
-            case monControls.SCALE_X_MINUS:
+            case peripheralControls.SCREEN_SCALE_X_MINUS:
                 setDisplayScale(displayScaleX - 0.5, displayScaleY); break;
-            case monControls.SCALE_X_PLUS:
+            case peripheralControls.SCREEN_SCALE_X_PLUS:
                 setDisplayScale(displayScaleX + 0.5, displayScaleY); break;
-            case monControls.SCALE_Y_MINUS:
+            case peripheralControls.SCREEN_SCALE_Y_MINUS:
                 setDisplayScale(displayScaleX, displayScaleY - 0.5); break;
-            case monControls.SCALE_Y_PLUS:
+            case peripheralControls.SCREEN_SCALE_Y_PLUS:
                 setDisplayScale(displayScaleX, displayScaleY + 0.5); break;
-            case monControls.SIZE_MINUS:
+            case peripheralControls.SCREEN_SIZE_MINUS:
                 setDisplayScaleDefaultAspect(displayScaleY - 0.5); break;
-            case monControls.SIZE_PLUS:
+            case peripheralControls.SCREEN_SIZE_PLUS:
                 setDisplayScaleDefaultAspect(displayScaleY + 0.5); break;
         }
     };
@@ -183,6 +201,7 @@ wmsx.Monitor = function() {
 
     var display;
     var romLoader;
+    var cassetteDeck;
 
     var videoSignal;
     var cartridgeSocket;
@@ -219,18 +238,20 @@ wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.BASE_HEIGHT + wmsx.Monitor.BORDER_HEI
 wmsx.Monitor.DEFAULT_SCALE_X = WMSX.SCREEN_OPENING_SIZE;
 wmsx.Monitor.DEFAULT_SCALE_Y = WMSX.SCREEN_OPENING_SIZE;
 
-wmsx.Monitor.Controls = {
-    WIDTH_PLUS: 1, HEIGHT_PLUS: 2,
-    WIDTH_MINUS: 3, HEIGHT_MINUS: 4,
-    SCALE_X_PLUS: 9, SCALE_Y_PLUS: 10,
-    SCALE_X_MINUS: 11, SCALE_Y_MINUS: 12,
-    SIZE_PLUS: 13, SIZE_MINUS: 14,
-    SIZE_DEFAULT: 15,
-    FULLSCREEN: 16,
-    LOAD_CARTRIDGE1_FILE: 21, LOAD_CARTRIDGE2_FILE: 22, LOAD_TAPE_FILE: 23,
-    LOAD_CARTRIDGE1_URL: 25, LOAD_CARTRIDGE2_URL: 26, LOAD_TAPE_URL: 27, LOAD_CARTRIDGE1_PASTE: 29,
-    REMOVE_CARTRIDGE1: 31, REMOVE_CARTRIDGE2: 32, REMOVE_TAPE: 33,
-    CRT_FILTER: 51, CRT_MODES: 52,
-    DEBUG: 53, STATS: 54,
+wmsx.PeripheralControls = {
+    SCREEN_WIDTH_PLUS: 1, SCREEN_HEIGHT_PLUS: 2,
+    SCREEN_WIDTH_MINUS: 3, SCREEN_HEIGHT_MINUS: 4,
+    SCREEN_SCALE_X_PLUS: 5, SCREEN_SCALE_Y_PLUS: 6,
+    SCREEN_SCALE_X_MINUS: 7, SCREEN_SCALE_Y_MINUS: 8,
+    SCREEN_SIZE_PLUS: 9, SCREEN_SIZE_MINUS: 10,
+    SCREEN_SIZE_DEFAULT: 11, SCREEN_FULLSCREEN: 12,
+    SCREEN_CRT_FILTER: 13, SCREEN_CRT_MODES: 14,
+    SCREEN_DEBUG: 15, SCREEN_STATS: 16,
+
+    CARTRIDGE1_LOAD_FILE: 21, CARTRIDGE1_LOAD_URL: 22, CARTRIDGE1_REMOVE: 23, CARTRIDGE1_LOAD_PASTE: 29,
+    CARTRIDGE2_LOAD_FILE: 31, CARTRIDGE2_LOAD_URL: 32, CARTRIDGE2_REMOVE: 33,
+    TAPE_LOAD_FILE: 41, TAPE_LOAD_URL: 42, TAPE_LOAD_EMPTY: 43,
+    TAPE_REWIND: 45, TAPE_TO_END: 46, TAPE_SEEK_FWD: 47, TAPE_SEEK_BACK: 48, TAPE_SAVE_FILE: 49, TAPE_AUTO_RUN: 50,
+
     EXIT: 61
 };
