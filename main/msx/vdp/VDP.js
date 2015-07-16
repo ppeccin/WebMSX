@@ -343,8 +343,8 @@ wmsx.VDP = function(cpu, psg) {
 
     function initPlaneResources() {
         frameCanvas = document.createElement('canvas');
-        frameCanvas.width = 256;
-        frameCanvas.height = 192;
+        frameCanvas.width = 32 + 256 + 32;
+        frameCanvas.height =  32 + 192 + 32;
         frameContext = frameCanvas.getContext("2d");
         frameImageData = frameContext.createImageData(32 + 256 + 32, 32 + 192 + 32);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
