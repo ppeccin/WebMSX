@@ -59,9 +59,9 @@ wmsx.PSGAudioSignal = function() {
 
         if (missing > 0) {
             generateNextSamples(missing, true);
-            //Util.log(">>> Extra samples generated: " + missing);
+            //wmsx.Util.log(">>> Extra samples generated: " + missing);
         } else {
-            //Util.log(">>> No missing samples");
+            //wmsx.Util.log(">>> No missing samples");
         }
 
         var end = nextSampleToRetrieve + quant;
