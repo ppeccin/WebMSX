@@ -11,7 +11,8 @@ wmsx.WebAudioSpeaker = function() {
         createAudioContext();
         if (!audioContext) return;
 
-        processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 0, 1);
+        processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 1, 1);
+        wmsx.Util.log("Processor buffer size: " + processor.bufferSize);
         processor.onaudioprocess = onAudioProcess;
         this.play();
     };
@@ -30,15 +31,32 @@ wmsx.WebAudioSpeaker = function() {
     };
 
     var createAudioContext = function() {
+        if (WMSX.AUDIO_BUFFER_SIZE === 0) {
+            wmsx.Util.log("Audio disabled in config file.");
+            return;
+        }
         try {
             var constr = (window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext);
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
             resamplingFactor = wmsx.PSGAudioSignal.SAMPLE_RATE / audioContext.sampleRate;
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
-            //Util.log("Audio resampling factor: " + (1/resamplingFactor));
+            wmsx.Util.log("Audio resampling factor: " + (1 / resamplingFactor));
         } catch(e) {
             wmsx.Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
+        }
+    };
+
+    var onAudioProcessNoise = function(event) {
+        if (!audioSignal) return;
+
+        // Assumes there is only one channel
+        var outputBuffer = event.outputBuffer.getChannelData(0);
+        var d = 0;
+        var destEnd = 0 + outputBuffer.length;
+        while (d < destEnd) {
+            outputBuffer[d] = Math.random();
+            d++;
         }
     };
 

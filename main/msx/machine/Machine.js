@@ -342,9 +342,11 @@ wmsx.Machine = function() {
     function CartridgeSocket() {
 
         this.insert = function (cartridge, port, autoPower) {
+            if (cartridge == getCartridge(port || 1)) return;
             if (autoPower && self.powerIsOn) self.powerOff();
             setCartridge(cartridge, port);
             if (autoPower && !self.powerIsOn) self.userPowerOn();
+            self.showOSD("Cartridge " + (port === 2 ? "B" : "A") + (cartridge ? " loaded" : " removed"), true);
         };
 
         this.inserted = function (port) {
