@@ -26,6 +26,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.connect = function(pVideoSignal, pControlsSocket, pCartridgeSocket) {
         monitor.connect(pVideoSignal, pCartridgeSocket);
         controlsSocket = pControlsSocket;
+        pCartridgeSocket.addCartridgesStateListener(this);
     };
 
     this.powerOn = function() {
@@ -163,6 +164,17 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.focus = function() {
         canvas.focus();
+    };
+
+    this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
+        mediaButtonsState.Cartridge1 = cartridge1 ? 1 : 0;
+        mediaButtonsState.Cartridge2 = cartridge2 ? 1 : 0;
+        refreshMediaButtons();
+    };
+
+    this.tapeStateUpdate = function(present, motor) {
+        mediaButtonsState.Tape = motor ? 2 : ( present ? 1 : 0 );
+        refreshMediaButtons();
     };
 
     var openSettings = function(page) {
@@ -314,6 +326,11 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         powerButton  = addBarButton(6, -26, 24, 23, -120, -3);
         consoleControlButton(powerButton, wmsx.MachineControls.POWER);
+
+        cartridge1Button = addBarButton(43, -26, 24, 23, -150, -53);
+        cartridge2Button = addBarButton(43 + 26, -26, 24, 23, -179, -53);
+        tapeButton =       addBarButton(43 + 26 * 2, -26, 24, 23, -208, -53);
+
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
             fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4);
@@ -342,6 +359,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         mainElement.appendChild(buttonsBar);
+    };
+
+    var refreshMediaButtons = function() {
+        cartridge1Button.style.backgroundPositionY = (mediaButtonOffsets[mediaButtonsState["Cartridge1"]]) + "px";
+        cartridge2Button.style.backgroundPositionY = (mediaButtonOffsets[mediaButtonsState["Cartridge2"]]) + "px";
+        tapeButton.style.backgroundPositionY =       (mediaButtonOffsets[mediaButtonsState["Tape"]]) + "px";
     };
 
     var addBarButton = function(x, y, w, h, px, py, noImage) {
@@ -390,6 +413,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var setupLogo = function() {
         logoImage = new Image();
         logoImage.isLoaded = false;
+        logoImage.draggable = false;
         logoImage.style.position = "absolute";
         logoImage.style.display = "none";
         logoImage.style.top = 0;
@@ -398,6 +422,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoImage.style.right = 0;
         logoImage.style.maxWidth = "60%";
         logoImage.style.margin = "auto auto";
+
+        logoImage.style.userSelect = "none";
+        logoImage.style.webkitUserSelect = "none";
+        logoImage.style.mozUserSelect = "none";
+        logoImage.style.msUserSelect = "none";
+
         fsElement.appendChild(logoImage);
 
         logoImage.onload = function() {
@@ -465,6 +495,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var logoImage;
 
     var powerButton;
+    var cartridge1Button;
+    var cartridge2Button;
+    var tapeButton;
     var logoButton;
     var scaleDownButton;
     var scaleUpButton;
@@ -478,6 +511,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var borderBottom;
 
     var contentBaseScale = WMSX.SCREEN_SHARP_SIZE;
+
+    var mediaButtonOffsets = [ -53, -29, -4 ];
+    var mediaButtonsState = { Cartridge1: 0, Cartridge2: 0, Tape: 0 };
 
     var IMAGE_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;

@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Savestates... :-(
+// TODO Accept Writes
 
 wmsx.FileCassetteDeck = function() {
 
@@ -26,6 +27,7 @@ wmsx.FileCassetteDeck = function() {
         var mes = "Cassette loaded." + positionMessage();
         wmsx.Util.log(mes);
         screen.showOSD(mes, true);
+        fireStateUpdate();
 
         this.typeCurrentAutoRunCommand();
 
@@ -39,6 +41,7 @@ wmsx.FileCassetteDeck = function() {
         var mes = "Cassette loaded with empty tape";
         wmsx.Util.log(mes);
         screen.showOSD(mes, true);
+        fireStateUpdate();
     };
 
     this.saveFile = function() {
@@ -108,7 +111,9 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.motor = function(state) {
-        //console.log("Cassette Motor: " + (state !== null ? (state ? "ON" : "OFF") : "TOGGLE"));
+        if (state !== null) motor = state;
+        else motor = !motor;
+        fireStateUpdate();
         return true;
     };
 
@@ -175,11 +180,16 @@ wmsx.FileCassetteDeck = function() {
         return null;
     }
 
+    function fireStateUpdate() {
+        screen.tapeStateUpdate(tapeContent.length > 0, motor);
+
+    }
 
     var basicExtension;
 
     var tapeContent = [];
     var tapePosition = 0;
+    var motor = false;
 
     var screen;
 

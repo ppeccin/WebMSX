@@ -14,7 +14,7 @@ wmsx.Machine = function() {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();
         this.powerIsOn = true;
-        machineControlsSocket.controlsStatesRedefined();
+        machineControlsSocket.fireRedefinitionUpdate();
         if (!paused) go();
     };
 
@@ -22,7 +22,7 @@ wmsx.Machine = function() {
         pause();
         bus.powerOff();
         this.powerIsOn = false;
-        machineControlsSocket.controlsStatesRedefined();
+        machineControlsSocket.fireRedefinitionUpdate();
     };
 
     this.reset = function(paused) {
@@ -100,6 +100,7 @@ wmsx.Machine = function() {
         if (port === 2) WMSX.cartridge2 = cartridge;
         else WMSX.cartridge1 = cartridge;
         bus.setCartridge(cartridge, port);
+        cartridgeSocket.fireStateUpdate();
     };
 
     var getCartridge = function(port) {
@@ -112,7 +113,7 @@ wmsx.Machine = function() {
             vdp.setVideoStandard(videoStandard);
             mainClockAdjustToNormal();
         }
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name + " " + (videoStandard.fps | 0) +"Hz", true);
+        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name + " " + (videoStandard.fps | 0) +"Hz", false);
     };
 
     var setVideoStandardAuto = function() {
@@ -156,7 +157,8 @@ wmsx.Machine = function() {
         cpu.loadState(state.c);
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
-        machineControlsSocket.controlsStatesRedefined();
+        machineControlsSocket.fireRedefinitionUpdate();
+        cartridgeSocket.fireStateUpdate();
     };
 
     var mainClockAdjustToNormal = function() {
@@ -343,30 +345,30 @@ wmsx.Machine = function() {
 
         this.insert = function (cartridge, port, autoPower) {
             if (cartridge == getCartridge(port || 1)) return;
-            if (autoPower && self.powerIsOn) self.powerOff();
+            var powerWasOn = self.powerIsOn;
+            if (autoPower && powerWasOn) self.powerOff();
             setCartridge(cartridge, port);
-            if (autoPower && !self.powerIsOn) self.userPowerOn();
-            self.showOSD("Cartridge " + (port === 2 ? "B" : "A") + (cartridge ? " loaded" : " removed"), true);
+            self.showOSD("Cartridge " + (port === 2 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
+            if (autoPower && !self.powerIsOn && (cartridge || powerWasOn)) self.userPowerOn();
         };
 
         this.inserted = function (port) {
             return getCartridge(port);
         };
 
-        this.cartridgeInserted = function (cartridge, port, removedCartridge) {
-            for (var i = 0; i < insertionListeners.length; i++)
-                insertionListeners[i].cartridgeInserted(cartridge, port, removedCartridge);
+        this.fireStateUpdate = function () {
+            for (var i = 0; i < listeners.length; i++)
+                listeners[i].cartridgesStateUpdate(this.inserted(1), this.inserted(2));
         };
 
-        this.addInsertionListener = function (listener) {
-            if (insertionListeners.indexOf(listener) < 0) {
-                insertionListeners.push(listener);
-                listener.cartridgeInserted(this.inserted(1), 1, null);		// Fire a insertion events
-                listener.cartridgeInserted(this.inserted(2), 2, null);
+        this.addCartridgesStateListener = function (listener) {
+            if (listeners.indexOf(listener) < 0) {
+                listeners.push(listener);
+                listener.cartridgesStateUpdate(this.inserted(1), this.inserted(2));		// Fire event
             }
         };
 
-        var insertionListeners = [];
+        var listeners = [];
 
     }
 
@@ -431,11 +433,11 @@ wmsx.Machine = function() {
         this.addRedefinitionListener = function(listener) {
             if (redefinitionListeners.indexOf(listener) < 0) {
                 redefinitionListeners.push(listener);
-                listener.controlsStatesRedefined();		// Fire a redefinition event
+                listener.fireRedefinitionUpdate();		// Fire a redefinition event
             }
         };
 
-        this.controlsStatesRedefined = function() {
+        this.fireRedefinitionUpdate = function() {
             for (var i = 0; i < redefinitionListeners.length; i++)
                 redefinitionListeners[i].controlsStatesRedefined();
         };

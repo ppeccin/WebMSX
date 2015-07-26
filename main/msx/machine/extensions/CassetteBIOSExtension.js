@@ -69,6 +69,7 @@ wmsx.CassetteBIOSExtension = function(cpu) {
     }
 
     function TAPION(F) {
+        deck.motor(true);
         return deck.readHeader() ? success(F) : fail(F);
     }
 
@@ -81,10 +82,11 @@ wmsx.CassetteBIOSExtension = function(cpu) {
     }
 
     function TAPIOF() {
-        // nothing
+        deck.motor(false);
     }
 
     function TAPOON(A, F) {
+        deck.motor(true);
         return deck.writeHeader(A) ? success(F) : fail(F);
     }
 
@@ -93,11 +95,11 @@ wmsx.CassetteBIOSExtension = function(cpu) {
     }
 
     function TAPOOF() {
-        // nothing
+        deck.motor(false);
     }
 
     function STMOTR(A) {
-        deck.motor(A === 0xff ? null : A);
+        deck.motor(A === 0xff ? null : (A > 0));
     }
 
     function success(F) {

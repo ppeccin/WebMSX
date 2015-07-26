@@ -18,7 +18,7 @@ wmsx.Monitor = function() {
 
     this.connect = function(pVideoSignal, pCartridgeSocket) {
         cartridgeSocket = pCartridgeSocket;
-        cartridgeSocket.addInsertionListener(this);
+        cartridgeSocket.addCartridgesStateListener(this);
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
     };
@@ -39,11 +39,13 @@ wmsx.Monitor = function() {
         display.showOSD(message, overlap);
     };
 
-    this.cartridgeInserted = function(cartridge, port) {
+    this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
         // Only change mode if not forced
         if (CRT_MODE >= 0) return;
-        if (crtMode === 0 || crtMode === 1)
-            setCrtMode(!cartridge ? 0 : cartridge.rom.info.c || 0);
+        if (crtMode === 0 || crtMode === 1) {
+            var cart = cartridge1 || cartridge2;
+            setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
+        }
     };
 
     var setDisplayDefaultSize = function() {

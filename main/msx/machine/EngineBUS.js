@@ -42,12 +42,13 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
     };
 
     this.setCartridge = function(pCartridge, port) {
+        var slot = pCartridge || new wmsx.SlotEmpty();
         if (port === 2) {
-            cartridge2 = pCartridge;
-            slots[3] = cartridge2 || new wmsx.SlotEmpty();
+            cartridge2 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
+            slots[3] = slot;
         } else {
-            cartridge1 = pCartridge;
-            slots[1] = cartridge1 || new wmsx.SlotEmpty();
+            cartridge1 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
+            slots[1] = slot;
         }
         this.setPrimarySlotConfig(primarySlotConfig);
     };
@@ -178,4 +179,4 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
         return eval(str);
     };
 
-}
+};
