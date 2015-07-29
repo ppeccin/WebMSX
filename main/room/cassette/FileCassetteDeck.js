@@ -5,7 +5,8 @@
 
 wmsx.FileCassetteDeck = function() {
 
-    this.connect = function(cassetteSocket) {
+    this.connect = function(pCassetteSocket) {
+        cassetteSocket = pCassetteSocket;
         cassetteSocket.connectDeck(this);
     };
 
@@ -17,7 +18,7 @@ wmsx.FileCassetteDeck = function() {
         basicExtension = pExtension;
     };
 
-    this.loadTapeFile = function(name, arrContent) {
+    this.loadTapeFile = function(name, arrContent, autoPower) {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
 
@@ -29,7 +30,11 @@ wmsx.FileCassetteDeck = function() {
         screen.showOSD(mes, true);
         fireStateUpdate();
 
-        this.typeCurrentAutoRunCommand();
+        if (autoPower && currentAutoRunCommand()) {
+            cassetteSocket.autoPowerCycle();
+            // Give some type for reboot and then enter command
+            window.setTimeout(this.typeCurrentAutoRunCommand, 1700);        // TODO Arbitrary...
+        }
 
         return tapeContent;
     };
@@ -173,9 +178,9 @@ wmsx.FileCassetteDeck = function() {
         if (!info) return null;
 
         switch (info.type) {
-            case "Binary": return 'bload "cas:' + info.name + '", r\r';
-            case "Basic": return 'cload "cas:' + info.name + '", r\r';
-            case "ASCII": return 'load "cas:' + info.name + '", r\r';
+            case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
+            case "Basic": return '\r\rcload "cas:' + info.name + '", r\r';
+            case "ASCII": return '\r\rload "cas:' + info.name + '", r\r';
         }
         return null;
     }
@@ -186,6 +191,7 @@ wmsx.FileCassetteDeck = function() {
     }
 
     var basicExtension;
+    var cassetteSocket;
 
     var tapeContent = [];
     var tapePosition = 0;

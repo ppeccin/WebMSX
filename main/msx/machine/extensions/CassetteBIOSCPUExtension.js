@@ -1,18 +1,18 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CassetteBIOSExtension = function(cpu) {
+wmsx.CassetteBIOSCPUExtension = function(cpu) {
 
-    cpu.setExtensionHandler(this);
+    cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], cassetteBIOSCPUExtension);
 
     this.connectDeck = function(pDeck) {
         deck = pDeck;
     };
 
     this.patchBIOS = function(bios) {
-        if (bios) patchBIOS(bios);
+        patchBIOS(bios);
     };
 
-    this.cpuExtension = function(num, PC, SP, A, F, B, C, D, E, H, L, IX, IY, AF2, BC2, DE2, HL2, I, R, IFF1, IM) {
+    function cassetteBIOSCPUExtension(num, PC, SP, A, F, B, C, D, E, H, L, IX, IY, AF2, BC2, DE2, HL2, I, R, IFF1, IM) {
         if (num === 0)
             return TAPION(F);
         else if (num === 1)
@@ -27,7 +27,7 @@ wmsx.CassetteBIOSExtension = function(cpu) {
             return TAPOOF();
         else if (num === 6)
             return STMOTR(A);
-    };
+    }
 
     function patchBIOS(bios) {
         var bytes = bios.bytes;

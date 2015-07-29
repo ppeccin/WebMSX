@@ -328,8 +328,28 @@ wmsx.CanvasDisplay = function(mainElement) {
         consoleControlButton(powerButton, wmsx.MachineControls.POWER);
 
         cartridge1Button = addBarButton(43, -26, 24, 23, -150, -53);
+        var controls = {};
+        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
+        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
+        screenControlButton(cartridge1Button, controls);
+
         cartridge2Button = addBarButton(43 + 26, -26, 24, 23, -179, -53);
-        tapeButton =       addBarButton(43 + 26 * 2, -26, 24, 23, -208, -53);
+        controls = {};
+        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
+        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
+        screenControlButton(cartridge2Button, controls);
+
+        tapeButton = addBarButton(43 + 26 * 2, -26, 24, 23, -208, -53);
+        controls = {};
+        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_SAVE_FILE;
+        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_LOAD_EMPTY;
+        controls[MOUSE_BUT3_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
+        screenControlButton(tapeButton, controls);
 
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
@@ -398,8 +418,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         but.style.cursor = "pointer";
         but.addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
-            monitor.controlActivated(control);
+
+            // Simple control, only left-click
+            if ((typeof control) == "number" || !e.buttons) {
+                if (!e.button || e.button === 0) monitor.controlActivated(control);
+                return;
+            }
+
+            var mask = e.buttons | (e.altKey ? KEY_ALT_MASK : 0) | (e.ctrlKey ? KEY_CTRL_MASK : 0) | (e.shiftKey ? KEY_SHIFT_MASK : 0);
+            if (control[mask]) monitor.controlActivated(control[mask]);
         });
+
+        but.addEventListener("contextmenu", function (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        });
+
     };
 
     var consoleControlButton = function (but, control) {
@@ -514,6 +548,13 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var mediaButtonOffsets = [ -53, -29, -4 ];
     var mediaButtonsState = { Cartridge1: 0, Cartridge2: 0, Tape: 0 };
+
+    var MOUSE_BUT1_MASK = 1;
+    var MOUSE_BUT2_MASK = 2;
+    var MOUSE_BUT3_MASK = 4;
+    var KEY_CTRL_MASK  =  32;
+    var KEY_ALT_MASK   =  64;
+    var KEY_SHIFT_MASK =  128;
 
     var IMAGE_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;

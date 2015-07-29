@@ -124,8 +124,8 @@ wmsx.FileLoader = function() {
         if (event.stopPropagation) event.stopPropagation();
         event.target.focus();
 
-        autoPower = event.ctrlKey !== true;     // TODO Remove and reuse key
-        secondaryPort = event.altKey === true;
+        autoPower = event.altKey !== true;     // TODO Remove and reuse key
+        secondaryPort = event.ctrlKey === true;
 
         if (WMSX.CARTRIDGE_CHANGE_DISABLED) return;
         if (!event.dataTransfer) return;
@@ -154,7 +154,7 @@ wmsx.FileLoader = function() {
             if (saveStateSocket.loadStateFile(arrContent))
                 return;
             // Then try to load as a Cassette file
-            if (cassetteDeck.loadTapeFile(name, arrContent))
+            if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
                 return;
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new wmsx.ROM(name, arrContent);
@@ -185,7 +185,7 @@ wmsx.FileLoader = function() {
                         if (saveStateSocket.loadStateFile(arrContent))
                             return;
                         // Then try to load as a Cassette file
-                        if (cassetteDeck.loadTapeFile(name, arrContent))
+                        if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
                             return;
                         // Then try to load as a ROM (BIOS or Cartridge)
                         rom = new wmsx.ROM(file.name, arrContent);

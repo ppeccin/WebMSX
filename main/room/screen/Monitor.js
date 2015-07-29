@@ -145,6 +145,12 @@ wmsx.Monitor = function() {
             case peripheralControls.TAPE_LOAD_URL:
                 if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true);
                 break;
+            case peripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN:
+                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(false);
+                break;
+            case peripheralControls.TAPE_LOAD_URL_NO_AUTO_RUN:
+                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(false);
+                break;
             case peripheralControls.TAPE_LOAD_EMPTY:
                 if (!cartridgeChangeDisabledWarning()) cassetteDeck.loadEmpty();
                 break;
@@ -239,21 +245,3 @@ wmsx.Monitor.CONTENT_WIDTH = wmsx.Monitor.BASE_WIDTH + wmsx.Monitor.BORDER_WIDTH
 wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.BASE_HEIGHT + wmsx.Monitor.BORDER_HEIGHT * 2;
 wmsx.Monitor.DEFAULT_SCALE_X = WMSX.SCREEN_OPENING_SIZE;
 wmsx.Monitor.DEFAULT_SCALE_Y = WMSX.SCREEN_OPENING_SIZE;
-
-wmsx.PeripheralControls = {
-    SCREEN_WIDTH_PLUS: 1, SCREEN_HEIGHT_PLUS: 2,
-    SCREEN_WIDTH_MINUS: 3, SCREEN_HEIGHT_MINUS: 4,
-    SCREEN_SCALE_X_PLUS: 5, SCREEN_SCALE_Y_PLUS: 6,
-    SCREEN_SCALE_X_MINUS: 7, SCREEN_SCALE_Y_MINUS: 8,
-    SCREEN_SIZE_PLUS: 9, SCREEN_SIZE_MINUS: 10,
-    SCREEN_SIZE_DEFAULT: 11, SCREEN_FULLSCREEN: 12,
-    SCREEN_CRT_FILTER: 13, SCREEN_CRT_MODES: 14,
-    SCREEN_DEBUG: 15, SCREEN_STATS: 16,
-
-    CARTRIDGE1_LOAD_FILE: 21, CARTRIDGE1_LOAD_URL: 22, CARTRIDGE1_REMOVE: 23, CARTRIDGE1_LOAD_PASTE: 29,
-    CARTRIDGE2_LOAD_FILE: 31, CARTRIDGE2_LOAD_URL: 32, CARTRIDGE2_REMOVE: 33,
-    TAPE_LOAD_FILE: 41, TAPE_LOAD_URL: 42, TAPE_LOAD_EMPTY: 43,
-    TAPE_REWIND: 45, TAPE_TO_END: 46, TAPE_SEEK_FWD: 47, TAPE_SEEK_BACK: 48, TAPE_SAVE_FILE: 49, TAPE_AUTO_RUN: 50,
-
-    EXIT: 61
-};

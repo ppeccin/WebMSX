@@ -88,7 +88,7 @@ wmsx.Machine = function() {
     var setBIOS = function(bios) {
         WMSX.bios = bios;
         bus.setBIOS(bios);
-        cassetteBIOSExtension.patchBIOS(bios);
+        if (bios) cassetteBIOSExtension.patchBIOS(bios);
         setVideoStandardAuto();
     };
 
@@ -206,7 +206,7 @@ wmsx.Machine = function() {
     };
 
     var extensionsCreate = function() {
-        cassetteBIOSExtension = new wmsx.CassetteBIOSExtension(cpu);
+        cassetteBIOSExtension = new wmsx.CassetteBIOSCPUExtension(cpu);
         basicExtension = new wmsx.BASICExtension(bus);
     };
 
@@ -380,6 +380,12 @@ wmsx.Machine = function() {
         this.connectDeck = function (pDeck) {
             cassetteBIOSExtension.connectDeck(pDeck);
             pDeck.connectBASICExtension(basicExtension);
+        };
+
+        this.autoPowerCycle = function () {
+            if (self.powerIsOn) self.powerOff();
+            self.userPowerOn();
+
         };
 
     }

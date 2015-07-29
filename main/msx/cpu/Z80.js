@@ -46,8 +46,9 @@ wmsx.Z80 = function() {
         bus = aBus;
     };
 
-    this.setExtensionHandler = function(handler) {
-        this.extensionHandler = handler;
+    this.setExtensionHandler = function(codes, handler) {
+        for (var i = 0; i < codes.length; i++)
+            this.extensionHandler[codes[i]] = handler;
     };
 
     this.reset = function() {
@@ -59,7 +60,7 @@ wmsx.Z80 = function() {
 
 
     // Extension Handling
-    this.extensionHandler = null;
+    this.extensionHandler = [];
 
     // Interfaces
     var bus;
@@ -1365,9 +1366,9 @@ wmsx.Z80 = function() {
 
     function newpEXT(num) {
         return function pEXT() {
-            if (!self.extensionHandler) return;
+            if (self.extensionHandler[num] === undefined) return;
             // Send state to the handler
-            var res = self.extensionHandler.cpuExtension(
+            var res = self.extensionHandler[num](
                 num,
                 PC, SP, A, F, B, C, DE, HL, IX, IY,
                 AF2, BC2, DE2, HL2, I, R, IFF1, IM);
