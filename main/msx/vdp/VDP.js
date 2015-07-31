@@ -160,17 +160,18 @@ wmsx.VDP = function(cpu, psg) {
     function updateFrame() {
         if (signalBlanked) {
             // Blank if needed
-            if (!patternBlanked) {
+            if (!frameBlanked) {
                 if (frameBackBuffer.fill) frameBackBuffer.fill(0);
                 else wmsx.Util.arrayFill(frameBackBuffer, 0);
-                patternBlanked = true;
+                frameBlanked = true;
             }
         } else {
             // Update planes
             if (mode === 1) updatePatternPlaneMode1();
             else if (mode === 0) updatePatternPlaneMode0();
             else if (mode === 4) updatePatternPlaneMode4();
-            patternBlanked = false;
+            else if (mode === 2) updatePatternPlaneMode2();
+            frameBlanked = false;
         }
 
         // Update plane image and send to monitor
@@ -241,6 +242,36 @@ wmsx.VDP = function(cpu, psg) {
         updateSpritePlanes();
     }
 
+    function updatePatternPlaneMode2() {                                    // Multicolor (Screen 3)
+        var bufferPos = 10272;                                              // First char position
+        var pos = 0;
+        for (var line = 0; line < 24; line++) {
+            var extraPattPos = (line & 0x03) << 1;                           // (line % 4) * 2
+            for (var col = 0; col < 32; col++) {
+                var name = vramNameTable[pos];
+                var patternStart = (name << 3) + extraPattPos;              // (name * 8 + position) 2 bytes each
+                var patternEnd = patternStart + 2;
+                for (var patternLine = patternStart; patternLine < patternEnd; patternLine++) {
+                    var colorCode = vramPatternTable[patternLine];
+                    var colorCodeValuesStart = colorCode << 8;              // (colorCode * 256) 256 patterns for each colorCode
+                    var values = colorCodePatternValues[colorCodeValuesStart + 0xf0];   // Always solid blocks of front and back colors
+                    frameBackBuffer.set(values, bufferPos);
+                    bufferPos += 320;                                       // Advance 1 line
+                    frameBackBuffer.set(values, bufferPos);
+                    bufferPos += 320;
+                    frameBackBuffer.set(values, bufferPos);
+                    bufferPos += 320;
+                    frameBackBuffer.set(values, bufferPos);
+                    bufferPos += 320;
+                }
+                bufferPos -= 2552;                                          // Go back to the next char starting pixel
+                pos++;
+            }
+            bufferPos += 2304;                                              // Go to the next line starting char pixel
+        }
+        updateSpritePlanes();
+    }
+
     function updatePatternPlaneMode4() {                                    // Text (Screen 0)
         var bufferPos = 10272;                                              // First char position
         var pos = 0;
@@ -249,7 +280,7 @@ wmsx.VDP = function(cpu, psg) {
         var borderValues = colorCodePatternValues[colorCodeValuesStart];
         for (var line = 0; line < 24; line++) {
             for (var borderLine = 0; borderLine < 8; borderLine++) {
-                frameBackBuffer.set(borderValues, bufferPos);        // 8 pixels left border
+                frameBackBuffer.set(borderValues, bufferPos);               // 8 pixels left border
                 bufferPos += 320;
             }
             bufferPos -= 2552;                                              // Go back to the next char starting pixel
@@ -267,7 +298,7 @@ wmsx.VDP = function(cpu, psg) {
                 pos++;
             }
             for (borderLine = 0; borderLine < 8; borderLine++) {
-                frameBackBuffer.set(borderValues, bufferPos);        // 8 pixels right border
+                frameBackBuffer.set(borderValues, bufferPos);               // 8 pixels right border
                 bufferPos += 320;
             }
             bufferPos += -248;                                              // Go to the next line starting char pixel
@@ -386,7 +417,7 @@ wmsx.VDP = function(cpu, psg) {
 
     var backdropRGB = 0;
     var signalBlanked = true;
-    var patternBlanked = false;
+    var frameBlanked = false;
 
     var nameTableAddress = 0;
     var colorTableAddress = 0;
@@ -452,7 +483,7 @@ wmsx.VDP = function(cpu, psg) {
         vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
         backdropRGB = colorRGBs[register7 & 0x0f];
         signalBlanked = (register1 & 0x40) === 0;
-        patternBlanked = false;
+        frameBlanked = false;
         this.setVideoStandard(wmsx.VideoStandard[s.vs]);
     };
 

@@ -284,7 +284,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvasContext = canvas.getContext("2d");
         canvasContext.globalCompositeOperation = "copy";
 
-        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution
+        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution, include Edge
         switch (wmsx.Util.browserInfo().name) {
             case "CHROME":
             case "OPERA":   canvasImageRenderingValue = "pixelated"; break;

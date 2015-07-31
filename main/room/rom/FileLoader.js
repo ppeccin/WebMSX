@@ -124,7 +124,7 @@ wmsx.FileLoader = function() {
         if (event.stopPropagation) event.stopPropagation();
         event.target.focus();
 
-        autoPower = event.altKey !== true;     // TODO Remove and reuse key
+        autoPower = event.altKey !== true;
         secondaryPort = event.ctrlKey === true;
 
         if (WMSX.CARTRIDGE_CHANGE_DISABLED) return;
