@@ -311,22 +311,21 @@ wmsx.VDP = function(cpu, psg) {
         var drawn;
         var collision = false;
         var invalid = null;
-        var y, x;
+        var line, atrPos, y, x;
         var s, f;
-        var bufferPos;
+        var bufferPos = 0;
 
         var size = register1 & 0x03;
 
         if (size === 2) {                                                    // 16x16 normal
-            bufferPos = 0;
-            for (var line = 0; line < 192; line++) {
+            for (line = 0; line < 192; line++) {
                 drawn = 0;
-                for (var atrPos = 0; atrPos < 128; atrPos += 4) {            // Max of 32 sprites
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
                     y = vramSpriteAttrTable[atrPos];
                     if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                    if (y >= 225) y = -256 + y - 1;                          // Signed value from -31 to -1
+                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
                     y++;                                                     // -1 (255) is line 0 per spec, so add 1
-                    if (y < (line - 15) || y > line) continue;               // Not visible at line
+                    if ((y < (line - 15)) || (y > line)) continue;           // Not visible at line
                     drawn++;
                     if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
                         if (!invalid) invalid = atrPos >> 2;
@@ -356,12 +355,104 @@ wmsx.VDP = function(cpu, psg) {
                 }
                 bufferPos += 256;
             }
-        } else if (size === 3) {                                             // 16x16 double
-
         } else if (size === 0) {                                             // 8x8 normal
-
+            for (line = 0; line < 192; line++) {
+                drawn = 0;
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                    y = vramSpriteAttrTable[atrPos];
+                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
+                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 7)) || (y > line)) continue;            // Not visible at line
+                    drawn++;
+                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                        if (!invalid) invalid = atrPos >> 2;
+                        break;
+                    }
+                    x = vramSpriteAttrTable[atrPos + 1];
+                    color = vramSpriteAttrTable[atrPos + 3];
+                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
+                    if (x < -7) continue;                                    // Not visible (out to the left)
+                    name = vramSpriteAttrTable[atrPos + 2];
+                    colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
+                    patternStart = (name << 3) + (line - y);
+                    s = x >= 0 ? 0 : -x; f = x <= 248 ? 8 : 256 - x;
+                    if (s < f) {
+                        pattern = vramSpritePatternTable[patternStart];
+                        values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                        copySprite(frameBackBuffer, bufferPos + x, values, s, f);
+                    }
+                }
+                bufferPos += 256;
+            }
+        } else if (size === 3) {                                             // 16x16 double
+            for (line = 0; line < 192; line++) {
+                drawn = 0;
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                    y = vramSpriteAttrTable[atrPos];
+                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
+                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 31)) || (y > line)) continue;           // Not visible at line
+                    drawn++;
+                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                        if (!invalid) invalid = atrPos >> 2;
+                        break;
+                    }
+                    x = vramSpriteAttrTable[atrPos + 1];
+                    color = vramSpriteAttrTable[atrPos + 3];
+                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
+                    if (x < -31) continue;                                   // Not visible (out to the left)
+                    name = vramSpriteAttrTable[atrPos + 2];
+                    colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
+                    patternStart = ((name & 0xfc) << 3) + ((line - y) >>> 1);   // Double line height
+                    // Left half
+                    s = x >= 0 ? 0 : -x; f = x <= 240 ? 16 : 256 - x;
+                    if (s < f) {
+                        pattern = vramSpritePatternTable[patternStart];
+                        values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                        copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
+                    }
+                    // Right half
+                    s = x >= -16 ? 0 : -16 - x; f = x <= 224 ? 16 : 240 - x;
+                    if (s < f) {
+                        pattern = vramSpritePatternTable[patternStart + 16];
+                        values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                        copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f);
+                    }
+                }
+                bufferPos += 256;
+            }
         } else {                                                             // 8x8 double
-
+            for (line = 0; line < 192; line++) {
+                drawn = 0;
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                    y = vramSpriteAttrTable[atrPos];
+                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
+                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 15)) || (y > line)) continue;           // Not visible at line
+                    drawn++;
+                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                        if (!invalid) invalid = atrPos >> 2;
+                        break;
+                    }
+                    x = vramSpriteAttrTable[atrPos + 1];
+                    color = vramSpriteAttrTable[atrPos + 3];
+                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
+                    if (x < -15) continue;                                   // Not visible (out to the left)
+                    name = vramSpriteAttrTable[atrPos + 2];
+                    colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
+                    patternStart = (name << 3) + ((line - y) >>> 1);         // Double line height
+                    s = x >= 0 ? 0 : -x; f = x <= 240 ? 16 : 256 - x;
+                    if (s < f) {
+                        pattern = vramSpritePatternTable[patternStart];
+                        values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                        copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
+                    }
+                }
+                bufferPos += 256;
+            }
         }
 
         if (collision) {
@@ -378,6 +469,15 @@ wmsx.VDP = function(cpu, psg) {
             for (var i = start; i < finish; i++) {
                 if (source[i] === 0) continue;
                 if (dest[pos + i] < 0xff000000) dest[pos + i] = source[i] + 0x01000000;
+                else collision = true;
+            }
+        }
+
+        function copySprite2x(dest, pos, source, start, finish) {
+            for (var i = start; i < finish; i++) {
+                var b = i >>> 1;
+                if (source[b] === 0) continue;
+                if (dest[pos + i] < 0xff000000) dest[pos + i] = source[b] + 0x01000000;
                 else collision = true;
             }
         }
@@ -460,6 +560,8 @@ wmsx.VDP = function(cpu, psg) {
     // Obs: Pattern plane paints with these colors (Alpha = 0xfe), Sprite plane paints with Alpha = 0xff
 
     var colorRGBs = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe42c821, 0xfe78dc5e, 0xfeed5554, 0xfefc767d, 0xfe4d52d4, 0xfef5eb42, 0xfe5455fc, 0xfe7879ff, 0xfe54c1d4, 0xfe80cee6, 0xfe3bb021, 0xfeba5bc9, 0xfecccccc, 0xfeffffff ]);
+    //var colorRGBs = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20db20, 0xfe6dff6d, 0xfeff2020, 0xfeff6d30, 0xfe2020b6, 0xfeffdb49, 0xfe2020ff, 0xfe6d6dff, 0xfe20dbdb, 0xfe92dbdb, 0xfe209220, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
+
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
 

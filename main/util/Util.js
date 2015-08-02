@@ -18,15 +18,15 @@ wmsx.Util = new function() {
         return true;
     };
 
-    this.arrayFill = function(arr, val) {
-        var i = arr.length;
+    this.arrayFill = function(arr, val, len) {
+        var i = len || arr.length;
         while(i--)
             arr[i] = val;
         return arr;
     };
 
-    this.arrayFillFunc = function(arr, fn) {
-        var i = arr.length;
+    this.arrayFillFunc = function(arr, fn, len) {
+        var i = len || arr.length;
         while(i--)
             arr[i] = fn();
         return arr;
