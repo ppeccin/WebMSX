@@ -48,27 +48,29 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
     };
 
     var buildPeripherals = function() {
+        self.fileDownloader = new wmsx.FileDownloader();
         self.stateMedia = new wmsx.LocalStorageSaveStateMedia();
         self.cassetteDeck = new wmsx.FileCassetteDeck();
-        self.romLoader = new wmsx.FileLoader();
+        self.fileLoader = new wmsx.FileLoader();
         self.screen = new wmsx.CanvasDisplay(screenElement);
         self.speaker = new wmsx.WebAudioSpeaker();
         self.keyboard = new wmsx.DOMKeyboard();
         self.machineControls = new wmsx.DOMMachineControls();
         if (machinePanelElement) self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
 
-        self.romLoader.connectPeripherals(self.cassetteDeck);
-        self.screen.connectPeripherals(self.romLoader, self.stateMedia, self.cassetteDeck);
+        self.fileLoader.connectPeripherals(self.cassetteDeck);
+        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.cassetteDeck);
         self.machineControls.connectPeripherals(self.screen, self.machinePanel);
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
-        self.cassetteDeck.connectPeripherals(self.screen);
-        if (self.machinePanel) self.machinePanel.connectPeripherals(self.screen, self.romLoader);
+        self.stateMedia.connectPeripherals(self.fileDownloader);
+        self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
+        if (self.machinePanel) self.machinePanel.connectPeripherals(self.screen, self.fileLoader);
    };
 
     var buildAndPlugMachine = function() {
         self.machine = new wmsx.Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
-        self.romLoader.connect(self.machine.getBIOSSocket(), self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
+        self.fileLoader.connect(self.machine.getBIOSSocket(), self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
         self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
         if (self.machinePanel) self.machinePanel.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket(), self.controls);
         self.speaker.connect(self.machine.getAudioOutput());
@@ -84,11 +86,13 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
     this.speaker = null;
     this.machineControls = null;
     this.keyboard = null;
+    this.fileDownloader = null;
+    this.cassetteDeck = null;
     this.stateMedia = null;
-    this.romLoader = null;
+    this.fileLoader = null;
 
 
     init();
 
-}
+};
 

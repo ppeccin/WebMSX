@@ -21,10 +21,10 @@ WMSX.start = function () {
     WMSX.room.powerOn();
     // Auto-load BIOS if specified
     if (WMSX.BIOS_AUTO_LOAD_URL)
-        WMSX.room.romLoader.loadFromURL(WMSX.BIOS_AUTO_LOAD_URL);
+        WMSX.room.fileLoader.loadFromURL(WMSX.BIOS_AUTO_LOAD_URL);
     // Auto-load ROM if specified
     if (WMSX.ROM_AUTO_LOAD_URL)
-        WMSX.room.romLoader.loadFromURL(WMSX.ROM_AUTO_LOAD_URL);
+        WMSX.room.fileLoader.loadFromURL(WMSX.ROM_AUTO_LOAD_URL);
 
     WMSX.shutdown = function () {
         if (WMSX.room) WMSX.room.powerOff();

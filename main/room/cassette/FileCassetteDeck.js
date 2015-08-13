@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Savestates... :-(
-// TODO Accept Writes
 
 wmsx.FileCassetteDeck = function() {
 
@@ -10,8 +9,9 @@ wmsx.FileCassetteDeck = function() {
         cassetteSocket.connectDeck(this);
     };
 
-    this.connectPeripherals = function(pScreen) {
+    this.connectPeripherals = function(pScreen, pDownloader) {
         screen = pScreen;
+        fileDownloader = pDownloader;
     };
 
     this.connectBASICExtension = function(pExtension) {
@@ -22,12 +22,10 @@ wmsx.FileCassetteDeck = function() {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
 
+        tapeFileName = name;
         tapeContent = arrContent.slice(0);
         toTapeStart();
-
-        var mes = "Cassette loaded." + positionMessage();
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+        screen.showOSD("Cassette loaded." + positionMessage(), true);
         fireStateUpdate();
 
         if (autoPower && currentAutoRunCommand()) {
@@ -40,49 +38,57 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.loadEmpty = function() {
+        tapeFileName = null;
         tapeContent = [];
         toTapeStart();
-
-        var mes = "Cassette loaded with empty tape";
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+        screen.showOSD("Cassette loaded with empty tape", true);
         fireStateUpdate();
     };
 
-    this.saveFile = function() {
-        var mes = "Cassette file saved";
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+    this.saveTapeFile = function() {
+        if (!tapeContent || (tapeContent.length === 0)) {
+            screen.showOSD("Cassette is empty!", true);
+            return;
+        }
+
+        try {
+            var fileName = tapeFileName;
+            if (!fileName) {
+                var info = peekFileInfo(0);
+                if (info) fileName = info.name && info.name.trim();
+                if (!fileName) fileName = "WebMSXTape";
+            }
+            var data = new ArrayBuffer(tapeContent.length);
+            var view = new Uint8Array(data);
+            for (var i = 0; i < tapeContent.length; i++)
+                view[i] = tapeContent[i];
+            fileDownloader.startDownload(fileName + ".cas", data);
+            screen.showOSD("Cassette File saved", true);
+        } catch(ex) {
+            screen.showOSD("Cassette File save failed", true);
+        }
     };
 
     this.rewind = function() {
         toTapeStart();
-        var mes = "Cassette rewound." + positionMessage();
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+        screen.showOSD("Cassette rewound." + positionMessage(), true);
     };
 
     this.seekToEnd = function() {
         toTapeEnd();
-        var mes = "Cassette forwarded to tape end";
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+        screen.showOSD("Cassette forwarded to tape end", true);
     };
 
     this.seekForward = function() {
         if (!isTapeEnd()) seekHeader(1, 1);
         if(isTapeEnd()) return this.seekToEnd();
-        var mes = "Cassette skipped forward." + positionMessage();
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+        screen.showOSD("Cassette skipped forward." + positionMessage(), true);
     };
 
     this.seekBackward = function() {
         if (!isTapeStart()) seekHeader(-1, -1);
         if(isTapeStart()) return this.rewind();
-        var mes = "Cassette skipped backward." + positionMessage();
-        wmsx.Util.log(mes);
-        screen.showOSD(mes, true);
+        screen.showOSD("Cassette skipped backward." + positionMessage(), true);
     };
 
     this.typeCurrentAutoRunCommand = function() {
@@ -106,13 +112,14 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.writeHeader = function(long) {
-        wmsx.Util.log("Tape is read-only!");
-        return false;
+        for (var i = 0; i < HEADER.length; i++)
+            tapeContent[tapePosition++] = HEADER[i];
+        return true;
     };
 
     this.writeByte = function(val) {
-        wmsx.Util.log("Tape is read-only!");
-        return false;
+        tapeContent[tapePosition++] = val;
+        return true;
     };
 
     this.motor = function(state) {
@@ -146,16 +153,16 @@ wmsx.FileCassetteDeck = function() {
         tapePosition = 0;
     }
 
-    function peekFileInfo() {       // Tape must be positioned at a Header
-        if (tapeContent.length < tapePosition + 24) return null;        // Not a complete Header
+    function peekFileInfo(position) {       // Tape must be positioned at a Header
+        if (tapeContent.length < position + 24) return null;        // Not a complete Header
 
         var type = null;
-        if (wmsx.Util.arrayIndexOfSubArray(tapeContent, BIN_ID, tapePosition) === tapePosition + 8) type = "Binary";
-        else if (wmsx.Util.arrayIndexOfSubArray(tapeContent, TOK_ID, tapePosition) === tapePosition + 8) type = "Basic";
-        else if (wmsx.Util.arrayIndexOfSubArray(tapeContent, ASC_ID, tapePosition) === tapePosition + 8) type = "ASCII";
+        if (wmsx.Util.arrayIndexOfSubArray(tapeContent, BIN_ID, position) === position + 8) type = "Binary";
+        else if (wmsx.Util.arrayIndexOfSubArray(tapeContent, TOK_ID, position) === position + 8) type = "Basic";
+        else if (wmsx.Util.arrayIndexOfSubArray(tapeContent, ASC_ID, position) === position + 8) type = "ASCII";
         else return null;
 
-        var name = wmsx.Util.uInt8ArrayToByteString(tapeContent.slice(tapePosition + 18, tapePosition + 18 + 6));
+        var name = wmsx.Util.uInt8ArrayToByteString(tapeContent.slice(position + 18, position + 18 + 6));
 
         return { type: type, name: name.trim() };
     }
@@ -167,14 +174,14 @@ wmsx.FileCassetteDeck = function() {
         } else if (isTapeEnd()) {
             mes += " Tape at end";
         } else {
-            var info = peekFileInfo();
+            var info = peekFileInfo(tapePosition);
             if (info) mes += ' Tape at ' + info.type + ' file "' + info.name + '"';
         }
         return mes;
     }
 
     function currentAutoRunCommand() {
-        var info = peekFileInfo();
+        var info = peekFileInfo(tapePosition);
         if (!info) return null;
 
         switch (info.type) {
@@ -187,17 +194,19 @@ wmsx.FileCassetteDeck = function() {
 
     function fireStateUpdate() {
         screen.tapeStateUpdate(tapeContent.length > 0, motor);
-
     }
+
 
     var basicExtension;
     var cassetteSocket;
 
+    var tapeFileName = null;
     var tapeContent = [];
     var tapePosition = 0;
     var motor = false;
 
     var screen;
+    var fileDownloader;
 
     var HEADER = [ 0x1f, 0xa6, 0xde, 0xba, 0xcc, 0x13, 0x7d, 0x74 ];
     var BIN_ID = [ 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0 ];

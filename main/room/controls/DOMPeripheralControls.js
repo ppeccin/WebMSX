@@ -121,8 +121,8 @@ wmsx.DOMPeripheralControls = function(monitor) {
     var KEY_TAPE          = wmsx.DOMKeys.VK_F8.c;
     var KEY_TAPE_REW      = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END      = wmsx.DOMKeys.VK_END.c;
-    var KEY_TAPE_FWD      = wmsx.DOMKeys.VK_PAGE_UP.c;
-    var KEY_TAPE_BCK      = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+    var KEY_TAPE_BCK      = wmsx.DOMKeys.VK_PAGE_UP.c;
+    var KEY_TAPE_FWD      = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
     var KEY_CART_PASTE_V   = wmsx.DOMKeys.VK_V.c;
     var KEY_CART_PASTE_INS = wmsx.DOMKeys.VK_INSERT.c;

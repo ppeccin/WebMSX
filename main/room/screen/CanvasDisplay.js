@@ -16,11 +16,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor.addControlInputElements(self.keyControlsInputElements());
     }
 
-    this.connectPeripherals = function(pROMLoader, stateMedia, cassetteDeck) {
-        pROMLoader.registerForDnD(mainElement);
-        pROMLoader.registerForFileInputElement(mainElement);
-        stateMedia.registerForDownloadElement(mainElement);
-        monitor.connectPeripherals(pROMLoader, cassetteDeck);
+    this.connectPeripherals = function(fileLoader, fileDownloader, cassetteDeck) {
+        fileLoader.registerForDnD(mainElement);
+        fileLoader.registerForFileInputElement(mainElement);
+        fileDownloader.registerForDownloadElement(mainElement);
+        monitor.connectPeripherals(fileLoader, cassetteDeck);
     };
 
     this.connect = function(pVideoSignal, pControlsSocket, pCartridgeSocket) {
@@ -178,8 +178,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var openSettings = function(page) {
-        //if (!settings) settings = new Settings();
-        //settings.show(page);
+        if (!settings) settings = new wmsx.Settings();
+        settings.show(page);
     };
 
     var fullScreenChanged = function() {

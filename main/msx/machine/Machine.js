@@ -522,9 +522,9 @@ wmsx.Machine = function() {
             var state = saveState();
             state.v = VERSION;
             if (media.saveStateFile(fileName, state))
-                self.showOSD("State Cartridge saved", true);
+                self.showOSD("State File saved", true);
             else
-                self.showOSD("State Cartridge save failed", true);
+                self.showOSD("State File save failed", true);
         };
 
         this.loadStateFile = function(data) {       // Return true if data was indeed a SaveState

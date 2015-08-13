@@ -108,7 +108,7 @@ wmsx.DOMKeys = {
 
 };
 
-DOMKeysByCode = {};
+wmsx.DOMKeysByCode = {};
 for (var key in wmsx.DOMKeys)
-    DOMKeysByCode[wmsx.DOMKeys[key].c] = wmsx.DOMKeys[key];
+    wmsx.DOMKeysByCode[wmsx.DOMKeys[key].c] = wmsx.DOMKeys[key];
 

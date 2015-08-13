@@ -144,7 +144,7 @@ wmsx.Z80 = function() {
     };
 
     function selectInstruction() {
-        if (prefix == 0) {
+        if (prefix === 0) {
             instruction = instructions[opcode];         // always found
         } else if (prefix === 0xcb) {
             instruction = instructionsCB[opcode];       // always found
@@ -166,7 +166,7 @@ wmsx.Z80 = function() {
         } else if (prefix === 0xfdcb) {
             instruction = instructionsFDCB[opcode];     // always found
             prefix = 0;
-        } else if (prefix == -1) {
+        } else if (prefix === -1) {
             instruction = instructions[opcode];         // always found
             prefix = 0;
         }
@@ -1392,6 +1392,11 @@ wmsx.Z80 = function() {
             if (res.HL2 !== undefined)  HL2 = res.HL2;
             if (res.IFF1 !== undefined) IFF1 = res.IFF1;
             if (res.IM !== undefined)   IM = res.IM;
+            // Spend clock cycles requested by the handler
+            if (res.extraCycles && (res.extraCycles > 0)) {
+                T += res.extraCycles;
+                instruction = instructionADT_CYCLES;
+            }
         }
     }
 

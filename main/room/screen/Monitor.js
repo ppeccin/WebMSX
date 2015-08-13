@@ -11,8 +11,8 @@ wmsx.Monitor = function() {
         setDisplayDefaultSize();
     };
 
-    this.connectPeripherals = function(pROMLoader, pCassetteDeck) {
-        romLoader = pROMLoader;
+    this.connectPeripherals = function(pFileLoader, pCassetteDeck) {
+        fileLoader = pFileLoader;
         cassetteDeck = pCassetteDeck;
     };
 
@@ -122,40 +122,40 @@ wmsx.Monitor = function() {
         // All controls are Press-only and repeatable
         switch(control) {
             case peripheralControls.CARTRIDGE1_LOAD_FILE:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true, false);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
                 break;
             case peripheralControls.CARTRIDGE1_LOAD_URL:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true, false);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
                 break;
             case peripheralControls.CARTRIDGE1_REMOVE:
                 if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
                 break;
             case peripheralControls.CARTRIDGE2_LOAD_FILE:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true, true);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
                 break;
             case peripheralControls.CARTRIDGE2_LOAD_URL:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true, true);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
                 break;
             case peripheralControls.CARTRIDGE2_REMOVE:
                 if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 2, true);
                 break;
             case peripheralControls.TAPE_LOAD_FILE:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(true);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(true);
                 break;
             case peripheralControls.TAPE_LOAD_URL:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(true);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(true);
                 break;
             case peripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openFileChooserDialog(false);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
                 break;
             case peripheralControls.TAPE_LOAD_URL_NO_AUTO_RUN:
-                if (!cartridgeChangeDisabledWarning()) romLoader.openURLChooserDialog(false);
+                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(false);
                 break;
             case peripheralControls.TAPE_LOAD_EMPTY:
                 if (!cartridgeChangeDisabledWarning()) cassetteDeck.loadEmpty();
                 break;
             case peripheralControls.TAPE_SAVE_FILE:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.saveFile();
+                if (!cartridgeChangeDisabledWarning()) cassetteDeck.saveTapeFile();
                 break;
             case peripheralControls.TAPE_REWIND:
                 if (!cartridgeChangeDisabledWarning()) cassetteDeck.rewind();
@@ -176,8 +176,6 @@ wmsx.Monitor = function() {
                 crtModeToggle(); break;
             case peripheralControls.SCREEN_CRT_FILTER:
                 display.toggleCRTFilter(); break;
-            case peripheralControls.SCREEN_STATS:
-                showStats = !showStats; display.showOSD(null, true); break;
             case peripheralControls.SCREEN_DEBUG:
                 debug++;
                 if (debug > 4) debug = 0;
@@ -208,7 +206,7 @@ wmsx.Monitor = function() {
 
 
     var display;
-    var romLoader;
+    var fileLoader;
     var cassetteDeck;
 
     var videoSignal;
@@ -221,7 +219,6 @@ wmsx.Monitor = function() {
     var displayScaleY;
 
     var debug = 0;
-    var showStats = false;
     var fixedSizeMode = WMSX.SCREEN_RESIZE_DISABLED;
 
     var frameOriginX = wmsx.Monitor.BORDER_WIDTH;

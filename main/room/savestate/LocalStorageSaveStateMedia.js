@@ -6,8 +6,8 @@ wmsx.LocalStorageSaveStateMedia = function() {
         socket.connectMedia(this);
     };
 
-    this.registerForDownloadElement = function (element) {
-        downloadLinkElementParent = element;
+    this.connectPeripherals = function(pFileDownloader) {
+        fileDownloader = pFileDownloader;
     };
 
     this.saveState = function(slot, state) {
@@ -22,7 +22,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     this.saveStateFile = function(fileName, state) {
         var data = buildDataFromState(state);
-        return data && startDownload(fileName || "MSXSave", data);
+        return data && startDownload(fileName || "WebMSXSave", data);
     };
 
     this.loadStateFile = function(data) {
@@ -93,32 +93,15 @@ wmsx.LocalStorageSaveStateMedia = function() {
     };
 
     var startDownload = function (fileName, data) {
-        if (!downloadLinkElement) createDownloadLinkElement();
-
-        // Release previous URL
-        if (downloadLinkElement.href) (window.URL || window.webkitURL).revokeObjectURL(downloadLinkElement.href);
-
         if (fileName) fileName = fileName + SAVE_STATE_FILE_EXTENSION;
-        var blob = new Blob([data], {type: "data:application/octet-stream"});
-        downloadLinkElement.download = fileName.trim();
-        downloadLinkElement.href = (window.URL || window.webkitURL).createObjectURL(blob);
-        downloadLinkElement.click();
-
+        fileDownloader.startDownload(fileName, data);
         return true;
     };
 
-    var createDownloadLinkElement = function () {
-        downloadLinkElement = document.createElement('a');
-        downloadLinkElement.style.display = "none";
-        downloadLinkElement.href = "#";
-        downloadLinkElementParent.appendChild(downloadLinkElement);
-    };
 
-
-    var downloadLinkElement;
-    var downloadLinkElementParent;
+    var fileDownloader;
 
     var SAVE_STATE_IDENTIFIER = "wmsxsavestate!";
-    var SAVE_STATE_FILE_EXTENSION = ".xst";
+    var SAVE_STATE_FILE_EXTENSION = ".wst";
 
 };
