@@ -57,12 +57,13 @@ wmsx.FileCassetteDeck = function() {
                 var info = peekFileInfo(0);
                 if (info) fileName = info.name && info.name.trim();
                 if (!fileName) fileName = "WebMSXTape";
+                fileName += ".cas";
             }
             var data = new ArrayBuffer(tapeContent.length);
             var view = new Uint8Array(data);
             for (var i = 0; i < tapeContent.length; i++)
                 view[i] = tapeContent[i];
-            fileDownloader.startDownload(fileName + ".cas", data);
+            fileDownloader.startDownload(fileName, data);
             screen.showOSD("Cassette File saved", true);
         } catch(ex) {
             screen.showOSD("Cassette File save failed", true);
