@@ -52,6 +52,7 @@ wmsx.FileCassetteDeck = function() {
         }
 
         try {
+            fillToNextSlot();
             var fileName = tapeFileName;
             if (!fileName) {
                 var info = peekFileInfo(0);
@@ -113,6 +114,7 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.writeHeader = function(long) {
+        fillToNextSlot();
         for (var i = 0; i < HEADER.length; i++)
             tapeContent[tapePosition++] = HEADER[i];
         return true;
@@ -123,6 +125,10 @@ wmsx.FileCassetteDeck = function() {
         return true;
     };
 
+    this.finishWriting = function() {
+        fillToNextSlot();
+    };
+
     this.motor = function(state) {
         if (state !== null) motor = state;
         else motor = !motor;
@@ -130,11 +136,10 @@ wmsx.FileCassetteDeck = function() {
         return true;
     };
 
-
     function seekHeader(dir, from) {
         do {
             tapePosition = wmsx.Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition + (from || 0), dir);
-        } while (tapePosition >= 0 && ((tapePosition % 8) !== 0));
+        } while ((tapePosition !== -1) && ((tapePosition % 8) !== 0));
         if (tapePosition === -1) dir === -1 ? toTapeStart() : toTapeEnd();
     }
 
@@ -152,6 +157,11 @@ wmsx.FileCassetteDeck = function() {
 
     function toTapeStart() {
         tapePosition = 0;
+    }
+
+    function fillToNextSlot() {
+        while(tapePosition % 8)
+            tapeContent[tapePosition++] = 0;
     }
 
     function peekFileInfo(position) {       // Tape must be positioned at a Header
@@ -187,7 +197,7 @@ wmsx.FileCassetteDeck = function() {
 
         switch (info.type) {
             case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
-            case "Basic": return '\r\rcload "cas:' + info.name + '", r\r';
+            case "Basic": return '\r\rcload "' + info.name + '", r\r';
             case "ASCII": return '\r\rload "cas:' + info.name + '", r\r';
         }
         return null;

@@ -163,6 +163,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.focus = function() {
+
+        console.log("FOCUS");
+
         canvas.focus();
     };
 

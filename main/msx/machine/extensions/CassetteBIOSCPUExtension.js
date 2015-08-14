@@ -95,6 +95,7 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
     }
 
     function TAPOOF() {
+        deck.finishWriting();
         deck.motor(false);
     }
 
