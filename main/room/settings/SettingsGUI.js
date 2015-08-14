@@ -14,7 +14,7 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                     '</div>' +
                     '<div class="caption">' +
-                        'Settings' +
+                        'WebMSX Help' +
                     '</div>' +
                     '<div class="items">' +
                         '<div id="jt-menu-general" class="item selected">' +
@@ -270,7 +270,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Cartridge Slot 1 Media File' +
+                                    'Load Cartridge Slot 1 Media' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
@@ -280,7 +280,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Cartridge Slot 2 Media File' +
+                                    'Load Cartridge Slot 2 Media' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
@@ -290,7 +290,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Cassette Media File' +
+                                    'Load Cassette Media' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -304,7 +304,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Open from URL' +
+                                    'Load from URL' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
@@ -338,17 +338,7 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="desc">' +
-                                'Drag/Drop File or URL to load Media' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Ctrl' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                '&nbsp;+ Drag/Drop File or URL to load Media in Cartridge Slot 2' +
+                                'Drag & Drop File or URL to load Media' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
@@ -358,7 +348,33 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                '&nbsp;+ Drag/Drop File or URL to load Cassete Media with no Auto-Run' +
+                                '&nbsp;+ Drag & Drop File or URL to load Media with no Auto-Run' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Ctrl' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                '&nbsp;+ Drag & Drop File or URL to load Media in Cartridge Slot 2' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="full-divider">' +
+                        '</div>' +
+                        '<div class="hotkey bottom">' +
+                            '<div class="command">' +
+                                '<div class="key">' +
+                                        'Shift' +
+                                '</div>&nbsp;<div class="key key-fixed">' +
+                                    'Ctrl' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'F8' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Auto-Run Cassette program at current Tape position' +
                             '</div>' +
                         '</div>' +
                         '<div class="full-divider">' +
@@ -385,7 +401,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'To Tape End' +
+                                    'Seek to Tape end' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -399,7 +415,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Seek Tape Backward' +
+                                    'Seek Tape backward' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
@@ -411,24 +427,8 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Seek Tape Forward' +
+                                    'Seek Tape forward' +
                                 '</div>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="full-divider">' +
-                        '</div>' +
-                        '<div class="hotkey bottom">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
-                                        'Shift' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
-                                    'Ctrl' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F8' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Auto-Run Cassette program at current Tape position' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -558,8 +558,8 @@ wmsx.SettingsGUI.css = function() {
     '#jt-menu .caption {' +
         'height: 29px;' +
         'margin: 0 -1px;' +
-        'padding: 9px 0 0 48px;' +
-        'font-size: 19px;' +
+        'padding: 10px 0 0 48px;' +
+        'font-size: 18px;' +
         'color: white;' +
         'background-color: rgb(235, 62, 35);' +
         'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
