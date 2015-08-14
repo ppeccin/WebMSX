@@ -281,8 +281,6 @@ wmsx.DOMMachineControls.KEY_SPEED  = wmsx.DOMKeys.VK_F12.c;
 wmsx.DOMMachineControls.KEY_PAUSE  = wmsx.DOMKeys.VK_P.c;
 
 wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK  = wmsx.DOMKeys.VK_J.c;
-wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE   = wmsx.DOMKeys.VK_K.c;
-wmsx.DOMMachineControls.KEY_TOGGLE_PADDLE    = wmsx.DOMKeys.VK_L.c;
 wmsx.DOMMachineControls.KEY_CARTRIDGE_FORMAT = wmsx.DOMKeys.VK_B.c;
 
 wmsx.DOMMachineControls.KEY_ALT_MASK   = 2;

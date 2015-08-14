@@ -5,492 +5,447 @@
 wmsx.SettingsGUI = {};
 
 wmsx.SettingsGUI.html = function() {
-    return '<div id="jt-cover">' +
-        '<div id="jt-modal">' +
-        '<div id="jt-menu">' +
-        '<div id="jt-back">' +
-        '<div id="jt-back-arrow">' +
-        '&larr;' +
-        '</div>' +
-        '</div>' +
-        '<div class="caption">' +
-        'Settings' +
-        '</div>' +
-        '<div class="items">' +
-        '<div id="jt-menu-help" class="item selected">' +
-        'HELP' +
-        '</div>' +
-        '<div id="jt-menu-controls" class="item">' +
-        'CONTROLS' +
-        '</div>' +
-        '<div id="jt-menu-about" class="item">' +
-        'ABOUT' +
-        '</div>' +
-        '<div id="jt-menu-selection">' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div id="jt-content">' +
-        '<div id="jt-help">' +
-        '<div class="left">' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Ctrl' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        '1 - 0' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Save State' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        '1 - 0' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Load State' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key">' +
-        'F8' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Save State File' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'P' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Pause' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'F' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Next Frame' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'V' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'NTSC/PAL' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'R' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'CRT Modes' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'T' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'CRT Filter' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'G' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Show Info' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'D' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Debug Modes' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'C' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Collisions' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="right">' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key">' +
-        'Tab' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Fast Speed' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'Enter' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Full Screen' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Ctrl' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'F1' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Fry Console' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key">' +
-        'F7' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Remove Cartridge' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command right-bottom">' +
-        '<div class="key">' +
-        'Backspace' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Screen Defaults' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command right-bottom">' +
-        '<div class="key">' +
-        'Shift' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'Arrows' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Screen Size' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command right-bottom">' +
-        '<div class="key">' +
-        'Shift' +
-        '</div>' +
-        ' ' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'Arrows' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Screen Scale' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command right-bottom">' +
-        '<div class="key">' +
-        'Shift' +
-        '</div>' +
-        ' ' +
-        '<div class="key key-ctrlalt">' +
-        'Ctrl' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'Arrows' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Viewport Size' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="command right-bottom">' +
-        '<div class="key key-ctrlalt">' +
-        'Ctrl' +
-        '</div>' +
-        ' ' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'Arrows' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Viewport Origin' +
-        '</div>' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '</div>' +
-        '<div class="hotkey">' +
-        '<div class="desc">' +
-        'Drag/Drop Files or URLs to load ROMs' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div id="jt-controls">' +
-        '<div class="player p1">' +
-        '<div id="jt-control-p1-label" class="title">' +
-        'Player 1' +
-        '</div>' +
-        '<div class="command fire1">' +
-        'Button<br>' +
-        '<div id="jt-control-p1-button1" class="key">' +
-        'Space' +
-        '</div>' +
-        '</div>' +
-        '<div class="command up">' +
-        '<div id="jt-control-p1-up-label">' +
-        'Up' +
-        '</div>' +
-        '<div id="jt-control-p1-up" class="key">' +
-        'Up' +
-        '</div>' +
-        '</div>' +
-        '<div class="command fire2">' +
-        'Button<br>' +
-        '<div id="jt-control-p1-button2" class="key">' +
-        'Del' +
-        '</div>' +
-        '</div>' +
-        '<div class="command left">' +
-        'Left<br>' +
-        '<div id="jt-control-p1-left" class="key">' +
-        'Left' +
-        '</div>' +
-        '</div>' +
-        '<div class="command controller">' +
-        '<div id="jt-control-p1-controller">' +
-        '</div>' +
-        '</div>' +
-        '<div class="command right">' +
-        'Right<br>' +
-        '<div id="jt-control-p1-right" class="key">' +
-        'Right' +
-        '</div>' +
-        '</div>' +
-        '<div class="command down">' +
-        '<div id="jt-control-p1-down-label">' +
-        'Down' +
-        '</div>' +
-        '<div id="jt-control-p1-down" class="key">' +
-        'Down' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="player p2">' +
-        '<div id="jt-control-p2-label" class="title">' +
-        'Player 2' +
-        '</div>' +
-        '<div class="command fire1">' +
-        'Button<br>' +
-        '<div id="jt-control-p2-button1" class="key">' +
-        'A' +
-        '</div>' +
-        '</div>' +
-        '<div class="command up">' +
-        '<div id="jt-control-p2-up-label">' +
-        'Up' +
-        '</div>' +
-        '<div id="jt-control-p2-up" class="key">' +
-        'T' +
-        '</div>' +
-        '</div>' +
-        '<div class="command fire2">' +
-        'Button<br>' +
-        '<div id="jt-control-p2-button2" class="key">' +
-        'Dot' +
-        '</div>' +
-        '</div>' +
-        '<div class="command left">' +
-        'Left<br>' +
-        '<div id="jt-control-p2-left" class="key">' +
-        'F' +
-        '</div>' +
-        '</div>' +
-        '<div class="command controller">' +
-        '<div id="jt-control-p2-controller">' +
-        '</div>' +
-        '</div>' +
-        '<div class="command right">' +
-        'Right<br>' +
-        '<div id="jt-control-p2-right" class="key">' +
-        'H' +
-        '</div>' +
-        '</div>' +
-        '<div class="command down">' +
-        '<div id="jt-control-p2-down-label">' +
-        'Down' +
-        '</div>' +
-        '<div id="jt-control-p2-down" class="key">' +
-        'G' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="modes">' +
-        '<div class="title">' +
-        'Modes' +
-        '</div>' +
-        '<div id="jt-controls-swap-keys" class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'K' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Swap Keys' +
-        '</div>' +
-        '</div>' +
-        '<div id="jt-controls-swap-gamepads" class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'J' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Swap Gamepads' +
-        '</div>' +
-        '</div>' +
-        '<div id="jt-controls-toggle-paddles" class="hotkey">' +
-        '<div class="command">' +
-        '<div class="key key-ctrlalt">' +
-        'Alt' +
-        '</div>' +
-        ' + ' +
-        '<div class="key">' +
-        'L' +
-        '</div>' +
-        '</div>' +
-        '<div class="desc">' +
-        'Toggle Paddles' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div id="jt-controls-revert">' +
-        'REVERT' +
-        '</div>' +
-        '<div id="jt-controls-defaults">' +
-        'DEFAULTS' +
-        '</div>' +
-        '</div>' +
-        '<div id="jt-about">' +
-        '<div id="jt-logo-version">' +
-        WMSX.VERSION +
-        '</div>' +
-        '<div class="info">' +
-        'Created by Paulo Augusto Peccin' +
-        '<br>' +
-        '<a href="http://javatari.org">http://javatari.org</a>' +
-        '</div>' +
-        '<div id="jt-browserinfo">' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
+    return '<div id="jt-cover" class="show">' +
+            '<div id="jt-modal" class="show">' +
+                '<div id="jt-menu">' +
+                    '<div id="jt-back">' +
+                        '<div id="jt-back-arrow">' +
+                            '&larr;' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="caption">' +
+                        'Settings' +
+                    '</div>' +
+                    '<div class="items">' +
+                        '<div id="jt-menu-general" class="item selected">' +
+                            'GENERAL' +
+                        '</div>' +
+                        '<div id="jt-menu-media" class="item">' +
+                            'MEDIA' +
+                        '</div>' +
+                        '<div id="jt-menu-about" class="item">' +
+                            'ABOUT' +
+                        '</div>' +
+                        '<div id="jt-menu-selection">' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div id="jt-content">' +
+                    '<div id="jt-general">' +
+                        '<div class="left">' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'F9' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Power' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'F12' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Fast Speed' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'F12' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Slow Speed' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'P' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Pause' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'F' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Next Frame' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'V' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'NTSC/PAL' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'R' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'CRT Modes' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'T' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'CRT Filters' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'D' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Debug Modes' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'S' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Sprite Modes' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="right">' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        '0 - 9' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Load State' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Ctrl' +
+                                    '</div>&nbsp;<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        '0 - 9' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Save State' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Ctrl' +
+                                    '</div>&nbsp;<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'F6' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Save State File' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Enter' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Full Screen' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Arrows' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Screen Size' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'Shift' +
+                                    '</div>&nbsp;<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Arrows' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Screen Scale' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Backspace' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Screen Defaults' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                            '</div>' +
+                            '<div id="jt-general-swap-joysticks" class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'J' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Swap Joysticks' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div id="jt-media">' +
+                        '<div class="top-left">' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'F6' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Cartridge Slot 1 Media File' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'F7' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Cartridge Slot 2 Media File' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'F8' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Cassette Media File' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="top-right">' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Ctrl' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Media Key' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Open from URL' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key">' +
+                                        'Shift' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Media Key' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Remove Media' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Ctrl' +
+                                    '</div>&nbsp;<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'F8' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Save Tape File' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="full-divider">' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="desc">' +
+                                'Drag/Drop File or URL to load Media' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Ctrl' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                '&nbsp;+ Drag/Drop File or URL to load Media in Cartridge Slot 2' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                '&nbsp;+ Drag/Drop File or URL to load Cassete Media with no Auto-Run' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="full-divider">' +
+                        '</div>' +
+                        '<div class="bottom-left">' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Home' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Rewind Tape' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'End' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'To Tape End' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="bottom-right">' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'PgUp' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Seek Tape Backward' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'PgDn' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Seek Tape Forward' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="full-divider">' +
+                        '</div>' +
+                        '<div class="hotkey bottom">' +
+                            '<div class="command">' +
+                                '<div class="key">' +
+                                        'Shift' +
+                                '</div>&nbsp;<div class="key key-fixed">' +
+                                    'Ctrl' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'F8' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Auto-Run Cassette program at current Tape position' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div id="jt-about">' +
+                        '<div id="jt-logo-version">' +
+                            'WebMSX &nbsp;-&nbsp; version 0.9' +
+                        '</div>' +
+                        '<div class="info">' +
+                            'Created by Paulo Augusto Peccin' +
+                            '<br>' +
+                            '<a href="http://webmsx.org">http://webmsx.org</a>' +
+                        '</div>' +
+                        '<div id="jt-browserinfo">' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
         '</div>';
 };
 
@@ -505,14 +460,14 @@ wmsx.SettingsGUI.css = function() {
         'opacity: 0;' +
         'background-color: rgba(0, 0, 0, 0.6);' +
         'transition: all .2s ease-out;' +
-        '}' +
-
-        '#jt-cover.show {' +
+    '}' +
+        
+    '#jt-cover.show {' +
         'visibility: visible;' +
         'opacity: 1;' +
-        '}' +
-
-        '#jt-modal {' +
+    '}' +
+    
+    '#jt-modal {' +
         'position: relative;' +
         'overflow: hidden;' +
         'width: 560px;' +
@@ -523,32 +478,32 @@ wmsx.SettingsGUI.css = function() {
         'font-family: arial, sans-serif;' +
         'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
         'transition: all .2s ease-out;' +
-        '}' +
-
-        '#jt-modal.show {' +
-        'left: 0;' +
-        '}' +
-
-        '#jt-modal .hotkey {' +
+    '}' +
+    
+    '#jt-modal.show {' +
+        'left: -0px;' +
+    '}' +
+    
+    '#jt-modal .hotkey {' +
         'height: 27px;' +
         'padding: 3px 5px;' +
         'font-size: 13px;' +
         'box-sizing: border-box;' +
-        '}' +
-
-        '#jt-modal .hotkey .command {' +
+    '}' +
+    
+    '#jt-modal .hotkey .command {' +
         'position: relative;' +
         'float: left;' +
         'font-weight: 600;' +
         'color: rgba(0, 0, 0, .50);' +
-        '}' +
-
-        '#jt-modal .hotkey .desc {' +
+    '}' +
+    
+    '#jt-modal .hotkey .desc {' +
         'float: left;' +
         'padding-top: 3px;' +
-        '}' +
-
-        '#jt-modal .key {' +
+    '}' +
+    
+    '#jt-modal .key {' +
         'position: relative;' +
         'display: inline-block;' +
         'top: -1px;' +
@@ -565,21 +520,21 @@ wmsx.SettingsGUI.css = function() {
         'border: 1px solid rgb(210, 210, 210);' +
         'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
         'text-align: center;' +
-        '}' +
-
-        '#jt-modal .key-ctrlalt {' +
+    '}' +
+    
+    '#jt-modal .key-fixed {' +
         'width: 31px;' +
         'padding-left: 0;' +
         'padding-right: 2px;' +
-        '}' +
-
-        '#jt-menu {' +
+    '}' +
+    
+    '#jt-menu {' +
         'position: relative;' +
         'background-color: white;' +
         'border-bottom: 1px solid rgb(200, 200, 200);' +
-        '}' +
-
-        '#jt-menu #jt-back {' +
+    '}' +
+    
+    '#jt-menu #jt-back {' +
         'position: absolute;' +
         'width: 18px;' +
         'height: 32px;' +
@@ -588,37 +543,38 @@ wmsx.SettingsGUI.css = function() {
         'font-size: 35px;' +
         'color: white;' +
         'cursor: pointer;' +
-        '}' +
-
-        '#jt-menu #jt-back:hover {' +
+    '}' +
+    
+    '#jt-menu #jt-back:hover {' +
         'background-color: rgba(0, 0, 0, .12);' +
-        '}' +
-
-        '#jt-menu #jt-back-arrow {' +
+    '}' +
+    
+    '#jt-menu #jt-back-arrow {' +
         'position: relative;' +
         'overflow: hidden;' +
         'top: -7px;' +
-        '}' +
-
-        '#jt-menu .caption {' +
+    '}' +
+    
+    '#jt-menu .caption {' +
         'height: 29px;' +
         'margin: 0 -1px;' +
         'padding: 9px 0 0 48px;' +
         'font-size: 19px;' +
         'color: white;' +
         'background-color: rgb(235, 62, 35);' +
-        'box-shadow: 0 1px 4px rgba(0, 0, 0, .8);' +
-        '}' +
-
-        '#jt-menu .items {' +
+        'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
+        'vertical-align: middle;' +
+    '}' +
+    
+    '#jt-menu .items {' +
         'position: relative;' +
         'width: 70%;' +
         'height: 39px;' +
         'margin: 0 auto;' +
         'font-weight: 600;' +
-        '}' +
-
-        '#jt-menu .item {' +
+    '}' +
+    
+    '#jt-menu .item {' +
         'float: left;' +
         'width: 33.3%;' +
         'height: 100%;' +
@@ -626,230 +582,140 @@ wmsx.SettingsGUI.css = function() {
         'font-size: 14px;' +
         'color: rgba(0, 0, 0, .43);' +
         'text-align: center;' +
-        'cursor: pointer' +
-        '}' +
-
-        '#jt-menu .selected {' +
+        'cursor: pointer;' +
+    '}' +
+    
+    '#jt-menu .selected {' +
         'color: rgb(224, 56, 34);' +
-        '}' +
-
-        '#jt-menu #jt-menu-selection {' +
+    '}' +
+    
+    '#jt-menu #jt-menu-selection {' +
         'position: absolute;' +
         'left: 0;' +
         'bottom: 0;' +
         'width: 33.3%;' +
         'height: 3px;' +
         'background-color: rgb(235, 62, 35);' +
-        'transition: left 0.3s ease-in-out' +
-        '}' +
-
-
-        '#jt-content {' +
+        'transition: left 0.3s ease-in-out;' +
+    '}' +
+    
+    
+    '#jt-content {' +
         'position: relative;' +
         'left: 0;' +
-        'width: 1680px;' +
-        'height: 370px;' +
+        'width: 2240px;' +
+        'height: 360px;' +
         'background-color: rgb(220, 220, 220);' +
         'transition: left 0.3s ease-in-out' +
-        '}' +
-
-        '#jt-help, #jt-controls, #jt-about {' +
+    '}' +
+    
+    '#jt-general, #jt-media, #jt-controls, #jt-about {' +
         'position: absolute;' +
         'width: 560px;' +
         'height: 100%;' +
         'box-sizing: border-box;' +
-        '}' +
-
-        '#jt-help {' +
-        'padding-top: 22px;' +
-        '}' +
-
-        '#jt-help .left {' +
-        'float: left;' +
+    '}' +
+    
+    '#jt-general {' +
+        'padding-top: 23px;' +
         'padding-left: 30px;' +
-        '}' +
-
-        '#jt-help .right {' +
+    '}' +
+    
+    '#jt-general .left {' +
         'float: left;' +
-        'padding-left: 34px;' +
-        '}' +
-
-        '#jt-help .left .command {' +
-        'width: 104px;' +
-        '}' +
-
-        '#jt-help .right .command {' +
-        'width: 109px;' +
-        '}' +
-
-        '#jt-help .command.right-bottom {' +
-        'width: 164px;' +
-        '}' +
-
-        '#jt-controls {' +
+        'width: 238px;' +
+    '}' +
+    
+    '#jt-general .right {' +
+        'float: left;' +
+    '}' +
+    
+    '#jt-general .left .command {' +
+        'width: 100px;' +
+    '}' +
+    
+    '#jt-general .right .command {' +
+        'width: 167px;' +
+    '}' +
+    
+    '#jt-media {' +
         'left: 560px;' +
-        '}' +
-
-        '#jt-controls .player {' +
-        'position: absolute;' +
-        'top: 15px;' +
-        'width: 217px;' +
-        'color: rgba(0, 0, 0, .8);' +
-        '}' +
-
-        '#jt-controls .p1 {' +
-        'left: 28px;' +
-        '}' +
-
-        '#jt-controls .p2 {' +
-        'right: 28px;' +
-        '}' +
-
-        '#jt-controls .title {' +
-        'padding-bottom: 4px;' +
-        'margin: 0 14px 8px 12px;' +
-        'font-size: 18px;' +
-        'text-align: center;' +
-        'border-bottom: 2px solid rgba(242, 66, 35, .55);' +
-        '}' +
-
-        '#jt-controls .player .command {' +
-        'position: relative;' +
+    '}' +
+    
+    '#jt-media {' +
+        'padding-top: 23px;' +
+        'padding-left: 30px;' +
+    '}' +
+    
+    '#jt-media .top-left {' +
         'float: left;' +
-        'width: 33%;' +
-        'height: 45px;' +
-        'font-size: 13px;' +
-        'text-align: center;' +
-        '}' +
-
-        '#jt-controls .command.fire1, #jt-controls .command.fire2 {' +
-        'top: 14px;' +
-        '}' +
-
-        '#jt-controls .command.left, #jt-controls .command.right {' +
-        'top: 27px;' +
-        '}' +
-
-        '#jt-controls .command.down {' +
-        'float: none;' +
-        'clear: both;' +
-        'margin: 0 auto;' +
-        '}' +
-
-        '#jt-controls .command.controller {' +
-        'height: 90px;' +
-        '}' +
-
-        '#jt-controls #jt-control-p1-controller, #jt-controls #jt-control-p2-controller {' +
-        'width: 70px;' +
-        'height: 89px;' +
-        'margin-left: 1px;' +
-        'background: url("' + WMSX.IMAGES_PATH + 'sprites.png") no-repeat -466px 0;' +
-        '}' +
-
-        '#jt-controls .player .key {' +
-        'min-width: 33px;' +
-        'height: 23px;' +
-        'padding: 5px 6px 4px;' +
-        'margin-top: 2px;' +
-        'cursor: pointer;' +
-        '}' +
-
-        '#jt-controls .player .key:hover {' +
-        'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5), 1px 2px 6px 4px rgb(170, 170, 170);' +
-        '}' +
-
-        '#jt-controls .player .key.redefining {' +
-        'color: white;' +
-        'background-color: rgb(87, 128, 255);' +
-        'border-color: rgb(71, 117, 255);' +
-        '}' +
-
-        '#jt-controls .player .key.undefined {' +
-        'background-color: rgb(255, 150, 130);' +
-        'border-color: rgb(255, 130, 90);' +
-        '}' +
-
-        '#jt-controls .modes {' +
-        'position: absolute;' +
-        'top: 200px;' +
-        'left: 0;' +
-        'right: 0;' +
-        'width: 200px;' +
-        'margin: 0 auto;' +
-        '}' +
-
-        '#jt-controls .modes .hotkey {' +
-        'position: relative;' +
-        'padding-left: 8px;' +
-        'cursor: pointer;' +
-        '}' +
-
-        '#jt-controls .modes .hotkey:hover {' +
-        'background-color: white;' +
-        'box-shadow: 1px 1px 3px 1px rgb(180, 180, 180);' +
-        '}' +
-
-        '#jt-controls .modes .command {' +
-        'margin-right: 12px;' +
-        '}' +
-
-        '#jt-controls-defaults, #jt-controls-revert {' +
-        'position: absolute;' +
-        'bottom: 18px;' +
-        'padding: 7px 10px;' +
-        'font-size: 12px;' +
-        'font-weight: 600;' +
-        'border-radius: 1px;' +
-        'cursor: pointer' +
-        '}' +
-
-        '#jt-controls-defaults:hover, #jt-controls-revert:hover {' +
-        'background-color: white;' +
-        'box-shadow: 1px 1px 3px 1px rgb(180, 180, 180);' +
-        '}' +
-
-        '#jt-controls-revert {' +
-        'right: 30px;' +
-        'color: rgba(0, 0, 0, 0.8);' +
-        '}' +
-
-        '#jt-controls-defaults {' +
-        'right: 115px;' +
-        'color: rgb(0, 80, 230);' +
-        '}' +
-
-
-        '#jt-about {' +
+        'width: 255px;' +
+    '}' +
+    
+    '#jt-media .top-right {' +
+        'float: left;' +
+    '}' +
+    
+    '#jt-media .bottom-left {' +
+        'float: left;' +
+        'width: 255px;' +
+    '}' +
+    
+    '#jt-media .bottom-right {' +
+        'float: left;' +
+    '}' +
+    
+    '#jt-media .top-left .command {' +
+        'width: 45px;' +
+    '}' +
+    
+    '#jt-media .top-right .command {' +
+        'width: 150px;' +
+    '}' +
+    
+    '#jt-media .bottom-left .command {' +
+        'width: 114px;' +
+    '}' +
+    
+    '#jt-media .bottom-right .command {' +
+        'width: 112px;' +
+    '}' +
+    
+    '#jt-media .bottom .command {' +
+        'width: 137px;' +
+    '}' +
+    
+    
+    '#jt-about {' +
         'left: 1120px;' +
-        '}' +
-
-        '#jt-about #jt-logo-version {' +
-        'width: 248px;' +
-        'height: 220px;' +
-        'margin: 28px auto 14px;' +
+    '}' +
+    
+    '#jt-about #jt-logo-version {' +
+        'width: 380px;' +
+        'height: 212px;' +
+        'margin: 36px auto 24px;' +
         'font-size: 18px;' +
         'color: rgba(255, 255, 255, 0.97);' +
-        'padding-top: 190px;' +
+        'padding-top: 170px;' +
         'box-sizing: border-box;' +
         'text-align: center;' +
-        'background: black url("' + WMSX.IMAGES_PATH + 'logo.png") no-repeat 5px 13px;' +
-        'background-size: 233px 173px;' +
+        'background: black url("' + WMSX.IMAGES_PATH + 'logo.png") center center no-repeat;' +
+        'background-position-y: 50px;' +
         'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
-        '}' +
-
-        '#jt-about .info {' +
+    '}' +
+    
+    '#jt-about .info {' +
         'font-size: 18px;' +
         'line-height: 30px;' +
         'text-align: center;' +
-        '}' +
-
-        '#jt-about a {' +
+    '}' +
+    
+    '#jt-about a {' +
         'color: rgb(0, 80, 230);' +
         'text-decoration: none;' +
-        '}' +
-
-        '#jt-about #jt-browserinfo {' +
+    '}' +
+    
+    '#jt-about #jt-browserinfo {' +
         'position: absolute;' +
         'left: 0;' +
         'right: 0;' +
@@ -857,6 +723,11 @@ wmsx.SettingsGUI.css = function() {
         'font-size: 10px;' +
         'text-align: center;' +
         'color: transparent;' +
-        '}';
+    '}' +
+    
+    '.full-divider {' +
+        'clear: both;' +
+        'height: 22px;' +
+    '}';
 };
 

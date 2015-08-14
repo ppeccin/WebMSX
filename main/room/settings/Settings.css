@@ -70,7 +70,7 @@
     text-align: center;
 }
 
-#jt-modal .key-ctrlalt {
+#jt-modal .key-fixed {
     width: 31px;
     padding-left: 0;
     padding-right: 2px;
@@ -151,175 +151,86 @@
 #jt-content {
     position: relative;
     left: 0;
-    width: 1680px;
-    height: 370px;
+    width: 2240px;
+    height: 360px;
     background-color: rgb(220, 220, 220);
     transition: left 0.3s ease-in-out
 }
 
-#jt-help, #jt-controls, #jt-about {
+#jt-general, #jt-media, #jt-controls, #jt-about {
     position: absolute;
     width: 560px;
     height: 100%;
     box-sizing: border-box;
 }
 
-#jt-help {
-    padding-top: 22px;
-}
-
-#jt-help .left {
-    float: left;
+#jt-general {
+    padding-top: 23px;
     padding-left: 30px;
 }
 
-#jt-help .right {
+#jt-general .left {
     float: left;
-    padding-left: 34px;
+    width: 238px;
 }
 
-#jt-help .left .command {
-    width: 104px;
+#jt-general .right {
+    float: left;
 }
 
-#jt-help .right .command {
-    width: 109px;
+#jt-general .left .command {
+    width: 100px;
 }
 
-#jt-help .command.right-bottom {
-    width: 164px;
+#jt-general .right .command {
+    width: 167px;
 }
 
-#jt-controls {
+#jt-media {
     left: 560px;
 }
 
-#jt-controls .player {
-    position: absolute;
-    top: 15px;
-    width: 217px;
-    color: rgba(0, 0, 0, .8);
+#jt-media {
+    padding-top: 23px;
+    padding-left: 30px;
 }
 
-#jt-controls .p1 {
-    left: 28px;
-}
-
-#jt-controls .p2 {
-    right: 28px;
-}
-
-#jt-controls .title {
-    padding-bottom: 4px;
-    margin: 0 14px 8px 12px;
-    font-size: 18px;
-    text-align: center;
-    border-bottom: 2px solid rgba(242, 66, 35, .55);
-}
-
-#jt-controls .player .command {
-    position: relative;
+#jt-media .top-left {
     float: left;
-    width: 33%;
-    height: 45px;
-    font-size: 13px;
-    text-align: center;
+    width: 255px;
 }
 
-#jt-controls .command.fire1, #jt-controls .command.fire2 {
-    top: 14px;
+#jt-media .top-right {
+    float: left;
 }
 
-#jt-controls .command.left, #jt-controls .command.right {
-    top: 27px;
+#jt-media .bottom-left {
+    float: left;
+    width: 255px;
 }
 
-#jt-controls .command.down {
-    float: none;
-    clear: both;
-    margin: 0 auto;
+#jt-media .bottom-right {
+    float: left;
 }
 
-#jt-controls .command.controller {
-    height: 90px;
+#jt-media .top-left .command {
+    width: 45px;
 }
 
-#jt-controls #jt-control-p1-controller, #jt-controls #jt-control-p2-controller {
-    width: 70px;
-    height: 89px;
-    margin-left: 1px;
-    background: url("../../images/sprites.png") no-repeat -466px 0;
+#jt-media .top-right .command {
+    width: 150px;
 }
 
-#jt-controls .player .key {
-    min-width: 33px;
-    height: 23px;
-    padding: 5px 6px 4px;
-    margin-top: 2px;
-    cursor: pointer;
+#jt-media .bottom-left .command {
+    width: 114px;
 }
 
-#jt-controls .player .key:hover {
-box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5), 1px 2px 6px 4px rgb(170, 170, 170);
+#jt-media .bottom-right .command {
+    width: 112px;
 }
 
-#jt-controls .player .key.redefining {
-color: white;
-background-color: rgb(87, 128, 255);
-border-color: rgb(71, 117, 255);
-}
-
-#jt-controls .player .key.undefined {
-background-color: rgb(255, 150, 130);
-border-color: rgb(255, 130, 90);
-}
-
-#jt-controls .modes {
-    position: absolute;
-    top: 200px;
-    left: 0;
-    right: 0;
-    width: 200px;
-    margin: 0 auto;
-}
-
-#jt-controls .modes .hotkey {
-    position: relative;
-    padding-left: 8px;
-    cursor: pointer;
-}
-
-#jt-controls .modes .hotkey:hover {
-    background-color: white;
-    box-shadow: 1px 1px 3px 1px rgb(180, 180, 180);
-}
-
-#jt-controls .modes .command {
-    margin-right: 12px;
-}
-
-#jt-controls-defaults, #jt-controls-revert {
-    position: absolute;
-    bottom: 18px;
-    padding: 7px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 1px;
-}
-
-#jt-controls-defaults:hover, #jt-controls-revert:hover {
-    background-color: white;
-    box-shadow: 1px 1px 3px 1px rgb(180, 180, 180);
-}
-
-#jt-controls-revert {
-    right: 30px;
-    color: rgba(0, 0, 0, 0.8);
-}
-
-#jt-controls-defaults {
-    right: 115px;
-    color: rgb(0, 80, 230);
+#jt-media .bottom .command {
+    width: 137px;
 }
 
 
@@ -328,16 +239,16 @@ border-color: rgb(255, 130, 90);
 }
 
 #jt-about #jt-logo-version {
-    width: 248px;
-    height: 220px;
-    margin: 28px auto 14px;
+    width: 380px;
+    height: 212px;
+    margin: 36px auto 24px;
     font-size: 18px;
     color: rgba(255, 255, 255, 0.97);
-    padding-top: 190px;
+    padding-top: 170px;
     box-sizing: border-box;
     text-align: center;
-    background: black url("../../images/logo.png") no-repeat 5px 13px;
-    background-size: 233px 173px;
+    background: black url("../../images/logo.png") center center no-repeat;
+    background-position-y: 50px;
     box-shadow: 3px 3px 14px rgb(75, 75, 75);
 }
 
@@ -362,9 +273,7 @@ border-color: rgb(255, 130, 90);
     color: transparent;
 }
 
-
-#jt-content {
-    left: -560px;
-    left: -1120px;
+.full-divider {
+    clear: both;
+    height: 22px;
 }
-

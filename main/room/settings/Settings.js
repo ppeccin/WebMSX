@@ -29,21 +29,21 @@ wmsx.Settings = function() {
 
     this.setPage = function (page) {
         var contentPosition = {
-            "HELP": "0",
-            "CONTROLS": "-560px",
+            "GENERAL": "0",
+            "MEDIA": "-560px",
             "ABOUT": "-1120px"
         }[page];
         var selectionPosition = {
-            "HELP": "0",
-            "CONTROLS": "33.3%",
+            "GENERAL": "0",
+            "MEDIA": "33.3%",
             "ABOUT": "66.6%"
         }[page];
 
         if (contentPosition) self["jt-content"].style.left = contentPosition;
         if (selectionPosition) self["jt-menu-selection"].style.left = selectionPosition;
 
-        self["jt-menu-help"].classList[page === "HELP" ? "add" : "remove"]("selected");
-        self["jt-menu-controls"].classList[page === "CONTROLS" ? "add" : "remove"]("selected");
+        self["jt-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("selected");
+        self["jt-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("selected");
         self["jt-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("selected");
     };
 
@@ -109,38 +109,17 @@ wmsx.Settings = function() {
         });
 
         // Tabs
-        self["jt-menu-help"].addEventListener("mousedown", function (e) {
+        self["jt-menu-general"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
-            self.setPage("HELP");
+            self.setPage("GENERAL");
         });
-        self["jt-menu-controls"].addEventListener("mousedown", function (e) {
+        self["jt-menu-media"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
-            self.setPage("CONTROLS");
+            self.setPage("MEDIA");
         });
         self["jt-menu-about"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             self.setPage("ABOUT");
-        });
-
-        // Double click for key redefinition
-        for (var control in controlKeys) {
-            (function(localControl) {
-                self[localControl].addEventListener("mousedown", function (e) {
-                    if (e.stopPropagation) e.stopPropagation();
-                    if (e.preventDefault) e.preventDefault();
-                    reyRedefinitionStart(localControl);
-                });
-            })(control);
-        }
-
-        // Controls Actions
-        self["jt-controls-defaults"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            controlsDefaults();
-        });
-        self["jt-controls-revert"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            controlsRevert();
         });
 
         // Generic Console Controls Commands
@@ -148,7 +127,7 @@ wmsx.Settings = function() {
             (function(keyLocal) {
                 self[controlsCommandKeys[key]].addEventListener("mousedown", function (e) {
                     if (e.preventDefault) e.preventDefault();
-                    WMSX.room.controls.processKeyEvent(keyLocal, true, wmsx.DOMConsoleControls.KEY_ALT_MASK);
+                    WMSX.room.machineControls.processKeyEvent(keyLocal, true, wmsx.DOMConsoleControls.KEY_ALT_MASK);
                     keyRedefinitonStop();   // will refresh
                 });
             })(key | 0);    // must be a number to simulate a keyCode
@@ -157,40 +136,6 @@ wmsx.Settings = function() {
 
     var refreshData = function () {
         self["jt-browserinfo"].innerHTML = navigator.userAgent;
-
-        //if (WMSX.room.controls.isPaddleMode()) {
-        //    self["jt-control-p1-controller"].style.backgroundPositionY = "-91px";
-        //    self["jt-control-p2-controller"].style.backgroundPositionY = "-91px";
-        //    self["jt-control-p1-up-label"].innerHTML = self["jt-control-p2-up-label"].innerHTML = "+ Speed";
-        //    self["jt-control-p1-down-label"].innerHTML = self["jt-control-p2-down-label"].innerHTML = "- Speed";
-        //} else {
-        //    self["jt-control-p1-controller"].style.backgroundPositionY = "0";
-        //    self["jt-control-p2-controller"].style.backgroundPositionY = "0";
-        //    self["jt-control-p1-up-label"].innerHTML = self["jt-control-p2-up-label"].innerHTML = "Up";
-        //    self["jt-control-p1-down-label"].innerHTML = self["jt-control-p2-down-label"].innerHTML = "Down";
-        //
-        //}
-        //var swapped = WMSX.room.controls.isP1ControlsMode();
-        //self["jt-control-p1-label"].innerHTML = "Player " + (swapped ? "2" : "1");
-        //self["jt-control-p2-label"].innerHTML = "Player " + (swapped ? "1" : "2");
-
-        for (var control in controlKeys) {
-            if (control === controlRedefining) {
-                self[control].classList.add("redefining");
-                self[control].classList.remove("undefined");
-                self[control].innerHTML = "?";
-            } else {
-                self[control].classList.remove("redefining");
-                var keyInfo = wmsx.DOMKeysByCode[WMSX.preferences[controlKeys[control]]];
-                if (keyInfo) {
-                    self[control].classList.remove("undefined");
-                    self[control].innerHTML = keyInfo.n;
-                } else {
-                    self[control].classList.add("undefined");
-                    self[control].innerHTML = "-";
-                }
-            }
-        }
     };
 
     var processKeyEvent = function (e) {
@@ -217,7 +162,7 @@ wmsx.Settings = function() {
 
     var keyRedefinitionTry = function (keyCode) {
         if (!controlRedefining) return;
-        if (!wmsx.KeysByCode[keyCode]) return;
+        if (!wmsx.DOMKeysByCode[keyCode]) return;
         if (WMSX.preferences[controlKeys[controlRedefining]] !== keyCode) {
             for (var con in controlKeys)
                 if (WMSX.preferences[controlKeys[con]] === keyCode)
@@ -253,26 +198,12 @@ wmsx.Settings = function() {
     };
 
     var controlKeys = {
-        "jt-control-p1-button1": "KP0BUT",
-        "jt-control-p1-button2": "KP0BUT2",
-        "jt-control-p1-up": "KP0UP",
-        "jt-control-p1-left": "KP0LEFT",
-        "jt-control-p1-right": "KP0RIGHT",
-        "jt-control-p1-down": "KP0DOWN",
-        "jt-control-p2-button1": "KP1BUT",
-        "jt-control-p2-button2": "KP1BUT2",
-        "jt-control-p2-up": "KP1UP",
-        "jt-control-p2-left": "KP1LEFT",
-        "jt-control-p2-right": "KP1RIGHT",
-        "jt-control-p2-down": "KP1DOWN"
     };
 
     var controlRedefining = null;
 
     var controlsCommandKeys = {};
-        controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE] = "jt-controls-swap-keys";
-        controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK] = "jt-controls-swap-gamepads";
-        controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_PADDLE] = "jt-controls-toggle-paddles";
+        //controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK] = "jt-general-swap-joysticks";
 
     var preferencesChanged = false;
 

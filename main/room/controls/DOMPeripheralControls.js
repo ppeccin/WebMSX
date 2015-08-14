@@ -88,10 +88,11 @@ wmsx.DOMPeripheralControls = function(monitor) {
         keyAltCodeMap[KEY_LEFT]   = controls.SCREEN_SIZE_MINUS;
         keyAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SIZE_PLUS;
 
-        keyControlAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_Y_MINUS;
-        keyControlAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_Y_PLUS;
-        keyControlAltCodeMap[KEY_LEFT]   = controls.SCREEN_SCALE_X_MINUS;
-        keyControlAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SCALE_X_PLUS;
+        keyShiftAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_Y_MINUS;
+        keyShiftAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_Y_PLUS;
+        keyShiftAltCodeMap[KEY_LEFT]   = controls.SCREEN_SCALE_X_MINUS;
+        keyShiftAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SCALE_X_PLUS;
+
         keyAltCodeMap[KEY_SIZE_DEFAULT]  = controls.SCREEN_SIZE_DEFAULT;
 
         //keyShiftCodeMap[KEY_CART_PASTE_INS] = controls.LOAD_CARTRIDGE_PASTE;
