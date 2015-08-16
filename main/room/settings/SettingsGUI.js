@@ -56,7 +56,7 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="hotkey">' +
                                 '<div class="command">' +
                                     '<div class="key key-fixed">' +
-                                        'Alt' +
+                                        'Ctrl' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
                                         'F12' +
                                     '</div>' +
