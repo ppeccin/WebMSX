@@ -1,0 +1,12 @@
+{
+  "name" : "WebMSX",
+  "title" : "WebMSX",
+  "version" : "0.9.0",
+  "devDependencies": {
+    "grunt": "",
+    "grunt-contrib-clean" : "",
+    "grunt-contrib-concat": "",
+    "grunt-contrib-uglify" : "",
+    "grunt-contrib-copy" : ""
+  }
+}
