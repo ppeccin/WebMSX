@@ -10,7 +10,7 @@ WMSX = {
     BIOS_AUTO_LOAD_URL:             "",                         // Full or relative URL of BIOS
     CART1_AUTO_LOAD_URL:            "",                         // Full or relative URL of ROM (Cartridge 1)
     TAPE_AUTO_LOAD_URL:             "",                         // Full or relative URL of TAPE
-    AUTO_START:                     true,                       // Set false to start emulator manually with WMSX.start()
+    AUTO_START_DELAY:               0,                          // Negative = No Auto-Start, Positive = wait specified microseconds then start
     SCREEN_ELEMENT_ID:              "msx-screen",
     CONSOLE_PANEL_ELEMENT_ID:       "msx-console-panel",
     CARTRIDGE_CHANGE_DISABLED:      false,

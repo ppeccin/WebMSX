@@ -19,12 +19,20 @@ WMSX.start = function () {
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement, WMSX.machinePanelElement);
     WMSX.room.powerOn();
-    // Auto-load BIOS if specified
-    if (WMSX.BIOS_AUTO_LOAD_URL)
-        WMSX.room.fileLoader.loadFromURL(WMSX.BIOS_AUTO_LOAD_URL);
-    // Auto-load ROM if specified
-    if (WMSX.CART1_AUTO_LOAD_URL)
-        WMSX.room.fileLoader.loadFromURL(WMSX.CART1_AUTO_LOAD_URL);
+
+    // Auto-load BIOS, ROM and Tape files if specified
+    if (WMSX.BIOS_AUTO_LOAD_URL) {
+        setTimeout(function() {
+            // BIOS
+            WMSX.room.fileLoader.loadFromURL(WMSX.BIOS_AUTO_LOAD_URL);
+            // Auto-load Cart1 ROM if specified
+            if (WMSX.CART1_AUTO_LOAD_URL)
+                WMSX.room.fileLoader.loadFromURL(WMSX.CART1_AUTO_LOAD_URL);
+            // Auto-load Tape if specified
+            if (WMSX.TAPE_AUTO_LOAD_URL)
+                WMSX.room.fileLoader.loadFromURL(WMSX.TAPE_AUTO_LOAD_URL);
+        }, Math.abs(WMSX.AUTO_START_DELAY));
+    }
 
     WMSX.shutdown = function () {
         if (WMSX.room) WMSX.room.powerOff();
@@ -44,7 +52,7 @@ WMSX.preLoadImagesAndStart = function() {
     var domReady = false;
     var imagesToLoad = numImages;
     function tryLaunch(bypass) {
-        if (WMSX.start && WMSX.AUTO_START !== false && (bypass || (domReady && imagesToLoad === 0)))
+        if (WMSX.start && WMSX.AUTO_START_DELAY >= 0 && (bypass || (domReady && imagesToLoad === 0)))
             WMSX.start();
     }
 

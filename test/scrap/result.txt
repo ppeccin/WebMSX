@@ -1,4 +1,0 @@
-Z80 instruction exerciser
-
-<adc,sbc> hl,<bc,de,hl,sp>....  ERROR **** crc expected:#
-ÂbáÑÁñÉõÅå!>ÿw#Â{áÁñÉå7J

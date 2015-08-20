@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
+wmsx.Room = function(screenElement, machinePanelElement) {
     var self = this;
 
     function init() {
@@ -9,16 +9,11 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
     }
 
     this.powerOn = function(paused) {
-
-        TestMachine();          // TODO Remove
-
         setPageVisibilityHandling();
         self.screen.powerOn();
         if (self.machinePanel) this.machinePanel.powerOn();
         self.speaker.powerOn();
         self.keyboard.powerOn();
-        insertBIOSProvided();
-        // TODO insert Cartridge and Tape provided
         if (self.machine.getBIOSSocket().inserted() && !self.machine.powerIsOn) self.machine.powerOn(paused);
     };
 
@@ -28,15 +23,6 @@ wmsx.Room = function(screenElement, machinePanelElement, biosProvided) {
         self.speaker.powerOff();
         self.screen.powerOff();
         if (self.machinePanel) this.machinePanel.powerOff();
-    };
-
-    var insertBIOSProvided = function() {
-        if (biosProvided) self.machine.getBIOSSocket().insert(biosProvided, false);
-    };
-
-    var insertRomProvidedIfNoneInserted = function() {
-        //if (self.machine.getCartridgeSocket().inserted()) return;
-        //if (cartridgeProvided) self.machine.getCartridgeSocket().insert(cartridgeProvided, false);
     };
 
     var setPageVisibilityHandling = function() {
