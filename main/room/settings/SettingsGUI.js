@@ -65,7 +65,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Slow Speed' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="hotkey">' +
+                            '<div class="full-divider">' +
                             '</div>' +
                             '<div class="hotkey">' +
                                 '<div class="command">' +
@@ -108,30 +108,6 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'R' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="desc">' +
-                                    'CRT Modes' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="hotkey">' +
-                                '<div class="command">' +
-                                    '<div class="key key-fixed">' +
-                                        'Alt' +
-                                    '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'T' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="desc">' +
-                                    'CRT Filters' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="hotkey">' +
-                                '<div class="command">' +
-                                    '<div class="key key-fixed">' +
-                                        'Alt' +
-                                    '</div>&nbsp;+&nbsp;<div class="key">' +
                                         'D' +
                                     '</div>' +
                                 '</div>' +
@@ -149,6 +125,20 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                                 '<div class="desc">' +
                                     'Sprite Modes' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="full-divider">' +
+                            '</div>' +
+                                '<div id="jt-general-swap-joysticks" class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'J' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Swap Joysticks' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -193,7 +183,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Save State File' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="hotkey">' +
+                            '<div class="full-divider">' +
                             '</div>' +
                             '<div class="hotkey">' +
                                 '<div class="command">' +
@@ -238,25 +228,49 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'Backspace' +
+                                        'E' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Screen Defaults' +
+                                    'Color Modes' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
-                            '</div>' +
-                            '<div id="jt-general-swap-joysticks" class="hotkey">' +
                                 '<div class="command">' +
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'J' +
+                                        'R' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Swap Joysticks' +
+                                    'CRT Modes' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'T' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'CRT Filters' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="full-divider">' +
+                            '</div>' +
+                            '<div class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'Backspace' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Defaults' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -434,7 +448,7 @@ wmsx.SettingsGUI.html = function() {
                     '</div>' +
                     '<div id="jt-about">' +
                         '<div id="jt-logo-version">' +
-                            'WebMSX &nbsp;-&nbsp; ' + WMSX.VERSION +
+                            'WebMSX &nbsp;-&nbsp; version 0.9' +
                         '</div>' +
                         '<div class="info">' +
                             'Created by Paulo Augusto Peccin' +
@@ -724,10 +738,16 @@ wmsx.SettingsGUI.css = function() {
         'text-align: center;' +
         'color: transparent;' +
     '}' +
-    
+
     '.full-divider {' +
         'clear: both;' +
-        'height: 22px;' +
+        'height: 21px;' +
+    '}' +
+
+    '#jt-general .full-divider {' +
+        'clear: both;' +
+        'height: 19px;' +
     '}';
+
 };
 

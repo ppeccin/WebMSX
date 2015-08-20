@@ -275,5 +275,10 @@
 
 .full-divider {
     clear: both;
-    height: 22px;
+    height: 21px;
+}
+
+#jt-general .full-divider {
+    clear: both;
+    height: 19px;
 }
