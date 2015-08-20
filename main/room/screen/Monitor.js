@@ -2,13 +2,15 @@
 
 wmsx.Monitor = function() {
 
+    var self = this;
+
     function init(self) {
         controls = new wmsx.DOMPeripheralControls(self);
     }
 
     this.connectDisplay = function(monitorDisplay) {
         display = monitorDisplay;
-        setDisplayDefaultSize();
+        setDefaults();
     };
 
     this.connectPeripherals = function(pFileLoader, pCassetteDeck) {
@@ -40,21 +42,30 @@ wmsx.Monitor = function() {
     };
 
     this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
-        // Only change mode if not forced
-        if (CRT_MODE >= 0) return;
-        if (crtMode === 0 || crtMode === 1) {
-            var cart = cartridge1 || cartridge2;
-            setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
-        }
+        crtSetModeForCartridges();
     };
 
-    var setDisplayDefaultSize = function() {
+    this.setDisplayDefaultSize = function() {
         if (display != null) {
             var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.BASE_WIDTH, wmsx.Monitor.BASE_HEIGHT);
             setDisplayScale(scX, scX / DEFAULT_SCALE_ASPECT_X);
         } else
             setDisplayScale(wmsx.Monitor.DEFAULT_SCALE_X, wmsx.Monitor.DEFAULT_SCALE_Y);
         displayCenter();
+    };
+
+    var setDefaults = function() {
+        self.setDisplayDefaultSize();
+        crtModeSetDefault();
+        display.crtFilterSetDefault();
+    };
+
+    var crtSetModeForCartridges = function() {
+        // Only change mode if in Default is in AUTO (not forced)
+        if (CRT_MODE === -1 && (crtMode === 0 || crtMode === 1)) {
+            var cart = cartridgeSocket.inserted(1) || cartridgeSocket.inserted(2);
+            setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
+        }
     };
 
     var displayUpdateSize = function() {
@@ -85,15 +96,19 @@ wmsx.Monitor = function() {
         display.displayToggleFullscreen();
     };
 
+    var crtModeSetDefault = function() {
+        setCrtMode(CRT_MODE < 0 ? 0 : CRT_MODE);
+    };
+
     var crtModeToggle = function() {
         setCrtMode(crtMode + 1);
+        display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
     };
 
     var setCrtMode = function(mode) {
         var newMode = mode > 4 || mode < 0 ? 0 : mode;
         if (crtMode === newMode) return;
         crtMode = newMode;
-        display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
     };
 
     var exit = function() {
@@ -172,16 +187,18 @@ wmsx.Monitor = function() {
             case peripheralControls.TAPE_AUTO_RUN:
                 cassetteDeck.typeCurrentAutoRunCommand();
                 break;
-            case peripheralControls.SCREEN_CRT_MODES:
+            case peripheralControls.SCREEN_CRT_MODE:
                 crtModeToggle(); break;
             case peripheralControls.SCREEN_CRT_FILTER:
-                display.toggleCRTFilter(); break;
+                display.crtFilterToggle(); break;
             case peripheralControls.SCREEN_DEBUG:
                 debug++;
                 if (debug > 4) debug = 0;
                 break;
-            case peripheralControls.SCREEN_SIZE_DEFAULT:
-                setDisplayDefaultSize(); break;
+            case peripheralControls.SCREEN_DEFAULTS:
+                setDefaults();
+                display.showOSD("Initial Settings", true);
+                break;
             case peripheralControls.SCREEN_FULLSCREEN:
                 toggleFullscreen(); break;
             case peripheralControls.EXIT:
@@ -227,7 +244,7 @@ wmsx.Monitor = function() {
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
 
-    var crtMode = CRT_MODE < 0 ? 0 : CRT_MODE;
+    var crtMode = -1;
 
 
     init(this);

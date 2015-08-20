@@ -197,7 +197,7 @@ wmsx.FileCassetteDeck = function() {
 
         switch (info.type) {
             case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
-            case "Basic": return '\r\rcload "' + info.name + '", r\r';
+            case "Basic": return '\r\rcload "' + info.name + '"\r';
             case "ASCII": return '\r\rload "cas:' + info.name + '", r\r';
         }
         return null;

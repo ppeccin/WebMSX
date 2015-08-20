@@ -3,7 +3,7 @@
 wmsx.Util = new function() {
 
     this.log = function(str) {
-        console.log(">> mjsx: " + str);
+        console.log(">> wmsx: " + str);
     };
 
     this.message = function(str) {

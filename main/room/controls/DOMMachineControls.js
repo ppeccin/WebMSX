@@ -161,8 +161,10 @@ wmsx.DOMMachineControls = function() {
         withALTCodeMap[KEY_TRACE]            = controls.TRACE;
         withALTCodeMap[KEY_DEBUG]            = controls.DEBUG;
         withALTCodeMap[KEY_SPRITE_MODE]      = controls.SPRITE_MODE;
+        withALTCodeMap[KEY_PALETTE]          = controls.PALETTE;
         withALTCodeMap[KEY_VIDEO_STANDARD]   = controls.VIDEO_STANDARD;
-        withALTCodeMap[KEY_CARTRIDGE_FORMAT] = controls.CARTRIDGE_FORMAT;
+
+        withALTCodeMap[KEY_DEFAULTS]   = controls.DEFAULTS;
 
         withCTRLALTCodeMap[KEY_STATE_0] = controls.SAVE_STATE_0;
         withCTRLALTCodeMap[KEY_STATE_0a] = controls.SAVE_STATE_0;
@@ -244,7 +246,10 @@ wmsx.DOMMachineControls = function() {
     var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
     var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
     var KEY_SPRITE_MODE      = wmsx.DOMKeys.VK_S.c;
+    var KEY_PALETTE          = wmsx.DOMKeys.VK_E.c;
     var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_V.c;
+
+    var KEY_DEFAULTS         = wmsx.DOMKeys.VK_BACKSPACE.c;
 
     var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
     var KEY_STATE_0a         = wmsx.DOMKeys.VK_TILDE.c;

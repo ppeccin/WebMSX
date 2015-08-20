@@ -12,7 +12,7 @@ wmsx.WebAudioSpeaker = function() {
         if (!audioContext) return;
 
         processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 1, 1);
-        wmsx.Util.log("Processor buffer size: " + processor.bufferSize);
+        wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         processor.onaudioprocess = onAudioProcess;
         this.play();
     };
@@ -41,7 +41,7 @@ wmsx.WebAudioSpeaker = function() {
             audioContext = new constr();
             resamplingFactor = wmsx.PSGAudioSignal.SAMPLE_RATE / audioContext.sampleRate;
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
-            wmsx.Util.log("Audio resampling factor: " + (1 / resamplingFactor));
+            //wmsx.Util.log("Audio resampling factor: " + (1 / resamplingFactor));
         } catch(e) {
             wmsx.Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
         }

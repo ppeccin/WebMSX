@@ -10,6 +10,7 @@ wmsx.VDP = function(cpu, psg) {
         videoSignal = new wmsx.VDPVideoSignal();
         initColorCodePatternValues();
         initFrameResources();
+        self.setDefaults();
     }
 
     this.connectEngine = function(pEngine) {
@@ -139,6 +140,18 @@ wmsx.VDP = function(cpu, psg) {
             //console.log("VRAM Write Wrapped");
             vramPointer = 0;
         }
+    };
+
+    this.togglePalettes = function() {
+        currentPalette++;
+        if (currentPalette >= palettes.length) currentPalette = 0;
+        videoSignal.showOSD("Color Mode: " + palettes[currentPalette].name, true);
+        updateColorCodePatternValues();
+    };
+
+    this.setDefaults = function() {
+        currentPalette = WMSX.SCREEN_COLOR_MODE;
+        updateColorCodePatternValues();
     };
 
     function reset() {
@@ -493,21 +506,35 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function initColorCodePatternValues() {
+        var sizePerColorCode = 256 * 8;
+        for (var front = 0; front < 16; front++) {
+            for (var back = 0; back < 16; back++) {
+                var colorCode = (front << 4) + back;
+                for (var pattern = 0; pattern < 256; pattern++) {
+                    var patternPositionInsideColorCode = pattern * 8;
+                    var position = colorCode * sizePerColorCode + patternPositionInsideColorCode;
+                    var patternValues = colorValuesRaw.subarray(position, position + 8);
+                    colorCodePatternValues[colorCode * 256 + pattern] = patternValues;
+                }
+            }
+        }
+    }
+
+    function updateColorCodePatternValues() {
+        colorRGBs = palettes[currentPalette].colors;
+        backdropRGB = colorRGBs[register7 & 0x0f];
+        var sizePerColorCode = 256 * 8;
         for (var front = 0; front < 16; front++) {
             var colorFront = colorRGBs[front];
             for (var back = 0; back < 16; back++) {
                 var colorBack = colorRGBs[back];
                 var colorCode = (front << 4) + back;
                 for (var pattern = 0; pattern < 256; pattern++) {
-                    var sizePerColorCode = 256 * 8;
-                    var patternPositionInsideColorCode = pattern * 8;
-                    var finalPosition = colorCode * sizePerColorCode + patternPositionInsideColorCode;
-                    var patternValues = colorValuesRaw.subarray(finalPosition, finalPosition + 8);
+                    var patternValues = colorCodePatternValues[colorCode * 256 + pattern];
                     for (var bit = 7; bit >= 0; bit--) {
                         var pixel = (pattern >>> bit) & 1;
                         patternValues[7 - bit] = pixel ? colorFront : colorBack;
                     }
-                    colorCodePatternValues[colorCode * 256 + pattern] = patternValues;
                 }
             }
         }
@@ -559,8 +586,28 @@ wmsx.VDP = function(cpu, psg) {
     // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations (actually ABRG endian)
     // Obs: Pattern plane paints with these colors (Alpha = 0xfe), Sprite plane paints with Alpha = 0xff
 
-    var colorRGBs = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe42c821, 0xfe78dc5e, 0xfeed5554, 0xfefc767d, 0xfe4d52d4, 0xfef5eb42, 0xfe5455fc, 0xfe7879ff, 0xfe54c1d4, 0xfe80cee6, 0xfe3bb021, 0xfeba5bc9, 0xfecccccc, 0xfeffffff ]);
-    //var colorRGBs = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20db20, 0xfe6dff6d, 0xfeff2020, 0xfeff6d30, 0xfe2020b6, 0xfeffdb49, 0xfe2020ff, 0xfe6d6dff, 0xfe20dbdb, 0xfe92dbdb, 0xfe209220, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
+    var colorsMyMSX1 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe42c821, 0xfe78dc5e, 0xfeed5554, 0xfefc767d, 0xfe4d52d4, 0xfef5eb42, 0xfe5455fc, 0xfe7879ff, 0xfe54c1d4, 0xfe80cee6, 0xfe3bb021, 0xfeba5bc9, 0xfecccccc, 0xfeffffff ]);
+    var colorsMyMSX2 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20db20, 0xfe6dff6d, 0xfeff2020, 0xfeff6d30, 0xfe2020b6, 0xfeffdb49, 0xfe2020ff, 0xfe6d6dff, 0xfe20dbdb, 0xfe92dbdb, 0xfe209220, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
+
+    var colorsMSX1 =   new Uint32Array([ 0x00000000, 0xfe000000, 0xfe40c820, 0xfe78d858, 0xfee85050, 0xfef47078, 0xfe4850d0, 0xfef0e840, 0xfe5050f4, 0xfe7878f4, 0xfe50c0d0, 0xfe80c8e0, 0xfe38b020, 0xfeb858c8, 0xfec8c8c8, 0xfeffffff ]);
+    var colorsMSX2 =   new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20d820, 0xfe68f468, 0xfef42020, 0xfef46848, 0xfe2020b0, 0xfef4d848, 0xfe2020f4, 0xfe6868f4, 0xfe20d8d8, 0xfe90d8d8, 0xfe209020, 0xfeb048d8, 0xfeb0b0b0, 0xfefbfbfb ]);
+    var colorsMSXPB =  new Uint32Array([ 0x00000000, 0xfe000000, 0xfe808080, 0xfea0a0a0, 0xfe5c5c5c, 0xfe7c7c7c, 0xfe707070, 0xfeb0b0b0, 0xfe7c7c7c, 0xfe989898, 0xfeb0b0b0, 0xfec0c0c0, 0xfe707070, 0xfe808080, 0xfec4c4c4, 0xfefbfbfb ]);
+    var colorsMSXGR =  new Uint32Array([ 0x00000000, 0xfe000000, 0xfe108010, 0xfe10a010, 0xfe105c10, 0xfe107c10, 0xfe107010, 0xfe10b010, 0xfe107c10, 0xfe109810, 0xfe10b010, 0xfe10c010, 0xfe107010, 0xfe107c10, 0xfe10c010, 0xfe10f810 ]);
+    var colorsMSXAB =  new Uint32Array([ 0x00000000, 0xfe000000, 0xfe005880, 0xfe006ca0, 0xfe00405c, 0xfe00547c, 0xfe004c70, 0xfe0078b0, 0xfe00547c, 0xfe006898, 0xfe0078b0, 0xfe0084c0, 0xfe004c70, 0xfe005880, 0xfe0084c4, 0xfe00abfa ]);
+
+    var colorsMSX1VV = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
+
+    var palettes = [
+        //{ name: "My MSX1", colors: colorsMyMSX1 },
+        { name : "MSX1", colors: colorsMSX1VV },
+        { name: "MSX1 Soft", colors: colorsMSX1 },
+        //{ name: "My MSX2", colors: colorsMyMSX2 },
+        { name: "MSX2", colors: colorsMSX2 },
+        { name: "Black & White", colors: colorsMSXPB}, { name: "Green Phosphor", colors: colorsMSXGR}, { name: "Amber", colors: colorsMSXAB }
+    ];
+
+    var currentPalette = 0;
+    var colorRGBs;
 
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns

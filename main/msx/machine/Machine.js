@@ -133,9 +133,6 @@ wmsx.Machine = function() {
         //ram.powerFry();
     };
 
-    var cycleCartridgeFormat = function() {
-    };
-
     var saveState = function() {
         return {
             b: bus.saveState(),
@@ -327,8 +324,12 @@ wmsx.Machine = function() {
                 else if (videoStandard == wmsx.VideoStandard.NTSC) setVideoStandardForced(wmsx.VideoStandard.PAL);
                 else setVideoStandardAuto();
                 break;
-            case controls.CARTRIDGE_FORMAT:
-                cycleCartridgeFormat();
+            case controls.PALETTE:
+                vdp.togglePalettes();
+                break;
+            case controls.DEFAULTS:
+                setVideoStandardAuto();
+                vdp.setDefaults();
                 break;
         }
     };

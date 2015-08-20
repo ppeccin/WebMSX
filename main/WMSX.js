@@ -5,10 +5,10 @@
 
 WMSX = {
 
-    VERSION:                        "version 0.1",              // Don't change this one!
+    VERSION:                        "version 0.9",              // Don't change this one!
 
     BIOS_AUTO_LOAD_URL:             "",                         // Full or relative URL of BIOS
-    ROM_AUTO_LOAD_URL:              "",                         // Full or relative URL of ROM (Cartridge A)
+    CART1_AUTO_LOAD_URL:            "",                         // Full or relative URL of ROM (Cartridge 1)
     TAPE_AUTO_LOAD_URL:             "",                         // Full or relative URL of TAPE
     AUTO_START:                     true,                       // Set false to start emulator manually with WMSX.start()
     SCREEN_ELEMENT_ID:              "msx-screen",
@@ -22,6 +22,7 @@ WMSX = {
     SCREEN_SHARP_SIZE:              2,                          // 1..4. Don't change! :-)
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover, 2 = Original Javatari
     SCREEN_NATURAL_FPS:             60,                         // 60, 50 fps. Don't change! :-)
+    SCREEN_COLOR_MODE:              0,                          // 0..5
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "msx/"
 

@@ -29,7 +29,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerOn = function() {
-        setCRTFilter(crtFilter);
+        this.crtFilterSetDefault();
         updateLogo();
         mainElement.style.visibility = "visible";
         this.focus();
@@ -121,10 +121,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         }, OSD_TIME);
     };
 
-    this.toggleCRTFilter = function() {
+    this.crtFilterToggle = function() {
         var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = 0;
         this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
         setCRTFilter(newLevel);
+    };
+
+    this.crtFilterSetDefault = function() {
+        setCRTFilter(WMSX.SCREEN_FILTER_MODE);
     };
 
     this.displayToggleFullscreen = function() {
@@ -158,7 +162,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.exit = function() {
         controlsSocket.controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
-        monitor.controlActivated(wmsx.PeripheralControls.SCREEN_SIZE_DEFAULT);
+        monitor.controlActivated(wmsx.PeripheralControls.SCREEN_DEFAULTS);
     };
 
     this.focus = function() {
@@ -184,12 +188,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullScreenChanged = function() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
-        monitor.controlActivated(wmsx.PeripheralControls.SCREEN_SIZE_DEFAULT);
+        monitor.setDisplayDefaultSize();
         // Schedule another one to give the browser some time to set full screen properly
-        if (isFullscreen)
-            setTimeout(function() {
-                monitor.controlActivated(wmsx.PeripheralControls.SCREEN_SIZE_DEFAULT);
-            }, 120);
+        if (isFullscreen) setTimeout(monitor.setDisplayDefaultSize, 120);
     };
 
     var setElementsSizes = function (width, height) {
@@ -523,7 +524,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var signalIsOn = false;
     var isFullscreen = false;
-    var crtFilter = WMSX.SCREEN_FILTER_MODE;
+    var crtFilter = 1;
 
     var logoImage;
 
