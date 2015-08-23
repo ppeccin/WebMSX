@@ -1,18 +1,18 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// WebMSX version 0.9
+
 // Main Emulator parameters.
 // You may change any of these after loading the project and before starting the Emulator
 
 WMSX = {
 
-    VERSION:                        "version 0.9",              // Don't change this one!
-
     BIOS_AUTO_LOAD_URL:             "",                         // Full or relative URL of BIOS
     CART1_AUTO_LOAD_URL:            "",                         // Full or relative URL of ROM (Cartridge 1)
     TAPE_AUTO_LOAD_URL:             "",                         // Full or relative URL of TAPE
     AUTO_START_DELAY:               0,                          // Negative = No Auto-Start, Positive = wait specified microseconds then start
-    SCREEN_ELEMENT_ID:              "msx-screen",
-    CONSOLE_PANEL_ELEMENT_ID:       "msx-console-panel",
+    SCREEN_ELEMENT_ID:              "wmsx-screen",
+    CONSOLE_PANEL_ELEMENT_ID:       "wmsx-console-panel",
     CARTRIDGE_CHANGE_DISABLED:      false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
@@ -24,7 +24,9 @@ WMSX = {
     SCREEN_NATURAL_FPS:             60,                         // 60, 50 fps. Don't change! :-)
     SCREEN_COLOR_MODE:              0,                          // 0..5
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
-    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/"
+    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/",
+
+    VERSION:                        "version 0.9"               // Don't change!
 
 };
 
