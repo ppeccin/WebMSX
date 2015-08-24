@@ -53,21 +53,23 @@ wmsx.DOMKeys = {
     VK_N: {c: 78, n: "N"},
     VK_M: {c: 77, n: "M"},
 
-    VK_QUOTE: {c: 222, n: "'"},
-    VK__BACKQUOTE: {c: 192, n: "`"},
+    VK_QUOTE: {c: 192, n: "'"},
+    VK_TILDE: {c: 222, n: "~"},
+    VK_ACUTE: {c: 219, n: "´"},
+    VK_CEDILLA: {c: 186, n: "Ç"},
 
     VK_MINUS: {c: 189, n: "-"},
             VK_MINUS_FF: {c: 173, n: "-"},
     VK_EQUALS: {c: 187, n: "="},
             VK_EQUALS_FF: {c: 61, n: "="},
-    VK_OPEN_BRACKET: {c: 219, n: "["},
-    VK_CLOSE_BRACKET: {c: 221, n: "]"},
+    VK_OPEN_BRACKET: {c: 221, n: "["},
+    VK_CLOSE_BRACKET: {c: 220, n: "]"},
     VK_COMMA: {c: 188, n: ","},
     VK_PERIOD: {c: 190, n: "."},
-    VK_SEMICOLON: {c: 186, n: ";"},
+    VK_SEMICOLON: {c: 191, n: ";"},
             VK_SEMICOLON_FF: {c: 59, n: ";"},
-    VK_SLASH: {c: 191, n: "/"},
-    VK_BACKSLASH: {c: 220, n: "\\"},
+    VK_SLASH: {c: 193, n: "/"},
+    VK_BACK_SLASH: {c: 226, n: "\\"},
 
     VK_ESCAPE: {c: 27, n: "Esc"},
     VK_ENTER: {c: 13, n: "Enter"},
@@ -78,10 +80,6 @@ wmsx.DOMKeys = {
     VK_SHIFT: {c: 16, n: "Shift"},
     VK_CONTROL: {c: 17, n: "Ctrl"},
     VK_ALT: {c: 18, n: "Alt"},
-
-    VK_SHIFT_RIGHT: {c: 16, n: "R-Shift", l: 2},
-    VK_CONTROL_RIGHT: {c: 17, n: "R-Ctrl", l: 2},
-    VK_ALT_RIGHT: {c: 18, n: "R-Alt", l: 2},
 
     VK_CAPS_LOCK: {c: 20, n: "CpsLck"},
     VK_PRINT_SCREEN: {c: 44, n: "PrtScr"},
@@ -118,14 +116,7 @@ wmsx.DOMKeys = {
     VK_NUM_7: {c: 103, n: "Num 7"},
     VK_NUM_8: {c: 104, n: "Num 8"},
     VK_NUM_9: {c: 105, n: "Num 9"},
-    VK_NUM_CENTER: {c: 12, n: "Num Cntr"},
-
-
-    VK_PORT_TILDE: {c: 176, n: "~"},
-    VK_PORT_ACUTE: {c: 219, n: "´"},
-    VK_PORT_CEDILLA: {c: 186, n: "Ç"}
-
-
+    VK_NUM_CENTER: {c: 12, n: "Num Cntr"}
 
 };
 

@@ -252,7 +252,7 @@ wmsx.DOMMachineControls = function() {
     var KEY_DEFAULTS         = wmsx.DOMKeys.VK_BACKSPACE.c;
 
     var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
-    var KEY_STATE_0a         = wmsx.DOMKeys.VK_TILDE.c;
+    var KEY_STATE_0a         = wmsx.DOMKeys.VK__BACKQUOTE;
     var KEY_STATE_1          = wmsx.DOMKeys.VK_1.c;
     var KEY_STATE_2          = wmsx.DOMKeys.VK_2.c;
     var KEY_STATE_3          = wmsx.DOMKeys.VK_3.c;
@@ -264,9 +264,9 @@ wmsx.DOMMachineControls = function() {
     var KEY_STATE_9          = wmsx.DOMKeys.VK_9.c;
     var KEY_STATE_10         = wmsx.DOMKeys.VK_0.c;
     var KEY_STATE_11         = wmsx.DOMKeys.VK_MINUS.c;
-    var KEY_STATE_11a        = wmsx.DOMKeys.VK_MINUS2.c;
+    var KEY_STATE_11a        = wmsx.DOMKeys.VK_MINUS_FF.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
-    var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS2.c;
+    var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS_FF.c;
 
     var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F6.c;
 
