@@ -382,9 +382,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var refreshMediaButtons = function() {
-        cartridge1Button.style.backgroundPositionY = (mediaButtonOffsets[mediaButtonsState["Cartridge1"]]) + "px";
-        cartridge2Button.style.backgroundPositionY = (mediaButtonOffsets[mediaButtonsState["Cartridge2"]]) + "px";
-        tapeButton.style.backgroundPositionY =       (mediaButtonOffsets[mediaButtonsState["Tape"]]) + "px";
+        cartridge1Button.style.backgroundPosition = "-150px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge1"]]) + "px";
+        cartridge2Button.style.backgroundPosition = "-179px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge2"]]) + "px";
+        tapeButton.style.backgroundPosition =       "-208px " + (mediaButtonBackYOffsets[mediaButtonsState["Tape"]]) + "px";
     };
 
     var addBarButton = function(x, y, w, h, px, py, noImage) {
@@ -416,6 +416,9 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var screenControlButton = function (but, control) {
         but.style.cursor = "pointer";
+
+        // A "click" event and not a "mousedown" is necessary here. Without a click, FF does not open the Open File window
+        // TODO Hotkeys for this are also not working in FF since they're not click events!
         but.addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
 
@@ -546,8 +549,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var contentBaseScale = WMSX.SCREEN_SHARP_SIZE;
 
-    var mediaButtonOffsets = [ -53, -29, -4 ];
     var mediaButtonsState = { Cartridge1: 0, Cartridge2: 0, Tape: 0 };
+    var mediaButtonBackYOffsets = [ -53, -29, -4 ];
 
     var MOUSE_BUT1_MASK = 1;
     var MOUSE_BUT2_MASK = 2;
