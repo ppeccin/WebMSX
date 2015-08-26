@@ -331,6 +331,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         var controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         screenControlButton(cartridge1Button, controls);
 
@@ -338,6 +339,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         screenControlButton(cartridge2Button, controls);
 
@@ -346,7 +348,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_LOAD_URL;
         controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_EMPTY;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_SAVE_FILE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_LOAD_EMPTY;
         controls[MOUSE_BUT3_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
         screenControlButton(tapeButton, controls);
@@ -365,16 +369,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);
-        settingsButton.style.cursor = "pointer";
-        settingsButton.addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            openSettings();
-        });
+        localControlButton(settingsButton, openSettings);
 
         logoButton = addBarButton("CENTER", -23, 51, 19, -38, -35);
-        logoButton.style.cursor = "pointer";
-        logoButton.addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
+        localControlButton(logoButton, function (e) {
             openSettings("ABOUT");
         });
 
@@ -417,26 +415,38 @@ wmsx.CanvasDisplay = function(mainElement) {
     var screenControlButton = function (but, control) {
         but.style.cursor = "pointer";
 
-        // A "click" event and not a "mousedown" is necessary here. Without a click, FF does not open the Open File window
-        // TODO Hotkeys for this are also not working in FF since they're not click events!
-        but.addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
+        // We need a separate approach for left button and the others (middle and right).
+        // The left click needs to be a "click" as explained below
+        // The others use a "mousedown" since a click only fires for the left button on many browsers
 
+        var handler = function (e) {
+            if (e.preventDefault) e.preventDefault();
             // Simple control, only left-click
-            if ((typeof control) == "number" || !e.buttons) {
-                if (!e.button || e.button === 0) monitor.controlActivated(control);
+            if ((typeof control) == "number") {
+                if (!e.buttons || e.buttons === 1) monitor.controlActivated(control);
                 return;
             }
-
-            var mask = e.buttons | (e.altKey ? KEY_ALT_MASK : 0) | (e.ctrlKey ? KEY_CTRL_MASK : 0) | (e.shiftKey ? KEY_SHIFT_MASK : 0);
+            // Complex control
+            var mask = (e.buttons || 1) | (e.altKey ? KEY_ALT_MASK : 0) | (e.ctrlKey ? KEY_CTRL_MASK : 0) | (e.shiftKey ? KEY_SHIFT_MASK : 0);
             if (control[mask]) monitor.controlActivated(control[mask]);
+        };
+
+        // Left Button: a "click" event and not a "mousedown" is necessary here. Without a click, FF does not open the Open File window
+        // TODO Hotkeys for this are also not working in FF since they're not click events!
+        but.addEventListener("click", function(e) {
+            if (e.which === 1) handler(e);            // :-( Chrome fires this for middle button so we need this ugly check
         });
 
+        // Middle and Right buttons, use mousedown but ignore Left clicks
+        but.addEventListener("mousedown", function(e) {
+            if (e.which > 1) handler(e);
+        });
+
+        // Suppress Context menu
         but.addEventListener("contextmenu", function (e) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
         });
-
     };
 
     var consoleControlButton = function (but, control) {
@@ -444,6 +454,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         but.addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             controlsSocket.controlStateChanged(control, true);
+        });
+        but.addEventListener("contextmenu", function (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        });
+    };
+
+    var localControlButton = function (but, func) {
+        but.style.cursor = "pointer";
+        but.addEventListener("click", function (e) {
+            if (e.preventDefault) e.preventDefault();
+            func();
+        });
+        but.addEventListener("contextmenu", function (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
         });
     };
 
@@ -462,8 +488,13 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         logoImage.style.userSelect = "none";
         logoImage.style.webkitUserSelect = "none";
-        logoImage.style.mozUserSelect = "none";
+        logoImage.style.MozUserSelect = "none";
         logoImage.style.msUserSelect = "none";
+
+        logoImage.ondragstart = function(e) {
+            e.preventDefault();
+            return false;
+        };
 
         fsElement.appendChild(logoImage);
 
@@ -487,6 +518,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         osd.style.color = "rgb(0, 255, 0)";
         osd.style.background = "rgba(0, 0, 0, 0.4)";
         osd.style.opacity = 0;
+        osd.style.userSelect = "none";
+        osd.style.webkitUserSelect = "none";
+        osd.style.MozUserSelect = "none";
+        osd.style.msUserSelect = "none";
         osd.innerHTML = "";
         fsElement.appendChild(osd);
     };

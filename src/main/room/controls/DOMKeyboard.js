@@ -34,10 +34,6 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.keyDown = function(event) {
-
-        D = event;
-        console.log(event.keyCode);
-
         var modifiers = 0 | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
