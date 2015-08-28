@@ -162,7 +162,7 @@ wmsx.Settings = function() {
 
     var keyRedefinitionTry = function (keyCode) {
         if (!controlRedefining) return;
-        if (!wmsx.DOMKeysByCode[keyCode]) return;
+        if (!wmsx.DOMKeys.byCode[keyCode]) return;
         if (WMSX.preferences[controlKeys[controlRedefining]] !== keyCode) {
             for (var con in controlKeys)
                 if (WMSX.preferences[controlKeys[con]] === keyCode)

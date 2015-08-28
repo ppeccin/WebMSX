@@ -248,7 +248,7 @@ wmsx.DOMMachineControls = function() {
     var KEY_DEFAULTS         = wmsx.DOMKeys.VK_BACKSPACE.c;
 
     var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
-    var KEY_STATE_0a         = wmsx.DOMKeys.VK__BACKQUOTE;
+    var KEY_STATE_0a         = wmsx.DOMKeys.VK_BACKQUOTE;
     var KEY_STATE_1          = wmsx.DOMKeys.VK_1.c;
     var KEY_STATE_2          = wmsx.DOMKeys.VK_2.c;
     var KEY_STATE_3          = wmsx.DOMKeys.VK_3.c;

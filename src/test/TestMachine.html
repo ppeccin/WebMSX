@@ -69,8 +69,10 @@
         <script src="../main/room/Launcher.js"></script>
 
         <script>
-            if (window.location.protocol.indexOf("http") >= 0)
+            if (window.location.protocol.indexOf("http") >= 0) {
                 WMSX.BIOS_AUTO_LOAD_URL = "../../roms/bios/MSX 1.0 NTSC.bios";
+                WMSX.AUTO_START_DELAY = 0;      // Instant power-on
+            }
         </script>
 
     </body>
