@@ -34,6 +34,10 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.keyDown = function(event) {
+
+        //D = event;
+        //console.log(event.keyCode + " " + event.location);
+
         var modifiers = 0 | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
@@ -44,6 +48,10 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.keyUp = function(event) {
+
+        //U = event;
+        //console.log("U: " + event.keyCode + " " + event.location);
+
         var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
         if (processKeyEvent(event.keyCode, false, modifiers)) {
             event.returnValue = false;  // IE
@@ -65,16 +73,21 @@ wmsx.DOMKeyboard = function() {
         }
         return true;
     };
-
     var processKeyEvent = this.processKeyEvent;
+
+    var keyForEvent = function(keyCode, modif) {
+        if (modif & KEY_ALT_MASK) {
+            var k = altCodeMap[keyCode];     // Special "extra" bindings
+
+            if (k) console.log(k);
+
+            return k;
+        }
+        return normalCodeMap[keyCode];
+    };
 
     var checkLocalControlKey = function(keyCode, modif, press) {
         return false;
-    };
-
-    var keyForEvent = function(keyCode, modif) {
-        if (modif & KEY_ALT_MASK) return;
-        return normalCodeMap[keyCode];
     };
 
     var initKeys = function() {
@@ -87,9 +100,12 @@ wmsx.DOMKeyboard = function() {
         normalCodeMap[KEY_F4]             = [ 7, 0 ];
         normalCodeMap[KEY_F5]             = [ 7, 1 ];
 
-        normalCodeMap[KEY_SELECT]         = [ 7, 6 ];
         normalCodeMap[KEY_STOP]           = [ 7, 4 ];
         normalCodeMap[KEY_STOP2]          = [ 7, 4 ];
+        altCodeMap[KEY_STOP_EXTRA]        = [ 7, 4 ];
+        normalCodeMap[KEY_SELECT]         = [ 7, 6 ];
+        altCodeMap[KEY_SELECT_EXTRA]      = [ 7, 6 ];
+
         normalCodeMap[KEY_HOME]           = [ 8, 1 ];
         normalCodeMap[KEY_INSERT]         = [ 8, 2 ];
         normalCodeMap[KEY_DELETE]         = [ 8, 3 ];
@@ -147,12 +163,14 @@ wmsx.DOMKeyboard = function() {
         normalCodeMap[KEY_MINUS2]         = [ 1, 2 ];
         normalCodeMap[KEY_EQUAL]          = [ 1, 3 ];
         normalCodeMap[KEY_EQUAL2]         = [ 1, 3 ];
-        normalCodeMap[KEY_BACKSLASH]     = [ 1, 4 ];
+        normalCodeMap[KEY_BACKSLASH]      = [ 1, 4 ];
         normalCodeMap[KEY_OPEN_BRACKET]   = [ 1, 5 ];
         normalCodeMap[KEY_CLOSE_BRACKET]  = [ 1, 6 ];
 
         normalCodeMap[KEY_SHIFT]          = [ 6, 0 ];
+        altCodeMap[KEY_SHIFT_EXTRA]       = [ 6, 0 ];
         normalCodeMap[KEY_CONTROL]        = [ 6, 1 ];
+        altCodeMap[KEY_CONTROL_EXTRA]     = [ 6, 1 ];
         normalCodeMap[KEY_CAPS_LOCK]      = [ 6, 3 ];
         normalCodeMap[KEY_GRAPH]          = [ 6, 2 ];
         normalCodeMap[KEY_CODE]           = [ 6, 4 ];
@@ -184,10 +202,6 @@ wmsx.DOMKeyboard = function() {
         normalCodeMap[KEY_NUM_DIVIDE]     = [ 9, 2 ];
         normalCodeMap[KEY_NUM_PERIOD]     = [ 10, 7 ];
         normalCodeMap[KEY_NUM_COMMA]      = [ 10, 6 ];
-
-        //normalCodeMap[KEY_END_IGNORE]     = [ 11, 7 ];      // Just so it won't go to the browser (preventDefault)
-        //normalCodeMap[KEY_CEDILLA]        = [ 2, 5 ];
-
     };
 
     this.applyPreferences = function() {
@@ -197,16 +211,59 @@ wmsx.DOMKeyboard = function() {
     var keyboardSocket;
 
     var normalCodeMap = {};
+    var altCodeMap = {};
     var keyStateMap =  {};
-
-
-    // Default Key Values
 
     var KEY_F1               = wmsx.DOMKeys.VK_F1.c;
     var KEY_F2               = wmsx.DOMKeys.VK_F2.c;
     var KEY_F3               = wmsx.DOMKeys.VK_F3.c;
     var KEY_F4               = wmsx.DOMKeys.VK_F4.c;
     var KEY_F5               = wmsx.DOMKeys.VK_F5.c;
+
+    var KEY_1                = wmsx.DOMKeys.VK_1.c;
+    var KEY_2                = wmsx.DOMKeys.VK_2.c;
+    var KEY_3                = wmsx.DOMKeys.VK_3.c;
+    var KEY_4                = wmsx.DOMKeys.VK_4.c;
+    var KEY_5                = wmsx.DOMKeys.VK_5.c;
+    var KEY_6                = wmsx.DOMKeys.VK_6.c;
+    var KEY_7                = wmsx.DOMKeys.VK_7.c;
+    var KEY_8                = wmsx.DOMKeys.VK_8.c;
+    var KEY_9                = wmsx.DOMKeys.VK_9.c;
+    var KEY_0                = wmsx.DOMKeys.VK_0.c;
+
+    var KEY_Q                = wmsx.DOMKeys.VK_Q.c;
+    var KEY_W                = wmsx.DOMKeys.VK_W.c;
+    var KEY_E                = wmsx.DOMKeys.VK_E.c;
+    var KEY_R                = wmsx.DOMKeys.VK_R.c;
+    var KEY_T                = wmsx.DOMKeys.VK_T.c;
+    var KEY_Y                = wmsx.DOMKeys.VK_Y.c;
+    var KEY_U                = wmsx.DOMKeys.VK_U.c;
+    var KEY_I                = wmsx.DOMKeys.VK_I.c;
+    var KEY_O                = wmsx.DOMKeys.VK_O.c;
+    var KEY_P                = wmsx.DOMKeys.VK_P.c;
+    var KEY_A                = wmsx.DOMKeys.VK_A.c;
+    var KEY_S                = wmsx.DOMKeys.VK_S.c;
+    var KEY_D                = wmsx.DOMKeys.VK_D.c;
+    var KEY_F                = wmsx.DOMKeys.VK_F.c;
+    var KEY_G                = wmsx.DOMKeys.VK_G.c;
+    var KEY_H                = wmsx.DOMKeys.VK_H.c;
+    var KEY_J                = wmsx.DOMKeys.VK_J.c;
+    var KEY_K                = wmsx.DOMKeys.VK_K.c;
+    var KEY_L                = wmsx.DOMKeys.VK_L.c;
+    var KEY_Z                = wmsx.DOMKeys.VK_Z.c;
+    var KEY_X                = wmsx.DOMKeys.VK_X.c;
+    var KEY_C                = wmsx.DOMKeys.VK_C.c;
+    var KEY_V                = wmsx.DOMKeys.VK_V.c;
+    var KEY_B                = wmsx.DOMKeys.VK_B.c;
+    var KEY_N                = wmsx.DOMKeys.VK_N.c;
+    var KEY_M                = wmsx.DOMKeys.VK_M.c;
+
+    var KEY_ESCAPE           = wmsx.DOMKeys.VK_ESCAPE.c;
+    var KEY_TAB              = wmsx.DOMKeys.VK_TAB.c;
+    var KEY_ENTER            = wmsx.DOMKeys.VK_ENTER.c;
+    var KEY_BACKSPACE        = wmsx.DOMKeys.VK_BACKSPACE.c;
+
+    var KEY_SPACE            = wmsx.DOMKeys.VK_SPACE.c;
 
     var KEY_STOP             = wmsx.DOMKeys.VK_PAUSE.c;
     var KEY_STOP2            = wmsx.DOMKeys.VK_CTRL_PAUSE.c;
@@ -221,72 +278,33 @@ wmsx.DOMKeyboard = function() {
     var KEY_LEFT             = wmsx.DOMKeys.VK_LEFT.c;
     var KEY_RIGHT            = wmsx.DOMKeys.VK_RIGHT.c;
 
-    var KEY_ESCAPE           = wmsx.DOMKeys.VK_ESCAPE.c;
-    var KEY_1                = wmsx.DOMKeys.VK_1.c;
-    var KEY_2                = wmsx.DOMKeys.VK_2.c;
-    var KEY_3                = wmsx.DOMKeys.VK_3.c;
-    var KEY_4                = wmsx.DOMKeys.VK_4.c;
-    var KEY_5                = wmsx.DOMKeys.VK_5.c;
-    var KEY_6                = wmsx.DOMKeys.VK_6.c;
-    var KEY_7                = wmsx.DOMKeys.VK_7.c;
-    var KEY_8                = wmsx.DOMKeys.VK_8.c;
-    var KEY_9                = wmsx.DOMKeys.VK_9.c;
-    var KEY_0                = wmsx.DOMKeys.VK_0.c;
     var KEY_MINUS            = wmsx.DOMKeys.VK_MINUS.c;
     var KEY_MINUS2           = wmsx.DOMKeys.VK_MINUS_FF.c;
     var KEY_EQUAL            = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_EQUAL2           = wmsx.DOMKeys.VK_EQUALS_FF.c;
-    var KEY_BACKSLASH        = wmsx.DOMKeys.VK_BACKSLASH.c;
-    var KEY_BACKSPACE        = wmsx.DOMKeys.VK_BACKSPACE.c;
 
-    var KEY_TAB              = wmsx.DOMKeys.VK_TAB.c;
-    var KEY_Q                = wmsx.DOMKeys.VK_Q.c;
-    var KEY_W                = wmsx.DOMKeys.VK_W.c;
-    var KEY_E                = wmsx.DOMKeys.VK_E.c;
-    var KEY_R                = wmsx.DOMKeys.VK_R.c;
-    var KEY_T                = wmsx.DOMKeys.VK_T.c;
-    var KEY_Y                = wmsx.DOMKeys.VK_Y.c;
-    var KEY_U                = wmsx.DOMKeys.VK_U.c;
-    var KEY_I                = wmsx.DOMKeys.VK_I.c;
-    var KEY_O                = wmsx.DOMKeys.VK_O.c;
-    var KEY_P                = wmsx.DOMKeys.VK_P.c;
     var KEY_OPEN_BRACKET     = wmsx.DOMKeys.VK_OPEN_BRACKET.c;
     var KEY_CLOSE_BRACKET    = wmsx.DOMKeys.VK_CLOSE_BRACKET.c;
-    var KEY_ENTER            = wmsx.DOMKeys.VK_ENTER.c;
+    var KEY_BACKSLASH        = wmsx.DOMKeys.VK_BACKSLASH.c;
 
-    var KEY_CONTROL          = wmsx.DOMKeys.VK_CONTROL.c;
-    var KEY_A                = wmsx.DOMKeys.VK_A.c;
-    var KEY_S                = wmsx.DOMKeys.VK_S.c;
-    var KEY_D                = wmsx.DOMKeys.VK_D.c;
-    var KEY_F                = wmsx.DOMKeys.VK_F.c;
-    var KEY_G                = wmsx.DOMKeys.VK_G.c;
-    var KEY_H                = wmsx.DOMKeys.VK_H.c;
-    var KEY_J                = wmsx.DOMKeys.VK_J.c;
-    var KEY_K                = wmsx.DOMKeys.VK_K.c;
-    var KEY_L                = wmsx.DOMKeys.VK_L.c;
+    var KEY_COMMA            = wmsx.DOMKeys.VK_COMMA.c;
+    var KEY_PERIOD           = wmsx.DOMKeys.VK_PERIOD.c;
     var KEY_SEMICOLON        = wmsx.DOMKeys.VK_SEMICOLON.c;
     var KEY_SEMICOLON2       = wmsx.DOMKeys.VK_SEMICOLON_FF.c;
+    var KEY_SLASH            = wmsx.DOMKeys.VK_SLASH.c;
+
     var KEY_QUOTE            = wmsx.DOMKeys.VK_QUOTE.c;
     var KEY_BACKQUOTE        = wmsx.DOMKeys.VK__BACKQUOTE.c;
 
     var KEY_SHIFT            = wmsx.DOMKeys.VK_SHIFT.c;
-    var KEY_Z                = wmsx.DOMKeys.VK_Z.c;
-    var KEY_X                = wmsx.DOMKeys.VK_X.c;
-    var KEY_C                = wmsx.DOMKeys.VK_C.c;
-    var KEY_V                = wmsx.DOMKeys.VK_V.c;
-    var KEY_B                = wmsx.DOMKeys.VK_B.c;
-    var KEY_N                = wmsx.DOMKeys.VK_N.c;
-    var KEY_M                = wmsx.DOMKeys.VK_M.c;
-    var KEY_COMMA            = wmsx.DOMKeys.VK_COMMA.c;
-    var KEY_PERIOD           = wmsx.DOMKeys.VK_PERIOD.c;
-    var KEY_SLASH            = wmsx.DOMKeys.VK_SLASH.c;
-    var KEY_DEAD             = wmsx.DOMKeys.VK_END.c;
-
+    var KEY_SHIFT_EXTRA      = wmsx.DOMKeys.VK_SHIFT.c;
+    var KEY_CONTROL          = wmsx.DOMKeys.VK_CONTROL.c;
+    var KEY_CONTROL_EXTRA    = wmsx.DOMKeys.VK_CONTROL.c;
     var KEY_CAPS_LOCK        = wmsx.DOMKeys.VK_CAPS_LOCK.c;
-    var KEY_SPACE            = wmsx.DOMKeys.VK_SPACE.c;
 
     var KEY_GRAPH            = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_CODE             = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+    var KEY_DEAD             = wmsx.DOMKeys.VK_END.c;
 
     var KEY_NUM_0            = wmsx.DOMKeys.VK_NUM_0.c;
     var KEY_NUM_1            = wmsx.DOMKeys.VK_NUM_1.c;
@@ -305,8 +323,9 @@ wmsx.DOMKeyboard = function() {
     var KEY_NUM_PERIOD       = wmsx.DOMKeys.VK_NUM_PERIOD.c;
     var KEY_NUM_COMMA        = wmsx.DOMKeys.VK_NUM_COMMA.c;
 
-    //var KEY_END_IGNORE       = wmsx.DOMKeys.VK_END.c;
-    //var KEY_CEDILLA          = wmsx.DOMKeys.VK_PORT_CEDILLA.c;
+    var KEY_STOP_EXTRA       = KEY_CLOSE_BRACKET;
+    var KEY_SELECT_EXTRA     = KEY_OPEN_BRACKET;
+
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;

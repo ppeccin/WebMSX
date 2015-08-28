@@ -197,7 +197,7 @@
 
 #jt-media .top-left {
     float: left;
-    width: 255px;
+    width: 257px;
 }
 
 #jt-media .top-right {
@@ -206,7 +206,7 @@
 
 #jt-media .bottom-left {
     float: left;
-    width: 255px;
+    width: 257px;
 }
 
 #jt-media .bottom-right {
@@ -214,23 +214,23 @@
 }
 
 #jt-media .top-left .command {
-    width: 45px;
+    width: 89px;
 }
 
 #jt-media .top-right .command {
-    width: 150px;
+    width: 148px;
 }
 
 #jt-media .bottom-left .command {
-    width: 114px;
-}
-
-#jt-media .bottom-right .command {
     width: 112px;
 }
 
+#jt-media .bottom-right .command {
+    width: 110px;
+}
+
 #jt-media .bottom .command {
-    width: 137px;
+    width: 135px;
 }
 
 
@@ -280,4 +280,8 @@
 #jt-general .full-divider {
     clear: both;
     height: 19px;
+}
+
+#jt-content {
+    left: -560px;
 }

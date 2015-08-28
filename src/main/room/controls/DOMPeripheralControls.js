@@ -51,18 +51,26 @@ wmsx.DOMPeripheralControls = function(monitor) {
     var initKeys = function() {
         var controls = wmsx.PeripheralControls;
 
+        keyCodeMap[KEY_DISKA]      = controls.DISKA_LOAD_FILE;
+        keyCodeMap[KEY_DISKB]      = controls.DISKB_LOAD_FILE;
         keyCodeMap[KEY_CART1]      = controls.CARTRIDGE1_LOAD_FILE;
         keyCodeMap[KEY_CART2]      = controls.CARTRIDGE2_LOAD_FILE;
         keyCodeMap[KEY_TAPE]       = controls.TAPE_LOAD_FILE;
 
+        keyAltCodeMap[KEY_DISKA]   = controls.DISKA_LOAD_FILE;
+        keyAltCodeMap[KEY_DISKB]   = controls.DISKB_LOAD_FILE;
         keyAltCodeMap[KEY_CART1]   = controls.CARTRIDGE1_LOAD_FILE;
         keyAltCodeMap[KEY_CART2]   = controls.CARTRIDGE2_LOAD_FILE;
         keyAltCodeMap[KEY_TAPE]    = controls.TAPE_LOAD_FILE_NO_AUTO_RUN;
 
+        keyControlCodeMap[KEY_DISKA] = controls.DISKA_LOAD_URL;
+        keyControlCodeMap[KEY_DISKB] = controls.DISKB_LOAD_URL;
         keyControlCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_URL;
         keyControlCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_URL;
         keyControlCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_URL;
 
+        keyShiftCodeMap[KEY_DISKA] = controls.DISKA_REMOVE;
+        keyShiftCodeMap[KEY_DISKB] = controls.DISKB_REMOVE;
         keyShiftCodeMap[KEY_CART1] = controls.CARTRIDGE1_REMOVE;
         keyShiftCodeMap[KEY_CART2] = controls.CARTRIDGE2_REMOVE;
         keyShiftCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_EMPTY;
@@ -72,7 +80,10 @@ wmsx.DOMPeripheralControls = function(monitor) {
         keyAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
         keyAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
 
+        keyControlAltCodeMap[KEY_DISKA] = controls.DISKA_SAVE_FILE;
+        keyControlAltCodeMap[KEY_DISKB] = controls.DISKB_SAVE_FILE;
         keyControlAltCodeMap[KEY_TAPE]   = controls.TAPE_SAVE_FILE;
+
         keyShiftControlCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
@@ -94,9 +105,6 @@ wmsx.DOMPeripheralControls = function(monitor) {
         keyShiftAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SCALE_X_PLUS;
 
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
-
-        //keyShiftCodeMap[KEY_CART_PASTE_INS] = controls.LOAD_CARTRIDGE_PASTE;
-        //keyControlCodeMap[KEY_CART_PASTE_V] = controls.LOAD_CARTRIDGE_PASTE;
     };
 
 
@@ -116,14 +124,17 @@ wmsx.DOMPeripheralControls = function(monitor) {
 
     var KEY_DEFAULTS  = wmsx.DOMKeys.VK_BACKSPACE.c;
 
-    var KEY_CART1  = wmsx.DOMKeys.VK_F6.c;
-    var KEY_CART2  = wmsx.DOMKeys.VK_F7.c;
+    var KEY_DISKA  = wmsx.DOMKeys.VK_F6.c;
+    var KEY_DISKB  = wmsx.DOMKeys.VK_F7.c;
 
     var KEY_TAPE       = wmsx.DOMKeys.VK_F8.c;
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+
+    var KEY_CART1  = wmsx.DOMKeys.VK_F9.c;
+    var KEY_CART2  = wmsx.DOMKeys.VK_F10.c;
 
     var KEY_CART_PASTE_V   = wmsx.DOMKeys.VK_V.c;
     var KEY_CART_PASTE_INS = wmsx.DOMKeys.VK_INSERT.c;

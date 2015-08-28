@@ -199,11 +199,6 @@ wmsx.DOMMachineControls = function() {
         withALTCodeMap[KEY_STATE_11a] = controls.LOAD_STATE_11;
         withALTCodeMap[KEY_STATE_12] = controls.LOAD_STATE_12;
         withALTCodeMap[KEY_STATE_12a] = controls.LOAD_STATE_12;
-
-        normalCodeMap[KEY_IGNORE_F10] = controls.IGNORED;
-        normalCodeMap[KEY_IGNORE_F11] = controls.IGNORED;
-
-
     };
 
     this.applyPreferences = function() {
@@ -234,13 +229,14 @@ wmsx.DOMMachineControls = function() {
 
     // Default Key Values
 
-    var KEY_TOGGLE_JOYSTICK  = wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK;
-    var KEY_TOGGLE_P1_MODE   = wmsx.DOMMachineControls.KEY_TOGGLE_P1_MODE;
-    var KEY_CARTRIDGE_FORMAT = wmsx.DOMMachineControls.KEY_CARTRIDGE_FORMAT;
     var KEY_SPEED            = wmsx.DOMMachineControls.KEY_SPEED;
     var KEY_PAUSE            = wmsx.DOMMachineControls.KEY_PAUSE;
 
-    var KEY_POWER            = wmsx.DOMKeys.VK_F9.c;
+    var KEY_TOGGLE_P1_MODE   = wmsx.DOMKeys.VK_H.c;
+    var KEY_TOGGLE_JOYSTICK  = wmsx.DOMKeys.VK_J.c;
+    var KEY_CARTRIDGE_FORMAT = wmsx.DOMKeys.VK_B.c;
+
+    var KEY_POWER            = wmsx.DOMKeys.VK_F11.c;
 
     var KEY_FRAME            = wmsx.DOMKeys.VK_F.c;
     var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
@@ -268,10 +264,7 @@ wmsx.DOMMachineControls = function() {
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS_FF.c;
 
-    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F6.c;
-
-    var KEY_IGNORE_F10       = wmsx.DOMKeys.VK_F10.c;
-    var KEY_IGNORE_F11       = wmsx.DOMKeys.VK_F11.c;
+    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F9.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = wmsx.DOMMachineControls.KEY_ALT_MASK;
@@ -284,8 +277,5 @@ wmsx.DOMMachineControls = function() {
 
 wmsx.DOMMachineControls.KEY_SPEED  = wmsx.DOMKeys.VK_F12.c;
 wmsx.DOMMachineControls.KEY_PAUSE  = wmsx.DOMKeys.VK_P.c;
-
-wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK  = wmsx.DOMKeys.VK_J.c;
-wmsx.DOMMachineControls.KEY_CARTRIDGE_FORMAT = wmsx.DOMKeys.VK_B.c;
 
 wmsx.DOMMachineControls.KEY_ALT_MASK   = 2;

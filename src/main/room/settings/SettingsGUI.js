@@ -36,7 +36,7 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="hotkey">' +
                                 '<div class="command">' +
                                     '<div class="key">' +
-                                        'F9' +
+                                        'F11' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
@@ -129,16 +129,28 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="full-divider">' +
                             '</div>' +
-                                '<div id="jt-general-swap-joysticks" class="hotkey">' +
+                            '<div id="jt-general-swap-joysticks" class="hotkey">' +
                                 '<div class="command">' +
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'J' +
-                                    '</div>' +
+                                    'J' +
+                                '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
                                     'Swap Joysticks' +
+                                '</div>' +
+                            '</div>' +
+                            '<div id="jt-general-toggle-keyboards" class="hotkey">' +
+                                '<div class="command">' +
+                                    '<div class="key key-fixed">' +
+                                        'Alt' +
+                                    '</div>&nbsp;+&nbsp;<div class="key">' +
+                                        'K' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="desc">' +
+                                    'Keyboard Layout' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -176,7 +188,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>&nbsp;<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'F6' +
+                                        'F9' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
@@ -228,8 +240,8 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'E' +
-                                    '</div>' +
+                                    'E' +
+                                '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
                                     'Color Modes' +
@@ -240,8 +252,8 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'R' +
-                                    '</div>' +
+                                    'R' +
+                                '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
                                     'CRT Modes' +
@@ -252,8 +264,8 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'T' +
-                                    '</div>' +
+                                    'T' +
+                                '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
                                     'CRT Filters' +
@@ -266,8 +278,8 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'Backspace' +
-                                    '</div>' +
+                                    'Backspace' +
+                                '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
                                     'Defaults' +
@@ -281,20 +293,24 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="command">' +
                                     '<div class="key">' +
                                         'F6' +
-                                    '</div>' +
+                                    '</div>&nbsp;,&nbsp;<div class="key">' +
+                                    'F7' +
+                                '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Load Cartridge Slot 1 Media' +
+                                    'Load Disk Drive A, B' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
                                 '<div class="command">' +
                                     '<div class="key">' +
-                                        'F7' +
+                                        'F9' +
+                                    '</div>&nbsp;,&nbsp;<div class="key">' +
+                                        'F10' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Load Cartridge Slot 2 Media' +
+                                    'Load Cartridge Slot 1, 2' +
                                 '</div>' +
                             '</div>' +
                             '<div class="hotkey">' +
@@ -304,7 +320,7 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Load Cassette Media' +
+                                    'Load Cassette Tape' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -314,7 +330,7 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key key-fixed">' +
                                         'Ctrl' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'Media Key' +
+                                        'F6 - F10' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
@@ -326,7 +342,7 @@ wmsx.SettingsGUI.html = function() {
                                     '<div class="key">' +
                                         'Shift' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'Media Key' +
+                                        'F6 - F10' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
@@ -340,11 +356,11 @@ wmsx.SettingsGUI.html = function() {
                                     '</div>&nbsp;<div class="key key-fixed">' +
                                         'Alt' +
                                     '</div>&nbsp;+&nbsp;<div class="key">' +
-                                        'F8' +
+                                        'F6 - F8' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="desc">' +
-                                    'Save Tape File' +
+                                    'Save Media File' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -372,23 +388,7 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                '&nbsp;+ Drag & Drop File or URL to load Media in Cartridge Slot 2' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="full-divider">' +
-                        '</div>' +
-                        '<div class="hotkey bottom">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
-                                        'Shift' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
-                                    'Ctrl' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F8' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Auto-Run Cassette program at current Tape position' +
+                                '&nbsp;+ Drag & Drop File or URL to load Media in Drive B or Cartridge Slot 2' +
                             '</div>' +
                         '</div>' +
                         '<div class="full-divider">' +
@@ -445,6 +445,22 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                         '</div>' +
+                        '<div class="full-divider">' +
+                        '</div>' +
+                        '<div class="hotkey bottom">' +
+                            '<div class="command">' +
+                                '<div class="key">' +
+                                    'Shift' +
+                                '</div>&nbsp;<div class="key key-fixed">' +
+                                'Ctrl' +
+                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                                'F8' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Auto-Run Cassette program at current Tape position' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
                     '<div id="jt-about">' +
                         '<div id="jt-logo-version">' +
@@ -475,12 +491,12 @@ wmsx.SettingsGUI.css = function() {
         'background-color: rgba(0, 0, 0, 0.6);' +
         'transition: all .2s ease-out;' +
     '}' +
-        
+
     '#jt-cover.show {' +
         'visibility: visible;' +
         'opacity: 1;' +
     '}' +
-    
+
     '#jt-modal {' +
         'position: relative;' +
         'overflow: hidden;' +
@@ -493,30 +509,30 @@ wmsx.SettingsGUI.css = function() {
         'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
         'transition: all .2s ease-out;' +
     '}' +
-    
+
     '#jt-modal.show {' +
         'left: -0px;' +
     '}' +
-    
+
     '#jt-modal .hotkey {' +
         'height: 27px;' +
         'padding: 3px 5px;' +
         'font-size: 13px;' +
         'box-sizing: border-box;' +
     '}' +
-    
+
     '#jt-modal .hotkey .command {' +
         'position: relative;' +
         'float: left;' +
         'font-weight: 600;' +
         'color: rgba(0, 0, 0, .50);' +
     '}' +
-    
+
     '#jt-modal .hotkey .desc {' +
         'float: left;' +
         'padding-top: 3px;' +
     '}' +
-    
+
     '#jt-modal .key {' +
         'position: relative;' +
         'display: inline-block;' +
@@ -535,19 +551,19 @@ wmsx.SettingsGUI.css = function() {
         'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
         'text-align: center;' +
     '}' +
-    
+
     '#jt-modal .key-fixed {' +
         'width: 31px;' +
         'padding-left: 0;' +
         'padding-right: 2px;' +
     '}' +
-    
+
     '#jt-menu {' +
         'position: relative;' +
         'background-color: white;' +
         'border-bottom: 1px solid rgb(200, 200, 200);' +
     '}' +
-    
+
     '#jt-menu #jt-back {' +
         'position: absolute;' +
         'width: 18px;' +
@@ -558,17 +574,17 @@ wmsx.SettingsGUI.css = function() {
         'color: white;' +
         'cursor: pointer;' +
     '}' +
-    
+
     '#jt-menu #jt-back:hover {' +
         'background-color: rgba(0, 0, 0, .12);' +
     '}' +
-    
+
     '#jt-menu #jt-back-arrow {' +
         'position: relative;' +
         'overflow: hidden;' +
         'top: -7px;' +
     '}' +
-    
+
     '#jt-menu .caption {' +
         'height: 29px;' +
         'margin: 0 -1px;' +
@@ -579,7 +595,7 @@ wmsx.SettingsGUI.css = function() {
         'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
         'vertical-align: middle;' +
     '}' +
-    
+
     '#jt-menu .items {' +
         'position: relative;' +
         'width: 70%;' +
@@ -587,7 +603,7 @@ wmsx.SettingsGUI.css = function() {
         'margin: 0 auto;' +
         'font-weight: 600;' +
     '}' +
-    
+
     '#jt-menu .item {' +
         'float: left;' +
         'width: 33.3%;' +
@@ -598,11 +614,11 @@ wmsx.SettingsGUI.css = function() {
         'text-align: center;' +
         'cursor: pointer;' +
     '}' +
-    
+
     '#jt-menu .selected {' +
         'color: rgb(224, 56, 34);' +
     '}' +
-    
+
     '#jt-menu #jt-menu-selection {' +
         'position: absolute;' +
         'left: 0;' +
@@ -612,8 +628,8 @@ wmsx.SettingsGUI.css = function() {
         'background-color: rgb(235, 62, 35);' +
         'transition: left 0.3s ease-in-out;' +
     '}' +
-    
-    
+
+
     '#jt-content {' +
         'position: relative;' +
         'left: 0;' +
@@ -622,88 +638,88 @@ wmsx.SettingsGUI.css = function() {
         'background-color: rgb(220, 220, 220);' +
         'transition: left 0.3s ease-in-out' +
     '}' +
-    
+
     '#jt-general, #jt-media, #jt-controls, #jt-about {' +
         'position: absolute;' +
         'width: 560px;' +
         'height: 100%;' +
         'box-sizing: border-box;' +
     '}' +
-    
+
     '#jt-general {' +
         'padding-top: 23px;' +
         'padding-left: 30px;' +
     '}' +
-    
+
     '#jt-general .left {' +
         'float: left;' +
         'width: 238px;' +
     '}' +
-    
+
     '#jt-general .right {' +
         'float: left;' +
     '}' +
-    
+
     '#jt-general .left .command {' +
         'width: 100px;' +
     '}' +
-    
+
     '#jt-general .right .command {' +
         'width: 167px;' +
     '}' +
-    
+
     '#jt-media {' +
         'left: 560px;' +
     '}' +
-    
+
     '#jt-media {' +
         'padding-top: 23px;' +
         'padding-left: 30px;' +
     '}' +
-    
+
     '#jt-media .top-left {' +
         'float: left;' +
-        'width: 255px;' +
+        'width: 257px;' +
     '}' +
-    
+
     '#jt-media .top-right {' +
         'float: left;' +
     '}' +
-    
+
     '#jt-media .bottom-left {' +
         'float: left;' +
-        'width: 255px;' +
+        'width: 257px;' +
     '}' +
-    
+
     '#jt-media .bottom-right {' +
         'float: left;' +
     '}' +
-    
+
     '#jt-media .top-left .command {' +
-        'width: 45px;' +
+        'width: 89px;' +
     '}' +
-    
+
     '#jt-media .top-right .command {' +
-        'width: 150px;' +
+        'width: 148px;' +
     '}' +
-    
+
     '#jt-media .bottom-left .command {' +
-        'width: 114px;' +
-    '}' +
-    
-    '#jt-media .bottom-right .command {' +
         'width: 112px;' +
     '}' +
-    
-    '#jt-media .bottom .command {' +
-        'width: 137px;' +
+
+    '#jt-media .bottom-right .command {' +
+        'width: 110px;' +
     '}' +
-    
-    
+
+    '#jt-media .bottom .command {' +
+        'width: 135px;' +
+    '}' +
+
+
     '#jt-about {' +
         'left: 1120px;' +
     '}' +
-    
+
     '#jt-about #jt-logo-version {' +
         'width: 380px;' +
         'height: 212px;' +
@@ -713,21 +729,21 @@ wmsx.SettingsGUI.css = function() {
         'padding-top: 170px;' +
         'box-sizing: border-box;' +
         'text-align: center;' +
-        'background: black url("' + WMSX.IMAGES_PATH + 'logo.png") center 50px no-repeat;' +
+        'background: black url("' + WMSX_IMAGES_PATH + 'logo.png") center 50px no-repeat;' +
         'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
     '}' +
-    
+
     '#jt-about .info {' +
         'font-size: 18px;' +
         'line-height: 30px;' +
         'text-align: center;' +
     '}' +
-    
+
     '#jt-about a {' +
         'color: rgb(0, 80, 230);' +
         'text-decoration: none;' +
     '}' +
-    
+
     '#jt-about #jt-browserinfo {' +
         'position: absolute;' +
         'left: 0;' +

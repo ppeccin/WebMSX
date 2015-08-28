@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Savestates... :-(
+// TODO Motor State when machine powered off is wrong
 
 wmsx.FileCassetteDeck = function() {
 

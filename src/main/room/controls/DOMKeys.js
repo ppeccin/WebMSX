@@ -79,10 +79,6 @@ wmsx.DOMKeys = {
     VK_CONTROL: {c: 17, n: "Ctrl"},
     VK_ALT: {c: 18, n: "Alt"},
 
-    VK_SHIFT_RIGHT: {c: 16, n: "R-Shift", l: 2},
-    VK_CONTROL_RIGHT: {c: 17, n: "R-Ctrl", l: 2},
-    VK_ALT_RIGHT: {c: 18, n: "R-Alt", l: 2},
-
     VK_CAPS_LOCK: {c: 20, n: "CpsLck"},
     VK_PRINT_SCREEN: {c: 44, n: "PrtScr"},
     VK_SCROLL_LOCK: {c: 145, n: "ScrLck"},
@@ -121,11 +117,11 @@ wmsx.DOMKeys = {
     VK_NUM_CENTER: {c: 12, n: "Num Cntr"},
 
 
+    // Codes for pt-BR keyboard
+
     VK_PORT_TILDE: {c: 176, n: "~"},
     VK_PORT_ACUTE: {c: 219, n: "´"},
     VK_PORT_CEDILLA: {c: 186, n: "Ç"}
-
-
 
 };
 
