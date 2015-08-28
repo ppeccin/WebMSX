@@ -43,10 +43,8 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.keyDown = function(event) {
-
         //D = event;
         //console.log(event.keyCode + " " + event.location);
-
         var modifiers = 0 | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
@@ -57,10 +55,6 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.keyUp = function(event) {
-
-        //U = event;
-        //console.log("U: " + event.keyCode + " " + event.location);
-
         var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
         if (processKeyEvent(event.keyCode, false, modifiers)) {
             event.returnValue = false;  // IE
@@ -189,6 +183,7 @@ wmsx.DOMKeyboard = function() {
         normalCodeMap[hostKeys.KEY_GRAPH.c]          = [ 6, 2 ];
         normalCodeMap[hostKeys.KEY_CODE.c]           = [ 6, 4 ];
         normalCodeMap[hostKeys.KEY_CODE2.c]          = [ 6, 4 ];
+        normalCodeMap[hostKeys.KEY_CODE3.c]          = [ 6, 4 ];
 
         normalCodeMap[hostKeys.KEY_COMMA.c]          = [ 2, 2 ];
         normalCodeMap[hostKeys.KEY_PERIOD.c]         = [ 2, 3 ];
@@ -198,6 +193,7 @@ wmsx.DOMKeyboard = function() {
 
         normalCodeMap[hostKeys.KEY_DEAD.c]           = [ 2, 5 ];
         normalCodeMap[hostKeys.KEY_DEAD2.c]          = [ 2, 5 ];
+        normalCodeMap[hostKeys.KEY_DEAD3.c]          = [ 2, 5 ];
 
         normalCodeMap[hostKeys.KEY_QUOTE.c]          = [ 2, 0 ];
         normalCodeMap[hostKeys.KEY_BACKQUOTE.c]      = [ 2, 1 ];
@@ -314,8 +310,10 @@ wmsx.DOMKeyboard = function() {
             KEY_GRAPH: wmsx.DOMKeys.VK_PAGE_UP,
             KEY_CODE:  wmsx.DOMKeys.VK_PAGE_DOWN,
             KEY_CODE2: wmsx.DOMKeys.VK_UNBOUND,
+            KEY_CODE3: wmsx.DOMKeys.VK_UNBOUND,
             KEY_DEAD:  wmsx.DOMKeys.VK_END,
             KEY_DEAD2: wmsx.DOMKeys.VK_UNBOUND,
+            KEY_DEAD3: wmsx.DOMKeys.VK_UNBOUND,
 
             KEY_NUM_0: wmsx.DOMKeys.VK_NUM_0,
             KEY_NUM_1: wmsx.DOMKeys.VK_NUM_1,
@@ -345,8 +343,10 @@ wmsx.DOMKeyboard = function() {
     var initHostKeysForKeyboard = function(keyboard) {
         switch (keyboard.name) {
             case "pt-BR":
-                hostKeys.KEY_DEAD2 = wmsx.DOMKeys.BR_VK_ACUTE;
+                hostKeys.KEY_DEAD2 = wmsx.DOMKeys.BR_VK_TILDE;
+                hostKeys.KEY_DEAD3 = wmsx.DOMKeys.BR_VK_TILDE_FF;
                 hostKeys.KEY_CODE2 = wmsx.DOMKeys.BR_VK_CEDILLA;
+                hostKeys.KEY_CODE3 = wmsx.DOMKeys.BR_VK_CEDILLA_FF;
         }
     };
 

@@ -56,22 +56,6 @@ wmsx.DOMKeysImpl = function() {
         self.VK_N = {c: 78, n: "N"};
         self.VK_M = {c: 77, n: "M"};
 
-        self.VK_QUOTE = {c: 222, n: "'"};
-        self.VK_BACKQUOTE = {c: 192, n: "`"};
-
-        self.VK_MINUS = {c: 189, n: "-"};
-        self.VK_MINUS_FF = {c: 173, n: "-"};
-        self.VK_EQUALS = {c: 187, n: "="};
-        self.VK_EQUALS_FF = {c: 61, n: "="};
-        self.VK_OPEN_BRACKET = {c: 219, n: "["};
-        self.VK_CLOSE_BRACKET = {c: 221, n: "]"};
-        self.VK_COMMA = {c: 188, n: ","};
-        self.VK_PERIOD = {c: 190, n: "."};
-        self.VK_SEMICOLON = {c: 186, n: ";"};
-        self.VK_SEMICOLON_FF = {c: 59, n: ";"};
-        self.VK_SLASH = {c: 191, n: "/"};
-        self.VK_BACKSLASH = {c: 220, n: "\\"};
-
         self.VK_ESCAPE = {c: 27, n: "Esc"};
         self.VK_ENTER = {c: 13, n: "Enter"};
         self.VK_SPACE = {c: 32, n: "Space"};
@@ -119,16 +103,34 @@ wmsx.DOMKeysImpl = function() {
         self.VK_NUM_9 = {c: 105, n: "Num 9"};
         self.VK_NUM_CENTER = {c: 12, n: "Num Cntr"};
 
+        self.VK_QUOTE = {c: 222, n: "'"};
+        self.VK_BACKQUOTE = {c: 192, n: "`"};
+
+        self.VK_MINUS = {c: 189, n: "-"};
+        self.VK_MINUS_FF = {c: 173, n: "-"};
+        self.VK_EQUALS = {c: 187, n: "="};
+        self.VK_EQUALS_FF = {c: 61, n: "="};
+        self.VK_OPEN_BRACKET = {c: 219, n: "["};
+        self.VK_CLOSE_BRACKET = {c: 221, n: "]"};
+        self.VK_COMMA = {c: 188, n: ","};
+        self.VK_PERIOD = {c: 190, n: "."};
+        self.VK_SEMICOLON = {c: 186, n: ";"};
+        self.VK_SEMICOLON_FF = {c: 59, n: ";"};
+        self.VK_SLASH = {c: 191, n: "/"};
+        self.VK_BACKSLASH = {c: 220, n: "\\"};
+
         // BR key codes and additional keys
         self.BR_VK_QUOTE = {c: 192, n: "'"};
         self.BR_VK_OPEN_BRACKET = {c: 221, n: "["};
         self.BR_VK_CLOSE_BRACKET = {c: 220, n: "]"};
         self.BR_VK_TILDE = {c: 222, n: "~"};
+        self.BR_VK_TILDE_FF = {c: 176, n: "~"};
         self.BR_VK_ACUTE = {c: 219, n: "´"};
         self.BR_VK_SEMICOLON = {c: 191, n: ";"};
         self.BR_VK_SLASH = {c: 193, n: "/"};
         self.BR_VK_BACKSLASH = {c: 226, n: "\\"};
         self.BR_VK_CEDILLA = {c: 186, n: "Ç"};
+        self.BR_VK_CEDILLA_FF = {c: 0, n: "Ç"};
 
         self.VK_UNBOUND = {c: -1, n: "Unbound"};
     }
@@ -141,13 +143,16 @@ wmsx.DOMKeysImpl = function() {
         initKeys();
 
         // Apply modifications
-        self.VK_QUOTE = self.BR_VK_QUOTE;
-        self.VK_OPEN_BRACKET = self.BR_VK_OPEN_BRACKET;
-        self.VK_CLOSE_BRACKET = self.BR_VK_CLOSE_BRACKET;
-        self.VK_BACKQUOTE = self.BR_VK_TILDE;
-        self.VK_SEMICOLON = self.BR_VK_SEMICOLON;
-        self.VK_SLASH = self.BR_VK_SLASH;
-        self.VK_BACKSLASH = self.BR_VK_BACKSLASH;
+        // Apparently FF does not need these since it already does the translations itself
+        if (wmsx.Util.browserInfo().name != "FIREFOX") {
+            self.VK_QUOTE = self.BR_VK_QUOTE;
+            self.VK_OPEN_BRACKET = self.BR_VK_OPEN_BRACKET;
+            self.VK_CLOSE_BRACKET = self.BR_VK_CLOSE_BRACKET;
+            self.VK_BACKQUOTE = self.BR_VK_ACUTE;
+            self.VK_SEMICOLON = self.BR_VK_SEMICOLON;
+            self.VK_SLASH = self.BR_VK_SLASH;
+            self.VK_BACKSLASH = self.BR_VK_BACKSLASH;
+        }
     };
 
     this.supportedKeyboards = function() {
