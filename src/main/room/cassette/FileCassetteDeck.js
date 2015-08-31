@@ -31,7 +31,7 @@ wmsx.FileCassetteDeck = function() {
 
         if (autoPower && currentAutoRunCommand()) {
             cassetteSocket.autoPowerCycle();
-            // Give some type for reboot and then enter command
+            // Give some time for reboot and then enter command
             window.setTimeout(this.typeCurrentAutoRunCommand, 1700);        // TODO Arbitrary...
         }
 
@@ -198,7 +198,7 @@ wmsx.FileCassetteDeck = function() {
 
         switch (info.type) {
             case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
-            case "Basic": return '\r\rcload "' + info.name + '"\r';
+            case "Basic": return '\r\rcload "' + info.name + '"\rrun\r';
             case "ASCII": return '\r\rload "cas:' + info.name + '", r\r';
         }
         return null;

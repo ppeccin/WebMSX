@@ -7,6 +7,7 @@ wmsx.CartridgeUnbanked = function(rom) {
     function init() {
         self.rom = rom;
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
+        self.bytes = bytes;
         var content = self.rom.content;
         // If 64K size, it fits just fine starting at 0x0000
         if (content.length === 65536) {

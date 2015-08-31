@@ -73,6 +73,10 @@ wmsx.Machine = function() {
         return cassetteSocket;
     };
 
+    this.getDiskDriveSocket = function() {
+        return diskDriveSocket;
+    };
+
     this.showOSD = function(message, overlap) {
         this.getVideoOutput().showOSD(message, overlap);
     };
@@ -97,6 +101,10 @@ wmsx.Machine = function() {
     };
 
     var setCartridge = function(cartridge, port) {
+
+        // TODO Remove
+        if (port === 2) diskBIOSExtension.patchDiskBIOS(cartridge);
+
         if (port === 2) WMSX.cartridge2 = cartridge;
         else WMSX.cartridge1 = cartridge;
         bus.setCartridge(cartridge, port);
@@ -200,9 +208,11 @@ wmsx.Machine = function() {
         keyboardSocket = new KeyboardSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
+        diskDriveSocket = new DiskDriveSocket();
     };
 
     var extensionsCreate = function() {
+        diskBIOSExtension = new wmsx.DiskBIOSCPUExtension(cpu, bus);
         cassetteBIOSExtension = new wmsx.CassetteBIOSCPUExtension(cpu);
         basicExtension = new wmsx.BASICExtension(bus);
     };
@@ -229,8 +239,10 @@ wmsx.Machine = function() {
     var cartridgeSocket;
     var saveStateSocket;
     var cassetteSocket;
+    var diskDriveSocket;
 
     var cassetteBIOSExtension;
+    var diskBIOSExtension;
     var basicExtension;
 
     var videoStandardIsAuto = false;
@@ -386,7 +398,22 @@ wmsx.Machine = function() {
         this.autoPowerCycle = function () {
             if (self.powerIsOn) self.powerOff();
             self.userPowerOn();
+        };
 
+    }
+
+
+    // Disk Drive Socket  -----------------------------------------
+
+    function DiskDriveSocket() {
+
+        this.connectDrive = function (pDrive) {
+            diskBIOSExtension.connectDrive(pDrive);
+        };
+
+        this.autoPowerCycle = function () {
+            if (self.powerIsOn) self.powerOff();
+            self.userPowerOn();
         };
 
     }

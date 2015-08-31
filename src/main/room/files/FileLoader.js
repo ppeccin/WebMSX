@@ -9,8 +9,9 @@ wmsx.FileLoader = function() {
         saveStateSocket = pSaveStateSocket;
     };
 
-    this.connectPeripherals = function(pCassetteDeck) {
+    this.connectPeripherals = function(pCassetteDeck, pDiskDrive) {
         cassetteDeck = pCassetteDeck;
+        diskDrive = pDiskDrive;
     };
 
     this.registerForDnD = function (element) {
@@ -156,6 +157,9 @@ wmsx.FileLoader = function() {
             // Then try to load as a Cassette file
             if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
                 return;
+            // Then try to load as a Disk file
+            if (diskDrive.loadDiskFile(name, arrContent, autoPower))
+                return;
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new wmsx.ROM(name, arrContent);
             var slot = wmsx.SlotCreator.createFromROM(rom);
@@ -186,6 +190,9 @@ wmsx.FileLoader = function() {
                             return;
                         // Then try to load as a Cassette file
                         if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
+                            return;
+                        // Then try to load as a Disk file
+                        if (diskDrive.loadDiskFile(name, arrContent, autoPower))
                             return;
                         // Then try to load as a ROM (BIOS or Cartridge)
                         rom = new wmsx.ROM(file.name, arrContent);
@@ -228,6 +235,7 @@ wmsx.FileLoader = function() {
     var cartridgeSocket;
     var saveStateSocket;
     var cassetteDeck;
+    var diskDrive;
 
     var fileInputElement;
     var fileInputElementParent;

@@ -12,21 +12,23 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
         patchBIOS(bios);
     };
 
-    function cassetteBIOSCPUExtension(num, PC, SP, A, F, B, C, D, E, H, L, IX, IY, AF2, BC2, DE2, HL2, I, R, IFF1, IM) {
-        if (num === 0)
-            return TAPION(F);
-        else if (num === 1)
-            return TAPIN(F);
-        else if (num === 2)
-            return TAPIOF();
-        else if (num === 3)
-            return TAPOON(A, F);
-        else if (num === 4)
-            return TAPOUT(A, F);
-        else if (num === 5)
-            return TAPOOF();
-        else if (num === 6)
-            return STMOTR(A);
+    function cassetteBIOSCPUExtension(s) {
+        switch (s.extNum) {
+            case 0:
+                return TAPION(s.F);
+            case 1:
+                return TAPIN(s.F);
+            case 2:
+                return TAPIOF();
+            case 3:
+                return TAPOON(s.A, s.F);
+            case 4:
+                return TAPOUT(s.A, s.F);
+            case 5:
+                return TAPOOF();
+            case 6:
+                return STMOTR(s.A);
+        }
     }
 
     function patchBIOS(bios) {

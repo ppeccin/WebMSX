@@ -159,6 +159,20 @@ wmsx.Util = new function() {
         else return res;
     };
 
+    this.toHex4 = function(num) {
+        var res = num.toString(16).toUpperCase();
+        switch (res.length % 4) {
+            case 0:
+                return res;
+            case 1:
+                return "000" + res;
+            case 2:
+                return "00" + res;
+            case 3:
+                return "0" + res;
+        }
+    };
+
     this.escapeHtml = function(html) {
         return html
             .replace(/&/g, "&amp;")

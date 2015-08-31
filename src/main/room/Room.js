@@ -37,6 +37,7 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         self.fileDownloader = new wmsx.FileDownloader();
         self.stateMedia = new wmsx.LocalStorageSaveStateMedia();
         self.cassetteDeck = new wmsx.FileCassetteDeck();
+        self.diskDrive = new wmsx.FileDiskDrive();
         self.fileLoader = new wmsx.FileLoader();
         self.screen = new wmsx.CanvasDisplay(screenElement);
         self.speaker = new wmsx.WebAudioSpeaker();
@@ -44,12 +45,13 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         self.machineControls = new wmsx.DOMMachineControls();
         if (machinePanelElement) self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
 
-        self.fileLoader.connectPeripherals(self.cassetteDeck);
-        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.cassetteDeck);
+        self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
+        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.cassetteDeck, self.diskDrive);
         self.machineControls.connectPeripherals(self.screen, self.machinePanel);
         self.keyboard.connectPeripherals(self.screen, self.machinePanel);
         self.stateMedia.connectPeripherals(self.fileDownloader);
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
+        self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);
         if (self.machinePanel) self.machinePanel.connectPeripherals(self.screen, self.fileLoader);
    };
 
@@ -63,6 +65,7 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         self.machineControls.connect(self.machine.getMachineControlsSocket());
         self.keyboard.connect(self.machine.getKeyboardSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
+        self.diskDrive.connect(self.machine.getDiskDriveSocket());
     };
 
 
@@ -74,6 +77,7 @@ wmsx.Room = function(screenElement, machinePanelElement) {
     this.keyboard = null;
     this.fileDownloader = null;
     this.cassetteDeck = null;
+    this.diskDrive = null;
     this.stateMedia = null;
     this.fileLoader = null;
 

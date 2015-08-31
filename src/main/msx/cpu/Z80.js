@@ -1368,10 +1368,10 @@ wmsx.Z80 = function() {
         return function pEXT() {
             if (self.extensionHandler[num] === undefined) return;
             // Send state to the handler
-            var res = self.extensionHandler[num](
-                num,
-                PC, SP, A, F, B, C, DE, HL, IX, IY,
-                AF2, BC2, DE2, HL2, I, R, IFF1, IM);
+            var res = self.extensionHandler[num]({
+                extNum: num, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
+                AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IFF1: IFF1, IM: IM
+            });
             if (!res) return;
             // Put back state modified by the handler
             if (res.PC !== undefined)   PC = res.PC;
