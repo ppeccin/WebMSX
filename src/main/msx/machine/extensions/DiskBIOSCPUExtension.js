@@ -19,7 +19,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
             case 0xb:
                 return DSKCHG(s.F, s.A, s.B, s.C, s.HL);
             case 0xc:
-                return GETDPB();
+                return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
                 return DSKFMT();
             case 0xe:
@@ -110,8 +110,9 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         return { F: F & ~1, B: 1 };
     }
 
-    function GETDPB() {
-        console.log("GETDPB");
+    function GETDPB(A, B, C, HL) {
+        console.log("GETDPB: " + wmsx.Util.toHex2(A) + ", "
+            + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
     }
 
     function DSKFMT() {
