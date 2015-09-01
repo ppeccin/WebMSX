@@ -118,7 +118,7 @@ wmsx.PSGAudioSignal = function() {
     var externalAddedValue = 0;
 
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
-    var MAX_AMPLITUDE = 0.65;
+    var MAX_AMPLITUDE = 0.75;
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 

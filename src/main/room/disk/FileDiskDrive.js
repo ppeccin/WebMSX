@@ -54,6 +54,13 @@ wmsx.FileDiskDrive = function() {
         }
     };
 
+    this.diskHasChanged = function(drive, mediaDesc) {
+        // No Disk
+        if (!diskContent)
+            return { error: 2 };
+        else
+            return {};
+    };
 
 
 
@@ -67,7 +74,7 @@ wmsx.FileDiskDrive = function() {
     var diskDriveSocket;
 
     var diskFileName = null;
-    var diskContent = [];
+    var diskContent = null;
     var tapePosition = 0;
     var motor = false;
 

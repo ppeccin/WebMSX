@@ -71,12 +71,12 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         var res = drive.readSectors(A, B, C, DE);
 
         // Error
-        if (res.error !== undefined)
-            return { F: F | 1, A: res.error, B: res.sectorsRemaining };
-
+        if (res.error !== undefined) {
+            console.log("DSKIOREAD error");
+            return {F: F | 1, A: res.error, B: res.sectorsRemaining};
+        }
 
         console.log("Bytes read: " + res.bytesRead.length);
-
 
         // Transfer bytes read
         var bytes = res.bytesRead;
@@ -93,10 +93,20 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         return { F: F | 1, A: res.error, B: res.sectorsRemaining };
     }
 
+    // B should always be 0
     function DSKCHG(F, A, B, C, HL) {
         console.log("DSKCHG: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex2(A) + ", "
             + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
+        var res = drive.diskHasChanged(A, C);
+
+        // Error
+        if (res.error !== undefined) {
+            console.log("DSKCHG error");
+            return {F: F | 1, A: res.error, B: 0};
+        }
+
+        // Success
         return { F: F & ~1, B: 1 };
     }
 
