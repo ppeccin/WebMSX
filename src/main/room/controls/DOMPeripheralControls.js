@@ -1,10 +1,21 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMPeripheralControls = function(monitor) {
+wmsx.DOMPeripheralControls = function(room) {
 
     function init() {
         initKeys();
     }
+
+    this.connect = function(pCartridgeSocket) {
+        cartridgeSocket = pCartridgeSocket;
+    };
+
+    this.connectPeripherals = function(pMonitor, pFileLoader, pCassetteDeck, pDiskDrive) {
+        monitor = pMonitor;
+        fileLoader = pFileLoader;
+        cassetteDeck = pCassetteDeck;
+        diskDrive = pDiskDrive;
+    };
 
     this.addInputElements = function(elements) {
         for (var i = 0; i < elements.length; i++)
@@ -24,7 +35,7 @@ wmsx.DOMPeripheralControls = function(monitor) {
     var processKeyPress = function(keyCode, modifiers) {
         var control = controlForEvent(keyCode, modifiers);
         if (!control) return false;
-        monitor.controlActivated(control);
+        controlActivated(control);
         return true;
     };
 
@@ -48,9 +59,120 @@ wmsx.DOMPeripheralControls = function(monitor) {
         return null;
     };
 
-    var initKeys = function() {
-        var controls = wmsx.PeripheralControls;
+    var controlActivated = function(control) {
+        // All controls are Press-only and repeatable
+        switch(control) {
+            case controls.DISKA_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
+                break;
+            case controls.DISKA_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
+                break;
+            case controls.DISKA_REMOVE:
+                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk();
+                break;
+            case controls.DISKB_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
+                break;
+            case controls.DISKB_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
+                break;
+            case controls.DISKB_REMOVE:
+                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk();
+                break;
+            case controls.CARTRIDGE1_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
+                break;
+            case controls.CARTRIDGE1_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
+                break;
+            case controls.CARTRIDGE1_REMOVE:
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
+                break;
+            case controls.CARTRIDGE2_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
+                break;
+            case controls.CARTRIDGE2_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
+                break;
+            case controls.CARTRIDGE2_REMOVE:
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 2, true);
+                break;
+            case controls.TAPE_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true);
+                break;
+            case controls.TAPE_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true);
+                break;
+            case controls.TAPE_LOAD_FILE_NO_AUTO_RUN:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
+                break;
+            case controls.TAPE_LOAD_URL_NO_AUTO_RUN:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false);
+                break;
+            case controls.TAPE_LOAD_EMPTY:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmpty();
+                break;
+            case controls.TAPE_SAVE_FILE:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.saveTapeFile();
+                break;
+            case controls.TAPE_REWIND:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.rewind();
+                break;
+            case controls.TAPE_TO_END:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.seekToEnd();
+                break;
+            case controls.TAPE_SEEK_BACK:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.seekBackward();
+                break;
+            case controls.TAPE_SEEK_FWD:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.seekForward();
+                break;
+            case controls.TAPE_AUTO_RUN:
+                cassetteDeck.typeCurrentAutoRunCommand();
+                break;
+            case controls.SCREEN_CRT_MODE:
+                monitor.crtModeToggle(); break;
+            case controls.SCREEN_CRT_FILTER:
+                monitor.crtFilterToggle(); break;
+            case controls.SCREEN_DEBUG:
+                monitor.debugModesCycle(); break;
+            case controls.SCREEN_DEFAULTS:
+                monitor.setDefaults();
+                monitor.showOSD("Initial Settings", true);
+                break;
+            case controls.SCREEN_FULLSCREEN:
+                monitor.fullscreenToggle(); break;
+            case controls.EXIT:
+                room.exit(); break;
+        }
+        if (SCREEN_FIXED_SIZE) return;
+        switch(control) {
+            case controls.SCREEN_SCALE_X_MINUS:
+                monitor.displayScaleXDecrease(); break;
+            case controls.SCREEN_SCALE_X_PLUS:
+                monitor.displayScaleXIncrease(); break;
+            case controls.SCREEN_SCALE_Y_MINUS:
+                monitor.displayScaleYDecrease(); break;
+            case controls.SCREEN_SCALE_Y_PLUS:
+                monitor.displayScaleYIncrease(); break;
+            case controls.SCREEN_SIZE_MINUS:
+                monitor.displaySizeDecrease(); break;
+            case controls.SCREEN_SIZE_PLUS:
+                monitor.displaySizeIncrease(); break;
+        }
+    };
 
+    var mediaChangeDisabledWarning = function() {
+        if (WMSX.MEDIA_CHANGE_DISABLED) {
+            monitor.showOSD("Media change is disabled", true);
+            return true;
+        }
+        return false;
+    };
+
+
+    var initKeys = function() {
         keyCodeMap[KEY_DISKA]      = controls.DISKA_LOAD_FILE;
         keyCodeMap[KEY_DISKB]      = controls.DISKB_LOAD_FILE;
         keyCodeMap[KEY_CART1]      = controls.CARTRIDGE1_LOAD_FILE;
@@ -90,7 +212,6 @@ wmsx.DOMPeripheralControls = function(monitor) {
 
         keyAltCodeMap[KEY_CRT_FILTER]   = controls.SCREEN_CRT_FILTER;
         keyAltCodeMap[KEY_DEBUG]     	= controls.SCREEN_DEBUG;
-        keyAltCodeMap[KEY_STATS]    	= controls.SCREEN_STATS;
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
         keyAltCodeMap[KEY_FULLSCREEN]  	= controls.SCREEN_FULLSCREEN;
 
@@ -107,6 +228,14 @@ wmsx.DOMPeripheralControls = function(monitor) {
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
     };
 
+
+    var controls = wmsx.PeripheralControls;
+
+    var monitor;
+    var fileLoader;
+    var cartridgeSocket;
+    var cassetteDeck;
+    var diskDrive;
 
     var keyCodeMap = {};
     var keyShiftCodeMap = {};
@@ -143,7 +272,6 @@ wmsx.DOMPeripheralControls = function(monitor) {
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
 
     var KEY_DEBUG   = wmsx.DOMKeys.VK_D.c;
-    var KEY_STATS   = wmsx.DOMKeys.VK_G.c;
 
     var KEY_FULLSCREEN   = wmsx.DOMKeys.VK_ENTER.c;
 
@@ -152,6 +280,9 @@ wmsx.DOMPeripheralControls = function(monitor) {
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;
     var KEY_SHIFT_MASK = 4;
+
+
+    var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 
 
     init();

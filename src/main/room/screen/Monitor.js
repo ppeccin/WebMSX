@@ -4,18 +4,9 @@ wmsx.Monitor = function() {
 
     var self = this;
 
-    function init(self) {
-        controls = new wmsx.DOMPeripheralControls(self);
-    }
-
     this.connectDisplay = function(monitorDisplay) {
         display = monitorDisplay;
-        setDefaults();
-    };
-
-    this.connectPeripherals = function(pFileLoader, pCassetteDeck) {
-        fileLoader = pFileLoader;
-        cassetteDeck = pCassetteDeck;
+        this.setDefaults();
     };
 
     this.connect = function(pVideoSignal, pCartridgeSocket) {
@@ -23,10 +14,6 @@ wmsx.Monitor = function() {
         cartridgeSocket.addCartridgesStateListener(this);
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
-    };
-
-    this.addControlInputElements = function(elements) {
-        controls.addInputElements(elements);
     };
 
     this.newFrame = function(image, backdropColor) {
@@ -54,24 +41,52 @@ wmsx.Monitor = function() {
         displayCenter();
     };
 
-    var setDefaults = function() {
-        self.setDisplayDefaultSize();
+    this.setDefaults = function() {
+        this.setDisplayDefaultSize();
         crtModeSetDefault();
         display.crtFilterSetDefault();
     };
 
-    var crtSetModeForCartridges = function() {
-        // Only change mode if in Default is in AUTO (not forced)
-        if (CRT_MODE === -1 && (crtMode === 0 || crtMode === 1)) {
-            var cart = cartridgeSocket.inserted(1) || cartridgeSocket.inserted(2);
-            setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
-        }
+    this.crtModeToggle = function() {
+        setCrtMode(crtMode + 1);
+        display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
     };
 
-    var displayUpdateSize = function() {
-        if (!display) return;
-        display.displaySize((wmsx.Monitor.CONTENT_WIDTH * displayScaleX) | 0, (wmsx.Monitor.CONTENT_HEIGHT * displayScaleY) | 0);
-        //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
+    this.crtFilterToggle = function() {
+        display.crtFilterToggle();
+    };
+
+    this.debugModesCycle = function() {
+        debug++;
+        if (debug > 4) debug = 0;
+    };
+
+    this.fullscreenToggle = function() {
+        display.displayToggleFullscreen();
+    };
+
+    this.displayScaleXDecrease = function() {
+        setDisplayScale(displayScaleX - 0.5, displayScaleY);
+    };
+
+    this.displayScaleXIncrease = function() {
+        setDisplayScale(displayScaleX + 0.5, displayScaleY);
+    };
+
+    this.displayScaleYDecrease = function() {
+        setDisplayScale(displayScaleX, displayScaleY - 0.5);
+    };
+
+    this.displayScaleYIncrease = function() {
+        setDisplayScale(displayScaleX, displayScaleY + 0.5);
+    };
+
+    this.displaySizeDecrease = function() {
+        setDisplayScaleDefaultAspect(displayScaleY - 0.5);
+    };
+
+    this.displaySizeIncrease = function() {
+        setDisplayScaleDefaultAspect(displayScaleY + 0.5);
     };
 
     var setDisplayScale = function(x, y) {
@@ -88,21 +103,26 @@ wmsx.Monitor = function() {
         setDisplayScale(scaleY * DEFAULT_SCALE_ASPECT_X, scaleY);
     };
 
+    var crtSetModeForCartridges = function() {
+        // Only change mode if in Default is in AUTO (not forced)
+        if (CRT_MODE === -1 && (crtMode === 0 || crtMode === 1)) {
+            var cart = cartridgeSocket.inserted(1) || cartridgeSocket.inserted(2);
+            setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
+        }
+    };
+
+    var displayUpdateSize = function() {
+        if (!display) return;
+        display.displaySize((wmsx.Monitor.CONTENT_WIDTH * displayScaleX) | 0, (wmsx.Monitor.CONTENT_HEIGHT * displayScaleY) | 0);
+        //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
+    };
+
     var displayCenter = function() {
         if (display) display.displayCenter();
     };
 
-    var toggleFullscreen = function() {
-        display.displayToggleFullscreen();
-    };
-
     var crtModeSetDefault = function() {
         setCrtMode(CRT_MODE < 0 ? 0 : CRT_MODE);
-    };
-
-    var crtModeToggle = function() {
-        setCrtMode(crtMode + 1);
-        display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
     };
 
     var setCrtMode = function(mode) {
@@ -111,120 +131,14 @@ wmsx.Monitor = function() {
         crtMode = newMode;
     };
 
-    var exit = function() {
-        display.exit();
-    };
-
     var cleanBackBuffer = function() {
         // Put a nice green for detection of undrawn lines, for debug purposes
         if (backBuffer) wmsx.Util.arrayFill(backBuffer, 0xff00ff00);
     };
 
-    var cartridgeChangeDisabledWarning = function() {
-        if (WMSX.CARTRIDGE_CHANGE_DISABLED) {
-            display.showOSD("Cartridge change is disabled", true);
-            return true;
-        }
-        return false;
-    };
-
-
-    // Controls Interface  -----------------------------------------
-
-    var peripheralControls = wmsx.PeripheralControls;
-
-    this.controlActivated = function(control) {
-        // All controls are Press-only and repeatable
-        switch(control) {
-            case peripheralControls.CARTRIDGE1_LOAD_FILE:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
-                break;
-            case peripheralControls.CARTRIDGE1_LOAD_URL:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
-                break;
-            case peripheralControls.CARTRIDGE1_REMOVE:
-                if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
-                break;
-            case peripheralControls.CARTRIDGE2_LOAD_FILE:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
-                break;
-            case peripheralControls.CARTRIDGE2_LOAD_URL:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
-                break;
-            case peripheralControls.CARTRIDGE2_REMOVE:
-                if (!cartridgeChangeDisabledWarning()) cartridgeSocket.insert(null, 2, true);
-                break;
-            case peripheralControls.TAPE_LOAD_FILE:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(true);
-                break;
-            case peripheralControls.TAPE_LOAD_URL:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(true);
-                break;
-            case peripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
-                break;
-            case peripheralControls.TAPE_LOAD_URL_NO_AUTO_RUN:
-                if (!cartridgeChangeDisabledWarning()) fileLoader.openURLChooserDialog(false);
-                break;
-            case peripheralControls.TAPE_LOAD_EMPTY:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.loadEmpty();
-                break;
-            case peripheralControls.TAPE_SAVE_FILE:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.saveTapeFile();
-                break;
-            case peripheralControls.TAPE_REWIND:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.rewind();
-                break;
-            case peripheralControls.TAPE_TO_END:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.seekToEnd();
-                break;
-            case peripheralControls.TAPE_SEEK_BACK:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.seekBackward();
-                break;
-            case peripheralControls.TAPE_SEEK_FWD:
-                if (!cartridgeChangeDisabledWarning()) cassetteDeck.seekForward();
-                break;
-            case peripheralControls.TAPE_AUTO_RUN:
-                cassetteDeck.typeCurrentAutoRunCommand();
-                break;
-            case peripheralControls.SCREEN_CRT_MODE:
-                crtModeToggle(); break;
-            case peripheralControls.SCREEN_CRT_FILTER:
-                display.crtFilterToggle(); break;
-            case peripheralControls.SCREEN_DEBUG:
-                debug++;
-                if (debug > 4) debug = 0;
-                break;
-            case peripheralControls.SCREEN_DEFAULTS:
-                setDefaults();
-                display.showOSD("Initial Settings", true);
-                break;
-            case peripheralControls.SCREEN_FULLSCREEN:
-                toggleFullscreen(); break;
-            case peripheralControls.EXIT:
-                exit(); break;
-        }
-        if (fixedSizeMode) return;
-        switch(control) {
-            case peripheralControls.SCREEN_SCALE_X_MINUS:
-                setDisplayScale(displayScaleX - 0.5, displayScaleY); break;
-            case peripheralControls.SCREEN_SCALE_X_PLUS:
-                setDisplayScale(displayScaleX + 0.5, displayScaleY); break;
-            case peripheralControls.SCREEN_SCALE_Y_MINUS:
-                setDisplayScale(displayScaleX, displayScaleY - 0.5); break;
-            case peripheralControls.SCREEN_SCALE_Y_PLUS:
-                setDisplayScale(displayScaleX, displayScaleY + 0.5); break;
-            case peripheralControls.SCREEN_SIZE_MINUS:
-                setDisplayScaleDefaultAspect(displayScaleY - 0.5); break;
-            case peripheralControls.SCREEN_SIZE_PLUS:
-                setDisplayScaleDefaultAspect(displayScaleY + 0.5); break;
-        }
-    };
 
 
     var display;
-    var fileLoader;
-    var cassetteDeck;
 
     var videoSignal;
     var cartridgeSocket;
@@ -240,14 +154,13 @@ wmsx.Monitor = function() {
 
     var frameOriginX = wmsx.Monitor.BORDER_WIDTH;
     var frameOriginY = wmsx.Monitor.BORDER_HEIGHT;
+
     var DEFAULT_SCALE_ASPECT_X = 1;
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
 
     var crtMode = -1;
 
-
-    init(this);
 
 };
 

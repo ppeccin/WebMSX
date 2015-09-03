@@ -13,7 +13,7 @@ WMSX = {
     AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Auto-Load/Power-on
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     CONSOLE_PANEL_ELEMENT_ID:       "wmsx-console-panel",
-    CARTRIDGE_CHANGE_DISABLED:      false,
+    MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
     SCREEN_FILTER_MODE:             1,                          // 0..3

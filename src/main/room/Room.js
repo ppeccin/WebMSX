@@ -25,6 +25,11 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         if (self.machinePanel) this.machinePanel.powerOff();
     };
 
+    this.exit = function() {
+        self.machine.getMachineControlsSocket().controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
+        self.peripheralControls.controlActivated(wmsx.PeripheralControls.SCREEN_DEFAULTS);
+    };
+
     var setPageVisibilityHandling = function() {
         function visibilityChange() {
             if (document.hidden) self.speaker.mute();
@@ -44,16 +49,18 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         self.keyboard = new wmsx.DOMKeyboard();
         self.machineControls = new wmsx.DOMMachineControls();
         if (machinePanelElement) self.machinePanel = new wmsx.MachinePanel(machinePanelElement);
+        self.peripheralControls = new wmsx.DOMPeripheralControls();
 
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
-        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.cassetteDeck, self.diskDrive);
-        self.machineControls.connectPeripherals(self.screen, self.machinePanel);
-        self.keyboard.connectPeripherals(self.screen, self.machinePanel);
+        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.keyboard, self.machineControls, self.peripheralControls);
+        self.machineControls.connectPeripherals(self.screen);
+        self.keyboard.connectPeripherals(self.screen);
         self.stateMedia.connectPeripherals(self.fileDownloader);
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
         self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);
         if (self.machinePanel) self.machinePanel.connectPeripherals(self.screen, self.fileLoader);
-   };
+        self.peripheralControls.connectPeripherals(self.screen.getMonitor(), self.fileLoader, self.cassetteDeck, self.diskDrive);
+    };
 
     var buildAndPlugMachine = function() {
         self.machine = new wmsx.Machine();
@@ -66,6 +73,7 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         self.keyboard.connect(self.machine.getKeyboardSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
+        self.peripheralControls.connect(self.machine.getCartridgeSocket());
     };
 
 
@@ -80,6 +88,7 @@ wmsx.Room = function(screenElement, machinePanelElement) {
     this.diskDrive = null;
     this.stateMedia = null;
     this.fileLoader = null;
+    this.peripheralControls = null;
 
 
     init();

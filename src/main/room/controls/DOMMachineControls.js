@@ -14,11 +14,9 @@ wmsx.DOMMachineControls = function() {
         //gamepadControls.connect(pControlsSocket);
     };
 
-    this.connectPeripherals = function(screen, consolePanel) {
-        videoMonitor = screen.getMonitor();
-        //gamepadControls.connectScreen(screen);
-        this.addInputElements(screen.keyControlsInputElements());
-        if (consolePanel) this.addInputElements(consolePanel.keyControlsInputElements());
+    this.connectPeripherals = function(screen) {
+        monitor = screen.getMonitor();
+        // gamepadControls.connectScreen(screen);
     };
 
     this.powerOn = function() {
@@ -99,7 +97,7 @@ wmsx.DOMMachineControls = function() {
     var processKeyEvent = this.processKeyEvent;
 
     var showModeOSD = function() {
-        videoMonitor.showOSD("Controllers: " + (p1ControlsMode ? "Swapped" : "Normal"), true);
+        monitor.showOSD("Controllers: " + (p1ControlsMode ? "Swapped" : "Normal"), true);
     };
 
     var checkLocalControlKey = function(keyCode, modif, press) {
@@ -213,7 +211,7 @@ wmsx.DOMMachineControls = function() {
     var p1ControlsMode = false;
 
     var consoleControlsSocket;
-    var videoMonitor;
+    var monitor;
     var gamepadControls;
 
 

@@ -12,11 +12,8 @@ wmsx.DOMKeyboard = function() {
         keyboardSocket = pKeyboardSocket;
     };
 
-    this.connectPeripherals = function(pScreen, consolePanel) {
-        screen = pScreen;
-        //gamepadControls.connectScreen(pScreen);
-        this.addInputElements(pScreen.keyControlsInputElements());
-        if (consolePanel) this.addInputElements(consolePanel.keyControlsInputElements());
+    this.connectPeripherals = function(pScreen) {
+        monitor = pScreen.getMonitor();
     };
 
     this.powerOn = function() {
@@ -37,7 +34,7 @@ wmsx.DOMKeyboard = function() {
 
     this.cycleHostKeyboards = function() {
         wmsx.DOMKeys.setKeyboard(wmsx.DOMKeys.getKeyboard().code + 1);
-        screen.showOSD("Host Keyboard: " + wmsx.DOMKeys.getKeyboard().name, true);
+        monitor.showOSD("Host Keyboard: " + wmsx.DOMKeys.getKeyboard().name, true);
         initHostKeys();
         initMatrix();
     };
@@ -355,7 +352,7 @@ wmsx.DOMKeyboard = function() {
 
 
     var keyboardSocket;
-    var screen;
+    var monitor;
 
     var keyStateMap =  {};
 

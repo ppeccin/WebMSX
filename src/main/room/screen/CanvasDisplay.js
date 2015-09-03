@@ -12,14 +12,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupLogo();
         monitor = new wmsx.Monitor();
         monitor.connectDisplay(self);
-        monitor.addControlInputElements(self.keyControlsInputElements());
     }
 
-    this.connectPeripherals = function(fileLoader, fileDownloader, cassetteDeck) {
+    this.connectPeripherals = function(fileLoader, fileDownloader, keyboard, machineControls, peripheralControls) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader.registerForDownloadElement(mainElement);
-        monitor.connectPeripherals(fileLoader, cassetteDeck);
+        keyboard.addInputElements(keyControlsInputElements());
+        machineControls.addInputElements(keyControlsInputElements());
+        peripheralControls.addInputElements(keyControlsInputElements());
     };
 
     this.connect = function(pVideoSignal, pControlsSocket, pCartridgeSocket) {
@@ -61,10 +62,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.videoSignalOff = function() {
         signalIsOn = false;
         updateLogo();
-    };
-
-    this.keyControlsInputElements = function() {
-        return [mainElement];
     };
 
     this.displayDefaultOpeningScaleX = function(displayWidth, displayHeight) {
@@ -160,11 +157,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-    this.exit = function() {
-        controlsSocket.controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
-        monitor.controlActivated(wmsx.PeripheralControls.SCREEN_DEFAULTS);
-    };
-
     this.focus = function() {
         canvas.focus();
     };
@@ -178,6 +170,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.tapeStateUpdate = function(present, motor) {
         mediaButtonsState.Tape = motor ? 2 : ( present ? 1 : 0 );
         refreshMediaButtons();
+    };
+
+    var keyControlsInputElements = function() {
+        return [mainElement];   // Add ConsolePanel if present
     };
 
     var openSettings = function(page) {

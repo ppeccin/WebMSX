@@ -113,7 +113,7 @@ wmsx.FileLoader = function() {
         if (event.preventDefault) event.preventDefault();
         if (event.stopPropagation) event.stopPropagation();
 
-        if (WMSX.CARTRIDGE_CHANGE_DISABLED)
+        if (WMSX.MEDIA_CHANGE_DISABLED)
             event.dataTransfer.dropEffect = "none";
         else
             event.dataTransfer.dropEffect = "link";
@@ -128,7 +128,7 @@ wmsx.FileLoader = function() {
         autoPower = event.altKey !== true;
         secondaryPort = event.ctrlKey === true;
 
-        if (WMSX.CARTRIDGE_CHANGE_DISABLED) return;
+        if (WMSX.MEDIA_CHANGE_DISABLED) return;
         if (!event.dataTransfer) return;
 
         // First try to get local file

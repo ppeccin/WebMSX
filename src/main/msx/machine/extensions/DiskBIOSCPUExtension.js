@@ -21,7 +21,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
             case 0xc:
                 return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
-                return DSKFMT();
+                return DSKFMT(s.F);
             case 0xe:
                 return MTOFF();
         }
@@ -72,7 +72,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
 
         // Not Ready error if can't read
         if (!bytes) {
-            console.log("DSKIO Read error");
+            console.log("---- Read error");
             return { F: F | 1, A: 2, B: B };        // All sectors to read still remaining
         }
 
@@ -86,8 +86,24 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     function DSKIOWrite(F, A, B, C, DE, HL) {
         console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
+        // Not Ready error if Disk not present
+        if (!drive.diskPresent())
+            return { F: F | 1, A: 2, B: B };            // All sectors to write still remaining
+
         // Disk Write Protected
-        return { F: F | 1, A: 0, B: B };            // All sectors to write still remaining
+        if (drive.diskWriteProtected())
+            return { F: F | 1, A: 0, B: B };            // All sectors to write still remaining
+
+        var res = drive.writeSectors(readFromMemory(HL, B * drive.bytesPerSector), DE, B);
+
+        // Not Ready error if can't write
+        if (!res) {
+            console.log("---- Write error");
+            return { F: F | 1, A: 2, B: B };            // All sectors to write still remaining
+        }
+
+        // Success
+        return { F: F & ~1, B: 0};
     }
 
     function DSKCHG(F, A, B, C, HL) {
@@ -132,12 +148,36 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         writeToMemory(dpb, HL + 1);
     }
 
-    function DSKFMT() {
+    function DSKFMT(F) {
         console.log("DSKFMT");
+
+        // Not Ready error if Disk not present
+        if (!drive.diskPresent())
+            return { F: F | 1, A: 2};
+
+        // Disk Write Protected
+        if (drive.diskWriteProtected())
+            return { F: F | 1, A: 0};
+
+        // Cannot format for now
+        console.log("---- Formatting not implemented yed");
+        return { F: F | 1, A: 16 };
     }
 
     function MTOFF() {
         console.log("MTOFF");
+    }
+
+    function readFromMemory(address, quant) {
+        console.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
+
+        var res = new Array(quant);
+        for (var i = 0; i < quant; i++)
+            res[i] = bus.read(address + i);
+
+        console.log("Read finished");
+
+        return res;
     }
 
     function writeToMemory(bytes, address) {

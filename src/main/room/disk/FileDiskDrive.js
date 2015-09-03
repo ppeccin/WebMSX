@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Implement Drive B:
+
 wmsx.FileDiskDrive = function() {
 
     this.connect = function(pDiskDriveSocket) {
@@ -48,21 +50,47 @@ wmsx.FileDiskDrive = function() {
         return diskChanged;         // false = no, null = unknowm
     };
 
+    this.diskPresent = function() {
+        return diskContent && diskContent.length;
+    };
+
+    this.diskWriteProtected = function() {
+        return false;
+    };
+
     this.readSectors = function(logicalSector, quant) {
-        // Disk presence check
-        if (!diskContent) {
+        if (!this.diskPresent()) {
             console.log("------ NO DISK!");
             return null;
         }
         var startByte = logicalSector * diskBytesPerSector;
         var finishByte = startByte + quant * diskBytesPerSector;
         // Disk boundary check
-        if (!diskContent || (startByte > diskContent.length) || (finishByte > diskContent.length -1)) {
-            console.log("------ OUT OF DISK!");
+        if ((startByte > diskContent.length) || (finishByte > diskContent.length -1)) {
+            console.log("------ OUT OF DISK WHILE READING!");
             return null;
         }
 
         return diskContent.slice(startByte, finishByte);
+    };
+
+    this.writeSectors = function(bytes, logicalSector, quant) {
+        if (!this.diskPresent()) {
+            console.log("------ NO DISK!");
+            return false;
+        }
+        var startByte = logicalSector * diskBytesPerSector;
+        var quantBytes = quant * diskBytesPerSector;
+        // Disk boundary check
+        if ((startByte > diskContent.length) || (startByte + quantBytes > diskContent.length -1)) {
+            console.log("------ OUT OF DISK WHILE WRITING!");
+            return false;
+        }
+
+        for (var i = 0; i < quantBytes; i++)
+            diskContent[startByte + i] = bytes[i];
+
+        return true;
     };
 
 
@@ -76,10 +104,11 @@ wmsx.FileDiskDrive = function() {
     var screen;
     var fileDownloader;
 
-    var diskBytesPerSector = 512;
-
     var diskFileName = null;
     var diskContent = null;
-    var diskChanged = null;      // true = yes, false = no, null = unknown
+    var diskChanged = null;             // true = yes, false = no, null = unknown
+
+    var diskBytesPerSector = 512;       // Fixed for now
+    this.bytesPerSector = diskBytesPerSector;
 
 };
