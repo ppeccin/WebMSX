@@ -69,7 +69,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
                 break;
             case controls.DISKA_REMOVE:
-                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk();
+                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
                 break;
             case controls.DISKB_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
@@ -78,7 +78,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
                 break;
             case controls.DISKB_REMOVE:
-                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk();
+                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
                 break;
             case controls.CARTRIDGE1_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);

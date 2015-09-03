@@ -158,7 +158,7 @@ wmsx.FileLoader = function() {
             if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
                 return;
             // Then try to load as a Disk file
-            if (diskDrive.loadDiskFile(name, arrContent, autoPower))
+            if (diskDrive.loadDiskFile(secondaryPort ? 1 : 0, name, arrContent, autoPower))
                 return;
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new wmsx.ROM(name, arrContent);
@@ -192,7 +192,7 @@ wmsx.FileLoader = function() {
                         if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
                             return;
                         // Then try to load as a Disk file
-                        if (diskDrive.loadDiskFile(name, arrContent, autoPower))
+                        if (diskDrive.loadDiskFile(secondaryPort ? 1 : 0, name, arrContent, autoPower))
                             return;
                         // Then try to load as a ROM (BIOS or Cartridge)
                         rom = new wmsx.ROM(file.name, arrContent);

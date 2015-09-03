@@ -21,7 +21,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
             case 0xc:
                 return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
-                return DSKFMT(s.F);
+                return DSKFMT(s.F, s.A, s.D);
             case 0xe:
                 return MTOFF();
         }
@@ -68,7 +68,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     function DSKIORead(F, A, B, C, DE, HL) {
         console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
-        var bytes = drive.readSectors(DE, B);
+        var bytes = drive.readSectors(A, DE, B);
 
         // Not Ready error if can't read
         if (!bytes) {
@@ -87,14 +87,14 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
         // Not Ready error if Disk not present
-        if (!drive.diskPresent())
+        if (!drive.diskPresent(A))
             return { F: F | 1, A: 2, B: B };            // All sectors to write still remaining
 
         // Disk Write Protected
-        if (drive.diskWriteProtected())
+        if (drive.diskWriteProtected(A))
             return { F: F | 1, A: 0, B: B };            // All sectors to write still remaining
 
-        var res = drive.writeSectors(readFromMemory(HL, B * drive.bytesPerSector), DE, B);
+        var res = drive.writeSectors(A, DE, B, readFromMemory(HL, B * drive.bytesPerSector));
 
         // Not Ready error if can't write
         if (!res) {
@@ -109,7 +109,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     function DSKCHG(F, A, B, C, HL) {
         console.log("DSKCHG: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
-        var res = drive.diskHasChanged();       // true = yes, false = no, null = unknown
+        var res = drive.diskHasChanged(A);       // true = yes, false = no, null = unknown
 
         // Success, Disk not changed
         if (res === false) {
@@ -118,7 +118,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         }
 
         // Disk changed or unknown, read disk to determine media type
-        var bytes = drive.readSectors(0, 2);
+        var bytes = drive.readSectors(A, 0, 2);
 
         // Not Ready error if can't read
         if (!bytes) {
@@ -148,15 +148,15 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         writeToMemory(dpb, HL + 1);
     }
 
-    function DSKFMT(F) {
+    function DSKFMT(F, A, D) {
         console.log("DSKFMT");
 
         // Not Ready error if Disk not present
-        if (!drive.diskPresent())
+        if (!drive.diskPresent(D))
             return { F: F | 1, A: 2};
 
         // Disk Write Protected
-        if (drive.diskWriteProtected())
+        if (drive.diskWriteProtected(D))
             return { F: F | 1, A: 0};
 
         // Cannot format for now

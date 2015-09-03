@@ -2,10 +2,10 @@
 
 // TODO Implement Drive B:
 
+// Dual Disk Drive ( A: = drive 0, B: = drive 1 )
 wmsx.FileDiskDrive = function() {
 
-    this.connect = function(pDiskDriveSocket) {
-        diskDriveSocket = pDiskDriveSocket;
+    this.connect = function(diskDriveSocket) {
         diskDriveSocket.connectDrive(this);
     };
 
@@ -14,81 +14,79 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.connectBASICExtension = function(pExtension) {
-        basicExtension = pExtension;
-    };
-
-    this.loadDiskFile = function(name, arrContent, autoPower) {
+    this.loadDiskFile = function(drive, name, arrContent, autoPower) {
         if ((arrContent[0] !== 0xEB) && (arrContent[0] !== 0xE9))
             return null;
 
-        diskFileName = name;
-        diskContent = arrContent.slice(0);
-        diskChanged = true;
-        screen.showOSD("Disk loaded.", true);
+        diskFileName[drive] = name;
+        diskContent[drive] = arrContent.slice(0);
+        diskChanged[drive] = true;
+        screen.showOSD("Disk " + (drive === 0 ? "A:" : "B:") + " loaded", true);
         fireStateUpdate();
 
-        return diskContent;
+        return diskContent[drive];
     };
 
-    this.removeDisk = function() {
-        diskFileName = null;
-        diskContent = null;
-        diskChanged = null;
-        screen.showOSD("Disk removed", true);
+    this.removeDisk = function(drive) {
+        diskFileName[drive] = null;
+        diskContent[drive] = null;
+        diskChanged[drive] = null;
+        screen.showOSD("Disk " + (drive === 0 ? "A:" : "B:") + " removed", true);
         fireStateUpdate();
     };
 
 
     // Access interface methods
 
-    this.diskHasChanged = function() {
-        if (diskChanged) {
-            diskChanged = false;
+    this.diskHasChanged = function(drive) {
+        if (diskChanged[drive]) {
+            diskChanged[drive] = false;
             return true;
         }
-        return diskChanged;         // false = no, null = unknowm
+        return diskChanged[drive];         // false = no, null = unknowm
     };
 
-    this.diskPresent = function() {
-        return diskContent && diskContent.length;
+    this.diskPresent = function(drive) {
+        return diskContent[drive] && diskContent[drive].length;
     };
 
-    this.diskWriteProtected = function() {
+    this.diskWriteProtected = function(drive) {
         return false;
     };
 
-    this.readSectors = function(logicalSector, quant) {
-        if (!this.diskPresent()) {
+    this.readSectors = function(drive, logicalSector, quantSectors) {
+        if (!this.diskPresent(drive)) {
             console.log("------ NO DISK!");
             return null;
         }
+        var dContent = diskContent[drive];
         var startByte = logicalSector * diskBytesPerSector;
-        var finishByte = startByte + quant * diskBytesPerSector;
+        var finishByte = startByte + quantSectors * diskBytesPerSector;
         // Disk boundary check
-        if ((startByte > diskContent.length) || (finishByte > diskContent.length -1)) {
+        if ((startByte > dContent.length) || (finishByte > dContent.length - 1)) {
             console.log("------ OUT OF DISK WHILE READING!");
             return null;
         }
 
-        return diskContent.slice(startByte, finishByte);
+        return dContent.slice(startByte, finishByte);
     };
 
-    this.writeSectors = function(bytes, logicalSector, quant) {
-        if (!this.diskPresent()) {
+    this.writeSectors = function(drive, logicalSector, quantSectors, bytes) {
+        if (!this.diskPresent(drive)) {
             console.log("------ NO DISK!");
             return false;
         }
+        var dContent = diskContent[drive];
         var startByte = logicalSector * diskBytesPerSector;
-        var quantBytes = quant * diskBytesPerSector;
+        var quantBytes = quantSectors * diskBytesPerSector;
         // Disk boundary check
-        if ((startByte > diskContent.length) || (startByte + quantBytes > diskContent.length -1)) {
+        if ((startByte > dContent.length) || (startByte + quantBytes > dContent.length - 1)) {
             console.log("------ OUT OF DISK WHILE WRITING!");
             return false;
         }
 
         for (var i = 0; i < quantBytes; i++)
-            diskContent[startByte + i] = bytes[i];
+            dContent[startByte + i] = bytes[i];
 
         return true;
     };
@@ -99,16 +97,14 @@ wmsx.FileDiskDrive = function() {
     }
 
 
-    var basicExtension;
-    var diskDriveSocket;
     var screen;
     var fileDownloader;
 
-    var diskFileName = null;
-    var diskContent = null;
-    var diskChanged = null;             // true = yes, false = no, null = unknown
+    var diskFileName = [ null, null ];
+    var diskContent =  [ null, null ];
+    var diskChanged =  [ null, null ];            // true = yes, false = no, null = unknown
 
-    var diskBytesPerSector = 512;       // Fixed for now
+    var diskBytesPerSector = 512;                 // Fixed for now, for all disks
     this.bytesPerSector = diskBytesPerSector;
 
 };
