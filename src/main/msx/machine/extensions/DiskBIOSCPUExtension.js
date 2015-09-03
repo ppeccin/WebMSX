@@ -9,7 +9,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     };
 
     this.patchDiskBIOS = function(bios) {
-        patchDiskBIOS(bios);
+        if (bios) patchDiskBIOS(bios);
     };
 
     function diskBIOSCPUExtension(s) {
@@ -29,6 +29,8 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
 
     function patchDiskBIOS(bios) {
         var bytes = bios.bytes;
+
+        bytes[0x7ff8] = 0;                  // Init for PHILLIPS interface?
 
         // DSKIO routine (EXT A)
         bytes[0x4010] = 0xed;
@@ -59,60 +61,75 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     }
 
     function DSKIO(F, A, B, C, DE, HL) {
-        console.log("DSKIO: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex2(A) + ", "
-            + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
-
-        // Carry set = write, reset = read
         if (F & 1) return DSKIOWrite(F, A, B, C, DE, HL);
         else return DSKIORead(F, A, B, C, DE, HL);
     }
 
     function DSKIORead(F, A, B, C, DE, HL) {
-        var res = drive.readSectors(A, B, C, DE);
+        console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
-        // Error
-        if (res.error !== undefined) {
-            console.log("DSKIOREAD error");
-            return {F: F | 1, A: res.error, B: res.sectorsRemaining};
+        var bytes = drive.readSectors(DE, B);
+
+        // Not Ready error if can't read
+        if (!bytes) {
+            console.log("DSKIO Read error");
+            return { F: F | 1, A: 2, B: B };        // All sectors to read still remaining
         }
 
-        console.log("Bytes read: " + res.bytesRead.length);
-
         // Transfer bytes read
-        var bytes = res.bytesRead;
-        for (var i = 0; i < bytes.length; i++)
-            bus.write(HL + i, bytes[i]);
+        writeToMemory(bytes, HL);
 
         // Success
-        return { F: F & 1, B: res.sectorsRead };
+        return { F: F & ~1, B: 0};
     }
 
     function DSKIOWrite(F, A, B, C, DE, HL) {
-        var res = drive.writeSectors(A, B, C, DE);
+        console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
-        return { F: F | 1, A: res.error, B: res.sectorsRemaining };
+        // Disk Write Protected
+        return { F: F | 1, A: 0, B: B };            // All sectors to write still remaining
     }
 
-    // B should always be 0
     function DSKCHG(F, A, B, C, HL) {
-        console.log("DSKCHG: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex2(A) + ", "
-            + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+        console.log("DSKCHG: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
-        var res = drive.diskHasChanged(A, C);
+        var res = drive.diskHasChanged();       // true = yes, false = no, null = unknown
 
-        // Error
-        if (res.error !== undefined) {
-            console.log("DSKCHG error");
-            return {F: F | 1, A: res.error, B: 0};
+        // Success, Disk not changed
+        if (res === false) {
+            console.log("---- Result: NO");
+            return { F: F & ~1, B: 1 };
         }
 
-        // Success
-        return { F: F & ~1, B: 1 };
+        // Disk changed or unknown, read disk to determine media type
+        var bytes = drive.readSectors(0, 2);
+
+        // Not Ready error if can't read
+        if (!bytes) {
+            console.log("DSKCHG error");
+            return {F: F | 1, A: 2, B: 0};
+        }
+
+        console.log("---- Result: " + (res === true ? "YES" : "UNKNOWN"));
+
+        // Get just the fist byte from FAT for now
+        var mediaDeskFromDisk = bytes[512];
+        GETDPB(A, mediaDeskFromDisk, C, HL);
+
+        // Success, Disk changed or unknown and new DPB transferred
+        return { F: F & ~1, B: (res === true ? 0xff : 0) };          // B = -1 (FFh) if disk changed
     }
 
     function GETDPB(A, B, C, HL) {
-        console.log("GETDPB: " + wmsx.Util.toHex2(A) + ", "
-            + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+        console.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+
+        var mediaDesc = B === 0 ? C : B;
+        if (mediaDesc < 0xF8) return;           // Invalid Media Descriptor
+
+        console.log("---- Result: " + wmsx.Util.toHex2(mediaDesc));
+
+        var dpb = DPBS_FOR_MEDIA_DESCIPTORS[mediaDesc];
+        writeToMemory(dpb, HL + 1);
     }
 
     function DSKFMT() {
@@ -123,7 +140,31 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         console.log("MTOFF");
     }
 
+    function writeToMemory(bytes, address) {
+        for (var i = 0; i < bytes.length; i++)
+            bus.write(address + i, bytes[i]);
+    }
 
     var drive;
+
+
+    var DPBS_FOR_MEDIA_DESCIPTORS = {
+        // Media F8; 80 Tracks; 9 sectors; 1 side; 3.5" 360 Kb
+        0xF8: [0xF8, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x63, 0x01, 0x02, 0x05, 0x00],
+        // Media F9; 80 Tracks; 9 sectors; 2 sides; 3.5" 720 Kb
+        0xF9: [0xF9, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0e, 0x00, 0xca, 0x02, 0x03, 0x07, 0x00],
+        // Media FA; 80 Tracks; 8 sectors; 1 side; 3.5" 320 Kb
+        0xFA: [0xFA, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00],
+        // Media FB; 80 Tracks; 8 sectors; 2 sides; 3.5" 640 Kb
+        0xFB: [0xFB, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x7b, 0x02, 0x02, 0x05, 0x00],
+        // Media FC; 40 Tracks; 9 sectors; 1 side; 5.25" 180 Kb
+        0xFC: [0xFC, 0x00, 0x02, 0x0F, 0x04, 0x00, 0x01, 0x01, 0x00, 0x02, 0x40, 0x09, 0x00, 0x60, 0x01, 0x02, 0x05, 0x00],
+        // Media FD; 40 Tracks; 9 sectors; 2 sides; 5.25" 360 Kb
+        0xFD: [0xFD, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x63, 0x01, 0x02, 0x05, 0x00],
+        // Media FE; 40 Tracks; 8 sectors; 1 side; 5.25" 160 Kb
+        0xFE: [0xFE, 0x00, 0x02, 0x0F, 0x04, 0x00, 0x01, 0x01, 0x00, 0x02, 0x40, 0x07, 0x00, 0x3a, 0x01, 0x01, 0x03, 0x00],
+        // Media FF; 40 Tracks; 8 sectors; 2 sides; 5.25" 320 Kb
+        0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
+    }
 
 };

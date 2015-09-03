@@ -822,7 +822,7 @@ wmsx.Z80 = function() {
         return function IM() {
             IM = mode;
             if (mode !== 1) {
-                self.trace = true;
+                //self.trace = true;
                 self.breakpoint("ONLY IM1 IS SUPPORTED!");
             }
         }
@@ -2584,7 +2584,7 @@ wmsx.Z80 = function() {
     this.toString = function() {
         return "CPU " +
             " PC: " + wmsx.Util.toHex2(PC) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
-            "A: " + wmsx.Util.toHex2(A) + "     B: " + wmsx.Util.toHex2(B) + "     C: " + wmsx.Util.toHex2(C) + "     D: " + wmsx.Util.toHex2(D >>> 8) +
+            "A: " + wmsx.Util.toHex2(A) + "     B: " + wmsx.Util.toHex2(B) + "     C: " + wmsx.Util.toHex2(C) + "     D: " + wmsx.Util.toHex2(DE >>> 8) +
             "     E: " + wmsx.Util.toHex2(DE & 0xff) + "     H: " + wmsx.Util.toHex2(HL >>> 8) + "     L: " + wmsx.Util.toHex2(HL & 0xff) + "\n" +
             "BC: " + wmsx.Util.toHex2(fromBC()) + "  DE: " + wmsx.Util.toHex2(DE) + "  HL: " + wmsx.Util.toHex2(HL) +
             "  IX: " + wmsx.Util.toHex2(IX) + "  IY: " + wmsx.Util.toHex2(IY) + "       SP: " + wmsx.Util.toHex2(SP) +  "\n\n" +

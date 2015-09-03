@@ -201,6 +201,23 @@ wmsx.Util = new function() {
         return -1;
     };
 
+    this.dump = function(arr, from, quant) {
+        var res = "";
+        var i;
+        from = from || 0;
+        var to = from + (quant || (arr.length - from));
+        for(i = from; i < to; i++) {
+            res = res + i.toString(16, 2) + " ";
+        }
+        res += "\n";
+        for(i = from; i < to; i++) {
+            var val = arr[i];
+            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+        }
+
+        console.log(res);
+    };
+
     this.browserInfo = function() {
         var ua = navigator.userAgent;
         var temp;

@@ -22,15 +22,17 @@ wmsx.FileDiskDrive = function() {
 
         diskFileName = name;
         diskContent = arrContent.slice(0);
+        diskChanged = true;
         screen.showOSD("Disk loaded.", true);
         fireStateUpdate();
 
         return diskContent;
     };
 
-    this.loadEmpty = function() {
+    this.removeDisk = function() {
         diskFileName = null;
-        diskContent = [];
+        diskContent = null;
+        diskChanged = null;
         screen.showOSD("Disk removed", true);
         fireStateUpdate();
     };
@@ -38,47 +40,46 @@ wmsx.FileDiskDrive = function() {
 
     // Access interface methods
 
-    this.readSectors = function(drive, quant, mediaDesc, sector) {
-        // No Disk
-        if (!diskContent)
-            return { error: 2, sectorsRemaining: quant };
-
-        var bytes = diskContent.slice(sector * 512, sector * 512 + quant * 512);
-
-        return { bytesRead: bytes, sectorsRead: quant };
-    };
-
-    this.writeSectors = function(drive, quant, mediaDesc, sector) {
-        return {
-            error: 2, sectorsRemaining: quant
+    this.diskHasChanged = function() {
+        if (diskChanged) {
+            diskChanged = false;
+            return true;
         }
+        return diskChanged;         // false = no, null = unknowm
     };
 
-    this.diskHasChanged = function(drive, mediaDesc) {
-        // No Disk
-        if (!diskContent)
-            return { error: 2 };
-        else
-            return {};
+    this.readSectors = function(logicalSector, quant) {
+        // Disk presence check
+        if (!diskContent) {
+            console.log("------ NO DISK!");
+            return null;
+        }
+        var startByte = logicalSector * diskBytesPerSector;
+        var finishByte = startByte + quant * diskBytesPerSector;
+        // Disk boundary check
+        if (!diskContent || (startByte > diskContent.length) || (finishByte > diskContent.length -1)) {
+            console.log("------ OUT OF DISK!");
+            return null;
+        }
+
+        return diskContent.slice(startByte, finishByte);
     };
-
-
 
 
     function fireStateUpdate() {
-//        screen.tapeStateUpdate(diskContent.length > 0, motor);
+        // screen.tapeStateUpdate(diskContent.length > 0, motor);
     }
 
 
     var basicExtension;
     var diskDriveSocket;
+    var screen;
+    var fileDownloader;
+
+    var diskBytesPerSector = 512;
 
     var diskFileName = null;
     var diskContent = null;
-    var tapePosition = 0;
-    var motor = false;
-
-    var screen;
-    var fileDownloader;
+    var diskChanged = null;      // true = yes, false = no, null = unknown
 
 };
