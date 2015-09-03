@@ -35,6 +35,26 @@ wmsx.FileDiskDrive = function() {
         fireStateUpdate();
     };
 
+    this.saveDiskFile = function(drive) {
+        var dContent = diskContent[drive];
+        var dName = (drive === 0 ? "A:" : "B:");
+        if (!dContent || (dContent.length === 0)) {
+            screen.showOSD("Drive " + dName + " is empty!", true);
+            return;
+        }
+
+        try {
+            var fileName = diskFileName[drive] || "NewDisk.dsk";
+            var data = new ArrayBuffer(dContent.length);
+            var view = new Uint8Array(data);
+            for (var i = 0; i < dContent.length; i++)
+                view[i] = dContent[i];
+            fileDownloader.startDownload(fileName, data);
+            screen.showOSD("Disk " + dName + " File saved", true);
+        } catch(ex) {
+            screen.showOSD("Disk " + dName + " File save failed", true);
+        }
+    };
 
     // Access interface methods
 
