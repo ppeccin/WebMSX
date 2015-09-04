@@ -21,7 +21,7 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
             case 0xc:
                 return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
-                return DSKFMT(s.F, s.A, s.D);
+                return DSKFMT(s.F, s.A, s.DE);
             case 0xe:
                 return MTOFF();
         }
@@ -66,116 +66,111 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     }
 
     function DSKIORead(F, A, B, C, DE, HL) {
-        console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+        // console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
+        var spinTime = drive.motorOn(A);
         var bytes = drive.readSectors(A, DE, B);
 
         // Not Ready error if can't read
-        if (!bytes) {
-            console.log("---- Read error");
-            return { F: F | 1, A: 2, B: B };        // All sectors to read still remaining
-        }
+        if (!bytes)
+            return { F: F | 1, A: 2, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
 
         // Transfer bytes read
         writeToMemory(bytes, HL);
 
         // Success
-        return { F: F & ~1, B: 0};
+        return { F: F & ~1, B: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
     }
 
     function DSKIOWrite(F, A, B, C, DE, HL) {
-        console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+        // console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+
+        var spinTime = drive.motorOn(A);
 
         // Not Ready error if Disk not present
         if (!drive.diskPresent(A))
-            return { F: F | 1, A: 2, B: B };            // All sectors to write still remaining
+            return { F: F | 1, A: 2, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
 
         // Disk Write Protected
         if (drive.diskWriteProtected(A))
-            return { F: F | 1, A: 0, B: B };            // All sectors to write still remaining
+            return { F: F | 1, A: 0, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
 
         var res = drive.writeSectors(A, DE, B, readFromMemory(HL, B * drive.bytesPerSector));
 
         // Not Ready error if can't write
-        if (!res) {
-            console.log("---- Write error");
-            return { F: F | 1, A: 2, B: B };            // All sectors to write still remaining
-        }
+        if (!res)
+            return { F: F | 1, A: 2, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
 
         // Success
-        return { F: F & ~1, B: 0};
+        return { F: F & ~1, B: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
     }
 
     function DSKCHG(F, A, B, C, HL) {
-        console.log("DSKCHG: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+        // console.log("DSKCHG: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
         var res = drive.diskHasChanged(A);       // true = yes, false = no, null = unknown
 
         // Success, Disk not changed
-        if (res === false) {
-            console.log("---- Result: NO");
+        if (res === false)
             return { F: F & ~1, B: 1 };
-        }
 
         // Disk changed or unknown, read disk to determine media type
+        var spinTime = drive.motorOn(A);
         var bytes = drive.readSectors(A, 0, 2);
 
         // Not Ready error if can't read
-        if (!bytes) {
-            console.log("DSKCHG error");
-            return {F: F | 1, A: 2, B: 0};
-        }
-
-        console.log("---- Result: " + (res === true ? "YES" : "UNKNOWN"));
+        if (!bytes)
+            return { F: F | 1, A: 2, B: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
 
         // Get just the fist byte from FAT for now
         var mediaDeskFromDisk = bytes[512];
         GETDPB(A, mediaDeskFromDisk, C, HL);
 
-        // Success, Disk changed or unknown and new DPB transferred
-        return { F: F & ~1, B: (res === true ? 0xff : 0) };          // B = -1 (FFh) if disk changed
+        // Success, Disk changed or unknown and new DPB transferred. B = -1 (FFh) if disk changed
+        return { F: F & ~1, B: (res === true ? 0xff : 0), extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
     }
 
     function GETDPB(A, B, C, HL) {
-        console.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+        // console.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
         var mediaDesc = B === 0 ? C : B;
         if (mediaDesc < 0xF8) return;           // Invalid Media Descriptor
-
-        console.log("---- Result: " + wmsx.Util.toHex2(mediaDesc));
 
         var dpb = DPBS_FOR_MEDIA_DESCIPTORS[mediaDesc];
         writeToMemory(dpb, HL + 1);
     }
 
     function DSKFMT(F, A, D) {
-        console.log("DSKFMT");
+        // console.log("DSKFMT");
+
+        var d = D >> 8;
+        var spinTime = drive.motorOn(d);
 
         // Not Ready error if Disk not present
-        if (!drive.diskPresent(D))
-            return { F: F | 1, A: 2};
+        if (!drive.diskPresent(d))
+            return { F: F | 1, A: 2, extraIterations: spinTime, finishOperation: drive.motorOffOperation(d) };
 
         // Disk Write Protected
-        if (drive.diskWriteProtected(D))
-            return { F: F | 1, A: 0};
+        if (drive.diskWriteProtected(d))
+            return { F: F | 1, A: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(d) };
 
         // Cannot format for now
-        console.log("---- Formatting not implemented yed");
-        return { F: F | 1, A: 16 };
+        wmsx.Util.log("Formatting not implemented yet!");
+        return { F: F | 1, A: 16, extraIterations: spinTime, finishOperation: drive.motorOffOperation(d) };
     }
 
     function MTOFF() {
-        console.log("MTOFF");
+        // console.log("MTOFF");
+
+        drive.allMotorsOff();
     }
 
     function readFromMemory(address, quant) {
-        console.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
+        // console.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
 
         var res = new Array(quant);
         for (var i = 0; i < quant; i++)
             res[i] = bus.read(address + i);
-
-        console.log("Read finished");
 
         return res;
     }
@@ -205,6 +200,9 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
         0xFE: [0xFE, 0x00, 0x02, 0x0F, 0x04, 0x00, 0x01, 0x01, 0x00, 0x02, 0x40, 0x07, 0x00, 0x3a, 0x01, 0x01, 0x03, 0x00],
         // Media FF; 40 Tracks; 8 sectors; 2 sides; 5.25" 320 Kb
         0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
-    }
+    };
+
+    var EXTRA_ITERATIONS_PER_SECTOR = 10000;
 
 };
+

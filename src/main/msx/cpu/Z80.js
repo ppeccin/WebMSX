@@ -48,7 +48,7 @@ wmsx.Z80 = function() {
 
     this.setExtensionHandler = function(codes, handler) {
         for (var i = 0; i < codes.length; i++)
-            this.extensionHandler[codes[i]] = handler;
+            extensionHandler[codes[i]] = handler;
     };
 
     this.reset = function() {
@@ -56,11 +56,14 @@ wmsx.Z80 = function() {
         T = -1; opcode = null; prefix = 0;
         instruction = null;
         PC = 0; I = 0; R = 0; IFF1 = IFF2 = 0; IM = 0;
+        extensionExtraIterations = 0; extensionFinishOperation = null;
     };
 
 
     // Extension Handling
-    this.extensionHandler = [];
+    var extensionHandler = [];
+    var extensionExtraIterations = 0;
+    var extensionFinishOperation;
 
     // Interfaces
     var bus;
@@ -1358,7 +1361,7 @@ wmsx.Z80 = function() {
     }
 
     function pADT_CYCLES() {
-        // do nothing
+        // Do nothing
     }
 
 
@@ -1366,9 +1369,21 @@ wmsx.Z80 = function() {
 
     function newpEXT(num) {
         return function pEXT() {
-            if (self.extensionHandler[num] === undefined) return;
+            // Check for extraIterations of last extension instruction. No new instruction until iterations end
+            if (extensionExtraIterations > 0) {
+                extensionExtraIterations--;
+                if (extensionExtraIterations > 0) {         // Need more iterations?
+                    PC -= 2;
+                } else if (extensionFinishOperation) {      // End of iterations, check for finish operation
+                    extensionFinishOperation();
+                    extensionFinishOperation = null;
+                }
+                return;
+            }
+            // New extension instruction may happen now
+            if (extensionHandler[num] === undefined) return;
             // Send state to the handler
-            var res = self.extensionHandler[num]({
+            var res = extensionHandler[num]({
                 extNum: num, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
                 AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IFF1: IFF1, IM: IM
             });
@@ -1392,11 +1407,14 @@ wmsx.Z80 = function() {
             if (res.HL2 !== undefined)  HL2 = res.HL2;
             if (res.IFF1 !== undefined) IFF1 = res.IFF1;
             if (res.IM !== undefined)   IM = res.IM;
-            // Spend clock cycles requested by the handler
-            if (res.extraCycles && (res.extraCycles > 0)) {
-                T += res.extraCycles;
-                instruction = instructionADT_CYCLES;
-            }
+            // Request extra iterations requested by the handler
+            if (res.extraIterations > 0) {
+                // Will repeat this instruction N iterations to waste cycles, but will not call handler
+                extensionExtraIterations = res.extraIterations;
+                extensionFinishOperation = res.finishOperation;     // Postpone
+                PC -= 2;
+            } else if (res.finishOperation)
+                res.finishOperation();  // Now!
         }
     }
 

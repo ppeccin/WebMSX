@@ -72,13 +72,13 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
 
     function TAPION(F) {
         deck.motor(true);
-        return deck.readHeader() ? success(F, HEADER_READ_CYCLES) : fail(F);
+        return deck.readHeader() ? success(F, HEADER_READ_EXTRA_ITERATIONS) : fail(F);
     }
 
     function TAPIN(F) {
         var val = deck.readByte();
         if (val === null) return fail(F);
-        var res = success(F, READ_WRITE_BYTE_CYCLES);
+        var res = success(F, READ_WRITE_BYTE_EXTRA_ITERATIONS);
         res.A = val;
         return res;
     }
@@ -89,11 +89,11 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
 
     function TAPOON(A, F) {
         deck.motor(true);
-        return deck.writeHeader(A) ? success(F, A ? HEADER_WRITE_LONG_CYCLES : HEADER_WRITE_SHORT_CYCLES) : fail(F);
+        return deck.writeHeader(A) ? success(F, A ? HEADER_WRITE_LONG_EXTRA_ITERATIONS : HEADER_WRITE_SHORT_EXTRA_ITERATIONS) : fail(F);
     }
 
     function TAPOUT(A, F) {
-        return deck.writeByte(A) ? success(F, READ_WRITE_BYTE_CYCLES) : fail(F);
+        return deck.writeByte(A) ? success(F, READ_WRITE_BYTE_EXTRA_ITERATIONS) : fail(F);
     }
 
     function TAPOOF() {
@@ -105,8 +105,8 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
         deck.motor(A === 0xff ? null : (A > 0));
     }
 
-    function success(F, extraCycles) {
-        return { F: F &= 0xfe, extraCycles: extraCycles };       // Clear C flag = success
+    function success(F, extraIterations) {
+        return { F: F &= 0xfe, extraIterations: extraIterations };       // Clear C flag = success
     }
 
     function fail(F) {
@@ -116,9 +116,9 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
 
     var deck;
 
-    var HEADER_WRITE_LONG_CYCLES = 6000000;
-    var HEADER_WRITE_SHORT_CYCLES = HEADER_WRITE_LONG_CYCLES / 3;
-    var HEADER_READ_CYCLES = HEADER_WRITE_SHORT_CYCLES / 2;
-    var READ_WRITE_BYTE_CYCLES = 150;
+    var HEADER_WRITE_LONG_EXTRA_ITERATIONS = 1500000;
+    var HEADER_WRITE_SHORT_EXTRA_ITERATIONS = HEADER_WRITE_LONG_EXTRA_ITERATIONS / 3;
+    var HEADER_READ_EXTRA_ITERATIONS = HEADER_WRITE_SHORT_EXTRA_ITERATIONS / 2;
+    var READ_WRITE_BYTE_EXTRA_ITERATIONS = 36;
 
 };
