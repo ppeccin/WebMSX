@@ -103,9 +103,9 @@ wmsx.Machine = function() {
     var setCartridge = function(cartridge, port) {
 
         // TODO Remove
-        if (port === 2) diskBIOSExtension.patchDiskBIOS(cartridge);
+        if (port === 1) diskBIOSExtension.patchDiskBIOS(cartridge);
 
-        if (port === 2) WMSX.cartridge2 = cartridge;
+        if (port === 1) WMSX.cartridge2 = cartridge;
         else WMSX.cartridge1 = cartridge;
         bus.setCartridge(cartridge, port);
         cartridgeSocket.fireStateUpdate();
@@ -357,11 +357,11 @@ wmsx.Machine = function() {
     function CartridgeSocket() {
 
         this.insert = function (cartridge, port, autoPower) {
-            if (cartridge == getCartridge(port || 1)) return;
+            if (cartridge == getCartridge(port || 0)) return;
             var powerWasOn = self.powerIsOn;
             if (autoPower && powerWasOn) self.powerOff();
             setCartridge(cartridge, port);
-            self.showOSD("Cartridge " + (port === 2 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
+            self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
             if (autoPower && !self.powerIsOn && (cartridge || powerWasOn)) self.userPowerOn();
         };
 
@@ -371,13 +371,13 @@ wmsx.Machine = function() {
 
         this.fireStateUpdate = function () {
             for (var i = 0; i < listeners.length; i++)
-                listeners[i].cartridgesStateUpdate(this.inserted(1), this.inserted(2));
+                listeners[i].cartridgesStateUpdate(this.inserted(0), this.inserted(1));
         };
 
         this.addCartridgesStateListener = function (listener) {
             if (listeners.indexOf(listener) < 0) {
                 listeners.push(listener);
-                listener.cartridgesStateUpdate(this.inserted(1), this.inserted(2));		// Fire event
+                listener.cartridgesStateUpdate(this.inserted(0), this.inserted(1));		// Fire event
             }
         };
 
@@ -545,7 +545,7 @@ wmsx.Machine = function() {
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
             // Use Cartridge label as file name
-            var cart = cartridgeSocket.inserted(1) || cartridgeSocket.inserted(2);
+            var cart = cartridgeSocket.inserted(0) || cartridgeSocket.inserted(1);
             var fileName = cart && cart.rom.info.l;
             var state = saveState();
             state.v = VERSION;

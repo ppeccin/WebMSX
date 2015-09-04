@@ -2,6 +2,8 @@
 
 wmsx.DOMPeripheralControls = function(room) {
 
+    var self = this;
+
     function init() {
         initKeys();
     }
@@ -35,7 +37,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var processKeyPress = function(keyCode, modifiers) {
         var control = controlForEvent(keyCode, modifiers);
         if (!control) return false;
-        controlActivated(control);
+        self.controlActivated(control);
         return true;
     };
 
@@ -59,7 +61,7 @@ wmsx.DOMPeripheralControls = function(room) {
         return null;
     };
 
-    var controlActivated = function(control) {
+    this.controlActivated = function(control) {
         // All controls are Press-only and repeatable
         switch(control) {
             case controls.DISKA_LOAD_FILE:
@@ -93,7 +95,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
                 break;
             case controls.CARTRIDGE1_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 0, true);
                 break;
             case controls.CARTRIDGE2_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
@@ -102,7 +104,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
                 break;
             case controls.CARTRIDGE2_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 2, true);
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
                 break;
             case controls.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true);

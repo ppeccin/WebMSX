@@ -166,7 +166,7 @@ wmsx.FileLoader = function() {
             if (slot.constructor === wmsx.BIOS) {
                 biosSocket.insert(slot, autoPower);
             } else {
-                cartridgeSocket.insert(slot, secondaryPort ? 2 : 1, autoPower);
+                cartridgeSocket.insert(slot, secondaryPort ? 1 : 0, autoPower);
             }
         } catch(e) {
             if (!e.msx) {
@@ -200,7 +200,7 @@ wmsx.FileLoader = function() {
                         if (slot.constructor === wmsx.BIOS) {
                             biosSocket.insert(slot, autoPower);
                         } else {
-                            cartridgeSocket.insert(slot, secondaryPort ? 2 : 1, autoPower);
+                            cartridgeSocket.insert(slot, secondaryPort ? 1 : 0, autoPower);
                         }
                         return;
                     } catch (ef) {

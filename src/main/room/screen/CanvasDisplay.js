@@ -14,12 +14,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor.connectDisplay(self);
     }
 
-    this.connectPeripherals = function(fileLoader, fileDownloader, keyboard, machineControls, peripheralControls) {
+    this.connectPeripherals = function(fileLoader, fileDownloader, keyboard, machineControls, pPeripheralControls) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader.registerForDownloadElement(mainElement);
         keyboard.addInputElements(keyControlsInputElements());
         machineControls.addInputElements(keyControlsInputElements());
+        peripheralControls = pPeripheralControls;
         peripheralControls.addInputElements(keyControlsInputElements());
     };
 
@@ -419,12 +420,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.preventDefault) e.preventDefault();
             // Simple control, only left-click
             if ((typeof control) == "number") {
-                if (!e.buttons || e.buttons === 1) monitor.controlActivated(control);
+                if (!e.buttons || e.buttons === 1) peripheralControls.controlActivated(control);
                 return;
             }
             // Complex control
             var mask = (e.buttons || 1) | (e.altKey ? KEY_ALT_MASK : 0) | (e.ctrlKey ? KEY_CTRL_MASK : 0) | (e.shiftKey ? KEY_SHIFT_MASK : 0);
-            if (control[mask]) monitor.controlActivated(control[mask]);
+            if (control[mask]) peripheralControls.controlActivated(control[mask]);
         };
 
         // Left Button: a "click" event and not a "mousedown" is necessary here. Without a click, FF does not open the Open File window
@@ -540,6 +541,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var monitor;
     var controlsSocket;
+    var peripheralControls;
+
     var settings;
 
     var borderElement;

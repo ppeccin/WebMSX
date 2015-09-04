@@ -29,7 +29,7 @@ wmsx.Monitor = function() {
     };
 
     this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
-        crtSetModeForCartridges();
+        crtSetModeForCartridges(cartridge1, cartridge2);
     };
 
     this.setDisplayDefaultSize = function() {
@@ -103,10 +103,10 @@ wmsx.Monitor = function() {
         setDisplayScale(scaleY * DEFAULT_SCALE_ASPECT_X, scaleY);
     };
 
-    var crtSetModeForCartridges = function() {
+    var crtSetModeForCartridges = function(cartridge1, cartridge2) {
         // Only change mode if in Default is in AUTO (not forced)
         if (CRT_MODE === -1 && (crtMode === 0 || crtMode === 1)) {
-            var cart = cartridgeSocket.inserted(1) || cartridgeSocket.inserted(2);
+            var cart = cartridge1 || cartridge2;
             setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
         }
     };
