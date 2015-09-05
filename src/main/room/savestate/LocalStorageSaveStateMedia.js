@@ -49,7 +49,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     var saveToLocalStorage = function(entry, data) {
         try {
-            localStorage["msx" + entry] = data;
+            localStorage["wmsx" + entry] = data;
             return true;
         } catch (e) {
             return false;
@@ -58,7 +58,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     var loadFromLocalStorage = function(entry) {
         try {
-            return localStorage["msx" + entry];
+            return localStorage["wmsx" + entry];
         } catch (e) {
             // give up
         }

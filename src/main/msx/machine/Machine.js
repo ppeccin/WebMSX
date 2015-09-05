@@ -467,7 +467,7 @@ wmsx.Machine = function() {
         this.addRedefinitionListener = function(listener) {
             if (redefinitionListeners.indexOf(listener) < 0) {
                 redefinitionListeners.push(listener);
-                listener.fireRedefinitionUpdate();		// Fire a redefinition event
+                listener.controlsStatesRedefined();		// Fire a redefinition event
             }
         };
 

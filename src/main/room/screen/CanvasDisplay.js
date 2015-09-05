@@ -14,6 +14,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor.connectDisplay(self);
     }
 
+    this.connect = function(pVideoSignal, pMachineControlsSocket, pCartridgeSocket) {
+        monitor.connect(pVideoSignal, pCartridgeSocket);
+        machineControlsSocket = pMachineControlsSocket;
+        machineControlsSocket.addRedefinitionListener(this);
+        pCartridgeSocket.addCartridgesStateListener(this);
+    };
+
     this.connectPeripherals = function(fileLoader, fileDownloader, keyboard, machineControls, pPeripheralControls) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
@@ -22,11 +29,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         machineControls.addInputElements(keyControlsInputElements());
         peripheralControls = pPeripheralControls;
         peripheralControls.addInputElements(keyControlsInputElements());
-    };
-
-    this.connect = function(pVideoSignal, pCartridgeSocket) {
-        monitor.connect(pVideoSignal, pCartridgeSocket);
-        pCartridgeSocket.addCartridgesStateListener(this);
     };
 
     this.powerOn = function() {
@@ -181,6 +183,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.tapeStateUpdate = function(present, motor) {
         mediaButtonsState.Tape = motor ? 2 : ( present ? 1 : 0 );
         refreshMediaButtons();
+    };
+
+    this.controlsStatesRedefined = function () {
+        machineControlsSocket.controlsStateReport(machineControlsStateReport);
+        this.powerStateUpdate(machineControlsStateReport[wmsx.MachineControls.POWER]);
     };
 
     var keyControlsInputElements = function() {
@@ -562,8 +569,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
+
     var monitor;
     var peripheralControls;
+    var machineControlsSocket;
+    var machineControlsStateReport = {};
 
     var settings;
 

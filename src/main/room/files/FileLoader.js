@@ -244,8 +244,8 @@ wmsx.FileLoader = function() {
     var secondaryPort = false;
 
 
-    var ZIP_INNER_FILES_PATTERN = /^.*\.(bin|BIN|rom|ROM|bios|BIOS|cas|CAS|tape|TAPE|wst|WST)$/;
-    var INPUT_ELEM_ACCEPT_PROP  = ".bin,.rom,.bios,.cas,.tape,.wst,.zip";
+    var ZIP_INNER_FILES_PATTERN = /^.*\.(bin|BIN|dsk|DSK|rom|ROM|bios|BIOS|cas|CAS|tape|TAPE|wst|WST)$/;
+    var INPUT_ELEM_ACCEPT_PROP  = ".bin,.dsk,.rom,.bios,.cas,.tape,.wst,.zip";
     var LOCAL_STOARAGE_LAST_URL_KEY = "wmsxlasturl";
 
 
