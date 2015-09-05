@@ -24,9 +24,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         peripheralControls.addInputElements(keyControlsInputElements());
     };
 
-    this.connect = function(pVideoSignal, pControlsSocket, pCartridgeSocket) {
+    this.connect = function(pVideoSignal, pCartridgeSocket) {
         monitor.connect(pVideoSignal, pCartridgeSocket);
-        controlsSocket = pControlsSocket;
         pCartridgeSocket.addCartridgesStateListener(this);
     };
 
@@ -160,6 +159,11 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.focus = function() {
         canvas.focus();
+    };
+
+    this.powerStateUpdate = function(power) {
+        mediaButtonsState.Power = power ? 2 : 1;
+        refreshMediaButtons();
     };
 
     this.diskDrivesStateUpdate = function(diskAPresent, diskAMotor, diskBPresent, diskBMotor) {
@@ -327,17 +331,21 @@ wmsx.CanvasDisplay = function(mainElement) {
             buttonsBar.style.border = "1px solid black";
         }
 
-        powerButton  = addBarButton(6, -26, 24, 23, -120, -3);
-        consoleControlButton(powerButton, wmsx.MachineControls.POWER);
+        powerButton  = addBarButton(6, -26, 24, 23, -120, -29);
+        var controls = {};
+        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.MAIN_POWER_TOGGLE;
+        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.MAIN_POWER_RESET;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.MAIN_POWER_RESET;
+        peripheralControlButton(powerButton, controls);
 
         diskAButton = addBarButton(44, -26, 24, 23, -150, -53);
-        var controls = {};
+        controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.DISKA_LOAD_FILE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKA_LOAD_URL;
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKA_SAVE_FILE;
-        screenControlButton(diskAButton, controls);
+        peripheralControlButton(diskAButton, controls);
 
         diskBButton = addBarButton(43 + 26, -26, 24, 23, -150, -53);
         controls = {};
@@ -346,7 +354,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKB_SAVE_FILE;
-        screenControlButton(diskBButton, controls);
+        peripheralControlButton(diskBButton, controls);
 
         cartridge1Button = addBarButton(43 + 26 * 2, -26, 24, 23, -150, -53);
         controls = {};
@@ -354,7 +362,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
-        screenControlButton(cartridge1Button, controls);
+        peripheralControlButton(cartridge1Button, controls);
 
         cartridge2Button = addBarButton(44 + 26 * 3, -26, 24, 23, -179, -53);
         controls = {};
@@ -362,7 +370,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
-        screenControlButton(cartridge2Button, controls);
+        peripheralControlButton(cartridge2Button, controls);
 
         tapeButton = addBarButton(45 + 26 * 4, -26, 24, 23, -208, -53);
         controls = {};
@@ -374,19 +382,19 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_LOAD_EMPTY;
         controls[MOUSE_BUT3_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
-        screenControlButton(tapeButton, controls);
+        peripheralControlButton(tapeButton, controls);
 
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
             fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4);
-            screenControlButton(fullscreenButton, wmsx.PeripheralControls.SCREEN_FULLSCREEN);
+            peripheralControlButton(fullscreenButton, wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fsGap = 0;
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
             scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4);
-            screenControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SIZE_MINUS);
+            peripheralControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SIZE_MINUS);
             scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4);
-            screenControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SIZE_PLUS);
+            peripheralControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SIZE_PLUS);
         }
 
         settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);
@@ -401,6 +409,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var refreshMediaButtons = function() {
+        powerButton.style.backgroundPosition =      "-120px " + (mediaButtonBackYOffsets[mediaButtonsState["Power"]]) + "px";
         diskAButton.style.backgroundPosition =      "-237px " + (mediaButtonBackYOffsets[mediaButtonsState["DiskA"]]) + "px";
         diskBButton.style.backgroundPosition =      "-266px " + (mediaButtonBackYOffsets[mediaButtonsState["DiskB"]]) + "px";
         cartridge1Button.style.backgroundPosition = "-150px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge1"]]) + "px";
@@ -435,7 +444,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         return but;
     };
 
-    var screenControlButton = function (but, control) {
+    var peripheralControlButton = function (but, control) {
         but.style.cursor = "pointer";
 
         // We need a separate approach for left button and the others (middle and right).
@@ -466,18 +475,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         // Suppress Context menu
-        but.addEventListener("contextmenu", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        });
-    };
-
-    var consoleControlButton = function (but, control) {
-        but.style.cursor = "pointer";
-        but.addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            controlsSocket.controlStateChanged(control, true);
-        });
         but.addEventListener("contextmenu", function (e) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
@@ -566,7 +563,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var monitor;
-    var controlsSocket;
     var peripheralControls;
 
     var settings;
@@ -611,8 +607,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var contentBaseScale = WMSX.SCREEN_SHARP_SIZE;
 
-    var mediaButtonsState = { DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
-    var mediaButtonBackYOffsets = [ -53, -29, -4 ];
+    var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
+    var mediaButtonBackYOffsets = [ -54, -29, -4 ];
 
     var MOUSE_BUT1_MASK = 1;
     var MOUSE_BUT2_MASK = 2;

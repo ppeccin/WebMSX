@@ -66,14 +66,14 @@ wmsx.Room = function(screenElement, machinePanelElement) {
         self.machine = new wmsx.Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
         self.fileLoader.connect(self.machine.getBIOSSocket(), self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
-        self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
+        self.screen.connect(self.machine.getVideoOutput(), self.machine.getCartridgeSocket());
         if (self.machinePanel) self.machinePanel.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket(), self.controls);
         self.speaker.connect(self.machine.getAudioOutput());
         self.machineControls.connect(self.machine.getMachineControlsSocket());
         self.keyboard.connect(self.machine.getKeyboardSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
-        self.peripheralControls.connect(self.machine.getCartridgeSocket());
+        self.peripheralControls.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
     };
 
 

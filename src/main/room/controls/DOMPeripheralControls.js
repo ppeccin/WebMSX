@@ -8,8 +8,9 @@ wmsx.DOMPeripheralControls = function(room) {
         initKeys();
     }
 
-    this.connect = function(pCartridgeSocket) {
-        cartridgeSocket = pCartridgeSocket;
+    this.connect = function(pMachineControls, pCartridgeSocket) {
+        machineControls = pMachineControls;
+        cartridgeSocket = pCartridgeSocket;''
     };
 
     this.connectPeripherals = function(pMonitor, pFileLoader, pCassetteDeck, pDiskDrive) {
@@ -64,6 +65,12 @@ wmsx.DOMPeripheralControls = function(room) {
     this.controlActivated = function(control) {
         // All controls are Press-only and repeatable
         switch(control) {
+            case controls.MAIN_POWER_TOGGLE:
+                machineControls.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen button
+                break;
+            case controls.MAIN_POWER_RESET:
+                machineControls.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen button
+                break;
             case controls.DISKA_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
                 break;
@@ -239,6 +246,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var controls = wmsx.PeripheralControls;
 
+    var machineControls;
     var monitor;
     var fileLoader;
     var cartridgeSocket;
