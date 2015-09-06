@@ -14,6 +14,10 @@ wmsx.ImageDiskDriver = function() {
         machine.cpu.setExtensionHandler([0xa, 0xb, 0xc, 0xd, 0xe], null);
     };
 
+    this.powerOff = function() {
+        MTOFF();
+    };
+
     function patchDiskBIOS(bios) {
         var bytes = bios.bytes;
         // Init for PHILLIPS interface?
@@ -92,7 +96,7 @@ wmsx.ImageDiskDriver = function() {
         if (drive.diskWriteProtected(A))
             return { F: F | 1, A: 0, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
 
-        var res = drive.writeSectors(A, DE, B, readFromMemory(HL, B * drive.bytesPerSector));
+        var res = drive.writeSectors(A, DE, B, readFromMemory(HL, B * BYTES_PER_SECTOR));
 
         // Not Ready error if can't write
         if (!res)
@@ -181,6 +185,8 @@ wmsx.ImageDiskDriver = function() {
     var bus;
     var drive;
 
+
+    var BYTES_PER_SECTOR = 512;                 // Fixed for now, for all disks
 
     var DPBS_FOR_MEDIA_DESCIPTORS = {
         // Media F8; 80 Tracks; 9 sectors; 1 side; 3.5" 360 Kb

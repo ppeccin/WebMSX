@@ -22,6 +22,10 @@ wmsx.CartridgeDiskPatched = function(rom) {
         if (driver) driver.disconnect(this, machine);
     };
 
+    this.powerOff = function() {
+        if (driver) driver.powerOff();
+    };
+
     this.read = function(address) {
         return bytes[address];
     };

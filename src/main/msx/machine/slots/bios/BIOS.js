@@ -26,6 +26,7 @@ wmsx.BIOS = function(rom) {
     };
 
     this.powerOff = function() {
+        if (cassetteDriver) cassetteDriver.powerOff();
     };
 
     this.write = function(address, value) {

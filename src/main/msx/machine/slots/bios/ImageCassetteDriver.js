@@ -15,6 +15,10 @@ wmsx.ImageCassetteDriver = function() {
         deck.connectBASICExtension(null);
     };
 
+    this.powerOff = function() {
+        if (deck) deck.motor(false);
+    };
+
     function patchBIOS(bios) {
         var bytes = bios.bytes;
 
