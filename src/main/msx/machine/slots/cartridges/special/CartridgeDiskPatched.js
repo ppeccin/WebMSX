@@ -1,15 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Patched Disk ROM. Will access and command the Disk Drive
-wmsx.CartridgeDiskPatched = function(rom) {
+// Patched Disk ROM. Multiple format, used for all Disk ROM manufacturers. Accesses and commands the Disk Drive
+wmsx.CartridgeDiskPatched = function(rom, format) {
 
     function init(self) {
         self.rom = rom;
+        self.format = format;
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         // Always start at 0x4000
-        for(var i = 0, len = content.length; i < len; i++)
+        for (var i = 0, len = content.length; i < len; i++)
             bytes[0x4000 + i] = content[i];
     }
 
@@ -35,7 +36,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.DiskPatched;
+    this.format = null;
 
     var driver;
 
@@ -52,19 +53,20 @@ wmsx.CartridgeDiskPatched = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
+        this.format = wmsx.SlotFormats[s.f];
         bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b));
         this.bytes = bytes;
     };
 
 
-    if (rom) init(this);
+    if (rom && format) init(this);
 
 };
 
 wmsx.CartridgeDiskPatched.prototype = wmsx.Cartridge.base;
 
 wmsx.CartridgeDiskPatched.createFromSaveState = function(state) {
-    var cart = new wmsx.CartridgeDiskPatched();
+    var cart = new wmsx.CartridgeDiskPatched(null, null);
     cart.loadState(state);
     return cart;
 };

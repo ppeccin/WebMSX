@@ -180,18 +180,99 @@ wmsx.SlotFormats = {
 
     "DiskPatched": {
         name: "DiskPatched",
-        desc: "Patched Disk BIOS",
+        desc: "Generic Patched Disk BIOS",
         priority: 151,
         tryFormat: function (rom) {
             // Only DiskPatched 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom);
+            return new wmsx.CartridgeDiskPatched(rom, this);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        }
+    },
+
+    "DiskWD": {
+        name: "DiskWD",
+        desc: "WD 2793 based Disk BIOS (Patched)",
+        priority: 152,
+        tryFormat: function (rom) {
+            // Only DiskWD 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDiskPatched(rom, this);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        }
+    },
+
+    "DiskFujitsu": {
+        name: "DiskFujitsu",
+        desc: "Fujitsu MB8877A based Disk BIOS (Patched)",
+        priority: 153,
+        tryFormat: function (rom) {
+            // Only DiskFujitsu 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDiskPatched(rom, this);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        }
+    },
+
+    "DiskToshiba": {
+        name: "DiskToshiba",
+        desc: "Toshiba TC8566AF based Disk BIOS (Patched)",
+        priority: 154,
+        tryFormat: function (rom) {
+            // Only DiskToshiba 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDiskPatched(rom, this);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        }
+    },
+
+    "DiskMicrosol": {
+        name: "DiskMicrosol",
+        desc: "Microsol WD2793 based Disk BIOS (Patched)",
+        priority: 155,
+        tryFormat: function (rom) {
+            // Only DiskMicrosol 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDiskPatched(rom, this);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        }
+    },
+
+    "DiskSVI": {
+        name: "DiskSVI",
+        desc: "SVI 738 based Disk BIOS (Patched)",
+        priority: 156,
+        tryFormat: function (rom) {
+            // Only DiskSVI 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDiskPatched(rom, this);
         },
         createFromSaveState: function (state) {
             return wmsx.CartridgeDiskPatched.createFromSaveState(state);
         }
     }
+
 
 };

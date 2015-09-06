@@ -5,13 +5,13 @@ wmsx.ImageDiskDriver = function() {
 
     this.connect = function(diskBIOS, machine) {
         bus = machine.bus;
-        machine.cpu.setExtensionHandler([0xa, 0xb, 0xc, 0xd, 0xe], diskBIOSCPUExtension);
+        machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], diskBIOSCPUExtension);
         drive = machine.getDiskDriveSocket().getDrive();
         patchDiskBIOS(diskBIOS);
     };
 
     this.disconnect = function(diskBIOS, machine) {
-        machine.cpu.setExtensionHandler([0xa, 0xb, 0xc, 0xd, 0xe], null);
+        machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], null);
     };
 
     this.powerOff = function() {
@@ -20,8 +20,20 @@ wmsx.ImageDiskDriver = function() {
 
     function patchDiskBIOS(bios) {
         var bytes = bios.bytes;
-        // Init for PHILLIPS interface?
-        bytes[0x7ff8] = 0;
+
+        // DOS kernel places where Driver routines with no jump table are called
+
+        // INIHRD routine (EXT 8)
+        bytes[0x576F] = 0xed;
+        bytes[0x5770] = 0xe8;
+        bytes[0x5771] = 0x00;   // NOP
+        // DRIVES routine (EXT 9)
+        bytes[0x5850] = 0xed;
+        bytes[0x5851] = 0xe9;
+        bytes[0x5852] = 0x00;   // NOP
+
+        // DOS Kernel jump table for Driver routines
+
         // DSKIO routine (EXT A)
         bytes[0x4010] = 0xed;
         bytes[0x4011] = 0xea;
@@ -34,20 +46,34 @@ wmsx.ImageDiskDriver = function() {
         bytes[0x4016] = 0xed;
         bytes[0x4017] = 0xec;
         bytes[0x4018] = 0xc9;
-        // CHOICE routine not patched
-        // DSKFMT routine (EXT D)
+        // CHOICE routine (EXT D)
+        bytes[0x4019] = 0xed;
+        bytes[0x401a] = 0xed;
+        bytes[0x401b] = 0xc9;
+        // DSKFMT routine (EXT E)
         bytes[0x401c] = 0xed;
-        bytes[0x401d] = 0xed;
+        bytes[0x401d] = 0xee;
         bytes[0x401e] = 0xc9;
-        // MTOFF routine (EXT E)
+        // MTOFF routine (EXT F)
         bytes[0x401f] = 0xed;
-        bytes[0x4020] = 0xee;
+        bytes[0x4020] = 0xef;
         bytes[0x4021] = 0xc9;
+
+        // Additional patches on the status register needed so the init does not hang...
+        // Not needed anymore since we patched INIHRD and DRIVES!
+        // Depends on the manufacturer
+        //if (bios.format === wmsx.SlotFormats.DiskWD) bytes[0x7ff8] = 0;
+        //if (bios.format === wmsx.SlotFormats.DiskFujitsu) bytes[0x7fb8] = 0;
+        //if (bios.format === wmsx.SlotFormats.DiskToshiba) bytes[0x7ffa] = 0;
     }
 
     function diskBIOSCPUExtension(s) {
-        if (s.PC < 0x4000 || s.PC > 0x4021) return;     // Not intended
+        // if (s.PC < 0x4000 || s.PC > 0x4021) return;     // Not intended
         switch (s.extNum) {
+            case 0x8:
+                return INIHRD();
+            case 0x9:
+                return DRIVES(s.F, s.HL);
             case 0xa:
                 return DSKIO(s.F, s.A, s.B, s.C, s.DE, s.HL);
             case 0xb:
@@ -55,10 +81,23 @@ wmsx.ImageDiskDriver = function() {
             case 0xc:
                 return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
-                return DSKFMT(s.F, s.A, s.DE);
+                return CHOICE();
             case 0xe:
+                return DSKFMT(s.F, s.A, s.DE);
+            case 0xf:
                 return MTOFF();
         }
+    }
+
+    function INIHRD(F, HL) {
+        console.log("INIHRD");
+        // no real initialization required)
+    }
+
+    function DRIVES(F, HL) {
+        console.log("DRIVES: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex4(HL));
+
+        return { HL: (HL & 0xff00) | (F & 0x40 ? 1 : 2) };
     }
 
     function DSKIO(F, A, B, C, DE, HL) {
@@ -139,6 +178,12 @@ wmsx.ImageDiskDriver = function() {
 
         var dpb = DPBS_FOR_MEDIA_DESCIPTORS[mediaDesc];
         writeToMemory(dpb, HL + 1);
+    }
+
+    function CHOICE() {
+        // console.log("CHOICE");
+
+        return { HL: 0 };           // No options for now
     }
 
     function DSKFMT(F, A, D) {
