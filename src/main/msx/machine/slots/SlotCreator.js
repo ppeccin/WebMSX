@@ -116,7 +116,7 @@ wmsx.SlotCreator = function () {
     };
 
     var boostPriority = function(formatOption, info) {
-        if (info.f && formatOption.name === info.f)
+        if (info.f && (formatOption.name === info.f))
             formatOption.priorityBoosted = formatOption.priority - FORMAT_PRIORITY_BOOST;
         else
             formatOption.priorityBoosted = undefined;
@@ -145,7 +145,7 @@ wmsx.SlotCreator = function () {
     var HINTS_PREFIX_REGEX = "^(|.*?(\\W|_|%20))";
     var HINTS_SUFFIX_REGEX = "(|(\\W|_|%20).*)$";
 
-    var FORMAT_PRIORITY_BOOST = 50;
+    var FORMAT_PRIORITY_BOOST = 100;
 
 };
 

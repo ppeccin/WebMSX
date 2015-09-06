@@ -2,8 +2,9 @@
 
 wmsx.SlotRAM64K = function(content) {
 
-    function init() {
+    function init(self) {
         bytes = content;
+        self.bytes = bytes;
     }
 
     this.powerOn = function(paused) {
@@ -23,21 +24,12 @@ wmsx.SlotRAM64K = function(content) {
     };
 
     this.dump = function(from, quant) {
-        var res = "";
-        var i;
-        for(i = from; i <= from + quant; i++) {
-            res = res + i.toString(16, 2) + " ";
-        }
-        res += "\n";
-        for(i = from; i <= from + quant; i++) {
-            var val = this.read(i);
-            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
-        }
-        return res;
+        wmsx.Util.dump(bytes, from, quant);
     };
 
 
     var bytes;
+    this.bytes = null;
 
     this.format = wmsx.SlotFormats.RAM64K;
 
@@ -56,7 +48,7 @@ wmsx.SlotRAM64K = function(content) {
     };
 
 
-    if (content) init();
+    if (content) init(this);
 
 };
 

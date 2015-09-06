@@ -1,18 +1,48 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
+// Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
+wmsx.ImageDiskDriver = function() {
 
-    cpu.setExtensionHandler([0xa, 0xb, 0xc, 0xd, 0xe], diskBIOSCPUExtension);
-
-    this.connectDrive = function(pDrive) {
-        drive = pDrive;
+    this.connect = function(diskBIOS, machine) {
+        bus = machine.bus;
+        machine.cpu.setExtensionHandler([0xa, 0xb, 0xc, 0xd, 0xe], diskBIOSCPUExtension);
+        drive = machine.getDiskDriveSocket().getDrive();
+        patchDiskBIOS(diskBIOS);
     };
 
-    this.patchDiskBIOS = function(bios) {
-        if (bios) patchDiskBIOS(bios);
+    this.disconnect = function(diskBIOS, machine) {
+        machine.cpu.setExtensionHandler([0xa, 0xb, 0xc, 0xd, 0xe], null);
     };
+
+    function patchDiskBIOS(bios) {
+        var bytes = bios.bytes;
+        // Init for PHILLIPS interface?
+        bytes[0x7ff8] = 0;
+        // DSKIO routine (EXT A)
+        bytes[0x4010] = 0xed;
+        bytes[0x4011] = 0xea;
+        bytes[0x4012] = 0xc9;
+        // DSKCHG routine (EXT B)
+        bytes[0x4013] = 0xed;
+        bytes[0x4014] = 0xeb;
+        bytes[0x4015] = 0xc9;
+        // GETDPB routine (EXT C)
+        bytes[0x4016] = 0xed;
+        bytes[0x4017] = 0xec;
+        bytes[0x4018] = 0xc9;
+        // CHOICE routine not patched
+        // DSKFMT routine (EXT D)
+        bytes[0x401c] = 0xed;
+        bytes[0x401d] = 0xed;
+        bytes[0x401e] = 0xc9;
+        // MTOFF routine (EXT E)
+        bytes[0x401f] = 0xed;
+        bytes[0x4020] = 0xee;
+        bytes[0x4021] = 0xc9;
+    }
 
     function diskBIOSCPUExtension(s) {
+        if (s.PC < 0x4000 || s.PC > 0x4021) return;     // Not intended
         switch (s.extNum) {
             case 0xa:
                 return DSKIO(s.F, s.A, s.B, s.C, s.DE, s.HL);
@@ -25,39 +55,6 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
             case 0xe:
                 return MTOFF();
         }
-    }
-
-    function patchDiskBIOS(bios) {
-        var bytes = bios.bytes;
-
-        bytes[0x7ff8] = 0;                  // Init for PHILLIPS interface?
-
-        // DSKIO routine (EXT A)
-        bytes[0x4010] = 0xed;
-        bytes[0x4011] = 0xea;
-        bytes[0x4012] = 0xc9;
-
-        // DSKCHG routine (EXT B)
-        bytes[0x4013] = 0xed;
-        bytes[0x4014] = 0xeb;
-        bytes[0x4015] = 0xc9;
-
-        // GETDPB routine (EXT C)
-        bytes[0x4016] = 0xed;
-        bytes[0x4017] = 0xec;
-        bytes[0x4018] = 0xc9;
-
-        // CHOICE routine not patched
-
-        // DSKFMT routine (EXT D)
-        bytes[0x401c] = 0xed;
-        bytes[0x401d] = 0xed;
-        bytes[0x401e] = 0xc9;
-
-        // MTOFF routine (EXT E)
-        bytes[0x401f] = 0xed;
-        bytes[0x4020] = 0xee;
-        bytes[0x4021] = 0xc9;
     }
 
     function DSKIO(F, A, B, C, DE, HL) {
@@ -180,6 +177,8 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
             bus.write(address + i, bytes[i]);
     }
 
+
+    var bus;
     var drive;
 
 
@@ -205,4 +204,3 @@ wmsx.DiskBIOSCPUExtension = function(cpu, bus) {
     var EXTRA_ITERATIONS_PER_SECTOR = 10000;
 
 };
-

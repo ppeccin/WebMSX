@@ -2,9 +2,8 @@
 
 // Unbanked ROMs of size 8K, 16K, 32K or 64K. Position in slot depends on size, header (start address) and info hints
 wmsx.CartridgeUnbanked = function(rom) {
-    var self = this;
 
-    function init() {
+    function init(self) {
         self.rom = rom;
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
@@ -57,36 +56,14 @@ wmsx.CartridgeUnbanked = function(rom) {
         }
     }
 
-    this.powerOn = function(paused) {
-    };
-
-    this.powerOff = function() {
-    };
-
-    this.write = function(address, value) {
-        // ROMs cannot be modified
-    };
 
     this.read = function(address) {
         return bytes[address];
     };
 
-    this.dump = function(from, quant) {
-        var res = "";
-        var i;
-        for(i = from; i <= from + quant; i++) {
-            res = res + i.toString(16, 2) + " ";
-        }
-        res += "\n";
-        for(i = from; i <= from + quant; i++) {
-            var val = this.read(i);
-            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
-        }
-        return res;
-    };
-
 
     var bytes;
+    this.bytes = null;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.Unbanked;
@@ -108,9 +85,11 @@ wmsx.CartridgeUnbanked = function(rom) {
     };
 
 
-    if (rom) init();
+    if (rom) init(this);
 
 };
+
+wmsx.CartridgeUnbanked.prototype = wmsx.Cartridge.base;
 
 wmsx.CartridgeUnbanked.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeUnbanked();

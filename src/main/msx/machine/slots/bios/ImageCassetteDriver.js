@@ -1,35 +1,19 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CassetteBIOSCPUExtension = function(cpu) {
+// Cassette Driver for cassette images. Implements driver public calls using the CPU extension protocol
+wmsx.ImageCassetteDriver = function() {
 
-    cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], cassetteBIOSCPUExtension);
-
-    this.connectDeck = function(pDeck) {
-        deck = pDeck;
-    };
-
-    this.patchBIOS = function(bios) {
+    this.connect = function(bios, machine) {
+        machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], cassetteBIOSCPUExtension);
+        deck = machine.getCassetteSocket().getDeck();
+        deck.connectBASICExtension(new wmsx.BASICExtension(machine.bus));
         patchBIOS(bios);
     };
 
-    function cassetteBIOSCPUExtension(s) {
-        switch (s.extNum) {
-            case 0:
-                return TAPION(s.F);
-            case 1:
-                return TAPIN(s.F);
-            case 2:
-                return TAPIOF();
-            case 3:
-                return TAPOON(s.A, s.F);
-            case 4:
-                return TAPOUT(s.A, s.F);
-            case 5:
-                return TAPOOF();
-            case 6:
-                return STMOTR(s.A);
-        }
-    }
+    this.disconnect = function(bios, machine) {
+        machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], null);
+        deck.connectBASICExtension(null);
+    };
 
     function patchBIOS(bios) {
         var bytes = bios.bytes;
@@ -68,6 +52,26 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
         bytes[0x00f3] = 0xed;
         bytes[0x00f4] = 0xe6;
         bytes[0x00f5] = 0xc9;
+    }
+
+    function cassetteBIOSCPUExtension(s) {
+        if (s.PC < 0x00e1 || s.PC > 0x00f5) return;     // Not intended
+        switch (s.extNum) {
+            case 0:
+                return TAPION(s.F);
+            case 1:
+                return TAPIN(s.F);
+            case 2:
+                return TAPIOF();
+            case 3:
+                return TAPOON(s.A, s.F);
+            case 4:
+                return TAPOUT(s.A, s.F);
+            case 5:
+                return TAPOOF();
+            case 6:
+                return STMOTR(s.A);
+        }
     }
 
     function TAPION(F) {
@@ -110,7 +114,7 @@ wmsx.CassetteBIOSCPUExtension = function(cpu) {
     }
 
     function fail(F) {
-        return { F: F |= 0x01 };                                 // Set C flag = fail
+        return { F: F |= 0x01 };                                        // Set C flag = fail
     }
 
 

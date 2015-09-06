@@ -14,10 +14,8 @@ WMSX.start = function () {
             throw new Error('MSX cannot be started. ' +
             'HTML document is missing screen element with id "' + WMSX.SCREEN_ELEMENT_ID + '"');
     }
-    if (!WMSX.machinePanelElement)
-        WMSX.machinePanelElement = document.getElementById(WMSX.CONSOLE_PANEL_ELEMENT_ID);
     // Build and start emulator
-    WMSX.room = new wmsx.Room(WMSX.screenElement, WMSX.machinePanelElement);
+    WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
 
     // Auto-load BIOS, ROM and Tape files if specified

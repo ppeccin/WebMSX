@@ -1381,7 +1381,7 @@ wmsx.Z80 = function() {
                 return;
             }
             // New extension instruction may happen now
-            if (extensionHandler[num] === undefined) return;
+            if (!extensionHandler[num]) return;
             // Send state to the handler
             var res = extensionHandler[num]({
                 extNum: num, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,

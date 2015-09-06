@@ -2,9 +2,8 @@
 
 // 16K or 32K BIOS. Always positioned at 0x0000
 wmsx.BIOS = function(rom) {
-    var self = this;
 
-    function init() {
+    function init(self) {
         self.rom = rom;
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
@@ -13,6 +12,15 @@ wmsx.BIOS = function(rom) {
             bytes[i] = content[i];
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
     }
+
+    this.connect = function(machine) {
+        cassetteDriver = new wmsx.ImageCassetteDriver();
+        cassetteDriver.connect(this, machine);
+    };
+
+    this.disconnect = function(machine) {
+        if (cassetteDriver) cassetteDriver.disconnect(this, machine);
+    };
 
     this.powerOn = function(paused) {
     };
@@ -41,17 +49,7 @@ wmsx.BIOS = function(rom) {
     };
 
     this.dump = function(from, quant) {
-        var res = "";
-        var i;
-        for(i = from; i <= from + quant; i++) {
-            res = res + i.toString(16, 2) + " ";
-        }
-        res += "\n";
-        for(i = from; i <= from + quant; i++) {
-            var val = this.read(i);
-            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
-        }
-        return res;
+        wmsx.Util.dump(bytes, from, quant);
     };
 
 
@@ -79,10 +77,13 @@ wmsx.BIOS = function(rom) {
         this.rom = wmsx.ROM.loadState(state.r);
         this.originalVideoStandard = state.v;
         bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
+        this.bytes = bytes;
     };
 
+    var cassetteDriver;
 
-    if (rom) init();
+
+    if (rom) init(this);
 
 };
 

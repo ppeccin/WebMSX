@@ -130,7 +130,7 @@ wmsx.SlotFormats = {
     "KonamiSCC": {
         name: "KonamiSCC",
         desc: "KonamiSCC 8K Mapper Cartridge",
-        priority: 114,
+        priority: 115,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -165,7 +165,7 @@ wmsx.SlotFormats = {
         desc: "CrossBlaim 64K Mapper Cartridge",
         priority: 122,
         tryFormat: function (rom) {
-            // Only CrossNlaim 64K content. Must be selected via info format hint
+            // Only CrossBlaim 64K content. Must be selected via info format hint
             if (rom.content.length === 65536) return this;
         },
         createFromROM: function (rom) {
@@ -174,5 +174,24 @@ wmsx.SlotFormats = {
         createFromSaveState: function (state) {
             return wmsx.CartridgeCrossBlaim.createFromSaveState(state);
         }
+    },
+
+    // Disk Interfaces
+
+    "DiskPatched": {
+        name: "DiskPatched",
+        desc: "Patched Disk BIOS",
+        priority: 151,
+        tryFormat: function (rom) {
+            // Only DiskPatched 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDiskPatched(rom);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        }
     }
+
 };

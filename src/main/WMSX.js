@@ -12,7 +12,6 @@ WMSX = {
     TAPE_AUTO_LOAD_URL:             "",                         // Full or relative URL of TAPE
     AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Auto-Load/Power-on
     SCREEN_ELEMENT_ID:              "wmsx-screen",
-    CONSOLE_PANEL_ELEMENT_ID:       "wmsx-console-panel",
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,

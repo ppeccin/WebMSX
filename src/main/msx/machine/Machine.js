@@ -6,7 +6,6 @@ wmsx.Machine = function() {
     function init() {
         mainComponentsCreate();
         socketsCreate();
-        extensionsCreate();
         setVideoStandardAuto();
     }
 
@@ -92,7 +91,6 @@ wmsx.Machine = function() {
     var setBIOS = function(bios) {
         WMSX.bios = bios;
         bus.setBIOS(bios);
-        if (bios) cassetteBIOSExtension.patchBIOS(bios);
         setVideoStandardAuto();
     };
 
@@ -101,10 +99,6 @@ wmsx.Machine = function() {
     };
 
     var setCartridge = function(cartridge, port) {
-
-        // TODO Remove
-        if (port === 1) diskBIOSExtension.patchDiskBIOS(cartridge);
-
         if (port === 1) WMSX.cartridge2 = cartridge;
         else WMSX.cartridge1 = cartridge;
         bus.setCartridge(cartridge, port);
@@ -189,7 +183,7 @@ wmsx.Machine = function() {
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
         self.vdp = vdp = new wmsx.VDP(cpu, psg);
-        self.bus = bus = new wmsx.EngineBUS(cpu, ppi, vdp, psg);
+        self.bus = bus = new wmsx.EngineBUS(self, cpu, ppi, vdp, psg);
         self.mainClock = mainClock = new wmsx.Clock(self, wmsx.VideoStandard.NTSC.fps);
 
         self.cpu = cpu;
@@ -209,12 +203,6 @@ wmsx.Machine = function() {
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
         diskDriveSocket = new DiskDriveSocket();
-    };
-
-    var extensionsCreate = function() {
-        diskBIOSExtension = new wmsx.DiskBIOSCPUExtension(cpu, bus);
-        cassetteBIOSExtension = new wmsx.CassetteBIOSCPUExtension(cpu);
-        basicExtension = new wmsx.BASICExtension(bus);
     };
 
 
@@ -240,10 +228,6 @@ wmsx.Machine = function() {
     var saveStateSocket;
     var cassetteSocket;
     var diskDriveSocket;
-
-    var cassetteBIOSExtension;
-    var diskBIOSExtension;
-    var basicExtension;
 
     var videoStandardIsAuto = false;
 
@@ -391,14 +375,19 @@ wmsx.Machine = function() {
     function CassetteSocket() {
 
         this.connectDeck = function (pDeck) {
-            cassetteBIOSExtension.connectDeck(pDeck);
-            pDeck.connectBASICExtension(basicExtension);
+            deck = pDeck;
+        };
+
+        this.getDeck = function() {
+            return deck;
         };
 
         this.autoPowerCycle = function () {
             if (self.powerIsOn) self.powerOff();
             self.userPowerOn();
         };
+
+        var deck;
 
     }
 
@@ -408,13 +397,19 @@ wmsx.Machine = function() {
     function DiskDriveSocket() {
 
         this.connectDrive = function (pDrive) {
-            diskBIOSExtension.connectDrive(pDrive);
+            drive = pDrive;
+        };
+
+        this.getDrive = function() {
+            return drive;
         };
 
         this.autoPowerCycle = function () {
             if (self.powerIsOn) self.powerOff();
             self.userPowerOn();
         };
+
+        var drive;
 
     }
 

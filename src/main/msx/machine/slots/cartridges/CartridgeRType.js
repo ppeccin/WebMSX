@@ -2,21 +2,18 @@
 
 // Special 384K ROM with 24 * 16K banks. Bank 1 at 0x4000 fixed at page 0x0f, bank 2 at 0x8000 variable
 wmsx.CartridgeRType = function(rom) {
-    var self = this;
 
-    function init() {
+    function init(self) {
         self.rom = rom;
         var content = self.rom.content;
         bytes = wmsx.Util.arrayFill(new Array(content.length), 0xff);
+        self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
     }
 
     this.powerOn = function(paused) {
         bank2Offset = -0x8000;
-    };
-
-    this.powerOff = function() {
     };
 
     this.write = function(address, value) {
@@ -32,22 +29,9 @@ wmsx.CartridgeRType = function(rom) {
             return bytes[bank2Offset + address];
     };
 
-    this.dump = function(from, quant) {
-        var res = "";
-        var i;
-        for(i = from; i <= from + quant; i++) {
-            res = res + i.toString(16, 2) + " ";
-        }
-        res += "\n";
-        for(i = from; i <= from + quant; i++) {
-            var val = this.read(i);
-            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
-        }
-        return res;
-    };
-
 
     var bytes;
+    this.bytes = null;
 
     var bank2Offset;
 
@@ -73,9 +57,11 @@ wmsx.CartridgeRType = function(rom) {
     };
 
 
-    if (rom) init();
+    if (rom) init(this);
 
 };
+
+wmsx.CartridgeRType.prototype = wmsx.Cartridge.base;
 
 wmsx.CartridgeRType.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeRType();

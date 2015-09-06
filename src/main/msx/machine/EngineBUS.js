@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface, mapped to the configured slots and devices. No expanded slots
-wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
+wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     var self = this;
 
     function init() {
@@ -32,7 +32,9 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
     };
 
     this.setBIOS = function(pBios) {
+        if (bios) bios.disconnect(machine);
         bios = pBios;
+        if (bios) bios.connect(machine);
         slots[0] = bios || new wmsx.SlotEmpty();
         this.setPrimarySlotConfig(0);
     };
@@ -44,10 +46,14 @@ wmsx.EngineBUS = function(cpu, ppi, vdp, psg) {
     this.setCartridge = function(pCartridge, port) {
         var slot = pCartridge || new wmsx.SlotEmpty();
         if (port === 1) {
+            if (cartridge1) cartridge1.disconnect(machine);
             cartridge1 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
+            if (cartridge1) cartridge1.connect(machine);
             slots[3] = slot;
         } else {
+            if (cartridge0) cartridge0.disconnect(machine);
             cartridge0 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
+            if (cartridge0) cartridge0.connect(machine);
             slots[1] = slot;
         }
         this.setPrimarySlotConfig(primarySlotConfig);

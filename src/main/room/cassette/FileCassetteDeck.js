@@ -32,7 +32,7 @@ wmsx.FileCassetteDeck = function() {
         if (autoPower && currentAutoRunCommand()) {
             cassetteSocket.autoPowerCycle();
             // Give some time for reboot and then enter command
-            window.setTimeout(this.typeCurrentAutoRunCommand, 1700);        // TODO Arbitrary...
+            window.setTimeout(this.typeCurrentAutoRunCommand, 1700);        // TODO Arbitrary time...
         }
 
         return tapeContent;
@@ -95,7 +95,16 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.typeCurrentAutoRunCommand = function() {
-        basicExtension.typeString(currentAutoRunCommand());
+        if (!tapeContent || (tapeContent.length === 0)) {
+            screen.showOSD("Cassette is empty!", true);
+            return;
+        }
+        var command = currentAutoRunCommand();
+        if (!command) {
+            screen.showOSD("No executable at current Tape position!", true);
+            return;
+        }
+        if (basicExtension) basicExtension.typeString(command);
     };
 
 

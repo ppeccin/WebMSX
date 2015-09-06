@@ -2,21 +2,18 @@
 
 // Special 64K ROM with 4 16K banks. Bank 1 at 0x4000 fixed at position 0, bank 2 at 0x8000 variable
 wmsx.CartridgeCrossBlaim = function(rom) {
-    var self = this;
 
-    function init() {
+    function init(self) {
         self.rom = rom;
         var content = self.rom.content;
         bytes = wmsx.Util.arrayFill(new Array(content.length), 0xff);
+        self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
     }
 
     this.powerOn = function(paused) {
         bank2Offset = 0x4000 -0x8000;
-    };
-
-    this.powerOff = function() {
     };
 
     this.write = function(address, value) {
@@ -34,6 +31,7 @@ wmsx.CartridgeCrossBlaim = function(rom) {
 
 
     var bytes;
+    this.bytes = null;
 
     var bank2Offset;
 
@@ -59,9 +57,11 @@ wmsx.CartridgeCrossBlaim = function(rom) {
     };
 
 
-    if (rom) init();
+    if (rom) init(this);
 
 };
+
+wmsx.CartridgeCrossBlaim.prototype = wmsx.Cartridge.base;
 
 wmsx.CartridgeCrossBlaim.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeCrossBlaim();

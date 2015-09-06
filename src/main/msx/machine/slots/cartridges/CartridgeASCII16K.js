@@ -2,12 +2,12 @@
 
 // ROMs with (n >= 2) * 16K banks, mapped in 2 16K banks starting at 0x4000
 wmsx.CartridgeASCII16K = function(rom) {
-    var self = this;
 
-    function init() {
+    function init(self) {
         self.rom = rom;
         var content = self.rom.content;
         bytes = wmsx.Util.arrayFill(new Array(content.length), 0xff);
+        self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
         numBanks = (content.length / 16384) | 0;
@@ -15,9 +15,6 @@ wmsx.CartridgeASCII16K = function(rom) {
 
     this.powerOn = function(paused) {
         bank1Offset = bank2Offset = -0x4000;
-    };
-
-    this.powerOff = function() {
     };
 
     this.write = function(address, value) {
@@ -34,22 +31,9 @@ wmsx.CartridgeASCII16K = function(rom) {
             return bytes[bank2Offset + address];
     };
 
-    this.dump = function(from, quant) {
-        var res = "";
-        var i;
-        for(i = from; i <= from + quant; i++) {
-            res = res + i.toString(16, 2) + " ";
-        }
-        res += "\n";
-        for(i = from; i <= from + quant; i++) {
-            var val = this.read(i);
-            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
-        }
-        return res;
-    };
-
 
     var bytes;
+    this.bytes = null;
 
     var bank1Offset;
     var bank2Offset;
@@ -81,9 +65,11 @@ wmsx.CartridgeASCII16K = function(rom) {
     };
 
 
-    if (rom) init();
+    if (rom) init(this);
 
 };
+
+wmsx.CartridgeASCII16K.prototype = wmsx.Cartridge.base;
 
 wmsx.CartridgeASCII16K.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeASCII16K();

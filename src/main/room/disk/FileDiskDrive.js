@@ -58,7 +58,7 @@ wmsx.FileDiskDrive = function() {
         }
     };
 
-    // Access interface methods
+    // DiskDriver interface methods
 
     this.diskHasChanged = function(drive) {
         if (diskChanged[drive]) {
