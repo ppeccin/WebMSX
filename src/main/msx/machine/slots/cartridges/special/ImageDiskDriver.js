@@ -90,12 +90,12 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function INIHRD(F, HL) {
-        console.log("INIHRD");
-        // no real initialization required)
+        // console.log("INIHRD");
+        // no real initialization required
     }
 
     function DRIVES(F, HL) {
-        console.log("DRIVES: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex4(HL));
+        // console.log("DRIVES: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex4(HL));
 
         return { HL: (HL & 0xff00) | (F & 0x40 ? 1 : 2) };
     }

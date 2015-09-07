@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// BUS interface, mapped to the configured slots and devices. No expanded slots
+// BUS interface. Controls 4 Primary Slots and I/O Device Ports
 wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     var self = this;
 
@@ -49,7 +49,7 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
             if (cartridge1) cartridge1.disconnect(machine);
             cartridge1 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
             if (cartridge1) cartridge1.connect(machine);
-            slots[3] = slot;
+            slots[3].insertSubSlot(slot, 1);
         } else {
             if (cartridge0) cartridge0.disconnect(machine);
             cartridge0 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
@@ -139,6 +139,9 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
 
         // RAM
         WMSX.ram = slots[2] = wmsx.SlotRAM64K.createNewEmpty();
+
+        // Expanded Slot at 3
+        WMSX.expandedSlot = slots[3] = new wmsx.SlotExpanded();
 
         self.setPrimarySlotConfig(0);
     }

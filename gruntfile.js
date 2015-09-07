@@ -35,6 +35,7 @@ module.exports = function (grunt) {
                     "src/main/msx/rom/ROM.js",
                     "src/main/msx/machine/slots/SlotFormats.js",
                     "src/main/msx/machine/slots/SlotEmpty.js",
+                    "src/main/msx/machine/slots/SlotExpanded.js",
                     "src/main/msx/machine/slots/bios/BIOS.js",
                     "src/main/msx/machine/slots/bios/ImageCassetteDriver.js",
                     "src/main/msx/machine/slots/bios/BASICExtension.js",
