@@ -40,7 +40,7 @@ module.exports = function (grunt) {
                     "src/main/msx/machine/slots/bios/ImageCassetteDriver.js",
                     "src/main/msx/machine/slots/bios/BASICExtension.js",
                     "src/main/msx/machine/slots/SlotRAM64K.js",
-                    "src/main/msx/machine/slots/cartridges/Cartridge.js",
+                    "src/main/msx/machine/slots/cartridges/Slot.js",
                     "src/main/msx/machine/slots/cartridges/CartridgeUnbanked.js",
                     "src/main/msx/machine/slots/cartridges/CartridgeASCII8K.js",
                     "src/main/msx/machine/slots/cartridges/CartridgeASCII16K.js",

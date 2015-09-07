@@ -31,36 +31,15 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         cpu.reset();
     };
 
-    this.setBIOS = function(pBios) {
-        if (bios) bios.disconnect(machine);
-        bios = pBios;
-        if (bios) bios.connect(machine);
-        slots[0] = bios || new wmsx.SlotEmpty();
-        this.setPrimarySlotConfig(0);
-    };
-
-    this.getBIOS = function() {
-        return bios;
-    };
-
-    this.setCartridge = function(pCartridge, port) {
-        var slot = pCartridge || new wmsx.SlotEmpty();
-        if (port === 1) {
-            if (cartridge1) cartridge1.disconnect(machine);
-            cartridge1 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
-            if (cartridge1) cartridge1.connect(machine);
-            slots[3].insertSubSlot(slot, 1);
-        } else {
-            if (cartridge0) cartridge0.disconnect(machine);
-            cartridge0 = slot.format === wmsx.SlotFormats.Empty ? null : pCartridge;
-            if (cartridge0) cartridge0.connect(machine);
-            slots[1] = slot;
-        }
+    this.insertSlot = function(slot, slotNumber) {
+        slots[slotNumber].disconnect(machine);
+        slots[slotNumber] = slot;
+        slot.connect(machine);
         this.setPrimarySlotConfig(primarySlotConfig);
     };
 
-    this.getCartridge = function(port) {
-        return port === 1 ? cartridge1 : cartridge0;
+    this.getSlot = function(slotNumber) {
+        return slots[slotNumber];
     };
 
     this.read = function(address) {
@@ -98,7 +77,7 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     };
 
     function create() {
-        var emptySlot = new wmsx.SlotEmpty();
+        var emptySlot = wmsx.SlotEmpty.singleton;
         slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
         slotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
 
@@ -137,12 +116,6 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         devicesOutputPorts[0xa1] = psg.outputA1;
         devicesInputPorts[0xa2]  = psg.inputA2;
 
-        // RAM
-        WMSX.ram = slots[2] = wmsx.SlotRAM64K.createNewEmpty();
-
-        // Expanded Slot at 3
-        WMSX.expandedSlot = slots[3] = new wmsx.SlotExpanded();
-
         self.setPrimarySlotConfig(0);
     }
 
@@ -152,10 +125,6 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     var slots;
     var slotPages;
     var primarySlotConfig = 0;
-
-    var bios;
-    var cartridge0;
-    var cartridge1;
 
 
     // Savestate  -------------------------------------------
@@ -171,10 +140,10 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     };
 
     this.loadState = function(s) {
-        this.setBIOS(wmsx.SlotCreator.createFromSaveState(s.s0));
-        this.setCartridge(wmsx.SlotCreator.createFromSaveState(s.s1), 0);
-        WMSX.ram = slots[2] = wmsx.SlotCreator.createFromSaveState(s.s2);
-        this.setCartridge(wmsx.SlotCreator.createFromSaveState(s.s3), 1);
+        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s0), 0);
+        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s1), 1);
+        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s2), 2);
+        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s3), 3);
         this.setPrimarySlotConfig(s.p);
     };
 

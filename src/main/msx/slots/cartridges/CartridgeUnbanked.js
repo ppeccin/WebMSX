@@ -89,7 +89,7 @@ wmsx.CartridgeUnbanked = function(rom) {
 
 };
 
-wmsx.CartridgeUnbanked.prototype = wmsx.Cartridge.base;
+wmsx.CartridgeUnbanked.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeUnbanked.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeUnbanked();

@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
-wmsx.CartridgeASCII8K = function(rom) {
+wmsx.CartridgeKonami = function(rom) {
 
     function init(self) {
         self.rom = rom;
@@ -18,13 +18,12 @@ wmsx.CartridgeASCII8K = function(rom) {
     };
 
     this.write = function(address, value) {
-        if (address >= 0x6000 && address < 0x6800)
-            bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
-        else if (address >= 0x6800 && address < 0x7000)
+        // bank 1 is fixed at 0x0000
+        if (address >= 0x6000 && address < 0x7fff)
             bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
-        else if (address >= 0x7000 && address < 0x7800)
+        else if (address >= 0x8000 && address < 0x9fff)
             bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
-        else if (address >= 0x7800 && address < 0x8000)
+        else if (address >= 0xa000 && address < 0xbfff)
             bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
     };
 
@@ -50,7 +49,7 @@ wmsx.CartridgeASCII8K = function(rom) {
     var numBanks;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.ASCII8;
+    this.format = wmsx.SlotFormats.Konami;
 
 
     // Savestate  -------------------------------------------
@@ -83,10 +82,10 @@ wmsx.CartridgeASCII8K = function(rom) {
 
 };
 
-wmsx.CartridgeASCII8K.prototype = wmsx.Cartridge.base;
+wmsx.CartridgeKonami.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeASCII8K.createFromSaveState = function(state) {
-    var cart = new wmsx.CartridgeASCII8K();
+wmsx.CartridgeKonami.createFromSaveState = function(state) {
+    var cart = new wmsx.CartridgeKonami();
     cart.loadState(state);
     return cart;
 };

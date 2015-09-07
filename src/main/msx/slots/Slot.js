@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Abstract base Cartrige
-wmsx.Cartridge = function() {
+// Abstract base Slot
+wmsx.Slot = function() {
 
     this.connect = function(machine) {
     };
@@ -25,4 +25,4 @@ wmsx.Cartridge = function() {
 
 };
 
-wmsx.Cartridge.base = new wmsx.Cartridge();
+wmsx.Slot.base = new wmsx.Slot();

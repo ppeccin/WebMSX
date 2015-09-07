@@ -8,6 +8,22 @@ wmsx.SlotExpanded = function() {
         create();
     }
 
+    this.connect = function(pMachine) {
+        machine = pMachine;
+        subSlots[0].connect(machine);
+        subSlots[1].connect(machine);
+        subSlots[2].connect(machine);
+        subSlots[3].connect(machine);
+    };
+
+    this.disconnect = function(pMachine) {
+        subSlots[0].disconnect(machine);
+        subSlots[1].disconnect(machine);
+        subSlots[2].disconnect(machine);
+        subSlots[3].disconnect(machine);
+        machine = null;
+    };
+
     this.powerOn = function(paused) {
         for (var i = 0; i < 4; i++) subSlots[i].powerOn();
         this.setSecondarySlotConfig(0);
@@ -18,7 +34,9 @@ wmsx.SlotExpanded = function() {
     };
 
     this.insertSubSlot = function(subSlot, subSlotNumber) {
+        if (machine) subSlots[subSlotNumber].disconnect(machine);
         subSlots[subSlotNumber] = subSlot;
+        if (machine) subSlot.connect(machine);
         this.setSecondarySlotConfig(secondarySlotConfig);
     };
 
@@ -41,7 +59,7 @@ wmsx.SlotExpanded = function() {
     };
 
     this.setSecondarySlotConfig = function(val) {
-        console.log("SecondarySlot Select: " + val.toString(16));
+        // console.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;
         subSlotPages[0] = subSlots[val & 0x03];
         subSlotPages[1] = subSlots[(val >>> 2) & 0x03];
@@ -50,28 +68,34 @@ wmsx.SlotExpanded = function() {
     };
 
     this.getSecondarySlotConfig = function() {
-        console.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
+        // console.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
         return secondarySlotConfig;
     };
 
     function create() {
-        var emptySlot = new wmsx.SlotEmpty();
+        var emptySlot = wmsx.SlotEmpty.singleton;
         subSlots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
         subSlotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
 
-        self.slots = subSlots;
-        self.slotPages = subSlotPages;
+        self.subSlots = subSlots;
+        self.subSlotPages = subSlotPages;
     }
+
+
+    var machine;
 
     var subSlots;
     var subSlotPages;
     var secondarySlotConfig = 0;
+
+    this.format = wmsx.SlotFormats.SlotExpanded;
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
+            f: this.format.name,
             s: secondarySlotConfig,
             s0: subSlots[0].saveState(),
             s1: subSlots[1].saveState(),
@@ -81,10 +105,10 @@ wmsx.SlotExpanded = function() {
     };
 
     this.loadState = function(s) {
-        subSlots[0] = wmsx.SlotCreator.createFromSaveState(s.s0);
-        subSlots[1] = wmsx.SlotCreator.createFromSaveState(s.s0);
-        subSlots[2] = wmsx.SlotCreator.createFromSaveState(s.s0);
-        subSlots[3] = wmsx.SlotCreator.createFromSaveState(s.s0);
+        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s0), 0);
+        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s1), 1);
+        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s2), 2);
+        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s3), 3);
         this.setSecondarySlotConfig(s.s);
     };
 
@@ -96,4 +120,12 @@ wmsx.SlotExpanded = function() {
         return eval(str);
     };
 
+};
+
+wmsx.SlotExpanded.prototype = wmsx.Slot.base;
+
+wmsx.SlotExpanded.createFromSaveState = function(state) {
+    var expandedSlot = new wmsx.SlotExpanded();
+    expandedSlot.loadState(state);
+    return expandedSlot;
 };

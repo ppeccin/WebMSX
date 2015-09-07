@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO GameOver uses IM 2!!!!
+// TODO ExtensionExtraIterations finishOperation on loadState is wrong
 
 // This implementation fetches the base opcode at the FIRST clock cycle
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
@@ -2566,7 +2567,8 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, IFF2: IFF2, INT: this.INT,
-            T: T, p: prefix, o: opcode, insIndex: this.instructionsAll.indexOf(instruction)
+            T: T, p: prefix, o: opcode, insIndex: this.instructionsAll.indexOf(instruction),
+            eei: extensionExtraIterations
         };
     };
 
@@ -2574,6 +2576,7 @@ wmsx.Z80 = function() {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; IFF2 = s.IFF2; this.INT = s.INT;
         T = s.T; prefix = s.p; opcode = s.o; instruction = this.instructionsAll[s.insIndex];
+        extensionExtraIterations = s.eei;
     };
 
 

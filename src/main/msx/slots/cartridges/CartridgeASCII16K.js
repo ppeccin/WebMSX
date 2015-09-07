@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
-wmsx.CartridgeKonamiSCC = function(rom) {
+// ROMs with (n >= 2) * 16K banks, mapped in 2 16K banks starting at 0x4000
+wmsx.CartridgeASCII16K = function(rom) {
 
     function init(self) {
         self.rom = rom;
@@ -10,33 +10,25 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
-        numBanks = (content.length / 8192) | 0;
+        numBanks = (content.length / 16384) | 0;
     }
 
     this.powerOn = function(paused) {
-        bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
+        bank1Offset = bank2Offset = -0x4000;
     };
 
     this.write = function(address, value) {
-        if (address >= 0x5000 && address < 0x57ff)
-            bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
-        else if (address >= 0x7000 && address < 0x77ff)
-            bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
-        else if (address >= 0x9000 && address < 0x97ff)
-            bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
-        else if (address >= 0xb000 && address < 0xb7ff)
-            bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
+        if (address >= 0x6000 && address < 0x7000)
+            bank1Offset = (value % numBanks) * 0x4000 - 0x4000;
+        else if (address >= 0x7000 && address < 0x8000)
+            bank2Offset = (value % numBanks) * 0x4000 - 0x8000;
     };
 
     this.read = function(address) {
-        if (address < 0x6000)
+        if (address < 0x8000)
             return bytes[bank1Offset + address];
-        else if (address < 0x8000)
-            return bytes[bank2Offset + address];
-        else if (address < 0xa000)
-            return bytes[bank3Offset + address];
         else
-            return bytes[bank4Offset + address];
+            return bytes[bank2Offset + address];
     };
 
 
@@ -45,12 +37,10 @@ wmsx.CartridgeKonamiSCC = function(rom) {
 
     var bank1Offset;
     var bank2Offset;
-    var bank3Offset;
-    var bank4Offset;
     var numBanks;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.KonamiSCC;
+    this.format = wmsx.SlotFormats.ASCII16;
 
 
     // Savestate  -------------------------------------------
@@ -62,8 +52,6 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes)),
             b1: bank1Offset,
             b2: bank2Offset,
-            b3: bank3Offset,
-            b4: bank4Offset,
             n: numBanks
         };
     };
@@ -73,8 +61,6 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b));
         bank1Offset = s.b1;
         bank2Offset = s.b2;
-        bank3Offset = s.b3;
-        bank4Offset = s.b4;
         numBanks = s.n;
     };
 
@@ -83,10 +69,10 @@ wmsx.CartridgeKonamiSCC = function(rom) {
 
 };
 
-wmsx.CartridgeKonamiSCC.prototype = wmsx.Cartridge.base;
+wmsx.CartridgeASCII16K.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeKonamiSCC.createFromSaveState = function(state) {
-    var cart = new wmsx.CartridgeKonamiSCC();
+wmsx.CartridgeASCII16K.createFromSaveState = function(state) {
+    var cart = new wmsx.CartridgeASCII16K();
     cart.loadState(state);
     return cart;
 };

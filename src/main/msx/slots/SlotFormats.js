@@ -5,16 +5,30 @@ wmsx.SlotFormats = {
     "Empty": {
         name: "Empty",
         desc: "Empty Slot",
-        priority: 101,
+        priority: 100,
         tryFormat: function (rom) {
             // Any empty ROM
             if (!rom || !rom.content || rom.content.length === 0) return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.SlotEmpty(this);
+            return wmsx.SlotEmpty.singleton;
         },
         createFromSaveState: function (state) {
-            return wmsx.SlotEmpty.createFromSaveState(state);
+            return wmsx.SlotEmpty.singleton;
+        }
+    },
+
+    "SlotExpanded": {
+        name: "SlotExpanded",
+        desc: "Expanded Slot",
+        priority: 101,
+        tryFormat: function (rom) {
+            // Not Possible to load Expanded Slots
+            return null;
+        },
+        createFromROM: null,
+        createFromSaveState: function (state) {
+            return wmsx.SlotExpanded.createFromSaveState(state);
         }
     },
 

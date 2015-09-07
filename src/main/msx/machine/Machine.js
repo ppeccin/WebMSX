@@ -89,24 +89,27 @@ wmsx.Machine = function() {
     };
 
     var setBIOS = function(bios) {
-        WMSX.bios = bios;
-        bus.setBIOS(bios);
+        bus.insertSlot(bios || wmsx.SlotEmpty.singleton, BIOS_SLOT);
         setVideoStandardAuto();
     };
 
     var getBIOS = function() {
-        return bus.getBIOS();
+        var bios = bus.getSlot(BIOS_SLOT);
+        return bios === wmsx.SlotEmpty.singleton ? null : bios;
     };
 
     var setCartridge = function(cartridge, port) {
-        if (port === 1) WMSX.cartridge2 = cartridge;
-        else WMSX.cartridge1 = cartridge;
-        bus.setCartridge(cartridge, port);
+        var slot = cartridge || wmsx.SlotEmpty.singleton;
+        if (port === 1)
+            bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, CARTRIDGE1_EXP_SLOT);
+        else
+            bus.insertSlot(slot, CARTRIDGE0_SLOT);
         cartridgeSocket.fireStateUpdate();
     };
 
     var getCartridge = function(port) {
-        return bus.getCartridge(port);
+        var cartridge = port === 1 ? bus.getSlot(EXPANDED_SLOT).getSubSlot(CARTRIDGE1_EXP_SLOT) : bus.getSlot(CARTRIDGE0_SLOT);
+        return cartridge === wmsx.SlotEmpty.singleton ? null : cartridge;
     };
 
     var setVideoStandard = function(pVideoStandard) {
@@ -154,6 +157,7 @@ wmsx.Machine = function() {
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
+        self.ram = bus.getSlot(RAM_SLOT);
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         machineControlsSocket.fireRedefinitionUpdate();
@@ -186,12 +190,12 @@ wmsx.Machine = function() {
         self.bus = bus = new wmsx.EngineBUS(self, cpu, ppi, vdp, psg);
         self.mainClock = mainClock = new wmsx.Clock(self, wmsx.VideoStandard.NTSC.fps);
 
-        self.cpu = cpu;
-        self.psg = psg;
-        self.ppi = ppi;
-        self.vdp = vdp;
-        self.bus = bus;
-        self.mainClock = mainClock;
+        // 64K RAM
+        self.ram = wmsx.SlotRAM64K.createNewEmpty();
+        bus.insertSlot(self.ram, RAM_SLOT);
+
+        // Expanded Slot
+        bus.insertSlot(new wmsx.SlotExpanded(), EXPANDED_SLOT);
     };
 
     var socketsCreate = function() {
@@ -216,6 +220,7 @@ wmsx.Machine = function() {
     var vdp;
     var psg;
     var mainClock;
+    var ram;
 
     var debugPause = false;
     var debugPauseMoreFrames = 0;
@@ -230,6 +235,12 @@ wmsx.Machine = function() {
     var diskDriveSocket;
 
     var videoStandardIsAuto = false;
+
+    var BIOS_SLOT = 0;
+    var RAM_SLOT = 1;
+    var CARTRIDGE0_SLOT = 2;
+    var EXPANDED_SLOT = 3;
+    var CARTRIDGE1_EXP_SLOT = 0;
 
 
     // MachineControls interface  --------------------------------------------
@@ -565,7 +576,7 @@ wmsx.Machine = function() {
         };
 
         var media;
-        var VERSION = 5;
+        var VERSION = 6;
     }
 
 

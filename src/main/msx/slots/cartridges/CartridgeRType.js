@@ -61,7 +61,7 @@ wmsx.CartridgeRType = function(rom) {
 
 };
 
-wmsx.CartridgeRType.prototype = wmsx.Cartridge.base;
+wmsx.CartridgeRType.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeRType.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeRType();

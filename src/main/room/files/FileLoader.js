@@ -249,6 +249,6 @@ wmsx.FileLoader = function() {
     var LOCAL_STOARAGE_LAST_URL_KEY = "wmsxlasturl";
 
 
-    WMSX.loadROMFromURL = this.loadFromURL;
+    WMSX.loadROMFromURL = this.loadFromURL;     // TODO Validade
 
 };

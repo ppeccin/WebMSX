@@ -63,7 +63,7 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
 
 };
 
-wmsx.CartridgeDiskPatched.prototype = wmsx.Cartridge.base;
+wmsx.CartridgeDiskPatched.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeDiskPatched.createFromSaveState = function(state) {
     var cart = new wmsx.CartridgeDiskPatched(null, null);

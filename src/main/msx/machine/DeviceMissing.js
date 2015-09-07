@@ -4,7 +4,7 @@ wmsx.DeviceMissing = function() {
 
     this.inputPort = function() {
         //wmsx.Util.log ("Empty IN " + port.toString(16));
-        return 0xff
+        return 0;
     };
 
     this.outputPort = function(val) {

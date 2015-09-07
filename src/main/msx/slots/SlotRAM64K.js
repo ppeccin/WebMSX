@@ -7,24 +7,14 @@ wmsx.SlotRAM64K = function(content) {
         self.bytes = bytes;
     }
 
-    this.powerOn = function(paused) {
-    };
-
-    this.powerOff = function() {
-    };
-
-    this.write = function(address, value) {
-        //console.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
-        bytes[address] = value;
-    };
-
     this.read = function(address) {
         //console.log ("RAM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
     };
 
-    this.dump = function(from, quant) {
-        wmsx.Util.dump(bytes, from, quant);
+    this.write = function(address, value) {
+        //console.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
+        bytes[address] = value;
     };
 
 
@@ -51,6 +41,8 @@ wmsx.SlotRAM64K = function(content) {
     if (content) init(this);
 
 };
+
+wmsx.SlotRAM64K.prototype = wmsx.Slot.base;
 
 wmsx.SlotRAM64K.createNewEmpty = function() {
     return new wmsx.SlotRAM64K(wmsx.Util.arrayFill(new Array(65536), 0xff));
