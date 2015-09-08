@@ -6,14 +6,14 @@ wmsx.CartridgeCrossBlaim = function(rom) {
     function init(self) {
         self.rom = rom;
         var content = self.rom.content;
-        bytes = wmsx.Util.arrayFill(new Array(content.length), 0x00);
+        bytes = new Array(content.length);
         self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
     }
 
     this.powerOn = function(paused) {
-        bank2Offset = 0x4000 -0x8000;
+        bank2Offset = 0x4000 - 0x8000;
     };
 
     this.write = function(address, value) {
@@ -24,7 +24,7 @@ wmsx.CartridgeCrossBlaim = function(rom) {
     this.read = function(address) {
         // bank1 (at 0x4000) is fixed at position 0
         if (address < 0x8000)
-            return bytes[address - 0x4000];
+            return bytes[address - 0x4000];         // May underflow if address < 0x4000
         else
             return bytes[bank2Offset + address];
     };

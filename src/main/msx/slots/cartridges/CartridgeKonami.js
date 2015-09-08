@@ -6,7 +6,7 @@ wmsx.CartridgeKonami = function(rom) {
     function init(self) {
         self.rom = rom;
         var content = self.rom.content;
-        bytes = wmsx.Util.arrayFill(new Array(content.length), 0x00);
+        bytes = new Array(content.length);
         self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
@@ -29,7 +29,7 @@ wmsx.CartridgeKonami = function(rom) {
 
     this.read = function(address) {
         if (address < 0x6000)
-            return bytes[bank1Offset + address];
+            return bytes[bank1Offset + address];        // May underflow if address < 0x4000
         else if (address < 0x8000)
             return bytes[bank2Offset + address];
         else if (address < 0xa000)

@@ -5,10 +5,12 @@ wmsx.BIOS = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
         self.bytes = bytes;
         var content = self.rom.content;
-        for(var i = 0, len = content.length; i < len; i++)
+        contentStart = 0;                       // Always start at 0
+        contentLength = content.length;
+        for(var i = 0; i < contentLength; i++)
             bytes[i] = content[i];
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
     }
@@ -57,6 +59,9 @@ wmsx.BIOS = function(rom) {
     var bytes;
     this.bytes = null;
 
+    var contentStart;
+    var contentLength;
+
     this.rom = null;
     this.format = wmsx.SlotFormats.BIOS;
 
@@ -70,16 +75,20 @@ wmsx.BIOS = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             v: this.originalVideoStandard,
-            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
+            cs: contentStart,
+            cl: contentLength,
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes, contentStart, contentLength))
         };
     };
 
     this.loadState = function(state) {
         this.rom = wmsx.ROM.loadState(state.r);
         this.originalVideoStandard = state.v;
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
+        contentStart = state.cs; contentLength = state.cl;
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0);
         this.bytes = bytes;
     };
+
 
     var cassetteDriver;
 

@@ -9,9 +9,10 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
         bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
         self.bytes = bytes;
         var content = self.rom.content;
-        // Always start at 0x4000
-        for (var i = 0, len = content.length; i < len; i++)
-            bytes[0x4000 + i] = content[i];
+        contentStart = 0x4000;                  // Always start at 0x4000
+        contentLength = 16384;                  // Always 16K
+        for(var i = 0; i < contentLength; i++)
+            bytes[contentStart + i] = content[i];
     }
 
     this.connect = function(machine) {
@@ -35,6 +36,9 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     var bytes;
     this.bytes = null;
 
+    var contentStart;
+    var contentLength;
+
     this.rom = null;
     this.format = null;
 
@@ -47,14 +51,17 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
+            cs: contentStart,
+            cl: contentLength,
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes, contentStart, contentLength))
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
         this.format = wmsx.SlotFormats[s.f];
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b));
+        contentStart = s.cs; contentLength = s.cl;
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b), 65536, contentStart, 0);
         this.bytes = bytes;
     };
 

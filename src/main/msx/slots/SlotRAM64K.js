@@ -35,6 +35,7 @@ wmsx.SlotRAM64K = function(content) {
 
     this.loadState = function(state) {
         bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
+        this.bytes = bytes;
     };
 
 

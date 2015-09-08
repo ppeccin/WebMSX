@@ -10,6 +10,8 @@ wmsx.CartridgeUnbanked = function(rom) {
         var content = self.rom.content;
         // If 64K size, it fits just fine starting at 0x0000
         if (content.length === 65536) {
+            contentStart = 0;
+            contentLength = 65536;
             for (i = 0; i < 65536; i++) bytes[i] = content[i];
             return
         }
@@ -31,7 +33,9 @@ wmsx.CartridgeUnbanked = function(rom) {
                         position = 0x0000;
                 }
             }
-            for (var i = 0; i < 32768; i++) bytes[position + i] = content[i];
+            contentStart = position;
+            contentLength = 32768;
+            for (var i = 0; i < 32768; i++) bytes[contentStart + i] = content[i];
             return;
         }
         // If 8K or 16K size, position at 0x0000, 0x4000 or 0x8000
@@ -51,7 +55,9 @@ wmsx.CartridgeUnbanked = function(rom) {
             }
             // Mirror m times so it reaches at least 0x7fff, or 0xbfff
             var end = position < 0x8000 ? 0x8000 : 0xc000;
-            for (var m = position; m < end; m += content.length)
+            contentStart = position;
+            contentLength = end - contentStart;
+            for (var m = contentStart; m < end; m += content.length)
                 for (i = 0; i < content.length; i++) bytes[m + i] = content[i];
         }
     }
@@ -65,6 +71,9 @@ wmsx.CartridgeUnbanked = function(rom) {
     var bytes;
     this.bytes = null;
 
+    var contentStart;
+    var contentLength;
+
     this.rom = null;
     this.format = wmsx.SlotFormats.Unbanked;
 
@@ -75,13 +84,16 @@ wmsx.CartridgeUnbanked = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
+            cs: contentStart,
+            cl: contentLength,
+            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes, contentStart, contentLength))
         };
     };
 
     this.loadState = function(state) {
         this.rom = wmsx.ROM.loadState(state.r);
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
+        contentStart = state.cs; contentLength = state.cl;
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0);
     };
 
 
