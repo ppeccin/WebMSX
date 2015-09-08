@@ -1,24 +1,17 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO GameOver uses IM 2!!!!
-// TODO ExtensionExtraIterations finishOperation on loadState is wrong
 
 // This implementation fetches the base opcode at the FIRST clock cycle
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // PC and SP not checked for 16 bits over/underflow
 // NMI is not supported. Only INT 1 mode supported
-// base clock 3584160 Hz
+// Base clock 3584160 Hz
 
 wmsx.Z80 = function() {
     var self = this;
 
     function init() {
-        // Stats
-        Z80Stats = {
-            fB: 0, fC: 0, fD: 0, fE: 0, fH: 0, fL: 0, fBC: 0, fDE: 0, fHL: 0,
-            tB: 0, tC: 0, tD: 0, tE: 0, tH: 0, tL: 0, tBC: 0, tDE: 0, tHL: 0
-        };
-
         self.defineAllInstructions();
         delete self.defineAllInstructions;
     }
@@ -51,7 +44,7 @@ wmsx.Z80 = function() {
 
     this.setExtensionHandler = function(codes, handler) {
         for (var i = 0; i < codes.length; i++)
-            extensionHandler[codes[i]] = handler;
+            extensionHandlers[codes[i]] = handler;
     };
 
     this.reset = function() {
@@ -59,14 +52,14 @@ wmsx.Z80 = function() {
         T = -1; opcode = null; prefix = 0;
         instruction = null;
         PC = 0; I = 0; R = 0; IFF1 = IFF2 = 0; IM = 0;
-        extensionExtraIterations = 0; extensionFinishOperation = null;
+        extensionCurrentlyRunning = null;
     };
 
 
     // Extension Handling
-    var extensionHandler = [];
+    var extensionHandlers = [];
+    var extensionCurrentlyRunning = null;
     var extensionExtraIterations = 0;
-    var extensionFinishOperation;
 
     // Interfaces
     var bus;
@@ -1372,54 +1365,61 @@ wmsx.Z80 = function() {
 
     function newpEXT(num) {
         return function pEXT() {
+            if (!extensionHandlers[num]) return;
             // Check for extraIterations of last extension instruction. No new instruction until iterations end
-            if (extensionExtraIterations > 0) {
-                extensionExtraIterations--;
+            if (extensionCurrentlyRunning !== null) {
                 if (extensionExtraIterations > 0) {         // Need more iterations?
+                    extensionExtraIterations--;
                     PC -= 2;
-                } else if (extensionFinishOperation) {      // End of iterations, check for finish operation
-                    extensionFinishOperation();
-                    extensionFinishOperation = null;
+                } else {                                    // End of iterations, perform finish operation
+                    if (extensionHandlers[num].cpuExtensionFinish) {
+                        var finish = extensionHandlers[num].cpuExtensionFinish(extractCPUState(num));
+                        reinsertCPUState(finish);
+                    }
+                    extensionCurrentlyRunning = null;
                 }
                 return;
             }
             // New extension instruction may happen now
-            if (!extensionHandler[num]) return;
-            // Send state to the handler
-            var res = extensionHandler[num]({
-                extNum: num, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
+            extensionCurrentlyRunning = num; extensionExtraIterations = 0;
+            var init = extensionHandlers[num].cpuExtensionBegin(extractCPUState(num));
+            reinsertCPUState(init);
+            // Recur to finish the process
+            pEXT();
+        };
+
+        function extractCPUState(extNum) {
+            return {
+                extNum: extNum, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
                 AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IFF1: IFF1, IM: IM
-            });
-            if (!res) return;
-            // Put back state modified by the handler
-            if (res.PC !== undefined)   PC = res.PC;
-            if (res.SP !== undefined)   SP = res.SP;
-            if (res.A !== undefined)    A = res.A;
-            if (res.F !== undefined)    F = res.F;
-            if (res.B !== undefined)    B = res.B;
-            if (res.C !== undefined)    C = res.C;
-            if (res.DE !== undefined)   DE = res.DE;
-            if (res.HL !== undefined)   HL = res.HL;
-            if (res.I !== undefined)    I = res.I;
-            if (res.R !== undefined)    R = res.R;
-            if (res.IX !== undefined)   IX = res.IX;
-            if (res.IY !== undefined)   IY = res.IY;
-            if (res.AF2 !== undefined)  AF2 = res.AF2;
-            if (res.BC2 !== undefined)  BC2 = res.BC2;
-            if (res.DE2 !== undefined)  DE2 = res.DE2;
-            if (res.HL2 !== undefined)  HL2 = res.HL2;
-            if (res.IFF1 !== undefined) IFF1 = res.IFF1;
-            if (res.IM !== undefined)   IM = res.IM;
-            // Request extra iterations requested by the handler
-            if (res.extraIterations > 0) {
-                // Will repeat this instruction N iterations to waste cycles, but will not call handler
-                extensionExtraIterations = res.extraIterations;
-                extensionFinishOperation = res.finishOperation;     // Postpone
-                PC -= 2;
-            } else if (res.finishOperation)
-                res.finishOperation();  // Now!
+            }
         }
+
+        function reinsertCPUState(state) {
+            if (!state) return;
+            if (state.PC !== undefined)    PC = state.PC;
+            if (state.SP !== undefined)    SP = state.SP;
+            if (state.A !== undefined)     A = state.A;
+            if (state.F !== undefined)     F = state.F;
+            if (state.B !== undefined)     B = state.B;
+            if (state.C !== undefined)     C = state.C;
+            if (state.DE !== undefined)    DE = state.DE;
+            if (state.HL !== undefined)    HL = state.HL;
+            if (state.I !== undefined)     I = state.I;
+            if (state.R !== undefined)     R = state.R;
+            if (state.IX !== undefined)    IX = state.IX;
+            if (state.IY !== undefined)    IY = state.IY;
+            if (state.AF2 !== undefined)   AF2 = state.AF2;
+            if (state.BC2 !== undefined)   BC2 = state.BC2;
+            if (state.DE2 !== undefined)   DE2 = state.DE2;
+            if (state.HL2 !== undefined)   HL2 = state.HL2;
+            if (state.IFF1 !== undefined)  IFF1 = state.IFF1;
+            if (state.IM !== undefined)    IM = state.IM;
+            if (state.extraIterations > 0) extensionExtraIterations = state.extraIterations;
+        }
+
     }
+
 
 
     // Testing pseudo instructions
@@ -2568,7 +2568,7 @@ wmsx.Z80 = function() {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, IFF2: IFF2, INT: this.INT,
             T: T, p: prefix, o: opcode, insIndex: this.instructionsAll.indexOf(instruction),
-            eei: extensionExtraIterations
+            ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
     };
 
@@ -2576,7 +2576,7 @@ wmsx.Z80 = function() {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; IFF2 = s.IFF2; this.INT = s.INT;
         T = s.T; prefix = s.p; opcode = s.o; instruction = this.instructionsAll[s.insIndex];
-        extensionExtraIterations = s.eei;
+        extensionCurrentlyRunning  = s.ecr; extensionExtraIterations = s.eei;
     };
 
 

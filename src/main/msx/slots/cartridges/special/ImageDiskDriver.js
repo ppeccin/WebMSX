@@ -5,17 +5,44 @@ wmsx.ImageDiskDriver = function() {
 
     this.connect = function(diskBIOS, machine) {
         bus = machine.bus;
-        machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], diskBIOSCPUExtension);
+        machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], this);
         drive = machine.getDiskDriveSocket().getDrive();
         patchDiskBIOS(diskBIOS);
     };
 
     this.disconnect = function(diskBIOS, machine) {
         machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], null);
+        drive.allMotorsOff();
     };
 
     this.powerOff = function() {
-        MTOFF();
+        drive.allMotorsOff();
+    };
+
+    this.cpuExtensionBegin = function(s) {
+        // if (s.PC < 0x4000 || s.PC > 0x4021) return;     // Not intended
+        switch (s.extNum) {
+            case 0x8:
+                return INIHRD();
+            case 0x9:
+                return DRIVES(s.F, s.HL);
+            case 0xa:
+                return DSKIO(s.F, s.A, s.B, s.C, s.DE, s.HL);
+            case 0xb:
+                return DSKCHG(s.F, s.A, s.B, s.C, s.HL);
+            case 0xc:
+                return GETDPB(s.A, s.B, s.C, s.HL);
+            case 0xd:
+                return CHOICE();
+            case 0xe:
+                return DSKFMT(s.F, s.A, s.DE);
+            case 0xf:
+                return MTOFF();
+        }
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        drive.allMotorsOff();
     };
 
     function patchDiskBIOS(bios) {
@@ -67,28 +94,6 @@ wmsx.ImageDiskDriver = function() {
         //if (bios.format === wmsx.SlotFormats.DiskToshiba) bytes[0x7ffa] = 0;
     }
 
-    function diskBIOSCPUExtension(s) {
-        // if (s.PC < 0x4000 || s.PC > 0x4021) return;     // Not intended
-        switch (s.extNum) {
-            case 0x8:
-                return INIHRD();
-            case 0x9:
-                return DRIVES(s.F, s.HL);
-            case 0xa:
-                return DSKIO(s.F, s.A, s.B, s.C, s.DE, s.HL);
-            case 0xb:
-                return DSKCHG(s.F, s.A, s.B, s.C, s.HL);
-            case 0xc:
-                return GETDPB(s.A, s.B, s.C, s.HL);
-            case 0xd:
-                return CHOICE();
-            case 0xe:
-                return DSKFMT(s.F, s.A, s.DE);
-            case 0xf:
-                return MTOFF();
-        }
-    }
-
     function INIHRD(F, HL) {
         // console.log("INIHRD");
         // no real initialization required
@@ -113,13 +118,13 @@ wmsx.ImageDiskDriver = function() {
 
         // Not Ready error if can't read
         if (!bytes)
-            return { F: F | 1, A: 2, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+            return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Transfer bytes read
         writeToMemory(bytes, HL);
 
         // Success
-        return { F: F & ~1, B: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+        return { F: F & ~1, B: 0, extraIterations: spinTime };
     }
 
     function DSKIOWrite(F, A, B, C, DE, HL) {
@@ -129,20 +134,20 @@ wmsx.ImageDiskDriver = function() {
 
         // Not Ready error if Disk not present
         if (!drive.diskPresent(A))
-            return { F: F | 1, A: 2, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+            return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Disk Write Protected
         if (drive.diskWriteProtected(A))
-            return { F: F | 1, A: 0, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+            return { F: F | 1, A: 0, B: B, extraIterations: spinTime };
 
         var res = drive.writeSectors(A, DE, B, readFromMemory(HL, B * BYTES_PER_SECTOR));
 
         // Not Ready error if can't write
         if (!res)
-            return { F: F | 1, A: 2, B: B, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+            return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Success
-        return { F: F & ~1, B: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+        return { F: F & ~1, B: 0, extraIterations: spinTime };
     }
 
     function DSKCHG(F, A, B, C, HL) {
@@ -160,14 +165,14 @@ wmsx.ImageDiskDriver = function() {
 
         // Not Ready error if can't read
         if (!bytes)
-            return { F: F | 1, A: 2, B: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+            return { F: F | 1, A: 2, B: 0, extraIterations: spinTime };
 
         // Get just the fist byte from FAT for now
         var mediaDeskFromDisk = bytes[512];
         GETDPB(A, mediaDeskFromDisk, C, HL);
 
         // Success, Disk changed or unknown and new DPB transferred. B = -1 (FFh) if disk changed
-        return { F: F & ~1, B: (res === true ? 0xff : 0), extraIterations: spinTime, finishOperation: drive.motorOffOperation(A) };
+        return { F: F & ~1, B: (res === true ? 0xff : 0), extraIterations: spinTime };
     }
 
     function GETDPB(A, B, C, HL) {
@@ -194,21 +199,21 @@ wmsx.ImageDiskDriver = function() {
 
         // Not Ready error if Disk not present
         if (!drive.diskPresent(d))
-            return { F: F | 1, A: 2, extraIterations: spinTime, finishOperation: drive.motorOffOperation(d) };
+            return { F: F | 1, A: 2, extraIterations: spinTime };
 
         // Disk Write Protected
         if (drive.diskWriteProtected(d))
-            return { F: F | 1, A: 0, extraIterations: spinTime, finishOperation: drive.motorOffOperation(d) };
+            return { F: F | 1, A: 0, extraIterations: spinTime };
 
         // Cannot format for now
         wmsx.Util.log("Formatting not implemented yet!");
-        return { F: F | 1, A: 16, extraIterations: spinTime, finishOperation: drive.motorOffOperation(d) };
+        return { F: F | 1, A: 16, extraIterations: spinTime };
     }
 
     function MTOFF() {
         // console.log("MTOFF");
 
-        drive.allMotorsOff();
+        drive.allMotorsOffNow();
     }
 
     function readFromMemory(address, quant) {

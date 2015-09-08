@@ -6,7 +6,7 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     function init(self) {
         self.rom = rom;
         self.format = format;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
         self.bytes = bytes;
         var content = self.rom.content;
         // Always start at 0x4000

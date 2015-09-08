@@ -1,3 +1,5 @@
+// TODO Optimeze duplications
+
 wmsx.ROMDatabase = {
 	version: 20150905,
 

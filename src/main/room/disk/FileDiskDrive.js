@@ -7,7 +7,8 @@ wmsx.FileDiskDrive = function() {
 
     var self = this;
 
-    this.connect = function(diskDriveSocket) {
+    this.connect = function(pDiskDriveSocket) {
+        diskDriveSocket = pDiskDriveSocket;
         diskDriveSocket.connectDrive(this);
     };
 
@@ -25,6 +26,8 @@ wmsx.FileDiskDrive = function() {
         diskChanged[drive] = true;
         screen.showOSD("Disk " + (drive === 0 ? "A:" : "B:") + " loaded", true);
         fireStateUpdate();
+
+        if (autoPower) diskDriveSocket.autoPowerCycle();
 
         return diskContent[drive];
     };
@@ -112,32 +115,25 @@ wmsx.FileDiskDrive = function() {
         return MOTOR_SPINUP_EXTRA_ITERATIONS;
     };
 
-    this.allMotorsOff = function() {
-        diskMotor[0] = diskMotor[1] = false;
-        fireStateUpdate();
+    this.allMotorsOff = function() {                // Simulated delay
+        motorOff(0);
+        motorOff(1);
     };
 
-    this.motorOffOperation = function(drive) {
-        return drive === 1 ? motorOffDriveB : motorOffDriveA;
+    this.allMotorsOffNow = function() {             // Instantly with no delays
+        diskMotor[0] = diskMotor[1] = false;
+        fireStateUpdate();
     };
 
     // Add a delay before turning the motor off (drive LED simulation)
     function motorOff(drive) {
         if (!diskMotor[drive]) return;
-        if (diskMotorOffTimer[drive]) window.clearTimeout(diskMotorOffTimer[drive]);
+        if (diskMotorOffTimer[drive]) return;
         diskMotorOffTimer[drive] = window.setTimeout(function() {
             diskMotorOffTimer[drive] = null;
             diskMotor[drive] = false;
             fireStateUpdate();
         }, MOTOR_SPINDOWN_EXTRA_MILLIS);
-    }
-
-    function motorOffDriveA() {
-        motorOff(0);
-    }
-
-    function motorOffDriveB() {
-        motorOff(1);
     }
 
     function fireStateUpdate() {
@@ -147,6 +143,7 @@ wmsx.FileDiskDrive = function() {
 
     var screen;
     var fileDownloader;
+    var diskDriveSocket;
 
     var diskFileName = [ null, null ];
     var diskContent =  [ null, null ];
@@ -156,7 +153,7 @@ wmsx.FileDiskDrive = function() {
     var diskMotorOffTimer = [ null, null ];
 
     var diskBytesPerSector = 512;                 // Fixed for now, for all disks
-    this.bytesPerSector = diskBytesPerSector;
+
 
     var MOTOR_SPINUP_EXTRA_ITERATIONS = 280000;
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;

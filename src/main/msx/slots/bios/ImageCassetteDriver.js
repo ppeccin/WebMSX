@@ -4,7 +4,7 @@
 wmsx.ImageCassetteDriver = function() {
 
     this.connect = function(bios, machine) {
-        machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], cassetteBIOSCPUExtension);
+        machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], this);
         deck = machine.getCassetteSocket().getDeck();
         deck.connectBASICExtension(new wmsx.BASICExtension(machine.bus));
         patchBIOS(bios);
@@ -17,6 +17,26 @@ wmsx.ImageCassetteDriver = function() {
 
     this.powerOff = function() {
         if (deck) deck.motor(false);
+    };
+
+    this.cpuExtensionBegin = function(s) {
+        if (s.PC < 0x00e1 || s.PC > 0x00f5) return;     // Not intended
+        switch (s.extNum) {
+            case 0:
+                return TAPION(s.F);
+            case 1:
+                return TAPIN(s.F);
+            case 2:
+                return TAPIOF();
+            case 3:
+                return TAPOON(s.A, s.F);
+            case 4:
+                return TAPOUT(s.A, s.F);
+            case 5:
+                return TAPOOF();
+            case 6:
+                return STMOTR(s.A);
+        }
     };
 
     function patchBIOS(bios) {
@@ -56,26 +76,6 @@ wmsx.ImageCassetteDriver = function() {
         bytes[0x00f3] = 0xed;
         bytes[0x00f4] = 0xe6;
         bytes[0x00f5] = 0xc9;
-    }
-
-    function cassetteBIOSCPUExtension(s) {
-        if (s.PC < 0x00e1 || s.PC > 0x00f5) return;     // Not intended
-        switch (s.extNum) {
-            case 0:
-                return TAPION(s.F);
-            case 1:
-                return TAPIN(s.F);
-            case 2:
-                return TAPIOF();
-            case 3:
-                return TAPOON(s.A, s.F);
-            case 4:
-                return TAPOUT(s.A, s.F);
-            case 5:
-                return TAPOOF();
-            case 6:
-                return STMOTR(s.A);
-        }
     }
 
     function TAPION(F) {

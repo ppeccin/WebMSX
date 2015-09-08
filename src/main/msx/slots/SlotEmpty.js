@@ -5,7 +5,7 @@ wmsx.SlotEmpty = {};
 wmsx.SlotEmpty.impl = function() {
 
     this.read = function(address) {
-        return 0xff;
+        return 0x00;
     };
 
     this.format = wmsx.SlotFormats.Empty;

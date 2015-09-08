@@ -18,17 +18,30 @@ WMSX.start = function () {
     WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
 
-    // Auto-load BIOS, ROM and Tape files if specified
-    if (WMSX.BIOS_AUTO_LOAD_URL) {
+    // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified
+    if (WMSX.BIOS_URL || WMSX.STATE_LOAD_URL) {
         setTimeout(function() {
-            // BIOS
-            WMSX.room.fileLoader.loadFromURL(WMSX.BIOS_AUTO_LOAD_URL);
-            // Auto-load Cart1 ROM if specified
-            if (WMSX.CART1_AUTO_LOAD_URL)
-                WMSX.room.fileLoader.loadFromURL(WMSX.CART1_AUTO_LOAD_URL);
-            // Auto-load Tape if specified
-            if (WMSX.TAPE_AUTO_LOAD_URL)
-                WMSX.room.fileLoader.loadFromURL(WMSX.TAPE_AUTO_LOAD_URL);
+            if (WMSX.STATE_LOAD_URL) {
+                WMSX.room.fileLoader.loadFromURL(WMSX.STATE_LOAD_URL, 0, true);
+            } else {
+                if (WMSX.EXPANSION0_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.EXPANSION0_URL, 0, true, true);
+                if (WMSX.EXPANSION1_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.EXPANSION1_URL, 1, true, true);
+                if (WMSX.EXPANSION2_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.EXPANSION2_URL, 2, true, true);
+                if (WMSX.CARTRIDGE1_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.CARTRIDGE1_URL, 0, true);
+                if (WMSX.CARTRIDGE2_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.CARTRIDGE2_URL, 1, true);
+                if (WMSX.DISKA_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.DISKA_URL, 0, true);
+                if (WMSX.DISKB_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.DISKB_URL, 1, true);
+                if (WMSX.TAPE_URL)
+                    WMSX.room.fileLoader.loadFromURL(WMSX.TAPE_URL);
+                WMSX.room.fileLoader.loadFromURL(WMSX.BIOS_URL);
+            }
         }, Math.abs(WMSX.AUTO_START_DELAY));
     }
 

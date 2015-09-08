@@ -74,7 +74,10 @@
 
         <script>
             if (window.location.protocol.indexOf("http") >= 0) {
-                WMSX.BIOS_AUTO_LOAD_URL = "../../roms/bios/MSX 1.0 NTSC.bios";
+                WMSX.BIOS_URL = "roms/MSX 1.0 NTSC.bios";
+                WMSX.EXPANSION0_URL = "roms/Disk.rom";
+                // WMSX.STATE_LOAD_URL = "roms/Goonies.wst";
+
                 WMSX.AUTO_START_DELAY = 0;      // Instant power-on
             }
         </script>

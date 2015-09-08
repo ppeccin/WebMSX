@@ -44,6 +44,10 @@ wmsx.Machine = function() {
         return biosSocket;
     };
 
+    this.getExpansionSocket = function() {
+        return expansionSocket;
+    };
+
     this.getCartridgeSocket = function() {
         return cartridgeSocket;
     };
@@ -110,6 +114,16 @@ wmsx.Machine = function() {
     var getCartridge = function(port) {
         var cartridge = port === 1 ? bus.getSlot(EXPANDED_SLOT).getSubSlot(CARTRIDGE1_EXP_SLOT) : bus.getSlot(CARTRIDGE0_SLOT);
         return cartridge === wmsx.SlotEmpty.singleton ? null : cartridge;
+    };
+
+    var setExpansion = function(expansion, port) {
+        var slot = expansion || wmsx.SlotEmpty.singleton;
+        bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, EXPANSIONS_EXP_SLOTS[port]);
+    };
+
+    var getExpansion = function(port) {
+        var expansion = bus.getSlot(EXPANDED_SLOT).getSubSlot(EXPANSIONS_EXP_SLOTS[port]);
+        return expansion === wmsx.SlotEmpty.singleton ? null : expansion;
     };
 
     var setVideoStandard = function(pVideoStandard) {
@@ -202,6 +216,7 @@ wmsx.Machine = function() {
         machineControlsSocket = new MachineControlsSocket();
         machineControlsSocket.addForwardedInput(self);
         biosSocket = new BIOSSocket();
+        expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
         keyboardSocket = new KeyboardSocket();
         saveStateSocket = new SaveStateSocket();
@@ -229,6 +244,7 @@ wmsx.Machine = function() {
     var machineControlsSocket;
     var keyboardSocket;
     var biosSocket;
+    var expansionSocket;
     var cartridgeSocket;
     var saveStateSocket;
     var cassetteSocket;
@@ -241,6 +257,7 @@ wmsx.Machine = function() {
     var CARTRIDGE0_SLOT = 2;
     var EXPANDED_SLOT = 3;
     var CARTRIDGE1_EXP_SLOT = 0;
+    var EXPANSIONS_EXP_SLOTS = [ 1, 2, 3 ];
 
 
     // MachineControls interface  --------------------------------------------
@@ -347,6 +364,33 @@ wmsx.Machine = function() {
     };
 
 
+    // BIOS Socket  -----------------------------------------
+
+    function BIOSSocket() {
+        this.insert = function (bios) {
+            if (self.powerIsOn) self.powerOff();
+            setBIOS(bios);
+            self.userPowerOn();
+        };
+        this.inserted = function () {
+            return getBIOS();
+        };
+    }
+
+
+    // System Expansions Socket  --------------------------------
+
+    function ExpansionSocket() {
+        this.insert = function (expansion, port) {
+            if (expansion == getExpansion(port || 0)) return;
+            setExpansion(expansion, port);
+        };
+        this.inserted = function (port) {
+            return getExpansion(port);
+        };
+    }
+
+
     // CartridgeSocket  -----------------------------------------
 
     function CartridgeSocket() {
@@ -384,61 +428,47 @@ wmsx.Machine = function() {
     // Cassette Socket  -----------------------------------------
 
     function CassetteSocket() {
-
         this.connectDeck = function (pDeck) {
             deck = pDeck;
         };
-
         this.getDeck = function() {
             return deck;
         };
-
         this.autoPowerCycle = function () {
             if (self.powerIsOn) self.powerOff();
             self.userPowerOn();
         };
-
         var deck;
-
     }
 
 
     // Disk Drive Socket  -----------------------------------------
 
     function DiskDriveSocket() {
-
         this.connectDrive = function (pDrive) {
             drive = pDrive;
         };
-
         this.getDrive = function() {
             return drive;
         };
-
         this.autoPowerCycle = function () {
             if (self.powerIsOn) self.powerOff();
             self.userPowerOn();
         };
-
         var drive;
-
     }
 
 
-    // BIOS Socket  -----------------------------------------
+    // Keyboard Socket  -----------------------------------------
 
-    function BIOSSocket() {
-
-        this.insert = function (bios, autoPower) {
-            if (autoPower && self.powerIsOn) self.powerOff();
-            setBIOS(bios);
-            if (autoPower && !self.powerIsOn) self.userPowerOn();
+    function KeyboardSocket() {
+        this.connectKeyboard = function(pKeyboard) {
+            keyboard = pKeyboard;
         };
-
-        this.inserted = function () {
-            return getBIOS();
+        this.keyboardKeyChanged = function(key, press) {
+            ppi.keyboardKeyChanged(key, press);
         };
-
+        var keyboard;
     }
 
 
@@ -486,23 +516,6 @@ wmsx.Machine = function() {
         var forwardedInputs = [];
         var forwardedInputsCount = 0;
         var redefinitionListeners = [];
-
-    }
-
-
-    // Keyboard Socket  -----------------------------------------
-
-    function KeyboardSocket() {
-
-        this.connectKeyboard = function(pKeyboard) {
-            keyboard = pKeyboard;
-        };
-
-        this.keyboardKeyChanged = function(key, press) {
-            ppi.keyboardKeyChanged(key, press);
-        };
-
-        var keyboard;
 
     }
 
@@ -567,11 +580,11 @@ wmsx.Machine = function() {
             if (!state) return;
             wmsx.Util.log("SaveState file loaded");
             if (state.v !== VERSION) {
-                self.showOSD("State Cartridge load failed, wrong version", true);
+                self.showOSD("State File load failed, wrong version", true);
                 return true;
             }
             loadState(state);
-            self.showOSD("State Cartridge loaded", true);
+            self.showOSD("State File loaded", true);
             return true;
         };
 
