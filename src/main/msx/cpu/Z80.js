@@ -1,11 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO GameOver uses IM 2!!!!
+// TODO Optimize INT handling (if for modes)
 
 // This implementation fetches the base opcode at the FIRST clock cycle
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // PC and SP not checked for 16 bits over/underflow
-// NMI is not supported. Only INT 1 mode supported
+// NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX)
 // Base clock 3584160 Hz
 
 wmsx.Z80 = function() {
@@ -20,6 +20,7 @@ wmsx.Z80 = function() {
         toAF(0xfffd); toBC(0xffff); DE = 0xffff; HL = 0xffff;
         AF2 = 0xfffd; BC2 = 0xffff; DE2 = 0xffff; HL2 = 0xffff;
         toIX(0xffff); toIY(0xffff); SP = 0xffff;
+        this.INT = 1;
         this.reset();
     };
 
@@ -130,7 +131,7 @@ wmsx.Z80 = function() {
         R++;        // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
 
         if (self.INT === 0 && IFF1 && prefix === 0) {   // INT = 0 means active
-            pINT_1();
+            pINT();
             return;
         }
 
@@ -818,12 +819,12 @@ wmsx.Z80 = function() {
     }
 
     function newIM(mode) {
-        return function IM() {
+        return function setIM() {
             IM = mode;
-            if (mode !== 1) {
-                //self.trace = true;
-                self.breakpoint("ONLY IM1 IS SUPPORTED!");
-            }
+            //if (mode !== 1) {
+            //    //self.trace = true;
+            //    self.breakpoint("Entering IM mode " + mode + "!!!");
+            //}
         }
     }
 
@@ -1314,15 +1315,29 @@ wmsx.Z80 = function() {
 
     // Pseudo instructions
 
-    function pINT_1() {
+    function pINT() {
         if (instruction === instructionHALT) PC++;       // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
         IFF1 = IFF2 = 0;
-        PC = 0x0038;
-        T = 13;
         instruction = instructionADT_CYCLES;
+        if (IM === 1) {
+            // Same as a RST 38h
+            PC = 0x0038;
+            T = 13;
+        } else if (IM === 2) {
+            // Read Jump Table address low from Bus (always FFh in this implementation)
+            // Read Jump Table address high from I
+            var jumpTableEntry = (I << 8) | 0xFF;
+            // Call address read from Jump Table
+            PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
+            T = 19;
+        } else {
+            // IM 0. Read instruction to execute from Bus (always FFh in this implementation)
+            // Since its always FF, its the same as a RST 38h
+            PC = 0x0038;
+            T = 13;
+        }
     }
-
 
     function pSET_CB() {
         prefix = 0xcb;

@@ -6,7 +6,7 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     function init(self) {
         self.rom = rom;
         self.format = format;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         contentStart = 0x4000;                  // Always start at 0x4000
@@ -61,7 +61,7 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
         this.rom = wmsx.ROM.loadState(s.r);
         this.format = wmsx.SlotFormats[s.f];
         contentStart = s.cs; contentLength = s.cl;
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b), 65536, contentStart, 0);
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(s.b), 65536, contentStart, 0xff);
         this.bytes = bytes;
     };
 

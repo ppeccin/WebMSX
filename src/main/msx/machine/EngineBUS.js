@@ -91,7 +91,7 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         self.devicesOutputPorts = devicesOutputPorts;
     }
 
-    function setupMachine() {                       // Like a Gradiente Expert 1.1
+    function setupMachine() {
         cpu.connectBus(self);
         ppi.connectEngine(self);
         vdp.connectEngine(self);

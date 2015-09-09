@@ -3,12 +3,12 @@
 wmsx.DeviceMissing = function() {
 
     this.inputPort = function() {
-        //wmsx.Util.log ("Empty IN " + port.toString(16));
-        return 0;
+        //wmsx.Util.log ("Empty IN, PC:" + wmsx.Util.toHex4(WMSX.room.machine.cpu.eval("PC")));
+        return 0xff;
     };
 
     this.outputPort = function(val) {
-        //console.log ("Empty OUT " + port.toString(16) + ", " + val.toString(16));
+        //console.log ("Empty OUT val: " + val.toString(16) + " PC:" + wmsx.Util.toHex4(WMSX.room.machine.cpu.eval("PC")));
     }
 
 };

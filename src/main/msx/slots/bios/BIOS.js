@@ -5,7 +5,7 @@ wmsx.BIOS = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         contentStart = 0;                       // Always start at 0
@@ -85,7 +85,7 @@ wmsx.BIOS = function(rom) {
         this.rom = wmsx.ROM.loadState(state.r);
         this.originalVideoStandard = state.v;
         contentStart = state.cs; contentLength = state.cl;
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0);
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0xff);
         this.bytes = bytes;
     };
 

@@ -5,7 +5,7 @@ wmsx.CartridgeUnbanked = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         // If 64K size, it fits just fine starting at 0x0000
@@ -93,7 +93,7 @@ wmsx.CartridgeUnbanked = function(rom) {
     this.loadState = function(state) {
         this.rom = wmsx.ROM.loadState(state.r);
         contentStart = state.cs; contentLength = state.cl;
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0);
+        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0xff);
     };
 
 
