@@ -206,7 +206,7 @@ wmsx.ImageDiskDriver = function() {
             return { F: F | 1, A: 0, extraIterations: spinTime };
 
         // Cannot format for now
-        wmsx.Util.log("Formatting not implemented yet!");
+        wmsx.Util.log("Formatting not implemented yet!");           // TODO Implement formatting
         return { F: F | 1, A: 16, extraIterations: spinTime };
     }
 

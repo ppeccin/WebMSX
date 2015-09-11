@@ -29,12 +29,12 @@ wmsx.SlotRAM64K = function(content) {
     this.saveState = function() {
         return {
             f: this.format.name,
-            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes))
+            b: wmsx.Util.compressArrayToStringBase64(bytes)
         };
     };
 
     this.loadState = function(state) {
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b));
+        bytes = wmsx.Util.uncompressStringBase64ToArray(state.b);
         this.bytes = bytes;
     };
 

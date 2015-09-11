@@ -72,7 +72,7 @@ wmsx.PSG = function() {
     this.saveState = function() {
         return {
             ra: registerAddress,
-            r: btoa(wmsx.Util.uInt8ArrayToByteString(registers)),
+            r: wmsx.Util.storeArrayToStringBase64(registers),
             a: audioChannel.saveState()
 
         };
@@ -80,7 +80,7 @@ wmsx.PSG = function() {
 
     this.loadState = function(s) {
         registerAddress = s.ra;
-        registers = wmsx.Util.byteStringToUInt8Array(atob(s.r));
+        registers = wmsx.Util.restoreStringBase64ToArray(s.r);
         audioChannel.loadState(s.a);
     };
 

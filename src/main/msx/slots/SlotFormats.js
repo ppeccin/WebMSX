@@ -55,7 +55,7 @@ wmsx.SlotFormats = {
         desc: "RAM 64K Slot",
         priority: 103,
         tryFormat: function (rom) {
-            // Not Possible to load RAMs yet
+            // Not Possible to load RAMs
             return null;
         },
         createFromROM: null,

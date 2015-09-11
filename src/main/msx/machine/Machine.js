@@ -160,7 +160,9 @@ wmsx.Machine = function() {
             vd: vdp.saveState(),
             c: cpu.saveState(),
             va: videoStandardIsAuto,
-            vs: videoStandard.name
+            vs: videoStandard.name,
+            dd: diskDriveSocket.getDrive().saveState(),
+            ct: cassetteSocket.getDeck().saveState()
         };
     };
 
@@ -176,6 +178,8 @@ wmsx.Machine = function() {
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
+        diskDriveSocket.getDrive().loadState(state.dd);
+        cassetteSocket.getDeck().loadState(state.ct);
     };
 
     var mainClockAdjustToNormal = function() {
@@ -589,7 +593,7 @@ wmsx.Machine = function() {
         };
 
         var media;
-        var VERSION = 6;
+        var VERSION = 7;
     }
 
 

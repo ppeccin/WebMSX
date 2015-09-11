@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Savestates?
+// TODO LED status on savestates
 
 // Dual Disk Drive ( A: = drive 0, B: = drive 1 )
 wmsx.FileDiskDrive = function() {
@@ -72,7 +72,7 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.diskPresent = function(drive) {
-        return diskContent[drive] && diskContent[drive].length;
+        return !!(diskContent[drive] && diskContent[drive].length);
     };
 
     this.diskWriteProtected = function(drive) {
@@ -139,6 +139,33 @@ wmsx.FileDiskDrive = function() {
     function fireStateUpdate() {
         screen.diskDrivesStateUpdate(self.diskPresent(0), diskMotor[0], self.diskPresent(1), diskMotor[1]);
     }
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            f: diskFileName,
+            c: [ wmsx.Util.compressArrayToStringBase64(diskContent[0]),
+                 wmsx.Util.compressArrayToStringBase64(diskContent[1]) ],
+            g: diskChanged,
+            m: diskMotor
+        };
+    };
+
+    this.loadState = function(state) {
+        diskFileName = state.f;
+        diskContent = [ wmsx.Util.uncompressStringBase64ToArray(state.c[0]),
+                        wmsx.Util.uncompressStringBase64ToArray(state.c[1]) ];
+        diskChanged = state.g;
+        diskMotor = state.m;
+        fireStateUpdate();
+    };
+
+
+    this.eval = function(str) {
+        return eval(str);
+    };
 
 
     var screen;

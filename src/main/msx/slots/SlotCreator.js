@@ -123,7 +123,7 @@ wmsx.SlotCreator = function () {
     };
 
     var produceCartridgeLabel = function(name) {
-        return name.split(/(\(|\[)/)[0].trim();   //  .toUpperCase();   // TODO Validade
+        return name.split(/(\(|\[)/)[0].trim();
     };
 
     var formatMatchesByHint = function(formatName, hint) {

@@ -627,7 +627,7 @@ wmsx.VDP = function(cpu, psg) {
             s: status, m: mode, r0: register0, r1: register1, r3: register3, r4: register4, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
-            vram: btoa(wmsx.Util.uInt8ArrayToByteString(vram)),
+            vram: wmsx.Util.compressArrayToStringBase64(vram),
             vs: videoStandard.name
         };
     };
@@ -636,7 +636,7 @@ wmsx.VDP = function(cpu, psg) {
         status = s.s; mode = s.m; register0 = s.r0; register1 = s.r1; register3 = s.r3; register4 = s.r4; register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
-        vram = new Uint8Array(wmsx.Util.byteStringToUInt8Array(atob(s.vram)));
+        vram = new Uint8Array(wmsx.Util.uncompressStringBase64ToArray(s.vram));
         vramNameTable = vram.subarray(nameTableAddress);
         vramColorTable = vram.subarray(colorTableAddress);
         vramPatternTable = vram.subarray(patternTableAddress);

@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Savestates?
-
 wmsx.FileCassetteDeck = function() {
 
     this.connect = function(pCassetteSocket) {
@@ -215,6 +213,26 @@ wmsx.FileCassetteDeck = function() {
     function fireStateUpdate() {
         screen.tapeStateUpdate(tapeContent.length > 0, motor);
     }
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            f: tapeFileName,
+            c: wmsx.Util.compressArrayToStringBase64(tapeContent),
+            p: tapePosition,
+            m: motor
+        };
+    };
+
+    this.loadState = function(state) {
+        tapeFileName = state.f;
+        tapeContent = wmsx.Util.uncompressStringBase64ToArray(state.c);
+        tapePosition = state.p;
+        motor = state.m;
+        fireStateUpdate();
+    };
 
 
     var basicExtension;

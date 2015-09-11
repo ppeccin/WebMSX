@@ -10,39 +10,9 @@ wmsx.Util = new function() {
         alert(str);
     };
 
-    this.arraysEqual = function(a, b) {
-        var i = a.length;
-        if (i !== b.length) return false;
-        while (i--)
-            if (a[i] !== b[i]) return false;
-        return true;
-    };
-
     this.arrayFill = function(arr, val, len) {
         var i = len || arr.length;
         while(i--)
-            arr[i] = val;
-        return arr;
-    };
-
-    this.arrayFillFunc = function(arr, fn, len) {
-        var i = len || arr.length;
-        while(i--)
-            arr[i] = fn();
-        return arr;
-    };
-
-    this.arrayFillWithArrayClone = function(arr, val) {
-        var i = arr.length;
-        while(i--)
-            arr[i] = val.slice(0);
-        return arr;
-    };
-
-    this.arrayFillSegment = function(arr, from, to, val) {
-        //noinspection UnnecessaryLocalVariableJS
-        var i = to;
-        while(i-- > from)
             arr[i] = val;
         return arr;
     };
@@ -53,52 +23,15 @@ wmsx.Util = new function() {
             dest[destPos++] = src[srcPos++];
     };
 
-    this.uInt32ArrayCopyToUInt8Array = function(src, srcPos, dest, destPos, length) {
-        var finalSrcPos = srcPos + length;
-        destPos *= 4;
-        while(srcPos < finalSrcPos) {
-            var val =  src[srcPos++];
-            dest[destPos++] = val & 255;
-            dest[destPos++] = (val >> 8) & 255;
-            dest[destPos++] = (val >> 16) & 255;
-            dest[destPos++] = val >>> 24;
-        }
-    };
-
-    this.arrayCopyCircularSourceWithStep = function(src, srcPos, srcLength, srcStep, dest, destPos, destLength) {
-        var s = srcPos;
-        var d = destPos;
-        var destEnd = destPos + destLength;
-        while (d < destEnd) {
-            dest[d] = src[s | 0];   // as integer
-            d++;
-            s += srcStep;
-            if (s >= srcLength) s -= srcLength;
-        }
-    };
-
     this.arrayRemove = function(arr, element) {
         var i = arr.indexOf(element);
         if (i < 0) return;
         arr.splice(i, 1);
     };
 
-    this.booleanArrayToByteString = function(boos) {
-        var str = "";
-        for(var i = 0, len = boos.length; i < len; i++)
-            str += boos[i] ? "1" : "0";
-        return str;
-    };
-
-    this.byteStringToBooleanArray = function(str) {
-        var boos = [];
-        for(var i = 0, n = str.length; i < n; i++)
-            boos.push(str.charAt(i) === "1");
-        return boos;
-    };
-
     // Only 8 bit values
     this.uInt8ArrayToByteString = function(ints, start, length) {
+        if (ints === null || ints == undefined) return ints;
         if (start === undefined) start = 0;
         if (length === undefined) length = ints.length;
         var str = "";
@@ -108,6 +41,8 @@ wmsx.Util = new function() {
     };
 
     this.byteStringToUInt8Array = function(str, totalLength, start, filler) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
         if (start === undefined) start = 0;
         if (totalLength === undefined) totalLength = str.length;
         var ints = new Array(totalLength);
@@ -116,6 +51,34 @@ wmsx.Util = new function() {
         for(var i = 0; i < len; i++)
             ints[start + i] = (str.charCodeAt(i) & 0xff);
         return ints;
+    };
+
+    this.compressArrayToStringBase64 = function(arr) {
+        if (arr === null || arr === undefined) return arr;
+        if (arr.length === 0) return "";
+        return btoa(this.uInt8ArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
+    };
+
+    // TODO Returns UInt8Array. Good?
+    this.uncompressStringBase64ToArray = function(str) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return JSZip.compressions.DEFLATE.uncompress(this.byteStringToUInt8Array(atob(str)));
+    };
+
+    this.storeArrayToStringBase64 = function(arr) {
+        if (arr === null || arr === undefined) return arr;
+        if (arr.length === 0) return "";
+        return btoa(this.uInt8ArrayToByteString(arr));
+    };
+
+    // TODO DOES NOT return UInt8Array. Good?
+    this.restoreStringBase64ToArray = function(str) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return this.byteStringToUInt8Array(atob(str));
     };
 
     this.toHex2 = function(num) {

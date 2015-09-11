@@ -8,9 +8,7 @@ wmsx.BIOS = function(rom) {
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
-        contentStart = 0;                       // Always start at 0
-        contentLength = content.length;
-        for(var i = 0; i < contentLength; i++)
+        for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
     }
@@ -59,9 +57,6 @@ wmsx.BIOS = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var contentStart;
-    var contentLength;
-
     this.rom = null;
     this.format = wmsx.SlotFormats.BIOS;
 
@@ -75,17 +70,14 @@ wmsx.BIOS = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             v: this.originalVideoStandard,
-            cs: contentStart,
-            cl: contentLength,
-            b: btoa(wmsx.Util.uInt8ArrayToByteString(bytes, contentStart, contentLength))
+            b: wmsx.Util.compressArrayToStringBase64(bytes)
         };
     };
 
     this.loadState = function(state) {
         this.rom = wmsx.ROM.loadState(state.r);
         this.originalVideoStandard = state.v;
-        contentStart = state.cs; contentLength = state.cl;
-        bytes = wmsx.Util.byteStringToUInt8Array(atob(state.b), 65536, contentStart, 0xff);
+        bytes = wmsx.Util.uncompressStringBase64ToArray(state.b);
         this.bytes = bytes;
     };
 
