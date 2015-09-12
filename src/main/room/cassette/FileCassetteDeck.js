@@ -228,7 +228,7 @@ wmsx.FileCassetteDeck = function() {
 
     this.loadState = function(state) {
         tapeFileName = state.f;
-        tapeContent = wmsx.Util.uncompressStringBase64ToArray(state.c);
+        tapeContent = Array.from(wmsx.Util.uncompressStringBase64ToArray(state.c));     // Need a grow-able Array, UInt8Array is not
         tapePosition = state.p;
         motor = state.m;
         fireStateUpdate();
