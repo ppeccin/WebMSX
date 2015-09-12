@@ -72,12 +72,12 @@ wmsx.Util = new function() {
         return btoa(this.uInt8ArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
     };
 
-    // TODO Returns UInt8Array. Good?
+    // Returns UInt8Array. Good?
     this.uncompressStringBase64ToArray = function(str) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
-        return JSZip.compressions.DEFLATE.uncompress(this.byteStringToUInt8Array(atob(str)));
+        return JSZip.compressions.DEFLATE.uncompress(atob(str));
     };
 
     this.compressStringToStringBase64 = function(str) {
