@@ -53,6 +53,19 @@ wmsx.Util = new function() {
         return ints;
     };
 
+    this.storeArrayToStringBase64 = function(arr) {
+        if (arr === null || arr === undefined) return arr;
+        if (arr.length === 0) return "";
+        return btoa(this.uInt8ArrayToByteString(arr));
+    };
+
+    this.restoreStringBase64ToArray = function(str) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return this.byteStringToUInt8Array(atob(str));
+    };
+
     this.compressArrayToStringBase64 = function(arr) {
         if (arr === null || arr === undefined) return arr;
         if (arr.length === 0) return "";
@@ -67,18 +80,17 @@ wmsx.Util = new function() {
         return JSZip.compressions.DEFLATE.uncompress(this.byteStringToUInt8Array(atob(str)));
     };
 
-    this.storeArrayToStringBase64 = function(arr) {
-        if (arr === null || arr === undefined) return arr;
-        if (arr.length === 0) return "";
-        return btoa(this.uInt8ArrayToByteString(arr));
+    this.compressStringToStringBase64 = function(str) {
+        if (str === null || str === undefined) return str;
+        if (str.length === 0) return str;
+        return btoa(this.uInt8ArrayToByteString(JSZip.compressions.DEFLATE.compress(str)));
     };
 
-    // TODO DOES NOT return UInt8Array. Good?
-    this.restoreStringBase64ToArray = function(str) {
+    this.uncompressStringBase64ToString = function(str) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
-        if (str == "") return [];
-        return this.byteStringToUInt8Array(atob(str));
+        if (str == "") return str;
+        return this.uInt8ArrayToByteString(JSZip.compressions.DEFLATE.uncompress(atob(str)));
     };
 
     this.toHex2 = function(num) {

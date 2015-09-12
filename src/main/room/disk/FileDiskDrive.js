@@ -128,7 +128,7 @@ wmsx.FileDiskDrive = function() {
     // Add a delay before turning the motor off (drive LED simulation)
     function motorOff(drive) {
         if (!diskMotor[drive]) return;
-        if (diskMotorOffTimer[drive]) return;
+        if (diskMotorOffTimer[drive]) window.clearTimeout(diskMotorOffTimer[drive]);
         diskMotorOffTimer[drive] = window.setTimeout(function() {
             diskMotorOffTimer[drive] = null;
             diskMotor[drive] = false;
@@ -160,6 +160,7 @@ wmsx.FileDiskDrive = function() {
         diskChanged = state.g;
         diskMotor = state.m;
         fireStateUpdate();
+        this.allMotorsOff();
     };
 
 
