@@ -15,8 +15,10 @@
         <script src="wmsx/wmsx.js"></script>
 
         <script>
-            if (window.location.protocol.indexOf("http") >= 0)
-                WMSX.BIOS_URL = "../roms/bios/MSX 1.0 NTSC.bios";
+            if (window.location.protocol.indexOf("http") >= 0) {
+                WMSX.BIOS_URL = "wmsx/MSX1aNTSC.bios";
+                WMSX.EXPANSION0_URL = "wmsx/Disk.rom";
+            }
         </script>
 
     </body>
