@@ -371,10 +371,11 @@ wmsx.Machine = function() {
     // BIOS Socket  -----------------------------------------
 
     function BIOSSocket() {
-        this.insert = function (bios) {
+        this.insert = function (bios, autoPower) {
+            var powerWasOn = self.powerIsOn;
             if (self.powerIsOn) self.powerOff();
             setBIOS(bios);
-            self.userPowerOn();
+            if (autoPower && (bios || powerWasOn)) self.userPowerOn();
         };
         this.inserted = function () {
             return getBIOS();
@@ -385,9 +386,12 @@ wmsx.Machine = function() {
     // System Expansions Socket  --------------------------------
 
     function ExpansionSocket() {
-        this.insert = function (expansion, port) {
+        this.insert = function (expansion, port, autoPower) {
+            var powerWasOn = self.powerIsOn;
+            if (self.powerIsOn) self.powerOff();
             if (expansion == getExpansion(port || 0)) return;
             setExpansion(expansion, port);
+            if (autoPower && (expansion || powerWasOn)) self.userPowerOn();
         };
         this.inserted = function (port) {
             return getExpansion(port);
@@ -429,7 +433,7 @@ wmsx.Machine = function() {
     }
 
 
-    // Cassette Socket  -----------------------------------------
+    // Cassette Socket  ------------------------------------------
 
     function CassetteSocket() {
         this.connectDeck = function (pDeck) {
@@ -550,7 +554,7 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " save failed", true);
         };
 
-        this.loadState = function(slot) {
+        this.loadState = function(slot) {   // TODO AutoPower for loadState
             if (!media) return;
             var state = media.loadState(slot);
             if (!state) {

@@ -58,7 +58,7 @@ wmsx.FileLoader = function() {
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
-            loadContent(file.name, content, port || 0, autoPower !== false, asExpansion);
+            self.loadContent(file.name, content, port || 0, autoPower !== false, asExpansion);
         };
         reader.onerror = function (event) {
             showError("File reading error: " + event.target.error.name);
@@ -68,28 +68,87 @@ wmsx.FileLoader = function() {
     };
 
     this.loadFromURL = function (url, port, autoPower, asExpansion) {
-        wmsx.Util.log("Reading file from URL: " + url);
+        new wmsx.MultiDownloader([{
+            url: url,
+            onSuccess: function (res) {
+                self.loadContent(url, res.content, port || 0, autoPower !== false, asExpansion);
+            },
+            onError: function (res) {
+                showError("URL reading error: " + res.error);
+            }
+        }]).start();
+    };
 
-        var req = new XMLHttpRequest();
-        req.withCredentials = true;
-        req.open("GET", url, true);
-        req.responseType = "arraybuffer";
-        req.timeout = 2000;
-        req.onload = function () {
-            if (req.status === 200) {
-                var content = new Uint8Array(req.response);
-                loadContent(url, content, port || 0, autoPower !== false, asExpansion);
-            } else
-                showError("URL reading error: " + (req.statusText || req.status));
-        };
-        req.onerror = function () {
-            showError("URL reading error: " + (req.statusText || req.status));
-        };
-        req.ontimeout = function () {
-            showError("URL reading error: " + (req.statusText || req.status));
-        };
+    this.loadContent = function (name, content, port, autoPower, asExpansion) {
+        var rom, arrContent;
+        // First try reading and creating directly
+        try {
+            arrContent = new Array(content.length);
+            wmsx.Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
+            // First try to load as a SaveState file
+            if (saveStateSocket.loadStateFile(arrContent, autoPower))
+                return;
+            // Then try to load as a Cassette file
+            if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
+                return;
+            // Then try to load as a Disk file
+            if (diskDrive.loadDiskFile(port, name, arrContent, autoPower))
+                return;
+            // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
+            rom = new wmsx.ROM(name, arrContent);
+            var slot = wmsx.SlotCreator.createFromROM(rom);
+            if (slot.constructor === wmsx.BIOS)
+                biosSocket.insert(slot, autoPower);
+            else if (asExpansion)
+                expansionSocket.insert(slot, port, autoPower);
+            else
+                cartridgeSocket.insert(slot, port, autoPower);
+        } catch(e) {
+            if (!e.msx) {
+                wmsx.Util.log(e.stack);
+                throw e;
+            }
 
-        req.send();
+            // If it fails, try assuming its a compressed content (zip with ROMs)
+            try {
+                var zip = new JSZip(content);
+                var files = zip.file(ZIP_INNER_FILES_PATTERN);
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    wmsx.Util.log("Trying zip file content: " + file.name);
+                    try {
+                        var cont = file.asUint8Array();
+                        arrContent = new Array(cont.length);
+                        wmsx.Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
+                        // First try to load as a SaveState file
+                        if (saveStateSocket.loadStateFile(arrContent, autoPower))
+                            return;
+                        // Then try to load as a Cassette file
+                        if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
+                            return;
+                        // Then try to load as a Disk file
+                        if (diskDrive.loadDiskFile(port, name, arrContent, autoPower))
+                            return;
+                        // Then try to load as a ROM (BIOS or Cartridge)
+                        rom = new wmsx.ROM(file.name, arrContent);
+                        slot = wmsx.SlotCreator.createFromROM(rom);
+                        if (slot.constructor === wmsx.BIOS)
+                            biosSocket.insert(slot, autoPower);
+                        else if (asExpansion)
+                            expansionSocket.insert(slot, port, autoPower);
+                        else
+                            cartridgeSocket.insert(slot, port, autoPower);
+                        return;
+                    } catch (ef) {
+                        // Move on and try the next file
+                    }
+                }
+                showError("No valid ROM, Cassette or Disk files inside zip file");
+            } catch(ez) {
+                // Probably not a zip file. Let the original message show
+                showError(e.message);
+            }
+        }
     };
 
     var onFileInputChange = function(event) {
@@ -148,81 +207,10 @@ wmsx.FileLoader = function() {
         }
     };
 
-    var loadContent = function (name, content, port, autoPower, asExpansion) {
-        var rom, arrContent;
-        // First try reading and creating directly
-        try {
-            arrContent = new Array(content.length);
-            wmsx.Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
-            // First try to load as a SaveState file
-            if (saveStateSocket.loadStateFile(arrContent))
-                return;
-            // Then try to load as a Cassette file
-            if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
-                return;
-            // Then try to load as a Disk file
-            if (diskDrive.loadDiskFile(port, name, arrContent, autoPower))
-                return;
-            // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
-            rom = new wmsx.ROM(name, arrContent);
-            var slot = wmsx.SlotCreator.createFromROM(rom);
-            if (slot.constructor === wmsx.BIOS)
-                biosSocket.insert(slot);
-            else if (asExpansion)
-                expansionSocket.insert(slot, port);
-            else
-                cartridgeSocket.insert(slot, port, autoPower);
-        } catch(e) {
-            if (!e.msx) {
-                wmsx.Util.log(e.stack);
-                throw e;
-            }
-
-            // If it fails, try assuming its a compressed content (zip with ROMs)
-            try {
-                var zip = new JSZip(content);
-                var files = zip.file(ZIP_INNER_FILES_PATTERN);
-                for (var i = 0; i < files.length; i++) {
-                    var file = files[i];
-                    wmsx.Util.log("Trying zip file content: " + file.name);
-                    try {
-                        var cont = file.asUint8Array();
-                        arrContent = new Array(cont.length);
-                        wmsx.Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
-                        // First try to load as a SaveState file
-                        if (saveStateSocket.loadStateFile(arrContent))
-                            return;
-                        // Then try to load as a Cassette file
-                        if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
-                            return;
-                        // Then try to load as a Disk file
-                        if (diskDrive.loadDiskFile(port, name, arrContent, autoPower))
-                            return;
-                        // Then try to load as a ROM (BIOS or Cartridge)
-                        rom = new wmsx.ROM(file.name, arrContent);
-                        slot = wmsx.SlotCreator.createFromROM(rom);
-                        if (slot.constructor === wmsx.BIOS)
-                            biosSocket.insert(slot);
-                        else if (asExpansion)
-                            expansionSocket.insert(slot, port);
-                        else
-                            cartridgeSocket.insert(slot, port, autoPower);
-                        return;
-                    } catch (ef) {
-                        // Move on and try the next file
-                    }
-                }
-                showError("No valid ROM, Cassette or Disk files inside zip file");
-            } catch(ez) {
-                // Probably not a zip file. Let the original message show
-                showError(e.message);
-            }
-        }
-    };
 
     var showError = function(message) {
         wmsx.Util.log("" + message);
-        wmsx.Util.message("Could not load ROM:\n\n" + message);
+        wmsx.Util.message("Could not load file:\n\n" + message);
     };
 
     var createFileInputElement = function (element) {

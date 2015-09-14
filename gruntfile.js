@@ -24,6 +24,7 @@ module.exports = function (grunt) {
                     "src/main/util/Util.js",
                     "src/main/util/SHA1.js",
                     "src/main/util/ZIP.js",
+                    "src/main/util/MultiDownloader.js",
                     "src/main/msx/cpu/Z80.js",
                     "src/main/msx/ppi/PPI.js",
                     "src/main/msx/vdp/VDP.js",

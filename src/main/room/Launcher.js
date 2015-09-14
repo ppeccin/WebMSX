@@ -17,33 +17,106 @@ WMSX.start = function () {
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
+    var roomPowerOnTime = Date.now();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified
-    if (WMSX.BIOS_URL || WMSX.STATE_LOAD_URL) {
-        setTimeout(function() {
-            if (WMSX.STATE_LOAD_URL) {
-                WMSX.room.fileLoader.loadFromURL(WMSX.STATE_LOAD_URL, 0, true);
-            } else {
-                if (WMSX.EXPANSION0_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.EXPANSION0_URL, 0, true, true);
-                if (WMSX.EXPANSION1_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.EXPANSION1_URL, 1, true, true);
-                if (WMSX.EXPANSION2_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.EXPANSION2_URL, 2, true, true);
-                if (WMSX.CARTRIDGE1_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.CARTRIDGE1_URL, 0, true);
-                if (WMSX.CARTRIDGE2_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.CARTRIDGE2_URL, 1, true);
-                if (WMSX.DISKA_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.DISKA_URL, 0, true);
-                if (WMSX.DISKB_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.DISKB_URL, 1, true);
-                if (WMSX.TAPE_URL)
-                    WMSX.room.fileLoader.loadFromURL(WMSX.TAPE_URL);
-                WMSX.room.fileLoader.loadFromURL(WMSX.BIOS_URL);
+    if (WMSX.STATE_LOAD_URL) {
+        // Only 1 file, Power Machine on after loading it with AutoPower
+        new wmsx.MultiDownloader([{
+            url: WMSX.STATE_LOAD_URL,
+            onSuccess: function (res) {
+                afterAutoStartWait(function() {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
+                });
+            },
+            onError: function(res) {
+                var mes = "Could not load file: " + res.url + "\nError: " + res.error;
+                wmsx.Util.log(mes);
+                wmsx.Util.message(mes);
             }
-        }, Math.abs(WMSX.AUTO_START_DELAY));
+        }]).start();
+    } else if (WMSX.BIOS_URL) {
+        var urls = [
+            WMSX.EXPANSION0_URL && {
+                url: WMSX.EXPANSION0_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false, true);
+                }
+            },
+            WMSX.EXPANSION1_URL && {
+                url: WMSX.EXPANSION1_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, false, true);
+                }
+            },
+            WMSX.EXPANSION2_URL && {
+                url: WMSX.EXPANSION2_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 2, false, true);
+                }
+            },
+            WMSX.CARTRIDGE1_URL && {
+                url: WMSX.CARTRIDGE1_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                }
+            },
+            WMSX.CARTRIDGE2_URL && {
+                url: WMSX.CARTRIDGE2_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, false);
+                }
+            },
+            WMSX.DISKA_URL && {
+                url: WMSX.DISKA_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                }
+            },
+            WMSX.DISKB_URL && {
+                url: WMSX.DISKB_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, false);
+                }
+            },
+            WMSX.TAPE_URL && {
+                url: WMSX.TAPE_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                }
+            },
+            {   // BIOS
+                url: WMSX.BIOS_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                }
+            }
+        ];
+        // Power Machine on only after all slots are loaded and inserted
+        new wmsx.MultiDownloader(urls,
+            function() {
+                afterAutoStartWait(function() {
+                    WMSX.room.machine.userPowerOn();
+                });
+            }, function(urls) {
+                for (var i = 0; i < urls.length; i++) {
+                    if (urls[i] && !urls[i].success) {
+                        var mes = "Could not load file: " + urls[i].url + "\nError: " + urls[i].error;
+                        wmsx.Util.log(mes);
+                        wmsx.Util.message(mes);
+                    }
+                }
+            }
+        ).start();
     }
+
+    function afterAutoStartWait(func) {
+        if (WMSX.AUTO_START_DELAY < 0) return;
+        var wait = WMSX.AUTO_START_DELAY - (Date.now() - roomPowerOnTime);
+        if (wait < 0) wait = 0;
+        window.setTimeout(func, wait);
+    }
+
 
     WMSX.shutdown = function () {
         if (WMSX.room) WMSX.room.powerOff();

@@ -20,6 +20,7 @@
         <script src="../main/util/Util.js"></script>
         <script src="../main/util/SHA1.js"></script>
         <script src="../main/util/ZIP.js"></script>
+        <script src="../main/util/MultiDownloader.js"></script>
         <script src="../main/msx/cpu/Z80.js"></script>
         <script src="../main/msx/ppi/PPI.js"></script>
         <script src="../main/msx/vdp/VDP.js"></script>
@@ -74,9 +75,17 @@
 
         <script>
             if (window.location.protocol.indexOf("http") >= 0) {
-                WMSX.BIOS_URL = "roms/MSX1aNTSC.bios";
+                WMSX.BIOS_URL =       "roms/MSX1aNTSC.bios";
                 WMSX.EXPANSION0_URL = "roms/Disk.rom";
-                // WMSX.STATE_LOAD_URL = "roms/Goonies.wst";
+                // WMSX.EXPANSION1_URL = "roms/Disk.rom";
+                // WMSX.EXPANSION2_URL = "roms/Disk.rom";
+                // WMSX.CARTRIDGE1_URL = "roms/Goonies.rom";
+                // WMSX.CARTRIDGE2_URL = "roms/Goonies.rom";
+                // WMSX.DISKA_URL =      "roms/MSX-DOS.dsk";
+                // WMSX.DISKB_URL =      "roms/MSX-DOS.dsk";
+                // WMSX.TAPE_URL =        "roms/Venom.cas";
+
+                // WMSX.STATE_LOAD_URL = "roms/Zanac.wst";
 
                 WMSX.AUTO_START_DELAY = 0;      // Instant power-on
             }

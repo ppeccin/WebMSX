@@ -34,7 +34,7 @@ wmsx.SlotFormats = {
 
     "BIOS": {
         name: "BIOS",
-        desc: "BIOS 16K/32K Slot",
+        desc: "BIOS 16K/32K",
         priority: 102,
         tryFormat: function (rom) {
             // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS
@@ -66,7 +66,7 @@ wmsx.SlotFormats = {
 
     "Unbanked": {
         name: "Unbanked",
-        desc: "Unbanked Cartridge",
+        desc: "Normal Cartridge",
         priority: 111,
         tryFormat: function (rom) {
             // Any 8K or 16K content starting with the Cartridge identifier "AB"

@@ -17,7 +17,7 @@ WMSX = {
     DISKB_URL:                      "",                         // Full or relative URL of Disk B image file
     TAPE_URL:                       "",                         // Full or relative URL of TAPE image file
     STATE_LOAD_URL:                 "",                         // Full or relative URL of State file to start (takes precedence)
-    AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Auto-Load/Power-on
+    AUTO_START_DELAY:               2000,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
