@@ -33,7 +33,7 @@ wmsx.ImageDiskDriver = function() {
             case 0xc:
                 return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
-                return CHOICE();
+                return CHOICE(s.SP);
             case 0xe:
                 return DSKFMT(s.F, s.A, s.DE);
             case 0xf:
@@ -85,13 +85,6 @@ wmsx.ImageDiskDriver = function() {
         bytes[0x401f] = 0xed;
         bytes[0x4020] = 0xef;
         bytes[0x4021] = 0xc9;
-
-        // Additional patches on the status register needed so the init does not hang...
-        // Not needed anymore since we patched INIHRD and DRIVES!
-        // Depends on the manufacturer
-        //if (bios.format === wmsx.SlotFormats.DiskWD) bytes[0x7ff8] = 0;
-        //if (bios.format === wmsx.SlotFormats.DiskFujitsu) bytes[0x7fb8] = 0;
-        //if (bios.format === wmsx.SlotFormats.DiskToshiba) bytes[0x7ffa] = 0;
     }
 
     function INIHRD(F, HL) {
@@ -181,14 +174,28 @@ wmsx.ImageDiskDriver = function() {
         var mediaDesc = B === 0 ? C : B;
         if (mediaDesc < 0xF8) return;           // Invalid Media Descriptor
 
-        var dpb = DPBS_FOR_MEDIA_DESCIPTORS[mediaDesc];
+        var dpb = DPBS_FOR_MEDIA_DESCRIPTORS[mediaDesc];
         writeToMemory(dpb, HL + 1);
     }
 
-    function CHOICE() {
-        // console.log("CHOICE");
+    function CHOICE(SP) {
+        console.log("CHOICE");
 
-        return { HL: 0 };           // No options for now
+        // Uses space below the current Stack Pointer in RAM for the message
+        var address = 0x8fff;
+
+        console.log(wmsx.Util.toHex2(bus.getPrimarySlotConfig()));
+
+        for (var i = CHOICE_STRING.length - 1; i >= 0; i--) {
+            console.log("Char: " + i + " " + CHOICE_STRING[i] + " Address: " + wmsx.Util.toHex4(address));
+            bus.write(--address, CHOICE_STRING[i]);
+        }
+
+        //return { HL: 0x41c2 };
+
+        //ZZZ = 1;
+
+        return { HL: address & 0xffff };
     }
 
     function DSKFMT(F, A, D) {
@@ -238,7 +245,10 @@ wmsx.ImageDiskDriver = function() {
 
     var BYTES_PER_SECTOR = 512;                 // Fixed for now, for all disks
 
-    var DPBS_FOR_MEDIA_DESCIPTORS = {
+    //var CHOICE_STRING = "A new disk will be created. Choose format:\n1) 720KB, Double Sided\n2) 360KB, Single Sided\0";
+    var CHOICE_STRING = "CHOICE\0\0\0\0\0\0";
+
+    var DPBS_FOR_MEDIA_DESCRIPTORS = {
         // Media F8; 80 Tracks; 9 sectors; 1 side; 3.5" 360 Kb
         0xF8: [0xF8, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x63, 0x01, 0x02, 0x05, 0x00],
         // Media F9; 80 Tracks; 9 sectors; 2 sides; 3.5" 720 Kb
@@ -258,5 +268,6 @@ wmsx.ImageDiskDriver = function() {
     };
 
     var EXTRA_ITERATIONS_PER_SECTOR = 10000;
+
 
 };
