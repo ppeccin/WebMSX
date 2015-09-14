@@ -17,14 +17,19 @@ WMSX.start = function () {
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
+    wmsx.Util.log(WMSX.VERSION + " started");
+
     var roomPowerOnTime = Date.now();
+
+    // Prepare ROM Database
+    wmsx.ROMDatabase.uncompress();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified
     if (WMSX.STATE_LOAD_URL) {
         // Only 1 file, Power Machine on after loading it with AutoPower
         new wmsx.MultiDownloader([{
             url: WMSX.STATE_LOAD_URL,
-            onSuccess: function (res) {
+            onSuccess: function(res) {
                 afterAutoStartWait(function() {
                     WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
                 });
@@ -94,11 +99,11 @@ WMSX.start = function () {
         ];
         // Power Machine on only after all slots are loaded and inserted
         new wmsx.MultiDownloader(urls,
-            function() {
+            function onSuccessAll() {
                 afterAutoStartWait(function() {
                     WMSX.room.machine.userPowerOn();
                 });
-            }, function(urls) {
+            }, function onErrorAny(urls) {
                 for (var i = 0; i < urls.length; i++) {
                     if (urls[i] && !urls[i].success) {
                         var mes = "Could not load file: " + urls[i].url + "\nError: " + urls[i].error;
@@ -124,7 +129,6 @@ WMSX.start = function () {
         delete WMSX;
     };
 
-    wmsx.Util.log(WMSX.VERSION + " started");
 };
 
 
