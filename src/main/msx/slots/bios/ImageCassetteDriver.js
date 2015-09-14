@@ -2,21 +2,40 @@
 
 // Cassette Driver for cassette images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageCassetteDriver = function() {
+    var self = this;
 
     this.connect = function(bios, machine) {
         machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], this);
+        machine.getCassetteSocket().connectDriver(this);
         deck = machine.getCassetteSocket().getDeck();
-        deck.connectBASICExtension(new wmsx.BASICExtension(machine.bus));
+        basicExtension = bios.getBASICExtension();
         patchBIOS(bios);
     };
 
     this.disconnect = function(bios, machine) {
         machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], null);
-        deck.connectBASICExtension(null);
+        machine.getCassetteSocket().connectDriver(null);
     };
 
     this.powerOff = function() {
         if (deck) deck.motor(false);
+    };
+
+    this.typeCurrentAutoRunCommand = function() {
+        var command = self.currentAutoRunCommand();
+        if (command) basicExtension.typeString(command);
+    };
+
+    this.currentAutoRunCommand = function() {
+        var info = deck.peekFileInfoAtCurrentPosition();
+        if (!info) return null;
+
+        switch (info.type) {
+            case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
+            case "Basic": return '\r\rcload "' + info.name + '"\rrun\r';
+            case "ASCII": return '\r\rrun "cas:' + info.name + '"\r';
+        }
+        return null;
     };
 
     this.cpuExtensionBegin = function(s) {
@@ -122,6 +141,7 @@ wmsx.ImageCassetteDriver = function() {
     }
 
 
+    var basicExtension;
     var deck;
 
     var HEADER_WRITE_LONG_EXTRA_ITERATIONS = 1500000;

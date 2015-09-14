@@ -126,7 +126,7 @@ wmsx.Z80 = function() {
     // Internal operations
 
     var fetchNextInstruction = function() {
-        R++;        // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
+        R++;        // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
 
         if (self.INT === 0 && IFF1 && prefix === 0) {   // INT = 0 means active
             pINT();
@@ -433,7 +433,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAR() {
-        A = R;
+        A = R & 0xff;
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -1325,7 +1325,7 @@ wmsx.Z80 = function() {
         } else if (IM === 2) {
             // Read Jump Table address low from Bus (always FFh in this implementation)
             // Read Jump Table address high from I
-            var jumpTableEntry = (I << 8) | 0xFF;
+            var jumpTableEntry = (I << 8) | 0xff;
             // Call address read from Jump Table
             PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
             T = 19;

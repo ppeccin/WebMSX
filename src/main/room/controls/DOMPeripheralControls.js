@@ -144,7 +144,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cassetteDeck.seekForward();
                 break;
             case controls.TAPE_AUTO_RUN:
-                cassetteDeck.typeCurrentAutoRunCommand();
+                cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case controls.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;

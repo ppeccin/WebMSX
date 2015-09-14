@@ -14,12 +14,17 @@ wmsx.BIOS = function(rom) {
     }
 
     this.connect = function(machine) {
+        basicExtension = new wmsx.BASICExtension(machine.bus);
         cassetteDriver = new wmsx.ImageCassetteDriver();
         cassetteDriver.connect(this, machine);
     };
 
     this.disconnect = function(machine) {
         if (cassetteDriver) cassetteDriver.disconnect(this, machine);
+    };
+
+    this.getBASICExtension = function() {
+        return basicExtension;
     };
 
     this.powerOn = function(paused) {
@@ -83,6 +88,7 @@ wmsx.BIOS = function(rom) {
 
 
     var cassetteDriver;
+    var basicExtension;
 
 
     if (rom) init(this);
@@ -94,3 +100,4 @@ wmsx.BIOS.createFromSaveState = function(state) {
     bios.loadState(state);
     return bios;
 };
+

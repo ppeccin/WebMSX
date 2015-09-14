@@ -12,10 +12,6 @@ wmsx.FileCassetteDeck = function() {
         fileDownloader = pDownloader;
     };
 
-    this.connectBASICExtension = function(pExtension) {
-        basicExtension = pExtension;
-    };
-
     this.loadTapeFile = function(name, arrContent, autoPower) {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
@@ -26,11 +22,7 @@ wmsx.FileCassetteDeck = function() {
         screen.showOSD("Cassette loaded." + positionMessage(), true);
         fireStateUpdate();
 
-        if (autoPower && currentAutoRunCommand()) {
-            cassetteSocket.autoPowerCycle();
-            // Give some time for reboot and then enter command
-            window.setTimeout(this.typeCurrentAutoRunCommand, 1700);        // TODO Arbitrary time...
-        }
+        if (autoPower) cassetteSocket.autoPowerCycle();
 
         return tapeContent;
     };
@@ -91,17 +83,21 @@ wmsx.FileCassetteDeck = function() {
         screen.showOSD("Cassette skipped backward." + positionMessage(), true);
     };
 
-    this.typeCurrentAutoRunCommand = function() {
+    this.peekFileInfoAtCurrentPosition = function() {
+        return peekFileInfo(tapePosition);
+    };
+
+    this.userTypeCurrentAutoRunCommand = function() {
         if (!tapeContent || (tapeContent.length === 0)) {
             screen.showOSD("Cassette is empty!", true);
             return;
         }
-        var command = currentAutoRunCommand();
+        var command = cassetteSocket.getDriver().currentAutoRunCommand();
         if (!command) {
             screen.showOSD("No executable at current Tape position!", true);
             return;
         }
-        if (basicExtension) basicExtension.typeString(command);
+        cassetteSocket.getDriver().typeCurrentAutoRunCommand();
     };
 
 
@@ -198,18 +194,6 @@ wmsx.FileCassetteDeck = function() {
         return mes;
     }
 
-    function currentAutoRunCommand() {
-        var info = peekFileInfo(tapePosition);
-        if (!info) return null;
-
-        switch (info.type) {
-            case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
-            case "Basic": return '\r\rcload "' + info.name + '"\rrun\r';
-            case "ASCII": return '\r\rrun "cas:' + info.name + '"\r';
-        }
-        return null;
-    }
-
     function fireStateUpdate() {
         screen.tapeStateUpdate(tapeContent.length > 0, motor);
     }
@@ -235,7 +219,6 @@ wmsx.FileCassetteDeck = function() {
     };
 
 
-    var basicExtension;
     var cassetteSocket;
 
     var tapeFileName = null;

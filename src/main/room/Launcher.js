@@ -101,7 +101,7 @@ WMSX.start = function () {
         new wmsx.MultiDownloader(urls,
             function onSuccessAll() {
                 afterAutoStartWait(function() {
-                    WMSX.room.machine.userPowerOn();
+                    WMSX.room.machine.userPowerOn(true);
                 });
             }, function onErrorAny(urls) {
                 for (var i = 0; i < urls.length; i++) {

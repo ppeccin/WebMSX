@@ -28,10 +28,12 @@ wmsx.Machine = function() {
         bus.reset();
     };
 
-    this.userPowerOn = function() {
-        if (getBIOS()) this.powerOn();
-        else this.getVideoOutput().showOSD("Insert BIOS!", true);
-    };
+    this.userPowerOn = function(autoRunCassette) {
+        if (getBIOS()) {
+            this.powerOn();
+            if (autoRunCassette) cassetteSocket.typeAutoRunCommandAfterPowerOn();
+        } else this.getVideoOutput().showOSD("Insert BIOS!", true);
+     };
 
     this.clockPulse = function() {
         if (debugPause)
@@ -439,14 +441,27 @@ wmsx.Machine = function() {
         this.connectDeck = function (pDeck) {
             deck = pDeck;
         };
+        this.connectDriver = function (pDriver) {
+            driver = pDriver;
+        };
         this.getDeck = function() {
             return deck;
         };
+        this.getDriver = function() {
+            return driver;
+        };
         this.autoPowerCycle = function () {
+            if (!driver || !driver.currentAutoRunCommand()) return;     // Only do power cycle if there is an executable at position
             if (self.powerIsOn) self.powerOff();
-            self.userPowerOn();
+            self.userPowerOn(true);
+        };
+        this.typeAutoRunCommandAfterPowerOn = function () {
+            if (driver && driver.currentAutoRunCommand())
+                // Give some time for reboot and then enter command
+                window.setTimeout(driver.typeCurrentAutoRunCommand, 1700);      // TODO Arbitrary time...
         };
         var deck;
+        var driver;
     }
 
 
@@ -554,7 +569,7 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " save failed", true);
         };
 
-        this.loadState = function(slot) {   // TODO AutoPower for loadState
+        this.loadState = function(slot) {
             if (!media) return;
             var state = media.loadState(slot);
             if (!state) {
