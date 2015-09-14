@@ -2518,19 +2518,19 @@ wmsx.Z80 = function() {
         instr = pSET_FDCB;
         defineInstruction(0xfd, null, opcode, 3, instr, "< SET FDCB >", false);
 
-        opcode = -1;
+        opcode = 257;
         instr = pADT_CYCLES;
         instructionADT_CYCLES = defineInstruction(null, null, opcode, 0, instr, "< ADT CYCLES >", false);
 
         // Testing pseudo instructions
 
-        opcode = 257;
-        instr = pSTOP;
-        defineInstruction(null, null, opcode, 4, instr, "++ STOP ++", false);
-
         opcode = 258;
+        instr = pSTOP;
+        defineInstruction(null, null, opcode, 4, instr, "++ BDOS STOP ++", false);
+
+        opcode = 259;
         instr = pCPM_BDOS;
-        defineInstruction(null, null, opcode, 4, instr, "++ PRINT ++", false);
+        defineInstruction(null, null, opcode, 4, instr, "++ BDOS PRINT ++", false);
 
 
         // ------------------------------
@@ -2559,8 +2559,6 @@ wmsx.Z80 = function() {
         }
 
         function registerInstruction(instr) {
-            if (instr.opcode < 0) return;
-
             self.instructionsAll.push(instr);
 
             if (!instr.prefix)                instructions[instr.opcode] = instr;
@@ -2580,7 +2578,7 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, IFF2: IFF2, INT: this.INT,
-            T: T, p: prefix, o: opcode, insIndex: this.instructionsAll.indexOf(instruction),
+            T: T, p: prefix, o: opcode, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
     };
@@ -2588,7 +2586,7 @@ wmsx.Z80 = function() {
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; IFF2 = s.IFF2; this.INT = s.INT;
-        T = s.T; prefix = s.p; opcode = s.o; instruction = this.instructionsAll[s.insIndex];
+        T = s.T; prefix = s.p; opcode = s.o; instruction = this.instructionsAll[s.ii !== undefined ? s.ii : s.insIndex];
         extensionCurrentlyRunning  = s.ecr; extensionExtraIterations = s.eei;
     };
 
