@@ -249,10 +249,6 @@ wmsx.Z80 = function() {
         return DE;
     };
     var fromHL = function() {
-
-        // TODO Remove
-        if (window.ZZZ) console.log("HL: " + wmsx.Util.toHex4(HL) + " " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
-
         return HL;
     };
     var fromSP = function() {

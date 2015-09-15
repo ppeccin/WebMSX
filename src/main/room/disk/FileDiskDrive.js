@@ -30,6 +30,16 @@ wmsx.FileDiskDrive = function() {
         return diskContent[drive];
     };
 
+    this.createNewDisk = function(drive, size) {
+        diskFileName[drive] = "NewDisk.dsk";
+        diskContent[drive] = wmsx.Util.arrayFill(new Array(size), 0);
+        diskChanged[drive] = true;
+        screen.showOSD("New empty disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
+        fireStateUpdate();
+
+        return diskContent[drive];
+    };
+
     this.removeDisk = function(drive) {
         diskFileName[drive] = null;
         diskContent[drive] = null;
@@ -89,15 +99,21 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.writeSectors = function(drive, logicalSector, quantSectors, bytes) {
+        return this.writeBytes(drive, bytes, logicalSector * diskBytesPerSector, quantSectors * diskBytesPerSector);
+    };
+
+    this.writeBytes = function (drive, bytes, startByte, quantBytes) {
         if (!this.diskPresent(drive)) return false;
+
         var dContent = diskContent[drive];
-        var startByte = logicalSector * diskBytesPerSector;
-        var quantBytes = quantSectors * diskBytesPerSector;
+        if (!quantBytes) quantBytes = bytes.length;
+
         // Disk boundary check
         if ((startByte > dContent.length) || (startByte + quantBytes > dContent.length - 1)) return false;
 
         for (var i = 0; i < quantBytes; i++)
             dContent[startByte + i] = bytes[i];
+
         return true;
     };
 
