@@ -129,25 +129,29 @@ wmsx.FileDiskDrive = function() {
         return MOTOR_SPINUP_EXTRA_ITERATIONS;
     };
 
-    this.allMotorsOff = function() {                // Simulated delay
-        motorOff(0);
-        motorOff(1);
+    this.allMotorsOff = function(resetDelay) {          // Simulated delay
+        motorOff(0, resetDelay);
+        motorOff(1, resetDelay);
     };
 
-    this.allMotorsOffNow = function() {             // Instantly with no delays
+    this.allMotorsOffNow = function() {                 // Instantly with no delays
         diskMotor[0] = diskMotor[1] = false;
         fireStateUpdate();
     };
 
     // Add a delay before turning the motor off (drive LED simulation)
-    function motorOff(drive) {
+    function motorOff(drive, resetDelay) {
         if (!diskMotor[drive]) return;
-        if (diskMotorOffTimer[drive]) window.clearTimeout(diskMotorOffTimer[drive]);
-        diskMotorOffTimer[drive] = window.setTimeout(function() {
+        if (diskMotorOffTimer[drive] && resetDelay) {
+            window.clearTimeout(diskMotorOffTimer[drive]);
             diskMotorOffTimer[drive] = null;
-            diskMotor[drive] = false;
-            fireStateUpdate();
-        }, MOTOR_SPINDOWN_EXTRA_MILLIS);
+        }
+        if (!diskMotorOffTimer[drive])
+            diskMotorOffTimer[drive] = window.setTimeout(function() {
+                diskMotorOffTimer[drive] = null;
+                diskMotor[drive] = false;
+                fireStateUpdate();
+            }, MOTOR_SPINDOWN_EXTRA_MILLIS);
     }
 
     function fireStateUpdate() {
@@ -174,7 +178,7 @@ wmsx.FileDiskDrive = function() {
         diskChanged = state.g;
         diskMotor = state.m;
         fireStateUpdate();
-        this.allMotorsOff();
+        this.allMotorsOff(true);
     };
 
 
