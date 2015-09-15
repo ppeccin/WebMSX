@@ -72,6 +72,16 @@ wmsx.SlotExpanded = function() {
         return secondarySlotConfig;
     };
 
+    this.cpuExtensionBegin = function(s) {
+        // Receive all CPU Extensions and pass to slot at instruction
+        return subSlotPages[s.extPC >>> 14].cpuExtensionBegin(s);
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        // Receive all CPU Extensions and pass to slot at instruction
+        return subSlotPages[s.extPC >>> 14].cpuExtensionFinish(s);
+    };
+
     function create() {
         var emptySlot = wmsx.SlotEmpty.singleton;
         subSlots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];

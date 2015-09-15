@@ -44,6 +44,16 @@ wmsx.BIOS = function(rom) {
         return bytes[address];
     };
 
+    this.cpuExtensionBegin = function(s) {
+        // Receive all CPU Extensions and pass to the Cassette Driver
+        return cassetteDriver.cpuExtensionBegin(s);
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        // Receive all CPU Extensions and pass to slot at instruction
+        return cassetteDriver.cpuExtensionFinish(s);
+    };
+
     this.setVideoStandardForced = function(forcedVideoStandard) {
         if (forcedVideoStandard === wmsx.VideoStandard.PAL) bytes[0x2b] |= 0x80;
         else bytes[0x2b] &= ~0x80;

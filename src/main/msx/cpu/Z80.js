@@ -51,7 +51,7 @@ wmsx.Z80 = function() {
         T = -1; opcode = null; prefix = 0;
         instruction = null;
         PC = 0; I = 0; R = 0; IFF1 = IFF2 = 0; IM = 0;
-        extensionCurrentlyRunning = null;
+        extensionCurrentlyRunning = null; extensionExtraIterations = 0;
     };
 
 
@@ -1385,10 +1385,8 @@ wmsx.Z80 = function() {
                     extensionExtraIterations--;
                     PC -= 2;
                 } else {                                    // End of iterations, perform finish operation
-                    if (extensionHandlers[num].cpuExtensionFinish) {
-                        var finish = extensionHandlers[num].cpuExtensionFinish(extractCPUState(num));
-                        reinsertCPUState(finish);
-                    }
+                    var finish = extensionHandlers[num].cpuExtensionFinish(extractCPUState(num));
+                    reinsertCPUState(finish);
                     extensionCurrentlyRunning = null;
                 }
                 return;
@@ -1403,7 +1401,8 @@ wmsx.Z80 = function() {
 
         function extractCPUState(extNum) {
             return {
-                extNum: extNum, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
+                // extPC points to Extended Instruction being executed
+                extNum: extNum, extPC: PC - 2, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
                 AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IFF1: IFF1, IM: IM
             }
         }

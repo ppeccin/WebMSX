@@ -76,6 +76,16 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         return primarySlotConfig;
     };
 
+    this.cpuExtensionBegin = function(s) {
+        // Receive all CPU Extensions and pass to slot at instruction
+        return slotPages[s.extPC >>> 14].cpuExtensionBegin(s);
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        // Receive all CPU Extensions and pass to slot at instruction
+        return slotPages[s.extPC >>> 14].cpuExtensionFinish(s);
+    };
+
     function create() {
         var emptySlot = wmsx.SlotEmpty.singleton;
         slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
@@ -89,6 +99,9 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         self.slotPages = slotPages;
         self.devicesInputPorts = devicesInputPorts;
         self.devicesOutputPorts = devicesOutputPorts;
+
+        // Receive all CPU Extensions
+        cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], self);
     }
 
     function setupMachine() {

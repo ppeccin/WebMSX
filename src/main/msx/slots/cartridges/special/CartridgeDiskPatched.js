@@ -33,6 +33,15 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
         return bytes[address];
     };
 
+    this.cpuExtensionBegin = function(s) {
+        // Receive all CPU Extensions and pass to the Disk Driver
+        return driver.cpuExtensionBegin(s);
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        // Receive all CPU Extensions and pass to slot at instruction
+        return driver.cpuExtensionFinish(s);
+    };
 
     var bytes;
     this.bytes = null;

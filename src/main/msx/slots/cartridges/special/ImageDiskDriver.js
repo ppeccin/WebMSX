@@ -5,13 +5,11 @@ wmsx.ImageDiskDriver = function() {
 
     this.connect = function(diskBIOS, machine) {
         bus = machine.bus;
-        machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], this);
         drive = machine.getDiskDriveSocket().getDrive();
         patchDiskBIOS(diskBIOS);
     };
 
     this.disconnect = function(diskBIOS, machine) {
-        machine.cpu.setExtensionHandler([0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf], null);
         drive.allMotorsOff();
     };
 

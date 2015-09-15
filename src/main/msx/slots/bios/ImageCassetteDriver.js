@@ -5,7 +5,6 @@ wmsx.ImageCassetteDriver = function() {
     var self = this;
 
     this.connect = function(bios, machine) {
-        machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], this);
         machine.getCassetteSocket().connectDriver(this);
         deck = machine.getCassetteSocket().getDeck();
         basicExtension = bios.getBASICExtension();
@@ -13,7 +12,6 @@ wmsx.ImageCassetteDriver = function() {
     };
 
     this.disconnect = function(bios, machine) {
-        machine.cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6], null);
         machine.getCassetteSocket().connectDriver(null);
     };
 
@@ -39,7 +37,6 @@ wmsx.ImageCassetteDriver = function() {
     };
 
     this.cpuExtensionBegin = function(s) {
-        if (s.PC < 0x00e1 || s.PC > 0x00f5) return;     // Not intended
         switch (s.extNum) {
             case 0:
                 return TAPION(s.F);
@@ -56,6 +53,10 @@ wmsx.ImageCassetteDriver = function() {
             case 6:
                 return STMOTR(s.A);
         }
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        // No Finish operation
     };
 
     function patchBIOS(bios) {
@@ -144,9 +145,9 @@ wmsx.ImageCassetteDriver = function() {
     var basicExtension;
     var deck;
 
-    var HEADER_WRITE_LONG_EXTRA_ITERATIONS = 1500000;
+    var HEADER_WRITE_LONG_EXTRA_ITERATIONS = 1000000;
     var HEADER_WRITE_SHORT_EXTRA_ITERATIONS = HEADER_WRITE_LONG_EXTRA_ITERATIONS / 3;
-    var HEADER_READ_EXTRA_ITERATIONS = HEADER_WRITE_SHORT_EXTRA_ITERATIONS / 2;
+    var HEADER_READ_EXTRA_ITERATIONS = HEADER_WRITE_SHORT_EXTRA_ITERATIONS * 0.6;
     var READ_WRITE_BYTE_EXTRA_ITERATIONS = 36;
 
 };
