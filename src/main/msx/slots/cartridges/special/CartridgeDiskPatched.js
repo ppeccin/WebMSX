@@ -9,8 +9,9 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
-        var start = 0x4000;                  // Always start at 0x4000
-        var len = 16384;                     // Always 16K
+        // Uses position from info if present
+        var start = rom.info.s ? Number.parseInt(rom.info.s) : 0x4000;   // Start at 0x4000 by default
+        var len = content.length;
         for(var i = 0; i < len; i++)
             bytes[start + i] = content[i];
     }

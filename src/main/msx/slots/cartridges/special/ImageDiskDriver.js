@@ -20,7 +20,6 @@ wmsx.ImageDiskDriver = function() {
     };
 
     this.cpuExtensionBegin = function(s) {
-        // if (s.PC < 0x4000 || s.PC > 0x4021) return;     // Not intended
         switch (s.extNum) {
             case 0x8:
                 return INIHRD();
@@ -193,7 +192,7 @@ wmsx.ImageDiskDriver = function() {
     function DSKFMT(F, A, DE) {
         // console.log("DSKFMT");
 
-        var d = DE >> 8;
+        var d = DE >>> 8;
         var f = A - 1;
 
         // Bad Parameter error if Disk or Format Option is invalid
