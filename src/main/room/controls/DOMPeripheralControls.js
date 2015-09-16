@@ -83,7 +83,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
                 break;
             case controls.DISKA_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, false);
                 break;
             case controls.DISKA_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
@@ -101,7 +101,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
                 break;
             case controls.DISKB_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, true);
                 break;
             case controls.DISKB_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
@@ -113,22 +113,22 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(1);
                 break;
             case controls.CARTRIDGE1_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
                 break;
             case controls.CARTRIDGE1_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, false);
                 break;
             case controls.CARTRIDGE1_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 0, true);
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 0, false);
                 break;
             case controls.CARTRIDGE2_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, true);
                 break;
             case controls.CARTRIDGE2_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, true);
                 break;
             case controls.CARTRIDGE2_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 1, false);
                 break;
             case controls.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
