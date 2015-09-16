@@ -27,17 +27,27 @@ wmsx.FileCassetteDeck = function() {
         return tapeContent;
     };
 
-    this.loadEmpty = function() {
+    this.loadEmptyTape = function() {
         tapeFileName = null;
         tapeContent = [];
         toTapeStart();
-        screen.showOSD("Cassette loaded with empty tape", true);
+        screen.showOSD("Cassette loaded with empty Tape", true);
         fireStateUpdate();
     };
 
+    this.removeTape = function() {
+        tapeFileName = null;
+        tapeContent = null;
+        tapePosition = -1;
+        screen.showOSD("Cassette Tape removed", true);
+        fireStateUpdate();
+    };
+
+
     this.saveTapeFile = function() {
-        if (!tapeContent || (tapeContent.length === 0)) {
-            screen.showOSD("Cassette is empty!", true);
+        if (noTapeMessage()) return;
+        if (tapeContent.length === 0) {
+            screen.showOSD("Cassette Tape is empty!", true);
             return;
         }
 
@@ -55,29 +65,33 @@ wmsx.FileCassetteDeck = function() {
             for (var i = 0; i < tapeContent.length; i++)
                 view[i] = tapeContent[i];
             fileDownloader.startDownload(fileName, data);
-            screen.showOSD("Cassette File saved", true);
+            screen.showOSD("Cassette Tape File saved", true);
         } catch(ex) {
-            screen.showOSD("Cassette File save failed", true);
+            screen.showOSD("Cassette Tape File save failed", true);
         }
     };
 
     this.rewind = function() {
+        if (noTapeMessage()) return;
         toTapeStart();
         screen.showOSD("Cassette rewound." + positionMessage(), true);
     };
 
     this.seekToEnd = function() {
+        if (noTapeMessage()) return;
         toTapeEnd();
-        screen.showOSD("Cassette forwarded to tape end", true);
+        screen.showOSD("Cassette forwarded to Tape end", true);
     };
 
     this.seekForward = function() {
+        if (noTapeMessage()) return;
         if (!isTapeEnd()) seekHeader(1, 1);
         if(isTapeEnd()) return this.seekToEnd();
         screen.showOSD("Cassette skipped forward." + positionMessage(), true);
     };
 
     this.seekBackward = function() {
+        if (noTapeMessage()) return;
         if (!isTapeStart()) seekHeader(-1, -1);
         if(isTapeStart()) return this.rewind();
         screen.showOSD("Cassette skipped backward." + positionMessage(), true);
@@ -88,8 +102,9 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.userTypeCurrentAutoRunCommand = function() {
-        if (!tapeContent || (tapeContent.length === 0)) {
-            screen.showOSD("Cassette is empty!", true);
+        if (noTapeMessage()) return;
+        if (tapeContent.length === 0) {
+            screen.showOSD("Cassette Tape is empty!", true);
             return;
         }
         var command = cassetteSocket.getDriver().currentAutoRunCommand();
@@ -104,7 +119,7 @@ wmsx.FileCassetteDeck = function() {
     // Access interface methods
 
     this.readHeader = function() {
-        if (isTapeEnd()) return false;
+        if (!tapeContent || isTapeEnd()) return false;
         seekHeader(1);
         if (isTapeEnd()) return false;
         tapePosition += 8;          // Skip "read" Header
@@ -112,11 +127,12 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.readByte = function() {
-        if (isTapeEnd()) return null;
+        if (!tapeContent || isTapeEnd()) return null;
         return tapeContent[tapePosition++];
     };
 
     this.writeHeader = function(long) {
+        if (!tapeContent) this.loadEmptyTape();
         fillToNextSlot();
         for (var i = 0; i < HEADER.length; i++)
             tapeContent[tapePosition++] = HEADER[i];
@@ -124,11 +140,13 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.writeByte = function(val) {
+        if (!tapeContent) this.loadEmptyTape();
         tapeContent[tapePosition++] = val;
         return true;
     };
 
     this.finishWriting = function() {
+        if (!tapeContent) return;
         fillToNextSlot();
     };
 
@@ -144,6 +162,14 @@ wmsx.FileCassetteDeck = function() {
             tapePosition = wmsx.Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition + (from || 0), dir);
         } while ((tapePosition !== -1) && ((tapePosition % 8) !== 0));
         if (tapePosition === -1) dir === -1 ? toTapeStart() : toTapeEnd();
+    }
+
+    function noTapeMessage() {
+        if (!tapeContent) {
+            screen.showOSD("No Cassette Tape!", true);
+            return true;
+        } else
+            return false;
     }
 
     function isTapeEnd() {
@@ -168,7 +194,7 @@ wmsx.FileCassetteDeck = function() {
     }
 
     function peekFileInfo(position) {       // Tape must be positioned at a Header
-        if (tapeContent.length < position + 24) return null;        // Not a complete Header
+        if (!tapeContent || (tapeContent.length < position + 24)) return null;        // No Tape or Not a complete Header
 
         var type = null;
         if (wmsx.Util.arrayIndexOfSubArray(tapeContent, BIN_ID, position) === position + 8) type = "Binary";
@@ -183,7 +209,9 @@ wmsx.FileCassetteDeck = function() {
 
     function positionMessage() {
         var mes = "";
-        if (tapeContent.length === 0) {
+        if (!tapeContent) {
+            mes += " No Tape";
+        } else if (tapeContent.length === 0) {
             mes += " Tape empty";
         } else if (isTapeEnd()) {
             mes += " Tape at end";
@@ -195,7 +223,7 @@ wmsx.FileCassetteDeck = function() {
     }
 
     function fireStateUpdate() {
-        screen.tapeStateUpdate(tapeContent.length > 0, motor);
+        screen.tapeStateUpdate(!!tapeContent, motor);
     }
 
 
@@ -204,7 +232,7 @@ wmsx.FileCassetteDeck = function() {
     this.saveState = function() {
         return {
             f: tapeFileName,
-            c: wmsx.Util.compressArrayToStringBase64(tapeContent),
+            c: tapeContent && wmsx.Util.compressArrayToStringBase64(tapeContent),
             p: tapePosition,
             m: motor
         };
@@ -212,7 +240,8 @@ wmsx.FileCassetteDeck = function() {
 
     this.loadState = function(state) {
         tapeFileName = state.f;
-        tapeContent = Array.from(wmsx.Util.uncompressStringBase64ToArray(state.c));     // Need a grow-able Array, UInt8Array is not
+        var content = state.c && wmsx.Util.uncompressStringBase64ToArray(state.c);
+        tapeContent = content && Array.from(content);     // Need a grow-able Array, UInt8Array is not
         tapePosition = state.p;
         motor = state.m;
         fireStateUpdate();
@@ -222,8 +251,8 @@ wmsx.FileCassetteDeck = function() {
     var cassetteSocket;
 
     var tapeFileName = null;
-    var tapeContent = [];
-    var tapePosition = 0;
+    var tapeContent = null;
+    var tapePosition = -1;
     var motor = false;
 
     var screen;

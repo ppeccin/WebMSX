@@ -125,8 +125,11 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.TAPE_LOAD_URL_NO_AUTO_RUN:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false);
                 break;
-            case controls.TAPE_LOAD_EMPTY:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmpty();
+            case controls.TAPE_REMOVE:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
+                break;
+            case controls.TAPE_EMPTY:
+                if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmptyTape();
                 break;
             case controls.TAPE_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) cassetteDeck.saveTapeFile();
@@ -210,7 +213,9 @@ wmsx.DOMPeripheralControls = function(room) {
         keyShiftCodeMap[KEY_DISKB] = controls.DISKB_REMOVE;
         keyShiftCodeMap[KEY_CART1] = controls.CARTRIDGE1_REMOVE;
         keyShiftCodeMap[KEY_CART2] = controls.CARTRIDGE2_REMOVE;
-        keyShiftCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_EMPTY;
+        keyShiftCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
+
+        keyShiftControlCodeMap[KEY_TAPE] = controls.TAPE_EMPTY;
 
         keyAltCodeMap[KEY_TAPE_REW]  = controls.TAPE_REWIND;
         keyAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
@@ -221,7 +226,7 @@ wmsx.DOMPeripheralControls = function(room) {
         keyControlAltCodeMap[KEY_DISKB] = controls.DISKB_SAVE_FILE;
         keyControlAltCodeMap[KEY_TAPE]   = controls.TAPE_SAVE_FILE;
 
-        keyShiftControlCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
+        // TODO Back keyShiftControlCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 

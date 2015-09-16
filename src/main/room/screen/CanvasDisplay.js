@@ -384,10 +384,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_LOAD_URL;
         controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_EMPTY;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_EMPTY;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_SAVE_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_LOAD_EMPTY;
+        // TODO Back controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
+        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
         controls[MOUSE_BUT3_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
         peripheralControlButton(tapeButton, controls);
 
