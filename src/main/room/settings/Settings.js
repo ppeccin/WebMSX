@@ -30,8 +30,8 @@ wmsx.Settings = function() {
     this.setPage = function (page) {
         var contentPosition = {
             "GENERAL": "0",
-            "MEDIA": "-560px",
-            "ABOUT": "-1120px"
+            "MEDIA": "-580px",
+            "ABOUT": "-1160px"
         }[page];
         var selectionPosition = {
             "GENERAL": "0",

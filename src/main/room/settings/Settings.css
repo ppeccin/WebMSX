@@ -18,7 +18,7 @@
 #jt-modal {
     position: relative;
     overflow: hidden;
-    width: 560px;
+    width: 580px;
     top: 80px;
     left: -120px;
     margin: 0 auto;
@@ -43,7 +43,7 @@
     position: relative;
     float: left;
     font-weight: 600;
-    color: rgba(0, 0, 0, .50);
+    color: rgba(0, 0, 0, .54);
 }
 
 #jt-modal .hotkey .desc {
@@ -62,7 +62,7 @@
     font-weight: 600;
     font-size: 12px;
     line-height: 12px;
-    color: rgba(0, 0, 0, .68);
+    color: rgba(0, 0, 0, .71);
     background-color: white;
     border-radius: 3px;
     border: 1px solid rgb(210, 210, 210);
@@ -151,7 +151,7 @@
 #jt-content {
     position: relative;
     left: 0;
-    width: 2240px;
+    width: 2300px;
     height: 360px;
     background-color: rgb(220, 220, 220);
     transition: left 0.3s ease-in-out
@@ -159,19 +159,19 @@
 
 #jt-general, #jt-media, #jt-controls, #jt-about {
     position: absolute;
-    width: 560px;
+    width: 580px;
     height: 100%;
     box-sizing: border-box;
 }
 
 #jt-general {
     padding-top: 23px;
-    padding-left: 30px;
+    padding-left: 33px;
 }
 
 #jt-general .left {
     float: left;
-    width: 238px;
+    width: 251px;
 }
 
 #jt-general .right {
@@ -183,21 +183,21 @@
 }
 
 #jt-general .right .command {
-    width: 167px;
+    width: 166px;
 }
 
 #jt-media {
-    left: 560px;
+    left: 580px;
 }
 
 #jt-media {
     padding-top: 23px;
-    padding-left: 30px;
+    padding-left: 25px;
 }
 
 #jt-media .top-left {
     float: left;
-    width: 257px;
+    width: 255px;
 }
 
 #jt-media .top-right {
@@ -206,7 +206,7 @@
 
 #jt-media .bottom-left {
     float: left;
-    width: 257px;
+    width: 265px;
 }
 
 #jt-media .bottom-right {
@@ -218,24 +218,24 @@
 }
 
 #jt-media .top-right .command {
-    width: 148px;
+    width: 166px;
 }
 
 #jt-media .bottom-left .command {
-    width: 112px;
-}
-
-#jt-media .bottom-right .command {
     width: 110px;
 }
 
+#jt-media .bottom-right .command {
+    width: 107px;
+}
+
 #jt-media .bottom .command {
-    width: 135px;
+    width: 170px;
 }
 
 
 #jt-about {
-    left: 1120px;
+    left: 1160px;
 }
 
 #jt-about #jt-logo-version {
@@ -272,6 +272,10 @@
     color: transparent;
 }
 
+.divider {
+    clear: both;
+}
+
 .full-divider {
     clear: both;
     height: 21px;
@@ -283,5 +287,9 @@
 }
 
 #jt-content {
-    left: -560px;
+    left: -1160px;
+}
+
+#jt-content {
+    left: -580px;
 }
