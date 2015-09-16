@@ -262,7 +262,7 @@ wmsx.DOMMachineControls = function() {
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS_FF.c;
 
-    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F9.c;
+    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F11.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = wmsx.DOMMachineControls.KEY_ALT_MASK;

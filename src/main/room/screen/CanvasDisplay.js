@@ -340,9 +340,10 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         powerButton  = addBarButton(6, -26, 24, 23, -120, -29);
         var controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.MAIN_POWER_TOGGLE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.MAIN_POWER_RESET;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.MAIN_POWER_RESET;
+        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.MACHINE_POWER_TOGGLE;
+        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.MACHINE_POWER_RESET;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.MACHINE_POWER_RESET;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE;
         peripheralControlButton(powerButton, controls);
 
         diskAButton = addBarButton(44, -26, 24, 23, -150, -53);

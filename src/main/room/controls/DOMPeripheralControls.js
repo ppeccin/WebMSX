@@ -67,11 +67,14 @@ wmsx.DOMPeripheralControls = function(room) {
     this.controlActivated = function(control) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case controls.MAIN_POWER_TOGGLE:
+            case controls.MACHINE_POWER_TOGGLE:
                 machineControls.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen button
                 break;
-            case controls.MAIN_POWER_RESET:
+            case controls.MACHINE_POWER_RESET:
                 machineControls.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen button
+                break;
+            case controls.MACHINE_SAVE_STATE_FILE:
+                machineControls.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen button
                 break;
             case controls.DISKA_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
