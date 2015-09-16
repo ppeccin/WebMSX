@@ -10,7 +10,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     this.connect = function(pMachineControls, pCartridgeSocket) {
         machineControls = pMachineControls;
-        cartridgeSocket = pCartridgeSocket;''
+        cartridgeSocket = pCartridgeSocket;
     };
 
     this.connectPeripherals = function(pMonitor, pFileLoader, pCassetteDeck, pDiskDrive) {
@@ -58,6 +58,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 return keyShiftControlCodeMap[keyCode];
             case KEY_SHIFT_MASK | KEY_ALT_MASK:
                 return keyShiftAltCodeMap[keyCode];
+            case KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK:
+                return keyShiftControlAltCodeMap[keyCode];
         }
         return null;
     };
@@ -72,6 +74,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 machineControls.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen button
                 break;
             case controls.DISKA_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
+                break;
+            case controls.DISKA_LOAD_FILE_ALT_POWER:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
                 break;
             case controls.DISKA_LOAD_URL:
@@ -80,10 +85,16 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.DISKA_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
                 break;
+            case controls.DISKA_EMPTY:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadEmptyDisk(0);
+                break;
             case controls.DISKA_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(0);
                 break;
             case controls.DISKB_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, true);
+                break;
+            case controls.DISKB_LOAD_FILE_ALT_POWER:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
                 break;
             case controls.DISKB_LOAD_URL:
@@ -91,6 +102,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.DISKB_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
+                break;
+            case controls.DISKB_EMPTY:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadEmptyDisk(1);
                 break;
             case controls.DISKB_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(1);
@@ -114,15 +128,12 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.insert(null, 1, true);
                 break;
             case controls.TAPE_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
+                break;
+            case controls.TAPE_LOAD_FILE_ALT_POWER:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true);
                 break;
             case controls.TAPE_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(true);
-                break;
-            case controls.TAPE_LOAD_FILE_NO_AUTO_RUN:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
-                break;
-            case controls.TAPE_LOAD_URL_NO_AUTO_RUN:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false);
                 break;
             case controls.TAPE_REMOVE:
@@ -189,44 +200,49 @@ wmsx.DOMPeripheralControls = function(room) {
         return false;
     };
 
-
     var initKeys = function() {
-        keyCodeMap[KEY_DISKA]      = controls.DISKA_LOAD_FILE;
-        keyCodeMap[KEY_DISKB]      = controls.DISKB_LOAD_FILE;
-        keyCodeMap[KEY_CART1]      = controls.CARTRIDGE1_LOAD_FILE;
-        keyCodeMap[KEY_CART2]      = controls.CARTRIDGE2_LOAD_FILE;
-        keyCodeMap[KEY_TAPE]       = controls.TAPE_LOAD_FILE;
+        keyCodeMap[KEY_DISKA] = controls.DISKA_LOAD_FILE;
+        keyCodeMap[KEY_DISKB] = controls.DISKB_LOAD_FILE;
+        keyCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_FILE;
+        keyCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_FILE;
+        keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
 
-        keyAltCodeMap[KEY_DISKA]   = controls.DISKA_LOAD_FILE;
-        keyAltCodeMap[KEY_DISKB]   = controls.DISKB_LOAD_FILE;
-        keyAltCodeMap[KEY_CART1]   = controls.CARTRIDGE1_LOAD_FILE;
-        keyAltCodeMap[KEY_CART2]   = controls.CARTRIDGE2_LOAD_FILE;
-        keyAltCodeMap[KEY_TAPE]    = controls.TAPE_LOAD_FILE_NO_AUTO_RUN;
+        keyAltCodeMap[KEY_DISKA] = controls.DISKA_LOAD_FILE;
+        keyAltCodeMap[KEY_DISKB] = controls.DISKB_LOAD_FILE;
+        keyAltCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_FILE;
+        keyAltCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_FILE;
+        keyAltCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
 
-        keyControlCodeMap[KEY_DISKA] = controls.DISKA_LOAD_URL;
-        keyControlCodeMap[KEY_DISKB] = controls.DISKB_LOAD_URL;
-        keyControlCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_URL;
-        keyControlCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_URL;
-        keyControlCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_URL;
+        keyShiftControlCodeMap[KEY_DISKA] = controls.DISKA_LOAD_FILE_ALT_POWER;
+        keyShiftControlCodeMap[KEY_DISKB] = controls.DISKB_LOAD_FILE_ALT_POWER;
+        keyShiftControlCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE_ALT_POWER;
 
-        keyShiftCodeMap[KEY_DISKA] = controls.DISKA_REMOVE;
-        keyShiftCodeMap[KEY_DISKB] = controls.DISKB_REMOVE;
-        keyShiftCodeMap[KEY_CART1] = controls.CARTRIDGE1_REMOVE;
-        keyShiftCodeMap[KEY_CART2] = controls.CARTRIDGE2_REMOVE;
-        keyShiftCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
+        keyShiftAltCodeMap[KEY_DISKA] = controls.DISKA_LOAD_URL;
+        keyShiftAltCodeMap[KEY_DISKB] = controls.DISKB_LOAD_URL;
+        keyShiftAltCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_URL;
+        keyShiftAltCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_URL;
+        keyShiftAltCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_URL;
 
-        keyShiftControlCodeMap[KEY_TAPE] = controls.TAPE_EMPTY;
+        keyControlCodeMap[KEY_DISKA] = controls.DISKA_REMOVE;
+        keyControlCodeMap[KEY_DISKB] = controls.DISKB_REMOVE;
+        keyControlCodeMap[KEY_CART1] = controls.CARTRIDGE1_REMOVE;
+        keyControlCodeMap[KEY_CART2] = controls.CARTRIDGE2_REMOVE;
+        keyControlCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
+
+        keyShiftCodeMap[KEY_DISKA] = controls.DISKA_EMPTY;
+        keyShiftCodeMap[KEY_DISKB] = controls.DISKB_EMPTY;
+        keyShiftCodeMap[KEY_TAPE]  = controls.TAPE_EMPTY;
+
+        keyControlAltCodeMap[KEY_DISKA] = controls.DISKA_SAVE_FILE;
+        keyControlAltCodeMap[KEY_DISKB] = controls.DISKB_SAVE_FILE;
+        keyControlAltCodeMap[KEY_TAPE]  = controls.TAPE_SAVE_FILE;
 
         keyAltCodeMap[KEY_TAPE_REW]  = controls.TAPE_REWIND;
         keyAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
         keyAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
         keyAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
 
-        keyControlAltCodeMap[KEY_DISKA] = controls.DISKA_SAVE_FILE;
-        keyControlAltCodeMap[KEY_DISKB] = controls.DISKB_SAVE_FILE;
-        keyControlAltCodeMap[KEY_TAPE]   = controls.TAPE_SAVE_FILE;
-
-        // TODO Back keyShiftControlCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
+        keyShiftControlAltCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 
@@ -265,6 +281,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var keyShiftAltCodeMap = {};
     var keyControlCodeMap = {};
     var keyControlAltCodeMap = {};
+    var keyShiftControlAltCodeMap = {};
 
 
     var KEY_LEFT    = wmsx.DOMKeys.VK_LEFT.c;
@@ -285,9 +302,6 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_CART1  = wmsx.DOMKeys.VK_F9.c;
     var KEY_CART2  = wmsx.DOMKeys.VK_F10.c;
-
-    var KEY_CART_PASTE_V   = wmsx.DOMKeys.VK_V.c;
-    var KEY_CART_PASTE_INS = wmsx.DOMKeys.VK_INSERT.c;
 
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;

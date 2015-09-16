@@ -15,7 +15,7 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskFile = function(drive, name, arrContent, autoPower) {
+    this.loadDiskFile = function(drive, name, arrContent, altPower) {
         if ((arrContent[0] !== 0xEB) && (arrContent[0] !== 0xE9))
             return null;
 
@@ -25,7 +25,17 @@ wmsx.FileDiskDrive = function() {
         screen.showOSD("Disk " + (drive === 0 ? "A:" : "B:") + " loaded", true);
         fireStateUpdate();
 
-        if (autoPower) diskDriveSocket.autoPowerCycle();
+        diskDriveSocket.autoPowerCycle(altPower);
+
+        return diskContent[drive];
+    };
+
+    this.loadEmptyDisk = function(drive) {
+        diskFileName[drive] = "NewDisk.dsk";
+        diskContent[drive] = wmsx.Util.arrayFill(new Array(720 * 1024), 0);
+        diskChanged[drive] = true;
+        screen.showOSD("New empty disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
+        fireStateUpdate();
 
         return diskContent[drive];
     };

@@ -348,48 +348,53 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskAButton = addBarButton(44, -26, 24, 23, -150, -53);
         controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.DISKA_LOAD_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKA_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKA_LOAD_URL;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKA_EMPTY;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKA_SAVE_FILE;
         peripheralControlButton(diskAButton, controls);
 
         diskBButton = addBarButton(43 + 26, -26, 24, 23, -150, -53);
         controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.DISKB_LOAD_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKB_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKB_LOAD_URL;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKB_EMPTY;
         controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKB_SAVE_FILE;
         peripheralControlButton(diskBButton, controls);
 
         cartridge1Button = addBarButton(43 + 26 * 2, -26, 24, 23, -150, -53);
         controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         peripheralControlButton(cartridge1Button, controls);
 
         cartridge2Button = addBarButton(44 + 26 * 3, -26, 24, 23, -179, -53);
         controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         peripheralControlButton(cartridge2Button, controls);
 
         tapeButton = addBarButton(45 + 26 * 4, -26, 24, 23, -208, -53);
         controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE_NO_AUTO_RUN;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_EMPTY;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_SAVE_FILE;
-        // TODO Back controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_URL;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.TAPE_EMPTY;
+        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_SAVE_FILE;
+
         controls[MOUSE_BUT3_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
         peripheralControlButton(tapeButton, controls);
 
         var fsGap = 23;

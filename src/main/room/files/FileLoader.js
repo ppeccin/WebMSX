@@ -24,17 +24,16 @@ wmsx.FileLoader = function() {
         fileInputElementParent = element;
     };
 
-    this.openFileChooserDialog = function(withAutoPower, inSecondaryPort) {
+    this.openFileChooserDialog = function(altPower, inSecondaryPort) {
         if (!fileInputElement) createFileInputElement();
         chooserPort = inSecondaryPort ? 1 : 0;
-        chooserAutoPower = withAutoPower !== false;
+        chooserAltPower = altPower;
         chooserAsExpansion = false;     // No means to load expansion via chooser for now
         fileInputElement.click();
     };
 
-    this.openURLChooserDialog = function(withAutoPower, inSecondaryPort, asExpansion) {
+    this.openURLChooserDialog = function(altPower, inSecondaryPort, asExpansion) {
         var port = inSecondaryPort ? 1 : 0;
-        var autoPower = withAutoPower !== false;
         var url;
         try {
             url = localStorage && localStorage[LOCAL_STOARAGE_LAST_URL_KEY];
@@ -50,15 +49,15 @@ wmsx.FileLoader = function() {
         } catch (e) {
             // give up
         }
-        this.loadFromURL(url, port, autoPower, asExpansion);
+        this.loadFromURL(url, port, altPower, asExpansion);
     };
 
-    this.loadFromFile = function (file, port, autoPower, asExpansion) {
+    this.loadFromFile = function (file, port, altPower, asExpansion) {
         wmsx.Util.log("Reading file: " + file.name);
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
-            self.loadContent(file.name, content, port || 0, autoPower !== false, asExpansion);
+            self.loadContent(file.name, content, port || 0, altPower, asExpansion);
         };
         reader.onerror = function (event) {
             showError("File reading error: " + event.target.error.name);
@@ -67,11 +66,11 @@ wmsx.FileLoader = function() {
         reader.readAsArrayBuffer(file);
     };
 
-    this.loadFromURL = function (url, port, autoPower, asExpansion) {
+    this.loadFromURL = function (url, port, altPower, asExpansion) {
         new wmsx.MultiDownloader([{
             url: url,
             onSuccess: function (res) {
-                self.loadContent(url, res.content, port || 0, autoPower !== false, asExpansion);
+                self.loadContent(url, res.content, port || 0, altPower, asExpansion);
             },
             onError: function (res) {
                 showError("URL reading error: " + res.error);
@@ -79,30 +78,30 @@ wmsx.FileLoader = function() {
         }]).start();
     };
 
-    this.loadContent = function (name, content, port, autoPower, asExpansion) {
+    this.loadContent = function (name, content, port, altPower, asExpansion) {
         var rom, arrContent;
         // First try reading and creating directly
         try {
             arrContent = new Array(content.length);
             wmsx.Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
             // First try to load as a SaveState file
-            if (saveStateSocket.loadStateFile(arrContent, autoPower))
+            if (saveStateSocket.loadStateFile(arrContent, altPower))
                 return;
             // Then try to load as a Cassette file
-            if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
+            if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
                 return;
             // Then try to load as a Disk file
-            if (diskDrive.loadDiskFile(port, name, arrContent, autoPower))
+            if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                 return;
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new wmsx.ROM(name, arrContent);
             var slot = wmsx.SlotCreator.createFromROM(rom);
             if (slot.constructor === wmsx.BIOS)
-                biosSocket.insert(slot, autoPower);
+                biosSocket.insert(slot, altPower);
             else if (asExpansion)
-                expansionSocket.insert(slot, port, autoPower);
+                expansionSocket.insert(slot, port, altPower);
             else
-                cartridgeSocket.insert(slot, port, autoPower);
+                cartridgeSocket.insert(slot, port, altPower);
         } catch(e) {
             if (!e.msx) {
                 wmsx.Util.log(e.stack);
@@ -121,23 +120,23 @@ wmsx.FileLoader = function() {
                         arrContent = new Array(cont.length);
                         wmsx.Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
                         // First try to load as a SaveState file
-                        if (saveStateSocket.loadStateFile(arrContent, autoPower))
+                        if (saveStateSocket.loadStateFile(arrContent, altPower))
                             return;
                         // Then try to load as a Cassette file
-                        if (cassetteDeck.loadTapeFile(name, arrContent, autoPower))
+                        if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
                             return;
                         // Then try to load as a Disk file
-                        if (diskDrive.loadDiskFile(port, name, arrContent, autoPower))
+                        if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                             return;
                         // Then try to load as a ROM (BIOS or Cartridge)
                         rom = new wmsx.ROM(file.name, arrContent);
                         slot = wmsx.SlotCreator.createFromROM(rom);
                         if (slot.constructor === wmsx.BIOS)
-                            biosSocket.insert(slot, autoPower);
+                            biosSocket.insert(slot, altPower);
                         else if (asExpansion)
-                            expansionSocket.insert(slot, port, autoPower);
+                            expansionSocket.insert(slot, port, altPower);
                         else
-                            cartridgeSocket.insert(slot, port, autoPower);
+                            cartridgeSocket.insert(slot, port, altPower);
                         return;
                     } catch (ef) {
                         // Move on and try the next file
@@ -165,7 +164,7 @@ wmsx.FileLoader = function() {
         } catch (e) {
             // Ignore
         }
-        self.loadFromFile(file, chooserPort, chooserAutoPower, chooserAsExpansion);
+        self.loadFromFile(file, chooserPort, chooserAltPower, chooserAsExpansion);
         return false;
     };
 
@@ -186,9 +185,9 @@ wmsx.FileLoader = function() {
         if (event.stopPropagation) event.stopPropagation();
         event.target.focus();
 
-        var port = event.ctrlKey ? 1 : 0;
-        var autoPower = event.altKey !== true;
-        var asExpansion = event.shiftKey && event.altKey;
+        var port = event.altKey ? 1 : 0;
+        var altPower = event.ctrlKey;
+        var asExpansion = event.shiftKey;
 
         if (WMSX.MEDIA_CHANGE_DISABLED) return;
         if (!event.dataTransfer) return;
@@ -196,14 +195,14 @@ wmsx.FileLoader = function() {
         // First try to get local file
         var files = event.dataTransfer && event.dataTransfer.files;
         if (files && files.length > 0) {
-            self.loadFromFile(files[0], port, autoPower, asExpansion);
+            self.loadFromFile(files[0], port, altPower, asExpansion);
             return;
         }
 
         // Then try to get URL
         var url = event.dataTransfer.getData("URL");
         if (url && url.length > 0) {
-            self.loadFromURL(url, port, autoPower, asExpansion);
+            self.loadFromURL(url, port, altPower, asExpansion);
         }
     };
 
@@ -235,7 +234,7 @@ wmsx.FileLoader = function() {
     var fileInputElementParent;
 
     var chooserPort = 0;
-    var chooserAutoPower = true;
+    var chooserAltPower = false;
     var chooserAsExpansion = false;
 
 

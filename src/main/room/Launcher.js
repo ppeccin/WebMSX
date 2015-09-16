@@ -26,12 +26,12 @@ WMSX.start = function () {
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified
     if (WMSX.STATE_LOAD_URL) {
-        // Only 1 file, Power Machine on after loading it with AutoPower
+        // Only 1 file, Machine will Auto Power on
         new wmsx.MultiDownloader([{
             url: WMSX.STATE_LOAD_URL,
             onSuccess: function(res) {
                 afterAutoStartWait(function() {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
                 });
             },
             onError: function(res) {

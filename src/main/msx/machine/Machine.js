@@ -169,7 +169,6 @@ wmsx.Machine = function() {
     };
 
     var loadState = function(state) {
-        if (!self.powerIsOn) self.powerOn();
         bus.loadState(state.b);
         ppi.loadState(state.pp);
         psg.loadState(state.ps);
@@ -373,11 +372,11 @@ wmsx.Machine = function() {
     // BIOS Socket  -----------------------------------------
 
     function BIOSSocket() {
-        this.insert = function (bios, autoPower) {
+        this.insert = function (bios, altPower) {
             var powerWasOn = self.powerIsOn;
-            if (self.powerIsOn) self.powerOff();
+            if (powerWasOn) self.powerOff();
             setBIOS(bios);
-            if (autoPower && (bios || powerWasOn)) self.userPowerOn();
+            if (!altPower && bios) self.userPowerOn();
         };
         this.inserted = function () {
             return getBIOS();
@@ -388,12 +387,12 @@ wmsx.Machine = function() {
     // System Expansions Socket  --------------------------------
 
     function ExpansionSocket() {
-        this.insert = function (expansion, port, autoPower) {
+        this.insert = function (expansion, port, altPower) {
             var powerWasOn = self.powerIsOn;
-            if (self.powerIsOn) self.powerOff();
+            if (powerWasOn) self.powerOff();
             if (expansion == getExpansion(port || 0)) return;
             setExpansion(expansion, port);
-            if (autoPower && (expansion || powerWasOn)) self.userPowerOn();
+            if (!altPower && (expansion || powerWasOn)) self.userPowerOn();
         };
         this.inserted = function (port) {
             return getExpansion(port);
@@ -405,13 +404,13 @@ wmsx.Machine = function() {
 
     function CartridgeSocket() {
 
-        this.insert = function (cartridge, port, autoPower) {
+        this.insert = function (cartridge, port, altPower) {
             if (cartridge == getCartridge(port || 0)) return;
             var powerWasOn = self.powerIsOn;
-            if (autoPower && powerWasOn) self.powerOff();
+            if (powerWasOn) self.powerOff();
             setCartridge(cartridge, port);
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
-            if (autoPower && !self.powerIsOn && (cartridge || powerWasOn)) self.userPowerOn();
+            if (!altPower && (cartridge || powerWasOn)) self.userPowerOn();
         };
 
         this.inserted = function (port) {
@@ -450,10 +449,13 @@ wmsx.Machine = function() {
         this.getDriver = function() {
             return driver;
         };
-        this.autoPowerCycle = function () {
+        this.autoPowerCycle = function (altPower) {
+            // No power cycle by default if machine is on, only auto power on.
+            // With Alt Power, only do power cycle if there is an executable at position
             if (!driver || !driver.currentAutoRunCommand()) return;     // Only do power cycle if there is an executable at position
-            if (self.powerIsOn) self.powerOff();
-            self.userPowerOn(true);
+            var powerWasOn = self.powerIsOn;
+            if (powerWasOn && altPower) self.powerOff();
+            if (!self.powerIsOn && (!altPower || (powerWasOn && altPower))) self.userPowerOn(true);
         };
         this.typeAutoRunCommandAfterPowerOn = function () {
             if (driver && driver.currentAutoRunCommand())
@@ -474,9 +476,11 @@ wmsx.Machine = function() {
         this.getDrive = function() {
             return drive;
         };
-        this.autoPowerCycle = function () {
-            if (self.powerIsOn) self.powerOff();
-            self.userPowerOn();
+        this.autoPowerCycle = function (altPower) {
+            // No power cycle by default if machine is on, only auto power on.
+            var powerWasOn = self.powerIsOn;
+            if (powerWasOn && altPower) self.powerOff();
+            if (!self.powerIsOn && (!altPower || (powerWasOn && altPower))) self.userPowerOn(true);
         };
         var drive;
     }
@@ -569,7 +573,7 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " save failed", true);
         };
 
-        this.loadState = function(slot) {
+        this.loadState = function(slot, altPower) {
             if (!media) return;
             var state = media.loadState(slot);
             if (!state) {
@@ -580,6 +584,7 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " load failed, wrong version", true);
                 return;
             }
+            if (!altPower && !self.powerIsOn) self.powerOn();
             loadState(state);
             self.showOSD("State " + slot + " loaded", true);
         };
@@ -597,7 +602,7 @@ wmsx.Machine = function() {
                 self.showOSD("State File save failed", true);
         };
 
-        this.loadStateFile = function(data) {       // Return true if data was indeed a SaveState
+        this.loadStateFile = function(data, altPower) {       // Return true if data was indeed a SaveState
             if (!media) return;
             var state = media.loadStateFile(data);
             if (!state) return;
@@ -606,6 +611,7 @@ wmsx.Machine = function() {
                 self.showOSD("State File load failed, wrong version", true);
                 return true;
             }
+            if (!altPower && !self.powerIsOn) self.powerOn();
             loadState(state);
             self.showOSD("State File loaded", true);
             return true;
