@@ -24,8 +24,15 @@ wmsx.GamepadJoysticksControls = function() {
     };
 
     this.toggleMode = function() {
-        if (!supported) return;
+        if (!supported) {
+            screen.getMonitor().showOSD("Joystick input not supported by browser", true);
+            return;
+        }
         initStates();
+        if (!joystick1 && !joystick2) {
+            screen.getMonitor().showOSD("No Joysticks connected", true);
+            return;
+        }
         swappedMode = !swappedMode;
         screen.getMonitor().showOSD("Joysticks input " + (swappedMode ? "Swapped" : "Normal"), true);
     };
