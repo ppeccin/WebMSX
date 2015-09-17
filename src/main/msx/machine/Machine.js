@@ -38,6 +38,7 @@ wmsx.Machine = function() {
     this.clockPulse = function() {
         if (debugPause)
             if (debugPauseMoreFrames-- <= 0) return;
+        joysticksSocket.clockPulse();
         vdp.frame();
         this.framesGenerated++;
     };
@@ -60,6 +61,10 @@ wmsx.Machine = function() {
 
     this.getKeyboardSocket = function() {
         return keyboardSocket;
+    };
+
+    this.getJoysticksSocket = function() {
+        return joysticksSocket;
     };
 
     this.getVideoOutput = function() {
@@ -224,6 +229,7 @@ wmsx.Machine = function() {
         expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
         keyboardSocket = new KeyboardSocket();
+        joysticksSocket = new JoysticksSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
         diskDriveSocket = new DiskDriveSocket();
@@ -248,6 +254,7 @@ wmsx.Machine = function() {
     var videoStandard;
     var machineControlsSocket;
     var keyboardSocket;
+    var joysticksSocket;
     var biosSocket;
     var expansionSocket;
     var cartridgeSocket;
@@ -314,37 +321,15 @@ wmsx.Machine = function() {
             case controls.FRAME:
                 if (debugPause) debugPauseMoreFrames = 1;
                 return;
-            case controls.SAVE_STATE_0:
-            case controls.SAVE_STATE_1:
-            case controls.SAVE_STATE_2:
-            case controls.SAVE_STATE_3:
-            case controls.SAVE_STATE_4:
-            case controls.SAVE_STATE_5:
-            case controls.SAVE_STATE_6:
-            case controls.SAVE_STATE_7:
-            case controls.SAVE_STATE_8:
-            case controls.SAVE_STATE_9:
-            case controls.SAVE_STATE_10:
-            case controls.SAVE_STATE_11:
-            case controls.SAVE_STATE_12:
+            case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
+            case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
                 saveStateSocket.saveState(control.to);
                 break;
             case controls.SAVE_STATE_FILE:
                 saveStateSocket.saveStateFile();
                 break;
-            case controls.LOAD_STATE_0:
-            case controls.LOAD_STATE_1:
-            case controls.LOAD_STATE_2:
-            case controls.LOAD_STATE_3:
-            case controls.LOAD_STATE_4:
-            case controls.LOAD_STATE_5:
-            case controls.LOAD_STATE_6:
-            case controls.LOAD_STATE_7:
-            case controls.LOAD_STATE_8:
-            case controls.LOAD_STATE_9:
-            case controls.LOAD_STATE_10:
-            case controls.LOAD_STATE_11:
-            case controls.LOAD_STATE_12:
+            case controls.LOAD_STATE_0: case controls.LOAD_STATE_1: case controls.LOAD_STATE_2: case controls.LOAD_STATE_3: case controls.LOAD_STATE_4: case controls.LOAD_STATE_5:
+            case controls.LOAD_STATE_6: case controls.LOAD_STATE_7: case controls.LOAD_STATE_8: case controls.LOAD_STATE_9: case controls.LOAD_STATE_10: case controls.LOAD_STATE_11: case controls.LOAD_STATE_12:
                 saveStateSocket.loadState(control.from);
                 break;
             case controls.VIDEO_STANDARD:
@@ -498,13 +483,28 @@ wmsx.Machine = function() {
     }
 
 
-    // MachineControls Socket  -----------------------------------------
+    // Joysticks Socket  -----------------------------------------
 
-    function MachineControlsSocket() {
-
+    function JoysticksSocket() {
         this.connectControls = function(pControls) {
             controls = pControls;
         };
+        this.controlStateChanged = function(control, state) {
+            psg.joystickControlStateChanged(control, state);
+        };
+        this.controlValueChanged = function(control, value) {
+            psg.joystickControlValueChanged(control, value);
+        };
+        this.clockPulse = function() {
+            controls.clockPulse();
+        };
+        var controls;
+    }
+
+
+    // MachineControls Socket  -----------------------------------------
+
+    function MachineControlsSocket() {
 
         this.controlStateChanged = function(control, state) {
             for (var i = 0; i < forwardedInputsCount; i++)
@@ -538,11 +538,9 @@ wmsx.Machine = function() {
                 redefinitionListeners[i].controlsStatesRedefined();
         };
 
-        var controls;
         var forwardedInputs = [];
         var forwardedInputsCount = 0;
         var redefinitionListeners = [];
-
     }
 
 

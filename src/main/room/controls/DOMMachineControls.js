@@ -10,22 +10,17 @@ wmsx.DOMMachineControls = function() {
 
     this.connect = function(pControlsSocket) {
         consoleControlsSocket = pControlsSocket;
-        consoleControlsSocket.connectControls(this);
-        //gamepadControls.connect(pControlsSocket);
     };
 
     this.connectPeripherals = function(screen) {
         monitor = screen.getMonitor();
-        // gamepadControls.connectScreen(screen);
     };
 
     this.powerOn = function() {
         preventIEHelp();
-        //gamepadControls.powerOn();
     };
 
     this.powerOff = function() {
-        //gamepadControls.powerOff();
     };
 
     this.destroy = function() {
@@ -36,25 +31,6 @@ wmsx.DOMMachineControls = function() {
             elements[i].addEventListener("keydown", this.keyDown);
             elements[i].addEventListener("keyup", this.keyUp);
         }
-    };
-
-    this.toggleP1ControlsMode = function() {
-        this.setP1ControlsMode(!p1ControlsMode);
-        showModeOSD();
-    };
-
-    this.setP1ControlsMode = function(state) {
-        p1ControlsMode = state;
-        //gamepadControls.setP1ControlsMode(state);
-        this.applyPreferences();
-    };
-
-    this.isP1ControlsMode = function() {
-        return p1ControlsMode;
-    };
-
-    this.getGamepadControls = function() {
-        return gamepadControls;
     };
 
     this.keyDown = function(event) {
@@ -77,12 +53,7 @@ wmsx.DOMMachineControls = function() {
         }
     };
 
-    this.clockPulse = function() {
-        //gamepadControls.clockPulse();
-    };
-
     this.processKeyEvent = function(keyCode, press, modifiers) {
-        if (checkLocalControlKey(keyCode, modifiers, press)) return true;
         var control = controlForEvent(keyCode, modifiers);
         if (control == null) return false;
 
@@ -93,34 +64,11 @@ wmsx.DOMMachineControls = function() {
         }
         return true;
     };
-
     var processKeyEvent = this.processKeyEvent;
-
-    var showModeOSD = function() {
-        monitor.showOSD("Controllers: " + (p1ControlsMode ? "Swapped" : "Normal"), true);
-    };
-
-    var checkLocalControlKey = function(keyCode, modif, press) {
-        var control;
-        if (press) {
-            if (modif === KEY_ALT_MASK || modif === KEY_CTRL_MASK)
-                switch (keyCode) {
-                    case KEY_TOGGLE_P1_MODE:
-                        self.toggleP1ControlsMode();
-                        return true;
-                    case KEY_TOGGLE_JOYSTICK:
-                        gamepadControls.toggleMode();
-                        return true;
-                }
-        }
-        return false;
-    };
 
     var controlForEvent = function(keyCode, modif) {
         switch (modif) {
             case 0:
-                var joy = joyKeysCodeMap[keyCode];
-                if (joy) return joy;
                 return normalCodeMap[keyCode];
             case KEY_SHIFT_MASK:
                 return withSHIFTCodeMap[keyCode];
@@ -200,22 +148,14 @@ wmsx.DOMMachineControls = function() {
     };
 
     this.applyPreferences = function() {
-        joyKeysCodeMap = {};
-        if (!p1ControlsMode) {
-        } else {
-        }
     };
+
 
     var controls = wmsx.MachineControls;
 
-    var p1ControlsMode = false;
-
     var consoleControlsSocket;
     var monitor;
-    var gamepadControls;
 
-
-    var joyKeysCodeMap = {};
     var normalCodeMap = {};
     var withSHIFTCodeMap = {};
     var withCTRLCodeMap = {};
@@ -227,12 +167,8 @@ wmsx.DOMMachineControls = function() {
 
     // Default Key Values
 
-    var KEY_SPEED            = wmsx.DOMMachineControls.KEY_SPEED;
-    var KEY_PAUSE            = wmsx.DOMMachineControls.KEY_PAUSE;
-
-    var KEY_TOGGLE_P1_MODE   = wmsx.DOMKeys.VK_H.c;
-    var KEY_TOGGLE_JOYSTICK  = wmsx.DOMKeys.VK_J.c;
-    var KEY_CARTRIDGE_FORMAT = wmsx.DOMKeys.VK_B.c;
+    var KEY_SPEED            = wmsx.DOMKeys.VK_F12.c;
+    var KEY_PAUSE            = wmsx.DOMKeys.VK_P.c;
 
     var KEY_POWER            = wmsx.DOMKeys.VK_F11.c;
 
@@ -272,8 +208,5 @@ wmsx.DOMMachineControls = function() {
     init();
 
 };
-
-wmsx.DOMMachineControls.KEY_SPEED  = wmsx.DOMKeys.VK_F12.c;
-wmsx.DOMMachineControls.KEY_PAUSE  = wmsx.DOMKeys.VK_P.c;
 
 wmsx.DOMMachineControls.KEY_ALT_MASK   = 2;

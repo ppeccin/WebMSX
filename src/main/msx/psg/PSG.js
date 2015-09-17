@@ -5,7 +5,8 @@ wmsx.PSG = function() {
     function init() {
         audioSignal = new wmsx.PSGAudioSignal();
         audioChannel = audioSignal.getMixedAudioChannel();
-        registers[14] = registers[15] = 0x3f;
+        registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inouts
+        registers[15] = 0x0f;
     }
 
     this.connectEngine = function(pEngine) {
@@ -54,15 +55,35 @@ wmsx.PSG = function() {
     };
 
     this.inputA2 = function() {
+        if (registerAddress === 14) {       // Special register14. Read value depends on register15 bit6
+            if (registers[15] & 0x40) return registers[14] >>> 8;
+            else return registers[14] & 0xff;
+        }
         return registers[registerAddress];
     };
 
 
+    // Joysticks interface
+
+    this.joystickControlStateChanged = function(control, state) {
+        // control already defines bit of register 14 to set
+        if (state) registers[14] &= ~control;
+        else registers[14] |= control;
+    };
+
+    this.joystickControlValueChanged = function(control, value) {
+        // Used only for Paddles Mode, not supported yet
+    };
+
+
     var registerAddress = 0;
-    var registers = wmsx.Util.arrayFill(new Array(16), 0);
+    var registers = wmsx.Util.arrayFill(new Array(16), 0);      // register14 is special, uses 16 bits for 2 sets of Joysticks inputs
+    var register15LowInputMode = false;                         // TODO Take this into account?
 
     var audioSignal;
     var audioChannel;
+
+    var joystickControls = wmsx.JoysticksControls;
 
     var engine;
 
@@ -81,6 +102,7 @@ wmsx.PSG = function() {
     this.loadState = function(s) {
         registerAddress = s.ra;
         registers = wmsx.Util.restoreStringBase64ToArray(s.r);
+        registers[14] = 0x3f3f;                                  // reset Joysticks inputs
         audioChannel.loadState(s.a);
     };
 
@@ -92,4 +114,4 @@ wmsx.PSG = function() {
         return eval(str);
     };
 
-}
+};

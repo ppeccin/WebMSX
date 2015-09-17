@@ -8,13 +8,14 @@ wmsx.DOMPeripheralControls = function(room) {
         initKeys();
     }
 
-    this.connect = function(pMachineControls, pCartridgeSocket) {
-        machineControls = pMachineControls;
+    this.connect = function(pMachineControlsSocket, pCartridgeSocket) {
+        machineControlsSocket = pMachineControlsSocket;
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pMonitor, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pMonitor, pJoystickControls, pFileLoader, pCassetteDeck, pDiskDrive) {
         monitor = pMonitor;
+        joystickControls = pJoystickControls;
         fileLoader = pFileLoader;
         cassetteDeck = pCassetteDeck;
         diskDrive = pDiskDrive;
@@ -68,13 +69,13 @@ wmsx.DOMPeripheralControls = function(room) {
         // All controls are Press-only and repeatable
         switch(control) {
             case controls.MACHINE_POWER_TOGGLE:
-                machineControls.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen button
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen button
                 break;
             case controls.MACHINE_POWER_RESET:
-                machineControls.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen button
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen button
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
-                machineControls.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen button
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen button
                 break;
             case controls.DISKA_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
@@ -175,6 +176,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
+            case controls.JOYSTICKS_TOGGLE_MODE:
+                joystickControls.toggleMode(); break;
             case controls.EXIT:
                 room.exit(); break;
         }
@@ -249,6 +252,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 
+        keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]   = controls.JOYSTICKS_TOGGLE_MODE;
+
         keyAltCodeMap[KEY_CRT_FILTER]   = controls.SCREEN_CRT_FILTER;
         keyAltCodeMap[KEY_DEBUG]     	= controls.SCREEN_DEBUG;
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
@@ -270,8 +275,9 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var controls = wmsx.PeripheralControls;
 
-    var machineControls;
+    var machineControlsSocket;
     var monitor;
+    var joystickControls;
     var fileLoader;
     var cartridgeSocket;
     var cassetteDeck;
@@ -302,16 +308,16 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
-
     var KEY_CART1  = wmsx.DOMKeys.VK_F9.c;
     var KEY_CART2  = wmsx.DOMKeys.VK_F10.c;
 
+    var KEY_JOYSTICKS_TOGGLE  = wmsx.DOMKeys.VK_J.c;
+
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
+    var KEY_FULLSCREEN   = wmsx.DOMKeys.VK_ENTER.c;
 
     var KEY_DEBUG   = wmsx.DOMKeys.VK_D.c;
-
-    var KEY_FULLSCREEN   = wmsx.DOMKeys.VK_ENTER.c;
 
     var KEY_EXIT  = wmsx.DOMKeys.VK_ESCAPE.c;
 
