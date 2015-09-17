@@ -29,19 +29,21 @@ wmsx.FileDiskDrive = function() {
         return diskContent[drive];
     };
 
-    this.loadEmptyDisk = function(drive) {
-        if (++(nextNewDiskFormat[drive]) >= FORMAT_OPTION_DESC.length) (nextNewDiskFormat[drive]) = 0;
-        return this.createNewFormattedDisk(drive, (nextNewDiskFormat[drive]));
+    this.loadEmptyDisk = function(drive) {      // Formatted
+        if (++(nextNewDiskFormat[drive]) >= FORMAT_OPTION_DESC.length) (nextNewDiskFormat[drive]) = 0;      // Cycle available formats
+        var format = nextNewDiskFormat[drive];
+        this.createNewEmptyDisk(drive, format);
+        this.formatDisk(drive, format);
+        screen.showOSD("New formatted " + FORMAT_OPTION_DESC[format] + " disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
+        return diskContent[drive];
     };
 
-    this.createNewFormattedDisk = function(drive, format) {
-        diskFileName[drive] = "NewDisk.dsk";
+    this.createNewEmptyDisk = function(drive, format) {
+        diskFileName[drive] = "NewDisk" + FORMAT_OPTION_DESC[format] + ".dsk";
         diskContent[drive] = wmsx.Util.arrayFill(new Array(FORMAT_OPTION_SIZE[format]), 0);
         diskChanged[drive] = true;
-        formatDisk(drive, format);
-        screen.showOSD("New formatted " + FORMAT_OPTION_DESC[format] + " disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
         fireStateUpdate();
-
+        screen.showOSD("New empty " + FORMAT_OPTION_DESC[format] + " disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
         return diskContent[drive];
     };
 
@@ -144,6 +146,13 @@ wmsx.FileDiskDrive = function() {
         fireStateUpdate();
     };
 
+    this.formatDisk = function(drive, format) {
+        // Write Boot Sector
+        self.writeBytes(drive, FORMAT_OPTION_BOOT_SECTOR[format], 0);
+        // Write starting bytes of FAT
+        self.writeBytes(drive, FORMAT_OPTION_FAT_START[format], 1 * BYTES_PER_SECTOR);
+    };
+
     // Add a delay before turning the motor off (drive LED simulation)
     function motorOff(drive, resetDelay) {
         if (!diskMotor[drive]) return;
@@ -158,14 +167,6 @@ wmsx.FileDiskDrive = function() {
                 fireStateUpdate();
             }, MOTOR_SPINDOWN_EXTRA_MILLIS);
     }
-
-    function formatDisk(drive, format) {
-        // Write Boot Sector
-        self.writeBytes(drive, FORMAT_OPTION_BOOT_SECTOR[format], 0);
-
-        // Write starting bytes of FAT
-        self.writeBytes(drive, FORMAT_OPTION_FAT_START[format], 1 * BYTES_PER_SECTOR);
-    };
 
     function fireStateUpdate() {
         screen.diskDrivesStateUpdate(self.diskPresent(0), diskMotor[0], self.diskPresent(1), diskMotor[1]);

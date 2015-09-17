@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Keys are stuck when windows lose focus (dialogs)
-
 wmsx.DOMKeyboard = function() {
     var self = this;
 
@@ -39,6 +37,11 @@ wmsx.DOMKeyboard = function() {
         monitor.showOSD("Host Keyboard: " + wmsx.DOMKeys.getKeyboard().name, true);
         initHostKeys();
         initMatrix();
+    };
+
+    this.liftAllKeys = function() {
+        keyboardSocket.keyboardReset();
+        keyStateMap = {};
     };
 
     this.keyDown = function(event) {

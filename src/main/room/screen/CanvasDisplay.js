@@ -21,10 +21,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         pCartridgeSocket.addCartridgesStateListener(this);
     };
 
-    this.connectPeripherals = function(fileLoader, fileDownloader, keyboard, machineControls, pPeripheralControls) {
+    this.connectPeripherals = function(fileLoader, fileDownloader, pKeyboard, machineControls, pPeripheralControls) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader.registerForDownloadElement(mainElement);
+        keyboard = pKeyboard;
         keyboard.addInputElements(keyControlsInputElements());
         machineControls.addInputElements(keyControlsInputElements());
         peripheralControls = pPeripheralControls;
@@ -190,6 +191,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         this.powerStateUpdate(machineControlsStateReport[wmsx.MachineControls.POWER]);
     };
 
+    var lostFocus = function(e) {
+        keyboard.liftAllKeys();
+    };
+
     var keyControlsInputElements = function() {
         return [mainElement];   // Add ConsolePanel if present
     };
@@ -253,6 +258,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.style.overflow = "hidden";
         mainElement.style.outline = "none";
         mainElement.tabIndex = "-1";               // Make it focusable
+
+        mainElement.addEventListener("focusout", lostFocus);
 
         borderElement = document.createElement('div');
         borderElement.style.position = "relative";
@@ -578,6 +585,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
 
     var monitor;
+    var keyboard;
     var peripheralControls;
     var machineControlsSocket;
     var machineControlsStateReport = {};

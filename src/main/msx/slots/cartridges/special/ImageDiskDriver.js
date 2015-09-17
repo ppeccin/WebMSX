@@ -201,8 +201,10 @@ wmsx.ImageDiskDriver = function() {
         if (drive.diskWriteProtected(d))
             return { F: F | 1, A: 0, extraIterations: spinTime };
 
+        drive.createNewEmptyDisk(d, f);
+
         drive.motorOn(d);
-        drive.createNewFormattedDisk(d, f);
+        drive.formatDisk(d, f);
 
         return { F: F & ~1, extraIterations: EXTRA_ITERATIONS_FORMAT};
     }

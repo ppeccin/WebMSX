@@ -2,8 +2,8 @@
 
 wmsx.PPI = function(audioOutput) {
 
-    this.connectEngine = function(pEngine) {
-        engine = pEngine;
+    this.connectEngine = function(pBus) {
+        bus = pBus;
     };
 
     this.powerOn = function(paused) {
@@ -13,11 +13,11 @@ wmsx.PPI = function(audioOutput) {
     };
 
     this.inputA8 = function() {
-        return engine.getPrimarySlotConfig();
+        return bus.getPrimarySlotConfig();
     };
 
     this.outputA8 = function(val) {
-        engine.setPrimarySlotConfig(val);
+        bus.setPrimarySlotConfig(val);
     };
 
     this.inputA9 = function() {
@@ -32,7 +32,7 @@ wmsx.PPI = function(audioOutput) {
         if (registerC === val) return;
         registerC  = val;
         updateKeyboardConfig();
-        updateCasseteSignal();
+        updateCassetteSignal();
     };
 
     this.outputAB = function(val) {
@@ -43,8 +43,12 @@ wmsx.PPI = function(audioOutput) {
         if (bit <= 3 || bit === 7) {
             updateKeyboardConfig();
         } else if (bit === 5) {
-            updateCasseteSignal();
+            updateCassetteSignal();
         }
+    };
+
+    this.keyboardReset = function() {
+        wmsx.Util.arrayFill(keyboardRowValues, 0xff);
     };
 
     function updateKeyboardConfig() {
@@ -54,7 +58,7 @@ wmsx.PPI = function(audioOutput) {
         audioOutput.setExternalSignal(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
     }
 
-    function updateCasseteSignal() {
+    function updateCassetteSignal() {
         if (keyClickSignal === ((registerC & 0x20) > 0)) return;
         casseteSignal = !casseteSignal;
         audioOutput.setExternalSignal(casseteSignal ? KEY_CLICK_AUDIO_VALUE : 0);
@@ -76,7 +80,7 @@ wmsx.PPI = function(audioOutput) {
     var keyboardRowSelected = 0;
     var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
-    var engine;
+    var bus;
 
     var KEY_CLICK_AUDIO_VALUE = 0.24;
 
@@ -92,7 +96,7 @@ wmsx.PPI = function(audioOutput) {
     this.loadState = function(s) {
         registerC = s.c || 0;
         updateKeyboardConfig(registerC);
-        updateCasseteSignal(registerC);
+        updateCassetteSignal(registerC);
         keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);
     };
 

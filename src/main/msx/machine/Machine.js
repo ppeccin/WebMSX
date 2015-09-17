@@ -489,13 +489,12 @@ wmsx.Machine = function() {
     // Keyboard Socket  -----------------------------------------
 
     function KeyboardSocket() {
-        this.connectKeyboard = function(pKeyboard) {
-            keyboard = pKeyboard;
-        };
         this.keyboardKeyChanged = function(key, press) {
             ppi.keyboardKeyChanged(key, press);
         };
-        var keyboard;
+        this.keyboardReset = function() {
+            ppi.keyboardReset();
+        };
     }
 
 
