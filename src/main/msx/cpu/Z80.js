@@ -4,7 +4,7 @@
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // PC and SP not checked for 16 bits over/underflow
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX)
-// Base clock 3584160 Hz
+// Original base clock: 3579545 Hz   (was 3584160)
 
 wmsx.Z80 = function() {
     var self = this;

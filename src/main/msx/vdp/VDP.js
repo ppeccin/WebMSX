@@ -3,6 +3,7 @@
 // TODO Investigate slow putImage()
 
 // This implementation is frame-accurate
+// Original base clock: 10738635 Hz wich is 3x CPU clock
 wmsx.VDP = function(cpu, psg) {
     var self = this;
 
@@ -33,6 +34,8 @@ wmsx.VDP = function(cpu, psg) {
         return videoSignal;
     };
 
+    // 342 pixel clocks, 228 CPU clocks per scanline
+    // 59736 CPU clocks per frame for NTSC, 71364 for PAL
     this.frame = function() {
         var cpuClocks = cpu.clockPulses;
         var audioClocks = psg.getAudioOutput().audioClockPulses;
