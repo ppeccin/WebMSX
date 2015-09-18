@@ -10,25 +10,28 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
     this.go = function() {
         if (!running) {
             running = true;
-            pulse();
+            useRequestAnimationFrame = cyclesPerSecond === NATURAL_FPS;
+            if (useRequestAnimationFrame)
+                animationFrame = window.requestAnimationFrame(pulse);
+            else
+                interval = window.setInterval(pulse, cycleTimeMs);
         }
     };
 
     this.pause = function(continuation) {
-        if (running) {
-            running = false;
-            if (animationFrame) {
-                window.cancelAnimationFrame(animationFrame);
-                animationFrame = null;
-            }
-            if (interval) {
-                window.clearInterval(interval);
-                interval = null;
-            }
+        running = false;
+        useRequestAnimationFrame = false;
+        if (animationFrame) {
+            window.cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+        }
+        if (interval) {
+            window.clearInterval(interval);
+            interval = null;
         }
     };
 
-    this.setFrequency = function(freq) {           // TODO Fix: cannot be called from inside a clockPulse()!!!
+    this.setFrequency = function(freq) {
         if (running) {
             this.pause();
             internalSetFrequency(freq);
@@ -41,15 +44,13 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
     var internalSetFrequency = function(freq) {
         cyclesPerSecond = freq;
         cycleTimeMs = 1000 / freq;
-        useRequestAnimationFrame = freq === NATURAL_FPS;
     };
 
     var pulse = function() {
+        animationFrame = null;
         clockDriven.clockPulse();
-        if (useRequestAnimationFrame)
+        if (useRequestAnimationFrame && !animationFrame)
             animationFrame = window.requestAnimationFrame(pulse);
-        else
-            if (!interval) interval = window.setInterval(pulse, cycleTimeMs);
     };
 
 
