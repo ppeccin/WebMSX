@@ -28,7 +28,7 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
         }
     };
 
-    this.setFrequency = function(freq) {
+    this.setFrequency = function(freq) {           // TODO Fix: cannot be called from inside a clockPulse()!!!
         if (running) {
             this.pause();
             internalSetFrequency(freq);

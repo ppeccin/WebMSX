@@ -36,9 +36,9 @@ wmsx.Machine = function() {
      };
 
     this.clockPulse = function() {
+        joysticksSocket.clockPulse();
         if (debugPause)
             if (debugPauseMoreFrames-- <= 0) return;
-        joysticksSocket.clockPulse();
         vdp.frame();
         this.framesGenerated++;
     };
@@ -195,7 +195,7 @@ wmsx.Machine = function() {
     };
 
     var mainClockAdjustToFast = function() {
-        var freq = 600;     // About 10x faster if host machine is able
+        var freq = 360;     // About 6x faster if host machine is able
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
@@ -278,7 +278,7 @@ wmsx.Machine = function() {
 
     this.controlStateChanged = function (control, state) {
         // Normal state controls
-        if (control == controls.FAST_SPEED) {
+        if (control === controls.FAST_SPEED) {
             if (state) {
                 self.showOSD("FAST FORWARD", true);
                 mainClockAdjustToFast();
@@ -288,7 +288,7 @@ wmsx.Machine = function() {
             }
             return;
         }
-        if (control == controls.SLOW_SPEED) {
+        if (control === controls.SLOW_SPEED) {
             if (state) {
                 self.showOSD("SLOW MOTION", true);
                 mainClockAdjustToSlow();
@@ -621,24 +621,24 @@ wmsx.Machine = function() {
 
     // Debug methods  ------------------------------------------------------
 
-    this.startProfiling = function() {
-        var lastFrameCount = this.framesGenerated;
-        setInterval(function() {
-            wmsx.Util.log(self.framesGenerated - lastFrameCount);
-            lastFrameCount = self.framesGenerated;
-        }, 1000);
-    };
+    //this.startProfiling = function() {
+    //    var lastFrameCount = this.framesGenerated;
+    //    setInterval(function() {
+    //        wmsx.Util.log(self.framesGenerated - lastFrameCount);
+    //        lastFrameCount = self.framesGenerated;
+    //    }, 1000);
+    //};
 
-    this.runFramesAtTopSpeed = function(frames) {
-        pause();
-        var start = performance.now();
-        for (var i = 0; i < frames; i++)
-            self.clockPulse();
-        var duration = performance.now() - start;
-        wmsx.Util.log("Done running " + frames + " in " + duration + " ms");
-        wmsx.Util.log(frames / (duration/1000) + "frames/sec");
-        go();
-    };
+    //this.runFramesAtTopSpeed = function(frames) {
+    //    pause();
+    //    var start = performance.now();
+    //    for (var i = 0; i < frames; i++)
+    //        self.clockPulse();
+    //    var duration = performance.now() - start;
+    //    wmsx.Util.log("Done running " + frames + " in " + duration + " ms");
+    //    wmsx.Util.log(frames / (duration/1000) + "frames/sec");
+    //    go();
+    //};
 
     this.eval = function(str) {
         return eval(str);

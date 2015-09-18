@@ -85,7 +85,7 @@ wmsx.GamepadJoysticksControls = function() {
     };
 
     var joystickConnectionMessage = function (joy0, conn) {
-        screen.getMonitor().showOSD("Joystick " + (joy0 ^ swappedMode ? "1" : "2") + (conn ? "connected" : "disconnected"), joy0);
+        screen.getMonitor().showOSD("Joystick " + (joy0 ^ swappedMode ? "1" : "2") + (conn ? " connected" : " disconnected"), joy0);
     };
 
     var detectNewJoystick = function(prefs, notPrefs, gamepads) {
@@ -156,7 +156,7 @@ wmsx.GamepadJoysticksControls = function() {
         // Other Machine controls
         var newPause = joystick.getButtonDigital(joyPrefs.pause);
         if (newPause !== joyState.pause) {
-            machineControlsSocket.controlStateChanged(wmsx.MachineControls.PAUSE, newPause);
+            if (newPause) machineControlsSocket.controlStateChanged(wmsx.MachineControls.PAUSE, true);
             joyState.pause = newPause;
         }
         var newFastSpeed = joystick.getButtonDigital(joyPrefs.fastSpeed);
