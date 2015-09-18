@@ -95,7 +95,6 @@ wmsx.PSG = function() {
             ra: registerAddress,
             r: wmsx.Util.storeArrayToStringBase64(registers),
             a: audioChannel.saveState()
-
         };
     };
 

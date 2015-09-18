@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Investigate slow putImage()
-// TODO Collisions not being detected? AbuSimbel Profanation
 
 // This implementation is frame-accurate
 wmsx.VDP = function(cpu, psg) {
@@ -35,32 +34,39 @@ wmsx.VDP = function(cpu, psg) {
     };
 
     this.frame = function() {
+        var cpuClocks = cpu.clockPulses;
+        var audioClocks = psg.getAudioOutput().audioClockPulses;
 
-        // Interleave CPU and PSG cycles
+        // Update video signal, will set status flags
+        updateFrame();
+
+        // CPU cycles "during" active display (192 lines)       // 43776 CPU clocks, 1368 PSG clocks interleaved
+        for (var i = 1368; i > 0; i--) {
+            cpuClocks(32);
+            audioClocks(1);
+        }
+
+        // End of active display scan, request interrupt
+        status |= 0x80;
+        updateIRQ();
+
+        // CPU cycles "during" inactive display scan (X lines, depends on video standard)
         if (videoStandard === wmsx.VideoStandard.NTSC) {
-            for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
-                cpu.clockPulses(32);
-                psg.getAudioOutput().audioClockPulses(1);
+            for (i = 498; i > 0; i--) {                        // 15960 CPU clocks, 498 PSG clocks interleaved
+                cpuClocks(32);
+                audioClocks(1);
             }
-            cpu.clockPulses(24);
-        } else {                                                // 71364 CPU clocks, 2230 PSG clocks
-            for (i = 2230; i > 0; i--) {
-                cpu.clockPulses(32);
-                psg.getAudioOutput().audioClockPulses(1);
+            cpuClocks(24);
+        } else {                                               // 27588 CPU clocks, 862 PSG clocks interleaved
+            for (i = 862; i > 0; i--) {
+                cpuClocks(32);
+                audioClocks(1);
             }
-            cpu.clockPulses(4);
+            cpuClocks(4);
         }
 
         // Finish audio signal (generate additional samples each frame to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
-
-        // Update video signal
-        updateFrame();
-
-        // Request interrupt
-        status |= 0x80;
-        updateIRQ();
-
     };
 
     this.input99 = function() {
