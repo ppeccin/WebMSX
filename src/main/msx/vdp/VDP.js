@@ -40,14 +40,15 @@ wmsx.VDP = function(cpu, psg) {
         var cpuClocks = cpu.clockPulses;
         var audioClocks = psg.getAudioOutput().audioClockPulses;
 
-        // Update video signal, will set status flags
-        updateFrame();
-
         // CPU cycles "during" active display (192 lines)       // 43776 CPU clocks, 1368 PSG clocks interleaved
         for (var i = 1368; i > 0; i--) {
             cpuClocks(32);
             audioClocks(1);
         }
+
+        // Update Sprites AFTER the active display CPU cycles, so code running right after INT
+        // have more time to change patterns before they are drawn
+        updatePatternPlanes();
 
         // End of active display scan, request interrupt
         status |= 0x80;
@@ -68,8 +69,42 @@ wmsx.VDP = function(cpu, psg) {
             cpuClocks(4);
         }
 
+        // Update Sprites BEFORE the active display CPU cycles, so code running right before INT
+        // have a better chance to sense sprite collisions
+        updateSpritePlanes();       // Will set sprites flags (collision, illegal)
+
+        finishFrame();              // Send new frame to monitor
+
         // Finish audio signal (generate additional samples each frame to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
+    };
+
+    this.frameOLD = function() {
+
+        // Interleave CPU and PSG cycles
+        if (videoStandard === wmsx.VideoStandard.NTSC) {
+            for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
+                cpu.clockPulses(32);
+                psg.getAudioOutput().audioClockPulses(1);
+            }
+            cpu.clockPulses(24);
+        } else {                                                // 71364 CPU clocks, 2230 PSG clocks
+            for (i = 2230; i > 0; i--) {
+                cpu.clockPulses(32);
+                psg.getAudioOutput().audioClockPulses(1);
+            }
+            cpu.clockPulses(4);
+        }
+
+        // Finish audio signal (generate additional samples each frame to adjust to sample rate)
+        psg.getAudioOutput().finishFrame();
+
+        // Update video signal
+        updateFrame();
+
+        // Request interrupt
+        status |= 0x80;
+        updateIRQ();
     };
 
     this.input99 = function() {
@@ -180,25 +215,8 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function updateFrame() {
-        if (signalBlanked) {
-            // Blank if needed
-            if (!frameBlanked) {
-                if (frameBackBuffer.fill) frameBackBuffer.fill(0);
-                else wmsx.Util.arrayFill(frameBackBuffer, 0);
-                frameBlanked = true;
-            }
-        } else {
-            // Update planes
-            if (mode === 1) updatePatternPlaneMode1();
-            else if (mode === 0) updatePatternPlaneMode0();
-            else if (mode === 4) updatePatternPlaneMode4();
-            else if (mode === 2) updatePatternPlaneMode2();
-            frameBlanked = false;
-        }
-
-        // Update plane image and send to monitor
-        frameContext.putImageData(frameImageData, 0, 0);
-        videoSignal.newFrame(frameCanvas, backdropRGB);
+        updatePatternPlanes();
+        updateSpritePlanes();
     }
 
     function updateMode() {
@@ -212,6 +230,24 @@ wmsx.VDP = function(cpu, psg) {
             patternTableAddress = (register4 & 0x07) * 0x800;
             if (mode === 1) patternTableAddress &= 0x2000;
             vramPatternTable = vram.subarray(patternTableAddress);
+        }
+    }
+
+    function updatePatternPlanes() {
+        if (signalBlanked) {
+            // Blank if needed
+            if (!frameBlanked) {
+                if (frameBackBuffer.fill) frameBackBuffer.fill(0);
+                else wmsx.Util.arrayFill(frameBackBuffer, 0);
+                frameBlanked = true;
+            }
+        } else {
+            // Update pattern planes
+            if (mode === 1) updatePatternPlaneMode1();
+            else if (mode === 0) updatePatternPlaneMode0();
+            else if (mode === 4) updatePatternPlaneMode4();
+            else if (mode === 2) updatePatternPlaneMode2();
+            frameBlanked = false;
         }
     }
 
@@ -236,7 +272,6 @@ wmsx.VDP = function(cpu, psg) {
             }
             bufferPos += 1792;                                              // Go to the next line starting char pixel
         }
-        updateSpritePlanes();
     }
 
     function updatePatternPlaneMode1() {                                    // Graphics 2 (Screen 2)
@@ -261,7 +296,6 @@ wmsx.VDP = function(cpu, psg) {
             }
             bufferPos += 1792;                                              // Go to the next line starting char pixel
         }
-        updateSpritePlanes();
     }
 
     function updatePatternPlaneMode2() {                                    // Multicolor (Screen 3)
@@ -291,7 +325,6 @@ wmsx.VDP = function(cpu, psg) {
             }
             bufferPos += 1792;                                              // Go to the next line starting char pixel
         }
-        updateSpritePlanes();
     }
 
     function updatePatternPlaneMode4() {                                    // Text (Screen 0)
@@ -325,11 +358,11 @@ wmsx.VDP = function(cpu, psg) {
             }
             bufferPos -= 248;                                               // Go to the next line starting char pixel
         }
-        // Sprite System deactivated
     }
 
     function updateSpritePlanes() {
-        if (vramSpriteAttrTable[0] === 208) return;
+        if (signalBlanked || mode === 4 || vramSpriteAttrTable[0] === 208) return;      // Sprites deactivated
+
         var colorCodeValuesStart, patternStart, name, color, pattern, values;
         var drawn;
         var collision = false;
@@ -337,7 +370,6 @@ wmsx.VDP = function(cpu, psg) {
         var line, atrPos, y, x;
         var s, f;
         var bufferPos = 0;
-
         var size = register1 & 0x03;
 
         if (size === 2) {                                                    // 16x16 normal
@@ -504,6 +536,12 @@ wmsx.VDP = function(cpu, psg) {
                 else collision = true;
             }
         }
+    }
+
+    function finishFrame() {
+        // Update image and send to monitor
+        frameContext.putImageData(frameImageData, 0, 0);
+        videoSignal.newFrame(frameCanvas, backdropRGB);
     }
 
     function initFrameResources() {
