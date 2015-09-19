@@ -2502,7 +2502,7 @@ wmsx.Z80 = function() {
         defineInstruction(0xdd, null, opcode, 4, instr, "< SWITCH to FD >", false);
         opcode = 0xcb;
         instr = pSET_DDCB;
-        defineInstruction(0xdd, null, opcode, 3, instr, "< SET DDCB >", false);
+        defineInstruction(0xdd, null, opcode, 3, instr, "< SET DDCB >", false);         // Discount -1 for wrong added M1
 
         opcode = 0xfd;
         instr = pSET_FD;
@@ -2515,7 +2515,7 @@ wmsx.Z80 = function() {
         defineInstruction(0xfd, null, opcode, 4, instr, "< SWITCH to DD >", false);
         opcode = 0xcb;
         instr = pSET_FDCB;
-        defineInstruction(0xfd, null, opcode, 3, instr, "< SET FDCB >", false);
+        defineInstruction(0xfd, null, opcode, 3, instr, "< SET FDCB >", false);         // Discount -1 for wrong added M1
 
         opcode = 257;
         instr = pADT_CYCLES;
@@ -2632,7 +2632,9 @@ wmsx.Z80 = function() {
         });
         var res = "";
         for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
-            res += "\n" + this.instructionsAll[i].opcodeString;
+            var opcodeString = this.instructionsAll[i].opcodeString;
+            for (; opcodeString.length < 30;) opcodeString += " ";
+            res += "\n" + opcodeString + " : " + this.instructionsAll[i].totalCycles;
         }
         return res;
     };

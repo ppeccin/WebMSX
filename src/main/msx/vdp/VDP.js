@@ -217,6 +217,7 @@ wmsx.VDP = function(cpu, psg) {
     function updateFrame() {
         updatePatternPlanes();
         updateSpritePlanes();
+        finishFrame();
     }
 
     function updateMode() {

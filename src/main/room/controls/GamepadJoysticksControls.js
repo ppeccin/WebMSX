@@ -102,8 +102,8 @@ wmsx.GamepadJoysticksControls = function() {
     };
 
     var initStates = function() {
-        joy1State = newControllerState();
-        joy2State = newControllerState();
+        joy1State = newJoystickState();
+        joy2State = newJoystickState();
     };
 
     var update = function(joystick, joyState, joyPrefs, player0) {
@@ -142,15 +142,16 @@ wmsx.GamepadJoysticksControls = function() {
             detectButton();
             return;
         } else {
+            var newButtonS = joystick.getButtonDigital(joyPrefs.buttonS);
             var newButton = joystick.getButtonDigital(joyPrefs.button1);
-            if (newButton !== joyState.button1) {
-                joysticksSocket.controlStateChanged(player0 ? controls.JOY1_BUTTON1 : controls.JOY2_BUTTON1, newButton, 0);
-                joyState.button1 = newButton;
+            if ((newButtonS || newButton) !== joyState.button1) {
+                joyState.button1 = (newButtonS || newButton);
+                joysticksSocket.controlStateChanged(player0 ? controls.JOY1_BUTTON1 : controls.JOY2_BUTTON1, joyState.button1, 0);
             }
             newButton = joystick.getButtonDigital(joyPrefs.button2);
-            if (newButton !== joyState.button2) {
-                joysticksSocket.controlStateChanged(player0 ? controls.JOY1_BUTTON2 : controls.JOY2_BUTTON2, newButton, 0);
-                joyState.button2 = newButton;
+            if ((newButtonS || newButton) !== joyState.button2) {
+                joyState.button2 = (newButtonS || newButton);
+                joysticksSocket.controlStateChanged(player0 ? controls.JOY1_BUTTON2 : controls.JOY2_BUTTON2, joyState.button2, 0);
             }
         }
         // Other Machine controls
@@ -171,7 +172,7 @@ wmsx.GamepadJoysticksControls = function() {
         }
     };
 
-    var newControllerState = function() {
+    var newJoystickState = function() {
         return {
             direction: -1,         // CENTER
             button1: false, button2: false, pause: false, fastSpeed: false, slowSpeed: false,
@@ -193,6 +194,7 @@ wmsx.GamepadJoysticksControls = function() {
             paddleAxisSig  : WMSX.preferences.JP1PAXISSIG,
             button1        : WMSX.preferences.JP1BUT1,
             button2        : WMSX.preferences.JP1BUT2,
+            buttonS        : WMSX.preferences.JP1BUTS,
             pause          : WMSX.preferences.JP1PAUSE,
             fastSpeed      : WMSX.preferences.JP1FAST,
             slowSpeed      : WMSX.preferences.JP1SLOW,
@@ -210,6 +212,7 @@ wmsx.GamepadJoysticksControls = function() {
             paddleAxisSig  : WMSX.preferences.JP2PAXISSIG,
             button1        : WMSX.preferences.JP2BUT1,
             button2        : WMSX.preferences.JP2BUT2,
+            buttonS        : WMSX.preferences.JP2BUTS,
             pause          : WMSX.preferences.JP2PAUSE,
             fastSpeed      : WMSX.preferences.JP2FAST,
             slowSpeed      : WMSX.preferences.JP2SLOW,
