@@ -36,7 +36,7 @@ wmsx.VDP = function(cpu, psg) {
 
     // 342 pixel clocks, 228 CPU clocks per scanline
     // 59736 CPU clocks per frame for NTSC, 71364 for PAL
-    this.frame = function() {
+    this.frameNEW = function() {
         var cpuClocks = cpu.clockPulses;
         var audioClocks = psg.getAudioOutput().audioClockPulses;
 
@@ -79,7 +79,7 @@ wmsx.VDP = function(cpu, psg) {
         psg.getAudioOutput().finishFrame();
     };
 
-    this.frameOLD = function() {
+    this.frame = function() {
 
         // Interleave CPU and PSG cycles
         if (videoStandard === wmsx.VideoStandard.NTSC) {
@@ -99,8 +99,10 @@ wmsx.VDP = function(cpu, psg) {
         // Finish audio signal (generate additional samples each frame to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
 
-        // Update video signal
-        updateFrame();
+        // Update everything
+        updatePatternPlanes();
+        updateSpritePlanes();
+        finishFrame();
 
         // Request interrupt
         status |= 0x80;
@@ -212,12 +214,6 @@ wmsx.VDP = function(cpu, psg) {
             cpu.INT = 0;                // Active
         else
             cpu.INT = 1;
-    }
-
-    function updateFrame() {
-        updatePatternPlanes();
-        updateSpritePlanes();
-        finishFrame();
     }
 
     function updateMode() {
