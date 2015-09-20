@@ -7,6 +7,11 @@ wmsx.SlotRAM64K = function(content) {
         self.bytes = bytes;
     }
 
+    this.powerOff = function() {
+        // Lose content
+        wmsx.Util.arrayFill(bytes, 0x00);
+    };
+
     this.read = function(address) {
         //console.log ("RAM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
