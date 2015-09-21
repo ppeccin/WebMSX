@@ -480,7 +480,7 @@ wmsx.SettingsGUI.html = function() {
                 '</div>' +
                 '<div id="jt-about">' +
                     '<div id="jt-logo-version">' +
-                        'WebMSX &nbsp;-&nbsp; version 0.9' +
+                        'WebMSX&nbsp&nbsp;-&nbsp;&nbsp&nbspversion&nbsp' + WMSX.VERSION +
                     '</div>' +
                     '<div class="info">' +
                         'Created by Paulo Augusto Peccin' +

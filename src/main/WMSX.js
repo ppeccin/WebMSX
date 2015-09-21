@@ -4,8 +4,11 @@
 
 // Main Emulator parameters.
 // You may change any of these after loading the project and before starting the Emulator
+// Also possible to override values dynamically via URL query parameters
 
 WMSX = {
+
+    PRESET:                         "DEFAULT",                  // Machine configuration preset to use
 
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM
@@ -17,7 +20,7 @@ WMSX = {
     DISKB_URL:                      "",                         // Full or relative URL of Disk B image file
     TAPE_URL:                       "",                         // Full or relative URL of TAPE image file
     STATE_LOAD_URL:                 "",                         // Full or relative URL of State file to start (takes precedence)
-    AUTO_START_DELAY:               2000,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Power-on
+    AUTO_START_DELAY:               2400,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
@@ -32,7 +35,9 @@ WMSX = {
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/",
 
-    VERSION:                        "version 0.9"               // Don't change!
+    ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
+
+    VERSION:                        "0.9"                       // Don't change!
 
 };
 

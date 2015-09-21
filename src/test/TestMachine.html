@@ -56,41 +56,47 @@
         <script src="../main/msx/controls/MachineControls.js"></script>
         <script src="../main/msx/controls/JoysticksControls.js"></script>
         <script src="../main/room/files/FileLoader.js"></script>
+        <script src="../main/room/files/FileDownloader.js"></script>
         <script src="../main/room/controls/DOMKeys.js"></script>
         <script src="../main/room/controls/DOMKeyboard.js"></script>
         <script src="../main/room/controls/GamepadJoysticksControls.js"></script>
         <script src="../main/room/controls/DOMMachineControls.js"></script>
         <script src="../main/room/screen/Monitor.js"></script>
-        <script src="../main/room/controls/PeripheralControls.js"></script>
-        <script src="../main/room/controls/DOMPeripheralControls.js"></script>
         <script src="../main/room/screen/CanvasDisplay.js"></script>
+        <script src="../main/room/screen/settings/SettingsGUI.js"></script>
+        <script src="../main/room/screen/settings/Settings.js"></script>
         <script src="../main/room/speaker/WebAudioSpeaker.js"></script>
-        <script src="../main/room/files/FileDownloader.js"></script>
         <script src="../main/room/savestate/LocalStorageSaveStateMedia.js"></script>
         <script src="../main/room/cassette/FileCassetteDeck.js"></script>
         <script src="../main/room/disk/FileDiskDrive.js"></script>
-        <script src="../main/room/Preferences.js"></script>
-        <script src="../main/room/settings/SettingsGUI.js"></script>
-        <script src="../main/room/settings/Settings.js"></script>
+        <script src="../main/room/controls/PeripheralControls.js"></script>
+        <script src="../main/room/controls/DOMPeripheralControls.js"></script>
         <script src="../main/room/Room.js"></script>
-        <script src="../main/room/Launcher.js"></script>
+        <script src="../main/config/Preferences.js"></script>
+        <script src="../main/config/Presets.js"></script>
+        <script src="../main/config/URLParameters.js"></script>
+        <script src="../main/Launcher.js"></script>
 
         <script>
-            if (window.location.protocol.indexOf("http") >= 0) {
-                WMSX.BIOS_URL =       "roms/MSX1aNTSC.bios";
-                WMSX.EXPANSION0_URL = "roms/Disk.rom";
-                // WMSX.EXPANSION1_URL = "roms/Disk.rom";
-                // WMSX.EXPANSION2_URL = "roms/Disk.rom";
-                // WMSX.CARTRIDGE1_URL = "roms/Goonies.rom";
-                // WMSX.CARTRIDGE2_URL = "roms/Goonies.rom";
-                // WMSX.DISKA_URL =      "roms/MSX-DOS.dsk";
-                // WMSX.DISKB_URL =      "roms/MSX-DOS.dsk";
-                // WMSX.TAPE_URL =        "roms/Venom.cas";
 
-                // WMSX.STATE_LOAD_URL = "roms/Zanac.wst";
+            WMSX.ALLOW_URL_PARAMETERS = true;
+            WMSX.AUTO_START_DELAY = 0;
 
-                WMSX.AUTO_START_DELAY = 0;      // Instant power-on
-            }
+            WMSX.presets.Test = {
+                BIOS_URL:        "roms/MSX1NTSCa.bios",
+                EXPANSION0_URL:  "roms/Disk.rom",
+                // EXPANSION1_URL:  "roms/Disk.rom";
+                // EXPANSION2_URL:  "roms/Disk.rom";
+                // CARTRIDGE1_URL:  "roms/Goonies.rom";
+                // CARTRIDGE2_URL:  "roms/Goonies.rom";
+                // DISKA_URL:       "roms/MSX-DOS.dsk";
+                // DISKB_URL:       "roms/MSX-DOS.dsk";
+                // TAPE_URL:        "roms/Venom.cas";
+                // STATE_LOAD_URL:  "roms/Zanac.wst";
+            };
+
+            // WMSX.PRESET = "Test";
+
         </script>
 
     </body>
