@@ -14,11 +14,11 @@ wmsx.Machine = function() {
         bus.powerOn();
         this.powerIsOn = true;
         machineControlsSocket.fireRedefinitionUpdate();
-        if (!paused) go();
+        if (!paused) mainClock.go();
     };
 
     this.powerOff = function() {
-        pause();
+        mainClock.pause();
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
@@ -29,10 +29,14 @@ wmsx.Machine = function() {
     };
 
     this.userPowerOn = function(autoRunCassette) {
-        if (getBIOS()) {
-            this.powerOn();
-            if (autoRunCassette) cassetteSocket.typeAutoRunCommandAfterPowerOn();
-        } else this.getVideoOutput().showOSD("Insert BIOS!", true);
+        if (isLoading) return;
+        if (!getBIOS()) {
+            this.getVideoOutput().showOSD("Insert BIOS!", true);
+            return;
+        }
+
+        this.powerOn();
+        if (autoRunCassette) cassetteSocket.typeAutoRunCommandAfterPowerOn();
      };
 
     this.clockPulse = function() {
@@ -91,12 +95,8 @@ wmsx.Machine = function() {
         this.getVideoOutput().showOSD(message, overlap);
     };
 
-    var go = function() {
-        mainClock.go();
-    };
-
-    var pause = function() {
-        mainClock.pause();
+    this.loading = function(boo) {
+        isLoading = boo;
     };
 
     var setBIOS = function(bios) {
@@ -237,8 +237,9 @@ wmsx.Machine = function() {
 
 
     this.powerIsOn = false;
-
     this.framesGenerated = 0;
+
+    var isLoading = false;
 
     var cpu;
     var bus;
