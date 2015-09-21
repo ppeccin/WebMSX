@@ -3,12 +3,12 @@
 WMSX.presets = {
 
     DEFAULT: {
-        BIOS_URL:       "roms/MSX1NTSCa.bios",
-        EXPANSION0_URL: "roms/Disk.rom"
+        BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios",
+        EXPANSION0_URL: "wmsx/roms/Disk.rom"
     },
 
     NODISK: {
-        BIOS_URL:       "roms/MSX1NTSCa.bios",
+        BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios"
     },
 
     EMPTY: {

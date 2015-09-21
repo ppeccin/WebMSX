@@ -33,7 +33,7 @@ WMSX = {
     SCREEN_COLOR_MODE:              0,                          // 0..5
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
     SCREEN_ELEMENT_ID:              "wmsx-screen",
-    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/",
+    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/images/",
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 

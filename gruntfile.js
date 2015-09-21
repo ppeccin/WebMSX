@@ -12,8 +12,8 @@ module.exports = function (grunt) {
             main: {
                 files: [
                     {src: ["src/release/*"], dest: "release/", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["src/release/roms/*"], dest: "release/wmsx/", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["src/main/images/*"], dest: "release/wmsx/", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["src/release/roms/*"], dest: "release/wmsx/roms", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["src/main/images/*"], dest: "release/wmsx/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         },
