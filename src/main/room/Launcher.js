@@ -11,7 +11,7 @@ WMSX.start = function () {
     if (!WMSX.screenElement) {
         WMSX.screenElement = document.getElementById(WMSX.SCREEN_ELEMENT_ID);
         if (!WMSX.screenElement)
-            throw new Error('MSX cannot be started. ' +
+            throw new Error('WMSX cannot be started. ' +
             'HTML document is missing screen element with id "' + WMSX.SCREEN_ELEMENT_ID + '"');
     }
     // Build and start emulator
@@ -26,11 +26,13 @@ WMSX.start = function () {
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified
     if (WMSX.STATE_LOAD_URL) {
+        WMSX.room.loading(true);
         // Only 1 file, Machine will Auto Power on
         new wmsx.MultiDownloader([{
             url: WMSX.STATE_LOAD_URL,
             onSuccess: function(res) {
                 afterAutoStartWait(function() {
+                    WMSX.room.loading(false);
                     WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
                 });
             },
@@ -41,59 +43,60 @@ WMSX.start = function () {
             }
         }]).start();
     } else if (WMSX.BIOS_URL) {
+        WMSX.room.loading(true);
         var urls = [
             WMSX.EXPANSION0_URL && {
                 url: WMSX.EXPANSION0_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false, true);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true, true);
                 }
             },
             WMSX.EXPANSION1_URL && {
                 url: WMSX.EXPANSION1_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, false, true);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, true, true);
                 }
             },
             WMSX.EXPANSION2_URL && {
                 url: WMSX.EXPANSION2_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 2, false, true);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 2, true, true);
                 }
             },
             WMSX.CARTRIDGE1_URL && {
                 url: WMSX.CARTRIDGE1_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
                 }
             },
             WMSX.CARTRIDGE2_URL && {
                 url: WMSX.CARTRIDGE2_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, false);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, true);
                 }
             },
             WMSX.DISKA_URL && {
                 url: WMSX.DISKA_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
                 }
             },
             WMSX.DISKB_URL && {
                 url: WMSX.DISKB_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, false);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 1, true);
                 }
             },
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
                 }
             },
             {   // BIOS
                 url: WMSX.BIOS_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                    WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
                 }
             }
         ];
@@ -101,6 +104,7 @@ WMSX.start = function () {
         new wmsx.MultiDownloader(urls,
             function onSuccessAll() {
                 afterAutoStartWait(function() {
+                    WMSX.room.loading(false);
                     WMSX.room.machine.userPowerOn(true);
                 });
             }, function onErrorAny(urls) {
@@ -134,7 +138,7 @@ WMSX.start = function () {
 
 // Pre-load images and start emulator as soon as all are loaded and DOM is ready
 WMSX.preLoadImagesAndStart = function() {
-    var images = [ "sprites.png", "logo.png", "screenborder.png" ];
+    var images = [ "logo.png", "sprites.png", "loading.gif", "screenborder.png" ];
     var numImages = images.length;
 
     var domReady = false;

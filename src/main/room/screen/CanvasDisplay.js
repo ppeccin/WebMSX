@@ -10,6 +10,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupOSD();
         setupButtonsBar();
         setupLogo();
+        setupLoadingIcon();
         monitor = new wmsx.Monitor();
         monitor.connectDisplay(self);
     }
@@ -191,6 +192,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         this.powerStateUpdate(machineControlsStateReport[wmsx.MachineControls.POWER]);
     };
 
+    this.loading = function(boo) {
+        isLoading = boo;
+        updateLogo();
+    };
+
     var lostFocus = function(e) {
         keyboard.liftAllKeys();
     };
@@ -233,10 +239,13 @@ wmsx.CanvasDisplay = function(mainElement) {
     var updateLogo = function () {
         if (signalIsOn) {
             logoImage.style.display = "none";
+            loadingImage.style.display = "none";
         } else {
             canvas.style.background = "black";
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-            if (logoImage.isLoaded) logoImage.style.display = "block";
+            /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
+            if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";
+            else loadingImage.style.display = "none";
         }
     };
 
@@ -546,6 +555,37 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoImage.src = IMAGE_PATH + "logo.png";
     };
 
+    var setupLoadingIcon = function() {
+        loadingImage = new Image();
+        loadingImage.isLoaded = false;
+        loadingImage.draggable = false;
+        loadingImage.style.position = "absolute";
+        loadingImage.style.display = "none";
+        loadingImage.style.top = "67%";
+        loadingImage.style.left = 0;
+        loadingImage.style.right = 0;
+        loadingImage.style.maxWidth = "12%";
+        loadingImage.style.margin = "auto auto";
+
+        loadingImage.style.userSelect = "none";
+        loadingImage.style.webkitUserSelect = "none";
+        loadingImage.style.MozUserSelect = "none";
+        loadingImage.style.msUserSelect = "none";
+
+        loadingImage.ondragstart = function(e) {
+            e.preventDefault();
+            return false;
+        };
+
+        fsElement.appendChild(loadingImage);
+
+        loadingImage.onload = function() {
+            loadingImage.isLoaded = true;
+            updateLogo();
+        };
+        loadingImage.src = IMAGE_PATH + "loading.gif";
+    };
+
     var setupOSD = function() {
         osd = document.createElement('div');
         osd.style.position = "absolute";
@@ -609,8 +649,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     var signalIsOn = false;
     var isFullscreen = false;
     var crtFilter = 1;
+    var isLoading = false;
 
     var logoImage;
+    var loadingImage;
 
     var powerButton;
     var diskAButton;

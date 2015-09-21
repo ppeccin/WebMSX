@@ -25,6 +25,10 @@ wmsx.Room = function(screenElement) {
         self.screen.powerOff();
     };
 
+    this.loading = function(boo) {
+        this.screen.loading(boo);
+    };
+
     this.exit = function() {
         self.machine.getMachineControlsSocket().controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
         self.peripheralControls.controlActivated(wmsx.PeripheralControls.SCREEN_DEFAULTS);
