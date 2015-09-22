@@ -5,8 +5,8 @@
 wmsx.SettingsGUI = {};
 
 wmsx.SettingsGUI.html = function() {
-    return  '<div id="jt-cover" class="show">' +
-        '<div id="jt-modal" class="show">' +
+    return  '<div id="jt-cover">' +
+        '<div id="jt-modal">' +
             '<div id="jt-menu">' +
                 '<div id="jt-back">' +
                     '<div id="jt-back-arrow">' +
