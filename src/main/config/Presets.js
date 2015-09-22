@@ -12,6 +12,13 @@ WMSX.presets = {
     },
 
     EMPTY: {
+    },
+
+    // Specific machines
+
+    EXPERT: {
+        BIOS_URL:       "wmsx/roms/Expert10.bios",
+        EXPANSION0_URL: "wmsx/roms/DiskCDX2.rom"
     }
 
 };
