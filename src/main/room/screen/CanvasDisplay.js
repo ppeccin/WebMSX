@@ -330,7 +330,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.style.height = "29px";
         if (WMSX.SCREEN_CONTROL_BAR === 1) {
             buttonsBar.style.bottom = "-30px";
-            buttonsBar.style.background = "rgba(47, 47, 43, .8)";
+            buttonsBar.style.background = "rgba(30, 30, 28, .75)";
             buttonsBar.style.transition = "bottom 0.3s ease-in-out";
             mainElement.addEventListener("mouseover", function() {
                 if (buttonsBarHideTimeout) clearTimeout(buttonsBarHideTimeout);
@@ -343,7 +343,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             });
         } else {
             buttonsBar.style.bottom = "0";
-            buttonsBar.style.background = "rgb(44, 44, 40)";
+            buttonsBar.style.background = "rgb(40, 40, 37)";
             buttonsBar.style.border = "1px solid black";
         }
 
