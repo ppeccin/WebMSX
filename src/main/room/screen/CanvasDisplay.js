@@ -276,10 +276,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         borderElement.style.background = "black";
         borderElement.style.border = "0 solid black";
         borderElement.style.borderWidth = "" + borderTop + "px " + borderLateral + "px " + borderBottom + "px";
-        if (WMSX.SCREEN_CONTROL_BAR === 2) {
-            borderElement.style.borderImage = "url(" + IMAGE_PATH + "screenborder.png) " +
-                borderTop + " " + borderLateral + " " + borderBottom + " repeat stretch";
-        }
 
         fsElement = document.createElement('div');
         fsElement.style.position = "relative";
@@ -332,10 +328,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.style.left = "0";
         buttonsBar.style.right = "0";
         buttonsBar.style.height = "29px";
-        if (WMSX.SCREEN_CONTROL_BAR === 2) {
-            buttonsBar.style.bottom = "0";
-            // No background
-        } else if (WMSX.SCREEN_CONTROL_BAR === 1) {
+        if (WMSX.SCREEN_CONTROL_BAR === 1) {
             buttonsBar.style.bottom = "-30px";
             buttonsBar.style.background = "rgba(47, 47, 43, .8)";
             buttonsBar.style.transition = "bottom 0.3s ease-in-out";
@@ -608,11 +601,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var setupProperties = function() {
-        if (WMSX.SCREEN_CONTROL_BAR === 2) {            // Legacy
-            borderTop = 5;
-            borderLateral = 5;
-            borderBottom = 31;
-        } else if (WMSX.SCREEN_CONTROL_BAR === 1) {     // Hover
+        if (WMSX.SCREEN_CONTROL_BAR === 1) {     // Hover
             borderTop = 1;
             borderLateral = 1;
             borderBottom = 1;

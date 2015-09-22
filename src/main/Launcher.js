@@ -146,7 +146,7 @@ WMSX.start = function () {
 
 // Pre-load images and start emulator as soon as all are loaded and DOM is ready
 WMSX.preLoadImagesAndStart = function() {
-    var images = [ "logo.png", "sprites.png", "loading.gif", "screenborder.png" ];
+    var images = [ "logo.png", "sprites.png", "loading.gif" ];
     var numImages = images.length;
 
     var domReady = false;
