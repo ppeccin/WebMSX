@@ -8,9 +8,9 @@ wmsx.CartridgeUnbanked = function(rom) {
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
-        // If 64K size, it fits just fine starting at 0x0000
-        if (content.length === 65536) {
-            for (i = 0; i < 65536; i++) bytes[i] = content[i];
+        // If 64K or 48K size, it fits just fine starting at 0x0000
+        if (content.length === 65536 || content.length === 49152) {
+            for (var i = 0, len = content.length; i < len; i++) bytes[i] = content[i];
             return
         }
         // Uses position from info if present
@@ -31,7 +31,7 @@ wmsx.CartridgeUnbanked = function(rom) {
                         position = 0x0000;
                 }
             }
-            for (var i = 0; i < 32768; i++) bytes[position + i] = content[i];
+            for (i = 0; i < 32768; i++) bytes[position + i] = content[i];
             return;
         }
         // If 8K or 16K size, position at 0x0000, 0x4000 or 0x8000

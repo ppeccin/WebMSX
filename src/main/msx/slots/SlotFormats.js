@@ -76,8 +76,8 @@ wmsx.SlotFormats = {
             if (rom.content.length === 32768
                 && ((rom.content[0] === 65 && rom.content[1] === 66)
                 || (rom.content[0x4000] === 65 && rom.content[0x4001] === 66))) return this;
-            // Any 64K content, with the Cartridge identifier "AB" at 0x4000 or 0x8000
-            if (rom.content.length === 65536
+            // Any 64K or 48K content, with the Cartridge identifier "AB" at 0x4000 or 0x8000
+            if ((rom.content.length === 65536 || rom.content.length === 49152)
                 && ((rom.content[0x4000] === 65 && rom.content[0x4001] === 66)
                 || (rom.content[0x8000] === 65 && rom.content[0x8001] === 66))) return this;
         },
