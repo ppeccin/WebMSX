@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Unbanked ROMs of size 8K, 16K, 32K or 64K. Position in slot depends on size, header (start address) and info hints
+// Unbanked ROMs of size 8K, 16K, 32K, 48K or 64K. Position in slot depends on size, header (start address) and info hints
 wmsx.CartridgeUnbanked = function(rom) {
 
     function init(self) {

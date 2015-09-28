@@ -100,7 +100,7 @@ wmsx.FileDiskDrive = function() {
         var startByte = logicalSector * BYTES_PER_SECTOR;
         var finishByte = startByte + quantSectors * BYTES_PER_SECTOR;
         // Disk boundary check
-        if ((startByte > dContent.length) || (finishByte > dContent.length - 1)) return null;
+        if ((startByte >= dContent.length) || (finishByte > dContent.length)) return null;
 
         return dContent.slice(startByte, finishByte);
     };
@@ -116,7 +116,7 @@ wmsx.FileDiskDrive = function() {
         if (!quantBytes) quantBytes = bytes.length;
 
         // Disk boundary check
-        if ((startByte > dContent.length) || (startByte + quantBytes > dContent.length - 1)) return false;
+        if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
 
         for (var i = 0; i < quantBytes; i++)
             dContent[startByte + i] = bytes[i];

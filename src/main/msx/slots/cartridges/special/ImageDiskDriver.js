@@ -4,7 +4,7 @@
 wmsx.ImageDiskDriver = function() {
 
     this.connect = function(diskBIOS, machine) {
-        bus = machine.bus;
+        ramSlot = machine.ram;
         drive = machine.getDiskDriveSocket().getDrive();
         patchDiskBIOS(diskBIOS);
     };
@@ -220,18 +220,18 @@ wmsx.ImageDiskDriver = function() {
 
         var res = new Array(quant);
         for (var i = 0; i < quant; i++)
-            res[i] = bus.read(address + i);
+            res[i] = ramSlot.read(address + i);          // TODO Memory read forced from RAM
 
         return res;
     }
 
     function writeToMemory(bytes, address) {
         for (var i = 0; i < bytes.length; i++)
-            bus.write(address + i, bytes[i]);
+            ramSlot.write(address + i, bytes[i]);        // TODO Memory write forced to RAM
     }
 
 
-    var bus;
+    var ramSlot;
     var drive;
 
 
