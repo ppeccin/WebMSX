@@ -37,7 +37,7 @@ WMSX = {
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 
-    VERSION:                        "0.9"                       // Don't change!
+    VERSION:                        "0.91"                      // Don't change!
 
 };
 

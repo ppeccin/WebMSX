@@ -200,7 +200,7 @@ wmsx.FileLoader = function() {
         }
 
         // Then try to get URL
-        var url = event.dataTransfer.getData("URL");
+        var url = event.dataTransfer.getData("URL");        // TODO Not working
         if (url && url.length > 0) {
             self.loadFromURL(url, port, altPower, asExpansion);
         }
