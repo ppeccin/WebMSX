@@ -2,8 +2,8 @@
 
 // TODO Investigate slow putImage()
 
-// This implementation is frame-accurate
-// Original base clock: 10738635 Hz wich is 3x CPU clock
+// This implementation is pattern-line-accurate (8 lines)
+// Original base clock: 10738635 Hz which is 3x CPU clock
 wmsx.VDP = function(cpu, psg) {
     var self = this;
 
@@ -11,6 +11,8 @@ wmsx.VDP = function(cpu, psg) {
         videoSignal = new wmsx.VDPVideoSignal();
         initColorCodePatternValues();
         initFrameResources();
+        cpuClockPulses = cpu.clockPulses;
+        psgClockPulses = psg.getAudioOutput().audioClockPulses;
         self.setDefaults();
     }
 
@@ -36,77 +38,33 @@ wmsx.VDP = function(cpu, psg) {
 
     // 342 pixel clocks, 228 CPU clocks per scanline
     // 59736 CPU clocks per frame for NTSC, 71364 for PAL
-    this.frameNEW = function() {
-        var cpuClocks = cpu.clockPulses;
-        var audioClocks = psg.getAudioOutput().audioClockPulses;
+    this.frame = function() {
+        //console.log(cpu.eval("cycles"));
+        //cpu.eval("cycles = 0");
 
-        // CPU cycles "during" active display (192 lines)       // 43776 CPU clocks, 1368 PSG clocks interleaved
-        for (var i = 1368; i > 0; i--) {
-            cpuClocks(32);
-            audioClocks(1);
-        }
-
-        // Update Sprites AFTER the active display CPU cycles, so code running right after INT
-        // have more time to change patterns before they are drawn
-        updatePatternPlanes();
-
-        // End of active display scan, request interrupt
-        status |= 0x80;
-        updateIRQ();
-
-        // CPU cycles "during" inactive display scan (X lines, depends on video standard)
+            // CPU and PSG cycles "during" inactive display scan (X lines, depends on video standard)
         if (videoStandard === wmsx.VideoStandard.NTSC) {
             for (i = 498; i > 0; i--) {                        // 15960 CPU clocks, 498 PSG clocks interleaved
-                cpuClocks(32);
-                audioClocks(1);
+                cpuClockPulses(32);
+                psgClockPulses(1);
             }
-            cpuClocks(24);
+            cpuClockPulses(24);
         } else {                                               // 27588 CPU clocks, 862 PSG clocks interleaved
             for (i = 862; i > 0; i--) {
-                cpuClocks(32);
-                audioClocks(1);
+                cpuClockPulses(32);
+                psgClockPulses(1);
             }
-            cpuClocks(4);
+            cpuClockPulses(4);
         }
 
-        // Update Sprites BEFORE the active display CPU cycles, so code running right before INT
-        // have a better chance to sense sprite collisions
-        updateSpritePlanes();       // Will set sprites flags (collision, illegal)
-
-        finishFrame();              // Send new frame to monitor
-
-        // Finish audio signal (generate additional samples each frame to adjust to sample rate)
-        psg.getAudioOutput().finishFrame();
-    };
-
-    this.frame = function() {
-
-        // Interleave CPU and PSG cycles
-        if (videoStandard === wmsx.VideoStandard.NTSC) {
-            for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
-                cpu.clockPulses(32);
-                psg.getAudioOutput().audioClockPulses(1);
-            }
-            cpu.clockPulses(24);
-        } else {                                                // 71364 CPU clocks, 2230 PSG clocks
-            for (i = 2230; i > 0; i--) {
-                cpu.clockPulses(32);
-                psg.getAudioOutput().audioClockPulses(1);
-            }
-            cpu.clockPulses(4);
-        }
-
-        // Finish audio signal (generate additional samples each frame to adjust to sample rate)
-        psg.getAudioOutput().finishFrame();
-
-        // Update everything
-        updatePatternPlanes();
-        updateSpritePlanes();
-        finishFrame();
+        // Visible display scan. Will interleave 43776 CPU and 1368 PSG clocks
+        updatePlanes();
 
         // Request interrupt
         status |= 0x80;
         updateIRQ();
+
+        finishFrame();
     };
 
     this.input99 = function() {
@@ -193,12 +151,12 @@ wmsx.VDP = function(cpu, psg) {
         currentPalette++;
         if (currentPalette >= palettes.length) currentPalette = 0;
         videoSignal.showOSD("Color Mode: " + palettes[currentPalette].name, true);
-        updateColorCodePatternValues();
+        setColorCodePatternValues();
     };
 
     this.setDefaults = function() {
         currentPalette = WMSX.SCREEN_COLOR_MODE;
-        updateColorCodePatternValues();
+        setColorCodePatternValues();
     };
 
     function reset() {
@@ -230,21 +188,29 @@ wmsx.VDP = function(cpu, psg) {
         }
     }
 
-    function updatePatternPlanes() {
-        if (signalBlanked) {
-            // Blank if needed
-            if (!frameBlanked) {
-                if (frameBackBuffer.fill) frameBackBuffer.fill(0);
-                else wmsx.Util.arrayFill(frameBackBuffer, 0);
-                frameBlanked = true;
-            }
-        } else {
+    function updatePlanes() {
+        if (!signalBlanked){
             // Update pattern planes
             if (mode === 1) updatePatternPlaneMode1();
             else if (mode === 0) updatePatternPlaneMode0();
             else if (mode === 4) updatePatternPlaneMode4();
             else if (mode === 2) updatePatternPlaneMode2();
             frameBlanked = false;
+        } else {
+            // 43776 CPU clocks, 1368 PSG clocks for the entire visible scan
+            for (var i = 1368; i > 0; i--) {
+                cpuClockPulses(32);
+                psgClockPulses(1);
+            }
+        }
+    }
+
+    function blankScreen() {
+        // Blank only if needed
+        if (!frameBlanked) {
+            if (frameBackBuffer.fill) frameBackBuffer.fill(0);
+            else wmsx.Util.arrayFill(frameBackBuffer, 0);
+            frameBlanked = true;
         }
     }
 
@@ -252,6 +218,13 @@ wmsx.VDP = function(cpu, psg) {
         var bufferPos = 0;
         var pos = 0;
         for (var line = 0; line < 24; line++) {
+            // 1824 CPU and 57 PSG clocks per pattern line
+            for (var i = 57; i > 0; i--) {
+                cpuClockPulses(32);
+                psgClockPulses(1);
+            }
+
+            // Pattern line
             for (var col = 0; col < 32; col++) {
                 var name = vramNameTable[pos];
                 var colorCode = vramColorTable[name >>> 3];                 // (name / 8) 1 color for each 8 patterns
@@ -267,6 +240,10 @@ wmsx.VDP = function(cpu, psg) {
                 bufferPos -= 2040;                                          // Go back to the next char starting pixel
                 pos++;
             }
+
+            // Sprites
+            updateSpritePlanes(line << 3, (line << 3) + 7);
+
             bufferPos += 1792;                                              // Go to the next line starting char pixel
         }
     }
@@ -275,6 +252,13 @@ wmsx.VDP = function(cpu, psg) {
         var bufferPos = 0;
         var pos = 0;
         for (var line = 0; line < 24; line++) {
+            // 1824 CPU and 57 PSG clocks per pattern line
+            for (var i = 57; i > 0; i--) {
+                cpuClockPulses(32);
+                psgClockPulses(1);
+            }
+
+            // Pattern line
             var nameExt = ((line >> 3) & register4) << 8;                   // line / 8 (each third of screen)
             for (var col = 0; col < 32; col++) {
                 var name = vramNameTable[pos] + nameExt;
@@ -291,6 +275,10 @@ wmsx.VDP = function(cpu, psg) {
                 bufferPos -= 2040;                                          // Go back to the next char starting pixel
                 pos++;
             }
+
+            // Sprites
+            updateSpritePlanes(line << 3, (line << 3) + 7);
+
             bufferPos += 1792;                                              // Go to the next line starting char pixel
         }
     }
@@ -299,7 +287,14 @@ wmsx.VDP = function(cpu, psg) {
         var bufferPos = 0;
         var pos = 0;
         for (var line = 0; line < 24; line++) {
-            var extraPattPos = (line & 0x03) << 1;                           // (line % 4) * 2
+            // 1824 CPU and 57 PSG clocks per pattern line
+            for (var i = 57; i > 0; i--) {
+                cpuClockPulses(32);
+                psgClockPulses(1);
+            }
+
+            // Pattern line
+            var extraPattPos = (line & 0x03) << 1;                          // (line % 4) * 2
             for (var col = 0; col < 32; col++) {
                 var name = vramNameTable[pos];
                 var patternStart = (name << 3) + extraPattPos;              // (name * 8 + position) 2 bytes each
@@ -320,6 +315,10 @@ wmsx.VDP = function(cpu, psg) {
                 bufferPos -= 2040;                                          // Go back to the next char starting pixel
                 pos++;
             }
+
+            // Sprites
+            updateSpritePlanes(line << 3, (line << 3) + 7);
+
             bufferPos += 1792;                                              // Go to the next line starting char pixel
         }
     }
@@ -331,6 +330,13 @@ wmsx.VDP = function(cpu, psg) {
         var colorCodeValuesStart = colorCode << 8;                          // (colorCode * 256) 256 patterns for each colorCode
         var borderValues = colorCodePatternValues[colorCodeValuesStart];
         for (var line = 0; line < 24; line++) {
+            // 1824 CPU and 57 PSG clocks per pattern line
+            for (var i = 57; i > 0; i--) {
+                cpuClockPulses(32);
+                psgClockPulses(1);
+            }
+
+            // Pattern line
             for (var borderLine = 0; borderLine < 8; borderLine++) {
                 frameBackBuffer.set(borderValues, bufferPos);               // 8 pixels left border
                 bufferPos += 256;
@@ -353,12 +359,15 @@ wmsx.VDP = function(cpu, psg) {
                 frameBackBuffer.set(borderValues, bufferPos);               // 8 pixels right border
                 bufferPos += 256;
             }
+
+            // Sprite system deactivated
+
             bufferPos -= 248;                                               // Go to the next line starting char pixel
         }
     }
 
-    function updateSpritePlanes() {
-        if (signalBlanked || mode === 4 || vramSpriteAttrTable[0] === 208) return;      // Sprites deactivated
+    function updateSpritePlanes(fromLine, toLine) {
+        if (signalBlanked || vramSpriteAttrTable[0] === 208) return;        // Sprites deactivated
 
         var colorCodeValuesStart, patternStart, name, color, pattern, values;
         var drawn;
@@ -366,27 +375,27 @@ wmsx.VDP = function(cpu, psg) {
         var invalid = null;
         var line, atrPos, y, x;
         var s, f;
-        var bufferPos = 0;
+        var bufferPos = fromLine << 8;                                      // line * 256
         var size = register1 & 0x03;
 
-        if (size === 2) {                                                    // 16x16 normal
-            for (line = 0; line < 192; line++) {
+        if (size === 2) {                                                   // 16x16 normal
+            for (line = fromLine; line <= toLine; line++) {
                 drawn = 0;
-                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {               // Max of 32 sprites
                     y = vramSpriteAttrTable[atrPos];
-                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
-                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
-                    if ((y < (line - 15)) || (y > line)) continue;           // Not visible at line
+                    if (y === 208) break;                                   // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                             // Signed value from -31 to -1
+                    y++;                                                    // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 15)) || (y > line)) continue;          // Not visible at line
                     drawn++;
-                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                    if (drawn > 4) {                                        // Max of 4 sprites drawn. Store the first invalid (5th)
                         if (!invalid) invalid = atrPos >> 2;
                         break;
                     }
                     x = vramSpriteAttrTable[atrPos + 1];
                     color = vramSpriteAttrTable[atrPos + 3];
-                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
-                    if (x < -15) continue;                                   // Not visible (out to the left)
+                    if (color & 0x80) x -= 32;                              // Early Clock bit, X to be 32 to the left
+                    if (x < -15) continue;                                  // Not visible (out to the left)
                     name = vramSpriteAttrTable[atrPos + 2];
                     colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
                     patternStart = ((name & 0xfc) << 3) + (line - y);
@@ -407,24 +416,24 @@ wmsx.VDP = function(cpu, psg) {
                 }
                 bufferPos += 256;
             }
-        } else if (size === 0) {                                             // 8x8 normal
-            for (line = 0; line < 192; line++) {
+        } else if (size === 0) {                                            // 8x8 normal
+            for (line = fromLine; line <= toLine; line++) {
                 drawn = 0;
-                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {               // Max of 32 sprites
                     y = vramSpriteAttrTable[atrPos];
-                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
-                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
-                    if ((y < (line - 7)) || (y > line)) continue;            // Not visible at line
+                    if (y === 208) break;                                   // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                             // Signed value from -31 to -1
+                    y++;                                                    // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 7)) || (y > line)) continue;           // Not visible at line
                     drawn++;
-                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                    if (drawn > 4) {                                        // Max of 4 sprites drawn. Store the first invalid (5th)
                         if (!invalid) invalid = atrPos >> 2;
                         break;
                     }
                     x = vramSpriteAttrTable[atrPos + 1];
                     color = vramSpriteAttrTable[atrPos + 3];
-                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
-                    if (x < -7) continue;                                    // Not visible (out to the left)
+                    if (color & 0x80) x -= 32;                              // Early Clock bit, X to be 32 to the left
+                    if (x < -7) continue;                                   // Not visible (out to the left)
                     name = vramSpriteAttrTable[atrPos + 2];
                     colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
                     patternStart = (name << 3) + (line - y);
@@ -437,24 +446,24 @@ wmsx.VDP = function(cpu, psg) {
                 }
                 bufferPos += 256;
             }
-        } else if (size === 3) {                                             // 16x16 double
-            for (line = 0; line < 192; line++) {
+        } else if (size === 3) {                                            // 16x16 double
+            for (line = fromLine; line <= toLine; line++) {
                 drawn = 0;
-                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {               // Max of 32 sprites
                     y = vramSpriteAttrTable[atrPos];
-                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
-                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
-                    if ((y < (line - 31)) || (y > line)) continue;           // Not visible at line
+                    if (y === 208) break;                                   // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                             // Signed value from -31 to -1
+                    y++;                                                    // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 31)) || (y > line)) continue;          // Not visible at line
                     drawn++;
-                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                    if (drawn > 4) {                                        // Max of 4 sprites drawn. Store the first invalid (5th)
                         if (!invalid) invalid = atrPos >> 2;
                         break;
                     }
                     x = vramSpriteAttrTable[atrPos + 1];
                     color = vramSpriteAttrTable[atrPos + 3];
-                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
-                    if (x < -31) continue;                                   // Not visible (out to the left)
+                    if (color & 0x80) x -= 32;                              // Early Clock bit, X to be 32 to the left
+                    if (x < -31) continue;                                  // Not visible (out to the left)
                     name = vramSpriteAttrTable[atrPos + 2];
                     colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
                     patternStart = ((name & 0xfc) << 3) + ((line - y) >>> 1);   // Double line height
@@ -475,27 +484,27 @@ wmsx.VDP = function(cpu, psg) {
                 }
                 bufferPos += 256;
             }
-        } else {                                                             // 8x8 double
-            for (line = 0; line < 192; line++) {
+        } else {                                                            // 8x8 double
+            for (line = fromLine; line <= toLine; line++) {
                 drawn = 0;
-                for (atrPos = 0; atrPos < 128; atrPos += 4) {                // Max of 32 sprites
+                for (atrPos = 0; atrPos < 128; atrPos += 4) {               // Max of 32 sprites
                     y = vramSpriteAttrTable[atrPos];
-                    if (y === 208) break;                                    // Stop Sprite processing for the line, as per spec
-                    if (y >= 225) y = -256 + y;                              // Signed value from -31 to -1
-                    y++;                                                     // -1 (255) is line 0 per spec, so add 1
-                    if ((y < (line - 15)) || (y > line)) continue;           // Not visible at line
+                    if (y === 208) break;                                   // Stop Sprite processing for the line, as per spec
+                    if (y >= 225) y = -256 + y;                             // Signed value from -31 to -1
+                    y++;                                                    // -1 (255) is line 0 per spec, so add 1
+                    if ((y < (line - 15)) || (y > line)) continue;          // Not visible at line
                     drawn++;
-                    if (drawn > 4) {                                         // Max of 4 sprites drawn. Store the first invalid (5th)
+                    if (drawn > 4) {                                        // Max of 4 sprites drawn. Store the first invalid (5th)
                         if (!invalid) invalid = atrPos >> 2;
                         break;
                     }
                     x = vramSpriteAttrTable[atrPos + 1];
                     color = vramSpriteAttrTable[atrPos + 3];
-                    if (color & 0x80) x -= 32;                               // Early Clock bit, X to be 32 to the left
-                    if (x < -15) continue;                                   // Not visible (out to the left)
+                    if (color & 0x80) x -= 32;                              // Early Clock bit, X to be 32 to the left
+                    if (x < -15) continue;                                  // Not visible (out to the left)
                     name = vramSpriteAttrTable[atrPos + 2];
                     colorCodeValuesStart = ((color & 0x0f) << 4) << 8;
-                    patternStart = (name << 3) + ((line - y) >>> 1);         // Double line height
+                    patternStart = (name << 3) + ((line - y) >>> 1);        // Double line height
                     s = x >= 0 ? 0 : -x; f = x <= 240 ? 16 : 256 - x;
                     if (s < f) {
                         pattern = vramSpritePatternTable[patternStart];
@@ -511,7 +520,7 @@ wmsx.VDP = function(cpu, psg) {
             //console.log("Collision");
             status |= 0x20;
         }
-        if (invalid && ((status & 0x40) === 0)) {
+        if ((invalid !== null) && ((status & 0x40) === 0)) {
             //console.log("Invalid sprite: " + invalid);
             status = status | 0x40 | invalid;
         }
@@ -536,7 +545,10 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function finishFrame() {
+        // Finish audio signal (generate additional samples each frame to adjust to sample rate)
+        psg.getAudioOutput().finishFrame();
         // Update image and send to monitor
+        if (signalBlanked) blankScreen();
         frameContext.putImageData(frameImageData, 0, 0);
         videoSignal.newFrame(frameCanvas, backdropRGB);
     }
@@ -565,7 +577,7 @@ wmsx.VDP = function(cpu, psg) {
         }
     }
 
-    function updateColorCodePatternValues() {
+    function setColorCodePatternValues() {
         colorRGBs = palettes[currentPalette].colors;
         backdropRGB = colorRGBs[register7 & 0x0f];
         var sizePerColorCode = 256 * 8;
@@ -663,6 +675,9 @@ wmsx.VDP = function(cpu, psg) {
     var videoSignal;
     var engine;
 
+    var cpuClockPulses;
+    var psgClockPulses;
+
 
     // Savestate  -------------------------------------------
 
@@ -701,3 +716,79 @@ wmsx.VDP = function(cpu, psg) {
     };
 
 };
+
+
+//this.frameAlternateFA = function() {
+//    var cpuClocks = cpu.clockPulses;
+//    var audioClocks = psg.getAudioOutput().audioClockPulses;
+//
+//    // CPU cycles "during" active display (192 lines)       // 43776 CPU clocks, 1368 PSG clocks interleaved
+//    for (var i = 1368; i > 0; i--) {
+//        cpuClocks(32);
+//        audioClocks(1);
+//    }
+//
+//    // Update Sprites AFTER the active display CPU cycles, so code running right after INT
+//    // have more time to change patterns before they are drawn
+//    updatePatternPlanes();
+//
+//    // End of active display scan, request interrupt
+//    status |= 0x80;
+//    updateIRQ();
+//
+//    // CPU cycles "during" inactive display scan (X lines, depends on video standard)
+//    if (videoStandard === wmsx.VideoStandard.NTSC) {
+//        for (i = 498; i > 0; i--) {                        // 15960 CPU clocks, 498 PSG clocks interleaved
+//            cpuClocks(32);
+//            audioClocks(1);
+//        }
+//        cpuClocks(24);
+//    } else {                                               // 27588 CPU clocks, 862 PSG clocks interleaved
+//        for (i = 862; i > 0; i--) {
+//            cpuClocks(32);
+//            audioClocks(1);
+//        }
+//        cpuClocks(4);
+//    }
+//
+//    // Update Sprites BEFORE the active display CPU cycles, so code running right before INT
+//    // have a better chance to sense sprite collisions
+//    updateSpritePlanes(0, 191);       // Will set sprites flags (collision, illegal)
+//
+//    finishFrame();              // Send new frame to monitor
+//
+//    // Finish audio signal (generate additional samples each frame to adjust to sample rate)
+//    psg.getAudioOutput().finishFrame();
+//};
+//
+
+//this.frameFA = function() {
+//
+//    // Interleave CPU and PSG cycles
+//    if (videoStandard === wmsx.VideoStandard.NTSC) {
+//        for (var i = 1866; i > 0; i--) {                    // 59736 CPU clocks, 1866 PSG clocks
+//            cpu.clockPulses(32);
+//            psg.getAudioOutput().audioClockPulses(1);
+//        }
+//        cpu.clockPulses(24);
+//    } else {                                                // 71364 CPU clocks, 2230 PSG clocks
+//        for (i = 2230; i > 0; i--) {
+//            cpu.clockPulses(32);
+//            psg.getAudioOutput().audioClockPulses(1);
+//        }
+//        cpu.clockPulses(4);
+//    }
+//
+//    // Finish audio signal (generate additional samples each frame to adjust to sample rate)
+//    psg.getAudioOutput().finishFrame();
+//
+//    // Update everything
+//    updatePlanes();
+//    // updateSpritePlanes(0, 191);
+//    finishFrame();
+//
+//    // Request interrupt
+//    status |= 0x80;
+//    updateIRQ();
+//};
+//
