@@ -622,24 +622,24 @@ wmsx.Machine = function() {
 
     // Debug methods  ------------------------------------------------------
 
-    //this.startProfiling = function() {
-    //    var lastFrameCount = this.framesGenerated;
-    //    setInterval(function() {
-    //        wmsx.Util.log(self.framesGenerated - lastFrameCount);
-    //        lastFrameCount = self.framesGenerated;
-    //    }, 1000);
-    //};
+    this.startProfiling = function() {
+        var lastFrameCount = this.framesGenerated;
+        setInterval(function() {
+            wmsx.Util.log(self.framesGenerated - lastFrameCount);
+            lastFrameCount = self.framesGenerated;
+        }, 1000);
+    };
 
-    //this.runFramesAtTopSpeed = function(frames) {
-    //    pause();
-    //    var start = performance.now();
-    //    for (var i = 0; i < frames; i++)
-    //        self.clockPulse();
-    //    var duration = performance.now() - start;
-    //    wmsx.Util.log("Done running " + frames + " in " + duration + " ms");
-    //    wmsx.Util.log(frames / (duration/1000) + "frames/sec");
-    //    go();
-    //};
+    this.runFramesAtTopSpeed = function(frames) {
+        mainClock.pause();
+        var start = performance.now();
+        for (var i = 0; i < frames; i++)
+            self.clockPulse();
+        var duration = performance.now() - start;
+        wmsx.Util.log("Done running " + frames + " frames in " + duration + " ms");
+        wmsx.Util.log(frames / (duration/1000) + "  frames/sec");
+        mainClock.go();
+    };
 
     this.eval = function(str) {
         return eval(str);
