@@ -7,8 +7,21 @@ WMSX.presets = {
         EXPANSION0_URL: "wmsx/roms/Disk.rom"
     },
 
+    NTSC: this.DEFAULT,
+
+    PAL: {
+        BIOS_URL:       "wmsx/roms/MSX1PALa.bios",
+        EXPANSION0_URL: "wmsx/roms/Disk.rom"
+    },
+
     NODISK: {
         BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios"
+    },
+
+    NTSCNODISK: this.NODISK,
+
+    PALNODISK: {
+        BIOS_URL:       "wmsx/roms/MSX1PALa.bios"
     },
 
     EMPTY: {
@@ -19,6 +32,10 @@ WMSX.presets = {
     EXPERT: {
         BIOS_URL:       "wmsx/roms/Expert10.bios",
         EXPANSION0_URL: "wmsx/roms/DiskCDX2.rom"
+    },
+
+    EXPERTNODISK: {
+        BIOS_URL:       "wmsx/roms/Expert10.bios"
     }
 
 };

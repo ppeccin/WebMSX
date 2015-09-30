@@ -139,7 +139,7 @@ wmsx.Machine = function() {
             vdp.setVideoStandard(videoStandard);
             mainClockAdjustToNormal();
         }
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name + " " + (videoStandard.fps | 0) +"Hz", false);
+        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name + " " + (videoStandard.fps | 0) + "Hz", false);
     };
 
     var setVideoStandardAuto = function() {
