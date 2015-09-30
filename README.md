@@ -9,10 +9,10 @@ Still in development, the first beta release is available and should be already 
 
 Please go to http://webmsx.org and enjoy it!
 
-Release 0.92
+### Release 0.92
 - Line accuracy
 
-Release 0.91
+### Release 0.91
 - 48K ROM support
 - Fixed loading of programs under MSX-DOS
 
