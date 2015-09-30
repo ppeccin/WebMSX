@@ -8,3 +8,12 @@ Instead, it will focus on delivering a simple and straight forward experience, w
 Still in development, the first beta release is available and should be already capable of emulating the majority of MSX1 software.
 
 Please go to http://webmsx.org and enjoy it!
+
+Release 0.92
+- Line accuracy
+
+Release 0.91
+- 48K ROM support
+- Fixed loading of programs under MSX-DOS
+
+
