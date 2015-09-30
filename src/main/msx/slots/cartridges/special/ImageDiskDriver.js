@@ -3,8 +3,8 @@
 // Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageDiskDriver = function() {
 
-    this.connect = function(diskBIOS, machine) {
-        ramSlot = machine.ram;
+    this.connect = function(diskBIOS, pMachine) {
+        machine = pMachine;
         drive = machine.getDiskDriveSocket().getDrive();
         patchDiskBIOS(diskBIOS);
     };
@@ -217,7 +217,7 @@ wmsx.ImageDiskDriver = function() {
 
     function readFromMemory(address, quant) {
         // console.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
-
+        var ramSlot = machine.ram;
         var res = new Array(quant);
         for (var i = 0; i < quant; i++)
             res[i] = ramSlot.read(address + i);          // TODO Memory read forced from RAM
@@ -226,12 +226,13 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function writeToMemory(bytes, address) {
+        var ramSlot = machine.ram;
         for (var i = 0; i < bytes.length; i++)
             ramSlot.write(address + i, bytes[i]);        // TODO Memory write forced to RAM
     }
 
 
-    var ramSlot;
+    var machine;
     var drive;
 
 
