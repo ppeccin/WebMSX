@@ -9,6 +9,9 @@ Still in development, the first beta release is available and should be already 
 
 Please go to http://webmsx.org and enjoy it!
 
+#### Release 0.931
+- URL parameter types normalization bugfix
+
 #### Release 0.93
 - Line accuracy for backdrop and blank screen
 - Better invalid sprite handling
