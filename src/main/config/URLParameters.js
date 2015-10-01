@@ -12,6 +12,8 @@ wmsx.URLParameters = {
         // Then replace parameters for values passed in URL
         for (var param in params)
             if (WMSX[param] !== undefined) WMSX[param] = params[param];
+
+        this.normalizeParameters();
     },
 
     parseURLParams: function() {
@@ -49,6 +51,21 @@ wmsx.URLParameters = {
         STATE: "STATE_LOAD_URL",
         SAVESTATE: "STATE_LOAD_URL",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
+    },
+
+    normalizeParameters: function () {
+        WMSX.AUTO_START_DELAY = WMSX.AUTO_START_DELAY | 0;
+        WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
+        WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
+        WMSX.SCREEN_FULLSCREEN_DISABLED = WMSX.SCREEN_FULLSCREEN_DISABLED === true || WMSX.SCREEN_FULLSCREEN_DISABLED == "true";
+        WMSX.SCREEN_FILTER_MODE = WMSX.SCREEN_FILTER_MODE | 0;
+        WMSX.SCREEN_CRT_MODE = WMSX.SCREEN_CRT_MODE | 0;
+        WMSX.SCREEN_OPENING_SIZE = parseFloat(WMSX.SCREEN_OPENING_SIZE);
+        WMSX.SCREEN_SHARP_SIZE = WMSX.SCREEN_SHARP_SIZE | 0;
+        WMSX.SCREEN_CONTROL_BAR = WMSX.SCREEN_CONTROL_BAR | 0;
+        WMSX.SCREEN_NATURAL_FPS = WMSX.SCREEN_NATURAL_FPS | 0;
+        WMSX.SCREEN_COLOR_MODE = WMSX.SCREEN_COLOR_MODE | 0;
+        WMSX.AUDIO_BUFFER_SIZE = WMSX.AUDIO_BUFFER_SIZE | 0;
     }
 
 };

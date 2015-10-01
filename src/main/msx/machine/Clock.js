@@ -62,7 +62,7 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
     var animationFrame = null;
     var interval = null;
 
-    var NATURAL_FPS = 60;
+    var NATURAL_FPS = WMSX.SCREEN_NATURAL_FPS;
 
     init();
 

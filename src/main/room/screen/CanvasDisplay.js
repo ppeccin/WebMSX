@@ -81,7 +81,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
             return scaleX | 0;
         } else
-            return wmsx.Monitor.DEFAULT_SCALE_X;
+            return WMSX.SCREEN_OPENING_SIZE;
     };
 
     this.displaySize = function(width, height, contentBorderWidth, contentBorderHeight) {
@@ -328,7 +328,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.style.left = "0";
         buttonsBar.style.right = "0";
         buttonsBar.style.height = "29px";
-        if (WMSX.SCREEN_CONTROL_BAR === 1) {
+        if (WMSX.SCREEN_CONTROL_BAR == 1) {
             buttonsBar.style.bottom = "-30px";
             buttonsBar.style.background = "rgba(30, 30, 28, .75)";
             buttonsBar.style.transition = "bottom 0.3s ease-in-out";
@@ -453,7 +453,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         but.style.outline = "none";
 
         if (!noImage) {
-            but.style.backgroundImage = "url(" + IMAGE_PATH + "sprites.png" + ")";
+            but.style.backgroundImage = "url(" + IMAGES_PATH + "sprites.png" + ")";
             but.style.backgroundPosition = "" + px + "px " + py + "px";
             but.style.backgroundRepeat = "no-repeat";
         }
@@ -545,7 +545,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             logoImage.isLoaded = true;
             updateLogo();
         };
-        logoImage.src = IMAGE_PATH + "logo.png";
+        logoImage.src = IMAGES_PATH + "logo.png";
     };
 
     var setupLoadingIcon = function() {
@@ -576,7 +576,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             loadingImage.isLoaded = true;
             updateLogo();
         };
-        loadingImage.src = IMAGE_PATH + "loading.gif";
+        loadingImage.src = IMAGES_PATH + "loading.gif";
     };
 
     var setupOSD = function() {
@@ -601,7 +601,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     var setupProperties = function() {
-        if (WMSX.SCREEN_CONTROL_BAR === 1) {     // Hover
+        if (WMSX.SCREEN_CONTROL_BAR == 1) {            // Hover
             borderTop = 1;
             borderLateral = 1;
             borderBottom = 1;
@@ -673,7 +673,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var KEY_ALT_MASK   =  64;
     var KEY_SHIFT_MASK =  128;
 
-    var IMAGE_PATH = WMSX.IMAGES_PATH;
+    var IMAGES_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;
     var DEFAULT_SCALE_ASPECT_X = 1;
 

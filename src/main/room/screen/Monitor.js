@@ -37,7 +37,7 @@ wmsx.Monitor = function() {
             var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.BASE_WIDTH, wmsx.Monitor.BASE_HEIGHT);
             setDisplayScale(scX, scX / DEFAULT_SCALE_ASPECT_X);
         } else
-            setDisplayScale(wmsx.Monitor.DEFAULT_SCALE_X, wmsx.Monitor.DEFAULT_SCALE_Y);
+            setDisplayScale(WMSX.SCREEN_OPENING_SIZE, WMSX.SCREEN_OPENING_SIZE);
         displayCenter();
     };
 
@@ -170,5 +170,3 @@ wmsx.Monitor.BORDER_WIDTH = 6;
 wmsx.Monitor.BORDER_HEIGHT = 6;
 wmsx.Monitor.CONTENT_WIDTH = wmsx.Monitor.BASE_WIDTH + wmsx.Monitor.BORDER_WIDTH * 2;
 wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.BASE_HEIGHT + wmsx.Monitor.BORDER_HEIGHT * 2;
-wmsx.Monitor.DEFAULT_SCALE_X = WMSX.SCREEN_OPENING_SIZE;
-wmsx.Monitor.DEFAULT_SCALE_Y = WMSX.SCREEN_OPENING_SIZE;
