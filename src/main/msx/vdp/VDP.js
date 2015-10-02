@@ -109,12 +109,12 @@ wmsx.VDP = function(cpu, psg) {
                } else if (reg === 3) {
                     register3 = dataToWrite;
                     colorTableAddress = dataToWrite * 0x40;
-                    if (mode === 1) colorTableAddress &= 0x2000;
+                    if (mode === 1) updateMode1Specifics();
                     vramColorTable = vram.subarray(colorTableAddress);
                } else if (reg === 4) {
                     register4 = dataToWrite;
                     patternTableAddress = (dataToWrite & 0x07) * 0x800;
-                    if (mode === 1) patternTableAddress &= 0x2000;
+                    if (mode === 1) updateMode1Specifics();
                     vramPatternTable = vram.subarray(patternTableAddress);
                } else if (reg === 5) {
                    spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
@@ -171,6 +171,7 @@ wmsx.VDP = function(cpu, psg) {
         register0 = register1 = register3 = register4 = register7 = 0;
         vramWriteMode = false;
         signalBlanked = true;
+        updateMode();
         updateBackdropColor();
     }
 
@@ -185,14 +186,19 @@ wmsx.VDP = function(cpu, psg) {
         var oldMode = mode;
         mode = ((register1 & 0x18) >>> 2) | ((register0 & 0x02) >>> 1);
         if (mode !== oldMode && (mode === 1 || oldMode === 1)) {
-            // Special rule for register 3 and 4 when in mode 1
-            colorTableAddress = register3 * 0x40;
-            if (mode === 1) colorTableAddress &= 0x2000;
-            vramColorTable = vram.subarray(colorTableAddress);
             patternTableAddress = (register4 & 0x07) * 0x800;
-            if (mode === 1) patternTableAddress &= 0x2000;
+            colorTableAddress = register3 * 0x40;
+            if (mode === 1) updateMode1Specifics();
+            vramColorTable = vram.subarray(colorTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
         }
+    }
+
+    function updateMode1Specifics() {                     // Special rules for register 3 and 4 when in mode 1
+        colorTableAddress &= 0x2000;
+        patternTableAddress &= 0x2000;
+        patternNameMask = (register4 << 8) | 0xff;        // Mask for the upper 2 bits of the 10 bits patternName
+        colorNameMask = (register3 << 3) | 0x07;          // Mask for the upper 7 bits of the 10 bits color name
     }
 
     function updatePlanes() {
@@ -216,11 +222,11 @@ wmsx.VDP = function(cpu, psg) {
             cpuClockPulses(4);
 
             // Pattern line
-            patPos = (line >>> 3) << 5;                                     // line / 8 * 32
             if (signalBlanked) values = backdropValues;
+            else patPos = (line >>> 3) << 5;                                // line / 8 * 32
             for (var col = 0; col < 32; col++) {
                 if (!signalBlanked) {
-                    name = vramNameTable[patPos];
+                    name = vramNameTable[patPos++];
                     patternLine = (name << 3) + (line & 0x07);              // name * 8 (8 bytes each pattern) + line inside pattern
                     pattern = vramPatternTable[patternLine];
                     colorCode = vramColorTable[name >>> 3];                 // name / 8 (1 color for each 8 patterns)
@@ -230,7 +236,6 @@ wmsx.VDP = function(cpu, psg) {
                 }
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;                                             // Advance 8 pixels
-                patPos++;
             }
 
             // Sprites
@@ -243,7 +248,7 @@ wmsx.VDP = function(cpu, psg) {
 
     function updatePatternPlaneMode1() {                                    // Graphics 2 (Screen 2)
         var bufferPos = 0;
-        var patPos, name, nameExt, patternLine, pattern, colorCode, colorCodeValuesStart, values;
+        var patPos, lineInPattern, name, blockExtra, patternMask, patLine, pattern, colorMask, colorLine, colorCode, colorCodeValuesStart, values;
 
         for (var line = 0; line < 192; line++) {
             // 228 CPU and 7,125 PSG clocks per line
@@ -254,29 +259,33 @@ wmsx.VDP = function(cpu, psg) {
             cpuClockPulses(4);
 
             // Pattern line
-            nameExt = ((line >>> 6) & register4) << 8;                      // line / 64 (each third of screen)
-            patPos = (line >>> 3) << 5;                                     // line / 8 * 32
-            if (signalBlanked) values = backdropValues;
+            lineInPattern = (line & 0x07);
+            if (signalBlanked)
+                values = backdropValues;
+            else {
+                blockExtra = (line & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
+                patPos = (line >>> 3) << 5;                                 // line / 8 * 32
+            }
             for (var col = 0; col < 32; col++) {
                 if (!signalBlanked) {
-                    name = vramNameTable[patPos] + nameExt;
-                    patternLine = (name << 3) + (line & 0x07);              // name * 8 (8 bytes each pattern) + line inside pattern
-                    pattern = vramPatternTable[patternLine];
-                    colorCode = vramColorTable[patternLine];
+                    name = vramNameTable[patPos++] | blockExtra;
+                    patLine = ((name & patternNameMask) << 3) + lineInPattern;  // (8 bytes each pattern) + line inside pattern
+                    pattern = vramPatternTable[patLine];
+                    colorLine = ((name & colorNameMask) << 3) + lineInPattern;  // (8 bytes each pattern) + line inside pattern
+                    colorCode = vramColorTable[colorLine];
                     if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
                     colorCodeValuesStart = colorCode << 8;                  // colorCode * 256 (256 patterns for each colorCode)
                     values = colorCodePatternValues[colorCodeValuesStart + pattern];
                 }
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;                                             // Advance 8 pixels
-                patPos++;
             }
 
             // Sprites
             if (!signalBlanked) updateSpritePlanes(line);
 
             // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
+            if (lineInPattern === 0) psgClockPulses(1);
         }
     }
 
@@ -293,12 +302,15 @@ wmsx.VDP = function(cpu, psg) {
             cpuClockPulses(4);
 
             // Pattern line
-            patPos = (line >>> 3) << 5;                                     // line / 8 * 32
-            extraPatPos = ((line >>> 3) & 0x03) << 1;                       // (pattern line % 4) * 2
-            if (signalBlanked) values = backdropValues;
+            if (signalBlanked)
+                values = backdropValues;
+            else {
+                patPos = (line >>> 3) << 5;                            // line / 8 * 32
+                extraPatPos = ((line >>> 3) & 0x03) << 1;              // (pattern line % 4) * 2
+            }
             for (var col = 0; col < 32; col++) {
                 if (!signalBlanked) {
-                    name = vramNameTable[patPos];
+                    name = vramNameTable[patPos++];
                     patternLine = (name << 3) + ((line >> 2) & 0x01) + extraPatPos;   // name * 8 + position (2 bytes each)
                     colorCode = vramPatternTable[patternLine];
                     if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
@@ -307,7 +319,6 @@ wmsx.VDP = function(cpu, psg) {
                 }
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
-                patPos++;
             }
 
             // Sprites
@@ -339,20 +350,19 @@ wmsx.VDP = function(cpu, psg) {
                 if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
                 colorCodeValuesStart = colorCode << 8;                          // (colorCode * 256) 256 patterns for each colorCode
                 borderValues = colorCodePatternValues[colorCodeValuesStart];
+                patPos = (line >>> 3) * 40;                                     // line / 8 * 40
             }
             frameBackBuffer.set(borderValues, bufferPos);                   // 8 pixels left margin
             bufferPos += 8;
-            patPos = (line >>> 3) * 40;                                     // line / 8 * 40
             for (var col = 0; col < 40; col++) {
                 if (!signalBlanked) {
-                    name = vramNameTable[patPos];
+                    name = vramNameTable[patPos++];
                     patternLine = (name << 3) + (line & 0x07);              // name * 8 (8 bytes each pattern) + line inside pattern
                     pattern = vramPatternTable[patternLine];
                     values = colorCodePatternValues[colorCodeValuesStart + pattern];
                 }
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 6;                                             // Advance 6 pixels
-                patPos++;
             }
             frameBackBuffer.set(borderValues, bufferPos);                   // 8 pixels right margin
             bufferPos += 8;
@@ -375,7 +385,6 @@ wmsx.VDP = function(cpu, psg) {
         var bufferPos = line << 8;                                          // line * 256
 
         spriteCollision = false;
-
 
         if (size === 2) {                                                   // 16x16 normal
             for (atrPos = 0; atrPos < 128; atrPos += 4) {                   // Max of 32 sprites
@@ -616,6 +625,8 @@ wmsx.VDP = function(cpu, psg) {
     var spriteAttrTableAddress = 0;
     var spritePatternTableAddress = 0;
 
+    var patternNameMask, colorNameMask;     // Special masks from register3 and register4 for mode 1 only
+
     var dataToWrite = null;
     var vramPointer = 0;
     var vramWriteMode = false;
@@ -697,6 +708,7 @@ wmsx.VDP = function(cpu, psg) {
         vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
         vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
         signalBlanked = (register1 & 0x40) === 0;
+        if (mode === 1) updateMode1Specifics();
         updateBackdropColor();
         this.setVideoStandard(wmsx.VideoStandard[s.vs]);
     };
