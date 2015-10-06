@@ -17,7 +17,6 @@ wmsx.PSGAudioSignal = function() {
 
     this.signalOn = function() {
         signalOn = true;
-        mixedChannel.reset();
     };
 
     this.signalOff = function() {
@@ -34,7 +33,11 @@ wmsx.PSGAudioSignal = function() {
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
-    this.setExternalSignal = function(val) {
+    this.setAudioCartridge = function(cart) {
+        audioCartridge = cart;
+    };
+
+    this.setExternalSignalValue = function(val) {
         externalAddedValue = val;
     };
 
@@ -81,13 +84,15 @@ wmsx.PSGAudioSignal = function() {
         for (var i = quant; i > 0; i--) {
             if (signalOn) {
                 mixedSample = mixedChannel.nextSample();
+                // Add the External value. Used by the PPI to generate the Keyboard Click
+                mixedSample += externalAddedValue;
+                // Addd the AudioCartridge value
+                if (audioCartridge) mixedSample += audioCartridge.nextSample();
                 // Add a little damper effect to round the edges of the square wave
                 if (mixedSample !== lastSample) {
                     mixedSample = (mixedSample * 2 + lastSample) / 3;
                     lastSample = mixedSample;
                 }
-                // Add the External value. Used by the PPI to generate the Keyboard Click
-                mixedSample += externalAddedValue;
             } else {
                 mixedSample = 0;
             }
@@ -116,6 +121,7 @@ wmsx.PSGAudioSignal = function() {
     var lastSample = 0;
 
     var externalAddedValue = 0;
+    var audioCartridge;
 
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
     var MAX_AMPLITUDE = 0.62;

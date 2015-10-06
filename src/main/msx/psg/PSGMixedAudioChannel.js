@@ -137,9 +137,6 @@ wmsx.PSGMixedAudioChannel = function() {
         setEnvelopeAmplitudes();
     };
 
-    this.reset = function() {
-    };
-
     function cycleEnvelope(alternate, hold) {
         if (alternate ^ hold) attackE = !attackE;
         currentValueE = attackE ? 0 : 15;

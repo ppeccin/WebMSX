@@ -16,8 +16,7 @@ wmsx.VDP = function(cpu, psg) {
         self.setDefaults();
     }
 
-    this.connectEngine = function(pEngine) {
-        engine = pEngine;
+    this.connectBus = function(bus) {
     };
 
     this.powerOn = function(paused) {
@@ -679,7 +678,6 @@ wmsx.VDP = function(cpu, psg) {
     // Connections
 
     var videoSignal;
-    var engine;
 
     var cpuClockPulses;
     var psgClockPulses;

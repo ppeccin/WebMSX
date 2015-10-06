@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
+// Controls an internal SCC soundchip with audio output through PSG
 wmsx.CartridgeKonamiSCC = function(rom) {
 
     function init(self) {
@@ -13,28 +14,43 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         numBanks = (content.length / 8192) | 0;
     }
 
+    this.connect = function(machine) {
+        psgAudioOutput = machine.psg.getAudioOutput();
+        scc = new wmsx.SCCMixedAudioChannel();
+        psgAudioOutput.setAudioCartridge(scc);
+    };
+
+    this.disconnect = function(machine) {
+        psgAudioOutput.setAudioCartridge(undefined);
+    };
+
     this.powerOn = function(paused) {
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
     };
 
     this.write = function(address, value) {
-        if (address >= 0x5000 && address < 0x57ff)
+        if (address >= 0x5000 && address <= 0x57ff)
             bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
-        else if (address >= 0x7000 && address < 0x77ff)
+        else if (address >= 0x7000 && address <= 0x77ff)
             bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
-        else if (address >= 0x9000 && address < 0x97ff)
+        else if (address >= 0x9000 && address <= 0x97ff) {
             bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
-        else if (address >= 0xb000 && address < 0xb7ff)
+            sccSelected = (value & 0x3f) === 0x3f;                   // Special value to activate the SCC
+        } else if(sccSelected && address >= 0x9800 && address <= 0x9fff)
+            scc.write(address, value);
+        else if (address >= 0xb000 && address <= 0xb7ff)
             bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
     };
 
     this.read = function(address) {
         if (address < 0x6000)
-            return bytes[bank1Offset + address];        // May underflow if address < 0x4000
+            return bytes[bank1Offset + address];                    // May underflow if address < 0x4000
         else if (address < 0x8000)
             return bytes[bank2Offset + address];
-        else if (address < 0xa000)
+        else if (address < 0x9800)
             return bytes[bank3Offset + address];
+        else if (address < 0xa000)
+            return sccSelected ? scc.read(address) : bytes[bank3Offset + address];
         else
             return bytes[bank4Offset + address];
     };
@@ -48,6 +64,10 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var bank3Offset;
     var bank4Offset;
     var numBanks;
+
+    var scc;
+    var sccSelected = false;
+    var psgAudioOutput;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.KonamiSCC;
@@ -64,7 +84,8 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             b2: bank2Offset,
             b3: bank3Offset,
             b4: bank4Offset,
-            n: numBanks
+            n: numBanks,
+            s: scc.saveState()
         };
     };
 
@@ -76,6 +97,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         bank3Offset = s.b3;
         bank4Offset = s.b4;
         numBanks = s.n;
+        s.loadState(s.s);
     };
 
 

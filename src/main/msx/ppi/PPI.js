@@ -2,7 +2,7 @@
 
 wmsx.PPI = function(audioOutput) {
 
-    this.connectEngine = function(pBus) {
+    this.connectBus = function(pBus) {
         bus = pBus;
     };
 
@@ -55,13 +55,13 @@ wmsx.PPI = function(audioOutput) {
         keyboardRowSelected = registerC & 0x0f;
         if (keyClickSignal === ((registerC & 0x80) > 0)) return;
         keyClickSignal = !keyClickSignal;
-        audioOutput.setExternalSignal(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
+        audioOutput.setExternalSignalValue(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
     }
 
     function updateCassetteSignal() {
         if (keyClickSignal === ((registerC & 0x20) > 0)) return;
         casseteSignal = !casseteSignal;
-        audioOutput.setExternalSignal(casseteSignal ? KEY_CLICK_AUDIO_VALUE : 0);
+        audioOutput.setExternalSignalValue(casseteSignal ? KEY_CLICK_AUDIO_VALUE : 0);
     }
 
 

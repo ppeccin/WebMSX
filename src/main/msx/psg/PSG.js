@@ -5,12 +5,12 @@ wmsx.PSG = function() {
     function init() {
         audioSignal = new wmsx.PSGAudioSignal();
         audioChannel = audioSignal.getMixedAudioChannel();
-        registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inouts
+        registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
 
-    this.connectEngine = function(pEngine) {
-        engine = pEngine;
+    this.connectBus = function(pBus) {
+        bus = pBus;
     };
 
     this.powerOn = function(paused) {
@@ -85,7 +85,7 @@ wmsx.PSG = function() {
 
     var joystickControls = wmsx.JoysticksControls;
 
-    var engine;
+    var bus;
 
 
     // Savestate  -------------------------------------------

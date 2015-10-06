@@ -106,9 +106,9 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
 
     function setupMachine() {
         cpu.connectBus(self);
-        ppi.connectEngine(self);
-        vdp.connectEngine(self);
-        psg.connectEngine(self);
+        ppi.connectBus(self);
+        vdp.connectBus(self);
+        psg.connectBus(self);
 
         // PPI
         devicesInputPorts[0xa8]  = ppi.inputA8;
