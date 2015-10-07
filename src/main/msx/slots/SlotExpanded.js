@@ -25,12 +25,17 @@ wmsx.SlotExpanded = function() {
     };
 
     this.powerOn = function(paused) {
-        for (var i = 0; i < 4; i++) subSlots[i].powerOn();
         this.setSecondarySlotConfig(0);
+        for (var i = 0; i < 4; i++) subSlots[i].powerOn();
     };
 
     this.powerOff = function() {
         for (var i = 0; i < 4; i++) subSlots[i].powerOff();
+    };
+
+    this.reset = function() {
+        this.setSecondarySlotConfig(0);
+        for (var i = 0; i < 4; i++) subSlots[i].reset();
     };
 
     this.insertSubSlot = function(subSlot, subSlotNumber) {

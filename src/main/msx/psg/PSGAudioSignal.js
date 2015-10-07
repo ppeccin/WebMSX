@@ -25,6 +25,7 @@ wmsx.PSGAudioSignal = function() {
         mixedChannel.setAmplitudeA(0);
         mixedChannel.setAmplitudeB(0);
         mixedChannel.setAmplitudeC(0);
+        audioCartridge = undefined;
     };
 
     this.setFps = function(fps) {
@@ -33,8 +34,16 @@ wmsx.PSGAudioSignal = function() {
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
-    this.setAudioCartridge = function(cart) {
+    this.connectAudioCartridge = function(cart) {
         audioCartridge = cart;
+    };
+
+    this.disconnectAudioCartridge = function(cart) {
+        if (audioCartridge === cart) audioCartridge = undefined;
+    };
+
+    this.getAudioCartridge = function() {
+        return audioCartridge
     };
 
     this.setExternalSignalValue = function(val) {
@@ -71,9 +80,7 @@ wmsx.PSGAudioSignal = function() {
         if (end >= MAX_SAMPLES) end -= MAX_SAMPLES;
 
         var result = retrieveResult;
-
         result.start = nextSampleToRetrieve;
-
         nextSampleToRetrieve = end;
 
         return result;
@@ -85,8 +92,8 @@ wmsx.PSGAudioSignal = function() {
             if (signalOn) {
                 mixedSample = mixedChannel.nextSample();
                 // Add the External value. Used by the PPI to generate the Keyboard Click
-                mixedSample += externalAddedValue;
-                // Addd the AudioCartridge value
+                mixedSample -= externalAddedValue;
+                // Add the AudioCartridge value
                 if (audioCartridge) mixedSample += audioCartridge.nextSample();
                 // Add a little damper effect to round the edges of the square wave
                 if (mixedSample !== lastSample) {
@@ -124,7 +131,7 @@ wmsx.PSGAudioSignal = function() {
     var audioCartridge;
 
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
-    var MAX_AMPLITUDE = 0.62;
+    var MAX_AMPLITUDE = 0.60;
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
@@ -132,6 +139,25 @@ wmsx.PSGAudioSignal = function() {
         buffer: samples,
         bufferSize: MAX_SAMPLES,
         start: 0
+    };
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            a: mixedChannel.saveState(),
+            ac: !!audioCartridge
+        };
+    };
+
+    this.loadState = function(s) {
+        if (s.hasOwnProperty("pa")) {               // Backward compatibility
+            mixedChannel.loadState(s);
+            audioCartridge = undefined;
+        } else {
+            mixedChannel.loadState(s.a);
+            if (!s.ac) audioCartridge = undefined;
+        }
     };
 
 };

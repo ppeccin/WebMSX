@@ -15,8 +15,10 @@ wmsx.Slot = function() {
     this.powerOff = function() {
     };
 
+    this.reset = function() {
+    };
+
     this.write = function(address, value) {
-        // ROMs cannot be modified
     };
 
     this.cpuExtensionBegin = function(s) {

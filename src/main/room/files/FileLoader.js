@@ -96,7 +96,7 @@ wmsx.FileLoader = function() {
             // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
             rom = new wmsx.ROM(name, arrContent);
             var slot = wmsx.SlotCreator.createFromROM(rom);
-            if (slot.constructor === wmsx.BIOS)
+            if (slot.format === wmsx.SlotFormats.BIOS)
                 biosSocket.insert(slot, altPower);
             else if (asExpansion)
                 expansionSocket.insert(slot, port, altPower);
@@ -131,7 +131,7 @@ wmsx.FileLoader = function() {
                         // Then try to load as a ROM (BIOS or Cartridge)
                         rom = new wmsx.ROM(file.name, arrContent);
                         slot = wmsx.SlotCreator.createFromROM(rom);
-                        if (slot.constructor === wmsx.BIOS)
+                        if (slot.format === wmsx.SlotFormats.BIOS)
                             biosSocket.insert(slot, altPower);
                         else if (asExpansion)
                             expansionSocket.insert(slot, port, altPower);

@@ -27,9 +27,6 @@ wmsx.BIOS = function(rom) {
         return basicExtension;
     };
 
-    this.powerOn = function(paused) {
-    };
-
     this.powerOff = function() {
         if (cassetteDriver) cassetteDriver.powerOff();
     };
@@ -62,10 +59,6 @@ wmsx.BIOS = function(rom) {
     this.setVideoStandardUseOriginal = function() {
         if (this.originalVideoStandard === wmsx.VideoStandard.PAL) bytes[0x2b] |= 0x80;
         else bytes[0x2b] &= ~0x80;
-    };
-
-    this.dump = function(from, quant) {
-        wmsx.Util.dump(bytes, from, quant);
     };
 
 
@@ -104,6 +97,8 @@ wmsx.BIOS = function(rom) {
     if (rom) init(this);
 
 };
+
+wmsx.BIOS.prototype = wmsx.Slot.base;
 
 wmsx.BIOS.createFromSaveState = function(state) {
     var bios = new wmsx.BIOS();

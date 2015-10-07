@@ -23,10 +23,21 @@ wmsx.Util = new function() {
             dest[destPos++] = src[srcPos++];
     };
 
-    this.arrayRemove = function(arr, element) {
-        var i = arr.indexOf(element);
-        if (i < 0) return;
-        arr.splice(i, 1);
+    this.arrayHasElement = function(arr, element) {
+        return arr.indexOf(element) >= 0;
+    };
+
+    this.arrayAdd = function(arr, element) {
+        arr[arr.length] = element;
+        return arr;
+    };
+
+    this.arrayRemoveAllElement = function(arr, element) {
+        var i;
+        while ((i = arr.indexOf(element)) >= 0) {
+            arr.splice(i, 1);
+        }
+        return arr;
     };
 
     // Only 8 bit values

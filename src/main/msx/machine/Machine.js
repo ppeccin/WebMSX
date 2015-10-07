@@ -24,7 +24,7 @@ wmsx.Machine = function() {
         machineControlsSocket.fireRedefinitionUpdate();
     };
 
-    this.reset = function(paused) {
+    this.reset = function() {
         bus.reset();
     };
 
@@ -523,7 +523,7 @@ wmsx.Machine = function() {
         };
 
         this.removeForwardedInput = function(input) {
-            wmsx.Util.arrayRemove(forwardedInputs, input);
+            wmsx.Util.arrayRemoveAllElement(forwardedInputs, input);
             forwardedInputsCount = forwardedInputs.length;
         };
 

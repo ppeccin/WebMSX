@@ -54,11 +54,9 @@ wmsx.PSGMixedAudioChannel = function() {
         }
 
         // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1)
-        var sampleA = amplitudeA > 0 ? (toneA ? currentSampleA : 1) & (noiseA ? currentSampleN : 1) : 0;
-        var sampleB = amplitudeB > 0 ? (toneB ? currentSampleB : 1) & (noiseB ? currentSampleN : 1) : 0;
-        var sampleC = amplitudeC > 0 ? (toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1) : 0;
-
-        return sampleA * amplitudeA + sampleB * amplitudeB + sampleC * amplitudeC;
+        return (amplitudeA > 0 ? ((toneA ? currentSampleA : 1) & (noiseA ? currentSampleN : 1)) * amplitudeA : 0)
+             + (amplitudeB > 0 ? ((toneB ? currentSampleB : 1) & (noiseB ? currentSampleN : 1)) * amplitudeB : 0)
+             + (amplitudeC > 0 ? ((toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1)) * amplitudeC : 0);
     };
 
     this.setPeriodA = function(newPeriod) {
@@ -203,7 +201,7 @@ wmsx.PSGMixedAudioChannel = function() {
     var volumeCurve = new Array(16);
 
     var CHANNEL_AMP_CURVE_POWER = 30;
-    var CHANNEL_MAX_AMP = 0.3;
+    var CHANNEL_MAX_AMP = 0.26;
 
 
     // Savestate  -------------------------------------------

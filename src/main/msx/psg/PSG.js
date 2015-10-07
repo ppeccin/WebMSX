@@ -94,7 +94,7 @@ wmsx.PSG = function() {
         return {
             ra: registerAddress,
             r: wmsx.Util.storeArrayToStringBase64(registers),
-            a: audioChannel.saveState()
+            a: audioSignal.saveState()
         };
     };
 
@@ -102,7 +102,7 @@ wmsx.PSG = function() {
         registerAddress = s.ra;
         registers = wmsx.Util.restoreStringBase64ToArray(s.r);
         registers[14] = 0x3f3f;                                  // reset Joysticks inputs
-        audioChannel.loadState(s.a);
+        audioSignal.loadState(s.a);
     };
 
 

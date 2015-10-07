@@ -10,8 +10,8 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     }
 
     this.powerOn = function(paused) {
-        for (var i = 0; i < 4; i++) slots[i].powerOn();
         this.setPrimarySlotConfig(0);
+        for (var i = 0; i < 4; i++) slots[i].powerOn();
         ppi.powerOn();
         psg.powerOn();
         vdp.powerOn();
@@ -26,8 +26,9 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         for (var i = 0; i < 4; i++) slots[i].powerOff();
     };
 
-    this.reset = function(paused) {
+    this.reset = function() {
         this.setPrimarySlotConfig(0);
+        for (var i = 0; i < 4; i++) slots[i].reset();
         cpu.reset();
     };
 
