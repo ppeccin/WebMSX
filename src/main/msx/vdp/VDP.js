@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Investigate slow putImage()
+// TODO Line accuracy for mode needed
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
@@ -99,9 +100,15 @@ wmsx.VDP = function(cpu, psg) {
                     updateMode();
                 } else if (reg === 1) {
                     register1 = dataToWrite;
-                    updateIRQ();
-                    updateMode();
+
+                    //var oldBlanked = signalBlanked;
+
                     signalBlanked = (register1 & 0x40) === 0;
+
+                    //if (oldBlanked !== signalBlanked) console.log("BLANK: " + (signalBlanked ? "ON" : "OFF"));
+
+                    updateMode();
+                    updateIRQ();
                 } else if (reg === 2) {
                     nameTableAddress = (dataToWrite & 0x0f) * 0x400;
                     vramNameTable = vram.subarray(nameTableAddress);
@@ -184,6 +191,9 @@ wmsx.VDP = function(cpu, psg) {
     function updateMode() {
         var oldMode = mode;
         mode = ((register1 & 0x18) >>> 2) | ((register0 & 0x02) >>> 1);
+
+        //if ((mode !== oldMode)) console.log("Mode changed to: " + mode);
+
         if (mode !== oldMode && (mode === 1 || oldMode === 1)) {
             patternTableAddress = (register4 & 0x07) * 0x800;
             colorTableAddress = register3 * 0x40;
