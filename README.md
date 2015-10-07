@@ -9,6 +9,9 @@ Still in development, the first beta release is available and should be already 
 
 Please go to http://webmsx.org and enjoy it!
 
+#### Release 0.94
+- Konami SCC sound chip support
+
 #### Release 0.931
 - URL parameter types normalization bugfix
 
