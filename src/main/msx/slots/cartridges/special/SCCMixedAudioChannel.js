@@ -189,7 +189,7 @@ wmsx.SCCMixedAudioChannel = function() {
     var volumeCurve = new Array(16);
 
     var CHANNEL_AMP_CURVE_POWER = 5;         // Sounds more linear than the normal PSG channels
-    var CHANNEL_MAX_AMP = 0.27 / 128;        // Sample values in the range -128..127
+    var CHANNEL_MAX_AMP = 0.26 / 128;        // Sample values in the range -128..127
 
 
     // Savestate  -------------------------------------------

@@ -106,6 +106,9 @@ wmsx.PSGAudioSignal = function() {
 
             samples[nextSampleToGenerate] = mixedSample * MAX_AMPLITUDE;
 
+            //if (finalSample > 0.96) finalSample = 0.96; else if (finalSample < -0.96) finalSample = -0.96;
+            //if ((finalSample > 1) || (finalSample < -1)) console.log(finalSample);
+
             nextSampleToGenerate++;
             if (nextSampleToGenerate >= MAX_SAMPLES)
                 nextSampleToGenerate = 0;
@@ -131,7 +134,7 @@ wmsx.PSGAudioSignal = function() {
     var audioCartridge;
 
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
-    var MAX_AMPLITUDE = 0.60;
+    var MAX_AMPLITUDE = 0.54;
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
