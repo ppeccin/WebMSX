@@ -107,9 +107,6 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.loadState = function(s) {
-
-        S = s;
-
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToArray(s.b);
         bank1Offset = s.b1;

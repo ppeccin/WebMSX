@@ -65,6 +65,7 @@ wmsx.SCCMixedAudioChannel = function() {
     };
 
     this.write = function(address, value) {
+        //console.log("SCC Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
         address &= 0xff;
         if (address < 0x80) {                               // Wavetable access
             channelSamples[address >>> 5][address & 0x1f] = value < 128 ? value : -256 + value;
@@ -83,11 +84,12 @@ wmsx.SCCMixedAudioChannel = function() {
     };
 
     this.read = function(address) {
-        address &= ~0xff;
-        if (address < 0x80)                              // Wavetable access
+        address &= 0xff;
+        if (address < 0x80)                                // Wavetable access
             return channelSamples[address >>> 5][address & 0x1f];
         // All other registers always return 0xff
-        return 0xff;
+        else
+            return 0xff;
     };
 
     function setAmplitude(channel, amplitude) {
@@ -186,7 +188,7 @@ wmsx.SCCMixedAudioChannel = function() {
 
     var volumeCurve = new Array(16);
 
-    var CHANNEL_AMP_CURVE_POWER = 7;         // Sounds more linear than the normal PSG channels
+    var CHANNEL_AMP_CURVE_POWER = 5;         // Sounds more linear than the normal PSG channels
     var CHANNEL_MAX_AMP = 0.27 / 128;        // Sample values in the range -128..127
 
 

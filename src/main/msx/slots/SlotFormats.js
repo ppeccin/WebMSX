@@ -285,7 +285,24 @@ wmsx.SlotFormats = {
         createFromSaveState: function (state) {
             return wmsx.CartridgeDiskPatched.createFromSaveState(state);
         }
-    }
+    },
 
+    // Special Expansion Cartridges
+
+    "SCCExpansion": {
+        name: "SCCExpansion",
+        desc: "SCC Expansion Cartridge",
+        priority: 141,
+        tryFormat: function (rom) {
+            // Only 0K content. Must be selected via info format hint
+            if (rom.content.length === 0) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSCCExpansion(rom);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeSCCExpansion.createFromSaveState(state);
+        }
+    }
 
 };

@@ -35,7 +35,7 @@ wmsx.SlotCreator = function () {
             wmsx.Util.log("ROM: " + info.n + (info.f ? " (" + info.f + ")" : ""));
         } else {
             info = buildInfo(rom.source);
-            wmsx.Util.log("Unknown ROM (" + hash + "): " + info.n);
+            wmsx.Util.log("Unknown ROM (" + (hash || "0") + "): " + info.n);
         }
 
         finishInfo(info, rom.source, hash);
@@ -102,7 +102,7 @@ wmsx.SlotCreator = function () {
             // First by explicit format hint
             var romURL = romSource.toUpperCase();
             for (var formatName in wmsx.SlotFormats)
-                if (formatMatchesByHint(formatName, name) || formatMatchesByHint(formatName, romURL)) {
+                if (formatMatchesByHint(formatName.toUpperCase(), name) || formatMatchesByHint(formatName.toUpperCase(), romURL)) {
                     info.f = formatName;
                     break Format;
                 }
