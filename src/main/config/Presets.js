@@ -43,11 +43,12 @@ WMSX.presets = {
 WMSX.presets.apply = function() {
 
     var presetsString = (WMSX.PRESETS || "").trim().toUpperCase();
-    var presetNames = presetsString.split(",");
+        var presetNames = presetsString.split(",");
     presetNames.unshift("DEFAULT");
 
     for (var i = 0; i < presetNames.length; i++) {
         var presetName = presetNames[i].trim();
+        if (!presetName) continue;
         var preset = WMSX.presets[presetName];
         if (preset) {
             wmsx.Util.log("Applying preset: " + presetName);
