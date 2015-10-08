@@ -49,7 +49,7 @@ WMSX.start = function () {
                     wmsx.Util.message(mes);
                 }
             }]).start();
-        } else if (WMSX.BIOS_URL) {
+        } else {
             WMSX.room.loading(true);
             var urls = [
                 WMSX.EXPANSION0_URL && {
@@ -100,7 +100,7 @@ WMSX.start = function () {
                         WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
                     }
                 },
-                {   // BIOS
+                WMSX.BIOS_URL && {
                     url: WMSX.BIOS_URL,
                     onSuccess: function (res) {
                         WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);

@@ -8,7 +8,7 @@
 
 WMSX = {
 
-    PRESET:                         "DEFAULT",                  // Machine configuration preset to use
+    PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
 
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM

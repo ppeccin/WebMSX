@@ -5,8 +5,8 @@ wmsx.URLParameters = {
     apply: function() {
         var params = this.parseURLParams();
 
-        // First use all parameters from chosen preset
-        if (params.PRESET !== undefined) WMSX.PRESET = params.PRESET;
+        // First use all parameters from chosen presets
+        WMSX.PRESETS = params.PRESETS || WMSX.PRESETS;
         WMSX.presets.apply();
 
         // Then replace parameters for values passed in URL
@@ -50,6 +50,7 @@ wmsx.URLParameters = {
         TAPE: "TAPE_URL",
         STATE: "STATE_LOAD_URL",
         SAVESTATE: "STATE_LOAD_URL",
+        PRESET: "PRESETS",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
     },
 

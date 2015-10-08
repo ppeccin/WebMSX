@@ -3,10 +3,12 @@
 wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
 
     this.start = function() {
-        if (!urlSpecs || urlSpecs.length === 0) onAllSuccess(urlSpecs);
-
-        for (var i = 0; i < urlSpecs.length; i++)
-            load(urlSpecs[i]);
+        if (!urlSpecs || urlSpecs.length === 0)
+            onAllSuccess(urlSpecs);
+        else {
+            for (var i = 0; i < urlSpecs.length; i++) load(urlSpecs[i]);
+            checkFinish();
+        }
     };
 
     function load(urlSpec) {
@@ -66,7 +68,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
 
     var finished = false;
 
-    var DEFAULT_TIMEOUT = 3000;
+    var DEFAULT_TIMEOUT = 8000;
 
 };
 

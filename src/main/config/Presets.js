@@ -7,24 +7,28 @@ WMSX.presets = {
         EXPANSION0_URL: "wmsx/roms/Disk.rom"
     },
 
-    NTSC: this.DEFAULT,
-
-    PAL: {
-        BIOS_URL:       "wmsx/roms/MSX1PALa.bios",
-        EXPANSION0_URL: "wmsx/roms/Disk.rom"
-    },
-
-    NODISK: {
+    NTSC: {
         BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios"
     },
 
-    NTSCNODISK: this.NODISK,
-
-    PALNODISK: {
+    PAL: {
         BIOS_URL:       "wmsx/roms/MSX1PALa.bios"
     },
 
+    NODISK: {
+        EXPANSION0_URL: ""
+    },
+
     EMPTY: {
+        BIOS_URL:       "",
+        EXPANSION0_URL: "",
+        EXPANSION1_URL: ""
+    },
+
+    // Optional Expansions
+
+    SCC: {
+        EXPANSION1_URL: "wmsx/roms/SCCExpansion.rom"
     },
 
     // Specific machines
@@ -32,26 +36,26 @@ WMSX.presets = {
     EXPERT: {
         BIOS_URL:       "wmsx/roms/Expert10.bios",
         EXPANSION0_URL: "wmsx/roms/DiskCDX2.rom"
-    },
-
-    EXPERTNODISK: {
-        BIOS_URL:       "wmsx/roms/Expert10.bios"
     }
 
 };
 
 WMSX.presets.apply = function() {
 
-    var presetName = (WMSX.PRESET || "").trim().toUpperCase();
-    var preset = WMSX.presets[presetName];
-    if (preset) {
-        wmsx.Util.log("Applying preset: " + presetName);
-    } else {
-        preset = WMSX.presets.DEFAULT;
-        wmsx.Util.log("Preset \"" + presetName + "\" not found. Applying default preset");
-    }
+    var presetsString = (WMSX.PRESETS || "").trim().toUpperCase();
+    var presetNames = presetsString.split(",");
+    presetNames.unshift("DEFAULT");
 
-    for (par in preset)
-        WMSX[par.trim().toUpperCase()] = preset[par];
+    for (var i = 0; i < presetNames.length; i++) {
+        var presetName = presetNames[i].trim();
+        var preset = WMSX.presets[presetName];
+        if (preset) {
+            wmsx.Util.log("Applying preset: " + presetName);
+            for (par in preset)
+                WMSX[par.trim().toUpperCase()] = preset[par];
+        } else {
+            wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
+        }
+    }
 
 };
