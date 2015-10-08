@@ -9,6 +9,11 @@ Still in development, the first beta release is available and should be already 
 
 Please go to http://webmsx.org and enjoy it!
 
+#### Release 0.941
+- SCC Expansion Cartridge support
+- New SCC preset added
+- SCC chip detection bugfix
+
 #### Release 0.94
 - Konami SCC sound chip support
 
