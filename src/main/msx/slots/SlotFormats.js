@@ -298,10 +298,10 @@ wmsx.SlotFormats = {
             if (rom.content.length === 0) return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeSCCExpansion(rom);
+            return new wmsx.CartridgeNewSCCIExpansion(rom);
         },
         createFromSaveState: function (state) {
-            return wmsx.CartridgeSCCExpansion.createFromSaveState(state);
+            return wmsx.CartridgeNewSCCIExpansion.createFromSaveState(state);
         }
     }
 

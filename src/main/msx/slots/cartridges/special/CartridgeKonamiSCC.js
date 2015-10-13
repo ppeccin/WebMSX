@@ -77,10 +77,10 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCMixedAudioChannel();
+    var scc = new wmsx.SCCMixedAudioChannel();      // will be in SCC mode by default
     var sccSelected = false;
     var sccConnected = false;
-    var sccConnectionOnSavestate = false;        // used to restore connection after a loadState
+    var sccConnectionOnSavestate = false;           // used to restore connection after a loadState
     var psgAudioOutput;
 
     this.rom = null;
