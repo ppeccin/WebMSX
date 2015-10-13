@@ -28,7 +28,15 @@ WMSX.presets = {
     // Optional Expansions
 
     SCC: {
-        EXPANSION1_URL: "wmsx/roms/SCCExpansion.rom"
+        EXPANSION1_URL: "wmsx/roms/[SCCExpansion].rom"
+    },
+
+    SCCI: {
+        EXPANSION1_URL: "wmsx/roms/[SCCIExpansion].rom"
+    },
+
+    SCCPLUS: {
+        EXPANSION1_URL: "wmsx/roms/[SCCIExpansion].rom"
     },
 
     // Specific machines

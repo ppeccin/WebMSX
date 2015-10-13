@@ -5,7 +5,7 @@ wmsx.SlotFormats = {
     "Empty": {
         name: "Empty",
         desc: "Empty Slot",
-        priority: 100,
+        priority: 201,
         tryFormat: function (rom) {
             // Any empty ROM
             if (!rom || !rom.content || rom.content.length === 0) return this;
@@ -21,7 +21,7 @@ wmsx.SlotFormats = {
     "SlotExpanded": {
         name: "SlotExpanded",
         desc: "Expanded Slot",
-        priority: 101,
+        priority: 202,
         tryFormat: function (rom) {
             // Not Possible to load Expanded Slots
             return null;
@@ -32,10 +32,24 @@ wmsx.SlotFormats = {
         }
     },
 
+    "RAM64K": {
+        name: "RAM64K",
+        desc: "RAM 64K Slot",
+        priority: 205,
+        tryFormat: function (rom) {
+            // Not Possible to load RAMs
+            return null;
+        },
+        createFromROM: null,
+        createFromSaveState: function (state) {
+            return wmsx.SlotRAM64K.createFromSaveState(state);
+        }
+    },
+
     "BIOS": {
         name: "BIOS",
         desc: "BIOS 16K/32K",
-        priority: 102,
+        priority: 206,
         tryFormat: function (rom) {
             // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS
             if ((rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66))
@@ -50,24 +64,10 @@ wmsx.SlotFormats = {
         }
     },
 
-    "RAM64K": {
-        name: "RAM64K",
-        desc: "RAM 64K Slot",
-        priority: 103,
-        tryFormat: function (rom) {
-            // Not Possible to load RAMs
-            return null;
-        },
-        createFromROM: null,
-        createFromSaveState: function (state) {
-            return wmsx.SlotRAM64K.createFromSaveState(state);
-        }
-    },
-
     "Unbanked": {
         name: "Unbanked",
         desc: "Normal Cartridge",
-        priority: 111,
+        priority: 211,
         tryFormat: function (rom) {
             // Any 8K or 16K content starting with the Cartridge identifier "AB"
             if ((rom.content.length === 8192 || rom.content.length === 16384)
@@ -92,7 +92,7 @@ wmsx.SlotFormats = {
     "ASCII8": {
         name: "ASCII8",
         desc: "ASCII 8K Mapper Cartridge",
-        priority: 112,
+        priority: 231,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -109,7 +109,7 @@ wmsx.SlotFormats = {
     "ASCII16": {
         name: "ASCII16",
         desc: "ASCII 16K Mapper Cartridge",
-        priority: 113,
+        priority: 232,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 16K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 16384) === 0
@@ -126,7 +126,7 @@ wmsx.SlotFormats = {
     "Konami": {
         name: "Konami",
         desc: "Konami 8K Mapper Cartridge",
-        priority: 114,
+        priority: 233,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -143,7 +143,7 @@ wmsx.SlotFormats = {
     "KonamiSCC": {
         name: "KonamiSCC",
         desc: "KonamiSCC 8K Mapper Cartridge",
-        priority: 115,
+        priority: 234,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             if (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -160,7 +160,7 @@ wmsx.SlotFormats = {
     "R-Type": {
         name: "R-Type",
         desc: "R-Type 384K Mapper Cartridge",
-        priority: 121,
+        priority: 251,
         tryFormat: function (rom) {
             // Only R-Type 384K content. Must be selected via info format hint
             if (rom.content.length === 393216) return this;
@@ -176,7 +176,7 @@ wmsx.SlotFormats = {
     "CrossBlaim": {
         name: "CrossBlaim",
         desc: "CrossBlaim 64K Mapper Cartridge",
-        priority: 122,
+        priority: 252,
         tryFormat: function (rom) {
             // Only CrossBlaim 64K content. Must be selected via info format hint
             if (rom.content.length === 65536) return this;
@@ -194,7 +194,7 @@ wmsx.SlotFormats = {
     "DiskPatched": {
         name: "DiskPatched",
         desc: "Generic Patched Disk BIOS",
-        priority: 151,
+        priority: 221,
         tryFormat: function (rom) {
             // Only DiskPatched 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -210,7 +210,7 @@ wmsx.SlotFormats = {
     "DiskWD": {
         name: "DiskWD",
         desc: "WD 2793 based Disk BIOS (Patched)",
-        priority: 152,
+        priority: 222,
         tryFormat: function (rom) {
             // Only DiskWD 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -226,7 +226,7 @@ wmsx.SlotFormats = {
     "DiskFujitsu": {
         name: "DiskFujitsu",
         desc: "Fujitsu MB8877A based Disk BIOS (Patched)",
-        priority: 153,
+        priority: 223,
         tryFormat: function (rom) {
             // Only DiskFujitsu 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -242,7 +242,7 @@ wmsx.SlotFormats = {
     "DiskToshiba": {
         name: "DiskToshiba",
         desc: "Toshiba TC8566AF based Disk BIOS (Patched)",
-        priority: 154,
+        priority: 224,
         tryFormat: function (rom) {
             // Only DiskToshiba 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -258,7 +258,7 @@ wmsx.SlotFormats = {
     "DiskMicrosol": {
         name: "DiskMicrosol",
         desc: "Microsol WD2793 based Disk BIOS (Patched)",
-        priority: 155,
+        priority: 225,
         tryFormat: function (rom) {
             // Only DiskMicrosol 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -274,7 +274,7 @@ wmsx.SlotFormats = {
     "DiskSVI": {
         name: "DiskSVI",
         desc: "SVI 738 based Disk BIOS (Patched)",
-        priority: 156,
+        priority: 226,
         tryFormat: function (rom) {
             // Only DiskSVI 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -292,16 +292,32 @@ wmsx.SlotFormats = {
     "SCCExpansion": {
         name: "SCCExpansion",
         desc: "SCC Expansion Cartridge",
-        priority: 141,
+        priority: 261,
         tryFormat: function (rom) {
             // Only 0K content. Must be selected via info format hint
             if (rom.content.length === 0) return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeNewSCCIExpansion(rom);
+            return new wmsx.CartridgeSCCExpansion(rom);
         },
         createFromSaveState: function (state) {
-            return wmsx.CartridgeNewSCCIExpansion.createFromSaveState(state);
+            return wmsx.CartridgeSCCExpansion.createFromSaveState(state);
+        }
+    },
+
+    "SCCIExpansion": {
+        name: "SCCIExpansion",
+        desc: "SCC-I (SCC+) Expansion Cartridge",
+        priority: 261,
+        tryFormat: function (rom) {
+            // 0K, 64K or 128K content. Must be selected via info format hint
+            if (rom.content.length === 0 || rom.content.length === 65536 || rom.content.length === 131072) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSCCIExpansion(rom);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.CartridgeSCCIExpansion.createFromSaveState(state);
         }
     }
 

@@ -1,14 +1,29 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Behaves like the "Snatcher Sound Cartridge" upgraded to 128KB
+// Behaves like the "Snatcher/SD Snatcher Sound Cartridge" upgraded to 128KB RAM
 // 128KB RAM, mapped in 4 8K banks starting at 0x4000
-// Controls an internal SCC/SCC-I sound chip with audio output through PSG
-wmsx.CartridgeNewSCCIExpansion = function(rom) {
+// Accepts ROMs of 128KB or 64KB (mirrored)
+// Controls an internal SCC-I sound chip with audio output through PSG
+wmsx.CartridgeSCCIExpansion = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(128 * 1024), 0xff);
+        var content = self.rom.content;
+        bytes = new Array(128 * 1024);
         self.bytes = bytes;
+        if (content.length === 0)
+            wmsx.Util.arrayFill(bytes, 0xff);
+        else {
+            if (content.length === 65536)
+                for(var i = 0, len = content.length; i < len; i++) {
+                    bytes[i] = content[i];
+                    bytes[i + 65536] = content[i];
+                }
+            else // 128K
+                for(i = 0, len = content.length; i < len; i++)
+                    bytes[i] = content[i];
+        }
+       numBanks = 16;       // Fixed
     }
 
     this.connect = function(machine) {
@@ -124,7 +139,7 @@ wmsx.CartridgeNewSCCIExpansion = function(rom) {
     var psgAudioOutput;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.KonamiSCC;
+    this.format = wmsx.SlotFormats.SCCIExpansion;
 
 
     // Savestate  -------------------------------------------
@@ -150,6 +165,7 @@ wmsx.CartridgeNewSCCIExpansion = function(rom) {
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToArray(s.b);
+        this.bytes = bytes;
         bank1Offset = s.b1;
         bank2Offset = s.b2;
         bank3Offset = s.b3;
@@ -164,15 +180,19 @@ wmsx.CartridgeNewSCCIExpansion = function(rom) {
         }
     };
 
+    this.eval = function(str) {
+        return eval(str);
+    };
+
 
     if (rom) init(this);
 
 };
 
-wmsx.CartridgeNewSCCIExpansion.prototype = wmsx.Slot.base;
+wmsx.CartridgeSCCIExpansion.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeNewSCCIExpansion.createFromSaveState = function(state) {
-    var cart = new wmsx.CartridgeNewSCCIExpansion();
+wmsx.CartridgeSCCIExpansion.createFromSaveState = function(state) {
+    var cart = new wmsx.CartridgeSCCIExpansion();
     cart.loadState(state);
     return cart;
 };

@@ -9,7 +9,7 @@ wmsx.SlotCreator = function () {
 
         // Choose the best option
         var bestOption = options[0];
-        wmsx.Util.log("" + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
+        wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
         return bestOption.createFromROM(rom);
     };
 
@@ -32,10 +32,10 @@ wmsx.SlotCreator = function () {
         // Get info from the library
         var info = wmsx.ROMDatabase[hash];
         if (info) {
-            wmsx.Util.log("ROM: " + info.n + (info.f ? " (" + info.f + ")" : ""));
+            wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : ""));
         } else {
             info = buildInfo(rom.source);
-            wmsx.Util.log("Unknown ROM (" + (hash || "0") + "): " + info.n);
+            wmsx.Util.log("ROM: Unknown (" + (hash || "0") + ") " + info.n + (info.f ? ", format: " + info.f : ""));
         }
 
         finishInfo(info, rom.source, hash);
@@ -97,27 +97,19 @@ wmsx.SlotCreator = function () {
         // Compute label based on name
         if (!info.l) info.l = produceCartridgeLabel(info.n);
         var name = info.n.toUpperCase();
-        // Adjust Format information if absent
-        Format: if (!info.f) {
-            // First by explicit format hint
-            var romURL = romSource.toUpperCase();
-            for (var formatName in wmsx.SlotFormats)
-                if (formatMatchesByHint(formatName.toUpperCase(), name) || formatMatchesByHint(formatName.toUpperCase(), romURL)) {
-                    info.f = formatName;
-                    break Format;
-                }
-            // Then by name
-            for (formatName in FORMAT_ROM_NAMES)
-                if (formatMatchesByName(formatName, name)) {
-                    info.f = formatName;
-                    break Format;
-                }
-        }
+        // Adjust Format information if hint is present
+        var romURL = romSource.toUpperCase();
+        for (var formatName in wmsx.SlotFormats)
+            if (formatMatchesByHint(formatName.toUpperCase(), romURL)) {
+                info.f = formatName;
+                info.t = true;
+                break;
+            }
     };
 
     var boostPriority = function(formatOption, info) {
         if (info.f && (formatOption.name === info.f))
-            formatOption.priorityBoosted = formatOption.priority - FORMAT_PRIORITY_BOOST;
+            formatOption.priorityBoosted = formatOption.priority - (info.t ? FORMAT_FORCE_PRIORITY_BOOST : FORMAT_PRIORITY_BOOST);
         else
             formatOption.priorityBoosted = undefined;
     };
@@ -130,22 +122,12 @@ wmsx.SlotCreator = function () {
         return hint.match(HINTS_PREFIX_REGEX + formatName + HINTS_SUFFIX_REGEX);
     };
 
-    var formatMatchesByName = function(formatName, name) {
-        var namesForFormat = FORMAT_ROM_NAMES[formatName];
-        if (!namesForFormat) return false;
-        for (var i = 0; i < namesForFormat.length; i++)
-            if (name.match(namesForFormat[i]))
-                return true;
-        return false;
-    };
 
-
-    var FORMAT_ROM_NAMES = {};
-
-    var HINTS_PREFIX_REGEX = "^(|.*?(\\W|_|%20))";
-    var HINTS_SUFFIX_REGEX = "(|(\\W|_|%20).*)$";
+    var HINTS_PREFIX_REGEX = "\\[";
+    var HINTS_SUFFIX_REGEX = "\\]";
 
     var FORMAT_PRIORITY_BOOST = 100;
+    var FORMAT_FORCE_PRIORITY_BOOST = 200;
 
 };
 
