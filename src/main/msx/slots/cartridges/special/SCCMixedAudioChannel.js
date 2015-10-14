@@ -9,8 +9,14 @@ wmsx.SCCMixedAudioChannel = function() {
     }
 
     this.reset = function() {
-        setMixer(0); amplitude1 = amplitude2 = amplitude3 = amplitude4 = amplitude5 = 0;
+        setMixer(0);
+        amplitude1 = amplitude2 = amplitude3 = amplitude4 = amplitude5 = 0;
+        period1 = period2 = period3 = period4 = period5 = 0;
+        period1Count = period2Count = period3Count = period4Count = period5Count = 0;
+        sample1Count = sample2Count = sample3Count = sample4Count = sample5Count = 0;
+        currentSample1 = currentSample2 = currentSample3 = currentSample4 = currentSample5 = 0;
         for (var i = 0; i < 5; i++) wmsx.Util.arrayFill(channelSamples[i], 0);
+        this.setSCCIMode(false);
     };
 
     this.setSCCIMode = function(mode) {
@@ -19,11 +25,9 @@ wmsx.SCCMixedAudioChannel = function() {
         if (scciMode) {
             this.read = readSCCI;
             this.write = writeSCCI;
-            channel5Samples = channelSamples[4];
         } else {
             this.read = readSCC;
             this.write = writeSCC;
-            channel5Samples = channel4Samples;
         }
     };
 
@@ -84,7 +88,9 @@ wmsx.SCCMixedAudioChannel = function() {
         //console.log("SCC Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
         address &= 0xff;
         if (address < 0x80) {                               // Wavetable access
-            channelSamples[address >>> 5][address & 0x1f] = value < 128 ? value : -256 + value;
+            channelSamples[(address >>> 5)][address & 0x1f] = value < 128 ? value : -256 + value;
+            // If writing to channel 4, also put the same sample to channel 5
+            if ((address >>> 5) === 3) channel5Samples[address & 0x1f] = value < 128 ? value : -256 + value;
         } else if (address < 0xa0) {
             address &= 0xef;
             if (address < 0x8a) {                           // Frequency access
@@ -265,7 +271,7 @@ wmsx.SCCMixedAudioChannel = function() {
             s2: wmsx.Util.storeArrayToStringBase64(channel2Samples),
             s3: wmsx.Util.storeArrayToStringBase64(channel3Samples),
             s4: wmsx.Util.storeArrayToStringBase64(channel4Samples),
-            s5: wmsx.Util.storeArrayToStringBase64(channel4Samples)
+            s5: wmsx.Util.storeArrayToStringBase64(channel5Samples)
         };
         signSamples();
         return res;
@@ -281,7 +287,7 @@ wmsx.SCCMixedAudioChannel = function() {
         channel2Samples = wmsx.Util.restoreStringBase64ToArray(s.s2);
         channel3Samples = wmsx.Util.restoreStringBase64ToArray(s.s3);
         channel4Samples = wmsx.Util.restoreStringBase64ToArray(s.s4);
-        channel5Samples = wmsx.Util.restoreStringBase64ToArray(s.s5 || s.s4);
+        channel5Samples = wmsx.Util.restoreStringBase64ToArray(s.s5);
         channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
         signSamples();
         this.setSCCIMode(s.m === true);

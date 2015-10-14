@@ -45,12 +45,14 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     this.reset = function() {
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
-        sccSelected = sccConnected = false;
+        sccSelected = scciSelected = sccConnected = false;
         setMode(0);
         scc.reset();
     };
 
     this.write = function(address, value) {
+        // console.log("Write: " + wmsx.Util.toHex4(address) + ', ' + value);
+
         // Mode Register
         if (address === 0xbffe || address === 0xbfff)
             return setMode(value);
@@ -70,21 +72,25 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
                 bytes[bank3Offset + address] = value;
             else if (address >= 0x9000 && address <= 0x97ff) {
                 bank3Offset = (value & 0x0f) * 0x2000 - 0x8000;
-                selectSCC((value & 0x3f) === 0x3f);                  // Special value to activate the SCC
-            } else if (sccSelected && (address >= 0x9800))
+                sccSelected = value === 0x3f;                        // Special value to activate the SCC
+                if (sccSelected) connectSCC();
+            } else if ((address >= 0x9800) && sccSelected && !scciMode)
                 scc.write(address, value);
         } else if (address >= 0xa000 && address <= 0xbfff) {         // Bank 4 access
             if (bank4RamMode)
                 bytes[bank4Offset + address] = value;
             else if (address >= 0xb000 && address <= 0xb7ff) {
                 bank4Offset = (value & 0x0f) * 0x2000 - 0xa000;
-                selectSCC(scciMode && ((value & 0x80) === 0x80));    // Special value to activate the SCC-I
-            } else if (sccSelected && (address >= 0xb800))
+                scciSelected = (value & 0x80) === 0x80;              // Special value to activate the SCC-I
+                if (scciSelected) connectSCC();
+            } else if ((address >= 0xb800) && scciSelected && scciMode)
                 scc.write(address, value);
         }
     };
 
     this.read = function(address) {
+        // console.log("Read: " + wmsx.Util.toHex4(address));
+
         if (address < 0x6000)
             return bytes[bank1Offset + address];                     // May underflow if address < 0x4000
         else if (address < 0x8000)
@@ -92,33 +98,31 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         else if (address < 0x9800)
             return bytes[bank3Offset + address];
         else if (address < 0xa000)
-            return (!scciMode && sccSelected) ? scc.read(address) : bytes[bank3Offset + address];
+            return (sccSelected && !scciMode) ? scc.read(address) : bytes[bank3Offset + address];
         else if (address < 0xb800)
             return bytes[bank4Offset + address];
         else
-            return (scciMode && sccSelected) ? scc.read(address) : bytes[bank4Offset + address];
+            return (scciSelected && scciMode) ? scc.read(address) : bytes[bank4Offset + address];
     };
 
     function setMode(pMode) {
+       // console.log(wmsx.Util.toHex2(pMode) + ": " + ((bank1Offset + 0x4000)/0x2000) + ", " + ((bank2Offset + 0x6000)/0x2000) + ", " + ((bank3Offset + 0x8000)/0x2000) + ", " + ((bank4Offset + 0xa000)/0x2000));
+
         mode = pMode;
         scciMode = (pMode & 0x20) !== 0;
         scc.setSCCIMode(scciMode);
         var ramMode = (pMode & 0x10) !== 0;
         bank4RamMode = ramMode;
-        bank3RamMode = scciMode && (ramMode || ((pMode & 0x04) !== 0));
+        bank3RamMode = ramMode || (scciMode && ((pMode & 0x04) !== 0));
         bank2RamMode = ramMode || ((pMode & 0x02) !== 0);
         bank1RamMode = ramMode || ((pMode & 0x01) !== 0);
     }
 
-    function selectSCC(boo) {
-        if (boo) {
-            sccSelected = true;
-            if (!sccConnected) {
-                psgAudioOutput.connectAudioCartridge(scc);
-                sccConnected = true;
-            }
-        } else
-            sccSelected = false;
+    function connectSCC() {
+        if (!sccConnected) {
+            psgAudioOutput.connectAudioCartridge(scc);
+            sccConnected = true;
+        }
     }
 
 
@@ -133,7 +137,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var numBanks;
 
     var scc = new wmsx.SCCMixedAudioChannel();
-    var sccSelected = false;
+    var sccSelected, scciSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;        // used to restore connection after a loadState
     var psgAudioOutput;
@@ -157,6 +161,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             n: numBanks,
             scc: scc.saveState(),
             scs: sccSelected,
+            sis: scciSelected,
             scn: sccConnected,
             scna: psgAudioOutput.getAudioCartridge() === scc
         };
@@ -175,6 +180,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         if (s.hasOwnProperty("scc")) {              // Backward compatibility
             scc.loadState(s.scc);
             sccSelected = s.scs;
+            scciSelected = s.sis;
             sccConnected = s.scn;
             sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
         }

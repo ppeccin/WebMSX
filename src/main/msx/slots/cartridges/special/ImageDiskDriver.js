@@ -107,7 +107,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function DSKIORead(F, A, B, C, DE, HL) {
-        // console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+        //console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         var spinTime = drive.motorOn(A);
         var bytes = drive.readSectors(A, DE, B);
@@ -124,7 +124,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function DSKIOWrite(F, A, B, C, DE, HL) {
-        // console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+        //console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         var spinTime = drive.motorOn(A);
 
@@ -217,18 +217,25 @@ wmsx.ImageDiskDriver = function() {
 
     function readFromMemory(address, quant) {
         // console.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
-        var ramSlot = machine.ram;
+        var slot = getSlotToMemoryAccess(address);
         var res = new Array(quant);
         for (var i = 0; i < quant; i++)
-            res[i] = ramSlot.read(address + i);          // TODO Memory read forced from RAM
+            res[i] = slot.read(address + i);
 
         return res;
     }
 
     function writeToMemory(bytes, address) {
-        var ramSlot = machine.ram;
+        var slot = getSlotToMemoryAccess(address);
         for (var i = 0; i < bytes.length; i++)
-            ramSlot.write(address + i, bytes[i]);        // TODO Memory write forced to RAM
+            slot.write(address + i, bytes[i]);
+    }
+
+    function getSlotToMemoryAccess(address) {
+        var page = address >>> 14;
+        if (page === 1) page = 2;           // TODO If page is in DISK-BIOS, assumes the same slot as in page 2 (probably RAM or Cartridge)
+        var slotNumber = (machine.bus.getPrimarySlotConfig() >>> (page << 1)) & 0x03;
+        return machine.bus.slots[slotNumber];
     }
 
 

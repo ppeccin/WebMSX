@@ -106,21 +106,24 @@ wmsx.Util = new function() {
 
     this.toHex2 = function(num) {
         var res = num.toString(16).toUpperCase();
-        if (res.length % 2) return "0" + res;
+        if (num > 0 && (res.length % 2)) return "0" + res;
         else return res;
     };
 
     this.toHex4 = function(num) {
         var res = num.toString(16).toUpperCase();
-        switch (res.length % 4) {
-            case 0:
+        if (num < 0) return res;
+        switch (res.length) {
+            case 4:
                 return res;
-            case 1:
-                return "000" + res;
-            case 2:
-                return "00" + res;
             case 3:
                 return "0" + res;
+            case 2:
+                return "00" + res;
+            case 1:
+                return "000" + res;
+            default:
+                return res;
         }
     };
 
