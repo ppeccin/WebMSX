@@ -44,6 +44,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     this.reset = function() {
+        psgAudioOutput.disconnectAudioCartridge(scc);
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = scciSelected = sccConnected = false;
         setMode(0);
@@ -136,7 +137,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var bank1Offset, bank2Offset, bank3Offset, bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCMixedAudioChannel();
+    var scc = new wmsx.SCCIMixedAudioChannel();
     var sccSelected, scciSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;        // used to restore connection after a loadState

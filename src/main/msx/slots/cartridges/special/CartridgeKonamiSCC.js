@@ -28,6 +28,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.reset = function() {
+        psgAudioOutput.disconnectAudioCartridge(scc);
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = sccConnected = false;
         scc.reset();
@@ -77,7 +78,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCMixedAudioChannel();      // will be in SCC mode by default
+    var scc = new wmsx.SCCIMixedAudioChannel();      // will be in SCC mode by default
     var sccSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;           // used to restore connection after a loadState

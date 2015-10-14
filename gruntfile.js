@@ -51,7 +51,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/CartridgeCrossBlaim.js",
                     "src/main/msx/slots/cartridges/special/CartridgeDiskPatched.js",
                     "src/main/msx/slots/cartridges/special/ImageDiskDriver.js",
-                    "src/main/msx/slots/cartridges/special/SCCMixedAudioChannel.js",
+                    "src/main/msx/slots/cartridges/special/SCCIMixedAudioChannel.js",
                     "src/main/msx/slots/cartridges/special/CartridgeKonamiSCC.js",
                     "src/main/msx/slots/cartridges/special/CartridgeSCCExpansion.js",
                     "src/main/msx/slots/cartridges/special/CartridgeSCCIExpansion.js",

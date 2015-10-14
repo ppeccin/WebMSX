@@ -21,6 +21,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
     };
 
     this.reset = function() {
+        psgAudioOutput.disconnectAudioCartridge(scc);
         sccSelected = sccConnected = false;
         scc.reset();
     };
@@ -46,7 +47,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
     };
 
 
-    var scc = new wmsx.SCCMixedAudioChannel();
+    var scc = new wmsx.SCCIMixedAudioChannel();
     var sccSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;        // used to restore connection after a loadState

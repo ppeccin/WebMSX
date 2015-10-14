@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Implements the SCC and SCC-I Audio chip. Mode can be switched between SCC and SCC-I
-wmsx.SCCMixedAudioChannel = function() {
+wmsx.SCCIMixedAudioChannel = function() {
 
     function init(self) {
         createVolumeCurve();
@@ -287,7 +287,7 @@ wmsx.SCCMixedAudioChannel = function() {
         channel2Samples = wmsx.Util.restoreStringBase64ToArray(s.s2);
         channel3Samples = wmsx.Util.restoreStringBase64ToArray(s.s3);
         channel4Samples = wmsx.Util.restoreStringBase64ToArray(s.s4);
-        channel5Samples = wmsx.Util.restoreStringBase64ToArray(s.s5);
+        channel5Samples = wmsx.Util.restoreStringBase64ToArray(s.s5 || s.s4);
         channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
         signSamples();
         this.setSCCIMode(s.m === true);
