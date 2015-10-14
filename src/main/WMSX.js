@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// WebMSX version 0.94
+// WebMSX version 0.942
 
 // Main Emulator parameters.
 // You may change any of these after loading the project and before starting the Emulator
@@ -37,7 +37,7 @@ WMSX = {
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 
-    VERSION:                        "0.941"                     // Don't change!
+    VERSION:                        "0.942"                     // Don't change!
 
 };
 

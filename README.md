@@ -9,8 +9,12 @@ Still in development, the first beta release is available and should be already 
 
 Please go to http://webmsx.org and enjoy it!
 
+#### Release 0.942
+- SCC-I Sound Cartridge Expansion support
+- New SCCI preset added
+
 #### Release 0.941
-- SCC Expansion Cartridge support
+- SCC Cartridge Expansion support
 - New SCC preset added
 - SCC chip detection bugfix
 
