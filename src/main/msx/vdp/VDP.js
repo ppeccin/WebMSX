@@ -1,17 +1,17 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Investigate slow putImage()
-// TODO Line accuracy for mode needed
+// TODO loadState not working
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.VDP = function(cpu, psg) {
+wmsx.NewVDP = function(cpu, psg) {
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VDPVideoSignal();
-        initColorCodePatternValues();
         initFrameResources();
+        initColorCodePatternValues();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulses = psg.getAudioOutput().audioClockPulses;
         self.setDefaults();
@@ -36,54 +36,60 @@ wmsx.VDP = function(cpu, psg) {
         return videoSignal;
     };
 
-    // 342 pixel clocks, 228 CPU clocks per scanline
-    // 59736 CPU clocks per frame for NTSC, 71364 for PAL
+    // 262 lines per frame for NTSC, 313 lines for PAL
+    // 342 total pixel clocks per line, 256 visible pixels, 228 CPU clocks and 7,125 PSG clocks
+    // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
     this.frame = function() {
         //console.log(cpu.eval("cycles"));
         //cpu.eval("cycles = 0");
 
-        // CPU and PSG cycles during inactive display scan (X lines, depends on video standard)
-        if (videoStandard === wmsx.VideoStandard.NTSC) {
-            for (i = 498; i > 0; i--) {                        // 15960 CPU clocks, 498 PSG clocks interleaved
-                cpuClockPulses(32);
-                psgClockPulses(1);
-            }
-            cpuClockPulses(24);
-        } else {                                               // 27588 CPU clocks, 862 PSG clocks interleaved
-            for (i = 862; i > 0; i--) {
-                cpuClockPulses(32);
-                psgClockPulses(1);
-            }
-            cpuClockPulses(4);
-        }
+        // Inactive display scanlines (70 for NTSC, 121 for PAL)
+        while (currentLine < 0) updateLinesInactive(currentLine * -1);
 
-        // Visible display scan. Will interleave 43776 CPU and 1368 PSG clocks
-        updatePlanes();
+        // Active display scanlines (192 for both NSTC and PAL)
+        while (currentLine < 192) updateLines(192 - currentLine);
 
-        // Request interrupt
+        // End of visible scan, request interrupt
         status |= 0x80;
         updateIRQ();
 
+        // Complete missing audio clocks, synch and send frame to monitor
         finishFrame();
     };
+
+    function updateLinesInactive(lines) {
+
+        //console.log("Active lines: " + lines);
+
+        var line = currentLine, genToLine = line + lines;
+
+        while (line < genToLine) {
+            cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
+            cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
+            cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
+            cpuClockPulses(33); psgClockPulses(1); // TODO 1 additional PSG clock each 8th line
+            line++;
+        }
+
+        currentLine = line;
+    }
+
+    // 228 CPU clocks and 7,125 PSG clocks interleaved
+    function lineClockCPUandPSG() {
+        cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
+        cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
+        cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
+        cpuClockPulses(33); psgClockPulses(1); // TODO 1 additional PSG clock each 8th line
+    }
 
     this.input99 = function() {
         // Status Register Read
         var prevStatus = status;
-
         dataToWrite = null;
         status = 0;
         updateIRQ();
-
         return prevStatus;
     };
-
-    function updateBackdropColor() {
-        backdropColor = register7 & 0x0f;
-        if (backdropColor === 0) backdropColor = 1;        // Backdrop transparency not implemented yet. Force to Black
-        backdropRGB = colorRGBs[backdropColor];
-        backdropValues = colorCodePatternValues[backdropColor * 256];
-    }
 
     this.output99 = function(val) {
         // Control Write
@@ -100,38 +106,34 @@ wmsx.VDP = function(cpu, psg) {
                     updateMode();
                 } else if (reg === 1) {
                     register1 = dataToWrite;
-
-                    //var oldBlanked = signalBlanked;
-
-                    signalBlanked = (register1 & 0x40) === 0;
-
-                    //if (oldBlanked !== signalBlanked) console.log("BLANK: " + (signalBlanked ? "ON" : "OFF"));
-
-                    updateMode();
                     updateIRQ();
+                    updateMode();
                 } else if (reg === 2) {
+                    register2 = dataToWrite;
                     nameTableAddress = (dataToWrite & 0x0f) * 0x400;
                     vramNameTable = vram.subarray(nameTableAddress);
-               } else if (reg === 3) {
+                } else if (reg === 3) {
                     register3 = dataToWrite;
                     colorTableAddress = dataToWrite * 0x40;
                     if (mode === 1) updateMode1Specifics();
                     vramColorTable = vram.subarray(colorTableAddress);
-               } else if (reg === 4) {
+                } else if (reg === 4) {
                     register4 = dataToWrite;
                     patternTableAddress = (dataToWrite & 0x07) * 0x800;
                     if (mode === 1) updateMode1Specifics();
                     vramPatternTable = vram.subarray(patternTableAddress);
-               } else if (reg === 5) {
-                   spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
-                   vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
-               } else if (reg === 6) {
-                   spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
-                   vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
-               } else if (reg === 7) {
-                   register7 = dataToWrite;
-                   updateBackdropColor();
-               }
+                } else if (reg === 5) {
+                    register5 = dataToWrite;
+                    spriteAttrTableAddress = (dataToWrite & 0x7f) * 0x80;
+                    vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
+                } else if (reg === 6) {
+                    register6 = dataToWrite;
+                    spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
+                    vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
+                } else if (reg === 7) {
+                    register7 = dataToWrite;
+                    updateBackdropColor();
+                }
             } else {
                 // VRAM Address Pointer high and mode (r/w)
                 vramWriteMode = val & 0x40;
@@ -173,34 +175,39 @@ wmsx.VDP = function(cpu, psg) {
     };
 
     function reset() {
-        status = 0; dataToWrite = null;
-        register0 = register1 = register3 = register4 = register7 = 0;
-        vramWriteMode = false;
-        signalBlanked = true;
+        register0 = register1 = register2 = register3 = register4 = register5 = register6 = register7 = 0;
+        status = 0;
+        dataToWrite = null;
+        vramWriteMode = false; vramPointer = 0;
+        updateIRQ();
         updateMode();
         updateBackdropColor();
+        currentLine = -videoStandard.inactiveHeight;
     }
 
     function updateIRQ() {
-        if ((status & 0x80) && (register1 & 0x20))
-            cpu.INT = 0;                // Active
-        else
-            cpu.INT = 1;
+        cpu.INT = ((status & 0x80) && (register1 & 0x20)) ? 0 : 1;
     }
 
     function updateMode() {
         var oldMode = mode;
         mode = ((register1 & 0x18) >>> 2) | ((register0 & 0x02) >>> 1);
-
         //if ((mode !== oldMode)) console.log("Mode changed to: " + mode);
 
-        if (mode !== oldMode && (mode === 1 || oldMode === 1)) {
+        if ((mode === 1) !== (oldMode === 1)) {
             patternTableAddress = (register4 & 0x07) * 0x800;
             colorTableAddress = register3 * 0x40;
             if (mode === 1) updateMode1Specifics();
             vramColorTable = vram.subarray(colorTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
         }
+
+        //var oldBlanked = signalBlanked;
+        signalBlanked = (register1 & 0x40) === 0;
+        //if (oldBlanked !== signalBlanked) console.log("BLANK: " + (signalBlanked ? "ON" : "OFF"));
+
+        updateLines = signalBlanked ? updateLinesBlanked : updateLinesFunctions[mode];
+        updateSpritesLine = updateSpritesLineFunctions[register1 & 0x03];
     }
 
     function updateMode1Specifics() {                     // Special rules for register 3 and 4 when in mode 1
@@ -210,310 +217,177 @@ wmsx.VDP = function(cpu, psg) {
         colorNameMask = (register3 << 3) | 0x07;          // Mask for the upper 7 bits of the 10 bits color name
     }
 
-    function updatePlanes() {
-        // Update pattern planes
-        if (mode === 1) updatePatternPlaneMode1();
-        else if (mode === 0) updatePatternPlaneMode0();
-        else if (mode === 4) updatePatternPlaneMode4();
-        else if (mode === 2) updatePatternPlaneMode2();
+    function updateBackdropColor() {
+        backdropColor = register7 & 0x0f;
+        if (backdropColor === 0) backdropColor = 1;       // Backdrop transparency not implemented yet. Force to Black
+        backdropRGB = colorRGBs[backdropColor];
+        backdropValues = colorCodePatternValues[backdropColor * 256];
     }
 
-    function updatePatternPlaneMode0() {                                    // Graphics 1 (Screen 1)
-        var bufferPos = 0;
-        var patPos, name, patternLine, pattern, colorCode, colorCodeValuesStart, values;
+    function updateLinesMode0(lines) {                                          // Graphics 1 (Screen 1)
+        var patPos, patPosFinal, name, patternLine, pattern, colorCode, values;
+        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
 
-        for (var line = 0; line < 192; line++) {
-            // 228 CPU and 7,125 PSG clocks per line
-            for (var i = 7; i > 0; i--) {
-                cpuClockPulses(32);
-                psgClockPulses(1);
-            }
-            cpuClockPulses(4);
+        while (line < genToLine) {
+            lineClockCPUandPSG();
 
-            // Pattern line
-            if (signalBlanked) values = backdropValues;
-            else patPos = (line >>> 3) << 5;                                // line / 8 * 32
-            for (var col = 0; col < 32; col++) {
-                if (!signalBlanked) {
-                    name = vramNameTable[patPos++];
-                    patternLine = (name << 3) + (line & 0x07);              // name * 8 (8 bytes each pattern) + line inside pattern
-                    pattern = vramPatternTable[patternLine];
-                    colorCode = vramColorTable[name >>> 3];                 // name / 8 (1 color for each 8 patterns)
-                    if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                    colorCodeValuesStart = colorCode << 8;                  // colorCode * 256 (256 patterns for each colorCode)
-                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                }
-                frameBackBuffer.set(values, bufferPos);
-                bufferPos += 8;                                             // Advance 8 pixels
-            }
-
-            // Sprites
-            if (!signalBlanked) updateSpritePlanes(line);
-
-            // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
-        }
-    }
-
-    function updatePatternPlaneMode1() {                                    // Graphics 2 (Screen 2)
-        var bufferPos = 0;
-        var patPos, lineInPattern, name, blockExtra, patternMask, patLine, pattern, colorMask, colorLine, colorCode, colorCodeValuesStart, values;
-
-        for (var line = 0; line < 192; line++) {
-            // 228 CPU and 7,125 PSG clocks per line
-            for (var i = 7; i > 0; i--) {
-                cpuClockPulses(32);
-                psgClockPulses(1);
-            }
-            cpuClockPulses(4);
-
-            // Pattern line
-            lineInPattern = (line & 0x07);
-            if (signalBlanked)
-                values = backdropValues;
-            else {
-                blockExtra = (line & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
-                patPos = (line >>> 3) << 5;                                 // line / 8 * 32
-            }
-            for (var col = 0; col < 32; col++) {
-                if (!signalBlanked) {
-                    name = vramNameTable[patPos++] | blockExtra;
-                    patLine = ((name & patternNameMask) << 3) + lineInPattern;  // (8 bytes each pattern) + line inside pattern
-                    pattern = vramPatternTable[patLine];
-                    colorLine = ((name & colorNameMask) << 3) + lineInPattern;  // (8 bytes each pattern) + line inside pattern
-                    colorCode = vramColorTable[colorLine];
-                    if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                    colorCodeValuesStart = colorCode << 8;                  // colorCode * 256 (256 patterns for each colorCode)
-                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                }
-                frameBackBuffer.set(values, bufferPos);
-                bufferPos += 8;                                             // Advance 8 pixels
-            }
-
-            // Sprites
-            if (!signalBlanked) updateSpritePlanes(line);
-
-            // 1 additional PSG clock each 8th line
-            if (lineInPattern === 0) psgClockPulses(1);
-        }
-    }
-
-    function updatePatternPlaneMode2() {                                    // Multicolor (Screen 3)
-        var bufferPos = 0;
-        var patPos, extraPatPos, name, nameExt, patternLine, pattern, colorCode, colorCodeValuesStart, values;
-
-        for (var line = 0; line < 192; line++) {
-            // 228 CPU and 7,125 PSG clocks per line
-            for (var i = 7; i > 0; i--) {
-                cpuClockPulses(32);
-                psgClockPulses(1);
-            }
-            cpuClockPulses(4);
-
-            // Pattern line
-            if (signalBlanked)
-                values = backdropValues;
-            else {
-                patPos = (line >>> 3) << 5;                            // line / 8 * 32
-                extraPatPos = ((line >>> 3) & 0x03) << 1;              // (pattern line % 4) * 2
-            }
-            for (var col = 0; col < 32; col++) {
-                if (!signalBlanked) {
-                    name = vramNameTable[patPos++];
-                    patternLine = (name << 3) + ((line >> 2) & 0x01) + extraPatPos;   // name * 8 + position (2 bytes each)
-                    colorCode = vramPatternTable[patternLine];
-                    if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                    colorCodeValuesStart = colorCode << 8;                            // colorCode * 256 (256 patterns for each colorCode)
-                    values = colorCodePatternValues[colorCodeValuesStart + 0xf0];     // Always solid blocks of front and back colors
-                }
+            patPos = (line >>> 3) << 5;                                         // line / 8 * 32
+            var lineInPattern = line & 0x07;
+            patPosFinal = patPos + 32;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++];
+                patternLine = (name << 3) + lineInPattern;                      // name * 8 (8 bytes each pattern) + line inside pattern
+                pattern = vramPatternTable[patternLine];
+                colorCode = vramColorTable[name >>> 3];                         // name / 8 (1 color for each 8 patterns)
+                if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
+                values = colorCodePatternValues[(colorCode << 8) + pattern];    // colorCode * 256 (256 patterns for each colorCode)
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
-
-            // Sprites
-            if (!signalBlanked) updateSpritePlanes(line);
-
-            // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
+            updateSpritesLine(line, bufferPos - 256);
+            line++;
         }
+
+        currentLine = line;
     }
 
-    function updatePatternPlaneMode4() {                                    // Text (Screen 0)
-        var bufferPos = 0;
-        var patPos, name, patternLine, pattern, values, colorCode, colorCodeValuesStart, borderValues;
+    function updateLinesMode1(lines) {                                          // Graphics 2 (Screen 2)
+        var patPos, patPosFinal, lineInPattern, name, blockExtra, patLine, pattern, colorLine, colorCode, values;
+        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
 
-        for (var line = 0; line < 192; line++) {
-            // 228 CPU and 7,125 PSG clocks per line
-            for (var i = 7; i > 0; i--) {
-                cpuClockPulses(32);
-                psgClockPulses(1);
-            }
-            cpuClockPulses(4);
+        while (line < genToLine) {
+            lineClockCPUandPSG();
 
-            // Pattern line
-            if (signalBlanked) {
-                values = backdropValues;
-                borderValues = values;
-            } else {
-                colorCode = register7;                                          // Fixed text color for all screen
+            patPos = (line >>> 3) << 5;                                         // line / 8 * 32
+            lineInPattern = line & 0x07;
+            blockExtra = (line & 0xc0) << 2;                                    // + 0x100 for each third block of the screen (8 pattern lines)
+            patPosFinal = patPos + 32;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++] | blockExtra;
+                patLine = ((name & patternNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
+                pattern = vramPatternTable[patLine];
+                colorLine = ((name & colorNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
+                colorCode = vramColorTable[colorLine];
                 if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                colorCodeValuesStart = colorCode << 8;                          // (colorCode * 256) 256 patterns for each colorCode
-                borderValues = colorCodePatternValues[colorCodeValuesStart];
-                patPos = (line >>> 3) * 40;                                     // line / 8 * 40
-            }
-            frameBackBuffer.set(borderValues, bufferPos);                   // 8 pixels left margin
-            bufferPos += 8;
-            for (var col = 0; col < 40; col++) {
-                if (!signalBlanked) {
-                    name = vramNameTable[patPos++];
-                    patternLine = (name << 3) + (line & 0x07);              // name * 8 (8 bytes each pattern) + line inside pattern
-                    pattern = vramPatternTable[patternLine];
-                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                }
+                values = colorCodePatternValues[(colorCode << 8) | pattern];    // colorCode * 256 (256 patterns for each colorCode)
                 frameBackBuffer.set(values, bufferPos);
-                bufferPos += 6;                                             // Advance 6 pixels
+                bufferPos += 8;
             }
-            frameBackBuffer.set(borderValues, bufferPos);                   // 8 pixels right margin
-            bufferPos += 8;
-
-            // Sprite system deactivated
-
-            // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
+            updateSpritesLine(line, bufferPos - 256);
+            line++;
         }
+
+        currentLine = line;
     }
 
-    function updateSpritePlanes(line) {
+    function updateLinesMode2(lines) {                                          // Multicolor (Screen 3)
+        var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values;
+        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+
+        while (line < genToLine) {
+            lineClockCPUandPSG();
+
+            patPos = (line >>> 3) << 5;                                         // line / 8 * 32
+            extraPatPos = (((line >>> 3) & 0x03) << 1) + ((line >> 2) & 0x01);  // (pattern line % 4) * 2
+            patPosFinal = patPos + 32;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++];
+                patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
+                colorCode = vramPatternTable[patternLine];
+                if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
+                values = colorCodePatternValues[(colorCode << 8) + 0xf0];       // always solid blocks of front and back colors
+                frameBackBuffer.set(values, bufferPos);
+                bufferPos += 8;
+            }
+            updateSpritesLine(line, bufferPos - 256);
+            line++;
+        }
+
+        currentLine = line;
+    }
+
+    function updateLinesMode4(lines) {                                          // Text (Screen 0)
+        var patPos, patPosFinal, name, patternLine, pattern, values, colorCode, colorCodeValuesStart;
+        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+
+        while (line < genToLine) {
+            lineClockCPUandPSG();
+
+            colorCode = register7;                                              // fixed text color for all line
+            if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
+            colorCodeValuesStart = colorCode << 8;                              // (colorCode * 256) 256 patterns for each colorCode
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left margin
+            bufferPos += 8;
+
+            patPos = (line >>> 3) * 40;                                         // line / 8 * 40
+            patPosFinal = patPos + 40;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++];
+                patternLine = (name << 3) + (line & 0x07);                      // name * 8 (8 bytes each pattern) + line inside pattern
+                pattern = vramPatternTable[patternLine];
+                values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                frameBackBuffer.set(values, bufferPos);
+                bufferPos += 6;                                                 // advance 6 pixels
+            }
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right margin
+            bufferPos += 8;
+
+            // Sprites deactivated
+            line++;
+        }
+
+        currentLine = line;
+    }
+
+    function updateLinesBlanked(lines) {
+        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+
+        while (line < genToLine) {
+            lineClockCPUandPSG();
+            for (var pat = 32; pat > 0; pat--) {
+                frameBackBuffer.set(backdropValues, bufferPos);
+                bufferPos += 8;
+            }
+            // Sprites deactivated
+            line++;
+        }
+
+        currentLine = line;
+    }
+
+    function updateSpritesLineSize0(line, bufferPos) {                      // 8x8 normal
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
-        var colorValuesStart, patternStart, name, color, pattern, values;
-        var sprite, drawn = 0, invalid = -1;
-        var atrPos, y, x;
-        var s, f;
-        var size = register1 & 0x03;
-        var bufferPos = line << 8;                                          // line * 256
-
+        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
         spriteCollision = false;
 
-        if (size === 2) {                                                   // 16x16 normal
-            for (atrPos = 0; atrPos < 128; atrPos += 4) {                   // Max of 32 sprites
-                sprite = atrPos >> 2;
-                y = vramSpriteAttrTable[atrPos];
-                if (y === 208) break;                                       // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y;                                 // Signed value from -31 to -1
-                y++;                                                        // -1 (255) is line 0 per spec, so add 1
-                if ((y < (line - 15)) || (y > line)) continue;              // Not visible at line
-                if (++drawn > 4) {                                          // Max of 4 sprites drawn. Store the first invalid (5th)
-                    invalid = sprite;
-                    break;
-                }
-                x = vramSpriteAttrTable[atrPos + 1];
-                color = vramSpriteAttrTable[atrPos + 3];
-                if (color & 0x80) x -= 32;                                  // Early Clock bit, X to be 32 to the left
-                if (x < -15) continue;                                      // Not visible (out to the left)
-                name = vramSpriteAttrTable[atrPos + 2];
-                colorValuesStart = (color & 0x0f) << 8;                     // Color * 256 patterns per color
-                patternStart = ((name & 0xfc) << 3) + (line - y);
-                // Left half
-                s = x >= 0 ? 0 : -x; f = x <= 248 ? 8 : 256 - x;
-                if (s < f) {
-                    pattern = vramSpritePatternTable[patternStart];
-                    values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                    copySprite(frameBackBuffer, bufferPos + x, values, s, f);
-                }
-                // Right half
-                s = x >= -8 ? 0 : -8 - x; f = x <= 240 ? 8 : 248 - x;
-                if (s < f) {
-                    pattern = vramSpritePatternTable[patternStart + 16];
-                    values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                    copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f);
-                }
+        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
+            sprite++;
+            y = vramSpriteAttrTable[atrPos];
+            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
+            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
+            y++;                                                            // -1 (255) is line 0 per spec, so add 1
+            if ((y < (line - 7)) || (y > line)) continue;                   // Not visible at line
+            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
+                invalid = sprite;
+                break;
             }
-        } else if (size === 0) {                                            // 8x8 normal
-            for (atrPos = 0; atrPos < 128; atrPos += 4) {                   // Max of 32 sprites
-                sprite = atrPos >> 2;
-                y = vramSpriteAttrTable[atrPos];
-                if (y === 208) break;                                       // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y;                                 // Signed value from -31 to -1
-                y++;                                                        // -1 (255) is line 0 per spec, so add 1
-                if ((y < (line - 7)) || (y > line)) continue;               // Not visible at line
-                if (++drawn > 4) {                                          // Max of 4 sprites drawn. Store the first invalid (5th)
-                    invalid = sprite;
-                    break;
-                }
-                x = vramSpriteAttrTable[atrPos + 1];
-                color = vramSpriteAttrTable[atrPos + 3];
-                if (color & 0x80) x -= 32;                                  // Early Clock bit, X to be 32 to the left
-                if (x < -7) continue;                                       // Not visible (out to the left)
-                name = vramSpriteAttrTable[atrPos + 2];
-                colorValuesStart = (color & 0x0f) << 8;                     // Color * 256 patterns per color
-                patternStart = (name << 3) + (line - y);
-                s = x >= 0 ? 0 : -x; f = x <= 248 ? 8 : 256 - x;
-                if (s < f) {
-                    pattern = vramSpritePatternTable[patternStart];
-                    values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                    copySprite(frameBackBuffer, bufferPos + x, values, s, f);
-                }
-            }
-        } else if (size === 3) {                                            // 16x16 double
-            for (atrPos = 0; atrPos < 128; atrPos += 4) {                   // Max of 32 sprites
-                sprite = atrPos >> 2;
-                y = vramSpriteAttrTable[atrPos];
-                if (y === 208) break;                                       // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y;                                 // Signed value from -31 to -1
-                y++;                                                        // -1 (255) is line 0 per spec, so add 1
-                if ((y < (line - 31)) || (y > line)) continue;              // Not visible at line
-                if (++drawn > 4) {                                          // Max of 4 sprites drawn. Store the first invalid (5th)
-                    invalid = sprite;
-                    break;
-                }
-                x = vramSpriteAttrTable[atrPos + 1];
-                color = vramSpriteAttrTable[atrPos + 3];
-                if (color & 0x80) x -= 32;                                  // Early Clock bit, X to be 32 to the left
-                if (x < -31) continue;                                      // Not visible (out to the left)
-                name = vramSpriteAttrTable[atrPos + 2];
-                colorValuesStart = (color & 0x0f) << 8;                     // Color * 256 patterns per color
-                patternStart = ((name & 0xfc) << 3) + ((line - y) >>> 1);   // Double line height
-                // Left half
-                s = x >= 0 ? 0 : -x; f = x <= 240 ? 16 : 256 - x;
-                if (s < f) {
-                    pattern = vramSpritePatternTable[patternStart];
-                    values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                    copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
-                }
-                // Right half
-                s = x >= -16 ? 0 : -16 - x; f = x <= 224 ? 16 : 240 - x;
-                if (s < f) {
-                    pattern = vramSpritePatternTable[patternStart + 16];
-                    values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                    copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f);
-                }
-            }
-        } else {                                                            // 8x8 double
-            for (atrPos = 0; atrPos < 128; atrPos += 4) {                   // Max of 32 sprites
-                sprite = atrPos >> 2;
-                y = vramSpriteAttrTable[atrPos];
-                if (y === 208) break;                                       // Stop Sprite processing for the line, as per spec
-                if (y >= 225) y = -256 + y;                                 // Signed value from -31 to -1
-                y++;                                                        // -1 (255) is line 0 per spec, so add 1
-                if ((y < (line - 15)) || (y > line)) continue;              // Not visible at line
-                if (++drawn > 4) {                                          // Max of 4 sprites drawn. Store the first invalid (5th)
-                    invalid = sprite;
-                    break;
-                }
-                x = vramSpriteAttrTable[atrPos + 1];
-                color = vramSpriteAttrTable[atrPos + 3];
-                if (color & 0x80) x -= 32;                                  // Early Clock bit, X to be 32 to the left
-                if (x < -15) continue;                                      // Not visible (out to the left)
-                name = vramSpriteAttrTable[atrPos + 2];
-                colorValuesStart = (color & 0x0f) << 8;                     // Color * 256 patterns per color
-                patternStart = (name << 3) + ((line - y) >>> 1);            // Double line height
-                s = x >= 0 ? 0 : -x; f = x <= 240 ? 16 : 256 - x;
-                if (s < f) {
-                    pattern = vramSpritePatternTable[patternStart];
-                    values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                    copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
-                }
+            x = vramSpriteAttrTable[atrPos + 1];
+            color = vramSpriteAttrTable[atrPos + 3];
+            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
+            if (x < -7) continue;                                           // Not visible (out to the left)
+            name = vramSpriteAttrTable[atrPos + 2];
+            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            patternStart = (name << 3) + (line - y);
+            s = x >= 0 ? 0 : -x;
+            f = x <= 248 ? 8 : 256 - x;
+            if (s < f) {
+                pattern = vramSpritePatternTable[patternStart];
+                values = spriteColorCodePatternValues[colorValuesStart + pattern];
+                copySprite(frameBackBuffer, bufferPos + x, values, s, f);
             }
         }
 
@@ -521,12 +395,167 @@ wmsx.VDP = function(cpu, psg) {
             //console.log("Collision");
             status |= 0x20;
         }
-        if ((status & 0x40) === 0) {                          // Only set if 5S are still unset
+        if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
             if (invalid >= 0) {
                 //console.log("Invalid sprite: " + invalid);
-                status = status | 0x40 | invalid;
-            } else
-                status = status | sprite;
+                status |= 0x40 | invalid;
+            } else if (sprite > (status & 0x1f)) status |= sprite;
+        }
+    }
+
+    function updateSpritesLineSize1(line, bufferPos) {                      // 8x8 double
+        if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
+
+        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        spriteCollision = false;
+
+        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
+            sprite++;
+            y = vramSpriteAttrTable[atrPos];
+            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
+            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
+            y++;                                                            // -1 (255) is line 0 per spec, so add 1
+            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
+            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
+                invalid = sprite;
+                break;
+            }
+            x = vramSpriteAttrTable[atrPos + 1];
+            color = vramSpriteAttrTable[atrPos + 3];
+            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
+            if (x < -15) continue;                                          // Not visible (out to the left)
+            name = vramSpriteAttrTable[atrPos + 2];
+            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            patternStart = (name << 3) + ((line - y) >>> 1);                // Double line height
+            s = x >= 0 ? 0 : -x;
+            f = x <= 240 ? 16 : 256 - x;
+            if (s < f) {
+                pattern = vramSpritePatternTable[patternStart];
+                values = spriteColorCodePatternValues[colorValuesStart + pattern];
+                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
+            }
+        }
+
+        if (spriteCollision) {
+            //console.log("Collision");
+            status |= 0x20;
+        }
+        if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
+            if (invalid >= 0) {
+                //console.log("Invalid sprite: " + invalid);
+                status |= 0x40 | invalid;
+            } else if (sprite > (status & 0x1f)) status |= sprite;
+        }
+    }
+
+    function updateSpritesLinesSize(line, bufferPos) {                      // 16x16 normal
+        if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
+
+        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        spriteCollision = false;
+
+        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
+            sprite++;
+            y = vramSpriteAttrTable[atrPos];
+            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
+            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
+            y++;                                                            // -1 (255) is line 0 per spec, so add 1
+            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
+            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
+                invalid = sprite;
+                break;
+            }
+            x = vramSpriteAttrTable[atrPos + 1];
+            color = vramSpriteAttrTable[atrPos + 3];
+            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
+            if (x < -15) continue;                                          // Not visible (out to the left)
+            name = vramSpriteAttrTable[atrPos + 2];
+            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            patternStart = ((name & 0xfc) << 3) + (line - y);
+            // Left half
+            s = x >= 0 ? 0 : -x;
+            f = x <= 248 ? 8 : 256 - x;
+            if (s < f) {
+                pattern = vramSpritePatternTable[patternStart];
+                values = spriteColorCodePatternValues[colorValuesStart + pattern];
+                copySprite(frameBackBuffer, bufferPos + x, values, s, f);
+            }
+            // Right half
+            s = x >= -8 ? 0 : -8 - x;
+            f = x <= 240 ? 8 : 248 - x;
+            if (s < f) {
+                pattern = vramSpritePatternTable[patternStart + 16];
+                values = spriteColorCodePatternValues[colorValuesStart + pattern];
+                copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f);
+            }
+        }
+
+        if (spriteCollision) {
+            //console.log("Collision");
+            status |= 0x20;
+        }
+        if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
+            if (invalid >= 0) {
+                //console.log("Invalid sprite: " + invalid);
+                status |= 0x40 | invalid;
+            } else if (sprite > (status & 0x1f)) status |= sprite;
+        }
+    }
+
+    function updateSpritesLineSize3(line, bufferPos) {                      // 16x16 double
+        if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
+
+        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        spriteCollision = false;
+
+        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
+            sprite++;
+            y = vramSpriteAttrTable[atrPos];
+            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
+            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
+            y++;                                                            // -1 (255) is line 0 per spec, so add 1
+            if ((y < (line - 31)) || (y > line)) continue;                  // Not visible at line
+            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
+                invalid = sprite;
+                break;
+            }
+            x = vramSpriteAttrTable[atrPos + 1];
+            color = vramSpriteAttrTable[atrPos + 3];
+            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
+            if (x < -31) continue;                                          // Not visible (out to the left)
+            name = vramSpriteAttrTable[atrPos + 2];
+            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            patternStart = ((name & 0xfc) << 3) + ((line - y) >>> 1);       // Double line height
+            // Left half
+            s = x >= 0 ? 0 : -x;
+            f = x <= 240 ? 16 : 256 - x;
+            if (s < f) {
+                pattern = vramSpritePatternTable[patternStart];
+                values = spriteColorCodePatternValues[colorValuesStart + pattern];
+                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
+            }
+            // Right half
+            s = x >= -16 ? 0 : -16 - x;
+            f = x <= 224 ? 16 : 240 - x;
+            if (s < f) {
+                pattern = vramSpritePatternTable[patternStart + 16];
+                values = spriteColorCodePatternValues[colorValuesStart + pattern];
+                copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f);
+            }
+        }
+
+        if (spriteCollision) {
+            //console.log("Collision");
+            status |= 0x20;
+        }
+        if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
+            if (invalid >= 0) {
+                //console.log("Invalid sprite: " + invalid);
+                status |= 0x40 | invalid;
+            } else if (sprite > (status & 0x1f)) status |= sprite;
         }
     }
 
@@ -553,19 +582,23 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function finishFrame() {
-        // Finish audio signal (generate additional samples each frame to adjust to sample rate)
+        // Finish audio signal (generate any missing samples adjust to sample rate)
         psg.getAudioOutput().finishFrame();
-        // Update image and send to monitor
+
+        // Update frame image and send to monitor
         frameContext.putImageData(frameImageData, 0, 0);
         videoSignal.newFrame(frameCanvas, backdropRGB);
+
+        // Reset rendering position controls
+        currentLine = -videoStandard.inactiveHeight;
     }
 
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
-        frameCanvas.width = 256;    // Native VPD resolution
-        frameCanvas.height = 192;
+        frameCanvas.width = 256; // + 8 + 8;    // Visible VPD resolution + 8 pixel borders
+        frameCanvas.height = 192; // + 8 + 8;
         frameContext = frameCanvas.getContext("2d");
-        frameImageData = frameContext.getImageData(0, 0, 256, 192);
+        frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
     }
 
@@ -612,21 +645,17 @@ wmsx.VDP = function(cpu, psg) {
 
     // Registers, pointers, temporary data
 
-    var status = 0;
-    var mode = 0;
+    var register0, register1, register2, register3, register4, register5, register6, register7;
+
+    var status;
+    var mode;
     var videoStandard = wmsx.VideoStandard.NTSC;
 
-    var register0 = 0;
-    var register1 = 0;
-    var register3 = 0;
-    var register4 = 0;
-    var register7 = 0;
-
-    var backdropColor = 0;
-    var backdropRGB = 0;
+    var backdropColor;
+    var backdropRGB;
     var backdropValues = [];
-    var signalBlanked = true;
-    var spriteCollision = false;
+    var signalBlanked;
+    var spriteCollision;
 
     var nameTableAddress = 0;
     var colorTableAddress = 0;
@@ -636,9 +665,17 @@ wmsx.VDP = function(cpu, psg) {
 
     var patternNameMask, colorNameMask;     // Special masks from register3 and register4 for mode 1 only
 
-    var dataToWrite = null;
+    var dataToWrite;
     var vramPointer = 0;
     var vramWriteMode = false;
+
+    var currentLine;
+
+    var updateLinesFunctions =       [ updateLinesMode0, updateLinesMode1, updateLinesMode2, null, updateLinesMode4 ];
+    var updateSpritesLineFunctions = [ updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize, updateSpritesLineSize3 ];
+
+    var updateLines;                        // Update function for current mode
+    var updateSpritesLine;                  // Update function for current mode
 
 
     // VRAM
@@ -697,7 +734,8 @@ wmsx.VDP = function(cpu, psg) {
 
     this.saveState = function() {
         return {
-            s: status, m: mode, r0: register0, r1: register1, r3: register3, r4: register4, r7: register7,
+            s: status, m: mode, l: currentLine,
+            r0: register0, r1: register1, r2: register1, r3: register3, r4: register4, r5: register1, r6: register1, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
             vram: wmsx.Util.compressArrayToStringBase64(vram),
@@ -706,7 +744,9 @@ wmsx.VDP = function(cpu, psg) {
     };
 
     this.loadState = function(s) {
-        status = s.s; mode = s.m; register0 = s.r0; register1 = s.r1; register3 = s.r3; register4 = s.r4; register7 = s.r7;
+        this.setVideoStandard(wmsx.VideoStandard[s.vs]);
+        status = s.s; mode = s.m; currentLine = s.l || -videoStandard.inactiveHeight;
+        register0 = s.r0; register1 = s.r1; register2 = s.r2 || 0; register3 = s.r3; register4 = s.r4; register5 = s.r5 || 0; register6 = s.r6 || 0;  register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
         vram = wmsx.Util.uncompressStringBase64ToArray(s.vram);         // Already UInt8Array
@@ -715,10 +755,9 @@ wmsx.VDP = function(cpu, psg) {
         vramPatternTable = vram.subarray(patternTableAddress);
         vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
         vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
-        signalBlanked = (register1 & 0x40) === 0;
-        if (mode === 1) updateMode1Specifics();
+        updateIRQ();
+        updateMode();
         updateBackdropColor();
-        this.setVideoStandard(wmsx.VideoStandard[s.vs]);
     };
 
 
