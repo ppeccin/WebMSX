@@ -201,7 +201,7 @@ wmsx.PSGMixedAudioChannel = function() {
     var volumeCurve = new Array(16);
 
     var CHANNEL_AMP_CURVE_POWER = 30;
-    var CHANNEL_MAX_AMP = 0.25;
+    var CHANNEL_MAX_AMP = 0.26;
 
 
     // Savestate  -------------------------------------------

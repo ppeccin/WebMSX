@@ -45,21 +45,25 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.style.display = "none";
     };
 
-    this.refresh = function(image, originX, originY, newContentBackdrop) {
+    this.refresh = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
         if (!signalIsOn) {
             signalIsOn = true;
             updateLogo();
         }
-        // Update content backdrop color if needed
-        if (newContentBackdrop !== contentBackdrop) {
-            contentBackdrop = newContentBackdrop;
-            canvas.style.background = "rgb(" + (newContentBackdrop & 0xff) + "," + ((newContentBackdrop >> 8) & 0xff) + "," + ((newContentBackdrop >>> 16) & 0xff) + ")";
-        }
+
+        // Not needed anymore since the VPD paints all visible screen including the backdrop borders
+        //// Update content backdrop color if needed
+        //if (newContentBackdrop !== contentBackdrop) {
+        //    contentBackdrop = newContentBackdrop;
+        //    canvas.style.background = "rgb(" + (newContentBackdrop & 0xff) + "," + ((newContentBackdrop >> 8) & 0xff) + "," + ((newContentBackdrop >>> 16) & 0xff) + ")";
+        //}
+
         // Then update content
         canvasContext.drawImage(
             image,
-            originX * contentBaseScale, originY * contentBaseScale,
-            image.width * contentBaseScale, image.height * contentBaseScale
+            sourceX, sourceY, sourceWidth, sourceHeight,
+            0, 0,
+            sourceWidth * contentBaseScale, sourceHeight * contentBaseScale
         );
     };
 
@@ -298,6 +302,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.display = "block";
         canvas.style.left = canvas.style.right = 0;
         canvas.style.top = canvas.style.bottom = 0;
+        canvas.style.background = "black";
         canvas.style.margin = "auto";
         canvas.tabIndex = "-1";               // Make it focusable
         canvas.style.outline = "none";

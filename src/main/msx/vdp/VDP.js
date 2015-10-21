@@ -5,7 +5,7 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.NewVDP = function(cpu, psg) {
+wmsx.VDP = function(cpu, psg) {
     var self = this;
 
     function init() {
@@ -13,7 +13,7 @@ wmsx.NewVDP = function(cpu, psg) {
         initFrameResources();
         initColorCodePatternValues();
         cpuClockPulses = cpu.clockPulses;
-        psgClockPulses = psg.getAudioOutput().audioClockPulses;
+        psgClockPulse = psg.getAudioOutput().audioClockPulse;
         self.setDefaults();
     }
 
@@ -43,44 +43,25 @@ wmsx.NewVDP = function(cpu, psg) {
         //console.log(cpu.eval("cycles"));
         //cpu.eval("cycles = 0");
 
-        // Inactive display scanlines (70 for NTSC, 121 for PAL)
-        while (currentLine < 0) updateLinesInactive(currentLine * -1);
+        // Invisible scanlines (70 - 8 - 8 for NTSC, 121 for PAL)
+        if (currentLine < -8) updateLinesInvisible(-8 - currentLine);
 
-        // Active display scanlines (192 for both NSTC and PAL)
-        while (currentLine < 192) updateLines(192 - currentLine);
+        // Visible top border scanlines (8)
+        if (currentLine < 0) updateLinesBorder(-currentLine);
+
+        // Visible active scanlines (192 for both NSTC and PAL)
+        while (currentLine < 192) updateLinesActive(192 - currentLine);
 
         // End of visible scan, request interrupt
         status |= 0x80;
         updateIRQ();
 
+        // Visible bottom border scanlines (8)
+        if (currentLine < 200) updateLinesBorder(200 - currentLine);
+
         // Complete missing audio clocks, synch and send frame to monitor
         finishFrame();
     };
-
-    function updateLinesInactive(lines) {
-
-        //console.log("Active lines: " + lines);
-
-        var line = currentLine, genToLine = line + lines;
-
-        while (line < genToLine) {
-            cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
-            cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
-            cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
-            cpuClockPulses(33); psgClockPulses(1); // TODO 1 additional PSG clock each 8th line
-            line++;
-        }
-
-        currentLine = line;
-    }
-
-    // 228 CPU clocks and 7,125 PSG clocks interleaved
-    function lineClockCPUandPSG() {
-        cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
-        cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
-        cpuClockPulses(33); psgClockPulses(1); cpuClockPulses(32); psgClockPulses(1);
-        cpuClockPulses(33); psgClockPulses(1); // TODO 1 additional PSG clock each 8th line
-    }
 
     this.input99 = function() {
         // Status Register Read
@@ -182,7 +163,7 @@ wmsx.NewVDP = function(cpu, psg) {
         updateIRQ();
         updateMode();
         updateBackdropColor();
-        currentLine = -videoStandard.inactiveHeight;
+        currentLine = videoStandard.startingScanline;
     }
 
     function updateIRQ() {
@@ -192,8 +173,6 @@ wmsx.NewVDP = function(cpu, psg) {
     function updateMode() {
         var oldMode = mode;
         mode = ((register1 & 0x18) >>> 2) | ((register0 & 0x02) >>> 1);
-        //if ((mode !== oldMode)) console.log("Mode changed to: " + mode);
-
         if ((mode === 1) !== (oldMode === 1)) {
             patternTableAddress = (register4 & 0x07) * 0x800;
             colorTableAddress = register3 * 0x40;
@@ -201,13 +180,11 @@ wmsx.NewVDP = function(cpu, psg) {
             vramColorTable = vram.subarray(colorTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
         }
-
-        //var oldBlanked = signalBlanked;
-        signalBlanked = (register1 & 0x40) === 0;
-        //if (oldBlanked !== signalBlanked) console.log("BLANK: " + (signalBlanked ? "ON" : "OFF"));
-
-        updateLines = signalBlanked ? updateLinesBlanked : updateLinesFunctions[mode];
+        updateLinesActive = (register1 & 0x40) === 0 ? updateLinesBlanked : updateLinesFunctions[mode];
         updateSpritesLine = updateSpritesLineFunctions[register1 & 0x03];
+        modeStable = false;
+
+        //console.log("MODE updated: " + mode);
     }
 
     function updateMode1Specifics() {                     // Special rules for register 3 and 4 when in mode 1
@@ -218,18 +195,68 @@ wmsx.NewVDP = function(cpu, psg) {
     }
 
     function updateBackdropColor() {
-        backdropColor = register7 & 0x0f;
-        if (backdropColor === 0) backdropColor = 1;       // Backdrop transparency not implemented yet. Force to Black
-        backdropRGB = colorRGBs[backdropColor];
+        var newColor = (register7 & 0x0f) || 1;           // Backdrop transparency not implemented yet. Force to Black if it was 0 (transparent)
+        if (newColor === backdropColor) return;
+
+        backdropColor = newColor;
         backdropValues = colorCodePatternValues[backdropColor * 256];
+        for (var i = 264; i >= 0; i -= 8) backdropFullLineValues.set(backdropValues, i);
+    }
+
+    // 228 CPU clocks and 7,125 PSG clocks interleaved
+    function lineClockCPUandPSG() {
+        //for (var i = 7; i > 0; i--) {
+        //    cpuClockPulses(32);
+        //    psgClockPulse();
+        //}
+        //cpuClockPulses(4);
+
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); // TODO 1 additional PSG clock each 8th line
+    }
+
+    function updateLinesInvisible(lines) {
+        for (var line = lines; line > 0; line--)
+            lineClockCPUandPSG();
+        currentLine += lines;
+    }
+
+    function updateLinesBorder(lines) {
+        var bufferPos = (currentLine + 8) * 272;
+        for (var line = lines; line > 0; line--) {
+            lineClockCPUandPSG();
+            frameBackBuffer.set(backdropFullLineValues, bufferPos);
+            bufferPos += 272;
+            // Sprites deactivated
+        }
+        currentLine += lines;
+    }
+
+    function updateLinesBlanked(lines) {
+        var line = 0, bufferPos = (currentLine + 8) * 272;
+        modeStable = true;
+        while ((line < lines) && modeStable) {
+            lineClockCPUandPSG();
+            frameBackBuffer.set(backdropFullLineValues, bufferPos);
+            bufferPos += 272;
+            // Sprites deactivated
+            line++;
+        }
+        currentLine += line;
     }
 
     function updateLinesMode0(lines) {                                          // Graphics 1 (Screen 1)
         var patPos, patPosFinal, name, patternLine, pattern, colorCode, values;
-        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+        var line = currentLine, genToLine = line + lines, bufferPos = (line + 8) * 272;
 
-        while (line < genToLine) {
+        modeStable = true;
+        while ((line < genToLine) && modeStable) {
             lineClockCPUandPSG();
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
             var lineInPattern = line & 0x07;
@@ -244,19 +271,26 @@ wmsx.NewVDP = function(cpu, psg) {
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
-            updateSpritesLine(line, bufferPos - 256);
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            bufferPos += 8;
+
+            updateSpritesLine(line, bufferPos - 264);
             line++;
         }
-
         currentLine = line;
     }
 
     function updateLinesMode1(lines) {                                          // Graphics 2 (Screen 2)
         var patPos, patPosFinal, lineInPattern, name, blockExtra, patLine, pattern, colorLine, colorCode, values;
-        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+        var line = currentLine, genToLine = line + lines, bufferPos = (line + 8) * 272;
 
-        while (line < genToLine) {
+        modeStable = true;
+        while ((line < genToLine) && modeStable) {
             lineClockCPUandPSG();
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
             lineInPattern = line & 0x07;
@@ -269,23 +303,31 @@ wmsx.NewVDP = function(cpu, psg) {
                 colorLine = ((name & colorNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
                 colorCode = vramColorTable[colorLine];
                 if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
+                if ((colorCode & 0xf0) === 0) colorCode |= backdropColor << 4;  // TODO Also translate FRONT colors!
                 values = colorCodePatternValues[(colorCode << 8) | pattern];    // colorCode * 256 (256 patterns for each colorCode)
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
-            updateSpritesLine(line, bufferPos - 256);
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            bufferPos += 8;
+
+            updateSpritesLine(line, bufferPos - 264);
             line++;
         }
-
         currentLine = line;
     }
 
     function updateLinesMode2(lines) {                                          // Multicolor (Screen 3)
         var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values;
-        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+        var line = currentLine, genToLine = line + lines, bufferPos = (line + 8) * 272;
 
-        while (line < genToLine) {
+        modeStable = true;
+        while ((line < genToLine) && modeStable) {
             lineClockCPUandPSG();
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
             extraPatPos = (((line >>> 3) & 0x03) << 1) + ((line >> 2) & 0x01);  // (pattern line % 4) * 2
@@ -299,25 +341,32 @@ wmsx.NewVDP = function(cpu, psg) {
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
-            updateSpritesLine(line, bufferPos - 256);
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            bufferPos += 8;
+
+            updateSpritesLine(line, bufferPos - 264);
             line++;
         }
-
         currentLine = line;
     }
 
     function updateLinesMode4(lines) {                                          // Text (Screen 0)
         var patPos, patPosFinal, name, patternLine, pattern, values, colorCode, colorCodeValuesStart;
-        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
+        var line = currentLine, genToLine = line + lines, bufferPos = (line + 8) * 272;
 
-        while (line < genToLine) {
+        modeStable = true;
+        while ((line < genToLine) && modeStable) {
             lineClockCPUandPSG();
 
             colorCode = register7;                                              // fixed text color for all line
             if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
             colorCodeValuesStart = colorCode << 8;                              // (colorCode * 256) 256 patterns for each colorCode
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left margin
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            bufferPos += 8;
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
             bufferPos += 8;
 
             patPos = (line >>> 3) * 40;                                         // line / 8 * 40
@@ -331,29 +380,15 @@ wmsx.NewVDP = function(cpu, psg) {
                 bufferPos += 6;                                                 // advance 6 pixels
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right margin
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
+            bufferPos += 8;
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
             bufferPos += 8;
 
             // Sprites deactivated
             line++;
         }
-
-        currentLine = line;
-    }
-
-    function updateLinesBlanked(lines) {
-        var line = currentLine, genToLine = line + lines, bufferPos = line * 256;
-
-        while (line < genToLine) {
-            lineClockCPUandPSG();
-            for (var pat = 32; pat > 0; pat--) {
-                frameBackBuffer.set(backdropValues, bufferPos);
-                bufferPos += 8;
-            }
-            // Sprites deactivated
-            line++;
-        }
-
         currentLine = line;
     }
 
@@ -361,7 +396,7 @@ wmsx.NewVDP = function(cpu, psg) {
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
-        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spriteCollision = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
@@ -392,7 +427,7 @@ wmsx.NewVDP = function(cpu, psg) {
         }
 
         if (spriteCollision) {
-            //console.log("Collision");
+            //console.log("8x8 normal Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
@@ -407,7 +442,7 @@ wmsx.NewVDP = function(cpu, psg) {
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
-        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spriteCollision = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
@@ -438,7 +473,7 @@ wmsx.NewVDP = function(cpu, psg) {
         }
 
         if (spriteCollision) {
-            //console.log("Collision");
+            //console.log("8x8 double Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
@@ -449,11 +484,11 @@ wmsx.NewVDP = function(cpu, psg) {
         }
     }
 
-    function updateSpritesLinesSize(line, bufferPos) {                      // 16x16 normal
+    function updateSpritesLinesSize2(line, bufferPos) {                     // 16x16 normal
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
-        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spriteCollision = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
@@ -493,7 +528,7 @@ wmsx.NewVDP = function(cpu, psg) {
         }
 
         if (spriteCollision) {
-            //console.log("Collision");
+            //console.log("16x16 normal Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
@@ -508,7 +543,7 @@ wmsx.NewVDP = function(cpu, psg) {
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
-        var sprite = 0, drawn = 0, invalid = -1, y, x, s, f;
+        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spriteCollision = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
@@ -548,7 +583,7 @@ wmsx.NewVDP = function(cpu, psg) {
         }
 
         if (spriteCollision) {
-            //console.log("Collision");
+            //console.log("16x16 double Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
@@ -564,7 +599,7 @@ wmsx.NewVDP = function(cpu, psg) {
             var s = source[i];
             if (s === 0) continue;
             var d = dest[pos + i];
-            // Transparent sprites (color 0x01000000) just "mark" its presence setting dest Alpha to Full, so collisions can be detected
+            // Transparent sprites (color 0x01000000) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
             if (d < 0xff000000) dest[pos + i] = s === 0x01000000 ? (d | 0xff000000) : s;
             else spriteCollision = true;
         }
@@ -575,7 +610,7 @@ wmsx.NewVDP = function(cpu, psg) {
             var s = source[(i >>> 1)];
             if (s === 0) continue;
             var d = dest[pos + i];
-            // Transparent sprites (color 0x01000000) just "mark" its presence setting dest Alpha to Full, so collisions can be detected
+            // Transparent sprites (color 0x01000000) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
             if (d < 0xff000000) dest[pos + i] = s === 0x01000000 ? (d | 0xff000000) : s;
             else spriteCollision = true;
         }
@@ -587,16 +622,16 @@ wmsx.NewVDP = function(cpu, psg) {
 
         // Update frame image and send to monitor
         frameContext.putImageData(frameImageData, 0, 0);
-        videoSignal.newFrame(frameCanvas, backdropRGB);
+        videoSignal.newFrame(frameCanvas);
 
         // Reset rendering position controls
-        currentLine = -videoStandard.inactiveHeight;
+        currentLine = videoStandard.startingScanline;
     }
 
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
-        frameCanvas.width = 256; // + 8 + 8;    // Visible VPD resolution + 8 pixel borders
-        frameCanvas.height = 192; // + 8 + 8;
+        frameCanvas.width = 256 + 8 + 8;    // Visible VPD resolution + 8 pixel borders
+        frameCanvas.height = 192 + 8 + 8;
         frameContext = frameCanvas.getContext("2d");
         frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
@@ -633,13 +668,15 @@ wmsx.NewVDP = function(cpu, psg) {
                     for (var bit = 7; bit >= 0; bit--) {
                         var pixel = (pattern >>> bit) & 1;
                         patternValues[7 - bit] = pixel ? colorFront : colorBack;
-                        // Full Alpha front color or Full Transparent for Sprites
+                        // Full Alpha front color or Special Transparent for Sprites
                         if (spritePatternValues && pixel) spritePatternValues[7 - bit] = colorFront + 0x01000000;
                     }
                 }
             }
         }
         updateBackdropColor();
+
+        // TODO Adjust backdrops
     }
 
 
@@ -647,15 +684,16 @@ wmsx.NewVDP = function(cpu, psg) {
 
     var register0, register1, register2, register3, register4, register5, register6, register7;
 
-    var status;
-    var mode;
     var videoStandard = wmsx.VideoStandard.NTSC;
 
-    var backdropColor;
-    var backdropRGB;
-    var backdropValues = [];
-    var signalBlanked;
+    var status;
+    var mode;
+    var modeStable;
     var spriteCollision;
+
+    var backdropColor = -1;
+    var backdropValues;
+    var backdropFullLineValues = new Uint32Array(34 * 8);
 
     var nameTableAddress = 0;
     var colorTableAddress = 0;
@@ -671,10 +709,10 @@ wmsx.NewVDP = function(cpu, psg) {
 
     var currentLine;
 
-    var updateLinesFunctions =       [ updateLinesMode0, updateLinesMode1, updateLinesMode2, null, updateLinesMode4 ];
-    var updateSpritesLineFunctions = [ updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize, updateSpritesLineSize3 ];
+    var updateLinesFunctions = [updateLinesMode0, updateLinesMode1, updateLinesMode2, updateLinesBlanked, updateLinesMode4, updateLinesBlanked, updateLinesBlanked, updateLinesBlanked];
+    var updateSpritesLineFunctions = [ updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
 
-    var updateLines;                        // Update function for current mode
+    var updateLinesActive;                  // Update function for current mode
     var updateSpritesLine;                  // Update function for current mode
 
 
@@ -727,7 +765,7 @@ wmsx.NewVDP = function(cpu, psg) {
     var videoSignal;
 
     var cpuClockPulses;
-    var psgClockPulses;
+    var psgClockPulse;
 
 
     // Savestate  -------------------------------------------
@@ -745,7 +783,7 @@ wmsx.NewVDP = function(cpu, psg) {
 
     this.loadState = function(s) {
         this.setVideoStandard(wmsx.VideoStandard[s.vs]);
-        status = s.s; mode = s.m; currentLine = s.l || -videoStandard.inactiveHeight;
+        status = s.s; mode = s.m; currentLine = s.l || videoStandard.startingScanline;
         register0 = s.r0; register1 = s.r1; register2 = s.r2 || 0; register3 = s.r3; register4 = s.r4; register5 = s.r5 || 0; register6 = s.r6 || 0;  register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;

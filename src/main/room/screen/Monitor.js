@@ -16,8 +16,8 @@ wmsx.Monitor = function() {
         videoSignal.connectMonitor(this);
     };
 
-    this.newFrame = function(image, backdropColor) {
-        display.refresh(image, frameOriginX, frameOriginY, backdropColor);
+    this.newFrame = function(image) {
+        display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
@@ -34,7 +34,7 @@ wmsx.Monitor = function() {
 
     this.setDisplayDefaultSize = function() {
         if (display != null) {
-            var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.BASE_WIDTH, wmsx.Monitor.BASE_HEIGHT);
+            var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.CONTENT_WIDTH, wmsx.Monitor.CONTENT_HEIGHT);
             setDisplayScale(scX, scX / DEFAULT_SCALE_ASPECT_X);
         } else
             setDisplayScale(WMSX.SCREEN_OPENING_SIZE, WMSX.SCREEN_OPENING_SIZE);
@@ -152,8 +152,10 @@ wmsx.Monitor = function() {
     var debug = 0;
     var fixedSizeMode = WMSX.SCREEN_RESIZE_DISABLED;
 
-    var frameOriginX = wmsx.Monitor.BORDER_WIDTH;
-    var frameOriginY = wmsx.Monitor.BORDER_HEIGHT;
+    var sourceX = wmsx.Monitor.RENDERED_BORDER_WIDTH - wmsx.Monitor.VISIBLE_BORDER_WIDTH;
+    var sourceY = wmsx.Monitor.RENDERED_BORDER_HEIGHT - wmsx.Monitor.VISIBLE_BORDER_HEIGHT;
+    var sourceWidth =  wmsx.Monitor.CONTENT_WIDTH;
+    var sourceHeight = wmsx.Monitor.CONTENT_HEIGHT;
 
     var DEFAULT_SCALE_ASPECT_X = 1;
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
@@ -164,9 +166,11 @@ wmsx.Monitor = function() {
 
 };
 
-wmsx.Monitor.BASE_WIDTH = 256;
-wmsx.Monitor.BASE_HEIGHT = 192;
-wmsx.Monitor.BORDER_WIDTH = 6;
-wmsx.Monitor.BORDER_HEIGHT = 6;
-wmsx.Monitor.CONTENT_WIDTH = wmsx.Monitor.BASE_WIDTH + wmsx.Monitor.BORDER_WIDTH * 2;
-wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.BASE_HEIGHT + wmsx.Monitor.BORDER_HEIGHT * 2;
+wmsx.Monitor.ACTIVE_WIDTH =  256;
+wmsx.Monitor.ACTIVE_HEIGHT = 192;
+wmsx.Monitor.RENDERED_BORDER_WIDTH =  8;
+wmsx.Monitor.RENDERED_BORDER_HEIGHT = 8;
+wmsx.Monitor.VISIBLE_BORDER_WIDTH =  6;
+wmsx.Monitor.VISIBLE_BORDER_HEIGHT = 6;
+wmsx.Monitor.CONTENT_WIDTH =  wmsx.Monitor.ACTIVE_WIDTH + wmsx.Monitor.VISIBLE_BORDER_WIDTH * 2;
+wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.ACTIVE_HEIGHT + wmsx.Monitor.VISIBLE_BORDER_HEIGHT * 2;

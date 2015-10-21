@@ -5,7 +5,7 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.VDP = function(cpu, psg) {
+wmsx.OldVDP = function(cpu, psg) {
     var self = this;
 
     function init() {
@@ -13,7 +13,7 @@ wmsx.VDP = function(cpu, psg) {
         initColorCodePatternValues();
         initFrameResources();
         cpuClockPulses = cpu.clockPulses;
-        psgClockPulses = psg.getAudioOutput().audioClockPulses;
+        psgClockPulse = psg.getAudioOutput().audioClockPulse;
         self.setDefaults();
     }
 
@@ -46,13 +46,13 @@ wmsx.VDP = function(cpu, psg) {
         if (videoStandard === wmsx.VideoStandard.NTSC) {
             for (i = 498; i > 0; i--) {                        // 15960 CPU clocks, 498 PSG clocks interleaved
                 cpuClockPulses(32);
-                psgClockPulses(1);
+                psgClockPulse();
             }
             cpuClockPulses(24);
         } else {                                               // 27588 CPU clocks, 862 PSG clocks interleaved
             for (i = 862; i > 0; i--) {
                 cpuClockPulses(32);
-                psgClockPulses(1);
+                psgClockPulse();
             }
             cpuClockPulses(4);
         }
@@ -226,7 +226,7 @@ wmsx.VDP = function(cpu, psg) {
             // 228 CPU and 7,125 PSG clocks per line
             for (var i = 7; i > 0; i--) {
                 cpuClockPulses(32);
-                psgClockPulses(1);
+                psgClockPulse();
             }
             cpuClockPulses(4);
 
@@ -251,7 +251,7 @@ wmsx.VDP = function(cpu, psg) {
             if (!signalBlanked) updateSpritePlanes(line);
 
             // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
+            if ((line & 0x07) === 0) psgClockPulse();
         }
     }
 
@@ -263,7 +263,7 @@ wmsx.VDP = function(cpu, psg) {
             // 228 CPU and 7,125 PSG clocks per line
             for (var i = 7; i > 0; i--) {
                 cpuClockPulses(32);
-                psgClockPulses(1);
+                psgClockPulse();
             }
             cpuClockPulses(4);
 
@@ -294,7 +294,7 @@ wmsx.VDP = function(cpu, psg) {
             if (!signalBlanked) updateSpritePlanes(line);
 
             // 1 additional PSG clock each 8th line
-            if (lineInPattern === 0) psgClockPulses(1);
+            if (lineInPattern === 0) psgClockPulse();
         }
     }
 
@@ -306,7 +306,7 @@ wmsx.VDP = function(cpu, psg) {
             // 228 CPU and 7,125 PSG clocks per line
             for (var i = 7; i > 0; i--) {
                 cpuClockPulses(32);
-                psgClockPulses(1);
+                psgClockPulse();
             }
             cpuClockPulses(4);
 
@@ -334,7 +334,7 @@ wmsx.VDP = function(cpu, psg) {
             if (!signalBlanked) updateSpritePlanes(line);
 
             // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
+            if ((line & 0x07) === 0) psgClockPulse();
         }
     }
 
@@ -346,7 +346,7 @@ wmsx.VDP = function(cpu, psg) {
             // 228 CPU and 7,125 PSG clocks per line
             for (var i = 7; i > 0; i--) {
                 cpuClockPulses(32);
-                psgClockPulses(1);
+                psgClockPulse();
             }
             cpuClockPulses(4);
 
@@ -379,7 +379,7 @@ wmsx.VDP = function(cpu, psg) {
             // Sprite system deactivated
 
             // 1 additional PSG clock each 8th line
-            if ((line & 0x07) === 0) psgClockPulses(1);
+            if ((line & 0x07) === 0) psgClockPulse();
         }
     }
 
@@ -690,7 +690,7 @@ wmsx.VDP = function(cpu, psg) {
     var videoSignal;
 
     var cpuClockPulses;
-    var psgClockPulses;
+    var psgClockPulse;
 
 
     // Savestate  -------------------------------------------

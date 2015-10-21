@@ -10,6 +10,11 @@ wmsx.PSGAudioSignal = function() {
         return mixedChannel;
     };
 
+    this.audioClockPulse = function() {         // Just one clock
+        if (frameSamples < samplesPerFrame)
+            generateNextSamples(1);
+    };
+
     this.audioClockPulses = function(quant) {
         var maxSamplesToFrame = samplesPerFrame - frameSamples;
         generateNextSamples(quant < maxSamplesToFrame ? quant : maxSamplesToFrame);
