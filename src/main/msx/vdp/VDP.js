@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Investigate slow putImage()
-// TODO loadState not working
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
@@ -780,7 +779,7 @@ wmsx.VDP = function(cpu, psg) {
 
     this.loadState = function(s) {
         this.setVideoStandard(wmsx.VideoStandard[s.vs]);
-        status = s.s; mode = s.m; currentLine = s.l || videoStandard.startingScanline;
+        status = s.s; currentLine = s.l || videoStandard.startingScanline;
         register0 = s.r0; register1 = s.r1; register2 = s.r2 || 0; register3 = s.r3; register4 = s.r4; register5 = s.r5 || 0; register6 = s.r6 || 0;  register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
