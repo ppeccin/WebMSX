@@ -245,7 +245,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             logoImage.style.display = "none";
             loadingImage.style.display = "none";
         } else {
-            canvas.style.background = "black";
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
             /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
             if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";

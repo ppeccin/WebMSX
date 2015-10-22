@@ -162,7 +162,7 @@ wmsx.VDP = function(cpu, psg) {
         vramWriteMode = false; vramPointer = 0;
         updateIRQ();
         updateMode();
-        updateBackdropColor();
+        updateBackdropColor(true);   // force
         currentLine = videoStandard.startingScanline;
     }
 
@@ -194,13 +194,16 @@ wmsx.VDP = function(cpu, psg) {
         colorNameMask = (register3 << 3) | 0x07;          // Mask for the upper 7 bits of the 10 bits color name
     }
 
-    function updateBackdropColor() {
-        var newColor = (register7 & 0x0f) || 1;           // Backdrop transparency not implemented yet. Force to Black if it was 0 (transparent)
-        if (newColor === backdropColor) return;
+    function updateBackdropColor(force) {
+        var newColor = (register7 & 0x0f) || 1;           // Backdrop transparency is always set to Black
+        if ((newColor === backdropColor) && !force) return;
 
         backdropColor = newColor;
-        backdropValues = colorCodePatternValues[backdropColor * 256];
+        backdropValues = colorCodePatternValues[backdropColor << 8];
         for (var i = 264; i >= 0; i -= 8) backdropFullLineValues.set(backdropValues, i);
+        colorCodeStartPositions[0] = ((backdropColor << 4) | backdropColor) << 8;
+        for (i = 1; i < 16; i++ ) colorCodeStartPositions[i] = ((backdropColor << 4) | i) << 8;
+        for (i = 0x10; i < 0x100; i += 0x10) colorCodeStartPositions[i] = (i | backdropColor) << 8;
     }
 
     // 228 CPU clocks and 7,125 PSG clocks interleaved
@@ -266,8 +269,7 @@ wmsx.VDP = function(cpu, psg) {
                 patternLine = (name << 3) + lineInPattern;                      // name * 8 (8 bytes each pattern) + line inside pattern
                 pattern = vramPatternTable[patternLine];
                 colorCode = vramColorTable[name >>> 3];                         // name / 8 (1 color for each 8 patterns)
-                if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                values = colorCodePatternValues[(colorCode << 8) + pattern];    // colorCode * 256 (256 patterns for each colorCode)
+                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
@@ -302,9 +304,7 @@ wmsx.VDP = function(cpu, psg) {
                 pattern = vramPatternTable[patLine];
                 colorLine = ((name & colorNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
                 colorCode = vramColorTable[colorLine];
-                if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                if ((colorCode & 0xf0) === 0) colorCode |= backdropColor << 4;  // TODO Also translate FRONT colors!
-                values = colorCodePatternValues[(colorCode << 8) | pattern];    // colorCode * 256 (256 patterns for each colorCode)
+                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
@@ -336,8 +336,7 @@ wmsx.VDP = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
                 colorCode = vramPatternTable[patternLine];
-                if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-                values = colorCodePatternValues[(colorCode << 8) + 0xf0];       // always solid blocks of front and back colors
+                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + 0xf0];   // always solid blocks of front and back colors
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
             }
@@ -352,16 +351,14 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function updateLinesMode4(lines) {                                          // Text (Screen 0)
-        var patPos, patPosFinal, name, patternLine, pattern, values, colorCode, colorCodeValuesStart;
+        var patPos, patPosFinal, name, patternLine, pattern, colorCodeValuesStart;
         var line = currentLine, genToLine = line + lines, bufferPos = (line + 8) * 272;
 
         modeStable = true;
         while ((line < genToLine) && modeStable) {
             lineClockCPUandPSG();
 
-            colorCode = register7;                                              // fixed text color for all line
-            if ((colorCode & 0x0f) === 0) colorCode |= backdropColor;
-            colorCodeValuesStart = colorCode << 8;                              // (colorCode * 256) 256 patterns for each colorCode
+            colorCodeValuesStart = colorCodeStartPositions[register7];             // fixed text color for all line
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
             bufferPos += 8;
@@ -375,8 +372,7 @@ wmsx.VDP = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 patternLine = (name << 3) + (line & 0x07);                      // name * 8 (8 bytes each pattern) + line inside pattern
                 pattern = vramPatternTable[patternLine];
-                values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                frameBackBuffer.set(values, bufferPos);
+                frameBackBuffer.set(colorCodePatternValues[colorCodeValuesStart + pattern], bufferPos);
                 bufferPos += 6;                                                 // advance 6 pixels
             }
 
@@ -649,6 +645,8 @@ wmsx.VDP = function(cpu, psg) {
                     position = colorCode * sizePerColorCode + pattern * 8;
                     patternValues = colorValuesRaw.subarray(position, position + 8);
                     colorCodePatternValues[colorCode * 256 + pattern] = patternValues;
+                    // colorCode translation
+                    if (pattern === 0) colorCodeStartPositions[colorCode] = colorCode * 256;
                 }
             }
         }
@@ -674,9 +672,7 @@ wmsx.VDP = function(cpu, psg) {
                 }
             }
         }
-        updateBackdropColor();
-
-        // TODO Adjust backdrops
+        updateBackdropColor(true);  // force
     }
 
 
@@ -726,13 +722,10 @@ wmsx.VDP = function(cpu, psg) {
     var vramSpritePatternTable = vram;
     this.vram = vram;
 
-
     // Planes as off-screen canvases
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
-
-    // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations (actually ABRG endian)
-    // Pattern plane paints with these colors (Alpha = 0xfe), Sprite planes paint with Full Alpha = 0xff
+    // Palettes
 
     var colorsMSX1 =   new Uint32Array([ 0x00000000, 0xfe000000, 0xfe40c820, 0xfe78d858, 0xfee85050, 0xfef47078, 0xfe4850d0, 0xfef0e840, 0xfe5050f4, 0xfe7878f4, 0xfe50c0d0, 0xfe80c8e0, 0xfe38b020, 0xfeb858c8, 0xfec8c8c8, 0xfeffffff ]);
     var colorsMSX2 =   new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20d820, 0xfe68f468, 0xfef42020, 0xfef46848, 0xfe2020b0, 0xfef4d848, 0xfe2020f4, 0xfe6868f4, 0xfe20d8d8, 0xfe90d8d8, 0xfe209020, 0xfeb048d8, 0xfeb0b0b0, 0xfefbfbfb ]);
@@ -753,12 +746,16 @@ wmsx.VDP = function(cpu, psg) {
     var currentPalette = 0;
     var colorRGBs;
 
+    // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations (actually ABRG endian)
+    // Pattern plane paints with these colors (Alpha = 0xfe), Sprite planes paint with Full Alpha = 0xff
+
     var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
     var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
 
     var spriteColorValuesRaw = new Uint32Array(16 * 256 * 8);       // 16 colors * 256 patterns * 8 pixels
     var spriteColorCodePatternValues = new Array(16 * 256);         // 16 colorCodes * 256 patterns
 
+    var colorCodeStartPositions = new Array(256);                      // Translates colorCodes considering the backdrop color, already * 8 (point to start of values)
 
     // Connections
 
