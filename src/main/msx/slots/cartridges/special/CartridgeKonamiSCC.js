@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Not detected after OFF/ON
-
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
 // Controls an internal SCC sound chip with audio output through PSG
 wmsx.CartridgeKonamiSCC = function(rom) {

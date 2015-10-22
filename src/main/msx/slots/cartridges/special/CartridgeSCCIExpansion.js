@@ -2,7 +2,7 @@
 
 // Behaves like the "Snatcher/SD Snatcher Sound Cartridge" upgraded to 128KB RAM
 // 128KB RAM, mapped in 4 8K banks starting at 0x4000
-// Accepts ROMs of 128KB or 64KB (mirrored)
+// Also Accepts ROMs of 128KB or 64KB (mirrored)
 // Controls an internal SCC-I sound chip with audio output through PSG
 wmsx.CartridgeSCCIExpansion = function(rom) {
 
@@ -14,6 +14,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         if (content.length === 0)
             wmsx.Util.arrayFill(bytes, 0xff);
         else {
+            self.preLoadedContentSize = content.length;
             if (content.length === 65536)
                 for(var i = 0, len = content.length; i < len; i++) {
                     bytes[i] = content[i];
@@ -40,7 +41,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     this.powerOff = function() {
-        wmsx.Util.arrayFill(bytes, 0xff);
+        if (this.preLoadedContentSize === 0)
+            wmsx.Util.arrayFill(bytes, 0xff);
     };
 
     this.reset = function() {
@@ -145,6 +147,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     this.rom = null;
     this.format = wmsx.SlotFormats.SCCIExpansion;
+    this.preLoadedContentSize = 0;
 
 
     // Savestate  -------------------------------------------
@@ -153,6 +156,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
+            pcs: this.preLoadedContentSize,
             b: wmsx.Util.compressArrayToStringBase64(bytes),
             m: mode,
             b1: bank1Offset,
@@ -170,6 +174,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
+        this.preLoadedContentSize = s.pcs || 0;
         bytes = wmsx.Util.uncompressStringBase64ToArray(s.b);
         this.bytes = bytes;
         bank1Offset = s.b1;
