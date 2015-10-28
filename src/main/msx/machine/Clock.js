@@ -9,6 +9,9 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
 
     this.go = function() {
         if (!running) {
+            //lastPulseTime = window.performance.now();
+            //timeMeasures = [];
+
             running = true;
             useRequestAnimationFrame = cyclesPerSecond === NATURAL_FPS;
             if (useRequestAnimationFrame)
@@ -47,11 +50,19 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
     };
 
     var pulse = function() {
+        //var currentTime = window.performance.now();
+        //timeMeasures[timeMeasures.length] = currentTime - lastPulseTime;
+        //lastPulseTime = currentTime;
+
         animationFrame = null;
         clockDriven.clockPulse();
         if (useRequestAnimationFrame && !animationFrame)
             animationFrame = window.requestAnimationFrame(pulse);
     };
+
+    //this.getMeasures = function() {
+    //    return timeMeasures;
+    //};
 
 
     var running = false;
@@ -61,6 +72,9 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
     var useRequestAnimationFrame = null;
     var animationFrame = null;
     var interval = null;
+
+    //var timeMeasures = [];
+    //var lastPulseTime = 0;
 
     var NATURAL_FPS = WMSX.SCREEN_NATURAL_FPS;
 

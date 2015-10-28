@@ -43,7 +43,7 @@ wmsx.Machine = function() {
         joysticksSocket.clockPulse();
         if (debugPause)
             if (debugPauseMoreFrames-- <= 0) return;
-        vdp.frame();
+        vdp.clockPulse();
         this.framesGenerated++;
     };
 
@@ -139,7 +139,7 @@ wmsx.Machine = function() {
             vdp.setVideoStandard(videoStandard);
             mainClockAdjustToNormal();
         }
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.name + " " + (videoStandard.fps | 0) + "Hz", false);
+        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.desc, false);
     };
 
     var setVideoStandardAuto = function() {
@@ -266,8 +266,8 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
 
     var BIOS_SLOT = 0;
-    var RAM_SLOT = 1;
-    var CARTRIDGE0_SLOT = 2;
+    var RAM_SLOT = 2;
+    var CARTRIDGE0_SLOT = 1;
     var EXPANDED_SLOT = 3;
     var CARTRIDGE1_EXP_SLOT = 0;
     var EXPANSIONS_EXP_SLOTS = [ 1, 2, 3 ];

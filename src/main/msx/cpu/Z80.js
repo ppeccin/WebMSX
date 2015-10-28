@@ -27,7 +27,7 @@ wmsx.Z80 = function() {
 
     this.clockPulses = function(quant) {
         for (var i = quant; i > 0; i--) {
-            cycles++;
+            // cycles++;
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T === 1) {
                 instruction.operation();
@@ -138,7 +138,7 @@ wmsx.Z80 = function() {
 
         // if (self.trace) self.breakpoint("TRACE");
 
-        T = instruction.remainCycles + 1;               // Extra M1 cycle for MSX, including prefix-setting pseudo instructions
+        T = instruction.remainCycles;
     };
 
     function selectInstruction() {
@@ -150,11 +150,11 @@ wmsx.Z80 = function() {
         } else if (prefix === 0xdd) {
             instruction = instructionsDD[opcode];       // may NOT find
             prefix = 0;
-            if (!instruction) selectInstruction();      // if nothing found, ignore prefix and try again
+            if (!instruction) instruction = instructions[opcode];      // if nothing found, ignore prefix
         } else if (prefix === 0xfd) {
             instruction = instructionsFD[opcode];       // may NOT find
             prefix = 0;
-            if (!instruction) selectInstruction();      // if nothing found, ignore prefix and try again
+            if (!instruction) instruction = instructions[opcode];      // if nothing found, ignore prefix
         } else if (prefix === 0xed) {
             instruction = instructionsED[opcode];       // always found
             prefix = 0;
@@ -2502,7 +2502,7 @@ wmsx.Z80 = function() {
         defineInstruction(0xdd, null, opcode, 4, instr, "< SWITCH to FD >", false);
         opcode = 0xcb;
         instr = pSET_DDCB;
-        defineInstruction(0xdd, null, opcode, 3, instr, "< SET DDCB >", false);         // Discount -1 for wrong added M1
+        defineInstruction(0xdd, null, opcode, 3, instr, "< SET DDCB >", false);         // Discount -1 for wrongly added M1 wait
 
         opcode = 0xfd;
         instr = pSET_FD;
@@ -2515,7 +2515,7 @@ wmsx.Z80 = function() {
         defineInstruction(0xfd, null, opcode, 4, instr, "< SWITCH to DD >", false);
         opcode = 0xcb;
         instr = pSET_FDCB;
-        defineInstruction(0xfd, null, opcode, 3, instr, "< SET FDCB >", false);         // Discount -1 for wrong added M1
+        defineInstruction(0xfd, null, opcode, 3, instr, "< SET FDCB >", false);         // Discount -1 for wrongly added M1 wait
 
         opcode = 257;
         instr = pADT_CYCLES;
@@ -2538,8 +2538,8 @@ wmsx.Z80 = function() {
             var instr = {};
             instr.prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
             instr.opcode = opcode;
-            instr.remainCycles = cycles;
-            instr.totalCycles = cycles + (prefix1 ? 4 : 0) + (prefix2 ? 4 : 0);      // each prefix adds 4T
+            instr.remainCycles = cycles + 1;                                                     // extra M1 wait for MSX
+            instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // each prefix adds 4T + 1 extra M1 state for the first prefix
             instr.operation = operation;
             instr.mnemonic = mnemonic;
             instr.undocumented = undocumented;
