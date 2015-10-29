@@ -22,6 +22,7 @@ wmsx.Machine = function() {
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
+        slotsConfigToBackToOriginal();
     };
 
     this.reset = function() {
@@ -114,12 +115,12 @@ wmsx.Machine = function() {
         if (port === 1)
             bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, CARTRIDGE1_EXP_SLOT);
         else
-            bus.insertSlot(slot, CARTRIDGE0_SLOT);
+            bus.insertSlot(slot, cartridge0Slot);
         cartridgeSocket.fireStateUpdate();
     };
 
     var getCartridge = function(port) {
-        var cartridge = port === 1 ? bus.getSlot(EXPANDED_SLOT).getSubSlot(CARTRIDGE1_EXP_SLOT) : bus.getSlot(CARTRIDGE0_SLOT);
+        var cartridge = port === 1 ? bus.getSlot(EXPANDED_SLOT).getSubSlot(CARTRIDGE1_EXP_SLOT) : bus.getSlot(cartridge0Slot);
         return cartridge === wmsx.SlotEmpty.singleton ? null : cartridge;
     };
 
@@ -161,6 +162,8 @@ wmsx.Machine = function() {
 
     var saveState = function() {
         return {
+            rs: ramSlot,
+            c0s: cartridge0Slot,
             b: bus.saveState(),
             pp: ppi.saveState(),
             ps: psg.saveState(),
@@ -174,12 +177,14 @@ wmsx.Machine = function() {
     };
 
     var loadState = function(state) {
+        ramSlot = state.rs === undefined ? 1 : state.rs;                 // Backward compatibility
+        cartridge0Slot = state.c0s === undefined ? 2 : state.c0s;        // Backward compatibility
         bus.loadState(state.b);
         ppi.loadState(state.pp);
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
-        self.ram = bus.getSlot(RAM_SLOT);
+        self.ram = bus.getSlot(ramSlot);
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         machineControlsSocket.fireRedefinitionUpdate();
@@ -216,10 +221,20 @@ wmsx.Machine = function() {
 
         // 64K RAM
         self.ram = wmsx.SlotRAM64K.createNewEmpty();
-        bus.insertSlot(self.ram, RAM_SLOT);
+        bus.insertSlot(self.ram, ramSlot);
 
         // Expanded Slot
         bus.insertSlot(new wmsx.SlotExpanded(), EXPANDED_SLOT);
+    };
+
+    var slotsConfigToBackToOriginal = function() {
+        if (ramSlot === RAM_SLOT) return;
+        var currentRam = bus.getSlot(ramSlot);
+        var currentCart0 = bus.getSlot(cartridge0Slot);
+        ramSlot = RAM_SLOT;
+        cartridge0Slot = CARTRIDGE0_SLOT;
+        bus.insertSlot(currentRam, ramSlot);
+        bus.insertSlot(currentCart0, cartridge0Slot);
     };
 
     var socketsCreate = function() {
@@ -271,6 +286,9 @@ wmsx.Machine = function() {
     var EXPANDED_SLOT = 3;
     var CARTRIDGE1_EXP_SLOT = 0;
     var EXPANSIONS_EXP_SLOTS = [ 1, 2, 3 ];
+
+    var ramSlot = RAM_SLOT;
+    var cartridge0Slot = CARTRIDGE0_SLOT;
 
 
     // MachineControls interface  --------------------------------------------
