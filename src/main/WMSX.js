@@ -24,20 +24,21 @@ WMSX = {
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
+    SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FILTER_MODE:             1,                          // 0..3
     SCREEN_CRT_MODE:                -1,                         // 0..4, -1 = auto
     SCREEN_OPENING_SIZE:            2.5,                        // 1..4, 0.5 steps
     SCREEN_SHARP_SIZE:              2,                          // 1..4. Don't change! :-)
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
-    SCREEN_NATURAL_FPS:             60,                         // 60, 50 fps. Don't change! :-)
     SCREEN_COLOR_MODE:              0,                          // 0..5
+    SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)
+    SCREEN_VSYNCH_DISABLED:         false,
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
-    SCREEN_ELEMENT_ID:              "wmsx-screen",
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/images/",
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 
-    VERSION:                        "0.942"                     // Don't change!
+    VERSION:                        "0.95"                      // Don't change!
 
 };
 

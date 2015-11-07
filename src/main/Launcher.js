@@ -7,6 +7,7 @@ WMSX.start = function () {
 
     // Init preferences
     WMSX.preferences.load();
+
     // Get container elements
     if (!WMSX.screenElement) {
         WMSX.screenElement = document.getElementById(WMSX.SCREEN_ELEMENT_ID);
@@ -38,9 +39,11 @@ WMSX.start = function () {
             new wmsx.MultiDownloader([{
                 url: WMSX.STATE_LOAD_URL,
                 onSuccess: function (res) {
-                    afterAutoStartWait(function () {
-                        WMSX.room.loading(false);
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                    wmsx.Clock.detectHostNativeFPSAndCallback(function() {
+                        afterAutoStartWait(function () {
+                            WMSX.room.loading(false);
+                            WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                        });
                     });
                 },
                 onError: function (res) {
@@ -110,9 +113,11 @@ WMSX.start = function () {
             // Power Machine on only after all slots are loaded and inserted
             new wmsx.MultiDownloader(urls,
                 function onSuccessAll() {
-                    afterAutoStartWait(function () {
-                        WMSX.room.loading(false);
-                        WMSX.room.machine.userPowerOn(true);
+                    wmsx.Clock.detectHostNativeFPSAndCallback(function() {
+                        afterAutoStartWait(function () {
+                            WMSX.room.loading(false);
+                            WMSX.room.machine.userPowerOn(true);
+                        });
                     });
                 }, function onErrorAny(urls) {
                     for (var i = 0; i < urls.length; i++) {

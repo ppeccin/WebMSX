@@ -130,7 +130,7 @@ wmsx.PSGAudioSignal = function() {
     var nextSampleToGenerate = 0;
     var nextSampleToRetrieve = 0;
 
-    var samplesPerFrame = wmsx.PSGAudioSignal.SAMPLE_RATE / wmsx.VideoStandard.NTSC.fps;
+    var samplesPerFrame;
     var frameSamples = 0;
 
     var lastSample = 0;

@@ -27,7 +27,7 @@ wmsx.Z80 = function() {
 
     this.clockPulses = function(quant) {
         for (var i = quant; i > 0; i--) {
-            // cycles++;
+             cycles++;
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T === 1) {
                 instruction.operation();

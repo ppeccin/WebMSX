@@ -135,12 +135,12 @@ wmsx.Machine = function() {
     };
 
     var setVideoStandard = function(pVideoStandard) {
-        if (videoStandard !== pVideoStandard) {
-            videoStandard = pVideoStandard;
-            vdp.setVideoStandard(videoStandard);
-            mainClockAdjustToNormal();
-        }
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + videoStandard.desc, false);
+        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + pVideoStandard.desc, false);
+        if (videoStandard === pVideoStandard) return;
+
+        videoStandard = pVideoStandard;
+        vdp.setVideoStandard(videoStandard);
+        mainClockAdjustToNormal();
     };
 
     var setVideoStandardAuto = function() {
@@ -177,6 +177,8 @@ wmsx.Machine = function() {
     };
 
     var loadState = function(state) {
+        videoStandardIsAuto = state.va;
+        setVideoStandard(wmsx.VideoStandard[state.vs]);
         ramSlot = state.rs === undefined ? 1 : state.rs;                 // Backward compatibility
         cartridge0Slot = state.c0s === undefined ? 2 : state.c0s;        // Backward compatibility
         bus.loadState(state.b);
@@ -185,8 +187,6 @@ wmsx.Machine = function() {
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
         self.ram = bus.getSlot(ramSlot);
-        videoStandardIsAuto = state.va;
-        setVideoStandard(wmsx.VideoStandard[state.vs]);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);
@@ -194,7 +194,7 @@ wmsx.Machine = function() {
     };
 
     var mainClockAdjustToNormal = function() {
-        var freq = videoStandard.fps;
+        var freq = vdp.getDesiredBaseFrequency();
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
@@ -212,12 +212,12 @@ wmsx.Machine = function() {
     };
 
     var mainComponentsCreate = function() {
+        self.mainClock = mainClock = new wmsx.Clock(self);
         self.cpu = cpu = new wmsx.Z80();
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
         self.vdp = vdp = new wmsx.VDP(cpu, psg);
         self.bus = bus = new wmsx.EngineBUS(self, cpu, ppi, vdp, psg);
-        self.mainClock = mainClock = new wmsx.Clock(self, wmsx.VideoStandard.NTSC.fps);
 
         // 64K RAM
         self.ram = wmsx.SlotRAM64K.createNewEmpty();
@@ -256,12 +256,14 @@ wmsx.Machine = function() {
 
     var isLoading = false;
 
+    var mainClockFrequency;
+
+    var mainClock;
     var cpu;
     var bus;
     var ppi;
     var vdp;
     var psg;
-    var mainClock;
     var ram;
 
     var debugPause = false;

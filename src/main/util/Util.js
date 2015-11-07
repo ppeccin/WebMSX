@@ -10,6 +10,19 @@ wmsx.Util = new function() {
         alert(str);
     };
 
+    this.arrayCount = function(arr, predicate) {
+        var count = 0;
+        for (var i = arr.length - 1; i >= 0; i--)
+            if (predicate(arr[i])) count++;
+        return count;
+    };
+
+    this.arrayAverage = function(arr) {
+        var total = 0;
+        for (var i = arr.length - 1; i >= 0; i--) total += arr[i];
+        return total / arr.length;
+    };
+
     this.arrayFill = function(arr, val, len) {
         var i = len || arr.length;
         while(i--)

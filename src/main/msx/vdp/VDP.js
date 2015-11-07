@@ -4,7 +4,7 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.VDP = function(cpu, psg) {
+wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var self = this;
 
     function init() {
@@ -13,7 +13,6 @@ wmsx.VDP = function(cpu, psg) {
         initColorCodePatternValues();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
-        self.setVideoStandard(wmsx.VideoStandard.NTSC);
         self.setDefaults();
     }
 
@@ -30,27 +29,39 @@ wmsx.VDP = function(cpu, psg) {
 
     this.setVideoStandard = function(pVideoStandard) {
         videoStandard = pVideoStandard;
-        currentLine = videoStandard.startingScanline;
+
+        // Use the native frequency (60Hz or 50Hz) if detected and VSynch is enabled, otherwise use the Video Standard target FPS
+        var hostFreq = wmsx.Clock.HOST_NATIVE_FPS;
+        desiredBaseFrequency = !WMSX.SCREEN_VSYNCH_DISABLED && hostFreq > 0 ? hostFreq : videoStandard.targetFPS;
+
+        startingScanline = videoStandard.startingScanline;
+        currentScanline = startingScanline;
         finishingScanline = videoStandard.finishingScanline;
-        pulseTotalLines = videoStandard.linesPerCycle;      // Always generate this amount of lines per clock
-        pulseLines = - videoStandard.firstPulldownFrameLinesAdjust;
+        cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per clock
+        pulldownFirstFrameStartingLine = videoStandard.pulldowns[desiredBaseFrequency].firstFrameStartingLine;
+        cycleLines = pulldownFirstFrameStartingLine;
     };
 
     this.getVideoOutput = function() {
         return videoSignal;
     };
 
+    this.getDesiredBaseFrequency = function () {
+        return desiredBaseFrequency;
+    };
+
     this.clockPulse = function() {
-        // Finish video signal (generate any missing lines)
+        // Finish video signal (generate any missing lines up to the max per cycle)
         updateLines(1000);
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
 
+        // Send updated image to Monitor if needed
+        if (refreshPending) refresh();
+
         // Prepare for next cycle. Adjust for pulldown cadence if the next frame is the first pulldown frame
-        pulseLines = videoStandard.firstPulldownFrameLinesAdjust && (currentLine === videoStandard.startingScanline)
-            ? - videoStandard.firstPulldownFrameLinesAdjust
-            : 0;
+        cycleLines = (currentScanline === startingScanline) ? pulldownFirstFrameStartingLine : 0;
     };
 
     this.input99 = function() {
@@ -160,31 +171,31 @@ wmsx.VDP = function(cpu, psg) {
     // 342 total pixel clocks per line, 256 visible pixels, 228 CPU clocks and 7,125 PSG clocks
     // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
     function updateLines(lines) {
-        var toPulseLine = pulseLines + lines; if (toPulseLine > pulseTotalLines) toPulseLine = pulseTotalLines;
+        var toCycleLine = cycleLines + lines; if (toCycleLine > cycleTotalLines) toCycleLine = cycleTotalLines;
 
-        while (pulseLines < toPulseLine) {
-            var toLine = currentLine + (toPulseLine - pulseLines);
+        while (cycleLines < toCycleLine) {
+            var toScanline = currentScanline + (toCycleLine - cycleLines);
 
             // Visible top border scanlines (8)
-            if (currentLine < 0) updateLinesBorder(toLine < 0 ? toLine : 0);
-            if (pulseLines >= toPulseLine) return;
+            if (currentScanline < 0) updateLinesBorder(toScanline < 0 ? toScanline : 0);
+            if (cycleLines >= toCycleLine) return;
 
             // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes in the visible scanlines
-            while((currentLine < 192) && (pulseLines < toPulseLine)) updateLinesActive(toLine < 192 ? toLine : 192);
+            while((currentScanline < 192) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < 192 ? toScanline : 192);
 
             // End of visible scan, request interrupt
-            if (currentLine === 192) triggerInterrupt();
+            if (currentScanline === 192) triggerInterrupt();
 
-            if (pulseLines >= toPulseLine) return;
+            if (cycleLines >= toCycleLine) return;
 
             // Visible bottom border scanlines (8)
-            if (currentLine < 200) updateLinesBorder(toLine < 200 ? toLine : 200);
-            if (pulseLines >= toPulseLine) return;
+            if (currentScanline < 200) updateLinesBorder(toScanline < 200 ? toScanline : 200);
+            if (cycleLines >= toCycleLine) return;
 
             // Invisible scanlines (enough to fill the remaining lines for the video standard)
-            if (currentLine < finishingScanline) updateLinesInvisible(toLine < finishingScanline ? toLine : finishingScanline);
+            if (currentScanline < finishingScanline) updateLinesInvisible(toScanline < finishingScanline ? toScanline : finishingScanline);
 
-            if (currentLine === finishingScanline) finishFrame();
+            if (currentScanline === finishingScanline) finishFrame();
         }
     }
 
@@ -240,14 +251,14 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     function updateLinesInvisible(toLine) {
-        for (var i = toLine - currentLine; i > 0; i--)
+        for (var i = toLine - currentScanline; i > 0; i--)
             lineClockCPUandPSG();
-        pulseLines += (toLine - currentLine);
-        currentLine = toLine;
+        cycleLines += (toLine - currentScanline);
+        currentScanline = toLine;
     }
 
     function updateLinesBorder(toLine) {
-        var line = currentLine, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
         while (line < toLine) {
             lineClockCPUandPSG();
             frameBackBuffer.set(backdropFullLineValues, bufferPos);
@@ -255,12 +266,12 @@ wmsx.VDP = function(cpu, psg) {
             // Sprites deactivated
             line++;
         }
-        pulseLines += (line - currentLine);
-        currentLine = line;
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
     }
 
     function updateLinesBlanked(toLine) {
-        var line = currentLine, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
         modeStable = true;
         while ((line < toLine) && modeStable) {
             lineClockCPUandPSG();
@@ -269,13 +280,13 @@ wmsx.VDP = function(cpu, psg) {
             // Sprites deactivated
             line++;
         }
-        pulseLines += (line - currentLine);
-        currentLine = line;
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
     }
 
     function updateLinesMode0(toLine) {                                         // Graphics 1 (Screen 1)
         var patPos, patPosFinal, name, patternLine, pattern, colorCode, values;
-        var line = currentLine, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
 
         modeStable = true;
         while((line < toLine) && modeStable) {
@@ -303,13 +314,13 @@ wmsx.VDP = function(cpu, psg) {
             updateSpritesLine(line, bufferPos - 264);
             line++;
         }
-        pulseLines += (line - currentLine);
-        currentLine = line;
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
     }
 
     function updateLinesMode1(toLine) {                                         // Graphics 2 (Screen 2)
         var patPos, patPosFinal, lineInPattern, name, blockExtra, patLine, pattern, colorLine, colorCode, values;
-        var line = currentLine, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
 
         modeStable = true;
         while ((line < toLine) && modeStable) {
@@ -339,13 +350,13 @@ wmsx.VDP = function(cpu, psg) {
             updateSpritesLine(line, bufferPos - 264);
             line++;
         }
-        pulseLines += (line - currentLine);
-        currentLine = line;
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
     }
 
     function updateLinesMode2(toLine) {                                         // Multicolor (Screen 3)
         var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values;
-        var line = currentLine, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
 
         modeStable = true;
         while ((line < toLine) && modeStable) {
@@ -372,13 +383,13 @@ wmsx.VDP = function(cpu, psg) {
             updateSpritesLine(line, bufferPos - 264);
             line++;
         }
-        pulseLines += (line - currentLine);
-        currentLine = line;
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
     }
 
     function updateLinesMode4(toLine) {                                         // Text (Screen 0)
         var patPos, patPosFinal, name, patternLine, pattern, colorCodeValuesStart;
-        var line = currentLine, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
 
         modeStable = true;
         while ((line < toLine) && modeStable) {
@@ -411,8 +422,8 @@ wmsx.VDP = function(cpu, psg) {
             // Sprites deactivated
             line++;
         }
-        pulseLines += (line - currentLine);
-        currentLine = line;
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
     }
 
     function updateSpritesLineSize0(line, bufferPos) {                      // 8x8 normal
@@ -639,15 +650,23 @@ wmsx.VDP = function(cpu, psg) {
         }
     }
 
-    function finishFrame() {
+    function refresh() {
+
+        //console.log("REFRESH");
+
         // Update frame image and send to monitor
         frameContext.putImageData(frameImageData, 0, 0);
         videoSignal.newFrame(frameCanvas);
+        refreshPending = false;
+    }
+
+    function finishFrame() {
+        refreshPending = true;
 
         // Begin a new frame
-        currentLine = videoStandard.startingScanline;
+        currentScanline = startingScanline;
 
-        //console.log(cpu.eval("cycles"));
+        //console.log("Frame FINISHED. CPU cycles: " + cpu.eval("cycles"));
         //cpu.eval("cycles = 0");
     }
 
@@ -705,15 +724,27 @@ wmsx.VDP = function(cpu, psg) {
 
     // Registers, pointers, temporary data
 
-    var register0, register1, register2, register3, register4, register5, register6, register7;
+    var desiredBaseFrequency;       // Will depend on VideoStandard and detected Host Native Video Frequency
 
     var videoStandard;
+    var currentScanline;
+    var startingScanline;
     var finishingScanline;
+    var cycleLines;
+    var cycleTotalLines;
+    var pulldownFirstFrameStartingLine;
+    var refreshPending;
+
+    var register0, register1, register2, register3, register4, register5, register6, register7;
 
     var status;
     var mode;
     var modeStable;
     var spriteCollision;
+
+    var dataToWrite;
+    var vramPointer = 0;
+    var vramWriteMode = false;
 
     var backdropColor = -1;
     var backdropValues;
@@ -727,20 +758,11 @@ wmsx.VDP = function(cpu, psg) {
 
     var patternNameMask, colorNameMask;     // Special masks from register3 and register4 for mode 1 only
 
-    var dataToWrite;
-    var vramPointer = 0;
-    var vramWriteMode = false;
-
-    var currentLine;
-    var pulseLines;
-    var pulseTotalLines;
-
     var updateLinesFunctions = [updateLinesMode0, updateLinesMode1, updateLinesMode2, updateLinesBlanked, updateLinesMode4, updateLinesBlanked, updateLinesBlanked, updateLinesBlanked];
     var updateSpritesLineFunctions = [ updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
 
     var updateLinesActive;                  // Update function for current mode
     var updateSpritesLine;                  // Update function for current mode
-
 
     // VRAM
 
@@ -799,18 +821,16 @@ wmsx.VDP = function(cpu, psg) {
 
     this.saveState = function() {
         return {
-            s: status, m: mode, l: currentLine,
+            s: status, m: mode, l: currentScanline,
             r0: register0, r1: register1, r2: register1, r3: register3, r4: register4, r5: register1, r6: register1, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
-            vram: wmsx.Util.compressArrayToStringBase64(vram),
-            vs: videoStandard.name
+            vram: wmsx.Util.compressArrayToStringBase64(vram)
         };
     };
 
     this.loadState = function(s) {
-        this.setVideoStandard(wmsx.VideoStandard[s.vs]);
-        status = s.s; currentLine = s.l || videoStandard.startingScanline;
+        status = s.s; currentScanline = s.l || startingScanline;
         register0 = s.r0; register1 = s.r1; register2 = s.r2 || 0; register3 = s.r3; register4 = s.r4; register5 = s.r5 || 0; register6 = s.r6 || 0;  register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
@@ -834,3 +854,4 @@ wmsx.VDP = function(cpu, psg) {
     };
 
 };
+

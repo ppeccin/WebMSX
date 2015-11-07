@@ -10,9 +10,17 @@ wmsx.VideoStandard = {
         totalHeight: 262,
         startingScanline: -8,
         finishingScanline: 262 - 8,
-        linesPerCycle: 262,
-        firstPulldownFrameLinesAdjust: 0,
-        fps: 60
+        targetFPS: 60,
+        pulldowns: {
+            60: {
+                linesPerCycle: 262,             // Normal 1:1 cadence. V-synch to 60 Hz
+                firstFrameStartingLine: 0
+            },
+            50: {
+                linesPerCycle: 314,             // 1:1:1:1:1:0 pulldown. 1 frame dropped each 6 frames
+                firstFrameStartingLine: -2
+            }
+        }
     },
     PAL: {
         name: "PAL",
@@ -23,9 +31,17 @@ wmsx.VideoStandard = {
         totalHeight: 313,
         startingScanline: -8,
         finishingScanline: 313 -8,
-        linesPerCycle: 261,                     // PAL needs less lines per cycle to better perform the pulldown
-        firstPulldownFrameLinesAdjust: -1,      // One less line in the first pulldown frame to adjust to the the pulldown cadence
-        fps: 60                                 // Will synch with 60Hz and perform 1:1:1:1:2 pulldown. Original is 50.22364217252396, or 50.3846153846153847
+        targetFPS: 50,                          // Original is 50.22364217252396, or 50.3846153846153847
+        pulldowns: {
+            60: {
+                linesPerCycle: 261,             // 1:1:1:1:2 pulldown. 1 frame duplicated each 5 frames
+                firstFrameStartingLine: 1
+            },
+            50: {
+                linesPerCycle: 313,             // Normal 1:1 cadence. V-synch to 50 Hz
+                firstFrameStartingLine: 0
+            }
+        }
     }
 };
 

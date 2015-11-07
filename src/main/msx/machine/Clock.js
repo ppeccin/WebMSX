@@ -1,19 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
+wmsx.Clock = function(clockDriven) {
     var self = this;
-
-    function init() {
-        internalSetFrequency(pCyclesPerSecond || NATURAL_FPS);
-    }
 
     this.go = function() {
         if (!running) {
             //lastPulseTime = window.performance.now();
             //timeMeasures = [];
 
+            useRequestAnimationFrame = !WMSX.SCREEN_VSYNCH_DISABLED && cyclesPerSecond === wmsx.Clock.HOST_NATIVE_FPS;
+
             running = true;
-            useRequestAnimationFrame = cyclesPerSecond === NATURAL_FPS;
             if (useRequestAnimationFrame)
                 animationFrame = window.requestAnimationFrame(pulse);
             else
@@ -23,7 +20,6 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
 
     this.pause = function(continuation) {
         running = false;
-        useRequestAnimationFrame = false;
         if (animationFrame) {
             window.cancelAnimationFrame(animationFrame);
             animationFrame = null;
@@ -32,6 +28,10 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
             window.clearInterval(interval);
             interval = null;
         }
+    };
+
+    this.getFrequency = function() {
+        return cyclesPerSecond;
     };
 
     this.setFrequency = function(freq) {
@@ -64,20 +64,76 @@ wmsx.Clock = function(clockDriven, pCyclesPerSecond) {
     //    return timeMeasures;
     //};
 
+    this.eval = function(str) {
+        return eval(str);
+    };
+
 
     var running = false;
 
-    var cyclesPerSecond = null;
-    var cycleTimeMs = null;
-    var useRequestAnimationFrame = null;
+    var cyclesPerSecond = 1;
+    var cycleTimeMs = 1000;
+    var useRequestAnimationFrame;
     var animationFrame = null;
     var interval = null;
 
     //var timeMeasures = [];
     //var lastPulseTime = 0;
 
-    var NATURAL_FPS = WMSX.SCREEN_NATURAL_FPS;
+};
 
-    init();
+wmsx.Clock.HOST_NATIVE_FPS = WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;         // -1 = Unknown or not detected
+
+wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
+
+    if (WMSX.SCREEN_VSYNCH_DISABLED) {
+        wmsx.Util.log("Video native V-Synch disabled");
+        if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
+        return;
+    }
+
+    // Bypass if already detected or forced
+    if (WMSX.SCREEN_VSYNCH_DISABLED || (wmsx.Clock.HOST_NATIVE_FPS !== -1)) {
+        if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
+        return;
+    }
+
+    // Start detection
+
+    var tries = 0;
+    var samples = [];
+    var lastTime = 0;
+    var good60 = 0, good50 = 0;
+    var tolerance = 0.06;
+
+    var sampler = function() {
+
+        // Detected?
+        if (good60 >= 8 || good50 >= 8) {
+            wmsx.Clock.HOST_NATIVE_FPS = good60 >= 8 ? 60 : 50;
+            wmsx.Util.log("Video native frequency detected: " + wmsx.Clock.HOST_NATIVE_FPS + "Hz. V-Synch enabled");
+            if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
+            return;
+        }
+
+        tries++;
+        if (tries <= 30) {
+            var currentTime = window.performance.now();
+            var sample = currentTime - lastTime;
+            samples[samples.length] = sample;
+            lastTime = currentTime;
+
+            if ((sample >= (1000 / 60) * (1 - tolerance)) && (sample <= (1000 / 60) * (1 + tolerance))) good60++;
+            if ((sample >= (1000 / 50) * (1 - tolerance)) && (sample <= (1000 / 50) * (1 + tolerance))) good50++;
+
+            window.requestAnimationFrame(sampler);
+        } else {
+            wmsx.Clock.HOST_NATIVE_FPS = -1;
+            wmsx.Util.log("Video native frequency detected: unsupported. V-Synch disabled");
+            if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
+        }
+    };
+
+    sampler();
 
 };
