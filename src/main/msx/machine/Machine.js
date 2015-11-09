@@ -372,8 +372,12 @@ wmsx.Machine = function() {
                 else setVideoStandardAuto();
                 break;
             case controls.VSYNCH:
-                setVSynchMode(vSynchMode + 1);
-                self.showOSD("V-Synch: " + (vSynchMode === 1 ? "AUTO" : vSynchMode === 0 ? "DISABLED" : "FORCED"), true);
+                if (wmsx.Clock.HOST_NATIVE_FPS === -1) {
+                    self.showOSD("V-Synch is disabled / unsupported", true);
+                } else {
+                    setVSynchMode(vSynchMode + 1);
+                    self.showOSD("V-Synch: " + (vSynchMode === 1 ? "AUTO" : vSynchMode === 0 ? "DISABLED" : "FORCED"), true);
+                }
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();
