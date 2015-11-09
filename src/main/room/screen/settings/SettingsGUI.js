@@ -108,6 +108,18 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'B' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'V-Synch Modes' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
                                     'D' +
                                 '</div>' +
                             '</div>' +
@@ -126,8 +138,6 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="desc">' +
                                 'Sprite Modes' +
                             '</div>' +
-                        '</div>' +
-                        '<div class="full-divider">' +
                         '</div>' +
                         '<div id="jt-general-swap-joysticks" class="hotkey">' +
                             '<div class="command">' +
@@ -271,7 +281,7 @@ wmsx.SettingsGUI.html = function() {
                                 'CRT Filters' +
                             '</div>' +
                         '</div>' +
-                        '<div class="full-divider">' +
+                        '<div class="hotkey">' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -663,7 +673,7 @@ wmsx.SettingsGUI.css = function() {
     '}' +
 
     '#jt-general {' +
-       ' padding-top: 23px;' +
+       ' padding-top: 20px;' +
        ' padding-left: 33px;' +
     '}' +
 
@@ -781,7 +791,7 @@ wmsx.SettingsGUI.css = function() {
 
     '#jt-general .full-divider {' +
        ' clear: both;' +
-       ' height: 19px;' +
+       ' height: 18px;' +
     '}';
 
 };

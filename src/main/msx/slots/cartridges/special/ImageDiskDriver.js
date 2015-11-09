@@ -91,12 +91,12 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function INIHRD(F, HL) {
-        // console.log("INIHRD");
+        // wmsx.Util.log("INIHRD");
         // no real initialization required
     }
 
     function DRIVES(F, HL) {
-        // console.log("DRIVES: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("DRIVES: " + wmsx.Util.toHex2(F) + ", " + wmsx.Util.toHex4(HL));
 
         return { HL: (HL & 0xff00) | (F & 0x40 ? 1 : 2) };
     }
@@ -107,7 +107,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function DSKIORead(F, A, B, C, DE, HL) {
-        //console.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
+        //wmsx.Util.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         var spinTime = drive.motorOn(A);
         var bytes = drive.readSectors(A, DE, B);
@@ -124,7 +124,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function DSKIOWrite(F, A, B, C, DE, HL) {
-        //console.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
+        //wmsx.Util.log("DSKIO Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         var spinTime = drive.motorOn(A);
 
@@ -147,7 +147,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function DSKCHG(F, A, B, C, HL) {
-        // console.log("DSKCHG: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("DSKCHG: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
         var res = drive.diskHasChanged(A);       // true = yes, false = no, null = unknown
 
@@ -172,7 +172,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function GETDPB(A, B, C, HL) {
-        // console.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
         var mediaDesc = B === 0 ? C : B;
         if (mediaDesc < 0xF8) return;           // Invalid Media Descriptor
@@ -182,13 +182,13 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function CHOICE(SP) {
-        // console.log("CHOICE");
+        // wmsx.Util.Util.log("CHOICE");
 
         return { HL: CHOICE_STRING_ADDRESS };
     }
 
     function DSKFMT(F, A, DE) {
-        // console.log("DSKFMT");
+        // wmsx.Util.log("DSKFMT");
 
         var d = DE >>> 8;
         var f = A - 1;
@@ -210,13 +210,13 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function MTOFF() {
-        // console.log("MTOFF");
+        // wmsx.Util.log("MTOFF");
 
         drive.allMotorsOffNow();
     }
 
     function readFromMemory(address, quant) {
-        // console.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
+        // wmsx.Util.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
         var slot = getSlotToMemoryAccess(address);
         var res = new Array(quant);
         for (var i = 0; i < quant; i++)

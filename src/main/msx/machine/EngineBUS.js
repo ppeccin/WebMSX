@@ -64,7 +64,7 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     };
 
     this.setPrimarySlotConfig = function(val) {
-        //console.log("PrimarySlot Select: " + val.toString(16));
+        //wmsx.Util.log("PrimarySlot Select: " + val.toString(16));
         primarySlotConfig = val;
         slotPages[0] = slots[val & 0x03];
         slotPages[1] = slots[(val >>> 2) & 0x03];
@@ -73,7 +73,7 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
     };
 
     this.getPrimarySlotConfig = function() {
-        //console.log("PrimarySlot Query: " + primarySlotConfig.toString(16));
+        //wmsx.Util.log("PrimarySlot Query: " + primarySlotConfig.toString(16));
         return primarySlotConfig;
     };
 

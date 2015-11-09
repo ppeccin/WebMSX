@@ -85,7 +85,7 @@ wmsx.SCCIMixedAudioChannel = function() {
     };
 
     function writeSCC(address, value) {
-        //console.log("SCC Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
+        //wmsx.Util.log("SCC Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
         address &= 0xff;
         if (address < 0x80) {                               // Wavetable access
             channelSamples[(address >>> 5)][address & 0x1f] = value < 128 ? value : -256 + value;
@@ -115,7 +115,7 @@ wmsx.SCCIMixedAudioChannel = function() {
     }
 
     function writeSCCI(address, value) {
-        //console.log("SCCI Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
+        //wmsx.Util.log("SCCI Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
         address &= 0xff;
         if (address < 0xa0) {                               // Wavetable access
             channelSamples[address >>> 5][address & 0x1f] = value < 128 ? value : -256 + value;

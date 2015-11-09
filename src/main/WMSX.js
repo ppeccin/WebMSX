@@ -32,7 +32,7 @@ WMSX = {
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
     SCREEN_COLOR_MODE:              0,                          // 0..5
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)
-    SCREEN_VSYNCH_DISABLED:         false,
+    SCREEN_VSYNCH_MODE:             1,                          // 0 = disabled, 1 = auto (when matches), 2 = forced
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "wmsx/images/",
 

@@ -32,12 +32,11 @@ wmsx.BIOS = function(rom) {
     };
 
     this.write = function(address, value) {
-        //console.log ("Write over BIOS ROM at " + address.toString(16) + " := " + value.toString(16));
+        //wmsx.Util.log ("Write over BIOS ROM at " + address.toString(16) + " := " + value.toString(16));
         // ROMs cannot be modified
     };
 
     this.read = function(address) {
-        //console.log ("BIOS ROM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
     };
 

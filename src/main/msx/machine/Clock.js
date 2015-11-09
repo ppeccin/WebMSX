@@ -8,7 +8,7 @@ wmsx.Clock = function(clockDriven) {
             //lastPulseTime = window.performance.now();
             //timeMeasures = [];
 
-            useRequestAnimationFrame = !WMSX.SCREEN_VSYNCH_DISABLED && cyclesPerSecond === wmsx.Clock.HOST_NATIVE_FPS;
+            useRequestAnimationFrame = vSynch && (cyclesPerSecond === wmsx.Clock.HOST_NATIVE_FPS);
 
             running = true;
             if (useRequestAnimationFrame)
@@ -44,6 +44,16 @@ wmsx.Clock = function(clockDriven) {
         }
     };
 
+    this.setVSynch = function(boo) {
+        if (running) {
+            this.pause();
+            vSynch = boo;
+            this.go();
+        } else {
+            vSynch = boo;
+        }
+    };
+
     var internalSetFrequency = function(freq) {
         cyclesPerSecond = freq;
         cycleTimeMs = 1000 / freq;
@@ -71,11 +81,13 @@ wmsx.Clock = function(clockDriven) {
 
     var running = false;
 
+
     var cyclesPerSecond = 1;
     var cycleTimeMs = 1000;
     var useRequestAnimationFrame;
     var animationFrame = null;
     var interval = null;
+    var vSynch = true;
 
     //var timeMeasures = [];
     //var lastPulseTime = 0;
@@ -86,14 +98,14 @@ wmsx.Clock.HOST_NATIVE_FPS = WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;         // -1 = 
 
 wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
 
-    if (WMSX.SCREEN_VSYNCH_DISABLED) {
+    if (WMSX.SCREEN_VSYNCH_MODE === 0) {
         wmsx.Util.log("Video native V-Synch disabled");
         if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         return;
     }
 
     // Bypass if already detected or forced
-    if (WMSX.SCREEN_VSYNCH_DISABLED || (wmsx.Clock.HOST_NATIVE_FPS !== -1)) {
+    if (WMSX.SCREEN_VSYNCH_MODE === 0|| (wmsx.Clock.HOST_NATIVE_FPS !== -1)) {
         if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         return;
     }
@@ -111,7 +123,7 @@ wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
         // Detected?
         if (good60 >= 8 || good50 >= 8) {
             wmsx.Clock.HOST_NATIVE_FPS = good60 >= 8 ? 60 : 50;
-            wmsx.Util.log("Video native frequency detected: " + wmsx.Clock.HOST_NATIVE_FPS + "Hz. V-Synch enabled");
+            wmsx.Util.log("Video native frequency detected: " + wmsx.Clock.HOST_NATIVE_FPS + "Hz");
             if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
             return;
         }

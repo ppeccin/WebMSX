@@ -15,6 +15,14 @@ WMSX.presets = {
         BIOS_URL:       "wmsx/roms/MSX1PALa.bios"
     },
 
+    NOVSYNCH: {
+        SCREEN_VSYNCH_MODE: 0
+    },
+
+    FORCEVSYNCH: {
+        SCREEN_VSYNCH_MODE: 2
+    },
+
     NODISK: {
         EXPANSION0_URL: ""
     },

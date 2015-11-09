@@ -13,12 +13,12 @@ wmsx.SlotRAM64K = function(content) {
     };
 
     this.read = function(address) {
-        //console.log ("RAM read: " + address.toString(16) + ", " + bytes[address].toString(16));
+        //wmsx.Util.log ("RAM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
     };
 
     this.write = function(address, value) {
-        //console.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
+        //wmsx.Util.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
         bytes[address] = value;
     };
 

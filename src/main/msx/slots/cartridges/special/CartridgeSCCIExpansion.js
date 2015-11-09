@@ -54,7 +54,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     this.write = function(address, value) {
-        // console.log("Write: " + wmsx.Util.toHex4(address) + ', ' + value);
+        // wmsx.Util.log("Write: " + wmsx.Util.toHex4(address) + ', ' + value);
 
         // Mode Register
         if (address === 0xbffe || address === 0xbfff)
@@ -92,7 +92,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     this.read = function(address) {
-        // console.log("Read: " + wmsx.Util.toHex4(address));
+        // wmsx.Util.log("Read: " + wmsx.Util.toHex4(address));
 
         if (address < 0x6000)
             return bytes[bank1Offset + address];                     // May underflow if address < 0x4000
@@ -109,7 +109,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     function setMode(pMode) {
-       // console.log(wmsx.Util.toHex2(pMode) + ": " + ((bank1Offset + 0x4000)/0x2000) + ", " + ((bank2Offset + 0x6000)/0x2000) + ", " + ((bank3Offset + 0x8000)/0x2000) + ", " + ((bank4Offset + 0xa000)/0x2000));
+       // wmsx.Util.log(wmsx.Util.toHex2(pMode) + ": " + ((bank1Offset + 0x4000)/0x2000) + ", " + ((bank2Offset + 0x6000)/0x2000) + ", " + ((bank3Offset + 0x8000)/0x2000) + ", " + ((bank4Offset + 0xa000)/0x2000));
 
         mode = pMode;
         scciMode = (pMode & 0x20) !== 0;

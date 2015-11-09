@@ -8,7 +8,7 @@ wmsx.DeviceMissing = function() {
     };
 
     this.outputPort = function(val) {
-        //console.log ("Empty OUT val: " + val.toString(16) + " PC:" + wmsx.Util.toHex4(WMSX.room.machine.cpu.eval("PC")));
+        //wmsx.Util.log ("Empty OUT val: " + val.toString(16) + " PC:" + wmsx.Util.toHex4(WMSX.room.machine.cpu.eval("PC")));
     }
 
 };

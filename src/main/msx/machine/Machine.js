@@ -7,6 +7,7 @@ wmsx.Machine = function() {
         mainComponentsCreate();
         socketsCreate();
         setVideoStandardAuto();
+        setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
 
     this.powerOn = function(paused) {
@@ -156,6 +157,15 @@ wmsx.Machine = function() {
         setVideoStandard(forcedVideoStandard);
     };
 
+    var setVSynchMode = function(mode) {
+        mode %= 3;
+        if (vSynchMode === mode) return;
+
+        vSynchMode = mode;
+        vdp.setVSynchMode(vSynchMode);
+        mainClockAdjustToNormal();
+    };
+
     var powerFry = function() {
         //ram.powerFry();
     };
@@ -195,12 +205,13 @@ wmsx.Machine = function() {
 
     var mainClockAdjustToNormal = function() {
         var freq = vdp.getDesiredBaseFrequency();
+        mainClock.setVSynch(vSynchMode > 0);
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
 
     var mainClockAdjustToFast = function() {
-        var freq = 360;     // About 6x faster if host machine is able
+        var freq = 360;     // About 6x faster if host machine is capable
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
@@ -269,7 +280,6 @@ wmsx.Machine = function() {
     var debugPause = false;
     var debugPauseMoreFrames = 0;
 
-    var videoStandard;
     var machineControlsSocket;
     var keyboardSocket;
     var joysticksSocket;
@@ -280,7 +290,9 @@ wmsx.Machine = function() {
     var cassetteSocket;
     var diskDriveSocket;
 
+    var videoStandard;
     var videoStandardIsAuto = false;
+    var vSynchMode;
 
     var BIOS_SLOT = 0;
     var RAM_SLOT = 2;
@@ -358,6 +370,10 @@ wmsx.Machine = function() {
                 if (videoStandardIsAuto) setVideoStandardForced(wmsx.VideoStandard.NTSC);
                 else if (videoStandard == wmsx.VideoStandard.NTSC) setVideoStandardForced(wmsx.VideoStandard.PAL);
                 else setVideoStandardAuto();
+                break;
+            case controls.VSYNCH:
+                setVSynchMode(vSynchMode + 1);
+                self.showOSD("V-Synch: " + (vSynchMode === 1 ? "AUTO" : vSynchMode === 0 ? "DISABLED" : "FORCED"), true);
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();

@@ -29,17 +29,13 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
     this.setVideoStandard = function(pVideoStandard) {
         videoStandard = pVideoStandard;
+        updateSynchronization();
+        if (currentScanline >= videoStandard.finishingScanline) currentScanline = videoStandard.startingScanline;       // When going from PAL to NTSC
+    };
 
-        // Use the native frequency (60Hz or 50Hz) if detected and VSynch is enabled, otherwise use the Video Standard target FPS
-        var hostFreq = wmsx.Clock.HOST_NATIVE_FPS;
-        desiredBaseFrequency = !WMSX.SCREEN_VSYNCH_DISABLED && hostFreq > 0 ? hostFreq : videoStandard.targetFPS;
-
-        startingScanline = videoStandard.startingScanline;
-        currentScanline = startingScanline;
-        finishingScanline = videoStandard.finishingScanline;
-        cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per clock
-        pulldownFirstFrameStartingLine = videoStandard.pulldowns[desiredBaseFrequency].firstFrameStartingLine;
-        cycleLines = pulldownFirstFrameStartingLine;
+    this.setVSynchMode = function(mode) {
+        vSynchMode = mode;
+        updateSynchronization();
     };
 
     this.getVideoOutput = function() {
@@ -129,7 +125,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         dataToWrite = null;
         var res = vram[vramPointer++];            // VRAM Read
         if (vramPointer > 16383) {
-            //console.log("VRAM Read Wrapped");
+            //wmsx.Util.log("VRAM Read Wrapped");
             vramPointer = 0;
         }
         return res;
@@ -139,7 +135,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         dataToWrite = null;
         vram[vramPointer++] = val;               // VRAM Write
         if (vramPointer > 16383) {
-            //console.log("VRAM Write Wrapped");
+            //wmsx.Util.log("VRAM Write Wrapped");
             vramPointer = 0;
         }
     };
@@ -164,7 +160,21 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         updateIRQ();
         updateMode();
         updateBackdropColor(true);   // force
-        self.setVideoStandard(videoStandard);
+        updateSynchronization();
+        currentScanline = videoStandard.startingScanline;
+    }
+
+    function updateSynchronization() {
+        // Use the native frequency (60Hz or 50Hz) if detected and VSynch matches or is forced, otherwise use the Video Standard target FPS
+        var hostFreq = wmsx.Clock.HOST_NATIVE_FPS;
+        desiredBaseFrequency = videoStandard.targetFPS;
+        if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
+
+        startingScanline = videoStandard.startingScanline;
+        finishingScanline = videoStandard.finishingScanline;
+        cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per clock
+        pulldownFirstFrameStartingLine = videoStandard.pulldowns[desiredBaseFrequency].firstFrameStartingLine;
+        cycleLines = pulldownFirstFrameStartingLine;
     }
 
     // 262 lines per frame for NTSC, 313 lines for PAL
@@ -180,7 +190,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (currentScanline < 0) updateLinesBorder(toScanline < 0 ? toScanline : 0);
             if (cycleLines >= toCycleLine) return;
 
-            // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes in the visible scanlines
+            // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
             while((currentScanline < 192) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < 192 ? toScanline : 192);
 
             // End of visible scan, request interrupt
@@ -461,12 +471,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         }
 
         if (spriteCollision) {
-            //console.log("8x8 normal Collision");
+            //wmsx.Util.log("8x8 normal Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
             if (invalid >= 0) {
-                //console.log("Invalid sprite: " + invalid);
+                //wmsx.Util.log("Invalid sprite: " + invalid);
                 status |= 0x40 | invalid;
             } else if (sprite > (status & 0x1f)) status |= sprite;
         }
@@ -507,12 +517,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         }
 
         if (spriteCollision) {
-            //console.log("8x8 double Collision");
+            //wmsx.Util.log("8x8 double Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
             if (invalid >= 0) {
-                //console.log("Invalid sprite: " + invalid);
+                //wmsx.Util.log("Invalid sprite: " + invalid);
                 status |= 0x40 | invalid;
             } else if (sprite > (status & 0x1f)) status |= sprite;
         }
@@ -562,12 +572,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         }
 
         if (spriteCollision) {
-            //console.log("16x16 normal Collision");
+            //wmsx.Util.log("16x16 normal Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
             if (invalid >= 0) {
-                //console.log("Invalid sprite: " + invalid);
+                //wmsx.Util.log("Invalid sprite: " + invalid);
                 status |= 0x40 | invalid;
             } else if (sprite > (status & 0x1f)) status |= sprite;
         }
@@ -617,12 +627,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         }
 
         if (spriteCollision) {
-            //console.log("16x16 double Collision");
+            //wmsx.Util.log("16x16 double Collision");
             status |= 0x20;
         }
         if ((status & 0x40) === 0) {                                        // Only set if 5S are still unset
             if (invalid >= 0) {
-                //console.log("Invalid sprite: " + invalid);
+                //wmsx.Util.log("Invalid sprite: " + invalid);
                 status |= 0x40 | invalid;
             } else if (sprite > (status & 0x1f)) status |= sprite;
         }
@@ -651,9 +661,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     }
 
     function refresh() {
-
-        //console.log("REFRESH");
-
         // Update frame image and send to monitor
         frameContext.putImageData(frameImageData, 0, 0);
         videoSignal.newFrame(frameCanvas);
@@ -666,7 +673,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         // Begin a new frame
         currentScanline = startingScanline;
 
-        //console.log("Frame FINISHED. CPU cycles: " + cpu.eval("cycles"));
+        //wmsx.Util.log("Frame FINISHED. CPU cycles: " + cpu.eval("cycles"));
         //cpu.eval("cycles = 0");
     }
 
@@ -727,6 +734,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var desiredBaseFrequency;       // Will depend on VideoStandard and detected Host Native Video Frequency
 
     var videoStandard;
+    var vSynchMode;
     var currentScanline;
     var startingScanline;
     var finishingScanline;

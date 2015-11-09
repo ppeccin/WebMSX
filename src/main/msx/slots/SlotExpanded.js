@@ -64,7 +64,7 @@ wmsx.SlotExpanded = function() {
     };
 
     this.setSecondarySlotConfig = function(val) {
-        // console.log("SecondarySlot Select: " + val.toString(16));
+        // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;
         subSlotPages[0] = subSlots[val & 0x03];
         subSlotPages[1] = subSlots[(val >>> 2) & 0x03];
@@ -73,7 +73,7 @@ wmsx.SlotExpanded = function() {
     };
 
     this.getSecondarySlotConfig = function() {
-        // console.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
+        // wmsx.Util.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
         return secondarySlotConfig;
     };
 
