@@ -23,7 +23,6 @@ wmsx.Machine = function() {
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
-        slotsConfigToBackToOriginal();
     };
 
     this.reset = function() {
@@ -238,16 +237,6 @@ wmsx.Machine = function() {
         bus.insertSlot(new wmsx.SlotExpanded(), EXPANDED_SLOT);
     };
 
-    var slotsConfigToBackToOriginal = function() {
-        if (ramSlot === RAM_SLOT) return;
-        var currentRam = bus.getSlot(ramSlot);
-        var currentCart0 = bus.getSlot(cartridge0Slot);
-        ramSlot = RAM_SLOT;
-        cartridge0Slot = CARTRIDGE0_SLOT;
-        bus.insertSlot(currentRam, ramSlot);
-        bus.insertSlot(currentCart0, cartridge0Slot);
-    };
-
     var socketsCreate = function() {
         machineControlsSocket = new MachineControlsSocket();
         machineControlsSocket.addForwardedInput(self);
@@ -295,8 +284,8 @@ wmsx.Machine = function() {
     var vSynchMode;
 
     var BIOS_SLOT = 0;
-    var RAM_SLOT = 2;
-    var CARTRIDGE0_SLOT = 1;
+    var RAM_SLOT = WMSX.RAM_SLOT;
+    var CARTRIDGE0_SLOT = RAM_SLOT === 1 ? 2 : 1;
     var EXPANDED_SLOT = 3;
     var CARTRIDGE1_EXP_SLOT = 0;
     var EXPANSIONS_EXP_SLOTS = [ 1, 2, 3 ];
