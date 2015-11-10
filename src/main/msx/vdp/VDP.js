@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Investigate slow putImage()
+// TODO Screen 2 bottom third problem after save/load state
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
@@ -11,6 +12,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         videoSignal = new wmsx.VDPVideoSignal();
         initFrameResources();
         initColorCodePatternValues();
+        initDebugSpritePatternTables();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         self.setDefaults();
@@ -147,8 +149,23 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         setColorCodePatternValues();
     };
 
+    this.toggleDebugModes = function() {
+        debugMode = ++debugMode % 3;
+        videoSignal.showOSD("Debug: " + ["OFF", "Highlight Sprites 1", "Highlight Sprites 2"][debugMode], true);
+        setColorCodePatternValues();
+    };
+
+    this.toggleSpriteModes = function() {
+        spriteMode = ++spriteMode % 4;
+        spriteLimit = (spriteMode === 0) || (spriteMode === 2);
+        spriteCollisions = spriteMode < 2;
+        videoSignal.showOSD("Sprites: " + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteMode], true);
+    };
+
     this.setDefaults = function() {
         currentPalette = WMSX.SCREEN_COLOR_MODE;
+        debugMode = 0;
+        spriteMode = 0;
         setColorCodePatternValues();
     };
 
@@ -441,7 +458,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
-        spriteCollision = false;
+        spritesCollided = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
@@ -451,8 +468,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             y++;                                                            // -1 (255) is line 0 per spec, so add 1
             if ((y < (line - 7)) || (y > line)) continue;                   // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                invalid = sprite;
-                break;
+                if (invalid < 0) invalid = sprite;
+                if (spriteLimit) break;
             }
             x = vramSpriteAttrTable[atrPos + 1];
             color = vramSpriteAttrTable[atrPos + 3];
@@ -466,11 +483,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (s < f) {
                 pattern = vramSpritePatternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite(frameBackBuffer, bufferPos + x, values, s, f);
+                copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
         }
 
-        if (spriteCollision) {
+        if (spritesCollided && spriteCollisions) {
             //wmsx.Util.log("8x8 normal Collision");
             status |= 0x20;
         }
@@ -487,7 +504,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
-        spriteCollision = false;
+        spritesCollided = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
@@ -497,8 +514,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             y++;                                                            // -1 (255) is line 0 per spec, so add 1
             if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                invalid = sprite;
-                break;
+                if (invalid < 0) invalid = sprite;
+                if (spriteLimit) break;
             }
             x = vramSpriteAttrTable[atrPos + 1];
             color = vramSpriteAttrTable[atrPos + 3];
@@ -512,11 +529,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (s < f) {
                 pattern = vramSpritePatternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
+                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
         }
 
-        if (spriteCollision) {
+        if (spritesCollided && spriteCollisions) {
             //wmsx.Util.log("8x8 double Collision");
             status |= 0x20;
         }
@@ -533,7 +550,9 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
-        spriteCollision = false;
+        spritesCollided = false;
+
+        var patternTable = debugMode < 2 ? vramSpritePatternTable : debugSpritePatternTable16;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
@@ -543,8 +562,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             y++;                                                            // -1 (255) is line 0 per spec, so add 1
             if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                invalid = sprite;
-                break;
+                if (invalid < 0) invalid = sprite;
+                if (spriteLimit) break;
             }
             x = vramSpriteAttrTable[atrPos + 1];
             color = vramSpriteAttrTable[atrPos + 3];
@@ -552,26 +571,26 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = ((name & 0xfc) << 3) + (line - y);
+            patternStart = debugMode < 2 ? ((name & 0xfc) << 3) + (line - y) : (sprite << 5) + (line - y);
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
-                pattern = vramSpritePatternTable[patternStart];
+                pattern = patternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite(frameBackBuffer, bufferPos + x, values, s, f);
+                copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
             // Right half
             s = x >= -8 ? 0 : -8 - x;
             f = x <= 240 ? 8 : 248 - x;
             if (s < f) {
-                pattern = vramSpritePatternTable[patternStart + 16];
+                pattern = patternTable[patternStart + 16];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f);
+                copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f, invalid < 0);
             }
         }
 
-        if (spriteCollision) {
+        if (spritesCollided && spriteCollisions) {
             //wmsx.Util.log("16x16 normal Collision");
             status |= 0x20;
         }
@@ -588,7 +607,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
         var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
-        spriteCollision = false;
+        spritesCollided = false;
 
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
@@ -598,8 +617,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             y++;                                                            // -1 (255) is line 0 per spec, so add 1
             if ((y < (line - 31)) || (y > line)) continue;                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                invalid = sprite;
-                break;
+                if (invalid < 0) invalid = sprite;
+                if (spriteLimit) break;
             }
             x = vramSpriteAttrTable[atrPos + 1];
             color = vramSpriteAttrTable[atrPos + 3];
@@ -614,7 +633,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (s < f) {
                 pattern = vramSpritePatternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f);
+                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
             // Right half
             s = x >= -16 ? 0 : -16 - x;
@@ -622,11 +641,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (s < f) {
                 pattern = vramSpritePatternTable[patternStart + 16];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f);
+                copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f, invalid < 0);
             }
         }
 
-        if (spriteCollision) {
+        if (spritesCollided && spriteCollisions) {
             //wmsx.Util.log("16x16 double Collision");
             status |= 0x20;
         }
@@ -638,25 +657,25 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         }
     }
 
-    function copySprite(dest, pos, source, start, finish) {
+    function copySprite(dest, pos, source, start, finish, collide) {
         for (var i = start; i < finish; i++) {
             var s = source[i];
             if (s === 0) continue;
             var d = dest[pos + i];
             // Transparent sprites (color 0x01000000) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
             if (d < 0xff000000) dest[pos + i] = s === 0x01000000 ? (d | 0xff000000) : s;
-            else spriteCollision = true;
+            else if (!spritesCollided) spritesCollided = collide;
         }
     }
 
-    function copySprite2x(dest, pos, source, start, finish) {
+    function copySprite2x(dest, pos, source, start, finish, collide) {
         for (var i = start; i < finish; i++) {
             var s = source[(i >>> 1)];
             if (s === 0) continue;
             var d = dest[pos + i];
             // Transparent sprites (color 0x01000000) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
             if (d < 0xff000000) dest[pos + i] = s === 0x01000000 ? (d | 0xff000000) : s;
-            else spriteCollision = true;
+            else if (!spritesCollided) spritesCollided = collide;
         }
     }
 
@@ -706,10 +725,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     }
 
     function setColorCodePatternValues() {
-        colorRGBs = palettes[currentPalette].colors;
-        var sizePerColorCode = 256 * 8;
+        var colorRGBs = debugMode > 0 ? colorsDebug : palettes[currentPalette].colors;
+        var spriteColorTransp = debugMode > 1 ? 0xfe00f8f8 : 0x01000000;
+        var spriteColorBack = debugMode > 1 ? 0xfe501616 : 0;
         for (var front = 0; front < 16; front++) {
             var colorFront = colorRGBs[front];
+            var spriteColorFront = palettes[currentPalette].colors[front] | 0xff000000;     // Always full alpha
             for (var pattern = 0; pattern < 256; pattern++) {
                 for (var back = 0; back < 16; back++) {
                     var colorBack = colorRGBs[back];
@@ -719,13 +740,41 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
                     for (var bit = 7; bit >= 0; bit--) {
                         var pixel = (pattern >>> bit) & 1;
                         patternValues[7 - bit] = pixel ? colorFront : colorBack;
+                        if (!spritePatternValues) continue;
                         // Full Alpha front color or Special Transparent for Sprites
-                        if (spritePatternValues && pixel) spritePatternValues[7 - bit] = colorFront + 0x01000000;
+                        if (pixel) spritePatternValues[7 - bit] = front === 0 ? spriteColorTransp : spriteColorFront;
+                        else spritePatternValues[7 - bit] = spriteColorBack;
                     }
                 }
             }
         }
         updateBackdropColor(true);  // force
+    }
+
+    function initDebugSpritePatternTables() {
+        var digitPatterns = [
+            [   "111", "101", "101", "101", "111"], ["110", "010", "010", "010", "111"], ["111", "001", "111", "100", "111"], ["111", "001", "111", "001", "111"], ["101", "101", "111", "001", "001"],
+            [   "111", "100", "111", "001", "111"], ["100", "100", "111", "101", "111"], ["111", "001", "001", "001", "001"], ["111", "101", "111", "101", "111"], ["111", "101", "111", "001", "001"]
+        ];
+        var pos8 = 0, pos16 = 0, i = 0;
+        for (var sprite = 0; sprite < 32; sprite++) {
+            var dig1 = (sprite / 10) | 0;
+            var dig2 = sprite % 10;
+            // 8 x 8
+            debugSpritePatternTable8[pos8++] = 0;
+            for (i = 0; i < 5; i++) debugSpritePatternTable8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "00" + digitPatterns[dig2][i], 2);
+            for (i = 0; i < 2; i++) debugSpritePatternTable8[pos8++] = 0;
+            // 16 x 16
+            debugSpritePatternTable16[pos16++] = Number.parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("10000000", 2);
+            for (i = 0; i < 5; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
+            for (i = 0; i < 5; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("10000000", 2);
+            for (i = 0; i < 2; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("00000001", 2);
+            for (i = 0; i < 5; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
+            for (i = 0; i < 5; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("00000001", 2);
+            debugSpritePatternTable16[pos16++] = Number.parseInt("11111111", 2);
+        }
     }
 
 
@@ -748,7 +797,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var status;
     var mode;
     var modeStable;
-    var spriteCollision;
+    var spritesCollided;
 
     var dataToWrite;
     var vramPointer = 0;
@@ -782,7 +831,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var vramSpritePatternTable = vram;
     this.vram = vram;
 
-    // Planes as off-screen canvases
+    // Planes as off-screen canvas
+
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
     // Palettes
@@ -793,6 +843,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var colorsMSXGR =  new Uint32Array([ 0x00000000, 0xfe000000, 0xfe108010, 0xfe10a010, 0xfe105c10, 0xfe107c10, 0xfe107010, 0xfe10b010, 0xfe107c10, 0xfe109810, 0xfe10b010, 0xfe10c010, 0xfe107010, 0xfe107c10, 0xfe10c010, 0xfe10f810 ]);
     var colorsMSXAB =  new Uint32Array([ 0x00000000, 0xfe000000, 0xfe005880, 0xfe006ca0, 0xfe00405c, 0xfe00547c, 0xfe004c70, 0xfe0078b0, 0xfe00547c, 0xfe006898, 0xfe0078b0, 0xfe0084c0, 0xfe004c70, 0xfe005880, 0xfe0084c4, 0xfe00abfa ]);
     var colorsMSX1VV = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
+    var colorsDebug =  new Uint32Array([ 0x50505050, 0x50505050, 0x50808080, 0x50a0a0a0, 0x50606060, 0x507c7c7c, 0x50707070, 0x50b0b0b0, 0x507c7c7c, 0x50989898, 0x50b0b0b0, 0x50c0c0c0, 0x50707070, 0x50808080, 0x50c4c4c4, 0x50fbfbfb ]);
     //var colorsMyMSX1 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe42c821, 0xfe78dc5e, 0xfeed5554, 0xfefc767d, 0xfe4d52d4, 0xfef5eb42, 0xfe5455fc, 0xfe7879ff, 0xfe54c1d4, 0xfe80cee6, 0xfe3bb021, 0xfeba5bc9, 0xfecccccc, 0xfeffffff ]);
     //var colorsMyMSX2 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20db20, 0xfe6dff6d, 0xfeff2020, 0xfeff6d30, 0xfe2020b6, 0xfeffdb49, 0xfe2020ff, 0xfe6d6dff, 0xfe20dbdb, 0xfe92dbdb, 0xfe209220, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
 
@@ -804,7 +855,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     ];
 
     var currentPalette = 0;
-    var colorRGBs;
 
     // Pre calculated 8-pixel RGBA values for all color and 8-bit pattern combinations (actually ABRG endian)
     // Pattern plane paints with these colors (Alpha = 0xfe), Sprite planes paint with Full Alpha = 0xff
@@ -815,7 +865,13 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var spriteColorValuesRaw = new Uint32Array(16 * 256 * 8);       // 16 colors * 256 patterns * 8 pixels
     var spriteColorCodePatternValues = new Array(16 * 256);         // 16 colorCodes * 256 patterns
 
-    var colorCodeStartPositions = new Array(256);                      // Translates colorCodes considering the backdrop color, already * 8 (point to start of values)
+    var colorCodeStartPositions = new Array(256);                   // Translates colorCodes considering the backdrop color, already * 8 (point to start of values)
+
+    // Patterns for Debug Modes
+
+    var debugSpritePatternTable8 = new Uint8Array(32 * 8);          // 8x18
+    var debugSpritePatternTable16 = new Uint8Array(32 * 8 * 4);     // 16x16
+
 
     // Connections
 
@@ -823,6 +879,13 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
     var cpuClockPulses;
     var psgClockPulse;
+
+    // Modes
+
+    var debugMode;
+    var spriteMode;
+    var spriteLimit = true;
+    var spriteCollisions = true;
 
 
     // Savestate  -------------------------------------------
@@ -860,6 +923,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     this.eval = function(str) {
         return eval(str);
     };
+
+
 
 };
 

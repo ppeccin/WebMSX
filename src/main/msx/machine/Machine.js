@@ -371,6 +371,12 @@ wmsx.Machine = function() {
             case controls.PALETTE:
                 vdp.togglePalettes();
                 break;
+            case controls.DEBUG:
+                vdp.toggleDebugModes();
+                break;
+            case controls.SPRITE_MODE:
+                vdp.toggleSpriteModes();
+                break;
             case controls.DEFAULTS:
                 setVideoStandardAuto();
                 vdp.setDefaults();
