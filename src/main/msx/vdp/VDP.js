@@ -460,6 +460,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
+        var patternTable = debugMode < 2 ? vramSpritePatternTable : debugSpritePatternTable8;
+
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -477,11 +479,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -7) continue;                                           // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = (name << 3) + (line - y);
+            patternStart = (debugMode < 2 ? name << 3 : sprite << 5) + (line - y);
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
-                pattern = vramSpritePatternTable[patternStart];
+                pattern = patternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -506,6 +508,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
+        var patternTable = debugMode < 2 ? vramSpritePatternTable : debugSpritePatternTable8;
+
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -523,11 +527,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = (name << 3) + ((line - y) >>> 1);                // Double line height
+            patternStart = (debugMode < 2 ? name << 3 : sprite << 5) + ((line - y) >>> 1);    // Double line height
             s = x >= 0 ? 0 : -x;
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
-                pattern = vramSpritePatternTable[patternStart];
+                pattern = patternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -571,7 +575,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = debugMode < 2 ? ((name & 0xfc) << 3) + (line - y) : (sprite << 5) + (line - y);
+            patternStart = (debugMode < 2 ? (name & 0xfc) << 3 : sprite << 5) + (line - y);
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
@@ -590,7 +594,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             }
         }
 
-        if (spritesCollided && spriteCollisions) {
+        if (spritesCollided && spriteCollisions) {                          // TODO Optimize those ifs?
             //wmsx.Util.log("16x16 normal Collision");
             status |= 0x20;
         }
@@ -609,6 +613,8 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
+        var patternTable = debugMode < 2 ? vramSpritePatternTable : debugSpritePatternTable16;
+
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -626,12 +632,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -31) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = ((name & 0xfc) << 3) + ((line - y) >>> 1);       // Double line height
+            patternStart = (debugMode < 2 ? (name & 0xfc) << 3 : sprite << 5) + ((line - y) >>> 1);    // Double line height
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
-                pattern = vramSpritePatternTable[patternStart];
+                pattern = patternTable[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -639,7 +645,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             s = x >= -16 ? 0 : -16 - x;
             f = x <= 224 ? 16 : 240 - x;
             if (s < f) {
-                pattern = vramSpritePatternTable[patternStart + 16];
+                pattern = patternTable[patternStart + 16];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f, invalid < 0);
             }
@@ -761,9 +767,9 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             var dig1 = (sprite / 10) | 0;
             var dig2 = sprite % 10;
             // 8 x 8
-            debugSpritePatternTable8[pos8++] = 0;
             for (i = 0; i < 5; i++) debugSpritePatternTable8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "00" + digitPatterns[dig2][i], 2);
-            for (i = 0; i < 2; i++) debugSpritePatternTable8[pos8++] = 0;
+            for (i = 0; i < 2; i++) debugSpritePatternTable8[pos8++] = Number.parseInt("00000000", 2);
+            debugSpritePatternTable8[pos8++] = Number.parseInt("11111111", 2);
             // 16 x 16
             debugSpritePatternTable16[pos16++] = Number.parseInt("11111111", 2);
             for (i = 0; i < 4; i++) debugSpritePatternTable16[pos16++] = Number.parseInt("10000000", 2);
