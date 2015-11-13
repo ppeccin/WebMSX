@@ -31,7 +31,8 @@ wmsx.Util = new function() {
     };
 
     this.arrayCopy = function(src, srcPos, dest, destPos, length) {
-        var finalSrcPos = srcPos + length;
+        destPos = destPos || 0;
+        var finalSrcPos = length ? srcPos + length : src.length;
         while(srcPos < finalSrcPos)
             dest[destPos++] = src[srcPos++];
     };

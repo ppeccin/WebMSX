@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Investigate slow putImage()
-// TODO Screen 2 bottom third problem after save/load state
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
@@ -14,7 +13,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
         initColorCodePatternValues();
-        initDebugInfoPatternTables();
+        initDebugPatternTables();
         self.setDefaults();
     }
 
@@ -109,7 +108,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
                 } else if (reg === 6) {
                     register6 = dataToWrite;
                     spritePatternTableAddress = (dataToWrite & 0x07) * 0x800;
-                    vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
+                    updateSpritePatternTables();
                 } else if (reg === 7) {
                     register7 = dataToWrite;
                     updateBackdropColor();
@@ -150,15 +149,18 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     };
 
     this.toggleDebugModes = function() {
-        setDebugMode((debugMode + 1) % 5);
-        videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": " + ["OFF", "Sprites Hidden", "Sprites Highlighted", "Sprite Numbers", "Sprite Patterns"][debugMode], true);
+        setDebugMode((debugMode + 1) % 8);
+        videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": "
+            + [ "OFF", "Sprites Highlighted", "Sprite Numbers", "Sprite Names",
+                "Sprites Hidden", "Pattern Bits", "Pattern Color Blocks", "Pattern Names"][debugMode], true);
     };
 
     this.toggleSpriteModes = function() {
         spriteMode = ++spriteMode % 4;
         spriteModeLimit = (spriteMode === 0) || (spriteMode === 2);
         spriteModeCollisions = spriteMode < 2;
-        videoSignal.showOSD("Sprites Mode" + (spriteMode > 0 ? " " + spriteMode : "") + ": " + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteMode], true);
+        videoSignal.showOSD("Sprites Mode" + (spriteMode > 0 ? " " + spriteMode : "") + ": "
+            + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteMode], true);
     };
 
     this.setDefaults = function() {
@@ -168,10 +170,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     };
 
     function reset() {
-        register0 = register1 = register2 = register3 = register4 = register5 = register6 = register7 = 0;
         status = 0;
-        dataToWrite = null;
-        vramWriteMode = false; vramPointer = 0;
+        register0 = register1 = register2 = register3 = register4 = register5 = register6 = register7 = 0;
+        nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
+        vramNameTable = vramColorTable = vramPatternTable = vramSpriteAttrTable = vramSpritePatternTable =  vram.subarray(spriteAttrTableAddress);
+        dataToWrite = null; vramWriteMode = false; vramPointer = 0;
         updateIRQ();
         updateMode(true);            // force
         updateBackdropColor(true);   // force
@@ -181,8 +184,13 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
     function setDebugMode(mode) {
         debugMode = mode;
-        debugModeSpriteInfo = mode > 2;
-        debugModeSpriteInfoPattern = mode === 4;
+        debugModeSpriteInfo = mode >= 2 && mode <= 3;
+        debugModeSpriteInfoNames = mode === 3;
+        debugModePatternInfo = mode >= 5;
+        debugModePatternInfoBlocks = mode === 6;
+        debugModePatternInfoNames = mode === 7;
+        updateUpdateFunctions();
+        updateSpritePatternTables();
         setColorCodePatternValues();
     }
 
@@ -213,13 +221,10 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (cycleLines >= toCycleLine) return;
 
             // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
-            // Dynamic mode and sprites method calls
             if (currentScanline < 192) {
                 lineClockCPUandPSG();
                 while((currentScanline < 192) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < 192 ? toScanline : 192);
             }
-            // All-in-one-method implementation
-            //if(currentScanline < 192) updateLinesActiveAllInOne(toScanline < 192 ? toScanline : 192);
 
             // End of visible scan, request interrupt
             if (currentScanline === 192) triggerInterrupt();
@@ -255,11 +260,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             vramColorTable = vram.subarray(colorTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
         }
-        // Only needed for the All-in-one method
-        // blanked = (register1 & 0x40) === 0;
-        // spriteSize = register1 & 0x03;
-        updateLinesActive = (register1 & 0x40) === 0 ? updateLinesBlanked : updateLinesFunctions[mode];
-        updateSpritesLine = updateSpritesLineFunctions[register1 & 0x03];
+        updateUpdateFunctions();
         modeStable = false;
     }
 
@@ -270,12 +271,17 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         colorNameMask = (register3 << 3) | 0x07;          // Mask for the upper 7 bits of the 10 bits color name
     }
 
+    function updateUpdateFunctions() {
+        updateLinesActive = (register1 & 0x40) === 0 ? updateLinesBlanked : debugModePatternInfo ? updateLinesDebugFunctions[mode] : updateLinesFunctions[mode];
+        updateSpritesLine = updateSpritesLineFunctions[register1 & 0x03];
+    }
+
     function updateBackdropColor(force) {
         var newColor = (register7 & 0x0f) || 1;           // Backdrop transparency is always set to Black
         if ((newColor === backdropColor) && !force) return;
 
         backdropColor = newColor;
-        backdropValues = colorCodePatternValues[backdropColor << 8];
+        backdropValues = debugModePatternInfo ? backdropValuesDebug : colorCodePatternValues[backdropColor << 8];
         for (var i = 264; i >= 0; i -= 8) backdropFullLineValues.set(backdropValues, i);
         colorCodeStartPositions[0] = ((backdropColor << 4) | backdropColor) << 8;
         for (i = 1; i < 16; i++ ) colorCodeStartPositions[i] = ((backdropColor << 4) | i) << 8;
@@ -321,238 +327,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (line >= toLine) break;
             lineClockCPUandPSG();
         } while (modeStable);
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
-    }
-
-    function updateLinesActiveAllInOne(toLine) {
-        var patPos, patPosFinal, name, patternLine, pattern, colorCode, values, lineInPattern, blockExtra, extraPatPos, patLine, colorLine,
-            atrPos, colorValuesStart, patternStart, color, sprite, drawn, invalid, y, x, s, f;
-
-        var line = currentScanline, bufferPos = (line + 8) * 272;
-        var spritePatternTable8  = debugModeSpriteInfo ? debugPatternTable8  : vramSpritePatternTable;
-        var spritePatternTable16 = debugModeSpriteInfo ? debugPatternTable16 : vramSpritePatternTable;
-
-        while(line < toLine) {
-            lineClockCPUandPSG();
-
-            if (blanked) {
-                frameBackBuffer.set(backdropFullLineValues, bufferPos);
-                bufferPos += 272;
-            } else {
-                frameBackBuffer.set(backdropValues, bufferPos);                         // 8 pixels left border
-                bufferPos += 8;
-
-                // Update Pattern plane
-                if (mode === 1) {
-                    patPos = (line >>> 3) << 5;                                         // line / 8 * 32
-                    lineInPattern = line & 0x07;
-                    blockExtra = (line & 0xc0) << 2;                                    // + 0x100 for each third block of the screen (8 pattern lines)
-                    patPosFinal = patPos + 32;
-                    while (patPos < patPosFinal) {
-                        name = vramNameTable[patPos++] | blockExtra;
-                        patLine = ((name & patternNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
-                        pattern = vramPatternTable[patLine];
-                        colorLine = ((name & colorNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
-                        colorCode = vramColorTable[colorLine];
-                        values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
-                        frameBackBuffer.set(values, bufferPos);
-                        bufferPos += 8;
-                    }
-                } else if (mode === 0) {
-                    patPos = (line >>> 3) << 5;                                         // line / 8 * 32
-                    lineInPattern = line & 0x07;
-                    patPosFinal = patPos + 32;
-                    while (patPos < patPosFinal) {
-                        name = vramNameTable[patPos++];
-                        patternLine = (name << 3) + lineInPattern;                      // name * 8 (8 bytes each pattern) + line inside pattern
-                        pattern = vramPatternTable[patternLine];
-                        colorCode = vramColorTable[name >>> 3];                         // name / 8 (1 color for each 8 patterns)
-                        values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
-                        frameBackBuffer.set(values, bufferPos);
-                        bufferPos += 8;
-                    }
-                } else if (mode === 4) {
-                    colorValuesStart = colorCodeStartPositions[register7];              // fixed text color for all line
-                    frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
-                    bufferPos += 8;
-                    patPos = (line >>> 3) * 40;                                         // line / 8 * 40
-                    patPosFinal = patPos + 40;
-                    while (patPos < patPosFinal) {
-                        name = vramNameTable[patPos++];
-                        patternLine = (name << 3) + (line & 0x07);                      // name * 8 (8 bytes each pattern) + line inside pattern
-                        pattern = vramPatternTable[patternLine];
-                        frameBackBuffer.set(colorCodePatternValues[colorValuesStart + pattern], bufferPos);
-                        bufferPos += 6;                                                 // advance 6 pixels
-                    }
-                    frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
-                    bufferPos += 8;
-                } else /* (mode === 2) */ {
-                    patPos = (line >>> 3) << 5;                                         // line / 8 * 32
-                    extraPatPos = (((line >>> 3) & 0x03) << 1) + ((line >> 2) & 0x01);  // (pattern line % 4) * 2
-                    patPosFinal = patPos + 32;
-                    while (patPos < patPosFinal) {
-                        name = vramNameTable[patPos++];
-                        patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
-                        colorCode = vramPatternTable[patternLine];
-                        values = colorCodePatternValues[colorCodeStartPositions[colorCode] + 0xf0];   // always solid blocks of front and back colors
-                        frameBackBuffer.set(values, bufferPos);
-                        bufferPos += 8;
-                    }
-                }
-
-                frameBackBuffer.set(backdropValues, bufferPos);                         // 8 pixels right border
-                bufferPos += 8;
-
-                // Update Sprite Planes if needed
-                if (vramSpriteAttrTable[0] !== 208 && mode !== 4) {
-                    bufferPos -= 264;
-                    sprite = -1; drawn = 0; invalid = -1; spritesCollided = false;
-                    if (spriteSize === 2) {                                                 // 16x16 Normal
-                        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
-                            sprite++;
-                            y = vramSpriteAttrTable[atrPos];
-                            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-                            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-                            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-                            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
-                            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                                if (invalid < 0) invalid = sprite;
-                                if (spriteModeLimit) break;
-                            }
-                            x = vramSpriteAttrTable[atrPos + 1];
-                            color = vramSpriteAttrTable[atrPos + 3];
-                            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-                            if (x < -15) continue;                                          // Not visible (out to the left)
-                            name = vramSpriteAttrTable[atrPos + 2];
-                            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-                            patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 5) + (line - y);
-                            // Left half
-                            s = x >= 0 ? 0 : -x;
-                            f = x <= 248 ? 8 : 256 - x;
-                            if (s < f) {
-                                pattern = spritePatternTable16[patternStart];
-                                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                                copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
-                            }
-                            // Right half
-                            s = x >= -8 ? 0 : -8 - x;
-                            f = x <= 240 ? 8 : 248 - x;
-                            if (s < f) {
-                                pattern = spritePatternTable16[patternStart + 16];
-                                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                                copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f, invalid < 0);
-                            }
-                        }
-                    } else if (spriteSize === 0) {                                          // 8x8 Normal
-                        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
-                            sprite++;
-                            y = vramSpriteAttrTable[atrPos];
-                            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-                            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-                            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-                            if ((y < (line - 7)) || (y > line)) continue;                   // Not visible at line
-                            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                                if (invalid < 0) invalid = sprite;
-                                if (spriteModeLimit) break;
-                            }
-                            x = vramSpriteAttrTable[atrPos + 1];
-                            color = vramSpriteAttrTable[atrPos + 3];
-                            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-                            if (x < -7) continue;                                           // Not visible (out to the left)
-                            name = vramSpriteAttrTable[atrPos + 2];
-                            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-                            patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 3) + (line - y);
-                            s = x >= 0 ? 0 : -x;
-                            f = x <= 248 ? 8 : 256 - x;
-                            if (s < f) {
-                                pattern = spritePatternTable8[patternStart];
-                                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                                copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
-                            }
-                        }
-                    } else if (spriteSize === 1) {                                          // 8x8 Double
-                        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
-                            sprite++;
-                            y = vramSpriteAttrTable[atrPos];
-                            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-                            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-                            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-                            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
-                            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                                if (invalid < 0) invalid = sprite;
-                                if (spriteModeLimit) break;
-                            }
-                            x = vramSpriteAttrTable[atrPos + 1];
-                            color = vramSpriteAttrTable[atrPos + 3];
-                            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-                            if (x < -15) continue;                                          // Not visible (out to the left)
-                            name = vramSpriteAttrTable[atrPos + 2];
-                            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-                            patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 3) + ((line - y) >>> 1);    // Double line height
-                            s = x >= 0 ? 0 : -x;
-                            f = x <= 240 ? 16 : 256 - x;
-                            if (s < f) {
-                                pattern = spritePatternTable8[patternStart];
-                                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
-                            }
-                        }
-                    } else /* (spriteSize === 3) */ {                                       // 16x16 Double
-                        for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
-                            sprite++;
-                            y = vramSpriteAttrTable[atrPos];
-                            if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-                            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-                            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-                            if ((y < (line - 31)) || (y > line)) continue;                  // Not visible at line
-                            if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                                if (invalid < 0) invalid = sprite;
-                                if (spriteModeLimit) break;
-                            }
-                            x = vramSpriteAttrTable[atrPos + 1];
-                            color = vramSpriteAttrTable[atrPos + 3];
-                            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-                            if (x < -31) continue;                                          // Not visible (out to the left)
-                            name = vramSpriteAttrTable[atrPos + 2];
-                            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-                            patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 5) + ((line - y) >>> 1);    // Double line height
-                            // Left half
-                            s = x >= 0 ? 0 : -x;
-                            f = x <= 240 ? 16 : 256 - x;
-                            if (s < f) {
-                                pattern = spritePatternTable16[patternStart];
-                                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
-                            }
-                            // Right half
-                            s = x >= -16 ? 0 : -16 - x;
-                            f = x <= 224 ? 16 : 240 - x;
-                            if (s < f) {
-                                pattern = spritePatternTable16[patternStart + 16];
-                                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                                copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f, invalid < 0);
-                            }
-                        }
-                    }
-                    bufferPos += 264;
-
-                    if (spritesCollided && spriteModeCollisions) {
-                        //wmsx.Util.log("Sprite Collision");
-                        status |= 0x20;
-                    }
-                    if ((status & 0x40) === 0) {                   // Only set if 5S is still unset
-                        if (invalid >= 0) {
-                            //wmsx.Util.log("Invalid sprite: " + invalid);
-                            status |= 0x40 | invalid;
-                        } else if (sprite > (status & 0x1f)) status |= sprite;
-                    }
-                }
-            }
-
-            line++;
-        }
-
         cycleLines += (line - currentScanline);
         currentScanline = line;
     }
@@ -609,10 +383,10 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             patPosFinal = patPos + 32;
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++] | blockExtra;
-                patLine = ((name & patternNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
-                pattern = vramPatternTable[patLine];
                 colorLine = ((name & colorNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
                 colorCode = vramColorTable[colorLine];
+                patLine = ((name & patternNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
+                pattern = vramPatternTable[patLine];
                 values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
                 frameBackBuffer.set(values, bufferPos);
                 bufferPos += 8;
@@ -670,7 +444,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     }
 
     function updateLinesMode4(toLine) {                                         // Text (Screen 0)
-        var patPos, patPosFinal, name, patternLine, pattern, colorCodeValuesStart;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
         var line = currentScanline, bufferPos = (line + 8) * 272;
 
         modeStable = true;
@@ -679,23 +453,205 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
             bufferPos += 8;
-
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
             bufferPos += 8;
 
             patPos = (line >>> 3) * 40;                                         // line / 8 * 40
             patPosFinal = patPos + 40;
+            lineInPattern = line & 0x07;
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
-                patternLine = (name << 3) + (line & 0x07);                      // name * 8 (8 bytes each pattern) + line inside pattern
-                pattern = vramPatternTable[patternLine];
-                frameBackBuffer.set(colorCodePatternValues[colorCodeValuesStart + pattern], bufferPos);
+                pattern = vramPatternTable[(name << 3) + lineInPattern];
+                values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                frameBackBuffer.set(values, bufferPos);
                 bufferPos += 6;                                                 // advance 6 pixels
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
             bufferPos += 8;
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            bufferPos += 8;
 
+            // Sprites deactivated
+
+            line++;
+            if (line >= toLine) break;
+
+            lineClockCPUandPSG();
+        } while (modeStable);
+
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function updateLinesMode0Debug(toLine) {                                    // Graphics 1 (Screen 1)
+        var patPos, patPosFinal, name, pattern, colorCode, values;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
+
+        modeStable = true;
+        do {
+            frameBackBuffer.set(backdropValues, bufferPos);
+            bufferPos += 8;
+
+            patPos = (line >>> 3) << 5;
+            var lineInPattern = line & 0x07;
+            patPosFinal = patPos + 32;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++];
+                if (debugModePatternInfoNames) {
+                    colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
+                    pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                } else if (debugModePatternInfoBlocks) {
+                    colorCode = vramColorTable[name >>> 3];
+                    pattern = debugPatTableBlocks[lineInPattern];
+                } else {
+                    colorCode = 0xf1;
+                    pattern = vramPatternTable[((name << 3) + lineInPattern)];
+                }
+                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];
+                frameBackBuffer.set(values, bufferPos);
+                bufferPos += 8;
+            }
+
+            frameBackBuffer.set(backdropValues, bufferPos);
+            bufferPos += 8;
+
+            updateSpritesLine(line, bufferPos - 264);
+            line++;
+            if (line >= toLine) break;
+
+            lineClockCPUandPSG();
+        } while(modeStable);
+
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function updateLinesMode1Debug(toLine) {                                    // Graphics 2 (Screen 2)
+        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorLine, colorCode, values;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
+
+        modeStable = true;
+        do {
+            frameBackBuffer.set(backdropValues, bufferPos);
+            bufferPos += 8;
+
+            patPos = (line >>> 3) << 5;
+            lineInPattern = line & 0x07;
+            blockExtra = (line & 0xc0) << 2;
+            patPosFinal = patPos + 32;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++] | blockExtra;
+                if (debugModePatternInfoNames) {
+                    name &= 0xff;
+                    colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
+                    pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                } else if (debugModePatternInfoBlocks) {
+                    colorLine = ((name & colorNameMask) << 3) + lineInPattern;
+                    colorCode = vramColorTable[colorLine];
+                    pattern = debugPatTableBlocks[lineInPattern];
+                } else {
+                    colorCode = 0xf1;
+                    pattern = vramPatternTable[(((name & patternNameMask) << 3) + lineInPattern)];
+                }
+                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];
+                frameBackBuffer.set(values, bufferPos);
+                bufferPos += 8;
+            }
+
+            frameBackBuffer.set(backdropValues, bufferPos);
+            bufferPos += 8;
+
+            updateSpritesLine(line, bufferPos - 264);
+
+            line++;
+            if (line >= toLine) break;
+
+            lineClockCPUandPSG();
+        } while (modeStable);
+
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function updateLinesMode2Debug(toLine) {                                    // Multicolor (Screen 3)
+        if (!debugModePatternInfoNames) return updateLinesMode2(toLine);
+
+        var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values, pattern;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
+
+        modeStable = true;
+        do {
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            bufferPos += 8;
+
+            patPos = (line >>> 3) << 5;                                         // line / 8 * 32
+            patPosFinal = patPos + 32;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++];
+                pattern = debugPatTableDigits8[name * 8 + (line & 0x07)];
+                values = colorCodePatternValues[colorCodeStartPositions[0xf1] + pattern];
+                frameBackBuffer.set(values, bufferPos);
+                bufferPos += 8;
+            }
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            bufferPos += 8;
+
+            updateSpritesLine(line, bufferPos - 264);
+
+            line++;
+            if (line >= toLine) break;
+
+            lineClockCPUandPSG();
+        } while (modeStable);
+
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function updateLinesMode4Debug(toLine) {                                    // Text (Screen 0)
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
+        var line = currentScanline, bufferPos = (line + 8) * 272;
+
+        modeStable = true;
+        do {
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            bufferPos += 8;
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
+            bufferPos += 8;
+
+            patPos = (line >>> 3) * 40;                                         // line / 8 * 40
+            patPosFinal = patPos + 40;
+            lineInPattern = line & 0x07;
+            while (patPos < patPosFinal) {
+                name = vramNameTable[patPos++];
+                if (debugModePatternInfoNames) {
+                    colorCodeValuesStart = colorCodeStartPositions[name === 0x20 ? 0x41 : 0xf1];
+                    pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                    wmsx.Util.arrayCopy(values, 0, tempValues);
+                    values = tempValues;
+                    // Squish digits to fit 6 pixels wide
+                    if (lineInPattern <= 5) {
+                        for (var i = 3; i < 6; i++) values[i] = values[i + 1] & 0x8fffffff;    // Darken the 2nd digit
+                    } else if (lineInPattern === 6)
+                        values[5] = 0;
+                } else if (debugModePatternInfoBlocks) {
+                    colorCodeValuesStart = colorCodeStartPositions[register7];  // real text color for all blocks
+                    pattern = debugPatTableBlocks[lineInPattern];
+                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                } else {
+                    colorCodeValuesStart = colorCodeStartPositions[0xf1];
+                    pattern = vramPatternTable[(name << 3) + lineInPattern];
+                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
+                }
+                frameBackBuffer.set(values, bufferPos);
+                bufferPos += 6;                                                 // advance 6 pixels
+            }
+
+            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
+            bufferPos += 8;
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
             bufferPos += 8;
 
@@ -718,8 +674,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
-        var spritePatternTable = debugModeSpriteInfo ? debugPatternTable8 : vramSpritePatternTable;
-
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -737,11 +691,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -7) continue;                                           // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 3) + (line - y);
+            patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoNames ? name : sprite) << 3) + (line - y);
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
-                pattern = spritePatternTable[patternStart];
+                pattern = spritePatternTable8[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -766,8 +720,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
-        var spritePatternTable = debugModeSpriteInfo? debugPatternTable8 : vramSpritePatternTable;
-
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -785,11 +737,11 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 3) + ((line - y) >>> 1);    // Double line height
+            patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoNames ? name : sprite) << 3) + ((line - y) >>> 1);    // Double line height
             s = x >= 0 ? 0 : -x;
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
-                pattern = spritePatternTable[patternStart];
+                pattern = spritePatternTable8[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -814,8 +766,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
-        var spritePatternTable = debugModeSpriteInfo ? debugPatternTable16 : vramSpritePatternTable;
-
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -833,12 +783,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 5) + (line - y);
+            patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoNames ? name : sprite) << 5) + (line - y);
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
-                pattern = spritePatternTable[patternStart];
+                pattern = spritePatternTable16[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -846,7 +796,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             s = x >= -8 ? 0 : -8 - x;
             f = x <= 240 ? 8 : 248 - x;
             if (s < f) {
-                pattern = spritePatternTable[patternStart + 16];
+                pattern = spritePatternTable16[patternStart + 16];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f, invalid < 0);
             }
@@ -871,8 +821,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
-        var spritePatternTable = debugModeSpriteInfo ? debugPatternTable16 : vramSpritePatternTable;
-
         for (atrPos = 0; atrPos < 128; atrPos += 4) {                       // Max of 32 sprites
             sprite++;
             y = vramSpriteAttrTable[atrPos];
@@ -890,12 +838,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             if (x < -31) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
             colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
-            patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoPattern ? name : sprite) << 5) + ((line - y) >>> 1);    // Double line height
+            patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoNames ? name : sprite) << 5) + ((line - y) >>> 1);    // Double line height
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
-                pattern = spritePatternTable[patternStart];
+                pattern = spritePatternTable16[patternStart];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
             }
@@ -903,7 +851,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             s = x >= -16 ? 0 : -16 - x;
             f = x <= 224 ? 16 : 240 - x;
             if (s < f) {
-                pattern = spritePatternTable[patternStart + 16];
+                pattern = spritePatternTable16[patternStart + 16];
                 values = spriteColorCodePatternValues[colorValuesStart + pattern];
                 copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f, invalid < 0);
             }
@@ -960,6 +908,12 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         //cpu.eval("cycles = 0");
     }
 
+    function updateSpritePatternTables() {
+        vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
+        spritePatternTable8  = debugModeSpriteInfo ? debugPatTableDigits8  : vramSpritePatternTable;
+        spritePatternTable16 = debugModeSpriteInfo ? debugPatTableDigits16 : vramSpritePatternTable;
+    }
+
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
         frameCanvas.width = 256 + 8 + 8;    // Visible VPD resolution + 8 pixel borders
@@ -989,7 +943,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     }
 
     function setColorCodePatternValues() {
-        var colorRGBs = debugMode > 1 ? colorsDim : palettes[currentPalette].colors;
+        var colorRGBs = debugMode >= 1 && debugMode <= 3  ? colorsDim : palettes[currentPalette].colors;
         var spriteColorTransp = debugModeSpriteInfo ? 0xfe00f8f8 : 0x01000000;
         var spriteColorBack   = debugModeSpriteInfo ? 0xfe501616 : 0;
         for (var front = 0; front < 16; front++) {
@@ -1006,7 +960,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
                         patternValues[7 - bit] = pixel ? colorFront : colorBack;
                         if (!spritePatternValues) continue;
                         // Full Alpha front color or Special Transparent for Sprites
-                        if (pixel) spritePatternValues[7 - bit] = (debugMode === 1 || front === 0) ? spriteColorTransp : spriteColorFront;
+                        if (pixel) spritePatternValues[7 - bit] = (debugMode >= 4) || (front === 0) ? spriteColorTransp : spriteColorFront;
                         else spritePatternValues[7 - bit] = spriteColorBack;
                     }
                 }
@@ -1015,7 +969,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         updateBackdropColor(true);  // force
     }
 
-    function initDebugInfoPatternTables() {
+    function initDebugPatternTables() {
         var digitPatterns = [
             ["111", "101", "101", "101", "111"], ["110", "010", "010", "010", "111"], ["111", "001", "111", "100", "111"], ["111", "001", "111", "001", "111"], ["101", "101", "111", "001", "001"],
             ["111", "100", "111", "001", "111"], ["111", "100", "111", "101", "111"], ["111", "001", "001", "001", "001"], ["111", "101", "111", "101", "111"], ["111", "101", "111", "001", "001"],
@@ -1026,24 +980,27 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
             var dig1 = (info / 16) | 0;
             var dig2 = info % 16;
             // 8 x 8
-            for (i = 0; i < 5; i++) debugPatternTable8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
-            for (i = 0; i < 2; i++) debugPatternTable8[pos8++] = Number.parseInt("00000000", 2);
-            debugPatternTable8[pos8++] = Number.parseInt("01111100", 2);
+            for (i = 0; i < 5; i++) debugPatTableDigits8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
+            debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
+            debugPatTableDigits8[pos8++] = Number.parseInt("01111100", 2);
+            debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
             // 16 x 16
-            debugPatternTable16[pos16++] = Number.parseInt("11111111", 2);
-            for (i = 0; i < 4; i++) debugPatternTable16[pos16++] = Number.parseInt("10000000", 2);
-            for (i = 0; i < 5; i++) debugPatternTable16[pos16++] = Number.parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
-            for (i = 0; i < 5; i++) debugPatternTable16[pos16++] = Number.parseInt("10000000", 2);
-            for (i = 0; i < 2; i++) debugPatternTable16[pos16++] = Number.parseInt("11111111", 2);
-            for (i = 0; i < 4; i++) debugPatternTable16[pos16++] = Number.parseInt("00000001", 2);
-            for (i = 0; i < 5; i++) debugPatternTable16[pos16++] = Number.parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
-            for (i = 0; i < 5; i++) debugPatternTable16[pos16++] = Number.parseInt("00000001", 2);
-            debugPatternTable16[pos16++] = Number.parseInt("11111111", 2);
+            debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) debugPatTableDigits16[pos16++] = Number.parseInt("10000000", 2);
+            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
+            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("10000000", 2);
+            for (i = 0; i < 2; i++) debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) debugPatTableDigits16[pos16++] = Number.parseInt("00000001", 2);
+            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
+            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("00000001", 2);
+            debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
         }
+        debugPatTableBlocks[0] = debugPatTableBlocks[7] = 0;
+        debugPatTableBlocks[1] = debugPatTableBlocks[2] = debugPatTableBlocks[3] = debugPatTableBlocks[4] = debugPatTableBlocks[5] = debugPatTableBlocks[6] = 0x7e;
     }
 
 
-    // Registers, pointers, temporary data
+    // Registers, pointers, control data
 
     var desiredBaseFrequency;       // Will depend on VideoStandard and detected Host Native Video Frequency
 
@@ -1082,11 +1039,14 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
     var patternNameMask, colorNameMask;     // Special masks from register3 and register4 for mode 1 only
 
-    var updateLinesFunctions = [updateLinesMode0, updateLinesMode1, updateLinesMode2, updateLinesBlanked, updateLinesMode4, updateLinesBlanked, updateLinesBlanked, updateLinesBlanked];
-    var updateSpritesLineFunctions = [ updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
+    var updateLinesFunctions =       [updateLinesMode0, updateLinesMode1, updateLinesMode2, updateLinesBlanked, updateLinesMode4, updateLinesBlanked, updateLinesBlanked, updateLinesBlanked];
+    var updateLinesDebugFunctions =  [updateLinesMode0Debug, updateLinesMode1Debug, updateLinesMode2Debug, updateLinesBlanked, updateLinesMode4Debug, updateLinesBlanked, updateLinesBlanked, updateLinesBlanked];
+    var updateSpritesLineFunctions = [updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
 
     var updateLinesActive;                  // Update function for current mode
     var updateSpritesLine;                  // Update function for current mode
+
+    var tempValues = new Uint32Array(8);    // Temporary storage for modified pattern values
 
     // VRAM
 
@@ -1134,16 +1094,23 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
 
     var colorCodeStartPositions = new Array(256);                   // Translates colorCodes considering the backdrop color, already * 8 (point to start of values)
 
-    // Modes
+    var backdropValuesDebug = new Uint32Array([ 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a ]);
+
+   // Sprite and Debug Modes controls
 
     var debugMode;
-    var debugModeSpriteInfo;
-    var debugModeSpriteInfoPattern;
+    var debugModeSpriteInfo, debugModeSpriteInfoNames;
+    var debugModePatternInfo, debugModePatternInfoBlocks, debugModePatternInfoNames;
+
     var spriteMode;
     var spriteModeLimit = true;
     var spriteModeCollisions = true;
-    var debugPatternTable8 = new Uint8Array(256 * 8);         // 8x8 Info patterns for Debug Modes
-    var debugPatternTable16 = new Uint8Array(256 * 8 * 4);    // 16x16
+
+    var debugPatTableDigits8  = new Uint8Array(256 * 8);            // 8x8
+    var debugPatTableDigits16 = new Uint8Array(256 * 8 * 4);        // 16x16
+    var debugPatTableBlocks   = new Uint8Array(8);                  // 8x8
+
+    var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
 
     // Connections
@@ -1176,7 +1143,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
         vramColorTable = vram.subarray(colorTableAddress);
         vramPatternTable = vram.subarray(patternTableAddress);
         vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
-        vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
+        updateSpritePatternTables();
         updateIRQ();
         updateMode(true);           // force
         updateBackdropColor();
@@ -1189,8 +1156,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     this.eval = function(str) {
         return eval(str);
     };
-
-
 
 };
 

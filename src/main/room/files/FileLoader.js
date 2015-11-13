@@ -83,7 +83,7 @@ wmsx.FileLoader = function() {
         // First try reading and creating directly
         try {
             arrContent = new Array(content.length);
-            wmsx.Util.arrayCopy(content, 0, arrContent, 0, arrContent.length);
+            wmsx.Util.arrayCopy(content, 0, arrContent);
             // First try to load as a SaveState file
             if (saveStateSocket.loadStateFile(arrContent, altPower))
                 return;
@@ -118,7 +118,7 @@ wmsx.FileLoader = function() {
                     try {
                         var cont = file.asUint8Array();
                         arrContent = new Array(cont.length);
-                        wmsx.Util.arrayCopy(cont, 0, arrContent, 0, arrContent.length);
+                        wmsx.Util.arrayCopy(cont, 0, arrContent);
                         // First try to load as a SaveState file
                         if (saveStateSocket.loadStateFile(arrContent, altPower))
                             return;
