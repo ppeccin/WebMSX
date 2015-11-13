@@ -12,7 +12,7 @@ wmsx.CartridgeRType = function(rom) {
             bytes[i] = content[i];
     }
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         bank2Offset = -0x8000;
     };
 

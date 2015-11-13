@@ -68,7 +68,7 @@ WMSX.presets.apply = function() {
         var preset = WMSX.presets[presetName];
         if (preset) {
             wmsx.Util.log("Applying preset: " + presetName);
-            for (par in preset)
+            for (var par in preset)
                 WMSX[par.trim().toUpperCase()] = preset[par];
         } else {
             wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");

@@ -96,7 +96,6 @@ wmsx.SlotCreator = function () {
         info.h = hash;
         // Compute label based on name
         if (!info.l) info.l = produceCartridgeLabel(info.n);
-        var name = info.n.toUpperCase();
         // Adjust Format information if hint is present
         var romURL = romSource.toUpperCase();
         for (var formatName in wmsx.SlotFormats)

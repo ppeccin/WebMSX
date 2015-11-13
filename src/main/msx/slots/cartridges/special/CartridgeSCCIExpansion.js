@@ -36,7 +36,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         psgAudioOutput.disconnectAudioCartridge(scc);
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         this.reset();
     };
 

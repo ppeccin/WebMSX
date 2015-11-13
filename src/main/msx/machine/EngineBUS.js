@@ -9,7 +9,7 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         setupMachine();
     }
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 4; i++) slots[i].powerOn();
         ppi.powerOn();

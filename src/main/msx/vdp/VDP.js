@@ -4,7 +4,7 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
+wmsx.VDP = function(cpu, psg) {
     var self = this;
 
     function init() {
@@ -20,7 +20,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     this.connectBus = function(bus) {
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         reset();
     };
 
@@ -577,7 +577,7 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     function updateLinesMode2Debug(toLine) {                                    // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return updateLinesMode2(toLine);
 
-        var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values, pattern;
+        var patPos, patPosFinal, name, values, pattern;
         var line = currentScanline, bufferPos = (line + 8) * 272;
 
         modeStable = true;
@@ -1019,8 +1019,6 @@ wmsx.VDP = function(cpu, psg, baseSynchFrequency) {
     var status;
     var mode;
     var modeStable;
-    var blanked;
-    var spriteSize;
     var spritesCollided;
 
     var dataToWrite;

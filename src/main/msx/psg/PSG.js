@@ -13,7 +13,7 @@ wmsx.PSG = function() {
         bus = pBus;
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         audioSignal.signalOn();
     };
 
@@ -82,8 +82,6 @@ wmsx.PSG = function() {
 
     var audioSignal;
     var audioChannel;
-
-    var joystickControls = wmsx.JoysticksControls;
 
     var bus;
 

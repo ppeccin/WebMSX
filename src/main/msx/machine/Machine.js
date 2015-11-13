@@ -256,15 +256,12 @@ wmsx.Machine = function() {
 
     var isLoading = false;
 
-    var mainClockFrequency;
-
     var mainClock;
     var cpu;
     var bus;
     var ppi;
     var vdp;
     var psg;
-    var ram;
 
     var debugPause = false;
     var debugPauseMoreFrames = 0;

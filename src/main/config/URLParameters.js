@@ -27,8 +27,7 @@ wmsx.URLParameters = {
         while (tokens = reg.exec(search)) {
             var parName = decodeURIComponent(tokens[1]).trim().toUpperCase();
             parName = this.abbreviations[parName] || parName;
-            var parValue = decodeURIComponent(tokens[2]).trim();
-            this.parameters[parName] = parValue;
+            this.parameters[parName] = decodeURIComponent(tokens[2]).trim();
         }
 
         return this.parameters;

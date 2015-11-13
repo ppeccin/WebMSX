@@ -659,8 +659,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullscreenButton;
     var settingsButton;
 
-    var contentBackdrop;
-
     var borderTop;
     var borderLateral;
     var borderBottom;

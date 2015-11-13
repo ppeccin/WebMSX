@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.Clock = function(clockDriven) {
-    var self = this;
 
     this.go = function() {
         if (!running) {
@@ -18,7 +17,7 @@ wmsx.Clock = function(clockDriven) {
         }
     };
 
-    this.pause = function(continuation) {
+    this.pause = function() {
         running = false;
         if (animationFrame) {
             window.cancelAnimationFrame(animationFrame);

@@ -134,7 +134,7 @@ wmsx.ImageCassetteDriver = function() {
     }
 
     function success(F, extraIterations) {
-        return { F: F &= 0xfe, extraIterations: extraIterations };       // Clear C flag = success
+        return { F: F & 0xfe, extraIterations: extraIterations };       // Clear C flag = success
     }
 
     function fail(F) {

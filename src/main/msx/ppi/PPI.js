@@ -100,4 +100,4 @@ wmsx.PPI = function(audioOutput) {
         keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);
     };
 
-}
+};

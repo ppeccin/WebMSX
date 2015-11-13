@@ -30,7 +30,7 @@ wmsx.ImageDiskDriver = function() {
             case 0xc:
                 return GETDPB(s.A, s.B, s.C, s.HL);
             case 0xd:
-                return CHOICE(s.SP);
+                return CHOICE();
             case 0xe:
                 return DSKFMT(s.F, s.A, s.DE);
             case 0xf:
@@ -181,7 +181,7 @@ wmsx.ImageDiskDriver = function() {
         writeToMemory(dpb, HL + 1);
     }
 
-    function CHOICE(SP) {
+    function CHOICE() {
         // wmsx.Util.Util.log("CHOICE");
 
         return { HL: CHOICE_STRING_ADDRESS };

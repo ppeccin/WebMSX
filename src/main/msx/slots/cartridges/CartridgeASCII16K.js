@@ -13,7 +13,7 @@ wmsx.CartridgeASCII16K = function(rom) {
         numBanks = (content.length / 16384) | 0;
     }
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         bank1Offset = bank2Offset = -0x4000;
     };
 

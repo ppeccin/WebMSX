@@ -3,7 +3,7 @@
 wmsx.FileLoader = function() {
     var self = this;
 
-    this.connect = function(pBIOSSocket, pExpansionSocket, pCartrigeSocket, pSaveStateSocket, pCassetteDeck) {
+    this.connect = function(pBIOSSocket, pExpansionSocket, pCartrigeSocket, pSaveStateSocket) {
         biosSocket = pBIOSSocket;
         expansionSocket = pExpansionSocket;
         cartridgeSocket = pCartrigeSocket;
@@ -211,7 +211,7 @@ wmsx.FileLoader = function() {
         wmsx.Util.message("Could not load file:\n\n" + message);
     };
 
-    var createFileInputElement = function (element) {
+    var createFileInputElement = function () {
         fileInputElement = document.createElement("input");
         fileInputElement.id = "ROMLoaderFileInput";
         fileInputElement.type = "file";

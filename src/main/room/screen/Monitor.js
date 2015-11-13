@@ -2,8 +2,6 @@
 
 wmsx.Monitor = function() {
 
-    var self = this;
-
     this.connectDisplay = function(monitorDisplay) {
         display = monitorDisplay;
         this.setDefaults();
@@ -132,26 +130,16 @@ wmsx.Monitor = function() {
         crtMode = newMode;
     };
 
-    var cleanBackBuffer = function() {
-        // Put a nice green for detection of undrawn lines, for debug purposes
-        if (backBuffer) wmsx.Util.arrayFill(backBuffer, 0xff00ff00);
-    };
-
-
 
     var display;
 
     var videoSignal;
     var cartridgeSocket;
-    var controls;
-
-    var backBuffer;
 
     var displayScaleX;
     var displayScaleY;
 
     var debug = 0;
-    var fixedSizeMode = WMSX.SCREEN_RESIZE_DISABLED;
 
     var sourceX = wmsx.Monitor.RENDERED_BORDER_WIDTH - wmsx.Monitor.VISIBLE_BORDER_WIDTH;
     var sourceY = wmsx.Monitor.RENDERED_BORDER_HEIGHT - wmsx.Monitor.VISIBLE_BORDER_HEIGHT;

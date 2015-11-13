@@ -23,9 +23,6 @@ wmsx.DOMMachineControls = function() {
     this.powerOff = function() {
     };
 
-    this.destroy = function() {
-    };
-
     this.addInputElements = function(elements) {
         for (var i = 0; i < elements.length; i++) {
             elements[i].addEventListener("keydown", this.keyDown);

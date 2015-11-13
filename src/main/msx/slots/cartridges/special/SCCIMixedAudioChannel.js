@@ -192,8 +192,6 @@ wmsx.SCCIMixedAudioChannel = function() {
     }
 
 
-    var psgAudioOutput;
-
     var scciMode;
 
     var channel1 = 0;

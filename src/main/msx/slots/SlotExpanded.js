@@ -24,7 +24,7 @@ wmsx.SlotExpanded = function() {
         machine = null;
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         this.setSecondarySlotConfig(0);
         for (var i = 0; i < 4; i++) subSlots[i].powerOn();
     };
