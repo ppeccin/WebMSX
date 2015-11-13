@@ -48,8 +48,9 @@ wmsx.Monitor = function() {
     };
 
     this.crtModeToggle = function() {
-        setCrtMode(crtMode + 1);
-        display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
+        display.showOSD("CRT modes not available yet!", true);
+        //setCrtMode(crtMode + 1);
+        //display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
     };
 
     this.crtFilterToggle = function() {
