@@ -9,6 +9,14 @@ Still in development, the first beta release is available and should be already 
 
 Please go to http://webmsx.org and enjoy it!
 
+#### Release 0.95
+
+- Complete line accuracy
+- Screen mode splits now supported
+- Selectable 60/50 Hz native V-Sync
+- 7 Debug modes
+- 3 Sprite modes
+
 #### Release 0.942
 - SCC-I Sound Cartridge Expansion support
 - New SCCI preset added
