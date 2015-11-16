@@ -1442,18 +1442,18 @@ wmsx.Z80 = function() {
     }
 
     function pCPM_BDOS() {
-        var char;
+        var cha;
         if (C === 2) {
             // Prints char in E
-            char = String.fromCharCode(DE & 0xff);
-            self.testPrintChar(char);
+            cha = String.fromCharCode(DE & 0xff);
+            self.testPrintChar(cha);
         } else if (C === 9) {
             // Prints string at DE, terminated with "$". Auto returns (RET)
             do {
-                char = String.fromCharCode(bus.read(DE));
-                if (char === "$") break;
+                cha = String.fromCharCode(bus.read(DE));
+                if (cha === "$") break;
                 DE++; if (DE > 0xffff) DE = 0;
-                self.testPrintChar(char);
+                self.testPrintChar(cha);
             } while (true);
         }
         RET();
@@ -2667,8 +2667,8 @@ wmsx.Z80 = function() {
     };
 
     this.testPrint = "";
-    this.testPrintChar = function(char) {
-        this.testPrint += char;
+    this.testPrintChar = function(charac) {
+        this.testPrint += charac;
     };
 
 

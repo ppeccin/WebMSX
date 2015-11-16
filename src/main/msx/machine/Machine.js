@@ -665,8 +665,11 @@ wmsx.Machine = function() {
     this.runFramesAtTopSpeed = function(frames) {
         mainClock.pause();
         var start = performance.now();
-        for (var i = 0; i < frames; i++)
+        for (var i = 0; i < frames; i++) {
+            //var pulseTime = window.performance.now();
             self.clockPulse();
+            //console.log(window.performance.now() - pulseTime);
+        }
         var duration = performance.now() - start;
         wmsx.Util.log("Done running " + frames + " frames in " + duration + " ms");
         wmsx.Util.log(frames / (duration/1000) + "  frames/sec");

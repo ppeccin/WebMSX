@@ -131,7 +131,7 @@ wmsx.FileCassetteDeck = function() {
         return tapeContent[tapePosition++];
     };
 
-    this.writeHeader = function(long) {
+    this.writeHeader = function(isLong) {
         if (!tapeContent) this.loadEmptyTape();
         fillToNextSlot();
         for (var i = 0; i < HEADER.length; i++)

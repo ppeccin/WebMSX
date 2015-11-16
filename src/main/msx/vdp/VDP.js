@@ -208,7 +208,7 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     // 262 lines per frame for NTSC, 313 lines for PAL
-    // 342 total pixel clocks per line, 256 visible pixels, 228 CPU clocks and 7,125 PSG clocks
+    // 342 total pixel clocks per line, 256 visible pixels, 228 CPU clocks and 7.125 PSG clocks
     // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
     function updateLines(lines) {
         var toCycleLine = cycleLines + lines; if (toCycleLine > cycleTotalLines) toCycleLine = cycleTotalLines;

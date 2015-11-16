@@ -59,14 +59,16 @@ wmsx.Clock = function(clockDriven) {
     };
 
     var pulse = function() {
-        //var currentTime = window.performance.now();
-        //timeMeasures[timeMeasures.length] = currentTime - lastPulseTime;
-        //lastPulseTime = currentTime;
+        //var pulseTime = window.performance.now();
+        //timeMeasures[timeMeasures.length] = pulseTime - lastPulseTime;
+        //lastPulseTime = pulseTime;
 
         animationFrame = null;
         clockDriven.clockPulse();
         if (useRequestAnimationFrame && !animationFrame)
             animationFrame = window.requestAnimationFrame(pulse);
+
+        //console.log(window.performance.now() - pulseTime);
     };
 
     //this.getMeasures = function() {

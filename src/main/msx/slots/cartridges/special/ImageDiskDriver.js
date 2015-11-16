@@ -199,7 +199,7 @@ wmsx.ImageDiskDriver = function() {
 
         // Disk Write Protected error
         if (drive.diskWriteProtected(d))
-            return { F: F | 1, A: 0, extraIterations: spinTime };
+            return { F: F | 1, A: 0 };
 
         drive.createNewEmptyDisk(d, f);
 
