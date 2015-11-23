@@ -2137,7 +2137,7 @@ wmsx.Z80 = function() {
                 for (op in operRu) {
                     oper = operRu[op];
                     opcode = opcodeBase | oper.bits;
-                    toExt = (op != "_HL_") ? oper.to : null;
+                    var toExt = (op != "_HL_") ? oper.to : null;
                     instr = ins.instr(
                         pref.to,
                         pref.from,
@@ -2172,7 +2172,7 @@ wmsx.Z80 = function() {
             // Define INS ru               * Includes (HL), but NOT DD and FD prefixed variations for ru
             for (op in operRu) {
                 oper = operRu[op];
-                for (bit = 0; bit <= 7; bit++) {
+                for (var bit = 0; bit <= 7; bit++) {
                     opcode = opcodeBase | (bit << 3) | oper.bits;
                     instr = ins.instr(
                         oper.to,
@@ -2189,10 +2189,10 @@ wmsx.Z80 = function() {
                 pref = oper_IXIY_pre[p];
                 for (op in operRu) {
                     oper = operRu[op];
-                    for (var bit = 0; bit <= 7; bit++) {
+                    for (bit = 0; bit <= 7; bit++) {
                         opcode = opcodeBase | (bit << 3) | oper.bits;
                         var undoc = op != "_HL_";
-                        var toExt = undoc && ins.toExt ? oper.to : null;
+                        toExt = undoc && ins.toExt ? oper.to : null;
                         instr = ins.instr(
                             pref.to,
                             pref.from,
