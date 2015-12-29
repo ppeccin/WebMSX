@@ -35,7 +35,7 @@ wmsx.Monitor = function() {
             var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.CONTENT_WIDTH, wmsx.Monitor.CONTENT_HEIGHT);
             setDisplayScale(scX, scX / DEFAULT_SCALE_ASPECT_X);
         } else
-            setDisplayScale(WMSX.SCREEN_OPENING_SIZE, WMSX.SCREEN_OPENING_SIZE);
+            setDisplayScale(WMSX.SCREEN_DEFAULT_SCALE, WMSX.SCREEN_DEFAULT_SCALE);
         displayCenter();
     };
 
@@ -65,40 +65,42 @@ wmsx.Monitor = function() {
     };
 
     this.displayScaleXDecrease = function() {
-        setDisplayScale(displayScaleX - 0.5, displayScaleY);
+        setDisplayScale(displayScaleX - 0.25, displayScaleY);
     };
 
     this.displayScaleXIncrease = function() {
-        setDisplayScale(displayScaleX + 0.5, displayScaleY);
+        setDisplayScale(displayScaleX + 0.25, displayScaleY);
     };
 
     this.displayScaleYDecrease = function() {
-        setDisplayScale(displayScaleX, displayScaleY - 0.5);
+        setDisplayScale(displayScaleX, displayScaleY - 0.25);
     };
 
     this.displayScaleYIncrease = function() {
-        setDisplayScale(displayScaleX, displayScaleY + 0.5);
+        setDisplayScale(displayScaleX, displayScaleY + 0.25);
     };
 
     this.displaySizeDecrease = function() {
-        setDisplayScaleDefaultAspect(displayScaleY - 0.5);
+        setDisplayScaleDefaultAspect(displayScaleY - 0.25);
     };
 
     this.displaySizeIncrease = function() {
-        setDisplayScaleDefaultAspect(displayScaleY + 0.5);
+        setDisplayScaleDefaultAspect(displayScaleY + 0.25);
     };
 
     var setDisplayScale = function(x, y) {
         displayScaleX = x;
-        if (displayScaleX < 1) displayScaleX = 1;
+        if (displayScaleX < 0.5) displayScaleX = 0.5;
         displayScaleY = y;
-        if (displayScaleY < 1) displayScaleY = 1;
-        displayUpdateSize();
+        if (displayScaleY < 0.5) displayScaleY = 0.5;
+        if (!display) return;
+        display.displayScale(displayScaleX, displayScaleY);
+        //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
     };
 
     var setDisplayScaleDefaultAspect = function(y) {
         var scaleY = y;
-        if (scaleY < 1) scaleY = 1;
+        if (scaleY < 0.5) scaleY = 0.5;
         setDisplayScale(scaleY * DEFAULT_SCALE_ASPECT_X, scaleY);
     };
 
@@ -108,12 +110,6 @@ wmsx.Monitor = function() {
             var cart = cartridge1 || cartridge2;
             setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
         }
-    };
-
-    var displayUpdateSize = function() {
-        if (!display) return;
-        display.displaySize((wmsx.Monitor.CONTENT_WIDTH * displayScaleX) | 0, (wmsx.Monitor.CONTENT_HEIGHT * displayScaleY) | 0);
-        //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
     };
 
     var displayCenter = function() {
@@ -159,7 +155,7 @@ wmsx.Monitor.ACTIVE_WIDTH =  256;
 wmsx.Monitor.ACTIVE_HEIGHT = 192;
 wmsx.Monitor.RENDERED_BORDER_WIDTH =  8;
 wmsx.Monitor.RENDERED_BORDER_HEIGHT = 8;
-wmsx.Monitor.VISIBLE_BORDER_WIDTH =  6;
-wmsx.Monitor.VISIBLE_BORDER_HEIGHT = 6;
+wmsx.Monitor.VISIBLE_BORDER_WIDTH =  8;
+wmsx.Monitor.VISIBLE_BORDER_HEIGHT = 8;
 wmsx.Monitor.CONTENT_WIDTH =  wmsx.Monitor.ACTIVE_WIDTH + wmsx.Monitor.VISIBLE_BORDER_WIDTH * 2;
 wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.ACTIVE_HEIGHT + wmsx.Monitor.VISIBLE_BORDER_HEIGHT * 2;

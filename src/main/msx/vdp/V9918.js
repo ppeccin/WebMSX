@@ -4,7 +4,7 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.VDP = function(cpu, psg) {
+wmsx.V9918 = function(cpu, psg) {
     var self = this;
 
     function init() {
@@ -18,6 +18,10 @@ wmsx.VDP = function(cpu, psg) {
     }
 
     this.connectBus = function(bus) {
+        bus.connectInputDevice(0x98,  this.input98);
+        bus.connectOutputDevice(0x98, this.output98);
+        bus.connectInputDevice(0x99,  this.input99);
+        bus.connectOutputDevice(0x99, this.output99);
     };
 
     this.powerOn = function() {
@@ -134,7 +138,7 @@ wmsx.VDP = function(cpu, psg) {
 
     this.output98 = function(val) {
         dataToWrite = null;
-        vram[vramPointer++] = val;               // VRAM Write
+            vram[vramPointer++] = val;               // VRAM Write
         if (vramPointer > 16383) {
             //wmsx.Util.log("VRAM Write Wrapped");
             vramPointer = 0;
@@ -164,7 +168,7 @@ wmsx.VDP = function(cpu, psg) {
     };
 
     this.setDefaults = function() {
-        currentPalette = WMSX.SCREEN_COLOR_MODE;
+        currentPalette = WMSX.SCREEN_MSX1_COLOR_MODE;
         spriteMode = 0;
         setDebugMode(0);        // will call setColorCodePatternValues()
     };
@@ -173,7 +177,7 @@ wmsx.VDP = function(cpu, psg) {
         status = 0;
         register0 = register1 = register2 = register3 = register4 = register5 = register6 = register7 = 0;
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
-        vramNameTable = vramColorTable = vramPatternTable = vramSpriteAttrTable = vramSpritePatternTable =  vram.subarray(spriteAttrTableAddress);
+        vramNameTable = vramColorTable = vramPatternTable = vramSpriteAttrTable = vramSpritePatternTable =  vram.subarray(0);
         dataToWrite = null; vramWriteMode = false; vramPointer = 0;
         updateIRQ();
         updateMode(true);            // force

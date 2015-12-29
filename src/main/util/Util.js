@@ -30,6 +30,13 @@ wmsx.Util = new function() {
         return arr;
     };
 
+    this.arrayFillFunc = function(arr, func, len) {
+        if (len === undefined) len = arr.length;
+        for (var i = 0; i < len; i++)
+            arr[i] = func(i);
+        return arr;
+    };
+
     this.arrayCopy = function(src, srcPos, dest, destPos, length) {
         destPos = destPos || 0;
         var finalSrcPos = length ? srcPos + length : src.length;

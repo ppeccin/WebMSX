@@ -32,7 +32,7 @@ wmsx.SlotCreator = function () {
         // Get info from the library
         var info = wmsx.ROMDatabase[hash];
         if (info) {
-            wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : ""));
+            wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : "") + " (" + hash + ")");
         } else {
             info = buildInfo(rom.source);
             wmsx.Util.log("ROM: Unknown (" + (hash || "0") + ") " + info.n + (info.f ? ", format: " + info.f : ""));

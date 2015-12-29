@@ -12,7 +12,12 @@ wmsx.Machine = function() {
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
+        if (rtc) rtc.powerOn();
         bus.powerOn();
+        ppi.powerOn();
+        psg.powerOn();
+        vdp.powerOn();
+        cpu.powerOn();
         this.powerIsOn = true;
         machineControlsSocket.fireRedefinitionUpdate();
         if (!paused) mainClock.go();
@@ -20,6 +25,11 @@ wmsx.Machine = function() {
 
     this.powerOff = function() {
         mainClock.pause();
+        cpu.powerOff();
+        vdp.powerOff();
+        psg.powerOff();
+        ppi.powerOff();
+        if (rtc) rtc.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
@@ -27,6 +37,7 @@ wmsx.Machine = function() {
 
     this.reset = function() {
         bus.reset();
+        cpu.reset();
     };
 
     this.userPowerOn = function(autoRunCassette) {
@@ -173,11 +184,11 @@ wmsx.Machine = function() {
         return {
             rs: ramSlot,
             c0s: cartridge0Slot,
-            b: bus.saveState(),
+            b:  bus.saveState(),
             pp: ppi.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
-            c: cpu.saveState(),
+            c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
             dd: diskDriveSocket.getDrive().saveState(),
@@ -216,7 +227,7 @@ wmsx.Machine = function() {
     };
 
     var mainClockAdjustToSlow = function() {
-        var freq = 20;     // About 3x slower
+        var freq = 20;      // About 3x slower
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
     };
@@ -226,8 +237,15 @@ wmsx.Machine = function() {
         self.cpu = cpu = new wmsx.Z80();
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
-        self.vdp = vdp = new wmsx.VDP(cpu, psg);
-        self.bus = bus = new wmsx.EngineBUS(self, cpu, ppi, vdp, psg);
+        self.vdp = vdp = MSX2 ? new wmsx.V9938(cpu, psg) : new wmsx.V9918(cpu, psg);
+        if (MSX2) self.rtc = rtc = new wmsx.RTC();
+
+        self.bus = bus = new wmsx.EngineBUS(self, cpu);
+        cpu.connectBus(bus);
+        ppi.connectBus(bus);
+        vdp.connectBus(bus);
+        psg.connectBus(bus);
+        if (rtc) rtc.connectBus(bus);
 
         // 64K RAM
         self.ram = wmsx.SlotRAM64K.createNewEmpty();
@@ -254,6 +272,7 @@ wmsx.Machine = function() {
     this.powerIsOn = false;
     this.framesGenerated = 0;
 
+
     var isLoading = false;
 
     var mainClock;
@@ -262,6 +281,7 @@ wmsx.Machine = function() {
     var ppi;
     var vdp;
     var psg;
+    var rtc;        // MSX2 only
 
     var debugPause = false;
     var debugPauseMoreFrames = 0;
@@ -280,12 +300,15 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
     var vSynchMode;
 
+
+    var MSX2 = WMSX.MACHINE_TYPE === 2;
+
     var BIOS_SLOT = 0;
     var RAM_SLOT = WMSX.RAM_SLOT;
     var CARTRIDGE0_SLOT = RAM_SLOT === 1 ? 2 : 1;
     var EXPANDED_SLOT = 3;
-    var CARTRIDGE1_EXP_SLOT = 0;
-    var EXPANSIONS_EXP_SLOTS = [ 1, 2, 3 ];
+    var CARTRIDGE1_EXP_SLOT = 3;
+    var EXPANSIONS_EXP_SLOTS = [ 0, 1, 2 ];
 
     var ramSlot = RAM_SLOT;
     var cartridge0Slot = CARTRIDGE0_SLOT;

@@ -1,35 +1,25 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface. Controls 4 Primary Slots and I/O Device Ports
-wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
+wmsx.EngineBUS = function(machine, cpu) {
     var self = this;
 
     function init() {
         create();
-        setupMachine();
     }
 
     this.powerOn = function() {
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 4; i++) slots[i].powerOn();
-        ppi.powerOn();
-        psg.powerOn();
-        vdp.powerOn();
-        cpu.powerOn();
     };
 
     this.powerOff = function() {
-        cpu.powerOff();
-        vdp.powerOff();
-        psg.powerOff();
-        ppi.powerOff();
         for (var i = 0; i < 4; i++) slots[i].powerOff();
     };
 
     this.reset = function() {
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 4; i++) slots[i].reset();
-        cpu.reset();
     };
 
     this.insertSlot = function(slot, slotNumber) {
@@ -55,12 +45,20 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
 
     this.input = function(port) {
         // Get correct device
-        return devicesInputPorts[port & 255]();
+        var p = devicesInputPorts[port & 255];
+
+        if (p === wmsx.DeviceMissing.inputPort && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255)) return console.log("Missing IN " + (port & 255).toString(16));
+
+        return p();
     };
 
     this.output = function(port, val) {
         // Get correct device
-        devicesOutputPorts[port & 255](val);
+        var p = devicesOutputPorts[port & 255];
+
+        if (p === wmsx.DeviceMissing.outputPort && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255)) return console.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
+
+        p(val);
     };
 
     this.setPrimarySlotConfig = function(val) {
@@ -87,14 +85,21 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         return slotPages[s.extPC >>> 14].cpuExtensionFinish(s);
     };
 
+    this.connectInputDevice = function(port, handler) {
+        devicesInputPorts[port] = handler;
+    };
+
+    this.connectOutputDevice = function(port, handler) {
+        devicesOutputPorts[port] = handler;
+    };
+
     function create() {
         var emptySlot = wmsx.SlotEmpty.singleton;
         slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
         slotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
 
-        var deviceMissing = new wmsx.DeviceMissing();
-        devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceMissing.inputPort);
-        devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceMissing.outputPort);
+        devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), wmsx.DeviceMissing.inputPort);
+        devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), wmsx.DeviceMissing.outputPort);
 
         self.slots = slots;
         self.slotPages = slotPages;
@@ -105,33 +110,6 @@ wmsx.EngineBUS = function(machine, cpu, ppi, vdp, psg) {
         cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], self);
     }
 
-    function setupMachine() {
-        cpu.connectBus(self);
-        ppi.connectBus(self);
-        vdp.connectBus(self);
-        psg.connectBus(self);
-
-        // PPI
-        devicesInputPorts[0xa8]  = ppi.inputA8;
-        devicesOutputPorts[0xa8] = ppi.outputA8;
-        devicesInputPorts[0xa9]  = ppi.inputA9;
-        devicesInputPorts[0xaa]  = ppi.inputAA;
-        devicesOutputPorts[0xaa] = ppi.outputAA;
-        devicesOutputPorts[0xab] = ppi.outputAB;
-
-        // VDP
-        devicesInputPorts[0x98]  = vdp.input98;
-        devicesOutputPorts[0x98] = vdp.output98;
-        devicesInputPorts[0x99]  = vdp.input99;
-        devicesOutputPorts[0x99] = vdp.output99;
-
-        // PSG
-        devicesOutputPorts[0xa0] = psg.outputA0;
-        devicesOutputPorts[0xa1] = psg.outputA1;
-        devicesInputPorts[0xa2]  = psg.inputA2;
-
-        self.setPrimarySlotConfig(0);
-    }
 
     var devicesInputPorts;
     var devicesOutputPorts;

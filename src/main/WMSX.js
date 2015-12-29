@@ -10,6 +10,8 @@ WMSX = {
 
     PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
 
+    MACHINE_TYPE:                   1,                          // 1 for MSX1, 2 for MSX2
+
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM
     EXPANSION1_URL:                 "",                         // Full or relative URL of System Expansion 1 ROM
@@ -28,10 +30,11 @@ WMSX = {
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FILTER_MODE:             1,                          // 0..3
     SCREEN_CRT_MODE:                -1,                         // 0..4, -1 = auto
-    SCREEN_OPENING_SIZE:            2.5,                        // 1..4, 0.5 steps
-    SCREEN_SHARP_SIZE:              2,                          // 1..4. Don't change! :-)
+    SCREEN_BASE_WIDTH:              512,                        // Don't change!
+    SCREEN_BASE_HEIGHT:             384,                        // Don't change!
+    SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. 2, 0.25 steps
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
-    SCREEN_COLOR_MODE:              0,                          // 0..5
+    SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)
     SCREEN_VSYNCH_MODE:             1,                          // 0 = disabled, 1 = auto (when matches), 2 = forced
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay

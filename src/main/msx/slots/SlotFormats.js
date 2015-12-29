@@ -52,8 +52,10 @@ wmsx.SlotFormats = {
         priority: 206,
         tryFormat: function (rom) {
             // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS
-            if ((rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66))
-                || (rom.content.length === 32768 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0x4000] !== 65 || rom.content[0x4001] !== 66)))
+            if (
+                //(rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66)) ||
+                (rom.content.length === 32768 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0x4000] !== 65 || rom.content[0x4001] !== 66))
+            )
                 return this;
         },
         createFromROM: function (rom) {
@@ -61,6 +63,23 @@ wmsx.SlotFormats = {
         },
         createFromSaveState: function (state) {
             return wmsx.BIOS.createFromSaveState(state);
+        }
+    },
+
+    "MSX2BIOSEXT": {
+        name: "MSX2BIOSEXT",
+        desc: "BIOS Extension 16K",
+        priority: 207,
+        tryFormat: function (rom) {
+            // Assumes any 16K content without the Cartridge identifier "AB" is a BIOS Extension
+            if ((rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66)))
+                return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.MSX2BIOSEXT(rom);
+        },
+        createFromSaveState: function (state) {
+            return wmsx.MSX2BIOSEXT.createFromSaveState(state);
         }
     },
 

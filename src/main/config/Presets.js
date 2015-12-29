@@ -3,8 +3,30 @@
 WMSX.presets = {
 
     DEFAULT: {
+        MACHINE_TYPE:   1,
         BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios",
         EXPANSION0_URL: "wmsx/roms/Disk.rom"
+    },
+
+    MSX1: {
+    },
+
+    MSX2: {
+        MACHINE_TYPE:   2,
+        BIOS_URL:       "wmsx/roms/MSX2.rom",       // "wmsx/roms/MSX2PAL.bios",       // TODO Fix
+        EXPANSION1_URL: "wmsx/roms/MSX2EXT.rom"     // "wmsx/roms/MSX2EXT.bios"
+    },
+
+    MSX2NTSC: {
+        MACHINE_TYPE:   2,
+        BIOS_URL:       "wmsx/roms/MSX2NTSC.bios",       // TODO Provide
+        EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"
+    },
+
+    MSX2PAL: {
+        MACHINE_TYPE:   2,
+        BIOS_URL:       "wmsx/roms/MSX2PAL.bios",
+        EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"
     },
 
     NTSC: {
@@ -36,15 +58,15 @@ WMSX.presets = {
     // Optional Expansions
 
     SCC: {
-        EXPANSION1_URL: "wmsx/roms/[SCCExpansion].rom"
+        EXPANSION2_URL: "wmsx/roms/[SCCExpansion].rom"
     },
 
     SCCI: {
-        EXPANSION1_URL: "wmsx/roms/[SCCIExpansion].rom"
+        EXPANSION2_URL: "wmsx/roms/[SCCIExpansion].rom"
     },
 
     SCCPLUS: {
-        EXPANSION1_URL: "wmsx/roms/[SCCIExpansion].rom"
+        EXPANSION2_URL: "wmsx/roms/[SCCIExpansion].rom"
     },
 
     // Specific machines

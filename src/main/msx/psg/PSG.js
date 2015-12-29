@@ -9,8 +9,10 @@ wmsx.PSG = function() {
         registers[15] = 0x0f;
     }
 
-    this.connectBus = function(pBus) {
-        bus = pBus;
+    this.connectBus = function(bus) {
+        bus.connectOutputDevice(0xa0, this.outputA0);
+        bus.connectOutputDevice(0xa1, this.outputA1);
+        bus.connectInputDevice(0xa2,  this.inputA2);
     };
 
     this.powerOn = function() {
@@ -82,8 +84,6 @@ wmsx.PSG = function() {
 
     var audioSignal;
     var audioChannel;
-
-    var bus;
 
 
     // Savestate  -------------------------------------------

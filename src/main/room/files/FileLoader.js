@@ -129,7 +129,7 @@ wmsx.FileLoader = function() {
                         if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                             return;
                         // Then try to load as a ROM (BIOS or Cartridge)
-                        rom = new wmsx.ROM(file.name, arrContent);
+                        rom = new wmsx.ROM(name + " - " + file.name, arrContent);
                         slot = wmsx.SlotCreator.createFromROM(rom);
                         if (slot.format === wmsx.SlotFormats.BIOS)
                             biosSocket.insert(slot, altPower);

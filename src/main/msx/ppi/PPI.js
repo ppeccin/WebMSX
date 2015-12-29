@@ -4,6 +4,12 @@ wmsx.PPI = function(audioOutput) {
 
     this.connectBus = function(pBus) {
         bus = pBus;
+        bus.connectInputDevice(0xa8,  this.inputA8);
+        bus.connectOutputDevice(0xa8, this.outputA8);
+        bus.connectInputDevice(0xa9,  this.inputA9);
+        bus.connectInputDevice(0xaa,  this.inputAA);
+        bus.connectOutputDevice(0xaa, this.outputAA);
+        bus.connectOutputDevice(0xab, this.outputAB);
     };
 
     this.powerOn = function(paused) {

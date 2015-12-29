@@ -51,19 +51,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             updateLogo();
         }
 
-        // Not needed anymore since the VPD paints all visible screen including the backdrop borders
-        //// Update content backdrop color if needed
-        //if (newContentBackdrop !== contentBackdrop) {
-        //    contentBackdrop = newContentBackdrop;
-        //    canvas.style.background = "rgb(" + (newContentBackdrop & 0xff) + "," + ((newContentBackdrop >> 8) & 0xff) + "," + ((newContentBackdrop >>> 16) & 0xff) + ")";
-        //}
-
-        // Then update content
         canvasContext.drawImage(
             image,
             sourceX, sourceY, sourceWidth, sourceHeight,
             0, 0,
-            sourceWidth * contentBaseScale, sourceHeight * contentBaseScale
+            contentWidth, contentHeight
         );
     };
 
@@ -85,11 +77,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
             return scaleX | 0;
         } else
-            return WMSX.SCREEN_OPENING_SIZE;
+            return WMSX.SCREEN_DEFAULT_SCALE;
     };
 
-    this.displaySize = function(width, height, contentBorderWidth, contentBorderHeight) {
-        setElementsSizes(width, height, contentBorderWidth, contentBorderHeight);
+    this.displayScale = function(scaleX, scaleY) {
+        setElementsScale(scaleX, scaleY);
     };
 
     this.displayMinimumSize = function(width, height) {
@@ -222,6 +214,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (isFullscreen) setTimeout(monitor.setDisplayDefaultSize, 120);
     };
 
+    var setElementsScale = function (scaleX, scaleY) {
+        var width = (contentWidth * scaleX) | 0;
+        var height = (contentHeight * scaleY) | 0;
+        setElementsSizes(width, height);
+    };
+
     var setElementsSizes = function (width, height) {
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
@@ -295,8 +293,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         borderElement.appendChild(fsElement);
 
         canvas = document.createElement('canvas');
-        canvas.width = wmsx.Monitor.CONTENT_WIDTH * contentBaseScale;      // Canvas base size will never chance, only scale via CSS
-        canvas.height = wmsx.Monitor.CONTENT_HEIGHT * contentBaseScale;
+        canvas.width = contentWidth;        // Canvas base size will never chance, only scale via CSS
+        canvas.height = contentHeight;
         canvas.style.position = "absolute";
         canvas.style.display = "block";
         canvas.style.left = canvas.style.right = 0;
@@ -663,7 +661,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var borderLateral;
     var borderBottom;
 
-    var contentBaseScale = WMSX.SCREEN_SHARP_SIZE;
+    var contentWidth =  WMSX.SCREEN_BASE_WIDTH + wmsx.Monitor.VISIBLE_BORDER_WIDTH * 2 * 2;
+    var contentHeight = WMSX.SCREEN_BASE_HEIGHT + wmsx.Monitor.VISIBLE_BORDER_HEIGHT * 2 * 2;
 
     var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
