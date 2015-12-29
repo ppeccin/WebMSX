@@ -64,18 +64,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
-    this.displayDefaultOpeningScaleX = function(displayWidth, displayHeight) {
+    this.displayDefaultOpeningScaleX = function() {
         if (isFullscreen) {
             var winW = fsElement.clientWidth;
             var winH = fsElement.clientHeight;
-            var scaleX = winW / displayWidth;
-            scaleX -= (scaleX % DEFAULT_SCALE_ASPECT_X);		    // Round multiple of the default X scale
-            var h = scaleX / DEFAULT_SCALE_ASPECT_X * displayHeight;
-            while (h > winH + 35) {									//  35 is a little tolerance
-                scaleX -= DEFAULT_SCALE_ASPECT_X;				    // Decrease one full default X scale
-                h = scaleX / DEFAULT_SCALE_ASPECT_X * displayHeight;
+            var scaleX = winW / contentWidth;
+            scaleX -= (scaleX % wmsx.Monitor.SCALE_STEP);		    // Round multiple of the step
+            var h = scaleX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X * contentHeight;
+            while (h > winH - 25) {							    		//  35 is a little tolerance
+                scaleX -= wmsx.Monitor.SCALE_STEP;				    // Decrease one step
+                h = scaleX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X * contentHeight;
             }
-            return scaleX | 0;
+            return scaleX;
         } else
             return WMSX.SCREEN_DEFAULT_SCALE;
     };
@@ -293,7 +293,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         borderElement.appendChild(fsElement);
 
         canvas = document.createElement('canvas');
-        canvas.width = contentWidth;        // Canvas base size will never chance, only scale via CSS
+        canvas.width = contentWidth;          // Canvas base size will never chance, only scale via CSS
         canvas.height = contentHeight;
         canvas.style.position = "absolute";
         canvas.style.display = "block";
@@ -661,8 +661,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var borderLateral;
     var borderBottom;
 
-    var contentWidth =  WMSX.SCREEN_BASE_WIDTH + wmsx.Monitor.VISIBLE_BORDER_WIDTH * 2 * 2;
-    var contentHeight = WMSX.SCREEN_BASE_HEIGHT + wmsx.Monitor.VISIBLE_BORDER_HEIGHT * 2 * 2;
+    var contentWidth =  (WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2);
+    var contentHeight = (WMSX.SCREEN_BASE_WIDTH / 256) * (192 + 8 * 2);
 
     var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
@@ -676,7 +676,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var IMAGES_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;
-    var DEFAULT_SCALE_ASPECT_X = 1;
 
 
     init(this);

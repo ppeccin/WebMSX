@@ -8,7 +8,7 @@ wmsx.V9918 = function(cpu, psg) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal();
+        videoSignal = new wmsx.VDPVideoSignal(signalMetrics);
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
@@ -920,8 +920,9 @@ wmsx.V9918 = function(cpu, psg) {
 
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
-        frameCanvas.width = 256 + 8 + 8;    // Visible VPD resolution + 8 pixel borders
-        frameCanvas.height = 192 + 8 + 8;
+        // Maximum VPD resolution + 16 pixel borders
+        frameCanvas.width = 256 + 8 + 8;          // 272
+        frameCanvas.height = 192 + 8 + 8;         // 208
         frameContext = frameCanvas.getContext("2d");
         frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
@@ -1113,6 +1114,8 @@ wmsx.V9918 = function(cpu, psg) {
     var debugPatTableBlocks   = new Uint8Array(8);                  // 8x8
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
+
+    var signalMetrics = { width: 256, height: 192, renderedBorderWidth: 8, renderedBorderHeight: 8 };      // Fixed for all modes
 
 
     // Connections

@@ -1,9 +1,14 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.VDPVideoSignal = function() {
+wmsx.VDPVideoSignal = function(signalMetrics) {
 
     this.connectMonitor = function(pMonitor) {
         this.monitor = pMonitor;
+        this.monitor.setSignalMetrics(this.signalMetrics);
+    };
+
+    this.setSignalMetrics = function(metrics) {
+        this.signalMetrics = metrics;
     };
 
     this.newFrame = function(image) {
@@ -18,7 +23,8 @@ wmsx.VDPVideoSignal = function() {
         if (this.monitor) this.monitor.showOSD(message, overlap);
     };
 
-
     this.monitor = null;
+
+    this.signalMetrics = signalMetrics;
 
 };

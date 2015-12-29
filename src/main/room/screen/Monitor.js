@@ -12,6 +12,12 @@ wmsx.Monitor = function() {
         cartridgeSocket.addCartridgesStateListener(this);
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
+        updateSignalMetrics();
+    };
+
+    this.setSignalMetrics = function(metrics) {
+        signalMetrics = metrics;
+        updateSignalMetrics();
     };
 
     this.newFrame = function(image) {
@@ -32,8 +38,8 @@ wmsx.Monitor = function() {
 
     this.setDisplayDefaultSize = function() {
         if (display != null) {
-            var scX = display.displayDefaultOpeningScaleX(wmsx.Monitor.CONTENT_WIDTH, wmsx.Monitor.CONTENT_HEIGHT);
-            setDisplayScale(scX, scX / DEFAULT_SCALE_ASPECT_X);
+            var scX = display.displayDefaultOpeningScaleX();
+            setDisplayScale(scX, scX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X);
         } else
             setDisplayScale(WMSX.SCREEN_DEFAULT_SCALE, WMSX.SCREEN_DEFAULT_SCALE);
         displayCenter();
@@ -65,27 +71,34 @@ wmsx.Monitor = function() {
     };
 
     this.displayScaleXDecrease = function() {
-        setDisplayScale(displayScaleX - 0.25, displayScaleY);
+        setDisplayScale(displayScaleX - wmsx.Monitor.SCALE_STEP, displayScaleY);
     };
 
     this.displayScaleXIncrease = function() {
-        setDisplayScale(displayScaleX + 0.25, displayScaleY);
+        setDisplayScale(displayScaleX + wmsx.Monitor.SCALE_STEP, displayScaleY);
     };
 
     this.displayScaleYDecrease = function() {
-        setDisplayScale(displayScaleX, displayScaleY - 0.25);
+        setDisplayScale(displayScaleX, displayScaleY - wmsx.Monitor.SCALE_STEP);
     };
 
     this.displayScaleYIncrease = function() {
-        setDisplayScale(displayScaleX, displayScaleY + 0.25);
+        setDisplayScale(displayScaleX, displayScaleY + wmsx.Monitor.SCALE_STEP);
     };
 
     this.displaySizeDecrease = function() {
-        setDisplayScaleDefaultAspect(displayScaleY - 0.25);
+        setDisplayScaleDefaultAspect(displayScaleY - wmsx.Monitor.SCALE_STEP);
     };
 
     this.displaySizeIncrease = function() {
-        setDisplayScaleDefaultAspect(displayScaleY + 0.25);
+        setDisplayScaleDefaultAspect(displayScaleY + wmsx.Monitor.SCALE_STEP);
+    };
+
+    var updateSignalMetrics = function() {
+        sourceX = 0;
+        sourceY = 0;
+        sourceWidth = signalMetrics.width + signalMetrics.renderedBorderWidth * 2;
+        sourceHeight = signalMetrics.height + signalMetrics.renderedBorderHeight * 2;
     };
 
     var setDisplayScale = function(x, y) {
@@ -101,7 +114,7 @@ wmsx.Monitor = function() {
     var setDisplayScaleDefaultAspect = function(y) {
         var scaleY = y;
         if (scaleY < 0.5) scaleY = 0.5;
-        setDisplayScale(scaleY * DEFAULT_SCALE_ASPECT_X, scaleY);
+        setDisplayScale(scaleY * wmsx.Monitor.DEFAULT_SCALE_ASPECT_X, scaleY);
     };
 
     var crtSetModeForCartridges = function(cartridge1, cartridge2) {
@@ -137,12 +150,9 @@ wmsx.Monitor = function() {
 
     var debug = 0;
 
-    var sourceX = wmsx.Monitor.RENDERED_BORDER_WIDTH - wmsx.Monitor.VISIBLE_BORDER_WIDTH;
-    var sourceY = wmsx.Monitor.RENDERED_BORDER_HEIGHT - wmsx.Monitor.VISIBLE_BORDER_HEIGHT;
-    var sourceWidth =  wmsx.Monitor.CONTENT_WIDTH;
-    var sourceHeight = wmsx.Monitor.CONTENT_HEIGHT;
+    var signalMetrics;
+    var sourceX = 0, sourceY = 0, sourceWidth = 0, sourceHeight = 0;
 
-    var DEFAULT_SCALE_ASPECT_X = 1;
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
 
@@ -151,11 +161,7 @@ wmsx.Monitor = function() {
 
 };
 
-wmsx.Monitor.ACTIVE_WIDTH =  256;
-wmsx.Monitor.ACTIVE_HEIGHT = 192;
-wmsx.Monitor.RENDERED_BORDER_WIDTH =  8;
-wmsx.Monitor.RENDERED_BORDER_HEIGHT = 8;
-wmsx.Monitor.VISIBLE_BORDER_WIDTH =  8;
-wmsx.Monitor.VISIBLE_BORDER_HEIGHT = 8;
-wmsx.Monitor.CONTENT_WIDTH =  wmsx.Monitor.ACTIVE_WIDTH + wmsx.Monitor.VISIBLE_BORDER_WIDTH * 2;
-wmsx.Monitor.CONTENT_HEIGHT = wmsx.Monitor.ACTIVE_HEIGHT + wmsx.Monitor.VISIBLE_BORDER_HEIGHT * 2;
+wmsx.Monitor.DEFAULT_SCALE_ASPECT_X = 1;
+wmsx.Monitor.SCALE_STEP = 0.25;
+
+

@@ -6,9 +6,10 @@ wmsx.V9938 = function(cpu, psg) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal();
+        videoSignal = new wmsx.VDPVideoSignal(signalMetrics);
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
+        mode = 0;  // Screen 1
         initFrameResources();
         initColorCodePatternValues();
         initDebugPatternTables();
@@ -193,6 +194,7 @@ wmsx.V9938 = function(cpu, psg) {
         wmsx.Util.arrayFill(status, 0);
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
+        mode = 0;  // Screen 1
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
         vramNameTable = vramColorTable = vramPatternTable = vramSpriteAttrTable = vramSpritePatternTable =  vram.subarray(0);
         dataToWrite = null; vramWriteMode = false; vramPointer = 0; paletteFirstWrite = null;
@@ -227,7 +229,7 @@ wmsx.V9938 = function(cpu, psg) {
                 vramColorTable = vram.subarray(colorTableAddress);
                 break;
             case 4:
-                patternTableAddress = (val << 11) & modes[mode].patternTMask;
+                patternTableAddress = (val << 11) & modes[mode].patTMask;
                 vramPatternTable = vram.subarray(patternTableAddress);
                 break;
             case 5:
@@ -353,7 +355,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         if (force || (mode !== oldMode)) {
             nameTableAddress = (register[2] << 10) & modes[mode].nameTMask;
-            patternTableAddress = (register[4] << 11) & modes[mode].patternTMask;
+            patternTableAddress = (register[4] << 11) & modes[mode].patTMask;
             colorTableAddress = ((register[10] << 14) | (register[3] << 6)) & modes[mode].colorTMask;
             vramNameTable = vram.subarray(nameTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
@@ -369,7 +371,8 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateUpdateFunctions() {
-        updateLinesActive = (register[1] & 0x40) === 0 ? updateLinesBlanked : debugModePatternInfo ? modes[mode].updateLinesDebug : modes[mode].updateLines;
+        updateLinesActive = (register[1] & 0x40) === 0 ? modes[mode].updLinesBlanked : debugModePatternInfo ? modes[mode].updLinesDeb : modes[mode].updLines;
+        updateLinesBorder = modes[mode].updLinesBorder;
         updateSpritesLine = updateSpritesLineFunctions[register[1] & 0x03];
     }
 
@@ -378,8 +381,9 @@ wmsx.V9938 = function(cpu, psg) {
         if ((newColor === backdropColor) && !force) return;
 
         backdropColor = newColor;
-        backdropValues = debugModePatternInfo ? backdropValuesDebug : colorCodePatternValues[backdropColor << 8];
-        for (var i = 264; i >= 0; i -= 8) backdropFullLineValues.set(backdropValues, i);
+        var values = debugModePatternInfo ? backdropValuesDebug : colorCodePatternValues[backdropColor << 8];
+        backdrop16Values.set(values, 0); backdrop16Values.set(values, 8);
+        for (var i = 528; i >= 0; i -= 16) backdropFullLine512Values.set(backdrop16Values, i);
         colorCodeStartPositions[0] = ((backdropColor << 4) | backdropColor) << 8;
         for (i = 1; i < 16; i++ ) colorCodeStartPositions[i] = ((backdropColor << 4) | i) << 8;
         for (i = 0x10; i < 0x100; i += 0x10) colorCodeStartPositions[i] = (i | backdropColor) << 8;
@@ -400,12 +404,12 @@ wmsx.V9938 = function(cpu, psg) {
         currentScanline = toLine;
     }
 
-    function updateLinesBorder(toLine) {
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+    function updateLinesBorder256(toLine) {
+        var line = currentScanline, bufferPos = (line + 8) * 544;
         while (line < toLine) {
             lineClockCPUandPSG();
             frameBackBuffer.set(backdropFullLineValues, bufferPos);
-            bufferPos += 272;
+            bufferPos += 544;
             // Sprites deactivated
             line++;
         }
@@ -413,12 +417,40 @@ wmsx.V9938 = function(cpu, psg) {
         currentScanline = line;
     }
 
-    function updateLinesBlanked(toLine) {
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+    function updateLinesBorder512(toLine) {
+        var line = currentScanline, bufferPos = (line + 8) * 544;
+        while (line < toLine) {
+            lineClockCPUandPSG();
+            frameBackBuffer.set(backdropFullLine512Values, bufferPos);
+            bufferPos += 544;
+            // Sprites deactivated
+            line++;
+        }
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function updateLinesBlanked256(toLine) {
+        var line = currentScanline, bufferPos = (line + 8) * 544;
         modeStable = true;
         do {
             frameBackBuffer.set(backdropFullLineValues, bufferPos);
-            bufferPos += 272;
+            bufferPos += 544;
+            // Sprites deactivated
+            line++;
+            if (line >= toLine) break;
+            lineClockCPUandPSG();
+        } while (modeStable);
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function updateLinesBlanked512(toLine) {
+        var line = currentScanline, bufferPos = (line + 8) * 544;
+        modeStable = true;
+        do {
+            frameBackBuffer.set(backdropFullLine512Values, bufferPos);
+            bufferPos += 544;
             // Sprites deactivated
             line++;
             if (line >= toLine) break;
@@ -430,7 +462,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeT1(toLine) {                                        // Text (Screen 0 width 40)
         var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -455,7 +487,7 @@ wmsx.V9938 = function(cpu, psg) {
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
             bufferPos += 8;
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
             // Sprites deactivated
 
@@ -471,19 +503,19 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeT2(toLine) {                                        // Text (Screen 0 width 80)
         var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
             colorCodeValuesStart = colorCodeStartPositions[register[7]];        // fixed text color for all line
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
-            bufferPos += 8;
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
-            bufferPos += 8;
+            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels left border
+            bufferPos += 16;
+            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels left text margin
+            bufferPos += 16;
 
             patPos = (line >>> 3) * 80;                                         // line / 8 * 80
-            patPosFinal = patPos + 40;
+            patPosFinal = patPos + 80;
             lineInPattern = line & 0x07;
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
@@ -493,10 +525,10 @@ wmsx.V9938 = function(cpu, psg) {
                 bufferPos += 6;                                                 // advance 6 pixels
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
-            bufferPos += 8;
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels right text margin
+            bufferPos += 16;
+            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels right border margin
+            bufferPos += 16;
 
             // Sprites deactivated
 
@@ -512,7 +544,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeMC(toLine) {                                        // Multicolor (Screen 3)
         var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -532,9 +564,9 @@ wmsx.V9938 = function(cpu, psg) {
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264);
+            updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
             if (line >= toLine) break;
@@ -548,7 +580,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG1(toLine) {                                        // Graphics 1 (Screen 1)
         var patPos, patPosFinal, name, patternLine, pattern, colorCode, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -569,9 +601,9 @@ wmsx.V9938 = function(cpu, psg) {
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264);
+            updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
             if (line >= toLine) break;
@@ -585,7 +617,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG2(toLine) {                                        // Graphics 2 (Screen 2)
         var patPos, patPosFinal, lineInPattern, name, blockExtra, patLine, pattern, colorLine, colorCode, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -608,9 +640,9 @@ wmsx.V9938 = function(cpu, psg) {
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264);
+            updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
             if (line >= toLine) break;
@@ -624,27 +656,27 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG5(toLine) {                                        // Graphics 5 (Screen 6)
         var pixelsPos, pixelsPosFinal, pixels;
-        var line = currentScanline, bufferPos = (line + 8) * 272, off = register[23];
+        var line = currentScanline, bufferPos = (line + 8) * 544, off = register[23];
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
-            bufferPos += 8;
+            frameBackBuffer.set(backdrop16Values, bufferPos);                    // 16 pixels left border
+            bufferPos += 16;
 
             pixelsPos = ((line + off) & 255) << 7;
             pixelsPosFinal = pixelsPos + 128;
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vramNameTable[pixelsPos++];
                 frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 6) & 0x03];
-                //frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 4) & 0x03];
                 frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 2) & 0x03];
-                //frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 0) & 0x03];
+                frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 0) & 0x03];
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            frameBackBuffer.set(backdrop16Values, bufferPos);                    // 16 pixels left border
+            bufferPos += 16;
 
-            //updateSpritesLine(line, bufferPos - 264);
+            //updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
             if (line >= toLine) break;
@@ -658,7 +690,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeT1Debug(toLine) {                                   // Text (Screen 0)
         var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -699,7 +731,7 @@ wmsx.V9938 = function(cpu, psg) {
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
             bufferPos += 8;
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
             // Sprites deactivated
 
@@ -717,7 +749,7 @@ wmsx.V9938 = function(cpu, psg) {
         if (!debugModePatternInfoNames) return updateLinesModeMC(toLine);
 
         var patPos, patPosFinal, name, values, pattern;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -735,9 +767,9 @@ wmsx.V9938 = function(cpu, psg) {
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264);
+            updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
             if (line >= toLine) break;
@@ -751,7 +783,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG1Debug(toLine) {                                   // Graphics 1 (Screen 1)
         var patPos, patPosFinal, name, pattern, colorCode, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -779,9 +811,9 @@ wmsx.V9938 = function(cpu, psg) {
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264);
+            updateSpritesLine(line, bufferPos - 264 - 272);
             line++;
             if (line >= toLine) break;
 
@@ -794,7 +826,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG2Debug(toLine) {                                   // Graphics 2 (Screen 2)
         var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorLine, colorCode, values;
-        var line = currentScanline, bufferPos = (line + 8) * 272;
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
@@ -825,9 +857,9 @@ wmsx.V9938 = function(cpu, psg) {
             }
 
             frameBackBuffer.set(backdropValues, bufferPos);
-            bufferPos += 8;
+            bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264);
+            updateSpritesLine(line, bufferPos - 264 + 272);
 
             line++;
             if (line >= toLine) break;
@@ -1281,8 +1313,9 @@ wmsx.V9938 = function(cpu, psg) {
 
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
-        frameCanvas.width = 256 + 8 + 8;    // Visible VPD resolution + 8 pixel borders
-        frameCanvas.height = 192 + 8 + 8;
+        // Maximum VPD resolution + 16 pixel borders
+        frameCanvas.width = 512 + 16 + 16;          // 544
+        frameCanvas.height = 212 * 2 + 16 + 16;     // 456
         frameContext = frameCanvas.getContext("2d");
         frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
@@ -1400,8 +1433,10 @@ wmsx.V9938 = function(cpu, psg) {
     var executingCommandX, executingCommandY, executingCommandCX, executingCommandCY;
 
     var backdropColor = -1;
-    var backdropValues;
-    var backdropFullLineValues = new Uint32Array(34 * 8);
+    var backdrop16Values = new Uint32Array(16);
+    var backdropValues = backdrop16Values.subarray(0, 8);
+    var backdropFullLine512Values = new Uint32Array(68 * 8);
+    var backdropFullLineValues = backdropFullLine512Values.subarray(0, 34 * 8);
 
     var nameTableAddress = 0;
     var colorTableAddress = 0;
@@ -1414,24 +1449,23 @@ wmsx.V9938 = function(cpu, psg) {
     var colorNameMask =   0x3ff;
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return { name: "Unsupported",  nameTMask: 0,  patternTMask: 0, colorTMask: 0, nameLineSize: 0, updateLines: updateLinesBlanked, updateLinesDebug: updateLinesBlanked };
+        return { name: "Unsupported",  nameTMask: 0,  patTMask: 0, colorTMask: 0, nameLineSize: 0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
     });
 
-    modes[0x10] = { name: "Screen 0",  nameTMask: 0x1fc00,  patternTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updateLines: updateLinesModeT1, updateLinesDebug: updateLinesModeT1Debug };
-    modes[0x12] = { name: "Screen 0+", nameTMask: 0x1f000,  patternTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updateLines: updateLinesModeT2, updateLinesDebug: updateLinesModeT2      };
-    modes[0x08] = { name: "Screen 3",  nameTMask: 0x1fc00,  patternTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updateLines: updateLinesModeMC, updateLinesDebug: updateLinesModeMCDebug };
-    modes[0x00] = { name: "Screen 1",  nameTMask: 0x1fc00,  patternTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updateLines: updateLinesModeG1, updateLinesDebug: updateLinesModeG1Debug };
-    modes[0x01] = { name: "Screen 2",  nameTMask: 0x1fc00,  patternTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updateLines: updateLinesModeG2, updateLinesDebug: updateLinesModeG2Debug };
-    //modes[0x02] = { name: "Screen 4",  nameTMask: 0x1fc00,  patternTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updateLines: updateLinesModeG3, updateLinesDebug: updateLinesModeG3Debug };
-    //modes[0x03] = { name: "Screen 5",  nameTMask: 0x18000,  patternTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updateLines: updateLinesModeG4, updateLinesDebug: updateLinesModeG4Debug };
-    modes[0x04] = { name: "Screen 6",  nameTMask: 0x18000,  patternTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updateLines: updateLinesModeG5, updateLinesDebug: updateLinesModeG5      };
-    //modes[0x05] = { name: "Screen 7",  nameTMask: 0x10000,  patternTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updateLines: updateLinesModeG6, updateLinesDebug: updateLinesModeG6Debug };
-    //modes[0x07] = { name: "Screen 8",  nameTMask: 0x10000,  patternTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updateLines: updateLinesModeG7, updateLinesDebug: updateLinesModeG7Debug };
+    modes[0x10] = { name: "Screen 0",  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1, updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x12] = { name: "Screen 0+", nameTMask: 0x1f000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2, updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x08] = { name: "Screen 3",  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC, updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x00] = { name: "Screen 1",  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1, updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x01] = { name: "Screen 2",  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2, updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    //modes[0x02] = { name: "Screen 4",  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3, updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    //modes[0x03] = { name: "Screen 5",  nameTMask: 0x18000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4, updLinesDeb: updateLinesModeG4Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x04] = { name: "Screen 6",  nameTMask: 0x18000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5, updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    //modes[0x05] = { name: "Screen 7",  nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6, updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    //modes[0x07] = { name: "Screen 8",  nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7, updLinesDeb: updateLinesModeG7Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
 
     var updateSpritesLineFunctions = [updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
 
-    var updateLinesActive;                  // Update function for current mode
-    var updateSpritesLine;                  // Update function for current mode
+    var updateLinesActive, updateLinesBorder, updateSpritesLine;     // Update functions for current mode
 
     var tempValues = new Uint32Array(8);    // Temporary storage for modified pattern values
 
@@ -1485,6 +1519,8 @@ wmsx.V9938 = function(cpu, psg) {
     var debugPatTableBlocks   = new Uint8Array(8);                  // 8x8
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
+
+    var signalMetrics = { width: 512, height: 192, renderedBorderWidth: 16, renderedBorderHeight: 8 };      // Fixed for all modes
 
 
     // Connections
