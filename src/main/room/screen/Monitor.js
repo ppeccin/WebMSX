@@ -97,8 +97,8 @@ wmsx.Monitor = function() {
     var updateSignalMetrics = function() {
         sourceX = 0;
         sourceY = 0;
-        sourceWidth = signalMetrics.width + signalMetrics.renderedBorderWidth * 2;
-        sourceHeight = signalMetrics.height + signalMetrics.renderedBorderHeight * 2;
+        sourceWidth = signalMetrics.width + signalMetrics.borderWidth * 2;
+        sourceHeight = signalMetrics.height + signalMetrics.borderHeight * 2;
     };
 
     var setDisplayScale = function(x, y) {

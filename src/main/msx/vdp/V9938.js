@@ -6,12 +6,12 @@ wmsx.V9938 = function(cpu, psg) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal(signalMetrics);
+        videoSignal = new wmsx.VDPVideoSignal(signalMetrics256);
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         mode = 0;  // Screen 1
         initFrameResources();
-        initColorCodePatternValues();
+        initColorCaches();
         initDebugPatternTables();
         self.setDefaults();
     }
@@ -151,12 +151,11 @@ wmsx.V9938 = function(cpu, psg) {
 
     function setPaletteRegister(reg, val) {
 
-        //console.log("Palette Register: " + reg + " = " + val.toString(16));
+        console.log("Palette Register: " + reg + " = " + val.toString(16));
 
         paletteRegister[reg] = val;
-        // Convert from 3 bit GRB to 8 bit ABRG;
-        colorsNormal[reg] = 0xfe000000 | (color3to8bits[val & 0x7] << 16) | (color3to8bits[(val >>> 8) & 0x7] << 8) | color3to8bits[(val >>> 4) & 0x7];
-        setColorCodePatternValues();
+        colorPalette[reg] = colors512[((val & 0x700) >> 2) | ((val & 0x70) >> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
+        updateBackdropColor(true);     // force
     }
 
     this.output9b = function(val) {
@@ -265,10 +264,16 @@ wmsx.V9938 = function(cpu, psg) {
                         STOP(); break;
                     case 0xc0:
                         HMMV(); break;
+                    case 0xd0:
+                        HMMM(); break;
+                    case 0xf0:
+                        HMMC(); break;
                     case 0x50:
                         PSET(); break;
                     case 0x70:
                         LINE(); break;
+                    case 0x90:
+                        LMMM(); break;
                     case 0xb0:
                         LMMC(); break;
                     default:
@@ -286,7 +291,7 @@ wmsx.V9938 = function(cpu, psg) {
         debugModePatternInfoNames = mode === 7;
         updateUpdateFunctions();
         updateSpritePatternTables();
-        setColorCodePatternValues();
+        updateBackdropColor(true);    // force
     }
 
     function updateSynchronization() {
@@ -354,12 +359,14 @@ wmsx.V9938 = function(cpu, psg) {
         //console.log("Update Mode: " + mode);
 
         if (force || (mode !== oldMode)) {
-            nameTableAddress = (register[2] << 10) & modes[mode].nameTMask;
-            patternTableAddress = (register[4] << 11) & modes[mode].patTMask;
-            colorTableAddress = ((register[10] << 14) | (register[3] << 6)) & modes[mode].colorTMask;
+            var m = modes[mode];
+            nameTableAddress = (register[2] << 10) & m.nameTMask;
+            patternTableAddress = (register[4] << 11) & m.patTMask;
+            colorTableAddress = ((register[10] << 14) | (register[3] << 6)) & m.colorTMask;
             vramNameTable = vram.subarray(nameTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
             vramColorTable = vram.subarray(colorTableAddress);
+            videoSignal.setSignalMetrics(m.sigMetrics);
         }
         updateUpdateFunctions();
         modeStable = false;
@@ -377,16 +384,25 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateBackdropColor(force) {
-        var newColor = (register[7] & 0x0f) || 1;         // Backdrop transparency is always set to Black
+        var newColor = register[7] & 0x0f;
         if ((newColor === backdropColor) && !force) return;
 
+        console.log("Backdrop Color: " + newColor);
+
         backdropColor = newColor;
-        var values = debugModePatternInfo ? backdropValuesDebug : colorCodePatternValues[backdropColor << 8];
-        backdrop16Values.set(values, 0); backdrop16Values.set(values, 8);
-        for (var i = 528; i >= 0; i -= 16) backdropFullLine512Values.set(backdrop16Values, i);
-        colorCodeStartPositions[0] = ((backdropColor << 4) | backdropColor) << 8;
-        for (i = 1; i < 16; i++ ) colorCodeStartPositions[i] = ((backdropColor << 4) | i) << 8;
-        for (i = 0x10; i < 0x100; i += 0x10) colorCodeStartPositions[i] = (i | backdropColor) << 8;
+        var value = debugModePatternInfo ? backdropValueDebug : backdropColor === 0 ? backdropValueTransp : colorPalette[backdropColor];
+        backdropValue = value;
+        //if (backdropFullLine512Values[0] == value) return;
+        // Special case for Graphic5 (Screen 6)
+       if (mode === 4) {
+           var odd =  colorPalette[(backdropColor >> 2) & 0x03];
+           var even = colorPalette[backdropColor & 0x03];
+           for (var i = 0; i < 544; i += 2) {
+               backdropFullLine512Values[i] = odd;
+               backdropFullLine512Values[i + 1] = even;
+           }
+       } else
+            wmsx.Util.arrayFill(backdropFullLine512Values, value);
     }
 
     // 228 CPU clocks and 7,125 PSG clocks interleaved
@@ -408,7 +424,7 @@ wmsx.V9938 = function(cpu, psg) {
         var line = currentScanline, bufferPos = (line + 8) * 544;
         while (line < toLine) {
             lineClockCPUandPSG();
-            frameBackBuffer.set(backdropFullLineValues, bufferPos);
+            frameBackBuffer.set(backdropFullLine256Values, bufferPos);
             bufferPos += 544;
             // Sprites deactivated
             line++;
@@ -434,7 +450,7 @@ wmsx.V9938 = function(cpu, psg) {
         var line = currentScanline, bufferPos = (line + 8) * 544;
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropFullLineValues, bufferPos);
+            frameBackBuffer.set(backdropFullLine256Values, bufferPos);
             bufferPos += 544;
             // Sprites deactivated
             line++;
@@ -461,32 +477,30 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeT1(toLine) {                                        // Text (Screen 0 width 40)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            colorCodeValuesStart = colorCodeStartPositions[register[7]];        // fixed text color for all line
-
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left text margin
             bufferPos += 8;
 
             patPos = (line >>> 3) * 40;                                         // line / 8 * 40
             patPosFinal = patPos + 40;
             lineInPattern = line & 0x07;
+            colorCode = register[7];                                            // fixed text color for all line
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
-                values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                frameBackBuffer.set(values, bufferPos);
-                bufferPos += 6;                                                 // advance 6 pixels
+                setBackBufferPattern(bufferPos, pattern, colorCode);
+                bufferPos += 6;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right text margin
             bufferPos += 8;
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             // Sprites deactivated
@@ -502,32 +516,30 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeT2(toLine) {                                        // Text (Screen 0 width 80)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, values;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            colorCodeValuesStart = colorCodeStartPositions[register[7]];        // fixed text color for all line
-
-            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels left border
+            setBackBufferToBackdrop16(bufferPos);                     // 16 pixels left border
             bufferPos += 16;
-            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels left text margin
+            setBackBufferToBackdrop16(bufferPos);                     // 16 pixels left text margin
             bufferPos += 16;
 
             patPos = (line >>> 3) * 80;                                         // line / 8 * 80
             patPosFinal = patPos + 80;
             lineInPattern = line & 0x07;
+            colorCode = register[7];                                            // fixed text color for all line
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
-                values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                frameBackBuffer.set(values, bufferPos);
-                bufferPos += 6;                                                 // advance 6 pixels
+                setBackBufferPattern(bufferPos, pattern, colorCode);
+                bufferPos += 6;
             }
 
-            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels right text margin
+            setBackBufferToBackdrop16(bufferPos);                     // 16 pixels right text margin
             bufferPos += 16;
-            frameBackBuffer.set(backdrop16Values, bufferPos);                   // 16 pixels right border margin
+            setBackBufferToBackdrop16(bufferPos);                     // 16 pixels right border
             bufferPos += 16;
 
             // Sprites deactivated
@@ -548,7 +560,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
@@ -558,12 +570,11 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
                 colorCode = vramPatternTable[patternLine];
-                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + 0xf0];   // always solid blocks of front and back colors
-                frameBackBuffer.set(values, bufferPos);
+                setBackBufferPattern(bufferPos, 0xf0, colorCode);               // always solid blocks of front and back colors;
                 bufferPos += 8;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             updateSpritesLine(line, bufferPos - 264 - 272);
@@ -579,12 +590,12 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG1(toLine) {                                        // Graphics 1 (Screen 1)
-        var patPos, patPosFinal, name, patternLine, pattern, colorCode, values;
+        var patPos, patPosFinal, name, pattern, colorCode;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
@@ -592,15 +603,13 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 32;
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
-                patternLine = (name << 3) + lineInPattern;                      // name * 8 (8 bytes each pattern) + line inside pattern
-                pattern = vramPatternTable[patternLine];
+                pattern = vramPatternTable[((name << 3) + lineInPattern)];      // name * 8 (8 bytes each pattern) + line inside pattern
                 colorCode = vramColorTable[name >>> 3];                         // name / 8 (1 color for each 8 patterns)
-                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
-                frameBackBuffer.set(values, bufferPos);
+                setBackBufferPattern(bufferPos, pattern, colorCode);
                 bufferPos += 8;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             updateSpritesLine(line, bufferPos - 264 - 272);
@@ -616,12 +625,13 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG2(toLine) {                                        // Graphics 2 (Screen 2)
-        var patPos, patPosFinal, lineInPattern, name, blockExtra, patLine, pattern, colorLine, colorCode, values;
+        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorCode;
         var line = currentScanline, bufferPos = (line + 8) * 544;
+        var on, off;
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
@@ -630,19 +640,112 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 32;
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++] | blockExtra;
-                colorLine = ((name & colorNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
-                colorCode = vramColorTable[colorLine];
-                patLine = ((name & patternNameMask) << 3) + lineInPattern;      // (8 bytes each pattern) + line inside pattern
-                pattern = vramPatternTable[patLine];
-                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];    // colorCode start + pattern
-                frameBackBuffer.set(values, bufferPos);
+                colorCode = vramColorTable[(((name & colorNameMask) << 3) + lineInPattern)];      // (8 bytes each pattern) + line inside pattern
+                pattern = vramPatternTable[(((name & patternNameMask) << 3) + lineInPattern)];
+                setBackBufferPattern(bufferPos, pattern, colorCode);
                 bufferPos += 8;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             updateSpritesLine(line, bufferPos - 264 - 272);
+
+            line++;
+            if (line >= toLine) break;
+
+            lineClockCPUandPSG();
+        } while (modeStable);
+
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
+    function setBackBufferPattern(bufferPos, pattern, colorCode) {
+        var on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+        var off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+        frameBackBuffer[bufferPos++] = pattern & 0x80 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x40 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x20 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x10 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x08 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x04 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x02 ? on : off;
+        frameBackBuffer[bufferPos] =   pattern & 0x01 ? on : off;
+    }
+
+    function setBackBufferToBackdrop(bufferPos) {
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos] =   backdropValue;
+    }
+
+    function setBackBufferToBackdrop16(bufferPos) {
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos] =   backdropValue;
+    }
+
+    function setBackBufferToBackdropG5(bufferPos) {
+        var odd =  colorPalette[(register[7] >> 2) & 0x03];
+        var even = colorPalette[register[7]& 0x03];
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos] =   even;
+    }
+
+    function updateLinesModeG4(toLine) {                                        // Graphics 4 (Screen 5)
+        var pixelsPos, pixelsPosFinal, pixels;
+        var line = currentScanline, bufferPos = (line + 8) * 544, off = register[23];
+
+        modeStable = true;
+        do {
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
+            bufferPos += 8;
+
+            pixelsPos = ((line + off) & 255) << 7;
+            pixelsPosFinal = pixelsPos + 128;
+            while (pixelsPos < pixelsPosFinal) {
+                pixels = vramNameTable[pixelsPos++];
+                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            }
+
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
+            bufferPos += 8 + 272;
+
+            //updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
             if (line >= toLine) break;
@@ -660,20 +763,20 @@ wmsx.V9938 = function(cpu, psg) {
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdrop16Values, bufferPos);                    // 16 pixels left border
+            setBackBufferToBackdropG5(bufferPos);                     // 16 pixels left border
             bufferPos += 16;
 
             pixelsPos = ((line + off) & 255) << 7;
             pixelsPosFinal = pixelsPos + 128;
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vramNameTable[pixelsPos++];
-                frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 6) & 0x03];
-                frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 4) & 0x03];
-                frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 2) & 0x03];
-                frameBackBuffer[bufferPos++] = colorsNormal[(pixels >>> 0) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 6) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 2) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 0) & 0x03];
             }
 
-            frameBackBuffer.set(backdrop16Values, bufferPos);                    // 16 pixels left border
+            setBackBufferToBackdropG5(bufferPos);                     // 16 pixels right border
             bufferPos += 16;
 
             //updateSpritesLine(line, bufferPos - 264 - 272);
@@ -688,15 +791,46 @@ wmsx.V9938 = function(cpu, psg) {
         currentScanline = line;
     }
 
+    function updateLinesModeG7(toLine) {                                        // Graphics 7 (Screen 8)
+        var pixelsPos, pixelsPosFinal, color;
+        var line = currentScanline, bufferPos = (line + 8) * 544, off = register[23];
+
+        modeStable = true;
+        do {
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
+            bufferPos += 8;
+
+            pixelsPos = ((line + off) & 255) << 8;
+            pixelsPosFinal = pixelsPos + 256;
+            while (pixelsPos < pixelsPosFinal) {
+                color = vramNameTable[pixelsPos++];
+                frameBackBuffer[bufferPos++] = colors512[(color << 1) | ((color & 0x03) == 0x03 ? 1 : 0)];    // 8 bit GRB to 9 bit GRB
+            }
+
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
+            bufferPos += 8 + 272;
+
+            //updateSpritesLine(line, bufferPos - 264 - 272);
+
+            line++;
+            if (line >= toLine) break;
+
+            lineClockCPUandPSG();
+        } while (modeStable);
+
+        cycleLines += (line - currentScanline);
+        currentScanline = line;
+    }
+
     function updateLinesModeT1Debug(toLine) {                                   // Text (Screen 0)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCodeValuesStart, values;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left text margin
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left text margin
             bufferPos += 8;
 
             patPos = (line >>> 3) * 40;                                         // line / 8 * 40
@@ -705,32 +839,27 @@ wmsx.V9938 = function(cpu, psg) {
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 if (debugModePatternInfoNames) {
-                    colorCodeValuesStart = colorCodeStartPositions[name === 0x20 ? 0x41 : 0xf1];
+                    colorCode = name === 0x20 ? 0x41 : 0xf1;
                     pattern = debugPatTableDigits8[name * 8 + lineInPattern];
-                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
-                    wmsx.Util.arrayCopy(values, 0, tempValues);
-                    values = tempValues;
                     // Squish digits to fit 6 pixels wide
                     if (lineInPattern <= 5) {
-                        for (var i = 3; i < 6; i++) values[i] = values[i + 1] & 0x8fffffff;    // Darken the 2nd digit
+                        pattern = (pattern & 0xe0) | ((pattern & 0x0e) << 1);   // TODO Darken 2nd digit
                     } else if (lineInPattern === 6)
-                        values[5] = 0;
+                        pattern = 0x78;
                 } else if (debugModePatternInfoBlocks) {
-                    colorCodeValuesStart = colorCodeStartPositions[register[7]];               // Real text color for all blocks
+                    colorCode = register[7];                                    // Real text color for all blocks
                     pattern = debugPatTableBlocks[lineInPattern];
-                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
                 } else {
-                    colorCodeValuesStart = colorCodeStartPositions[0xf1];
+                    colorCode = 0xf1;
                     pattern = vramPatternTable[(name << 3) + lineInPattern];
-                    values = colorCodePatternValues[colorCodeValuesStart + pattern];
                 }
-                frameBackBuffer.set(values, bufferPos);
-                bufferPos += 6;                                                 // advance 6 pixels
+                setBackBufferPattern(bufferPos, pattern, colorCode);
+                bufferPos += 6;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right text margin
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right text margin
             bufferPos += 8;
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             // Sprites deactivated
@@ -748,12 +877,12 @@ wmsx.V9938 = function(cpu, psg) {
     function updateLinesModeMCDebug(toLine) {                                   // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return updateLinesModeMC(toLine);
 
-        var patPos, patPosFinal, name, values, pattern;
+        var patPos, patPosFinal, name, pattern;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels left border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
 
             patPos = (line >>> 3) << 5;                                         // line / 8 * 32
@@ -761,12 +890,11 @@ wmsx.V9938 = function(cpu, psg) {
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = debugPatTableDigits8[name * 8 + (line & 0x07)];
-                values = colorCodePatternValues[colorCodeStartPositions[0xf1] + pattern];
-                frameBackBuffer.set(values, bufferPos);
+                setBackBufferPattern(bufferPos, pattern, 0xf1);
                 bufferPos += 8;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);                     // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             updateSpritesLine(line, bufferPos - 264 - 272);
@@ -782,12 +910,12 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG1Debug(toLine) {                                   // Graphics 1 (Screen 1)
-        var patPos, patPosFinal, name, pattern, colorCode, values;
+        var patPos, patPosFinal, name, pattern, colorCode;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
 
             patPos = (line >>> 3) << 5;
@@ -805,12 +933,11 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[((name << 3) + lineInPattern)];
                 }
-                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];
-                frameBackBuffer.set(values, bufferPos);
+                setBackBufferPattern(bufferPos, pattern, colorCode);
                 bufferPos += 8;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             updateSpritesLine(line, bufferPos - 264 - 272);
@@ -830,7 +957,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         modeStable = true;
         do {
-            frameBackBuffer.set(backdropValues, bufferPos);
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
             bufferPos += 8;
 
             patPos = (line >>> 3) << 5;
@@ -851,12 +978,11 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[(((name & patternNameMask) << 3) + lineInPattern)];
                 }
-                values = colorCodePatternValues[colorCodeStartPositions[colorCode] + pattern];
-                frameBackBuffer.set(values, bufferPos);
+                setBackBufferPattern(bufferPos, pattern, colorCode);
                 bufferPos += 8;
             }
 
-            frameBackBuffer.set(backdropValues, bufferPos);
+            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
             bufferPos += 8 + 272;
 
             updateSpritesLine(line, bufferPos - 264 + 272);
@@ -874,7 +1000,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSpritesLineSize0(line, bufferPos) {                      // 8x8 normal
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
-        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var atrPos, patternStart, name, color, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
@@ -894,14 +1020,13 @@ wmsx.V9938 = function(cpu, psg) {
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -7) continue;                                           // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
-            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            color &= 0x0f;
             patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoNames ? name : sprite) << 3) + (line - y);
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable8[patternStart];
-                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
+                copySpriteL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -920,7 +1045,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSpritesLineSize1(line, bufferPos) {                      // 8x8 double
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
-        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var atrPos, patternStart, name, color, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
@@ -940,14 +1065,13 @@ wmsx.V9938 = function(cpu, psg) {
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
-            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            color &= 0x0f;
             patternStart = (!debugModeSpriteInfo ? name << 3 : (debugModeSpriteInfoNames ? name : sprite) << 3) + ((line - y) >>> 1);    // Double line height
             s = x >= 0 ? 0 : -x;
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable8[patternStart];
-                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
+                copySprite2xL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -966,7 +1090,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSpritesLinesSize2(line, bufferPos) {                     // 16x16 normal
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
-        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var atrPos, color, patternStart, name, color, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
@@ -986,23 +1110,21 @@ wmsx.V9938 = function(cpu, psg) {
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -15) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
-            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            color &= 0x0f;
             patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoNames ? name : sprite) << 5) + (line - y);
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart];
-                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
+                copySpriteL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
             // Right half
             s = x >= -8 ? 0 : -8 - x;
             f = x <= 240 ? 8 : 248 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart + 16];
-                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite(frameBackBuffer, bufferPos + x + 8, values, s, f, invalid < 0);
+                copySpriteL(frameBackBuffer, bufferPos + x + 8, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -1021,7 +1143,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSpritesLineSize3(line, bufferPos) {                      // 16x16 double
         if (vramSpriteAttrTable[0] === 208) return;                         // Sprites deactivated
 
-        var atrPos, colorValuesStart, patternStart, name, color, pattern, values;
+        var atrPos, patternStart, name, color, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
@@ -1041,23 +1163,21 @@ wmsx.V9938 = function(cpu, psg) {
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -31) continue;                                          // Not visible (out to the left)
             name = vramSpriteAttrTable[atrPos + 2];
-            colorValuesStart = (color & 0x0f) << 8;                         // Color * 256 patterns per color
+            color &= 0x0f;
             patternStart = (!debugModeSpriteInfo ? (name & 0xfc) << 3 : (debugModeSpriteInfoNames ? name : sprite) << 5) + ((line - y) >>> 1);    // Double line height
             // Left half
             s = x >= 0 ? 0 : -x;
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart];
-                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite2x(frameBackBuffer, bufferPos + x, values, s, f, invalid < 0);
+                copySprite2xL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
             // Right half
             s = x >= -16 ? 0 : -16 - x;
             f = x <= 224 ? 16 : 240 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart + 16];
-                values = spriteColorCodePatternValues[colorValuesStart + pattern];
-                copySprite2x(frameBackBuffer, bufferPos + x + 16, values, s, f, invalid < 0);
+                copySprite2xL(frameBackBuffer, bufferPos + x + 16, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -1073,24 +1193,24 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function copySprite(dest, pos, source, start, finish, collide) {
+    function copySpriteL(dest, pos, pattern, color, start, finish, collide) {
         for (var i = start; i < finish; i++) {
-            var s = source[i];
+            var s = (pattern >> (7 - i)) & 0x01;
             if (s === 0) continue;
-            var d = dest[pos + i];
-            // Transparent sprites (color 0x01000000) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (d < 0xff000000) dest[pos + i] = s === 0x01000000 ? (d | 0xff000000) : s;
+            var destValue = dest[pos + i];
+            // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
+            if (destValue < 0xff000000) dest[pos + i] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
 
-    function copySprite2x(dest, pos, source, start, finish, collide) {
+    function copySprite2xL(dest, pos, pattern, color, start, finish, collide) {
         for (var i = start; i < finish; i++) {
-            var s = source[(i >>> 1)];
+            var s = (pattern >> (7 - (i >>> 1))) & 0x01;
             if (s === 0) continue;
-            var d = dest[pos + i];
-            // Transparent sprites (color 0x01000000) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (d < 0xff000000) dest[pos + i] = s === 0x01000000 ? (d | 0xff000000) : s;
+            var destValue = dest[pos + i];
+            // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
+            if (destValue < 0xff000000) dest[pos + i] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
@@ -1103,38 +1223,89 @@ wmsx.V9938 = function(cpu, psg) {
         status[2] &= ~1;
     }
 
-    function HMMV() {
+    function HMMC() {
         // Begin
         status[2] |= 1;
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
+        var x = (((register[37] & 0x01) << 8) | register[36]);
+        var y = (((register[39] & 0x03) << 8) | register[38]);
+        executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
+        executingCommandNY = (((register[43] & 0x03) << 8) | register[42]);
+        executingCommandDIX = register[45] & 0x04 ? -1 : 1;
+        executingCommandDIY = register[45] & 0x08 ? -1 : 1;
+        if (executingCommandDIX === -1) x += executingCommandNX - 1;
+        if (executingCommandDIY === -1) y += executingCommandNY - 1;
+
+        executingCommandLineSize = modes[mode].nameLineSize;
+        switch (mode) {
+            case 0x03:
+                x >>>= 1; executingCommandNX >>>= 1; break;
+            case 0x04:
+                x >>>= 2; executingCommandNX >>>= 2; break;
+            case 0x05:
+                x >>>= 1; executingCommandNX >>>= 1; break;
+            case 0x07:
+        }
+        executingCommandDestPos = y * executingCommandLineSize + x;
+
+        //console.log("HMMC Start x: " + x + ", y: " + y + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+
+        executingCommandStart(HMMCNextData);
+    }
+
+    function HMMCNextData(co) {
+        //console.log("CPU Color: " + co + ", X: " + executingCommandCX + ", Y: " + executingCommandCY);
+
+        vramNameTable[executingCommandDestPos] = co;
+
+        executingCommandCX++;
+        if (executingCommandCX >= executingCommandNX) {
+            executingCommandDestPos -= executingCommandDIX * (executingCommandNX - 1);
+            executingCommandCX = 0; executingCommandCY++;
+            if (executingCommandCY >= executingCommandNY) executingCommandFinish();
+            else executingCommandDestPos += executingCommandDIY * executingCommandLineSize;
+        } else {
+            executingCommandDestPos += executingCommandDIX;
+        }
+    }
+
+    function HMMM() {
+        // Begin
+        status[2] |= 1;
+
+        // Collect parameters
+        var srcX = (((register[33] & 0x01) << 8) | register[32]);
+        var srcY = (((register[35] & 0x03) << 8) | register[34]);
+        var destX = (((register[37] & 0x01) << 8) | register[36]);
+        var destY = (((register[39] & 0x03) << 8) | register[38]);
         var nx = (((register[41] & 0x03) << 8) | register[40]);
         var ny = (((register[43] & 0x03) << 8) | register[42]);
-        var co = register[44];
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
+        var dix = register[45] & 0x04 ? -1 : 1; if (dix === -1) { srcX += nx - 1; destX += nx - 1 };
+        var diy = register[45] & 0x08 ? -1 : 1; if (diy === -1) { srcY += ny - 1; destY += ny - 1 };
 
-        //console.log("HMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny);
+        //console.log("HMMM srcX: " + srcX + ", srcY: " + srcY + ", destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
         var lineSize = modes[mode].nameLineSize;
         switch (mode) {
             case 0x03:
-                dx >>>= 1; nx >>>= 1; break;
+                srcX >>>= 1; destX >>>= 1; nx >>>= 1; break;
             case 0x04:
-                dx >>>= 2; nx >>>= 2; break;
+                srcX >>>= 2; destX >>>= 2; nx >>>= 2; break;
             case 0x05:
-                dx >>>= 1; nx >>>= 1; break;
+                srcX >>>= 1; destX >>>= 1; nx >>>= 1; break;
             case 0x07:
         }
 
         // Perform operation
-        var pos = dy * lineSize + dx;
-        for (var y = 0; y < ny; y++) {
-            for (var x = 0; x < nx; x++) {
-                vramNameTable[pos++] = co;
+        var srcPos = srcY * lineSize + srcX;
+        var destPos = destY * lineSize + destX;
+        var yStride = -(dix * nx) + lineSize * diy;
+        for (var cy = 0; cy < ny; cy++) {
+            for (var cx = 0; cx < nx; cx++) {
+                vramNameTable[destPos] = vramNameTable[srcPos];
+                srcPos += dix; destPos += dix;
             }
-            pos = pos - nx + lineSize;
+            srcPos += yStride; destPos += yStride;
         }
 
         // Finish
@@ -1142,42 +1313,111 @@ wmsx.V9938 = function(cpu, psg) {
         register[46] &= ~0xf0;
     }
 
-    function PSET() {
+    function HMMV() {
         // Begin
         status[2] |= 1;
+
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
+        var x = (((register[37] & 0x01) << 8) | register[36]);
+        var y = (((register[39] & 0x03) << 8) | register[38]);
+        var nx = (((register[41] & 0x03) << 8) | register[40]);
+        var ny = (((register[43] & 0x03) << 8) | register[42]);
         var co = register[44];
-        var op = register[46] & 0x0f;
+        var dix = register[45] & 0x04 ? -1 : 1; if (dix === -1) x = x + nx - 1;
+        var diy = register[45] & 0x08 ? -1 : 1; if (diy === -1) y = y + ny - 1;
 
-        //console.log("PSET dx: " + dx + ", dy: " + dy);
+        //console.log("HMMV x: " + x + ", y: " + y + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
-        innerPSET(dx, dy, co);
+        var lineSize = modes[mode].nameLineSize;
+        switch (mode) {
+            case 0x03:
+                x >>>= 1; nx >>>= 1; break;
+            case 0x04:
+                x >>>= 2; nx >>>= 2; break;
+            case 0x05:
+                x >>>= 1; nx >>>= 1; break;
+            case 0x07:
+        }
+
+        // Perform operation
+        var pos = y * lineSize + x;
+        for (var cy = 0; cy < ny; cy++) {
+            for (var cx = 0; cx < nx; cx++) {
+                vramNameTable[pos] = co;
+                pos += dix;
+            }
+            pos = pos - (dix * nx) + lineSize * diy;
+        }
 
         // Finish
         status[2] &= ~1;
         register[46] &= ~0xf0;
     }
 
-    function innerPSET(dx, dy, co) {
-        var shift, mask, lineSize = modes[mode].nameLineSize;
-        switch (mode) {
-            case 0x03:
-                shift = (1 - (dx & 0x1)) * 4;
-                dx >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
-            case 0x04:
-                shift = (3 - (dx & 0x3)) * 2;
-                dx >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            case 0x05:
-                shift = (1 - (dx & 0x1)) * 4;
-                dx >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
-            case 0x07:
-                mask = 0xff;
+    function LMMC() {
+        // Begin
+        status[2] |= 1;
+
+        // Collect parameters
+        executingCommandDestX = (((register[37] & 0x01) << 8) | register[36]);
+        executingCommandDestY = (((register[39] & 0x03) << 8) | register[38]);
+        executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
+        executingCommandNY = (((register[43] & 0x03) << 8) | register[42]);
+        executingCommandDIX = register[45] & 0x04 ? -1 : 1;
+        executingCommandDIY = register[45] & 0x08 ? -1 : 1;
+        if (executingCommandDIX === -1) executingCommandDestX += executingCommandNX - 1;
+        if (executingCommandDIY === -1) executingCommandDestY += executingCommandNY - 1;
+
+        //console.log("LMMC START x: " + executingCommandDestX + ", y: " + executingCommandDestY + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+
+        executingCommandStart(LMMCNextData);
+    }
+
+    function LMMCNextData(co) {
+        //console.log("CPU Color: " + co + ", X: " + executingCommandCX + ", Y: " + executingCommandCY);
+
+        logicalPSET(executingCommandDestX, executingCommandDestY, co);
+
+        executingCommandCX++;
+        if (executingCommandCX >= executingCommandNX) {
+            executingCommandDestX -= executingCommandDIX * (executingCommandNX - 1);
+            executingCommandCX = 0; executingCommandCY++;
+            if (executingCommandCY >= executingCommandNY) executingCommandFinish();
+            else executingCommandDestY += executingCommandDIY;
+        } else {
+            executingCommandDestX += executingCommandDIX;
         }
+    }
+
+    function LMMM() {
+        // Begin
+        status[2] |= 1;
+
+        // Collect parameters
+        var srcX = (((register[33] & 0x01) << 8) | register[32]);
+        var srcY = (((register[35] & 0x03) << 8) | register[34]);
+        var destX = (((register[37] & 0x01) << 8) | register[36]);
+        var destY = (((register[39] & 0x03) << 8) | register[38]);
+        var nx = (((register[41] & 0x03) << 8) | register[40]);
+        var ny = (((register[43] & 0x03) << 8) | register[42]);
+        var dix = register[45] & 0x04 ? -1 : 1; if (dix === -1) { srcX += nx - 1; destX += nx - 1 };
+        var diy = register[45] & 0x08 ? -1 : 1; if (diy === -1) { srcY += ny - 1; destY += ny - 1 };
+
+        //console.log("LMMM srcX: " + srcX + ", srcY: " + srcY + ", destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+
         // Perform operation
-        var pos = dy * lineSize + dx;
-        vramNameTable[pos] = (vramNameTable[pos] & ~mask) | co;
+        for (var cy = 0; cy < ny; cy++) {
+            for (var cx = 0; cx < nx; cx++) {
+                logicalPCOPY(srcX, srcY, destX, destY);
+                srcX += dix; destX += dix;
+            }
+            srcX -= dix * nx; destX -= dix * nx;
+            srcY += diy; destY += diy;
+        }
+
+        // Finish
+        status[2] &= ~1;
+        register[46] &= ~0xf0;
     }
 
     function LINE() {
@@ -1201,7 +1441,7 @@ wmsx.V9938 = function(cpu, psg) {
         var e = 0;
         if (maj === 0) {
             for (var n = 0; n <= nx; n++) {
-                innerPSET(x, y, co);
+                logicalPSET(x, y, co);
                 x += dix; e += ny;
                 if ((e << 1) >= nx) {
                     y += diy; e -= nx;
@@ -1209,7 +1449,7 @@ wmsx.V9938 = function(cpu, psg) {
             }
         } else {
             for (n = 0; n <= nx; n++) {
-                innerPSET(x, y, co);
+                logicalPSET(x, y, co);
                 y += diy; e += ny;
                 if ((e << 1) >= nx) {
                     x += dix; e -= nx;
@@ -1222,48 +1462,66 @@ wmsx.V9938 = function(cpu, psg) {
         register[46] &= ~0xf0;
     }
 
-    function LMMC() {
+    function PSET() {
         // Begin
         status[2] |= 1;
         // Collect parameters
-        executingCommandDX = (((register[37] & 0x01) << 8) | register[36]);
-        executingCommandDY = (((register[39] & 0x03) << 8) | register[38]);
-        executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
-        executingCommandNY = (((register[43] & 0x03) << 8) | register[42]);
-        if (register[45] & 0x04) {
-            executingCommandDIX = -1;
-            executingCommandX = executingCommandDX + executingCommandNX -1;
-        } else {
-            executingCommandDIX = 1;
-            executingCommandX = executingCommandDX;
-        }
-        if (register[45] & 0x08) {
-            executingCommandDIY = -1;
-            executingCommandY = executingCommandDY + executingCommandNY -1;
-        } else {
-            executingCommandDIY = 1;
-            executingCommandY = executingCommandDY;
-        }
+        var dx = (((register[37] & 0x01) << 8) | register[36]);
+        var dy = (((register[39] & 0x03) << 8) | register[38]);
+        var co = register[44];
+        var op = register[46] & 0x0f;
 
-        //console.log("LMMC START dx: " + executingCommandDX + ", dy: " + executingCommandDY + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+        //console.log("PSET dx: " + dx + ", dy: " + dy);
 
-        executingCommandStart(LMMCNextData);
+        logicalPSET(dx, dy, co);
+
+        // Finish
+        status[2] &= ~1;
+        register[46] &= ~0xf0;
     }
 
-    function LMMCNextData(co) {
-        //console.log("CPU Color: " + co + ", X: " + executingCommandCX + ", Y: " + executingCommandCY);
+    function logicalPSET(x, y, co) {
+        var shift, mask, lineSize = modes[mode].nameLineSize;
+        switch (mode) {
+            case 0x03:
+                shift = (1 - (x & 0x1)) * 4;
+                x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
+            case 0x04:
+                shift = (3 - (x & 0x3)) * 2;
+                x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
+            case 0x05:
+                shift = (1 - (x & 0x1)) * 4;
+                x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
+            case 0x07:
+                mask = 0xff;
+        }
+        // Perform operation
+        var pos = y * lineSize + x;
+        vramNameTable[pos] = (vramNameTable[pos] & ~mask) | co;
+    }
 
-        innerPSET(executingCommandX, executingCommandY, co);
-        executingCommandCX++;
-        if (executingCommandCX >= executingCommandNX) {
-            executingCommandX = executingCommandDIX === 1 ? executingCommandDX : executingCommandDX + executingCommandNX - 1;
-            executingCommandCX = 0; executingCommandCY++;
-            if (executingCommandCY >= executingCommandNY) executingCommandFinish();
-            else  executingCommandY += executingCommandDIY;
-        } else {
-            executingCommandX += executingCommandDIX;
+    function logicalPCOPY(sX, sY, dX, dY) {
+        var sShift, dShift, mask, lineSize = modes[mode].nameLineSize;
+        switch (mode) {
+            case 0x03:
+                sShift = (1 - (sX & 0x1)) * 4; dShift = (1 - (dX & 0x1)) * 4;
+                sX >>>= 1; dX >>>= 1; mask = 0x0f; break;
+            case 0x04:
+                sShift = (3 - (sX & 0x3)) * 2; dShift = (3 - (dX & 0x3)) * 2;
+                sX >>>= 2; dX >>>= 2; mask = 0x03; break;
+            case 0x05:
+                sShift = (1 - (sX & 0x1)) * 4; dShift = (1 - (dX & 0x1)) * 4;
+                sX >>>= 1; dX >>>= 1; mask = 0x0f; break;
+            case 0x07:
+                sShift = dShift = 0;
+                mask = 0xff;
         }
 
+        // Perform operation
+        var sPos = sY * lineSize + sX;
+        var dPos = dY * lineSize + dX;
+        var co = (vramNameTable[sPos] >> sShift) & mask;
+        vramNameTable[dPos] = (vramNameTable[dPos] & ~(mask << dShift)) | (co << sShift);
     }
 
     function executingCommandStart(handler) {
@@ -1281,7 +1539,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function executingCommandFinish() {
 
-        //console.log(executingCommandHandler.name + " Finish");
+        //if (executingCommandHandler === HMMCNextData) console.log(executingCommandHandler.name + " Finish");
 
         executingCommandHandler = null;
         status[2] &= ~81;          // Clear CE and TR
@@ -1321,50 +1579,10 @@ wmsx.V9938 = function(cpu, psg) {
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
     }
 
-    function initColorCodePatternValues() {
-        var sizePerColorCode = 256 * 8;
-        for (var front = 0; front < 16; front++) {
-            for (var pattern = 0; pattern < 256; pattern++) {
-                var position = front * sizePerColorCode + pattern * 8;
-                var patternValues = spriteColorValuesRaw.subarray(position, position + 8);
-                spriteColorCodePatternValues[front * 256 + pattern] = patternValues;
-                for (var back = 0; back < 16; back++) {
-                    var colorCode = (front << 4) + back;
-                    position = colorCode * sizePerColorCode + pattern * 8;
-                    patternValues = colorValuesRaw.subarray(position, position + 8);
-                    colorCodePatternValues[colorCode * 256 + pattern] = patternValues;
-                    // colorCode translation
-                    if (pattern === 0) colorCodeStartPositions[colorCode] = colorCode * 256;
-                }
-            }
-        }
-    }
-
-    function setColorCodePatternValues() {
-        var colorRGBs = debugMode >= 1 && debugMode <= 3  ? colorsDim : colorsNormal;
-        var spriteColorTransp = debugModeSpriteInfo ? 0xfe00f8f8 : 0x01000000;
-        var spriteColorBack   = debugModeSpriteInfo ? 0xfe501616 : 0;
-        for (var front = 0; front < 16; front++) {
-            var colorFront = colorRGBs[front];
-            var spriteColorFront = colorsNormal[front] | 0xff000000;     // Always full alpha
-            for (var pattern = 0; pattern < 256; pattern++) {
-                for (var back = 0; back < 16; back++) {
-                    var colorBack = colorRGBs[back];
-                    var colorCode = (front << 4) + back;
-                    var patternValues = colorCodePatternValues[colorCode * 256 + pattern];
-                    var spritePatternValues = back === 0 ? spriteColorCodePatternValues[front * 256 + pattern] : null;
-                    for (var bit = 7; bit >= 0; bit--) {
-                        var pixel = (pattern >>> bit) & 1;
-                        patternValues[7 - bit] = pixel ? colorFront : colorBack;
-                        if (!spritePatternValues) continue;
-                        // Full Alpha front color or Special Transparent for Sprites
-                        if (pixel) spritePatternValues[7 - bit] = (debugMode >= 4) || (front === 0) ? spriteColorTransp : spriteColorFront;
-                        else spritePatternValues[7 - bit] = spriteColorBack;
-                    }
-                }
-            }
-        }
-        updateBackdropColor(true);  // force
+    function initColorCaches() {
+        // Pre calculate all 512 colors encoded in 9 bits
+        for (var c = 0; c <= 0x1ff; c++)
+            colors512[c] = 0xfe000000 | (color3to8bits[c & 0x7] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
     }
 
     function initDebugPatternTables() {
@@ -1429,14 +1647,13 @@ wmsx.V9938 = function(cpu, psg) {
     var paletteFirstWrite;
 
     var executingCommandHandler = null;
-    var executingCommandDX, executingCommandDY, executingCommandNX, executingCommandNY, executingCommandDIX, executingCommandDIY;
-    var executingCommandX, executingCommandY, executingCommandCX, executingCommandCY;
+    var executingCommandDX, executingCommandDY, executingCommandNX, executingCommandNY, executingCommandDIX, executingCommandDIY, executingCommandLineSize, executingCommandSrctPos, executingCommandDestPos;
+    var executingCommandDestX, executingCommandDestY, executingCommandSrcX, executingCommandSrcY, executingCommandCX, executingCommandCY;
 
-    var backdropColor = -1;
-    var backdrop16Values = new Uint32Array(16);
-    var backdropValues = backdrop16Values.subarray(0, 8);
+    var backdropColor;
+    var backdropValue;
     var backdropFullLine512Values = new Uint32Array(68 * 8);
-    var backdropFullLineValues = backdropFullLine512Values.subarray(0, 34 * 8);
+    var backdropFullLine256Values = backdropFullLine512Values.subarray(0, 34 * 8);
 
     var nameTableAddress = 0;
     var colorTableAddress = 0;
@@ -1448,26 +1665,27 @@ wmsx.V9938 = function(cpu, psg) {
     var patternNameMask = 0x3ff;
     var colorNameMask =   0x3ff;
 
+    var signalMetrics256 = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };
+    var signalMetrics512 = { width: 512, height: 192, borderWidth: 16, borderHeight: 8 };
+
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return { name: "Unsupported",  nameTMask: 0,  patTMask: 0, colorTMask: 0, nameLineSize: 0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+        return { name: "Unsupported", sigMetrics: signalMetrics256, nameTMask: 0,  patTMask: 0, colorTMask: 0, nameLineSize: 0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
     });
 
-    modes[0x10] = { name: "Screen 0",  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1, updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x12] = { name: "Screen 0+", nameTMask: 0x1f000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2, updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x08] = { name: "Screen 3",  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC, updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x00] = { name: "Screen 1",  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1, updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x01] = { name: "Screen 2",  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2, updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    //modes[0x02] = { name: "Screen 4",  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3, updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    //modes[0x03] = { name: "Screen 5",  nameTMask: 0x18000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4, updLinesDeb: updateLinesModeG4Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x04] = { name: "Screen 6",  nameTMask: 0x18000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5, updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    //modes[0x05] = { name: "Screen 7",  nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6, updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    //modes[0x07] = { name: "Screen 8",  nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7, updLinesDeb: updateLinesModeG7Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-
-    var updateSpritesLineFunctions = [updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
+    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, nameTMask: 0x1f000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    //modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, nameTMask: 0x18000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, nameTMask: 0x18000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    //modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
 
     var updateLinesActive, updateLinesBorder, updateSpritesLine;     // Update functions for current mode
+    var updateSpritesLineFunctions = [updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
 
-    var tempValues = new Uint32Array(8);    // Temporary storage for modified pattern values
 
     // VRAM
 
@@ -1485,24 +1703,13 @@ wmsx.V9938 = function(cpu, psg) {
 
     // Palettes
 
-    var colorsNormal = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfeffffff ]);
-    // var colorsNormal = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe40c820, 0xfe78d858, 0xfee85050, 0xfef47078, 0xfe4850d0, 0xfef0e840, 0xfe5050f4, 0xfe7878f4, 0xfe50c0d0, 0xfe80c8e0, 0xfe38b020, 0xfeb858c8, 0xfec8c8c8, 0xfeffffff ]);
-    var colorsDim =    new Uint32Array([ 0x50505050, 0x50505050, 0x50808080, 0x50a0a0a0, 0x50606060, 0x507c7c7c, 0x50707070, 0x50b0b0b0, 0x507c7c7c, 0x50989898, 0x50b0b0b0, 0x50c0c0c0, 0x50707070, 0x50808080, 0x50c4c4c4, 0x50fbfbfb ]);
+    var colorPalette =    new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfeffffff ]);
+    var colorPaletteDim = new Uint32Array([ 0x50505050, 0x50505050, 0x50808080, 0x50a0a0a0, 0x50606060, 0x507c7c7c, 0x50707070, 0x50b0b0b0, 0x507c7c7c, 0x50989898, 0x50b0b0b0, 0x50c0c0c0, 0x50707070, 0x50808080, 0x50c4c4c4, 0x50fbfbfb ]);
+    var colors512 =       new Uint32Array(512);     // 9 bits GRB
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
 
-
-    // Pre calculated 8-pixel RGB + alpha values for all color and 8-bit pattern combinations (actually ABGR endian)
-    // Pattern plane paints with these colors (Alpha = 0xfe), Sprite planes paint with Full Alpha = 0xff
-
-    var colorValuesRaw = new Uint32Array(16 * 16 * 256 * 8);        // 16 front colors * 16 back colors * 256 patterns * 8 pixels
-    var colorCodePatternValues = new Array(256 * 256);              // 256 colorCodes * 256 patterns
-
-    var spriteColorValuesRaw = new Uint32Array(16 * 256 * 8);       // 16 colors * 256 patterns * 8 pixels
-    var spriteColorCodePatternValues = new Array(16 * 256);         // 16 colorCodes * 256 patterns
-
-    var colorCodeStartPositions = new Array(256);                   // Translates colorCodes considering the backdrop color, already * 8 (point to start of values)
-
-    var backdropValuesDebug = new Uint32Array([ 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a, 0xfe2a2a2a ]);
+    var backdropValueTransp = 0x00000000;        // Backdrop transparency
+    var backdropValueDebug =  0xfe2a2a2a;
 
    // Sprite and Debug Modes controls
 
@@ -1519,8 +1726,6 @@ wmsx.V9938 = function(cpu, psg) {
     var debugPatTableBlocks   = new Uint8Array(8);                  // 8x8
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
-
-    var signalMetrics = { width: 512, height: 192, renderedBorderWidth: 16, renderedBorderHeight: 8 };      // Fixed for all modes
 
 
     // Connections

@@ -1115,7 +1115,7 @@ wmsx.V9918 = function(cpu, psg) {
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
-    var signalMetrics = { width: 256, height: 192, renderedBorderWidth: 8, renderedBorderHeight: 8 };      // Fixed for all modes
+    var signalMetrics = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };      // Fixed for all modes
 
 
     // Connections

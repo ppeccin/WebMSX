@@ -46,3 +46,53 @@ WMSX = {
 };
 
 wmsx = window.wmsx || {};           // Namespace for all classes and objects
+
+
+
+
+WMSX.testSet = function(count, srcSize) {
+    var start = performance.now();
+
+    var dest = new Uint32Array(1024);
+    var src = new Uint32Array(srcSize);
+
+    for (var i = 0; i < count; i++) {
+        for (var n = 0; n < 256; n++) {
+            dest.set(src, n);
+        }
+    }
+
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
+
+WMSX.testAtrib = function(count, srcSize) {
+    var start = performance.now();
+
+    var dest = new Uint32Array(512);
+    var src = new Uint32Array(srcSize);
+
+    for (var i = 0; i < count; i++) {
+        for (var n = 0; n < 256; n++) {
+            for (var b = 0; b < srcSize; b++)
+                dest[n + b] = src[b];
+        }
+    }
+
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
