@@ -13,8 +13,8 @@ WMSX.presets = {
 
     MSX2: {
         MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/MSX2.rom",       // "wmsx/roms/MSX2PAL.bios",       // TODO Fix
-        EXPANSION1_URL: "wmsx/roms/MSX2EXT.rom"     // "wmsx/roms/MSX2EXT.bios"
+        BIOS_URL:       "wmsx/roms/MSX2NTSCa.bios",       // "wmsx/roms/MSX2PAL.bios",       // TODO Fix
+        EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"          // "wmsx/roms/MSX2EXT.bios"
     },
 
     MSX2NTSC: {

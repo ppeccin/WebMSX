@@ -79,6 +79,9 @@ wmsx.V9938 = function(cpu, psg) {
     };
 
     this.output98 = function(val) {
+
+        //console.log("VRAM write");
+
         // VRAM Write
         dataToWrite = null;
         vram[vramPointer++] = val;
@@ -92,13 +95,14 @@ wmsx.V9938 = function(cpu, psg) {
     this.input99 = function() {
         // Status Register Read
         dataToWrite = null;
-        var prevStatus = status[register[15]];
+        var reg = register[15];
+        var prevStatus = status[reg];
 
-        switch(register[15]) {
+        switch(reg) {
             case 0:
                 status[0] = 0; updateIRQ(); break;
             case 1:
-                break;
+                status[1] &= ~0x81; updateIRQ(); break;
             case 2:
                 break;
             case 3:
@@ -151,7 +155,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     function setPaletteRegister(reg, val) {
 
-        console.log("Palette Register: " + reg + " = " + val.toString(16));
+        //console.log("Palette Register: " + reg + " = " + val.toString(16));
 
         paletteRegister[reg] = val;
         colorPalette[reg] = colors512[((val & 0x700) >> 2) | ((val & 0x70) >> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
@@ -243,6 +247,9 @@ wmsx.V9938 = function(cpu, psg) {
             case 7:
                 updateBackdropColor();
                 break;
+            case 9:
+                updateSignalMetrics();
+                break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
                 vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & VRAM_LIMIT;
@@ -256,26 +263,31 @@ wmsx.V9938 = function(cpu, psg) {
                 break;
             case 44:
                 if (executingCommandHandler) executingCommandHandler(val);
-                //else console.log("Setting Reg44 Color out of command execution");
+                //else console.log("Setting Reg44 = " + val + " out of command execution");
                 break;
             case 46:
+
+                //console.log(">>>> VDP Command: " + (val & 0xf0).toString(16));
+
                 switch (val & 0xf0) {
-                    case 0x00:
-                        STOP(); break;
-                    case 0xc0:
-                        HMMV(); break;
-                    case 0xd0:
-                        HMMM(); break;
                     case 0xf0:
                         HMMC(); break;
-                    case 0x50:
-                        PSET(); break;
-                    case 0x70:
-                        LINE(); break;
-                    case 0x90:
-                        LMMM(); break;
+                    case 0xd0:
+                        HMMM(); break;
+                    case 0xc0:
+                        HMMV(); break;
                     case 0xb0:
                         LMMC(); break;
+                    case 0x90:
+                        LMMM(); break;
+                    case 0x80:
+                        LMMV(); break;
+                    case 0x70:
+                        LINE(); break;
+                    case 0x50:
+                        PSET(); break;
+                    case 0x00:
+                        STOP(); break;
                     default:
                         wmsx.Util.log("Unsupported V9938 Command: " + val.toString(16));
                 }
@@ -321,18 +333,18 @@ wmsx.V9938 = function(cpu, psg) {
             if (cycleLines >= toCycleLine) return;
 
             // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
-            if (currentScanline < 192) {
+            if (currentScanline < finishingActiveScanline) {
                 status[2] &= ~0x40;
                 lineClockCPUandPSG();
-                while((currentScanline < 192) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < 192 ? toScanline : 192);
+                while((currentScanline < finishingActiveScanline) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < finishingActiveScanline ? toScanline : finishingActiveScanline);
             }
 
             // End of visible scan, request interrupt
-            if (currentScanline === 192) triggerInterrupt();
+            if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();
             if (cycleLines >= toCycleLine) return;
 
             // Visible bottom border scanlines (8)
-            if (currentScanline < 200) updateLinesBorder(toScanline < 200 ? toScanline : 200);
+            if (currentScanline < finishingBottomBorderScanline) updateLinesBorder(toScanline < finishingBottomBorderScanline ? toScanline : finishingBottomBorderScanline);
             if (cycleLines >= toCycleLine) return;
 
             // Invisible scanlines (enough to fill the remaining lines for the video standard)
@@ -342,14 +354,21 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function triggerInterrupt() {
+    function triggerVerticalInterrupt() {
         status[0] |= 0x80;
         status[2] |= 0x40;
         updateIRQ();
     }
 
+    function triggerHorizontalInterrupt() {
+        status[1] |= 0x01;
+        updateIRQ();
+    }
+
     function updateIRQ() {
-        cpu.INT = ((status[0] & 0x80) && (register[1] & 0x20)) ? 0 : 1;
+        cpu.INT = ((status[0] & 0x80) && (register[1] & 0x20))
+            || ((register[0] & 0x10) && (status[1] & 0x01))
+            ? 0 : 1;
     }
 
     function updateMode(force) {
@@ -366,10 +385,18 @@ wmsx.V9938 = function(cpu, psg) {
             vramNameTable = vram.subarray(nameTableAddress);
             vramPatternTable = vram.subarray(patternTableAddress);
             vramColorTable = vram.subarray(colorTableAddress);
-            videoSignal.setSignalMetrics(m.sigMetrics);
+            nameTableLineSize = m.nameLineSize;
+            updateSignalMetrics();
         }
         updateUpdateFunctions();
         modeStable = false;
+    }
+
+    function updateSignalMetrics() {
+        signalMetrics = register[9] & 0x80 ? modes[mode].sigMetricsExt : modes[mode].sigMetrics;
+        finishingActiveScanline = signalMetrics.height;
+        finishingBottomBorderScanline = finishingActiveScanline + 8;
+        videoSignal.setSignalMetrics(signalMetrics);
     }
 
     function updateMode1Specifics() {                     // Special rules for register 3 and 4 when in mode 1
@@ -387,7 +414,7 @@ wmsx.V9938 = function(cpu, psg) {
         var newColor = register[7] & 0x0f;
         if ((newColor === backdropColor) && !force) return;
 
-        console.log("Backdrop Color: " + newColor);
+        //console.log("Backdrop Color: " + newColor);
 
         backdropColor = newColor;
         var value = debugModePatternInfo ? backdropValueDebug : backdropColor === 0 ? backdropValueTransp : colorPalette[backdropColor];
@@ -727,14 +754,19 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG4(toLine) {                                        // Graphics 4 (Screen 5)
         var pixelsPos, pixelsPosFinal, pixels;
-        var line = currentScanline, bufferPos = (line + 8) * 544, off = register[23];
+        var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
         do {
-            setBackBufferToBackdrop(bufferPos);                       // 8 pixels left border
+            if (line === register[19]) {
+                //console.log("Horizontal interrupt: " + line);
+                triggerHorizontalInterrupt();
+            }
+
+            setBackBufferToBackdrop(bufferPos);                                 // 8 pixels left border
             bufferPos += 8;
 
-            pixelsPos = ((line + off) & 255) << 7;
+            pixelsPos = ((line + register[23]) & 255) << 7;                     // consider the scan start offset in reg23
             pixelsPosFinal = pixelsPos + 128;
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vramNameTable[pixelsPos++];
@@ -742,12 +774,13 @@ wmsx.V9938 = function(cpu, psg) {
                 frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
             }
 
-            setBackBufferToBackdrop(bufferPos);                       // 8 pixels right border
+            setBackBufferToBackdrop(bufferPos);                                 // 8 pixels right border
             bufferPos += 8 + 272;
 
             //updateSpritesLine(line, bufferPos - 264 - 272);
 
             line++;
+
             if (line >= toLine) break;
 
             lineClockCPUandPSG();
@@ -1215,40 +1248,30 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function STOP() {
-
-        console.log("STOP: " + executingCommandHandler);
-
-        executingCommandHandler = null;
-        status[2] &= ~1;
-    }
-
     function HMMC() {
         // Begin
         status[2] |= 1;
+
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
         executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
-        executingCommandNY = (((register[43] & 0x03) << 8) | register[42]);
+        executingCommandNY = (((register[43] & 0x07) << 8) | register[42]);
         executingCommandDIX = register[45] & 0x04 ? -1 : 1;
         executingCommandDIY = register[45] & 0x08 ? -1 : 1;
-        if (executingCommandDIX === -1) x += executingCommandNX - 1;
-        if (executingCommandDIY === -1) y += executingCommandNY - 1;
 
-        executingCommandLineSize = modes[mode].nameLineSize;
+        //console.log("HMMC Start x: " + x + ", y: " + y + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+
         switch (mode) {
             case 0x03:
+            case 0x05:
                 x >>>= 1; executingCommandNX >>>= 1; break;
             case 0x04:
                 x >>>= 2; executingCommandNX >>>= 2; break;
-            case 0x05:
-                x >>>= 1; executingCommandNX >>>= 1; break;
             case 0x07:
         }
-        executingCommandDestPos = y * executingCommandLineSize + x;
 
-        //console.log("HMMC Start x: " + x + ", y: " + y + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+        executingCommandDestPos = y * nameTableLineSize + x;
 
         executingCommandStart(HMMCNextData);
     }
@@ -1256,14 +1279,14 @@ wmsx.V9938 = function(cpu, psg) {
     function HMMCNextData(co) {
         //console.log("CPU Color: " + co + ", X: " + executingCommandCX + ", Y: " + executingCommandCY);
 
-        vramNameTable[executingCommandDestPos] = co;
+        vram[executingCommandDestPos] = co;
 
         executingCommandCX++;
         if (executingCommandCX >= executingCommandNX) {
             executingCommandDestPos -= executingCommandDIX * (executingCommandNX - 1);
             executingCommandCX = 0; executingCommandCY++;
             if (executingCommandCY >= executingCommandNY) executingCommandFinish();
-            else executingCommandDestPos += executingCommandDIY * executingCommandLineSize;
+            else executingCommandDestPos += executingCommandDIY * nameTableLineSize;
         } else {
             executingCommandDestPos += executingCommandDIX;
         }
@@ -1279,30 +1302,28 @@ wmsx.V9938 = function(cpu, psg) {
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
         var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x03) << 8) | register[42]);
-        var dix = register[45] & 0x04 ? -1 : 1; if (dix === -1) { srcX += nx - 1; destX += nx - 1 };
-        var diy = register[45] & 0x08 ? -1 : 1; if (diy === -1) { srcY += ny - 1; destY += ny - 1 };
+        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var dix = register[45] & 0x04 ? -1 : 1;
+        var diy = register[45] & 0x08 ? -1 : 1;
 
         //console.log("HMMM srcX: " + srcX + ", srcY: " + srcY + ", destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
-        var lineSize = modes[mode].nameLineSize;
         switch (mode) {
             case 0x03:
+            case 0x05:
                 srcX >>>= 1; destX >>>= 1; nx >>>= 1; break;
             case 0x04:
                 srcX >>>= 2; destX >>>= 2; nx >>>= 2; break;
-            case 0x05:
-                srcX >>>= 1; destX >>>= 1; nx >>>= 1; break;
             case 0x07:
         }
 
         // Perform operation
-        var srcPos = srcY * lineSize + srcX;
-        var destPos = destY * lineSize + destX;
-        var yStride = -(dix * nx) + lineSize * diy;
+        var srcPos = srcY * nameTableLineSize + srcX;
+        var destPos = destY * nameTableLineSize + destX;
+        var yStride = -(dix * nx) + nameTableLineSize * diy;
         for (var cy = 0; cy < ny; cy++) {
             for (var cx = 0; cx < nx; cx++) {
-                vramNameTable[destPos] = vramNameTable[srcPos];
+                vram[destPos] = vram[srcPos];
                 srcPos += dix; destPos += dix;
             }
             srcPos += yStride; destPos += yStride;
@@ -1321,32 +1342,31 @@ wmsx.V9938 = function(cpu, psg) {
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
         var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x03) << 8) | register[42]);
+        var ny = (((register[43] & 0x07) << 8) | register[42]);
         var co = register[44];
-        var dix = register[45] & 0x04 ? -1 : 1; if (dix === -1) x = x + nx - 1;
-        var diy = register[45] & 0x08 ? -1 : 1; if (diy === -1) y = y + ny - 1;
+        var dix = register[45] & 0x04 ? -1 : 1;
+        var diy = register[45] & 0x08 ? -1 : 1;
 
-        //console.log("HMMV x: " + x + ", y: " + y + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+        //console.log("HMMV x: " + x + ", y: " + y + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
-        var lineSize = modes[mode].nameLineSize;
         switch (mode) {
             case 0x03:
+            case 0x05:
                 x >>>= 1; nx >>>= 1; break;
             case 0x04:
                 x >>>= 2; nx >>>= 2; break;
-            case 0x05:
-                x >>>= 1; nx >>>= 1; break;
             case 0x07:
         }
 
         // Perform operation
-        var pos = y * lineSize + x;
+        var pos = y * nameTableLineSize + x;
+        var yStride = -(dix * nx) + nameTableLineSize * diy;
         for (var cy = 0; cy < ny; cy++) {
             for (var cx = 0; cx < nx; cx++) {
-                vramNameTable[pos] = co;
+                vram[pos] = co;
                 pos += dix;
             }
-            pos = pos - (dix * nx) + lineSize * diy;
+            pos += yStride;
         }
 
         // Finish
@@ -1362,11 +1382,10 @@ wmsx.V9938 = function(cpu, psg) {
         executingCommandDestX = (((register[37] & 0x01) << 8) | register[36]);
         executingCommandDestY = (((register[39] & 0x03) << 8) | register[38]);
         executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
-        executingCommandNY = (((register[43] & 0x03) << 8) | register[42]);
+        executingCommandNY = (((register[43] & 0x07) << 8) | register[42]);
         executingCommandDIX = register[45] & 0x04 ? -1 : 1;
         executingCommandDIY = register[45] & 0x08 ? -1 : 1;
-        if (executingCommandDIX === -1) executingCommandDestX += executingCommandNX - 1;
-        if (executingCommandDIY === -1) executingCommandDestY += executingCommandNY - 1;
+        executingCommandLogicalOperation = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LMMC START x: " + executingCommandDestX + ", y: " + executingCommandDestY + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
 
@@ -1374,9 +1393,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function LMMCNextData(co) {
-        //console.log("CPU Color: " + co + ", X: " + executingCommandCX + ", Y: " + executingCommandCY);
-
-        logicalPSET(executingCommandDestX, executingCommandDestY, co);
+        logicalPSET(executingCommandDestX, executingCommandDestY, co, executingCommandLogicalOperation);
 
         executingCommandCX++;
         if (executingCommandCX >= executingCommandNX) {
@@ -1399,16 +1416,17 @@ wmsx.V9938 = function(cpu, psg) {
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
         var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x03) << 8) | register[42]);
-        var dix = register[45] & 0x04 ? -1 : 1; if (dix === -1) { srcX += nx - 1; destX += nx - 1 };
-        var diy = register[45] & 0x08 ? -1 : 1; if (diy === -1) { srcY += ny - 1; destY += ny - 1 };
+        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var dix = register[45] & 0x04 ? -1 : 1;
+        var diy = register[45] & 0x08 ? -1 : 1;
+        var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LMMM srcX: " + srcX + ", srcY: " + srcY + ", destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
         // Perform operation
         for (var cy = 0; cy < ny; cy++) {
             for (var cx = 0; cx < nx; cx++) {
-                logicalPCOPY(srcX, srcY, destX, destY);
+                logicalPCOPY(destX, destY, srcX, srcY, op);
                 srcX += dix; destX += dix;
             }
             srcX -= dix * nx; destX -= dix * nx;
@@ -1420,18 +1438,51 @@ wmsx.V9938 = function(cpu, psg) {
         register[46] &= ~0xf0;
     }
 
+    function LMMV() {
+        // Begin
+        status[2] |= 1;
+
+        // Collect parameters
+        var destX = (((register[37] & 0x01) << 8) | register[36]);
+        var destY = (((register[39] & 0x03) << 8) | register[38]);
+        var nx = (((register[41] & 0x03) << 8) | register[40]);
+        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var co = register[44];
+        var dix = register[45] & 0x04 ? -1 : 1;
+        var diy = register[45] & 0x08 ? -1 : 1;
+        var op = logicalOperationSelect(register[46] & 0x0f);
+
+        //console.log("LMMV destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
+
+        // Perform operation
+        for (var cy = 0; cy < ny; cy++) {
+            for (var cx = 0; cx < nx; cx++) {
+                logicalPSET(destX, destY, co, op);
+                destX += dix;
+            }
+            destX -= dix * nx;
+            destY += diy;
+        }
+
+        // Finish
+        status[2] &= ~1;
+        register[46] &= ~0xf0;
+    }
+
     function LINE() {
         // Begin
         status[2] |= 1;
+
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
         var dy = (((register[39] & 0x03) << 8) | register[38]);
         var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x03) << 8) | register[42]);
+        var ny = (((register[43] & 0x07) << 8) | register[42]);
         var co = register[44];
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
         var maj = register[45] & 0x01;
+        var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
 
@@ -1441,7 +1492,7 @@ wmsx.V9938 = function(cpu, psg) {
         var e = 0;
         if (maj === 0) {
             for (var n = 0; n <= nx; n++) {
-                logicalPSET(x, y, co);
+                logicalPSET(x, y, co, op);
                 x += dix; e += ny;
                 if ((e << 1) >= nx) {
                     y += diy; e -= nx;
@@ -1449,7 +1500,7 @@ wmsx.V9938 = function(cpu, psg) {
             }
         } else {
             for (n = 0; n <= nx; n++) {
-                logicalPSET(x, y, co);
+                logicalPSET(x, y, co, op);
                 y += diy; e += ny;
                 if ((e << 1) >= nx) {
                     x += dix; e -= nx;
@@ -1465,63 +1516,101 @@ wmsx.V9938 = function(cpu, psg) {
     function PSET() {
         // Begin
         status[2] |= 1;
+
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
         var dy = (((register[39] & 0x03) << 8) | register[38]);
         var co = register[44];
-        var op = register[46] & 0x0f;
+        var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("PSET dx: " + dx + ", dy: " + dy);
 
-        logicalPSET(dx, dy, co);
+        logicalPSET(dx, dy, co, op);
 
         // Finish
         status[2] &= ~1;
         register[46] &= ~0xf0;
     }
 
-    function logicalPSET(x, y, co) {
-        var shift, mask, lineSize = modes[mode].nameLineSize;
+    function STOP() {
+
+        //console.log("STOP: " + executingCommandHandler);
+
+        executingCommandHandler = null;
+        status[2] &= ~1;
+    }
+
+    function logicalPSET(x, y, co, op) {
+        var shift, mask;
         switch (mode) {
             case 0x03:
-                shift = (1 - (x & 0x1)) * 4;
+            case 0x05:
+                shift = (x & 0x1) ? 0 : 4;
                 x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
             case 0x04:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            case 0x05:
-                shift = (1 - (x & 0x1)) * 4;
-                x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
             case 0x07:
                 mask = 0xff;
         }
         // Perform operation
-        var pos = y * lineSize + x;
-        vramNameTable[pos] = (vramNameTable[pos] & ~mask) | co;
+        var pos = y * nameTableLineSize + x;
+        vram[pos] = op(vram[pos], co, mask);
     }
 
-    function logicalPCOPY(sX, sY, dX, dY) {
-        var sShift, dShift, mask, lineSize = modes[mode].nameLineSize;
+    function logicalPCOPY(dX, dY, sX, sY, op) {
+        var sShift, dShift, mask;
         switch (mode) {
             case 0x03:
-                sShift = (1 - (sX & 0x1)) * 4; dShift = (1 - (dX & 0x1)) * 4;
+            case 0x05:
+                sShift = (sX & 0x1) ? 0 : 4; dShift = (dX & 0x1) ? 0 : 4;
                 sX >>>= 1; dX >>>= 1; mask = 0x0f; break;
             case 0x04:
                 sShift = (3 - (sX & 0x3)) * 2; dShift = (3 - (dX & 0x3)) * 2;
                 sX >>>= 2; dX >>>= 2; mask = 0x03; break;
-            case 0x05:
-                sShift = (1 - (sX & 0x1)) * 4; dShift = (1 - (dX & 0x1)) * 4;
-                sX >>>= 1; dX >>>= 1; mask = 0x0f; break;
             case 0x07:
                 sShift = dShift = 0;
                 mask = 0xff;
         }
 
         // Perform operation
-        var sPos = sY * lineSize + sX;
-        var dPos = dY * lineSize + dX;
-        var co = (vramNameTable[sPos] >> sShift) & mask;
-        vramNameTable[dPos] = (vramNameTable[dPos] & ~(mask << dShift)) | (co << sShift);
+        var sPos = sY * nameTableLineSize + sX;
+        var dPos = dY * nameTableLineSize + dX;
+        var co = ((vram[sPos] >> sShift) & mask) << dShift;
+        vram[dPos] = op(vram[dPos], co, mask << dShift);
+    }
+
+    function logicalOperationSelect(op) {
+
+        //console.log("Logical Operation Selected: " + op);
+
+        switch(op) {
+            case 0x00: return logicalOperationIMP;
+            case 0x08: return logicalOperationTIMP;
+            default:
+                console.log ("Invalid logical operation: " + op);
+                return logicalOperationInvalid;
+        }
+    }
+
+    function logicalOperationInvalid(dest, src, mask) {
+        return dest;
+    }
+
+    function logicalOperationIMP(dest, src, mask) {
+        return (dest & ~mask) | src;
+    }
+
+    function logicalOperationTIMP(dest, src, mask) {
+        return src === 0 ? dest : (dest & ~mask) | src;
+    }
+
+    function logicalOperation15(dest, src, mask) {
+        return 0xff;
+    }
+
+    function logicalOperation14(dest, src, mask) {
+        return 0xee;
     }
 
     function executingCommandStart(handler) {
@@ -1540,6 +1629,7 @@ wmsx.V9938 = function(cpu, psg) {
     function executingCommandFinish() {
 
         //if (executingCommandHandler === HMMCNextData) console.log(executingCommandHandler.name + " Finish");
+        //else console.log(">>>> NO COMMAND TO FINISH");
 
         executingCommandHandler = null;
         status[2] &= ~81;          // Clear CE and TR
@@ -1626,6 +1716,8 @@ wmsx.V9938 = function(cpu, psg) {
     var videoStandard;
     var vSynchMode;
     var currentScanline;
+    var finishingActiveScanline;
+    var finishingBottomBorderScanline;
     var startingScanline;
     var finishingScanline;
     var cycleLines;
@@ -1638,6 +1730,8 @@ wmsx.V9938 = function(cpu, psg) {
     var paletteRegister = new Array(16);
 
     var mode;
+    var signalMetrics;
+
     var modeStable;
     var spritesCollided;
 
@@ -1647,7 +1741,7 @@ wmsx.V9938 = function(cpu, psg) {
     var paletteFirstWrite;
 
     var executingCommandHandler = null;
-    var executingCommandDX, executingCommandDY, executingCommandNX, executingCommandNY, executingCommandDIX, executingCommandDIY, executingCommandLineSize, executingCommandSrctPos, executingCommandDestPos;
+    var executingCommandDX, executingCommandDY, executingCommandNX, executingCommandNY, executingCommandDIX, executingCommandDIY, executingCommandSrctPos, executingCommandDestPos, executingCommandLogicalOperation;
     var executingCommandDestX, executingCommandDestY, executingCommandSrcX, executingCommandSrcY, executingCommandCX, executingCommandCY;
 
     var backdropColor;
@@ -1660,28 +1754,31 @@ wmsx.V9938 = function(cpu, psg) {
     var patternTableAddress = 0;
     var spriteAttrTableAddress = 0;
     var spritePatternTableAddress = 0;
+    var nameTableLineSize = 0;
 
     // Special masks from register3 and register4 for mode 1 only   TODO Still needed?
     var patternNameMask = 0x3ff;
     var colorNameMask =   0x3ff;
 
-    var signalMetrics256 = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };
-    var signalMetrics512 = { width: 512, height: 192, borderWidth: 16, borderHeight: 8 };
+    var signalMetrics256 =  { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };
+    var signalMetrics256e = { width: 256, height: 212, borderWidth: 8, borderHeight: 8 };
+    var signalMetrics512 =  { width: 512, height: 192, borderWidth: 16, borderHeight: 8 };
+    var signalMetrics512e = { width: 512, height: 212, borderWidth: 16, borderHeight: 8 };
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
         return { name: "Unsupported", sigMetrics: signalMetrics256, nameTMask: 0,  patTMask: 0, colorTMask: 0, nameLineSize: 0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
     });
 
-    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, nameTMask: 0x1f000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    //modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, nameTMask: 0x18000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, nameTMask: 0x18000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    //modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTMask: 0x1f000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+  //modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x18000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x18000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+  //modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
 
     var updateLinesActive, updateLinesBorder, updateSpritesLine;     // Update functions for current mode
     var updateSpritesLineFunctions = [updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];

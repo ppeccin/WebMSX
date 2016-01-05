@@ -99,6 +99,7 @@ wmsx.Monitor = function() {
         sourceY = 0;
         sourceWidth = signalMetrics.width + signalMetrics.borderWidth * 2;
         sourceHeight = signalMetrics.height + signalMetrics.borderHeight * 2;
+        display.setSignalMetrics(signalMetrics);
     };
 
     var setDisplayScale = function(x, y) {

@@ -4,8 +4,6 @@ wmsx.VideoStandard = {
     NTSC: {
         name: "NTSC",
         desc: "NTSC 60Hz",
-        width: 256,
-        height: 192,
         totalWidth: 342,
         totalHeight: 262,
         startingScanline: -8,
@@ -25,8 +23,6 @@ wmsx.VideoStandard = {
     PAL: {
         name: "PAL",
         desc: "PAL 50Hz",
-        width: 256,
-        height: 192,
         totalWidth: 342,
         totalHeight: 313,
         startingScanline: -8,

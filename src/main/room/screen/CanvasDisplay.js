@@ -64,6 +64,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
+    this.setSignalMetrics = function(metrics) {
+        // Only change if height is different
+        if (signalMetrics && (metrics.height === signalMetrics.height)) return;
+
+        signalMetrics = metrics;
+        contentWidth =  (WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2);
+        contentHeight = (WMSX.SCREEN_BASE_WIDTH / 256) * (signalMetrics.height + 8 * 2);
+    };
+
     this.displayDefaultOpeningScaleX = function() {
         if (isFullscreen) {
             var winW = fsElement.clientWidth;
@@ -293,7 +302,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         borderElement.appendChild(fsElement);
 
         canvas = document.createElement('canvas');
-        canvas.width = contentWidth;          // Canvas base size will never chance, only scale via CSS
+        canvas.width = contentWidth;
         canvas.height = contentHeight;
         canvas.style.position = "absolute";
         canvas.style.display = "block";
@@ -306,7 +315,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.border = "none";
         fsElement.appendChild(canvas);
 
-        setElementsSizes(canvas.width, canvas.height);
+        // setElementsSizes(canvas.width, canvas.height);
 
         // Prepare Context used to draw frame
         canvasContext = canvas.getContext("2d");
@@ -639,6 +648,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var signalIsOn = false;
     var isFullscreen = false;
+    var signalMetrics = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };      // Initial Setting
     var crtFilter = 1;
     var isLoading = false;
 
