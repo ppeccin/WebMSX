@@ -216,6 +216,7 @@ wmsx.V9938 = function(cpu, psg) {
         register[reg] = val;
         switch (reg) {
             case 0:
+                updateIRQ();
                 updateMode();
                 break;
             case 1:
@@ -375,7 +376,7 @@ wmsx.V9938 = function(cpu, psg) {
         var oldMode = mode;
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
 
-        //console.log("Update Mode: " + mode);
+        console.log("Update Mode: " + mode.toString(16));
 
         if (force || (mode !== oldMode)) {
             var m = modes[mode];
@@ -388,6 +389,7 @@ wmsx.V9938 = function(cpu, psg) {
             nameTableLineSize = m.nameLineSize;
             updateSignalMetrics();
         }
+        // Perform the following always, because of Blanking, Debug Modes
         updateUpdateFunctions();
         modeStable = false;
     }
@@ -1799,8 +1801,8 @@ wmsx.V9938 = function(cpu, psg) {
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
     // Palettes
-
-    var colorPalette =    new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfeffffff ]);
+    var colorPalette =    new Uint32Array([ 0x00000000, 0xfe000000, 0xfe40c820, 0xfe78d858, 0xfee85050, 0xfef47078, 0xfe4850d0, 0xfef0e840, 0xfe5050f4, 0xfe7878f4, 0xfe50c0d0, 0xfe80c8e0, 0xfe38b020, 0xfeb858c8, 0xfec8c8c8, 0xfeffffff ]);
+    //var colorPalette =    new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfeffffff ]);
     var colorPaletteDim = new Uint32Array([ 0x50505050, 0x50505050, 0x50808080, 0x50a0a0a0, 0x50606060, 0x507c7c7c, 0x50707070, 0x50b0b0b0, 0x507c7c7c, 0x50989898, 0x50b0b0b0, 0x50c0c0c0, 0x50707070, 0x50808080, 0x50c4c4c4, 0x50fbfbfb ]);
     var colors512 =       new Uint32Array(512);     // 9 bits GRB
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];

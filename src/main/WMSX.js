@@ -75,7 +75,7 @@ WMSX.testAtrib = function(count, srcSize) {
     for (var i = 0; i < count; i++) {
         for (var n = 0; n < 256; n++) {
             for (var b = 0; b < srcSize; b++)
-                dest[n + b] = src[b];
+                dest[n + b] = b & 0x01 ? src[b] : src[b + 1];
         }
     }
 

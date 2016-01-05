@@ -69,8 +69,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (signalMetrics && (metrics.height === signalMetrics.height)) return;
 
         signalMetrics = metrics;
-        contentWidth =  (WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2);
-        contentHeight = (WMSX.SCREEN_BASE_WIDTH / 256) * (signalMetrics.height + 8 * 2);
+        contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;
+        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (signalMetrics.height + 8 * 2)) | 0;
+        setCanvasSize(contentWidth, contentHeight);
+        updateScale();
     };
 
     this.displayDefaultOpeningScaleX = function() {
@@ -89,8 +91,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             return WMSX.SCREEN_DEFAULT_SCALE;
     };
 
-    this.displayScale = function(scaleX, scaleY) {
-        setElementsScale(scaleX, scaleY);
+    this.displayScale = function(pScaleX, pScaleY) {
+        scaleX = pScaleX;
+        scaleY = pScaleY;
+        updateScale();
     };
 
     this.displayMinimumSize = function(width, height) {
@@ -223,7 +227,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (isFullscreen) setTimeout(monitor.setDisplayDefaultSize, 120);
     };
 
-    var setElementsScale = function (scaleX, scaleY) {
+    var updateScale = function() {
         var width = (contentWidth * scaleX) | 0;
         var height = (contentHeight * scaleY) | 0;
         setElementsSizes(width, height);
@@ -272,6 +276,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
+    function setCanvasSize(width, height) {
+        canvas.width = width;
+        canvas.height = height;
+        // Prepare Context used to draw frame
+        canvasContext = canvas.getContext("2d");
+        canvasContext.globalCompositeOperation = "copy";
+        updateImageSmoothing();
+    }
+
     var setupMain = function () {
         mainElement.style.position = "relative";
         mainElement.style.overflow = "hidden";
@@ -301,9 +314,16 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         borderElement.appendChild(fsElement);
 
+        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution, include Edge
+        switch (wmsx.Util.browserInfo().name) {
+            case "CHROME":
+            case "OPERA":   canvasImageRenderingValue = "pixelated"; break;
+            case "FIREFOX": canvasImageRenderingValue = "-moz-crisp-edges"; break;
+            case "SAFARI":  canvasImageRenderingValue = "-webkit-crisp-edges"; break;
+            default:        canvasImageRenderingValue = "initial";
+        }
+
         canvas = document.createElement('canvas');
-        canvas.width = contentWidth;
-        canvas.height = contentHeight;
         canvas.style.position = "absolute";
         canvas.style.display = "block";
         canvas.style.left = canvas.style.right = 0;
@@ -314,21 +334,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.outline = "none";
         canvas.style.border = "none";
         fsElement.appendChild(canvas);
-
-        // setElementsSizes(canvas.width, canvas.height);
-
-        // Prepare Context used to draw frame
-        canvasContext = canvas.getContext("2d");
-        canvasContext.globalCompositeOperation = "copy";
-
-        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution, include Edge
-        switch (wmsx.Util.browserInfo().name) {
-            case "CHROME":
-            case "OPERA":   canvasImageRenderingValue = "pixelated"; break;
-            case "FIREFOX": canvasImageRenderingValue = "-moz-crisp-edges"; break;
-            case "SAFARI":  canvasImageRenderingValue = "-webkit-crisp-edges"; break;
-            default:        canvasImageRenderingValue = "initial";
-        }
+        setCanvasSize(contentWidth, contentHeight);
 
         mainElement.appendChild(borderElement);
     };
@@ -648,9 +654,15 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var signalIsOn = false;
     var isFullscreen = false;
-    var signalMetrics = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };      // Initial Setting
     var crtFilter = 1;
     var isLoading = false;
+
+    var signalMetrics;
+
+    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                                             // Initial setting
+    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                                             // Initial setting
+    var contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;           // Initial setting
+    var contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (192 + 8 * 2)) | 0;           // Initial setting
 
     var logoImage;
     var loadingImage;
@@ -671,9 +683,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var borderLateral;
     var borderBottom;
 
-    var contentWidth =  (WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2);
-    var contentHeight = (WMSX.SCREEN_BASE_WIDTH / 256) * (192 + 8 * 2);
-
     var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
 
@@ -689,6 +698,10 @@ wmsx.CanvasDisplay = function(mainElement) {
 
 
     init(this);
+
+    this.eval = function(str) {
+        return eval(str);
+    };
 
 };
 

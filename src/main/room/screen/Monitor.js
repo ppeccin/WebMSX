@@ -12,10 +12,12 @@ wmsx.Monitor = function() {
         cartridgeSocket.addCartridgesStateListener(this);
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
-        updateSignalMetrics();
     };
 
     this.setSignalMetrics = function(metrics) {
+
+        console.log(">>> Monitor setSignalMetrics");
+
         signalMetrics = metrics;
         updateSignalMetrics();
     };
@@ -151,7 +153,7 @@ wmsx.Monitor = function() {
 
     var debug = 0;
 
-    var signalMetrics;
+    var signalMetrics = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };      // Initial Setting
     var sourceX = 0, sourceY = 0, sourceWidth = 0, sourceHeight = 0;
 
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
