@@ -159,7 +159,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         paletteRegister[reg] = val;
         colorPalette[reg] = colors512[((val & 0x700) >> 2) | ((val & 0x70) >> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
-        updateBackdropColor(true);     // force
+        updateBackdropColor(true);     // force     TODO Optimize
     }
 
     this.output9b = function(val) {
@@ -372,13 +372,13 @@ wmsx.V9938 = function(cpu, psg) {
             ? 0 : 1;
     }
 
-    function updateMode(force) {
+    function updateMode(force) {        // TODO Slow. Ex: Zanac
         var oldMode = mode;
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
-
-        console.log("Update Mode: " + mode.toString(16));
-
         if (force || (mode !== oldMode)) {
+
+            console.log("Update Mode: " + mode.toString(16));
+
             var m = modes[mode];
             nameTableAddress = (register[2] << 10) & m.nameTMask;
             patternTableAddress = (register[4] << 11) & m.patTMask;
@@ -399,11 +399,6 @@ wmsx.V9938 = function(cpu, psg) {
         finishingActiveScanline = signalMetrics.height;
         finishingBottomBorderScanline = finishingActiveScanline + 8;
         videoSignal.setSignalMetrics(signalMetrics);
-    }
-
-    function updateMode1Specifics() {                     // Special rules for register 3 and 4 when in mode 1
-        patternNameMask = (register[4] << 8) | 0xff;      // Mask for the upper 2 bits of the 10 bits patternName
-        colorNameMask = (register[3] << 3) | 0x07;        // Mask for the upper 7 bits of the 10 bits color name
     }
 
     function updateUpdateFunctions() {
@@ -506,7 +501,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeT1(toLine) {                                        // Text (Screen 0 width 40)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -520,10 +515,12 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 40;
             lineInPattern = line & 0x07;
             colorCode = register[7];                                            // fixed text color for all line
+            on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+            off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 6;
             }
 
@@ -545,7 +542,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeT2(toLine) {                                        // Text (Screen 0 width 80)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, values;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -559,10 +556,12 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 80;
             lineInPattern = line & 0x07;
             colorCode = register[7];                                            // fixed text color for all line
+            on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+            off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 6;
             }
 
@@ -584,7 +583,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeMC(toLine) {                                        // Multicolor (Screen 3)
-        var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, values;
+        var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -599,7 +598,9 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
                 colorCode = vramPatternTable[patternLine];
-                setBackBufferPattern(bufferPos, 0xf0, colorCode);               // always solid blocks of front and back colors;
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, 0xf0, on, off);                // always solid blocks of front and back colors;
                 bufferPos += 8;
             }
 
@@ -619,7 +620,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG1(toLine) {                                        // Graphics 1 (Screen 1)
-        var patPos, patPosFinal, name, pattern, colorCode;
+        var patPos, patPosFinal, name, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -634,7 +635,9 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[((name << 3) + lineInPattern)];      // name * 8 (8 bytes each pattern) + line inside pattern
                 colorCode = vramColorTable[name >>> 3];                         // name / 8 (1 color for each 8 patterns)
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
 
@@ -654,9 +657,8 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG2(toLine) {                                        // Graphics 2 (Screen 2)
-        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorCode;
+        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
-        var on, off;
 
         modeStable = true;
         do {
@@ -669,9 +671,11 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 32;
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++] | blockExtra;
-                colorCode = vramColorTable[(((name & colorNameMask) << 3) + lineInPattern)];      // (8 bytes each pattern) + line inside pattern
-                pattern = vramPatternTable[(((name & patternNameMask) << 3) + lineInPattern)];
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                colorCode = vramColorTable[(name << 3) + lineInPattern];        // (8 bytes each pattern) + line inside pattern
+                pattern = vramPatternTable[(name << 3) + lineInPattern];
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
 
@@ -688,70 +692,6 @@ wmsx.V9938 = function(cpu, psg) {
 
         cycleLines += (line - currentScanline);
         currentScanline = line;
-    }
-
-    function setBackBufferPattern(bufferPos, pattern, colorCode) {
-        var on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-        var off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
-        frameBackBuffer[bufferPos++] = pattern & 0x80 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x40 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x20 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x10 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x08 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x04 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x02 ? on : off;
-        frameBackBuffer[bufferPos] =   pattern & 0x01 ? on : off;
-    }
-
-    function setBackBufferToBackdrop(bufferPos) {
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos] =   backdropValue;
-    }
-
-    function setBackBufferToBackdrop16(bufferPos) {
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos] =   backdropValue;
-    }
-
-    function setBackBufferToBackdropG5(bufferPos) {
-        var odd =  colorPalette[(register[7] >> 2) & 0x03];
-        var even = colorPalette[register[7]& 0x03];
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos] =   even;
     }
 
     function updateLinesModeG4(toLine) {                                        // Graphics 4 (Screen 5)
@@ -858,7 +798,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeT1Debug(toLine) {                                   // Text (Screen 0)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode;
+        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -888,7 +828,9 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[(name << 3) + lineInPattern];
                 }
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 6;
             }
 
@@ -912,7 +854,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateLinesModeMCDebug(toLine) {                                   // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return updateLinesModeMC(toLine);
 
-        var patPos, patPosFinal, name, pattern;
+        var patPos, patPosFinal, name, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -925,7 +867,10 @@ wmsx.V9938 = function(cpu, psg) {
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = debugPatTableDigits8[name * 8 + (line & 0x07)];
-                setBackBufferPattern(bufferPos, pattern, 0xf1);
+                colorCode = 0xf1;
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
 
@@ -945,7 +890,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG1Debug(toLine) {                                   // Graphics 1 (Screen 1)
-        var patPos, patPosFinal, name, pattern, colorCode;
+        var patPos, patPosFinal, name, pattern, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -968,7 +913,9 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[((name << 3) + lineInPattern)];
                 }
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
 
@@ -987,7 +934,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesModeG2Debug(toLine) {                                   // Graphics 2 (Screen 2)
-        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorLine, colorCode, values;
+        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorLine, colorCode, on, off;
         var line = currentScanline, bufferPos = (line + 8) * 544;
 
         modeStable = true;
@@ -1006,14 +953,16 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
                     pattern = debugPatTableDigits8[name * 8 + lineInPattern];
                 } else if (debugModePatternInfoBlocks) {
-                    colorLine = ((name & colorNameMask) << 3) + lineInPattern;
+                    colorLine = (name << 3) + lineInPattern;
                     colorCode = vramColorTable[colorLine];
                     pattern = debugPatTableBlocks[lineInPattern];
                 } else {
                     colorCode = 0xf1;
-                    pattern = vramPatternTable[(((name & patternNameMask) << 3) + lineInPattern)];
+                    pattern = vramPatternTable[(name << 3) + lineInPattern];
                 }
-                setBackBufferPattern(bufferPos, pattern, colorCode);
+                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
+                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
 
@@ -1030,6 +979,68 @@ wmsx.V9938 = function(cpu, psg) {
 
         cycleLines += (line - currentScanline);
         currentScanline = line;
+    }
+
+    function setBackBufferPattern(bufferPos, pattern, on, off) {
+        frameBackBuffer[bufferPos++] = pattern & 0x80 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x40 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x20 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x10 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x08 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x04 ? on : off;
+        frameBackBuffer[bufferPos++] = pattern & 0x02 ? on : off;
+        frameBackBuffer[bufferPos] =   pattern & 0x01 ? on : off;
+    }
+
+    function setBackBufferToBackdrop(bufferPos) {
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos] =   backdropValue;
+    }
+
+    function setBackBufferToBackdrop16(bufferPos) {
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos++] = backdropValue;
+        frameBackBuffer[bufferPos] =   backdropValue;
+    }
+
+    function setBackBufferToBackdropG5(bufferPos) {
+        var odd =  colorPalette[(register[7] >> 2) & 0x03];
+        var even = colorPalette[register[7]& 0x03];
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos++] = even;
+        frameBackBuffer[bufferPos++] = odd;
+        frameBackBuffer[bufferPos] =   even;
     }
 
     function updateSpritesLineSize0(line, bufferPos) {                      // 8x8 normal
@@ -1061,7 +1072,7 @@ wmsx.V9938 = function(cpu, psg) {
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable8[patternStart];
-                copySpriteL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
+                copySprite(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -1106,7 +1117,7 @@ wmsx.V9938 = function(cpu, psg) {
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable8[patternStart];
-                copySprite2xL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
+                copySprite2x(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -1152,14 +1163,14 @@ wmsx.V9938 = function(cpu, psg) {
             f = x <= 248 ? 8 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart];
-                copySpriteL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
+                copySprite(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
             // Right half
             s = x >= -8 ? 0 : -8 - x;
             f = x <= 240 ? 8 : 248 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart + 16];
-                copySpriteL(frameBackBuffer, bufferPos + x + 8, pattern, color, s, f, invalid < 0);
+                copySprite(frameBackBuffer, bufferPos + x + 8, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -1205,14 +1216,14 @@ wmsx.V9938 = function(cpu, psg) {
             f = x <= 240 ? 16 : 256 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart];
-                copySprite2xL(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
+                copySprite2x(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
             }
             // Right half
             s = x >= -16 ? 0 : -16 - x;
             f = x <= 224 ? 16 : 240 - x;
             if (s < f) {
                 pattern = spritePatternTable16[patternStart + 16];
-                copySprite2xL(frameBackBuffer, bufferPos + x + 16, pattern, color, s, f, invalid < 0);
+                copySprite2x(frameBackBuffer, bufferPos + x + 16, pattern, color, s, f, invalid < 0);
             }
         }
 
@@ -1228,7 +1239,7 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function copySpriteL(dest, pos, pattern, color, start, finish, collide) {
+    function copySprite(dest, pos, pattern, color, start, finish, collide) {
         for (var i = start; i < finish; i++) {
             var s = (pattern >> (7 - i)) & 0x01;
             if (s === 0) continue;
@@ -1239,7 +1250,7 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function copySprite2xL(dest, pos, pattern, color, start, finish, collide) {
+    function copySprite2x(dest, pos, pattern, color, start, finish, collide) {
         for (var i = start; i < finish; i++) {
             var s = (pattern >> (7 - (i >>> 1))) & 0x01;
             if (s === 0) continue;
@@ -1640,8 +1651,10 @@ wmsx.V9938 = function(cpu, psg) {
 
     function refresh() {
         // Update frame image and send to monitor
-        frameContext.putImageData(frameImageData, 0, 0);
-        videoSignal.newFrame(frameCanvas);
+        var width = signalMetrics.totalWidth;
+        var height = signalMetrics.totalHeight;
+        frameContext.putImageData(frameImageData, 0, 0, 0, 0, width, height);
+        videoSignal.newFrame(frameCanvas, 0, 0, width, height);
         refreshPending = false;
     }
 
@@ -1664,10 +1677,11 @@ wmsx.V9938 = function(cpu, psg) {
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
         // Maximum VPD resolution + 16 pixel borders
-        frameCanvas.width = 512 + 16 + 16;          // 544
-        frameCanvas.height = 212 * 2 + 16 + 16;     // 456
+        frameCanvas.width =  512 + 16 + 16;          // 544
+        frameCanvas.height = 424 + 16 + 16;          // 456
         frameContext = frameCanvas.getContext("2d");
-        frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
+        //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
+        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
     }
 
@@ -1758,14 +1772,10 @@ wmsx.V9938 = function(cpu, psg) {
     var spritePatternTableAddress = 0;
     var nameTableLineSize = 0;
 
-    // Special masks from register3 and register4 for mode 1 only   TODO Still needed?
-    var patternNameMask = 0x3ff;
-    var colorNameMask =   0x3ff;
-
-    var signalMetrics256 =  { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };
-    var signalMetrics256e = { width: 256, height: 212, borderWidth: 8, borderHeight: 8 };
-    var signalMetrics512 =  { width: 512, height: 192, borderWidth: 16, borderHeight: 8 };
-    var signalMetrics512e = { width: 512, height: 212, borderWidth: 16, borderHeight: 8 };
+    var signalMetrics256 =  { width: 256, height: 192, totalWidth: 272, totalHeight: 208 };
+    var signalMetrics256e = { width: 256, height: 212, totalWidth: 272, totalHeight: 228 };
+    var signalMetrics512 =  { width: 512, height: 192, totalWidth: 544, totalHeight: 208 };
+    var signalMetrics512e = { width: 512, height: 212, totalWidth: 544, totalHeight: 228 };
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
         return { name: "Unsupported", sigMetrics: signalMetrics256, nameTMask: 0,  patTMask: 0, colorTMask: 0, nameLineSize: 0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
@@ -1801,13 +1811,13 @@ wmsx.V9938 = function(cpu, psg) {
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
     // Palettes
-    var colorPalette =    new Uint32Array([ 0x00000000, 0xfe000000, 0xfe40c820, 0xfe78d858, 0xfee85050, 0xfef47078, 0xfe4850d0, 0xfef0e840, 0xfe5050f4, 0xfe7878f4, 0xfe50c0d0, 0xfe80c8e0, 0xfe38b020, 0xfeb858c8, 0xfec8c8c8, 0xfeffffff ]);
-    //var colorPalette =    new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfeffffff ]);
+    var colorPalette =    new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfe000000, 0xfeffffff ]);
+  //var colorPalette =    new Uint32Array([ 0x00000000, 0xfe000000, 0xfe40c820, 0xfe78d858, 0xfee85050, 0xfef47078, 0xfe4850d0, 0xfef0e840, 0xfe5050f4, 0xfe7878f4, 0xfe50c0d0, 0xfe80c8e0, 0xfe38b020, 0xfeb858c8, 0xfec8c8c8, 0xfeffffff ]);
     var colorPaletteDim = new Uint32Array([ 0x50505050, 0x50505050, 0x50808080, 0x50a0a0a0, 0x50606060, 0x507c7c7c, 0x50707070, 0x50b0b0b0, 0x507c7c7c, 0x50989898, 0x50b0b0b0, 0x50c0c0c0, 0x50707070, 0x50808080, 0x50c4c4c4, 0x50fbfbfb ]);
     var colors512 =       new Uint32Array(512);     // 9 bits GRB
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
 
-    var backdropValueTransp = 0x00000000;        // Backdrop transparency
+    var backdropValueTransp = 0x00000000;           // Backdrop transparency
     var backdropValueDebug =  0xfe2a2a2a;
 
    // Sprite and Debug Modes controls

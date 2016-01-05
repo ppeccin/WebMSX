@@ -54,8 +54,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvasContext.drawImage(
             image,
             sourceX, sourceY, sourceWidth, sourceHeight,
-            0, 0,
-            contentWidth, contentHeight
+            0, 0, contentWidth, contentHeight
         );
     };
 
@@ -68,9 +67,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Only change if height is different
         if (signalMetrics && (metrics.height === signalMetrics.height)) return;
 
+        console.log(">>> Display changing signalMetrics");
+
         signalMetrics = metrics;
         contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;
-        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (signalMetrics.height + 8 * 2)) | 0;
+        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (metrics.height + 8 * 2)) | 0;
         setCanvasSize(contentWidth, contentHeight);
         updateScale();
     };
@@ -659,10 +660,10 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var signalMetrics;
 
-    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                                             // Initial setting
-    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                                             // Initial setting
-    var contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;           // Initial setting
-    var contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (192 + 8 * 2)) | 0;           // Initial setting
+    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                                   // Initial setting
+    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                                   // Initial setting
+    var contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * 282) | 0;           // Initial setting
+    var contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * 208) | 0;           // Initial setting
 
     var logoImage;
     var loadingImage;

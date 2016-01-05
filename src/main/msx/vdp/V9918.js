@@ -898,7 +898,7 @@ wmsx.V9918 = function(cpu, psg) {
     function refresh() {
         // Update frame image and send to monitor
         frameContext.putImageData(frameImageData, 0, 0);
-        videoSignal.newFrame(frameCanvas);
+        videoSignal.newFrame(frameCanvas, 0, 0, 272, 208);
         refreshPending = false;
     }
 
@@ -924,7 +924,8 @@ wmsx.V9918 = function(cpu, psg) {
         frameCanvas.width = 256 + 8 + 8;          // 272
         frameCanvas.height = 192 + 8 + 8;         // 208
         frameContext = frameCanvas.getContext("2d");
-        frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
+        //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
+        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height);
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
     }
 
@@ -1115,7 +1116,7 @@ wmsx.V9918 = function(cpu, psg) {
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
-    var signalMetrics = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };      // Fixed for all modes
+    var signalMetrics = { width: 256, height: 192, totalWidth: 272, totalHeight: 208 };     // Fixed for all modes
 
 
     // Connections

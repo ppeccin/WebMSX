@@ -15,14 +15,10 @@ wmsx.Monitor = function() {
     };
 
     this.setSignalMetrics = function(metrics) {
-
-        console.log(">>> Monitor setSignalMetrics");
-
-        signalMetrics = metrics;
-        updateSignalMetrics();
+        display.setSignalMetrics(metrics);
     };
 
-    this.newFrame = function(image) {
+    this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
         display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight);
     };
 
@@ -96,14 +92,6 @@ wmsx.Monitor = function() {
         setDisplayScaleDefaultAspect(displayScaleY + wmsx.Monitor.SCALE_STEP);
     };
 
-    var updateSignalMetrics = function() {
-        sourceX = 0;
-        sourceY = 0;
-        sourceWidth = signalMetrics.width + signalMetrics.borderWidth * 2;
-        sourceHeight = signalMetrics.height + signalMetrics.borderHeight * 2;
-        display.setSignalMetrics(signalMetrics);
-    };
-
     var setDisplayScale = function(x, y) {
         displayScaleX = x;
         if (displayScaleX < 0.5) displayScaleX = 0.5;
@@ -152,9 +140,6 @@ wmsx.Monitor = function() {
     var displayScaleY;
 
     var debug = 0;
-
-    var signalMetrics = { width: 256, height: 192, borderWidth: 8, borderHeight: 8 };      // Initial Setting
-    var sourceX = 0, sourceY = 0, sourceWidth = 0, sourceHeight = 0;
 
     var CRT_MODE = WMSX.SCREEN_CRT_MODE;
     var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];

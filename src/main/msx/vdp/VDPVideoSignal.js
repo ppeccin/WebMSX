@@ -12,8 +12,8 @@ wmsx.VDPVideoSignal = function(signalMetrics) {
         this.monitor.setSignalMetrics(this.signalMetrics);
     };
 
-    this.newFrame = function(image) {
-        this.monitor.newFrame(image);
+    this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
+        this.monitor.newFrame(image, sourceX, sourceY, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
