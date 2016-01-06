@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Investigate slow putImage()
-
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
 wmsx.V9918 = function(cpu, psg) {

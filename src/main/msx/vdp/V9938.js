@@ -515,8 +515,8 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 40;
             lineInPattern = line & 0x07;
             colorCode = register[7];                                            // fixed text color for all line
-            on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-            off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+            on =  colorPalette[colorCode >>> 4];
+            off = colorPalette[colorCode & 0xf];
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
@@ -556,8 +556,8 @@ wmsx.V9938 = function(cpu, psg) {
             patPosFinal = patPos + 80;
             lineInPattern = line & 0x07;
             colorCode = register[7];                                            // fixed text color for all line
-            on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-            off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+            on =  colorPalette[colorCode >>> 4];
+            off = colorPalette[colorCode & 0xf];
             while (patPos < patPosFinal) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
@@ -598,8 +598,8 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
                 colorCode = vramPatternTable[patternLine];
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, 0xf0, on, off);                // always solid blocks of front and back colors;
                 bufferPos += 8;
             }
@@ -635,8 +635,8 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 pattern = vramPatternTable[((name << 3) + lineInPattern)];      // name * 8 (8 bytes each pattern) + line inside pattern
                 colorCode = vramColorTable[name >>> 3];                         // name / 8 (1 color for each 8 patterns)
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
@@ -673,8 +673,8 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++] | blockExtra;
                 colorCode = vramColorTable[(name << 3) + lineInPattern];        // (8 bytes each pattern) + line inside pattern
                 pattern = vramPatternTable[(name << 3) + lineInPattern];
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
@@ -828,8 +828,8 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[(name << 3) + lineInPattern];
                 }
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 6;
             }
@@ -868,8 +868,8 @@ wmsx.V9938 = function(cpu, psg) {
                 name = vramNameTable[patPos++];
                 pattern = debugPatTableDigits8[name * 8 + (line & 0x07)];
                 colorCode = 0xf1;
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
@@ -913,8 +913,8 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[((name << 3) + lineInPattern)];
                 }
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
@@ -960,8 +960,8 @@ wmsx.V9938 = function(cpu, psg) {
                     colorCode = 0xf1;
                     pattern = vramPatternTable[(name << 3) + lineInPattern];
                 }
-                on =  (colorCode >>> 4) === 0 ? backdropValue : colorPalette[colorCode >>> 4];
-                off = (colorCode & 0xf) === 0 ? backdropValue : colorPalette[colorCode & 0xf];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 setBackBufferPattern(bufferPos, pattern, on, off);
                 bufferPos += 8;
             }
@@ -1023,8 +1023,8 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function setBackBufferToBackdropG5(bufferPos) {
-        var odd =  colorPalette[(register[7] >> 2) & 0x03];
-        var even = colorPalette[register[7]& 0x03];
+        var odd =  backdropFullLine512Values[0];
+        var even = backdropFullLine512Values[1];
         frameBackBuffer[bufferPos++] = odd;
         frameBackBuffer[bufferPos++] = even;
         frameBackBuffer[bufferPos++] = odd;
@@ -1778,19 +1778,19 @@ wmsx.V9938 = function(cpu, psg) {
     var signalMetrics512e = { width: 512, height: 212, totalWidth: 544, totalHeight: 228 };
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return { name: "Unsupported", sigMetrics: signalMetrics256, nameTMask: 0,  patTMask: 0, colorTMask: 0, nameLineSize: 0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+        return    { name: "Unsuportd", sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x00000, patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 000, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
     });
 
-    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTMask: 0x1f000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-  //modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00,  patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x18000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x18000,  patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-  //modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x10000,  patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTMask: 0x1f000, patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 000, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+  //modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1e000, colorTMask: 0x1e000, nameLineSize: 000, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x18000, patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x18000, patTMask: 0x1ffff, colorTMask: 0x1ffc0, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+  //modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x10000, patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6Debug, updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x10000, patTMask: 0x00000, colorTMask: 0x00000, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
 
     var updateLinesActive, updateLinesBorder, updateSpritesLine;     // Update functions for current mode
     var updateSpritesLineFunctions = [updateSpritesLineSize0, updateSpritesLineSize1, updateSpritesLinesSize2, updateSpritesLineSize3 ];
