@@ -37,6 +37,7 @@ wmsx.Machine = function() {
 
     this.reset = function() {
         bus.reset();
+        vdp.reset();
         cpu.reset();
     };
 

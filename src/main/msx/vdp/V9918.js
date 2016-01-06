@@ -23,7 +23,7 @@ wmsx.V9918 = function(cpu, psg) {
     };
 
     this.powerOn = function() {
-        reset();
+        this.reset();
     };
 
     this.powerOff = function() {
@@ -171,7 +171,7 @@ wmsx.V9918 = function(cpu, psg) {
         setDebugMode(0);        // will call setColorCodePatternValues()
     };
 
-    function reset() {
+    this.reset = function() {
         status = 0;
         register0 = register1 = register2 = register3 = register4 = register5 = register6 = register7 = 0;
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
@@ -182,7 +182,7 @@ wmsx.V9918 = function(cpu, psg) {
         updateBackdropColor(true);   // force
         updateSynchronization();
         currentScanline = videoStandard.startingScanline;
-    }
+    };
 
     function setDebugMode(mode) {
         debugMode = mode;
