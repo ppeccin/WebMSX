@@ -12,7 +12,7 @@ wmsx.V9938 = function(cpu, psg) {
         initFrameResources();
         initColorCaches();
         initDebugPatternTables();
-        mode = 0;
+        mode = 0; modeData = modes[mode];
         self.setDefaults();
     }
 
@@ -173,7 +173,8 @@ wmsx.V9938 = function(cpu, psg) {
         wmsx.Util.arrayFill(status, 0);
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
-        nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = spriteColorTableAddress = 0;
+        nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
+        nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
         dataToWrite = null; vramWriteMode = false; vramPointer = 0; paletteFirstWrite = null;
         executingCommandHandler = null;
         currentScanline = videoStandard.startingScanline;
@@ -188,6 +189,7 @@ wmsx.V9938 = function(cpu, psg) {
     };
 
     function registerWrite(reg, val) {
+        var add;
         var old = register[reg];
         register[reg] = val;
         switch (reg) {
@@ -202,25 +204,34 @@ wmsx.V9938 = function(cpu, psg) {
                 if ((val & 0x03) !== (old & 0x03)) updateSpriteFunctions();         // SI, MAG
                 break;
             case 2:
-                nameTableAddress = (val << 10) & modes[mode].nameTMask;
+                add = (val << 10) & 0x1ffff;
+                nameTableAddress = add & modeData.nameTBase;
+                nameTableAddressMask = add & ~modeData.nameTBase | nameTableAddressBaseMask;
                 break;
             case 3:
             case 10:
-                colorTableAddress = ((register[10] << 14) | (register[3] << 6)) & modes[mode].colorTMask;
+                add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
+                colorTableAddress = add & modeData.colorTBase;
+                colorTableAddressMask = add & ~modeData.colorTBase | colorTableAddressBaseMask;
                 break;
             case 4:
-                patternTableAddress = (val << 11) & modes[mode].patTMask;
+                add = (val << 11) & 0x1ffff ;
+                patternTableAddress = add & modeData.patTBase;
+                patternTableAddressMask = add & ~modeData.patTBase | patternTableAddressBaseMask;
                 break;
             case 5:
             case 11:
-                spriteAttrTableAddress = ((register[11] << 15) | (register[5] << 7)) & modes[mode].sprAttrTMask;
-                spriteColorTableAddress = spriteAttrTableAddress - 512;             // Fixed offset based on Attr Table
+                add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
+                spriteAttrTableAddress = add & modeData.sprAttrTBase;
+                spriteAttrTableAddressMask = add & ~modeData.sprAttrTBase | spriteAttrTableAddressBaseMask;
 
                 //logInfo("SpriteAttrTableAddress: " + ((register[11] << 15) | (register[5] << 7)).toString(16));
 
                 break;
             case 6:
-                spritePatternTableAddress = (val << 11) & modes[mode].sprPatTMask;
+                add = (val << 11) & 0x1ffff ;
+                spritePatternTableAddress = add & modeData.sprPatTBase;
+                spritePatternTableAddressMask = add & ~modeData.sprPatTBase | spritePatternTableAddressBaseMask;
                 updateSpritePatternTables();
                 break;
             case 7:
@@ -376,35 +387,47 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateMode(force) {
+        var add;
         var oldMode = mode;
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
+        modeData = modes[mode];
 
         //console.log("Update Mode: " + mode.toString(16));
 
-        var m = modes[mode];
-        nameTableAddress = (register[2] << 10) & m.nameTMask;
-        patternTableAddress = (register[4] << 11) & m.patTMask;
-        colorTableAddress = ((register[10] << 14) | (register[3] << 6)) & m.colorTMask;
-        spriteAttrTableAddress = ((register[11] << 15) | (register[5] << 7)) & m.sprAttrTMask;
-        spriteColorTableAddress = spriteAttrTableAddress - 512;             // Fixed offset based on Attr Table
-        spritePatternTableAddress = (register[6] << 11) & m.sprPatTMask;
+        // Update Tables base addresses
+        add = (register[2] << 10) & 0x1ffff;
+        nameTableAddress = add & modeData.nameTBase;
+        nameTableAddressMask = add & ~modeData.nameTBase | nameTableAddressBaseMask;
+        add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
+        colorTableAddress = add & modeData.colorTBase;
+        colorTableAddressMask = add & ~modeData.colorTBase | colorTableAddressBaseMask;
+        add = (register[4] << 11) & 0x1ffff ;
+        patternTableAddress = add & modeData.patTBase;
+        patternTableAddressMask = add & ~modeData.patTBase | patternTableAddressBaseMask;
+        add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
+        spriteAttrTableAddress = add & modeData.sprAttrTBase;
+        spriteAttrTableAddressMask = add & ~modeData.sprAttrTBase | spriteAttrTableAddressBaseMask;
+        add = (register[6] << 11) & 0x1ffff ;
+        spritePatternTableAddress = add & modeData.sprPatTBase;
+        spritePatternTableAddressMask = add & ~modeData.sprPatTBase | spritePatternTableAddressBaseMask;
         updateSpritePatternTables();
-        nameTableLineSize = m.nameLineSize;
+
+        nameTableLineSize = modeData.nameLineSize;
         updateSignalMetrics();
         updateLineFunctions();
         if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
     }
 
     function updateSignalMetrics() {
-        signalMetrics = register[9] & 0x80 ? modes[mode].sigMetricsExt : modes[mode].sigMetrics;
+        signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;
         finishingActiveScanline = signalMetrics.height;
         finishingBottomBorderScanline = finishingActiveScanline + 8;
         videoSignal.setSignalMetrics(signalMetrics);
     }
 
     function updateLineFunctions() {
-        updateLinesActive = (register[1] & 0x40) === 0 ? modes[mode].updLinesBlanked : debugModePatternInfo ? modes[mode].updLinesDeb : modes[mode].updLines;
-        updateLinesBorder = modes[mode].updLinesBorder;
+        updateLinesActive = (register[1] & 0x40) === 0 ? modeData.updLinesBlanked : debugModePatternInfo ? modeData.updLinesDeb : modeData.updLines;
+        updateLinesBorder = modeData.updLinesBorder;
         modeStable = false;
     }
 
@@ -1378,16 +1401,14 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateSprites2LineSize2(line, bufferPos) {                     // Mode 2, 16x16 normal
-        var spat = spriteAttrTableAddress + 512;
-
-        if (vram[spat] === 216) return;                   // No sprites to show!
+        if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, patternStart, name, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
         spritesCollided = false;
 
-        atrPos = spat - 4;
-        colorPos = spat - 512 - 16;
+        atrPos = spriteAttrTableAddress + 512 - 4;
+        colorPos = spriteAttrTableAddress - 16;
         for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
             sprite++;
             atrPos += 4;
@@ -1867,9 +1888,10 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateSpritePatternTables() {
-        var vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
-        spritePatternTable8  = debugModeSpriteInfo ? debugPatTableDigits8  : vramSpritePatternTable;
-        spritePatternTable16 = debugModeSpriteInfo ? debugPatTableDigits16 : vramSpritePatternTable;
+        // TODO Revise for Debug modes
+        //var vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
+        //spritePatternTable8  = debugModeSpriteInfo ? debugPatTableDigits8  : vramSpritePatternTable;
+        //spritePatternTable16 = debugModeSpriteInfo ? debugPatTableDigits16 : vramSpritePatternTable;
     }
 
     function initFrameResources() {
@@ -1954,6 +1976,7 @@ wmsx.V9938 = function(cpu, psg) {
     var paletteRegister = new Array(16);
 
     var mode;
+    var modeData;
     var signalMetrics;
 
     var modeStable;
@@ -1973,13 +1996,25 @@ wmsx.V9938 = function(cpu, psg) {
     var backdropFullLine512Values = new Uint32Array(544);
     var backdropFullLine256Values = backdropFullLine512Values.subarray(272);
 
-    var nameTableAddress = 0;
-    var colorTableAddress = 0;
-    var patternTableAddress = 0;
-    var spriteAttrTableAddress = 0;
-    var spritePatternTableAddress = 0;
-    var spriteColorTableAddress = 0;
-    var nameTableLineSize = 0;
+    var nameTableLineSize;
+
+    var nameTableAddress;                           // Dynamic values, set by software
+    var colorTableAddress;
+    var patternTableAddress;
+    var spriteAttrTableAddress;
+    var spritePatternTableAddress;
+
+    var nameTableAddressMask;                       // Dynamic values, depends on mode
+    var colorTableAddressMask;
+    var patternTableAddressMask;
+    var spriteAttrTableAddressMask;
+    var spritePatternTableAddressMask;
+
+    var nameTableAddressBaseMask = ~(-1 << 10);     // Fixed base values for all modes
+    var colorTableAddressBaseMask = ~(-1 << 6);
+    var patternTableAddressBaseMask = ~(-1 << 11);
+    var spriteAttrTableAddressBaseMask = ~(-1 << 7);
+    var spritePatternTableAddressBaseMask = ~(-1 << 11);
 
     var signalMetrics256 =  { width: 256, height: 192, totalWidth: 272, totalHeight: 208 };
     var signalMetrics256e = { width: 256, height: 212, totalWidth: 272, totalHeight: 228 };
@@ -1987,22 +2022,23 @@ wmsx.V9938 = function(cpu, psg) {
     var signalMetrics512e = { width: 512, height: 212, totalWidth: 544, totalHeight: 228 };
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x1fc00, patTMask: 0x1f800, colorTMask: 0x1ffc0, sprAttrTMask: 0x1ff80, sprPatTMask: 0x1f800, nameLineSize: 000, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
     });
 
-    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1f800, colorTMask: 0x00000, sprAttrTMask: 0x00000, sprPatTMask: 0x00000, nameLineSize: 000, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTMask: 0x1f000, patTMask: 0x1ffff, colorTMask: 0x1fe00, sprAttrTMask: 0x00000, sprPatTMask: 0x00000, nameLineSize: 000, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1f800, colorTMask: 0x1ffc0, sprAttrTMask: 0x1ff80, sprPatTMask: 0x1f800, nameLineSize: 000, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1f800, colorTMask: 0x1ffc0, sprAttrTMask: 0x1ff80, sprPatTMask: 0x1f800, nameLineSize: 000, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1e000, colorTMask: 0x1e000, sprAttrTMask: 0x1ff80, sprPatTMask: 0x1f800, nameLineSize: 000, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTMask: 0x1fc00, patTMask: 0x1e000, colorTMask: 0x1e000, sprAttrTMask: 0x1ff80, sprPatTMask: 0x1f800, nameLineSize: 000, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x18000, patTMask: 0x00000, colorTMask: 0x00000, sprAttrTMask: 0x1fc00, sprPatTMask: 0x1f800, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x18000, patTMask: 0x00000, colorTMask: 0x00000, sprAttrTMask: 0x1fc00, sprPatTMask: 0x1f800, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTMask: 0x10000, patTMask: 0x00000, colorTMask: 0x00000, sprAttrTMask: 0x1fc00, sprPatTMask: 0x1f800, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTMask: 0x10000, patTMask: 0x00000, colorTMask: 0x00000, sprAttrTMask: 0x1fc00, sprPatTMask: 0x1f800, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };   // TODO bit 16 position!
+    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, nameLineSize:   0, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, nameLineSize:   0, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
+    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };   // TODO bit 16 position!
 
     var updateLinesActive, updateLinesBorder, updateSpritesLine;     // Update functions for current mode
     var updateSpritesLineFunctions = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
+
 
 
     // VRAM
