@@ -73,7 +73,7 @@ wmsx.V9938 = function(cpu, psg) {
         dataToWrite = null;
         var res = vram[vramPointer++];
         if (vramPointer > vramLimit) {
-            //wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
+            wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
             vramPointer &= vramLimit;
         }
         return res;
@@ -87,7 +87,7 @@ wmsx.V9938 = function(cpu, psg) {
         dataToWrite = null;
         vram[vramPointer++] = val;
         if (vramPointer > vramLimit) {
-            //wmsx.Util.log("VRAM Write Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
+            wmsx.Util.log("VRAM Write Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
             vramPointer &= vramLimit;
         }
     };
@@ -121,7 +121,7 @@ wmsx.V9938 = function(cpu, psg) {
                 // TODO Define behavior regarding r14
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
                 vramWriteMode = val & 0x40;
-                vramPointer = ((vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite) & vramLimit;
+                vramPointer = (((register[14] & 0x07) << 14) | ((val & 0x3f) << 8) | dataToWrite); // & vramLimit;
 
                 //console.log("Setting via out: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16) + ". was: " + oldPointer.toString(16) + ". reg14: " + register[14].toString(16));
 
@@ -144,7 +144,7 @@ wmsx.V9938 = function(cpu, psg) {
     this.output9b = function(val) {
         // Indirect Register Write
         var reg = register[17] & 0x3f;
-        if ((reg <= 46) && (reg !== 17)) registerWrite(reg, val);
+        if (reg !== 17) registerWrite(reg, val);
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
     };
 
@@ -193,6 +193,7 @@ wmsx.V9938 = function(cpu, psg) {
     };
 
     function registerWrite(reg, val) {
+        if (reg > 46) return;
         var add;
         var old = register[reg];
         register[reg] = val;
@@ -246,7 +247,7 @@ wmsx.V9938 = function(cpu, psg) {
                 break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
-                vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & vramLimit;
+                //vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & vramLimit;
 
                 //console.log("Setting reg14: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16));
 
@@ -400,7 +401,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         // Adjust VRAM address limits based on mode (9938 vs 9918 modes)
         vramLimit = (mode & 0x19) === mode ? VRAM_LIMIT_9918 : VRAM_LIMIT_9938;
-        vramPointer &= vramLimit;
+        //vramPointer &= vramLimit;
 
         // Update Tables base addresses
         add = (register[2] << 10) & 0x1ffff;
