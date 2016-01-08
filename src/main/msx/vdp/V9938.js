@@ -72,23 +72,23 @@ wmsx.V9938 = function(cpu, psg) {
         // VRAM Read
         dataToWrite = null;
         var res = vram[vramPointer++];
-        if (vramPointer > VRAM_LIMIT) {
+        if (vramPointer > vramLimit) {
             //wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
-            vramPointer &= VRAM_LIMIT;
+            vramPointer &= vramLimit;
         }
         return res;
     };
 
     this.output98 = function(val) {
 
-        //if (vramPointer > 0x7400) wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
+        //wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
         // VRAM Write
         dataToWrite = null;
         vram[vramPointer++] = val;
-        if (vramPointer > VRAM_LIMIT) {
+        if (vramPointer > vramLimit) {
             //wmsx.Util.log("VRAM Write Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
-            vramPointer &= VRAM_LIMIT;
+            vramPointer &= vramLimit;
         }
     };
 
@@ -97,14 +97,12 @@ wmsx.V9938 = function(cpu, psg) {
         dataToWrite = null;
         var reg = register[15];
         var prevStatus = status[reg];
-
         switch(reg) {
             case 0:
                 status[0] = 0; updateIRQ(); break;
             case 1:
                 status[1] &= ~0x81; updateIRQ(); break;             // FL, FH
         }
-
         return prevStatus;
     };
 
@@ -120,7 +118,7 @@ wmsx.V9938 = function(cpu, psg) {
             } else {
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
                 vramWriteMode = val & 0x40;
-                vramPointer = ((vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite) & VRAM_LIMIT;
+                vramPointer = ((vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite) & vramLimit;
             }
             dataToWrite = null;
         }
@@ -175,7 +173,7 @@ wmsx.V9938 = function(cpu, psg) {
         wmsx.Util.arrayFill(paletteRegister, 0);
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
-        dataToWrite = null; vramWriteMode = false; vramPointer = 0; paletteFirstWrite = null;
+        vramLimit = VRAM_LIMIT_9938; dataToWrite = null; vramWriteMode = false; vramPointer = 0; paletteFirstWrite = null;
         executingCommandHandler = null;
         currentScanline = videoStandard.startingScanline;
         backdropColor = 0;
@@ -224,9 +222,6 @@ wmsx.V9938 = function(cpu, psg) {
                 add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
                 spriteAttrTableAddress = add & modeData.sprAttrTBase;
                 spriteAttrTableAddressMask = add & ~modeData.sprAttrTBase | spriteAttrTableAddressBaseMask;
-
-                //logInfo("SpriteAttrTableAddress: " + ((register[11] << 15) | (register[5] << 7)).toString(16));
-
                 break;
             case 6:
                 add = (val << 11) & 0x1ffff ;
@@ -245,7 +240,7 @@ wmsx.V9938 = function(cpu, psg) {
                 break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
-                vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & VRAM_LIMIT;
+                vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & vramLimit;
                 break;
             case 16:
                 paletteFirstWrite = null;
@@ -393,6 +388,10 @@ wmsx.V9938 = function(cpu, psg) {
         modeData = modes[mode];
 
         //console.log("Update Mode: " + mode.toString(16));
+
+        // Adjust VRAM address limits based on mode (9938 vs 9918 modes)
+        vramLimit = (mode & 0x19) === mode ? VRAM_LIMIT_9918 : VRAM_LIMIT_9938;
+        vramPointer &= vramLimit;
 
         // Update Tables base addresses
         add = (register[2] << 10) & 0x1ffff;
@@ -1198,8 +1197,8 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSprites1LineSize0(line, bufferPos) {                     // Mode 1, 8x8 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
-        var atrPos, patternStart, name, color, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
+        var atrPos, name, color, lineInPattern, pattern;
+        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
         spritesCollided = false;
 
 
@@ -1209,9 +1208,8 @@ wmsx.V9938 = function(cpu, psg) {
             sprite++;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-            if ((y < (line - 7)) || (y > line)) continue;                   // Not visible at line
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine > 7) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
                 if (invalid < 0) invalid = sprite;
                 if (spriteModeLimit) break;
@@ -1220,15 +1218,13 @@ wmsx.V9938 = function(cpu, psg) {
             color = vram[atrPos + 3];
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -7) continue;                                           // Not visible (out to the left)
-            name = vram[atrPos + 2];
             color &= 0x0f;
-            patternStart = spritePatternTableAddress + (name << 3) + (line - y);
-            s = x >= 0 ? 0 : -x;
-            f = x <= 248 ? 8 : 256 - x;
-            if (s < f) {
-                pattern = vram[patternStart];
-                copySprite(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
-            }
+            name = vram[atrPos + 2];
+            lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
+            pattern = vram[lineInPattern];
+            s = x <= 248 ? 0 : x - 248;
+            f = x >= 0 ? 8 : 8 + x;
+            paintSprite1(frameBackBuffer, bufferPos + x + (8 - f), pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteModeCollisions) {
@@ -1246,8 +1242,8 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSprites1LineSize1(line, bufferPos) {                     // Mode 1, 8x8 double
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
-        var atrPos, patternStart, name, color, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
+        var atrPos, name, color, lineInPattern, pattern;
+        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress - 4;
@@ -1256,9 +1252,8 @@ wmsx.V9938 = function(cpu, psg) {
             sprite++;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine > 15) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
                 if (invalid < 0) invalid = sprite;
                 if (spriteModeLimit) break;
@@ -1267,15 +1262,14 @@ wmsx.V9938 = function(cpu, psg) {
             color = vram[atrPos + 3];
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -15) continue;                                          // Not visible (out to the left)
-            name = vram[atrPos + 2];
             color &= 0x0f;
-            patternStart = spritePatternTableAddress + (name << 3) + ((line - y) >>> 1);    // Double line height
-            s = x >= 0 ? 0 : -x;
-            f = x <= 240 ? 16 : 256 - x;
-            if (s < f) {
-                pattern = vram[patternStart];
-                copySprite2x(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
-            }
+            name = vram[atrPos + 2];
+            lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >>> 1);    // Double line height
+            pattern = vram[lineInPattern];
+            s = x <= 240 ? 0 : x - 240;
+            f = x >= 0 ? 16 : 16 + x;
+            paintSprite1D(frameBackBuffer, bufferPos + x + (16 - f), pattern, color, s, f, invalid < 0);
+
         }
 
         if (spritesCollided && spriteModeCollisions) {
@@ -1293,8 +1287,8 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSprites1LineSize2(line, bufferPos) {                     // Mode 1, 16x16 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
-        var atrPos, color, patternStart, name, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
+        var atrPos, color, name, lineInPattern, pattern;
+        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress - 4;
@@ -1303,9 +1297,8 @@ wmsx.V9938 = function(cpu, psg) {
             sprite++;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine > 15) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
                 if (invalid < 0) invalid = sprite;
                 if (spriteModeLimit) break;
@@ -1314,23 +1307,13 @@ wmsx.V9938 = function(cpu, psg) {
             color = vram[atrPos + 3];
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -15) continue;                                          // Not visible (out to the left)
-            name = vram[atrPos + 2];
             color &= 0x0f;
-            patternStart = spritePatternTableAddress + ((name & 0xfc) << 3) + (line - y);
-            // Left half
-            s = x >= 0 ? 0 : -x;
-            f = x <= 248 ? 8 : 256 - x;
-            if (s < f) {
-                pattern = vram[patternStart];
-                copySprite(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
-            }
-            // Right half
-            s = x >= -8 ? 0 : -8 - x;
-            f = x <= 240 ? 8 : 248 - x;
-            if (s < f) {
-                pattern = vram[patternStart + 16];
-                copySprite(frameBackBuffer, bufferPos + x + 8, pattern, color, s, f, invalid < 0);
-            }
+            name = vram[atrPos + 2];
+            lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
+            pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            s = x <= 240 ? 0 : x - 240;
+            f = x >= 0 ? 16 : 16 + x;
+            paintSprite1(frameBackBuffer, bufferPos + x + (16 - f), pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteModeCollisions) {
@@ -1348,8 +1331,8 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSprites1LineSize3(line, bufferPos) {                     // Mode 1, 16x16 double
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
-        var atrPos, patternStart, name, color, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
+        var atrPos, name, color, lineInPattern, pattern;
+        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress - 4;
@@ -1358,9 +1341,9 @@ wmsx.V9938 = function(cpu, psg) {
             sprite++;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-            if ((y < (line - 31)) || (y > line)) continue;                  // Not visible at line
+
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine > 31) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
                 if (invalid < 0) invalid = sprite;
                 if (spriteModeLimit) break;
@@ -1369,23 +1352,13 @@ wmsx.V9938 = function(cpu, psg) {
             color = vram[atrPos + 3];
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -31) continue;                                          // Not visible (out to the left)
-            name = vram[atrPos + 2];
             color &= 0x0f;
-            patternStart = spritePatternTableAddress + ((name & 0xfc) << 3) + ((line - y) >>> 1);    // Double line height
-            // Left half
-            s = x >= 0 ? 0 : -x;
-            f = x <= 240 ? 16 : 256 - x;
-            if (s < f) {
-                pattern = vram[patternStart];
-                copySprite2x(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
-            }
-            // Right half
-            s = x >= -16 ? 0 : -16 - x;
-            f = x <= 224 ? 16 : 240 - x;
-            if (s < f) {
-                pattern = vram[patternStart + 16];
-                copySprite2x(frameBackBuffer, bufferPos + x + 16, pattern, color, s, f, invalid < 0);
-            }
+            name = vram[atrPos + 2];
+            lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >>> 1);    // Double line height
+            pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            s = x <= 224 ? 0 : x - 224;
+            f = x >= 0 ? 32 : 32 + x;
+            paintSprite1D(frameBackBuffer, bufferPos + x + (32 - f), pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteModeCollisions) {
@@ -1403,8 +1376,8 @@ wmsx.V9938 = function(cpu, psg) {
     function updateSprites2LineSize2(line, bufferPos) {                     // Mode 2, 16x16 normal
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
-        var atrPos, colorPos, color, patternStart, name, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, x, s, f;
+        var atrPos, colorPos, color, name, lineInPattern, pattern;
+        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1415,37 +1388,26 @@ wmsx.V9938 = function(cpu, psg) {
             colorPos += 16;
             y = vram[atrPos];
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
-            if (y >= 225) y = -256 + y;                                     // Signed value from -31 to -1
-            y++;                                                            // -1 (255) is line 0 per spec, so add 1
-            if ((y < (line - 15)) || (y > line)) continue;                  // Not visible at line
-            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (5th)
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine > 15) continue;                                  // Not visible at line
+            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (invalid < 0) invalid = sprite;
                 if (spriteModeLimit) break;
             }
             x = vram[atrPos + 1];
-            color = vram[colorPos + (line - y)];
+            color = vram[colorPos + spriteLine];
 
-            //if (color & 0x40) continue;
+            if (color & 0x40) continue;
 
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
             if (x < -15) continue;                                          // Not visible (out to the left)
             color &= 0x0f;
             name = vram[atrPos + 2];
-            patternStart = spritePatternTableAddress + ((name & 0xfc) << 3) + (line - y);
-            // Left half
-            s = x >= 0 ? 0 : -x;
-            f = x <= 248 ? 8 : 256 - x;
-            if (s < f) {
-                pattern = vram[patternStart];
-                copySprite(frameBackBuffer, bufferPos + x, pattern, color, s, f, invalid < 0);
-            }
-            // Right half
-            s = x >= -8 ? 0 : -8 - x;
-            f = x <= 240 ? 8 : 248 - x;
-            if (s < f) {
-                pattern = vram[patternStart + 16];
-                copySprite(frameBackBuffer, bufferPos + x + 8, pattern, color, s, f, invalid < 0);
-            }
+            lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
+            pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            s = x <= 240 ? 0 : x - 240;
+            f = x >= 0 ? 16 : 16 + x;
+            paintSprite2(frameBackBuffer, bufferPos + x + (16 - f), pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteModeCollisions) {
@@ -1460,24 +1422,35 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function copySprite(dest, pos, pattern, color, start, finish, collide) {
-        for (var i = start; i < finish; i++) {
-            var s = (pattern >> (7 - i)) & 0x01;
+    function paintSprite1(dest, pos, pattern, color, start, finish, collide) {
+        for (var i = finish - 1; i >= start; i--, pos++) {
+            var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
-            var destValue = dest[pos + i];
+            var destValue = dest[pos];
             // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos + i] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
+            if (destValue < 0xff000000) dest[pos] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
 
-    function copySprite2x(dest, pos, pattern, color, start, finish, collide) {
-        for (var i = start; i < finish; i++) {
-            var s = (pattern >> (7 - (i >>> 1))) & 0x01;
+    function paintSprite1D(dest, pos, pattern, color, start, finish, collide) {
+        for (var i = finish - 1; i >= start; i--, pos++) {
+            var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
-            var destValue = dest[pos + i];
+            var destValue = dest[pos];
             // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos + i] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
+            if (destValue < 0xff000000) dest[pos] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
+            else if (!spritesCollided) spritesCollided = collide;
+        }
+    }
+
+    function paintSprite2(dest, pos, pattern, color, start, finish, collide) {
+        for (var i = finish - 1; i >= start; i--, pos++) {
+            var s = (pattern >> i) & 0x01;
+            if (s === 0) continue;
+            var destValue = dest[pos];
+            // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
+            if (destValue < 0xff000000) dest[pos] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
@@ -1952,7 +1925,8 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
 
-    var VRAM_LIMIT = 0x1FFFF;
+    var VRAM_LIMIT_9918 = 0x03FFF;      // 16K
+    var VRAM_LIMIT_9938 = 0x1FFFF;      // 128K
     var frame = 0;
 
     // Registers, pointers, control data
@@ -2043,7 +2017,8 @@ wmsx.V9938 = function(cpu, psg) {
 
     // VRAM
 
-    var vram = new Uint8Array(VRAM_LIMIT + 1);
+    var vram = new Uint8Array(VRAM_LIMIT_9938 + 1);
+    var vramLimit = VRAM_LIMIT_9938;
     this.vram = vram;
 
 
