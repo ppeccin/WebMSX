@@ -116,9 +116,15 @@ wmsx.V9938 = function(cpu, psg) {
                 // Register write
                 registerWrite(val & 0x3f, dataToWrite);
             } else {
+                //var oldPointer = vramPointer;
+
+                // TODO Define behavior regarding r14
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
                 vramWriteMode = val & 0x40;
                 vramPointer = ((vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite) & vramLimit;
+
+                //console.log("Setting via out: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16) + ". was: " + oldPointer.toString(16) + ". reg14: " + register[14].toString(16));
+
             }
             dataToWrite = null;
         }
@@ -241,6 +247,9 @@ wmsx.V9938 = function(cpu, psg) {
             case 14:
                 // VRAM Address Pointer high (A16-A14)
                 vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & vramLimit;
+
+                //console.log("Setting reg14: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16));
+
                 break;
             case 16:
                 paletteFirstWrite = null;
@@ -1209,15 +1218,17 @@ wmsx.V9938 = function(cpu, psg) {
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
-            if (spriteLine > 7) continue;                                  // Not visible at line
+            if (spriteLine > 7) continue;                                   // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
                 if (invalid < 0) invalid = sprite;
                 if (spriteModeLimit) break;
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
-            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-            if (x < -7) continue;                                           // Not visible (out to the left)
+            if (color & 0x80) {
+                if (x < 32 - 7) continue;                                   // Not visible (out to the left)
+                x -= 32;                                                    // Early Clock bit, X to be 32 to the left
+            }
             color &= 0x0f;
             name = vram[atrPos + 2];
             lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
@@ -1231,7 +1242,7 @@ wmsx.V9938 = function(cpu, psg) {
             //wmsx.Util.log("8x8 normal Collision");
             status[0] |= 0x20;
         }
-        if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
+        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
                 status[0] |= 0x40 | invalid;
@@ -1261,8 +1272,10 @@ wmsx.V9938 = function(cpu, psg) {
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
             if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-            if (x < -15) continue;                                          // Not visible (out to the left)
-            color &= 0x0f;
+            if (color & 0x80) {
+                if (x < 32 - 15) continue;                                  // Not visible (out to the left)
+                x -= 32;                                                    // Early Clock bit, X to be 32 to the left
+            }
             name = vram[atrPos + 2];
             lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >>> 1);    // Double line height
             pattern = vram[lineInPattern];
@@ -1305,8 +1318,10 @@ wmsx.V9938 = function(cpu, psg) {
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
-            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-            if (x < -15) continue;                                          // Not visible (out to the left)
+            if (color & 0x80) {
+                if (x < 32 - 15) continue;                                  // Not visible (out to the left)
+                x -= 32;                                                    // Early Clock bit, X to be 32 to the left
+            }
             color &= 0x0f;
             name = vram[atrPos + 2];
             lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
@@ -1320,7 +1335,7 @@ wmsx.V9938 = function(cpu, psg) {
             //wmsx.Util.log("16x16 normal Collision");
             status[0] |= 0x20;
         }
-        if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
+        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
                 status[0] |= 0x40 | invalid;
@@ -1350,8 +1365,10 @@ wmsx.V9938 = function(cpu, psg) {
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
-            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-            if (x < -31) continue;                                          // Not visible (out to the left)
+            if (color & 0x80) {
+                if (x < 32 - 31) continue;                                  // Not visible (out to the left)
+                x -= 32;                                                    // Early Clock bit, X to be 32 to the left
+            }
             color &= 0x0f;
             name = vram[atrPos + 2];
             lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >>> 1);    // Double line height
@@ -1399,8 +1416,10 @@ wmsx.V9938 = function(cpu, psg) {
 
             if (color & 0x40) continue;
 
-            if (color & 0x80) x -= 32;                                      // Early Clock bit, X to be 32 to the left
-            if (x < -15) continue;                                          // Not visible (out to the left)
+            if (color & 0x80) {
+                if (x < 32 - 15) continue;                                  // Not visible (out to the left)
+                x -= 32;                                                    // Early Clock bit, X to be 32 to the left
+            }
             color &= 0x0f;
             name = vram[atrPos + 2];
             lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
@@ -1414,7 +1433,7 @@ wmsx.V9938 = function(cpu, psg) {
             //wmsx.Util.log("16x16 normal Collision");
             status[0] |= 0x20;
         }
-        if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
+        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
                 status[0] |= 0x40 | invalid;
@@ -1423,34 +1442,37 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function paintSprite1(dest, pos, pattern, color, start, finish, collide) {
+        var value = colorPalette[color] | 0xff000000;
         for (var i = finish - 1; i >= start; i--, pos++) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             var destValue = dest[pos];
             // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
+            if (destValue < 0xff000000) dest[pos] = color === 0 ? destValue | 0xff000000 : value;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
 
     function paintSprite1D(dest, pos, pattern, color, start, finish, collide) {
+        var value = colorPalette[color] | 0xff000000;
         for (var i = finish - 1; i >= start; i--, pos++) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             var destValue = dest[pos];
             // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
+            if (destValue < 0xff000000) dest[pos] = color === 0 ? destValue | 0xff000000 : value;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
 
     function paintSprite2(dest, pos, pattern, color, start, finish, collide) {
+        var value = colorPalette[color] | 0xff000000;
         for (var i = finish - 1; i >= start; i--, pos++) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             var destValue = dest[pos];
             // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos] = (color === 0 ? destValue : colorPalette[color]) | 0xff000000;
+            if (destValue < 0xff000000) dest[pos] = color === 0 ? destValue | 0xff000000 : value;
             else if (!spritesCollided) spritesCollided = collide;
         }
     }
