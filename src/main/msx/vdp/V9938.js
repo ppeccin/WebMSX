@@ -55,7 +55,7 @@ wmsx.V9938 = function(cpu, psg) {
 
     this.clockPulse = function() {
         // Finish video signal (generate any missing lines up to the max per cycle)
-        updateLines(1000);
+        frameLinesAndEvents(1000);
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
@@ -98,6 +98,9 @@ wmsx.V9938 = function(cpu, psg) {
         dataToWrite = null;
         var reg = register[15];
         var prevStatus = status[reg];
+
+        //if (reg < 2) logInfo("Reading status " + reg + ", " + prevStatus.toString(16));
+
         switch(reg) {
             case 0:
                 status[0] = 0; updateIRQ(); break;
@@ -143,7 +146,7 @@ wmsx.V9938 = function(cpu, psg) {
     this.output9b = function(val) {
         // Indirect Register Write
         var reg = register[17] & 0x3f;
-        if (reg !== 17) registerWrite(reg, val);
+        if (reg !== 17) registerWrite(reg, val, "Indirect");
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
     };
 
@@ -192,17 +195,26 @@ wmsx.V9938 = function(cpu, psg) {
         updateSynchronization();
     };
 
-    function registerWrite(reg, val) {
+    function registerWrite(reg, val, source) {
         if (reg > 46) return;
         var add;
         var old = register[reg];
         register[reg] = val;
+
+        //logInfo((source || "") + "Reg: " + reg + " = " + val.toString(16) + ", was: " + old.toString(16));
+
         switch (reg) {
             case 0:
+
+                //if (val !== old) logInfo("Register0: " + val.toString(16));
+
                 if ((val & 0x10) !== (old & 0x10)) updateIRQ();                             // IE1
                 if ((val & 0x0e) !== (old & 0x0e)) updateMode();                            // Mx
                 break;
             case 1:
+
+                //if (val !== old) logInfo("Register1: " + val.toString(16));
+
                 if ((val & 0x20) !== (old & 0x20)) updateIRQ();                             // IE0
                 if ((val & 0x18) !== (old & 0x18)) updateMode();                            // Mx
                 else if ((val & 0x40) !== (old & 0x40)) updateLineFunctions();              // BL. Already ok if mode was updated
@@ -212,6 +224,9 @@ wmsx.V9938 = function(cpu, psg) {
                 add = (val << 10) & 0x1ffff;
                 nameTableAddress = add & modeData.nameTBase;
                 nameTableAddressMask = add & ~modeData.nameTBase | nameTableAddressBaseMask;
+
+                //logInfo("Setting: " + val.toString(16) + " to NameTableAddress: " + nameTableAddress.toString(16));
+
                 break;
             case 3:
             case 10:
@@ -229,12 +244,18 @@ wmsx.V9938 = function(cpu, psg) {
                 add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
                 spriteAttrTableAddress = add & modeData.sprAttrTBase;
                 spriteAttrTableAddressMask = add & ~modeData.sprAttrTBase | modeData.sprAttrTBaseM;
+
+                //logInfo("SpriteAttrTable: " + spriteAttrTableAddress.toString(16));
+
                 break;
             case 6:
                 add = (val << 11) & 0x1ffff ;
                 spritePatternTableAddress = add & modeData.sprPatTBase;
                 spritePatternTableAddressMask = add & ~modeData.sprPatTBase | spritePatternTableAddressBaseMask;
                 updateSpritePatternTables();
+
+                //logInfo("SpritePatTable: " + spritePatternTableAddress.toString(16));
+
                 break;
             case 7:
                 if ((val & 0x0f) !== (old & 0x0f)) updateBackdropColor();                   // BD
@@ -256,12 +277,22 @@ wmsx.V9938 = function(cpu, psg) {
             case 16:
                 paletteFirstWrite = null;
                 break;
+            case 19:
+
+                //logInfo("Line Interrupt set: " + val);
+
+                break;
+            case 23:
+
+                //logInfo("Vertical offset set: " + val);
+
+                break;
             case 44:
                 if (executingCommandHandler) executingCommandHandler(val);
                 break;
             case 46:
 
-                //console.log(">>>> VDP Command: " + (val & 0xf0).toString(16));
+                //console.log(">>>> VDP Command: " + val.toString(16));
 
                 switch (val & 0xf0) {
                     case 0xf0:
@@ -290,10 +321,8 @@ wmsx.V9938 = function(cpu, psg) {
 
     function setPaletteRegister(reg, val) {
         if (paletteRegister[reg] === val) return;
-
-        //console.log("Palette Register: " + reg + " = " + val.toString(16));
-
         paletteRegister[reg] = val;
+
         var value = colors512[((val & 0x700) >> 2) | ((val & 0x70) >> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
 
         // Special case for color 0
@@ -327,15 +356,14 @@ wmsx.V9938 = function(cpu, psg) {
 
         startingScanline = videoStandard.startingScanline;
         finishingScanline = videoStandard.finishingScanline;
-        cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per clock
+        cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per cycle
         pulldownFirstFrameStartingLine = videoStandard.pulldowns[desiredBaseFrequency].firstFrameStartingLine;
         cycleLines = pulldownFirstFrameStartingLine;
     }
 
     // 262 lines per frame for NTSC, 313 lines for PAL
-    // 342 total pixel clocks per line, 256 visible pixels, 228 CPU clocks and 7.125 PSG clocks
     // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
-    function updateLines(lines) {
+    function frameLinesAndEvents(lines) {
         var toCycleLine = cycleLines + lines; if (toCycleLine > cycleTotalLines) toCycleLine = cycleTotalLines;
 
         while (cycleLines < toCycleLine) {
@@ -348,11 +376,11 @@ wmsx.V9938 = function(cpu, psg) {
             // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
             if (currentScanline < finishingActiveScanline) {
                 status[2] &= ~0x40;
-                lineClockCPUandPSG();
+                lineClocksAndEvents();
                 while((currentScanline < finishingActiveScanline) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < finishingActiveScanline ? toScanline : finishingActiveScanline);
             }
 
-            // End of visible scan, request interrupt
+            // End of visible scan, request vertical interrupt
             if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();
             if (cycleLines >= toCycleLine) return;
 
@@ -367,29 +395,69 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
+    function lineClocksAndEvents() {
+        // Total line clocks: VDP: 1368, CPU: 228 CPU, PSG 7.125 PSG
+        // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
+
+        // >> Start of the line
+        // Sync signal: 100 clocks
+        // Left erase: 102 clocks
+        // Left border: 56 clocks. Total 258
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(10);
+
+        // Display: 1024 clocks
+        cpuClockPulses(22); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(19);
+
+        // Right border: 59 clocks
+        // Right erase: 27 clocks. Total 86
+        cpuClockPulses(14); psgClockPulse();
+
+        // >> End of the line
+
+        // Original
+        //cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        //cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        //cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        //cpuClockPulses(33); psgClockPulse(); // TODO 1 additional PSG clock each 8th line
+    }
+
     function triggerVerticalInterrupt() {
-        status[0] |= 0x80;
         status[2] |= 0x40;
-        updateIRQ();
+
+        //logInfo("Bottom Line reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
+
+        if ((status[0] & 0x80) === 0) {
+            status[0] |= 0x80;
+            updateIRQ();
+        }
     }
 
     function triggerHorizontalInterrupt() {
-        status[1] |= 0x01;
-        updateIRQ();
+
+        //logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
+
+        if ((status[1] & 0x01) === 0) {
+            status[1] |= 0x01;
+            updateIRQ();
+        }
     }
 
     function updateIRQ() {
-        cpu.INT = ((status[0] & 0x80) && (register[1] & 0x20))
-            || ((register[0] & 0x10) && (status[1] & 0x01))
-            ? 0 : 1;
-    }
+        cpu.INT = 1;
+        if ((status[0] & 0x80) && (register[1] & 0x20)) {
+            //logInfo(">>>>  INT VERTICAL");
+            cpu.INT = 0;
+        }
+        if ((status[1] & 0x01) && (register[0] & 0x10)) {
+            //logInfo(">>>>  INT HORIZONTAL");
+            cpu.INT = 0;
+        }
 
-    // 228 CPU clocks and 7,125 PSG clocks interleaved
-    function lineClockCPUandPSG() {
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); // TODO 1 additional PSG clock each 8th line
+        //if (cpu.INT === 1) logInfo(">>>>  INT OFF");
+
     }
 
     function updateMode(force) {
@@ -492,7 +560,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateLinesInvisible(toLine) {
         // No Horizontal Interrupt possible
         for (var i = toLine - currentScanline; i > 0; i--)
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         cycleLines += (toLine - currentScanline);
         currentScanline = toLine;
     }
@@ -500,7 +568,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateLinesBorder256(toLine) {
         var line = currentScanline, bufferPos = (line + 8) * 544;
         while (line < toLine) {
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
             // No Horizontal Interrupt possible
             frameBackBuffer.set(backdropFullLine256Values, bufferPos);
             bufferPos += 544;
@@ -514,7 +582,7 @@ wmsx.V9938 = function(cpu, psg) {
     function updateLinesBorder512(toLine) {
         var line = currentScanline, bufferPos = (line + 8) * 544;
         while (line < toLine) {
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
             // No Horizontal Interrupt possible
             frameBackBuffer.set(backdropFullLine512Values, bufferPos);
             bufferPos += 544;
@@ -535,7 +603,7 @@ wmsx.V9938 = function(cpu, psg) {
             // Sprites deactivated
             line++;
             if (line >= toLine) break;
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
         cycleLines += (line - currentScanline);
         currentScanline = line;
@@ -551,7 +619,7 @@ wmsx.V9938 = function(cpu, psg) {
             // Sprites deactivated
             line++;
             if (line >= toLine) break;
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
         cycleLines += (line - currentScanline);
         currentScanline = line;
@@ -594,7 +662,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -638,7 +706,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -678,7 +746,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -718,7 +786,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while(modeStable);
 
         cycleLines += (line - currentScanline);
@@ -760,7 +828,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -802,7 +870,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -811,18 +879,16 @@ wmsx.V9938 = function(cpu, psg) {
 
     function updateLinesModeG4(toLine) {                                        // Graphics 4 (Screen 5)
         var pixelsPos, pixelsPosFinal, pixels;
-        var line = currentScanline, bufferPos = (line + 8) * 544, realLine;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544, realLine;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
-            realLine = (line + register[23]) & 255;
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
 
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            pixelsPos = nameTableAddress + (realLine << 7);                     // consider the scan start offset in reg23
+            pixelsPos = nameTableAddress + (realLine << 7);
             pixelsPosFinal = pixelsPos + 128;
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vram[pixelsPos++];
@@ -835,15 +901,17 @@ wmsx.V9938 = function(cpu, psg) {
 
             if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
 
-            line++;
+            if (currentScanline === ((register[19] - register[23]) & 255)) triggerHorizontalInterrupt();        // end of line, check horizontal interrupt
+            currentScanline++;
 
-            if (line >= toLine) break;
+            if (currentScanline >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
+        //cycleLines += (line - currentScanline);
+        //currentScanline = line;
     }
 
     function updateLinesModeG5(toLine) {                                        // Graphics 5 (Screen 6)
@@ -875,7 +943,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -909,7 +977,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -941,7 +1009,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -998,7 +1066,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -1039,7 +1107,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -1086,7 +1154,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while(modeStable);
 
         cycleLines += (line - currentScanline);
@@ -1136,7 +1204,7 @@ wmsx.V9938 = function(cpu, psg) {
             line++;
             if (line >= toLine) break;
 
-            lineClockCPUandPSG();
+            lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (line - currentScanline);
@@ -1247,8 +1315,8 @@ wmsx.V9938 = function(cpu, psg) {
         if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] |= 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] && ~0x1f | sprite;
+                status[0] = status[0] & ~0x1f | 0x40 | invalid;
+            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
         }
     }
 
@@ -1294,8 +1362,8 @@ wmsx.V9938 = function(cpu, psg) {
         if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] |= 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] && ~0x1f | sprite;
+                status[0] = status[0] & ~0x1f | 0x40 | invalid;
+            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
         }
     }
 
@@ -1340,8 +1408,8 @@ wmsx.V9938 = function(cpu, psg) {
         if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] |= 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] && ~0x1f | sprite;
+                status[0] = status[0] & ~0x1f | 0x40 | invalid;
+            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
         }
     }
 
@@ -1387,8 +1455,8 @@ wmsx.V9938 = function(cpu, psg) {
         if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] |= 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] && ~0x1f | sprite;
+                status[0] = status[0] & ~0x1f | 0x40 | invalid;
+            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
         }
     }
 
@@ -1478,8 +1546,8 @@ wmsx.V9938 = function(cpu, psg) {
         if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
             if (invalid >= 0) {
                 //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] |= 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] && ~0x1f | sprite;
+                status[0] = status[0] & ~0x1f | 0x40 | invalid;
+            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
         }
     }
 
@@ -1890,7 +1958,7 @@ wmsx.V9938 = function(cpu, psg) {
         executingCommandHandler = handler;
 
         // Set CE and TR
-        status[2] |= 81;
+        status[2] |= 0x81;
 
         // Perform first iteration with current data
         executingCommandHandler(register[44]);
@@ -1902,7 +1970,7 @@ wmsx.V9938 = function(cpu, psg) {
         //else console.log(">>>> NO COMMAND TO FINISH");
 
         executingCommandHandler = null;
-        status[2] &= ~81;          // Clear CE and TR
+        status[2] &= ~0x81;          // Clear CE and TR
         register[46] &= ~0xf0;
     }
 
@@ -2148,9 +2216,9 @@ wmsx.V9938 = function(cpu, psg) {
 
 
     function logInfo(text) {
-        console.log(text + ". Frame: " + frame + " , line: " + currentScanline);
+        console.log(text + ". Frame: " + frame + ", line: " + currentScanline);
     }
-
+    this.logInfo = logInfo;
 
     this.eval = function(str) {
         return eval(str);
