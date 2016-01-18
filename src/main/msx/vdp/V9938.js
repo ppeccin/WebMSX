@@ -54,19 +54,14 @@ wmsx.V9938 = function(cpu, psg) {
     };
 
     this.clockPulse = function() {
-        // Finish video signal (generate any missing lines up to the max per cycle)
-        frameLinesAndEvents(1000);
+        // Generate correct amount of lines per cycle, according to the current pulldown cadence
+        frameLinesAndEvents();
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
-
-        // Prepare for next cycle. Adjust for pulldown cadence if the next frame is the first pulldown frame
-        cycleLines = (currentScanline === startingScanline) ? pulldownFirstFrameStartingLine : 0;
-
-        frame++
     };
 
     this.input98 = function() {
@@ -364,69 +359,35 @@ wmsx.V9938 = function(cpu, psg) {
         startingScanline = videoStandard.startingScanline;
         finishingScanline = videoStandard.finishingScanline;
         cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per cycle
-        pulldownFirstFrameStartingLine = videoStandard.pulldowns[desiredBaseFrequency].firstFrameStartingLine;
-        cycleLines = pulldownFirstFrameStartingLine;
+        pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // Unless its the first pulldown frame and is adjusted
     }
 
     // 262 lines per frame for NTSC, 313 lines for PAL
     // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
-    function frameLinesAndEvents(lines) {
+    function frameLinesAndEvents() {
+        // Adjust for pulldown cadence if this frame is the first pulldown frame
+        var totalLines = cycleTotalLines + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
-        //logInfo("CycleTotaLines: " + cycleTotalLines);
-
-        for (var i = 0; i < cycleTotalLines; i++) {
-            if (currentScanline < 0) updateLinesBorder(currentScanline + 1);
-            else if (currentScanline < finishingActiveScanline) {
-                lineClocksAndEvents(); updateLinesActive(currentScanline + 1);
-            } else if (currentScanline < finishingBottomBorderScanline) updateLinesBorder(currentScanline + 1);
-            else {
-                updateLinesInvisible(currentScanline + 1);
-                if (currentScanline === finishingScanline) finishFrame();
+        for (var i = 0; i < totalLines; i++) {
+            lineClocksAndEvents();
+            if ((currentScanline >= 0) && (currentScanline < finishingActiveScanline)) {
+                updateLinesActive();
+            } else if ((currentScanline >= finishingBottomBorderScanline) && (currentScanline < finishingScanline)) {
+                if (currentScanline === (finishingScanline - 1)) {
+                    finishFrame();
+                    continue;
+                }
+            } else {
+                updateLinesBorder();
             }
-        }
-
-        //logInfo("CurrentScanline: " + currentScanline);
-
-    }
-
-    // 262 lines per frame for NTSC, 313 lines for PAL
-    // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
-    function frameLinesAndEventsOld(lines) {
-        var toCycleLine = cycleLines + lines; if (toCycleLine > cycleTotalLines) toCycleLine = cycleTotalLines;
-
-        while (cycleLines < toCycleLine) {
-            var toScanline = currentScanline + (toCycleLine - cycleLines);
-
-            // Visible top border scanlines (8)
-            if (currentScanline < 0) updateLinesBorder(toScanline < 0 ? toScanline : 0);
-            if (cycleLines >= toCycleLine) return;
-
-            // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
-            if (currentScanline < finishingActiveScanline) {
-                lineClocksAndEvents();
-                while((currentScanline < finishingActiveScanline) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < finishingActiveScanline ? toScanline : finishingActiveScanline);
-            }
-
-            // End of visible scan
-            //if (currentScanline === finishingActiveScanline) checkVerticalInterrupt();
-            if (cycleLines >= toCycleLine) return;
-
-            // Visible bottom border scanlines (8)
-            if (currentScanline < finishingBottomBorderScanline) updateLinesBorder(toScanline < finishingBottomBorderScanline ? toScanline : finishingBottomBorderScanline);
-            if (cycleLines >= toCycleLine) return;
-
-            // Invisible scanlines (enough to fill the remaining lines for the video standard)
-            if (currentScanline < finishingScanline) updateLinesInvisible(toScanline < finishingScanline ? toScanline : finishingScanline);
-
-            if (currentScanline === finishingScanline) finishFrame();
+            currentScanline++;
         }
     }
 
+    // Total line clocks: VDP: 1368, CPU: 228 CPU, PSG 7.125 PSG
+    // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
+    // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
     function lineClocksAndEvents() {
-        // Total line clocks: VDP: 1368, CPU: 228 CPU, PSG 7.125 PSG
-        // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
-        // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
-
         // Right border: 59 clocks
         // Right erase: 27 clocks. Total 86
         // Sync signal: 100 clocks
@@ -586,615 +547,420 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
-    function updateLinesInvisible(toLine) {
-        var prevLine = currentScanline;
-        while (currentScanline < toLine) {
-            lineClocksAndEvents();
-            currentScanline++;
+    function updateLineBorder256() {
+        var bufferPos = (currentScanline + 8) * 544;
+        frameBackBuffer.set(backdropFullLine256Values, bufferPos);
+        // Sprites deactivated
+    }
+
+    function updateLineBorder512() {
+        var bufferPos = (currentScanline + 8) * 544;
+        frameBackBuffer.set(backdropFullLine512Values, bufferPos);
+        // Sprites deactivated
+    }
+
+    function updateLineBlanked256() {
+        var bufferPos = (currentScanline + 8) * 544;
+        frameBackBuffer.set(backdropFullLine256Values, bufferPos);
+        // Sprites deactivated
+    }
+
+    function updateLineBlanked512() {
+        var bufferPos = (currentScanline + 8) * 544;
+        frameBackBuffer.set(backdropFullLine512Values, bufferPos);
+        // Sprites deactivated
+    }
+
+    function updateLineModeT1() {                                           // Text (Screen 0 width 40)
+        var bufferPos = (currentScanline + 8) * 544;
+
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + (realLine >>> 3) * 40;              // line / 8 * 40
+        var patPosFinal = patPos + 40;
+        var lineInPattern = patternTableAddress + (realLine & 0x07);
+        var colorCode = register[7];                                        // fixed text color for all line
+        var on =  colorPalette[colorCode >>> 4];
+        var off = colorPalette[colorCode & 0xf];
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            var pattern = vram[(name << 3) + lineInPattern];
+            setBackBufferPattern(bufferPos, pattern, on, off);
+            bufferPos += 6;
         }
-        cycleLines += (currentScanline - prevLine);
+
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
+
+        // Sprites deactivated
     }
 
-    function updateLinesBorder256(toLine) {
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-        while (currentScanline < toLine) {
-            lineClocksAndEvents();
-            frameBackBuffer.set(backdropFullLine256Values, bufferPos);
-            bufferPos += 544;
-            // Sprites deactivated
-            currentScanline++;
+    function updateLineModeT2() {                                           // Text (Screen 0 width 80)
+        var bufferPos = (currentScanline + 8) * 544;
+
+        setBackBufferToBackdrop16(bufferPos);
+        bufferPos += 16;
+        setBackBufferToBackdrop16(bufferPos);
+        bufferPos += 16;
+
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + (realLine >>> 3) * 80;              // line / 8 * 80
+        var patPosFinal = patPos + 80;
+        var lineInPattern = patternTableAddress + (realLine & 0x07);
+        var colorCode = register[7];                                        // fixed text color for all line
+        var on =  colorPalette[colorCode >>> 4];
+        var off = colorPalette[colorCode & 0xf];
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            var pattern = vram[(name << 3) + lineInPattern];
+            setBackBufferPattern(bufferPos, pattern, on, off);
+            bufferPos += 6;
         }
-        cycleLines += (currentScanline - prevLine);
+
+        setBackBufferToBackdrop16(bufferPos);
+        bufferPos += 16;
+        setBackBufferToBackdrop16(bufferPos);
+        bufferPos += 16;
+
+        // Sprites deactivated
     }
 
-    function updateLinesBorder512(toLine) {
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-        while (currentScanline < toLine) {
-            lineClocksAndEvents();
-            frameBackBuffer.set(backdropFullLine512Values, bufferPos);
-            bufferPos += 544;
-            // Sprites deactivated
-            currentScanline++;
+    function updateLineModeMC() {                                           // Multicolor (Screen 3)
+        var bufferPos = (currentScanline + 8) * 544;
+
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
+        var patPosFinal = patPos + 32;
+        var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >> 2) & 0x01);    // (pattern line % 4) * 2
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            var patternLine = (name << 3) + extraPatPos;                    // name * 8 + extra position
+            var colorCode = vram[patternLine];
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, 0xf0, on, off);                 // always solid blocks of front and back colors;
+            bufferPos += 8;
         }
-        cycleLines += (currentScanline - prevLine);
+
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
+
+        updateSpritesLine(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesBlanked256(toLine) {
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-        modeStable = true;
-        do {
-            frameBackBuffer.set(backdropFullLine256Values, bufferPos);
-            bufferPos += 544;
-            // Sprites deactivated
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-            lineClocksAndEvents();
-        } while (modeStable);
-        cycleLines += (currentScanline - prevLine);
-    }
+    function updateLineModeG1() {                                           // Graphics 1 (Screen 1)
+        var bufferPos = (currentScanline + 8) * 544;
 
-    function updateLinesBlanked512(toLine) {
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-        modeStable = true;
-        do {
-            frameBackBuffer.set(backdropFullLine512Values, bufferPos);
-            bufferPos += 544;
-            // Sprites deactivated
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-            lineClocksAndEvents();
-        } while (modeStable);
-        cycleLines += (currentScanline - prevLine);
-    }
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-    function updateLinesModeT1(toLine) {                                        // Text (Screen 0 width 40)
-        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
+        var patPosFinal = patPos + 32;
+        var lineInPattern = patternTableAddress + (realLine & 0x07);
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            var pattern = vram[((name << 3) + lineInPattern)];              // name * 8 (8 bytes each pattern) + line inside pattern
+            var colorCode = vram[colorTableAddress + (name >>> 3)];         // name / 8 (1 color for each 8 patterns)
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
             bufferPos += 8;
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
+        }
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + (realLine >>> 3) * 40;                  // line / 8 * 40
-            patPosFinal = patPos + 40;
-            lineInPattern = patternTableAddress + (realLine & 0x07);
-            colorCode = register[7];                                            // fixed text color for all line
-            on =  colorPalette[colorCode >>> 4];
-            off = colorPalette[colorCode & 0xf];
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                pattern = vram[(name << 3) + lineInPattern];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 6;
-            }
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
-
-            // Sprites deactivated
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        updateSpritesLine(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeT2(toLine) {                                        // Text (Screen 0 width 80)
-        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG2() {                                           // Graphics 2 (Screen 2)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop16(bufferPos);
-            bufferPos += 16;
-            setBackBufferToBackdrop16(bufferPos);
-            bufferPos += 16;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + (realLine >>> 3) * 80;                  // line / 8 * 80
-            patPosFinal = patPos + 80;
-            lineInPattern = patternTableAddress + (realLine & 0x07);
-            colorCode = register[7];                                            // fixed text color for all line
-            on =  colorPalette[colorCode >>> 4];
-            off = colorPalette[colorCode & 0xf];
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                pattern = vram[(name << 3) + lineInPattern];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 6;
-            }
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
+        var patPosFinal = patPos + 32;
+        var lineInPattern = patternTableAddress + (realLine & 0x07);
+        var lineInColor = colorTableAddress + (realLine & 0x07);
+        var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++] | blockExtra;
+            var pattern = vram[(name << 3) + lineInPattern];
+            var colorCode = vram[(name << 3) + lineInColor];                // (8 bytes each pattern) + line inside pattern
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
+            bufferPos += 8;
+        }
 
-            setBackBufferToBackdrop16(bufferPos);
-            bufferPos += 16;
-            setBackBufferToBackdrop16(bufferPos);
-            bufferPos += 16;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            // Sprites deactivated
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        updateSpritesLine(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeMC(toLine) {                                        // Multicolor (Screen 3)
-        var realLine, patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG3() {                                           // Graphics 3 (Screen 4)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
+        var patPosFinal = patPos + 32;
+        var lineInPattern = patternTableAddress + (realLine & 0x07);
+        var lineInColor = colorTableAddress + (realLine & 0x07);
+        var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++] | blockExtra;
+            var pattern = vram[(name << 3) + lineInPattern];
+            var colorCode = vram[(name << 3) + lineInColor];                // (8 bytes each pattern) + line inside pattern
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
             bufferPos += 8;
+        }
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
-            patPosFinal = patPos + 32;
-            extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >> 2) & 0x01);    // (pattern line % 4) * 2
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
-                colorCode = vram[patternLine];
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, 0xf0, on, off);                 // always solid blocks of front and back colors;
-                bufferPos += 8;
-            }
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
-
-            updateSpritesLine(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeG1(toLine) {                                        // Graphics 1 (Screen 1)
-        var realLine, patPos, patPosFinal, name, lineInPattern, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
-            patPosFinal = patPos + 32;
-            lineInPattern = patternTableAddress + (realLine & 0x07);
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                pattern = vram[((name << 3) + lineInPattern)];                  // name * 8 (8 bytes each pattern) + line inside pattern
-                colorCode = vram[colorTableAddress + (name >>> 3)];             // name / 8 (1 color for each 8 patterns)
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 8;
-            }
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var pixelsPos = nameTableAddress + (realLine << 7);
+        var pixelsPosFinal = pixelsPos + 128;
+        while (pixelsPos < pixelsPosFinal) {
+            var pixels = vram[pixelsPos++];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+        }
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            updateSpritesLine(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while(modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeG2(toLine) {                                        // Graphics 2 (Screen 2)
-        var realLine, patPos, patPosFinal, lineInPattern, lineInColor, name, blockExtra, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
+        setBackBufferToBackdropG5(bufferPos);
+        bufferPos += 16;
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
-            patPosFinal = patPos + 32;
-            lineInPattern = patternTableAddress + (realLine & 0x07);
-            lineInColor = colorTableAddress + (realLine & 0x07);
-            blockExtra = (realLine & 0xc0) << 2;                                 // + 0x100 for each third block of the screen (8 pattern lines)
-            while (patPos < patPosFinal) {
-                name = vram[patPos++] | blockExtra;
-                pattern = vram[(name << 3) + lineInPattern];
-                colorCode = vram[(name << 3) + lineInColor];                    // (8 bytes each pattern) + line inside pattern
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 8;
-            }
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var pixelsPos = nameTableAddress + (realLine << 7);
+        var pixelsPosFinal = pixelsPos + 128;
+        while (pixelsPos < pixelsPosFinal) {
+            var pixels = vram[pixelsPos++];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 6];
+            frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 4) & 0x03];
+            frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 2) & 0x03];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
+        }
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
+        setBackBufferToBackdropG5(bufferPos);
+        bufferPos += 16;
 
-            updateSpritesLine(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeG3(toLine) {                                        // Graphics 3 (Screen 4)
-        var realLine, patPos, patPosFinal, lineInPattern, lineInColor, name, blockExtra, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 16;
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
-            patPosFinal = patPos + 32;
-            lineInPattern = patternTableAddress + (realLine & 0x07);
-            lineInColor = colorTableAddress + (realLine & 0x07);
-            blockExtra = (realLine & 0xc0) << 2;                                // + 0x100 for each third block of the screen (8 pattern lines)
-            while (patPos < patPosFinal) {
-                name = vram[patPos++] | blockExtra;
-                pattern = vram[(name << 3) + lineInPattern];
-                colorCode = vram[(name << 3) + lineInColor];                    // (8 bytes each pattern) + line inside pattern
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 8;
-            }
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var pixelsPos = nameTableAddress + (realLine << 8);
+        var pixelsPosFinal = pixelsPos + 256;
+        while (pixelsPos < pixelsPosFinal) {
+            var pixels = vram[pixelsPos++];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+        }
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
+        setBackBufferToBackdropG5(bufferPos);
+        bufferPos += 16;
 
-            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeG4(toLine) {                                        // Graphics 4 (Screen 5)
-        var realLine, pixelsPos, pixelsPosFinal, pixels;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var pixelsPos = nameTableAddress + (realLine << 8);                 // consider the scan start offset in reg23
+        var pixelsPosFinal = pixelsPos + 256;
+        while (pixelsPos < pixelsPosFinal) {
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++]];
+        }
 
-            pixelsPos = nameTableAddress + (realLine << 7);
-            pixelsPosFinal = pixelsPos + 128;
-            while (pixelsPos < pixelsPosFinal) {
-                pixels = vram[pixelsPos++];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
-            }
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
-
-            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeG5(toLine) {                                        // Graphics 5 (Screen 6)
-        var realLine, pixelsPos, pixelsPosFinal, pixels;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeT1Debug() {                                      // Text (Screen 0)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-            setBackBufferToBackdropG5(bufferPos);
-            bufferPos += 16;
-
-            pixelsPos = nameTableAddress + (realLine << 7);
-            pixelsPosFinal = pixelsPos + 128;
-            while (pixelsPos < pixelsPosFinal) {
-                pixels = vram[pixelsPos++];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 6];
-                frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 4) & 0x03];
-                frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 2) & 0x03];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
-            }
-
-            setBackBufferToBackdropG5(bufferPos);
-            bufferPos += 16;
-
-            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
-    }
-
-    function updateLinesModeG6(toLine) {                                        // Graphics 6 (Screen 7)
-        var realLine, pixelsPos, pixelsPosFinal, pixels;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-
-        modeStable = true;
-        do {
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 16;
-
-            pixelsPos = nameTableAddress + (realLine << 8);
-            pixelsPosFinal = pixelsPos + 256;
-            while (pixelsPos < pixelsPosFinal) {
-                pixels = vram[pixelsPos++];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
-            }
-
-            setBackBufferToBackdropG5(bufferPos);
-            bufferPos += 16;
-
-            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
-    }
-
-    function updateLinesModeG7(toLine) {                                        // Graphics 7 (Screen 8)
-        var realLine, pixelsPos, pixelsPosFinal;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-
-        modeStable = true;
-        do {
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
-
-            pixelsPos = nameTableAddress + (realLine << 8);                     // consider the scan start offset in reg23
-            pixelsPosFinal = pixelsPos + 256;
-            while (pixelsPos < pixelsPosFinal) {
-                frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++]];
-            }
-
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
-
-            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
-    }
-
-    function updateLinesModeT1Debug(toLine) {                                   // Text (Screen 0)
-        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
-
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) * 40);                // line / 8 * 40
-            patPosFinal = patPos + 40;
-            lineInPattern = realLine & 0x07;
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                if (debugModePatternInfoNames) {
-                    colorCode = name === 0x20 ? 0x41 : 0xf1;
-                    pattern = debugPatTableDigits8[name * 8 + lineInPattern];
-                    // Squish digits to fit 6 pixels wide
-                    if (lineInPattern <= 5) {
-                        pattern = (pattern & 0xe0) | ((pattern & 0x0e) << 1);   // TODO Darken 2nd digit
-                    } else if (lineInPattern === 6)
-                        pattern = 0x78;
-                } else if (debugModePatternInfoBlocks) {
-                    colorCode = register[7];                                    // Real text color for all blocks
-                    pattern = debugPatTableBlocks[lineInPattern];
-                } else {
-                    colorCode = 0xf1;
-                    pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
-                }
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 6;
-            }
-
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
-
-            // Sprites deactivated
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
-    }
-
-    function updateLinesModeMCDebug(toLine) {                                   // Multicolor (Screen 3)
-        if (!debugModePatternInfoNames) return updateLinesModeMC(toLine);
-
-        var realLine, patPos, patPosFinal, name, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
-
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
-
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
-            patPosFinal = patPos + 32;
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                pattern = debugPatTableDigits8[name * 8 + (realLine & 0x07)];
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) * 40);            // line / 8 * 40
+        var patPosFinal = patPos + 40;
+        var lineInPattern = realLine & 0x07;
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            if (debugModePatternInfoNames) {
+                var colorCode = name === 0x20 ? 0x41 : 0xf1;
+                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                // Squish digits to fit 6 pixels wide
+                if (lineInPattern <= 5) {
+                    pattern = (pattern & 0xe0) | ((pattern & 0x0e) << 1);   // TODO Darken 2nd digit
+                } else if (lineInPattern === 6)
+                    pattern = 0x78;
+            } else if (debugModePatternInfoBlocks) {
+                colorCode = register[7];                                    // Real text color for all blocks
+                pattern = debugPatTableBlocks[lineInPattern];
+            } else {
                 colorCode = 0xf1;
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 8;
+                pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
             }
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
+            bufferPos += 6;
+        }
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            updateSpritesLine(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while (modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        // Sprites deactivated
     }
 
-    function updateLinesModeG1Debug(toLine) {                                   // Graphics 1 (Screen 1)
-        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeMCDebug() {                                      // Multicolor (Screen 3)
+        if (!debugModePatternInfoNames) return updateLineModeMC();
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
+        var bufferPos = (currentScanline + 8) * 544;
+
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
+
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
+        var patPosFinal = patPos + 32;
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            var pattern = debugPatTableDigits8[name * 8 + (realLine & 0x07)];
+            var colorCode = 0xf1;
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
             bufferPos += 8;
+        }
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);
-            patPosFinal = patPos + 32;
-            lineInPattern = realLine & 0x07;
-            while (patPos < patPosFinal) {
-                name = vram[patPos++];
-                if (debugModePatternInfoNames) {
-                    colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
-                    pattern = debugPatTableDigits8[name * 8 + lineInPattern];
-                } else if (debugModePatternInfoBlocks) {
-                    colorCode = vram[colorTableAddress + (name >>> 3)];
-                    pattern = debugPatTableBlocks[lineInPattern];
-                } else {
-                    colorCode = 0xf1;
-                    pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
-                }
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 8;
-            }
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
-
-            updateSpritesLine(realLine, bufferPos - 264 - 272);
-
-            currentScanline++;
-            if (currentScanline >= toLine) break;
-
-            lineClocksAndEvents();
-        } while(modeStable);
-
-        cycleLines += (currentScanline - prevLine);
+        updateSpritesLine(realLine, bufferPos - 264 - 272);
     }
 
-    function updateLinesModeG2Debug(toLine) {                                   // Graphics 2 (Screen 2)
-        var realLine, patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorCode, on, off;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+    function updateLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
+        var bufferPos = (currentScanline + 8) * 544;
 
-        modeStable = true;
-        do {
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
-            lineInPattern = realLine & 0x07;
-            blockExtra = (realLine & 0xc0) << 2;
-            patPos = nameTableAddress + ((realLine >>> 3) << 5);
-            patPosFinal = patPos + 32;
-            while (patPos < patPosFinal) {
-                name = vram[patPos++] | blockExtra;
-                if (debugModePatternInfoNames) {
-                    name &= 0xff;
-                    colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
-                    pattern = debugPatTableDigits8[name * 8 + lineInPattern];
-                } else if (debugModePatternInfoBlocks) {
-                    colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern)];
-                    pattern = debugPatTableBlocks[lineInPattern];
-                } else {
-                    colorCode = 0xf1;
-                    pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
-                }
-                on =  colorPalette[colorCode >>> 4];
-                off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, pattern, on, off);
-                bufferPos += 8;
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);
+        var patPosFinal = patPos + 32;
+        var lineInPattern = realLine & 0x07;
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++];
+            if (debugModePatternInfoNames) {
+                var colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
+                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+            } else if (debugModePatternInfoBlocks) {
+                colorCode = vram[colorTableAddress + (name >>> 3)];
+                pattern = debugPatTableBlocks[lineInPattern];
+            } else {
+                colorCode = 0xf1;
+                pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
             }
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
+            bufferPos += 8;
+        }
 
-            setBackBufferToBackdrop(bufferPos);
-            bufferPos += 8 + 272;
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
 
-            updateSpritesLine(realLine, bufferPos - 264 + 272);
+        updateSpritesLine(realLine, bufferPos - 264 - 272);
+    }
 
-            currentScanline++;
-            if (currentScanline >= toLine) break;
+    function updateLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
+        var bufferPos = (currentScanline + 8) * 544;
 
-            lineClocksAndEvents();
-        } while (modeStable);
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8;
 
-        cycleLines += (currentScanline - prevLine);
+        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var lineInPattern = realLine & 0x07;
+        var blockExtra = (realLine & 0xc0) << 2;
+        var patPos = nameTableAddress + ((realLine >>> 3) << 5);
+        var patPosFinal = patPos + 32;
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++] | blockExtra;
+            if (debugModePatternInfoNames) {
+                name &= 0xff;
+                var colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
+                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+            } else if (debugModePatternInfoBlocks) {
+                colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern)];
+                pattern = debugPatTableBlocks[lineInPattern];
+            } else {
+                colorCode = 0xf1;
+                pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
+            }
+            var on =  colorPalette[colorCode >>> 4];
+            var off = colorPalette[colorCode & 0xf];
+            setBackBufferPattern(bufferPos, pattern, on, off);
+            bufferPos += 8;
+        }
+
+        setBackBufferToBackdrop(bufferPos);
+        bufferPos += 8 + 272;
+
+        updateSpritesLine(realLine, bufferPos - 264 + 272);
     }
 
     function setBackBufferPattern(bufferPos, pattern, on, off) {
@@ -1970,11 +1736,12 @@ wmsx.V9938 = function(cpu, psg) {
     function finishFrame() {
         refreshPending = true;
 
+        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
+        //cpu.eval("cycles = 0");
+
         // Begin a new frame
         currentScanline = startingScanline;
-
-        //wmsx.Util.log("Frame FINISHED. CPU cycles: " + cpu.eval("cycles"));
-        //cpu.eval("cycles = 0");
+        frame++
     }
 
     function updateSpritePatternTables() {
@@ -2053,13 +1820,12 @@ wmsx.V9938 = function(cpu, psg) {
     var videoStandard;
     var vSynchMode;
     var currentScanline;
+    var startingScanline;
     var finishingActiveScanline;
     var finishingBottomBorderScanline;
-    var startingScanline;
     var finishingScanline;
-    var cycleLines;
     var cycleTotalLines;
-    var pulldownFirstFrameStartingLine;
+    var pulldownFirstFrameLinesAdjust;
     var refreshPending;
 
     var horizontalIntLine = 0;
@@ -2119,19 +1885,19 @@ wmsx.V9938 = function(cpu, psg) {
     var signalMetrics512e = { width: 512, height: 212, totalWidth: 544, totalHeight: 228 };
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesBlanked256, updLinesDeb: updateLinesBlanked256, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
+        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLineBlanked256, updLinesDeb: updateLineBlanked256, updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
     });
 
-    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLineSize:   0, updLines: updateLinesModeT1,  updLinesDeb: updateLinesModeT1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLineSize:   0, updLines: updateLinesModeT2,  updLinesDeb: updateLinesModeT2     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeMC,  updLinesDeb: updateLinesModeMCDebug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeG1,  updLinesDeb: updateLinesModeG1Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeG2,  updLinesDeb: updateLinesModeG2Debug, updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLinesModeG3,  updLinesDeb: updateLinesModeG3     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 128, updLines: updateLinesModeG4,  updLinesDeb: updateLinesModeG4     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };
-    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 128, updLines: updateLinesModeG5,  updLinesDeb: updateLinesModeG5     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 256, updLines: updateLinesModeG6,  updLinesDeb: updateLinesModeG6     , updLinesBlanked: updateLinesBlanked512, updLinesBorder: updateLinesBorder512 };
-    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 256, updLines: updateLinesModeG7,  updLinesDeb: updateLinesModeG7     , updLinesBlanked: updateLinesBlanked256, updLinesBorder: updateLinesBorder256 };   // TODO bit 16 position!
+    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLineSize:   0, updLines: updateLineModeT1,  updLinesDeb: updateLineModeT1Debug, updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
+    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLineSize:   0, updLines: updateLineModeT2,  updLinesDeb: updateLineModeT2     , updLinesBlanked: updateLineBlanked512, updLinesBorder: updateLineBorder512 };
+    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLineModeMC,  updLinesDeb: updateLineModeMCDebug, updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
+    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLineModeG1,  updLinesDeb: updateLineModeG1Debug, updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
+    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLineModeG2,  updLinesDeb: updateLineModeG2Debug, updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
+    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize:   0, updLines: updateLineModeG3,  updLinesDeb: updateLineModeG3     , updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
+    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 128, updLines: updateLineModeG4,  updLinesDeb: updateLineModeG4     , updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };
+    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 128, updLines: updateLineModeG5,  updLinesDeb: updateLineModeG5     , updLinesBlanked: updateLineBlanked512, updLinesBorder: updateLineBorder512 };
+    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 256, updLines: updateLineModeG6,  updLinesDeb: updateLineModeG6     , updLinesBlanked: updateLineBlanked512, updLinesBorder: updateLineBorder512 };
+    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 256, updLines: updateLineModeG7,  updLinesDeb: updateLineModeG7     , updLinesBlanked: updateLineBlanked256, updLinesBorder: updateLineBorder256 };   // TODO bit 16 position!
 
     var updateLinesActive, updateLinesBorder, updateSpritesLine;     // Update functions for current mode
     var updateSpritesLineFunctions = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];

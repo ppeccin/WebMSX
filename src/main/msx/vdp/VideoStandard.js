@@ -12,11 +12,11 @@ wmsx.VideoStandard = {
         pulldowns: {
             60: {
                 linesPerCycle: 262,             // Normal 1:1 cadence. V-synch to 60 Hz
-                firstFrameStartingLine: 0
+                firstFrameLinesAdjust: 0
             },
             50: {
                 linesPerCycle: 314,             // 1:1:1:1:1:0 pulldown. 1 frame dropped each 6 frames
-                firstFrameStartingLine: -2
+                firstFrameLinesAdjust: +2
             }
         }
     },
@@ -31,11 +31,11 @@ wmsx.VideoStandard = {
         pulldowns: {
             60: {
                 linesPerCycle: 261,             // 1:1:1:1:2 pulldown. 1 frame duplicated each 5 frames
-                firstFrameStartingLine: 1
+                firstFrameLinesAdjust: -1
             },
             50: {
                 linesPerCycle: 313,             // Normal 1:1 cadence. V-synch to 50 Hz
-                firstFrameStartingLine: 0
+                firstFrameLinesAdjust: 0
             }
         }
     }

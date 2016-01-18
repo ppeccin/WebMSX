@@ -50,17 +50,17 @@ wmsx.V9918 = function(cpu, psg) {
     };
 
     this.clockPulse = function() {
+
+        //console.log(">>> FRAME CLOCK");
+
         // Finish video signal (generate any missing lines up to the max per cycle)
-        updateLines(1000);
+        updateLines();
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
         psg.getAudioOutput().finishFrame();
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
-
-        // Prepare for next cycle. Adjust for pulldown cadence if the next frame is the first pulldown frame
-        cycleLines = (currentScanline === startingScanline) ? pulldownFirstFrameStartingLine : 0;
     };
 
     this.input99 = function() {
@@ -205,36 +205,36 @@ wmsx.V9918 = function(cpu, psg) {
         startingScanline = videoStandard.startingScanline;
         finishingScanline = videoStandard.finishingScanline;
         cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per clock
-        pulldownFirstFrameStartingLine = videoStandard.pulldowns[desiredBaseFrequency].firstFrameStartingLine;
-        cycleLines = pulldownFirstFrameStartingLine;
+        pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // Unless its the first pulldown frame and is adjusted
     }
 
     // 262 lines per frame for NTSC, 313 lines for PAL
     // 342 total pixel clocks per line, 256 visible pixels, 228 CPU clocks and 7.125 PSG clocks
     // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
-    function updateLines(lines) {
-        var toCycleLine = cycleLines + lines; if (toCycleLine > cycleTotalLines) toCycleLine = cycleTotalLines;
+    function updateLines() {
+        // Adjust for pulldown cadence if this is the first pulldown frame
+        cycleLines = 0 - (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
-        while (cycleLines < toCycleLine) {
-            var toScanline = currentScanline + (toCycleLine - cycleLines);
+        while (cycleLines < cycleTotalLines) {
+            var toScanline = currentScanline + (cycleTotalLines - cycleLines);
 
             // Visible top border scanlines (8)
             if (currentScanline < 0) updateLinesBorder(toScanline < 0 ? toScanline : 0);
-            if (cycleLines >= toCycleLine) return;
+            if (cycleLines >= cycleTotalLines) return;
 
             // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
             if (currentScanline < 192) {
                 lineClockCPUandPSG();
-                while((currentScanline < 192) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < 192 ? toScanline : 192);
+                while((currentScanline < 192) && (cycleLines < cycleTotalLines)) updateLinesActive(toScanline < 192 ? toScanline : 192);
             }
 
             // End of visible scan, request interrupt
             if (currentScanline === 192) triggerInterrupt();
-            if (cycleLines >= toCycleLine) return;
+            if (cycleLines >= cycleTotalLines) return;
 
             // Visible bottom border scanlines (8)
             if (currentScanline < 200) updateLinesBorder(toScanline < 200 ? toScanline : 200);
-            if (cycleLines >= toCycleLine) return;
+            if (cycleLines >= cycleTotalLines) return;
 
             // Invisible scanlines (enough to fill the remaining lines for the video standard)
             if (currentScanline < finishingScanline) updateLinesInvisible(toScanline < finishingScanline ? toScanline : finishingScanline);
@@ -903,11 +903,11 @@ wmsx.V9918 = function(cpu, psg) {
     function finishFrame() {
         refreshPending = true;
 
+        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + cycleLines + ", CPU cycles: " + cpu.eval("cycles"));
+        //cpu.eval("cycles = 0");
+
         // Begin a new frame
         currentScanline = startingScanline;
-
-        //wmsx.Util.log("Frame FINISHED. CPU cycles: " + cpu.eval("cycles"));
-        //cpu.eval("cycles = 0");
     }
 
     function updateSpritePatternTables() {
@@ -1015,7 +1015,7 @@ wmsx.V9918 = function(cpu, psg) {
     var finishingScanline;
     var cycleLines;
     var cycleTotalLines;
-    var pulldownFirstFrameStartingLine;
+    var pulldownFirstFrameLinesAdjust;
     var refreshPending;
 
     var register0, register1, register2, register3, register4, register5, register6, register7;
