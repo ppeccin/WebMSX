@@ -105,7 +105,12 @@ wmsx.V9938 = function(cpu, psg) {
             case 0:
                 status[0] = 0; updateIRQ(); break;
             case 1:
-                status[1] &= ~0x81; updateIRQ(); break;             // FL, FH
+                status[1] &= ~0x81;                     // FL = 0
+                if ((register[0] & 0x10) && (status[1] & 0x01)) {
+                    status[1] &= ~0x01;                // FH = 0, only if interrupts are enabled (IE1 = 1)
+                    updateIRQ();
+                }
+                break;
         }
         return prevStatus;
     };
@@ -278,11 +283,13 @@ wmsx.V9938 = function(cpu, psg) {
                 paletteFirstWrite = null;
                 break;
             case 19:
+                horizontalIntLine = (val - register[23]) & 255;
 
                 //logInfo("Line Interrupt set: " + val);
 
                 break;
             case 23:
+                horizontalIntLine = (register[19] - val) & 255;
 
                 //logInfo("Vertical offset set: " + val);
 
@@ -364,6 +371,27 @@ wmsx.V9938 = function(cpu, psg) {
     // 262 lines per frame for NTSC, 313 lines for PAL
     // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
     function frameLinesAndEvents(lines) {
+
+        //logInfo("CycleTotaLines: " + cycleTotalLines);
+
+        for (var i = 0; i < cycleTotalLines; i++) {
+            if (currentScanline < 0) updateLinesBorder(currentScanline + 1);
+            else if (currentScanline < finishingActiveScanline) {
+                lineClocksAndEvents(); updateLinesActive(currentScanline + 1);
+            } else if (currentScanline < finishingBottomBorderScanline) updateLinesBorder(currentScanline + 1);
+            else {
+                updateLinesInvisible(currentScanline + 1);
+                if (currentScanline === finishingScanline) finishFrame();
+            }
+        }
+
+        //logInfo("CurrentScanline: " + currentScanline);
+
+    }
+
+    // 262 lines per frame for NTSC, 313 lines for PAL
+    // 59736 total CPU clocks per frame for NTSC, 71364 for PAL
+    function frameLinesAndEventsOld(lines) {
         var toCycleLine = cycleLines + lines; if (toCycleLine > cycleTotalLines) toCycleLine = cycleTotalLines;
 
         while (cycleLines < toCycleLine) {
@@ -375,13 +403,12 @@ wmsx.V9938 = function(cpu, psg) {
 
             // Visible active scanlines (192 for both NSTC and PAL). Loop (while) is to support mode changes during visible scanlines
             if (currentScanline < finishingActiveScanline) {
-                status[2] &= ~0x40;
                 lineClocksAndEvents();
                 while((currentScanline < finishingActiveScanline) && (cycleLines < toCycleLine)) updateLinesActive(toScanline < finishingActiveScanline ? toScanline : finishingActiveScanline);
             }
 
-            // End of visible scan, request vertical interrupt
-            if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();
+            // End of visible scan
+            //if (currentScanline === finishingActiveScanline) checkVerticalInterrupt();
             if (cycleLines >= toCycleLine) return;
 
             // Visible bottom border scanlines (8)
@@ -398,60 +425,62 @@ wmsx.V9938 = function(cpu, psg) {
     function lineClocksAndEvents() {
         // Total line clocks: VDP: 1368, CPU: 228 CPU, PSG 7.125 PSG
         // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
-
-        // >> Start of the line
-        // Sync signal: 100 clocks
-        // Left erase: 102 clocks
-        // Left border: 56 clocks. Total 258
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(10);
-
-        // Display: 1024 clocks
-        cpuClockPulses(22); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(19);
+        // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
 
         // Right border: 59 clocks
         // Right erase: 27 clocks. Total 86
-        cpuClockPulses(14); psgClockPulse();
+        // Sync signal: 100 clocks
+        // Left erase: 102 clocks
+        // Left border: 56 clocks. Total 258
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(24);
 
-        // >> End of the line
+        // Start of Visible Display. Update relevant flags.
+        status[2] &= ~0x20;                                                                 // HR = 0
+        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;        // FH = 0 if interrupts disabled (IE1 = 0)
+        if (currentScanline === 0) status[2] &= ~0x40;                                      // VR = 0 if first visible scanline
 
-        // Original
-        //cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        //cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        //cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        //cpuClockPulses(33); psgClockPulse(); // TODO 1 additional PSG clock each 8th line
+        // Visible Display: 1024 clocks
+        cpuClockPulses(8);  psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse();
+
+        // End of Visible Display. Update relevant flags.
+        status[2] |= 0x20;                                                                  // HR = 1
+        if (currentScanline === horizontalIntLine) checkHorizontalInterrupt();              // FH = 1 if horizontal interrupt line
+        if (currentScanline === (finishingActiveScanline - 1)) checkVerticalInterrupt();    // F = 1 if last visible scanline
+
+        // TODO 1 additional PSG clock each 8 lines
     }
 
-    function triggerVerticalInterrupt() {
-        status[2] |= 0x40;
+    function checkVerticalInterrupt() {
+        status[2] |= 0x40;                  // VR = 1
+        if ((status[0] & 0x80) === 0) {
+            status[0] |= 0x80;              // F = 1
+            updateIRQ();
+        }
 
         //logInfo("Bottom Line reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
 
-        if ((status[0] & 0x80) === 0) {
-            status[0] |= 0x80;
-            updateIRQ();
-        }
     }
 
-    function triggerHorizontalInterrupt() {
+    function checkHorizontalInterrupt() {
+        if ((status[1] & 0x01) === 0) {
+            status[1] |= 0x01;              // FH = 1
+            updateIRQ();
+        }
 
         //logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
 
-        if ((status[1] & 0x01) === 0) {
-            status[1] |= 0x01;
-            updateIRQ();
-        }
     }
 
     function updateIRQ() {
         cpu.INT = 1;
-        if ((status[0] & 0x80) && (register[1] & 0x20)) {
+        if ((status[0] & 0x80) && (register[1] & 0x20)) {       // IE0 === 1 and F === 1
             //logInfo(">>>>  INT VERTICAL");
             cpu.INT = 0;
         }
-        if ((status[1] & 0x01) && (register[0] & 0x10)) {
+        if ((status[1] & 0x01) && (register[0] & 0x10)) {       // IE1 === 1 and FH === 1
             //logInfo(">>>>  INT HORIZONTAL");
             cpu.INT = 0;
         }
@@ -558,90 +587,81 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLinesInvisible(toLine) {
-        // No Horizontal Interrupt possible
-        for (var i = toLine - currentScanline; i > 0; i--)
+        var prevLine = currentScanline;
+        while (currentScanline < toLine) {
             lineClocksAndEvents();
-        cycleLines += (toLine - currentScanline);
-        currentScanline = toLine;
+            currentScanline++;
+        }
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesBorder256(toLine) {
-        var line = currentScanline, bufferPos = (line + 8) * 544;
-        while (line < toLine) {
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+        while (currentScanline < toLine) {
             lineClocksAndEvents();
-            // No Horizontal Interrupt possible
             frameBackBuffer.set(backdropFullLine256Values, bufferPos);
             bufferPos += 544;
             // Sprites deactivated
-            line++;
+            currentScanline++;
         }
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesBorder512(toLine) {
-        var line = currentScanline, bufferPos = (line + 8) * 544;
-        while (line < toLine) {
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
+        while (currentScanline < toLine) {
             lineClocksAndEvents();
-            // No Horizontal Interrupt possible
             frameBackBuffer.set(backdropFullLine512Values, bufferPos);
             bufferPos += 544;
             // Sprites deactivated
-            line++;
+            currentScanline++;
         }
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesBlanked256(toLine) {
-        var line = currentScanline, bufferPos = (line + 8) * 544;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
             frameBackBuffer.set(backdropFullLine256Values, bufferPos);
             bufferPos += 544;
             // Sprites deactivated
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
             lineClocksAndEvents();
         } while (modeStable);
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesBlanked512(toLine) {
-        var line = currentScanline, bufferPos = (line + 8) * 544;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
             frameBackBuffer.set(backdropFullLine512Values, bufferPos);
             bufferPos += 544;
             // Sprites deactivated
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
             lineClocksAndEvents();
         } while (modeStable);
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeT1(toLine) {                                        // Text (Screen 0 width 40)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + (lineOff >>> 3) * 40;                   // line / 8 * 40
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + (realLine >>> 3) * 40;                  // line / 8 * 40
             patPosFinal = patPos + 40;
-            lineInPattern = patternTableAddress + (lineOff & 0x07);
+            lineInPattern = patternTableAddress + (realLine & 0x07);
             colorCode = register[7];                                            // fixed text color for all line
             on =  colorPalette[colorCode >>> 4];
             off = colorPalette[colorCode & 0xf];
@@ -659,33 +679,30 @@ wmsx.V9938 = function(cpu, psg) {
 
             // Sprites deactivated
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeT2(toLine) {                                        // Text (Screen 0 width 80)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop16(bufferPos);
             bufferPos += 16;
             setBackBufferToBackdrop16(bufferPos);
             bufferPos += 16;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + (lineOff >>> 3) * 80;                   // line / 8 * 80
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + (realLine >>> 3) * 80;                  // line / 8 * 80
             patPosFinal = patPos + 80;
-            lineInPattern = patternTableAddress + (lineOff & 0x07);
+            lineInPattern = patternTableAddress + (realLine & 0x07);
             colorCode = register[7];                                            // fixed text color for all line
             on =  colorPalette[colorCode >>> 4];
             off = colorPalette[colorCode & 0xf];
@@ -703,71 +720,65 @@ wmsx.V9938 = function(cpu, psg) {
 
             // Sprites deactivated
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeMC(toLine) {                                        // Multicolor (Screen 3)
-        var patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, extraPatPos, patPosFinal, name, patternLine, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);                 // line / 8 * 32
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
             patPosFinal = patPos + 32;
-            extraPatPos = patternTableAddress + (((lineOff >>> 3) & 0x03) << 1) + ((lineOff >> 2) & 0x01);    // (pattern line % 4) * 2
+            extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >> 2) & 0x01);    // (pattern line % 4) * 2
             while (patPos < patPosFinal) {
                 name = vram[patPos++];
                 patternLine = (name << 3) + extraPatPos;                        // name * 8 + extra position
                 colorCode = vram[patternLine];
                 on =  colorPalette[colorCode >>> 4];
                 off = colorPalette[colorCode & 0xf];
-                setBackBufferPattern(bufferPos, 0xf0, on, off);                // always solid blocks of front and back colors;
+                setBackBufferPattern(bufferPos, 0xf0, on, off);                 // always solid blocks of front and back colors;
                 bufferPos += 8;
             }
 
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264 - 272);
+            updateSpritesLine(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG1(toLine) {                                        // Graphics 1 (Screen 1)
-        var patPos, patPosFinal, name, lineInPattern, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, name, lineInPattern, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);                 // line / 8 * 32
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
             patPosFinal = patPos + 32;
-            lineInPattern = patternTableAddress + (lineOff & 0x07);
+            lineInPattern = patternTableAddress + (realLine & 0x07);
             while (patPos < patPosFinal) {
                 name = vram[patPos++];
                 pattern = vram[((name << 3) + lineInPattern)];                  // name * 8 (8 bytes each pattern) + line inside pattern
@@ -781,35 +792,32 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264 - 272);
+            updateSpritesLine(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while(modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG2(toLine) {                                        // Graphics 2 (Screen 2)
-        var patPos, patPosFinal, lineInPattern, lineInColor, name, blockExtra, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, lineInColor, name, blockExtra, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);                 // line / 8 * 32
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
             patPosFinal = patPos + 32;
-            lineInPattern = patternTableAddress + (lineOff & 0x07);
-            lineInColor = colorTableAddress + (lineOff & 0x07);
-            blockExtra = (lineOff & 0xc0) << 2;                                 // + 0x100 for each third block of the screen (8 pattern lines)
+            lineInPattern = patternTableAddress + (realLine & 0x07);
+            lineInColor = colorTableAddress + (realLine & 0x07);
+            blockExtra = (realLine & 0xc0) << 2;                                 // + 0x100 for each third block of the screen (8 pattern lines)
             while (patPos < patPosFinal) {
                 name = vram[patPos++] | blockExtra;
                 pattern = vram[(name << 3) + lineInPattern];
@@ -823,35 +831,32 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264 - 272);
+            updateSpritesLine(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG3(toLine) {                                        // Graphics 3 (Screen 4)
-        var patPos, patPosFinal, lineInPattern, lineInColor, name, blockExtra, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, lineInColor, name, blockExtra, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);                 // line / 8 * 32
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
             patPosFinal = patPos + 32;
-            lineInPattern = patternTableAddress + (lineOff & 0x07);
-            lineInColor = colorTableAddress + (lineOff & 0x07);
-            blockExtra = (lineOff & 0xc0) << 2;                                 // + 0x100 for each third block of the screen (8 pattern lines)
+            lineInPattern = patternTableAddress + (realLine & 0x07);
+            lineInColor = colorTableAddress + (realLine & 0x07);
+            blockExtra = (realLine & 0xc0) << 2;                                // + 0x100 for each third block of the screen (8 pattern lines)
             while (patPos < patPosFinal) {
                 name = vram[patPos++] | blockExtra;
                 pattern = vram[(name << 3) + lineInPattern];
@@ -865,21 +870,20 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            //updateSpritesLine(line, bufferPos - 264 - 272);
+            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG4(toLine) {                                        // Graphics 4 (Screen 5)
-        var pixelsPos, pixelsPosFinal, pixels;
-        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544, realLine;
+        var realLine, pixelsPos, pixelsPosFinal, pixels;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
@@ -901,31 +905,27 @@ wmsx.V9938 = function(cpu, psg) {
 
             if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
 
-            if (currentScanline === ((register[19] - register[23]) & 255)) triggerHorizontalInterrupt();        // end of line, check horizontal interrupt
             currentScanline++;
-
             if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
         cycleLines += (currentScanline - prevLine);
-        //cycleLines += (line - currentScanline);
-        //currentScanline = line;
     }
 
     function updateLinesModeG5(toLine) {                                        // Graphics 5 (Screen 6)
-        var pixelsPos, pixelsPosFinal, pixels;
-        var line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, pixelsPos, pixelsPosFinal, pixels;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
 
             setBackBufferToBackdropG5(bufferPos);
             bufferPos += 16;
 
-            pixelsPos = nameTableAddress + (((line + register[23]) & 255) << 7);      // consider the scan start offset in reg23
+            pixelsPos = nameTableAddress + (realLine << 7);
             pixelsPosFinal = pixelsPos + 128;
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vram[pixelsPos++];
@@ -938,30 +938,29 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdropG5(bufferPos);
             bufferPos += 16;
 
-            //updateSpritesLine(line, bufferPos - 264 - 272);
+            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG6(toLine) {                                        // Graphics 6 (Screen 7)
-        var pixelsPos, pixelsPosFinal, pixels;
-        var line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, pixelsPos, pixelsPosFinal, pixels;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
 
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 16;
 
-            pixelsPos = nameTableAddress + (((line + register[23]) & 255) << 8);    // consider the scan start offset in reg23
+            pixelsPos = nameTableAddress + (realLine << 8);
             pixelsPosFinal = pixelsPos + 256;
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vram[pixelsPos++];
@@ -972,30 +971,29 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdropG5(bufferPos);
             bufferPos += 16;
 
-            //updateSpritesLine(line, bufferPos - 264 - 272);
+            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG7(toLine) {                                        // Graphics 7 (Screen 8)
-        var pixelsPos, pixelsPosFinal;
-        var line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, pixelsPos, pixelsPosFinal;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
 
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            pixelsPos = nameTableAddress + (((line + register[23]) & 255) << 8);      // consider the scan start offset in reg23
+            pixelsPos = nameTableAddress + (realLine << 8);                     // consider the scan start offset in reg23
             pixelsPosFinal = pixelsPos + 256;
             while (pixelsPos < pixelsPosFinal) {
                 frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++]];
@@ -1004,35 +1002,32 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            //updateSpritesLine(line, bufferPos - 264 - 272);
+            if (sprites2Enabled) updateSprites2LineSize2(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeT1Debug(toLine) {                                   // Text (Screen 0)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) * 40);                 // line / 8 * 40
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) * 40);                // line / 8 * 40
             patPosFinal = patPos + 40;
-            lineInPattern = lineOff & 0x07;
+            lineInPattern = realLine & 0x07;
             while (patPos < patPosFinal) {
                 name = vram[patPos++];
                 if (debugModePatternInfoNames) {
@@ -1063,35 +1058,32 @@ wmsx.V9938 = function(cpu, psg) {
 
             // Sprites deactivated
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeMCDebug(toLine) {                                   // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return updateLinesModeMC(toLine);
 
-        var patPos, patPosFinal, name, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, name, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);                 // line / 8 * 32
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);                // line / 8 * 32
             patPosFinal = patPos + 32;
             while (patPos < patPosFinal) {
                 name = vram[patPos++];
-                pattern = debugPatTableDigits8[name * 8 + (lineOff & 0x07)];
+                pattern = debugPatTableDigits8[name * 8 + (realLine & 0x07)];
                 colorCode = 0xf1;
                 on =  colorPalette[colorCode >>> 4];
                 off = colorPalette[colorCode & 0xf];
@@ -1102,33 +1094,30 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264 - 272);
+            updateSpritesLine(realLine, bufferPos - 264 - 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG1Debug(toLine) {                                   // Graphics 1 (Screen 1)
-        var patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, name, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
-            if (line === register[19]) triggerHorizontalInterrupt();
-
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);
             patPosFinal = patPos + 32;
-            lineInPattern = lineOff & 0x07;
+            lineInPattern = realLine & 0x07;
             while (patPos < patPosFinal) {
                 name = vram[patPos++];
                 if (debugModePatternInfoNames) {
@@ -1150,32 +1139,30 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264 - 272);
-            line++;
-            if (line >= toLine) break;
+            updateSpritesLine(realLine, bufferPos - 264 - 272);
+
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while(modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function updateLinesModeG2Debug(toLine) {                                   // Graphics 2 (Screen 2)
-        if (line === register[19]) triggerHorizontalInterrupt();
-
-        var patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorCode, on, off;
-        var lineOff, line = currentScanline, bufferPos = (line + 8) * 544;
+        var realLine, patPos, patPosFinal, lineInPattern, name, blockExtra, pattern, colorCode, on, off;
+        var prevLine = currentScanline, bufferPos = (currentScanline + 8) * 544;
 
         modeStable = true;
         do {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8;
 
-            lineOff = (line + register[23]) & 255;                              // consider the scan start offset in reg23
-            lineInPattern = lineOff & 0x07;
-            blockExtra = (lineOff & 0xc0) << 2;
-            patPos = nameTableAddress + ((lineOff >>> 3) << 5);
+            realLine = (currentScanline + register[23]) & 255;                  // consider the scan start offset in reg23
+            lineInPattern = realLine & 0x07;
+            blockExtra = (realLine & 0xc0) << 2;
+            patPos = nameTableAddress + ((realLine >>> 3) << 5);
             patPosFinal = patPos + 32;
             while (patPos < patPosFinal) {
                 name = vram[patPos++] | blockExtra;
@@ -1199,16 +1186,15 @@ wmsx.V9938 = function(cpu, psg) {
             setBackBufferToBackdrop(bufferPos);
             bufferPos += 8 + 272;
 
-            updateSpritesLine(line, bufferPos - 264 + 272);
+            updateSpritesLine(realLine, bufferPos - 264 + 272);
 
-            line++;
-            if (line >= toLine) break;
+            currentScanline++;
+            if (currentScanline >= toLine) break;
 
             lineClocksAndEvents();
         } while (modeStable);
 
-        cycleLines += (line - currentScanline);
-        currentScanline = line;
+        cycleLines += (currentScanline - prevLine);
     }
 
     function setBackBufferPattern(bufferPos, pattern, on, off) {
@@ -2075,6 +2061,8 @@ wmsx.V9938 = function(cpu, psg) {
     var cycleTotalLines;
     var pulldownFirstFrameStartingLine;
     var refreshPending;
+
+    var horizontalIntLine = 0;
 
     var status = new Array(10);
     var register = new Array(47);
