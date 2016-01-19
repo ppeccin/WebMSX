@@ -389,27 +389,31 @@ wmsx.V9938 = function(cpu, psg) {
     // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
     function lineEvents() {
         // Right border: 59 clocks
-        // Right erase: 27 clocks. Total 86
+        // Right erase: 27 clocks
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
-        // Left border: 56 clocks. Total 258
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(24);
 
-        // Start of Visible Display. Update relevant flags.
-        status[2] &= ~0x20;                                                                 // HR = 0
+        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(15);
+
+        // Left border: 56 clocks
+        if (currentScanline === -1) status[2] &= ~0x40;                                     // VR = 0 at the scanline before first visible scanline
+        if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();        // F = 1, VR = 1 at the scanline after last visible scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;        // FH = 0 if interrupts disabled (IE1 = 0)
-        if (currentScanline === 0) status[2] &= ~0x40;                                      // VR = 0 if first visible scanline
+
+        cpuClockPulses(9);
 
         // Visible Display: 1024 clocks
+        status[2] &= ~0x20;                                                                 // HR = 0
+
         cpuClockPulses(8);  psgClockPulse();
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
         cpuClockPulses(33); psgClockPulse();
 
-        // End of Visible Display. Update relevant flags.
+        // End of Visible Display
+
         status[2] |= 0x20;                                                                  // HR = 1
-        if (currentScanline === horizontalIntLine) triggerHorizontalInterrupt();            // FH = 1 if horizontal interrupt line
-        if (currentScanline === (finishingActiveScanline - 1)) triggerVerticalInterrupt();  // F = 1 if last visible scanline
+        if (currentScanline === horizontalIntLine) triggerHorizontalInterrupt();            // FH = 1 at the horizontal interrupt line
 
         // TODO 1 additional PSG clock each 8 lines
     }
