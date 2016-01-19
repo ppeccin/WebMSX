@@ -249,7 +249,7 @@ wmsx.V9918 = function(cpu, psg) {
     }
 
     function updateIRQ() {
-        cpu.INT = ((status & 0x80) && (register1 & 0x20)) ? 0 : 1;
+        cpu.setINT(((status & 0x80) && (register1 & 0x20)) ? 0 : 1);
     }
 
     function updateMode(forceMode1Specifics) {

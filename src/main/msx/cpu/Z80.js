@@ -3,7 +3,7 @@
 // This implementation fetches the base opcode at the FIRST clock cycle
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // PC and SP not checked for 16 bits over/underflow
-// NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX)
+// NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original base clock: 3579545 Hz
 
 wmsx.Z80 = function() {
@@ -18,7 +18,7 @@ wmsx.Z80 = function() {
         toAF(0xfffd); toBC(0xffff); DE = 0xffff; HL = 0xffff;
         AF2 = 0xfffd; BC2 = 0xffff; DE2 = 0xffff; HL2 = 0xffff;
         toIX(0xffff); toIY(0xffff); SP = 0xffff;
-        this.INT = 1;
+        this.setINT(1);
         this.reset();
     };
 
@@ -33,7 +33,7 @@ wmsx.Z80 = function() {
                 instruction.operation();
                 continue;
             }
-            fetchNextInstruction();                  // Check for interrupts and fetch new instruction
+            nextInstruction();                       // Either a normal instruction or an INT
         }
     };
 
@@ -48,10 +48,19 @@ wmsx.Z80 = function() {
 
     this.reset = function() {
         cycles = 0;
-        T = -1; opcode = null; prefix = 0;
+        T = -1; opcode = null;
+        nextInstruction = nextInstructionNormal;
+        selectInstruction = selectInstructionNormal;
         instruction = null;
-        PC = 0; I = 0; R = 0; IFF1 = IFF2 = 0; IM = 0;
+        PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
         extensionCurrentlyRunning = null; extensionExtraIterations = 0;
+    };
+
+    this.setINT = function(val) {
+        if (INT !== val) {
+            INT = val;
+            nextInstruction = val === 0 && IFF1 && selectInstruction === selectInstructionNormal ? nextInstructionINT : nextInstructionNormal;
+        }
     };
 
 
@@ -62,7 +71,7 @@ wmsx.Z80 = function() {
 
     // Interfaces
     var bus;
-    this.INT = 1;
+    var INT = 1;
 
     // Registers
     var PC = 0;     // 16 bits
@@ -86,7 +95,7 @@ wmsx.Z80 = function() {
     var R = 0;
 
     // Interrupt flags and mode
-    var IFF1 = 0, IFF2 = 0;
+    var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Alwaus the same as IFF1
     var IM = 0;
 
     // Status Bits references
@@ -107,15 +116,16 @@ wmsx.Z80 = function() {
     var instruction;
 
     var opcode;
-    var prefix = 0;
+    var nextInstruction = nextInstructionNormal;
+    var selectInstruction = selectInstructionNormal;
 
-    var instructions =     new Array(258);
-    var instructionsED =   new Array(256);
-    var instructionsCB =   new Array(256);
-    var instructionsDD =   new Array(256);
-    var instructionsFD =   new Array(256);
-    var instructionsDDCB = new Array(256);
-    var instructionsFDCB = new Array(256);
+    var instructions =     new Array(270);
+    var instructionsED =   new Array(270);
+    var instructionsCB =   new Array(270);
+    var instructionsDD =   new Array(270);
+    var instructionsFD =   new Array(270);
+    var instructionsDDCB = new Array(270);
+    var instructionsFDCB = new Array(270);
 
     var instructionADT_CYCLES;
     var instructionHALT;
@@ -125,268 +135,316 @@ wmsx.Z80 = function() {
 
     // Internal operations
 
-    var fetchNextInstruction = function() {
-        R++;        // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
-
-        if (self.INT === 0 && IFF1 && prefix === 0) {   // INT = 0 means active
-            pINT();
-            return;
-        }
-
-        opcode = fromN();                               // Will inc PC
+    function nextInstructionNormal() {
+        R++;                        // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+        opcode = fromN();           // Will inc PC
         selectInstruction();
-
-        // if (self.trace) self.breakpoint("TRACE");
-
         T = instruction.remainCycles;
-    };
+        // if (self.trace) self.breakpoint("TRACE");
+    }
 
-    function selectInstruction() {
-        if (prefix === 0) {
-            instruction = instructions[opcode];         // always found
-        } else if (prefix === 0xcb) {
-            instruction = instructionsCB[opcode];       // always found
-            prefix = 0;
-        } else if (prefix === 0xdd) {
-            instruction = instructionsDD[opcode];       // may NOT find
-            prefix = 0;
-            if (!instruction) instruction = instructions[opcode];      // if nothing found, ignore prefix
-        } else if (prefix === 0xfd) {
-            instruction = instructionsFD[opcode];       // may NOT find
-            prefix = 0;
-            if (!instruction) instruction = instructions[opcode];      // if nothing found, ignore prefix
-        } else if (prefix === 0xed) {
-            instruction = instructionsED[opcode];       // always found
-            prefix = 0;
-        } else if (prefix === 0xddcb) {
-            instruction = instructionsDDCB[opcode];     // always found
-            prefix = 0;
-        } else if (prefix === 0xfdcb) {
-            instruction = instructionsFDCB[opcode];     // always found
-            prefix = 0;
-        } else if (prefix === -1) {
-            instruction = instructions[opcode];         // always found
-            prefix = 0;
+    function nextInstructionINT() {
+        R++;
+        pINT();
+    }
+
+    function selectInstructionNormal() {
+        instruction = instructions[opcode];         // always found
+    }
+
+    function selectInstructionCB() {
+        instruction = instructionsCB[opcode];       // always found
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function selectInstructionDD() {
+        instruction = instructionsDD[opcode];       // may NOT find
+        if (!instruction) instruction = instructions[opcode];      // if nothing found, ignore prefix
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function selectInstructionFD() {
+        instruction = instructionsFD[opcode];       // may NOT find
+        if (!instruction) instruction = instructions[opcode];      // if nothing found, ignore prefix
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function selectInstructionED() {
+        instruction = instructionsED[opcode];       // always found
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function selectInstructionDDCB() {
+        instruction = instructionsDDCB[opcode];     // always found
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function selectInstructionFDCB() {
+        instruction = instructionsFDCB[opcode];     // always found
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function selectInstructionAfterEI() {
+        instruction = instructions[opcode];         // always found
+        selectInstruction = selectInstructionNormal;
+        if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+    }
+
+    function updateSelectInstruction(name) {
+        switch (name) {
+            case selectInstructionNormal.name:
+                selectInstruction = selectInstructionNormal;
+                break;
+            case selectInstructionCB.name:
+                selectInstruction = selectInstructionCB;
+                break;
+            case selectInstructionDD.name:
+                selectInstruction = selectInstructionDD;
+                break;
+            case selectInstructionFD.name:
+                selectInstruction = selectInstructionFD;
+                break;
+            case selectInstructionED.name:
+                selectInstruction = selectInstructionED;
+                break;
+            case selectInstructionDDCB.name:
+                selectInstruction = selectInstructionDDCB;
+                break;
+            case selectInstructionFDCB.name:
+                selectInstruction = selectInstructionFDCB;
+                break;
+            case selectInstructionAfterEI.name:
+                selectInstruction = selectInstructionAfterEI;
+                break;
         }
     }
 
+    function updateNextInstruction(name) {
+        nextInstruction = name === nextInstructionINT.name ? nextInstructionINT : nextInstructionNormal;
+    }
 
-    var fromA = function() {
+    function fromA() {
         return A;
-    };
-    var fromB = function() {
+    }
+    function fromB() {
         return B;
-    };
-    var fromC = function() {
+    }
+    function fromC() {
         return C;
-    };
-    var fromD = function() {
+    }
+    function fromD() {
         return DE >>> 8;
-    };
-    var fromE = function() {
+    }
+    function fromE() {
         return DE & 0xff;
-    };
-    var fromH = function() {
+    }
+    function fromH() {
         return HL >>> 8;
-    };
-    var fromL = function() {
+    }
+    function fromL() {
         return HL & 0xff;
-    };
-    var fromIXh = function() {
+    }
+    function fromIXh() {
         return IX >>> 8;
-    };
-    var fromIXl = function() {
+    }
+    function fromIXl() {
         return IX & 0xff;
-    };
-    var fromIYh = function() {
+    }
+    function fromIYh() {
         return IY >>> 8;
-    };
-    var fromIYl = function() {
+    }
+    function fromIYl() {
         return IY & 0xff;
-    };
+    }
 
-    var toA = function(val) {
+    function toA(val) {
         A = val;
-    };
-    var toB = function(val) {
+    }
+    function toB(val) {
         B = val;
-    };
-    var toC = function(val) {
+    }
+    function toC(val) {
         C = val;
-    };
-    var toD = function(val) {
+    }
+    function toD(val) {
         DE = (DE & 0xff) | (val << 8);
-    };
-    var toE = function(val) {
+    }
+    function toE(val) {
         DE = (DE & 0xff00) | val;
-    };
-    var toH = function(val) {
+    }
+    function toH(val) {
         HL = (HL & 0xff) | (val << 8);
-    };
-    var toL = function(val) {
+    }
+    function toL(val) {
         HL = (HL & 0xff00) | val;
-    };
-    var toIXh = function(val) {
+    }
+    function toIXh(val) {
         IX = (IX & 0xff) | (val << 8);
-    };
-    var toIXl = function(val) {
+    }
+    function toIXl(val) {
         IX = (IX & 0xff00) | val;
-    };
-    var toIYh = function(val) {
+    }
+    function toIYh(val) {
         IY = (IY & 0xff) | (val << 8);
-    };
-    var toIYl = function(val) {
+    }
+    function toIYl(val) {
         IY = (IY & 0xff00) | val;
-    };
+    }
 
-    var fromAF = function() {
+    function fromAF() {
         return (A << 8) | F;
-    };
-    var fromBC = function() {
+    }
+    function fromBC() {
         return (B << 8) | C;
-    };
-    var fromDE = function() {
+    }
+    function fromDE() {
         return DE;
-    };
-    var fromHL = function() {
+    }
+    function fromHL() {
         return HL;
-    };
-    var fromSP = function() {
+    }
+    function fromSP() {
         return SP;
-    };
-    var fromIX = function() {
+    }
+    function fromIX () {
         return IX;
-    };
-    var fromIY = function() {
+    }
+    function fromIY () {
         return IY;
     };
 
-    var toAF = function(val) {
+    function toAF(val) {
         A = val >>> 8; F = val & 0xff;
-    };
-    var toBC = function(val) {
+    }
+    function toBC(val) {
         B = val >>> 8; C = val & 0xff;
-    };
-    var toDE = function(val) {
+    }
+    function toDE(val) {
         DE = val;
-    };
-    var toHL = function(val) {
+    }
+    function toHL(val) {
         HL = val;
-    };
-    var toSP = function(val) {
+    }
+    function toSP(val) {
         SP = val;
-    };
-    var toIX = function(val) {
+    }
+    function toIX(val) {
         IX = val;
-    };
-    var toIY = function(val) {
+    }
+    function toIY(val) {
         IY = val;
-    };
+    }
 
-    var from_BC_8 = function() {
+    function from_BC_8() {
         return bus.read(fromBC());
-    };
-    var from_DE_8 = function() {
+    }
+    function from_DE_8() {
         return bus.read(DE);
-    };
-    var from_HL_8 = function() {
+    }
+    function from_HL_8() {
         return bus.read(HL);
-    };
-    var from_SP_16 = function() {
+    }
+    function from_SP_16() {
         var aux = SP + 1; if (aux > 0xffff) aux = 0;
         return bus.read(SP) | (bus.read(aux) << 8);
-    };
+    }
 
-    var to_BC_8 = function(val) {
+    function to_BC_8(val) {
         bus.write(fromBC(), val);
-    };
-    var to_DE_8 = function(val) {
+    }
+    function to_DE_8(val) {
         bus.write(DE, val);
-    };
-    var to_HL_8 = function(val) {
+    }
+    function to_HL_8(val) {
         bus.write(HL, val);
-    };
-    var to_SP_16 = function(val) {
+    }
+    function to_SP_16(val) {
         bus.write(SP, val & 255);
         var aux = SP + 1; if (aux > 0xffff) aux = 0;
         bus.write(aux, val >>> 8);
-    };
+    }
 
     var preReadIXYdOffset = 0;
-    var preReadIXYd = function() {
+    function preReadIXYd() {
         preReadIXYdOffset = bus.read(PC++);
-    };
+    }
 
-    var from_IXd_8 = function() {
+    function from_IXd_8() {
         return bus.read(sum16Signed(IX, bus.read(PC++)));
-    };
+    }
     from_IXd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(IX, preReadIXYdOffset));
     };
 
-    var from_IYd_8 = function() {
+    function from_IYd_8() {
         return bus.read(sum16Signed(IY, bus.read(PC++)));
-    };
+    }
     from_IYd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(IY, preReadIXYdOffset));
     };
 
-    var to_IXd_8 = function(val) {
+    function to_IXd_8(val) {
         bus.write(sum16Signed(IX, bus.read(PC++)), val);
-    };
+    }
     to_IXd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(IX, preReadIXYdOffset), val);
     };
 
-    var to_IYd_8 = function(val) {
+    function to_IYd_8(val) {
         bus.write(sum16Signed(IY, bus.read(PC++)), val);
-    };
+    }
     to_IYd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(IY, preReadIXYdOffset), val);
     };
 
-    var fromN = function() {
+    function fromN() {
         return bus.read(PC++);
-    };
-    var fromNN = function() {
+    }
+    function fromNN() {
         return bus.read(PC++) | (bus.read(PC++) << 8);
-    };
+    }
 
-    var from_NN_8 = function() {
+    function from_NN_8() {
         return bus.read(bus.read(PC++) | (bus.read(PC++) << 8));
-    };
+    }
 
-    var to_NN_8 = function(val) {
+    function to_NN_8(val) {
         var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         bus.write(addr, val);
-    };
+    }
 
-    var from_NN_16 = function() {
+    function from_NN_16() {
         var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         var low = bus.read(addr);
         addr++; if (addr > 0xffff) addr = 0;
         return (bus.read(addr) << 8) | low;
-    };
+    }
 
-    var to_NN_16 = function(val) {
+    function to_NN_16(val) {
         var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         bus.write(addr, val & 255);
         addr++; if (addr > 0xffff) addr = 0;
         bus.write(addr, val >>> 8);
-    };
+    }
 
-    var sum16Signed = function(a, b) {
+    function sum16Signed(a, b) {
         return (a + (b > 127 ? (-256 + b) : b)) & 0xffff;
-    };
+    }
 
-    var push16 = function(val) {
+    function push16(val) {
         bus.write(--SP, val >>> 8);
         bus.write(--SP, val & 255);
-    };
+    }
 
-    var pop16 = function() {
+    function pop16() {
         return bus.read(SP++) | (bus.read(SP++) << 8);
-    };
+    }
 
     var parities = [    // 0b00000100 ready for P flag
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
@@ -429,7 +487,7 @@ wmsx.Z80 = function() {
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
             | ((A === 0) << nZ)             // Z = A is 0
-            | (IFF2 << nPV);                // PV = IFF2
+            | (IFF1 << nPV);                // PV = IFF2 (same as IFF1)
     }
 
     function LDAR() {
@@ -438,7 +496,7 @@ wmsx.Z80 = function() {
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
             | ((A === 0) << nZ)             // Z = A is 0
-            | (IFF2 << nPV);                // PV = IFF2
+            | (IFF1 << nPV);                // PV = IFF2 (same as IFF1)
     }
 
     function LDIA() {
@@ -808,12 +866,14 @@ wmsx.Z80 = function() {
     }
 
     function DI() {
-        IFF1 = IFF2 = 0;
+        IFF1 = 0;
+        nextInstruction = nextInstructionNormal;
     }
 
     function EI() {
-        IFF1 = IFF2 = 1;
-        prefix = -1;                    // Special prefix. Only means INTs will not be recognized next fetch
+        IFF1 = 1;
+        selectInstruction = selectInstructionAfterEI;    // INTs will not be recognized next fetch
+        nextInstruction = nextInstructionNormal;
     }
 
     function newIM(mode) {
@@ -1167,12 +1227,12 @@ wmsx.Z80 = function() {
     }
 
     function RETI() {
-        IFF1 = IFF2;
+        // No IFF2 supported
         RET();
     }
 
     function RETN() {
-        IFF1 = IFF2;
+        // No IFF2 supported
         RET();
     }
 
@@ -1314,9 +1374,10 @@ wmsx.Z80 = function() {
     // Pseudo instructions
 
     function pINT() {
+        IFF1 = 0;
+        nextInstruction = nextInstructionNormal;
         if (instruction === instructionHALT) PC++;       // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
-        IFF1 = IFF2 = 0;
         instruction = instructionADT_CYCLES;
         if (IM === 1) {
             // Same as a RST 38h
@@ -1338,35 +1399,37 @@ wmsx.Z80 = function() {
     }
 
     function pSET_CB() {
-        prefix = 0xcb;
+        selectInstruction = selectInstructionCB;
+        nextInstruction = nextInstructionNormal;
     }
 
     function pSET_ED() {
-        prefix = 0xed;
+        selectInstruction = selectInstructionED;
+        nextInstruction = nextInstructionNormal;
     }
 
     function pSET_DD() {
-        prefix = 0xdd;
+        selectInstruction = selectInstructionDD;
+        nextInstruction = nextInstructionNormal;
     }
 
     function pSET_FD() {
-        prefix = 0xfd;
+        selectInstruction = selectInstructionFD;
+        nextInstruction = nextInstructionNormal;
     }
 
     function pSET_DDCB() {
-        prefix = 0xddcb;
-        // Special case. R should not be incremented next opcode fetch so adjust here
-        R--;
-        // Special case. Pre-reads d before the real opcode
-        preReadIXYd();
+        selectInstruction = selectInstructionDDCB;
+        nextInstruction = nextInstructionNormal;
+        preReadIXYd();  // Special case. Pre-reads d before the real opcode
+        R--;            // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pSET_FDCB() {
-        prefix = 0xfdcb;
-        // Special case. R should not be incremented next opcode fetch so adjust here
-        R--;
-        // Special case. Pre-reads d before the real opcode
-        preReadIXYd();
+        selectInstruction = selectInstructionFDCB;
+        nextInstruction = nextInstructionNormal;
+        preReadIXYd();  // Special case. Pre-reads d before the real opcode
+        R--;            // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pADT_CYCLES() {
@@ -1403,7 +1466,8 @@ wmsx.Z80 = function() {
             return {
                 // extPC points to Extended Instruction being executed
                 extNum: extNum, extPC: PC - 2, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
-                AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IFF1: IFF1, IM: IM
+                AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM
+                // No IFF1
             }
         }
 
@@ -1425,7 +1489,7 @@ wmsx.Z80 = function() {
             if (state.BC2 !== undefined)   BC2 = state.BC2;
             if (state.DE2 !== undefined)   DE2 = state.DE2;
             if (state.HL2 !== undefined)   HL2 = state.HL2;
-            if (state.IFF1 !== undefined)  IFF1 = state.IFF1;
+            // No IFF1
             if (state.IM !== undefined)    IM = state.IM;
             if (state.extraIterations > 0) extensionExtraIterations = state.extraIterations;
         }
@@ -1436,28 +1500,28 @@ wmsx.Z80 = function() {
 
     // Testing pseudo instructions
 
-    function pSTOP() {
-        self.breakpoint("STOP");
-        self.stop = true;
-    }
+    //function pSTOP() {
+    //    self.breakpoint("STOP");
+    //    self.stop = true;
+    //}
 
-    function pCPM_BDOS() {
-        var cha;
-        if (C === 2) {
-            // Prints char in E
-            cha = String.fromCharCode(DE & 0xff);
-            self.testPrintChar(cha);
-        } else if (C === 9) {
-            // Prints string at DE, terminated with "$". Auto returns (RET)
-            do {
-                cha = String.fromCharCode(bus.read(DE));
-                if (cha === "$") break;
-                DE++; if (DE > 0xffff) DE = 0;
-                self.testPrintChar(cha);
-            } while (true);
-        }
-        RET();
-    }
+    //function pCPM_BDOS() {
+    //    var cha;
+    //    if (C === 2) {
+    //        // Prints char in E
+    //        cha = String.fromCharCode(DE & 0xff);
+    //        self.testPrintChar(cha);
+    //    } else if (C === 9) {
+    //        // Prints string at DE, terminated with "$". Auto returns (RET)
+    //        do {
+    //            cha = String.fromCharCode(bus.read(DE));
+    //            if (cha === "$") break;
+    //            DE++; if (DE > 0xffff) DE = 0;
+    //            self.testPrintChar(cha);
+    //        } while (true);
+    //    }
+    //    RET();
+    //}
 
 
     // Instructions Definitions  ---------------------------------------------------
@@ -2523,13 +2587,13 @@ wmsx.Z80 = function() {
 
         // Testing pseudo instructions
 
-        opcode = 258;
-        instr = pSTOP;
-        defineInstruction(null, null, opcode, 4, instr, "++ BDOS STOP ++", false);
-
-        opcode = 259;
-        instr = pCPM_BDOS;
-        defineInstruction(null, null, opcode, 4, instr, "++ BDOS PRINT ++", false);
+        //opcode = 258;
+        //instr = pSTOP;
+        //defineInstruction(null, null, opcode, 4, instr, "++ BDOS STOP ++", false);
+        //
+        //opcode = 259;
+        //instr = pCPM_BDOS;
+        //defineInstruction(null, null, opcode, 4, instr, "++ BDOS PRINT ++", false);
 
 
         // ------------------------------
@@ -2576,16 +2640,17 @@ wmsx.Z80 = function() {
     this.saveState = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
-            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, IFF2: IFF2, INT: this.INT,
-            T: T, p: prefix, o: opcode, ii: this.instructionsAll.indexOf(instruction),
+            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
+            T: T, o: opcode, ii: this.instructionsAll.indexOf(instruction), si: selectInstruction.name, ni: nextInstruction.name,
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
     };
 
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
-        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; IFF2 = s.IFF2; this.INT = s.INT;
-        T = s.T; prefix = s.p; opcode = s.o; instruction = this.instructionsAll[s.ii !== undefined ? s.ii : s.insIndex];
+        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
+        T = s.T; opcode = s.o; instruction = this.instructionsAll[s.ii] || null;
+        updateSelectInstruction(s.si); updateNextInstruction(s.ni);
         extensionCurrentlyRunning  = s.ecr; extensionExtraIterations = s.eei;
     };
 
@@ -2623,7 +2688,7 @@ wmsx.Z80 = function() {
             "  IX: " + wmsx.Util.toHex2(IX) + "  IY: " + wmsx.Util.toHex2(IY) + "       SP: " + wmsx.Util.toHex2(SP) +  "\n\n" +
             "Flags: " + (F & bS ? "S " : "- ") + (F & bZ ? "Z " : "- ") + (F & bF5 ? "5 " : "- ") + (F & bH ? "H " : "- ") +
             (F & bF3 ? "3 " : "- ") + (F & bPV ? "P " : "- ") + (F & bN ? "N " : "- ") + (F & bC ? "C" : "-") +
-            "            IFF: " + IFF1 + "     INT: " + self.INT + "     pref: " + wmsx.Util.toHex2(prefix);
+            "            IFF: " + IFF1 + "     INT: " + INT + "     sel: " + selectInstruction.name;
     };
 
     this.printInstructions = function() {

@@ -436,18 +436,15 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateIRQ() {
-        cpu.INT = 1;
-        if ((status[0] & 0x80) && (register[1] & 0x20)) {       // IE0 === 1 and F === 1
-            //logInfo(">>>>  INT VERTICAL");
-            cpu.INT = 0;
-        }
-        if ((status[1] & 0x01) && (register[0] & 0x10)) {       // IE1 === 1 and FH === 1
-            //logInfo(">>>>  INT HORIZONTAL");
-            cpu.INT = 0;
+        if (((status[0] & 0x80) && (register[1] & 0x20))            // F === 1 and IE0 === 1
+            || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH === 1 and IE1 === 1
+            cpu.setINT(0);
+        } else {
+            cpu.setINT(1);
         }
 
-        //if (cpu.INT === 1) logInfo(">>>>  INT OFF");
-
+        //if ((status[0] & 0x80) && (register[1] & 0x20)) logInfo(">>>>  INT VERTICAL");
+        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>>  INT HORIZONTAL");
     }
 
     function updateMode(force) {
