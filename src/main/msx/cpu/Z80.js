@@ -34,7 +34,8 @@ wmsx.Z80 = function() {
                 continue;
             }
             R++;                                     // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
-            nextInstruction();                       // Either a normal instruction or an INT
+            if (doINT) nextInstructionINT();
+            else nextInstructionNormal();
         }
     };
 
@@ -49,8 +50,7 @@ wmsx.Z80 = function() {
 
     this.reset = function() {
         cycles = 0;
-        T = -1; opcode = null;
-        nextInstruction = nextInstructionNormal;
+        T = -1; opcode = null; doINT = false;
         instruction = null; prefix = 0;
         PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
         extensionCurrentlyRunning = null; extensionExtraIterations = 0;
@@ -59,7 +59,7 @@ wmsx.Z80 = function() {
     this.setINT = function(val) {
         if (INT !== val) {
             INT = val;
-            nextInstruction = val === 0 && IFF1 && prefix === 0 ? nextInstructionINT : nextInstructionNormal;
+            doINT = val === 0 && IFF1 && prefix === 0;
         }
     };
 
@@ -117,7 +117,7 @@ wmsx.Z80 = function() {
 
     var opcode;
     var prefix;
-    var nextInstruction = nextInstructionNormal;
+    var doINT = false;
 
     var instructions =     new Array(270);
     var instructionsED =   new Array(270);
@@ -126,7 +126,7 @@ wmsx.Z80 = function() {
     var instructionsFD =   new Array(270);
     var instructionsDDCB = new Array(270);
     var instructionsFDCB = new Array(270);
-    var instructionsPrefix = [
+    var instructionsByPrefix = [
         instructions,       // 0
         instructionsED,     // 1
         instructionsCB,     // 2
@@ -160,9 +160,9 @@ wmsx.Z80 = function() {
         if (prefix === 0) {
             instruction = instructions[opcode];                           // always found
         } else {
-            instruction = instructionsPrefix[prefix][opcode];
+            instruction = instructionsByPrefix[prefix][opcode];
             if (!instruction) instruction = instructions[opcode];         // if nothing found, ignore prefix
-            if (INT === 0 && IFF1) nextInstruction = nextInstructionINT;
+            if (INT === 0 && IFF1) doINT = true;
             prefix = 0;
         }
     }
@@ -806,13 +806,13 @@ wmsx.Z80 = function() {
 
     function DI() {
         IFF1 = 0;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
     }
 
     function EI() {
         IFF1 = 1;
         prefix = 7;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
     }
 
     function newIM(mode) {
@@ -1314,7 +1314,7 @@ wmsx.Z80 = function() {
 
     function pINT() {
         IFF1 = 0;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
         if (instruction === instructionHALT) PC++;       // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
         instruction = instructionADT_CYCLES;
@@ -1339,34 +1339,34 @@ wmsx.Z80 = function() {
 
     function pSET_CB() {
         prefix = 2;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
     }
 
     function pSET_ED() {
         prefix = 1;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
     }
 
     function pSET_DD() {
         prefix = 3;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
     }
 
     function pSET_FD() {
         prefix = 4;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
     }
 
     function pSET_DDCB() {
         prefix = 5;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
         preReadIXYd();  // Special case. Pre-reads d before the real opcode
         R--;            // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pSET_FDCB() {
         prefix = 6;
-        nextInstruction = nextInstructionNormal;
+        doINT = false;
         preReadIXYd();  // Special case. Pre-reads d before the real opcode
         R--;            // Special case. R should not be incremented next opcode fetch so adjust here
     }
@@ -2580,7 +2580,7 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
-            T: T, o: opcode, p: prefix, ii: this.instructionsAll.indexOf(instruction), ni: nextInstruction.name,
+            T: T, o: opcode, p: prefix, di: doINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
     };
@@ -2588,8 +2588,7 @@ wmsx.Z80 = function() {
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
-        T = s.T; opcode = s.o; prefix = s.p; instruction = this.instructionsAll[s.ii] || null;
-        nextInstruction = s.ni === nextInstructionINT.name ? nextInstructionINT : nextInstructionNormal;
+        T = s.T; opcode = s.o; prefix = s.p; doINT = s.di; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning  = s.ecr; extensionExtraIterations = s.eei;
     };
 
