@@ -157,7 +157,7 @@ wmsx.V9918 = function(cpu, psg) {
                 "Sprites Hidden", "Pattern Bits", "Pattern Color Blocks", "Pattern Names"][debugMode], true);
     };
 
-    this.toggleSpriteModes = function() {
+    this.toggleSpriteDebugModes = function() {
         spriteMode = ++spriteMode % 4;
         spriteModeLimit = (spriteMode === 0) || (spriteMode === 2);
         spriteModeCollisions = spriteMode < 2;

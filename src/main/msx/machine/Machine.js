@@ -396,7 +396,7 @@ wmsx.Machine = function() {
                 vdp.toggleDebugModes();
                 break;
             case controls.SPRITE_MODE:
-                vdp.toggleSpriteModes();
+                vdp.toggleSpriteDebugModes();
                 break;
             case controls.DEFAULTS:
                 setVideoStandardAuto();

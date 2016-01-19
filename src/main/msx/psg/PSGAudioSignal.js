@@ -10,16 +10,6 @@ wmsx.PSGAudioSignal = function() {
         return mixedChannel;
     };
 
-    this.audioClockPulse = function() {         // Just one clock
-        if (frameSamples < samplesPerFrame)
-            generateNextSamples(1);
-    };
-
-    this.audioClockPulses = function(quant) {
-        var maxSamplesToFrame = samplesPerFrame - frameSamples;
-        generateNextSamples(quant < maxSamplesToFrame ? quant : maxSamplesToFrame);
-    };
-
     this.signalOn = function() {
         signalOn = true;
     };
@@ -55,9 +45,17 @@ wmsx.PSGAudioSignal = function() {
         externalAddedValue = val;
     };
 
-    this.finishFrame = function() {
+    this.audioClockPulse = function() {         // Just one clock pulse, signal always ON
+        if (frameSamples < samplesPerFrame) {
+            generateNextSampleOn();
+            frameSamples++;
+        }
+    };
+
+    this.finishFrame = function() {             // Enough samples to complete frame, signal always ON
         var missingSamples = samplesPerFrame - frameSamples;
-        if (missingSamples > 0) generateNextSamples(missingSamples);
+        if (missingSamples > 0)
+            for (var i = missingSamples; i > 0; i--) generateNextSampleOn()
         frameSamples = 0;
     };
 
@@ -75,8 +73,8 @@ wmsx.PSGAudioSignal = function() {
             : quant - (MAX_SAMPLES - nextSampleToRetrieve + nextSampleToGenerate);
 
         if (missing > 0) {
-            generateNextSamples(missing, true);
-            //wmsx.Util.log(">>> Extra samples generated: " + missing);
+            generateMissingSamples(missing);
+            //wmsx.Util.log(">>> Missing samples generated: " + missing);
         } else {
             //wmsx.Util.log(">>> No missing samples");
         }
@@ -91,34 +89,38 @@ wmsx.PSGAudioSignal = function() {
         return result;
     };
 
-    var generateNextSamples = function(quant, extra) {
+    var generateNextSampleOn = function() {
         var mixedSample;
-        for (var i = quant; i > 0; i--) {
-            if (signalOn) {
-                mixedSample = mixedChannel.nextSample();
-                // Add the External value. Used by the PPI to generate the Keyboard Click
-                mixedSample -= externalAddedValue;
-                // Add the AudioCartridge value
-                if (audioCartridge) mixedSample += audioCartridge.nextSample();
-                // Add a little damper effect to round the edges of the square wave
-                if (mixedSample !== lastSample) {
-                    mixedSample = (mixedSample * 2 + lastSample) / 3;
-                    lastSample = mixedSample;
-                }
-            } else {
-                mixedSample = 0;
-            }
-
-            samples[nextSampleToGenerate] = mixedSample * MAX_AMPLITUDE;
-
-            //if (finalSample > 0.96) finalSample = 0.96; else if (finalSample < -0.96) finalSample = -0.96;
-            //if ((finalSample > 1) || (finalSample < -1)) console.log(finalSample);
-
-            nextSampleToGenerate++;
-            if (nextSampleToGenerate >= MAX_SAMPLES)
-                nextSampleToGenerate = 0;
+        mixedSample = mixedChannel.nextSample();
+        // Add the External value. Used by the PPI to generate the Keyboard Click
+        mixedSample -= externalAddedValue;
+        // Add the AudioCartridge value
+        if (audioCartridge) mixedSample += audioCartridge.nextSample();
+        // Add a little damper effect to round the edges of the square wave
+        if (mixedSample !== lastSample) {
+            mixedSample = (mixedSample * 2 + lastSample) / 3;
+            lastSample = mixedSample;
         }
-        if (!extra) frameSamples += quant;
+
+        samples[nextSampleToGenerate] = mixedSample * MAX_AMPLITUDE;
+        nextSampleToGenerate++;
+        if (nextSampleToGenerate >= MAX_SAMPLES)
+            nextSampleToGenerate = 0;
+
+    };
+
+    var generateNextSampleOff = function() {
+        samples[nextSampleToGenerate] = 0;
+        nextSampleToGenerate++;
+        if (nextSampleToGenerate >= MAX_SAMPLES)
+            nextSampleToGenerate = 0;
+    };
+
+    var generateMissingSamples = function(quant) {
+        if (signalOn)
+            for (var i = quant; i > 0; i--) generateNextSampleOn()
+        else
+            for (var j = quant; j > 0; j--) generateNextSampleOff()
     };
 
 
