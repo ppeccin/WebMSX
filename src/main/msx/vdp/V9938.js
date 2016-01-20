@@ -120,12 +120,10 @@ wmsx.V9938 = function(cpu, psg) {
                 // Register write
                 registerWrite(val & 0x3f, dataToWrite);
             } else {
-                //var oldPointer = vramPointer;
-
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
-                vramPointer = (((register[14] & 0x07) << 14) | ((val & 0x3f) << 8) | dataToWrite);
+                vramPointer = ((register[14] & 0x07) << 14) | ((val & 0x3f) << 8) | dataToWrite;
 
-                //console.log("Setting via out: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16) + ". was: " + oldPointer.toString(16) + ". reg14: " + register[14].toString(16));
+                //console.log("Setting via out: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16) + ". reg14: " + register[14].toString(16));
 
             }
             dataToWrite = null;
@@ -262,14 +260,14 @@ wmsx.V9938 = function(cpu, psg) {
                 break;
             case 8:
                 if ((val & 0x20) !== (old & 0x20)) updateTransparency();                    // TP
-                if ((val & 0x02) !== (old & 0x02)) sprites2Enabled = (val & 0x02) === 0;    // TP
+                if ((val & 0x02) !== (old & 0x02)) sprites2Enabled = (val & 0x02) === 0;    // SPD
                 break;
             case 9:
                 if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
                 break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
-                //vramPointer = (((val & 0x07) << 14) | (vramPointer & 0x3fff)) & vramLimit;
+                vramPointer = ((val & 0x07) << 14) | (vramPointer & 0x3fff);
 
                 //console.log("Setting reg14: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16));
 
@@ -461,7 +459,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         // Adjust VRAM address limits based on mode (9938 vs 9918 modes)
         vramLimit = (mode & 0x19) === mode ? VRAM_LIMIT_9918 : VRAM_LIMIT_9938;
-        vramPointer &= vramLimit;
+        //vramPointer &= vramLimit;
 
         // Update Tables base addresses
         add = (register[2] << 10) & 0x1ffff;
@@ -1286,6 +1284,9 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function paintSprite2(bufferPos, sprite, x, pattern, color, start, finish, collide) {
+
+        //logInfo("PaintSprite x: " + x + ", pattern: " + pattern.toString(16));
+
         for (var i = finish - 1; i >= start; i--, x++, bufferPos++) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
