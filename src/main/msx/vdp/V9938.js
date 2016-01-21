@@ -68,7 +68,7 @@ wmsx.V9938 = function(cpu, psg) {
         // VRAM Read
         dataToWrite = null;
         var res = vram[vramPointer++];
-        if (vramPointer === vramLimit) {
+        if (vramPointer > vramLimit) {
             //wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
             vramPointer &= vramLimit;
         }
@@ -77,12 +77,12 @@ wmsx.V9938 = function(cpu, psg) {
 
     this.output98 = function(val) {
 
-        //wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
+        //if (vramPointer >= 0x10000 && vramPointer < 0x10800) wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
         // VRAM Write
         dataToWrite = null;
         vram[vramPointer++] = val;
-        if (vramPointer === vramLimit) {
+        if (vramPointer > vramLimit) {
             //wmsx.Util.log("VRAM Write Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
             vramPointer &= vramLimit;
         }
@@ -180,10 +180,11 @@ wmsx.V9938 = function(cpu, psg) {
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
         vramLimit = VRAM_LIMIT_9938; dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
-        executingCommandHandler = null;
+        ecHandler = null;
         currentScanline = videoStandard.startingScanline;
         backdropColor = 0;
         sprites2Enabled = true;
+        pendingBlankingChange = false;
         initColorPalette();
         updateIRQ();
         updateMode();
@@ -215,7 +216,7 @@ wmsx.V9938 = function(cpu, psg) {
 
                 if ((val & 0x20) !== (old & 0x20)) updateIRQ();                             // IE0
                 if ((val & 0x18) !== (old & 0x18)) updateMode();                            // Mx
-                else if ((val & 0x40) !== (old & 0x40)) updateLineFunctions();              // BL. Already ok if mode was updated
+                else if ((val & 0x40) !== (old & 0x40)) pendingBlankingChange = true;       // BL. Already ok if mode was updated
                 if ((val & 0x03) !== (old & 0x03)) updateSpriteFunctions();                 // SI, MAG
                 break;
             case 2:
@@ -288,7 +289,7 @@ wmsx.V9938 = function(cpu, psg) {
 
                 break;
             case 44:
-                if (executingCommandHandler) executingCommandHandler(val);
+                if (ecHandler) ecHandler(val);
                 break;
             case 46:
 
@@ -367,6 +368,7 @@ wmsx.V9938 = function(cpu, psg) {
         var totalLines = cycleTotalLines + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
         for (var i = 0; i < totalLines; i++) {
+            if (pendingBlankingChange) updateLineFunctions();
             lineEvents();
             if ((currentScanline >= 0) && (currentScanline < finishingActiveScanline)) {
                 updateLineActive();
@@ -477,12 +479,13 @@ wmsx.V9938 = function(cpu, psg) {
         spritePatternTableAddress = add & modeData.sprPatTBase;
         spritePatternTableAddressMask = add & ~modeData.sprPatTBase | spritePatternTableAddressBaseMask;
         updateSpritePatternTables();
-
         updateSignalMetrics();
         updateLineFunctions();
         updateSpriteFunctions();
-        nameTableLineSize = modeData.nameLineSize;
+        nameTableLines = modeData.nameLines;
+        nameTableLineBytes = modeData.nameLineBytes;
         if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
+        pendingModeChange = false;
     }
 
     function updateSignalMetrics() {
@@ -498,6 +501,8 @@ wmsx.V9938 = function(cpu, psg) {
 
         updateLineActive = (register[1] & 0x40) === 0 ? updateLineBlanked : debugModePatternInfo ? modeData.updLineDeb : modeData.updLine;
         blankedLineValues = modeData.blankedLineValues;
+
+        pendingBlankingChange = false;
     }
 
     function updateSpriteFunctions() {
@@ -1251,7 +1256,7 @@ wmsx.V9938 = function(cpu, psg) {
                 if (spriteDebugModeLimit) break;
             }
 
-            if (color === 0) continue;
+            if ((color & 0xf) === 0) continue;
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1313,7 +1318,7 @@ wmsx.V9938 = function(cpu, psg) {
                 if (spriteDebugModeLimit) break;
             }
 
-            if (color === 0) continue;
+            if ((color & 0xf) === 0) continue;
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1375,7 +1380,7 @@ wmsx.V9938 = function(cpu, psg) {
                 if (spriteDebugModeLimit) break;
             }
 
-            if (color === 0) continue;
+            if ((color & 0xf) === 0) continue;
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1539,40 +1544,41 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
-        executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
-        executingCommandNY = (((register[43] & 0x07) << 8) | register[42]);
-        executingCommandDIX = register[45] & 0x04 ? -1 : 1;
-        executingCommandDIY = register[45] & 0x08 ? -1 : 1;
+        ecNX = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0;
+        ecNY = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0;
+        ecDIX = register[45] & 0x04 ? -1 : 1;
+        ecDIY = register[45] & 0x08 ? -1 : 1;
 
-        //console.log("HMMC Start x: " + x + ", y: " + y + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+        //console.log("HMMC Start x: " + x + ", y: " + y + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
 
         switch (mode) {
             case 0x03:
             case 0x05:
-                x >>>= 1; executingCommandNX >>>= 1; break;
+                x >>>= 1; ecNX >>>= 1; break;
             case 0x04:
-                x >>>= 2; executingCommandNX >>>= 2; break;
+                x >>>= 2; ecNX >>>= 2; break;
             case 0x07:
         }
 
-        executingCommandDestPos = y * nameTableLineSize + x;
+        // Limit rect size
+        ecNX = ecDIX === 1 ? min(ecNX, nameTableLineBytes - x) : min(ecNX, x + 1);
+        ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - y) : min(ecNY, y + 1);
 
+        ecDestPos = y * nameTableLineBytes + x;
         executingCommandStart(HMMCNextData);
     }
 
     function HMMCNextData(co) {
-        //console.log("CPU Color: " + co + ", X: " + executingCommandCX + ", Y: " + executingCommandCY);
+        vram[ecDestPos] = co;
 
-        vram[executingCommandDestPos] = co;
-
-        executingCommandCX++;
-        if (executingCommandCX >= executingCommandNX) {
-            executingCommandDestPos -= executingCommandDIX * (executingCommandNX - 1);
-            executingCommandCX = 0; executingCommandCY++;
-            if (executingCommandCY >= executingCommandNY) executingCommandFinish();
-            else executingCommandDestPos += executingCommandDIY * nameTableLineSize;
+        ecCX++;
+        if (ecCX >= ecNX) {
+            ecDestPos -= ecDIX * (ecNX - 1);
+            ecCX = 0; ecCY++;
+            if (ecCY >= ecNY) executingCommandFinish();
+            else ecDestPos += ecDIY * nameTableLineBytes;
         } else {
-            executingCommandDestPos += executingCommandDIX;
+            ecDestPos += ecDIX;
         }
     }
 
@@ -1585,8 +1591,8 @@ wmsx.V9938 = function(cpu, psg) {
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var nx = (((register[41] & 0xff) << 8) | register[40]) || 512;      // Max size if 0
+        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
 
@@ -1601,10 +1607,14 @@ wmsx.V9938 = function(cpu, psg) {
             case 0x07:
         }
 
+        // Limit rect size
+        nx = dix === 1 ? min(nx, nameTableLineBytes - max(srcX, destX)) : min(nx, min(srcX, destX) + 1);
+        ny = diy === 1 ? min(ny, nameTableLines - max(srcY, destY)) : min(ny, min(srcY, destY) + 1);
+
         // Perform operation
-        var srcPos = srcY * nameTableLineSize + srcX;
-        var destPos = destY * nameTableLineSize + destX;
-        var yStride = -(dix * nx) + nameTableLineSize * diy;
+        var srcPos = srcY * nameTableLineBytes + srcX;
+        var destPos = destY * nameTableLineBytes + destX;
+        var yStride = -(dix * nx) + nameTableLineBytes * diy;
         for (var cy = 0; cy < ny; cy++) {
             for (var cx = 0; cx < nx; cx++) {
                 vram[destPos] = vram[srcPos];
@@ -1625,8 +1635,8 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var nx = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0;
+        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0;
         var co = register[44];
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
@@ -1642,9 +1652,13 @@ wmsx.V9938 = function(cpu, psg) {
             case 0x07:
         }
 
+        // Limit rect size
+        nx = dix === 1 ? min(nx, nameTableLineBytes - x) : min(nx, x + 1);
+        ny = diy === 1 ? min(ny, nameTableLines - y) : min(ny, y + 1);
+
         // Perform operation
-        var pos = y * nameTableLineSize + x;
-        var yStride = -(dix * nx) + nameTableLineSize * diy;
+        var pos = y * nameTableLineBytes + x;
+        var yStride = -(dix * nx) + nameTableLineBytes * diy;
         for (var cy = 0; cy < ny; cy++) {
             for (var cx = 0; cx < nx; cx++) {
                 vram[pos] = co;
@@ -1663,30 +1677,34 @@ wmsx.V9938 = function(cpu, psg) {
         status[2] |= 1;
 
         // Collect parameters
-        executingCommandDestX = (((register[37] & 0x01) << 8) | register[36]);
-        executingCommandDestY = (((register[39] & 0x03) << 8) | register[38]);
-        executingCommandNX = (((register[41] & 0x03) << 8) | register[40]);
-        executingCommandNY = (((register[43] & 0x07) << 8) | register[42]);
-        executingCommandDIX = register[45] & 0x04 ? -1 : 1;
-        executingCommandDIY = register[45] & 0x08 ? -1 : 1;
-        executingCommandLogicalOperation = logicalOperationSelect(register[46] & 0x0f);
+        ecDestX = (((register[37] & 0x01) << 8) | register[36]);
+        ecDestY = (((register[39] & 0x03) << 8) | register[38]);
+        ecNX = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0;
+        ecNY = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0;
+        ecDIX = register[45] & 0x04 ? -1 : 1;
+        ecDIY = register[45] & 0x08 ? -1 : 1;
+        ecLogicalOperation = logicalOperationSelect(register[46] & 0x0f);
 
-        //console.log("LMMC START x: " + executingCommandDestX + ", y: " + executingCommandDestY + ", nx: " + executingCommandNX + ", ny: " + executingCommandNY + ", dix: " + executingCommandDIX + ", diy: " + executingCommandDIY);
+        //console.log("LMMC START x: " + ecDestX + ", y: " + ecDestY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+
+        // Limit rect size
+        ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecDestX) : min(ecNX, ecDestX + 1);
+        ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecDestY) : min(ecNY, ecDestY + 1);
 
         executingCommandStart(LMMCNextData);
     }
 
     function LMMCNextData(co) {
-        logicalPSET(executingCommandDestX, executingCommandDestY, co, executingCommandLogicalOperation);
+        logicalPSET(ecDestX, ecDestY, co, ecLogicalOperation);
 
-        executingCommandCX++;
-        if (executingCommandCX >= executingCommandNX) {
-            executingCommandDestX -= executingCommandDIX * (executingCommandNX - 1);
-            executingCommandCX = 0; executingCommandCY++;
-            if (executingCommandCY >= executingCommandNY) executingCommandFinish();
-            else executingCommandDestY += executingCommandDIY;
+        ecCX++;
+        if (ecCX >= ecNX) {
+            ecDestX -= ecDIX * (ecNX - 1);
+            ecCX = 0; ecCY++;
+            if (ecCY >= ecNY) executingCommandFinish();
+            else ecDestY += ecDIY;
         } else {
-            executingCommandDestX += executingCommandDIX;
+            ecDestX += ecDIX;
         }
     }
 
@@ -1699,13 +1717,17 @@ wmsx.V9938 = function(cpu, psg) {
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var nx = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0
+        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
         var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LMMM srcX: " + srcX + ", srcY: " + srcY + ", destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+
+        // Limit rect size
+        nx = dix === 1 ? min(nx, signalMetrics.width - max(srcX, destX)) : min(nx, min(srcX, destX) + 1);
+        ny = diy === 1 ? min(ny, nameTableLines - max(srcY, destY)) : min(ny, min(srcY, destY) + 1);
 
         // Perform operation
         for (var cy = 0; cy < ny; cy++) {
@@ -1729,14 +1751,18 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var nx = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0
+        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
         var co = register[44];
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
         var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LMMV destX: " + destX + ", destY: " + destY + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
+
+        // Limit rect size
+        nx = dix === 1 ? min(nx, signalMetrics.width - destX) : min(nx, destX + 1);
+        ny = diy === 1 ? min(ny, nameTableLines - destY) : min(ny, destY + 1);
 
         // Perform operation
         for (var cy = 0; cy < ny; cy++) {
@@ -1769,6 +1795,8 @@ wmsx.V9938 = function(cpu, psg) {
         var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
+
+        // TODO Limit size?
 
         // Perform operation
         var x = dx;
@@ -1818,9 +1846,9 @@ wmsx.V9938 = function(cpu, psg) {
 
     function STOP() {
 
-        //console.log("STOP: " + executingCommandHandler);
+        //console.log("STOP: " + ecHandler);
 
-        executingCommandHandler = null;
+        ecHandler = null;
         status[2] &= ~1;
     }
 
@@ -1838,8 +1866,12 @@ wmsx.V9938 = function(cpu, psg) {
                 mask = 0xff;
         }
         // Perform operation
-        var pos = y * nameTableLineSize + x;
-        vram[pos] = op(vram[pos], co, mask);
+        var pos = y * nameTableLineBytes + x;
+        var val = op(vram[pos], co, mask);
+        vram[pos] = val;
+
+        if (pos >= 0x10600 && pos < (0x10600 + 32)) wmsx.Util.log("LMMC Write: " + val.toString(16) + " at: " + pos.toString(16));
+
     }
 
     function logicalPCOPY(dX, dY, sX, sY, op) {
@@ -1858,8 +1890,8 @@ wmsx.V9938 = function(cpu, psg) {
         }
 
         // Perform operation
-        var sPos = sY * nameTableLineSize + sX;
-        var dPos = dY * nameTableLineSize + dX;
+        var sPos = sY * nameTableLineBytes + sX;
+        var dPos = dY * nameTableLineBytes + dX;
         var co = ((vram[sPos] >> sShift) & mask) << dShift;
         vram[dPos] = op(vram[dPos], co, mask << dShift);
     }
@@ -1889,33 +1921,33 @@ wmsx.V9938 = function(cpu, psg) {
         return src === 0 ? dest : (dest & ~mask) | src;
     }
 
-    function logicalOperation15(dest, src, mask) {
-        return 0xff;
+    function min(a, b) {
+        return a < b ? a : b;
     }
 
-    function logicalOperation14(dest, src, mask) {
-        return 0xee;
+    function max(a, b) {
+        return a > b ? a : b;
     }
 
     function executingCommandStart(handler) {
         // Init counters
-        executingCommandCX = 0;
-        executingCommandCY = 0;
-        executingCommandHandler = handler;
+        ecCX = 0;
+        ecCY = 0;
+        ecHandler = handler;
 
         // Set CE and TR
         status[2] |= 0x81;
 
         // Perform first iteration with current data
-        executingCommandHandler(register[44]);
+        ecHandler(register[44]);
     }
 
     function executingCommandFinish() {
 
-        //if (executingCommandHandler === HMMCNextData) console.log(executingCommandHandler.name + " Finish");
+        //if (ecHandler === HMMCNextData) console.log(ecHandler.name + " Finish");
         //else console.log(">>>> NO COMMAND TO FINISH");
 
-        executingCommandHandler = null;
+        ecHandler = null;
         status[2] &= ~0x81;          // Clear CE and TR
         register[46] &= ~0xf0;
     }
@@ -2033,6 +2065,9 @@ wmsx.V9938 = function(cpu, psg) {
     var modeData;
     var signalMetrics;
 
+    var pendingModeChange;
+    var pendingBlankingChange;
+
     var spritesCollided;
     var sprites2Enabled;
     var sprites2LinePriorities = wmsx.Util.arrayFill(new Array(256), SPRITE_MAX_PRIORITY);
@@ -2044,16 +2079,15 @@ wmsx.V9938 = function(cpu, psg) {
     var vramWriteMode = false;
     var paletteFirstWrite;
 
-    var executingCommandHandler = null;
-    var executingCommandDX, executingCommandDY, executingCommandNX, executingCommandNY, executingCommandDIX, executingCommandDIY, executingCommandSrctPos, executingCommandDestPos, executingCommandLogicalOperation;
-    var executingCommandDestX, executingCommandDestY, executingCommandSrcX, executingCommandSrcY, executingCommandCX, executingCommandCY;
+    var ecHandler = null;
+    var ecDestX, ecDestY, ecNX, ecNY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLogicalOperation;
 
     var backdropColor;
     var backdropValue;
     var backdropFullLine512Values = new Uint32Array(544);
     var backdropFullLine256Values = backdropFullLine512Values.subarray(272);
 
-    var nameTableLineSize;
+    var nameTableLines, nameTableLineBytes;
 
     var nameTableAddress;                           // Dynamic values, set by software
     var colorTableAddress;
@@ -2082,19 +2116,19 @@ wmsx.V9938 = function(cpu, psg) {
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLineSize:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine256Values, spriteMode: 0 };
+        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine256Values, spriteMode: 0 };
     });
 
-    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLineSize:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 0 };
-    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLineSize:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values, spriteMode: 0 };
-    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
-    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
-    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLineSize:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
-    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };
-    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };
-    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , blankedLineValues: backdropFullLine512Values, spriteMode: 2 };
-    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values, spriteMode: 2 };
-    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLineSize: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };   // TODO bit 16 position!
+    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 0 };
+    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values, spriteMode: 0 };
+    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
+    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
+    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
+    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };
+    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };
+    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , blankedLineValues: backdropFullLine512Values, spriteMode: 2 };
+    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values, spriteMode: 2 };
+    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };   // TODO bit 16 position!
 
     var updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
 
