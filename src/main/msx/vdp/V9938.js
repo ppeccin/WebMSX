@@ -144,7 +144,7 @@ wmsx.V9938 = function(cpu, psg) {
     this.output9b = function(val) {
         // Indirect Register Write
         var reg = register[17] & 0x3f;
-        if (reg !== 17) registerWrite(reg, val, "Indirect");
+        if (reg !== 17) registerWrite(reg, val);
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
     };
 
@@ -193,7 +193,7 @@ wmsx.V9938 = function(cpu, psg) {
         updateSynchronization();
     };
 
-    function registerWrite(reg, val, source) {
+    function registerWrite(reg, val) {
         if (reg > 46) return;
         var add;
         var old = register[reg];
@@ -493,6 +493,9 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateLineFunctions() {
+
+        //logInfo("Blank " + ((register[1] & 0x40) === 0 ? "ON" : "OFF"));
+
         updateLineActive = (register[1] & 0x40) === 0 ? updateLineBlanked : debugModePatternInfo ? modeData.updLineDeb : modeData.updLine;
         blankedLineValues = modeData.blankedLineValues;
     }
