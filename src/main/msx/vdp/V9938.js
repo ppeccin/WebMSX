@@ -3,7 +3,7 @@
 // This implementation is line-accurate
 // Commands run instantaneously (take 0 cycles)
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.V9938 = function(cpu, psg) {
+wmsx.V9938 = function(cpu, psg, isV9918) {
     var self = this;
 
     function init() {
@@ -21,7 +21,7 @@ wmsx.V9938 = function(cpu, psg) {
         bus.connectInputDevice(0x98,  this.input98);
         bus.connectOutputDevice(0x98, this.output98);
         bus.connectInputDevice(0x99,  this.input99);
-        bus.connectOutputDevice(0x99, this.output99);
+        bus.connectOutputDevice(0x99, isV9918 ? this.output99_V9918 : this.output99_V9938);
         bus.connectOutputDevice(0x9a, this.output9a);
         bus.connectOutputDevice(0x9b, this.output9b);
     };
@@ -68,10 +68,7 @@ wmsx.V9938 = function(cpu, psg) {
         // VRAM Read
         dataToWrite = null;
         var res = vram[vramPointer++];
-        if (vramPointer > vramLimit) {
-            //wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
-            vramPointer &= vramLimit;
-        }
+        checkVRAMPointerWrap();
         return res;
     };
 
@@ -82,10 +79,7 @@ wmsx.V9938 = function(cpu, psg) {
         // VRAM Write
         dataToWrite = null;
         vram[vramPointer++] = val;
-        if (vramPointer > vramLimit) {
-            //wmsx.Util.log("VRAM Write Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
-            vramPointer &= vramLimit;
-        }
+        checkVRAMPointerWrap();
     };
 
     this.input99 = function() {
@@ -102,7 +96,7 @@ wmsx.V9938 = function(cpu, psg) {
             case 1:
                 status[1] &= ~0x81;                     // FL = 0
                 if ((register[0] & 0x10) && (status[1] & 0x01)) {
-                    status[1] &= ~0x01;                // FH = 0, only if interrupts are enabled (IE1 = 1)
+                    status[1] &= ~0x01;                 // FH = 0, only if interrupts are enabled (IE1 = 1)
                     updateIRQ();
                 }
                 break;
@@ -113,20 +107,43 @@ wmsx.V9938 = function(cpu, psg) {
         return prevStatus;
     };
 
-    this.output99 = function(val) {
+    this.output99_V9938 = function(val) {
         if (dataToWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
             dataToWrite = val;
         } else {
             // Second write
             if (val & 0x80) {
-                // Register write
-                registerWrite(val & 0x3f, dataToWrite);
+                // Register write only if "WriteMode = 0"
+                if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataToWrite);
             } else {
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
-                vramPointer = ((register[14] & 0x07) << 14) | ((val & 0x3f) << 8) | dataToWrite;
+                vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
 
-                //console.log("Setting via out: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16) + ". reg14: " + register[14].toString(16));
+                //console.log("Setting VRAM Pointer via out: " + val.toString(16) + ". Pointer: " + vramPointer.toString(16) + ". reg14: " + register[14].toString(16));
+
+            }
+            dataToWrite = null;
+        }
+    };
+
+    this.output99_V9918 = function(val) {
+        if (dataToWrite === null) {
+            // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
+            dataToWrite = val;
+            // On V9918, the VRAM pointer low gets written right away
+            vramPointer = (vramPointer & ~0xff) | val;
+        } else {
+            // Second write
+            if (val & 0x80) {
+                registerWrite(val & 0x3f, dataToWrite);
+                // On V9918, the VRAM pointer high gets also written when writing to registers
+                vramPointer = (vramPointer & 0x1c0ff) | ((val & 0x3f) << 8);
+            } else {
+                // VRAM Address Pointer middle (A13-A8) and mode (r/w)
+                vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
+
+                //console.log("Setting VRAM Pointer via out: " + val.toString(16) + ". Pointer: " + vramPointer.toString(16) + ". reg14: " + register[14].toString(16));
 
             }
             dataToWrite = null;
@@ -182,7 +199,7 @@ wmsx.V9938 = function(cpu, psg) {
         wmsx.Util.arrayFill(paletteRegister, 0);
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
-        vramLimit = VRAM_LIMIT_9938; dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
+        dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         ecWriteHandler = null; ecReadHandler = null;
         currentScanline = videoStandard.startingScanline;
         backdropColor = 0;
@@ -331,6 +348,14 @@ wmsx.V9938 = function(cpu, psg) {
         }
     }
 
+    function checkVRAMPointerWrap() {
+        if ((vramPointer & 0x3fff) === 0) {
+            //wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
+            if (modeData.isV9938) register[14] = (register[14] + 1) & 0x07;
+            vramPointer = register[14] << 14;
+        }
+    }
+
     function setPaletteRegister(reg, val) {
         if (paletteRegister[reg] === val) return;
         paletteRegister[reg] = val;
@@ -379,7 +404,6 @@ wmsx.V9938 = function(cpu, psg) {
         var totalLines = cycleTotalLines + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
         for (var i = 0; i < totalLines; i++) {
-            if (pendingBlankingChange) updateLineFunctions();
             lineEvents();
             if ((currentScanline >= 0) && (currentScanline < finishingActiveScanline)) {
                 updateLineActive();
@@ -408,8 +432,8 @@ wmsx.V9938 = function(cpu, psg) {
 
         // Left border: 56 clocks
         if (currentScanline === -1) status[2] &= ~0x40;                                     // VR = 0 at the scanline before first visible scanline
-        if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();        // F = 1, VR = 1 at the scanline after last visible scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;        // FH = 0 if interrupts disabled (IE1 = 0)
+        if (pendingBlankingChange) updateLineFunctions();
 
         cpuClockPulses(9);
 
@@ -425,6 +449,7 @@ wmsx.V9938 = function(cpu, psg) {
 
         status[2] |= 0x20;                                                                  // HR = 1
         if (currentScanline === horizontalIntLine) triggerHorizontalInterrupt();            // FH = 1 at the horizontal interrupt line
+        if (currentScanline === (finishingActiveScanline - 1)) triggerVerticalInterrupt();  // F = 1, VR = 1 at the last visible scanline
 
         // TODO 1 additional PSG clock each 8 lines
     }
@@ -470,9 +495,6 @@ wmsx.V9938 = function(cpu, psg) {
 
         //console.log("Update Mode: " + mode.toString(16));
 
-        // Adjust VRAM address limits based on mode (9938 vs 9918 modes)
-        vramLimit = (mode & 0x19) === mode ? VRAM_LIMIT_9918 : VRAM_LIMIT_9938;
-
         // Update Tables base addresses
         add = (register[2] << 10) & 0x1ffff;
         nameTableAddress = add & modeData.nameTBase;
@@ -517,8 +539,7 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
     function updateSpriteFunctions() {
-        var mode = modeData.spriteMode;
-        updateSpritesLine = mode === 1 ? updateSpritesLineFunctionsMode1[register[1] & 0x03] : mode === 2 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null;
+        updateSpritesLine = modeData.isV9938 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : updateSpritesLineFunctionsMode1[register[1] & 0x03];
     }
 
     function updateTransparency() {
@@ -2152,8 +2173,8 @@ wmsx.V9938 = function(cpu, psg) {
     }
 
 
-    var VRAM_LIMIT_9918 = 0x03FFF;      // 16K
-    var VRAM_LIMIT_9938 = 0x1FFFF;      // 128K
+    var VRAM_SIZE = 0x20000;      // 128K
+
     var SPRITE_MAX_PRIORITY = 9000000000000000;
 
     // Registers, pointers, control data
@@ -2233,27 +2254,26 @@ wmsx.V9938 = function(cpu, psg) {
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine256Values, spriteMode: 0 };
+        return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine256Values};
     });
 
-    modes[0x10] = { name: "Screen 0",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 0 };
-    modes[0x12] = { name: "Screen 0+", sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values, spriteMode: 0 };
-    modes[0x08] = { name: "Screen 3",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
-    modes[0x00] = { name: "Screen 1",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
-    modes[0x01] = { name: "Screen 2",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values, spriteMode: 1 };
-    modes[0x02] = { name: "Screen 4",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };
-    modes[0x03] = { name: "Screen 5",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };
-    modes[0x04] = { name: "Screen 6",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , blankedLineValues: backdropFullLine512Values, spriteMode: 2 };
-    modes[0x05] = { name: "Screen 7",  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values, spriteMode: 2 };
-    modes[0x07] = { name: "Screen 8",  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , blankedLineValues: backdropFullLine256Values, spriteMode: 2 };   // TODO bit 16 position!
+    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };
+    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values };
+    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values };
+    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values };
+    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values };
+    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values };
+    modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , blankedLineValues: backdropFullLine256Values };
+    modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , blankedLineValues: backdropFullLine512Values };
+    modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values };
+    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , blankedLineValues: backdropFullLine256Values };   // TODO bit 16 position!
 
     var updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
 
 
     // VRAM
 
-    var vram = new Uint8Array(VRAM_LIMIT_9938 + 1);
-    var vramLimit = VRAM_LIMIT_9938;
+    var vram = new Uint8Array(VRAM_SIZE);
     this.vram = vram;
 
 
