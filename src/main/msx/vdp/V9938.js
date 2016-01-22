@@ -298,20 +298,28 @@ wmsx.V9938 = function(cpu, psg) {
                 switch (val & 0xf0) {
                     case 0xf0:
                         HMMC(); break;
+                    case 0xe0:
+                        YMMM(); break;
                     case 0xd0:
                         HMMM(); break;
                     case 0xc0:
                         HMMV(); break;
                     case 0xb0:
                         LMMC(); break;
+                    //case 0xa0:
+                    //    LMCM(); break;
                     case 0x90:
                         LMMM(); break;
                     case 0x80:
                         LMMV(); break;
                     case 0x70:
                         LINE(); break;
+                    //case 0x60:
+                    //    SRCH(); break;
                     case 0x50:
                         PSET(); break;
+                    //case 0x40:
+                    //    POINT(); break;
                     case 0x00:
                         STOP(); break;
                     default:
@@ -1580,6 +1588,50 @@ wmsx.V9938 = function(cpu, psg) {
         } else {
             ecDestPos += ecDIX;
         }
+    }
+
+    function YMMM() {
+        // Begin
+        status[2] |= 1;
+
+        // Collect parameters
+        var srcY = (((register[35] & 0x03) << 8) | register[34]);
+        var destX = (((register[37] & 0x01) << 8) | register[36]);
+        var destY = (((register[39] & 0x03) << 8) | register[38]);
+        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
+        var dix = register[45] & 0x04 ? -1 : 1;
+        var diy = register[45] & 0x08 ? -1 : 1;
+
+        //console.log("YMMM srcY: " + srcY + ", destX: " + destX + ", destY: " + destY + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+
+        switch (mode) {
+            case 0x03:
+            case 0x05:
+                destX >>>= 1; break;
+            case 0x04:
+                destX >>>= 2; break;
+            case 0x07:
+        }
+
+        // Limit rect size
+        var nx = dix === 1 ? nameTableLineBytes - destX : destX + 1;
+        ny = diy === 1 ? min(ny, nameTableLines - max(srcY, destY)) : min(ny, min(srcY, destY) + 1);
+
+        // Perform operation
+        var srcPos = srcY * nameTableLineBytes + destX;
+        var destPos = destY * nameTableLineBytes + destX;
+        var yStride = -(dix * nx) + nameTableLineBytes * diy;
+        for (var cy = 0; cy < ny; cy++) {
+            for (var cx = 0; cx < nx; cx++) {
+                vram[destPos] = vram[srcPos];
+                srcPos += dix; destPos += dix;
+            }
+            srcPos += yStride; destPos += yStride;
+        }
+
+        // Finish
+        status[2] &= ~1;
+        register[46] &= ~0xf0;
     }
 
     function HMMM() {
