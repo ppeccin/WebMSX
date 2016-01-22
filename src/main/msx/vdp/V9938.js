@@ -106,6 +106,9 @@ wmsx.V9938 = function(cpu, psg) {
                     updateIRQ();
                 }
                 break;
+            case 7:
+                if (ecReadHandler) ecReadHandler();
+                break;
         }
         return prevStatus;
     };
@@ -180,7 +183,7 @@ wmsx.V9938 = function(cpu, psg) {
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
         vramLimit = VRAM_LIMIT_9938; dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
-        ecHandler = null;
+        ecWriteHandler = null; ecReadHandler = null;
         currentScanline = videoStandard.startingScanline;
         backdropColor = 0;
         sprites2Enabled = true;
@@ -289,7 +292,7 @@ wmsx.V9938 = function(cpu, psg) {
 
                 break;
             case 44:
-                if (ecHandler) ecHandler(val);
+                if (ecWriteHandler) ecWriteHandler(val);
                 break;
             case 46:
 
@@ -1552,8 +1555,8 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
-        ecNX = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0;
-        ecNY = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0;
+        ecNX = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
+        ecNY = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
         ecDIX = register[45] & 0x04 ? -1 : 1;
         ecDIY = register[45] & 0x08 ? -1 : 1;
 
@@ -1573,17 +1576,17 @@ wmsx.V9938 = function(cpu, psg) {
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - y) : min(ecNY, y + 1);
 
         ecDestPos = y * nameTableLineBytes + x;
-        executingCommandStart(HMMCNextData);
+        ecWriteStart(HMMCNextWrite);
     }
 
-    function HMMCNextData(co) {
+    function HMMCNextWrite(co) {
         vram[ecDestPos] = co;
 
         ecCX++;
         if (ecCX >= ecNX) {
             ecDestPos -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY++;
-            if (ecCY >= ecNY) executingCommandFinish();
+            if (ecCY >= ecNY) ecFinish();
             else ecDestPos += ecDIY * nameTableLineBytes;
         } else {
             ecDestPos += ecDIX;
@@ -1598,7 +1601,7 @@ wmsx.V9938 = function(cpu, psg) {
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
+        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
 
@@ -1643,8 +1646,8 @@ wmsx.V9938 = function(cpu, psg) {
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0xff) << 8) | register[40]) || 512;      // Max size if 0
-        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
+        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
+        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
 
@@ -1687,8 +1690,8 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0;
-        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0;
+        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
+        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
         var co = register[44];
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
@@ -1731,8 +1734,8 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         ecDestX = (((register[37] & 0x01) << 8) | register[36]);
         ecDestY = (((register[39] & 0x03) << 8) | register[38]);
-        ecNX = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0;
-        ecNY = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0;
+        ecNX = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
+        ecNY = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
         ecDIX = register[45] & 0x04 ? -1 : 1;
         ecDIY = register[45] & 0x08 ? -1 : 1;
         ecLogicalOperation = logicalOperationSelect(register[46] & 0x0f);
@@ -1743,17 +1746,52 @@ wmsx.V9938 = function(cpu, psg) {
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecDestX) : min(ecNX, ecDestX + 1);
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecDestY) : min(ecNY, ecDestY + 1);
 
-        executingCommandStart(LMMCNextData);
+        ecWriteStart(LMMCNextWrite);
     }
 
-    function LMMCNextData(co) {
+    function LMMCNextWrite(co) {
         logicalPSET(ecDestX, ecDestY, co, ecLogicalOperation);
 
         ecCX++;
         if (ecCX >= ecNX) {
             ecDestX -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY++;
-            if (ecCY >= ecNY) executingCommandFinish();
+            if (ecCY >= ecNY) ecFinish();
+            else ecDestY += ecDIY;
+        } else {
+            ecDestX += ecDIX;
+        }
+    }
+
+    function LMCM() {
+        // Begin
+        status[2] |= 1;
+
+        // Collect parameters
+        ecSrcX = (((register[33] & 0x01) << 8) | register[32]);
+        ecSrcY = (((register[35] & 0x03) << 8) | register[34]);
+        ecNX = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
+        ecNY = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
+        ecDIX = register[45] & 0x04 ? -1 : 1;
+        ecDIY = register[45] & 0x08 ? -1 : 1;
+
+        console.log("LMCM START x: " + ecSrcX + ", y: " + ecSrcY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+
+        // Limit rect size
+        ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecSrcX) : min(ecNX, ecSrcX + 1);
+        ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecSrcY) : min(ecNY, ecSrcY + 1);
+
+        ecReadStart(LMCMNextRead);
+    }
+
+    function LMCMNextRead() {
+        register[7] = normalPGET(ecSrcX, ecSrcY);
+
+        ecCX++;
+        if (ecCX >= ecNX) {
+            ecDestX -= ecDIX * (ecNX - 1);
+            ecCX = 0; ecCY++;
+            if (ecCY >= ecNY) ecFinish();
             else ecDestY += ecDIY;
         } else {
             ecDestX += ecDIX;
@@ -1769,8 +1807,8 @@ wmsx.V9938 = function(cpu, psg) {
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0
-        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
+        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
+        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
         var op = logicalOperationSelect(register[46] & 0x0f);
@@ -1803,8 +1841,8 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]) || 512;      // Max size if 0
-        var ny = (((register[43] & 0x07) << 8) | register[42]) || 1024;     // Max size if 0
+        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
+        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
         var co = register[44];
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
@@ -1838,8 +1876,8 @@ wmsx.V9938 = function(cpu, psg) {
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
         var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x03) << 8) | register[40]);
-        var ny = (((register[43] & 0x07) << 8) | register[42]);
+        var nx = (((register[41] & 0x01) << 8) | register[40]);
+        var ny = (((register[43] & 0x03) << 8) | register[42]);
         var co = register[44];
         var dix = register[45] & 0x04 ? -1 : 1;
         var diy = register[45] & 0x08 ? -1 : 1;
@@ -1847,8 +1885,6 @@ wmsx.V9938 = function(cpu, psg) {
         var op = logicalOperationSelect(register[46] & 0x0f);
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
-
-        // TODO Limit size?
 
         // Perform operation
         var x = dx;
@@ -1898,10 +1934,29 @@ wmsx.V9938 = function(cpu, psg) {
 
     function STOP() {
 
-        //console.log("STOP: " + ecHandler);
+        //console.log("STOP: " + ecWriteHandler);
 
-        ecHandler = null;
+        ecWriteHandler = null;
+        ecReadHandler = null;
         status[2] &= ~1;
+    }
+
+    function normalPGET(x, y) {
+        var shift, mask;
+        switch (mode) {
+            case 0x03:
+            case 0x05:
+                shift = (x & 0x1) ? 0 : 4;
+                x >>>= 1; mask = 0x0f << shift; break;
+            case 0x04:
+                shift = (3 - (x & 0x3)) * 2;
+                x >>>= 2; mask = 0x03 << shift; break;
+            case 0x07:
+                shift = 0; mask = 0xff;
+        }
+        // Perform operation
+        var pos = y * nameTableLineBytes + x;
+        return (vram[pos] & mask) >> shift;
     }
 
     function logicalPSET(x, y, co, op) {
@@ -1919,11 +1974,7 @@ wmsx.V9938 = function(cpu, psg) {
         }
         // Perform operation
         var pos = y * nameTableLineBytes + x;
-        var val = op(vram[pos], co, mask);
-        vram[pos] = val;
-
-        if (pos >= 0x10600 && pos < (0x10600 + 32)) wmsx.Util.log("LMMC Write: " + val.toString(16) + " at: " + pos.toString(16));
-
+        vram[pos] = op(vram[pos], co, mask);
     }
 
     function logicalPCOPY(dX, dY, sX, sY, op) {
@@ -1981,25 +2032,39 @@ wmsx.V9938 = function(cpu, psg) {
         return a > b ? a : b;
     }
 
-    function executingCommandStart(handler) {
+    function ecWriteStart(handler) {
         // Init counters
         ecCX = 0;
         ecCY = 0;
-        ecHandler = handler;
+        ecWriteHandler = handler;
 
         // Set CE and TR
         status[2] |= 0x81;
 
         // Perform first iteration with current data
-        ecHandler(register[44]);
+        ecWriteHandler(register[44]);
     }
 
-    function executingCommandFinish() {
+    function ecReadStart(handler) {
+        // Init counters
+        ecCX = 0;
+        ecCY = 0;
+        ecReadHandler = handler;
 
-        //if (ecHandler === HMMCNextData) console.log(ecHandler.name + " Finish");
+        // Set CE and TR
+        status[2] |= 0x81;
+
+        // Perform first iteration
+        ecReadHandler();
+    }
+
+    function ecFinish() {
+
+        //if (ecWriteHandler === HMMCNextWrite) console.log(ecWriteHandler.name + " Finish");
         //else console.log(">>>> NO COMMAND TO FINISH");
 
-        ecHandler = null;
+        ecWriteHandler = null;
+        ecReadHandler = null;
         status[2] &= ~0x81;          // Clear CE and TR
         register[46] &= ~0xf0;
     }
@@ -2131,8 +2196,8 @@ wmsx.V9938 = function(cpu, psg) {
     var vramWriteMode = false;
     var paletteFirstWrite;
 
-    var ecHandler = null;
-    var ecDestX, ecDestY, ecNX, ecNY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLogicalOperation;
+    var ecWriteHandler = null, ecReadHandler = null;
+    var ecSrcX, ecSrcY, ecDestX, ecDestY, ecNX, ecNY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLogicalOperation;
 
     var backdropColor;
     var backdropValue;
