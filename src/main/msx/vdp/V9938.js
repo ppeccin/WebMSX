@@ -252,11 +252,17 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
                 colorTableAddress = add & modeData.colorTBase;
                 colorTableAddressMask = add & ~modeData.colorTBase | colorTableAddressBaseMask;
+
+                //logInfo("Setting: " + val.toString(16) + " to ColorTableAddress: " + colorTableAddress.toString(16));
+
                 break;
             case 4:
                 add = (val << 11) & 0x1ffff ;
                 patternTableAddress = add & modeData.patTBase;
                 patternTableAddressMask = add & ~modeData.patTBase | patternTableAddressBaseMask;
+
+                //logInfo("Setting: " + val.toString(16) + " to PatternTableAddress: " + patternTableAddress.toString(16));
+
                 break;
             case 5:
             case 11:
@@ -493,8 +499,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
         modeData = modes[mode];
 
-        //console.log("Update Mode: " + mode.toString(16));
-
         // Update Tables base addresses
         add = (register[2] << 10) & 0x1ffff;
         nameTableAddress = add & modeData.nameTBase;
@@ -519,6 +523,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         nameTableLineBytes = modeData.nameLineBytes;
         if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
         pendingModeChange = false;
+
+        //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
+
     }
 
     function updateSignalMetrics() {
@@ -591,6 +598,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         frameBackBuffer.set(blankedLineValues, bufferPos);
         // Sprites deactivated
     }
+
+    // TODO Consider Table Address Mask
 
     function updateLineModeT1() {                                           // Text (Screen 0 width 40)
         var bufferPos = (currentScanline + 8) * 544;
@@ -2257,12 +2266,12 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine256Values};
     });
 
-    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };
-    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512,  nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values };
-    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values };
-    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values };
-    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values };
-    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256,  nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values };
+    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };
+    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values };
+    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values };
+    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values };
+    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values };
+    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values };
     modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , blankedLineValues: backdropFullLine256Values };
     modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , blankedLineValues: backdropFullLine512Values };
     modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values };

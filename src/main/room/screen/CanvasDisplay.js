@@ -67,7 +67,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Only change if height is different
         if (signalMetrics && (metrics.height === signalMetrics.height)) return;
 
-        console.log(">>> Display changing signalMetrics");
+        //console.log(">>> Display changing signalMetrics");
 
         signalMetrics = metrics;
         contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;
