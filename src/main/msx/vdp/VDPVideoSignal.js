@@ -3,29 +3,26 @@
 wmsx.VDPVideoSignal = function(signalMetrics) {
 
     this.connectMonitor = function(pMonitor) {
-        this.monitor = pMonitor;
-        this.monitor.setSignalMetrics(this.signalMetrics);
+        monitor = pMonitor;
+        monitor.setSignalMetrics(signalMetrics);
     };
 
     this.setSignalMetrics = function(metrics) {
-        this.signalMetrics = metrics;
-        this.monitor.setSignalMetrics(this.signalMetrics);
+        if (monitor) monitor.setSignalMetrics(metrics);
     };
 
     this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
-        this.monitor.newFrame(image, sourceX, sourceY, sourceWidth, sourceHeight);
+        monitor.newFrame(image, sourceX, sourceY, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
-        if (this.monitor) this.monitor.signalOff();
+        if (monitor) monitor.signalOff();
     };
 
     this.showOSD = function(message, overlap) {
-        if (this.monitor) this.monitor.showOSD(message, overlap);
+        if (monitor) monitor.showOSD(message, overlap);
     };
 
-    this.monitor = null;
-
-    this.signalMetrics = signalMetrics;
+    var monitor;
 
 };

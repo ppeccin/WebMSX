@@ -11,8 +11,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupButtonsBar();
         setupLogo();
         setupLoadingIcon();
-        monitor = new wmsx.Monitor();
-        monitor.connectDisplay(self);
+        monitor = new wmsx.Monitor(self);
     }
 
     this.connect = function(pVideoSignal, pMachineControlsSocket, pCartridgeSocket) {
@@ -71,7 +70,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         signalMetrics = metrics;
         contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;
-        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (metrics.height + 8 * 2)) | 0;
+        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (212 + 8 * 2)) | 0;
         setCanvasSize(contentWidth, contentHeight);
         updateScale();
     };
@@ -626,7 +625,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         } else {                                       // Always
             borderTop = 1;
             borderLateral = 1;
-            borderBottom = 30;
+            borderBottom = 31;
         }
     };
 

@@ -33,7 +33,7 @@ wmsx.V9918 = function(cpu, psg) {
     this.setVideoStandard = function(pVideoStandard) {
         videoStandard = pVideoStandard;
         updateSynchronization();
-        if (currentScanline >= videoStandard.finishingScanline) currentScanline = videoStandard.startingScanline;       // When going from PAL to NTSC
+        if (currentScanline >= finishingScanline) currentScanline = startingScanline;       // When going from PAL to NTSC
     };
 
     this.setVSynchMode = function(mode) {
@@ -181,7 +181,7 @@ wmsx.V9918 = function(cpu, psg) {
         updateMode(true);            // force
         updateBackdropColor(true);   // force
         updateSynchronization();
-        currentScanline = videoStandard.startingScanline;
+        currentScanline = startingScanline;
     };
 
     function setDebugMode(mode) {
@@ -202,8 +202,8 @@ wmsx.V9918 = function(cpu, psg) {
         desiredBaseFrequency = videoStandard.targetFPS;
         if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
 
-        startingScanline = videoStandard.startingScanline;
-        finishingScanline = videoStandard.finishingScanline;
+        startingScanline = -8;
+        finishingScanline = videoStandard.totalHeight + startingScanline;
         cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per clock
         pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // Unless its the first pulldown frame and is adjusted
     }

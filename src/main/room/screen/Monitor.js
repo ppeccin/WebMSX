@@ -1,11 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Monitor = function() {
+wmsx.Monitor = function(display) {
 
-    this.connectDisplay = function(monitorDisplay) {
-        display = monitorDisplay;
-        this.setDefaults();
-    };
+    function init(self) {
+        self.setDefaults();
+    }
 
     this.connect = function(pVideoSignal, pCartridgeSocket) {
         cartridgeSocket = pCartridgeSocket;
@@ -131,8 +130,6 @@ wmsx.Monitor = function() {
     };
 
 
-    var display;
-
     var videoSignal;
     var cartridgeSocket;
 
@@ -146,6 +143,8 @@ wmsx.Monitor = function() {
 
     var crtMode = -1;
 
+
+    init(this);
 
 };
 

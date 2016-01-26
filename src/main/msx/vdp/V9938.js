@@ -7,7 +7,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal(signalMetrics256);
+        videoSignal = new wmsx.VDPVideoSignal(signalMetrics256e);
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
@@ -37,7 +37,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     this.setVideoStandard = function(pVideoStandard) {
         videoStandard = pVideoStandard;
         updateSynchronization();
-        if (currentScanline >= videoStandard.finishingScanline) currentScanline = videoStandard.startingScanline;       // When going from PAL to NTSC
+        updateSignalMetrics();
+        if (currentScanline >= finishingScanline) {             // When going from PAL to NTSC
+            currentScanline = startingScanline;
+            bufferPosition = 0;
+        }
     };
 
     this.setVSynchMode = function(mode) {
@@ -202,7 +206,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
         ecWriteHandler = null; ecReadHandler = null;
-        currentScanline = videoStandard.startingScanline;
         backdropColor = 0;
         sprites2Enabled = true;
         pendingBlankingChange = false;
@@ -213,6 +216,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         updateSpriteFunctions();
         updateBackdropValue();
         updateSynchronization();
+        updateSignalMetrics();
+        currentScanline = startingScanline;
+        bufferPosition = 0;
     };
 
     function registerWrite(reg, val) {
@@ -304,8 +310,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 paletteFirstWrite = null;
                 break;
             case 18:
-                if ((val & 0xf0) !== (old & 0xf0)) verticalAdjust =   -7 + ((val >>> 4) ^ 0x07);
                 if ((val & 0x0f) !== (old & 0x0f)) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
+                if ((val & 0xf0) !== (old & 0xf0)) {
+                    verticalAdjust = -7 + ((val >>> 4) ^ 0x07);
+                    updateSignalMetrics();
+                }
                 break;
             case 19:
                 horizontalIntLine = (val - register[23]) & 255;
@@ -402,8 +411,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         desiredBaseFrequency = videoStandard.targetFPS;
         if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
 
-        startingScanline = videoStandard.startingScanline;
-        finishingScanline = videoStandard.finishingScanline;
         cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per cycle
         pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // Unless its the first pulldown frame and is adjusted
     }
@@ -416,15 +423,17 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         for (var i = 0; i < totalLines; i++) {
             lineEvents();
-            if ((currentScanline >= 0) && (currentScanline < finishingActiveScanline)) {
+            if ((currentScanline >= startingActiveScanline) && (currentScanline < finishingActiveScanline)) {
                 updateLineActive();
-            } else if ((currentScanline >= finishingBottomBorderScanline) && (currentScanline < finishingScanline)) {
+                bufferPosition += 544;
+            } else if (currentScanline >= startingInvisibleScanline) {
                 if (currentScanline === (finishingScanline - 1)) {
                     finishFrame();
                     continue;
                 }
             } else {
                 updateLineBlanked();
+                bufferPosition += 544;
             }
             currentScanline++;
         }
@@ -533,10 +542,15 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     }
 
+    // TODO Verify changing VideoStandard mid-frame
     function updateSignalMetrics() {
         signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;
-        finishingActiveScanline = signalMetrics.height;
-        finishingBottomBorderScanline = finishingActiveScanline + 8;
+
+        startingScanline = -signalMetrics.vertBorderSize - verticalAdjust;
+        finishingScanline = videoStandard.totalHeight + startingScanline;
+        startingActiveScanline = 0;
+        finishingActiveScanline = startingActiveScanline + signalMetrics.height;
+        startingInvisibleScanline = finishingActiveScanline + signalMetrics.vertBorderSize - verticalAdjust;
         videoSignal.setSignalMetrics(signalMetrics);
     }
 
@@ -596,15 +610,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineBlanked() {
-        var bufferPos = (currentScanline + 8) * 544;
-        frameBackBuffer.set(blankedLineValues, bufferPos);
+        frameBackBuffer.set(blankedLineValues, bufferPosition);
         // Sprites deactivated
     }
 
     // TODO Consider Tables Address Masks
 
     function updateLineModeT1() {                                           // Text (Screen 0 width 40)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16;
@@ -632,7 +645,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeT2() {                                           // Text (Screen 0 width 80)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop32(bufferPos); paintBackdrop32(bufferPos + 512); bufferPos += 32;
@@ -660,7 +673,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeMC() {                                           // Multicolor (Screen 3)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -688,7 +701,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG1() {                                           // Graphics 1 (Screen 1)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -716,7 +729,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG2() {                                           // Graphics 2 (Screen 2)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -746,7 +759,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG3() {                                           // Graphics 3 (Screen 4)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -776,7 +789,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -799,7 +812,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop16G5(bufferPos); paintBackdrop16G5(bufferPos + 16 + 512);
@@ -827,7 +840,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 16 + 512);
@@ -853,7 +866,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -874,7 +887,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeT1Debug() {                                      // Text (Screen 0)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16;
@@ -917,7 +930,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     function updateLineModeMCDebug() {                                      // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return updateLineModeMC();
 
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -944,7 +957,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -980,7 +993,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
-        var bufferPos = (currentScanline + 8) * 544;
+        var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
             paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
@@ -2141,12 +2154,13 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function finishFrame() {
 
-        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
-        //cpu.eval("cycles = 0");
+        wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
+        cpu.eval("cycles = 0");
 
         // Begin a new frame
         refreshPending = true;
         currentScanline = startingScanline;
+        bufferPosition = 0;
         frame++
     }
 
@@ -2226,11 +2240,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     var videoStandard;
     var vSynchMode;
+
+    var bufferPosition;
     var currentScanline;
     var startingScanline;
-    var finishingActiveScanline;
-    var finishingBottomBorderScanline;
     var finishingScanline;
+    var startingActiveScanline;
+    var finishingActiveScanline;
+    var startingInvisibleScanline;
     var cycleTotalLines;
     var pulldownFirstFrameLinesAdjust;
     var refreshPending;
@@ -2289,16 +2306,16 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // var spriteAttrTableAddressBaseMask = Defined for each mode
     var spritePatternTableAddressBaseMask = ~(-1 << 11);
 
-    var signalMetrics256 =  { width: 256, height: 192, totalWidth: 272, totalHeight: 208 };
-    var signalMetrics256e = { width: 256, height: 212, totalWidth: 272, totalHeight: 228 };
-    var signalMetrics512 =  { width: 512, height: 192, totalWidth: 544, totalHeight: 208 };
-    var signalMetrics512e = { width: 512, height: 212, totalWidth: 544, totalHeight: 228 };
+    var signalMetrics256 =  { width: 256, height: 192, vertBorderSize: 18, totalWidth: 272, totalHeight: 228 };
+    var signalMetrics256e = { width: 256, height: 212, vertBorderSize:  8, totalWidth: 272, totalHeight: 228 };
+    var signalMetrics512 =  { width: 512, height: 192, vertBorderSize: 18, totalWidth: 544, totalHeight: 228 };
+    var signalMetrics512e = { width: 512, height: 212, vertBorderSize:  8, totalWidth: 544, totalHeight: 228 };
 
     var updateSpritesLineFunctionsMode1 = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine512Values};
+        return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine512Values};
     });
 
     modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };
