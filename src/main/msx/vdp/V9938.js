@@ -200,6 +200,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         nameTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
+        verticalAdjust = horizontalAdjust = 0;
         ecWriteHandler = null; ecReadHandler = null;
         currentScanline = videoStandard.startingScanline;
         backdropColor = 0;
@@ -301,6 +302,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 break;
             case 16:
                 paletteFirstWrite = null;
+                break;
+            case 18:
+                if ((val & 0xf0) !== (old & 0xf0)) verticalAdjust =   -7 + ((val >>> 4) ^ 0x07);
+                if ((val & 0x0f) !== (old & 0x0f)) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
                 break;
             case 19:
                 horizontalIntLine = (val - register[23]) & 255;
@@ -482,8 +487,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateIRQ() {
-        if (((status[0] & 0x80) && (register[1] & 0x20))            // F === 1 and IE0 === 1
-            || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH === 1 and IE1 === 1
+        if (((status[0] & 0x80) && (register[1] & 0x20))            // F == 1 and IE0 == 1
+            || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH == 1 and IE1 == 1
             cpu.setINT(0);
         } else {
             cpu.setINT(1);
@@ -540,8 +545,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         //logInfo("Blank " + ((register[1] & 0x40) === 0 ? "ON" : "OFF"));
 
         updateLineActive = (register[1] & 0x40) === 0 ? updateLineBlanked : debugModePatternInfo ? modeData.updLineDeb : modeData.updLine;
-        blankedLineValues = modeData.blankedLineValues;
-
+        blankedLineValues = (register[1] & 0x40) === 0 ? backdropFullLine512Values : modeData.blankedLineValues;
         pendingBlankingChange = false;
     }
 
@@ -585,11 +589,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function updateBackdropCachesG5() {
-        var odd = colorPalette[backdropColor >>> 2];
-        var even = colorPalette[backdropColor & 0x03];
+        var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
         for (var i = 0; i < 544; i += 2) {
-            backdropFullLine512Values[i] = odd;
-            backdropFullLine512Values[i + 1] = even;
+            backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
         }
     }
 
@@ -599,15 +601,18 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         // Sprites deactivated
     }
 
-    // TODO Consider Table Address Mask
+    // TODO Consider Tables Address Masks
 
     function updateLineModeT1() {                                           // Text (Screen 0 width 40)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop24(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16 + horizontalAdjust;
+        } else {
+            paintBackdrop16(bufferPos); paintBackdrop24(bufferPos + 256 - 8); bufferPos += 16 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + (realLine >>> 3) * 40;              // line / 8 * 40
@@ -623,21 +628,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 6;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
         // Sprites deactivated
     }
 
     function updateLineModeT2() {                                           // Text (Screen 0 width 80)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop16(bufferPos);
-        bufferPos += 16;
-        paintBackdrop16(bufferPos);
-        bufferPos += 16;
+        if (horizontalAdjust === 0) {
+            paintBackdrop32(bufferPos); paintBackdrop32(bufferPos + 512); bufferPos += 32;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop48(bufferPos); paintBackdrop32(bufferPos + 512); bufferPos += 32 + horizontalAdjust * 2;
+        } else {
+            paintBackdrop32(bufferPos); paintBackdrop48(bufferPos + 512 - 16); bufferPos += 32 + horizontalAdjust * 2;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + (realLine >>> 3) * 80;              // line / 8 * 80
@@ -653,19 +656,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 6;
         }
 
-        paintBackdrop16(bufferPos);
-        bufferPos += 16;
-        paintBackdrop16(bufferPos);
-        bufferPos += 16;
-
         // Sprites deactivated
     }
 
     function updateLineModeMC() {                                           // Multicolor (Screen 3)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
@@ -681,17 +684,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        updateSpritesLine(realLine, bufferPos - 264 - 272);
+        updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG1() {                                           // Graphics 1 (Screen 1)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
@@ -707,17 +712,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        updateSpritesLine(realLine, bufferPos - 264 - 272);
+        updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG2() {                                           // Graphics 2 (Screen 2)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
@@ -735,17 +742,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        updateSpritesLine(realLine, bufferPos - 264 - 272);
+        updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG3() {                                           // Graphics 3 (Screen 4)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
@@ -763,17 +772,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 264 - 272);
+        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var pixelsPos = nameTableAddress + (realLine << 7);
@@ -784,17 +795,22 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 264 - 272);
+        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop16G5(bufferPos);
-        bufferPos += 16;
+        if (horizontalAdjust === 0) {
+            paintBackdrop16G5(bufferPos); paintBackdrop16G5(bufferPos + 16 + 512);
+            bufferPos += 16;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop32G5(bufferPos); paintBackdrop16G5(bufferPos + 16 + 512);
+            bufferPos += 16 + horizontalAdjust * 2;
+        } else {
+            paintBackdrop16G5(bufferPos); paintBackdrop32G5(bufferPos + 512);
+            bufferPos += 16 + horizontalAdjust * 2;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var pixelsPos = nameTableAddress + (realLine << 7);
@@ -807,17 +823,22 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
         }
 
-        paintBackdrop16G5(bufferPos);
-        bufferPos += 16;
-
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 264 - 272);
+        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 512);
     }
 
     function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 16;
+        if (horizontalAdjust === 0) {
+            paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 16 + 512);
+            bufferPos += 16;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop32(bufferPos); paintBackdrop16(bufferPos + 16 + 512);
+            bufferPos += 16 + horizontalAdjust * 2;
+        } else {
+            paintBackdrop16(bufferPos); paintBackdrop32(bufferPos + 512);
+            bufferPos += 16 + horizontalAdjust * 2;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var pixelsPos = nameTableAddress + (realLine << 8);
@@ -828,17 +849,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        paintBackdrop16G5(bufferPos);
-        bufferPos += 16;
-
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 264 - 272);
+        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 512);
     }
 
     function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var pixelsPos = nameTableAddress + (realLine << 8);                 // consider the scan start offset in reg23
@@ -847,19 +870,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++]];
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 264 - 272);
+        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeT1Debug() {                                      // Text (Screen 0)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop24(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16 + horizontalAdjust;
+        } else {
+            paintBackdrop16(bufferPos); paintBackdrop24(bufferPos + 256 - 8); bufferPos += 16 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) * 40);            // line / 8 * 40
@@ -888,11 +911,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 6;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
         // Sprites deactivated
     }
 
@@ -901,8 +919,13 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
@@ -917,17 +940,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        updateSpritesLine(realLine, bufferPos - 264 - 272);
+        updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);
@@ -951,17 +976,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        updateSpritesLine(realLine, bufferPos - 264 - 272);
+        updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
         var bufferPos = (currentScanline + 8) * 544;
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8;
+        if (horizontalAdjust === 0) {
+            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
+        } else if (horizontalAdjust > 0) {
+            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
+        } else {
+            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
+        }
 
         var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
         var lineInPattern = realLine & 0x07;
@@ -987,72 +1014,78 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        paintBackdrop8(bufferPos);
-        bufferPos += 8 + 272;
-
-        updateSpritesLine(realLine, bufferPos - 264 + 272);
+        updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function paintPattern(bufferPos, pattern, on, off) {
-        frameBackBuffer[bufferPos++] = pattern & 0x80 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x40 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x20 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x10 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x08 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x04 ? on : off;
-        frameBackBuffer[bufferPos++] = pattern & 0x02 ? on : off;
-        frameBackBuffer[bufferPos] =   pattern & 0x01 ? on : off;
+        frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off; frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? on : off;
+        frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? on : off; frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? on : off; frameBackBuffer[bufferPos + 6] = pattern & 0x02 ? on : off; frameBackBuffer[bufferPos + 7] = pattern & 0x01 ? on : off;
     }
 
     function paintBackdrop8(bufferPos) {
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos] =   backdropValue;
+        frameBackBuffer[bufferPos]     = backdropValue; frameBackBuffer[bufferPos + 1] = backdropValue; frameBackBuffer[bufferPos + 2] = backdropValue; frameBackBuffer[bufferPos + 3] = backdropValue;
+        frameBackBuffer[bufferPos + 4] = backdropValue; frameBackBuffer[bufferPos + 5] = backdropValue; frameBackBuffer[bufferPos + 6] = backdropValue; frameBackBuffer[bufferPos + 7] = backdropValue;
     }
 
     function paintBackdrop16(bufferPos) {
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos++] = backdropValue;
-        frameBackBuffer[bufferPos] =   backdropValue;
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
     }
 
+    function paintBackdrop24(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
+        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
+    }
+
+    function paintBackdrop32(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
+        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
+        frameBackBuffer[bufferPos + 24] = backdropValue; frameBackBuffer[bufferPos + 25] = backdropValue; frameBackBuffer[bufferPos + 26] = backdropValue; frameBackBuffer[bufferPos + 27] = backdropValue;
+        frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
+    }
+
+    function paintBackdrop48(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
+        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
+        frameBackBuffer[bufferPos + 24] = backdropValue; frameBackBuffer[bufferPos + 25] = backdropValue; frameBackBuffer[bufferPos + 26] = backdropValue; frameBackBuffer[bufferPos + 27] = backdropValue;
+        frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
+        frameBackBuffer[bufferPos + 32] = backdropValue; frameBackBuffer[bufferPos + 33] = backdropValue; frameBackBuffer[bufferPos + 34] = backdropValue; frameBackBuffer[bufferPos + 35] = backdropValue;
+        frameBackBuffer[bufferPos + 36] = backdropValue; frameBackBuffer[bufferPos + 37] = backdropValue; frameBackBuffer[bufferPos + 38] = backdropValue; frameBackBuffer[bufferPos + 39] = backdropValue;
+        frameBackBuffer[bufferPos + 40] = backdropValue; frameBackBuffer[bufferPos + 41] = backdropValue; frameBackBuffer[bufferPos + 42] = backdropValue; frameBackBuffer[bufferPos + 43] = backdropValue;
+        frameBackBuffer[bufferPos + 44] = backdropValue; frameBackBuffer[bufferPos + 45] = backdropValue; frameBackBuffer[bufferPos + 46] = backdropValue; frameBackBuffer[bufferPos + 47] = backdropValue;
+    }
     function paintBackdrop16G5(bufferPos) {
-        var odd =  backdropFullLine512Values[0];
-        var even = backdropFullLine512Values[1];
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos++] = even;
-        frameBackBuffer[bufferPos++] = odd;
-        frameBackBuffer[bufferPos] =   even;
+        var odd =  backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
+        frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
+        frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
+        frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
+        frameBackBuffer[bufferPos + 12] = odd; frameBackBuffer[bufferPos + 13] = even; frameBackBuffer[bufferPos + 14] = odd; frameBackBuffer[bufferPos + 15] = even;
+    }
+
+    function paintBackdrop32G5(bufferPos) {
+        var odd =  backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
+        frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
+        frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
+        frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
+        frameBackBuffer[bufferPos + 12] = odd; frameBackBuffer[bufferPos + 13] = even; frameBackBuffer[bufferPos + 14] = odd; frameBackBuffer[bufferPos + 15] = even;
+        frameBackBuffer[bufferPos + 16] = odd; frameBackBuffer[bufferPos + 17] = even; frameBackBuffer[bufferPos + 18] = odd; frameBackBuffer[bufferPos + 19] = even;
+        frameBackBuffer[bufferPos + 20] = odd; frameBackBuffer[bufferPos + 21] = even; frameBackBuffer[bufferPos + 22] = odd; frameBackBuffer[bufferPos + 23] = even;
+        frameBackBuffer[bufferPos + 24] = odd; frameBackBuffer[bufferPos + 25] = even; frameBackBuffer[bufferPos + 26] = odd; frameBackBuffer[bufferPos + 27] = even;
+        frameBackBuffer[bufferPos + 28] = odd; frameBackBuffer[bufferPos + 29] = even; frameBackBuffer[bufferPos + 30] = odd; frameBackBuffer[bufferPos + 31] = even;
     }
 
     function updateSprites1LineSize0(line, bufferPos) {                     // Mode 1, 8x8 normal
@@ -2234,6 +2267,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var backdropFullLine512Values = new Uint32Array(544);
     var backdropFullLine256Values = backdropFullLine512Values.subarray(272);
 
+    var verticalAdjust, horizontalAdjust;
+
     var nameTableLines, nameTableLineBytes;
 
     var nameTableAddress;                           // Dynamic values, set by software
@@ -2263,7 +2298,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine256Values};
+        return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine512Values};
     });
 
     modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };

@@ -57,9 +57,7 @@ WMSX.testSet = function(count, srcSize) {
     var src = new Uint32Array(srcSize);
 
     for (var i = 0; i < count; i++) {
-        for (var n = 0; n < 256; n++) {
-            dest.set(src, n);
-        }
+        dest.set(src, 0);
     }
 
     var duration = performance.now() - start;
@@ -73,9 +71,8 @@ WMSX.testAtrib = function(count, srcSize) {
     var src = new Uint32Array(srcSize);
 
     for (var i = 0; i < count; i++) {
-        for (var n = 0; n < 256; n++) {
-            for (var b = 0; b < srcSize; b++)
-                dest[n + b] = b & 0x01 ? src[b] : src[b + 1];
+        for (var b = 0; b < srcSize; b++) {
+            dest[b] = src[b];
         }
     }
 
@@ -83,13 +80,66 @@ WMSX.testAtrib = function(count, srcSize) {
     wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
 };
 
+WMSX.testAtrib16Inc = function(count) {
+    var start = performance.now();
 
+    var dest = new Uint32Array(512);
+    var d = 46;
+    var x = 0;
+    for (var i = 0; i < count; i++) {
+        x = i % 256;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+        dest[ x++] = d;
+    }
 
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
 
+WMSX.testAtrib16Plus = function(count) {
+    var start = performance.now();
 
+    var dest = new Uint32Array(512);
+    var d = 46;
+    var x = 0;
 
+    for (var i = 0; i < count; i++) {
+        x = i % 256;
+        dest[ x     ] = d;
+        dest[ x +  1] = d;
+        dest[ x +  2] = d;
+        dest[ x +  3] = d;
+        dest[ x +  4] = d;
+        dest[ x +  5] = d;
+        dest[ x +  6] = d;
+        dest[ x +  7] = d;
+        dest[ x +  8] = d;
+        dest[ x +  9] = d;
+        dest[ x + 10] = d;
+        dest[ x + 11] = d;
+        dest[ x + 12] = d;
+        dest[ x + 13] = d;
+        dest[ x + 14] = d;
+        dest[ x + 15] = d;
+    }
 
-
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
 
 
 
