@@ -2154,8 +2154,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function finishFrame() {
 
-        wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
-        cpu.eval("cycles = 0");
+        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
+        //cpu.eval("cycles = 0");
 
         // Begin a new frame
         refreshPending = true;
