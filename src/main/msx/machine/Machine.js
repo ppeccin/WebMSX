@@ -238,7 +238,7 @@ wmsx.Machine = function() {
         self.cpu = cpu = new wmsx.Z80();
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
-        self.vdp = vdp = MSX2 ? new wmsx.V9938(cpu, psg, false) : new wmsx.V9938(cpu, psg, true);
+        self.vdp = vdp = new wmsx.V9938(cpu, psg, !MSX2);
         if (MSX2) self.rtc = rtc = new wmsx.RTC();
 
         self.bus = bus = new wmsx.EngineBUS(self, cpu);

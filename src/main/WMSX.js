@@ -31,7 +31,7 @@ WMSX = {
     SCREEN_FILTER_MODE:             1,                          // 0..3
     SCREEN_CRT_MODE:                -1,                         // 0..4, -1 = auto
     SCREEN_BASE_WIDTH:              512,                        // Don't change!
-    SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. 2, 0.25 steps
+    SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. N, 0.125 steps
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)

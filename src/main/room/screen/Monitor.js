@@ -149,6 +149,6 @@ wmsx.Monitor = function(display) {
 };
 
 wmsx.Monitor.DEFAULT_SCALE_ASPECT_X = 1;
-wmsx.Monitor.SCALE_STEP = 0.25;
+wmsx.Monitor.SCALE_STEP = 0.125;
 
 

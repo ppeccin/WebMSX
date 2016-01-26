@@ -70,7 +70,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         signalMetrics = metrics;
         contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;
-        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (212 + 8 * 2)) | 0;
+        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * metrics.totalHeight) | 0;
         setCanvasSize(contentWidth, contentHeight);
         updateScale();
     };
@@ -659,10 +659,10 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var signalMetrics;
 
-    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                                   // Initial setting
-    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                                   // Initial setting
-    var contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * 282) | 0;           // Initial setting
-    var contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * 208) | 0;           // Initial setting
+    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                                     // Initial setting
+    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                                     // Initial setting
+    var contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;   // Initial setting
+    var contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (192 + 8 * 2)) | 0;   // Initial setting
 
     var logoImage;
     var loadingImage;
