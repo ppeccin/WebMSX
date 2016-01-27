@@ -10,7 +10,7 @@ WMSX = {
 
     PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
 
-    MACHINE_TYPE:                   2,                          // 1 for MSX1, 2 for MSX2
+    MACHINE_TYPE:                   1,                          // 1 for MSX1, 2 for MSX2
 
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM
