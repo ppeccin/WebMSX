@@ -80,9 +80,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             var winW = fsElement.clientWidth;
             var winH = fsElement.clientHeight;
             var scaleX = winW / contentWidth;
-            scaleX -= (scaleX % wmsx.Monitor.SCALE_STEP);		    // Round multiple of the step
+            scaleX -= (scaleX % wmsx.Monitor.SCALE_STEP);		    // Round to multiple of the step
             var h = scaleX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X * contentHeight;
-            while (h > winH - 25) {							    	// 255 is a little tolerance
+            while (h > winH - 25) {							    	// 25 is a little tolerance
                 scaleX -= wmsx.Monitor.SCALE_STEP;				    // Decrease one step
                 h = scaleX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X * contentHeight;
             }

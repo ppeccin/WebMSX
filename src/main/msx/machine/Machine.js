@@ -248,8 +248,9 @@ wmsx.Machine = function() {
         psg.connectBus(bus);
         if (rtc) rtc.connectBus(bus);
 
-        // 64K RAM
-        self.ram = wmsx.SlotRAM64K.createNewEmpty();
+        // RAM
+        self.ram = MSX2 ? wmsx.SlotRAMMapper256K.createNewEmpty() : wmsx.SlotRAM64K.createNewEmpty();
+        self.ram.connectBus(bus);
         bus.insertSlot(self.ram, ramSlot);
 
         // Expanded Slot

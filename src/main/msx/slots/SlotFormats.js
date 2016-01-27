@@ -83,6 +83,20 @@ wmsx.SlotFormats = {
         }
     },
 
+    "RAMMapper256K": {
+        name: "RAMMapper256K",
+        desc: "RAM Mapper 256K Slot",
+        priority: 208,
+        tryFormat: function (rom) {
+            // Not Possible to load RAMs
+            return null;
+        },
+        createFromROM: null,
+        createFromSaveState: function (state) {
+            return wmsx.SlotRAMMapper256K.createFromSaveState(state);
+        }
+    },
+
     "Unbanked": {
         name: "Unbanked",
         desc: "Normal Cartridge",

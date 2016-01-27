@@ -13,8 +13,8 @@ WMSX.presets = {
 
     MSX2: {
         MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/MSX2NTSCa.bios",
-        EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"
+        BIOS_URL:       "wmsx/roms/MSX2N.bios",
+        EXPANSION1_URL: "wmsx/roms/MSX2NEXT.bios"
     },
 
     // TODO Define
