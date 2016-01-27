@@ -93,6 +93,14 @@ wmsx.EngineBUS = function(machine, cpu) {
         devicesOutputPorts[port] = handler;
     };
 
+    this.disconnectInputDevice = function(port) {
+        devicesInputPorts[port] = wmsx.DeviceMissing.inputPort;
+    };
+
+    this.disconnectOutputDevice = function(port) {
+        devicesOutputPorts[port] = wmsx.DeviceMissing.outputPort;
+    };
+
     function create() {
         var emptySlot = wmsx.SlotEmpty.singleton;
         slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];

@@ -250,7 +250,6 @@ wmsx.Machine = function() {
 
         // RAM
         self.ram = MSX2 ? wmsx.SlotRAMMapper256K.createNewEmpty() : wmsx.SlotRAM64K.createNewEmpty();
-        self.ram.connectBus(bus);
         bus.insertSlot(self.ram, ramSlot);
 
         // Expanded Slot

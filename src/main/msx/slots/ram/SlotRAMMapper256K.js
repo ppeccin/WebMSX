@@ -10,43 +10,50 @@ wmsx.SlotRAMMapper256K = function(content) {
     this.powerOff = function() {
         // Lose content
         wmsx.Util.arrayFill(bytes, 0x00);
-        wmsx.Util.arrayFill(offsets, 0);
+        wmsx.Util.arrayFill(pageOffsets, 0);
     };
 
-    this.connectBus = function(bus) {
-        bus.connectOutputDevice(0xfc, this.outputFC);
-        bus.connectOutputDevice(0xfd, this.outputFD);
-        bus.connectOutputDevice(0xfe, this.outputFE);
-        bus.connectOutputDevice(0xff, this.outputFF);
+    this.connect = function(machine) {
+        machine.bus.connectOutputDevice(0xfc, this.outputFC);
+        machine.bus.connectOutputDevice(0xfd, this.outputFD);
+        machine.bus.connectOutputDevice(0xfe, this.outputFE);
+        machine.bus.connectOutputDevice(0xff, this.outputFF);
+    };
+
+    this.disconnect = function(machine) {
+        machine.bus.disconnectOutputDevice(0xfc);
+        machine.bus.disconnectOutputDevice(0xfd);
+        machine.bus.disconnectOutputDevice(0xfe);
+        machine.bus.disconnectOutputDevice(0xff);
     };
 
     this.outputFC = function(val) {
-        offsets[0] = (val & 0x0f) * 16384;
+        pageOffsets[0] = (val & 0x0f) * 16384;
     };
     this.outputFD = function(val) {
-        offsets[1] = (val & 0x0f) * 16384 - 16384;
+        pageOffsets[1] = (val & 0x0f) * 16384 - 16384;
     };
     this.outputFE = function(val) {
-        offsets[2] = (val & 0x0f) * 16384 - 32768;
+        pageOffsets[2] = (val & 0x0f) * 16384 - 32768;
     };
     this.outputFF = function(val) {
-        offsets[3] = (val & 0x0f) * 16384 - 49152;
+        pageOffsets[3] = (val & 0x0f) * 16384 - 49152;
     };
-
 
     this.read = function(address) {
         //wmsx.Util.log ("RAM Mapper read: " + address.toString(16) + ", " + bytes[address].toString(16));
-        return bytes[address + offsets[address >>> 14]];
+        return bytes[address + pageOffsets[address >>> 14]];
     };
 
     this.write = function(address, value) {
         //wmsx.Util.log ("RAM Mapper write: " + address.toString(16) + ", " + value.toString(16));
-        bytes[address + offsets[address >>> 14]] = value;
+        bytes[address + pageOffsets[address >>> 14]] = value;
     };
 
 
     var bytes;
-    var offsets = [ 0, 0, 0, 0];
+    var pageOffsets = [ 0, 0, 0, 0 ];
+
     this.bytes = null;
 
     this.format = wmsx.SlotFormats.RAMMapper256K;
@@ -57,13 +64,15 @@ wmsx.SlotRAMMapper256K = function(content) {
     this.saveState = function() {
         return {
             f: this.format.name,
-            b: wmsx.Util.compressArrayToStringBase64(bytes)
+            b: wmsx.Util.compressArrayToStringBase64(bytes),
+            p0: pageOffsets[0], p1: pageOffsets[1], p2: pageOffsets[2], p3: pageOffsets[3]
         };
     };
 
     this.loadState = function(state) {
         bytes = wmsx.Util.uncompressStringBase64ToArray(state.b);
         this.bytes = bytes;
+        pageOffsets = [ state.p0, state.p1, state.p2, state.p3 ];
     };
 
 

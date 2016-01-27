@@ -12,15 +12,6 @@ wmsx.MSX2BIOSEXT = function(rom) {
             bytes[i] = content[i];
     }
 
-    this.connect = function(machine) {
-    };
-
-    this.disconnect = function(machine) {
-    };
-
-    this.powerOff = function() {
-    };
-
     this.write = function(address, value) {
         // ROMs cannot be modified
         //wmsx.Util.log ("Write over BIOS EXT ROM at " + address.toString(16) + " := " + value.toString(16));

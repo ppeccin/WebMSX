@@ -12,10 +12,6 @@ wmsx.SlotRAM64K = function(content) {
         wmsx.Util.arrayFill(bytes, 0x00);
     };
 
-    this.connectBus = function(bus) {
-        // No IO
-    };
-
     this.read = function(address) {
         //wmsx.Util.log ("RAM read: " + address.toString(16) + ", " + bytes[address].toString(16));
         return bytes[address];
