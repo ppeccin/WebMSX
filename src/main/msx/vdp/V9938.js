@@ -7,7 +7,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal(signalMetrics256e);
+        signalMetrics = isV9918 ? signalMetricsV9918 : signalMetrics512e;
+        videoSignal = new wmsx.VDPVideoSignal(signalMetrics);
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
@@ -223,6 +224,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function registerWrite(reg, val) {
         if (reg > 46) return;
+
         var add;
         var old = register[reg];
         register[reg] = val;
@@ -544,7 +546,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     // TODO Verify changing VideoStandard mid-frame
     function updateSignalMetrics() {
-        signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;
+        if (!isV9918) signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;       // Consider LN
 
         startingScanline = -signalMetrics.vertBorderSize - verticalAdjust;
         finishingScanline = videoStandard.totalHeight + startingScanline;
@@ -2306,16 +2308,17 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // var spriteAttrTableAddressBaseMask = Defined for each mode
     var spritePatternTableAddressBaseMask = ~(-1 << 11);
 
-    var signalMetrics256 =  { width: 256, height: 192, vertBorderSize: 18, totalWidth: 272, totalHeight: 228 };
-    var signalMetrics256e = { width: 256, height: 212, vertBorderSize:  8, totalWidth: 272, totalHeight: 228 };
-    var signalMetrics512 =  { width: 512, height: 192, vertBorderSize: 18, totalWidth: 544, totalHeight: 228 };
-    var signalMetrics512e = { width: 512, height: 212, vertBorderSize:  8, totalWidth: 544, totalHeight: 228 };
+    var signalMetricsV9918 =  { width: 256, height: 192, vertBorderSize:  8, totalWidth: 272, totalHeight: 208 };
+    var signalMetrics256 =    { width: 256, height: 192, vertBorderSize: 18, totalWidth: 272, totalHeight: 228 };
+    var signalMetrics256e =   { width: 256, height: 212, vertBorderSize:  8, totalWidth: 272, totalHeight: 228 };
+    var signalMetrics512 =    { width: 512, height: 192, vertBorderSize: 18, totalWidth: 544, totalHeight: 228 };
+    var signalMetrics512e =   { width: 512, height: 212, vertBorderSize:  8, totalWidth: 544, totalHeight: 228 };
 
     var updateSpritesLineFunctionsMode1 = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   isV9938: true,  sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine512Values};
+        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine512Values};
     });
 
     modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };

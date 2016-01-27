@@ -10,7 +10,7 @@ WMSX = {
 
     PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
 
-    MACHINE_TYPE:                   1,                          // 1 for MSX1, 2 for MSX2
+    MACHINE_TYPE:                   2,                          // 1 for MSX1, 2 for MSX2
 
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM
@@ -41,7 +41,7 @@ WMSX = {
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 
-    VERSION:                        "0.95"                      // Don't change!
+    VERSION:                        "0.96"                      // Don't change!
 
 };
 
