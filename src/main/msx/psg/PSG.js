@@ -91,14 +91,14 @@ wmsx.PSG = function() {
     this.saveState = function() {
         return {
             ra: registerAddress,
-            r: wmsx.Util.storeArrayToStringBase64(registers),
+            r: wmsx.Util.storeUInt8ArrayToStringBase64(registers),
             a: audioSignal.saveState()
         };
     };
 
     this.loadState = function(s) {
         registerAddress = s.ra;
-        registers = wmsx.Util.restoreStringBase64ToArray(s.r);
+        registers = wmsx.Util.restoreStringBase64ToUInt8Array(s.r);
         registers[14] = 0x3f3f;                                  // reset Joysticks inputs
         audioSignal.loadState(s.a);
     };

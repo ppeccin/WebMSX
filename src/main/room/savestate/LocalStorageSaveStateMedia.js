@@ -76,16 +76,18 @@ wmsx.LocalStorageSaveStateMedia = function() {
         try {
             var id;
             if (data instanceof Array)
-                id = wmsx.Util.uInt8ArrayToByteString(data.slice(0, SAVE_STATE_IDENTIFIER.length));
+                id = wmsx.Util.uInt8ArrayToByteString(data, 0, SAVE_STATE_IDENTIFIER.length);
             else
                 id = data.substr(0, SAVE_STATE_IDENTIFIER.length);
 
             // Check for the identifier
             if (id !== SAVE_STATE_IDENTIFIER) return;
 
-            var stateData = data.slice(SAVE_STATE_IDENTIFIER.length);
-            if (stateData instanceof Array)
-                stateData = wmsx.Util.uInt8ArrayToByteString(stateData);
+            var stateData;
+            if (data instanceof Array)
+                stateData = wmsx.Util.uInt8ArrayToByteString(data, SAVE_STATE_IDENTIFIER.length);
+            else
+                stateData = data.slice(SAVE_STATE_IDENTIFIER.length);
 
             return stateData && JSON.parse(stateData);
         } catch(e) {

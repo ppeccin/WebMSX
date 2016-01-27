@@ -13,6 +13,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
         initColorCaches();
+        initSprites2Control();
         initDebugPatternTables();
         mode = 0; modeData = modes[mode];
         self.setDefaults();
@@ -415,7 +416,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         desiredBaseFrequency = videoStandard.targetFPS;
         if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
 
-        cycleTotalLines = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;      // Always generate this amount of lines per cycle
+        scanlinesPerCycle = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;                          // Always generate this amount of lines per cycle
         pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // Unless its the first pulldown frame and is adjusted
     }
 
@@ -423,7 +424,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // Total frame CPU clocks: 59736 for NTSC, 71364 for PAL
     function frameEvents() {
         // Adjust for pulldown cadence if this frame is the first pulldown frame
-        var totalLines = cycleTotalLines + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
+        var totalLines = scanlinesPerCycle + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
         for (var i = 0; i < totalLines; i++) {
             lineEvents();
@@ -2231,6 +2232,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         debugPatTableBlocks[1] = debugPatTableBlocks[2] = debugPatTableBlocks[3] = debugPatTableBlocks[4] = debugPatTableBlocks[5] = debugPatTableBlocks[6] = 0x7e;
     }
 
+    function initSprites2Control() {
+        sprites2LinePriorities = wmsx.Util.arrayFill(sprites2LinePriorities ? sprites2LinePriorities :new Array(256), SPRITE_MAX_PRIORITY);
+        sprites2LineColors =     wmsx.Util.arrayFill(sprites2LineColors ? sprites2LineColors : new Array(256), 0);
+        sprites2GlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets!
+    }
 
     var VRAM_SIZE = 0x20000;      // 128K
 
@@ -2246,12 +2252,13 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     var bufferPosition;
     var currentScanline;
+
     var startingScanline;
     var finishingScanline;
     var startingActiveScanline;
     var finishingActiveScanline;
     var startingInvisibleScanline;
-    var cycleTotalLines;
+    var scanlinesPerCycle;
     var pulldownFirstFrameLinesAdjust;
     var refreshPending;
 
@@ -2270,13 +2277,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     var spritesCollided;
     var sprites2Enabled;
-    var sprites2LinePriorities = wmsx.Util.arrayFill(new Array(256), SPRITE_MAX_PRIORITY);
-    var sprites2LineColors =     wmsx.Util.arrayFill(new Array(256), 0);
-    var sprites2GlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets!
+    var sprites2LinePriorities, sprites2LineColors, sprites2GlobalPriority;
 
-    var dataToWrite;
     var vramPointer = 0;
-    var vramWriteMode = false;
+    var dataToWrite;
     var paletteFirstWrite;
 
     var ecWriteHandler = null, ecReadHandler = null;
@@ -2390,13 +2394,33 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        // TODO Implement
+        // TODO VideoStandard, ExecutingCommands
         return {
+            v1: isV9918,
+            r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
+            c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
+            l: currentScanline, b: bufferPosition,
+            vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
+            ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine, sp2: sprites2Enabled,
+            pmc: pendingModeChange, pbc: pendingBlankingChange,
+            vram: wmsx.Util.compressUInt8ArrayToStringBase64(vram)
         };
     };
 
     this.loadState = function(s) {
-        // TODO Implement
+        isV9918 = s.v1;
+        register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
+        color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
+        currentScanline = s.l; bufferPosition = s.b;
+        vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
+        horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil; sprites2Enabled = s.sp2;
+        pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
+        vram = wmsx.Util.uncompressStringBase64ToUInt8Array(s.vram);         // Already UInt8Array
+        initSprites2Control();
+        updateBackdropColor();
+        updateTransparency();
+        updateMode();
+        updateIRQ();
     };
 
 

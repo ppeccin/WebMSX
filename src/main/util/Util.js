@@ -65,51 +65,81 @@ wmsx.Util = new function() {
     this.uInt8ArrayToByteString = function(ints, start, length) {
         if (ints === null || ints == undefined) return ints;
         if (start === undefined) start = 0;
-        if (length === undefined) length = ints.length;
+        if (length === undefined) length = ints.length - start;
         var str = "";
         for(var i = start, finish = start + length; i < finish; i++)
-            str += String.fromCharCode(ints[i] & 0xff);
+            str += String.fromCharCode(ints[i] & 0xff);                     // TODO Alter same String?
         return str;
     };
 
-    this.byteStringToUInt8Array = function(str, totalLength, start, filler) {
+    this.byteStringToUInt8Array = function(str) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
-        if (start === undefined) start = 0;
-        if (totalLength === undefined) totalLength = str.length;
-        var ints = new Array(totalLength);
-        if (filler !== undefined) this.arrayFill(ints, filler);
-        var len = str.length > totalLength ? totalLength : str.length;
+        var len = str.length;
+        var ints = new Array(len);
         for(var i = 0; i < len; i++)
-            ints[start + i] = (str.charCodeAt(i) & 0xff);
+            ints[i] = (str.charCodeAt(i) & 0xff);
         return ints;
     };
 
-    this.storeArrayToStringBase64 = function(arr) {
+    // Only 32 bit values
+    this.uInt32ArrayToByteString = function(ints, start, length) {
+        if (ints === null || ints == undefined) return ints;
+        if (start === undefined) start = 0;
+        if (length === undefined) length = ints.length - start;
+        var str = "";
+        for(var i = start, finish = start + length; i < finish; i++)        // TODO Alter same String?
+            str += String.fromCharCode(ints[i] & 0xff) + String.fromCharCode((ints[i] >> 8) & 0xff) + String.fromCharCode((ints[i] >> 16) & 0xff) + String.fromCharCode((ints[i] >> 24) & 0xff);
+        return str;
+    };
+
+    this.byteStringToUInt32Array = function(str) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        var len = (str.length / 4) | 0;
+        var ints = new Array(len);
+        for(var i = 0, s = 0; i < len; i++, s += 4)
+            ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8) | ((str.charCodeAt(s + 2) & 0xff) << 16) | ((str.charCodeAt(s + 3) & 0xff) << 24);
+        return ints;
+    };
+
+    this.storeUInt8ArrayToStringBase64 = function(arr) {
         if (arr === null || arr === undefined) return arr;
         if (arr.length === 0) return "";
         return btoa(this.uInt8ArrayToByteString(arr));
     };
 
-    this.restoreStringBase64ToArray = function(str) {
+    this.restoreStringBase64ToUInt8Array = function(str) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
         return this.byteStringToUInt8Array(atob(str));
     };
 
-    this.compressArrayToStringBase64 = function(arr) {
+    this.compressUInt8ArrayToStringBase64 = function(arr) {
         if (arr === null || arr === undefined) return arr;
         if (arr.length === 0) return "";
         return btoa(this.uInt8ArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
     };
 
-    // Returns UInt8Array. Good?
-    this.uncompressStringBase64ToArray = function(str) {
+    this.uncompressStringBase64ToUInt8Array = function(str) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
         return JSZip.compressions.DEFLATE.uncompress(atob(str));
+    };
+
+    this.storeUInt32ArrayToStringBase64 = function(arr) {
+        if (arr === null || arr === undefined) return arr;
+        if (arr.length === 0) return "";
+        return btoa(this.uInt32ArrayToByteString(arr));
+    };
+
+    this.restoreStringBase64ToUInt32Array = function(str) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return this.byteStringToUInt32Array(atob(str));
     };
 
     this.compressStringToStringBase64 = function(str) {

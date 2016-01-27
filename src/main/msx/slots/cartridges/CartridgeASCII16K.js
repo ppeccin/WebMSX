@@ -49,7 +49,7 @@ wmsx.CartridgeASCII16K = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressArrayToStringBase64(bytes),
+            b: wmsx.Util.compressUInt8ArrayToStringBase64(bytes),
             b1: bank1Offset,
             b2: bank2Offset,
             n: numBanks
@@ -58,7 +58,7 @@ wmsx.CartridgeASCII16K = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToArray(s.b);
+        bytes = wmsx.Util.uncompressStringBase64ToUInt8Array(s.b);
         bank1Offset = s.b1;
         bank2Offset = s.b2;
         numBanks = s.n;

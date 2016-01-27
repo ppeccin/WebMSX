@@ -157,7 +157,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             pcs: this.preLoadedContentSize,
-            b: wmsx.Util.compressArrayToStringBase64(bytes),
+            b: wmsx.Util.compressUInt8ArrayToStringBase64(bytes),
             m: mode,
             b1: bank1Offset,
             b2: bank2Offset,
@@ -175,7 +175,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
         this.preLoadedContentSize = s.pcs || 0;
-        bytes = wmsx.Util.uncompressStringBase64ToArray(s.b);
+        bytes = wmsx.Util.uncompressStringBase64ToUInt8Array(s.b);
         this.bytes = bytes;
         bank1Offset = s.b1;
         bank2Offset = s.b2;
