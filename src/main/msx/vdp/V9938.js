@@ -69,26 +69,26 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         if (refreshPending) refresh();
     };
 
+    // VRAM Read
     this.input98 = function() {
-        // VRAM Read
         dataToWrite = null;
         var res = vram[vramPointer++];
         checkVRAMPointerWrap();
         return res;
     };
 
+    // VRAM Write
     this.output98 = function(val) {
 
         //if (vramPointer >= 0x10000 && vramPointer < 0x10800) wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
-        // VRAM Write
         dataToWrite = null;
         vram[vramPointer++] = val;
         checkVRAMPointerWrap();
     };
 
+    // Status Register Read
     this.input99 = function() {
-        // Status Register Read
         dataToWrite = null;
         var reg = register[15];
         var prevStatus = status[reg];
@@ -112,6 +112,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         return prevStatus;
     };
 
+    // Register/VRAM Address write for V9938
     this.output99_V9938 = function(val) {
         if (dataToWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
@@ -132,6 +133,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
     };
 
+    // Register/VRAM Address write for V9918
     this.output99_V9918 = function(val) {
         if (dataToWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
@@ -155,19 +157,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
     };
 
+    // Palette Write
     this.output9a = function(val) {
-        // Palette Write
         if (paletteFirstWrite === null) {
             paletteFirstWrite = val;
         } else {
-            setPaletteRegister(register[16], (val << 8) | paletteFirstWrite);
+            writePaletteRegister(register[16], (val << 8) | paletteFirstWrite);
             if (++register[16] > 15) register[16] = 0;
             paletteFirstWrite = null;
         }
     };
 
+    // Indirect Register Write
     this.output9b = function(val) {
-        // Indirect Register Write
         var reg = register[17] & 0x3f;
         if (reg !== 17) registerWrite(reg, val);
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
@@ -378,7 +380,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
     }
 
-    function setPaletteRegister(reg, val) {
+    function writePaletteRegister(reg, val) {
         if (paletteRegister[reg] === val) return;
         paletteRegister[reg] = val;
 
@@ -571,18 +573,16 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function updateTransparency() {
         color0Solid = !!(register[8] & 0x20);
+        colorPalette[0] = color0Solid ? color0SetValue : backdropValue;
 
         //console.log("TP: " + color0Solid + ", currentLine: " + currentScanline);
-
-        colorPalette[0] = color0Solid ? color0SetValue : backdropValue;
     }
 
     function updateBackdropColor() {
         backdropColor = register[7] & 0x0f;
+        updateBackdropValue();
 
         //console.log("Backdrop Color: " + backdropColor + ", currentLine: " + currentScanline);
-
-        updateBackdropValue();
     }
 
     function updateBackdropValue() {
@@ -2185,14 +2185,15 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function initColorPalette() {
-        for (var c = 0; c < 16; c++) colorPalette[c] = colors512[paletteInitialValues[c]];
+        var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
+        for (var c = 0; c < 16; c++) {
+            colorPalette[c] = colors[c];
+            paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
+        }
         color0SetValue = colorPalette[0];
     }
 
     function initColorCaches() {
-
-
-
         // Pre calculate all 512 colors encoded in 9 bits, and all 256 colors encoded in 8 bits
         for (var c = 0; c <= 0x1ff; c++) {
             if (c & 1) colors256[c >>> 1] = 0xfe000000 | (color2to8bits[(c >>> 1) & 0x3] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
@@ -2355,7 +2356,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var color0Solid = false;
     var color0SetValue;
 
-    var paletteInitialValues = [ 0x000, 0x000, 0x189, 0x1db, 0x04f, 0x0d7, 0x069, 0x197, 0x079, 0x0fb, 0x1b1, 0x1b4, 0x109, 0x0b5, 0x16d, 0x1ff ];
+    var colorPaletteInitialV9938 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe24db24, 0xfe6dff6d, 0xfeff2424, 0xfeff6d49, 0xfe2424b6, 0xfeffdb49, 0xfe2424ff, 0xfe6d6dff, 0xfe24dbdb, 0xfe92dbdb, 0xfe249224, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
+    var colorPaletteInitialV9918 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
+    var paletteRegisterInitialValuesV9938 = [ 0x000, 0x000, 0x189, 0x1db, 0x04f, 0x0d7, 0x069, 0x197, 0x079, 0x0fb, 0x1b1, 0x1b4, 0x109, 0x0b5, 0x16d, 0x1ff ];
+
 
    // Sprite and Debug Modes controls
 
