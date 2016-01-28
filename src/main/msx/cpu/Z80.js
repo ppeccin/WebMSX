@@ -39,18 +39,6 @@ wmsx.Z80 = function() {
         }
     };
 
-    //this.clockPulse = function() {
-    //    cycles++;
-    //    if (--T > 1) return;                     // Still counting cycles of current instruction
-    //    if (T === 1) {
-    //        instruction.operation();
-    //        return;
-    //    }
-    //    R++;                                     // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
-    //    if (ackINT) acknowledgeINT();
-    //    else fetchNextInstruction();
-    //};
-
     this.connectBus = function(aBus) {
         bus = aBus;
     };

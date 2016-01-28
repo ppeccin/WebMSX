@@ -143,6 +143,53 @@ WMSX.testAtrib16Plus = function(count) {
 
 
 
+WMSX.testPlusPlusAfter = function(count) {
+    var a = 0;
 
+    function op() {
+        for (var i = 0; i < 100; i++) {
+            a = a + 1;
+        }
+        return a;
+    }
 
+    var start = performance.now();
+    for (var c = 0; c < count; c++) op();
 
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
+
+WMSX.testPlusPlusBefore = function(count) {
+    var a = 0;
+
+    function op() {
+        for (var i = 0; i < 100; ++i) {
+            a = a + 1;
+        }
+        return a;
+    }
+
+    var start = performance.now();
+    for (var c = 0; c < count; c++) op();
+
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
+
+WMSX.testPlusOne = function(count) {
+    var a = 0;
+
+    function op() {
+        for (var i = 0; i < 100; i = i + 1) {
+            a = a + 1;
+        }
+        return a;
+    }
+
+    var start = performance.now();
+    for (var c = 0; c < count; c++) op();
+
+    var duration = performance.now() - start;
+    wmsx.Util.log("Done running " + count + " iterations in " + duration + " ms");
+};
