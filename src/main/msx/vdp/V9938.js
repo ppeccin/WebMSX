@@ -92,6 +92,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     this.input99 = function() {
         dataToWrite = null;
         var reg = register[15];
+        if (reg > 9) return 0xff;                       // Invalid register
+
         var prevStatus = status[reg];
 
         //if (reg < 2) logInfo("Reading status " + reg + ", " + prevStatus.toString(16));
@@ -351,8 +353,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                         HMMV(); break;
                     case 0xb0:
                         LMMC(); break;
-                    //case 0xa0:
-                    //    LMCM(); break;
+                    case 0xa0:
+                        LMCM(); break;
                     case 0x90:
                         LMMM(); break;
                     case 0x80:
@@ -1854,7 +1856,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ecDIX = register[45] & 0x04 ? -1 : 1;
         ecDIY = register[45] & 0x08 ? -1 : 1;
 
-        console.log("LMCM START x: " + ecSrcX + ", y: " + ecSrcY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+        //console.log("LMCM START x: " + ecSrcX + ", y: " + ecSrcY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
 
         // Limit rect size
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecSrcX) : min(ecNX, ecSrcX + 1);
