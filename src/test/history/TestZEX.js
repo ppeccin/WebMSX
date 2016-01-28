@@ -68,7 +68,7 @@ function startEmulator(rom) {
     // ---------------------------------------
 
     CPU.powerOn();
-    CPU.setPC(start);
+    CPU.eval("PC = " + start);
 
 }
 

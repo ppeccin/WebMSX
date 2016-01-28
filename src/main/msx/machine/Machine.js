@@ -57,7 +57,6 @@ wmsx.Machine = function() {
         if (debugPause)
             if (debugPauseMoreFrames-- <= 0) return;
         vdp.clockPulse();
-        this.framesGenerated++;
     };
 
     this.getBIOSSocket = function() {
@@ -271,8 +270,6 @@ wmsx.Machine = function() {
 
 
     this.powerIsOn = false;
-    this.framesGenerated = 0;
-
 
     var isLoading = false;
 
@@ -677,14 +674,6 @@ wmsx.Machine = function() {
 
 
     // Debug methods  ------------------------------------------------------
-
-    this.startProfiling = function() {
-        var lastFrameCount = this.framesGenerated;
-        setInterval(function() {
-            wmsx.Util.log(self.framesGenerated - lastFrameCount);
-            lastFrameCount = self.framesGenerated;
-        }, 1000);
-    };
 
     this.runFramesAtTopSpeed = function(frames) {
         mainClock.pause();

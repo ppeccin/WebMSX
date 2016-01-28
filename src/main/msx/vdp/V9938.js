@@ -2166,7 +2166,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         refreshPending = true;
         currentScanline = startingScanline;
         bufferPosition = 0;
-        frame++
+        frame++;
     }
 
     function updateSpritePatternTables() {

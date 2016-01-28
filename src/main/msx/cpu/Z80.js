@@ -10,8 +10,8 @@ wmsx.Z80 = function() {
     var self = this;
 
     function init() {
-        self.defineAllInstructions();
-        delete self.defineAllInstructions;
+        defineAllInstructions();
+        delete defineAllInstructions;
     }
 
     this.powerOn = function() {
@@ -27,7 +27,7 @@ wmsx.Z80 = function() {
 
     this.clockPulses = function(quant) {
         for (var i = quant; i > 0; i--) {
-            // cycles++;
+            cycles++;
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T === 1) {
                 instruction.operation();
@@ -38,6 +38,18 @@ wmsx.Z80 = function() {
             else fetchNextInstruction();
         }
     };
+
+    //this.clockPulse = function() {
+    //    cycles++;
+    //    if (--T > 1) return;                     // Still counting cycles of current instruction
+    //    if (T === 1) {
+    //        instruction.operation();
+    //        return;
+    //    }
+    //    R++;                                     // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+    //    if (ackINT) acknowledgeINT();
+    //    else fetchNextInstruction();
+    //};
 
     this.connectBus = function(aBus) {
         bus = aBus;
@@ -63,6 +75,9 @@ wmsx.Z80 = function() {
         }
     };
 
+    this.getCycles = function() {
+        return cycles;
+    };
 
     // Extension Handling
     var extensionHandlers = [];
@@ -113,10 +128,10 @@ wmsx.Z80 = function() {
 
     var cycles = 0;
     var T = -1;                         // Clocks remaining in the current instruction
-    var instruction;
 
     var opcode;
     var prefix;
+    var instruction;
     var ackINT = false;
 
     var instructions =     new Array(270);
@@ -1465,7 +1480,7 @@ wmsx.Z80 = function() {
 
     // Instructions Definitions  ---------------------------------------------------
 
-    this.defineAllInstructions = function() {
+    function defineAllInstructions() {
 
         // LD 8-bit Group  -------------------------------------------------------------
 
@@ -2595,28 +2610,6 @@ wmsx.Z80 = function() {
 
     // Accessory variables and methods for testing
 
-    this.trace = false;
-    this.stop = false;
-    this.breakpointOutput = null;
-
-
-    this.setPC = function(val) {
-        PC = val;
-    };
-
-    function checkState() {
-        if (
-            (A > 255 || A < 0 || A === null || A === undefined) ||
-            (F > 255 || F < 0 || F === null || F === undefined) ||
-            (B > 255 || B < 0 || B === null || B === undefined) ||
-            (C > 255 || C < 0 || C === null || C === undefined) ||
-            (DE > 65535 || DE < 0 || DE === null || DE === undefined) ||
-            (HL > 65535 || HL < 0 || HL === null || HL === undefined) ||
-            (IX > 65535 || IX < 0 || IX === null || IX === undefined) ||
-            (IY > 65535 || IY < 0 || IY === null || IY === undefined))
-            throw new Error("Oh my gosh!");
-    }
-
     this.toString = function() {
         return "CPU " +
             " PC: " + wmsx.Util.toHex2(PC) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
@@ -2629,51 +2622,54 @@ wmsx.Z80 = function() {
             "            IFF: " + IFF1 + "     INT: " + INT + "     prefix: " + prefix;
     };
 
-    this.printInstructions = function() {
-        this.instructionsAll.sort(function(a,b) {
-            return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
-        });
-        var res = "";
-        for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
-            var opcodeString = this.instructionsAll[i].opcodeString;
-            for (; opcodeString.length < 30;) opcodeString += " ";
-            res += "\n" + opcodeString + " : " + this.instructionsAll[i].totalCycles;
-        }
-        return res;
-    };
+    //this.trace = false;
+    //this.stop = false;
+    //this.breakpointOutput = null;
 
-    this.breakpoint = function(mes) {
-        self.stop = true;
-        var text = "CPU Breakpoint!  " + (mes ? "(" + mes + ")" : "") + "\n\n" + this.toString();
-        if (self.breakpointOutput)
-            self.breakpointOutput(text);
-        else
-            wmsx.Util.message(text);
-    };
+    //function checkState() {
+    //    if (
+    //        (A > 255 || A < 0 || A === null || A === undefined) ||
+    //        (F > 255 || F < 0 || F === null || F === undefined) ||
+    //        (B > 255 || B < 0 || B === null || B === undefined) ||
+    //        (C > 255 || C < 0 || C === null || C === undefined) ||
+    //        (DE > 65535 || DE < 0 || DE === null || DE === undefined) ||
+    //        (HL > 65535 || HL < 0 || HL === null || HL === undefined) ||
+    //        (IX > 65535 || IX < 0 || IX === null || IX === undefined) ||
+    //        (IY > 65535 || IY < 0 || IY === null || IY === undefined))
+    //        throw new Error("Oh my gosh!");
+    //}
 
-    //noinspection JSUnusedGlobalSymbols
-    this.runCycles = function(cy, logPerf) {
-        this.stop = false;
-        var runToCycle = cycles + cy;
-        //noinspection JSUnresolvedVariable
-        var start = performance.now();
-        while((cycles < runToCycle) && !this.stop ) {
-            this.clockPulse(1);
-        }
-        //noinspection JSUnresolvedVariable
-        var end = performance.now();
-        if (logPerf !== false) wmsx.Util.log("Done running " + cy + " cycles in " + (end - start) + " ms.");
-    };
+    //this.printInstructions = function() {
+    //    this.instructionsAll.sort(function(a,b) {
+    //        return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
+    //    });
+    //    var res = "";
+    //    for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
+    //        var opcodeString = this.instructionsAll[i].opcodeString;
+    //        for (; opcodeString.length < 30;) opcodeString += " ";
+    //        res += "\n" + opcodeString + " : " + this.instructionsAll[i].totalCycles;
+    //    }
+    //    return res;
+    //};
+
+    //this.breakpoint = function(mes) {
+    //    self.stop = true;
+    //    var text = "CPU Breakpoint!  " + (mes ? "(" + mes + ")" : "") + "\n\n" + this.toString();
+    //    if (self.breakpointOutput)
+    //        self.breakpointOutput(text);
+    //    else
+    //        wmsx.Util.message(text);
+    //};
+
+    //this.testPrint = "";
+    //this.testPrintChar = function(charac) {
+    //    this.testPrint += charac;
+    //};
+
 
     this.eval = function(str) {
         return eval(str);
     };
-
-    this.testPrint = "";
-    this.testPrintChar = function(charac) {
-        this.testPrint += charac;
-    };
-
 
     init();
 
