@@ -299,7 +299,7 @@ wmsx.V9918 = function(cpu, psg) {
     }
 
     function updateLinesInvisible(toLine) {
-        for (var i = toLine - currentScanline; i > 0; i--)
+        for (var i = toLine - currentScanline; i > 0; i = i - 1)
             lineClockCPUandPSG();
         cycleLines += (toLine - currentScanline);
         currentScanline = toLine;
@@ -959,7 +959,7 @@ wmsx.V9918 = function(cpu, psg) {
                     var colorCode = (front << 4) + back;
                     var patternValues = colorCodePatternValues[colorCode * 256 + pattern];
                     var spritePatternValues = back === 0 ? spriteColorCodePatternValues[front * 256 + pattern] : null;
-                    for (var bit = 7; bit >= 0; bit--) {
+                    for (var bit = 7; bit >= 0; bit = bit - 1) {
                         var pixel = (pattern >>> bit) & 1;
                         patternValues[7 - bit] = pixel ? colorFront : colorBack;
                         if (!spritePatternValues) continue;

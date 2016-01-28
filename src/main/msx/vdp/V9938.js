@@ -428,7 +428,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         // Adjust for pulldown cadence if this frame is the first pulldown frame
         var totalLines = scanlinesPerCycle + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
-        for (var i = 0; i < totalLines; i++) {
+        for (var i = 0; i < totalLines; i = i + 1) {
             lineEvents();
             if ((currentScanline >= startingActiveScanline) && (currentScanline < finishingActiveScanline)) {
                 updateLineActive();
@@ -442,7 +442,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 updateLineBlanked();
                 bufferPosition += 544;
             }
-            currentScanline++;
+            currentScanline = currentScanline + 1;
         }
     }
 
@@ -1115,9 +1115,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            atrPos += 4;
-            sprite++;
+        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+            atrPos = atrPos + 4;
+            sprite = sprite + 1;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1161,9 +1161,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            atrPos += 4;
-            sprite++;
+        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+            atrPos = atrPos + 4;
+            sprite = sprite + 1;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1208,9 +1208,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            atrPos += 4;
-            sprite++;
+        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+            atrPos = atrPos + 4;
+            sprite = sprite + 1;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1254,9 +1254,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         spritesCollided = false;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            atrPos += 4;
-            sprite++;
+        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+            atrPos = atrPos + 4;
+            sprite = sprite + 1;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
 
@@ -1295,7 +1295,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function paintSprite1(dest, pos, pattern, color, start, finish, collide) {
         var value = colorPalette[color] | 0xff000000;
-        for (var i = finish - 1; i >= start; i--, pos++) {
+        for (var i = finish - 1; i >= start; i = i -1, pos = pos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             var destValue = dest[pos];
@@ -1307,7 +1307,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function paintSprite1D(dest, pos, pattern, color, start, finish, collide) {
         var value = colorPalette[color] | 0xff000000;
-        for (var i = finish - 1; i >= start; i--, pos++) {
+        for (var i = finish - 1; i >= start; i = i -1, pos = pos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             var destValue = dest[pos];
@@ -1328,10 +1328,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            sprite++;
-            atrPos += 4;
-            colorPos += 16;
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
+            sprite = sprite + 1;
+            atrPos = atrPos + 4;
+            colorPos = colorPos + 16;
             y = vram[atrPos];
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1390,10 +1390,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            sprite++;
-            atrPos += 4;
-            colorPos += 16;
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
+            sprite = sprite + 1;
+            atrPos = atrPos + 4;
+            colorPos = colorPos + 16;
             y = vram[atrPos];
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1452,10 +1452,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            sprite++;
-            atrPos += 4;
-            colorPos += 16;
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
+            sprite = sprite + 1;
+            atrPos = atrPos + 4;
+            colorPos = colorPos + 16;
             y = vram[atrPos];
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1514,10 +1514,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
-        for (var i = 0; i < 32; i++) {                                      // Max of 32 sprites
-            sprite++;
-            atrPos += 4;
-            colorPos += 16;
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
+            sprite = sprite + 1;
+            atrPos = atrPos + 4;
+            colorPos = colorPos + 16;
             y = vram[atrPos];
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
@@ -1566,7 +1566,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function paintSprite2(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
-        for (var i = finish - 1; i >= start; i--, x++, bufferPos++) {
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
@@ -1581,7 +1581,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function paintSprite2CC(bufferPos, spritePri, x, pattern, color, start, finish) {
         var finalColor;
-        for (var i = finish - 1; i >= start; i--, x++, bufferPos++) {
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             var prevSpritePri = sprites2LinePriorities[x];
@@ -1598,7 +1598,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function paintSprite2D(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
-        for (var i = finish - 1; i >= start; i--, x++, bufferPos++) {
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
@@ -1613,7 +1613,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function paintSprite2DCC(bufferPos, spritePri, x, pattern, color, start, finish) {
         var finalColor;
-        for (var i = finish - 1; i >= start; i--, x++, bufferPos++) {
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             var prevSpritePri = sprites2LinePriorities[x];
@@ -1663,10 +1663,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     function HMMCNextWrite(co) {
         vram[ecDestPos] = co;
 
-        ecCX++;
+        ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDestPos -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY++;
+            ecCX = 0; ecCY = ecCY + 1;
             if (ecCY >= ecNY) ecFinish();
             else ecDestPos += ecDIY * nameTableLineBytes;
         } else {
@@ -1705,8 +1705,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         var srcPos = srcY * nameTableLineBytes + destX;
         var destPos = destY * nameTableLineBytes + destX;
         var yStride = -(dix * nx) + nameTableLineBytes * diy;
-        for (var cy = 0; cy < ny; cy++) {
-            for (var cx = 0; cx < nx; cx++) {
+        for (var cy = 0; cy < ny; cy = cy + 1) {
+            for (var cx = 0; cx < nx; cx = cx + 1) {
                 vram[destPos] = vram[srcPos];
                 srcPos += dix; destPos += dix;
             }
@@ -1751,8 +1751,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         var srcPos = srcY * nameTableLineBytes + srcX;
         var destPos = destY * nameTableLineBytes + destX;
         var yStride = -(dix * nx) + nameTableLineBytes * diy;
-        for (var cy = 0; cy < ny; cy++) {
-            for (var cx = 0; cx < nx; cx++) {
+        for (var cy = 0; cy < ny; cy = cy + 1) {
+            for (var cx = 0; cx < nx; cx = cx + 1) {
                 vram[destPos] = vram[srcPos];
                 srcPos += dix; destPos += dix;
             }
@@ -1795,8 +1795,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         // Perform operation
         var pos = y * nameTableLineBytes + x;
         var yStride = -(dix * nx) + nameTableLineBytes * diy;
-        for (var cy = 0; cy < ny; cy++) {
-            for (var cx = 0; cx < nx; cx++) {
+        for (var cy = 0; cy < ny; cy = cy + 1) {
+            for (var cx = 0; cx < nx; cx = cx + 1) {
                 vram[pos] = co;
                 pos += dix;
             }
@@ -1833,10 +1833,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     function LMMCNextWrite(co) {
         logicalPSET(ecDestX, ecDestY, co, ecLogicalOperation);
 
-        ecCX++;
+        ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDestX -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY++;
+            ecCX = 0; ecCY = ecCY + 1;
             if (ecCY >= ecNY) ecFinish();
             else ecDestY += ecDIY;
         } else {
@@ -1868,10 +1868,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     function LMCMNextRead() {
         register[7] = normalPGET(ecSrcX, ecSrcY);
 
-        ecCX++;
+        ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDestX -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY++;
+            ecCX = 0; ecCY = ecCY + 1;
             if (ecCY >= ecNY) ecFinish();
             else ecDestY += ecDIY;
         } else {
@@ -1901,8 +1901,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ny = diy === 1 ? min(ny, nameTableLines - max(srcY, destY)) : min(ny, min(srcY, destY) + 1);
 
         // Perform operation
-        for (var cy = 0; cy < ny; cy++) {
-            for (var cx = 0; cx < nx; cx++) {
+        for (var cy = 0; cy < ny; cy = cy + 1) {
+            for (var cx = 0; cx < nx; cx = cx + 1) {
                 logicalPCOPY(destX, destY, srcX, srcY, op);
                 srcX += dix; destX += dix;
             }
@@ -1936,8 +1936,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ny = diy === 1 ? min(ny, nameTableLines - destY) : min(ny, destY + 1);
 
         // Perform operation
-        for (var cy = 0; cy < ny; cy++) {
-            for (var cx = 0; cx < nx; cx++) {
+        for (var cy = 0; cy < ny; cy = cy + 1) {
+            for (var cx = 0; cx < nx; cx = cx + 1) {
                 logicalPSET(destX, destY, co, op);
                 destX += dix;
             }
@@ -1972,7 +1972,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         var y = dy;
         var e = 0;
         if (maj === 0) {
-            for (var n = 0; n <= nx; n++) {
+            for (var n = 0; n <= nx; n = n + 1) {
                 logicalPSET(x, y, co, op);
                 x += dix; e += ny;
                 if ((e << 1) >= nx) {
@@ -1980,7 +1980,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 }
             }
         } else {
-            for (n = 0; n <= nx; n++) {
+            for (n = 0; n <= nx; n = n + 1) {
                 logicalPSET(x, y, co, op);
                 y += diy; e += ny;
                 if ((e << 1) >= nx) {
@@ -2166,7 +2166,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         refreshPending = true;
         currentScanline = startingScanline;
         bufferPosition = 0;
-        frame++;
+        frame = frame + 1;
     }
 
     function updateSpritePatternTables() {
@@ -2189,7 +2189,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function initColorPalette() {
         var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
-        for (var c = 0; c < 16; c++) {
+        for (var c = 0; c < 16; c = c + 1) {
             colorPalette[c] = colors[c];
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
         }

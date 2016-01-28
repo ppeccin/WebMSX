@@ -10,13 +10,6 @@ wmsx.Util = new function() {
         alert(str);
     };
 
-    this.arrayCount = function(arr, predicate) {
-        var count = 0;
-        for (var i = arr.length - 1; i >= 0; i--)
-            if (predicate(arr[i])) count++;
-        return count;
-    };
-
     this.arrayAverage = function(arr) {
         var total = 0;
         for (var i = arr.length - 1; i >= 0; i--) total += arr[i];
@@ -32,7 +25,7 @@ wmsx.Util = new function() {
 
     this.arrayFillFunc = function(arr, func, len) {
         if (len === undefined) len = arr.length;
-        for (var i = 0; i < len; i++)
+        for (var i = 0; i < len; i = i + 1)
             arr[i] = func(i);
         return arr;
     };
@@ -67,7 +60,7 @@ wmsx.Util = new function() {
         if (start === undefined) start = 0;
         if (length === undefined) length = ints.length - start;
         var str = "";
-        for(var i = start, finish = start + length; i < finish; i++)
+        for(var i = start, finish = start + length; i < finish; i = i + 1)
             str += String.fromCharCode(ints[i] & 0xff);                     // TODO Alter same String?
         return str;
     };
@@ -77,7 +70,7 @@ wmsx.Util = new function() {
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
         var ints = new Array(len);
-        for(var i = 0; i < len; i++)
+        for(var i = 0; i < len; i = i + 1)
             ints[i] = (str.charCodeAt(i) & 0xff);
         return ints;
     };
@@ -88,7 +81,7 @@ wmsx.Util = new function() {
         if (start === undefined) start = 0;
         if (length === undefined) length = ints.length - start;
         var str = "";
-        for(var i = start, finish = start + length; i < finish; i++)        // TODO Alter same String?
+        for(var i = start, finish = start + length; i < finish; i = i + 1)        // TODO Alter same String?
             str += String.fromCharCode(ints[i] & 0xff) + String.fromCharCode((ints[i] >> 8) & 0xff) + String.fromCharCode((ints[i] >> 16) & 0xff) + String.fromCharCode((ints[i] >> 24) & 0xff);
         return str;
     };
@@ -98,7 +91,7 @@ wmsx.Util = new function() {
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = (str.length / 4) | 0;
         var ints = new Array(len);
-        for(var i = 0, s = 0; i < len; i++, s += 4)
+        for(var i = 0, s = 0; i < len; i = i + 1, s = s + 4)
             ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8) | ((str.charCodeAt(s + 2) & 0xff) << 16) | ((str.charCodeAt(s + 3) & 0xff) << 24);
         return ints;
     };
@@ -198,7 +191,7 @@ wmsx.Util = new function() {
         var st = step || 1;
 
         Loop: for (var i = fromIndex; (i >= 0) && (i < len); i += st) {
-            for (var j = 0; j < subLen; j++)
+            for (var j = 0; j < subLen; j = j + 1)
                 if (arr[i + j] !== subarr[j])
                     continue Loop;
             return i;

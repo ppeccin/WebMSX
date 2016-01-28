@@ -48,14 +48,14 @@ wmsx.PSGAudioSignal = function() {
     this.audioClockPulse = function() {         // Just one clock pulse, signal always ON
         if (frameSamples < samplesPerFrame) {
             generateNextSampleOn();
-            frameSamples++;
+            frameSamples = frameSamples + 1;
         }
     };
 
     this.finishFrame = function() {             // Enough samples to complete frame, signal always ON
         var missingSamples = samplesPerFrame - frameSamples;
         if (missingSamples > 0)
-            for (var i = missingSamples; i > 0; i--) generateNextSampleOn()
+            for (var i = missingSamples; i > 0; i = i - 1) generateNextSampleOn()
         frameSamples = 0;
     };
 
@@ -103,7 +103,7 @@ wmsx.PSGAudioSignal = function() {
         }
 
         samples[nextSampleToGenerate] = mixedSample * MAX_AMPLITUDE;
-        nextSampleToGenerate++;
+        nextSampleToGenerate = nextSampleToGenerate + 1;
         if (nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
 
@@ -111,16 +111,16 @@ wmsx.PSGAudioSignal = function() {
 
     var generateNextSampleOff = function() {
         samples[nextSampleToGenerate] = 0;
-        nextSampleToGenerate++;
+        nextSampleToGenerate = nextSampleToGenerate + 1;
         if (nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
     };
 
     var generateMissingSamples = function(quant) {
         if (signalOn)
-            for (var i = quant; i > 0; i--) generateNextSampleOn()
+            for (var i = quant; i > 0; i = i - 1) generateNextSampleOn()
         else
-            for (var j = quant; j > 0; j--) generateNextSampleOff()
+            for (var j = quant; j > 0; j = j - 1) generateNextSampleOff()
     };
 
 

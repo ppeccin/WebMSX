@@ -47,19 +47,6 @@ wmsx.WebAudioSpeaker = function() {
         }
     };
 
-    var onAudioProcessNoise = function(event) {
-        if (!audioSignal) return;
-
-        // Assumes there is only one channel
-        var outputBuffer = event.outputBuffer.getChannelData(0);
-        var d = 0;
-        var destEnd = 0 + outputBuffer.length;
-        while (d < destEnd) {
-            outputBuffer[d] = Math.random();
-            d++;
-        }
-    };
-
     var onAudioProcess = function(event) {
         if (!audioSignal) return;
 
@@ -73,10 +60,9 @@ wmsx.WebAudioSpeaker = function() {
         var d = 0;
         var destEnd = 0 + outputBuffer.length;
         while (d < destEnd) {
-            outputBuffer[d] = input.buffer[s | 0];   // as integer
+            outputBuffer[d++] = input.buffer[s | 0];   // as integer
             s += resamplingFactor;
             if (s >= input.bufferSize) s -= input.bufferSize;
-            d++;
         }
     };
 

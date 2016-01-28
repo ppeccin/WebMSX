@@ -26,14 +26,14 @@ wmsx.Z80 = function() {
     };
 
     this.clockPulses = function(quant) {
-        for (var i = quant; i > 0; i--) {
-            cycles++;
+        for (var i = quant; i > 0; i = i - 1) {
+            cycles = cycles + 1;
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T === 1) {
                 instruction.operation();
                 continue;
             }
-            R++;                                     // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+            R = R + 1;                               // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
             if (ackINT) acknowledgeINT();
             else fetchNextInstruction();
         }
@@ -271,7 +271,7 @@ wmsx.Z80 = function() {
     }
     function fromIY () {
         return IY;
-    };
+    }
 
     function toAF(val) {
         A = val >>> 8; F = val & 0xff;
@@ -376,14 +376,14 @@ wmsx.Z80 = function() {
     function from_NN_16() {
         var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         var low = bus.read(addr);
-        addr++; if (addr > 0xffff) addr = 0;
+        addr = addr +  1; if (addr > 0xffff) addr = 0;
         return (bus.read(addr) << 8) | low;
     }
 
     function to_NN_16(val) {
         var addr = bus.read(PC++) | (bus.read(PC++) << 8);
         bus.write(addr, val & 255);
-        addr++; if (addr > 0xffff) addr = 0;
+        addr = addr + 1; if (addr > 0xffff) addr = 0;
         bus.write(addr, val >>> 8);
     }
 
@@ -418,19 +418,11 @@ wmsx.Z80 = function() {
     function HALT() {
         //Util.log("HALT!");
         //self.breakpoint("HALT");
-        PC--;    // Keep repeating HALT instruction until an INT or RESET
+        PC = PC - 1;    // Keep repeating HALT instruction until an INT or RESET
     }
 
     function newLD(to, from) {
         return function LD() {
-            to(from());
-        };
-    }
-
-    function newLD_PreRead_IXYd_(to, from) {
-        return function LD_PreRead_IXYd_() {
-            // Special case. Pre-reads d before n to ensure correct order of reads
-            preReadIXYd();
             to(from());
         };
     }
@@ -473,14 +465,6 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newEXr_SP_16(to, from) {
-        return function EXr_SP_16() {
-            var temp = from_SP_16();
-            to_SP_16(from());
-            to(temp);
-        }
-    }
-
     function EXDEHL() {
         var temp = DE;
         DE = HL;
@@ -507,9 +491,9 @@ wmsx.Z80 = function() {
 
     function LDI() {
         to_DE_8(from_HL_8());
-        DE++; if (DE > 0xffff) DE = 0;
-        HL++; if (HL > 0xffff) HL = 0;
-        C--; if (C < 0) { C = 0xff; B--; if (B < 0) B = 0xff; }     // BC--
+        DE = DE + 1; if (DE > 0xffff) DE = 0;
+        HL = HL + 1; if (HL > 0xffff) HL = 0;
+        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
         // Flags
         F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);         // PV = BC != 0
@@ -529,9 +513,9 @@ wmsx.Z80 = function() {
 
     function LDD() {
         to_DE_8(from_HL_8());
-        DE--; if (DE < 0) DE = 0xffff;
-        HL--; if (HL < 0) HL = 0xffff;
-        C--; if (C < 0) { C = 0xff; B--; if (B < 0) B = 0xff; }     // BC--
+        DE = DE - 1; if (DE < 0) DE = 0xffff;
+        HL = HL -1; if (HL < 0) HL = 0xffff;
+        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
         // Flags
         F = (F & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);       // PV = BC != 0
@@ -550,8 +534,8 @@ wmsx.Z80 = function() {
 
     function CPI() {
         var val = from_HL_8();
-        C--; if (C < 0) { C = 0xff; B--; if (B < 0) B = 0xff; }     // BC--
-        HL++; if (HL > 0xffff) HL = 0;
+        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
+        HL = HL + 1; if (HL > 0xffff) HL = 0;
         // Flags
         var res = A - val;
         var compare = A ^ val ^ res;
@@ -575,8 +559,8 @@ wmsx.Z80 = function() {
 
     function CPD() {
         var val = from_HL_8();
-        C--; if (C < 0) { C = 0xff; B--; if (B < 0) B = 0xff; }     // BC--
-        HL--; if (HL < 0) HL = 0xffff;
+        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
+        HL = HL - 1; if (HL < 0) HL = 0xffff;
         // Flags
         var res = A - val;
         var compare = A ^ val ^ res;
@@ -595,6 +579,269 @@ wmsx.Z80 = function() {
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
+        }
+    }
+
+    function DAA() {
+        var res = A;
+        if (F & bN) {
+            // Coming from a subtraction
+            if ((F & bH) || ((A & 0x0f) > 9)) res -= 0x06;
+            if ((F & bC) || (A > 0x99)) res -= 0x60;
+        } else {
+            // Coming from an addition
+            if ((F & bH) || ((A & 0x0f) > 9)) res += 0x06;
+            if ((F & bC) || (A > 0x99)) res += 0x60;
+        }
+        res &= 255;
+        // Flags
+        F = (F & 0x03)                            // N = N; C = C
+            | (res & 0xa8)                        // S = res has bit 7 set; f5, f3 copied from res
+            | ((res === 0) << nZ)                 // Z = res (as will be set to A) is 0
+            | ((A ^ res) & bH)                    // H = bit 4 changed after adjust
+            | parities[res]                       // P = parity of A
+            | (A > 0x99);                         // C = carry from decimal range
+        A = res;
+    }
+
+    function CPL() {
+        A = ~A & 255;
+        // Flags
+        F = (F & 0xc5) | 0x12        // S = S; Z = Z; H = 1; PV = PV; N = 1; C = C
+            | (A & 0x28);            // f5, f3 copied from A
+    }
+
+    function NEG() {
+        var before = A;
+        A = -A & 255;
+        // Flags
+        F = bN                                        // N = 1
+            | (A & 0xa8)                              // S = A is negative; f5, f3 copied from A
+            | ((A === 0) << nZ)                       // Z = A is 0
+            | (((before & 0x0f) !== 0) << nH)         // H = borrow from bit 4
+            | ((before === 0x80) << nPV)              // PV = A was 0x80 before
+            | (before !== 0);                         // C = A was not 0 before
+    }
+
+    function CCF() {
+        // Flags
+        F = (F & 0xc4)                  // S = S; Z = Z; PV = PV; N = 0
+            | (A & 0x28)                // f5, f3 copied from A
+            | ((F & bC) << nH)          // H = previous C
+            | (~F & bC);                // C = ~C
+    }
+
+    function SCF() {
+        // Flags
+        F = (F & 0xc4) | bC;            // S = S; Z = Z; H = 0; PV = PV; N = 0; C = 1;
+    }
+
+    function DI() {
+        IFF1 = 0;
+        ackINT = false;
+    }
+
+    function EI() {
+        IFF1 = 1;
+        prefix = 7;
+        ackINT = false;
+    }
+
+    function RLCA() {
+        A = ((A << 1) | (A >>> 7)) & 255;
+        // Flags
+        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (A & 0x28)                     // f5, f3 copied from A
+            | (A & bC);                      // C = bit 7 of A before
+    }
+
+    function RLA() {
+        var oldA = A;
+        A = ((A << 1) | (F & bC)) & 255;
+        // Flags
+        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (A & 0x28)                     // f5, f3 copied from A
+            | ((oldA >>> 7) & bC);           // C = bit 7 of A before
+    }
+
+    function RRCA() {
+        A = ((A >>> 1) | (A << 7)) & 255;
+        // Flags
+        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (A & 0x28)                     // f5, f3 copied from A
+            | (A >>> 7);                     // C = bit 0 of A before
+    }
+
+    function RRA() {
+        var oldA = A;
+        A = ((A >>> 1) | ((F & bC) << 7));
+        // Flags
+        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (A & 0x28)                     // f5, f3 copied from A
+            | (oldA & bC);                   // C = bit 0 of A before
+    }
+
+    function RLD() {
+        var val = from_HL_8();
+        to_HL_8(((val << 4) | (A & 0x0f)) & 255);
+        A = (A & 0xf0) | (val >>> 4);
+        // Flags
+        F = (F & bC)                               // H = 0; N = 0; C = C
+            | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
+            | ((A === 0) << nZ)                    // Z = A is 0
+            | parities[A];                         // P = parity of A
+    }
+
+    function RRD() {
+        var val = from_HL_8();
+        to_HL_8(((A << 4) | (val >>> 4)) & 255);
+        A = (A & 0xf0) | (val & 0x0f);
+        // Flags
+        F = (F & bC)                               // H = 0; N = 0; C = C
+            | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
+            | ((A === 0) << nZ)                    // Z = A is 0
+            | parities[A];                         // P = parity of A
+    }
+
+    function JR() {
+        var addr = fromN();
+        PC = sum16Signed(PC, addr);
+    }
+
+    function DJNZ() {
+        var relat = fromN();
+        if (B === 0) B = 255; else B = B - 1;
+        if (B !== 0) {
+            PC = sum16Signed(PC, relat);
+            T += 5;
+            instruction = instructionADT_CYCLES;
+        }
+    }
+
+    function CALL() {
+        var addr = fromNN();
+        push16(PC);
+        PC = addr;
+    }
+
+    function RET() {
+        PC = pop16();
+    }
+
+    function RETI() {
+        // No IFF2 supported
+        RET();
+    }
+
+    function RETN() {
+        // No IFF2 supported
+        RET();
+    }
+
+    function INAn() {
+        var port = fromN();
+        A = bus.input((A << 8) | port);
+    }
+
+    function INI() {
+        to_HL_8(bus.input(fromBC()));
+        HL = HL + 1; if (HL > 0xffff) HL = 0;
+        B = B - 1;  if (B < 0) B = 0xff;
+        // Flags
+        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((B === 0) << nZ);                   // Z = B is 0
+        // TODO Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
+    }
+
+    function INIR() {
+        INI();
+        if (B !== 0) {
+            // Will repeat this instruction
+            PC -= 2;
+            // Uses more cycles
+            T += 5;
+            instruction = instructionADT_CYCLES;
+        }
+    }
+
+    function IND() {
+        to_HL_8(bus.input(fromBC()));
+        HL = HL - 1; if (HL < 0) HL = 0xffff;
+        B = B - 1;  if (B < 0) B = 0xff;
+        // Flags
+        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((B === 0) << nZ);                   // Z = B is 0
+    }
+
+    function INDR() {
+        IND();
+        if (B !== 0) {
+            // Will repeat this instruction
+            PC -= 2;
+            // Uses more cycles
+            T += 5;
+            instruction = instructionADT_CYCLES;
+        }
+    }
+
+    function OUTnA() {
+        var val = fromN();
+        bus.output((A << 8) | val, A);
+    }
+
+    function OUTI() {
+        B = B - 1; if (B < 0) B = 0xff;
+        bus.output(fromBC(), from_HL_8());
+        HL = HL + 1; if (HL > 0xffff) HL = 0;
+        // Flags
+        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((B === 0) << nZ);                   // Z = B is 0
+    }
+
+    function OTIR() {
+        OUTI();
+        if (B !== 0) {
+            // Will repeat this instruction
+            PC -= 2;
+            // Uses more cycles
+            T += 5;
+            instruction = instructionADT_CYCLES;
+        }
+    }
+
+    function OUTD() {
+        B = B - 1; if (B < 0) B = 0xff;
+        bus.output(fromBC(), from_HL_8());
+        HL = HL - 1; if (HL < 0) HL = 0xffff;
+        // Flags
+        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((B === 0) << nZ);                   // Z = B is 0
+    }
+
+    function OTDR() {
+        OUTD();
+        if (B !== 0) {
+            // Will repeat this instruction
+            PC -= 2;
+            // Uses more cycles
+            T += 5;
+            instruction = instructionADT_CYCLES;
+        }
+    }
+
+    function newLD_PreRead_IXYd_(to, from) {
+        return function LD_PreRead_IXYd_() {
+            // Special case. Pre-reads d before n to ensure correct order of reads
+            preReadIXYd();
+            to(from());
+        };
+    }
+
+    function newEXr_SP_16(to, from) {
+        return function EXr_SP_16() {
+            var temp = from_SP_16();
+            to_SP_16(from());
+            to(temp);
         }
     }
 
@@ -765,71 +1012,6 @@ wmsx.Z80 = function() {
         };
     }
 
-    function DAA() {
-        var res = A;
-        if (F & bN) {
-            // Coming from a subtraction
-            if ((F & bH) || ((A & 0x0f) > 9)) res -= 0x06;
-            if ((F & bC) || (A > 0x99)) res -= 0x60;
-        } else {
-            // Coming from an addition
-            if ((F & bH) || ((A & 0x0f) > 9)) res += 0x06;
-            if ((F & bC) || (A > 0x99)) res += 0x60;
-        }
-        res &= 255;
-        // Flags
-        F = (F & 0x03)                            // N = N; C = C
-            | (res & 0xa8)                        // S = res has bit 7 set; f5, f3 copied from res
-            | ((res === 0) << nZ)                 // Z = res (as will be set to A) is 0
-            | ((A ^ res) & bH)                    // H = bit 4 changed after adjust
-            | parities[res]                       // P = parity of A
-            | (A > 0x99);                         // C = carry from decimal range
-        A = res;
-    }
-
-    function CPL() {
-        A = ~A & 255;
-        // Flags
-        F = (F & 0xc5) | 0x12        // S = S; Z = Z; H = 1; PV = PV; N = 1; C = C
-            | (A & 0x28);            // f5, f3 copied from A
-    }
-
-    function NEG() {
-        var before = A;
-        A = -A & 255;
-        // Flags
-        F = bN                                        // N = 1
-            | (A & 0xa8)                              // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)                       // Z = A is 0
-            | (((before & 0x0f) !== 0) << nH)         // H = borrow from bit 4
-            | ((before === 0x80) << nPV)              // PV = A was 0x80 before
-            | (before !== 0);                         // C = A was not 0 before
-    }
-
-    function CCF() {
-        // Flags
-        F = (F & 0xc4)                  // S = S; Z = Z; PV = PV; N = 0
-            | (A & 0x28)                // f5, f3 copied from A
-            | ((F & bC) << nH)          // H = previous C
-            | (~F & bC);                // C = ~C
-    }
-
-    function SCF() {
-        // Flags
-        F = (F & 0xc4) | bC;            // S = S; Z = Z; H = 0; PV = PV; N = 0; C = 1;
-    }
-
-    function DI() {
-        IFF1 = 0;
-        ackINT = false;
-    }
-
-    function EI() {
-        IFF1 = 1;
-        prefix = 7;
-        ackINT = false;
-    }
-
     function newIM(mode) {
         return function setIM() {
             IM = mode;
@@ -899,40 +1081,6 @@ wmsx.Z80 = function() {
         return function DEC16() {
             to((from() - 1) & 0xffff);
         };
-    }
-
-    function RLCA() {
-        A = ((A << 1) | (A >>> 7)) & 255;
-        // Flags
-        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (A & 0x28)                     // f5, f3 copied from A
-            | (A & bC);                      // C = bit 7 of A before
-    }
-
-    function RLA() {
-        var oldA = A;
-        A = ((A << 1) | (F & bC)) & 255;
-        // Flags
-        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (A & 0x28)                     // f5, f3 copied from A
-            | ((oldA >>> 7) & bC);           // C = bit 7 of A before
-    }
-
-    function RRCA() {
-        A = ((A >>> 1) | (A << 7)) & 255;
-        // Flags
-        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (A & 0x28)                     // f5, f3 copied from A
-            | (A >>> 7);                     // C = bit 0 of A before
-    }
-
-    function RRA() {
-        var oldA = A;
-        A = ((A >>> 1) | ((F & bC) << 7));
-        // Flags
-        F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (A & 0x28)                     // f5, f3 copied from A
-            | (oldA & bC);                   // C = bit 0 of A before
     }
 
     function newRLC(to, from, toExt) {
@@ -1055,28 +1203,6 @@ wmsx.Z80 = function() {
         }
     }
 
-    function RLD() {
-        var val = from_HL_8();
-        to_HL_8(((val << 4) | (A & 0x0f)) & 255);
-        A = (A & 0xf0) | (val >>> 4);
-        // Flags
-        F = (F & bC)                               // H = 0; N = 0; C = C
-            | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)                    // Z = A is 0
-            | parities[A];                         // P = parity of A
-    }
-
-    function RRD() {
-        var val = from_HL_8();
-        to_HL_8(((A << 4) | (val >>> 4)) & 255);
-        A = (A & 0xf0) | (val & 0x0f);
-        // Flags
-        F = (F & bC)                               // H = 0; N = 0; C = C
-            | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)                    // Z = A is 0
-            | parities[A];                         // P = parity of A
-    }
-
     function newBIT(to, from, bit, setF53) {
         return function BIT() {
             // Flags
@@ -1122,11 +1248,6 @@ wmsx.Z80 = function() {
         }
     }
 
-    function JR() {
-        var addr = fromN();
-        PC = sum16Signed(PC, addr);
-    }
-
     function newJRcc(flag, val) {
         return function JRcc() {
             var relat = fromN();
@@ -1136,22 +1257,6 @@ wmsx.Z80 = function() {
                 instruction = instructionADT_CYCLES;
             }
         }
-    }
-
-    function DJNZ() {
-        var relat = fromN();
-        if (B === 0) B = 255; else B--;
-        if (B !== 0) {
-            PC = sum16Signed(PC, relat);
-            T += 5;
-            instruction = instructionADT_CYCLES;
-        }
-    }
-
-    function CALL() {
-        var addr = fromNN();
-        push16(PC);
-        PC = addr;
     }
 
     function newCALLcc(flag, val) {
@@ -1166,10 +1271,6 @@ wmsx.Z80 = function() {
         }
     }
 
-    function RET() {
-        PC = pop16();
-    }
-
     function newRETcc(flag, val) {
         return function RETcc() {
             if ((F & flag) === val) {
@@ -1180,26 +1281,11 @@ wmsx.Z80 = function() {
         }
     }
 
-    function RETI() {
-        // No IFF2 supported
-        RET();
-    }
-
-    function RETN() {
-        // No IFF2 supported
-        RET();
-    }
-
     function newRST(addr) {
         return function RST() {
             push16(PC);
             PC = addr;
         }
-    }
-
-    function INAn() {
-        var port = fromN();
-        A = bus.input((A << 8) | port);
     }
 
     function newINrC(to) {
@@ -1214,97 +1300,12 @@ wmsx.Z80 = function() {
         }
     }
 
-    function INI() {
-        to_HL_8(bus.input(fromBC()));
-        HL++; if (HL > 0xffff) HL = 0;
-        B--;  if (B < 0) B = 0xff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
-        // TODO Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
-    }
-
-    function INIR() {
-        INI();
-        if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
-            T += 5;
-            instruction = instructionADT_CYCLES;
-        }
-    }
-
-    function IND() {
-        to_HL_8(bus.input(fromBC()));
-        HL--; if (HL < 0) HL = 0xffff;
-        B--;  if (B < 0) B = 0xff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
-    }
-
-    function INDR() {
-        IND();
-        if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
-            T += 5;
-            instruction = instructionADT_CYCLES;
-        }
-    }
-
-    function OUTnA() {
-        var val = fromN();
-        bus.output((A << 8) | val, A);
-    }
-
     function newOUTCr(from) {
         return function OUTCr() {
             bus.output(fromBC(), from());
         }
     }
 
-    function OUTI() {
-        B--; if (B < 0) B = 0xff;
-        bus.output(fromBC(), from_HL_8());
-        HL++; if (HL > 0xffff) HL = 0;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
-    }
-
-    function OTIR() {
-        OUTI();
-        if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
-            T += 5;
-            instruction = instructionADT_CYCLES;
-        }
-    }
-
-    function OUTD() {
-        B--; if (B < 0) B = 0xff;
-        bus.output(fromBC(), from_HL_8());
-        HL--; if (HL < 0) HL = 0xffff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
-    }
-
-    function OTDR() {
-        OUTD();
-        if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
-            T += 5;
-            instruction = instructionADT_CYCLES;
-        }
-    }
 
     // Undocumented instructions
 
@@ -1330,7 +1331,7 @@ wmsx.Z80 = function() {
     function pINT() {
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionHALT) PC++;       // To "escape" from the HALT, and continue in the next instruction after RET
+        if (instruction === instructionHALT) PC = PC + 1;     // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
         instruction = instructionADT_CYCLES;
         if (IM === 1) {
@@ -1375,15 +1376,15 @@ wmsx.Z80 = function() {
     function pSET_DDCB() {
         prefix = 5;
         ackINT = false;
-        preReadIXYd();  // Special case. Pre-reads d before the real opcode
-        R--;            // Special case. R should not be incremented next opcode fetch so adjust here
+        preReadIXYd();     // Special case. Pre-reads d before the real opcode
+        R = R - 1;         // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pSET_FDCB() {
         prefix = 6;
         ackINT = false;
-        preReadIXYd();  // Special case. Pre-reads d before the real opcode
-        R--;            // Special case. R should not be incremented next opcode fetch so adjust here
+        preReadIXYd();     // Special case. Pre-reads d before the real opcode
+        R = R - 1;         // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pADT_CYCLES() {

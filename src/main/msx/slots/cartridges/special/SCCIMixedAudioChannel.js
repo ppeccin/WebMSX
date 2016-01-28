@@ -245,14 +245,14 @@ wmsx.SCCIMixedAudioChannel = function() {
     // Savestate  -------------------------------------------
 
     function unsignSamples() {
-        for (var i = 0; i < 5; i++)
-            for (var s = 0; s < 32; s++)
+        for (var i = 0; i < 5; i = i + 1)
+            for (var s = 0; s < 32; s = s + 1)
                 if (channelSamples[i][s] < 0) channelSamples[i][s] = 256 + channelSamples[i][s];
     }
 
     function signSamples() {
-        for (var i = 0; i < 5; i++)
-            for (var s = 0; s < 32; s++)
+        for (var i = 0; i < 5; i = i + 1)
+            for (var s = 0; s < 32; s = s + 1)
                 if (channelSamples[i][s] > 127) channelSamples[i][s] = -256 + channelSamples[i][s];
     }
 
