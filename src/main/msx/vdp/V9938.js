@@ -94,25 +94,35 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         var reg = register[15];
         if (reg > 9) return 0xff;                       // Invalid register
 
-        var prevStatus = status[reg];
-
-        //if (reg < 2) logInfo("Reading status " + reg + ", " + prevStatus.toString(16));
-
+        var res;
         switch(reg) {
             case 0:
+                res = status[0];
                 status[0] = 0; updateIRQ(); break;
             case 1:
+                res = status[1];
                 status[1] &= ~0x81;                     // FL = 0
                 if ((register[0] & 0x10) && (status[1] & 0x01)) {
                     status[1] &= ~0x01;                 // FH = 0, only if interrupts are enabled (IE1 = 1)
                     updateIRQ();
                 }
                 break;
+            case 2:
+                ecUpdateStatus();
+                res = status[2];
+
+                //if ((res & 0x81) !== 0) logInfo("Reading Command Status NOT READY: " + res.toString(16));
+
+                break;
             case 7:
+                res = status[7];
                 if (ecReadHandler) ecReadHandler();
                 break;
         }
-        return prevStatus;
+
+        //if (reg < 2) logInfo("Reading status " + reg + ", " + res.toString(16));
+
+        return res;
     };
 
     // Register/VRAM Address write for V9938
@@ -211,7 +221,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
-        ecWriteHandler = null; ecReadHandler = null;
+        ecInProgress = false; ecTransferReady = false; ecWriteHandler = null; ecReadHandler = null; ecFinishingClock = 0;
         backdropColor = 0;
         sprites2Enabled = true;
         pendingBlankingChange = false;
@@ -1630,8 +1640,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function HMMC() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
@@ -1675,8 +1684,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function YMMM() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
@@ -1713,14 +1721,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinish();
     }
 
     function HMMM() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var srcX = (((register[33] & 0x01) << 8) | register[32]);
@@ -1759,14 +1764,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinishingClock = cpu.getCycles() * 6 + ny * nx * 15 * 6;
     }
 
     function HMMV() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
@@ -1803,14 +1805,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             pos += yStride;
         }
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinish();
     }
 
     function LMMC() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         ecDestX = (((register[37] & 0x01) << 8) | register[36]);
@@ -1845,8 +1844,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function LMCM() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         ecSrcX = (((register[33] & 0x01) << 8) | register[32]);
@@ -1866,7 +1864,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function LMCMNextRead() {
-        register[7] = normalPGET(ecSrcX, ecSrcY);
+        status[7] = normalPGET(ecSrcX, ecSrcY);
 
         ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
@@ -1880,8 +1878,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function LMMM() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var srcX = (((register[33] & 0x01) << 8) | register[32]);
@@ -1910,14 +1907,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcY += diy; destY += diy;
         }
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinishingClock = cpu.getCycles() * 6 + ny * nx * 23 * 6;
     }
 
     function LMMV() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var destX = (((register[37] & 0x01) << 8) | register[36]);
@@ -1945,14 +1939,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             destY += diy;
         }
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinish();
     }
 
     function LINE() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
@@ -1989,14 +1980,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             }
         }
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinish();
     }
 
     function PSET() {
-        // Begin
-        status[2] |= 1;
+        ecStart();
 
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
@@ -2008,18 +1996,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         logicalPSET(dx, dy, co, op);
 
-        // Finish
-        status[2] &= ~1;
-        register[46] &= ~0xf0;
+        ecFinish();
     }
 
     function STOP() {
 
         //console.log("STOP: " + ecWriteHandler);
 
-        ecWriteHandler = null;
-        ecReadHandler = null;
-        status[2] &= ~1;
+        ecFinish();
     }
 
     function normalPGET(x, y) {
@@ -2113,17 +2097,22 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         return a > b ? a : b;
     }
 
+    function ecStart() {
+        ecInProgress = true;
+        ecTransferReady = false;
+        ecWriteHandler = null;
+        ecReadHandler = null;
+    }
+
     function ecWriteStart(handler) {
         // Init counters
         ecCX = 0;
         ecCY = 0;
         ecWriteHandler = handler;
 
-        // Set CE and TR
-        status[2] |= 0x81;
-
         // Perform first iteration with current data
         ecWriteHandler(register[44]);
+        ecTransferReady = true;
     }
 
     function ecReadStart(handler) {
@@ -2132,22 +2121,24 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ecCY = 0;
         ecReadHandler = handler;
 
-        // Set CE and TR
-        status[2] |= 0x81;
-
         // Perform first iteration
         ecReadHandler();
+        ecTransferReady = true;
     }
 
     function ecFinish() {
-
-        //if (ecWriteHandler === HMMCNextWrite) console.log(ecWriteHandler.name + " Finish");
-        //else console.log(">>>> NO COMMAND TO FINISH");
-
+        ecInProgress = false;
+        ecTransferReady = false;
         ecWriteHandler = null;
         ecReadHandler = null;
-        status[2] &= ~0x81;          // Clear CE and TR
-        register[46] &= ~0xf0;
+    }
+
+    function ecUpdateStatus() {
+        if (ecInProgress) {
+            if (cpu.getCycles() * 6 >= ecFinishingClock) ecFinish();
+        }
+
+        status[2] = (status[2] & ~0x81) | (ecTransferReady << 7) | (ecInProgress);
     }
 
     function refresh() {
@@ -2285,7 +2276,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var dataToWrite;
     var paletteFirstWrite;
 
-    var ecWriteHandler = null, ecReadHandler = null;
+    var ecInProgress = false, ecTransferReady = false, ecWriteHandler = null, ecReadHandler = null, ecFinishingClock = 0;
     var ecSrcX, ecSrcY, ecDestX, ecDestY, ecNX, ecNY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLogicalOperation;
 
     var backdropColor;
