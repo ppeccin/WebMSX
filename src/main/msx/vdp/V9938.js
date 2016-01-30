@@ -213,7 +213,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     };
 
     this.reset = function() {
-        frame = 0;
+        frame = cycles = lastCPUCyclesComputed = vramAccessSlots = 0;
         wmsx.Util.arrayFill(status, 0);
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
@@ -223,18 +223,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         verticalAdjust = horizontalAdjust = 0;
         ecInProgress = false; ecTransferReady = false; ecWriteHandler = null; ecReadHandler = null; ecFinishingClock = 0;
         backdropColor = 0;
-        sprites2Enabled = true;
         pendingBlankingChange = false;
+        frameSection = 0;
         initColorPalette();
         updateIRQ();
         updateMode();
-        updateLineFunctions();
-        updateSpriteFunctions();
         updateBackdropValue();
         updateSynchronization();
-        updateSignalMetrics();
-        currentScanline = startingScanline;
-        bufferPosition = 0;
+        currentScanline = startingScanline; bufferPosition = 0;
     };
 
     function registerWrite(reg, val) {
@@ -259,9 +255,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 //if (val !== old) logInfo("Register1: " + val.toString(16));
 
                 if ((val & 0x20) !== (old & 0x20)) updateIRQ();                             // IE0
+                if ((val & 0x40) !== (old & 0x40)) pendingBlankingChange = true;            // BL, only at next line
                 if ((val & 0x18) !== (old & 0x18)) updateMode();                            // Mx
-                else if ((val & 0x40) !== (old & 0x40)) pendingBlankingChange = true;       // BL. Already ok if mode was updated
-                if ((val & 0x03) !== (old & 0x03)) updateSpriteFunctions();                 // SI, MAG
+                else if ((val & 0x03) !== (old & 0x03)) updateSpritesLineType();            // SI, MAG. Already ok if mode was updated
                 break;
             case 2:
                 add = (val << 10) & 0x1ffff;
@@ -311,7 +307,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 break;
             case 8:
                 if ((val & 0x20) !== (old & 0x20)) updateTransparency();                    // TP
-                if ((val & 0x02) !== (old & 0x02)) sprites2Enabled = (val & 0x02) === 0;    // SPD
+                if ((val & 0x02) !== (old & 0x02)) updateSpritesLineType();                 // SPD
                 break;
             case 9:
                 if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
@@ -417,7 +413,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         debugModePatternInfo = mode >= 5;
         debugModePatternInfoBlocks = mode === 6;
         debugModePatternInfoNames = mode === 7;
-        updateLineFunctions();
+        updateLineActiveType();
+        updateSpritesLineType();
         updateSpritePatternTables();
         updateBackdropValue();
     }
@@ -439,20 +436,47 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         var totalLines = scanlinesPerCycle + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
 
         for (var i = 0; i < totalLines; i = i + 1) {
+
             lineEvents();
+
+            if (currentScanline ===  startingScanline || currentScanline === finishingActiveScanline) frameSectionBorders();
+            else if (currentScanline === startingActiveScanline) frameSectionActive();
+            else if (currentScanline === startingInvisibleScanline) frameSectionInvisible();
+
+            updateLine();
+
+            currentScanline = currentScanline + 1;
+            bufferPosition += 544;
+
+            if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();                     // VR = 1, F = 1 at the last visible scanline
+            else if (currentScanline === finishingScanline) finishFrame();
+        }
+    }
+
+    // Total frame lines: 262 for NTSC, 313 for PAL
+    // Total frame CPU clocks: 59736 for NTSC, 71364 for PAL
+    function frameEventsOld() {
+        // Adjust for pulldown cadence if this frame is the first pulldown frame
+        var totalLines = scanlinesPerCycle + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
+
+        for (var i = 0; i < totalLines; i = i + 1) {
+
+            lineEvents();
+
             if ((currentScanline >= startingActiveScanline) && (currentScanline < finishingActiveScanline)) {
                 updateLineActive();
+                currentScanline = currentScanline + 1;
                 bufferPosition += 544;
+                if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();                   // VR = 1, F = 1 at the last visible scanline
             } else if (currentScanline >= startingInvisibleScanline) {
-                if (currentScanline === (finishingScanline - 1)) {
-                    finishFrame();
-                    continue;
-                }
+                currentScanline = currentScanline + 1;
+                if (currentScanline === finishingScanline) finishFrame();
             } else {
-                updateLineBlanked();
+                updateLineBorders();
+                currentScanline = currentScanline + 1;
                 bufferPosition += 544;
             }
-            currentScanline = currentScanline + 1;
+
         }
     }
 
@@ -468,9 +492,9 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(15);
 
         // Left border: 56 clocks
-        if (currentScanline === -1) status[2] &= ~0x40;                                     // VR = 0 at the scanline before first visible scanline
+        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;             // VR = 0 at the scanline before first top border scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;        // FH = 0 if interrupts disabled (IE1 = 0)
-        if (pendingBlankingChange) updateLineFunctions();
+        if (pendingBlankingChange) updateLineActiveType();
 
         cpuClockPulses(9);
 
@@ -486,7 +510,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         status[2] |= 0x20;                                                                  // HR = 1
         if (currentScanline === horizontalIntLine) triggerHorizontalInterrupt();            // FH = 1 at the horizontal interrupt line
-        if (currentScanline === (finishingActiveScanline - 1)) triggerVerticalInterrupt();  // F = 1, VR = 1 at the last visible scanline
+
 
         // TODO 1 additional PSG clock each 8 lines
     }
@@ -546,10 +570,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         add = (register[6] << 11) & 0x1ffff ;
         spritePatternTableAddress = add & modeData.sprPatTBase;
         spritePatternTableAddressMask = add & ~modeData.sprPatTBase | spritePatternTableAddressBaseMask;
-        updateSpritePatternTables();
+        updateLineActiveType();
+        updateSpritesLineType();
         updateSignalMetrics();
-        updateLineFunctions();
-        updateSpriteFunctions();
+        updateSpritePatternTables();
         nameTableLines = modeData.nameLines;
         nameTableLineBytes = modeData.nameLineBytes;
         if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
@@ -557,6 +581,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
 
+    }
+
+    function updateCycles() {
+        var cpuCycles = cpu.getCycles();
+        var elapsed = (cpuCycles - lastCPUCyclesComputed) * 6;
+        lastCPUCyclesComputed = cpuCycles;
+        cycles += elapsed;
+        vramAccessSlots += (elapsed / CYCLES_PER_LINE) * vramAccessSlotsPerLine;
     }
 
     // TODO Verify changing VideoStandard mid-frame
@@ -571,17 +603,30 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         videoSignal.setSignalMetrics(signalMetrics);
     }
 
-    function updateLineFunctions() {
+    function frameSectionInvisible() {
+        updateLine = updateLineInvisible;
+    }
 
-        //logInfo("Blank " + ((register[1] & 0x40) === 0 ? "ON" : "OFF"));
+    function frameSectionBorders() {
+        updateLine = updateLineBorders;
+    }
 
-        updateLineActive = (register[1] & 0x40) === 0 ? updateLineBlanked : debugModePatternInfo ? modeData.updLineDeb : modeData.updLine;
-        blankedLineValues = (register[1] & 0x40) === 0 ? backdropFullLine512Values : modeData.blankedLineValues;
+    function frameSectionActive() {
+        updateLine = updateLineActive;
+    }
+
+    function updateLineActiveType() {
+        var old = updateLineActive;
+        updateLineActive = (register[1] & 0x40) ? debugModePatternInfo ? modeData.updLineDeb : modeData.updLine : updateLineActiveBlanked;
+        if (updateLine === old) updateLine = updateLineActive;
+
         pendingBlankingChange = false;
     }
 
-    function updateSpriteFunctions() {
-        updateSpritesLine = modeData.isV9938 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : updateSpritesLineFunctionsMode1[register[1] & 0x03];
+    function updateSpritesLineType() {
+        updateSpritesLine = modeData.isV9938
+            ? (register[8] & 0x02) === 0 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null       // SPD, SI, MAG
+            : updateSpritesLineFunctionsMode1[register[1] & 0x03];                                          // SI, MAG
     }
 
     function updateTransparency() {
@@ -624,10 +669,20 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
     }
 
-    function updateLineBlanked() {
-        frameBackBuffer.set(blankedLineValues, bufferPosition);
+    function updateLineInvisible() {
+        // Nothing
+    }
+
+    function updateLineBorders() {
+        frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
         // Sprites deactivated
     }
+
+    function updateLineActiveBlanked() {
+        frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
+        // Sprites deactivated
+    }
+
 
     // TODO Consider Tables Address Masks
 
@@ -800,7 +855,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 256);
+        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
@@ -823,7 +878,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 256);
+        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
@@ -851,7 +906,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
         }
 
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 512);
+        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
     }
 
     function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
@@ -877,7 +932,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 512);
+        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
     }
 
     function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
@@ -898,7 +953,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++]];
         }
 
-        if (sprites2Enabled) updateSpritesLine(realLine, bufferPos - 256);
+        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
     }
 
     function updateLineModeT1Debug() {                                      // Text (Screen 0)
@@ -1764,7 +1819,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        ecFinishingClock = cpu.getCycles() * 6 + ny * nx * 15 * 6;
+        ecFinishingClock = getCyclesByCPU() + ny * nx * 88 + ny * 64;     	//  64R 24W   64L
     }
 
     function HMMV() {
@@ -1907,7 +1962,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcY += diy; destY += diy;
         }
 
-        ecFinishingClock = cpu.getCycles() * 6 + ny * nx * 23 * 6;
+        ecFinishingClock = getCyclesByCPU() + ny * nx * 120 + ny * 64;      // 64R 32R 24W   64L
     }
 
     function LMMV() {
@@ -2141,6 +2196,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         status[2] = (status[2] & ~0x81) | (ecTransferReady << 7) | (ecInProgress);
     }
 
+    function getCyclesByCPU() {
+        return cpu.getCycles() * 6;
+    }
+
     function refresh() {
         // Update frame image and send to monitor
         frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalMetrics.totalWidth, signalMetrics.totalHeight);
@@ -2232,19 +2291,27 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     var VRAM_SIZE = 0x20000;      // 128K
-
     var SPRITE_MAX_PRIORITY = 9000000000000000;
+    var CYCLES_PER_LINE = 1368;
+
+    var VRAM_SLOTS_BLANKING =   154;
+    var VRAM_SLOTS_SPRITES_OFF = 88;
+    var VRAM_SLOTS_SPRITES_ON =  31;
+
 
     // Registers, pointers, control data
 
     var desiredBaseFrequency;       // Will depend on VideoStandard and detected Host Native Video Frequency
-    var frame = 0;
+    var frame;
 
     var videoStandard;
     var vSynchMode;
 
     var bufferPosition;
     var currentScanline;
+
+    var cycles, lastCPUCyclesComputed;
+    var vramAccessSlotsPerLine, vramAccessSlots;     // VDP cycles and VRAM Access Slots counting, based on CPU cycles, used for Command duration control
 
     var startingScanline;
     var finishingScanline;
@@ -2263,13 +2330,13 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     var mode;
     var modeData;
+    var frameSection;
     var signalMetrics;
 
     var pendingModeChange;
     var pendingBlankingChange;
 
     var spritesCollided;
-    var sprites2Enabled;
     var sprites2LinePriorities, sprites2LineColors, sprites2GlobalPriority;
 
     var vramPointer = 0;
@@ -2316,7 +2383,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBlanked, updLineDeb: updateLineBlanked,     blankedLineValues: backdropFullLine512Values};
+        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     blankedLineValues: backdropFullLine512Values};
     });
 
     modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };
@@ -2330,7 +2397,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values };
     modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , blankedLineValues: backdropFullLine256Values };   // TODO bit 16 position!
 
-    var updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
+    var updateLine, updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
 
 
     // VRAM
@@ -2387,14 +2454,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        // TODO VideoStandard, ExecutingCommands
+        // TODO VideoStandard, ExecutingCommands, Cycles
         return {
             v1: isV9918,
             r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
             c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
             l: currentScanline, b: bufferPosition,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
-            ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine, sp2: sprites2Enabled,
+            ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
             vram: wmsx.Util.compressUInt8ArrayToStringBase64(vram)
         };
@@ -2406,7 +2473,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
         currentScanline = s.l; bufferPosition = s.b;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
-        horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil; sprites2Enabled = s.sp2;
+        horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
         vram = wmsx.Util.uncompressStringBase64ToUInt8Array(s.vram);         // Already UInt8Array
         initSprites2Control();
