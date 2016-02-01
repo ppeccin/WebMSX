@@ -27,8 +27,8 @@ wmsx.Slot = function() {
     this.cpuExtensionFinish = function(s) {
     };
 
-    this.dump = function(from, quant) {
-        wmsx.Util.dump(this.bytes, from, quant);
+    this.dump = function(from, chunk, quant) {
+        wmsx.Util.dump(this.bytes, from, chunk, quant);
     };
 
 };

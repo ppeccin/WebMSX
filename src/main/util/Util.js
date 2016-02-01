@@ -199,18 +199,16 @@ wmsx.Util = new function() {
         return -1;
     };
 
-    this.dump = function(arr, from, quant) {
+    this.dump = function(arr, from, chunk, quant) {
         var res = "";
-        var i;
-        from = from || 0;
-        var to = from + (quant || (arr.length - from));
-        for(i = from; i < to; i++) {
-            res = res + i.toString(16, 2) + " ";
-        }
-        res += "\n";
-        for(i = from; i < to; i++) {
-            var val = arr[i];
-            res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+        var p = from || 0;
+        quant = quant || 1;
+        for(var i = 0; i < quant; i++) {
+            for(var c = 0; c < chunk; c++) {
+                var val = arr[p++];
+                res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+            }
+            res = res + "   ";
         }
 
         console.log(res);

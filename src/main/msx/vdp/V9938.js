@@ -1,8 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // This implementation is line-accurate
-// Commands run instantaneously (take 0 cycles)
+// Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 // Original base clock: 10738635 Hz which is 3x CPU clock
+
 wmsx.V9938 = function(cpu, psg, isV9918) {
     var self = this;
 
@@ -81,7 +82,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // VRAM Write
     this.output98 = function(val) {
 
-        //if (vramPointer >= 0x10000 && vramPointer < 0x10800) wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
+        //if (vramPointer === 0x1e205 || vramPointer === 0x1e605) wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
         dataToWrite = null;
         vram[vramPointer++] = val;
@@ -213,7 +214,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     };
 
     this.reset = function() {
-        frame = cycles = lastCPUCyclesComputed = vramAccessSlots = 0;
+        frame = cycles = lastCPUCyclesComputed = 0;
         wmsx.Util.arrayFill(status, 0);
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
@@ -221,16 +222,15 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         nameTableAddressMask = colorTableAddressMask = patternTableAddressMask = spriteAttrTableAddressMask = spritePatternTableAddressMask = -1;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
-        ecInProgress = false; ecTransferReady = false; ecWriteHandler = null; ecReadHandler = null; ecFinishingClock = 0;
+        ecInProgress = false; ecTransferReady = false; ecWriteHandler = null; ecReadHandler = null; ecFinishingCycle = 0;
         backdropColor = 0;
         pendingBlankingChange = false;
-        frameSection = 0;
         initColorPalette();
         updateIRQ();
         updateMode();
         updateBackdropValue();
         updateSynchronization();
-        currentScanline = startingScanline; bufferPosition = 0;
+        currentScanline = startingScanline; bufferPosition = frameSection = 0;
     };
 
     function registerWrite(reg, val) {
@@ -437,18 +437,19 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         for (var i = 0; i < totalLines; i = i + 1) {
 
-            lineEvents();
-
-            if (currentScanline ===  startingScanline || currentScanline === finishingActiveScanline) frameSectionBorders();
+            // Verify and change sections of the screen
+            if (currentScanline ===  startingScanline) frameSectionTopBorder();
             else if (currentScanline === startingActiveScanline) frameSectionActive();
+            else if (currentScanline === finishingActiveScanline) frameSectionBottomBorder();
             else if (currentScanline === startingInvisibleScanline) frameSectionInvisible();
 
+            lineEvents();
             updateLine();
 
             currentScanline = currentScanline + 1;
-            bufferPosition += 544;
+            bufferPosition = bufferPosition + 544;
 
-            if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();                     // VR = 1, F = 1 at the last visible scanline
+            if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();                     // VR = 1, F = 1 at the end of last Active scanline
             else if (currentScanline === finishingScanline) finishFrame();
         }
     }
@@ -585,10 +586,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function updateCycles() {
         var cpuCycles = cpu.getCycles();
+        if (cpuCycles === lastCPUCyclesComputed) return;
+
         var elapsed = (cpuCycles - lastCPUCyclesComputed) * 6;
         lastCPUCyclesComputed = cpuCycles;
         cycles += elapsed;
-        vramAccessSlots += (elapsed / CYCLES_PER_LINE) * vramAccessSlotsPerLine;
     }
 
     // TODO Verify changing VideoStandard mid-frame
@@ -603,16 +605,24 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         videoSignal.setSignalMetrics(signalMetrics);
     }
 
-    function frameSectionInvisible() {
-        updateLine = updateLineInvisible;
-    }
-
-    function frameSectionBorders() {
+    function frameSectionTopBorder() {
+        frameSection = 0;
         updateLine = updateLineBorders;
     }
 
     function frameSectionActive() {
+        frameSection = 1;
         updateLine = updateLineActive;
+    }
+
+    function frameSectionBottomBorder() {
+        frameSection = 2;
+        updateLine = updateLineBorders;
+    }
+
+    function frameSectionInvisible() {
+        frameSection = 3;
+        updateLine = updateLineInvisible;
     }
 
     function updateLineActiveType() {
@@ -625,8 +635,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function updateSpritesLineType() {
         updateSpritesLine = modeData.isV9938
-            ? (register[8] & 0x02) === 0 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null       // SPD, SI, MAG
-            : updateSpritesLineFunctionsMode1[register[1] & 0x03];                                          // SI, MAG
+            ? (register[8] & 0x02) === 0 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null        // SPD, SI, MAG
+            : updateSpritesLineFunctionsMode1[register[1] & 0x03];                                           // SI, MAG
+
+        //logInfo("SpriteType: " + (updateSpritesLine && updateSpritesLine.name));
+
     }
 
     function updateTransparency() {
@@ -1695,8 +1708,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function HMMC() {
-        ecStart();
-
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
@@ -1721,17 +1732,21 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - y) : min(ecNY, y + 1);
 
         ecDestPos = y * nameTableLineBytes + x;
-        ecWriteStart(HMMCNextWrite);
+
+        ecWriteStart(HMMCNextWrite, ecNX, ecNY, 0, 50);         // 50L estimated
     }
 
     function HMMCNextWrite(co) {
+
+        //console.log("HMMC Write ecCX: " + ecCX + ", ecCY: " + ecCY);
+
         vram[ecDestPos] = co;
 
         ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDestPos -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecNY) ecFinish();
+            if (ecCY >= ecNY) { ecInProgress = false; ecWriteHandler = false; }
             else ecDestPos += ecDIY * nameTableLineBytes;
         } else {
             ecDestPos += ecDIX;
@@ -1739,8 +1754,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function YMMM() {
-        ecStart();
-
         // Collect parameters
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
         var destX = (((register[37] & 0x01) << 8) | register[36]);
@@ -1776,12 +1789,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        ecFinish();
+        ecStart(nx, ny, 40 + 24, 0);     	//  40R  24W   0L
     }
 
     function HMMM() {
-        ecStart();
-
         // Collect parameters
         var srcX = (((register[33] & 0x01) << 8) | register[32]);
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
@@ -1819,12 +1830,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        ecFinishingClock = getCyclesByCPU() + ny * nx * 88 + ny * 64;     	//  64R 24W   64L
+        ecStart(nx, ny, 64 + 24, 64);      	//  64R 24W   64L
     }
 
     function HMMV() {
-        ecStart();
-
         // Collect parameters
         var x = (((register[37] & 0x01) << 8) | register[36]);
         var y = (((register[39] & 0x03) << 8) | register[38]);
@@ -1860,12 +1869,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             pos += yStride;
         }
 
-        ecFinish();
+        ecStart(nx, ny, 48, 56);     	//  48W   56L
     }
 
     function LMMC() {
-        ecStart();
-
         // Collect parameters
         ecDestX = (((register[37] & 0x01) << 8) | register[36]);
         ecDestY = (((register[39] & 0x03) << 8) | register[38]);
@@ -1881,17 +1888,20 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecDestX) : min(ecNX, ecDestX + 1);
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecDestY) : min(ecNY, ecDestY + 1);
 
-        ecWriteStart(LMMCNextWrite);
+        ecWriteStart(LMMCNextWrite, ecNX, ecNY, 0, 60);     	//  60L estimated
     }
 
     function LMMCNextWrite(co) {
+
+        //console.log("LMMC Write ecCX: " + ecCX + ", ecCY: " + ecCY);
+
         logicalPSET(ecDestX, ecDestY, co, ecLogicalOperation);
 
         ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDestX -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecNY) ecFinish();
+            if (ecCY >= ecNY) { ecInProgress = false; ecWriteHandler = false; }
             else ecDestY += ecDIY;
         } else {
             ecDestX += ecDIX;
@@ -1899,8 +1909,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function LMCM() {
-        ecStart();
-
         // Collect parameters
         ecSrcX = (((register[33] & 0x01) << 8) | register[32]);
         ecSrcY = (((register[35] & 0x03) << 8) | register[34]);
@@ -1915,7 +1923,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecSrcX) : min(ecNX, ecSrcX + 1);
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecSrcY) : min(ecNY, ecSrcY + 1);
 
-        ecReadStart(LMCMNextRead);
+        ecReadStart(LMCMNextRead, ecNX, ecNY, 0, 60);     	//  60L estimated
     }
 
     function LMCMNextRead() {
@@ -1925,7 +1933,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         if (ecCX >= ecNX) {
             ecDestX -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecNY) ecFinish();
+            if (ecCY >= ecNY) { ecInProgress = false; ecReadHandler = false; }
             else ecDestY += ecDIY;
         } else {
             ecDestX += ecDIX;
@@ -1933,8 +1941,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function LMMM() {
-        ecStart();
-
         // Collect parameters
         var srcX = (((register[33] & 0x01) << 8) | register[32]);
         var srcY = (((register[35] & 0x03) << 8) | register[34]);
@@ -1962,12 +1968,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             srcY += diy; destY += diy;
         }
 
-        ecFinishingClock = getCyclesByCPU() + ny * nx * 120 + ny * 64;      // 64R 32R 24W   64L
+        ecStart(nx, ny, 64 + 32 + 24, 64);      // 64R 32R 24W   64L
     }
 
     function LMMV() {
-        ecStart();
-
         // Collect parameters
         var destX = (((register[37] & 0x01) << 8) | register[36]);
         var destY = (((register[39] & 0x03) << 8) | register[38]);
@@ -1994,12 +1998,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             destY += diy;
         }
 
-        ecFinish();
+        ecStart(nx, ny, 72 + 24, 64);      // 72R 24W   64L
     }
 
     function LINE() {
-        ecStart();
-
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
         var dy = (((register[39] & 0x03) << 8) | register[38]);
@@ -2035,12 +2037,10 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             }
         }
 
-        ecFinish();
+        ecStart(nx, ny, 88 + 24, 32);      // 88R 24W   32L
     }
 
     function PSET() {
-        ecStart();
-
         // Collect parameters
         var dx = (((register[37] & 0x01) << 8) | register[36]);
         var dy = (((register[39] & 0x03) << 8) | register[38]);
@@ -2051,14 +2051,14 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
         logicalPSET(dx, dy, co, op);
 
-        ecFinish();
+        ecStart(1, 1, 0, 50);      // 50L estimated
     }
 
     function STOP() {
 
         //console.log("STOP: " + ecWriteHandler);
 
-        ecFinish();
+        ecInProgress = false;
     }
 
     function normalPGET(x, y) {
@@ -2152,33 +2152,43 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         return a > b ? a : b;
     }
 
-    function ecStart() {
+    function ecStart(nx, ny, cyclesPerPixel, cyclesPerLine) {
         ecInProgress = true;
         ecTransferReady = false;
         ecWriteHandler = null;
         ecReadHandler = null;
+        ecEstimateDuration(ny, nx, cyclesPerPixel, cyclesPerLine);
     }
 
-    function ecWriteStart(handler) {
+    function ecEstimateDuration(ny, nx, cyclesPerPixel, cyclesPerLine) {
+        updateCycles();
+        ecFinishingCycle = cycles + ((ny * nx * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + ny * cyclesPerLine) | 0);
+    }
+
+    function ecWriteStart(handler, nx, ny, cyclesPerPixel, cyclesPerLine) {
+        ecStart(nx, ny, cyclesPerPixel, cyclesPerLine);
+
         // Init counters
         ecCX = 0;
         ecCY = 0;
         ecWriteHandler = handler;
+        ecTransferReady = true;
 
         // Perform first iteration with current data
         ecWriteHandler(register[44]);
-        ecTransferReady = true;
     }
 
-    function ecReadStart(handler) {
+    function ecReadStart(handler, nx, ny, cyclesPerPixel, cyclesPerLine) {
+        ecStart(nx, ny, cyclesPerPixel, cyclesPerLine);
+
         // Init counters
         ecCX = 0;
         ecCY = 0;
         ecReadHandler = handler;
+        ecTransferReady = true;
 
         // Perform first iteration
         ecReadHandler();
-        ecTransferReady = true;
     }
 
     function ecFinish() {
@@ -2190,14 +2200,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
     function ecUpdateStatus() {
         if (ecInProgress) {
-            if (cpu.getCycles() * 6 >= ecFinishingClock) ecFinish();
+            updateCycles();
+            if (cycles >= ecFinishingCycle) ecFinish();
         }
 
         status[2] = (status[2] & ~0x81) | (ecTransferReady << 7) | (ecInProgress);
-    }
-
-    function getCyclesByCPU() {
-        return cpu.getCycles() * 6;
     }
 
     function refresh() {
@@ -2290,14 +2297,11 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         sprites2GlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets!
     }
 
+
     var VRAM_SIZE = 0x20000;      // 128K
     var SPRITE_MAX_PRIORITY = 9000000000000000;
-    var CYCLES_PER_LINE = 1368;
-
-    var VRAM_SLOTS_BLANKING =   154;
-    var VRAM_SLOTS_SPRITES_OFF = 88;
-    var VRAM_SLOTS_SPRITES_ON =  31;
-
+    var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.09;
+    var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // User for savestates
 
     // Registers, pointers, control data
 
@@ -2311,7 +2315,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var currentScanline;
 
     var cycles, lastCPUCyclesComputed;
-    var vramAccessSlotsPerLine, vramAccessSlots;     // VDP cycles and VRAM Access Slots counting, based on CPU cycles, used for Command duration control
 
     var startingScanline;
     var finishingScanline;
@@ -2343,7 +2346,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var dataToWrite;
     var paletteFirstWrite;
 
-    var ecInProgress = false, ecTransferReady = false, ecWriteHandler = null, ecReadHandler = null, ecFinishingClock = 0;
+    var ecInProgress = false, ecTransferReady = false, ecWriteHandler = null, ecReadHandler = null, ecFinishingCycle = 0;
     var ecSrcX, ecSrcY, ecDestX, ecDestY, ecNX, ecNY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLogicalOperation;
 
     var backdropColor;
@@ -2454,33 +2457,39 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        // TODO VideoStandard, ExecutingCommands, Cycles
+        // TODO VideoStandard
         return {
             v1: isV9918,
-            r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
-            c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
             l: currentScanline, b: bufferPosition,
+            f: frameSection, c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
+            ecP: ecInProgress, ecT: ecTransferReady, ecW: ecWriteHandler && ecWriteHandler.name, ecR: ecReadHandler && ecReadHandler.name, ecF: ecFinishingCycle,
+            ecSX: ecSrcX, ecSY: ecSrcY, ecDX: ecDestX, ecDY: ecDestY, ecNX: ecNX, ecNY: ecNY, ecDIX: ecDIX, ecDIY: ecDIY, ecCX: ecCX, ecCY: ecCY, ecDP: ecDestPos, ecL: ecLogicalOperation,
+            r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
+            c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
             vram: wmsx.Util.compressUInt8ArrayToStringBase64(vram)
         };
     };
 
     this.loadState = function(s) {
         isV9918 = s.v1;
-        register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
-        color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
         currentScanline = s.l; bufferPosition = s.b;
+        frameSection = s.f; cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
+        ecInProgress = s.ecP; ecTransferReady = s.ecT; ecWriteHandler = COMMAND_HANDLERS[s.ecW]; ecReadHandler = COMMAND_HANDLERS[s.ecR]; ecFinishingCycle = s.ecF;
+        ecSrcX = s.ecSX; ecSrcY = s.ecSY; ecDestX = s.ecDX; ecDestY = s.ecDY; ecNX = s.ecNX; ecNY = s.ecNY; ecDIX = s.ecDIX; ecDIY = s.ecDIY; ecCX = s.ecCX; ecCY = s.ecCY; ecDestPos = s.ecDP; ecLogicalOperation = s.ecL;
+        register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
+        color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
         vram = wmsx.Util.uncompressStringBase64ToUInt8Array(s.vram);         // Already UInt8Array
-        initSprites2Control();
+        updateIRQ();
+        updateMode();
         updateBackdropColor();
         updateTransparency();
-        updateMode();
-        updateIRQ();
+        initSprites2Control();
     };
 
 

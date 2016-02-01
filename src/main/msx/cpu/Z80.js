@@ -425,7 +425,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAR() {
-        A = R & 0xff;
+        A = R & 0x7f;
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -2576,7 +2576,7 @@ wmsx.Z80 = function() {
             else if (instr.prefix === 0xfd)   instructionsFD[instr.opcode] = instr;
             else throw new Error("Invalid instruction prefix!");
         }
-    };
+    }
 
     // Savestate  -------------------------------------------
 
@@ -2584,7 +2584,7 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
-            T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
+            c: cycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
     };
@@ -2592,7 +2592,7 @@ wmsx.Z80 = function() {
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
-        T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
+        cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning  = s.ecr; extensionExtraIterations = s.eei;
     };
 
