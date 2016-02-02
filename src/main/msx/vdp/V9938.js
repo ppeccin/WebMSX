@@ -41,10 +41,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         videoStandard = pVideoStandard;
         updateSynchronization();
         updateSignalMetrics();
-        if (currentScanline >= finishingScanline) {             // When going from PAL to NTSC
-            currentScanline = startingScanline;
-            bufferPosition = 0;
-        }
+        if (currentScanline < startingScanline) currentScanline = startingScanline;          // When going from PAL to NTSC
     };
 
     this.setVSynchMode = function(mode) {
@@ -230,7 +227,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         updateMode();
         updateBackdropValue();
         updateSynchronization();
-        currentScanline = startingScanline; bufferPosition = frameSection = 0;
+        beginFrame();
     };
 
     function registerWrite(reg, val) {
@@ -348,6 +345,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
 
                 //console.log(">>>> VDP Command: " + val.toString(16));
 
+                // Starting a Command
                 switch (val & 0xf0) {
                     case 0xf0:
                         HMMC(); break;
@@ -432,52 +430,24 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     // Total frame lines: 262 for NTSC, 313 for PAL
     // Total frame CPU clocks: 59736 for NTSC, 71364 for PAL
     function frameEvents() {
+        var totalLines = scanlinesPerCycle;
+
         // Adjust for pulldown cadence if this frame is the first pulldown frame
-        var totalLines = scanlinesPerCycle + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
+        if (pulldownFirstFrameLinesAdjust && currentScanline == startingScanline) totalLines += pulldownFirstFrameLinesAdjust;
 
         for (var i = 0; i < totalLines; i = i + 1) {
-
-            // Verify and change sections of the screen
-            if (currentScanline ===  startingScanline) frameSectionTopBorder();
-            else if (currentScanline === startingActiveScanline) frameSectionActive();
-            else if (currentScanline === finishingActiveScanline) frameSectionBottomBorder();
-            else if (currentScanline === startingInvisibleScanline) frameSectionInvisible();
-
             lineEvents();
-            updateLine();
+            if (currentScanline >= startingTopBorderScanline) updateLine();
+
+            if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();
 
             currentScanline = currentScanline + 1;
-            bufferPosition = bufferPosition + 544;
 
-            if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();                     // VR = 1, F = 1 at the end of last Active scanline
-            else if (currentScanline === finishingScanline) finishFrame();
-        }
-    }
+            // Verify and change sections of the screen
+            if (currentScanline === startingActiveScanline)             enterSectionActive();
+            else if (currentScanline === startingBottomBorderScanline)  enterSectionBottomBorder();     // Will trigger Vertical Interrupt
 
-    // Total frame lines: 262 for NTSC, 313 for PAL
-    // Total frame CPU clocks: 59736 for NTSC, 71364 for PAL
-    function frameEventsOld() {
-        // Adjust for pulldown cadence if this frame is the first pulldown frame
-        var totalLines = scanlinesPerCycle + (currentScanline === startingScanline ? pulldownFirstFrameLinesAdjust : 0);
-
-        for (var i = 0; i < totalLines; i = i + 1) {
-
-            lineEvents();
-
-            if ((currentScanline >= startingActiveScanline) && (currentScanline < finishingActiveScanline)) {
-                updateLineActive();
-                currentScanline = currentScanline + 1;
-                bufferPosition += 544;
-                if (currentScanline === finishingActiveScanline) triggerVerticalInterrupt();                   // VR = 1, F = 1 at the last visible scanline
-            } else if (currentScanline >= startingInvisibleScanline) {
-                currentScanline = currentScanline + 1;
-                if (currentScanline === finishingScanline) finishFrame();
-            } else {
-                updateLineBorders();
-                currentScanline = currentScanline + 1;
-                bufferPosition += 544;
-            }
-
+            if (currentScanline === finishingScanline) finishFrame();
         }
     }
 
@@ -493,7 +463,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(15);
 
         // Left border: 56 clocks
-        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;             // VR = 0 at the scanline before first top border scanline
+        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;             // VR = 0 at the scanline before first Active scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;        // FH = 0 if interrupts disabled (IE1 = 0)
         if (pendingBlankingChange) updateLineActiveType();
 
@@ -510,8 +480,6 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         // End of Visible Display
 
         status[2] |= 0x20;                                                                  // HR = 1
-        if (currentScanline === horizontalIntLine) triggerHorizontalInterrupt();            // FH = 1 at the horizontal interrupt line
-
 
         // TODO 1 additional PSG clock each 8 lines
     }
@@ -593,36 +561,31 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         cycles += elapsed;
     }
 
-    // TODO Verify changing VideoStandard mid-frame
     function updateSignalMetrics() {
-        if (!isV9918) signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;       // Consider LN
+        if (!isV9918) signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;       // LN
 
-        startingScanline = -signalMetrics.vertBorderSize - verticalAdjust;
-        finishingScanline = videoStandard.totalHeight + startingScanline;
-        startingActiveScanline = 0;
-        finishingActiveScanline = startingActiveScanline + signalMetrics.height;
-        startingInvisibleScanline = finishingActiveScanline + signalMetrics.vertBorderSize - verticalAdjust;
+        startingTopBorderScanline = 0;
+        startingActiveScanline = startingTopBorderScanline + signalMetrics.vertBorderSize + verticalAdjust;
+        startingBottomBorderScanline = startingActiveScanline + signalMetrics.height;
+        finishingScanline = startingBottomBorderScanline + signalMetrics.vertBorderSize - verticalAdjust;
+        startingScanline = finishingScanline - videoStandard.totalHeight;
+
         videoSignal.setSignalMetrics(signalMetrics);
     }
 
-    function frameSectionTopBorder() {
-        frameSection = 0;
-        updateLine = updateLineBorders;
-    }
-
-    function frameSectionActive() {
-        frameSection = 1;
-        updateLine = updateLineActive;
-    }
-
-    function frameSectionBottomBorder() {
+    function enterSectionActive() {
         frameSection = 2;
-        updateLine = updateLineBorders;
+        updateLine = updateLineActive;
+
+        //logInfo("Active");
     }
 
-    function frameSectionInvisible() {
+    function enterSectionBottomBorder() {
         frameSection = 3;
-        updateLine = updateLineInvisible;
+        updateLine = updateLineBorders;
+        triggerVerticalInterrupt();             // VR = 1, F = 1 at the end of last Active scanline
+
+        //logInfo("Bottom Border");
     }
 
     function updateLineActiveType() {
@@ -682,20 +645,15 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
     }
 
-    function updateLineInvisible() {
-        // Nothing
-    }
-
     function updateLineBorders() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
-        // Sprites deactivated
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineActiveBlanked() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
-        // Sprites deactivated
+        bufferPosition = bufferPosition + 544;
     }
-
 
     // TODO Consider Tables Address Masks
 
@@ -710,7 +668,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop16(bufferPos); paintBackdrop24(bufferPos + 256 - 8); bufferPos += 16 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + (realLine >>> 3) * 40;              // line / 8 * 40
         var patPosFinal = patPos + 40;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -725,6 +683,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeT2() {                                           // Text (Screen 0 width 80)
@@ -738,7 +698,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop32(bufferPos); paintBackdrop48(bufferPos + 512 - 16); bufferPos += 32 + horizontalAdjust * 2;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + (realLine >>> 3) * 80;              // line / 8 * 80
         var patPosFinal = patPos + 80;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -753,6 +713,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeMC() {                                           // Multicolor (Screen 3)
@@ -766,7 +728,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
         var patPosFinal = patPos + 32;
         var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >> 2) & 0x01);    // (pattern line % 4) * 2
@@ -781,6 +743,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG1() {                                           // Graphics 1 (Screen 1)
@@ -794,7 +758,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
         var patPosFinal = patPos + 32;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -809,6 +773,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG2() {                                           // Graphics 2 (Screen 2)
@@ -822,7 +788,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
         var patPosFinal = patPos + 32;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -839,6 +805,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG3() {                                           // Graphics 3 (Screen 4)
@@ -852,7 +820,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
         var patPosFinal = patPos + 32;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -869,6 +837,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
@@ -882,7 +852,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = nameTableAddress + (realLine << 7);
         var pixelsPosFinal = pixelsPos + 128;
         while (pixelsPos < pixelsPosFinal) {
@@ -892,6 +862,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
@@ -908,7 +880,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 16 + horizontalAdjust * 2;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = nameTableAddress + (realLine << 7);
         var pixelsPosFinal = pixelsPos + 128;
         while (pixelsPos < pixelsPosFinal) {
@@ -920,6 +892,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
@@ -936,7 +910,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             bufferPos += 16 + horizontalAdjust * 2;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = nameTableAddress + (realLine << 8);
         var pixelsPosFinal = pixelsPos + 256;
         while (pixelsPos < pixelsPosFinal) {
@@ -946,6 +920,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
@@ -959,14 +935,16 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
-        var pixelsPos = nameTableAddress + (realLine << 8);                 // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var pixelsPos = nameTableAddress + (realLine << 8);
         var pixelsPosFinal = pixelsPos + 256;
         while (pixelsPos < pixelsPosFinal) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++]];
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeT1Debug() {                                      // Text (Screen 0)
@@ -980,7 +958,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop16(bufferPos); paintBackdrop24(bufferPos + 256 - 8); bufferPos += 16 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) * 40);            // line / 8 * 40
         var patPosFinal = patPos + 40;
         var lineInPattern = realLine & 0x07;
@@ -1008,6 +986,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeMCDebug() {                                      // Multicolor (Screen 3)
@@ -1023,7 +1003,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);            // line / 8 * 32
         var patPosFinal = patPos + 32;
         while (patPos < patPosFinal) {
@@ -1037,6 +1017,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
@@ -1050,7 +1032,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
         var lineInPattern = realLine & 0x07;
@@ -1073,6 +1055,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
@@ -1086,7 +1070,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
         }
 
-        var realLine = (currentScanline + register[23]) & 255;              // consider the scan start offset in reg23
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
         var patPos = nameTableAddress + ((realLine >>> 3) << 5);
@@ -1111,6 +1095,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function paintPattern(bufferPos, pattern, on, off) {
@@ -2208,10 +2194,18 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     }
 
     function refresh() {
-        // Update frame image and send to monitor
-        frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalMetrics.totalWidth, signalMetrics.totalHeight);
+        // Send frame to monitor
         videoSignal.newFrame(frameCanvas, 0, 0, signalMetrics.totalWidth, signalMetrics.totalHeight);
         refreshPending = false;
+    }
+
+    function beginFrame() {
+        frameSection = 0;
+
+        currentScanline = startingScanline;
+        bufferPosition = 0;
+
+        //logInfo("Begin Frame");
     }
 
     function finishFrame() {
@@ -2219,11 +2213,12 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
         //cpu.eval("cycles = 0");
 
-        // Begin a new frame
+        // Update frame image from backbuffer
+        frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalMetrics.totalWidth, signalMetrics.totalHeight);
         refreshPending = true;
-        currentScanline = startingScanline;
-        bufferPosition = 0;
         frame = frame + 1;
+
+        beginFrame();
     }
 
     function updateSpritePatternTables() {
@@ -2319,7 +2314,8 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
     var startingScanline;
     var finishingScanline;
     var startingActiveScanline;
-    var finishingActiveScanline;
+    var startingTopBorderScanline;
+    var startingBottomBorderScanline;
     var startingInvisibleScanline;
     var scanlinesPerCycle;
     var pulldownFirstFrameLinesAdjust;

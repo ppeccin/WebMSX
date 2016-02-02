@@ -8,12 +8,12 @@ wmsx.VideoStandard = {
         totalHeight: 262,
         targetFPS: 60,
         pulldowns: {
-            60: {
-                linesPerCycle: 262,             // Normal 1:1 cadence. V-synch to 60 Hz
+            60: { // Hz
+                linesPerCycle: 262,             // Normal 1:1 cadence. May V-synch to 60 Hz
                 firstFrameLinesAdjust: 0
             },
-            50: {
-                linesPerCycle: 314,             // 1:1:1:1:1:0 pulldown. 1 frame dropped each 6 frames
+            50: { // Hz
+                linesPerCycle: 314,             // 1:1:1:1:2 pulldown. 6 frames generated each 5 frames shown. 5th frame is not displayed
                 firstFrameLinesAdjust: +2
             }
         }
@@ -25,12 +25,12 @@ wmsx.VideoStandard = {
         totalHeight: 313,
         targetFPS: 50,                          // Original is 50.22364217252396, or 50.3846153846153847
         pulldowns: {
-            60: {
-                linesPerCycle: 261,             // 1:1:1:1:2 pulldown. 1 frame duplicated each 5 frames
+            60: { // Hz
+                linesPerCycle: 261,             // 0:1:1:1:1:1 pulldown. 5 frames generated each 6 frames shown. 1st frame repeats last frame
                 firstFrameLinesAdjust: -1
             },
-            50: {
-                linesPerCycle: 313,             // Normal 1:1 cadence. V-synch to 50 Hz
+            50: { // Hz
+                linesPerCycle: 313,             // Normal 1:1 cadence. May V-synch to 50 Hz
                 firstFrameLinesAdjust: 0
             }
         }
