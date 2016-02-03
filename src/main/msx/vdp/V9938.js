@@ -99,7 +99,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 status[0] = 0; updateIRQ(); break;
             case 1:
                 res = status[1];
-                status[1] &= ~0x81;                     // FL = 0
+                status[1] &= ~0x80;                     // FL = 0
                 if ((register[0] & 0x10) && (status[1] & 0x01)) {
                     status[1] &= ~0x01;                 // FH = 0, only if interrupts are enabled (IE1 = 1)
                     updateIRQ();
@@ -252,7 +252,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 //if (val !== old) logInfo("Register1: " + val.toString(16));
 
                 if ((val & 0x20) !== (old & 0x20)) updateIRQ();                             // IE0
-                if ((val & 0x40) !== (old & 0x40)) pendingBlankingChange = true;            // BL, only at next line
+                if ((val & 0x40) !== (old & 0x40)) {
+                    pendingBlankingChange = true;            // BL, only at next line
+
+                    //logInfo("Blanking: " + !!(val & 0x40));
+
+                }
                 if ((val & 0x18) !== (old & 0x18)) updateMode();                            // Mx
                 else if ((val & 0x03) !== (old & 0x03)) updateSpritesLineType();            // SI, MAG. Already ok if mode was updated
                 break;
@@ -261,7 +266,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 nameTableAddress = add & modeData.nameTBase;
                 nameTableAddressMask = add & ~modeData.nameTBase | nameTableAddressBaseMask;
 
-                //logInfo("Setting: " + val.toString(16) + " to NameTableAddress: " + nameTableAddress.toString(16));
+                //logInfo(/* "Setting: " + val.toString(16) + " to " + */ "NameTableAddress: " + nameTableAddress.toString(16));
 
                 break;
             case 3:
@@ -437,18 +442,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         if (pulldownFirstFrameLinesAdjust && currentScanline == startingScanline) totalLines += pulldownFirstFrameLinesAdjust;
 
         for (var i = totalLines; i > 0; i = i - 1) {
-            lineEvents();
-            if (currentScanline >= startingTopBorderScanline) {
-                updateLine();
-                bufferPosition = bufferPosition + 544;
-                if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();       // TODO Consider register[23] ???
-            }
-
-            currentScanline = currentScanline + 1;
-
             // Verify and change sections of the screen
             if (currentScanline === startingActiveScanline) enterActiveDisplay();
-            else if (currentScanline === startingBottomBorderScanline)  enterBottomBorder();     // Will trigger Vertical Interrupt
+            else if (currentScanline === startingBottomBorderScanline) enterBottomBorder();     // Will trigger Vertical Interrupt
+
+            lineEvents();
+
+            currentScanline = currentScanline + 1;
 
             if (currentScanline === finishingScanline) finishFrame();
         }
@@ -458,31 +458,47 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
     // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
     function lineEvents() {
-        // Right border: 59 clocks
-        // Right erase: 27 clocks
+        // Start of line
+        //lineStartCPUCycles = cpu.getCycles();
+
+        if (pendingBlankingChange) updateLineActiveType();
+
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
 
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(15);
-
-        // Left border: 56 clocks
-        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;             // VR = 0 at the scanline before first Active scanline
-        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;        // FH = 0 if interrupts disabled (IE1 = 0)
-        if (pendingBlankingChange) updateLineActiveType();
-
-        cpuClockPulses(9);
-
-        // Visible Display: 1024 clocks
-        status[2] &= ~0x20;                                                                 // HR = 0
-
-        cpuClockPulses(8);  psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
         cpuClockPulses(33); psgClockPulse();
 
-        // End of Visible Display
+        // Left border: 56 clocks
 
-        status[2] |= 0x20;                                                                  // HR = 1
+        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
+        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
+        if (currentScanline === startingBottomBorderScanline) triggerVerticalInterrupt();           // VR = 1, F = 1 at the first Bottom Border line
+
+        cpuClockPulses(10);
+
+        // Visible Display: 1024 clocks
+
+        status[2] &= ~0x20;                                                                         // HR = 0
+
+        cpuClockPulses(22); psgClockPulse();
+        cpuClockPulses(33); psgClockPulse();
+        cpuClockPulses(32); psgClockPulse();
+
+        if (currentScanline >= startingTopBorderScanline) updateLine();                             // ~ Middle of Display area
+
+        cpuClockPulses(33); psgClockPulse();
+        cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(18);
+
+        status[2] |= 0x20;                                                                          // HR = 1
+        if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();
+
+        // Right border: 59 clocks
+        // Right erase: 27 clocks
+
+        cpuClockPulses(15);  psgClockPulse();
+
+        // End of line
 
         // TODO 1 additional PSG clock each 8 lines
     }
@@ -591,7 +607,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function enterBottomBorder() {
         updateLine = updateLineBorders;
-        triggerVerticalInterrupt();             // VR = 1, F = 1 at the end of last Active scanline
 
         //logInfo("Bottom Border");
     }
@@ -605,9 +620,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function updateSpritesLineType() {
-        updateSpritesLine = modeData.isV9938
-            ? (register[8] & 0x02) === 0 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null        // SPD, SI, MAG
-            : updateSpritesLineFunctionsMode1[register[1] & 0x03];                                           // SI, MAG
+        updateSpritesLine =
+              modeData.spriteMode === 2 ? (register[8] & 0x02) === 0 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null       // SPD, SI, MAG
+            : modeData.spriteMode === 1 ? updateSpritesLineFunctionsMode1[register[1] & 0x03]                                           // SI, MAG
+            : null;
 
         //logInfo("SpriteType: " + (updateSpritesLine && updateSpritesLine.name));
 
@@ -655,10 +671,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function updateLineBorders() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineActiveBlanked() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
+        bufferPosition = bufferPosition + 544;
     }
 
     // TODO Consider Tables Address Masks
@@ -689,6 +707,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeT2() {                                           // Text (Screen 0 width 80)
@@ -717,6 +736,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeMC() {                                           // Multicolor (Screen 3)
@@ -745,6 +765,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG1() {                                           // Graphics 1 (Screen 1)
@@ -773,6 +795,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG2() {                                           // Graphics 2 (Screen 2)
@@ -803,6 +827,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG3() {                                           // Graphics 3 (Screen 4)
@@ -833,6 +859,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
@@ -856,6 +884,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
@@ -884,6 +914,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
@@ -910,6 +942,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
@@ -931,6 +965,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeT1Debug() {                                      // Text (Screen 0)
@@ -972,6 +1008,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeMCDebug() {                                      // Multicolor (Screen 3)
@@ -1001,6 +1039,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
@@ -1037,6 +1077,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function updateLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
@@ -1075,6 +1117,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         updateSpritesLine(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + 544;
     }
 
     function paintPattern(bufferPos, pattern, on, off) {
@@ -2357,19 +2401,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     blankedLineValues: backdropFullLine512Values};
+        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM:           0, sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     spriteMode: 0 };
     });
 
-    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, blankedLineValues: backdropFullLine256Values };
-    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , blankedLineValues: backdropFullLine512Values };
-    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, blankedLineValues: backdropFullLine256Values };
-    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, blankedLineValues: backdropFullLine256Values };
-    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, blankedLineValues: backdropFullLine256Values };
-    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , blankedLineValues: backdropFullLine256Values };
-    modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , blankedLineValues: backdropFullLine256Values };
-    modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , blankedLineValues: backdropFullLine512Values };
-    modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , blankedLineValues: backdropFullLine512Values };
-    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , blankedLineValues: backdropFullLine256Values };   // TODO bit 16 position!
+    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, spriteMode: 0 };
+    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprAttrTBaseM:           0, sprPatTBase:        0, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , spriteMode: 0 };
+    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, spriteMode: 1 };
+    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, spriteMode: 1 };
+    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprAttrTBaseM: ~(-1 <<  7), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, spriteMode: 1 };
+    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:    0, nameLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , spriteMode: 2 };
+    modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , spriteMode: 2 };
+    modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines: 1024, nameLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , spriteMode: 2 };
+    modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , spriteMode: 2 };
+    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, nameTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprAttrTBaseM: ~(-1 <<  9), sprPatTBase: -1 << 11, nameLines:  512, nameLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , spriteMode: 2 };   // TODO bit 16 position!
 
     var updateLine, updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
 
@@ -2415,6 +2459,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var debugBackdropValue    = 0xfe2a2a2a;
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
+
+    var lineStartCPUCycles = 0;
 
 
     // Connections
@@ -2468,7 +2514,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 
     function logInfo(text) {
-        console.log(text + ". Frame: " + frame + ", line: " + currentScanline);
+        console.log(text + ". Frame: " + frame + ", line: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - lineStartCPUCycles));
     }
     this.logInfo = logInfo;
 
