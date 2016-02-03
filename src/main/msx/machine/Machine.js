@@ -39,6 +39,8 @@ wmsx.Machine = function() {
         bus.reset();
         vdp.reset();
         cpu.reset();
+        videoStandardSoft = null;
+        if (videoStandardIsAuto) setVideoStandardAuto();
     };
 
     this.userPowerOn = function(autoRunCassette) {
@@ -107,12 +109,21 @@ wmsx.Machine = function() {
         this.getVideoOutput().showOSD(message, overlap);
     };
 
+    this.setVideoStandardSoft = function(pVideoStandard) {
+        videoStandardSoft = pVideoStandard;
+        if (videoStandardIsAuto && videoStandard !== pVideoStandard) setVideoStandard(pVideoStandard);
+        else if (!videoStandardIsAuto && videoStandard !== pVideoStandard)
+                self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true);
+    };
+
     this.loading = function(boo) {
         isLoading = boo;
     };
 
+
     var setBIOS = function(bios) {
         bus.insertSlot(bios || wmsx.SlotEmpty.singleton, BIOS_SLOT);
+        videoStandardSoft = null;
         setVideoStandardAuto();
     };
 
@@ -146,7 +157,7 @@ wmsx.Machine = function() {
     };
 
     var setVideoStandard = function(pVideoStandard) {
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "") + pVideoStandard.desc, false);
+        self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, false);
         if (videoStandard === pVideoStandard) return;
 
         videoStandard = pVideoStandard;
@@ -156,9 +167,17 @@ wmsx.Machine = function() {
 
     var setVideoStandardAuto = function() {
         videoStandardIsAuto = true;
-        var bios = getBIOS();
-        if (bios) bios.setVideoStandardUseOriginal();
-        setVideoStandard((bios && bios.originalVideoStandard) || wmsx.VideoStandard.NTSC);
+        var newStandard = wmsx.VideoStandard.NTSC;          // Default in case we can't discover it
+        if (videoStandardSoft) {
+            newStandard = videoStandardSoft;
+        } else {
+            var bios = getBIOS();
+            if (bios) {
+                bios.setVideoStandardUseOriginal();
+                newStandard = bios.originalVideoStandard;
+            }
+        }
+        setVideoStandard(newStandard);
     };
 
     var setVideoStandardForced = function(forcedVideoStandard) {
@@ -191,6 +210,7 @@ wmsx.Machine = function() {
             c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
+            vss: videoStandardSoft && videoStandardSoft.name,
             dd: diskDriveSocket.getDrive().saveState(),
             ct: cassetteSocket.getDeck().saveState()
         };
@@ -199,6 +219,7 @@ wmsx.Machine = function() {
     var loadState = function(state) {
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
+        videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
         ramSlot = state.rs === undefined ? 1 : state.rs;                 // Backward compatibility
         cartridge0Slot = state.c0s === undefined ? 2 : state.c0s;        // Backward compatibility
         bus.loadState(state.b);
@@ -237,7 +258,7 @@ wmsx.Machine = function() {
         self.cpu = cpu = new wmsx.Z80();
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
-        self.vdp = vdp = new wmsx.V9938(cpu, psg, !MSX2);
+        self.vdp = vdp = new wmsx.V9938(self, cpu, psg, !MSX2);
         if (MSX2) self.rtc = rtc = new wmsx.RTC();
 
         self.bus = bus = new wmsx.EngineBUS(self, cpu);
@@ -295,6 +316,7 @@ wmsx.Machine = function() {
     var diskDriveSocket;
 
     var videoStandard;
+    var videoStandardSoft;
     var videoStandardIsAuto = false;
     var vSynchMode;
 

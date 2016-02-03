@@ -4,7 +4,7 @@
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 // Original base clock: 10738635 Hz which is 3x CPU clock
 
-wmsx.V9938 = function(cpu, psg, isV9918) {
+wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
     function init() {
@@ -308,6 +308,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
                 break;
             case 9:
                 if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
+                if ((val & 0x02) !== (old & 0x02)) updateVideoStandardSoft();               // NT
                 break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
@@ -440,7 +441,7 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
             if (currentScanline >= startingTopBorderScanline) {
                 updateLine();
                 bufferPosition = bufferPosition + 544;
-                if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();
+                if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();       // TODO Consider register[23] ???
             }
 
             currentScanline = currentScanline + 1;
@@ -561,6 +562,13 @@ wmsx.V9938 = function(cpu, psg, isV9918) {
         var elapsed = (cpuCycles - lastCPUCyclesComputed) * 6;
         lastCPUCyclesComputed = cpuCycles;
         cycles += elapsed;
+    }
+
+    function updateVideoStandardSoft() {
+        var pal = (register[9] & 0x02);
+        machine.setVideoStandardSoft(pal ? wmsx.VideoStandard.PAL : wmsx.VideoStandard.NTSC);
+
+        //logInfo("VDP VideoStandard: " + (pal ? "PAL" : "NTSC"));
     }
 
     function updateSignalMetrics() {
