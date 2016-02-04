@@ -262,7 +262,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 else if ((val & 0x03) !== (old & 0x03)) updateSpritesLineType();            // SI, MAG. Already ok if mode was updated
                 break;
             case 2:
-                add = (val << 10) & 0x1ffff;
+                add = (mode === 0x07 ? (val << 11) | 0x400 : val << 10) & 0x1ffff;          // Mode G7 has different A16 position
                 layoutTableAddress = add & modeData.layTBase;
                 layoutTableAddressMask = add | layoutTableAddressMaskBase;
 
@@ -541,7 +541,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         modeData = modes[mode];
 
         // Update Tables base addresses
-        add = (register[2] << 10) & 0x1ffff;
+        add = (mode === 0x07 ? (register[2] << 11) | 0x400 : register[2] << 10) & 0x1ffff;       // Mode G7 has different A16 position
         layoutTableAddress = add & modeData.layTBase;
         layoutTableAddressMask = add | layoutTableAddressMaskBase;
         add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
@@ -674,8 +674,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
         bufferPosition = bufferPosition + 544;
     }
-
-    // TODO Consider Tables Address Masks
 
     function updateLineModeT1() {                                           // Text (Screen 0 width 40)
         var bufferPos = bufferPosition;
@@ -2373,11 +2371,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var signalMetrics512 =    { width: 512, height: 192, vertBorderSize: 18, totalWidth: 544, totalHeight: 228 };
     var signalMetrics512e =   { width: 512, height: 212, vertBorderSize:  8, totalWidth: 544, totalHeight: 228 };
 
-    var updateSpritesLineFunctionsMode1 = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
-    var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
-
-    var layoutTableLines, layoutTableLineBytes;
-
     var layoutTableAddress;                         // Dynamic values, set by software
     var colorTableAddress;
     var patternTableAddress;
@@ -2392,6 +2385,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var colorTableAddressMaskBase = ~(-1 << 6);
     var patternTableAddressMaskBase = ~(-1 << 11);
 
+    var layoutTableLines, layoutTableLineBytes;
+
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
         return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLines:    0, layLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     spriteMode: 0 };
     });
@@ -2405,12 +2400,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines: 1024, layLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , spriteMode: 2 };
     modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines: 1024, layLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , spriteMode: 2 };
     modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines:  512, layLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , spriteMode: 2 };
-    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines:  512, layLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , spriteMode: 2 };   // TODO bit 16 position!
+    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines:  512, layLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , spriteMode: 2 };
 
     var updateLine, updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
-
-
-    // VRAM
+    var updateSpritesLineFunctionsMode1 = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
+    var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
     var vram = new Uint8Array(VRAM_SIZE);
     this.vram = vram;
