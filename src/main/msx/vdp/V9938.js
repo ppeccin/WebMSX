@@ -444,7 +444,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = totalLines; i > 0; i = i - 1) {
             // Verify and change sections of the screen
             if (currentScanline === startingActiveScanline) enterActiveDisplay();
-            else if (currentScanline === startingBottomBorderScanline) enterBottomBorder();     // Will trigger Vertical Interrupt
+            else if (currentScanline === startingBottomBorderScanline) enterBottomBorder();
 
             lineEvents();
 
@@ -491,7 +491,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         cpuClockPulses(18);
 
         status[2] |= 0x20;                                                                          // HR = 1
-        if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();
+        if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();   // FH = 1
 
         // Right border: 59 clocks
         // Right erase: 27 clocks
@@ -1741,7 +1741,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         ecDestPos = y * nameTableLineBytes + x;
 
-        ecWriteStart(HMMCNextWrite, ecNX, ecNY, 0, 50);         // 50L estimated
+        ecWriteStart(HMMCNextWrite, ecNX * ecNY, 0, 1, 50);         // 50L estimated
     }
 
     function HMMCNextWrite(co) {
@@ -1797,7 +1797,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        ecStart(nx, ny, 40 + 24, 0);     	//  40R  24W   0L
+        ecStart(nx * ny, 40 + 24, ny, 0);     	//  40R  24W   0L
     }
 
     function HMMM() {
@@ -1838,7 +1838,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             srcPos += yStride; destPos += yStride;
         }
 
-        ecStart(nx, ny, 64 + 24, 64);      	//  64R 24W   64L
+        ecStart(nx * ny, 64 + 24, ny, 64);      	//  64R 24W   64L
     }
 
     function HMMV() {
@@ -1877,7 +1877,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             pos += yStride;
         }
 
-        ecStart(nx, ny, 48, 56);     	//  48W   56L
+        ecStart(nx * ny, 48, ny, 56);     	//  48W   56L
     }
 
     function LMMC() {
@@ -1896,7 +1896,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecDestX) : min(ecNX, ecDestX + 1);
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecDestY) : min(ecNY, ecDestY + 1);
 
-        ecWriteStart(LMMCNextWrite, ecNX, ecNY, 0, 60);     	//  60L estimated
+        ecWriteStart(LMMCNextWrite, ecNX * ecNY, 0, 1, 60);     	//  60L estimated
     }
 
     function LMMCNextWrite(co) {
@@ -1931,7 +1931,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecSrcX) : min(ecNX, ecSrcX + 1);
         ecNY = ecDIY === 1 ? min(ecNY, nameTableLines - ecSrcY) : min(ecNY, ecSrcY + 1);
 
-        ecReadStart(LMCMNextRead, ecNX, ecNY, 0, 60);     	//  60L estimated
+        ecReadStart(LMCMNextRead, ecNX * ecNY, 0, 1, 60);     	//  60L estimated
     }
 
     function LMCMNextRead() {
@@ -1976,7 +1976,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             srcY += diy; destY += diy;
         }
 
-        ecStart(nx, ny, 64 + 32 + 24, 64);      // 64R 32R 24W   64L
+        ecStart(nx * ny, 64 + 32 + 24, ny, 64);      // 64R 32R 24W   64L
     }
 
     function LMMV() {
@@ -2006,7 +2006,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             destY += diy;
         }
 
-        ecStart(nx, ny, 72 + 24, 64);      // 72R 24W   64L
+        ecStart(nx * ny, 72 + 24, ny, 64);      // 72R 24W   64L
     }
 
     function LINE() {
@@ -2045,7 +2045,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
         }
 
-        ecStart(nx, ny, 88 + 24, 32);      // 88R 24W   32L
+        ecStart(nx, 88 + 24, ny, 32);      // 88R 24W   32L
     }
 
     function PSET() {
@@ -2059,7 +2059,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         logicalPSET(dx, dy, co, op);
 
-        ecStart(1, 1, 0, 50);      // 50L estimated
+        ecStart(0, 0, 1, 50);      // 50L estimated
     }
 
     function STOP() {
@@ -2160,21 +2160,21 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         return a > b ? a : b;
     }
 
-    function ecStart(nx, ny, cyclesPerPixel, cyclesPerLine) {
+    function ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine) {
         ecInProgress = true;
         ecTransferReady = false;
         ecWriteHandler = null;
         ecReadHandler = null;
-        ecEstimateDuration(ny, nx, cyclesPerPixel, cyclesPerLine);
+        ecEstimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine);
     }
 
-    function ecEstimateDuration(ny, nx, cyclesPerPixel, cyclesPerLine) {
+    function ecEstimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine) {
         updateCycles();
-        ecFinishingCycle = cycles + ((ny * nx * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + ny * cyclesPerLine) | 0);
+        ecFinishingCycle = cycles + ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) | 0);
     }
 
-    function ecWriteStart(handler, nx, ny, cyclesPerPixel, cyclesPerLine) {
-        ecStart(nx, ny, cyclesPerPixel, cyclesPerLine);
+    function ecWriteStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
+        ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine);
 
         // Init counters
         ecCX = 0;
@@ -2186,8 +2186,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         ecWriteHandler(register[44]);
     }
 
-    function ecReadStart(handler, nx, ny, cyclesPerPixel, cyclesPerLine) {
-        ecStart(nx, ny, cyclesPerPixel, cyclesPerLine);
+    function ecReadStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
+        ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine);
 
         // Init counters
         ecCX = 0;
@@ -2315,7 +2315,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var VRAM_SIZE = 0x20000;      // 128K
     var SPRITE_MAX_PRIORITY = 9000000000000000;
-    var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.09;
+    var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
     var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // User for savestates
 
     // Registers, pointers, control data
