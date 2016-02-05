@@ -1712,14 +1712,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    // TODO Implement Command end status
-
     function ecGetSX() {
         return (((register[33] & 0x01) << 8) | register[32]);
     }
 
     function ecGetSY() {
         return (((register[35] & 0x03) << 8) | register[34]);
+    }
+    function ecSetSY(val) {
+        register[35] = (val >> 8) & 0x03; register[34] = val & 0xff;
     }
 
     function ecGetDX() {
@@ -1729,6 +1730,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function ecGetDY() {
         return ((register[39] & 0x03) << 8) | register[38];
     }
+    function ecSetDY(val) {
+        register[39] = (val >> 8) & 0x03; register[38] = val & 0xff;
+    }
 
     function ecGetNX() {
         return (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
@@ -1736,6 +1740,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function ecGetNY() {
         return (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
+    }
+    function ecSetNY(val) {
+        register[43] = (val >> 8) & 0x03; register[42] = val & 0xff;
     }
 
     function ecGetDIX() {
@@ -1748,6 +1755,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function ecGetCLR() {
         return register[44];
+    }
+    function ecSetCLR(val) {
+        register[44] = val;
     }
 
     function ecGetMAJ() {
@@ -1777,13 +1787,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function HMMC() {
         // Collect parameters
         var dx = ecGetDX();
-        var dy = ecGetDY();
+        ecDY = ecGetDY();
         ecNX = ecGetNX();
         ecNY = ecGetNY();
         ecDIX = ecGetDIX();
         ecDIY = ecGetDIY();
 
-        //console.log("HMMC Start dx: " + dx + ", dy: " + dy + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+        //console.log("HMMC Start dx: " + dx + ", dy: " + ecDY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
 
         // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
         if (dx >= signalMetrics.width) {
@@ -1802,11 +1812,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         ecNX = ecDIX === 1 ? min(ecNX, layoutLineBytes - dx) : min(ecNX, dx + 1);
-        ecNY = ecDIY === 1 ? ecNY : min(ecNY, dy + 1);              // Top limit only
+        ecENY = ecDIY === 1 ? ecNY : min(ecNY, ecDY + 1);              // Top limit only
 
-        ecDestPos = dy * layoutLineBytes + dx;
+        ecDestPos = ecDY * layoutLineBytes + dx;
 
-        ecWriteStart(HMMCNextWrite, ecNX * ecNY, 0, 1, 50);         // 50L estimated
+        ecWriteStart(HMMCNextWrite, ecNX * ecENY, 0, 1, 50);         // 50L estimated
     }
 
     function HMMCNextWrite(co) {
@@ -1819,11 +1829,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         if (ecCX >= ecNX) {
             ecDestPos -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecNY) { ecInProgress = false; ecWriteHandler = false; }
+            if (ecCY >= ecENY) { ecInProgress = false; ecWriteHandler = false; }
             else ecDestPos += ecDIY * layoutLineBytes;
         } else {
             ecDestPos += ecDIX;
         }
+
+        // Set visible changed register state
+        ecSetDY(ecDY + ecDIY * ecCY);
+        ecSetNY(ecNY - ecCY);
     }
 
     function YMMM() {
@@ -1854,21 +1868,26 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         var nx = dix === 1 ? layoutLineBytes - dx : dx + 1;
-        ny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
+        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
 
         // Perform operation
         var sPos = sy * layoutLineBytes + dx;
         var dPos = dy * layoutLineBytes + dx;
         var yStride = -(dix * nx) + layoutLineBytes * diy;
-        for (var cy = 0; cy < ny; cy = cy + 1) {
-            for (var cx = 0; cx < nx; cx = cx + 1) {
+        for (var cy = eny; cy > 0; cy = cy - 1) {
+            for (var cx = nx; cx > 0; cx = cx - 1) {
                 vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
             sPos += yStride; dPos += yStride;
         }
 
-        ecStart(nx * ny, 40 + 24, ny, 0);     	//  40R  24W   0L
+        // Final registers state
+        ecSetSY(sy + diy * eny);
+        ecSetDY(dy + diy * eny);
+        ecSetNY(ny - eny);
+
+        ecStart(nx * eny, 40 + 24, eny, 0);     	//  40R  24W   0L
     }
 
     function HMMM() {
@@ -1901,21 +1920,26 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         nx = dix === 1 ? min(nx, layoutLineBytes - max(sx, dx)) : min(nx, min(sx, dx) + 1);
-        ny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
+        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
 
         // Perform operation
         var sPos = sy * layoutLineBytes + sx;
         var dPos = dy * layoutLineBytes + dx;
         var yStride = -(dix * nx) + layoutLineBytes * diy;
-        for (var cy = 0; cy < ny; cy = cy + 1) {
-            for (var cx = 0; cx < nx; cx = cx + 1) {
+        for (var cy = eny; cy > 0; cy = cy - 1) {
+            for (var cx = nx; cx > 0; cx = cx - 1) {
                 vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
             sPos += yStride; dPos += yStride;
         }
 
-        ecStart(nx * ny, 64 + 24, ny, 64);      	//  64R 24W   64L
+        // Final registers state
+        ecSetSY(sy + diy * eny);
+        ecSetDY(dy + diy * eny);
+        ecSetNY(ny - eny);
+
+        ecStart(nx * eny, 64 + 24, eny, 64);      	//  64R 24W   64L
     }
 
     function HMMV() {
@@ -1947,20 +1971,24 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         nx = dix === 1 ? min(nx, layoutLineBytes - dx) : min(nx, dx + 1);
-        ny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
+        var eny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
 
         // Perform operation
         var pos = dy * layoutLineBytes + dx;
         var yStride = -(dix * nx) + layoutLineBytes * diy;
-        for (var cy = 0; cy < ny; cy = cy + 1) {
-            for (var cx = 0; cx < nx; cx = cx + 1) {
+        for (var cy = eny; cy > 0; cy = cy - 1) {
+            for (var cx = nx; cx > 0; cx = cx - 1) {
                 vram[pos & VRAM_LIMIT] = co;
                 pos += dix;
             }
             pos += yStride;
         }
 
-        ecStart(nx * ny, 48, ny, 56);     	//  48W   56L
+        // Final registers state
+        ecSetDY(dy + diy * eny);
+        ecSetNY(ny - eny);
+
+        ecStart(nx * eny, 48, eny, 56);     	//  48W   56L
     }
 
     function LMMC() {
@@ -1982,9 +2010,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecDX) : min(ecNX, ecDX + 1);
-        ecNY = ecDIY === 1 ? ecNY : min(ecNY, ecDY + 1);            // Top limit only
+        ecENY = ecDIY === 1 ? ecNY : min(ecNY, ecDY + 1);            // Top limit only
 
-        ecWriteStart(LMMCNextWrite, ecNX * ecNY, 0, 1, 60);     	//  60L estimated
+        ecWriteStart(LMMCNextWrite, ecNX * ecENY, 0, 1, 60);     	//  60L estimated
     }
 
     function LMMCNextWrite(co) {
@@ -1996,12 +2024,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDX -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecNY) { ecInProgress = false; ecWriteHandler = false; }
-            else ecDY += ecDIY;
+            ecCX = 0; ecCY = ecCY + 1; ecDY += ecDIY;
+            if (ecCY >= ecENY) { ecInProgress = false; ecWriteHandler = false; }
         } else {
             ecDX += ecDIX;
         }
+
+        // Set visible changed register state
+        ecSetDY(ecDY);
+        ecSetNY(ecNY - ecCY);
     }
 
     function LMCM() {
@@ -2022,9 +2053,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecSX) : min(ecNX, ecSX + 1);
-        ecNY = ecDIY === 1 ? ecNY : min(ecNY, ecSY + 1);            // Top limit only
+        ecENY = ecDIY === 1 ? ecNY : min(ecNY, ecSY + 1);            // Top limit only
 
-        ecReadStart(LMCMNextRead, ecNX * ecNY, 0, 1, 60);           // 60L estimated
+        ecReadStart(LMCMNextRead, ecNX * ecENY, 0, 1, 60);           // 60L estimated
     }
 
     function LMCMNextRead() {
@@ -2032,13 +2063,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
-            ecDX -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecNY) { ecInProgress = false; ecReadHandler = false; }
-            else ecDY += ecDIY;
+            ecSX -= ecDIX * (ecNX - 1);
+            ecCX = 0; ecCY = ecCY + 1; ecSY += ecDIY;
+            if (ecCY >= ecENY) { ecInProgress = false; ecReadHandler = false; }
         } else {
-            ecDX += ecDIX;
+            ecSX += ecDIX;
         }
+
+        // Set visible changed register state
+        ecSetSY(ecSY);
+        ecSetNY(ecNY - ecCY);
     }
 
     function LMMM() {
@@ -2062,11 +2096,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         nx = dix === 1 ? min(nx, signalMetrics.width - max(sx, dx)) : min(nx, min(sx, dx) + 1);
-        ny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
+        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
 
         // Perform operation
-        for (var cy = 0; cy < ny; cy = cy + 1) {
-            for (var cx = 0; cx < nx; cx = cx + 1) {
+        for (var cy = eny; cy > 0; cy = cy - 1) {
+            for (var cx = nx; cx > 0; cx = cx - 1) {
                 logicalPCOPY(dx, dy, sx, sy, op);
                 sx += dix; dx += dix;
             }
@@ -2074,7 +2108,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             sy += diy; dy += diy;
         }
 
-        ecStart(nx * ny, 64 + 32 + 24, ny, 64);      // 64R 32R 24W   64L
+        // Final registers state
+        ecSetSY(sy);
+        ecSetDY(dy);
+        ecSetNY(ny - eny);
+
+        ecStart(nx * eny, 64 + 32 + 24, eny, 64);      // 64R 32R 24W   64L
     }
 
     function LMMV() {
@@ -2097,11 +2136,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Limit rect size
         nx = dix === 1 ? min(nx, signalMetrics.width - dx) : min(nx, dx + 1);
-        ny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
+        var eny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
 
         // Perform operation
-        for (var cy = 0; cy < ny; cy = cy + 1) {
-            for (var cx = 0; cx < nx; cx = cx + 1) {
+        for (var cy = eny; cy > 0; cy = cy - 1) {
+            for (var cx = nx; cx > 0; cx = cx - 1) {
                 logicalPSET(dx, dy, co, op);
                 dx += dix;
             }
@@ -2109,7 +2148,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             dy += diy;
         }
 
-        ecStart(nx * ny, 72 + 24, ny, 64);      // 72R 24W   64L
+        // Final registers state
+        ecSetDY(dy);
+        ecSetNY(ny - eny);
+
+        ecStart(nx * eny, 72 + 24, eny, 64);      // 72R 24W   64L
     }
 
     function LINE() {
@@ -2126,36 +2169,30 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
 
-        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
-        if (dx >= signalMetrics.width) {
-            dx &= 255;
-        }
-
-        // Limit rect size
-        nx = dix === 1 ? min(nx, signalMetrics.width - 1 - dx) : min(nx, dx);
-        ny = diy === 1 ? ny : min(ny, dy);              // Top limit only
+        // No X wrap, no rect size limit  TODO Verify
 
         // Perform operation
-        var x = dx;
-        var y = dy;
         var e = 0;
         if (maj === 0) {
             for (var n = 0; n <= nx; n = n + 1) {
-                logicalPSET(x, y, co, op);
-                x += dix; e += ny;
+                logicalPSET(dx, dy, co, op);
+                dx += dix; e += ny;
                 if ((e << 1) >= nx) {
-                    y += diy; e -= nx;
+                    dy += diy; e -= nx;
                 }
             }
         } else {
             for (n = 0; n <= nx; n = n + 1) {
-                logicalPSET(x, y, co, op);
-                y += diy; e += ny;
+                logicalPSET(dx, dy, co, op);
+                dy += diy; e += ny;
                 if ((e << 1) >= nx) {
-                    x += dix; e -= nx;
+                    dx += dix; e -= nx;
                 }
             }
         }
+
+        // Final registers state
+        ecSetDY(dy);
 
         ecStart(nx, 88 + 24, ny, 32);      // 88R 24W   32L
     }
@@ -2199,6 +2236,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         status[8] = x & 255;
         status[9] = (x >> 8) & 1;
 
+        // No registers changed
+
         ecStart(Math.abs(x - sx) + 1, 86, 1, 50);      // 86R  50L estimated
     }
 
@@ -2218,6 +2257,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         logicalPSET(dx, dy, co, op);
 
+        // No registers changed
+
         ecStart(0, 0, 1, 40);      // 40 total estimated
     }
 
@@ -2233,7 +2274,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             sx &= 255;
         }
 
-        status[7] = normalPGET(sx, sy);
+        var co = normalPGET(sx, sy);
+
+        // Final registers state
+        ecSetCLR(co);
+        status[7] = co;
 
         ecStart(0, 0, 1, 40);      // 40 total estimated
     }
@@ -2369,22 +2414,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function ecWriteStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
         ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine);
 
-        // Init counters
-        ecCX = 0;
-        ecCY = 0;
+        ecCX = 0; ecCY = 0;
         ecWriteHandler = handler;
         ecTransferReady = true;
 
         // Perform first iteration with current data
-        ecWriteHandler(register[44]);
+        ecWriteHandler(ecGetCLR());
     }
 
     function ecReadStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
         ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine);
 
-        // Init counters
-        ecCX = 0;
-        ecCY = 0;
+        ecCX = 0; ecCY = 0;
         ecReadHandler = handler;
         ecTransferReady = true;
 
@@ -2556,7 +2597,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var paletteFirstWrite;
 
     var ecInProgress = false, ecTransferReady = false, ecWriteHandler = null, ecReadHandler = null, ecFinishingCycle = 0;
-    var ecSX, ecSY, ecDX, ecDY, ecNX, ecNY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLOP;
+    var ecSX, ecSY, ecDX, ecDY, ecNX, ecNY, ecENY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLOP;
 
     var backdropColor;
     var backdropValue;
@@ -2669,7 +2710,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
             ecP: ecInProgress, ecT: ecTransferReady, ecW: ecWriteHandler && ecWriteHandler.name, ecR: ecReadHandler && ecReadHandler.name, ecF: ecFinishingCycle,
-            ecSX: ecSX, ecSY: ecSY, ecDX: ecDX, ecDY: ecDY, ecNX: ecNX, ecNY: ecNY, ecDIX: ecDIX, ecDIY: ecDIY, ecCX: ecCX, ecCY: ecCY, ecDP: ecDestPos, ecL: ecLOP,
+            ecSX: ecSX, ecSY: ecSY, ecDX: ecDX, ecDY: ecDY, ecNX: ecNX, ecNY: ecNY, ecENY: ecENY, ecDIX: ecDIX, ecDIY: ecDIY, ecCX: ecCX, ecCY: ecCY, ecDP: ecDestPos, ecL: ecLOP,
             r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
             c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
             vram: wmsx.Util.compressUInt8ArrayToStringBase64(vram)
@@ -2684,7 +2725,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
         ecInProgress = s.ecP; ecTransferReady = s.ecT; ecWriteHandler = COMMAND_HANDLERS[s.ecW]; ecReadHandler = COMMAND_HANDLERS[s.ecR]; ecFinishingCycle = s.ecF;
-        ecSX = s.ecSX; ecSY = s.ecSY; ecDX = s.ecDX; ecDY = s.ecDY; ecNX = s.ecNX; ecNY = s.ecNY; ecDIX = s.ecDIX; ecDIY = s.ecDIY; ecCX = s.ecCX; ecCY = s.ecCY; ecDestPos = s.ecDP; ecLOP = s.ecL;
+        ecSX = s.ecSX; ecSY = s.ecSY; ecDX = s.ecDX; ecDY = s.ecDY; ecNX = s.ecNX; ecNY = s.ecNY; ecENY = s.ecENY; ecDIX = s.ecDIX; ecDIY = s.ecDIY; ecCX = s.ecCX; ecCY = s.ecCY; ecDestPos = s.ecDP; ecLOP = s.ecL;
         register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
         color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
         vram = wmsx.Util.uncompressStringBase64ToUInt8Array(s.vram);         // Already UInt8Array
