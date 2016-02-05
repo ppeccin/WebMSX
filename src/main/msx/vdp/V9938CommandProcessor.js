@@ -12,9 +12,9 @@ wmsx.V9938CommandProcessor = function() {
     };
 
     this.reset = function() {
-        ecInProgress = false; ecTransferReady = false;
-        ecWriteHandler = null; ecReadHandler = null;
-        ecFinishingCycle = 0;
+        inProgress = false; transferReady = false;
+        writeHandler = null; readHandler = null;
+        finishingCycle = 0;
     };
 
     this.startCommand = function(val) {
@@ -54,20 +54,20 @@ wmsx.V9938CommandProcessor = function() {
     };
 
     this.cpuWrite = function(val) {
-        if (ecWriteHandler) ecWriteHandler(val);
+        if (writeHandler) writeHandler(val);
     };
 
     this.cpuRead = function() {
-        if (ecReadHandler) ecReadHandler();
+        if (readHandler) readHandler();
     };
 
     this.updateStatus = function() {
-        if (ecInProgress) {
+        if (inProgress) {
             var cycles = vdp.updateCycles();
-            if (cycles >= ecFinishingCycle) ecFinish();
+            if (cycles >= finishingCycle) finish();
         }
 
-        status[2] = (status[2] & ~0x81) | (ecTransferReady << 7) | ecInProgress;
+        status[2] = (status[2] & ~0x81) | (transferReady << 7) | inProgress;
     };
 
     this.setVDPModeData = function(modeData, pSignalMetrics) {
@@ -76,142 +76,142 @@ wmsx.V9938CommandProcessor = function() {
         layoutLineBytes = modeData.layLineBytes;
     };
 
-    function ecGetSX() {
+    function getSX() {
         return (((register[33] & 0x01) << 8) | register[32]);
     }
 
-    function ecGetSY() {
+    function getSY() {
         return (((register[35] & 0x03) << 8) | register[34]);
     }
-    function ecSetSY(val) {
+    function setSY(val) {
         register[35] = (val >> 8) & 0x03; register[34] = val & 0xff;
     }
 
-    function ecGetDX() {
+    function getDX() {
         return ((register[37] & 0x01) << 8) | register[36];
     }
 
-    function ecGetDY() {
+    function getDY() {
         return ((register[39] & 0x03) << 8) | register[38];
     }
-    function ecSetDY(val) {
+    function setDY(val) {
         register[39] = (val >> 8) & 0x03; register[38] = val & 0xff;
     }
 
-    function ecGetNX() {
+    function getNX() {
         return (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
     }
 
-    function ecGetNY() {
+    function getNY() {
         return (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
     }
-    function ecSetNY(val) {
+    function setNY(val) {
         register[43] = (val >> 8) & 0x03; register[42] = val & 0xff;
     }
 
-    function ecGetDIX() {
+    function getDIX() {
         return register[45] & 0x04 ? -1 : 1;
     }
 
-    function ecGetDIY() {
+    function getDIY() {
         return register[45] & 0x08 ? -1 : 1;
     }
 
-    function ecGetCLR() {
+    function getCLR() {
         return register[44];
     }
-    function ecSetCLR(val) {
+    function setCLR(val) {
         register[44] = val;
     }
 
-    function ecGetMAJ() {
+    function getMAJ() {
         return register[45] & 0x01;
     }
 
-    function ecGetEQ() {
+    function getEQ() {
         return (register[45] & 0x02) === 0;           // doc says the opposite
     }
 
-    function ecGetLOP() {
+    function getLOP() {
         switch(register[46] & 0x0f) {
-            case 0x00: return logicalOperationIMP;
-            case 0x01: return logicalOperationAND;
-            case 0x02: return logicalOperationOR;
-            case 0x03: return logicalOperationXOR;
-            case 0x04: return logicalOperationNOT;
-            case 0x08: return logicalOperationTIMP;
-            case 0x09: return logicalOperationTAND;
-            case 0x0a: return logicalOperationTOR;
-            case 0x0b: return logicalOperationTXOR;
-            case 0x0c: return logicalOperationTNOT;
-            default:   return logicalOperationIMP;
+            case 0x00: return lopIMP;
+            case 0x01: return lopAND;
+            case 0x02: return lopOR;
+            case 0x03: return lopXOR;
+            case 0x04: return lopNOT;
+            case 0x08: return lopTIMP;
+            case 0x09: return lopTAND;
+            case 0x0a: return lopTOR;
+            case 0x0b: return lopTXOR;
+            case 0x0c: return lopTNOT;
+            default:   return lopIMP;
         }
     }
 
     function HMMC() {
         // Collect parameters
-        var dx = ecGetDX();
-        ecDY = ecGetDY();
-        ecNX = ecGetNX();
-        ecNY = ecGetNY();
-        ecDIX = ecGetDIX();
-        ecDIY = ecGetDIY();
+        var dx = getDX();
+        DY = getDY();
+        NX = getNX();
+        NY = getNY();
+        DIX = getDIX();
+        DIY = getDIY();
 
-        //console.log("HMMC Start dx: " + dx + ", dy: " + ecDY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+        //console.log("HMMC Start dx: " + dx + ", dy: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
         if (dx >= modeWidth) {
-            dx &= 255; ecNX = 1;
+            dx &= 255; NX = 1;
         }
 
         // Adjust for whole-byte operation
         switch (mode) {
             case 0x03:
             case 0x05:
-                dx >>>= 1; ecNX >>>= 1; break;
+                dx >>>= 1; NX >>>= 1; break;
             case 0x04:
-                dx >>>= 2; ecNX >>>= 2; break;
+                dx >>>= 2; NX >>>= 2; break;
             case 0x07:
         }
 
         // Limit rect size
-        ecNX = ecDIX === 1 ? min(ecNX, layoutLineBytes - dx) : min(ecNX, dx + 1);
-        ecENY = ecDIY === 1 ? ecNY : min(ecNY, ecDY + 1);              // Top limit only
+        NX = DIX === 1 ? min(NX, layoutLineBytes - dx) : min(NX, dx + 1);
+        ENY = DIY === 1 ? NY : min(NY, DY + 1);              // Top limit only
 
-        ecDestPos = ecDY * layoutLineBytes + dx;
+        destPos = DY * layoutLineBytes + dx;
 
-        ecWriteStart(HMMCNextWrite, ecNX * ecENY, 0, 1, 50);         // 50L estimated
+        writeStart(HMMCNextWrite, NX * ENY, 0, 1, 50);         // 50L estimated
     }
 
     function HMMCNextWrite(co) {
 
-        //console.log("HMMC Write ecCX: " + ecCX + ", ecCY: " + ecCY);
+        //console.log("HMMC Write CX: " + CX + ", CY: " + CY);
 
-        vram[ecDestPos & VRAM_LIMIT] = co;
+        vram[destPos & VRAM_LIMIT] = co;
 
-        ecCX = ecCX + 1;
-        if (ecCX >= ecNX) {
-            ecDestPos -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY = ecCY + 1;
-            if (ecCY >= ecENY) { ecInProgress = false; ecWriteHandler = false; }
-            else ecDestPos += ecDIY * layoutLineBytes;
+        CX = CX + 1;
+        if (CX >= NX) {
+            destPos -= DIX * (NX - 1);
+            CX = 0; CY = CY + 1;
+            if (CY >= ENY) { inProgress = false; writeHandler = false; }
+            else destPos += DIY * layoutLineBytes;
         } else {
-            ecDestPos += ecDIX;
+            destPos += DIX;
         }
 
         // Set visible changed register state
-        ecSetDY(ecDY + ecDIY * ecCY);
-        ecSetNY(ecNY - ecCY);
+        setDY(DY + DIY * CY);
+        setNY(NY - CY);
     }
 
     function YMMM() {
         // Collect parameters
-        var sy = ecGetSY();
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var ny = ecGetNY();
-        var dix = ecGetDIX();
-        var diy = ecGetDIY();
+        var sy = getSY();
+        var dx = getDX();
+        var dy = getDY();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
 
         //console.log("YMMM sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
@@ -247,23 +247,23 @@ wmsx.V9938CommandProcessor = function() {
         }
 
         // Final registers state
-        ecSetSY(sy + diy * eny);
-        ecSetDY(dy + diy * eny);
-        ecSetNY(ny - eny);
+        setSY(sy + diy * eny);
+        setDY(dy + diy * eny);
+        setNY(ny - eny);
 
-        ecStart(nx * eny, 40 + 24, eny, 0);     	//  40R  24W   0L
+        start(nx * eny, 40 + 24, eny, 0);     	//  40R  24W   0L
     }
 
     function HMMM() {
         // Collect parameters
-        var sx = ecGetSX();
-        var sy = ecGetSY();
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var nx = ecGetNX();
-        var ny = ecGetNY();
-        var dix = ecGetDIX();
-        var diy = ecGetDIY();
+        var sx = getSX();
+        var sy = getSY();
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
 
         //console.log("HMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
@@ -299,22 +299,22 @@ wmsx.V9938CommandProcessor = function() {
         }
 
         // Final registers state
-        ecSetSY(sy + diy * eny);
-        ecSetDY(dy + diy * eny);
-        ecSetNY(ny - eny);
+        setSY(sy + diy * eny);
+        setDY(dy + diy * eny);
+        setNY(ny - eny);
 
-        ecStart(nx * eny, 64 + 24, eny, 64);      	//  64R 24W   64L
+        start(nx * eny, 64 + 24, eny, 64);      	//  64R 24W   64L
     }
 
     function HMMV() {
         // Collect parameters
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var nx = ecGetNX();
-        var ny = ecGetNY();
-        var co = ecGetCLR();
-        var dix = ecGetDIX();
-        var diy = ecGetDIY();
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var co = getCLR();
+        var dix = getDIX();
+        var diy = getDIY();
 
         //console.log("HMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
@@ -349,107 +349,107 @@ wmsx.V9938CommandProcessor = function() {
         }
 
         // Final registers state
-        ecSetDY(dy + diy * eny);
-        ecSetNY(ny - eny);
+        setDY(dy + diy * eny);
+        setNY(ny - eny);
 
-        ecStart(nx * eny, 48, eny, 56);     	//  48W   56L
+        start(nx * eny, 48, eny, 56);     	//  48W   56L
     }
 
     function LMMC() {
         // Collect parameters
-        ecDX = ecGetDX();
-        ecDY = ecGetDY();
-        ecNX = ecGetNX();
-        ecNY = ecGetNY();
-        ecDIX = ecGetDIX();
-        ecDIY = ecGetDIY();
-        ecLOP = ecGetLOP();
+        DX = getDX();
+        DY = getDY();
+        NX = getNX();
+        NY = getNY();
+        DIX = getDIX();
+        DIY = getDIY();
+        LOP = getLOP();
 
-        //console.log("LMMC START x: " + ecDX + ", y: " + ecDY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+        //console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
-        if (ecDX >= modeWidth) {
-            ecDX &= 255; ecNX = 1;
+        if (DX >= modeWidth) {
+            DX &= 255; NX = 1;
         }
 
         // Limit rect size
-        ecNX = ecDIX === 1 ? min(ecNX, modeWidth - ecDX) : min(ecNX, ecDX + 1);
-        ecENY = ecDIY === 1 ? ecNY : min(ecNY, ecDY + 1);            // Top limit only
+        NX = DIX === 1 ? min(NX, modeWidth - DX) : min(NX, DX + 1);
+        ENY = DIY === 1 ? NY : min(NY, DY + 1);            // Top limit only
 
-        ecWriteStart(LMMCNextWrite, ecNX * ecENY, 0, 1, 60);     	//  60L estimated
+        writeStart(LMMCNextWrite, NX * ENY, 0, 1, 60);     	//  60L estimated
     }
 
     function LMMCNextWrite(co) {
 
-        //console.log("LMMC Write ecCX: " + ecCX + ", ecCY: " + ecCY);
+        //console.log("LMMC Write CX: " + CX + ", CY: " + CY);
 
-        logicalPSET(ecDX, ecDY, co, ecLOP);
+        logicalPSET(DX, DY, co, LOP);
 
-        ecCX = ecCX + 1;
-        if (ecCX >= ecNX) {
-            ecDX -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY = ecCY + 1; ecDY += ecDIY;
-            if (ecCY >= ecENY) { ecInProgress = false; ecWriteHandler = false; }
+        CX = CX + 1;
+        if (CX >= NX) {
+            DX -= DIX * (NX - 1);
+            CX = 0; CY = CY + 1; DY += DIY;
+            if (CY >= ENY) { inProgress = false; writeHandler = false; }
         } else {
-            ecDX += ecDIX;
+            DX += DIX;
         }
 
         // Set visible changed register state
-        ecSetDY(ecDY);
-        ecSetNY(ecNY - ecCY);
+        setDY(DY);
+        setNY(NY - CY);
     }
 
     function LMCM() {
         // Collect parameters
-        ecSX = ecGetSX();
-        ecSY = ecGetSY();
-        ecNX = ecGetNX();
-        ecNY = ecGetNY();
-        ecDIX = ecGetDIX();
-        ecDIY = ecGetDIY();
+        SX = getSX();
+        SY = getSY();
+        NX = getNX();
+        NY = getNY();
+        DIX = getDIX();
+        DIY = getDIY();
 
-        //console.log("LMCM START x: " + ecSX + ", y: " + ecSY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
+        //console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
-        if (ecSX >= modeWidth) {
-            ecSX &= 255; ecNX = 1;
+        if (SX >= modeWidth) {
+            SX &= 255; NX = 1;
         }
 
         // Limit rect size
-        ecNX = ecDIX === 1 ? min(ecNX, modeWidth - ecSX) : min(ecNX, ecSX + 1);
-        ecENY = ecDIY === 1 ? ecNY : min(ecNY, ecSY + 1);            // Top limit only
+        NX = DIX === 1 ? min(NX, modeWidth - SX) : min(NX, SX + 1);
+        ENY = DIY === 1 ? NY : min(NY, SY + 1);            // Top limit only
 
-        ecReadStart(LMCMNextRead, ecNX * ecENY, 0, 1, 60);           // 60L estimated
+        readStart(LMCMNextRead, NX * ENY, 0, 1, 60);           // 60L estimated
     }
 
     function LMCMNextRead() {
-        status[7] = normalPGET(ecSX, ecSY);
+        status[7] = normalPGET(SX, SY);
 
-        ecCX = ecCX + 1;
-        if (ecCX >= ecNX) {
-            ecSX -= ecDIX * (ecNX - 1);
-            ecCX = 0; ecCY = ecCY + 1; ecSY += ecDIY;
-            if (ecCY >= ecENY) { ecInProgress = false; ecReadHandler = false; }
+        CX = CX + 1;
+        if (CX >= NX) {
+            SX -= DIX * (NX - 1);
+            CX = 0; CY = CY + 1; SY += DIY;
+            if (CY >= ENY) { inProgress = false; readHandler = false; }
         } else {
-            ecSX += ecDIX;
+            SX += DIX;
         }
 
         // Set visible changed register state
-        ecSetSY(ecSY);
-        ecSetNY(ecNY - ecCY);
+        setSY(SY);
+        setNY(NY - CY);
     }
 
     function LMMM() {
         // Collect parameters
-        var sx = ecGetSX();
-        var sy = ecGetSY();
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var nx = ecGetNX();
-        var ny = ecGetNY();
-        var dix = ecGetDIX();
-        var diy = ecGetDIY();
-        var op = ecGetLOP();
+        var sx = getSX();
+        var sy = getSY();
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
 
         //console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
@@ -473,23 +473,23 @@ wmsx.V9938CommandProcessor = function() {
         }
 
         // Final registers state
-        ecSetSY(sy);
-        ecSetDY(dy);
-        ecSetNY(ny - eny);
+        setSY(sy);
+        setDY(dy);
+        setNY(ny - eny);
 
-        ecStart(nx * eny, 64 + 32 + 24, eny, 64);      // 64R 32R 24W   64L
+        start(nx * eny, 64 + 32 + 24, eny, 64);      // 64R 32R 24W   64L
     }
 
     function LMMV() {
         // Collect parameters
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var nx = ecGetNX();
-        var ny = ecGetNY();
-        var co = ecGetCLR();
-        var dix = ecGetDIX();
-        var diy = ecGetDIY();
-        var op = ecGetLOP();
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var co = getCLR();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
 
         //console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
@@ -513,23 +513,23 @@ wmsx.V9938CommandProcessor = function() {
         }
 
         // Final registers state
-        ecSetDY(dy);
-        ecSetNY(ny - eny);
+        setDY(dy);
+        setNY(ny - eny);
 
-        ecStart(nx * eny, 72 + 24, eny, 64);      // 72R 24W   64L
+        start(nx * eny, 72 + 24, eny, 64);      // 72R 24W   64L
     }
 
     function LINE() {
         // Collect parameters
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var nx = ecGetNX() & 511;       // Range 0 - 511.  Value 0 is OK
-        var ny = ecGetNY() & 1023;      // Range 0 - 1023. Value 0 is OK
-        var co = ecGetCLR();
-        var dix = ecGetDIX();
-        var diy = ecGetDIY();
-        var maj = ecGetMAJ();
-        var op = ecGetLOP();
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX() & 511;       // Range 0 - 511.  Value 0 is OK
+        var ny = getNY() & 1023;      // Range 0 - 1023. Value 0 is OK
+        var co = getCLR();
+        var dix = getDIX();
+        var diy = getDIY();
+        var maj = getMAJ();
+        var op = getLOP();
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
 
@@ -556,18 +556,18 @@ wmsx.V9938CommandProcessor = function() {
         }
 
         // Final registers state
-        ecSetDY(dy);
+        setDY(dy);
 
-        ecStart(nx, 88 + 24, ny, 32);      // 88R 24W   32L
+        start(nx, 88 + 24, ny, 32);      // 88R 24W   32L
     }
 
     function SRCH() {
         // Collect parameters
-        var sx = ecGetSX();
-        var sy = ecGetSY();
-        var co = ecGetCLR();
-        var dix = ecGetDIX();
-        var eq = ecGetEQ();
+        var sx = getSX();
+        var sy = getSY();
+        var co = getCLR();
+        var dix = getDIX();
+        var eq = getEQ();
 
         //console.log("SRCH sx: " + sx + ", sy: " + sy + ", co: " + co + ", eq: " + eq + ", dix: " + dix);
 
@@ -602,15 +602,15 @@ wmsx.V9938CommandProcessor = function() {
 
         // No registers changed
 
-        ecStart(Math.abs(x - sx) + 1, 86, 1, 50);      // 86R  50L estimated
+        start(Math.abs(x - sx) + 1, 86, 1, 50);      // 86R  50L estimated
     }
 
     function PSET() {
         // Collect parameters
-        var dx = ecGetDX();
-        var dy = ecGetDY();
-        var co = ecGetCLR();
-        var op = ecGetLOP();
+        var dx = getDX();
+        var dy = getDY();
+        var co = getCLR();
+        var op = getLOP();
 
         //console.log("PSET dx: " + dx + ", dy: " + dy);
 
@@ -623,13 +623,13 @@ wmsx.V9938CommandProcessor = function() {
 
         // No registers changed
 
-        ecStart(0, 0, 1, 40);      // 40 total estimated
+        start(0, 0, 1, 40);      // 40 total estimated
     }
 
     function POINT() {
         // Collect parameters
-        var sx = ecGetSX();
-        var sy = ecGetSY();
+        var sx = getSX();
+        var sy = getSY();
 
         //console.log("POINT sx: " + sx + ", sy: " + sy);
 
@@ -641,17 +641,17 @@ wmsx.V9938CommandProcessor = function() {
         var co = normalPGET(sx, sy);
 
         // Final registers state
-        ecSetCLR(co);
+        setCLR(co);
         status[7] = co;
 
-        ecStart(0, 0, 1, 40);      // 40 total estimated
+        start(0, 0, 1, 40);      // 40 total estimated
     }
 
     function STOP() {
 
-        //console.log("STOP: " + ecWriteHandler);
+        //console.log("STOP: " + writeHandler);
 
-        ecInProgress = false;
+        inProgress = false;
     }
 
     function normalPGET(x, y) {
@@ -712,43 +712,43 @@ wmsx.V9938CommandProcessor = function() {
         vram[dPos & VRAM_LIMIT] = op(vram[dPos & VRAM_LIMIT], co, mask << dShift);
     }
 
-    function logicalOperationIMP(dest, src, mask) {
+    function lopIMP(dest, src, mask) {
         return (dest & ~mask) | src;
     }
 
-    function logicalOperationAND(dest, src, mask) {
+    function lopAND(dest, src, mask) {
         return dest & (src | ~mask);
     }
 
-    function logicalOperationOR(dest, src, mask) {
+    function lopOR(dest, src, mask) {
         return dest | src;
     }
 
-    function logicalOperationXOR(dest, src, mask) {
+    function lopXOR(dest, src, mask) {
         return (dest & ~mask) | ((dest ^ src) & mask);
     }
 
-    function logicalOperationNOT(dest, src, mask) {
+    function lopNOT(dest, src, mask) {
         return (dest & ~mask) | (!src & mask);
     }
 
-    function logicalOperationTIMP(dest, src, mask) {
+    function lopTIMP(dest, src, mask) {
         return src === 0 ? dest : (dest & ~mask) | src;
     }
 
-    function logicalOperationTAND(dest, src, mask) {
+    function lopTAND(dest, src, mask) {
         return src === 0 ? dest : dest & (src | ~mask);
     }
 
-    function logicalOperationTOR(dest, src, mask) {
+    function lopTOR(dest, src, mask) {
         return src === 0 ? dest : dest | src;
     }
 
-    function logicalOperationTXOR(dest, src, mask) {
+    function lopTXOR(dest, src, mask) {
         return src === 0 ? dest : (dest & ~mask) | ((dest ^ src) & mask);
     }
 
-    function logicalOperationTNOT(dest, src, mask) {
+    function lopTNOT(dest, src, mask) {
         return src === 0 ? dest : (dest & ~mask) | (!src & mask);
     }
 
@@ -760,48 +760,48 @@ wmsx.V9938CommandProcessor = function() {
         return a > b ? a : b;
     }
 
-    function ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine) {
-        ecInProgress = true;
-        ecTransferReady = false;
-        ecWriteHandler = null;
-        ecReadHandler = null;
-        ecEstimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine);
+    function start(pixels, cyclesPerPixel, lines, cyclesPerLine) {
+        inProgress = true;
+        transferReady = false;
+        writeHandler = null;
+        readHandler = null;
+        estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine);
     }
 
-    function ecEstimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine) {
+    function estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine) {
         var cycles = vdp.updateCycles();
-        ecFinishingCycle = cycles + ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) | 0);
+        finishingCycle = cycles + ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) | 0);
 
-        //console.log ("+++++ Duration: " + (ecFinishingCycle - cycles));
+        //console.log ("+++++ Duration: " + (finishingCycle - cycles));
     }
 
-    function ecWriteStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
-        ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine);
+    function writeStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
+        start(pixels, cyclesPerPixel, lines, cyclesPerLine);
 
-        ecCX = 0; ecCY = 0;
-        ecWriteHandler = handler;
-        ecTransferReady = true;
+        CX = 0; CY = 0;
+        writeHandler = handler;
+        transferReady = true;
 
         // Perform first iteration with current data
-        ecWriteHandler(ecGetCLR());
+        writeHandler(getCLR());
     }
 
-    function ecReadStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
-        ecStart(pixels, cyclesPerPixel, lines, cyclesPerLine);
+    function readStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
+        start(pixels, cyclesPerPixel, lines, cyclesPerLine);
 
-        ecCX = 0; ecCY = 0;
-        ecReadHandler = handler;
-        ecTransferReady = true;
+        CX = 0; CY = 0;
+        readHandler = handler;
+        transferReady = true;
 
         // Perform first iteration
-        ecReadHandler();
+        readHandler();
     }
 
-    function ecFinish() {
-        ecInProgress = false;
-        ecTransferReady = false;
-        ecWriteHandler = null;
-        ecReadHandler = null;
+    function finish() {
+        inProgress = false;
+        transferReady = false;
+        writeHandler = null;
+        readHandler = null;
         register[46] &= ~0xf0;
     }
 
@@ -814,8 +814,8 @@ wmsx.V9938CommandProcessor = function() {
     // Main VDP connections
     var vdp, vram, register, status;
 
-    var ecInProgress = false, ecTransferReady = false, ecWriteHandler = null, ecReadHandler = null, ecFinishingCycle = 0;
-    var ecSX, ecSY, ecDX, ecDY, ecNX, ecNY, ecENY, ecDIX, ecDIY, ecCX, ecCY, ecDestPos, ecLOP;
+    var inProgress = false, transferReady = false, writeHandler = null, readHandler = null, finishingCycle = 0;
+    var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
 
     var mode;
     var modeWidth;
@@ -826,18 +826,18 @@ wmsx.V9938CommandProcessor = function() {
 
     this.saveState = function() {
         return {
-            ecP: ecInProgress, ecT: ecTransferReady,
-            ecW: ecWriteHandler && ecWriteHandler.name, ecR: ecReadHandler && ecReadHandler.name, ecF: ecFinishingCycle,
-            ecSX: ecSX, ecSY: ecSY, ecDX: ecDX, ecDY: ecDY, ecNX: ecNX, ecNY: ecNY, ecENY: ecENY,
-            ecDIX: ecDIX, ecDIY: ecDIY, ecCX: ecCX, ecCY: ecCY, ecDP: ecDestPos, ecL: ecLOP
+            ip: inProgress, tr: transferReady,
+            wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
+            SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
+            DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP, dp: destPos
         };
     };
 
     this.loadState = function(s) {
-        ecInProgress = s.ecP; ecTransferReady = s.ecT;
-        ecWriteHandler = COMMAND_HANDLERS[s.ecW]; ecReadHandler = COMMAND_HANDLERS[s.ecR]; ecFinishingCycle = s.ecF;
-        ecSX = s.ecSX; ecSY = s.ecSY; ecDX = s.ecDX; ecDY = s.ecDY; ecNX = s.ecNX; ecNY = s.ecNY; ecENY = s.ecENY;
-        ecDIX = s.ecDIX; ecDIY = s.ecDIY; ecCX = s.ecCX; ecCY = s.ecCY; ecDestPos = s.ecDP; ecLOP = s.ecL;
+        inProgress = s.ip; transferReady = s.tr;
+        writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
+        SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
+        DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP; destPos = s.dp;
     };
 
 
