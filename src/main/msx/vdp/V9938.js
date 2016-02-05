@@ -3,6 +3,7 @@
 // This implementation is line-accurate
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 // Original base clock: 10738635 Hz which is 3x CPU clock
+// TODO Implement restrictions for V9918 mode
 
 wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
@@ -561,8 +562,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateSpritesLineType();
         updateSignalMetrics();
         updateSpritePatternTables();
-        layoutTableLines = modeData.layLines;
-        layoutTableLineBytes = modeData.layLineBytes;
+        layoutLineBytes = modeData.layLineBytes;
         if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
         pendingModeChange = false;
 
@@ -1712,19 +1712,85 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    // TODO Implement Command end status and verify NX and NY limits
+    // TODO Implement Command end status
+
+    function ecGetSX() {
+        return (((register[33] & 0x01) << 8) | register[32]);
+    }
+
+    function ecGetSY() {
+        return (((register[35] & 0x03) << 8) | register[34]);
+    }
+
+    function ecGetDX() {
+        return ((register[37] & 0x01) << 8) | register[36];
+    }
+
+    function ecGetDY() {
+        return ((register[39] & 0x03) << 8) | register[38];
+    }
+
+    function ecGetNX() {
+        return (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
+    }
+
+    function ecGetNY() {
+        return (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
+    }
+
+    function ecGetDIX() {
+        return register[45] & 0x04 ? -1 : 1;
+    }
+
+    function ecGetDIY() {
+        return register[45] & 0x08 ? -1 : 1;
+    }
+
+    function ecGetCLR() {
+        return register[44];
+    }
+
+    function ecGetMAJ() {
+        return register[45] & 0x01;
+    }
+
+    function ecGetEQ() {
+        return (register[45] & 0x02) === 0;           // doc says the opposite
+    }
+
+    function ecGetLOP() {
+        switch(register[46] & 0x0f) {
+            case 0x00: return logicalOperationIMP;
+            case 0x01: return logicalOperationAND;
+            case 0x02: return logicalOperationOR;
+            case 0x03: return logicalOperationXOR;
+            case 0x04: return logicalOperationNOT;
+            case 0x08: return logicalOperationTIMP;
+            case 0x09: return logicalOperationTAND;
+            case 0x0a: return logicalOperationTOR;
+            case 0x0b: return logicalOperationTXOR;
+            case 0x0c: return logicalOperationTNOT;
+            default:   return logicalOperationIMP;
+        }
+    }
 
     function HMMC() {
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        ecNX = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
-        ecNY = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
-        ecDIX = register[45] & 0x04 ? -1 : 1;
-        ecDIY = register[45] & 0x08 ? -1 : 1;
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        ecNX = ecGetNX();
+        ecNY = ecGetNY();
+        ecDIX = ecGetDIX();
+        ecDIY = ecGetDIY();
 
         //console.log("HMMC Start dx: " + dx + ", dy: " + dy + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (dx >= signalMetrics.width) {
+            dx &= 255; ecNX = 1;
+        }
+
+        // Adjust for whole-byte operation
         switch (mode) {
             case 0x03:
             case 0x05:
@@ -1735,10 +1801,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Limit rect size
-        ecNX = ecDIX === 1 ? min(ecNX, layoutTableLineBytes - dx) : min(ecNX, dx + 1);
-        ecNY = ecDIY === 1 ? min(ecNY, layoutTableLines - dy) : min(ecNY, dy + 1);
+        ecNX = ecDIX === 1 ? min(ecNX, layoutLineBytes - dx) : min(ecNX, dx + 1);
+        ecNY = ecDIY === 1 ? ecNY : min(ecNY, dy + 1);              // Top limit only
 
-        ecDestPos = dy * layoutTableLineBytes + dx;
+        ecDestPos = dy * layoutLineBytes + dx;
 
         ecWriteStart(HMMCNextWrite, ecNX * ecNY, 0, 1, 50);         // 50L estimated
     }
@@ -1747,14 +1813,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         //console.log("HMMC Write ecCX: " + ecCX + ", ecCY: " + ecCY);
 
-        vram[ecDestPos] = co;
+        vram[ecDestPos & VRAM_LIMIT] = co;
 
         ecCX = ecCX + 1;
         if (ecCX >= ecNX) {
             ecDestPos -= ecDIX * (ecNX - 1);
             ecCX = 0; ecCY = ecCY + 1;
             if (ecCY >= ecNY) { ecInProgress = false; ecWriteHandler = false; }
-            else ecDestPos += ecDIY * layoutTableLineBytes;
+            else ecDestPos += ecDIY * layoutLineBytes;
         } else {
             ecDestPos += ecDIX;
         }
@@ -1762,15 +1828,21 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function YMMM() {
         // Collect parameters
-        var sy = (((register[35] & 0x03) << 8) | register[34]);
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
+        var sy = ecGetSY();
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var ny = ecGetNY();
+        var dix = ecGetDIX();
+        var diy = ecGetDIY();
 
         //console.log("YMMM sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (dx >= signalMetrics.width) {
+            dx &= 255;
+        }
+
+        // Adjust for whole-byte operation
         switch (mode) {
             case 0x03:
             case 0x05:
@@ -1781,16 +1853,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Limit rect size
-        var nx = dix === 1 ? layoutTableLineBytes - dx : dx + 1;
-        ny = diy === 1 ? min(ny, layoutTableLines - max(sy, dy)) : min(ny, min(sy, dy) + 1);
+        var nx = dix === 1 ? layoutLineBytes - dx : dx + 1;
+        ny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
 
         // Perform operation
-        var sPos = sy * layoutTableLineBytes + dx;
-        var dPos = dy * layoutTableLineBytes + dx;
-        var yStride = -(dix * nx) + layoutTableLineBytes * diy;
+        var sPos = sy * layoutLineBytes + dx;
+        var dPos = dy * layoutLineBytes + dx;
+        var yStride = -(dix * nx) + layoutLineBytes * diy;
         for (var cy = 0; cy < ny; cy = cy + 1) {
             for (var cx = 0; cx < nx; cx = cx + 1) {
-                vram[dPos] = vram[sPos];
+                vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
             sPos += yStride; dPos += yStride;
@@ -1801,17 +1873,23 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function HMMM() {
         // Collect parameters
-        var sx = (((register[33] & 0x01) << 8) | register[32]);
-        var sy = (((register[35] & 0x03) << 8) | register[34]);
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
-        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
+        var sx = ecGetSX();
+        var sy = ecGetSY();
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var nx = ecGetNX();
+        var ny = ecGetNY();
+        var dix = ecGetDIX();
+        var diy = ecGetDIY();
 
         //console.log("HMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (sx >= signalMetrics.width || dx >= signalMetrics.width) {
+            sx &= 255; dx &= 255; nx = 1;
+        }
+
+        // Adjust for whole-byte operation
         switch (mode) {
             case 0x03:
             case 0x05:
@@ -1822,16 +1900,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Limit rect size
-        nx = dix === 1 ? min(nx, layoutTableLineBytes - max(sx, dx)) : min(nx, min(sx, dx) + 1);
-        ny = diy === 1 ? min(ny, layoutTableLines - max(sy, dy)) : min(ny, min(sy, dy) + 1);
+        nx = dix === 1 ? min(nx, layoutLineBytes - max(sx, dx)) : min(nx, min(sx, dx) + 1);
+        ny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
 
         // Perform operation
-        var sPos = sy * layoutTableLineBytes + sx;
-        var dPos = dy * layoutTableLineBytes + dx;
-        var yStride = -(dix * nx) + layoutTableLineBytes * diy;
+        var sPos = sy * layoutLineBytes + sx;
+        var dPos = dy * layoutLineBytes + dx;
+        var yStride = -(dix * nx) + layoutLineBytes * diy;
         for (var cy = 0; cy < ny; cy = cy + 1) {
             for (var cx = 0; cx < nx; cx = cx + 1) {
-                vram[dPos] = vram[sPos];
+                vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
             sPos += yStride; dPos += yStride;
@@ -1842,16 +1920,22 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function HMMV() {
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
-        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
-        var co = register[44];
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var nx = ecGetNX();
+        var ny = ecGetNY();
+        var co = ecGetCLR();
+        var dix = ecGetDIX();
+        var diy = ecGetDIY();
 
         //console.log("HMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (dx >= signalMetrics.width) {
+            dx &= 255; nx = 1;
+        }
+
+        // Adjust for whole-byte operation
         switch (mode) {
             case 0x03:
             case 0x05:
@@ -1862,15 +1946,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Limit rect size
-        nx = dix === 1 ? min(nx, layoutTableLineBytes - dx) : min(nx, dx + 1);
-        ny = diy === 1 ? min(ny, layoutTableLines - dy) : min(ny, dy + 1);
+        nx = dix === 1 ? min(nx, layoutLineBytes - dx) : min(nx, dx + 1);
+        ny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
 
         // Perform operation
-        var pos = dy * layoutTableLineBytes + dx;
-        var yStride = -(dix * nx) + layoutTableLineBytes * diy;
+        var pos = dy * layoutLineBytes + dx;
+        var yStride = -(dix * nx) + layoutLineBytes * diy;
         for (var cy = 0; cy < ny; cy = cy + 1) {
             for (var cx = 0; cx < nx; cx = cx + 1) {
-                vram[pos] = co;
+                vram[pos & VRAM_LIMIT] = co;
                 pos += dix;
             }
             pos += yStride;
@@ -1881,19 +1965,24 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function LMMC() {
         // Collect parameters
-        ecDX = (((register[37] & 0x01) << 8) | register[36]);
-        ecDY = (((register[39] & 0x03) << 8) | register[38]);
-        ecNX = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
-        ecNY = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
-        ecDIX = register[45] & 0x04 ? -1 : 1;
-        ecDIY = register[45] & 0x08 ? -1 : 1;
-        ecLOP = logicalOperationSelect(register[46] & 0x0f);
+        ecDX = ecGetDX();
+        ecDY = ecGetDY();
+        ecNX = ecGetNX();
+        ecNY = ecGetNY();
+        ecDIX = ecGetDIX();
+        ecDIY = ecGetDIY();
+        ecLOP = ecGetLOP();
 
         //console.log("LMMC START x: " + ecDX + ", y: " + ecDY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (ecDX >= signalMetrics.width) {
+            ecDX &= 255; ecNX = 1;
+        }
+
         // Limit rect size
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecDX) : min(ecNX, ecDX + 1);
-        ecNY = ecDIY === 1 ? min(ecNY, layoutTableLines - ecDY) : min(ecNY, ecDY + 1);
+        ecNY = ecDIY === 1 ? ecNY : min(ecNY, ecDY + 1);            // Top limit only
 
         ecWriteStart(LMMCNextWrite, ecNX * ecNY, 0, 1, 60);     	//  60L estimated
     }
@@ -1917,20 +2006,25 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function LMCM() {
         // Collect parameters
-        ecSX = (((register[33] & 0x01) << 8) | register[32]);
-        ecSY = (((register[35] & 0x03) << 8) | register[34]);
-        ecNX = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0;
-        ecNY = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0;
-        ecDIX = register[45] & 0x04 ? -1 : 1;
-        ecDIY = register[45] & 0x08 ? -1 : 1;
+        ecSX = ecGetSX();
+        ecSY = ecGetSY();
+        ecNX = ecGetNX();
+        ecNY = ecGetNY();
+        ecDIX = ecGetDIX();
+        ecDIY = ecGetDIY();
 
         //console.log("LMCM START x: " + ecSX + ", y: " + ecSY + ", nx: " + ecNX + ", ny: " + ecNY + ", dix: " + ecDIX + ", diy: " + ecDIY);
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (ecSX >= signalMetrics.width) {
+            ecSX &= 255; ecNX = 1;
+        }
+
         // Limit rect size
         ecNX = ecDIX === 1 ? min(ecNX, signalMetrics.width - ecSX) : min(ecNX, ecSX + 1);
-        ecNY = ecDIY === 1 ? min(ecNY, layoutTableLines - ecSY) : min(ecNY, ecSY + 1);
+        ecNY = ecDIY === 1 ? ecNY : min(ecNY, ecSY + 1);            // Top limit only
 
-        ecReadStart(LMCMNextRead, ecNX * ecNY, 0, 1, 60);     	//  60L estimated
+        ecReadStart(LMCMNextRead, ecNX * ecNY, 0, 1, 60);           // 60L estimated
     }
 
     function LMCMNextRead() {
@@ -1949,21 +2043,26 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function LMMM() {
         // Collect parameters
-        var sx = (((register[33] & 0x01) << 8) | register[32]);
-        var sy = (((register[35] & 0x03) << 8) | register[34]);
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
-        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
-        var op = logicalOperationSelect(register[46] & 0x0f);
+        var sx = ecGetSX();
+        var sy = ecGetSY();
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var nx = ecGetNX();
+        var ny = ecGetNY();
+        var dix = ecGetDIX();
+        var diy = ecGetDIY();
+        var op = ecGetLOP();
 
         //console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (sx >= signalMetrics.width || dx >= signalMetrics.width) {
+            sx &= 255; dx &= 255; nx = 1;
+        }
+
         // Limit rect size
         nx = dix === 1 ? min(nx, signalMetrics.width - max(sx, dx)) : min(nx, min(sx, dx) + 1);
-        ny = diy === 1 ? min(ny, layoutTableLines - max(sy, dy)) : min(ny, min(sy, dy) + 1);
+        ny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
 
         // Perform operation
         for (var cy = 0; cy < ny; cy = cy + 1) {
@@ -1980,20 +2079,25 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function LMMV() {
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
-        var ny = (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
-        var co = register[44];
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
-        var op = logicalOperationSelect(register[46] & 0x0f);
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var nx = ecGetNX();
+        var ny = ecGetNY();
+        var co = ecGetCLR();
+        var dix = ecGetDIX();
+        var diy = ecGetDIY();
+        var op = ecGetLOP();
 
         //console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
+        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        if (dx >= signalMetrics.width) {
+            dx &= 255; nx = 1;
+        }
+
         // Limit rect size
         nx = dix === 1 ? min(nx, signalMetrics.width - dx) : min(nx, dx + 1);
-        ny = diy === 1 ? min(ny, layoutTableLines - dy) : min(ny, dy + 1);
+        ny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
 
         // Perform operation
         for (var cy = 0; cy < ny; cy = cy + 1) {
@@ -2010,17 +2114,26 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function LINE() {
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var nx = (((register[41] & 0x01) << 8) | register[40]);
-        var ny = (((register[43] & 0x03) << 8) | register[42]);
-        var co = register[44];
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var diy = register[45] & 0x08 ? -1 : 1;
-        var maj = register[45] & 0x01;
-        var op = logicalOperationSelect(register[46] & 0x0f);
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var nx = ecGetNX() & 511;       // Range 0 - 511.  Value 0 is OK
+        var ny = ecGetNY() & 1023;      // Range 0 - 1023. Value 0 is OK
+        var co = ecGetCLR();
+        var dix = ecGetDIX();
+        var diy = ecGetDIY();
+        var maj = ecGetMAJ();
+        var op = ecGetLOP();
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
+
+        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
+        if (dx >= signalMetrics.width) {
+            dx &= 255;
+        }
+
+        // Limit rect size
+        nx = dix === 1 ? min(nx, signalMetrics.width - 1 - dx) : min(nx, dx);
+        ny = diy === 1 ? ny : min(ny, dy);              // Top limit only
 
         // Perform operation
         var x = dx;
@@ -2049,13 +2162,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function SRCH() {
         // Collect parameters
-        var sx = (((register[33] & 0x01) << 8) | register[32]);
-        var sy = (((register[35] & 0x03) << 8) | register[34]);
-        var co = register[44];
-        var dix = register[45] & 0x04 ? -1 : 1;
-        var eq = (register[45] & 0x02) === 0;           // doc says the opposite
+        var sx = ecGetSX();
+        var sy = ecGetSY();
+        var co = ecGetCLR();
+        var dix = ecGetDIX();
+        var eq = ecGetEQ();
 
         //console.log("SRCH sx: " + sx + ", sy: " + sy + ", co: " + co + ", eq: " + eq + ", dix: " + dix);
+
+        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
+        if (sx >= signalMetrics.width) {
+            sx &= 255;
+        }
 
         // Search boundary X
         var stopX = dix === 1 ? signalMetrics.width : -1;
@@ -2086,12 +2204,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function PSET() {
         // Collect parameters
-        var dx = (((register[37] & 0x01) << 8) | register[36]);
-        var dy = (((register[39] & 0x03) << 8) | register[38]);
-        var co = register[44];
-        var op = logicalOperationSelect(register[46] & 0x0f);
+        var dx = ecGetDX();
+        var dy = ecGetDY();
+        var co = ecGetCLR();
+        var op = ecGetLOP();
 
         //console.log("PSET dx: " + dx + ", dy: " + dy);
+
+        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
+        if (dx >= signalMetrics.width) {
+            dx &= 255;
+        }
 
         logicalPSET(dx, dy, co, op);
 
@@ -2100,10 +2223,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function POINT() {
         // Collect parameters
-        var sx = (((register[33] & 0x01) << 8) | register[32]);
-        var sy = (((register[35] & 0x03) << 8) | register[34]);
+        var sx = ecGetSX();
+        var sy = ecGetSY();
 
         //console.log("POINT sx: " + sx + ", sy: " + sy);
+
+        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
+        if (sx >= signalMetrics.width) {
+            sx &= 255;
+        }
 
         status[7] = normalPGET(sx, sy);
 
@@ -2117,7 +2245,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         ecInProgress = false;
     }
 
-    function normalPGET(x, y) {             // TODO Precalculate mask and shift for internal ops?
+    function normalPGET(x, y) {
         var shift, mask;
         switch (mode) {
             case 0x03:
@@ -2131,8 +2259,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 shift = 0; mask = 0xff;
         }
         // Perform operation
-        var pos = y * layoutTableLineBytes + x;
-        return (vram[pos] & mask) >> shift;
+        var pos = y * layoutLineBytes + x;
+        return (vram[pos & VRAM_LIMIT] & mask) >> shift;
     }
 
     function logicalPSET(x, y, co, op) {
@@ -2149,8 +2277,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 mask = 0xff;
         }
         // Perform operation
-        var pos = y * layoutTableLineBytes + x;
-        vram[pos] = op(vram[pos], co, mask);
+        var pos = y * layoutLineBytes + x;
+        vram[pos & VRAM_LIMIT] = op(vram[pos & VRAM_LIMIT], co, mask);
     }
 
     function logicalPCOPY(dx, dy, sx, sy, op) {
@@ -2169,35 +2297,50 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Perform operation
-        var sPos = sy * layoutTableLineBytes + sx;
-        var dPos = dy * layoutTableLineBytes + dx;
-        var co = ((vram[sPos] >> sShift) & mask) << dShift;
-        vram[dPos] = op(vram[dPos], co, mask << dShift);
-    }
-
-    function logicalOperationSelect(op) {
-
-        //console.log("Logical Operation Selected: " + op);
-
-        switch(op) {
-            case 0x00: return logicalOperationIMP;
-            case 0x08: return logicalOperationTIMP;
-            default:
-                console.log ("Invalid logical operation: " + op);       // TODO Implement all operations
-                return logicalOperationInvalid;
-        }
-    }
-
-    function logicalOperationInvalid(dest, src, mask) {
-        return dest;
+        var sPos = sy * layoutLineBytes + sx;
+        var dPos = dy * layoutLineBytes + dx;
+        var co = ((vram[sPos & VRAM_LIMIT] >> sShift) & mask) << dShift;
+        vram[dPos & VRAM_LIMIT] = op(vram[dPos & VRAM_LIMIT], co, mask << dShift);
     }
 
     function logicalOperationIMP(dest, src, mask) {
         return (dest & ~mask) | src;
     }
 
+    function logicalOperationAND(dest, src, mask) {
+        return dest & (src | ~mask);
+    }
+
+    function logicalOperationOR(dest, src, mask) {
+        return dest | src;
+    }
+
+    function logicalOperationXOR(dest, src, mask) {
+        return (dest & ~mask) | ((dest ^ src) & mask);
+    }
+
+    function logicalOperationNOT(dest, src, mask) {
+        return (dest & ~mask) | (!src & mask);
+    }
+
     function logicalOperationTIMP(dest, src, mask) {
         return src === 0 ? dest : (dest & ~mask) | src;
+    }
+
+    function logicalOperationTAND(dest, src, mask) {
+        return src === 0 ? dest : dest & (src | ~mask);
+    }
+
+    function logicalOperationTOR(dest, src, mask) {
+        return src === 0 ? dest : dest | src;
+    }
+
+    function logicalOperationTXOR(dest, src, mask) {
+        return src === 0 ? dest : (dest & ~mask) | ((dest ^ src) & mask);
+    }
+
+    function logicalOperationTNOT(dest, src, mask) {
+        return src === 0 ? dest : (dest & ~mask) | (!src & mask);
     }
 
     function min(a, b) {
@@ -2364,7 +2507,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
 
-    var VRAM_SIZE = 0x20000;      // 128K
+    var VRAM_LIMIT = 0x1ffff;      // 128K
     var SPRITE_MAX_PRIORITY = 9000000000000000;
     var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
     var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // User for savestates
@@ -2442,28 +2585,28 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var colorTableAddressMaskBase = ~(-1 << 6);
     var patternTableAddressMaskBase = ~(-1 << 11);
 
-    var layoutTableLines, layoutTableLineBytes;
+    var layoutLineBytes;
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLines:    0, layLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     spriteMode: 0 };
+        return    { name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     spriteMode: 0 };
     });
 
-    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLines:    0, layLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLines:    0, layLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , spriteMode: 0 };
-    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLines:    0, layLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, spriteMode: 1 };
-    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLines:    0, layLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, spriteMode: 1 };
-    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLines:    0, layLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, spriteMode: 1 };
-    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines:    0, layLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , spriteMode: 2 };
-    modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines: 1024, layLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , spriteMode: 2 };
-    modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines: 1024, layLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , spriteMode: 2 };
-    modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines:  512, layLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , spriteMode: 2 };
-    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLines:  512, layLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , spriteMode: 2 };
+    modes[0x10] = { name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, spriteMode: 0 };
+    modes[0x12] = { name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , spriteMode: 0 };
+    modes[0x08] = { name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, spriteMode: 1 };
+    modes[0x00] = { name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, spriteMode: 1 };
+    modes[0x01] = { name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, spriteMode: 1 };
+    modes[0x02] = { name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , spriteMode: 2 };
+    modes[0x03] = { name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , spriteMode: 2 };
+    modes[0x04] = { name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , spriteMode: 2 };
+    modes[0x05] = { name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , spriteMode: 2 };
+    modes[0x07] = { name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , spriteMode: 2 };
 
     var updateLine, updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
     var updateSpritesLineFunctionsMode1 = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
     var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
 
-    var vram = new Uint8Array(VRAM_SIZE);
+    var vram = new Uint8Array(VRAM_LIMIT + 1);
     this.vram = vram;
 
 
@@ -2566,4 +2709,3 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     };
 
 };
-
