@@ -467,7 +467,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         cpuClockPulses(33); psgClockPulse();
         cpuClockPulses(32); psgClockPulse();
 
-        if (currentScanline >= startingTopBorderScanline) updateLine();                             // ~ Middle of Display area
+        if (currentScanline >= startingTopBorderScanline) renderLine();                             // ~ Middle of Display area
 
         cpuClockPulses(33); psgClockPulse();
         cpuClockPulses(32); psgClockPulse();
@@ -571,32 +571,32 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function enterActiveDisplay() {
-        updateLine = updateLineActive;
+        renderLine = renderLineActive;
 
         //logInfo("Active");
     }
 
     function enterBottomBorder() {
-        updateLine = updateLineBorders;
+        renderLine = renderLineBorders;
 
         //logInfo("Bottom Border");
     }
 
     function updateLineActiveType() {
-        var old = updateLineActive;
-        updateLineActive = (register[1] & 0x40) ? debugModePatternInfo ? modeData.updLineDeb : modeData.updLine : updateLineActiveBlanked;
-        if (updateLine === old) updateLine = updateLineActive;
+        var old = renderLineActive;
+        renderLineActive = (register[1] & 0x40) ? debugModePatternInfo ? modeData.updLineDeb : modeData.updLine : renderLineActiveBlanked;
+        if (renderLine === old) renderLine = renderLineActive;
 
         pendingBlankingChange = false;
     }
 
     function updateSpritesLineType() {
-        updateSpritesLine =
-              modeData.spriteMode === 2 ? (register[8] & 0x02) === 0 ? updateSpritesLineFunctionsMode2[register[1] & 0x03] : null       // SPD, SI, MAG
-            : modeData.spriteMode === 1 ? updateSpritesLineFunctionsMode1[register[1] & 0x03]                                           // SI, MAG
+        renderSpritesLine =
+              modeData.spriteMode === 2 ? (register[8] & 0x02) === 0 ? renderSpritesLineFunctionsMode2[register[1] & 0x03] : null       // SPD, SI, MAG
+            : modeData.spriteMode === 1 ? renderSpritesLineFunctionsMode1[register[1] & 0x03]                                           // SI, MAG
             : null;
 
-        //logInfo("SpriteType: " + (updateSpritesLine && updateSpritesLine.name));
+        //logInfo("SpriteType: " + (renderSpritesLine && renderSpritesLine.name));
 
     }
 
@@ -640,17 +640,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateLineBorders() {
+    function renderLineBorders() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineActiveBlanked() {
+    function renderLineActiveBlanked() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeT1() {                                           // Text (Screen 0 width 40)
+    function renderLineModeT1() {                                           // Text (Screen 0 width 40)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -679,7 +679,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeT2() {                                           // Text (Screen 0 width 80)
+    function renderLineModeT2() {                                           // Text (Screen 0 width 80)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -708,7 +708,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeMC() {                                           // Multicolor (Screen 3)
+    function renderLineModeMC() {                                           // Multicolor (Screen 3)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -733,12 +733,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        updateSpritesLine(realLine, bufferPos - 256);
+        renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG1() {                                           // Graphics 1 (Screen 1)
+    function renderLineModeG1() {                                           // Graphics 1 (Screen 1)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -763,12 +763,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        updateSpritesLine(realLine, bufferPos - 256);
+        renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG2() {                                           // Graphics 2 (Screen 2)
+    function renderLineModeG2() {                                           // Graphics 2 (Screen 2)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -795,12 +795,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        updateSpritesLine(realLine, bufferPos - 256);
+        renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG3() {                                           // Graphics 3 (Screen 4)
+    function renderLineModeG3() {                                           // Graphics 3 (Screen 4)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -827,12 +827,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG4() {                                           // Graphics 4 (Screen 5)
+    function renderLineModeG4() {                                           // Graphics 4 (Screen 5)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -852,12 +852,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG5() {                                           // Graphics 5 (Screen 6)
+    function renderLineModeG5() {                                           // Graphics 5 (Screen 6)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -882,12 +882,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
         }
 
-        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG6() {                                           // Graphics 6 (Screen 7)
+    function renderLineModeG6() {                                           // Graphics 6 (Screen 7)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -910,12 +910,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 512);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG7() {                                           // Graphics 7 (Screen 8)
+    function renderLineModeG7() {                                           // Graphics 7 (Screen 8)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -933,12 +933,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
         }
 
-        if (updateSpritesLine) updateSpritesLine(realLine, bufferPos - 256);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeT1Debug() {                                      // Text (Screen 0)
+    function renderLineModeT1Debug() {                                      // Text (Screen 0)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -981,8 +981,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeMCDebug() {                                      // Multicolor (Screen 3)
-        if (!debugModePatternInfoNames) return updateLineModeMC();
+    function renderLineModeMCDebug() {                                      // Multicolor (Screen 3)
+        if (!debugModePatternInfoNames) return renderLineModeMC();
 
         var bufferPos = bufferPosition;
 
@@ -1007,12 +1007,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        updateSpritesLine(realLine, bufferPos - 256);
+        renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
+    function renderLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -1045,12 +1045,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        updateSpritesLine(realLine, bufferPos - 256);
+        renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
 
-    function updateLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
+    function renderLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
         var bufferPos = bufferPosition;
 
         if (horizontalAdjust === 0) {
@@ -1085,7 +1085,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        updateSpritesLine(realLine, bufferPos - 256);
+        renderSpritesLine(realLine, bufferPos - 256);
 
         bufferPosition = bufferPosition + 544;
     }
@@ -1161,7 +1161,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameBackBuffer[bufferPos + 28] = odd; frameBackBuffer[bufferPos + 29] = even; frameBackBuffer[bufferPos + 30] = odd; frameBackBuffer[bufferPos + 31] = even;
     }
 
-    function updateSprites1LineSize0(line, bufferPos) {                     // Mode 1, 8x8 normal
+    function renderSprites1LineSize0(line, bufferPos) {                     // Mode 1, 8x8 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, name, color, lineInPattern, pattern;
@@ -1208,7 +1208,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites1LineSize1(line, bufferPos) {                     // Mode 1, 8x8 double
+    function renderSprites1LineSize1(line, bufferPos) {                     // Mode 1, 8x8 double
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, name, color, lineInPattern, pattern;
@@ -1255,7 +1255,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites1LineSize2(line, bufferPos) {                     // Mode 1, 16x16 normal
+    function renderSprites1LineSize2(line, bufferPos) {                     // Mode 1, 16x16 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, color, name, lineInPattern, pattern;
@@ -1301,7 +1301,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites1LineSize3(line, bufferPos) {                     // Mode 1, 16x16 double
+    function renderSprites1LineSize3(line, bufferPos) {                     // Mode 1, 16x16 double
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, name, color, lineInPattern, pattern;
@@ -1372,7 +1372,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites2LineSize0(line, bufferPos) {                     // Mode 2, 8x8 normal
+    function renderSprites2LineSize0(line, bufferPos) {                     // Mode 2, 8x8 normal
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1434,7 +1434,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites2LineSize1(line, bufferPos) {                     // Mode 2, 8x8 double
+    function renderSprites2LineSize1(line, bufferPos) {                     // Mode 2, 8x8 double
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1496,7 +1496,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites2LineSize2(line, bufferPos) {                     // Mode 2, 16x16 normal
+    function renderSprites2LineSize2(line, bufferPos) {                     // Mode 2, 16x16 normal
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1558,7 +1558,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function updateSprites2LineSize3(line, bufferPos) {                     // Mode 2, 16x16 double
+    function renderSprites2LineSize3(line, bufferPos) {                     // Mode 2, 16x16 double
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1854,23 +1854,23 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { code: 0xff, name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineBorders, updLineDeb: updateLineBorders,     spriteMode: 0 };
+        return    { code: 0xff, name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
     });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: updateLineModeT1,  updLineDeb: updateLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: updateLineModeT2,  updLineDeb: updateLineModeT2     , spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeMC,  updLineDeb: updateLineModeMCDebug, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeG1,  updLineDeb: updateLineModeG1Debug, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeG2,  updLineDeb: updateLineModeG2Debug, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: updateLineModeG3,  updLineDeb: updateLineModeG3     , spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: updateLineModeG4,  updLineDeb: updateLineModeG4     , spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: updateLineModeG5,  updLineDeb: updateLineModeG5     , spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: updateLineModeG6,  updLineDeb: updateLineModeG6     , spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: updateLineModeG7,  updLineDeb: updateLineModeG7     , spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG3,  updLineDeb: renderLineModeG3     , spriteMode: 2 };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: renderLineModeG4,  updLineDeb: renderLineModeG4     , spriteMode: 2 };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: renderLineModeG5,  updLineDeb: renderLineModeG5     , spriteMode: 2 };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: renderLineModeG6,  updLineDeb: renderLineModeG6     , spriteMode: 2 };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
 
-    var updateLine, updateLineActive, updateSpritesLine, blankedLineValues;         // Update functions for current mode
-    var updateSpritesLineFunctionsMode1 = [updateSprites1LineSize0, updateSprites1LineSize1, updateSprites1LineSize2, updateSprites1LineSize3 ];
-    var updateSpritesLineFunctionsMode2 = [updateSprites2LineSize0, updateSprites2LineSize1, updateSprites2LineSize2, updateSprites2LineSize3 ];
+    var renderLine, renderLineActive, renderSpritesLine, blankedLineValues;         // Update functions for current mode
+    var renderSpritesLineFunctionsMode1 = [renderSprites1LineSize0, renderSprites1LineSize1, renderSprites1LineSize2, renderSprites1LineSize3 ];
+    var renderSpritesLineFunctionsMode2 = [renderSprites2LineSize0, renderSprites2LineSize1, renderSprites2LineSize2, renderSprites2LineSize3 ];
 
     var vram = new Uint8Array(wmsx.V9938.VRAM_LIMIT + 1);
     this.vram = vram;
