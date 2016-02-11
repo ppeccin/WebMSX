@@ -244,43 +244,45 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function registerWrite(reg, val) {
         var add;
-        var old = register[reg];
+        var mod = register[reg] ^ val;
         register[reg] = val;
 
-        //logInfo((source || "") + "Reg: " + reg + " = " + val.toString(16) + ", was: " + old.toString(16));
+        //logInfo("Reg: " + reg + " = " + val.toString(16));
 
         switch (reg) {
             case 0:
 
-                //if (val !== old) logInfo("Register0: " + val.toString(16));
+                //if (mod) logInfo("Register0: " + val.toString(16));
 
-                if ((val & 0x10) !== (old & 0x10)) updateIRQ();                             // IE1
-                if ((val & 0x0e) !== (old & 0x0e)) updateMode();                            // Mx
+                if (mod & 0x10) updateIRQ();                             // IE1
+                if (mod & 0x0e) updateMode();                            // Mx
                 break;
             case 1:
 
-                //if (val !== old) logInfo("Register1: " + val.toString(16));
+                //if (mod) logInfo("Register1: " + val.toString(16));
 
-                if ((val & 0x20) !== (old & 0x20)) updateIRQ();                             // IE0
-                if ((val & 0x40) !== (old & 0x40)) {
-                    pendingBlankingChange = true;            // BL, only at next line
+                if (mod & 0x20) updateIRQ();                             // IE0
+                if (mod & 0x40) {                                        // BL
+                    pendingBlankingChange = true;      // only at next line
 
                     //logInfo("Blanking: " + !!(val & 0x40));
-
                 }
-                if ((val & 0x18) !== (old & 0x18)) updateMode();                            // Mx
-                else if ((val & 0x03) !== (old & 0x03)) updateSpritesLineType();            // SI, MAG. Already ok if mode was updated
+                if (mod & 0x18) updateMode();                            // Mx
+                else if (mod & 0x03) updateSpritesLineType();            // SI, MAG. Already ok if mode was updated
                 break;
             case 2:
-                add = (mode === 0x07 ? (val << 11) | 0x400 : val << 10) & 0x1ffff;          // Mode G7 has different A16 position
+                if ((mod & 0x7f) === 0) break;
+                add = (mode === 0x07 ? (val << 11) | 0x400 : val << 10) & 0x1ffff;     // Mode G7 has different A16 position
                 layoutTableAddress = add & modeData.layTBase;
                 layoutTableAddressMask = add | layoutTableAddressMaskBase;
 
                 //logInfo(/* "Setting: " + val.toString(16) + " to " + */ "NameTableAddress: " + layoutTableAddress.toString(16));
 
                 break;
-            case 3:
             case 10:
+                if ((mod & 0x07) === 0) break;
+                // else fall through
+            case 3:
                 add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff;
                 colorTableAddress = add & modeData.colorTBase;
                 colorTableAddressMask = add | colorTableAddressMaskBase;
@@ -289,6 +291,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 4:
+                if ((mod & 0x3f) === 0) break;
                 add = (val << 11) & 0x1ffff;
                 patternTableAddress = add & modeData.patTBase;
                 patternTableAddressMask = add | patternTableAddressMaskBase;
@@ -296,8 +299,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 //logInfo("Setting: " + val.toString(16) + " to PatternTableAddress: " + patternTableAddress.toString(16));
 
                 break;
-            case 5:
             case 11:
+                if ((mod & 0x03) === 0) break;
+                // else fall through
+            case 5:
                 add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff;
                 spriteAttrTableAddress = add & modeData.sprAttrTBase;
 
@@ -305,7 +310,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 6:
-                add = (val << 11) & 0x1ffff ;
+                if ((mod & 0x3f) === 0) break;
+                add = (val << 11) & 0x1ffff;
                 spritePatternTableAddress = add & modeData.sprPatTBase;
                 updateSpritePatternTables();
 
@@ -313,24 +319,23 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 7:
-                if ((val & 0x0f) !== (old & 0x0f)) updateBackdropColor();                   // BD
+                if (mod & 0x0f) updateBackdropColor();                   // BD
                 break;
             case 8:
-                if ((val & 0x20) !== (old & 0x20)) updateTransparency();                    // TP
-                if ((val & 0x02) !== (old & 0x02)) updateSpritesLineType();                 // SPD
+                if (mod & 0x20) updateTransparency();                    // TP
+                if (mod & 0x02) updateSpritesLineType();                 // SPD
                 break;
             case 9:
-                if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
-                else if ((val & 0x08) !== (old & 0x08)) updateSignalMetrics();              // IL, already OK if LN was changed
-                if ((val & 0x04) !== (old & 0x04)) updatePageAlternance();                  // EO
-                if ((val & 0x02) !== (old & 0x02)) updateVideoStandardSoft();               // NT
+                if (mod & 0x80) updateSignalMetrics();                   // LN
+                else if (mod & 0x08) updateSignalMetrics();              // IL. Already OK if LN was changed
+                if (mod & 0x04) updatePageAlternance();                  // EO
+                if (mod & 0x02) updateVideoStandardSoft();               // NT
                 break;
             case 13:
-                updateBlinking();   // Always, even with no change
+                updateBlinking();                                        // Always, even with no change
                 break;
             case 14:
-                // VRAM Address Pointer high (A16-A14)
-                vramPointer = ((val & 0x07) << 14) | (vramPointer & 0x3fff);
+                if (mod & 0x07) vramPointer = ((val & 0x07) << 14) | (vramPointer & 0x3fff);
 
                 //console.log("Setting reg14: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16));
 
@@ -339,8 +344,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 paletteFirstWrite = null;
                 break;
             case 18:
-                if ((val & 0x0f) !== (old & 0x0f)) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
-                if ((val & 0xf0) !== (old & 0xf0)) {
+                if (mod & 0x0f) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
+                if (mod & 0xf0) {
                     verticalAdjust = -7 + ((val >>> 4) ^ 0x07);
                     updateSignalMetrics();
                 }
@@ -1879,8 +1884,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var color0Solid = false;
     var color0SetValue;
 
-    var colorPaletteInitialV9938 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe24db24, 0xfe6dff6d, 0xfeff2424, 0xfeff6d49, 0xfe2424b6, 0xfeffdb49, 0xfe2424ff, 0xfe6d6dff, 0xfe24dbdb, 0xfe92dbdb, 0xfe249224, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
-    var colorPaletteInitialV9918 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
+    var colorPaletteInitialV9938 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe24db24, 0xfe6dff6d, 0xfeff2424, 0xfeff6d49, 0xfe2424b6, 0xfeffdb49, 0xfe2424ff, 0xfe6d6dff, 0xfe24dbdb, 0xfe92dbdb, 0xfe249224, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
+    var colorPaletteInitialV9918 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
     var paletteRegisterInitialValuesV9938 = [ 0x000, 0x000, 0x189, 0x1db, 0x04f, 0x0d7, 0x069, 0x197, 0x079, 0x0fb, 0x1b1, 0x1b4, 0x109, 0x0b5, 0x16d, 0x1ff ];
 
 
