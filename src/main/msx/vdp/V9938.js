@@ -1,7 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // This implementation is line-accurate
-// Original base clock: 10738635 Hz which is 3x CPU clock
+// Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
+// Original base clock: 2147727 Hz which is 6x CPU clock
+
 // TODO Implement restrictions for V9918 mode
 
 wmsx.V9938 = function(machine, cpu, psg, isV9918) {
@@ -10,8 +12,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function init() {
         // Fixed metrics for V9918
         if (isV9918) {
-            signalWidth = wmsx.V9938.MAX_SIGNAL_WIDTH_V9918;
-            signalHeight = wmsx.V9938.MAX_SIGNAL_HEIGHT_V9918;
+            signalWidth = wmsx.V9938.SIGNAL_WIDTH_V9918;
+            signalHeight = wmsx.V9938.SIGNAL_HEIGHT_V9918;
         }
         videoSignal = new wmsx.VDPVideoSignal();
         cpuClockPulses = cpu.clockPulses;
@@ -97,13 +99,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     this.input99 = function() {
         dataToWrite = null;
         var reg = register[15];
-        if (reg > 9) return 0xff;                       // Invalid register
 
         var res;
         switch(reg) {
             case 0:
                 res = status[0];
-                status[0] = 0; updateIRQ(); break;
+                status[0] = 0; updateIRQ();
+                break;
             case 1:
                 res = status[1];
                 status[1] &= ~0x80;                     // FL = 0
@@ -126,6 +128,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             case 8: case 9:
                 res = status[reg];
                 break;
+            default:
+                res = 0xff;                       // Invalid register
         }
 
         //if (reg === 2) logInfo("Reading status " + reg + ", " + res.toString(16));
@@ -164,15 +168,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         } else {
             // Second write
             if (val & 0x80) {
-                registerWrite(val & 0x3f, dataToWrite);
+                registerWrite(val & 0x07, dataToWrite);
                 // On V9918, the VRAM pointer high gets also written when writing to registers
                 vramPointer = (vramPointer & 0x1c0ff) | ((val & 0x3f) << 8);
             } else {
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
                 vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
-
-                //console.log("Setting VRAM Pointer via out: " + val.toString(16) + ". Pointer: " + vramPointer.toString(16) + ". reg14: " + register[14].toString(16));
-
             }
             dataToWrite = null;
         }
@@ -180,6 +181,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     // Palette Write
     this.output9a = function(val) {
+        if (isV9918) return;
         if (paletteFirstWrite === null) {
             paletteFirstWrite = val;
         } else {
@@ -191,6 +193,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     // Indirect Register Write
     this.output9b = function(val) {
+        if (isV9918) return;
         var reg = register[17] & 0x3f;
         if (reg !== 17) registerWrite(reg, val);
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
@@ -240,8 +243,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     };
 
     function registerWrite(reg, val) {
-        if (reg > 46) return;
-
         var add;
         var old = register[reg];
         register[reg] = val;
@@ -280,7 +281,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 break;
             case 3:
             case 10:
-                add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
+                add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff;
                 colorTableAddress = add & modeData.colorTBase;
                 colorTableAddressMask = add | colorTableAddressMaskBase;
 
@@ -288,7 +289,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 4:
-                add = (val << 11) & 0x1ffff ;
+                add = (val << 11) & 0x1ffff;
                 patternTableAddress = add & modeData.patTBase;
                 patternTableAddressMask = add | patternTableAddressMaskBase;
 
@@ -297,7 +298,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 break;
             case 5:
             case 11:
-                add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
+                add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff;
                 spriteAttrTableAddress = add & modeData.sprAttrTBase;
 
                 //logInfo("SpriteAttrTable: " + spriteAttrTableAddress.toString(16));
@@ -325,7 +326,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if ((val & 0x02) !== (old & 0x02)) updateVideoStandardSoft();               // NT
                 break;
             case 13:
-                updateBlinking();
+                updateBlinking();   // Always, even with no change
                 break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
@@ -1708,8 +1709,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
         // Maximum VPD resolution including borders
-        frameCanvas.width =  wmsx.V9938.MAX_SIGNAL_WIDTH_V9938;
-        frameCanvas.height = wmsx.V9938.MAX_SIGNAL_HEIGHT_V9938;
+        frameCanvas.width =  wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
+        frameCanvas.height = wmsx.V9938.SIGNAL_MAX_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
         //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height);
@@ -1772,7 +1773,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 
     var SPRITE_MAX_PRIORITY = 9000000000000000;
-    var LINE_WIDTH = wmsx.V9938.MAX_SIGNAL_WIDTH_V9938;
+    var LINE_WIDTH = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
 
 
     var frame;
@@ -1967,9 +1968,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 wmsx.V9938.VRAM_LIMIT = 0x1ffff;      // 128K
 
-wmsx.V9938.MAX_SIGNAL_WIDTH_V9938 = 512 + 16 * 2;
-wmsx.V9938.MAX_SIGNAL_HEIGHT_V9938 = (212 + 8 * 2) * 2;
+wmsx.V9938.SIGNAL_MAX_WIDTH_V9938 = 512 + 16 * 2;
+wmsx.V9938.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
 
-wmsx.V9938.MAX_SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
-wmsx.V9938.MAX_SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
+wmsx.V9938.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
+wmsx.V9938.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
 

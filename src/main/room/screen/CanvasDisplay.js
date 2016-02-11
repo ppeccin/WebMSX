@@ -644,10 +644,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
     var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
 
-    var contentWidth = wmsx.V9938.MAX_SIGNAL_WIDTH_V9938;     // Enough to fit V9938 maximum horizontal resolution
+    var contentWidth = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;     // Enough to fit V9938 maximum horizontal resolution
     var contentHeight = WMSX.MACHINE_TYPE === 1
-        ? wmsx.V9938.MAX_SIGNAL_HEIGHT_V9918 * 2              // Enough to fit V9918 vertical resolution (double)
-        : wmsx.V9938.MAX_SIGNAL_HEIGHT_V9938;                 // Enough to fit V9938 interlaced double vertical resolution
+        ? wmsx.V9938.SIGNAL_HEIGHT_V9918 * 2                  // Enough to fit V9918 vertical resolution (double)
+        : wmsx.V9938.SIGNAL_MAX_HEIGHT_V9938;                 // Enough to fit V9938 interlaced double vertical resolution
 
     var logoImage;
     var loadingImage;
