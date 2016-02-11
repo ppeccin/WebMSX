@@ -218,21 +218,20 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     this.reset = function() {
         frame = cycles = lastCPUCyclesComputed = 0;
-        blinkPage = 1; blinkPageDuration = 0;           // start at the Odd page
-        wmsx.Util.arrayFill(status, 0);
-        wmsx.Util.arrayFill(register, 0);
-        wmsx.Util.arrayFill(paletteRegister, 0);
-        layoutTableAddress = colorTableAddress = patternTableAddress = spriteAttrTableAddress = spritePatternTableAddress = 0;
-        layoutTableAddressMask = colorTableAddressMask = patternTableAddressMask = -1;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
         backdropColor = 0;
         pendingBlankingChange = false;
+        wmsx.Util.arrayFill(status, 0);
+        wmsx.Util.arrayFill(register, 0);
+        wmsx.Util.arrayFill(paletteRegister, 0);
         initColorPalette();
         updateIRQ();
         updateMode();
         updateBackdropValue();
         updateSynchronization();
+        updateBlinking();
+        updatePageAlternance();
         beginFrame();
     };
 
@@ -317,10 +316,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 break;
             case 9:
                 if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
+                if ((val & 0x04) !== (old & 0x04)) updatePageAlternance();                  // EO
                 if ((val & 0x02) !== (old & 0x02)) updateVideoStandardSoft();               // NT
                 break;
             case 13:
-                updateBlinking(val);
+                updateBlinking();
                 break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
@@ -648,17 +648,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-
-    // TODO Implement Blinking in all modes
-
-    function updateBlinking(reg13) {
-        if ((reg13 >>> 4) === 0) {
-            blinkPage = 1; blinkPageDuration = 0;        // Force page to be fixed on the Odd page
-        } else if ((reg13 & 0x0f) === 0) {
-            blinkPage = 0; blinkPageDuration = 0;        // Force page to be fixed on the Even page
+    function updateBlinking() {
+        if ((register[13] >>> 4) === 0) {
+            blinkEvenPage = false; blinkPageDuration = 0;        // Force page to be fixed on the Odd page
+        } else if ((register[13] & 0x0f) === 0) {
+            blinkEvenPage = true;  blinkPageDuration = 0;        // Force page to be fixed on the Even page
         } else {
-            blinkPage = 1; blinkPageDuration = 1;        // Force next page to be the Even page and let alternance start
+            blinkEvenPage = true;  blinkPageDuration = 1;        // Force next page to be the Even page and let alternance start
         }
+    }
+
+    function updatePageAlternance() {
+        alternativePageOffset = blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? -modeData.pageSize : 0;
     }
 
     function renderLineBorders() {
@@ -707,7 +708,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
 
-        if (blinkPage === 0) {                                              // Blink only in Even page
+        if (blinkEvenPage) {                                                // Blink only in Even page
             var blinkPos = colorTableAddress + (realLine >>> 3) * 10;
             var blinkBit = 7;
             while (patPos < patPosFinal) {
@@ -848,7 +849,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + (realLine << 7);
+        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 7);
         var pixelsPosFinal = pixelsPos + 128;
         while (pixelsPos < pixelsPosFinal) {
             var pixels = vram[pixelsPos++ & layoutTableAddressMask];
@@ -868,7 +869,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPos = bufferPos + 16 + horizontalAdjust * 2;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + (realLine << 7);
+        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 7);
         var pixelsPosFinal = pixelsPos + 128;
         while (pixelsPos < pixelsPosFinal) {
             var pixels = vram[pixelsPos++ & layoutTableAddressMask];
@@ -890,7 +891,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPos = bufferPos + 16 + horizontalAdjust * 2;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + (realLine << 8);
+        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 8);
         var pixelsPosFinal = pixelsPos + 256;
         while (pixelsPos < pixelsPosFinal) {
             var pixels = vram[pixelsPos++ & layoutTableAddressMask];
@@ -910,7 +911,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + (realLine << 8);
+        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 8);
         var pixelsPosFinal = pixelsPos + 256;
         while (pixelsPos < pixelsPosFinal) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
@@ -1651,15 +1652,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function beginFrame() {
         currentScanline = startingScanline;
         bufferPosition = 0;
-        status[2] ^= 0x02;                  // Invert EO (Display Field Flag)
 
-        // Page blinking and alternance
+        // Page blinking
         if (blinkPageDuration > 0) {
             if (--blinkPageDuration === 0) {
-                blinkPage ^= 1;             // Invert page
-                blinkPageDuration = ((register[13] >> (blinkPage ? 0 : 4)) & 0x0f) * 10;        // Duration in frames
+                blinkEvenPage = !blinkEvenPage;
+                blinkPageDuration = ((register[13] >> (blinkEvenPage ? 4 : 0)) & 0x0f) * 10;        // Duration in frames
             }
         }
+
+        // Field alternance
+        status[2] ^= 0x02;                  // Invert EO (Display Field flag)
+        updatePageAlternance();
 
         //logInfo("Begin Frame");
     }
@@ -1754,10 +1758,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 
     var frame;
-    var blinkPage, blinkPageDuration;
-    var desiredBaseFrequency;             // Will depend on VideoStandard and detected Host Native Video Frequency
+    var blinkEvenPage, blinkPageDuration, alternativePageOffset;
 
     var videoStandard;
+    var desiredBaseFrequency;             // Will depend on VideoStandard and detected Host Native Video Frequency
     var vSynchMode;
 
     var bufferPosition;
@@ -1823,19 +1827,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { code: 0xff, name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
+        return    { code: 0xff, name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
     });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG3,  updLineDeb: renderLineModeG3     , spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: renderLineModeG4,  updLineDeb: renderLineModeG4     , spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, updLine: renderLineModeG5,  updLineDeb: renderLineModeG5     , spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: renderLineModeG6,  updLineDeb: renderLineModeG6     , spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG3,  updLineDeb: renderLineModeG3     , spriteMode: 2 };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG4,  updLineDeb: renderLineModeG4     , spriteMode: 2 };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG5,  updLineDeb: renderLineModeG5     , spriteMode: 2 };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG6,  updLineDeb: renderLineModeG6     , spriteMode: 2 };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
 
     var renderLine, renderLineActive, renderSpritesLine, blankedLineValues;         // Update functions for current mode
     var renderSpritesLineFunctionsMode1 = [renderSprites1LineSize0, renderSprites1LineSize1, renderSprites1LineSize2, renderSprites1LineSize3 ];
@@ -1901,7 +1905,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
-            bp: blinkPage, bpd: blinkPageDuration,
+            bp: blinkEvenPage, bpd: blinkPageDuration,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
             r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
             c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
@@ -1916,7 +1920,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
-        blinkPage = s.bp; blinkPageDuration = s.bpd;
+        blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
         register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
         color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
@@ -1927,6 +1931,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateMode();
         updateBackdropColor();
         updateTransparency();
+        updatePageAlternance();
         initSprites2Control();
     };
 
