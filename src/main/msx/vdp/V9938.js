@@ -8,8 +8,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
     function init() {
-        signalMetrics = isV9918 ? signalMetricsV9918 : signalMetrics512e;
-        videoSignal = new wmsx.VDPVideoSignal(signalMetrics);
+        // Fixed metrics for V9918
+        if (isV9918) {
+            signalWidth = wmsx.V9938.MAX_SIGNAL_WIDTH_V9918;
+            signalHeight = wmsx.V9938.MAX_SIGNAL_HEIGHT_V9918;
+        }
+        videoSignal = new wmsx.VDPVideoSignal();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
@@ -20,7 +24,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         self.setDefaults();
         commandProcessor = new wmsx.V9938CommandProcessor();
         commandProcessor.connectVDP(self, vram, register, status);
-        commandProcessor.setVDPModeData(modeData, signalMetrics);
+        commandProcessor.setVDPModeData(modeData);
     }
 
     this.connectBus = function(bus) {
@@ -316,6 +320,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 break;
             case 9:
                 if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
+                else if ((val & 0x08) !== (old & 0x08)) updateSignalMetrics();              // IL, already OK if LN was changed
                 if ((val & 0x04) !== (old & 0x04)) updatePageAlternance();                  // EO
                 if ((val & 0x02) !== (old & 0x02)) updateVideoStandardSoft();               // NT
                 break;
@@ -500,7 +505,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         //logInfo("Bottom Line reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
-
     }
 
     function triggerHorizontalInterrupt() {
@@ -510,7 +514,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         //logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
-
     }
 
     function updateIRQ() {
@@ -547,13 +550,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         spritePatternTableAddress = add & modeData.sprPatTBase;
         updateLineActiveType();
         updateSpritesLineType();
-        updateSignalMetrics();              // Will update modeData and signalMetrics to the CommandProcessor
+        updateSignalMetrics();
         updateSpritePatternTables();
+        commandProcessor.setVDPModeData(modeData);
         if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
         pendingModeChange = false;
 
         //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
-
     }
 
     function updateVideoStandardSoft() {
@@ -564,16 +567,23 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function updateSignalMetrics() {
-        if (!isV9918) signalMetrics = register[9] & 0x80 ? modeData.sigMetricsExt : modeData.sigMetrics;       // LN
+        var height, vertBorderHeight;
+
+        // Fixed metrics for V9918
+        if (isV9918) {
+            height = 192; vertBorderHeight = 8;
+        } else {
+            signalWidth = modeData.width === 512 ? 512 + 16 * 2 : 256 + 8 * 2;          // Mode
+            signalHeight = (register[9] & 0x08) ? 424 + 16 * 2 : 212 + 8 * 2;           // IL
+            if (register[9] & 0x80) { height = 212; vertBorderHeight = 8; }             // LN
+            else { height = 192; vertBorderHeight = 18; }
+        }
 
         startingTopBorderScanline = 0;
-        startingActiveScanline = startingTopBorderScanline + signalMetrics.vertBorderSize + verticalAdjust;
-        startingBottomBorderScanline = startingActiveScanline + signalMetrics.height;
-        finishingScanline = startingBottomBorderScanline + signalMetrics.vertBorderSize - verticalAdjust;
+        startingActiveScanline = startingTopBorderScanline + vertBorderHeight + verticalAdjust;
+        startingBottomBorderScanline = startingActiveScanline + height;
+        finishingScanline = startingBottomBorderScanline + vertBorderHeight - verticalAdjust;
         startingScanline = finishingScanline - videoStandard.totalHeight;
-
-        videoSignal.setSignalMetrics(signalMetrics);
-        commandProcessor.setVDPModeData(modeData, signalMetrics);
     }
 
     function enterActiveDisplay() {
@@ -603,7 +613,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             : null;
 
         //logInfo("SpriteType: " + (renderSpritesLine && renderSpritesLine.name));
-
     }
 
     // TODO Consider TP in Sprites
@@ -1645,7 +1654,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function refresh() {
         // Send frame to monitor
-        videoSignal.newFrame(frameCanvas, 0, 0, signalMetrics.totalWidth, signalMetrics.totalHeight);
+        videoSignal.newFrame(frameCanvas, 0, 0, signalWidth, signalHeight);
         refreshPending = false;
     }
 
@@ -1674,7 +1683,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         //cpu.eval("cycles = 0");
 
         // Update frame image from backbuffer
-        frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalMetrics.totalWidth, signalMetrics.totalHeight);
+        frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalWidth, signalHeight);
         refreshPending = true;
         frame = frame + 1;
 
@@ -1787,7 +1796,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var mode;
     var modeData;
-    var signalMetrics;
+    var signalWidth, signalHeight;
 
     var pendingModeChange;
     var pendingBlankingChange;
@@ -1806,12 +1815,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var verticalAdjust, horizontalAdjust;
 
-    var signalMetricsV9918 =  { width: 256, height: 192, vertBorderSize:  8, totalWidth: 272, totalHeight: 208 };
-    var signalMetrics256 =    { width: 256, height: 192, vertBorderSize: 18, totalWidth: 272, totalHeight: 228 };
-    var signalMetrics256e =   { width: 256, height: 212, vertBorderSize:  8, totalWidth: 272, totalHeight: 228 };
-    var signalMetrics512 =    { width: 512, height: 192, vertBorderSize: 18, totalWidth: 544, totalHeight: 228 };
-    var signalMetrics512e =   { width: 512, height: 212, vertBorderSize:  8, totalWidth: 544, totalHeight: 228 };
-
     var layoutTableAddress;                         // Dynamic values, set by software
     var colorTableAddress;
     var patternTableAddress;
@@ -1827,19 +1830,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { code: 0xff, name: "Invalid",   isV9938: true, sigMetrics: signalMetrics256e, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
+        return    { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
     });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG3,  updLineDeb: renderLineModeG3     , spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG4,  updLineDeb: renderLineModeG4     , spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG5,  updLineDeb: renderLineModeG5     , spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG6,  updLineDeb: renderLineModeG6     , spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG3,  updLineDeb: renderLineModeG3     , spriteMode: 2 };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG4,  updLineDeb: renderLineModeG4     , spriteMode: 2 };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 512, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG5,  updLineDeb: renderLineModeG5     , spriteMode: 2 };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 512, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG6,  updLineDeb: renderLineModeG6     , spriteMode: 2 };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
 
     var renderLine, renderLineActive, renderSpritesLine, blankedLineValues;         // Update functions for current mode
     var renderSpritesLineFunctionsMode1 = [renderSprites1LineSize0, renderSprites1LineSize1, renderSprites1LineSize2, renderSprites1LineSize3 ];
@@ -1951,3 +1954,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 };
 
 wmsx.V9938.VRAM_LIMIT = 0x1ffff;      // 128K
+
+wmsx.V9938.MAX_SIGNAL_WIDTH_V9938 = 512 + 16 * 2;
+wmsx.V9938.MAX_SIGNAL_HEIGHT_V9938 = (212 + 8 * 2) * 2;
+
+wmsx.V9938.MAX_SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
+wmsx.V9938.MAX_SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
+

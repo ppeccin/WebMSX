@@ -1,14 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.VDPVideoSignal = function(signalMetrics) {
+wmsx.VDPVideoSignal = function() {
 
     this.connectMonitor = function(pMonitor) {
         monitor = pMonitor;
-        monitor.setSignalMetrics(signalMetrics);
-    };
-
-    this.setSignalMetrics = function(metrics) {
-        if (monitor) monitor.setSignalMetrics(metrics);
     };
 
     this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {

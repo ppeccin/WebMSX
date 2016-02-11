@@ -6,7 +6,7 @@ wmsx.V9918 = function(cpu, psg) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal(signalMetrics);
+        videoSignal = new wmsx.VDPVideoSignal();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
@@ -1113,8 +1113,6 @@ wmsx.V9918 = function(cpu, psg) {
     var debugPatTableBlocks   = new Uint8Array(8);                  // 8x8
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
-
-    var signalMetrics = { width: 256, height: 192, totalWidth: 272, totalHeight: 208 };     // Fixed for all modes
 
 
     // Connections

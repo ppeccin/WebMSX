@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// Uses a Canvas with double the base resolution for better smoothness
 // TODO Implement phosphor and other CRT modes
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -60,19 +61,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.videoSignalOff = function() {
         signalIsOn = false;
         updateLogo();
-    };
-
-    this.setSignalMetrics = function(metrics) {
-        // Only change if height is different
-        if (signalMetrics && (metrics.height === signalMetrics.height)) return;
-
-        //console.log(">>> Display changing signalMetrics");
-
-        signalMetrics = metrics;
-        contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;
-        contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * metrics.totalHeight) | 0;
-        setCanvasSize(contentWidth, contentHeight);
-        updateScale();
     };
 
     this.displayDefaultOpeningScaleX = function() {
@@ -276,15 +264,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-    function setCanvasSize(width, height) {
-        canvas.width = width;
-        canvas.height = height;
-        // Prepare Context used to draw frame
-        canvasContext = canvas.getContext("2d");
-        canvasContext.globalCompositeOperation = "copy";
-        updateImageSmoothing();
-    }
-
     var setupMain = function () {
         mainElement.style.position = "relative";
         mainElement.style.overflow = "hidden";
@@ -334,9 +313,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.outline = "none";
         canvas.style.border = "none";
         fsElement.appendChild(canvas);
-        setCanvasSize(contentWidth, contentHeight);
-
+        canvas.width = contentWidth;
+        canvas.height = contentHeight;
         mainElement.appendChild(borderElement);
+
+        // Prepare Context used to draw frame
+        canvasContext = canvas.getContext("2d");
+        canvasContext.globalCompositeOperation = "copy";
+        updateImageSmoothing();
     };
 
     var setupButtonsBar = function() {
@@ -657,12 +641,13 @@ wmsx.CanvasDisplay = function(mainElement) {
     var crtFilter = 1;
     var isLoading = false;
 
-    var signalMetrics;
+    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
+    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
 
-    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                                     // Initial setting
-    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                                     // Initial setting
-    var contentWidth =  ((WMSX.SCREEN_BASE_WIDTH / 256) * (256 + 8 * 2)) | 0;   // Initial setting
-    var contentHeight = ((WMSX.SCREEN_BASE_WIDTH / 256) * (192 + 8 * 2)) | 0;   // Initial setting
+    var contentWidth = wmsx.V9938.MAX_SIGNAL_WIDTH_V9938;     // Enough to fit V9938 maximum horizontal resolution
+    var contentHeight = WMSX.MACHINE_TYPE === 1
+        ? wmsx.V9938.MAX_SIGNAL_HEIGHT_V9918 * 2              // Enough to fit V9918 vertical resolution (double)
+        : wmsx.V9938.MAX_SIGNAL_HEIGHT_V9938;                 // Enough to fit V9938 interlaced double vertical resolution
 
     var logoImage;
     var loadingImage;

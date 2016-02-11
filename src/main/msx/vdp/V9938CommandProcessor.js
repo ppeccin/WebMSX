@@ -70,9 +70,9 @@ wmsx.V9938CommandProcessor = function() {
         status[2] = (status[2] & ~0x81) | (transferReady << 7) | inProgress;
     };
 
-    this.setVDPModeData = function(modeData, pSignalMetrics) {
+    this.setVDPModeData = function(modeData) {
         mode = modeData.code;
-        modeWidth = pSignalMetrics.width;
+        modeWidth = modeData.width;
         layoutLineBytes = modeData.layLineBytes;
     };
 

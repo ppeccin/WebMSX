@@ -13,10 +13,6 @@ wmsx.Monitor = function(display) {
         videoSignal.connectMonitor(this);
     };
 
-    this.setSignalMetrics = function(metrics) {
-        display.setSignalMetrics(metrics);
-    };
-
     this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
         display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight);
     };

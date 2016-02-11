@@ -30,7 +30,6 @@ WMSX = {
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FILTER_MODE:             1,                          // 0..3
     SCREEN_CRT_MODE:                -1,                         // 0..4, -1 = auto
-    SCREEN_BASE_WIDTH:              512,                        // Don't change!
     SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. N, 0.125 steps
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
