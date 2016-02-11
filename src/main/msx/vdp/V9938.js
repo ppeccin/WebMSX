@@ -453,7 +453,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
     function lineEvents() {
         // Start of line
-        //lineStartCPUCycles = cpu.getCycles();
+        //debugLineStartCPUCycles = cpu.getCycles();
 
         if (pendingBlankingChange) updateLineActiveType();
 
@@ -1686,8 +1686,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function finishFrame() {
 
-        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + cpu.eval("cycles"));
-        //cpu.eval("cycles = 0");
+        //var cpuCycles = cpu.getCycles();
+        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + (cpuCycles - debugFrameStartCPUCycle));
+        //debugFrameStartCPUCycle = cpuCycles;
 
         // Update frame image from backbuffer
         frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalWidth, signalHeight);
@@ -1899,7 +1900,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
-    var lineStartCPUCycles = 0;
+    var debugFrameStartCPUCycle = 0;
+    var debugLineStartCPUCycles = 0;
 
 
     // Connections
@@ -1912,7 +1914,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        // TODO VideoStandard
         return {
             v1: isV9918,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance,
@@ -1954,7 +1955,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 
     function logInfo(text) {
-        console.log(text + ". Frame: " + frame + ", line: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - lineStartCPUCycles));
+        console.log(text + ". Frame: " + frame + ", line: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
     }
     this.logInfo = logInfo;
 
