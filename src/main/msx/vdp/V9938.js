@@ -554,6 +554,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         spriteAttrTableAddress = add & modeData.sprAttrTBase;
         add = (register[6] << 11) & 0x1ffff;
         spritePatternTableAddress = add & modeData.sprPatTBase;
+
         updateLineActiveType();
         updateSpritesLineType();
         updateSignalMetrics();
@@ -1827,7 +1828,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var backdropColor;
     var backdropValue;
     var backdropFullLine512Values = new Uint32Array(512 + 16 * 2);
-    var backdropFullLine256Values = backdropFullLine512Values.subarray(256 + 8 * 2);
 
     var verticalAdjust, horizontalAdjust;
 
@@ -1866,7 +1866,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var renderSpritesLineFunctionsMode1 = [renderSprites1LineSize0, renderSprites1LineSize1, renderSprites1LineSize2, renderSprites1LineSize3 ];
     var renderSpritesLineFunctionsMode2 = [renderSprites2LineSize0, renderSprites2LineSize1, renderSprites2LineSize2, renderSprites2LineSize3 ];
 
-    var vram = new Uint8Array(wmsx.V9938.VRAM_LIMIT + 1);
+    var vram = wmsx.Util.arrayFill(new Array(wmsx.V9938.VRAM_LIMIT + 1), 0);
     this.vram = vram;
 
 
@@ -1899,9 +1899,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var spriteDebugModeLimit = true;
     var spriteDebugModeCollisions = true;
 
-    var debugPatTableDigits8 =  new Uint8Array(256 * 8);            // 8x8
-    var debugPatTableDigits16 = new Uint8Array(256 * 8 * 4);        // 16x16
-    var debugPatTableBlocks =   new Uint8Array(8);                  // 8x8
+    var debugPatTableDigits8 =  new Array(256 * 8);            // 8x8
+    var debugPatTableDigits16 = new Array(256 * 8 * 4);        // 16x16
+    var debugPatTableBlocks =   new Array(8);                  // 8x8
     var debugBackdropValue    = 0xfe2a2a2a;
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
