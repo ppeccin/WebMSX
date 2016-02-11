@@ -652,7 +652,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function updateBackdropCachesG5() {
         var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
-        for (var i = 0; i < 544; i += 2) {
+        for (var i = 0; i < LINE_WIDTH; i += 2) {
             backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
         }
     }
@@ -668,17 +668,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function updatePageAlternance() {
-        alternativePageOffset = blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? -modeData.pageSize : 0;
+        alternativePageOffset = blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? -modeData.pageSize : 0;     // Consider EO (both register and flag)
     }
 
     function renderLineBorders() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineActiveBlanked() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeT1() {                                           // Text (Screen 0 width 40)
@@ -702,7 +702,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeT2() {                                           // Text (Screen 0 width 80)
@@ -744,7 +744,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Sprites deactivated
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeMC() {                                           // Multicolor (Screen 3)
@@ -769,7 +769,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG1() {                                           // Graphics 1 (Screen 1)
@@ -794,7 +794,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG2() {                                           // Graphics 2 (Screen 2)
@@ -821,7 +821,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG3() {                                           // Graphics 3 (Screen 4)
@@ -848,7 +848,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG4() {                                           // Graphics 4 (Screen 5)
@@ -868,7 +868,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG5() {                                           // Graphics 5 (Screen 6)
@@ -890,7 +890,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG6() {                                           // Graphics 6 (Screen 7)
@@ -910,7 +910,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG7() {                                           // Graphics 7 (Screen 8)
@@ -928,7 +928,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeT1Debug() {                                      // Text (Screen 0)
@@ -966,7 +966,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Sprites deactivated
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeMCDebug() {                                      // Multicolor (Screen 3)
@@ -992,7 +992,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
@@ -1025,7 +1025,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
@@ -1060,7 +1060,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         renderSpritesLine(realLine, bufferPos - 256);
 
-        bufferPosition = bufferPosition + 544;
+        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function paintPattern(bufferPos, pattern, on, off) {
@@ -1660,7 +1660,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function beginFrame() {
         currentScanline = startingScanline;
-        bufferPosition = 0;
 
         // Page blinking
         if (blinkPageDuration > 0) {
@@ -1671,10 +1670,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         // Field alternance
-        status[2] ^= 0x02;                  // Invert EO (Display Field flag)
-        updatePageAlternance();
+        status[2] ^= 0x02;                    // Invert EO (Display Field flag)
 
-        //logInfo("Begin Frame");
+        // Interlace
+        if (register[9] & 0x08) {                                       // IL
+            bufferPosition = (status[2] & 0x02) ? LINE_WIDTH : 0;       // EO
+            bufferLineAdvance = LINE_WIDTH * 2;
+        } else {
+            bufferPosition = 0;
+            bufferLineAdvance = LINE_WIDTH;
+        }
+
+        updatePageAlternance();
     }
 
     function finishFrame() {
@@ -1699,9 +1706,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
-        // Maximum VPD resolution + 16 pixel borders
-        frameCanvas.width =  512 + 16 + 16;          // 544
-        frameCanvas.height = 424 + 16 + 16;          // 456
+        // Maximum VPD resolution including borders
+        frameCanvas.width =  wmsx.V9938.MAX_SIGNAL_WIDTH_V9938;
+        frameCanvas.height = wmsx.V9938.MAX_SIGNAL_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
         //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height);
@@ -1764,6 +1771,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 
     var SPRITE_MAX_PRIORITY = 9000000000000000;
+    var LINE_WIDTH = wmsx.V9938.MAX_SIGNAL_WIDTH_V9938;
 
 
     var frame;
@@ -1774,6 +1782,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var vSynchMode;
 
     var bufferPosition;
+    var bufferLineAdvance;
     var currentScanline;
 
     var cycles, lastCPUCyclesComputed;
@@ -1810,8 +1819,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var backdropColor;
     var backdropValue;
-    var backdropFullLine512Values = new Uint32Array(544);
-    var backdropFullLine256Values = backdropFullLine512Values.subarray(272);
+    var backdropFullLine512Values = new Uint32Array(512 + 16 * 2);
+    var backdropFullLine256Values = backdropFullLine512Values.subarray(256 + 8 * 2);
 
     var verticalAdjust, horizontalAdjust;
 
@@ -1833,8 +1842,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         return    { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
     });
 
+    // TODO Backdrop color and Sprites color for G7 mode
+
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
     modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
     modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
     modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
@@ -1904,7 +1915,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         // TODO VideoStandard
         return {
             v1: isV9918,
-            l: currentScanline, b: bufferPosition,
+            l: currentScanline, b: bufferPosition, ba: bufferLineAdvance,
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
@@ -1919,7 +1930,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     this.loadState = function(s) {
         isV9918 = s.v1;
-        currentScanline = s.l; bufferPosition = s.b;
+        currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
