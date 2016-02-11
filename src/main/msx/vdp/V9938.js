@@ -218,6 +218,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     this.reset = function() {
         frame = cycles = lastCPUCyclesComputed = 0;
+        blinkPage = 1; blinkPageDuration = 0;           // start at the Odd page
         wmsx.Util.arrayFill(status, 0);
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
@@ -318,6 +319,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if ((val & 0x80) !== (old & 0x80)) updateSignalMetrics();                   // LN
                 if ((val & 0x02) !== (old & 0x02)) updateVideoStandardSoft();               // NT
                 break;
+            case 13:
+                updateBlinking(val);
+                break;
             case 14:
                 // VRAM Address Pointer high (A16-A14)
                 vramPointer = ((val & 0x07) << 14) | (vramPointer & 0x3fff);
@@ -388,6 +392,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (color0Solid) colorPalette[0] = value;
         } else
             colorPalette[reg] = value;
+
+        colorPalette[reg + 16] = value;
 
         if (reg === backdropColor) updateBackdropValue();
         else if ((mode === 4) && (reg <= 3)) updateBackdropCachesG5();
@@ -600,8 +606,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     }
 
+    // TODO Consider TP in Sprites
+
     function updateTransparency() {
-        color0Solid = !!(register[8] & 0x20);
+        color0Solid = (register[8] & 0x20) !== 0;
         colorPalette[0] = color0Solid ? color0SetValue : backdropValue;
 
         //console.log("TP: " + color0Solid + ", currentLine: " + currentScanline);
@@ -640,6 +648,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
+
+    // TODO Implement Blinking in all modes
+
+    function updateBlinking(reg13) {
+        if ((reg13 >>> 4) === 0) {
+            blinkPage = 1; blinkPageDuration = 0;        // Force page to be fixed on the Odd page
+        } else if ((reg13 & 0x0f) === 0) {
+            blinkPage = 0; blinkPageDuration = 0;        // Force page to be fixed on the Even page
+        } else {
+            blinkPage = 1; blinkPageDuration = 1;        // Force next page to be the Even page and let alternance start
+        }
+    }
+
     function renderLineBorders() {
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
         bufferPosition = bufferPosition + 544;
@@ -653,13 +674,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeT1() {                                           // Text (Screen 0 width 40)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop24(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16 + horizontalAdjust;
-        } else {
-            paintBackdrop16(bufferPos); paintBackdrop24(bufferPos + 256 - 8); bufferPos += 16 + horizontalAdjust;
-        }
+        paintBackdrop24(bufferPos); paintBackdrop24(bufferPos + 256 - 8);
+        bufferPos = bufferPos + 16 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + (realLine >>> 3) * 40;            // line / 8 * 40
@@ -669,8 +685,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var on =  colorPalette[colorCode >>> 4];
         var off = colorPalette[colorCode & 0xf];
         while (patPos < patPosFinal) {
-            var name = vram[patPos++];                                      // No masking needed
-            var pattern = vram[(name << 3) + lineInPattern];                // No masking needed
+            var name = vram[patPos++];                                      // no masking needed
+            var pattern = vram[(name << 3) + lineInPattern];                // no masking needed
             paintPattern(bufferPos, pattern, on, off);
             bufferPos += 6;
         }
@@ -682,26 +698,39 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeT2() {                                           // Text (Screen 0 width 80)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop32(bufferPos); paintBackdrop32(bufferPos + 512); bufferPos += 32;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop48(bufferPos); paintBackdrop32(bufferPos + 512); bufferPos += 32 + horizontalAdjust * 2;
-        } else {
-            paintBackdrop32(bufferPos); paintBackdrop48(bufferPos + 512 - 16); bufferPos += 32 + horizontalAdjust * 2;
-        }
+        paintBackdrop48(bufferPos); paintBackdrop48(bufferPos + 512 - 16);
+        bufferPos = bufferPos + 32 + horizontalAdjust * 2;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + (realLine >>> 3) * 80;            // line / 8 * 80
         var patPosFinal = patPos + 80;
-        var colorCode = register[7];                                        // fixed text color for all line
         var lineInPattern = patternTableAddress + (realLine & 0x07);
-        var on =  colorPalette[colorCode >>> 4];
-        var off = colorPalette[colorCode & 0xf];
-        while (patPos < patPosFinal) {
-            var name = vram[patPos++ & layoutTableAddressMask];
-            var pattern = vram[(name << 3) + lineInPattern];                // No masking needed
-            paintPattern(bufferPos, pattern, on, off);
-            bufferPos += 6;
+        var name, pattern, colorCode, on, off;
+
+        if (blinkPage === 0) {                                              // Blink only in Even page
+            var blinkPos = colorTableAddress + (realLine >>> 3) * 10;
+            var blinkBit = 7;
+            while (patPos < patPosFinal) {
+                var blink = (vram[blinkPos & colorTableAddressMask] >>> blinkBit) & 1;
+                name = vram[patPos++ & layoutTableAddressMask];
+                colorCode = register[blink ? 12 : 7];                       // special colors from register12 if blink bit for position is set
+                pattern = vram[(name << 3) + lineInPattern];                // no masking needed
+                on = colorPalette[colorCode >>> 4];
+                off = colorPalette[(colorCode & 0xf) + (blink ? 16 : 0)];   // color 0 is always solid in blink
+                paintPattern(bufferPos, pattern, on, off);
+                if (--blinkBit < 0) { blinkPos++; blinkBit = 7; }
+                bufferPos += 6;
+            }
+        } else {
+            colorCode = register[7];
+            on =  colorPalette[colorCode >>> 4];
+            off = colorPalette[colorCode & 0xf];
+            while (patPos < patPosFinal) {
+                name = vram[patPos++ & layoutTableAddressMask];
+                pattern = vram[(name << 3) + lineInPattern];                // no masking needed
+                paintPattern(bufferPos, pattern, on, off);
+                bufferPos += 6;
+            }
         }
 
         // Sprites deactivated
@@ -711,13 +740,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeMC() {                                           // Multicolor (Screen 3)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
@@ -741,13 +765,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG1() {                                           // Graphics 1 (Screen 1)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
@@ -771,13 +790,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG2() {                                           // Graphics 2 (Screen 2)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
@@ -803,13 +817,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG3() {                                           // Graphics 3 (Screen 4)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
@@ -835,13 +844,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG4() {                                           // Graphics 4 (Screen 5)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = layoutTableAddress + (realLine << 7);
@@ -860,16 +864,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG5() {                                           // Graphics 5 (Screen 6)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop16G5(bufferPos); paintBackdrop16G5(bufferPos + 16 + 512);
-            bufferPos += 16;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop32G5(bufferPos); paintBackdrop16G5(bufferPos + 16 + 512);
-            bufferPos += 16 + horizontalAdjust * 2;
-        } else {
-            paintBackdrop16G5(bufferPos); paintBackdrop32G5(bufferPos + 512);
-            bufferPos += 16 + horizontalAdjust * 2;
-        }
+        paintBackdrop32G5(bufferPos); paintBackdrop32G5(bufferPos + 512);
+        bufferPos = bufferPos + 16 + horizontalAdjust * 2;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = layoutTableAddress + (realLine << 7);
@@ -890,16 +886,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG6() {                                           // Graphics 6 (Screen 7)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 16 + 512);
-            bufferPos += 16;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop32(bufferPos); paintBackdrop16(bufferPos + 16 + 512);
-            bufferPos += 16 + horizontalAdjust * 2;
-        } else {
-            paintBackdrop16(bufferPos); paintBackdrop32(bufferPos + 512);
-            bufferPos += 16 + horizontalAdjust * 2;
-        }
+        paintBackdrop32(bufferPos); paintBackdrop32(bufferPos + 512);
+        bufferPos = bufferPos + 16 + horizontalAdjust * 2;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = layoutTableAddress + (realLine << 8);
@@ -918,13 +906,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG7() {                                           // Graphics 7 (Screen 8)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = layoutTableAddress + (realLine << 8);
@@ -941,13 +924,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeT1Debug() {                                      // Text (Screen 0)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop24(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 16 + horizontalAdjust;
-        } else {
-            paintBackdrop16(bufferPos); paintBackdrop24(bufferPos + 256 - 8); bufferPos += 16 + horizontalAdjust;
-        }
+        paintBackdrop24(bufferPos); paintBackdrop24(bufferPos + 256 - 8);
+        bufferPos = bufferPos + 16 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) * 40);          // line / 8 * 40
@@ -986,13 +964,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
@@ -1015,13 +988,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG1Debug() {                                      // Graphics 1 (Screen 1)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
@@ -1053,13 +1021,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG2Debug() {                                      // Graphics 2 (Screen 2)
         var bufferPos = bufferPosition;
 
-        if (horizontalAdjust === 0) {
-            paintBackdrop8(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8;
-        } else if (horizontalAdjust > 0) {
-            paintBackdrop16(bufferPos); paintBackdrop8(bufferPos + 8 + 256); bufferPos += 8 + horizontalAdjust;
-        } else {
-            paintBackdrop8(bufferPos); paintBackdrop16(bufferPos + 256); bufferPos += 8 + horizontalAdjust;
-        }
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
@@ -1141,13 +1104,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameBackBuffer[bufferPos + 40] = backdropValue; frameBackBuffer[bufferPos + 41] = backdropValue; frameBackBuffer[bufferPos + 42] = backdropValue; frameBackBuffer[bufferPos + 43] = backdropValue;
         frameBackBuffer[bufferPos + 44] = backdropValue; frameBackBuffer[bufferPos + 45] = backdropValue; frameBackBuffer[bufferPos + 46] = backdropValue; frameBackBuffer[bufferPos + 47] = backdropValue;
     }
-    function paintBackdrop16G5(bufferPos) {
-        var odd =  backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
-        frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
-        frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
-        frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
-        frameBackBuffer[bufferPos + 12] = odd; frameBackBuffer[bufferPos + 13] = even; frameBackBuffer[bufferPos + 14] = odd; frameBackBuffer[bufferPos + 15] = even;
-    }
 
     function paintBackdrop32G5(bufferPos) {
         var odd =  backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
@@ -1160,6 +1116,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameBackBuffer[bufferPos + 24] = odd; frameBackBuffer[bufferPos + 25] = even; frameBackBuffer[bufferPos + 26] = odd; frameBackBuffer[bufferPos + 27] = even;
         frameBackBuffer[bufferPos + 28] = odd; frameBackBuffer[bufferPos + 29] = even; frameBackBuffer[bufferPos + 30] = odd; frameBackBuffer[bufferPos + 31] = even;
     }
+
+    // TODO Report Sprite collision coordinates in status register 3 - 6
 
     function renderSprites1LineSize0(line, bufferPos) {                     // Mode 1, 8x8 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
@@ -1693,6 +1651,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function beginFrame() {
         currentScanline = startingScanline;
         bufferPosition = 0;
+        status[2] ^= 0x02;                  // Invert EO (Display Field Flag)
+
+        // Page blinking and alternance
+        if (blinkPageDuration > 0) {
+            if (--blinkPageDuration === 0) {
+                blinkPage ^= 1;             // Invert page
+                blinkPageDuration = ((register[13] >> (blinkPage ? 0 : 4)) & 0x0f) * 10;        // Duration in frames
+            }
+        }
 
         //logInfo("Begin Frame");
     }
@@ -1732,6 +1699,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
         for (var c = 0; c < 16; c = c + 1) {
             colorPalette[c] = colors[c];
+            colorPalette[c + 16] = colors[c];
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
         }
         color0SetValue = colorPalette[0];
@@ -1786,7 +1754,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
 
     var frame;
-    var desiredBaseFrequency;       // Will depend on VideoStandard and detected Host Native Video Frequency
+    var blinkPage, blinkPageDuration;
+    var desiredBaseFrequency;             // Will depend on VideoStandard and detected Host Native Video Frequency
 
     var videoStandard;
     var vSynchMode;
@@ -1858,7 +1827,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     });
 
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  sigMetrics: signalMetrics512, sigMetricsExt: signalMetrics512e, layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, layLineBytes:   0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
     modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
     modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
     modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, sigMetrics: signalMetrics256, sigMetricsExt: signalMetrics256e, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, layLineBytes:   0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
@@ -1880,7 +1849,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
-    var colorPalette = new Uint32Array(16);     // 32 bit ABGR palette values ready to paint
+    var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed. 16-31 with real palette values
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
@@ -1932,6 +1901,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
+            bp: blinkPage, bpd: blinkPageDuration,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
             r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
             c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
@@ -1946,6 +1916,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
+        blinkPage = s.bp; blinkPageDuration = s.bpd;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
         register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
         color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
