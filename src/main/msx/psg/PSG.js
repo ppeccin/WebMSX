@@ -98,7 +98,7 @@ wmsx.PSG = function() {
 
     this.loadState = function(s) {
         registerAddress = s.ra;
-        registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
+        registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, registers);
         registers[14] = 0x3f3f;                                  // reset Joysticks inputs
         audioSignal.loadState(s.a);
     };

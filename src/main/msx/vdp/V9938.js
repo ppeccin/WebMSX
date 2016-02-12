@@ -1943,9 +1943,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
-        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p);
-        color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal);
-        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram);         // Already UInt8Array
+        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRegister);
+        color0SetValue = s.c0;
+        var c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal, colorPalette);
+        if (colorPalette !== c) colorPalette = new Uint32Array(c);              // Must preserve type Uint32Array
+        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram);
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         updateIRQ();

@@ -52,7 +52,8 @@ wmsx.CartridgeCrossBlaim = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        this.bytes = bytes;
         bank2Offset = s.b1;
     };
 

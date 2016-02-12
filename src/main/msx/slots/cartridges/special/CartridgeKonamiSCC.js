@@ -109,7 +109,8 @@ wmsx.CartridgeKonamiSCC = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        this.bytes = bytes;
         bank1Offset = s.b1;
         bank2Offset = s.b2;
         bank3Offset = s.b3;
@@ -125,6 +126,12 @@ wmsx.CartridgeKonamiSCC = function(rom) {
 
 
     if (rom) init(this);
+
+
+    this.eval = function(arg) {
+        return eval(arg);
+    }
+
 
 };
 

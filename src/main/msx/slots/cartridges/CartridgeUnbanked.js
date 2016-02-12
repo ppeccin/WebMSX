@@ -81,7 +81,8 @@ wmsx.CartridgeUnbanked = function(rom) {
 
     this.loadState = function(state) {
         this.rom = wmsx.ROM.loadState(state.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b)
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
+        this.bytes = bytes;
     };
 
 

@@ -35,6 +35,7 @@ wmsx.Util = new function() {
         var finalSrcPos = length ? srcPos + length : src.length;
         while(srcPos < finalSrcPos)
             dest[destPos++] = src[srcPos++];
+        return dest;
     };
 
     this.arrayHasElement = function(arr, element) {
@@ -65,11 +66,11 @@ wmsx.Util = new function() {
         return str;
     };
 
-    this.byteStringToInt8BitArray = function(str) {
+    this.byteStringToInt8BitArray = function(str, dest) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
-        var ints = new Array(len);
+        var ints = (dest && dest.length === len) ? dest : new Array(len);
         for(var i = 0; i < len; i = i + 1)
             ints[i] = (str.charCodeAt(i) & 0xff);
         return ints;
@@ -86,11 +87,11 @@ wmsx.Util = new function() {
         return str;
     };
 
-    this.byteStringToInt32BitArray = function(str) {
+    this.byteStringToInt32BitArray = function(str, dest) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = (str.length / 4) | 0;
-        var ints = new Array(len);
+        var ints = (dest && dest.length === len) ? dest : new Array(len);
         for(var i = 0, s = 0; i < len; i = i + 1, s = s + 4)
             ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8) | ((str.charCodeAt(s + 2) & 0xff) << 16) | ((str.charCodeAt(s + 3) & 0xff) << 24);
         return ints;
@@ -102,11 +103,11 @@ wmsx.Util = new function() {
         return btoa(this.int8BitArrayToByteString(arr));
     };
 
-    this.restoreStringBase64ToInt8BitArray = function(str) {
+    this.restoreStringBase64ToInt8BitArray = function(str, dest) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
-        return this.byteStringToInt8BitArray(atob(str));
+        return this.byteStringToInt8BitArray(atob(str), dest);
     };
 
     this.compressInt8BitArrayToStringBase64 = function(arr) {
@@ -115,11 +116,15 @@ wmsx.Util = new function() {
         return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
     };
 
-    this.uncompressStringBase64ToInt8BitArray = function(str) {       // TODO returns Typed Uint8Array. Convert to normal
+    this.uncompressStringBase64ToInt8BitArray = function(str, dest) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
-        return JSZip.compressions.DEFLATE.uncompress(atob(str));
+        var res = JSZip.compressions.DEFLATE.uncompress(atob(str));
+        if (dest && dest.length === res.length)
+            return this.arrayCopy(res, 0, dest);                       // Preserve dest
+        else
+            return this.arrayCopy(res, 0, new Array(res.length));      // Convert Uint8Array to normal Array
     };
 
     this.storeInt32BitArrayToStringBase64 = function(arr) {
@@ -128,11 +133,11 @@ wmsx.Util = new function() {
         return btoa(this.int32BitArrayToByteString(arr));
     };
 
-    this.restoreStringBase64ToInt32BitArray = function(str) {
+    this.restoreStringBase64ToInt32BitArray = function(str, dest) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
-        return this.byteStringToInt32BitArray(atob(str));
+        return this.byteStringToInt32BitArray(atob(str), dest);
     };
 
     this.compressStringToStringBase64 = function(str) {

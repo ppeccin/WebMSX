@@ -75,7 +75,7 @@ wmsx.RTC = function() {
 
     this.loadState = function(s) {
         registerAddress = s.ra;
-        registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
+        registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, registers);
         mode = registers[0xd] & 0x3;
     };
 

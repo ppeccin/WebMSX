@@ -70,9 +70,9 @@ wmsx.SlotRAMMapper256K = function(content) {
     };
 
     this.loadState = function(state) {
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
-        pageOffsets = [ state.p0, state.p1, state.p2, state.p3 ];
+        pageOffsets[0] = state.p0; pageOffsets[1] = state.p1; pageOffsets[2] = state.p2; pageOffsets[3] = state.p3;
     };
 
 

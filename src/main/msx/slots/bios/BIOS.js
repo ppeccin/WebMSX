@@ -84,7 +84,7 @@ wmsx.BIOS = function(rom) {
     this.loadState = function(state) {
         this.rom = wmsx.ROM.loadState(state.r);
         this.originalVideoStandard = (state.v.constructor === String) ? wmsx.VideoStandard[state.v] : wmsx.VideoStandard[state.v.name];     // Backward compatibility
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
     };
 

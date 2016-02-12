@@ -187,8 +187,10 @@ wmsx.FileDiskDrive = function() {
 
     this.loadState = function(state) {
         diskFileName = state.f;
-        diskContent = [ wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[0]),
-                        wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[1]) ];
+        var a = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[0], diskContent[0]);
+        var b = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[1], diskContent[1]);
+        if (diskContent[0] !== a) diskContent[0] = a;
+        if (diskContent[1] !== b) diskContent[1] = b;
         diskChanged = state.g;
         diskMotor = state.m;
         fireStateUpdate();

@@ -65,7 +65,7 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
         this.format = wmsx.SlotFormats[s.f];
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
     };
 

@@ -1140,11 +1140,14 @@ wmsx.V9918 = function(cpu, psg) {
         register0 = s.r0; register1 = s.r1; register2 = s.r2 || 0; register3 = s.r3; register4 = s.r4; register5 = s.r5 || 0; register6 = s.r6 || 0;  register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
-        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram);         // Already UInt8Array
-        vramNameTable = vram.subarray(nameTableAddress);
-        vramColorTable = vram.subarray(colorTableAddress);
-        vramPatternTable = vram.subarray(patternTableAddress);
-        vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
+        var v = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram);
+        if (vram !== v) {       // Must preserve type Uint8Array
+            vram = new Uint8Array(v);
+            vramNameTable = vram.subarray(nameTableAddress);
+            vramColorTable = vram.subarray(colorTableAddress);
+            vramPatternTable = vram.subarray(patternTableAddress);
+            vramSpriteAttrTable = vram.subarray(spriteAttrTableAddress);
+        }
         updateSpritePatternTables();
         updateIRQ();
         updateMode(true);           // force
