@@ -13,14 +13,14 @@ wmsx.SlotCreator = function () {
         return bestOption.createFromROM(rom);
     };
 
-    this.createFromSaveState = function (saveState) {
+    this.recreateFromSaveState = function (saveState, previousSlot) {
         var cartridgeFormat = wmsx.SlotFormats[saveState.f];
         if (!cartridgeFormat) {
             var ex = new Error("Unsupported ROM Format: " + saveState.f);
             ex.msx = true;
             throw ex;
         }
-        return cartridgeFormat.createFromSaveState(saveState);
+        return cartridgeFormat.recreateFromSaveState(saveState, previousSlot);
     };
 
     this.produceInfo = function(rom) {

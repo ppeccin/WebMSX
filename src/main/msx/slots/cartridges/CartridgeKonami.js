@@ -85,7 +85,7 @@ wmsx.CartridgeKonami = function(rom) {
 
 wmsx.CartridgeKonami.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeKonami.createFromSaveState = function(state) {
+wmsx.CartridgeKonami.recreateFromSaveState = function(state, previousSlot) {
     var cart = new wmsx.CartridgeKonami();
     cart.loadState(state);
     return cart;

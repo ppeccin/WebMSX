@@ -140,10 +140,10 @@ wmsx.EngineBUS = function(machine, cpu) {
     };
 
     this.loadState = function(s) {
-        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s0), 0);
-        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s1), 1);
-        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s2), 2);
-        this.insertSlot(wmsx.SlotCreator.createFromSaveState(s.s3), 3);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s0, slots[0]), 0);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, slots[1]), 1);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, slots[2]), 2);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, slots[3]), 3);
         this.setPrimarySlotConfig(s.p);
     };
 

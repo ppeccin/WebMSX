@@ -120,10 +120,10 @@ wmsx.SlotExpanded = function() {
     };
 
     this.loadState = function(s) {
-        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s0), 0);
-        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s1), 1);
-        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s2), 2);
-        this.insertSubSlot(wmsx.SlotCreator.createFromSaveState(s.s3), 3);
+        this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s0, subSlots[0]), 0);
+        this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, subSlots[1]), 1);
+        this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, subSlots[2]), 2);
+        this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, subSlots[3]), 3);
         this.setSecondarySlotConfig(s.s);
     };
 
@@ -139,7 +139,7 @@ wmsx.SlotExpanded = function() {
 
 wmsx.SlotExpanded.prototype = wmsx.Slot.base;
 
-wmsx.SlotExpanded.createFromSaveState = function(state) {
+wmsx.SlotExpanded.recreateFromSaveState = function(state, previousSlot) {
     var expandedSlot = new wmsx.SlotExpanded();
     expandedSlot.loadState(state);
     return expandedSlot;

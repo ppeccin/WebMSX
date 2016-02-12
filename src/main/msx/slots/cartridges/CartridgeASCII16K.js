@@ -72,7 +72,7 @@ wmsx.CartridgeASCII16K = function(rom) {
 
 wmsx.CartridgeASCII16K.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeASCII16K.createFromSaveState = function(state) {
+wmsx.CartridgeASCII16K.recreateFromSaveState = function(state, previousSlot) {
     var cart = new wmsx.CartridgeASCII16K();
     cart.loadState(state);
     return cart;

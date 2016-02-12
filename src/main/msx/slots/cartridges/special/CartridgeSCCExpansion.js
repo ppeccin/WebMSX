@@ -85,7 +85,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
 
 wmsx.CartridgeSCCExpansion.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeSCCExpansion.createFromSaveState = function(state) {
+wmsx.CartridgeSCCExpansion.recreateFromSaveState = function(state, previousSlot) {
     var cart = new wmsx.CartridgeSCCExpansion();
     cart.loadState(state);
     return cart;

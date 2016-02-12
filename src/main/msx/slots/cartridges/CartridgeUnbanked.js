@@ -92,7 +92,7 @@ wmsx.CartridgeUnbanked = function(rom) {
 
 wmsx.CartridgeUnbanked.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeUnbanked.createFromSaveState = function(state) {
+wmsx.CartridgeUnbanked.recreateFromSaveState = function(state, previousSlot) {
     var cart = new wmsx.CartridgeUnbanked();
     cart.loadState(state);
     return cart;

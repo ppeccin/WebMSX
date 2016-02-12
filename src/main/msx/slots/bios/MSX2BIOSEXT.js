@@ -52,7 +52,7 @@ wmsx.MSX2BIOSEXT = function(rom) {
 
 wmsx.MSX2BIOSEXT.prototype = wmsx.Slot.base;
 
-wmsx.MSX2BIOSEXT.createFromSaveState = function(state) {
+wmsx.MSX2BIOSEXT.recreateFromSaveState = function(state, previousSlot) {
     var ext = new wmsx.MSX2BIOSEXT();
     ext.loadState(state);
     return ext;

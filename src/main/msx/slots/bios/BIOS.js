@@ -99,7 +99,7 @@ wmsx.BIOS = function(rom) {
 
 wmsx.BIOS.prototype = wmsx.Slot.base;
 
-wmsx.BIOS.createFromSaveState = function(state) {
+wmsx.BIOS.recreateFromSaveState = function (state, previousSlot) {
     var bios = new wmsx.BIOS();
     bios.loadState(state);
     return bios;

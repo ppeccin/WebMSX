@@ -13,7 +13,7 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return wmsx.SlotEmpty.singleton;
         },
-        createFromSaveState: function (state) {
+        recreateFromSaveState: function (state, previousSlot) {
             return wmsx.SlotEmpty.singleton;
         }
     },
@@ -27,8 +27,8 @@ wmsx.SlotFormats = {
             return null;
         },
         createFromROM: null,
-        createFromSaveState: function (state) {
-            return wmsx.SlotExpanded.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotExpanded.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -41,8 +41,8 @@ wmsx.SlotFormats = {
             return null;
         },
         createFromROM: null,
-        createFromSaveState: function (state) {
-            return wmsx.SlotRAM64K.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotRAM64K.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -61,8 +61,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.BIOS(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.BIOS.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.BIOS.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -78,8 +78,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.MSX2BIOSEXT(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.MSX2BIOSEXT.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.MSX2BIOSEXT.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -92,8 +92,8 @@ wmsx.SlotFormats = {
             return null;
         },
         createFromROM: null,
-        createFromSaveState: function (state) {
-            return wmsx.SlotRAMMapper256K.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotRAMMapper256K.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -117,8 +117,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeUnbanked(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeUnbanked.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeUnbanked.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -134,8 +134,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeASCII8K(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeASCII8K.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII8K.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -151,8 +151,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeASCII16K(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeASCII16K.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII16K.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -168,8 +168,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeKonami(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeKonami.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeKonami.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -185,8 +185,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeKonamiSCC(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeKonamiSCC.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeKonamiSCC.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -201,8 +201,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeRType(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeRType.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeRType.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -217,8 +217,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeCrossBlaim(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeCrossBlaim.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeCrossBlaim.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -235,8 +235,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom, this);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -251,8 +251,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom, this);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -267,8 +267,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom, this);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -283,8 +283,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom, this);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -299,8 +299,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom, this);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -315,8 +315,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom, this);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeDiskPatched.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -333,8 +333,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeSCCExpansion(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeSCCExpansion.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSCCExpansion.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -349,8 +349,8 @@ wmsx.SlotFormats = {
         createFromROM: function (rom) {
             return new wmsx.CartridgeSCCIExpansion(rom);
         },
-        createFromSaveState: function (state) {
-            return wmsx.CartridgeSCCIExpansion.createFromSaveState(state);
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
         }
     }
 
