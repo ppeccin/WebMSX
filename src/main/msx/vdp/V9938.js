@@ -4,8 +4,6 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-// TODO Implement restrictions for V9918 mode
-
 wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
