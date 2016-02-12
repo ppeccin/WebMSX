@@ -742,8 +742,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 name = vram[patPos++ & layoutTableAddressMask];
                 colorCode = register[blink ? 12 : 7];                       // special colors from register12 if blink bit for position is set
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
-                on = colorPalette[colorCode >>> 4];
-                off = colorPalette[(colorCode & 0xf) + (blink ? 16 : 0)];   // color 0 is always solid in blink
+                on = colorPalette[(colorCode >>> 4) + (blink ? 16 : 0)];    // color 0 is always solid in blink];
+                off = colorPalette[(colorCode & 0xf) + (blink ? 16 : 0)];
                 paintPattern(bufferPos, pattern, on, off);
                 if (--blinkBit < 0) { blinkPos++; blinkBit = 7; }
                 bufferPos += 6;
@@ -863,7 +863,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256, colorPalette);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -883,7 +883,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256, colorPalette);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -905,7 +905,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
         }
 
-        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512, colorPalette);      // TODO Render Sprites in mode G5
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -925,7 +925,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 512, colorPalette);      // TODO Render Sprites in mode G6
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -943,7 +943,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
         }
 
-        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256);
+        if (renderSpritesLine) renderSpritesLine(realLine, bufferPos - 256, colorPaletteG7);        // Special fixed palette
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1356,7 +1356,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function renderSprites2LineSize0(line, bufferPos) {                     // Mode 2, 8x8 normal
+    function renderSprites2LineSize0(line, bufferPos, palette) {            // Mode 2, 8x8 normal
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1401,9 +1401,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 8 : 8 + x;
             x += (8 - f);
             if (cc)
-                paintSprite2CC(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f);
+                paintSprite2CC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1418,7 +1418,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function renderSprites2LineSize1(line, bufferPos) {                     // Mode 2, 8x8 double
+    function renderSprites2LineSize1(line, bufferPos, palette) {            // Mode 2, 8x8 double
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1463,9 +1463,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
             if (cc)
-                paintSprite2DCC(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f);
+                paintSprite2DCC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2D(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2D(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1480,7 +1480,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function renderSprites2LineSize2(line, bufferPos) {                     // Mode 2, 16x16 normal
+    function renderSprites2LineSize2(line, bufferPos, palette)  {           // Mode 2, 16x16 normal
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1525,9 +1525,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
             if (cc)
-                paintSprite2CC(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f);
+                paintSprite2CC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1542,7 +1542,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function renderSprites2LineSize3(line, bufferPos) {                     // Mode 2, 16x16 double
+    function renderSprites2LineSize3(line, bufferPos, palette) {            // Mode 2, 16x16 double
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
@@ -1587,9 +1587,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 32 : 32 + x;
             x += (32 - f);
             if (cc)
-                paintSprite2DCC(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f);
+                paintSprite2DCC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2D(bufferPos + x, spritePri, x, pattern, color & 0xf, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2D(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1604,7 +1604,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite2(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
+    // TODO Fix 0xfe aplha for sprites
+
+    function paintSprite2(bufferPos, spritePri, x, pattern, color, palette, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
@@ -1614,11 +1616,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             sprites2LinePriorities[x] = spritePri;                                          // Register new priority
             sprites2LineColors[x] = color;                                                  // Register new color
-            frameBackBuffer[bufferPos] = colorPalette[color] | 0xff000000;
+            frameBackBuffer[bufferPos] = palette[color];
         }
     }
 
-    function paintSprite2CC(bufferPos, spritePri, x, pattern, color, start, finish) {
+    function paintSprite2CC(bufferPos, spritePri, x, pattern, color, palette, start, finish) {
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
@@ -1632,11 +1634,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 finalColor = color;
             }
             sprites2LineColors[x] = finalColor;                                             // Register new color
-            frameBackBuffer[bufferPos] = colorPalette[finalColor] | 0xff000000;
+            frameBackBuffer[bufferPos] = palette[finalColor];
         }
     }
 
-    function paintSprite2D(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
+    function paintSprite2D(bufferPos, spritePri, x, pattern, color, palette, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
@@ -1646,11 +1648,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             sprites2LinePriorities[x] = spritePri;                                          // Register new priority
             sprites2LineColors[x] = color;                                                  // Register new color
-            frameBackBuffer[bufferPos] = colorPalette[color] | 0xff000000;
+            frameBackBuffer[bufferPos] = palette[color];
         }
     }
 
-    function paintSprite2DCC(bufferPos, spritePri, x, pattern, color, start, finish) {
+    function paintSprite2DCC(bufferPos, spritePri, x, pattern, color, palette, start, finish) {
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
@@ -1664,7 +1666,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 finalColor = color;
             }
             sprites2LineColors[x] = finalColor;                                             // Register new color
-            frameBackBuffer[bufferPos] = colorPalette[finalColor] | 0xff000000;
+            frameBackBuffer[bufferPos] = palette[finalColor];
         }
     }
 
