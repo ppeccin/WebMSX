@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// V9938/V9918 VDPs supported
 // This implementation is line-accurate
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
@@ -235,7 +236,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         initColorPalette();
         updateIRQ();
         updateMode();
-        updateBackdropValue();
+        updateBackdropColor(true);
         updateSynchronization();
         updateBlinking();
         updatePageAlternance();
@@ -321,7 +322,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 7:
-                if (mod & 0x0f) updateBackdropColor();                   // BD
+                if (mod & (mode === 7 ? 0xff : 0x0f)) updateBackdropColor(false);   // BD. Special case for mode G7
                 break;
             case 8:
                 if (mod & 0x20) updateTransparency();                    // TP
@@ -401,14 +402,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Special case for color 0
         if (reg === 0) {
-            color0SetValue = value;
             if (color0Solid) colorPalette[0] = value;
         } else
             colorPalette[reg] = value;
 
         colorPalette[reg + 16] = value;
 
-        if (reg === backdropColor) updateBackdropValue();
+        if (reg === backdropColor) updateBackdropValue(false);
         else if ((mode === 4) && (reg <= 3)) updateBackdropCachesG5();
     }
 
@@ -422,7 +422,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateLineActiveType();
         updateSpritesLineType();
         updateSpritePatternTables();
-        updateBackdropValue();
+        updateBackdropValue(true);
     }
 
     function updateSynchronization() {
@@ -559,12 +559,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         add = (register[6] << 11) & 0x1ffff;
         spritePatternTableAddress = add & modeData.sprPatTBase;
 
+        if ((mode === 7) || (oldMode === 7)) updateBackdropColor(true);
+        else if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
+
         updateLineActiveType();
         updateSpritesLineType();
         updateSignalMetrics();
         updateSpritePatternTables();
         commandProcessor.setVDPModeData(modeData);
-        if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
         pendingModeChange = false;
 
         //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
@@ -630,25 +632,30 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function updateTransparency() {
         color0Solid = (register[8] & 0x20) !== 0;
-        colorPalette[0] = color0Solid ? color0SetValue : backdropValue;
+        colorPalette[0] = color0Solid ? colorPalette[16] : backdropValue;
 
         //console.log("TP: " + color0Solid + ", currentLine: " + currentScanline);
     }
 
-    function updateBackdropColor() {
-        backdropColor = register[7] & 0x0f;
-        updateBackdropValue();
+    function updateBackdropColor(forceValue) {
+        backdropColor = register[7] & (mode === 7 ? 0xff : 0x0f);
 
         //console.log("Backdrop Color: " + backdropColor + ", currentLine: " + currentScanline);
+
+        updateBackdropValue(forceValue);
     }
 
-    function updateBackdropValue() {
-        var value = debugModePatternInfo ? debugBackdropValue : backdropColor === 0 ? color0SetValue : colorPalette[backdropColor];
+    function updateBackdropValue(force) {
+        var value = debugModePatternInfo
+            ? debugBackdropValue
+            : mode === 7
+                ? colors256[backdropColor]                   // From all 256 colors
+                : colorPalette[backdropColor + 16];          // From current palette (solid regardless of TP)
 
-        if (backdropValue === value) return;
+        if (backdropValue === value && !force) return;
 
         backdropValue = value;
-        if (!color0Solid) colorPalette[0] = value;
+        if (!color0Solid && mode !== 7) colorPalette[0] = value;
         updateBackdropCaches();
     }
 
@@ -656,8 +663,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         //console.log("Update BackdropCaches");
 
-        // Special case for Graphic5 (Screen 6)
-        if (mode === 4 && !debugModePatternInfo) updateBackdropCachesG5();
+        if (mode === 4 && !debugModePatternInfo) updateBackdropCachesG5();      // Special case for mode G5 (Screen 6)
         else wmsx.Util.arrayFill(backdropFullLine512Values, backdropValue);
     }
 
@@ -1737,7 +1743,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             colorPalette[c + 16] = colors[c];
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
         }
-        color0SetValue = colorPalette[0];
     }
 
     function initColorCaches() {
@@ -1856,7 +1861,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         return    { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
     });
 
-    // TODO Backdrop color and Sprites color for G7 mode
+    // TODO Sprites color for G7 mode
 
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
     modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
@@ -1881,7 +1886,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
-    var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed. 16-31 with real palette values
+    var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed in position 0. 16-31 with real solid palette values
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
@@ -1889,7 +1894,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
 
     var color0Solid = false;
-    var color0SetValue;
 
     var colorPaletteInitialV9938 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe24db24, 0xfe6dff6d, 0xfeff2424, 0xfeff6d49, 0xfe2424b6, 0xfeffdb49, 0xfe2424ff, 0xfe6d6dff, 0xfe24dbdb, 0xfe92dbdb, 0xfe249224, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
     var colorPaletteInitialV9918 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
@@ -1936,7 +1940,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bp: blinkEvenPage, bpd: blinkPageDuration,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status), p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRegister),
-            c0: color0SetValue, pal: wmsx.Util.storeInt32BitArrayToStringBase64(colorPalette),
+            pal: wmsx.Util.storeInt32BitArrayToStringBase64(colorPalette),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram),
             cp: commandProcessor.saveState()
         };
@@ -1951,7 +1955,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRegister);
-        color0SetValue = s.c0;
         var c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal, colorPalette);
         if (colorPalette !== c) colorPalette = new Uint32Array(c);              // Must preserve type Uint32Array
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram);
@@ -1959,7 +1962,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         commandProcessor.connectVDP(this, vram, register, status);
         updateIRQ();
         updateMode();
-        updateBackdropColor();
+        updateBackdropColor(true);
         updateTransparency();
         updatePageAlternance();
         initSprites2Control();
