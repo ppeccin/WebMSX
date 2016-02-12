@@ -103,7 +103,7 @@ wmsx.PPI = function(audioOutput) {
         registerC = s.c || 0;
         updateKeyboardConfig(registerC);
         updateCassetteSignal(registerC);
-        keyboardRowValues = wmsx.Util.arrayFill(keyboardRowValues, 0xff);       // reset keys
+        wmsx.Util.arrayFill(keyboardRowValues, 0xff);       // reset keys
     };
 
 };

@@ -2593,7 +2593,7 @@ wmsx.Z80 = function() {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
         cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
-        extensionCurrentlyRunning  = s.ecr; extensionExtraIterations = s.eei;
+        extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
     };
 
 
