@@ -87,7 +87,7 @@ wmsx.CartridgeASCII8K = function(rom) {
 wmsx.CartridgeASCII8K.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeASCII8K.recreateFromSaveState = function(state, previousSlot) {
-    var cart = new wmsx.CartridgeASCII8K();
+    var cart = previousSlot || new wmsx.CartridgeASCII8K();
     cart.loadState(state);
     return cart;
 };

@@ -2,6 +2,9 @@
 
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
 // Controls an internal SCC sound chip with audio output through PSG
+
+// TODO Does this support KonamiSCCI cartridges?
+
 wmsx.CartridgeKonamiSCC = function(rom) {
 
     function init(self) {
@@ -81,7 +84,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var scc = new wmsx.SCCIMixedAudioChannel();      // will be in SCC mode by default
     var sccSelected = false;
     var sccConnected = false;
-    var sccConnectionOnSavestate = false;           // used to restore connection after a loadState
+    var sccConnectionOnSavestate = false;            // used to restore connection after a loadState
     var psgAudioOutput;
 
     this.rom = null;
@@ -138,7 +141,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
 wmsx.CartridgeKonamiSCC.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeKonamiSCC.recreateFromSaveState = function(state, previousSlot) {
-    var cart = new wmsx.CartridgeKonamiSCC();
+    var cart = previousSlot || new wmsx.CartridgeKonamiSCC();
     cart.loadState(state);
     return cart;
 };

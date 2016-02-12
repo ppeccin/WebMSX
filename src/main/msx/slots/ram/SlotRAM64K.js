@@ -55,7 +55,7 @@ wmsx.SlotRAM64K.createNewEmpty = function() {
 };
 
 wmsx.SlotRAM64K.recreateFromSaveState = function(state, previousSlot) {
-    var ram = new wmsx.SlotRAM64K();
+    var ram = previousSlot || new wmsx.SlotRAM64K();
     ram.loadState(state);
     return ram;
 };

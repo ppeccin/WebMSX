@@ -87,7 +87,7 @@ wmsx.SlotRAMMapper256K.createNewEmpty = function() {
 };
 
 wmsx.SlotRAMMapper256K.recreateFromSaveState = function(state, previousSlot) {
-    var ram = new wmsx.SlotRAMMapper256K();
+    var ram = previousSlot || new wmsx.SlotRAMMapper256K();
     ram.loadState(state);
     return ram;
 };

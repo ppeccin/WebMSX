@@ -65,7 +65,7 @@ wmsx.CartridgeCrossBlaim = function(rom) {
 wmsx.CartridgeCrossBlaim.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeCrossBlaim.recreateFromSaveState = function(state, previousSlot) {
-    var cart = new wmsx.CartridgeCrossBlaim();
+    var cart = previousSlot || new wmsx.CartridgeCrossBlaim();
     cart.loadState(state);
     return cart;
 };
