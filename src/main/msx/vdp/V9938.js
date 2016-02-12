@@ -1886,7 +1886,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
 
-    var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed in position 0. 16-31 with real solid palette values
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
@@ -1894,6 +1893,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
 
     var color0Solid = false;
+    var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed in position 0. 16-31 with real solid palette values
+
+    var colorPaletteG7 =           new Uint32Array([ 0xfe000000, 0xfe490000, 0xfe00006d, 0xfe49006d, 0xfe006d00, 0xfe496d00, 0xfe006d6d, 0xfe496d6d, 0xfe4992ff, 0xfeff0000, 0xfe0000ff, 0xfeff00ff, 0xfe00ff00, 0xfeffff00, 0xfe00ffff, 0xfeffffff ]);
 
     var colorPaletteInitialV9938 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe24db24, 0xfe6dff6d, 0xfeff2424, 0xfeff6d49, 0xfe2424b6, 0xfeffdb49, 0xfe2424ff, 0xfe6d6dff, 0xfe24dbdb, 0xfe92dbdb, 0xfe249224, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
     var colorPaletteInitialV9918 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
