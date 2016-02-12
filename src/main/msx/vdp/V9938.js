@@ -104,7 +104,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         switch(reg) {
             case 0:
                 res = status[0];
-                status[0] = 0; updateIRQ();
+                status[0] = 0;
+                updateIRQ();
                 break;
             case 1:
                 res = status[1];
@@ -229,9 +230,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         verticalAdjust = horizontalAdjust = 0;
         backdropColor = 0;
         pendingBlankingChange = false;
-        wmsx.Util.arrayFill(status, 0);
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
+        wmsx.Util.arrayFill(status, 0);
+        initVDPID();
         initColorPalette();
         updateIRQ();
         updateMode();
@@ -243,6 +245,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     };
 
     function registerWrite(reg, val) {
+        if (reg > 46) return;
+
         var add;
         var mod = register[reg] ^ val;
         register[reg] = val;
@@ -511,6 +515,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
 
         //logInfo("Bottom Line reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
+
+        //logInfo("Status0: " + status[0].toString(16));
     }
 
     function triggerHorizontalInterrupt() {
@@ -1143,7 +1149,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
         spritesCollided = false;
 
-
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
             atrPos = atrPos + 4;
@@ -1710,6 +1715,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         //var vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
         //spritePatternTable8  = debugModeSpriteInfo ? debugPatTableDigits8  : vramSpritePatternTable;
         //spritePatternTable16 = debugModeSpriteInfo ? debugPatTableDigits16 : vramSpritePatternTable;
+    }
+
+    function initVDPID() {
+        status[1] |= 0x00;      // To be used for V9958 mode. 0 = V9938, 1 = V9958
     }
 
     function initFrameResources() {
