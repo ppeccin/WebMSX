@@ -45,14 +45,14 @@ wmsx.CartridgeRType = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressUInt8ArrayToStringBase64(bytes),
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             b2: bank2Offset
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToUInt8Array(s.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b);
         bank2Offset = s.b2;
     };
 

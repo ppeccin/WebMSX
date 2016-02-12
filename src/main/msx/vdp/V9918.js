@@ -1131,7 +1131,7 @@ wmsx.V9918 = function(cpu, psg) {
             r0: register0, r1: register1, r2: register1, r3: register3, r4: register4, r5: register1, r6: register1, r7: register7,
             nt: nameTableAddress, ct: colorTableAddress, pt: patternTableAddress, sat: spriteAttrTableAddress, spt: spritePatternTableAddress,
             d: dataToWrite, vp: vramPointer, vw: vramWriteMode,
-            vram: wmsx.Util.compressUInt8ArrayToStringBase64(vram)
+            vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram)
         };
     };
 
@@ -1140,7 +1140,7 @@ wmsx.V9918 = function(cpu, psg) {
         register0 = s.r0; register1 = s.r1; register2 = s.r2 || 0; register3 = s.r3; register4 = s.r4; register5 = s.r5 || 0; register6 = s.r6 || 0;  register7 = s.r7;
         nameTableAddress = s.nt; colorTableAddress = s.ct; patternTableAddress = s.pt; spriteAttrTableAddress = s.sat; spritePatternTableAddress = s.spt;
         dataToWrite = s.d; vramPointer = s.vp; vramWriteMode = s.vw;
-        vram = wmsx.Util.uncompressStringBase64ToUInt8Array(s.vram);         // Already UInt8Array
+        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram);         // Already UInt8Array
         vramNameTable = vram.subarray(nameTableAddress);
         vramColorTable = vram.subarray(colorTableAddress);
         vramPatternTable = vram.subarray(patternTableAddress);

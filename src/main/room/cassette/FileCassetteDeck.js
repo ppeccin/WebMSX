@@ -202,7 +202,7 @@ wmsx.FileCassetteDeck = function() {
         else if (wmsx.Util.arrayIndexOfSubArray(tapeContent, ASC_ID, position) === position + 8) type = "ASCII";
         else return null;
 
-        var name = wmsx.Util.uInt8ArrayToByteString(tapeContent, position + 18, 6);
+        var name = wmsx.Util.int8BitArrayToByteString(tapeContent, position + 18, 6);
 
         return { type: type, name: name.trim() };
     }
@@ -232,7 +232,7 @@ wmsx.FileCassetteDeck = function() {
     this.saveState = function() {
         return {
             f: tapeFileName,
-            c: tapeContent && wmsx.Util.compressUInt8ArrayToStringBase64(tapeContent),
+            c: tapeContent && wmsx.Util.compressInt8BitArrayToStringBase64(tapeContent),
             p: tapePosition,
             m: motor
         };
@@ -240,7 +240,7 @@ wmsx.FileCassetteDeck = function() {
 
     this.loadState = function(state) {
         tapeFileName = state.f;
-        var content = state.c && wmsx.Util.uncompressStringBase64ToUInt8Array(state.c);
+        var content = state.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c);
         tapeContent = content && Array.from(content);     // Need a grow-able Array, UInt8Array is not
         tapePosition = state.p;
         motor = state.m;

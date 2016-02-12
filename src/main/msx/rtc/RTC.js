@@ -69,13 +69,13 @@ wmsx.RTC = function() {
     this.saveState = function() {
         return {
             ra: registerAddress,
-            r: wmsx.Util.storeUInt8ArrayToStringBase64(registers)
+            r: wmsx.Util.storeInt8BitArrayToStringBase64(registers)
         };
     };
 
     this.loadState = function(s) {
         registerAddress = s.ra;
-        registers = wmsx.Util.restoreStringBase64ToUInt8Array(s.r);
+        registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
         mode = registers[0xd] & 0x3;
     };
 

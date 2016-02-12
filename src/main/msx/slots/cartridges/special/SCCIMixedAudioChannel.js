@@ -265,11 +265,11 @@ wmsx.SCCIMixedAudioChannel = function() {
             c3: channel3, p3: period3, pc3: period3Count, sc3: sample3Count, cs3: currentSample3, a3: amplitude3,
             c4: channel4, p4: period4, pc4: period4Count, sc4: sample4Count, cs4: currentSample4, a4: amplitude4,
             c5: channel5, p5: period5, pc5: period5Count, sc5: sample5Count, cs5: currentSample5, a5: amplitude5,
-            s1: wmsx.Util.storeUInt8ArrayToStringBase64(channel1Samples),
-            s2: wmsx.Util.storeUInt8ArrayToStringBase64(channel2Samples),
-            s3: wmsx.Util.storeUInt8ArrayToStringBase64(channel3Samples),
-            s4: wmsx.Util.storeUInt8ArrayToStringBase64(channel4Samples),
-            s5: wmsx.Util.storeUInt8ArrayToStringBase64(channel5Samples)
+            s1: wmsx.Util.storeInt8BitArrayToStringBase64(channel1Samples),
+            s2: wmsx.Util.storeInt8BitArrayToStringBase64(channel2Samples),
+            s3: wmsx.Util.storeInt8BitArrayToStringBase64(channel3Samples),
+            s4: wmsx.Util.storeInt8BitArrayToStringBase64(channel4Samples),
+            s5: wmsx.Util.storeInt8BitArrayToStringBase64(channel5Samples)
         };
         signSamples();
         return res;
@@ -281,11 +281,11 @@ wmsx.SCCIMixedAudioChannel = function() {
         channel3 = s.c3; period3 = s.p3; period3Count = s.pc3; sample3Count = s.sc3; currentSample3 = s.cs3; amplitude3 = s.a3;
         channel4 = s.c4; period4 = s.p4; period4Count = s.pc4; sample4Count = s.sc4; currentSample4 = s.cs4; amplitude4 = s.a4;
         channel5 = s.c5; period5 = s.p5; period5Count = s.pc5; sample5Count = s.sc5; currentSample5 = s.cs5; amplitude5 = s.a5;
-        channel1Samples = wmsx.Util.restoreStringBase64ToUInt8Array(s.s1);
-        channel2Samples = wmsx.Util.restoreStringBase64ToUInt8Array(s.s2);
-        channel3Samples = wmsx.Util.restoreStringBase64ToUInt8Array(s.s3);
-        channel4Samples = wmsx.Util.restoreStringBase64ToUInt8Array(s.s4);
-        channel5Samples = wmsx.Util.restoreStringBase64ToUInt8Array(s.s5 || s.s4);
+        channel1Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s1);
+        channel2Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s2);
+        channel3Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s3);
+        channel4Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s4);
+        channel5Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s5 || s.s4);
         channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
         signSamples();
         this.setSCCIMode(s.m === true);

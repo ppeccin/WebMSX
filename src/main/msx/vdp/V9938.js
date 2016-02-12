@@ -1928,9 +1928,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             bp: blinkEvenPage, bpd: blinkPageDuration,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
-            r: wmsx.Util.storeUInt8ArrayToStringBase64(register), s: wmsx.Util.storeUInt8ArrayToStringBase64(status), p: wmsx.Util.storeUInt8ArrayToStringBase64(paletteRegister),
-            c0: color0SetValue, pal: wmsx.Util.storeUInt32ArrayToStringBase64(colorPalette),
-            vram: wmsx.Util.compressUInt8ArrayToStringBase64(vram),
+            r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status), p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRegister),
+            c0: color0SetValue, pal: wmsx.Util.storeInt32BitArrayToStringBase64(colorPalette),
+            vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram),
             cp: commandProcessor.saveState()
         };
     };
@@ -1943,9 +1943,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
-        register = wmsx.Util.restoreStringBase64ToUInt8Array(s.r); status = wmsx.Util.restoreStringBase64ToUInt8Array(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToUInt8Array(s.p);
-        color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToUInt32Array(s.pal);
-        vram = wmsx.Util.uncompressStringBase64ToUInt8Array(s.vram);         // Already UInt8Array
+        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p);
+        color0SetValue = s.c0; colorPalette = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal);
+        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram);         // Already UInt8Array
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         updateIRQ();

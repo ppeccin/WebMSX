@@ -178,8 +178,8 @@ wmsx.FileDiskDrive = function() {
     this.saveState = function() {
         return {
             f: diskFileName,
-            c: [ wmsx.Util.compressUInt8ArrayToStringBase64(diskContent[0]),
-                 wmsx.Util.compressUInt8ArrayToStringBase64(diskContent[1]) ],
+            c: [ wmsx.Util.compressInt8BitArrayToStringBase64(diskContent[0]),
+                 wmsx.Util.compressInt8BitArrayToStringBase64(diskContent[1]) ],
             g: diskChanged,
             m: diskMotor
         };
@@ -187,8 +187,8 @@ wmsx.FileDiskDrive = function() {
 
     this.loadState = function(state) {
         diskFileName = state.f;
-        diskContent = [ wmsx.Util.uncompressStringBase64ToUInt8Array(state.c[0]),
-                        wmsx.Util.uncompressStringBase64ToUInt8Array(state.c[1]) ];
+        diskContent = [ wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[0]),
+                        wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[1]) ];
         diskChanged = state.g;
         diskMotor = state.m;
         fireStateUpdate();

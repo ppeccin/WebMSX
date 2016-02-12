@@ -64,13 +64,13 @@ wmsx.SlotRAMMapper256K = function(content) {
     this.saveState = function() {
         return {
             f: this.format.name,
-            b: wmsx.Util.compressUInt8ArrayToStringBase64(bytes),
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             p0: pageOffsets[0], p1: pageOffsets[1], p2: pageOffsets[2], p3: pageOffsets[3]
         };
     };
 
     this.loadState = function(state) {
-        bytes = wmsx.Util.uncompressStringBase64ToUInt8Array(state.b);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b);
         this.bytes = bytes;
         pageOffsets = [ state.p0, state.p1, state.p2, state.p3 ];
     };
