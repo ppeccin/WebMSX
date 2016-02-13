@@ -1151,7 +1151,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         var atrPos, name, color, lineInPattern, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+
         spritesCollided = false;
+        sprites2GlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1177,7 +1179,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             pattern = vram[lineInPattern];
             s = x <= 248 ? 0 : x - 248;
             f = x >= 0 ? 8 : 8 + x;
-            paintSprite1(frameBackBuffer, bufferPos + x + (8 - f), pattern, color, s, f, invalid < 0);
+            x += (8 - f);
+            paintSprite1(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1197,7 +1200,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         var atrPos, name, color, lineInPattern, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+
         spritesCollided = false;
+        sprites2GlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1223,7 +1228,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             pattern = vram[lineInPattern];
             s = x <= 240 ? 0 : x - 240;
             f = x >= 0 ? 16 : 16 + x;
-            paintSprite1D(frameBackBuffer, bufferPos + x + (16 - f), pattern, color, s, f, invalid < 0);
+            x += (16 - f);
+            paintSprite1D(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
 
         }
 
@@ -1244,7 +1250,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         var atrPos, color, name, lineInPattern, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+
         spritesCollided = false;
+        sprites2GlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1270,7 +1278,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
             s = x <= 240 ? 0 : x - 240;
             f = x >= 0 ? 16 : 16 + x;
-            paintSprite1(frameBackBuffer, bufferPos + x + (16 - f), pattern, color, s, f, invalid < 0);
+            x += (16 - f);
+            paintSprite1(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1290,7 +1299,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         var atrPos, name, color, lineInPattern, pattern;
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+
         spritesCollided = false;
+        sprites2GlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1317,7 +1328,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
             s = x <= 224 ? 0 : x - 224;
             f = x >= 0 ? 32 : 32 + x;
-            paintSprite1D(frameBackBuffer, bufferPos + x + (32 - f), pattern, color, s, f, invalid < 0);
+            x += (32 - f);
+            paintSprite1D(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1332,27 +1344,29 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite1(dest, pos, pattern, color, start, finish, collide) {
-        var value = colorPalette[color] | 0xff000000;
-        for (var i = finish - 1; i >= start; i = i -1, pos = pos + 1) {
+    function paintSprite1(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
-            var destValue = dest[pos];
-            // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos] = color === 0 ? destValue | 0xff000000 : value;
-            else if (!spritesCollided) spritesCollided = collide;
+            if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
+                if (collide && !spritesCollided) spritesCollided = true;
+                continue;
+            }
+            sprites2LinePriorities[x] = spritePri;                                          // Register new priority
+            if (color > 0) frameBackBuffer[bufferPos] = colorPalette[color];
         }
     }
 
-    function paintSprite1D(dest, pos, pattern, color, start, finish, collide) {
-        var value = colorPalette[color] | 0xff000000;
-        for (var i = finish - 1; i >= start; i = i -1, pos = pos + 1) {
+    function paintSprite1D(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
+        for (var i = finish - 1; i >= start; i = i -1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
-            var destValue = dest[pos];
-            // Transparent sprites (color = 0) just "mark" their presence setting dest Alpha to Full, so collisions can be detected
-            if (destValue < 0xff000000) dest[pos] = color === 0 ? destValue | 0xff000000 : value;
-            else if (!spritesCollided) spritesCollided = collide;
+            if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
+                if (collide && !spritesCollided) spritesCollided = true;
+                continue;
+            }
+            sprites2LinePriorities[x] = spritePri;                                          // Register new priority
+            if (color > 0) frameBackBuffer[bufferPos] = colorPalette[color];
         }
     }
 
@@ -1604,8 +1618,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    // TODO Fix 0xfe aplha for sprites
-
     function paintSprite2(bufferPos, spritePri, x, pattern, color, palette, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
@@ -1750,8 +1762,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function initColorCaches() {
         // Pre calculate all 512 colors encoded in 9 bits, and all 256 colors encoded in 8 bits
         for (var c = 0; c <= 0x1ff; c++) {
-            if (c & 1) colors256[c >>> 1] = 0xfe000000 | (color2to8bits[(c >>> 1) & 0x3] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
-            colors512[c] = 0xfe000000 | (color3to8bits[c & 0x7] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
+            if (c & 1) colors256[c >>> 1] = 0xff000000 | (color2to8bits[(c >>> 1) & 0x3] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
+            colors512[c] = 0xff000000 | (color3to8bits[c & 0x7] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
         }
     }
 
@@ -1863,8 +1875,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         return    { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
     });
 
-    // TODO Sprites color for G7 mode
-
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
     modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
     modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
@@ -1897,10 +1907,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var color0Solid = false;
     var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed in position 0. 16-31 with real solid palette values
 
-    var colorPaletteG7 =           new Uint32Array([ 0xfe000000, 0xfe490000, 0xfe00006d, 0xfe49006d, 0xfe006d00, 0xfe496d00, 0xfe006d6d, 0xfe496d6d, 0xfe4992ff, 0xfeff0000, 0xfe0000ff, 0xfeff00ff, 0xfe00ff00, 0xfeffff00, 0xfe00ffff, 0xfeffffff ]);
+    var colorPaletteG7 =           new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
-    var colorPaletteInitialV9938 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe24db24, 0xfe6dff6d, 0xfeff2424, 0xfeff6d49, 0xfe2424b6, 0xfeffdb49, 0xfe2424ff, 0xfe6d6dff, 0xfe24dbdb, 0xfe92dbdb, 0xfe249224, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
-    var colorPaletteInitialV9918 = new Uint32Array([ 0xfe000000, 0xfe000000, 0xfe28ca07, 0xfe65e23d, 0xfef04444, 0xfef46d70, 0xfe1330d0, 0xfef0e840, 0xfe4242f3, 0xfe7878f4, 0xfe30cad0, 0xfe89dcdc, 0xfe20a906, 0xfec540da, 0xfebcbcbc, 0xfeffffff ]);
+    var colorPaletteInitialV9938 = new Uint32Array([ 0xff000000, 0xff000000, 0xff24db24, 0xff6dff6d, 0xffff2424, 0xffff6d49, 0xff2424b6, 0xffffdb49, 0xff2424ff, 0xff6d6dff, 0xff24dbdb, 0xff92dbdb, 0xff249224, 0xffb649db, 0xffb6b6b6, 0xffffffff ]);
+    var colorPaletteInitialV9918 = new Uint32Array([ 0xff000000, 0xff000000, 0xff28ca07, 0xff65e23d, 0xfff04444, 0xfff46d70, 0xff1330d0, 0xfff0e840, 0xff4242f3, 0xff7878f4, 0xff30cad0, 0xff89dcdc, 0xff20a906, 0xffc540da, 0xffbcbcbc, 0xffffffff ]);
     var paletteRegisterInitialValuesV9938 = [ 0x000, 0x000, 0x189, 0x1db, 0x04f, 0x0d7, 0x069, 0x197, 0x079, 0x0fb, 0x1b1, 0x1b4, 0x109, 0x0b5, 0x16d, 0x1ff ];
 
 
@@ -1917,7 +1927,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var debugPatTableDigits8 =  new Array(256 * 8);            // 8x8
     var debugPatTableDigits16 = new Array(256 * 8 * 4);        // 16x16
     var debugPatTableBlocks =   new Array(8);                  // 8x8
-    var debugBackdropValue    = 0xfe2a2a2a;
+    var debugBackdropValue    = 0xff2a2a2a;
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
