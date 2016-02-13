@@ -19,7 +19,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
         initColorCaches();
-        initSprites2Control();
+        initSpritesConflictControl();
         initDebugPatternTables();
         mode = 0; modeData = modes[mode];
         self.setDefaults();
@@ -1153,7 +1153,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1180,7 +1180,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 248 ? 0 : x - 248;
             f = x >= 0 ? 8 : 8 + x;
             x += (8 - f);
-            paintSprite1(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1202,7 +1202,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1229,7 +1229,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 240 ? 0 : x - 240;
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
-            paintSprite1D(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1D(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
 
         }
 
@@ -1252,7 +1252,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1279,7 +1279,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 240 ? 0 : x - 240;
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
-            paintSprite1(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1301,7 +1301,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
         for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
@@ -1329,7 +1329,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 224 ? 0 : x - 224;
             f = x >= 0 ? 32 : 32 + x;
             x += (32 - f);
-            paintSprite1D(bufferPos + x, sprites2GlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1D(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
         }
 
         if (spritesCollided && spriteDebugModeCollisions) {
@@ -1348,11 +1348,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
-            if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
+            if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) spritesCollided = true;
                 continue;
             }
-            sprites2LinePriorities[x] = spritePri;                                          // Register new priority
+            spritesLinePriorities[x] = spritePri;                                           // Register new priority
             if (color > 0) frameBackBuffer[bufferPos] = colorPalette[color];
         }
     }
@@ -1361,11 +1361,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = finish - 1; i >= start; i = i -1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
-            if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
+            if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) spritesCollided = true;
                 continue;
             }
-            sprites2LinePriorities[x] = spritePri;                                          // Register new priority
+            spritesLinePriorities[x] = spritePri;                                           // Register new priority
             if (color > 0) frameBackBuffer[bufferPos] = colorPalette[color];
         }
     }
@@ -1377,7 +1377,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
@@ -1394,7 +1394,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             cc = (color & 0x40);
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
-            } else spritePri = sprites2GlobalPriority + sprite;
+            } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (invalid < 0) invalid = sprite;
@@ -1439,7 +1439,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
@@ -1456,7 +1456,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             cc = (color & 0x40);
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
-            } else spritePri = sprites2GlobalPriority + sprite;
+            } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (invalid < 0) invalid = sprite;
@@ -1501,7 +1501,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
@@ -1518,7 +1518,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             cc = (color & 0x40);
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
-            } else spritePri = sprites2GlobalPriority + sprite;
+            } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (invalid < 0) invalid = sprite;
@@ -1563,7 +1563,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
 
         spritesCollided = false;
-        sprites2GlobalPriority -= 32;
+        spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
         colorPos = spriteAttrTableAddress - 16;
@@ -1580,7 +1580,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             cc = (color & 0x40);
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
-            } else spritePri = sprites2GlobalPriority + sprite;
+            } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (invalid < 0) invalid = sprite;
@@ -1622,12 +1622,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
-            if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
+            if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) spritesCollided = true;
                 continue;
             }
-            sprites2LinePriorities[x] = spritePri;                                          // Register new priority
-            sprites2LineColors[x] = color;                                                  // Register new color
+            spritesLinePriorities[x] = spritePri;                                           // Register new priority
+            spritesLineColors[x] = color;                                                   // Register new color
             frameBackBuffer[bufferPos] = palette[color];
         }
     }
@@ -1637,15 +1637,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
-            var prevSpritePri = sprites2LinePriorities[x];
+            var prevSpritePri = spritesLinePriorities[x];
             if (prevSpritePri < spritePri) continue;                                        // Higher priority sprite already there
             if (prevSpritePri === spritePri)
-                finalColor = color | sprites2LineColors[x];                                 // Mix if same priority
+                finalColor = color | spritesLineColors[x];                                  // Mix if same priority
             else {
-                sprites2LinePriorities[x] = spritePri;                                      // Otherwise register new priority
+                spritesLinePriorities[x] = spritePri;                                       // Otherwise register new priority
                 finalColor = color;
             }
-            sprites2LineColors[x] = finalColor;                                             // Register new color
+            spritesLineColors[x] = finalColor;                                              // Register new color
             frameBackBuffer[bufferPos] = palette[finalColor];
         }
     }
@@ -1654,12 +1654,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
-            if (sprites2LinePriorities[x] < spritePri) {                                    // Higher priority sprite already there
+            if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) spritesCollided = true;
                 continue;
             }
-            sprites2LinePriorities[x] = spritePri;                                          // Register new priority
-            sprites2LineColors[x] = color;                                                  // Register new color
+            spritesLinePriorities[x] = spritePri;                                           // Register new priority
+            spritesLineColors[x] = color;                                                   // Register new color
             frameBackBuffer[bufferPos] = palette[color];
         }
     }
@@ -1669,15 +1669,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
-            var prevSpritePri = sprites2LinePriorities[x];
+            var prevSpritePri = spritesLinePriorities[x];
             if (prevSpritePri < spritePri) continue;                                        // Higher priority sprite already there
             if (prevSpritePri === spritePri)
-                finalColor = color | sprites2LineColors[x];                                 // Mix if same priority
+                finalColor = color | spritesLineColors[x];                                  // Mix if same priority
             else {
-                sprites2LinePriorities[x] = spritePri;                                      // Otherwise register new priority
+                spritesLinePriorities[x] = spritePri;                                       // Otherwise register new priority
                 finalColor = color;
             }
-            sprites2LineColors[x] = finalColor;                                             // Register new color
+            spritesLineColors[x] = finalColor;                                              // Register new color
             frameBackBuffer[bufferPos] = palette[finalColor];
         }
     }
@@ -1797,10 +1797,10 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         debugPatTableBlocks[1] = debugPatTableBlocks[2] = debugPatTableBlocks[3] = debugPatTableBlocks[4] = debugPatTableBlocks[5] = debugPatTableBlocks[6] = 0x7e;
     }
 
-    function initSprites2Control() {
-        sprites2LinePriorities = wmsx.Util.arrayFill(sprites2LinePriorities ? sprites2LinePriorities :new Array(256), SPRITE_MAX_PRIORITY);
-        sprites2LineColors =     wmsx.Util.arrayFill(sprites2LineColors ? sprites2LineColors : new Array(256), 0);
-        sprites2GlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets!
+    function initSpritesConflictControl() {
+        wmsx.Util.arrayFill(spritesLinePriorities, SPRITE_MAX_PRIORITY);
+        wmsx.Util.arrayFill(spritesLineColors, 0);
+        spritesGlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets and lasts for years!
     }
 
 
@@ -1845,7 +1845,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var pendingBlankingChange;
 
     var spritesCollided;
-    var sprites2LinePriorities, sprites2LineColors, sprites2GlobalPriority;
+    var spritesLinePriorities = new Array(256);
+    var spritesLineColors = new Array(256);
+    var spritesGlobalPriority;
 
     var vramPointer = 0;
     var dataToWrite;
@@ -1979,7 +1981,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateBackdropColor(true);
         updateTransparency();
         updatePageAlternance();
-        initSprites2Control();
+        initSpritesConflictControl();
     };
 
 
