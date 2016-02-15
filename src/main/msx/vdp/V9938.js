@@ -102,9 +102,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var res;
         switch(reg) {
             case 0:
-                res = status[0];
-                status[0] = 0;
-                updateIRQ();
+                res = getStatus0();                     // Dynamic value. status[0] is never accurate
                 break;
             case 1:
                 res = status[1];
@@ -120,6 +118,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 //if ((res & 0x81) !== 0) logInfo("Reading Command Status NOT READY: " + res.toString(16));
 
+                break;
+            case 3: case 4: case 6:
+                res = status[reg];
+                break;
+            case 5:
+                res = status[5];
+                spritesCollisionX = spritesCollisionY = -1;             // Clear collision coordinates and status registers
+                status[3] = status[4] = status[5] = status[6] = 0;
                 break;
             case 7:
                 commandProcessor.cpuRead();
@@ -229,6 +235,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         verticalAdjust = horizontalAdjust = 0;
         backdropColor = 0;
         pendingBlankingChange = false;
+        spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxDrawn = 0;
+        verticalIntReached = false; horizontalIntLine = 0;
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteRegister, 0);
         wmsx.Util.arrayFill(status, 0);
@@ -241,6 +249,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateBlinking();
         updatePageAlternance();
         beginFrame();
+    };
+
+    this.updateCycles = function() {
+        var cpuCycles = cpu.getCycles();
+        if (cpuCycles === lastCPUCyclesComputed) return cycles;
+
+        var elapsed = (cpuCycles - lastCPUCyclesComputed) * 6;
+        lastCPUCyclesComputed = cpuCycles;
+        cycles += elapsed;
+
+        return cycles;
     };
 
     function registerWrite(reg, val) {
@@ -374,17 +393,29 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    this.updateCycles = function() {
-        var cpuCycles = cpu.getCycles();
-        if (cpuCycles === lastCPUCyclesComputed) return cycles;
+    function getStatus0() {
+        var res = verticalIntReached ? 0x80 : 0;    // F
 
-        var elapsed = (cpuCycles - lastCPUCyclesComputed) * 6;
-        lastCPUCyclesComputed = cpuCycles;
-        cycles += elapsed;
+        // Collision
+        if (spritesCollided) {
+            res |= 0x20;                            // C
+            spritesCollided = false;
+        }
 
-        return cycles;
-    };
+        // Invalid Sprite, otherwise Greatest Sprite number drawn
+        if (spritesInvalid >= 0) {
+            res = res | 0x40 | spritesInvalid;      // 5S, 5SN
+            spritesInvalid = -1;
+        } else
+            res |= spritesMaxDrawn;                 // 5SN
 
+        spritesMaxDrawn = 0;
+
+        verticalIntReached = false;
+        updateIRQ();
+
+        return res;                                 // Everything is cleared at this point (like status[0] == 0)
+    }
 
     function checkVRAMPointerWrap() {
         if ((vramPointer & 0x3fff) === 0) {
@@ -502,19 +533,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // End of line
 
-        // TODO 1 additional PSG clock each 8 lines
+        // 1 additional PSG clock each 8 lines should be added to be perfectly in sync
     }
 
     function triggerVerticalInterrupt() {
         status[2] |= 0x40;                  // VR = 1
-        if ((status[0] & 0x80) === 0) {
-            status[0] |= 0x80;              // F = 1
+        if (!verticalIntReached   ) {
+            verticalIntReached = true;      // Like F = 1
             updateIRQ();
         }
 
-        //logInfo("Bottom Line reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
-
-        //logInfo("Status0: " + status[0].toString(16));
+        //logInfo("Vertical Frame Int reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
     }
 
     function triggerHorizontalInterrupt() {
@@ -527,14 +556,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function updateIRQ() {
-        if (((status[0] & 0x80) && (register[1] & 0x20))            // F == 1 and IE0 == 1
+        if ((verticalIntReached && (register[1] & 0x20))            // Like F == 1 and IE0 == 1
             || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH == 1 and IE1 == 1
             cpu.setINT(0);
         } else {
             cpu.setINT(1);
         }
 
-        //if ((status[0] & 0x80) && (register[1] & 0x20)) logInfo(">>>>  INT VERTICAL");
+        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>>  INT VERTICAL");
         //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>>  INT HORIZONTAL");
     }
 
@@ -1144,19 +1173,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameBackBuffer[bufferPos + 28] = odd; frameBackBuffer[bufferPos + 29] = even; frameBackBuffer[bufferPos + 30] = odd; frameBackBuffer[bufferPos + 31] = even;
     }
 
-    // TODO Report Sprite collision coordinates in status register 3 - 6
-
     function renderSprites1LineSize0(line, bufferPos) {                     // Mode 1, 8x8 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, name, color, lineInPattern, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+        var sprite = -1, drawn = 0, y, spriteLine, x, s, f;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
             atrPos = atrPos + 4;
             sprite = sprite + 1;
             y = vram[atrPos];
@@ -1164,8 +1190,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 7) continue;                                   // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
@@ -1180,32 +1206,21 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 248 ? 0 : x - 248;
             f = x >= 0 ? 8 : 8 + x;
             x += (8 - f);
-            paintSprite1(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("8x8 normal Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites1LineSize1(line, bufferPos) {                     // Mode 1, 8x8 double
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, name, color, lineInPattern, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+        var sprite = -1, drawn = 0, y, spriteLine, x, s, f;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
             atrPos = atrPos + 4;
             sprite = sprite + 1;
             y = vram[atrPos];
@@ -1213,8 +1228,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 15) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
@@ -1229,33 +1244,21 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 240 ? 0 : x - 240;
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
-            paintSprite1D(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
-
+            paintSprite1D(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("8x8 double Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites1LineSize2(line, bufferPos) {                     // Mode 1, 16x16 normal
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, color, name, lineInPattern, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+        var sprite = -1, drawn = 0, y, spriteLine, x, s, f;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
             atrPos = atrPos + 4;
             sprite = sprite + 1;
             y = vram[atrPos];
@@ -1263,8 +1266,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 15) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
@@ -1279,32 +1282,21 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 240 ? 0 : x - 240;
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
-            paintSprite1(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("16x16 normal Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites1LineSize3(line, bufferPos) {                     // Mode 1, 16x16 double
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
         var atrPos, name, color, lineInPattern, pattern;
-        var sprite = -1, drawn = 0, invalid = -1, y, spriteLine, x, s, f;
+        var sprite = -1, drawn = 0, y, spriteLine, x, s, f;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
-        for (var i = 0; i < 32; i = i + 1) {                                      // Max of 32 sprites
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
             atrPos = atrPos + 4;
             sprite = sprite + 1;
             y = vram[atrPos];
@@ -1313,8 +1305,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 31) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
             color = vram[atrPos + 3];
@@ -1329,27 +1321,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 224 ? 0 : x - 224;
             f = x >= 0 ? 32 : 32 + x;
             x += (32 - f);
-            paintSprite1D(bufferPos + x, spritesGlobalPriority + sprite, x, pattern, color, s, f, invalid < 0);
+            paintSprite1D(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("16x16 double Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                      // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
-    function paintSprite1(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
+    function paintSprite1(x, y, bufferPos, spritePri, pattern, color, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) spritesCollided = true;
+                if (collide && !spritesCollided) setSpritesCollision(x, y);
                 continue;
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1357,12 +1339,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite1D(bufferPos, spritePri, x, pattern, color, start, finish, collide) {
+    function paintSprite1D(x, y, bufferPos, spritePri, pattern, color, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i -1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) spritesCollided = true;
+                if (collide && !spritesCollided) setSpritesCollision(x, y);
                 continue;
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1374,9 +1356,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
-        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
+        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1397,8 +1378,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
 
             if ((color & 0xf) === 0) continue;
@@ -1415,30 +1396,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 8 : 8 + x;
             x += (8 - f);
             if (cc)
-                paintSprite2CC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
+                paintSprite2CC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("16x16 normal Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites2LineSize1(line, bufferPos, palette) {            // Mode 2, 8x8 double
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
-        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
+        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1459,8 +1429,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
 
             if ((color & 0xf) === 0) continue;
@@ -1477,30 +1447,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
             if (cc)
-                paintSprite2DCC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
+                paintSprite2DCC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2D(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("16x16 normal Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites2LineSize2(line, bufferPos, palette)  {           // Mode 2, 16x16 normal
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
-        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
+        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1521,8 +1480,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
 
             if ((color & 0xf) === 0) continue;
@@ -1539,30 +1498,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
             if (cc)
-                paintSprite2CC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
+                paintSprite2CC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("16x16 normal Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites2LineSize3(line, bufferPos, palette) {            // Mode 2, 16x16 double
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var atrPos, colorPos, color, name, lineInPattern, pattern;
-        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, invalid = -1, y, spriteLine, x, s, f, cc;
+        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
 
-        spritesCollided = false;
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1583,8 +1531,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             } else spritePri = spritesGlobalPriority + sprite;
 
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (invalid < 0) invalid = sprite;
-                if (spriteDebugModeLimit) break;
+                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
             }
 
             if (color === 0) continue;
@@ -1601,29 +1549,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 32 : 32 + x;
             x += (32 - f);
             if (cc)
-                paintSprite2DCC(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f);
+                paintSprite2DCC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2D(bufferPos + x, spritePri, x, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (invalid < 0));       // Consider IC bit
+                paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
         }
-
-        if (spritesCollided && spriteDebugModeCollisions) {
-            //wmsx.Util.log("16x16 normal Collision");
-            status[0] |= 0x20;
-        }
-        if ((status[0] & 0x40) === 0) {                                     // Only set if 5S is still unset
-            if (invalid >= 0) {
-                //wmsx.Util.log("Invalid sprite: " + invalid);
-                status[0] = status[0] & ~0x1f | 0x40 | invalid;
-            } else if (sprite > (status[0] & 0x1f)) status[0] = status[0] & ~0x1f | sprite;
-        }
+        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
-    function paintSprite2(bufferPos, spritePri, x, pattern, color, palette, start, finish, collide) {
+    function paintSprite2(x, y, bufferPos, spritePri, pattern, color, palette, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) spritesCollided = true;
+                if (collide && !spritesCollided) setSpritesCollision(x, y);
                 continue;
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1632,7 +1570,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite2CC(bufferPos, spritePri, x, pattern, color, palette, start, finish) {
+    function paintSprite2CC(x, bufferPos, spritePri, pattern, color, palette, start, finish) {
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> i) & 0x01;
@@ -1650,12 +1588,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite2D(bufferPos, spritePri, x, pattern, color, palette, start, finish, collide) {
+    function paintSprite2D(x, y, bufferPos, spritePri, pattern, color, palette, start, finish, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) spritesCollided = true;
+                if (collide && !spritesCollided) setSpritesCollision(x, y);
                 continue;
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1664,7 +1602,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite2DCC(bufferPos, spritePri, x, pattern, color, palette, start, finish) {
+    function paintSprite2DCC(x, bufferPos, spritePri, pattern, color, palette, start, finish) {
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
             var s = (pattern >> (i >>> 1)) & 0x01;
@@ -1679,6 +1617,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             spritesLineColors[x] = finalColor;                                              // Register new color
             frameBackBuffer[bufferPos] = palette[finalColor];
+        }
+    }
+
+    function setSpritesCollision(x, y) {
+        spritesCollided = true;
+        if (spritesCollisionX >= 0) return;                             // Only set if clear
+        spritesCollisionX = x + 12; spritesCollisionY = y + 8;          // Additions as per spec
+        if ((register[8] & 0xc0) === 0) {                               // Only report if Mouse (MS) and LightPen (LP) are disabled
+            status[3] = spritesCollisionX & 255;
+            status[4] = (spritesCollisionX >> 8) & 0x01;
+            status[5] = spritesCollisionY & 255;
+            status[6] = (spritesCollisionY >> 8) & 0x03;
         }
     }
 
@@ -1831,6 +1781,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var pulldownFirstFrameLinesAdjust;
     var refreshPending;
 
+    var verticalIntReached = false;
     var horizontalIntLine = 0;
 
     var status = new Array(10);
@@ -1844,7 +1795,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var pendingModeChange;
     var pendingBlankingChange;
 
-    var spritesCollided;
+    var spritesCollided, spritesInvalid, spritesMaxDrawn, spritesCollisionX, spritesCollisionY;
+
     var spritesLinePriorities = new Array(256);
     var spritesLineColors = new Array(256);
     var spritesGlobalPriority;
@@ -1955,6 +1907,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             bp: blinkEvenPage, bpd: blinkPageDuration,
             pmc: pendingModeChange, pbc: pendingBlankingChange,
+            sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxDrawn,
+            vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status), p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRegister),
             pal: wmsx.Util.storeInt32BitArrayToStringBase64(colorPalette),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram),
@@ -1970,6 +1924,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
+        spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxDrawn = s.sm;
+        verticalIntReached = s.vi;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRegister);
         var c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal, colorPalette);
         if (colorPalette !== c) colorPalette = new Uint32Array(c);              // Must preserve type Uint32Array
