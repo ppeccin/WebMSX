@@ -19,7 +19,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
         initColorCaches();
-        initSpritesConflictControl();
         initDebugPatternTables();
         mode = 0; modeData = modes[mode];
         self.setDefaults();
@@ -242,6 +241,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         wmsx.Util.arrayFill(status, 0);
         initVDPID();
         initColorPalette();
+        initSpritesConflictControl();
         updateIRQ();
         updateMode();
         updateBackdropColor(true);
@@ -656,8 +656,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         //logInfo("SpriteType: " + (renderSpritesLine && renderSpritesLine.name));
     }
-
-    // TODO Consider TP in Sprites
 
     function updateTransparency() {
         color0Solid = (register[8] & 0x20) !== 0;
@@ -1331,11 +1329,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) setSpritesCollision(x, y);
-                continue;
+                if (collide && !spritesCollided) spritesCollided = true;
+                if (color !== 0 && spritesLineColors[x] === 0) {                            // Paint only if not transparent and higher priority was transparent
+                    spritesLineColors[x] = color;                                           // Register new color
+                    frameBackBuffer[bufferPos] = colorPalette[color];
+                }
+            } else {                                                                        // No higher priority there
+                spritesLinePriorities[x] = spritePri;                                       // Register new priority
+                spritesLineColors[x] = color;                                               // Register new color
+                if (color !== 0) frameBackBuffer[bufferPos] = colorPalette[color];          // Paint only if not transparent
             }
-            spritesLinePriorities[x] = spritePri;                                           // Register new priority
-            if (color > 0) frameBackBuffer[bufferPos] = colorPalette[color];
         }
     }
 
@@ -1344,11 +1347,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) setSpritesCollision(x, y);
-                continue;
+                if (collide && !spritesCollided) spritesCollided = true;
+                if (color !== 0 && spritesLineColors[x] === 0) {                            // Paint only if not transparent and higher priority was transparent
+                    spritesLineColors[x] = color;                                           // Register new color
+                    frameBackBuffer[bufferPos] = colorPalette[color];
+                }
+            } else {                                                                        // No higher priority there
+                spritesLinePriorities[x] = spritePri;                                       // Register new priority
+                spritesLineColors[x] = color;                                               // Register new color
+                if (color !== 0) frameBackBuffer[bufferPos] = colorPalette[color];          // Paint only if not transparent
             }
-            spritesLinePriorities[x] = spritePri;                                           // Register new priority
-            if (color > 0) frameBackBuffer[bufferPos] = colorPalette[color];
         }
     }
 
@@ -1382,7 +1390,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (spriteDebugModeLimit) return;
             }
 
-            if ((color & 0xf) === 0) continue;
+            if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1398,7 +1406,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (cc)
                 paintSprite2CC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
+                paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
@@ -1433,7 +1441,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (spriteDebugModeLimit) return;
             }
 
-            if ((color & 0xf) === 0) continue;
+            if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1449,7 +1457,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (cc)
                 paintSprite2DCC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
+                paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
@@ -1484,7 +1492,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (spriteDebugModeLimit) return;
             }
 
-            if ((color & 0xf) === 0) continue;
+            if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1500,7 +1508,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (cc)
                 paintSprite2CC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
+                paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
@@ -1535,7 +1543,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (spriteDebugModeLimit) return;
             }
 
-            if (color === 0) continue;
+            if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
             x = vram[atrPos + 1];
             if (color & 0x80) {
@@ -1551,7 +1559,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (cc)
                 paintSprite2DCC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
-                paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC bit
+                paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
@@ -1561,7 +1569,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var s = (pattern >> i) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) setSpritesCollision(x, y);
+                if (collide && !spritesCollided) setSprites2Collision(x, y);
                 continue;
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1593,7 +1601,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var s = (pattern >> (i >>> 1)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
-                if (collide && !spritesCollided) setSpritesCollision(x, y);
+                if (collide && !spritesCollided) setSprites2Collision(x, y);
                 continue;
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1620,7 +1628,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function setSpritesCollision(x, y) {
+    function setSprites2Collision(x, y) {
         spritesCollided = true;
         if (spritesCollisionX >= 0) return;                             // Only set if clear
         spritesCollisionX = x + 12; spritesCollisionY = y + 8;          // Additions as per spec
