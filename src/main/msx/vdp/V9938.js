@@ -1205,8 +1205,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 8 : 8 + x;
             x += (8 - f);
             paintSprite1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites1LineSize1(line, bufferPos) {                     // Mode 1, 8x8 double
@@ -1243,8 +1243,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
             paintSprite1D(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites1LineSize2(line, bufferPos) {                     // Mode 1, 16x16 normal
@@ -1281,8 +1281,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 16 : 16 + x;
             x += (16 - f);
             paintSprite1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites1LineSize3(line, bufferPos) {                     // Mode 1, 16x16 double
@@ -1299,7 +1299,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             sprite = sprite + 1;
             y = vram[atrPos];
             if (y === 208) break;                                           // Stop Sprite processing for the line, as per spec
-
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 31) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
@@ -1320,8 +1319,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? 32 : 32 + x;
             x += (32 - f);
             paintSprite1D(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, drawn < 5);
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function paintSprite1(x, y, bufferPos, spritePri, pattern, color, start, finish, collide) {
@@ -1407,8 +1406,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 paintSprite2CC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
                 paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites2LineSize1(line, bufferPos, palette) {            // Mode 2, 8x8 double
@@ -1458,8 +1457,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 paintSprite2DCC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
                 paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites2LineSize2(line, bufferPos, palette)  {           // Mode 2, 16x16 normal
@@ -1509,8 +1508,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 paintSprite2CC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
                 paintSprite2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function renderSprites2LineSize3(line, bufferPos, palette) {            // Mode 2, 16x16 double
@@ -1560,8 +1559,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 paintSprite2DCC(x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f);
             else
                 paintSprite2D(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
         }
-        if (spritesInvalid < 0 && sprite > spritesMaxDrawn) spritesMaxDrawn = sprite;
     }
 
     function paintSprite2(x, y, bufferPos, spritePri, pattern, color, palette, start, finish, collide) {
