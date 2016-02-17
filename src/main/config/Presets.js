@@ -17,6 +17,13 @@ WMSX.presets = {
         EXPANSION1_URL: "wmsx/roms/MSX2NEXT.bios"
     },
 
+    HBF900: {
+        MACHINE_TYPE:   2,
+        BIOS_URL:       "wmsx/roms/hbf900bios.rom",
+        EXPANSION1_URL: "wmsx/roms/hbf900sub.rom",
+        EXPANSION0_URL: "wmsx/roms/hbf900disk.rom"
+    },
+
     // TODO Define
     //MSX2: {
     //    MACHINE_TYPE:   2,

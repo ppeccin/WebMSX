@@ -394,7 +394,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function getStatus0() {
-        var res = verticalIntReached ? 0x80 : 0;    // F
+        var res = 0;
+
+        // Vertical Int
+        if (verticalIntReached) {                   // F
+            res |= 0x80;
+            verticalIntReached = false;
+            updateIRQ();
+        }
 
         // Collision
         if (spritesCollided) {
@@ -410,9 +417,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             res |= spritesMaxComputed;              // 5SN
 
         spritesMaxComputed = 0;
-
-        verticalIntReached = false;
-        updateIRQ();
 
         //console.log("Status0 read: " + res.toString(16));
 
@@ -540,7 +544,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function triggerVerticalInterrupt() {
         status[2] |= 0x40;                  // VR = 1
-        if (!verticalIntReached   ) {
+        if (!verticalIntReached) {
             verticalIntReached = true;      // Like F = 1
             updateIRQ();
         }
