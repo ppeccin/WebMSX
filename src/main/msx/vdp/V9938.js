@@ -696,6 +696,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             for (var i = 0; i < LINE_WIDTH; i += 2) {
                 backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
             }
+            backdropTileOdd = odd; backdropTileEven = even;
         }
             else wmsx.Util.arrayFill(backdropFullLine512Values, backdropValue);
 
@@ -921,7 +922,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderLineModeG5() {                                           // Graphics 5 (Screen 6)
         var bufferPos = bufferPosition;
 
-        paintBackdrop32G5(bufferPos); paintBackdrop32G5(bufferPos + 512);
+        paintBackdrop32Tiled(bufferPos); paintBackdrop32Tiled(bufferPos + 512);
         bufferPos = bufferPos + 16 + horizontalAdjust * 2;
 
         var pixels;
@@ -940,16 +941,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vram[pixelsPos++ & layoutTableAddressMask];
                 if (pixels & 0xc0) frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
-                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[0];
+                else frameBackBuffer[bufferPos++] = backdropTileOdd;
                 if (pixels & 0x30) frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
-                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[1];
+                else frameBackBuffer[bufferPos++] = backdropTileEven;
                 if (pixels & 0x0c) frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
-                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[0];
+                else frameBackBuffer[bufferPos++] = backdropTileOdd;
                 if (pixels & 0x03) frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
-                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[1];
+                else frameBackBuffer[bufferPos++] = backdropTileEven;
             }
 
-        if (spritesEnabled) renderSpritesLineMode2G5(realLine, bufferPos - 512);
+        if (spritesEnabled) renderSpritesLineMode2Tiled(realLine, bufferPos - 512);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -969,7 +970,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 512, colorPaletteSolid, 2);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 512, colorPaletteSolid, 2);    // Horizontal stretch
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -987,7 +988,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteG7, 1);        // Special fixed palette
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteG7, 1);       // Special fixed palette
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1176,8 +1177,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameBackBuffer[bufferPos + 44] = backdropValue; frameBackBuffer[bufferPos + 45] = backdropValue; frameBackBuffer[bufferPos + 46] = backdropValue; frameBackBuffer[bufferPos + 47] = backdropValue;
     }
 
-    function paintBackdrop32G5(bufferPos) {
-        var odd = backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
+    function paintBackdrop32Tiled(bufferPos) {
+        var odd = backdropTileOdd; var even = backdropTileEven;
         frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
         frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
         frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
@@ -1341,7 +1342,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function renderSpritesLineMode2G5(line, bufferPos) {
+    function renderSpritesLineMode2Tiled(line, bufferPos) {
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
         var size = spritesSize * (spritesMag ? 2 : 1);
@@ -1390,13 +1391,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 256 - size ? 0 : x - 256 - size;
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            if (cc) paintSpriteMode2CCG5(x, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag);
-            else paintSpriteMode2G5(x, line, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (cc) paintSpriteMode2TiledCC(x, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag);
+            else paintSpriteMode2Tiled(x, line, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
 
-    function paintSpriteMode2G5(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
+    function paintSpriteMode2Tiled(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
         bufferPos = bufferPos + x * 2;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
             var s = (pattern >> (i >>> magShift)) & 0x01;
@@ -1412,7 +1413,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSpriteMode2CCG5(x, bufferPos, spritePri, pattern, color, start, finish, magShift) {
+    function paintSpriteMode2TiledCC(x, bufferPos, spritePri, pattern, color, start, finish, magShift) {
         bufferPos = bufferPos + x * 2;
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
@@ -1626,6 +1627,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var backdropColor;
     var backdropValue;
     var backdropFullLine512Values = new Uint32Array(512 + 16 * 2);
+    var backdropTileOdd, backdropTileEven;
 
     var verticalAdjust, horizontalAdjust;
 
