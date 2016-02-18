@@ -443,7 +443,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         } else
             colorPalette[reg] = value;
 
-        colorPalette[reg + 16] = value;
+        colorPaletteSolid[reg] = value;
 
         if (reg === backdropColor) updateBackdropValue();
         else if ((mode === 4) && (reg <= 3)) pendingBackdropCacheUpdate = true;
@@ -661,7 +661,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function updateTransparency() {
         color0Solid = (register[8] & 0x20) !== 0;
-        colorPalette[0] = color0Solid ? colorPalette[16] : backdropValue;
+        colorPalette[0] = color0Solid ? colorPaletteSolid[0] : backdropValue;
 
         //console.log("TP: " + color0Solid + ", currentLine: " + currentScanline);
     }
@@ -679,7 +679,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             ? debugBackdropValue
             : mode === 7
                 ? colors256[backdropColor]                   // From all 256 colors
-                : colorPalette[backdropColor + 16];          // From current palette (solid regardless of TP)
+                : colorPaletteSolid[backdropColor];          // From current palette (solid regardless of TP)
 
         if (backdropValue === value) return;
 
@@ -692,7 +692,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function updateBackdropCaches() {
         if (mode === 4 && !debugModePatternInfo) {          // Special case for mode G5 (Screen 6)
-            var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
+            var odd = colorPaletteSolid[backdropColor >>> 2]; var even = colorPaletteSolid[backdropColor & 0x03];
             for (var i = 0; i < LINE_WIDTH; i += 2) {
                 backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
             }
@@ -772,8 +772,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 name = vram[patPos++ & layoutTableAddressMask];
                 colorCode = register[blink ? 12 : 7];                       // special colors from register12 if blink bit for position is set
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
-                on = colorPalette[(colorCode >>> 4) + (blink ? 16 : 0)];    // color 0 is always solid in blink];
-                off = colorPalette[(colorCode & 0xf) + (blink ? 16 : 0)];
+                on = blink ? colorPaletteSolid[colorCode >>> 4] : colorPalette[colorCode >>> 4];    // color 0 is always solid in blink
+                off = blink ? colorPaletteSolid[colorCode & 0xf] : colorPalette[colorCode & 0xf];
                 paintPattern(bufferPos, pattern, on, off);
                 if (--blinkBit < 0) { blinkPos++; blinkBit = 7; }
                 bufferPos += 6;
@@ -893,7 +893,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPalette, 1);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteSolid, 1);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -913,7 +913,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPalette, 1);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteSolid, 1);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -924,18 +924,32 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         paintBackdrop32G5(bufferPos); paintBackdrop32G5(bufferPos + 512);
         bufferPos = bufferPos + 16 + horizontalAdjust * 2;
 
+        var pixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 7);
         var pixelsPosFinal = pixelsPos + 128;
-        while (pixelsPos < pixelsPosFinal) {
-            var pixels = vram[pixelsPos++ & layoutTableAddressMask];
-            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 6];
-            frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 4) & 0x03];
-            frameBackBuffer[bufferPos++] = colorPalette[(pixels >>> 2) & 0x03];
-            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x03];
-        }
+        if (color0Solid)                                                    // Normal paint for TP = 0
+            while (pixelsPos < pixelsPosFinal) {
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
+            }
+        else                                                                // Tiling for color 0 for TP = 1
+            while (pixelsPos < pixelsPosFinal) {
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                if (pixels & 0xc0) frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[0];
+                if (pixels & 0x30) frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[1];
+                if (pixels & 0x0c) frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[0];
+                if (pixels & 0x03) frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
+                else frameBackBuffer[bufferPos++] = backdropFullLine512Values[1];
+            }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 512, colorPalette, 2);      // TODO Render Sprites in mode G5
+        if (spritesEnabled) renderSpritesLineMode2G5(realLine, bufferPos - 512);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -955,7 +969,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 512, colorPalette, 2);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 512, colorPaletteSolid, 2);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1163,7 +1177,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function paintBackdrop32G5(bufferPos) {
-        var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
+        var odd = backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
         frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
         frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
         frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
@@ -1226,12 +1240,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (collide && !spritesCollided) setSpritesCollision(x, y);
                 if (color !== 0 && spritesLineColors[x] === 0) {                            // Paint only if not transparent and higher priority was transparent
                     spritesLineColors[x] = color;                                           // Register new color
-                    frameBackBuffer[bufferPos] = colorPalette[color];
+                    frameBackBuffer[bufferPos] = colorPaletteSolid[color];
                 }
             } else {                                                                        // No higher priority there
                 spritesLinePriorities[x] = spritePri;                                       // Register new priority
                 spritesLineColors[x] = color;                                               // Register new color
-                if (color !== 0) frameBackBuffer[bufferPos] = colorPalette[color];          // Paint only if not transparent
+                if (color !== 0) frameBackBuffer[bufferPos] = colorPaletteSolid[color];     // Paint only if not transparent
             }
         }
     }
@@ -1327,6 +1341,97 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
+    function renderSpritesLineMode2G5(line, bufferPos) {
+        if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
+
+        var size = spritesSize * (spritesMag ? 2 : 1);
+        var atrPos, colorPos, color, name, lineInPattern, pattern;
+        var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
+
+        spritesGlobalPriority -= 32;
+
+        atrPos = spriteAttrTableAddress + 512 - 4;
+        colorPos = spriteAttrTableAddress - 16;
+        for (var i = 0; i < 32; i = i + 1) {                                // Max of 32 sprites
+            sprite = sprite + 1;
+            atrPos = atrPos + 4;
+            colorPos = colorPos + 16;
+            y = vram[atrPos];
+            if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine >= size) continue;                               // Not visible at line
+
+            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
+            }
+
+            color = vram[colorPos + spriteLine];
+            cc = color & 0x40;
+            if (cc) {
+                if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
+            } else spritePri = spritesGlobalPriority + sprite;
+
+            if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
+
+            x = vram[atrPos + 1];
+            if (color & 0x80) {
+                x -= 32;                                                    // Early Clock bit, X to be 32 to the left
+                if (x <= -size) continue;                                   // Not visible (out to the left)
+            }
+            name = vram[atrPos + 2];
+            if (spritesSize === 8) {
+                lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >> spritesMag);
+                pattern = vram[lineInPattern];
+            } else {
+                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >> spritesMag);
+                pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            }
+            s = x <= 256 - size ? 0 : x - 256 - size;
+            f = x >= 0 ? size : size + x;
+            x += (size - f);
+            if (cc) paintSpriteMode2CCG5(x, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag);
+            else paintSpriteMode2G5(x, line, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+        }
+        if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
+    }
+
+    function paintSpriteMode2G5(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
+        bufferPos = bufferPos + x * 2;
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
+            var s = (pattern >> (i >>> magShift)) & 0x01;
+            if (s === 0) continue;
+            if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
+                if (collide && !spritesCollided) setSpritesCollision(x, y);
+                continue;
+            }
+            spritesLinePriorities[x] = spritePri;                                           // Register new priority
+            spritesLineColors[x] = color;                                                   // Register new color
+            frameBackBuffer[bufferPos] = colorPaletteSolid[color >>> 2];
+            frameBackBuffer[bufferPos + 1] = colorPaletteSolid[color & 0x03];
+        }
+    }
+
+    function paintSpriteMode2CCG5(x, bufferPos, spritePri, pattern, color, start, finish, magShift) {
+        bufferPos = bufferPos + x * 2;
+        var finalColor;
+        for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
+            var s = (pattern >> (i >>> magShift)) & 0x01;
+            if (s === 0) continue;
+            var prevSpritePri = spritesLinePriorities[x];
+            if (prevSpritePri < spritePri) continue;                                        // Higher priority sprite already there
+            if (prevSpritePri === spritePri)
+                finalColor = color | spritesLineColors[x];                                  // Mix if same priority
+            else {
+                spritesLinePriorities[x] = spritePri;                                       // Otherwise register new priority
+                finalColor = color;
+            }
+            spritesLineColors[x] = finalColor;                                              // Register new color
+            frameBackBuffer[bufferPos] = colorPaletteSolid[finalColor >>> 2];
+            frameBackBuffer[bufferPos + 1] = colorPaletteSolid[finalColor & 0x03];
+        }
+    }
+
     function setSpritesCollision(x, y) {
         spritesCollided = true;
         if (spritesCollisionX >= 0) return;                             // Only set if clear
@@ -1417,7 +1522,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
         for (var c = 0; c < 16; c = c + 1) {
             colorPalette[c] = colors[c];
-            colorPalette[c + 16] = colors[c];
+            colorPaletteSolid[c] = colors[c];
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
         }
     }
@@ -1569,7 +1674,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
 
     var color0Solid = false;
-    var colorPalette = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint. 0-15 values with transparency pre-computed in position 0. 16-31 with real solid palette values
+    var colorPalette =      new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0
+    var colorPaletteSolid = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values
 
     var colorPaletteG7 =           new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
@@ -1621,6 +1727,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status), p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRegister),
             pal: wmsx.Util.storeInt32BitArrayToStringBase64(colorPalette),
+            pals: wmsx.Util.storeInt32BitArrayToStringBase64(colorPaletteSolid),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram),
             cp: commandProcessor.saveState()
         };
@@ -1639,6 +1746,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRegister);
         var c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal, colorPalette);
         if (colorPalette !== c) colorPalette = new Uint32Array(c);              // Must preserve type Uint32Array
+        c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pals, colorPaletteSolid);
+        if (colorPaletteSolid !== c) colorPaletteSolid = new Uint32Array(c);    // Must preserve type Uint32Array
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram);
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
