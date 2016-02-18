@@ -1191,7 +1191,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 7) continue;                                   // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
@@ -1229,7 +1229,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 15) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
@@ -1267,7 +1267,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 15) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
@@ -1305,7 +1305,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 31) continue;                                  // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             x = vram[atrPos + 1];
@@ -1381,16 +1381,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 7) continue;                                   // Not visible at line
 
+            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
+            }
+
             color = vram[colorPos + spriteLine];
-            cc = (color & 0x40);
+            cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
-            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
-                if (spriteDebugModeLimit) return;
-            }
 
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
@@ -1432,16 +1432,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 15) continue;                                  // Not visible at line
 
+            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
+            }
+
             color = vram[colorPos + (spriteLine >>> 1)];                    // Double line height
-            cc = (color & 0x40);
+            cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
-            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
-                if (spriteDebugModeLimit) return;
-            }
 
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
@@ -1483,16 +1483,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 15) continue;                                  // Not visible at line
 
+            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
+            }
+
             color = vram[colorPos + spriteLine];
-            cc = (color & 0x40);
+            cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
-            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
-                if (spriteDebugModeLimit) return;
-            }
 
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
@@ -1534,16 +1534,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine > 31) continue;                                  // Not visible at line
 
+            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
+                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spriteDebugModeLimit) return;
+            }
+
             color = vram[colorPos + (spriteLine >>> 1)];                    // Double line height
-            cc = (color & 0x40);
+            cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
-            if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0) spritesInvalid = sprite;
-                if (spriteDebugModeLimit) return;
-            }
 
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
 
@@ -1953,7 +1953,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateBackdropColor(true);
         updateTransparency();
         updatePageAlternance();
-        initSpritesConflictMap();
     };
 
 
