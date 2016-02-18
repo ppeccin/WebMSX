@@ -236,7 +236,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
         backdropColor = 0;
-        pendingBlankingChange = false;
+        pendingBlankingChange = false; pendingBackdropCacheUpdate = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
         initRegisters();
@@ -446,7 +446,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         colorPalette[reg + 16] = value;
 
         if (reg === backdropColor) updateBackdropValue();
-        else if ((mode === 4) && (reg <= 3)) updateBackdropCaches();
+        else if ((mode === 4) && (reg <= 3)) pendingBackdropCacheUpdate = true;
     }
 
     function setDebugMode(mode) {
@@ -594,13 +594,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         spritePatternTableAddress = add & modeData.sprPatTBase;
 
         if ((mode === 7) || (oldMode === 7)) updateBackdropColor();
-        else if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
+        else if ((mode === 4) || (oldMode === 4)) pendingBackdropCacheUpdate = true;
 
         updateLineActiveType();
         updateSignalMetrics();
         updateSpritePatternTables();
         commandProcessor.setVDPModeData(modeData);
-        pendingModeChange = false;
 
         //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
     }
@@ -687,8 +686,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         //logInfo("Backdrop Value: " + backdropValue);
 
         backdropValue = value;
-        if (!color0Solid && mode !== 7) colorPalette[0] = value;
-        updateBackdropCaches();
+        if (!color0Solid) colorPalette[0] = value;
+        pendingBackdropCacheUpdate = true;
     }
 
     function updateBackdropCaches() {
@@ -699,6 +698,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
         }
             else wmsx.Util.arrayFill(backdropFullLine512Values, backdropValue);
+
+        pendingBackdropCacheUpdate = false;
 
         //console.log("Update BackdropCaches");
     }
@@ -718,13 +719,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function renderLineBorders() {
+        if (pendingBackdropCacheUpdate) updateBackdropCaches();
         frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineActiveBlanked() {
-        frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
-        bufferPosition = bufferPosition + bufferLineAdvance;
+        renderLineBorders();
     }
 
     function renderLineModeT1() {                                           // Text (Screen 0 width 40)
@@ -1504,8 +1505,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var modeData;
     var signalWidth, signalHeight;
 
-    var pendingModeChange;
     var pendingBlankingChange;
+    var pendingBackdropCacheUpdate;
 
     var spritesEnabled, spritesSize, spritesMag;
     var spritesCollided, spritesInvalid, spritesMaxComputed, spritesCollisionX, spritesCollisionY;
@@ -1615,7 +1616,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             bp: blinkEvenPage, bpd: blinkPageDuration,
-            pmc: pendingModeChange, pbc: pendingBlankingChange,
+            pbc: pendingBlankingChange, pcc: pendingBackdropCacheUpdate,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status), p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRegister),
@@ -1632,7 +1633,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
-        pendingModeChange = s.pmc; pendingBlankingChange = s.pbc;
+        pendingBlankingChange = s.pbc; pendingBackdropCacheUpdate = s.pcc;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
         verticalIntReached = s.vi;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRegister);
