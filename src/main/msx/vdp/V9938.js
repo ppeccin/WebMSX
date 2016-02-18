@@ -5,6 +5,8 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
+// TODO Fix Auto VideoStandard on Machine power off -> on
+
 wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
@@ -137,7 +139,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 res = 0xff;                       // Invalid register
         }
 
-        //if (reg === 2) logInfo("Reading status " + reg + ", " + res.toString(16));
+        //logInfo("Reading status " + reg + ", " + res.toString(16));
 
         return res;
     };
@@ -237,8 +239,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
         wmsx.Util.arrayFill(register, 0);
-        wmsx.Util.arrayFill(paletteRegister, 0);
-        wmsx.Util.arrayFill(status, 0);
+        wmsx.Util.arrayFill(status, 0xff);      // TODO Verify status register initialization
         initVDPID();
         initColorPalette();
         initSpritesConflictControl();
@@ -1639,9 +1640,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         spritesCollisionX = x + 12; spritesCollisionY = y + 8;          // Additions as per spec
         if ((register[8] & 0xc0) === 0) {                               // Only report if Mouse (MS) and LightPen (LP) are disabled
             status[3] = spritesCollisionX & 255;
-            status[4] = (spritesCollisionX >> 8) & 0x01;
+            status[4] = 0xfe | (spritesCollisionX >> 8);
             status[5] = spritesCollisionY & 255;
-            status[6] = (spritesCollisionY >> 8) & 0x03;
+            status[6] = 0xfc | (spritesCollisionY >> 8);
         }
     }
 
