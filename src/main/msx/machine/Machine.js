@@ -18,6 +18,7 @@ wmsx.Machine = function() {
         psg.powerOn();
         vdp.powerOn();
         cpu.powerOn();
+        this.reset();
         this.powerIsOn = true;
         machineControlsSocket.fireRedefinitionUpdate();
         if (!paused) mainClock.go();

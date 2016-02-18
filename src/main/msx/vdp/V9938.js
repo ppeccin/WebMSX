@@ -5,8 +5,6 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-// TODO Fix Auto VideoStandard on Machine power off -> on
-
 wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
@@ -22,6 +20,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         initFrameResources();
         initColorCaches();
         initDebugPatternTables();
+        initSpritesConflictMap();
         mode = 0; modeData = modes[mode];
         self.setDefaults();
         commandProcessor = new wmsx.V9938CommandProcessor();
@@ -238,11 +237,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         pendingBlankingChange = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
-        wmsx.Util.arrayFill(register, 0);
-        wmsx.Util.arrayFill(status, 0xff);      // TODO Verify status register initialization
-        initVDPID();
+        initRegisters();
         initColorPalette();
-        initSpritesConflictControl();
         updateIRQ();
         updateMode();
         updateBackdropColor(true);
@@ -1699,8 +1695,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         //spritePatternTable16 = debugModeSpriteInfo ? debugPatTableDigits16 : vramSpritePatternTable;
     }
 
-    function initVDPID() {
-        status[1] |= 0x00;      // To be used for V9958 mode. 0 = V9938, 1 = V9958
+    function initRegisters() {
+        wmsx.Util.arrayFill(register, 0);
+        wmsx.Util.arrayFill(status, 0);
+        status[1] = 0x00;         // VDP ID. V9938, 1 = V9958
+        status[2] = 0x0c;         // Fixed "1" bits
+        status[4] = 0xfe;         // Fixed "1" bits
+        status[6] = 0xfc;         // Fixed "1" bits
+        status[9] = 0xfe;         // Fixed "1" bits
     }
 
     function initFrameResources() {
@@ -1761,7 +1763,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         debugPatTableBlocks[1] = debugPatTableBlocks[2] = debugPatTableBlocks[3] = debugPatTableBlocks[4] = debugPatTableBlocks[5] = debugPatTableBlocks[6] = 0x7e;
     }
 
-    function initSpritesConflictControl() {
+    function initSpritesConflictMap() {
         wmsx.Util.arrayFill(spritesLinePriorities, SPRITE_MAX_PRIORITY);
         wmsx.Util.arrayFill(spritesLineColors, 0);
         spritesGlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets and lasts for years!
@@ -1951,7 +1953,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateBackdropColor(true);
         updateTransparency();
         updatePageAlternance();
-        initSpritesConflictControl();
+        initSpritesConflictMap();
     };
 
 
