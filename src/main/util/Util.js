@@ -16,16 +16,17 @@ wmsx.Util = new function() {
         return total / arr.length;
     };
 
-    this.arrayFill = function(arr, val, len) {
-        var i = len || arr.length;
+    this.arrayFill = function(arr, val) {
+        if (arr.fill) return arr.fill(val);       // polyfill for TypedArrays or Arrays with native fill
+
+        var i = arr.length;
         while(i--)
             arr[i] = val;
         return arr;
     };
 
-    this.arrayFillFunc = function(arr, func, len) {
-        if (len === undefined) len = arr.length;
-        for (var i = 0; i < len; i = i + 1)
+    this.arrayFillFunc = function(arr, func) {
+        for (var i = 0, len = arr.length; i < len; i = i + 1)
             arr[i] = func(i);
         return arr;
     };

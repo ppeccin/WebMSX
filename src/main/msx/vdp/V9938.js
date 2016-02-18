@@ -244,7 +244,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateIRQ();
         updateMode();
         updateSpritesConfig();
-        updateBackdropColor(true);
+        updateBackdropColor();
         updateSynchronization();
         updateBlinking();
         updatePageAlternance();
@@ -341,7 +341,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 7:
-                if (mod & (mode === 7 ? 0xff : 0x0f)) updateBackdropColor(false);   // BD. Special case for mode G7
+                if (mod & (mode === 7 ? 0xff : 0x0f)) updateBackdropColor();   // BD. Special case for mode G7
                 break;
             case 8:
                 if (mod & 0x20) updateTransparency();                    // TP
@@ -445,8 +445,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         colorPalette[reg + 16] = value;
 
-        if (reg === backdropColor) updateBackdropValue(false);
-        else if ((mode === 4) && (reg <= 3)) updateBackdropCachesG5();
+        if (reg === backdropColor) updateBackdropValue();
+        else if ((mode === 4) && (reg <= 3)) updateBackdropCaches();
     }
 
     function setDebugMode(mode) {
@@ -458,7 +458,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         debugModePatternInfoNames = mode === 7;
         updateLineActiveType();
         updateSpritePatternTables();
-        updateBackdropValue(true);
+        updateBackdropValue();
     }
 
     function updateSynchronization() {
@@ -593,7 +593,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         add = (register[6] << 11) & 0x1ffff;
         spritePatternTableAddress = add & modeData.sprPatTBase;
 
-        if ((mode === 7) || (oldMode === 7)) updateBackdropColor(true);
+        if ((mode === 7) || (oldMode === 7)) updateBackdropColor();
         else if ((mode === 4) || (oldMode === 4)) updateBackdropCaches();
 
         updateLineActiveType();
@@ -667,22 +667,22 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         //console.log("TP: " + color0Solid + ", currentLine: " + currentScanline);
     }
 
-    function updateBackdropColor(forceValue) {
+    function updateBackdropColor() {
         backdropColor = register[7] & (mode === 7 ? 0xff : 0x0f);
 
         //console.log("Backdrop Color: " + backdropColor + ", currentLine: " + currentScanline);
 
-        updateBackdropValue(forceValue);
+        updateBackdropValue();
     }
 
-    function updateBackdropValue(force) {
+    function updateBackdropValue() {
         var value = debugModePatternInfo
             ? debugBackdropValue
             : mode === 7
                 ? colors256[backdropColor]                   // From all 256 colors
                 : colorPalette[backdropColor + 16];          // From current palette (solid regardless of TP)
 
-        if (backdropValue === value && !force) return;
+        if (backdropValue === value) return;
 
         //logInfo("Backdrop Value: " + backdropValue);
 
@@ -692,18 +692,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function updateBackdropCaches() {
+        if (mode === 4 && !debugModePatternInfo) {          // Special case for mode G5 (Screen 6)
+            var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
+            for (var i = 0; i < LINE_WIDTH; i += 2) {
+                backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
+            }
+        }
+            else wmsx.Util.arrayFill(backdropFullLine512Values, backdropValue);
 
         //console.log("Update BackdropCaches");
-
-        if (mode === 4 && !debugModePatternInfo) updateBackdropCachesG5();      // Special case for mode G5 (Screen 6)
-        else wmsx.Util.arrayFill(backdropFullLine512Values, backdropValue);
-    }
-
-    function updateBackdropCachesG5() {
-        var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
-        for (var i = 0; i < LINE_WIDTH; i += 2) {
-            backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
-        }
     }
 
     function updateBlinking() {
@@ -1165,7 +1162,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function paintBackdrop32G5(bufferPos) {
-        var odd =  backdropFullLine512Values[0]; var even = backdropFullLine512Values[1];
+        var odd = colorPalette[backdropColor >>> 2]; var even = colorPalette[backdropColor & 0x03];
         frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
         frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
         frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
@@ -1540,9 +1537,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var colorTableAddressMaskBase = ~(-1 << 6);
     var patternTableAddressMaskBase = ~(-1 << 11);
 
-    var modes = wmsx.Util.arrayFillFunc(new Array(32), function(i) {
-        return    { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 };
-    });
+    var modes = wmsx.Util.arrayFill(new Array(32),
+                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 });
 
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
     modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
@@ -1648,7 +1644,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateIRQ();
         updateMode();
         updateSpritesConfig();
-        updateBackdropColor(true);
+        updateBackdropColor();
         updateTransparency();
         updatePageAlternance();
     };
