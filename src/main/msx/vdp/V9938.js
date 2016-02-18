@@ -684,6 +684,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         if (backdropValue === value && !force) return;
 
+        //logInfo("Backdrop Value: " + backdropValue);
+
         backdropValue = value;
         if (!color0Solid && mode !== 7) colorPalette[0] = value;
         updateBackdropCaches();
@@ -1285,7 +1287,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 256 - size ? 0 : x - 256 - size;
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            if (cc) paintSprite2CC(x, bufferPos, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, hStretch);
+            if (cc) paintSpriteMode2CC (x, bufferPos, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, hStretch);
             else paintSpriteMode2(x, line, bufferPos, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, hStretch, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
@@ -1307,7 +1309,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function paintSprite2CC(x, bufferPos, spritePri, pattern, color, palette, start, finish, magShift, hStretch) {
+    function paintSpriteMode2CC(x, bufferPos, spritePri, pattern, color, palette, start, finish, magShift, hStretch) {
         bufferPos = bufferPos + x * hStretch;
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + hStretch) {
