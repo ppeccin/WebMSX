@@ -451,11 +451,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function setDebugMode(mode) {
         debugMode = mode;
         debugModeSpriteInfo = mode >= 2 && mode <= 3;
+        debugModeSpriteInfoNumbers = mode === 2;
         debugModeSpriteInfoNames = mode === 3;
+        debugModeSpritesHidden = mode >= 4;
         debugModePatternInfo = mode >= 5;
         debugModePatternInfoBlocks = mode === 6;
         debugModePatternInfoNames = mode === 7;
         updateLineActiveType();
+        updateSpritesConfig();
         updateSpritePatternTables();
         updateBackdropValue();
     }
@@ -651,7 +654,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function updateSpritesConfig() {
-        spritesEnabled = (register[8] & 0x02) === 0;        // SPD
+        spritesEnabled = !debugModeSpritesHidden && (register[8] & 0x02) === 0;        // SPD
         spritesSize = (register[1] & 0x02) ? 16 : 8;        // SI
         spritesMag = register[1] & 0x01;                    // MAG
 
@@ -744,7 +747,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         while (patPos < patPosFinal) {
             var name = vram[patPos++];                                      // no masking needed
             var pattern = vram[(name << 3) + lineInPattern];                // no masking needed
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern6(bufferPos, pattern, on, off);
             bufferPos += 6;
         }
 
@@ -774,7 +777,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
                 on = blink ? colorPaletteSolid[colorCode >>> 4] : colorPalette[colorCode >>> 4];    // color 0 is always solid in blink
                 off = blink ? colorPaletteSolid[colorCode & 0xf] : colorPalette[colorCode & 0xf];
-                paintPattern(bufferPos, pattern, on, off);
+                paintPattern6(bufferPos, pattern, on, off);
                 if (--blinkBit < 0) { blinkPos++; blinkBit = 7; }
                 bufferPos += 6;
             }
@@ -785,7 +788,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             while (patPos < patPosFinal) {
                 name = vram[patPos++ & layoutTableAddressMask];
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
-                paintPattern(bufferPos, pattern, on, off);
+                paintPattern6(bufferPos, pattern, on, off);
                 bufferPos += 6;
             }
         }
@@ -810,7 +813,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var colorCode = vram[patternLine];                              // no masking needed
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, 0xf0, on, off);                 // always solid blocks of front and back colors;
+            paintPattern8(bufferPos, 0xf0, on, off);                 // always solid blocks of front and back colors;
             bufferPos += 8;
         }
 
@@ -835,7 +838,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var pattern = vram[((name << 3) + lineInPattern)];              // name * 8 (8 bytes each pattern) + line inside pattern, no masking needed
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
@@ -862,7 +865,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var pattern = vram[((name << 3) + lineInPattern) & patternTableAddressMask];
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
@@ -889,7 +892,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var pattern = vram[((name << 3) + lineInPattern) & patternTableAddressMask];
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
@@ -1008,26 +1011,32 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 var colorCode = name === 0x20 ? 0x41 : 0xf1;
                 var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
                 // Squish digits to fit 6 pixels wide
-                if (lineInPattern <= 5) {
-                    pattern = (pattern & 0xe0) | ((pattern & 0x0e) << 1);   // TODO Darken 2nd digit
-                } else if (lineInPattern === 6)
+                if (lineInPattern <= 5)
+                    pattern = (pattern & 0xe0) | ((pattern & 0x0e) << 1);
+                else if (lineInPattern === 6)
                     pattern = 0x78;
+                var high = colorPalette[colorCode >>> 4];
+                paintPattern6T1Info(bufferPos, pattern, high, high & 0x80ffffff, colorPalette[colorCode & 0xf]);
             } else if (debugModePatternInfoBlocks) {
                 colorCode = register[7];                                    // Real text color for all blocks
                 pattern = debugPatTableBlocks[lineInPattern];
+                paintPattern6(bufferPos, pattern, colorPalette[colorCode >>> 4], colorPalette[colorCode & 0xf]);
             } else {
                 colorCode = 0xf1;
                 pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
+                paintPattern6(bufferPos, pattern, colorPalette[colorCode >>> 4], colorPalette[colorCode & 0xf]);
             }
-            var on =  colorPalette[colorCode >>> 4];
-            var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
             bufferPos += 6;
         }
 
         // Sprites deactivated
 
         bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function paintPattern6T1Info(bufferPos, pattern, high, low, off) {
+        frameBackBuffer[bufferPos]     = pattern & 0x80 ? high : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? high : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? high : off;
+        frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? low : off;  frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? low : off;  frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? low : off;
     }
 
     function renderLineModeMCDebug() {                                      // Multicolor (Screen 3)
@@ -1047,7 +1056,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var colorCode = 0xf1;
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
@@ -1080,7 +1089,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
@@ -1115,7 +1124,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
@@ -1124,14 +1133,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function paintPattern(bufferPos, pattern, on, off) {
-        frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off; frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? on : off;
-        frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? on : off; frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? on : off; frameBackBuffer[bufferPos + 6] = pattern & 0x02 ? on : off; frameBackBuffer[bufferPos + 7] = pattern & 0x01 ? on : off;
+    function paintPattern6(bufferPos, pattern, on, off) {
+        frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off;
+        frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? on : off; frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? on : off; frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? on : off;
     }
 
-    function paintBackdrop8(bufferPos) {
-        frameBackBuffer[bufferPos]     = backdropValue; frameBackBuffer[bufferPos + 1] = backdropValue; frameBackBuffer[bufferPos + 2] = backdropValue; frameBackBuffer[bufferPos + 3] = backdropValue;
-        frameBackBuffer[bufferPos + 4] = backdropValue; frameBackBuffer[bufferPos + 5] = backdropValue; frameBackBuffer[bufferPos + 6] = backdropValue; frameBackBuffer[bufferPos + 7] = backdropValue;
+    function paintPattern8(bufferPos, pattern, on, off) {
+        frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off; frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? on : off;
+        frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? on : off; frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? on : off; frameBackBuffer[bufferPos + 6] = pattern & 0x02 ? on : off; frameBackBuffer[bufferPos + 7] = pattern & 0x01 ? on : off;
     }
 
     function paintBackdrop16(bufferPos) {
@@ -1189,7 +1198,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function renderSpritesLineMode1(line, bufferPos) {
-        if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
+        if (debugModeSpritesHidden || vram[spriteAttrTableAddress] === 208) return;    // No sprites to show!
 
         var size = spritesSize << spritesMag;
         var atrPos, color, name, lineInPattern, pattern;
@@ -1570,7 +1579,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
-        status[1] = 0x00;         // VDP ID. V9938, 1 = V9958
+        status[1] = 0x00;         // VDP ID (mask 0x37), 0x00 = V9938, 0x02 = V9958
         status[2] = 0x0c;         // Fixed "1" bits
         status[4] = 0xfe;         // Fixed "1" bits
         status[6] = 0xfc;         // Fixed "1" bits
@@ -1758,7 +1767,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
    // Sprite and Debug Modes controls
 
     var debugMode;
-    var debugModeSpriteInfo, debugModeSpriteInfoNames;
+    var debugModeSpriteInfo, debugModeSpriteInfoNumbers, debugModeSpriteInfoNames, debugModeSpritesHidden;
     var debugModePatternInfo, debugModePatternInfoBlocks, debugModePatternInfoNames;
 
     var spriteDebugMode;
