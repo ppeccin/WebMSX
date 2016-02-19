@@ -87,7 +87,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     // VRAM Write
     this.output98 = function(val) {
 
-        //if (vramPointer === 0x1e205 || vramPointer === 0x1e605) wmsx.Util.log("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
+        //if ((vramPointer >= spriteAttrTableAddress + 512) /* && (vramPointer <= spriteAttrTableAddress + 512 + 32 * 4) */)
+        //    logInfo("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
         dataToWrite = null;
         vram[vramPointer++] = val;
@@ -433,7 +434,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         if (paletteRegister[reg] === val) return;
         paletteRegister[reg] = val;
 
-        var value = colors512[((val & 0x700) >> 2) | ((val & 0x70) >> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
+        var value = colors512[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
 
         // Special case for color 0
         if (reg === 0) {
@@ -566,8 +567,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             cpu.setINT(1);
         }
 
-        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>>  INT VERTICAL");
-        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>>  INT HORIZONTAL");
+        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  INT VERTICAL");
+        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  INT HORIZONTAL");
     }
 
     function updateMode() {
@@ -802,7 +803,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
         var patPosFinal = patPos + 32;
-        var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >> 2) & 0x01);    // (pattern line % 4) * 2
+        var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >>> 2) & 0x01);    // (pattern line % 4) * 2
         while (patPos < patPosFinal) {
             var name = vram[patPos++];                                      // no masking needed
             var patternLine = (name << 3) + extraPatPos;                    // name * 8 + extra position, no masking needed
@@ -1190,10 +1191,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderSpritesLineMode1(line, bufferPos) {
         if (vram[spriteAttrTableAddress] === 208) return;                   // No sprites to show!
 
-        var size = spritesSize * (spritesMag ? 2 : 1);
+        var size = spritesSize << spritesMag;
         var atrPos, color, name, lineInPattern, pattern;
         var sprite = -1, drawn = 0, y, spriteLine, x, s, f;
-
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress - 4;
@@ -1217,13 +1217,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             color &= 0x0f;
             name = vram[atrPos + 2];
             if (spritesSize === 8) {
-                lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >>> spritesMag);
                 pattern = vram[lineInPattern];
             } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >>> spritesMag);
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
             }
-            s = x <= 256 - size ? 0 : x - 256 - size;
+            s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
             x += (size - f);
             paintSpriteMode1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, spritesMag, drawn < 5);
@@ -1233,7 +1233,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function paintSpriteMode1(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) setSpritesCollision(x, y);
@@ -1252,10 +1252,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderSpritesLineMode2(line, bufferPos, palette) {
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
-        var size = spritesSize * (spritesMag ? 2 : 1);
+        var size = spritesSize << spritesMag;
         var atrPos, colorPos, color, name, lineInPattern, pattern;
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
-
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1268,20 +1267,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
-
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
-
+            spriteLine >>>= spritesMag;                                     // Adjust for Mag
             color = vram[colorPos + spriteLine];
             cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
-
             x = vram[atrPos + 1];
             if (color & 0x80) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
@@ -1289,25 +1285,24 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             name = vram[atrPos + 2];
             if (spritesSize === 8) {
-                lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
                 pattern = vram[lineInPattern];
             } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
             }
-            s = x <= 256 - size ? 0 : x - 256 - size;
+            s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            if (cc) paintSpriteMode2CC (x, bufferPos, spritePri, pattern, color & 0xf, palette, s, f, spritesMag);
-            else paintSpriteMode2(x, line, bufferPos, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (cc) paintSpriteMode2CC (x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, spritesMag);
+            else paintSpriteMode2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
 
     function paintSpriteMode2(x, y, bufferPos, spritePri, pattern, color, palette, start, finish, magShift, collide) {
-        bufferPos = bufferPos + x;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) setSpritesCollision(x, y);
@@ -1320,10 +1315,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function paintSpriteMode2CC(x, bufferPos, spritePri, pattern, color, palette, start, finish, magShift) {
-        bufferPos = bufferPos + x;
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 1) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             var prevSpritePri = spritesLinePriorities[x];
             if (prevSpritePri < spritePri) continue;                                        // Higher priority sprite already there
@@ -1341,10 +1335,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderSpritesLineMode2Tiled(line, bufferPos) {
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
-        var size = spritesSize * (spritesMag ? 2 : 1);
+        var size = spritesSize << spritesMag;
         var atrPos, colorPos, color, name, lineInPattern, pattern;
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
-
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1357,20 +1350,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
-
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
-
+            spriteLine >>>= spritesMag;                                     // Adjust for Mag
             color = vram[colorPos + spriteLine];
             cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
-
             x = vram[atrPos + 1];
             if (color & 0x80) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
@@ -1378,25 +1368,24 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             name = vram[atrPos + 2];
             if (spritesSize === 8) {
-                lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
                 pattern = vram[lineInPattern];
             } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
             }
-            s = x <= 256 - size ? 0 : x - 256 - size;
+            s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            if (cc) paintSpriteMode2TiledCC(x, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag);
-            else paintSpriteMode2Tiled(x, line, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (cc) paintSpriteMode2TiledCC(x, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag);
+            else paintSpriteMode2Tiled(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
 
     function paintSpriteMode2Tiled(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
-        bufferPos = bufferPos + (x << 1);
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) setSpritesCollision(x, y);
@@ -1410,10 +1399,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function paintSpriteMode2TiledCC(x, bufferPos, spritePri, pattern, color, start, finish, magShift) {
-        bufferPos = bufferPos + (x << 1);
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             var prevSpritePri = spritesLinePriorities[x];
             if (prevSpritePri < spritePri) continue;                                        // Higher priority sprite already there
@@ -1432,10 +1420,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     function renderSpritesLineMode2Stretched(line, bufferPos) {
         if (vram[spriteAttrTableAddress + 512] === 216) return;             // No sprites to show!
 
-        var size = spritesSize * (spritesMag ? 2 : 1);
+        var size = spritesSize << spritesMag;
         var atrPos, colorPos, color, name, lineInPattern, pattern;
         var sprite = -1, spritePri = SPRITE_MAX_PRIORITY, drawn = 0, y, spriteLine, x, s, f, cc;
-
         spritesGlobalPriority -= 32;
 
         atrPos = spriteAttrTableAddress + 512 - 4;
@@ -1448,20 +1435,17 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             if (y === 216) break;                                           // Stop Sprite processing for the line, as per spec
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
-
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
                 if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
-
+            spriteLine >>>= spritesMag;                                     // Adjust for Mag
             color = vram[colorPos + spriteLine];
             cc = color & 0x40;
             if (cc) {
                 if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
             } else spritePri = spritesGlobalPriority + sprite;
-
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
-
             x = vram[atrPos + 1];
             if (color & 0x80) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
@@ -1469,25 +1453,24 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             name = vram[atrPos + 2];
             if (spritesSize === 8) {
-                lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
                 pattern = vram[lineInPattern];
             } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >> spritesMag);
+                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
             }
-            s = x <= 256 - size ? 0 : x - 256 - size;
+            s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            if (cc) paintSpriteMode2StretchedCC(x, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag);
-            else paintSpriteMode2Stretched(x, line, bufferPos, spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (cc) paintSpriteMode2StretchedCC(x, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag);
+            else paintSpriteMode2Stretched(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
 
     function paintSpriteMode2Stretched(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
-        bufferPos = bufferPos + (x << 1);
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             if (spritesLinePriorities[x] < spritePri) {                                     // Higher priority sprite already there
                 if (collide && !spritesCollided) setSpritesCollision(x, y);
@@ -1501,10 +1484,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function paintSpriteMode2StretchedCC(x, bufferPos, spritePri, pattern, color, start, finish, magShift) {
-        bufferPos = bufferPos + (x << 1);
         var finalColor;
         for (var i = finish - 1; i >= start; i = i - 1, x = x + 1, bufferPos = bufferPos + 2) {
-            var s = (pattern >> (i >>> magShift)) & 0x01;
+            var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
             var prevSpritePri = spritesLinePriorities[x];
             if (prevSpritePri < spritePri) continue;                                        // Higher priority sprite already there
@@ -1526,9 +1508,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         spritesCollisionX = x + 12; spritesCollisionY = y + 8;          // Additions as per spec
         if ((register[8] & 0xc0) === 0) {                               // Only report if Mouse (MS) and LightPen (LP) are disabled
             status[3] = spritesCollisionX & 255;
-            status[4] = 0xfe | (spritesCollisionX >> 8);
+            status[4] = 0xfe | (spritesCollisionX >>> 8);
             status[5] = spritesCollisionY & 255;
-            status[6] = 0xfc | (spritesCollisionY >> 8);
+            status[6] = 0xfc | (spritesCollisionY >>> 8);
         }
     }
 
@@ -1545,7 +1527,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         if (blinkPageDuration > 0) {
             if (--blinkPageDuration === 0) {
                 blinkEvenPage = !blinkEvenPage;
-                blinkPageDuration = ((register[13] >> (blinkEvenPage ? 4 : 0)) & 0x0f) * 10;        // Duration in frames
+                blinkPageDuration = ((register[13] >>> (blinkEvenPage ? 4 : 0)) & 0x0f) * 10;        // Duration in frames
             }
         }
 
