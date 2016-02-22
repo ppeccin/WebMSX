@@ -192,7 +192,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         if (paletteFirstWrite === null) {
             paletteFirstWrite = val;
         } else {
-            writePaletteRegister(register[16], (val << 8) | paletteFirstWrite);
+            writePaletteRegister(register[16], (val << 8) | paletteFirstWrite, false);
             if (++register[16] > 15) register[16] = 0;
             paletteFirstWrite = null;
         }
@@ -430,20 +430,20 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
-    function writePaletteRegister(reg, val) {
-        if (paletteRegister[reg] === val) return;
+    function writePaletteRegister(reg, val, force) {
+        if (paletteRegister[reg] === val && !force) return;
         paletteRegister[reg] = val;
 
         var value = colors512[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
-        //if (debugModeSpriteInfo) value &= 0x80ffffff;
+        colorPaletteReal[reg] = value;
 
+        if (debugModeSpriteInfo) value &= DEBUG_DIM_ALPHA_MASK;
+        colorPaletteSolid[reg] = value;
         // Special case for color 0
         if (reg === 0) {
             if (color0Solid) colorPalette[0] = value;
         } else
             colorPalette[reg] = value;
-
-        colorPaletteSolid[reg] = value;
 
         if (reg === backdropColor) updateBackdropValue();
         else if ((mode === 4) && (reg <= 3)) pendingBackdropCacheUpdate = true;
@@ -451,6 +451,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function setDebugMode(mode) {
         debugMode = mode;
+        var oldDebugModeSpriteInfo = debugModeSpriteInfo;
         debugModeSpriteInfo = mode >= 1 && mode <= 3;
         debugModeSpriteInfoNumbers = mode === 2;
         debugModeSpriteInfoNames = mode === 3;
@@ -458,10 +459,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         debugModePatternInfo = mode >= 5;
         debugModePatternInfoBlocks = mode === 6;
         debugModePatternInfoNames = mode === 7;
+        if (oldDebugModeSpriteInfo !== debugModeSpriteInfo) debugAdjustPalette();
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTables();
-        updateBackdropValue();
+    }
+
+    function debugAdjustPalette() {
+        if (isV9918) {
+            initColorPalette();
+        } else {
+            for (var reg = 0; reg < 16; reg++) writePaletteRegister(reg, paletteRegister[reg], true);
+            initColorCaches()
+        }
     }
 
     function updateSynchronization() {
@@ -648,9 +658,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function updateLineActiveType() {
         var old = renderLineActive;
-        renderLineActive = (register[1] & 0x40) ? debugModePatternInfo ? modeData.updLineDeb : modeData.updLine : renderLineActiveBlanked;
-        if (renderLine === old) renderLine = renderLineActive;
 
+        renderLineActive = (register[1] & 0x40) === 0
+            ? renderLineActiveBlanked
+            : mode === 7
+                ? debugModeSpriteInfo ? renderLineModeG7Debug : renderLineModeG7
+                : debugModePatternInfo ? modeData.renderLineDebPat : modeData.renderLine;
+
+        if (renderLine === old) renderLine = renderLineActive;
         pendingBlankingChange = false;
     }
 
@@ -897,7 +912,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             bufferPos += 8;
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteSolid);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteReal);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -917,7 +932,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteSolid);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteReal);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -932,7 +947,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 7);
         var pixelsPosFinal = pixelsPos + 128;
-        if (color0Solid)                                                    // Normal paint for TP = 0
+        if (color0Solid)                                                    // Normal paint for TP = 1
             while (pixelsPos < pixelsPosFinal) {
                 pixels = vram[pixelsPos++ & layoutTableAddressMask];
                 frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
@@ -973,7 +988,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
 
-        if (spritesEnabled) renderSpritesLineMode2Stretched(realLine, bufferPos - 512, colorPaletteSolid);
+        if (spritesEnabled) renderSpritesLineMode2Stretched(realLine, bufferPos - 512, colorPaletteReal);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1009,23 +1024,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
-                var colorCode = name === 0x20 ? 0x41 : 0xf1;
-                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
-                // Squish digits to fit 6 pixels wide
-                if (lineInPattern <= 5)
-                    pattern = (pattern & 0xe0) | ((pattern & 0x0e) << 1);
-                else if (lineInPattern === 6)
-                    pattern = 0x78;
-                var high = colorPalette[colorCode >>> 4];
-                paintPattern6T1Info(bufferPos, pattern, high, high & 0x80ffffff, colorPalette[colorCode & 0xf]);
+                var on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                var pattern = debugPatTableDigits6[name * 8 + lineInPattern];
+                paintPattern6T1Info(bufferPos, pattern, on, 0xff000000);
             } else if (debugModePatternInfoBlocks) {
-                colorCode = register[7];                                    // Real text color for all blocks
+                var colorCode = register[7];                                    // Real text color for all blocks
                 pattern = debugPatTableBlocks[lineInPattern];
                 paintPattern6(bufferPos, pattern, colorPalette[colorCode >>> 4], colorPalette[colorCode & 0xf]);
             } else {
-                colorCode = 0xf1;
                 pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
-                paintPattern6(bufferPos, pattern, colorPalette[colorCode >>> 4], colorPalette[colorCode & 0xf]);
+                paintPattern6(bufferPos, pattern, 0xffffffff, 0xff000000);
             }
             bufferPos += 6;
         }
@@ -1035,8 +1043,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function paintPattern6T1Info(bufferPos, pattern, high, low, off) {
-        frameBackBuffer[bufferPos]     = pattern & 0x80 ? high : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? high : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? high : off;
+    function paintPattern6T1Info(bufferPos, pattern, on, off) {
+        var low = on & 0x80ffffff;
+        frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off;
         frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? low : off;  frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? low : off;  frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? low : off;
     }
 
@@ -1054,10 +1063,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
             var pattern = debugPatTableDigits8[name * 8 + (realLine & 0x07)];
-            var colorCode = 0xf1;
-            var on =  colorPalette[colorCode >>> 4];
-            var off = colorPalette[colorCode & 0xf];
-            paintPattern8(bufferPos, pattern, on, off);
+            paintPattern8(bufferPos, pattern, 0xffffffff, 0xff000000);
             bufferPos += 8;
         }
 
@@ -1076,20 +1082,23 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
         var lineInPattern = realLine & 0x07;
+        var on, off;
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
-                var colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
+                on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                off = 0xff000000;
                 var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
-                colorCode = vram[colorTableAddress + (name >>> 3)];
+                var colorCode = vram[colorTableAddress + (name >>> 3)];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 pattern = debugPatTableBlocks[lineInPattern];
             } else {
-                colorCode = 0xf1;
+                on =  0xffffffff;
+                off = 0xff000000;
                 pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
             }
-            var on =  colorPalette[colorCode >>> 4];
-            var off = colorPalette[colorCode & 0xf];
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
@@ -1110,26 +1119,85 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var blockExtra = (realLine & 0xc0) << 2;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
+        var on, off;
         while (patPos < patPosFinal) {
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
-                var colorCode = name === 0 || name === 0x20 ? 0x41 : 0xf1;
+                on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                off = 0xff000000;
                 var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
-                colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
+                var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
                 pattern = debugPatTableBlocks[lineInPattern];
             } else {
-                colorCode = 0xf1;
+                on =  0xffffffff;
+                off = 0xff000000;
                 pattern = vram[(patternTableAddress + (name << 3) + lineInPattern) & patternTableAddressMask];
             }
-            var on =  colorPalette[colorCode >>> 4];
-            var off = colorPalette[colorCode & 0xf];
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
 
         renderSpritesLineMode1(realLine, bufferPos - 256);
+
+        bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function renderLineModeG3Debug() {                                      // Graphics 3 (Screen 4)
+        var bufferPos = bufferPosition;
+
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
+
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var lineInPattern = realLine & 0x07;
+        var blockExtra = (realLine & 0xc0) << 2;
+        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
+        var patPosFinal = patPos + 32;
+        var on, off;
+        while (patPos < patPosFinal) {
+            var name = vram[patPos++] | blockExtra;
+            if (debugModePatternInfoNames) {
+                name &= 0xff;
+                on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                off = 0xff000000;
+                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+            } else if (debugModePatternInfoBlocks) {
+                var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
+                on =  colorPalette[colorCode >>> 4];
+                off = colorPalette[colorCode & 0xf];
+                pattern = debugPatTableBlocks[lineInPattern];
+            } else {
+                on =  0xffffffff;
+                off = 0xff000000;
+                pattern = vram[(patternTableAddress + (name << 3) + lineInPattern) & patternTableAddressMask];
+            }
+            paintPattern8(bufferPos, pattern, on, off);
+            bufferPos += 8;
+        }
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteReal);
+
+        bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function renderLineModeG7Debug() {                                      // Graphics 7 (Screen 8)
+        var bufferPos = bufferPosition;
+
+        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
+        bufferPos = bufferPos + 8 + horizontalAdjust;
+
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 8);
+        var pixelsPosFinal = pixelsPos + 256;
+        while (pixelsPos < pixelsPosFinal) {
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & DEBUG_DIM_ALPHA_MASK;
+        }
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteG7);       // Special fixed palette
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1249,12 +1317,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (collide && !spritesCollided) setSpritesCollision(x, y);
                 if (color !== 0 && spritesLineColors[x] === 0) {                            // Paint only if not transparent and higher priority was transparent
                     spritesLineColors[x] = color;                                           // Register new color
-                    frameBackBuffer[bufferPos] = colorPaletteSolid[color];
+                    frameBackBuffer[bufferPos] = colorPaletteReal[color];
                 }
             } else {                                                                        // No higher priority there
                 spritesLinePriorities[x] = spritePri;                                       // Register new priority
                 spritesLineColors[x] = color;                                               // Register new color
-                if (color !== 0) frameBackBuffer[bufferPos] = colorPaletteSolid[color];     // Paint only if not transparent
+                if (color !== 0) frameBackBuffer[bufferPos] = colorPaletteReal[color];      // Paint only if not transparent
             }
         }
     }
@@ -1403,8 +1471,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
             spritesLineColors[x] = color;                                                   // Register new color
-            frameBackBuffer[bufferPos] = colorPaletteSolid[color >>> 2];
-            frameBackBuffer[bufferPos + 1] = colorPaletteSolid[color & 0x03];
+            frameBackBuffer[bufferPos] = colorPaletteReal[color >>> 2];
+            frameBackBuffer[bufferPos + 1] = colorPaletteReal[color & 0x03];
         }
     }
 
@@ -1422,8 +1490,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 finalColor = color;
             }
             spritesLineColors[x] = finalColor;                                              // Register new color
-            frameBackBuffer[bufferPos] = colorPaletteSolid[finalColor >>> 2];
-            frameBackBuffer[bufferPos + 1] = colorPaletteSolid[finalColor & 0x03];
+            frameBackBuffer[bufferPos] = colorPaletteReal[finalColor >>> 2];
+            frameBackBuffer[bufferPos + 1] = colorPaletteReal[finalColor & 0x03];
         }
     }
 
@@ -1488,8 +1556,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
             spritesLineColors[x] = color;                                                   // Register new color
-            frameBackBuffer[bufferPos] = colorPaletteSolid[color];
-            frameBackBuffer[bufferPos + 1] = colorPaletteSolid[color];
+            frameBackBuffer[bufferPos] = colorPaletteReal[color];
+            frameBackBuffer[bufferPos + 1] = colorPaletteReal[color];
         }
     }
 
@@ -1507,8 +1575,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 finalColor = color;
             }
             spritesLineColors[x] = finalColor;                                              // Register new color
-            frameBackBuffer[bufferPos] = colorPaletteSolid[finalColor];
-            frameBackBuffer[bufferPos + 1] = colorPaletteSolid[finalColor];
+            frameBackBuffer[bufferPos] = colorPaletteReal[finalColor];
+            frameBackBuffer[bufferPos + 1] = colorPaletteReal[finalColor];
         }
     }
 
@@ -1597,14 +1665,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1);         // One extra line for the backdrop cache
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
         backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);
+        //backdropFullLineCache = new Uint32Array(frameCanvas.width);
     }
 
     function initColorPalette() {
         var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
         for (var c = 0; c < 16; c = c + 1) {
-            colorPalette[c] = colors[c];
-            colorPaletteSolid[c] = colors[c];
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
+            var value = colors[c];
+            colorPaletteReal[c] = value;
+            if (debugModeSpriteInfo) value &= DEBUG_DIM_ALPHA_MASK;
+            colorPalette[c] = value;
+            colorPaletteSolid[c] = value;
         }
     }
 
@@ -1626,11 +1698,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         for (var info = 0; info < 256; info++) {
             var dig1 = (info / 16) | 0;
             var dig2 = info % 16;
-            // 8 x 8
-            for (i = 0; i < 5; i++) debugPatTableDigits8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
-            debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
-            debugPatTableDigits8[pos8++] = Number.parseInt("01111100", 2);
-            debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
+            // 8 x 8, 6 x 8
+            for (i = 0; i < 5; i++) {
+                debugPatTableDigits6[pos8] =   Number.parseInt(digitPatterns[dig1][i] + digitPatterns[dig2][i] + "00", 2);
+                debugPatTableDigits8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
+            }
+            debugPatTableDigits6[pos8] = Number.parseInt("00000000", 2); debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
+            debugPatTableDigits6[pos8] = Number.parseInt("01111000", 2); debugPatTableDigits8[pos8++] = Number.parseInt("01111100", 2);
+            debugPatTableDigits6[pos8] = Number.parseInt("00000000", 2); debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
             // 16 x 16
             debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
             for (i = 0; i < 4; i++) debugPatTableDigits16[pos16++] = Number.parseInt("10000000", 2);
@@ -1655,6 +1730,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var SPRITE_MAX_PRIORITY = 9000000000000000;
     var LINE_WIDTH = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
+    var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
 
 
     // Frame as off screen canvas
@@ -1733,18 +1809,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFill(new Array(32),
-                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, updLine: renderLineBorders, updLineDeb: renderLineBorders,     spriteMode: 0 });
+                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, renderLine: renderLineBorders, renderLineDebPat: renderLineBorders,     spriteMode: 0 });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT1,  updLineDeb: renderLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, updLine: renderLineModeT2,  updLineDeb: renderLineModeT2     , spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeMC,  updLineDeb: renderLineModeMCDebug, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG1,  updLineDeb: renderLineModeG1Debug, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG2,  updLineDeb: renderLineModeG2Debug, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, updLine: renderLineModeG3,  updLineDeb: renderLineModeG3     , spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG4,  updLineDeb: renderLineModeG4     , spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 512, layLineBytes: 128, pageSize: 32768, updLine: renderLineModeG5,  updLineDeb: renderLineModeG5     , spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 512, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG6,  updLineDeb: renderLineModeG6     , spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT1,  renderLineDebPat: renderLineModeT1Debug, spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT2,  renderLineDebPat: renderLineModeT2     , spriteMode: 0 };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeMC,  renderLineDebPat: renderLineModeMCDebug, spriteMode: 1 };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG1,  renderLineDebPat: renderLineModeG1Debug, spriteMode: 1 };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG2,  renderLineDebPat: renderLineModeG2Debug, spriteMode: 1 };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG3,  renderLineDebPat: renderLineModeG3Debug, spriteMode: 2 };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 128, pageSize: 32768, renderLine: renderLineModeG4,  renderLineDebPat: renderLineModeG4     , spriteMode: 2 };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 512, layLineBytes: 128, pageSize: 32768, renderLine: renderLineModeG5,  renderLineDebPat: renderLineModeG5     , spriteMode: 2 };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 512, layLineBytes: 256, pageSize: 65536, renderLine: renderLineModeG6,  renderLineDebPat: renderLineModeG6     , spriteMode: 2 };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 256, pageSize: 65536, renderLine: renderLineModeG7,  renderLineDebPat: renderLineModeG7     , spriteMode: 2 };
 
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
 
@@ -1754,8 +1830,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
 
     var color0Solid = false;
-    var colorPalette =      new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0
-    var colorPaletteSolid = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values
+    var colorPalette =      new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug
+    var colorPaletteSolid = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values, dimmed when in debug
+    var colorPaletteReal =  new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
 
     var colorPaletteG7 =           new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
@@ -1774,10 +1851,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var spriteDebugModeLimit = true;
     var spriteDebugModeCollisions = true;
 
+    var debugPatTableDigits6 =  new Array(256 * 8);            // 6x8, text modes
     var debugPatTableDigits8 =  new Array(256 * 8);            // 8x8
     var debugPatTableDigits16 = new Array(256 * 8 * 4);        // 16x16
     var debugPatTableBlocks =   new Array(8);                  // 8x8
-    var debugBackdropValue    = 0xff2a2a2a;
+    var debugBackdropValue    = 0xff2a2a2a;     // TODO Fix, including savestates
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
@@ -1805,9 +1883,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             pbc: pendingBlankingChange, pcc: pendingBackdropCacheUpdate,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
-            r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status), p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRegister),
-            pal: wmsx.Util.storeInt32BitArrayToStringBase64(colorPalette),
-            pals: wmsx.Util.storeInt32BitArrayToStringBase64(colorPaletteSolid),
+            r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
+            p: wmsx.Util.storeInt32BitArrayToStringBase64(paletteRegister),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram),
             cp: commandProcessor.saveState()
         };
@@ -1823,17 +1900,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         pendingBlankingChange = s.pbc; pendingBackdropCacheUpdate = s.pcc;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
         verticalIntReached = s.vi;
-        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status); paletteRegister = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRegister);
-        var c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pal, colorPalette);
-        if (colorPalette !== c) colorPalette = new Uint32Array(c);              // Must preserve type Uint32Array
-        c = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pals, colorPaletteSolid);
-        if (colorPaletteSolid !== c) colorPaletteSolid = new Uint32Array(c);    // Must preserve type Uint32Array
+        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
+        paletteRegister = wmsx.Util.restoreStringBase64ToInt32BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram);
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         updateIRQ();
         updateMode();
         updateSpritesConfig();
+        debugAdjustPalette();
         updateBackdropColor();
         updateTransparency();
         updatePageAlternance();
