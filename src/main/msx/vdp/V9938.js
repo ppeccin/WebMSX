@@ -435,6 +435,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         paletteRegister[reg] = val;
 
         var value = colors512[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
+        //if (debugModeSpriteInfo) value &= 0x80ffffff;
 
         // Special case for color 0
         if (reg === 0) {
@@ -450,7 +451,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function setDebugMode(mode) {
         debugMode = mode;
-        debugModeSpriteInfo = mode >= 2 && mode <= 3;
+        debugModeSpriteInfo = mode >= 1 && mode <= 3;
         debugModeSpriteInfoNumbers = mode === 2;
         debugModeSpriteInfoNames = mode === 3;
         debugModeSpritesHidden = mode >= 4;
@@ -692,15 +693,15 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         pendingBackdropCacheUpdate = true;
     }
 
-    function updateBackdropCaches() {
+    function updateBackdropCache() {
         if (mode === 4 && !debugModePatternInfo) {          // Special case for mode G5 (Screen 6)
             var odd = colorPaletteSolid[backdropColor >>> 2]; var even = colorPaletteSolid[backdropColor & 0x03];
             for (var i = 0; i < LINE_WIDTH; i += 2) {
-                backdropFullLine512Values[i] = odd; backdropFullLine512Values[i + 1] = even;
+                backdropFullLineCache[i] = odd; backdropFullLineCache[i + 1] = even;
             }
             backdropTileOdd = odd; backdropTileEven = even;
         }
-            else wmsx.Util.arrayFill(backdropFullLine512Values, backdropValue);
+            else wmsx.Util.arrayFill(backdropFullLineCache, backdropValue);
 
         pendingBackdropCacheUpdate = false;
 
@@ -722,8 +723,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
     function renderLineBorders() {
-        if (pendingBackdropCacheUpdate) updateBackdropCaches();
-        frameBackBuffer.set(backdropFullLine512Values, bufferPosition);
+        if (pendingBackdropCacheUpdate) updateBackdropCache();
+        frameBackBuffer.set(backdropFullLineCache, bufferPosition);
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -1235,7 +1236,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            paintSpriteMode1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, spritesMag, drawn < 5);
+            paintSpriteMode1(x, line, bufferPos + x, spritesGlobalPriority + sprite, pattern, color, s, f, spritesMag, spriteDebugModeCollisions && (drawn < 5));
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
@@ -1304,7 +1305,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? size : size + x;
             x += (size - f);
             if (cc) paintSpriteMode2CC (x, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, spritesMag);
-            else paintSpriteMode2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            else paintSpriteMode2(x, line, bufferPos + x, spritePri, pattern, color & 0xf, palette, s, f, spritesMag, spriteDebugModeCollisions && ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
@@ -1387,7 +1388,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? size : size + x;
             x += (size - f);
             if (cc) paintSpriteMode2TiledCC(x, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag);
-            else paintSpriteMode2Tiled(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            else paintSpriteMode2Tiled(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, spriteDebugModeCollisions && ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
@@ -1472,7 +1473,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             f = x >= 0 ? size : size + x;
             x += (size - f);
             if (cc) paintSpriteMode2StretchedCC(x, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag);
-            else paintSpriteMode2Stretched(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            else paintSpriteMode2Stretched(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, spriteDebugModeCollisions && ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
@@ -1593,8 +1594,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameCanvas.height = wmsx.V9938.SIGNAL_MAX_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
         //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
-        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height);
+        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1);         // One extra line for the backdrop cache
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
+        backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);
     }
 
     function initColorPalette() {
@@ -1655,6 +1657,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var LINE_WIDTH = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
 
 
+    // Frame as off screen canvas
+    var frameCanvas, frameContext, frameImageData, frameBackBuffer;
+    var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
+
+
+    var vram = wmsx.Util.arrayFill(new Array(wmsx.V9938.VRAM_LIMIT + 1), 0);
+    this.vram = vram;
+
     var frame;
     var blinkEvenPage, blinkPageDuration, alternativePageOffset;
 
@@ -1704,7 +1714,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var backdropColor;
     var backdropValue;
-    var backdropFullLine512Values = new Uint32Array(512 + 16 * 2);
     var backdropTileOdd, backdropTileEven;
 
     var verticalAdjust, horizontalAdjust;
@@ -1738,15 +1747,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, sprPatTBase: -1 << 11, width: 256, layLineBytes: 256, pageSize: 65536, updLine: renderLineModeG7,  updLineDeb: renderLineModeG7     , spriteMode: 2 };
 
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
-
-    var vram = wmsx.Util.arrayFill(new Array(wmsx.V9938.VRAM_LIMIT + 1), 0);
-    this.vram = vram;
-
-
-    // Planes as off-screen canvas
-
-    var frameCanvas, frameContext, frameImageData, frameBackBuffer;
-
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
