@@ -456,10 +456,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         debugModeSpriteInfoNumbers = mode === 2;
         debugModeSpriteInfoNames = mode === 3;
         debugModeSpritesHidden = mode >= 4;
+        var oldDebugModePatternInfo;
         debugModePatternInfo = mode >= 5;
         debugModePatternInfoBlocks = mode === 6;
         debugModePatternInfoNames = mode === 7;
-        if (oldDebugModeSpriteInfo !== debugModeSpriteInfo) debugAdjustPalette();
+        if (oldDebugModeSpriteInfo !== debugModeSpriteInfo || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTables();
@@ -715,8 +716,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 backdropFullLineCache[i] = odd; backdropFullLineCache[i + 1] = even;
             }
             backdropTileOdd = odd; backdropTileEven = even;
+        } else {
+            wmsx.Util.arrayFill(backdropFullLineCache, backdropValue);
+            if (mode == 4) {
+                backdropTileOdd = backdropTileEven = backdropValue;
+            }
         }
-            else wmsx.Util.arrayFill(backdropFullLineCache, backdropValue);
 
         pendingBackdropCacheUpdate = false;
 
@@ -1855,7 +1860,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var debugPatTableDigits8 =  new Array(256 * 8);            // 8x8
     var debugPatTableDigits16 = new Array(256 * 8 * 4);        // 16x16
     var debugPatTableBlocks =   new Array(8);                  // 8x8
-    var debugBackdropValue    = 0xff2a2a2a;     // TODO Fix, including savestates
+    var debugBackdropValue    = 0xff2a2a2a;
 
     var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
@@ -1908,8 +1913,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateIRQ();
         updateMode();
         updateSpritesConfig();
-        debugAdjustPalette();
         updateBackdropColor();
+        debugAdjustPalette();
         updateTransparency();
         updatePageAlternance();
     };
