@@ -1029,13 +1029,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
-                var on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
-                var pattern = debugPatTableDigits6[name * 8 + lineInPattern];
-                paintPattern6T1Info(bufferPos, pattern, on, 0xff000000);
-            } else if (debugModePatternInfoBlocks) {
-                var colorCode = register[7];                                    // Real text color for all blocks
-                pattern = debugPatTableBlocks[lineInPattern];
-                paintPattern6(bufferPos, pattern, colorPalette[colorCode >>> 4], colorPalette[colorCode & 0xf]);
+                var on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
+                var pattern = debugPatTableDigits6[(name << 3) + lineInPattern];
+                paintPattern6TInfo(bufferPos, pattern, on, 0xff000000);
             } else {
                 pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
                 paintPattern6(bufferPos, pattern, 0xffffffff, 0xff000000);
@@ -1048,8 +1044,57 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function paintPattern6T1Info(bufferPos, pattern, on, off) {
-        var low = on & 0x80ffffff;
+    function renderLineModeT2Debug() {                                      // Text (Screen 0 width 80)
+        var bufferPos = bufferPosition;
+
+        paintBackdrop48(bufferPos); paintBackdrop48(bufferPos + 512 - 16);
+        bufferPos = bufferPos + 32 + horizontalAdjust * 2;
+
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var patPos = layoutTableAddress + (realLine >>> 3) * 80;            // line / 8 * 80
+        var patPosFinal = patPos + 80;
+        var lineInPattern = realLine & 0x07;
+        var name, pattern, colorCode, on;
+
+        if (blinkEvenPage) {                                                // Blink only in Even page
+            var blinkPos = colorTableAddress + (realLine >>> 3) * 10;
+            var blinkBit = 7;
+            while (patPos < patPosFinal) {
+                var blink = (vram[blinkPos & colorTableAddressMask] >>> blinkBit) & 1;
+                name = vram[patPos++ & layoutTableAddressMask];
+                if (debugModePatternInfoNames) {
+                    on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
+                    if (blink) on &= 0xffa0a0a0;
+                    pattern = debugPatTableDigits6[(name << 3) + lineInPattern];
+                    paintPattern6TInfo(bufferPos, pattern, on, 0xff000000);
+                } else {
+                    pattern = vram[patternTableAddress + (name << 3) + lineInPattern];      // no masking needed
+                    paintPattern6(bufferPos, pattern, blink ? 0xffa0a0a0 : 0xffffffff, 0xff000000);
+                }
+                if (--blinkBit < 0) { blinkPos++; blinkBit = 7; }
+                bufferPos += 6;
+            }
+        } else {
+            while (patPos < patPosFinal) {
+                name = vram[patPos++ & layoutTableAddressMask];
+                if (debugModePatternInfoNames) {
+                    on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
+                    pattern = debugPatTableDigits6[(name << 3) + lineInPattern];
+                    paintPattern6TInfo(bufferPos, pattern, on, 0xff000000);
+                } else {
+                    pattern = vram[patternTableAddress + (name << 3) + lineInPattern];      // no masking needed
+                    paintPattern6(bufferPos, pattern, 0xffffffff, 0xff000000);
+                }
+                bufferPos += 6;
+            }
+        }
+
+        // Sprites deactivated
+        bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function paintPattern6TInfo(bufferPos, pattern, on, off) {
+        var low = on & 0x97ffffff;
         frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off;
         frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? low : off;  frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? low : off;  frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? low : off;
     }
@@ -1067,7 +1112,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var patPosFinal = patPos + 32;
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
-            var pattern = debugPatTableDigits8[name * 8 + (realLine & 0x07)];
+            var pattern = debugPatTableDigits8[(name << 3) + (realLine & 0x07)];
             paintPattern8(bufferPos, pattern, 0xffffffff, 0xff000000);
             bufferPos += 8;
         }
@@ -1091,9 +1136,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
-                on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
-                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                var pattern = debugPatTableDigits8[(name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[colorTableAddress + (name >>> 3)];
                 on =  colorPalette[colorCode >>> 4];
@@ -1129,9 +1174,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
-                on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
-                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                var pattern = debugPatTableDigits8[(name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
                 on =  colorPalette[colorCode >>> 4];
@@ -1167,9 +1212,9 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
-                on =  name === 0 || name === 0x20 ? 0xffdd0000 : 0xffffffff;
+                on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
-                var pattern = debugPatTableDigits8[name * 8 + lineInPattern];
+                var pattern = debugPatTableDigits8[(name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
                 on =  colorPalette[colorCode >>> 4];
@@ -1817,7 +1862,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                   { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width:   0, layLineBytes:   0, pageSize:     0, renderLine: renderLineBorders, renderLineDebPat: renderLineBorders,     spriteMode: 0 });
 
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT1,  renderLineDebPat: renderLineModeT1Debug, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT2,  renderLineDebPat: renderLineModeT2     , spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, sprPatTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT2,  renderLineDebPat: renderLineModeT2Debug, spriteMode: 0 };
     modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeMC,  renderLineDebPat: renderLineModeMCDebug, spriteMode: 1 };
     modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG1,  renderLineDebPat: renderLineModeG1Debug, spriteMode: 1 };
     modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, sprPatTBase: -1 << 11, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG2,  renderLineDebPat: renderLineModeG2Debug, spriteMode: 1 };
