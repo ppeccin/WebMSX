@@ -331,13 +331,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
                 break;
             case 6:
-                if ((mod & 0x3f) === 0) break;
-                add = (val << 11) & 0x1ffff;
-                spritePatternTableAddress = add & modeData.sprPatTBase;
-                updateSpritePatternTables();
-
-                //logInfo("SpritePatTable: " + spritePatternTableAddress.toString(16));
-
+                if (mod & 0x3f) updateSpritePatternTableAddress();
                 break;
             case 7:
                 if (mod & (mode === 7 ? 0xff : 0x0f)) updateBackdropColor();   // BD. Special case for mode G7
@@ -392,6 +386,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         }
     }
 
+    function updateSpritePatternTableAddress() {
+        spritePatternTableAddress = debugModeSpriteInfo
+            ? spritesSize === 16 ? DEBUG_PAT_DIGI16_TABLE_ADDRESS : DEBUG_PAT_DIGI8_TABLE_ADDRESS
+            : ((register[6] << 11) & 0x1ffff) & modeData.sprPatTBase;
+
+        //logInfo("SpritePatTable: " + spritePatternTableAddress.toString(16));
+    }
+
     function getStatus0() {
         var res = 0;
 
@@ -437,7 +439,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var value = colors512[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
         colorPaletteReal[reg] = value;
 
-        if (debugModeSpriteInfo) value &= DEBUG_DIM_ALPHA_MASK;
+        if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
         colorPaletteSolid[reg] = value;
         // Special case for color 0
         if (reg === 0) {
@@ -451,19 +453,20 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     function setDebugMode(mode) {
         debugMode = mode;
-        var oldDebugModeSpriteInfo = debugModeSpriteInfo;
-        debugModeSpriteInfo = mode >= 1 && mode <= 3;
+        var oldDebugModeSpriteInfo = debugModeSpriteHighlight;
+        debugModeSpriteHighlight = mode >= 1 && mode <= 3;
+        debugModeSpriteInfo = mode === 2 || mode === 3;
         debugModeSpriteInfoNumbers = mode === 2;
-        debugModeSpriteInfoNames = mode === 3;
+        // mode 3 is SpriteInfoName
         debugModeSpritesHidden = mode >= 4;
         var oldDebugModePatternInfo;
         debugModePatternInfo = mode >= 5;
         debugModePatternInfoBlocks = mode === 6;
         debugModePatternInfoNames = mode === 7;
-        if (oldDebugModeSpriteInfo !== debugModeSpriteInfo || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
+        if (oldDebugModeSpriteInfo !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
         updateLineActiveType();
         updateSpritesConfig();
-        updateSpritePatternTables();
+        updateSpritePatternTableAddress();
     }
 
     function debugAdjustPalette() {
@@ -604,15 +607,12 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         patternTableAddressMask = add | patternTableAddressMaskBase;
         add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
         spriteAttrTableAddress = add & modeData.sprAttrTBase;
-        add = (register[6] << 11) & 0x1ffff;
-        spritePatternTableAddress = add & modeData.sprPatTBase;
-
+        updateSpritePatternTableAddress();
         if ((mode === 7) || (oldMode === 7)) updateBackdropColor();
         else if ((mode === 4) || (oldMode === 4)) pendingBackdropCacheUpdate = true;
 
         updateLineActiveType();
         updateSignalMetrics();
-        updateSpritePatternTables();
         commandProcessor.setVDPModeData(modeData);
 
         //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
@@ -663,7 +663,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         renderLineActive = (register[1] & 0x40) === 0
             ? renderLineActiveBlanked
             : mode === 7
-                ? debugModeSpriteInfo ? renderLineModeG7SpriteInfo : renderLineModeG7
+                ? debugModeSpriteHighlight ? renderLineModeG7SpriteInfo : renderLineModeG7
                 : debugModePatternInfo ? modeData.renderLinePatternInfo : modeData.renderLine;
 
         if (renderLine === old) renderLine = renderLineActive;
@@ -1030,7 +1030,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
                 var on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
-                var pattern = debugPatTableDigits6[(name << 3) + lineInPattern];
+                var pattern = vram[DEBUG_PAT_DIGI6_TABLE_ADDRESS + (name << 3) + lineInPattern];
                 paintPattern6TInfo(bufferPos, pattern, on, 0xff000000);
             } else {
                 pattern = vram[patternTableAddress + (name << 3) + lineInPattern];
@@ -1065,7 +1065,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (debugModePatternInfoNames) {
                     on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                     if (blink) on &= 0xffa0a0a0;
-                    pattern = debugPatTableDigits6[(name << 3) + lineInPattern];
+                    pattern = vram[DEBUG_PAT_DIGI6_TABLE_ADDRESS + (name << 3) + lineInPattern];
                     paintPattern6TInfo(bufferPos, pattern, on, 0xff000000);
                 } else {
                     pattern = vram[patternTableAddress + (name << 3) + lineInPattern];      // no masking needed
@@ -1079,7 +1079,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 name = vram[patPos++ & layoutTableAddressMask];
                 if (debugModePatternInfoNames) {
                     on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
-                    pattern = debugPatTableDigits6[(name << 3) + lineInPattern];
+                    pattern = vram[DEBUG_PAT_DIGI6_TABLE_ADDRESS + (name << 3) + lineInPattern];
                     paintPattern6TInfo(bufferPos, pattern, on, 0xff000000);
                 } else {
                     pattern = vram[patternTableAddress + (name << 3) + lineInPattern];      // no masking needed
@@ -1112,7 +1112,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var patPosFinal = patPos + 32;
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
-            var pattern = debugPatTableDigits8[(name << 3) + (realLine & 0x07)];
+            var pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + (realLine & 0x07)];
             paintPattern8(bufferPos, pattern, 0xffffffff, 0xff000000);
             bufferPos += 8;
         }
@@ -1132,18 +1132,18 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
         var lineInPattern = realLine & 0x07;
-        var on, off;
+        var pattern, on, off;
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
-                var pattern = debugPatTableDigits8[(name << 3) + lineInPattern];
+                pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[colorTableAddress + (name >>> 3)];
                 on =  colorPalette[colorCode >>> 4];
                 off = colorPalette[colorCode & 0xf];
-                pattern = debugPatTableBlocks[lineInPattern];
+                pattern = vram[DEBUG_PAT_BLOCK_TABLE_ADDRESS + lineInPattern];
             } else {
                 on =  0xffffffff;
                 off = 0xff000000;
@@ -1169,19 +1169,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var blockExtra = (realLine & 0xc0) << 2;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
-        var on, off;
+        var pattern, on, off;
         while (patPos < patPosFinal) {
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
-                var pattern = debugPatTableDigits8[(name << 3) + lineInPattern];
+                pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
                 on =  colorPalette[colorCode >>> 4];
                 off = colorPalette[colorCode & 0xf];
-                pattern = debugPatTableBlocks[lineInPattern];
+                pattern = vram[DEBUG_PAT_BLOCK_TABLE_ADDRESS + lineInPattern];
             } else {
                 on =  0xffffffff;
                 off = 0xff000000;
@@ -1207,19 +1207,19 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         var blockExtra = (realLine & 0xc0) << 2;
         var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
-        var on, off;
+        var pattern, on, off;
         while (patPos < patPosFinal) {
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
-                var pattern = debugPatTableDigits8[(name << 3) + lineInPattern];
+                pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
                 on =  colorPalette[colorCode >>> 4];
                 off = colorPalette[colorCode & 0xf];
-                pattern = debugPatTableBlocks[lineInPattern];
+                pattern = vram[DEBUG_PAT_BLOCK_TABLE_ADDRESS + lineInPattern];
             } else {
                 on =  0xffffffff;
                 off = 0xff000000;
@@ -1343,13 +1343,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 if (x <= -size) continue;                                   // Not visible (out to the left)
             }
             color &= 0x0f;
-            name = vram[atrPos + 2];
-            if (spritesSize === 8) {
+            if (spritesSize === 16) {
+                name = debugModeSpriteInfoNumbers ? sprite << 2: vram[atrPos + 2] & 0xfc;
                 lineInPattern = spritePatternTableAddress + (name << 3) + (spriteLine >>> spritesMag);
-                pattern = vram[lineInPattern];
-            } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + (spriteLine >>> spritesMag);
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            } else {
+                name = debugModeSpriteInfoNumbers ? sprite : vram[atrPos + 2];
+                pattern = vram[spritePatternTableAddress + (name << 3) + (spriteLine >>> spritesMag)];
             }
             s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
@@ -1403,7 +1403,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             color = vram[colorPos + spriteLine];
             cc = color & 0x40;
             if (cc) {
-                if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
+                if (spritePri === SPRITE_MAX_PRIORITY || debugModeSpriteInfo) continue;   // Must have a higher priority Main Sprite (CC = 0) to show this one and not showing info
             } else spritePri = spritesGlobalPriority + sprite;
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
             x = vram[atrPos + 1];
@@ -1411,13 +1411,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
                 if (x <= -size) continue;                                   // Not visible (out to the left)
             }
-            name = vram[atrPos + 2];
-            if (spritesSize === 8) {
+            if (spritesSize === 16) {
+                name = debugModeSpriteInfoNumbers ? sprite << 2: vram[atrPos + 2] & 0xfc;
                 lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
-                pattern = vram[lineInPattern];
-            } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            } else {
+                name = debugModeSpriteInfoNumbers ? sprite : vram[atrPos + 2];
+                pattern = vram[spritePatternTableAddress + (name << 3) + spriteLine];
             }
             s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
@@ -1486,7 +1486,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             color = vram[colorPos + spriteLine];
             cc = color & 0x40;
             if (cc) {
-                if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
+                if (spritePri === SPRITE_MAX_PRIORITY || debugModeSpriteInfo) continue;   // Must have a higher priority Main Sprite (CC = 0) to show this one and not showing info
             } else spritePri = spritesGlobalPriority + sprite;
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
             x = vram[atrPos + 1];
@@ -1494,13 +1494,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
                 if (x <= -size) continue;                                   // Not visible (out to the left)
             }
-            name = vram[atrPos + 2];
-            if (spritesSize === 8) {
+            if (spritesSize === 16) {
+                name = debugModeSpriteInfoNumbers ? sprite << 2 : vram[atrPos + 2] & 0xfc;
                 lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
-                pattern = vram[lineInPattern];
-            } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            } else {
+                name = debugModeSpriteInfoNumbers ? sprite : vram[atrPos + 2];
+                pattern = vram[spritePatternTableAddress + (name << 3) + spriteLine];
             }
             s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
@@ -1571,7 +1571,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             color = vram[colorPos + spriteLine];
             cc = color & 0x40;
             if (cc) {
-                if (spritePri === SPRITE_MAX_PRIORITY) continue;            // Must have a higher priority Main Sprite (CC = 0) to show this one
+                if (spritePri === SPRITE_MAX_PRIORITY || debugModeSpriteInfo) continue;   // Must have a higher priority Main Sprite (CC = 0) to show this one and not showing info
             } else spritePri = spritesGlobalPriority + sprite;
             if ((color & 0xf) === 0 && !color0Solid) continue;              // Nothing to paint. Consider TP
             x = vram[atrPos + 1];
@@ -1579,13 +1579,13 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
                 if (x <= -size) continue;                                   // Not visible (out to the left)
             }
-            name = vram[atrPos + 2];
-            if (spritesSize === 8) {
+            if (spritesSize === 16) {
+                name = debugModeSpriteInfoNumbers ? sprite << 2: vram[atrPos + 2] & 0xfc;
                 lineInPattern = spritePatternTableAddress + (name << 3) + spriteLine;
-                pattern = vram[lineInPattern];
-            } else {
-                lineInPattern = spritePatternTableAddress + ((name & 0xfc) << 3) + spriteLine;
                 pattern = (vram[lineInPattern] << 8) | vram[lineInPattern + 16];
+            } else {
+                name = debugModeSpriteInfoNumbers ? sprite : vram[atrPos + 2];
+                pattern = vram[spritePatternTableAddress + (name << 3) + spriteLine];
             }
             s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
@@ -1688,13 +1688,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         beginFrame();
     }
 
-    function updateSpritePatternTables() {
-        // TODO Revise for Debug modes
-        //var vramSpritePatternTable = vram.subarray(spritePatternTableAddress);
-        //spritePatternTable8  = debugModeSpriteInfo ? debugPatTableDigits8  : vramSpritePatternTable;
-        //spritePatternTable16 = debugModeSpriteInfo ? debugPatTableDigits16 : vramSpritePatternTable;
-    }
-
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
@@ -1724,7 +1717,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
             var value = colors[c];
             colorPaletteReal[c] = value;
-            if (debugModeSpriteInfo) value &= DEBUG_DIM_ALPHA_MASK;
+            if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
             colorPalette[c] = value;
             colorPaletteSolid[c] = value;
         }
@@ -1744,31 +1737,31 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             ["111", "100", "111", "001", "111"], ["111", "100", "111", "101", "111"], ["111", "001", "001", "001", "001"], ["111", "101", "111", "101", "111"], ["111", "101", "111", "001", "001"],
             ["110", "001", "111", "101", "111"], ["100", "100", "111", "101", "110"], ["000", "111", "100", "100", "111"], ["001", "001", "111", "101", "111"], ["110", "101", "111", "100", "011"], ["011", "100", "110", "100", "100"]
         ];
-        var pos8 = 0, pos16 = 0, i = 0;
+        var pos6 = DEBUG_PAT_DIGI6_TABLE_ADDRESS, pos8 = DEBUG_PAT_DIGI8_TABLE_ADDRESS, pos16 = DEBUG_PAT_DIGI16_TABLE_ADDRESS, posB = DEBUG_PAT_BLOCK_TABLE_ADDRESS;
         for (var info = 0; info < 256; info++) {
             var dig1 = (info / 16) | 0;
             var dig2 = info % 16;
             // 8 x 8, 6 x 8
-            for (i = 0; i < 5; i++) {
-                debugPatTableDigits6[pos8] =   Number.parseInt(digitPatterns[dig1][i] + digitPatterns[dig2][i] + "00", 2);
-                debugPatTableDigits8[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
+            for (var i = 0; i < 5; i++) {
+                vram[pos6++] = Number.parseInt(digitPatterns[dig1][i] + digitPatterns[dig2][i] + "00", 2);
+                vram[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
             }
-            debugPatTableDigits6[pos8] = Number.parseInt("00000000", 2); debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
-            debugPatTableDigits6[pos8] = Number.parseInt("01111000", 2); debugPatTableDigits8[pos8++] = Number.parseInt("01111100", 2);
-            debugPatTableDigits6[pos8] = Number.parseInt("00000000", 2); debugPatTableDigits8[pos8++] = Number.parseInt("00000000", 2);
+            vram[pos6++] = vram[pos8++] = Number.parseInt("00000000", 2);
+            vram[pos6++] = vram[pos8++] = Number.parseInt("01111100", 2);
+            vram[pos6++] = vram[pos8++] = Number.parseInt("00000000", 2);
             // 16 x 16
-            debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
-            for (i = 0; i < 4; i++) debugPatTableDigits16[pos16++] = Number.parseInt("10000000", 2);
-            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
-            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("10000000", 2);
-            for (i = 0; i < 2; i++) debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
-            for (i = 0; i < 4; i++) debugPatTableDigits16[pos16++] = Number.parseInt("00000001", 2);
-            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
-            for (i = 0; i < 5; i++) debugPatTableDigits16[pos16++] = Number.parseInt("00000001", 2);
-            debugPatTableDigits16[pos16++] = Number.parseInt("11111111", 2);
+            vram[pos16++] = Number.parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) vram[pos16++] = Number.parseInt("10000000", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("10000000", 2);
+            for (i = 0; i < 2; i++) vram[pos16++] = Number.parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) vram[pos16++] = Number.parseInt("00000001", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("00000001", 2);
+            vram[pos16++] = Number.parseInt("11111111", 2);
         }
-        debugPatTableBlocks[0] = debugPatTableBlocks[7] = 0;
-        debugPatTableBlocks[1] = debugPatTableBlocks[2] = debugPatTableBlocks[3] = debugPatTableBlocks[4] = debugPatTableBlocks[5] = debugPatTableBlocks[6] = 0x7e;
+        vram[posB] = vram [posB + 7] = 0;
+        vram[posB + 1] = vram[posB + 2] = vram[posB + 3] = vram[posB + 4] = vram[posB + 5] = vram[posB + 6] = 0x7e;
     }
 
     function initSpritesConflictMap() {
@@ -1778,9 +1771,16 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     }
 
 
-    var SPRITE_MAX_PRIORITY = 9000000000000000;
     var LINE_WIDTH = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
+    var SPRITE_MAX_PRIORITY = 9000000000000000;
     var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
+
+    var VRAM_SIZE = wmsx.V9938.VRAM_LIMIT + 1;
+    var DEBUG_PAT_DIGI6_TABLE_ADDRESS = VRAM_SIZE;                                      // Debug pattern tables placed on top of normal VRAM
+    var DEBUG_PAT_DIGI8_TABLE_ADDRESS = DEBUG_PAT_DIGI6_TABLE_ADDRESS + 256 * 8;
+    var DEBUG_PAT_DIGI16_TABLE_ADDRESS = DEBUG_PAT_DIGI8_TABLE_ADDRESS + 256 * 8;
+    var DEBUG_PAT_BLOCK_TABLE_ADDRESS = DEBUG_PAT_DIGI16_TABLE_ADDRESS + 256 * 8 * 4;
+    var VRAM_TOTAL_SIZE = DEBUG_PAT_BLOCK_TABLE_ADDRESS + 8;
 
 
     // Frame as off screen canvas
@@ -1788,7 +1788,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
 
 
-    var vram = wmsx.Util.arrayFill(new Array(wmsx.V9938.VRAM_LIMIT + 1), 0);
+    var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
 
     var frame;
@@ -1894,20 +1894,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
    // Sprite and Debug Modes controls
 
     var debugMode;
-    var debugModeSpriteInfo, debugModeSpriteInfoNumbers, debugModeSpriteInfoNames, debugModeSpritesHidden;
+    var debugModeSpriteHighlight, debugModeSpriteInfo, debugModeSpriteInfoNumbers, debugModeSpriteInfoNames, debugModeSpritesHidden;
     var debugModePatternInfo, debugModePatternInfoBlocks, debugModePatternInfoNames;
 
     var spriteDebugMode;
     var spriteDebugModeLimit = true;
     var spriteDebugModeCollisions = true;
 
-    var debugPatTableDigits6 =  new Array(256 * 8);            // 6x8, text modes
-    var debugPatTableDigits8 =  new Array(256 * 8);            // 8x8
-    var debugPatTableDigits16 = new Array(256 * 8 * 4);        // 16x16
-    var debugPatTableBlocks =   new Array(8);                  // 8x8
     var debugBackdropValue    = 0xff2a2a2a;
-
-    var spritePatternTable8, spritePatternTable16;                  // Tables to use depending on Debug/Non-Debug Modes
 
     var debugFrameStartCPUCycle = 0;
     var debugLineStartCPUCycles = 0;
@@ -1935,7 +1929,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
             p: wmsx.Util.storeInt32BitArrayToStringBase64(paletteRegister),
-            vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram),
+            vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
             cp: commandProcessor.saveState()
         };
     };
@@ -1952,7 +1946,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         verticalIntReached = s.vi;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
         paletteRegister = wmsx.Util.restoreStringBase64ToInt32BitArray(s.p, paletteRegister);
-        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram);
+        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         updateIRQ();

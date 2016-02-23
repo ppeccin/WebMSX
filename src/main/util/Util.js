@@ -111,18 +111,21 @@ wmsx.Util = new function() {
         return this.byteStringToInt8BitArray(atob(str), dest);
     };
 
-    this.compressInt8BitArrayToStringBase64 = function(arr) {
+    this.compressInt8BitArrayToStringBase64 = function(arr, length) {
         if (arr === null || arr === undefined) return arr;
         if (arr.length === 0) return "";
-        return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
+        if (length < arr.length)
+            return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr.slice(0, length))));
+        else
+            return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
     };
 
-    this.uncompressStringBase64ToInt8BitArray = function(str, dest) {
+    this.uncompressStringBase64ToInt8BitArray = function(str, dest, diffSize) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
         var res = JSZip.compressions.DEFLATE.uncompress(atob(str));
-        if (dest && dest.length === res.length)
+        if (dest && (diffSize || dest.length === res.length))
             return this.arrayCopy(res, 0, dest);                       // Preserve dest
         else
             return this.arrayCopy(res, 0, new Array(res.length));      // Convert Uint8Array to normal Array
