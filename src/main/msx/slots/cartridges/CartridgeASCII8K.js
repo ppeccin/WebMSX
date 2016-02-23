@@ -14,6 +14,10 @@ wmsx.CartridgeASCII8K = function(rom) {
     }
 
     this.powerOn = function() {
+        this.reset();
+    };
+
+    this.reset = function() {
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
     };
 

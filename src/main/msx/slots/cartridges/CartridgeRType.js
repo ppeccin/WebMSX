@@ -13,6 +13,10 @@ wmsx.CartridgeRType = function(rom) {
     }
 
     this.powerOn = function() {
+        this.reset();
+    };
+
+    this.reset = function() {
         bank2Offset = -0x8000;
     };
 
