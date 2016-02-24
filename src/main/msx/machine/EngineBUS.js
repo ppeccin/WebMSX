@@ -56,7 +56,8 @@ wmsx.EngineBUS = function(machine, cpu) {
         // Get correct device
         var p = devicesOutputPorts[port & 255];
 
-        if (p === wmsx.DeviceMissing.outputPort && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255)) return console.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
+        if (p === wmsx.DeviceMissing.outputPort && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
+            return console.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
 
         p(val);
     };
