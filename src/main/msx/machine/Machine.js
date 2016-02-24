@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Savestate - Loadstate of different machine types
+
 wmsx.Machine = function() {
     var self = this;
 
@@ -12,7 +14,7 @@ wmsx.Machine = function() {
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
-        if (rtc) rtc.powerOn();
+        rtc.powerOn();
         bus.powerOn();
         ppi.powerOn();
         psg.powerOn();
@@ -30,7 +32,7 @@ wmsx.Machine = function() {
         vdp.powerOff();
         psg.powerOff();
         ppi.powerOff();
-        if (rtc) rtc.powerOff();
+        rtc.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
@@ -205,6 +207,7 @@ wmsx.Machine = function() {
             rs: ramSlot,
             c0s: cartridge0Slot,
             b:  bus.saveState(),
+            rc: rtc.saveState(),
             pp: ppi.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
@@ -224,6 +227,7 @@ wmsx.Machine = function() {
         ramSlot = state.rs === undefined ? 1 : state.rs;                 // Backward compatibility
         cartridge0Slot = state.c0s === undefined ? 2 : state.c0s;        // Backward compatibility
         bus.loadState(state.b);
+        rtc.loadState(state.rc);
         ppi.loadState(state.pp);
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
@@ -260,14 +264,14 @@ wmsx.Machine = function() {
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
         self.vdp = vdp = new wmsx.V9938(self, cpu, psg, !MSX2);
-        if (MSX2) self.rtc = rtc = new wmsx.RTC();
+        self.rtc = rtc = new wmsx.RTC(!MSX2);
 
         self.bus = bus = new wmsx.EngineBUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);
         psg.connectBus(bus);
-        if (rtc) rtc.connectBus(bus);
+        rtc.connectBus(bus);
 
         // RAM
         self.ram = MSX2 ? wmsx.SlotRAMMapper256K.createNewEmpty() : wmsx.SlotRAM64K.createNewEmpty();
@@ -301,7 +305,7 @@ wmsx.Machine = function() {
     var ppi;
     var vdp;
     var psg;
-    var rtc;        // MSX2 only
+    var rtc
 
     var debugPause = false;
     var debugPauseMoreFrames = 0;
