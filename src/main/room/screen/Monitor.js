@@ -25,6 +25,10 @@ wmsx.Monitor = function(display) {
         display.showOSD(message, overlap);
     };
 
+    this.setSignalHeight = function (height) {
+        display.setSignalHeight(height);
+    };
+
     this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
         crtSetModeForCartridges(cartridge1, cartridge2);
     };

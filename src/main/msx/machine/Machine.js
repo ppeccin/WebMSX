@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Savestate - Loadstate of different machine types
-
 wmsx.Machine = function() {
     var self = this;
 
@@ -265,7 +263,7 @@ wmsx.Machine = function() {
         self.psg = psg = new wmsx.PSG();
         self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
         self.vdp = vdp = new wmsx.V9938(self, cpu, psg, !MSX2);
-        self.rtc = rtc = new wmsx.RTC(!MSX2);
+        self.rtc = rtc = new wmsx.RTC(MSX2);
 
         self.bus = bus = new wmsx.EngineBUS(self, cpu);
         cpu.connectBus(bus);

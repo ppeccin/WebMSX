@@ -9,11 +9,6 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
     function init() {
-        // Fixed metrics for V9918
-        if (isV9918) {
-            signalWidth = wmsx.V9938.SIGNAL_WIDTH_V9918;
-            signalHeight = wmsx.V9938.SIGNAL_HEIGHT_V9918;
-        }
         videoSignal = new wmsx.VDPVideoSignal();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
@@ -32,7 +27,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         bus.connectInputDevice(0x98,  this.input98);
         bus.connectOutputDevice(0x98, this.output98);
         bus.connectInputDevice(0x99,  this.input99);
-        bus.connectOutputDevice(0x99, isV9918 ? this.output99_V9918 : this.output99_V9938);
+        bus.connectOutputDevice(0x99, this.output99);
         bus.connectOutputDevice(0x9a, this.output9a);
         bus.connectOutputDevice(0x9b, this.output9b);
     };
@@ -145,39 +140,23 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     };
 
     // Register/VRAM Address write for V9938
-    this.output99_V9938 = function(val) {
-        if (dataToWrite === null) {
-            // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
-            dataToWrite = val;
-        } else {
-            // Second write
-            if (val & 0x80) {
-                // Register write only if "WriteMode = 0"
-                if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataToWrite);
-            } else {
-                // VRAM Address Pointer middle (A13-A8) and mode (r/w)
-                vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
-
-                //console.log("Setting VRAM Pointer via out: " + val.toString(16) + ". Pointer: " + vramPointer.toString(16) + ". reg14: " + register[14].toString(16));
-
-            }
-            dataToWrite = null;
-        }
-    };
-
-    // Register/VRAM Address write for V9918
-    this.output99_V9918 = function(val) {
+    this.output99 = function(val) {
         if (dataToWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
             dataToWrite = val;
             // On V9918, the VRAM pointer low gets written right away
-            vramPointer = (vramPointer & ~0xff) | val;
+            if (isV9918) vramPointer = (vramPointer & ~0xff) | val;
         } else {
             // Second write
             if (val & 0x80) {
-                registerWrite(val & 0x07, dataToWrite);
-                // On V9918, the VRAM pointer high gets also written when writing to registers
-                vramPointer = (vramPointer & 0x1c0ff) | ((val & 0x3f) << 8);
+                if (isV9918) {
+                    registerWrite(val & 0x07, dataToWrite);
+                    // On V9918, the VRAM pointer high gets also written when writing to registers
+                    vramPointer = (vramPointer & 0x1c0ff) | ((val & 0x3f) << 8);
+                } else {
+                    // On V9938 register write only if "WriteMode = 0"
+                    if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataToWrite);
+                }
             } else {
                 // VRAM Address Pointer middle (A13-A8) and mode (r/w)
                 vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
@@ -630,6 +609,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         // Fixed metrics for V9918
         if (isV9918) {
+            signalWidth = wmsx.V9938.SIGNAL_WIDTH_V9918;
+            signalHeight = wmsx.V9938.SIGNAL_HEIGHT_V9918;
             height = 192; vertBorderHeight = 8;
         } else {
             signalWidth = modeData.width === 512 ? 512 + 16 * 2 : 256 + 8 * 2;          // Mode
@@ -643,6 +624,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         startingBottomBorderScanline = startingActiveScanline + height;
         finishingScanline = startingBottomBorderScanline + vertBorderHeight - verticalAdjust;
         startingScanline = finishingScanline - videoStandard.totalHeight;
+
+        videoSignal.setSignalHeight(height + vertBorderHeight * 2);
     }
 
     function enterActiveDisplay() {
@@ -1952,8 +1935,8 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateIRQ();
         updateMode();
         updateSpritesConfig();
-        updateBackdropColor();
         debugAdjustPalette();
+        updateBackdropColor();
         updateTransparency();
         updatePageAlternance();
     };

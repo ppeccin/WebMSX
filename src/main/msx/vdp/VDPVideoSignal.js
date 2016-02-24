@@ -18,6 +18,10 @@ wmsx.VDPVideoSignal = function() {
         if (monitor) monitor.showOSD(message, overlap);
     };
 
+    this.setSignalHeight = function (height) {
+        if (monitor) monitor.setSignalHeight(height);
+    };
+
     var monitor;
 
 };

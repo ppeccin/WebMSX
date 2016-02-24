@@ -119,6 +119,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         }, OSD_TIME);
     };
 
+    this.setSignalHeight = function (height) {
+        var newContentHeight = height * 2;
+        if (contentHeight === newContentHeight) return;
+
+        contentHeight = newContentHeight;
+        updateCanvasContentSize();
+        updateScale();
+    };
+
     this.crtFilterToggle = function() {
         var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = 0;
         this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
@@ -234,6 +243,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.style.height = "" + height + "px";
     };
 
+    function updateCanvasContentSize() {
+        canvas.width = contentWidth;
+        canvas.height = contentHeight;
+        updateImageSmoothing();
+    }
+
     var setCRTFilter = function(level) {
         crtFilter = level;
         updateImageSmoothing();
@@ -293,7 +308,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         borderElement.appendChild(fsElement);
 
-        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution, include Edge
+        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution, include Edge browser
         switch (wmsx.Util.browserInfo().name) {
             case "CHROME":
             case "OPERA":   canvasImageRenderingValue = "pixelated"; break;
@@ -313,14 +328,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.outline = "none";
         canvas.style.border = "none";
         fsElement.appendChild(canvas);
-        canvas.width = contentWidth;
-        canvas.height = contentHeight;
         mainElement.appendChild(borderElement);
 
         // Prepare Context used to draw frame
         canvasContext = canvas.getContext("2d");
         canvasContext.globalCompositeOperation = "copy";
-        updateImageSmoothing();
+
+        updateCanvasContentSize();
     };
 
     var setupButtonsBar = function() {

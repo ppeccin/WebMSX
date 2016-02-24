@@ -3,10 +3,7 @@
 // Based on Host clock
 // Alarm and 16Hz/1Hz outputs not observable by MSX so not implemented
 
-wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
-
-    function init() {
-    }
+wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
 
     this.connectBus = function(bus) {
         bus.connectOutputDevice(0xb4, this.outputB4);
@@ -31,7 +28,7 @@ wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
     };
 
     this.outputB5 = function(val) {
-        if (isMSX1) return;
+        if (!active) return;
 
         val &= 0xf;
         if (regAddress < 0xd) {
@@ -63,7 +60,7 @@ wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
     };
 
     this.inputB5 = function() {
-        if (isMSX1) return 0xff;
+        if (!active) return 0xff;
 
         var res;
         if (regAddress < 0xd) {
@@ -185,7 +182,7 @@ wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
         }
     }
 
-
+    var active = pActive;
     var mode = 0;
     var clockRunning = true;
 
@@ -206,6 +203,7 @@ wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
     this.saveState = function() {
         return {
             t: Date.now(),
+            a: active,
             m: mode,
             c: clockRunning,
             co: clockOffset, clu: clockLastUpdate, clv: clockLastValue,
@@ -218,6 +216,7 @@ wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
     };
 
     this.loadState = function(s) {
+        active = s.a;
         mode = s.m;
         clockRunning = s.c;
         clockOffset = s.co + (s.t - Date.now());           // Adjust offset to load time
@@ -227,14 +226,6 @@ wmsx.RTC = function(isMSX1) {             // Can be disabled for MSX1
         ram[0] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r0, ram[0]);
         ram[1] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r1, ram[1]);
         regAddress = s.ra;
-    };
-
-
-    init();
-
-
-    this.eval = function(str) {
-        return eval(str);
     };
 
 };

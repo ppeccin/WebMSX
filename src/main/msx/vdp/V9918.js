@@ -295,7 +295,7 @@ wmsx.V9918 = function(cpu, psg) {
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
         cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); // TODO 1 additional PSG clock each 8th line
+        cpuClockPulses(33); psgClockPulse();
     }
 
     function updateLinesInvisible(toLine) {
