@@ -246,6 +246,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateCanvasContentSize() {
         canvas.width = contentWidth;
         canvas.height = contentHeight;
+
+        // Prepare Context used to draw frame
+        canvasContext = canvas.getContext("2d");
+        canvasContext.globalCompositeOperation = "copy";
+        //canvasContext.globalAlpha = 0.8;
+
         updateImageSmoothing();
     }
 
@@ -329,10 +335,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.border = "none";
         fsElement.appendChild(canvas);
         mainElement.appendChild(borderElement);
-
-        // Prepare Context used to draw frame
-        canvasContext = canvas.getContext("2d");
-        canvasContext.globalCompositeOperation = "copy";
 
         updateCanvasContentSize();
     };
