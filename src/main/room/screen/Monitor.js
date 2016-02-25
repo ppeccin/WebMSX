@@ -44,14 +44,12 @@ wmsx.Monitor = function(display) {
 
     this.setDefaults = function() {
         this.setDisplayDefaultSize();
-        crtModeSetDefault();
+        display.crtModeSetDefault();
         display.crtFilterSetDefault();
     };
 
     this.crtModeToggle = function() {
-        display.showOSD("CRT modes not available yet!", true);
-        //setCrtMode(crtMode + 1);
-        //display.showOSD("CRT mode: " + CRT_MODE_NAMES[crtMode], true);
+        display.crtModeToggle();
     };
 
     this.crtFilterToggle = function() {
@@ -108,25 +106,11 @@ wmsx.Monitor = function(display) {
     };
 
     var crtSetModeForCartridges = function(cartridge1, cartridge2) {
-        // Only change mode if in Default is in AUTO (not forced)
-        if (CRT_MODE === -1 && (crtMode === 0 || crtMode === 1)) {
-            var cart = cartridge1 || cartridge2;
-            setCrtMode(!cart ? 0 : cart.rom.info.crt || 0);
-        }
+        // Nothing yet available to set in ROMDatabase
     };
 
     var displayCenter = function() {
         if (display) display.displayCenter();
-    };
-
-    var crtModeSetDefault = function() {
-        setCrtMode(CRT_MODE < 0 ? 0 : CRT_MODE);
-    };
-
-    var setCrtMode = function(mode) {
-        var newMode = mode > 4 || mode < 0 ? 0 : mode;
-        if (crtMode === newMode) return;
-        crtMode = newMode;
     };
 
 
@@ -137,11 +121,6 @@ wmsx.Monitor = function(display) {
     var displayScaleY;
 
     var debug = 0;
-
-    var CRT_MODE = WMSX.SCREEN_CRT_MODE;
-    var CRT_MODE_NAMES = [ "OFF", "Phosphor", "Phosphor Scanlines", "RGB", "RGB Phosphor" ];
-
-    var crtMode = -1;
 
 
     init(this);

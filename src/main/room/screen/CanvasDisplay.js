@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Uses a Canvas with double the base resolution for better smoothness
-// TODO Implement phosphor and other CRT modes
 
 wmsx.CanvasDisplay = function(mainElement) {
 
@@ -130,12 +129,22 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.crtFilterToggle = function() {
         var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = 0;
-        this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
         setCRTFilter(newLevel);
+        this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
     };
 
     this.crtFilterSetDefault = function() {
         setCRTFilter(WMSX.SCREEN_FILTER_MODE);
+    };
+
+    this.crtModeToggle = function() {
+        var newMode = crtMode + 1; if (newMode > 1) newMode = 0;
+        setCRTMode(newMode);
+        this.showOSD("CRT mode: " + (crtMode === 1 ? "Phosphor" : "OFF"), true);
+    };
+
+    this.crtModeSetDefault = function() {
+        setCRTMode(WMSX.SCREEN_CRT_MODE);
     };
 
     this.displayToggleFullscreen = function() {
@@ -203,34 +212,34 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
-    var lostFocus = function(e) {
+    function lostFocus(e) {
         keyboard.liftAllKeys();
-    };
+    }
 
-    var keyControlsInputElements = function() {
+    function keyControlsInputElements() {
         return [mainElement];   // Add ConsolePanel if present
-    };
+    }
 
-    var openSettings = function(page) {
+    function openSettings(page) {
         if (!settings) settings = new wmsx.Settings();
         settings.show(page);
-    };
+    }
 
-    var fullScreenChanged = function() {
+    function fullScreenChanged() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
         monitor.setDisplayDefaultSize();
         // Schedule another one to give the browser some time to set full screen properly
         if (isFullscreen) setTimeout(monitor.setDisplayDefaultSize, 120);
-    };
+    }
 
-    var updateScale = function() {
+    function updateScale() {
         var width = (contentWidth * scaleX) | 0;
         var height = (contentHeight * scaleY) | 0;
         setElementsSizes(width, height);
-    };
+    }
 
-    var setElementsSizes = function (width, height) {
+    function setElementsSizes(width, height) {
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
         // Do not change containers sizes while in fullscreen
@@ -241,7 +250,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         height += borderTop + borderBottom;
         mainElement.style.width = "" + width + "px";
         mainElement.style.height = "" + height + "px";
-    };
+    }
 
     function updateCanvasContentSize() {
         canvas.width = contentWidth;
@@ -249,18 +258,22 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Prepare Context used to draw frame
         canvasContext = canvas.getContext("2d");
-        canvasContext.globalCompositeOperation = "copy";
-        //canvasContext.globalAlpha = 0.8;
 
+        updateImageComposition();
         updateImageSmoothing();
     }
 
-    var setCRTFilter = function(level) {
+    function setCRTFilter(level) {
         crtFilter = level;
         updateImageSmoothing();
-    };
+    }
 
-    var updateLogo = function () {
+    function setCRTMode(mode) {
+        crtMode = mode;
+        updateImageComposition();
+    }
+
+    function updateLogo() {
         if (signalIsOn) {
             logoImage.style.display = "none";
             loadingImage.style.display = "none";
@@ -270,9 +283,21 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";
             else loadingImage.style.display = "none";
         }
-    };
+    }
 
-    var updateImageSmoothing = function () {
+    function updateImageComposition() {
+        switch(crtMode) {
+            case 0:
+                canvasContext.globalCompositeOperation = "copy";
+                canvasContext.globalAlpha = 1;
+                break;
+            case 1:
+                canvasContext.globalCompositeOperation = "source-over";
+                canvasContext.globalAlpha = 0.8;
+        }
+    }
+
+    function updateImageSmoothing() {
         canvas.style.imageRendering = (crtFilter === 1 || crtFilter === 3) ? "initial" : canvasImageRenderingValue;
 
         var smoothing = crtFilter >= 2;
@@ -283,9 +308,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             canvasContext.mozImageSmoothingEnabled = smoothing;
             canvasContext.msImageSmoothingEnabled = smoothing;
         }
-    };
+    }
 
-    var setupMain = function () {
+    function setupMain() {
         mainElement.style.position = "relative";
         mainElement.style.overflow = "hidden";
         mainElement.style.outline = "none";
@@ -337,9 +362,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.appendChild(borderElement);
 
         updateCanvasContentSize();
-    };
+    }
 
-    var setupButtonsBar = function() {
+    function setupButtonsBar() {
         buttonsBar = document.createElement('div');
         buttonsBar.style.position = "absolute";
         buttonsBar.style.left = "0";
@@ -446,18 +471,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         mainElement.appendChild(buttonsBar);
-    };
+    }
 
-    var refreshMediaButtons = function() {
+    function refreshMediaButtons() {
         powerButton.style.backgroundPosition =      "-120px " + (mediaButtonBackYOffsets[mediaButtonsState["Power"]]) + "px";
         diskAButton.style.backgroundPosition =      "-237px " + (mediaButtonBackYOffsets[mediaButtonsState["DiskA"]]) + "px";
         diskBButton.style.backgroundPosition =      "-266px " + (mediaButtonBackYOffsets[mediaButtonsState["DiskB"]]) + "px";
         cartridge1Button.style.backgroundPosition = "-150px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge1"]]) + "px";
         cartridge2Button.style.backgroundPosition = "-179px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge2"]]) + "px";
         tapeButton.style.backgroundPosition =       "-208px " + (mediaButtonBackYOffsets[mediaButtonsState["Tape"]]) + "px";
-    };
+    }
 
-    var addBarButton = function(x, y, w, h, px, py, noImage) {
+    function addBarButton(x, y, w, h, px, py, noImage) {
         var but = document.createElement('div');
         but.style.position = "absolute";
         if (x === "CENTER") {
@@ -482,9 +507,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         //but.style.border = "1px solid yellow";
 
         return but;
-    };
+    }
 
-    var peripheralControlButton = function (but, control) {
+    function peripheralControlButton(but, control) {
         but.style.cursor = "pointer";
 
         // We need a separate approach for left button and the others (middle and right).
@@ -519,9 +544,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
         });
-    };
+    }
 
-    var localControlButton = function (but, func) {
+    function localControlButton(but, func) {
         but.style.cursor = "pointer";
         but.addEventListener("click", function (e) {
             if (e.preventDefault) e.preventDefault();
@@ -531,9 +556,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
         });
-    };
+    }
 
-    var setupLogo = function() {
+    function setupLogo() {
         logoImage = new Image();
         logoImage.isLoaded = false;
         logoImage.draggable = false;
@@ -563,9 +588,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             updateLogo();
         };
         logoImage.src = IMAGES_PATH + "logo.png";
-    };
+    }
 
-    var setupLoadingIcon = function() {
+    function setupLoadingIcon() {
         loadingImage = new Image();
         loadingImage.isLoaded = false;
         loadingImage.draggable = false;
@@ -594,9 +619,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             updateLogo();
         };
         loadingImage.src = IMAGES_PATH + "loading.gif";
-    };
+    }
 
-    var setupOSD = function() {
+    function setupOSD() {
         osd = document.createElement('div');
         osd.style.position = "absolute";
         osd.style.overflow = "hidden";
@@ -615,9 +640,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         osd.style.msUserSelect = "none";
         osd.innerHTML = "";
         fsElement.appendChild(osd);
-    };
+    }
 
-    var setupProperties = function() {
+    function setupProperties() {
         if (WMSX.SCREEN_CONTROL_BAR == 1) {            // Hover
             borderTop = 1;
             borderLateral = 1;
@@ -627,7 +652,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             borderLateral = 1;
             borderBottom = 31;
         }
-    };
+    }
 
 
     var monitor;
@@ -655,6 +680,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var signalIsOn = false;
     var isFullscreen = false;
     var crtFilter = 1;
+    var crtMode = 1;
     var isLoading = false;
 
     var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
