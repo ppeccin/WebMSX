@@ -451,7 +451,7 @@ wmsx.V9938CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
 
-        //console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+        //console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
         // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
         if (sx >= modeWidth || dx >= modeWidth) {
@@ -533,7 +533,14 @@ wmsx.V9938CommandProcessor = function() {
 
         //console.log("LINE dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj);
 
-        // No X wrap, no rect size limit  TODO Verify
+        // Limits control
+        var maxX = modeWidth - 1;
+
+        // If out of horizontal limits, wrap X
+        dx &= maxX;
+
+        // Timming control
+        var nMinor = 0;
 
         // Perform operation
         var e = 0;
@@ -542,23 +549,25 @@ wmsx.V9938CommandProcessor = function() {
                 logicalPSET(dx, dy, co, op);
                 dx += dix; e += ny;
                 if ((e << 1) >= nx) {
-                    dy += diy; e -= nx;
+                    dy += diy; e -= nx; nMinor = nMinor + 1;
                 }
+                if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit
             }
         } else {
             for (n = 0; n <= nx; n = n + 1) {
                 logicalPSET(dx, dy, co, op);
                 dy += diy; e += ny;
                 if ((e << 1) >= nx) {
-                    dx += dix; e -= nx;
+                    dx += dix; e -= nx; nMinor = nMinor + 1;
                 }
+                if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit
             }
         }
 
         // Final registers state
         setDY(dy);
 
-        start(nx, 88 + 24, ny, 32);      // 88R 24W   32L
+        start(n, 88 + 24, nMinor, 32);      // 88R 24W   32L
     }
 
     function SRCH() {

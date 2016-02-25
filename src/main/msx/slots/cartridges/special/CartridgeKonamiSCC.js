@@ -3,8 +3,6 @@
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
 // Controls an internal SCC sound chip with audio output through PSG
 
-// TODO Does this support KonamiSCCI cartridges?
-
 wmsx.CartridgeKonamiSCC = function(rom) {
 
     function init(self) {

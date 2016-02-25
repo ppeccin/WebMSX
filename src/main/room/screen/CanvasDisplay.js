@@ -128,7 +128,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.crtFilterToggle = function() {
-        var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = 0;
+        var newLevel = (crtFilter + 1) % 4;
         setCRTFilter(newLevel);
         this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
     };
@@ -138,7 +138,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.crtModeToggle = function() {
-        var newMode = crtMode + 1; if (newMode > 1) newMode = 0;
+        var newMode = (crtMode + 1) % 2;
         setCRTMode(newMode);
         this.showOSD("CRT mode: " + (crtMode === 1 ? "Phosphor" : "OFF"), true);
     };
