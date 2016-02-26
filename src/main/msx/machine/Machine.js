@@ -124,19 +124,23 @@ wmsx.Machine = function() {
     };
 
     this.userPause = function(val) {
-        if (userPaused === val) return;
-
-        userPaused = !!val; userPauseMoreFrames = -1;
-        if (userPaused) this.getAudioOutput().mute();
-        else this.getAudioOutput().play();
+        var prev = userPaused;
+        if (userPaused !== val) {
+            userPaused = !!val; userPauseMoreFrames = -1;
+            if (userPaused) this.getAudioOutput().mute();
+            else this.getAudioOutput().play();
+        }
+        return prev;
     };
 
     this.systemPause = function(val) {
-        if (systemPaused === val) return;
-
-        systemPaused = !!val;
-        if (systemPaused) this.getAudioOutput().pauseMonitor();
-        else this.getAudioOutput().unpauseMonitor();
+        var prev = systemPaused;
+        if (systemPaused !== val) {
+            systemPaused = !!val;
+            if (systemPaused) this.getAudioOutput().pauseMonitor();
+            else this.getAudioOutput().unpauseMonitor();
+        }
+        return prev;
     };
 
     var setBIOS = function(bios) {
@@ -406,20 +410,20 @@ wmsx.Machine = function() {
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
-                self.systemPause(true);
+                var wasPaused = self.systemPause(true);
                 saveStateSocket.saveState(control.to);
-                self.systemPause(false);
+                if (!wasPaused) self.systemPause(false);
                 break;
             case controls.SAVE_STATE_FILE:
-                self.systemPause(true);
+                wasPaused = self.systemPause(true);
                 saveStateSocket.saveStateFile();
-                self.systemPause(false);
+                if (!wasPaused) self.systemPause(false);
                 break;
             case controls.LOAD_STATE_0: case controls.LOAD_STATE_1: case controls.LOAD_STATE_2: case controls.LOAD_STATE_3: case controls.LOAD_STATE_4: case controls.LOAD_STATE_5:
             case controls.LOAD_STATE_6: case controls.LOAD_STATE_7: case controls.LOAD_STATE_8: case controls.LOAD_STATE_9: case controls.LOAD_STATE_10: case controls.LOAD_STATE_11: case controls.LOAD_STATE_12:
-                self.systemPause(true);
+                wasPaused = self.systemPause(true);
                 saveStateSocket.loadState(control.from);
-                self.systemPause(false);
+                if (!wasPaused) self.systemPause(false);
                 break;
             case controls.VIDEO_STANDARD:
                 self.showOSD(null, true);	// Prepares for the upcoming "AUTO" OSD to always show

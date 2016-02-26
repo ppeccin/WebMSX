@@ -36,9 +36,10 @@ wmsx.Room = function(screenElement) {
     };
 
     var setPageVisibilityHandling = function() {
+        var wasPaused;
         function visibilityChange() {
-            if (document.hidden) self.machine.systemPause(true);
-            else self.machine.systemPause(false);
+            if (document.hidden) wasPaused = self.machine.systemPause(true);
+            else if (!wasPaused) self.machine.systemPause(false);
         }
         document.addEventListener("visibilitychange", visibilityChange);
     };

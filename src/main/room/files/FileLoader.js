@@ -42,7 +42,7 @@ wmsx.FileLoader = function() {
             // give up
         }
 
-        machine.systemPause(true);
+        var wasPaused = machine.systemPause(true);
 
         url = prompt("Load file from URL:", url || "");
         url = url && url.toString().trim();
@@ -54,10 +54,10 @@ wmsx.FileLoader = function() {
                 // give up
             }
             this.loadFromURL(url, port, altPower, asExpansion, function(s) {
-                machine.systemPause(false);
+                if (!wasPaused) machine.systemPause(false);
             });
         } else {
-            machine.systemPause(false);
+            if (!wasPaused) machine.systemPause(false);
         }
     };
 
@@ -178,10 +178,10 @@ wmsx.FileLoader = function() {
             // Ignore
         }
 
-        machine.systemPause(true);
+        var wasPaused = machine.systemPause(true);
 
         self.loadFromFile(file, chooserPort, chooserAltPower, chooserAsExpansion, function(s) {
-            machine.systemPause(false);
+            if (!wasPaused) machine.systemPause(false);
         });
 
         return false;
@@ -207,7 +207,7 @@ wmsx.FileLoader = function() {
         if (WMSX.MEDIA_CHANGE_DISABLED) return;
         if (!event.dataTransfer) return;
 
-        machine.systemPause(true);
+        var wasPaused = machine.systemPause(true);
 
         var port = event.altKey ? 1 : 0;
         var altPower = event.ctrlKey;
@@ -217,14 +217,14 @@ wmsx.FileLoader = function() {
         var files = event.dataTransfer && event.dataTransfer.files;
         if (files && files.length > 0) {
             self.loadFromFile(files[0], port, altPower, asExpansion, function(s) {
-                machine.systemPause(false);
+                if (!wasPaused) machine.systemPause(false);
             });
         } else {
             // If not, try to get URL
             var url = event.dataTransfer.getData("text");
             if (url && url.length > 0)
                 self.loadFromURL(url, port, altPower, asExpansion, function(s) {
-                    machine.systemPause(false);
+                    if (!wasPaused) machine.systemPause(false);
                 });
         }
     };
