@@ -30,6 +30,7 @@ wmsx.WebAudioSpeaker = function() {
         if (processor) processor.connect(audioContext.destination);
     };
 
+
     var createAudioContext = function() {
         if (WMSX.AUDIO_BUFFER_SIZE === 0) {
             wmsx.Util.log("Audio disabled in config file.");

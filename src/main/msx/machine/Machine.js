@@ -699,29 +699,19 @@ wmsx.Machine = function() {
             self.getAudioOutput().unpauseMonitor();
         };
 
-        this.loadStateFile = function(data, altPower) {       // Return true if data was indeed a SaveState
-            if (!media) return;
-
-            self.getAudioOutput().pauseMonitor();
-
-            var res = true;
+        this.loadStateFile = function(data, altPower) {       // Returns true if data was indeed a SaveState
+            if (!media) return false;
             var state = media.loadStateFile(data);
-            if (!state) {
-                res = false;
+            if (!state) return false;
+            wmsx.Util.log("SaveState file loaded");
+            if (state.v !== VERSION) {
+                self.showOSD("State File load failed, wrong version", true);
             } else {
-                wmsx.Util.log("SaveState file loaded");
-                if (state.v !== VERSION) {
-                    self.showOSD("State File load failed, wrong version", true);
-                } else {
-                    if (!altPower && !self.powerIsOn) self.powerOn();
-                    loadState(state);
-                    self.showOSD("State File loaded", true);
-                }
+                if (!altPower && !self.powerIsOn) self.powerOn();
+                loadState(state);
+                self.showOSD("State File loaded", true);
             }
-
-            self.getAudioOutput().unpauseMonitor();
-
-            return res;
+            return true;
         };
 
         var media;
