@@ -11,12 +11,18 @@ wmsx.PSGAudioSignal = function() {
     };
 
     this.signalOn = function() {
-        signalOn = true;
-        monitor.play();
+        this.play();
+        nextSampleToGenerate = 0;
+        nextSampleToRetrieve = 0;
+        lastSample = 0;
+        this.play();
     };
 
     this.signalOff = function() {
-        signalOn = false;
+        this.mute();
+        nextSampleToGenerate = 0;
+        nextSampleToRetrieve = 0;
+        lastSample = 0;
         mixedChannel.setMixerControl(0xff);
         mixedChannel.setAmplitudeA(0);
         mixedChannel.setAmplitudeB(0);
@@ -25,11 +31,19 @@ wmsx.PSGAudioSignal = function() {
     };
 
     this.mute = function() {
-        monitor.mute();
+        signalOn = false;
     };
 
     this.play = function() {
-        monitor.play();
+        signalOn = true;
+    };
+
+    this.pauseMonitor = function() {
+        monitor.pause();
+    };
+
+    this.unpauseMonitor = function() {
+        monitor.unpause();
     };
 
     this.setFps = function(fps) {

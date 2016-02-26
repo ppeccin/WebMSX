@@ -14,19 +14,20 @@ wmsx.WebAudioSpeaker = function() {
         processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 1, 1);
         wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         processor.onaudioprocess = onAudioProcess;
+        this.unpause();
     };
 
     this.powerOff = function() {
-        this.mute();
+        this.pause();
         audioContext = undefined;
     };
 
-    this.play = function () {
-        if (processor) processor.connect(audioContext.destination);
+    this.pause = function () {
+        if (processor) processor.disconnect();
     };
 
-    this.mute = function () {
-        if (processor) processor.disconnect();
+    this.unpause = function () {
+        if (processor) processor.connect(audioContext.destination);
     };
 
     var createAudioContext = function() {

@@ -37,8 +37,8 @@ wmsx.Room = function(screenElement) {
 
     var setPageVisibilityHandling = function() {
         function visibilityChange() {
-            if (document.hidden) self.machine.getAudioOutput().mute();
-            else self.machine.getAudioOutput().play();
+            if (document.hidden) self.speaker.pause();
+            else self.speaker.unpause();
         }
         document.addEventListener("visibilitychange", visibilityChange);
     };

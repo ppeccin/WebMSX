@@ -58,8 +58,8 @@ wmsx.Machine = function() {
 
     this.clockPulse = function() {
         joysticksSocket.clockPulse();
-        if (debugPause)
-            if (debugPauseMoreFrames-- <= 0) return;
+        if (paused)
+            if (pauseMoreFrames-- <= 0) return;
         vdp.clockPulse();
     };
 
@@ -122,6 +122,13 @@ wmsx.Machine = function() {
         isLoading = boo;
     };
 
+    this.pause = function(val) {
+        if (paused === val) return;
+
+        paused = !!val; pauseMoreFrames = -1;
+        if (paused) this.getAudioOutput().mute();
+        else this.getAudioOutput().play();
+    };
 
     var setBIOS = function(bios) {
         bus.insertSlot(bios || wmsx.SlotEmpty.singleton, BIOS_SLOT);
@@ -304,10 +311,10 @@ wmsx.Machine = function() {
     var ppi;
     var vdp;
     var psg;
-    var rtc
+    var rtc;
 
-    var debugPause = false;
-    var debugPauseMoreFrames = 0;
+    var paused = false;
+    var pauseMoreFrames = 0;
 
     var machineControlsSocket;
     var keyboardSocket;
@@ -381,13 +388,11 @@ wmsx.Machine = function() {
                 powerFry();
                 break;
             case controls.PAUSE:
-                debugPause = !debugPause; debugPauseMoreFrames = 1;
-                this.getVideoOutput().showOSD(debugPause ? "PAUSE" : "RESUME", true);
-                if (debugPause) this.getAudioOutput().mute();
-                else this.getAudioOutput().play();
+                this.pause(!paused);
+                this.getVideoOutput().showOSD(paused ? "PAUSE" : "RESUME", true);
                 return;
             case controls.FRAME:
-                if (debugPause) debugPauseMoreFrames = 1;
+                if (paused) pauseMoreFrames = 1;
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
@@ -645,7 +650,7 @@ wmsx.Machine = function() {
         this.saveState = function(slot) {
             if (!self.powerIsOn || !media) return;
 
-            self.getAudioOutput().mute();
+            self.getAudioOutput().pauseMonitor();
 
             var state = saveState();
             state.v = VERSION;
@@ -654,13 +659,13 @@ wmsx.Machine = function() {
             else
                 self.showOSD("State " + slot + " save failed", true);
 
-            self.getAudioOutput().play();
+            self.getAudioOutput().unpauseMonitor();
         };
 
         this.loadState = function(slot, altPower) {
             if (!media) return;
 
-            self.getAudioOutput().mute();
+            self.getAudioOutput().pauseMonitor();
 
             var state = media.loadState(slot);
             if (!state) {
@@ -673,11 +678,14 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " loaded", true);
             }
 
-            self.getAudioOutput().play();
+            self.getAudioOutput().unpauseMonitor();
         };
 
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
+
+            self.getAudioOutput().pauseMonitor();
+
             // Use Cartridge label as file name
             var cart = cartridgeSocket.inserted(0) || cartridgeSocket.inserted(1);
             var fileName = cart && cart.rom.info.l;
@@ -687,21 +695,33 @@ wmsx.Machine = function() {
                 self.showOSD("State File saved", true);
             else
                 self.showOSD("State File save failed", true);
+
+            self.getAudioOutput().unpauseMonitor();
         };
 
         this.loadStateFile = function(data, altPower) {       // Return true if data was indeed a SaveState
             if (!media) return;
+
+            self.getAudioOutput().pauseMonitor();
+
+            var res = true;
             var state = media.loadStateFile(data);
-            if (!state) return;
-            wmsx.Util.log("SaveState file loaded");
-            if (state.v !== VERSION) {
-                self.showOSD("State File load failed, wrong version", true);
-                return true;
+            if (!state) {
+                res = false;
+            } else {
+                wmsx.Util.log("SaveState file loaded");
+                if (state.v !== VERSION) {
+                    self.showOSD("State File load failed, wrong version", true);
+                } else {
+                    if (!altPower && !self.powerIsOn) self.powerOn();
+                    loadState(state);
+                    self.showOSD("State File loaded", true);
+                }
             }
-            if (!altPower && !self.powerIsOn) self.powerOn();
-            loadState(state);
-            self.showOSD("State File loaded", true);
-            return true;
+
+            self.getAudioOutput().unpauseMonitor();
+
+            return res;
         };
 
         var media;
