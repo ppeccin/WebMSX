@@ -9,7 +9,7 @@ wmsx.DOMMachineControls = function() {
     }
 
     this.connect = function(pControlsSocket) {
-        consoleControlsSocket = pControlsSocket;
+        machineControlsSocket = pControlsSocket;
     };
 
     this.connectPeripherals = function(screen) {
@@ -57,7 +57,7 @@ wmsx.DOMMachineControls = function() {
         var state = controlStateMap[control];
         if (!state || (state !== press)) {
             controlStateMap[control] = press;
-            consoleControlsSocket.controlStateChanged(control, press);
+            machineControlsSocket.controlStateChanged(control, press);
         }
         return true;
     };
@@ -151,7 +151,7 @@ wmsx.DOMMachineControls = function() {
 
     var controls = wmsx.MachineControls;
 
-    var consoleControlsSocket;
+    var machineControlsSocket;
     var monitor;
 
     var normalCodeMap = {};

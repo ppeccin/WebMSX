@@ -382,7 +382,9 @@ wmsx.Machine = function() {
                 break;
             case controls.PAUSE:
                 debugPause = !debugPause; debugPauseMoreFrames = 1;
-                vdp.getVideoOutput().showOSD(debugPause ? "PAUSE" : "RESUME", true);
+                this.getVideoOutput().showOSD(debugPause ? "PAUSE" : "RESUME", true);
+                if (debugPause) this.getAudioOutput().mute();
+                else this.getAudioOutput().play();
                 return;
             case controls.FRAME:
                 if (debugPause) debugPauseMoreFrames = 1;
@@ -642,28 +644,36 @@ wmsx.Machine = function() {
 
         this.saveState = function(slot) {
             if (!self.powerIsOn || !media) return;
+
+            self.getAudioOutput().mute();
+
             var state = saveState();
             state.v = VERSION;
             if (media.saveState(slot, state))
                 self.showOSD("State " + slot + " saved", true);
             else
                 self.showOSD("State " + slot + " save failed", true);
+
+            self.getAudioOutput().play();
         };
 
         this.loadState = function(slot, altPower) {
             if (!media) return;
+
+            self.getAudioOutput().mute();
+
             var state = media.loadState(slot);
             if (!state) {
                 self.showOSD("State " + slot + " not found", true);
-                return;
-            }
-            if (state.v !== VERSION) {
+            } else if (state.v !== VERSION) {
                 self.showOSD("State " + slot + " load failed, wrong version", true);
-                return;
+            } else {
+                if (!altPower && !self.powerIsOn) self.powerOn();
+                loadState(state);
+                self.showOSD("State " + slot + " loaded", true);
             }
-            if (!altPower && !self.powerIsOn) self.powerOn();
-            loadState(state);
-            self.showOSD("State " + slot + " loaded", true);
+
+            self.getAudioOutput().play();
         };
 
         this.saveStateFile = function() {

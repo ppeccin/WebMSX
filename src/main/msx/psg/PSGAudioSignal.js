@@ -12,6 +12,7 @@ wmsx.PSGAudioSignal = function() {
 
     this.signalOn = function() {
         signalOn = true;
+        monitor.play();
     };
 
     this.signalOff = function() {
@@ -21,6 +22,14 @@ wmsx.PSGAudioSignal = function() {
         mixedChannel.setAmplitudeB(0);
         mixedChannel.setAmplitudeC(0);
         audioCartridge = undefined;
+    };
+
+    this.mute = function() {
+        monitor.mute();
+    };
+
+    this.play = function() {
+        monitor.play();
     };
 
     this.setFps = function(fps) {

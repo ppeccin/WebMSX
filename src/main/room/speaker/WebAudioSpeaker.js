@@ -14,7 +14,6 @@ wmsx.WebAudioSpeaker = function() {
         processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 1, 1);
         wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         processor.onaudioprocess = onAudioProcess;
-        this.play();
     };
 
     this.powerOff = function() {
@@ -48,6 +47,9 @@ wmsx.WebAudioSpeaker = function() {
     };
 
     var onAudioProcess = function(event) {
+
+        //console.log(audioContext.currentTime);
+
         if (!audioSignal) return;
 
         // Assumes there is only one channel
