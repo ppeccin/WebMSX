@@ -448,6 +448,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTableAddress();
+        videoSignal.setDebugMode(mode > 0);
     }
 
     function debugAdjustPalette() {

@@ -168,8 +168,6 @@ wmsx.DOMPeripheralControls = function(room) {
                 monitor.crtModeToggle(); break;
             case controls.SCREEN_CRT_FILTER:
                 monitor.crtFilterToggle(); break;
-            case controls.SCREEN_DEBUG:
-                monitor.debugModesCycle(); break;
             case controls.SCREEN_DEFAULTS:
                 monitor.setDefaults();
                 monitor.showOSD("Initial Settings", true);
@@ -255,7 +253,6 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]   = controls.JOYSTICKS_TOGGLE_MODE;
 
         keyAltCodeMap[KEY_CRT_FILTER]   = controls.SCREEN_CRT_FILTER;
-        keyAltCodeMap[KEY_DEBUG]     	= controls.SCREEN_DEBUG;
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
         keyAltCodeMap[KEY_FULLSCREEN]  	= controls.SCREEN_FULLSCREEN;
 
@@ -316,8 +313,6 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
     var KEY_FULLSCREEN   = wmsx.DOMKeys.VK_ENTER.c;
-
-    var KEY_DEBUG   = wmsx.DOMKeys.VK_D.c;
 
     var KEY_EXIT  = wmsx.DOMKeys.VK_ESCAPE.c;
 

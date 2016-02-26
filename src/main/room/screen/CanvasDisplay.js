@@ -127,6 +127,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateScale();
     };
 
+    this.setDebugMode = function(boo) {
+        debugMode = !!boo;
+        updateImageComposition();
+    };
+
     this.crtFilterToggle = function() {
         var newLevel = (crtFilter + 1) % 4;
         setCRTFilter(newLevel);
@@ -286,14 +291,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateImageComposition() {
-        switch(crtMode) {
-            case 0:
-                canvasContext.globalCompositeOperation = "copy";
-                canvasContext.globalAlpha = 1;
-                break;
-            case 1:
-                canvasContext.globalCompositeOperation = "source-over";
-                canvasContext.globalAlpha = 0.8;
+        if (crtMode > 0 && !debugMode) {
+            canvasContext.globalCompositeOperation = "source-over";
+            canvasContext.globalAlpha = 0.8;
+        } else {
+            canvasContext.globalCompositeOperation = "copy";
+            canvasContext.globalAlpha = 1;
         }
     }
 
@@ -681,6 +684,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var isFullscreen = false;
     var crtFilter = 1;
     var crtMode = 1;
+    var debugMode = false;
     var isLoading = false;
 
     var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting

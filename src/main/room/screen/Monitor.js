@@ -48,17 +48,16 @@ wmsx.Monitor = function(display) {
         display.crtFilterSetDefault();
     };
 
+    this.setDebugMode = function(boo) {
+        display.setDebugMode(boo);
+    };
+
     this.crtModeToggle = function() {
         display.crtModeToggle();
     };
 
     this.crtFilterToggle = function() {
         display.crtFilterToggle();
-    };
-
-    this.debugModesCycle = function() {
-        debug++;
-        if (debug > 4) debug = 0;
     };
 
     this.fullscreenToggle = function() {
@@ -119,8 +118,6 @@ wmsx.Monitor = function(display) {
 
     var displayScaleX;
     var displayScaleY;
-
-    var debug = 0;
 
 
     init(this);

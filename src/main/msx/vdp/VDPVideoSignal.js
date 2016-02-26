@@ -22,6 +22,10 @@ wmsx.VDPVideoSignal = function() {
         if (monitor) monitor.setSignalHeight(height);
     };
 
+    this.setDebugMode = function(boo) {
+        if (monitor) monitor.setDebugMode(boo);
+    };
+
     var monitor;
 
 };
