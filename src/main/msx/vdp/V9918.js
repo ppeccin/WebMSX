@@ -1077,7 +1077,7 @@ wmsx.V9918 = function(cpu, psg) {
     //var colorsMyMSX2 = new Uint32Array([ 0x00000000, 0xfe000000, 0xfe20db20, 0xfe6dff6d, 0xfeff2020, 0xfeff6d30, 0xfe2020b6, 0xfeffdb49, 0xfe2020ff, 0xfe6d6dff, 0xfe20dbdb, 0xfe92dbdb, 0xfe209220, 0xfeb649db, 0xfeb6b6b6, 0xfeffffff ]);
 
     var palettes = [
-        { name : "MSX1", colors: colorsMSX1VV },
+        { name: "MSX1", colors: colorsMSX1VV },
         { name: "MSX1 Soft", colors: colorsMSX1 },
         { name: "MSX2", colors: colorsMSX2 },
         { name: "Black & White", colors: colorsMSXPB}, { name: "Green Phosphor", colors: colorsMSXGR}, { name: "Amber", colors: colorsMSXAB }

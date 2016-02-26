@@ -99,7 +99,7 @@ wmsx.SlotFormats = {
 
     "Unbanked": {
         name: "Unbanked",
-        desc: "Normal Cartridge",
+        desc: "Normal ROM Cartridge",
         priority: 211,
         tryFormat: function (rom) {
             // Any 8K or 16K content starting with the Cartridge identifier "AB"
@@ -219,6 +219,22 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeCrossBlaim.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "DOS2": {
+        name: "DOS2",
+        desc: "MSX-DOS 2 64K Mapper Cartridge. No RAM Mapper",
+        priority: 241,
+        tryFormat: function (rom) {
+            // Only 64K content
+            if (rom.content.length === 65536) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDOS2(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDOS2.recreateFromSaveState(state, previousSlot);
         }
     },
 

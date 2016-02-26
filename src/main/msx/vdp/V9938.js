@@ -186,7 +186,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     };
 
     this.togglePalettes = function() {
-        videoSignal.showOSD("Color Mode not supported for MSX2 yet!", true);    // TODO Verify
+        videoSignal.showOSD("Color Mode not supported for v2.0 yet!", true);    // TODO Verify
     };
 
     this.toggleDebugModes = function() {
