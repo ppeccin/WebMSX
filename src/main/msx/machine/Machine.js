@@ -406,14 +406,20 @@ wmsx.Machine = function() {
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
+                self.systemPause(true);
                 saveStateSocket.saveState(control.to);
+                self.systemPause(false);
                 break;
             case controls.SAVE_STATE_FILE:
+                self.systemPause(true);
                 saveStateSocket.saveStateFile();
+                self.systemPause(false);
                 break;
             case controls.LOAD_STATE_0: case controls.LOAD_STATE_1: case controls.LOAD_STATE_2: case controls.LOAD_STATE_3: case controls.LOAD_STATE_4: case controls.LOAD_STATE_5:
             case controls.LOAD_STATE_6: case controls.LOAD_STATE_7: case controls.LOAD_STATE_8: case controls.LOAD_STATE_9: case controls.LOAD_STATE_10: case controls.LOAD_STATE_11: case controls.LOAD_STATE_12:
+                self.systemPause(true);
                 saveStateSocket.loadState(control.from);
+                self.systemPause(false);
                 break;
             case controls.VIDEO_STANDARD:
                 self.showOSD(null, true);	// Prepares for the upcoming "AUTO" OSD to always show
@@ -659,24 +665,16 @@ wmsx.Machine = function() {
 
         this.saveState = function(slot) {
             if (!self.powerIsOn || !media) return;
-
-            self.getAudioOutput().pauseMonitor();
-
             var state = saveState();
             state.v = VERSION;
             if (media.saveState(slot, state))
                 self.showOSD("State " + slot + " saved", true);
             else
                 self.showOSD("State " + slot + " save failed", true);
-
-            self.getAudioOutput().unpauseMonitor();
         };
 
         this.loadState = function(slot, altPower) {
             if (!media) return;
-
-            self.getAudioOutput().pauseMonitor();
-
             var state = media.loadState(slot);
             if (!state) {
                 self.showOSD("State " + slot + " not found", true);
@@ -687,15 +685,10 @@ wmsx.Machine = function() {
                 loadState(state);
                 self.showOSD("State " + slot + " loaded", true);
             }
-
-            self.getAudioOutput().unpauseMonitor();
         };
 
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
-
-            self.getAudioOutput().pauseMonitor();
-
             // Use Cartridge label as file name
             var cart = cartridgeSocket.inserted(0) || cartridgeSocket.inserted(1);
             var fileName = cart && cart.rom.info.l;
@@ -705,8 +698,6 @@ wmsx.Machine = function() {
                 self.showOSD("State File saved", true);
             else
                 self.showOSD("State File save failed", true);
-
-            self.getAudioOutput().unpauseMonitor();
         };
 
         this.loadStateFile = function(data, altPower) {       // Returns true if data was indeed a SaveState

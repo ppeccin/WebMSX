@@ -3,11 +3,12 @@
 wmsx.FileLoader = function() {
     var self = this;
 
-    this.connect = function(pBIOSSocket, pExpansionSocket, pCartrigeSocket, pSaveStateSocket) {
-        biosSocket = pBIOSSocket;
-        expansionSocket = pExpansionSocket;
-        cartridgeSocket = pCartrigeSocket;
-        saveStateSocket = pSaveStateSocket;
+    this.connect = function(pMachine) {
+        machine = pMachine;
+        biosSocket = machine.getBIOSSocket();
+        expansionSocket = machine.getExpansionSocket();
+        cartridgeSocket = machine.getCartridgeSocket();
+        saveStateSocket = machine.getSavestateSocket();
     };
 
     this.connectPeripherals = function(pCassetteDeck, pDiskDrive) {
@@ -40,40 +41,52 @@ wmsx.FileLoader = function() {
         } catch (e) {
             // give up
         }
+
+        machine.systemPause(true);
+
         url = prompt("Load file from URL:", url || "");
-        if (!url) return;
-        url = url.toString().trim();
-        if (!url) return;
-        try {
-            localStorage[LOCAL_STOARAGE_LAST_URL_KEY] = url;
-        } catch (e) {
-            // give up
+        url = url && url.toString().trim();
+
+        if (url) {
+            try {
+                localStorage[LOCAL_STOARAGE_LAST_URL_KEY] = url;
+            } catch (e) {
+                // give up
+            }
+            this.loadFromURL(url, port, altPower, asExpansion, function(s) {
+                machine.systemPause(false);
+            });
+        } else {
+            machine.systemPause(false);
         }
-        this.loadFromURL(url, port, altPower, asExpansion);
     };
 
-    this.loadFromFile = function (file, port, altPower, asExpansion) {
+    this.loadFromFile = function (file, port, altPower, asExpansion, then) {
         wmsx.Util.log("Reading file: " + file.name);
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
             self.loadContent(file.name, content, port || 0, altPower, asExpansion);
+            if (then) then(true);
         };
         reader.onerror = function (event) {
             showError("File reading error: " + event.target.error.name);
+            if (then) then(false);
         };
 
         reader.readAsArrayBuffer(file);
     };
 
-    this.loadFromURL = function (url, port, altPower, asExpansion) {
+    this.loadFromURL = function (url, port, altPower, asExpansion, then) {
         new wmsx.MultiDownloader([{
             url: url,
             onSuccess: function (res) {
                 self.loadContent(url, res.content, port || 0, altPower, asExpansion);
+                if (then) then(true);
             },
             onError: function (res) {
                 showError("URL reading error: " + res.error);
+                if (then) then(false);
             }
         }]).start();
     };
@@ -164,7 +177,13 @@ wmsx.FileLoader = function() {
         } catch (e) {
             // Ignore
         }
-        self.loadFromFile(file, chooserPort, chooserAltPower, chooserAsExpansion);
+
+        machine.systemPause(true);
+
+        self.loadFromFile(file, chooserPort, chooserAltPower, chooserAsExpansion, function(s) {
+            machine.systemPause(false);
+        });
+
         return false;
     };
 
@@ -185,24 +204,28 @@ wmsx.FileLoader = function() {
         if (event.stopPropagation) event.stopPropagation();
         event.target.focus();
 
+        if (WMSX.MEDIA_CHANGE_DISABLED) return;
+        if (!event.dataTransfer) return;
+
+        machine.systemPause(true);
+
         var port = event.altKey ? 1 : 0;
         var altPower = event.ctrlKey;
         var asExpansion = event.shiftKey;
 
-        if (WMSX.MEDIA_CHANGE_DISABLED) return;
-        if (!event.dataTransfer) return;
-
-        // First try to get local file
+        // Try to get local file if present
         var files = event.dataTransfer && event.dataTransfer.files;
         if (files && files.length > 0) {
-            self.loadFromFile(files[0], port, altPower, asExpansion);
-            return;
-        }
-
-        // Then try to get URL
-        var url = event.dataTransfer.getData("text");
-        if (url && url.length > 0) {
-            self.loadFromURL(url, port, altPower, asExpansion);
+            self.loadFromFile(files[0], port, altPower, asExpansion, function(s) {
+                machine.systemPause(false);
+            });
+        } else {
+            // If not, try to get URL
+            var url = event.dataTransfer.getData("text");
+            if (url && url.length > 0)
+                self.loadFromURL(url, port, altPower, asExpansion, function(s) {
+                    machine.systemPause(false);
+                });
         }
     };
 
@@ -221,7 +244,7 @@ wmsx.FileLoader = function() {
         fileInputElementParent.appendChild(fileInputElement);
     };
 
-
+    var machine;
     var biosSocket;
     var expansionSocket;
     var cartridgeSocket;
