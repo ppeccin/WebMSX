@@ -57,9 +57,10 @@ wmsx.Machine = function() {
      };
 
     this.clockPulse = function() {
+        if (systemPaused) return;
         joysticksSocket.clockPulse();
-        if (paused)
-            if (pauseMoreFrames-- <= 0) return;
+        if (userPaused)
+            if (userPauseMoreFrames-- <= 0) return;
         vdp.clockPulse();
     };
 
@@ -122,12 +123,20 @@ wmsx.Machine = function() {
         isLoading = boo;
     };
 
-    this.pause = function(val) {
-        if (paused === val) return;
+    this.userPause = function(val) {
+        if (userPaused === val) return;
 
-        paused = !!val; pauseMoreFrames = -1;
-        if (paused) this.getAudioOutput().mute();
+        userPaused = !!val; userPauseMoreFrames = -1;
+        if (userPaused) this.getAudioOutput().mute();
         else this.getAudioOutput().play();
+    };
+
+    this.systemPause = function(val) {
+        if (systemPaused === val) return;
+
+        systemPaused = !!val;
+        if (systemPaused) this.getAudioOutput().pauseMonitor();
+        else this.getAudioOutput().unpauseMonitor();
     };
 
     var setBIOS = function(bios) {
@@ -313,8 +322,9 @@ wmsx.Machine = function() {
     var psg;
     var rtc;
 
-    var paused = false;
-    var pauseMoreFrames = 0;
+    var userPaused = false;
+    var userPauseMoreFrames = 0;
+    var systemPaused = false;
 
     var machineControlsSocket;
     var keyboardSocket;
@@ -388,11 +398,11 @@ wmsx.Machine = function() {
                 powerFry();
                 break;
             case controls.PAUSE:
-                this.pause(!paused);
-                this.getVideoOutput().showOSD(paused ? "PAUSE" : "RESUME", true);
+                this.userPause(!userPaused);
+                this.getVideoOutput().showOSD(userPaused ? "PAUSE" : "RESUME", true);
                 return;
             case controls.FRAME:
-                if (paused) pauseMoreFrames = 1;
+                if (userPaused) userPauseMoreFrames = 1;
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
