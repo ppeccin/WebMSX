@@ -159,7 +159,7 @@ wmsx.Util = new function() {
 
     this.toHex2 = function(num) {
         var res = num.toString(16).toUpperCase();
-        if (num > 0 && (res.length % 2)) return "0" + res;
+        if (num >= 0 && (res.length % 2)) return "0" + res;
         else return res;
     };
 
