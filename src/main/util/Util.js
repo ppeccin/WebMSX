@@ -223,6 +223,21 @@ wmsx.Util = new function() {
         console.log(res);
     };
 
+    this.dumpSlot = function(slot, from, chunk, quant) {
+        var res = "";
+        var p = from || 0;
+        quant = quant || 1;
+        for(var i = 0; i < quant; i++) {
+            for(var c = 0; c < chunk; c++) {
+                var val = slot.read(p++);
+                res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+            }
+            res = res + "   ";
+        }
+
+        console.log(res);
+    };
+
     this.browserInfo = function() {
         var ua = navigator.userAgent;
         var temp;

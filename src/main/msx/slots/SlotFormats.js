@@ -190,7 +190,7 @@ wmsx.SlotFormats = {
         }
     },
 
-    "R-Type": {
+    "RType": {
         name: "R-Type",
         desc: "R-Type 384K Mapper Cartridge",
         priority: 251,
@@ -219,22 +219,6 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeCrossBlaim.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    "DOS2": {
-        name: "DOS2",
-        desc: "MSX-DOS 2 64K Mapper Cartridge. No RAM Mapper",
-        priority: 241,
-        tryFormat: function (rom) {
-            // Only 64K content
-            if (rom.content.length === 65536) return this;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeDOS2(rom);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDOS2.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -367,6 +351,24 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    // MSX2 only
+
+    "DOS2": {
+        name: "DOS2",
+        desc: "MSX-DOS 2 64K Mapper Cartridge. No RAM Mapper",
+        priority: 271,
+        tryFormat: function (rom) {
+            // Only 64K content
+            if (rom.content.length === 65536) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDOS2(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDOS2.recreateFromSaveState(state, previousSlot);
         }
     }
 
