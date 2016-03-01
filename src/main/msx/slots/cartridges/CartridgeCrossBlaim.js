@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Special 64K ROM with 4 16K banks. Bank 1 at 0x4000 fixed at position 0, bank 2 at 0x8000 variable
+// 0x4000 - 0xbfff
+
 wmsx.CartridgeCrossBlaim = function(rom) {
 
     function init(self) {
@@ -26,11 +28,14 @@ wmsx.CartridgeCrossBlaim = function(rom) {
     };
 
     this.read = function(address) {
-        // bank1 (at 0x4000) is fixed at position 0
-        if (address < 0x8000)
-            return bytes[address - 0x4000];         // May underflow if address < 0x4000
-        else
+        if (address < 0x4000)
+            return 0xff;
+        else if (address < 0x8000)
+            return bytes[address - 0x4000];         // bank1 (at 0x4000) is fixed at position 0
+        else if (address < 0xc000)
             return bytes[bank2Offset + address];
+        else
+            return 0xff;
     };
 
 

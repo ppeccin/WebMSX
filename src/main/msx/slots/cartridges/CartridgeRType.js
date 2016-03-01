@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Special 384K ROM with 24 * 16K banks. Bank 1 at 0x4000 fixed at page 0x0f, bank 2 at 0x8000 variable
+// 0x4000 - 0xbfff
+
 wmsx.CartridgeRType = function(rom) {
 
     function init(self) {
@@ -27,10 +29,14 @@ wmsx.CartridgeRType = function(rom) {
     };
 
     this.read = function(address) {
-        if (address < 0x8000)
-            return bytes[229376 + address];         // Bank 1 fixed at page 0x0f, so 0x0f * 16304 - 0x4000
-        else
+        if (address < 0x4000)
+            return 0xff;
+        else if (address < 0x8000)
+            return bytes[0x38000 + address];         // Bank 1 fixed at page 0x0f, so 0x0f * 16304 - 0x4000
+        else if (address < 0xc000)
             return bytes[bank2Offset + address];
+        else
+            return 0xff;
     };
 
 

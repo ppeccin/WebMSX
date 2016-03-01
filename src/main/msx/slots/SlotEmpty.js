@@ -1,7 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SlotEmpty = {};
+// Empty slot
+// 0x0000 - 0xffff
 
+wmsx.SlotEmpty = {};
 wmsx.SlotEmpty.impl = function() {
 
     this.read = function(address) {

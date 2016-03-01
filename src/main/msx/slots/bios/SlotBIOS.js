@@ -1,7 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// 16K or 32K BIOS. Always positioned at 0x0000
-wmsx.BIOS = function(rom) {
+// 16K or 32K Main BIOS ROM
+// 0x0000 - 0x7fff,
+
+wmsx.SlotBIOS = function(rom) {
 
     function init(self) {
         self.rom = rom;
@@ -97,10 +99,10 @@ wmsx.BIOS = function(rom) {
 
 };
 
-wmsx.BIOS.prototype = wmsx.Slot.base;
+wmsx.SlotBIOS.prototype = wmsx.Slot.base;
 
-wmsx.BIOS.recreateFromSaveState = function (state, previousSlot) {
-    var bios = previousSlot || new wmsx.BIOS();
+wmsx.SlotBIOS.recreateFromSaveState = function (state, previousSlot) {
+    var bios = previousSlot || new wmsx.SlotBIOS();
     bios.loadState(state);
     return bios;
 };

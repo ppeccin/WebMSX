@@ -8,7 +8,7 @@
 
 WMSX = {
 
-    PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
+    PRESETS:                        "",                         // Machine configuration presets to apply, comma separated. Overwrites parameters below and DEFAULT preset
 
     MACHINE_TYPE:                    1,                         // 1 for MSX1, 2 for MSX2
 

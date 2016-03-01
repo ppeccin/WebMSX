@@ -2,6 +2,7 @@
 
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
 // Controls an internal SCC sound chip with audio output through PSG
+// 0x4000 - 0xbfff
 
 wmsx.CartridgeKonamiSCC = function(rom) {
 
@@ -57,16 +58,20 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.read = function(address) {
-        if (address < 0x6000)
-            return bytes[bank1Offset + address];                    // May underflow if address < 0x4000
+        if (address < 0x4000)
+            return 0xff;
+        else if (address < 0x6000)
+            return bytes[bank1Offset + address];
         else if (address < 0x8000)
             return bytes[bank2Offset + address];
         else if (address < 0x9800)
             return bytes[bank3Offset + address];
         else if (address < 0xa000)
             return sccSelected ? scc.read(address) : bytes[bank3Offset + address];
-        else
+        else if (address < 0xc000)
             return bytes[bank4Offset + address];
+        else
+            return 0xff;
     };
 
 

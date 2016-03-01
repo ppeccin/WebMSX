@@ -18,8 +18,8 @@ wmsx.SlotFormats = {
         }
     },
 
-    "SlotExpanded": {
-        name: "SlotExpanded",
+    "Expanded": {
+        name: "Expanded",
         desc: "Expanded Slot",
         priority: 202,
         tryFormat: function (rom) {
@@ -34,7 +34,7 @@ wmsx.SlotFormats = {
 
     "BIOS": {
         name: "BIOS",
-        desc: "BIOS 16K/32K",
+        desc: "Main BIOS",
         priority: 206,
         tryFormat: function (rom) {
             // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS
@@ -45,16 +45,16 @@ wmsx.SlotFormats = {
                 return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.BIOS(rom);
+            return new wmsx.SlotBIOS(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.BIOS.recreateFromSaveState(state, previousSlot);
+            return wmsx.SlotBIOS.recreateFromSaveState(state, previousSlot);
         }
     },
 
-    "MSX2BIOSEXT": {
-        name: "MSX2BIOSEXT",
-        desc: "BIOS Extension 16K",
+    "MSX2BIOSExt": {
+        name: "MSX2BIOSExt",
+        desc: "MSX2 BIOS Extension",
         priority: 207,
         tryFormat: function (rom) {
             // Assumes any 16K content without the Cartridge identifier "AB" is a BIOS Extension
@@ -62,16 +62,16 @@ wmsx.SlotFormats = {
                 return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.MSX2BIOSEXT(rom);
+            return new wmsx.SlotMSX2BIOSExt(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.MSX2BIOSEXT.recreateFromSaveState(state, previousSlot);
+            return wmsx.SlotMSX2BIOSExt.recreateFromSaveState(state, previousSlot);
         }
     },
 
     "RAM64K": {
         name: "RAM64K",
-        desc: "RAM 64K Slot",
+        desc: "RAM 64K",
         priority: 211,
         tryFormat: function (rom) {
             // Not Possible to load RAMs
@@ -85,7 +85,7 @@ wmsx.SlotFormats = {
 
     "RAMMapper": {
         name: "RAMMapper",
-        desc: "Standard RAM Mapper Slot",
+        desc: "Standard RAM Mapper",
         priority: 221,
         tryFormat: function (rom) {
             // Not Possible to load RAMs
@@ -97,9 +97,9 @@ wmsx.SlotFormats = {
         }
     },
 
-    "Unbanked": {
-        name: "Unbanked",
-        desc: "Normal ROM Cartridge",
+    "Normal": {
+        name: "Normal",
+        desc: "Normal ROM",
         priority: 311,
         tryFormat: function (rom) {
             // Any 8K or 16K content starting with the Cartridge identifier "AB"
@@ -115,10 +115,10 @@ wmsx.SlotFormats = {
                 || (rom.content[0x8000] === 65 && rom.content[0x8001] === 66))) return this;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeUnbanked(rom);
+            return new wmsx.SlotNormal(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeUnbanked.recreateFromSaveState(state, previousSlot);
+            return wmsx.SlotNormal.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -158,7 +158,7 @@ wmsx.SlotFormats = {
 
     "Konami": {
         name: "Konami",
-        desc: "Konami 8K Mapper Cartridge",
+        desc: "Konami Mapper Cartridge",
         priority: 333,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
@@ -175,7 +175,7 @@ wmsx.SlotFormats = {
 
     "KonamiSCC": {
         name: "KonamiSCC",
-        desc: "KonamiSCC 8K Mapper Cartridge",
+        desc: "KonamiSCC Mapper Cartridge",
         priority: 334,
         tryFormat: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
@@ -192,7 +192,7 @@ wmsx.SlotFormats = {
 
     "RType": {
         name: "R-Type",
-        desc: "R-Type 384K Mapper Cartridge",
+        desc: "R-Type Mapper Cartridge",
         priority: 351,
         tryFormat: function (rom) {
             // Only R-Type 384K content. Must be selected via info format hint
@@ -208,7 +208,7 @@ wmsx.SlotFormats = {
 
     "CrossBlaim": {
         name: "CrossBlaim",
-        desc: "CrossBlaim 64K Mapper Cartridge",
+        desc: "CrossBlaim Mapper Cartridge",
         priority: 352,
         tryFormat: function (rom) {
             // Only CrossBlaim 64K content. Must be selected via info format hint
@@ -358,7 +358,7 @@ wmsx.SlotFormats = {
 
     "DOS2": {
         name: "DOS2",
-        desc: "MSX-DOS 2 64K Mapper Cartridge. No RAM Mapper",
+        desc: "MSX-DOS 2 ROM Mapper",
         priority: 371,
         tryFormat: function (rom) {
             // Only 64K content
@@ -376,4 +376,7 @@ wmsx.SlotFormats = {
 
 // Backward Compatibility
 
+wmsx.SlotFormats.SlotExpanded = wmsx.SlotFormats.Expanded;
+wmsx.SlotFormats.MSX2BIOSEXT = wmsx.SlotFormats.MSX2BIOSExt;
+wmsx.SlotFormats.Unbanked = wmsx.SlotFormats.Normal;
 wmsx.SlotFormats.RAMMapper256K = wmsx.SlotFormats.RAMMapper;

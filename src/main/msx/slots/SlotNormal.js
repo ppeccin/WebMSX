@@ -1,7 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Unbanked ROMs of size 8K, 16K, 32K, 48K or 64K. Position in slot depends on size, header (start address) and info hints
-wmsx.CartridgeUnbanked = function(rom) {
+// Normal, un-banked ROMs of size 8K, 16K, 32K, 48K or 64K. Position in slot depends on size, header (start address) and info hints
+// 0x0000 - 0xffff
+
+wmsx.SlotNormal = function(rom) {
 
     function init(self) {
         self.rom = rom;
@@ -90,10 +92,10 @@ wmsx.CartridgeUnbanked = function(rom) {
 
 };
 
-wmsx.CartridgeUnbanked.prototype = wmsx.Slot.base;
+wmsx.SlotNormal.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeUnbanked.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeUnbanked();
+wmsx.SlotNormal.recreateFromSaveState = function(state, previousSlot) {
+    var cart = previousSlot || new wmsx.SlotNormal();
     cart.loadState(state);
     return cart;
 };

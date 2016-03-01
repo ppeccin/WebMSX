@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // ROMs with (n >= 2) * 16K banks, mapped in 2 16K banks starting at 0x4000
+// 0x4000 - 0xbfff
+
 wmsx.CartridgeASCII16K = function(rom) {
 
     function init(self) {
@@ -29,10 +31,14 @@ wmsx.CartridgeASCII16K = function(rom) {
     };
 
     this.read = function(address) {
-        if (address < 0x8000)
-            return bytes[bank1Offset + address];    // May underflow if address < 0x4000
-        else
+        if (address < 0x4000)
+            return 0xff;
+        else if (address < 0x8000)
+            return bytes[bank1Offset + address];
+        else if (address < 0xc000)
             return bytes[bank2Offset + address];
+        else
+            return 0xff;
     };
 
 

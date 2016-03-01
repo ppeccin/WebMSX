@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Secondary Slot. Controls 4 subSlots. Can be used as a PrimarySlot
+// Secondary Slot. Controls 4 subSlots. Must be used only as a PrimarySlot
+// 0x0000 - 0xffff
+
 wmsx.SlotExpanded = function() {
     var self = this;
 

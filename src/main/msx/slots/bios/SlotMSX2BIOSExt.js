@@ -1,7 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// MSX2 16K BIOS Extension. Always at 0x0000
-wmsx.MSX2BIOSEXT = function(rom) {
+// MSX2 16K BIOS Extension ROM
+// 0x0000 - 0x3fff
+
+wmsx.SlotMSX2BIOSExt = function(rom) {
 
     function init(self) {
         self.rom = rom;
@@ -26,7 +28,7 @@ wmsx.MSX2BIOSEXT = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.MSX2BIOSEXT;
+    this.format = wmsx.SlotFormats.MSX2BIOSExt;
 
 
     // Savestate  -------------------------------------------
@@ -50,10 +52,10 @@ wmsx.MSX2BIOSEXT = function(rom) {
 
 };
 
-wmsx.MSX2BIOSEXT.prototype = wmsx.Slot.base;
+wmsx.SlotMSX2BIOSExt.prototype = wmsx.Slot.base;
 
-wmsx.MSX2BIOSEXT.recreateFromSaveState = function(state, previousSlot) {
-    var ext = previousSlot || new wmsx.MSX2BIOSEXT();
+wmsx.SlotMSX2BIOSExt.recreateFromSaveState = function(state, previousSlot) {
+    var ext = previousSlot || new wmsx.SlotMSX2BIOSExt();
     ext.loadState(state);
     return ext;
 };

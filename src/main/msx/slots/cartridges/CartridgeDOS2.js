@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // DOS 2 ROM with 64K, in 4 * 16K banks, mapped only in page 1 at 0x4000
+// 0x4000 - 0x7fff
+
 wmsx.CartridgeDOS2 = function(rom) {
 
     function init(self) {

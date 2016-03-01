@@ -1,5 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// Standard 64K RAM Slot
+// 0x0000 - 0xffff
+
 wmsx.SlotRAM64K = function(content) {
 
     function init(self) {

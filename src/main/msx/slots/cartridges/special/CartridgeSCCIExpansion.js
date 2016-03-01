@@ -4,6 +4,8 @@
 // 128KB RAM, mapped in 4 8K banks starting at 0x4000
 // Also Accepts ROMs of 128KB or 64KB (mirrored)
 // Controls an internal SCC-I sound chip with audio output through PSG
+// 0x4000 - 0xbfff
+
 wmsx.CartridgeSCCIExpansion = function(rom) {
 
     function init(self) {
@@ -94,8 +96,10 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     this.read = function(address) {
         // wmsx.Util.log("Read: " + wmsx.Util.toHex4(address));
 
-        if (address < 0x6000)
-            return bytes[bank1Offset + address];                     // May underflow if address < 0x4000
+        if (address < 0x4000)
+            return 0xff;
+        else if (address < 0x6000)
+            return bytes[bank1Offset + address];
         else if (address < 0x8000)
             return bytes[bank2Offset + address];
         else if (address < 0x9800)
@@ -104,8 +108,10 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             return (sccSelected && !scciMode) ? scc.read(address) : bytes[bank3Offset + address];
         else if (address < 0xb800)
             return bytes[bank4Offset + address];
-        else
+        else if (address < 0xc000)
             return (scciSelected && scciMode) ? scc.read(address) : bytes[bank4Offset + address];
+        else
+            return 0xff;
     };
 
     function setMode(pMode) {
