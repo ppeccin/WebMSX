@@ -373,3 +373,7 @@ wmsx.SlotFormats = {
     }
 
 };
+
+// Backward Compatibility
+
+wmsx.SlotFormats.RAMMapper256K = wmsx.SlotFormats.RAMMapper;

@@ -64,7 +64,7 @@ wmsx.SlotRAMMapper = function(content, size) {
 
     this.bytes = null;
 
-    this.format = wmsx.SlotFormats.RAMMapper256K;
+    this.format = wmsx.SlotFormats.RAMMapper;
 
 
     // Savestate  -------------------------------------------
