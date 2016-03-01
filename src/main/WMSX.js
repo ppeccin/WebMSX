@@ -11,6 +11,7 @@ WMSX = {
     PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
 
     MACHINE_TYPE:                   1,                          // 1 for MSX1, 2 for MSX2
+    RAM_MAPPER_SIZE:                256,                        // 128 - 4096 KB, MSX2 only
 
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM

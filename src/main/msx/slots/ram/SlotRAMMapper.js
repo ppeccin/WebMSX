@@ -1,10 +1,17 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SlotRAMMapper256K = function(content) {
+// MSX2 Standard RAM Mapper. Supports sizes from 128KB to 4MB
+
+wmsx.SlotRAMMapper = function(content, size) {
 
     function init(self) {
-        bytes = content;
+        if (content) {
+            bytes = content;
+        } else {
+            bytes = new Array(size);
+        }
         self.bytes = bytes;
+        pages = (bytes.length / 16384) | 0;
     }
 
     this.powerOff = function() {
@@ -28,16 +35,16 @@ wmsx.SlotRAMMapper256K = function(content) {
     };
 
     this.outputFC = function(val) {
-        pageOffsets[0] = (val & 0x0f) * 16384;
+        pageOffsets[0] = (val % pages) * 16384;
     };
     this.outputFD = function(val) {
-        pageOffsets[1] = (val & 0x0f) * 16384 - 16384;
+        pageOffsets[1] = (val % pages) * 16384 - 16384;
     };
     this.outputFE = function(val) {
-        pageOffsets[2] = (val & 0x0f) * 16384 - 32768;
+        pageOffsets[2] = (val % pages) * 16384 - 32768;
     };
     this.outputFF = function(val) {
-        pageOffsets[3] = (val & 0x0f) * 16384 - 49152;
+        pageOffsets[3] = (val % pages) * 16384 - 49152;
     };
 
     this.read = function(address) {
@@ -53,6 +60,7 @@ wmsx.SlotRAMMapper256K = function(content) {
 
     var bytes;
     var pageOffsets = [ 0, 0, 0, 0 ];
+    var pages = 0;
 
     this.bytes = null;
 
@@ -76,18 +84,18 @@ wmsx.SlotRAMMapper256K = function(content) {
     };
 
 
-    if (content) init(this);
+    init(this);
 
 };
 
-wmsx.SlotRAMMapper256K.prototype = wmsx.Slot.base;
+wmsx.SlotRAMMapper.prototype = wmsx.Slot.base;
 
-wmsx.SlotRAMMapper256K.createNewEmpty = function() {
-    return new wmsx.SlotRAMMapper256K(wmsx.Util.arrayFill(new Array(262144), 0x00));
+wmsx.SlotRAMMapper.createNewEmpty = function(size) {
+    return new wmsx.SlotRAMMapper(null, size);
 };
 
-wmsx.SlotRAMMapper256K.recreateFromSaveState = function(state, previousSlot) {
-    var ram = previousSlot || new wmsx.SlotRAMMapper256K();
+wmsx.SlotRAMMapper.recreateFromSaveState = function(state, previousSlot) {
+    var ram = previousSlot || new wmsx.SlotRAMMapper(null, 0);
     ram.loadState(state);
     return ram;
 };

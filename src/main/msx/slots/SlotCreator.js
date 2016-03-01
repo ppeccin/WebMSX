@@ -126,8 +126,8 @@ wmsx.SlotCreator = function () {
     var HINTS_PREFIX_REGEX = "\\[";
     var HINTS_SUFFIX_REGEX = "\\]";
 
-    var FORMAT_PRIORITY_BOOST = 100;
-    var FORMAT_FORCE_PRIORITY_BOOST = 200;
+    var FORMAT_PRIORITY_BOOST = 1000;
+    var FORMAT_FORCE_PRIORITY_BOOST = 2000;
 
 };
 

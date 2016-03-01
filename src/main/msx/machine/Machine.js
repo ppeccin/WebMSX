@@ -293,7 +293,7 @@ wmsx.Machine = function() {
         rtc.connectBus(bus);
 
         // RAM
-        self.ram = MSX2 ? wmsx.SlotRAMMapper256K.createNewEmpty() : wmsx.SlotRAM64K.createNewEmpty();
+        self.ram = MSX2 ? wmsx.SlotRAMMapper.createNewEmpty(WMSX.RAM_MAPPER_SIZE * 1024) : wmsx.SlotRAM64K.createNewEmpty();
         bus.insertSlot(self.ram, ramSlot);
 
         // Expanded Slot

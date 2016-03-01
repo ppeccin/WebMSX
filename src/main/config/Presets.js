@@ -3,44 +3,43 @@
 WMSX.presets = {
 
     DEFAULT: {
-        MACHINE_TYPE:   1,
-        BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios",
-        EXPANSION0_URL: "wmsx/roms/Disk.rom"
-    },
-
-    MSX1: {
-    },
-
-    MSX2: {
         MACHINE_TYPE:   2,
         BIOS_URL:       "wmsx/roms/MSX2N.bios",
+        EXPANSION0_URL: "wmsx/roms/Disk.rom",
         EXPANSION1_URL: "wmsx/roms/MSX2NEXT.bios"
     },
 
-    HBF900: {
-        MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/hbf900bios.rom",
-        EXPANSION1_URL: "wmsx/roms/hbf900sub.rom",
-        EXPANSION0_URL: "wmsx/roms/hbf900disk.rom"
+    MSX2: {
     },
 
-    // TODO Define
-    //MSX2: {
-    //    MACHINE_TYPE:   2,
-    //    BIOS_URL:       "wmsx/roms/MSX2NTSCa.bios",
-    //    EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"
-    //},
-
-    MSX2NTSC: {
-        MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/MSX2NTSC.bios",       // TODO Provide
-        EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"
+    RAM128: {
+        RAM_MAPPER_SIZE: 128
     },
 
-    MSX2PAL: {
-        MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/MSX2PAL.bios",
-        EXPANSION1_URL: "wmsx/roms/MSX2EXT.bios"
+    RAM256: {
+        RAM_MAPPER_SIZE: 256
+    },
+
+    RAM512: {
+        RAM_MAPPER_SIZE: 512
+    },
+
+    RAM1024: {
+        RAM_MAPPER_SIZE: 1024
+    },
+
+    RAM2048: {
+        RAM_MAPPER_SIZE: 2048
+    },
+
+    RAM4096: {
+        RAM_MAPPER_SIZE: 4096
+    },
+
+    MSX1: {
+        MACHINE_TYPE:   1,
+        BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios",
+        EXPANSION1_URL: "wmsx/roms/Empty.rom"
     },
 
     NTSC: {
@@ -71,6 +70,10 @@ WMSX.presets = {
 
     // Optional Expansions
 
+    DOS2: {
+        CARTRIDGE2_URL: "wmsx/roms/MSXDOS22v3.rom"
+    },
+
     SCC: {
         EXPANSION2_URL: "wmsx/roms/[SCCExpansion].rom"
     },
@@ -86,8 +89,16 @@ WMSX.presets = {
     // Specific machines
 
     EXPERT: {
+        MACHINE_TYPE:   1,
         BIOS_URL:       "wmsx/roms/Expert10.bios",
         EXPANSION0_URL: "wmsx/roms/DiskCDX2.rom"
+    },
+
+    HBF900: {
+        MACHINE_TYPE:   2,
+        BIOS_URL:       "wmsx/roms/hbf900bios.rom",
+        EXPANSION0_URL: "wmsx/roms/hbf900disk.rom",
+        EXPANSION1_URL: "wmsx/roms/hbf900sub.rom"
     }
 
 };

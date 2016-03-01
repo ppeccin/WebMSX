@@ -34,6 +34,8 @@ wmsx.URLParameters = {
     },
 
     abbreviations: {
+        TYPE: "MACHINE_TYPE",
+        RAM: "RAM_MAPPER_SIZE",
         BIOS: "BIOS_URL",
         EXP: "EXPANSION0_URL",
         EXP0: "EXPANSION0_URL",
@@ -54,6 +56,8 @@ wmsx.URLParameters = {
     },
 
     normalizeParameters: function () {
+        WMSX.MACHINE_TYPE = WMSX.MACHINE_TYPE | 0;
+        WMSX.RAM_MAPPER_SIZE = WMSX.RAM_MAPPER_SIZE | 0;
         WMSX.AUTO_START_DELAY = WMSX.AUTO_START_DELAY | 0;
         WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
         WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
