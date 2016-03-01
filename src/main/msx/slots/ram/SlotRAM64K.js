@@ -50,7 +50,7 @@ wmsx.SlotRAM64K = function(content) {
 
 wmsx.SlotRAM64K.prototype = wmsx.Slot.base;
 
-wmsx.SlotRAM64K.createNewEmpty = function() {
+wmsx.SlotRAM64K.createNew = function() {
     return new wmsx.SlotRAM64K(wmsx.Util.arrayFill(new Array(65536), 0x00));
 };
 

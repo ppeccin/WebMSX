@@ -12,28 +12,32 @@ WMSX.presets = {
     MSX2: {
     },
 
+    RAM64: {
+        RAM_SIZE: 64
+    },
+
     RAM128: {
-        RAM_MAPPER_SIZE: 128
+        RAM_SIZE: 128
     },
 
     RAM256: {
-        RAM_MAPPER_SIZE: 256
+        RAM_SIZE: 256
     },
 
     RAM512: {
-        RAM_MAPPER_SIZE: 512
+        RAM_SIZE: 512
     },
 
     RAM1024: {
-        RAM_MAPPER_SIZE: 1024
+        RAM_SIZE: 1024
     },
 
     RAM2048: {
-        RAM_MAPPER_SIZE: 2048
+        RAM_SIZE: 2048
     },
 
     RAM4096: {
-        RAM_MAPPER_SIZE: 4096
+        RAM_SIZE: 4096
     },
 
     MSX1: {

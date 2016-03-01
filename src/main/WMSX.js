@@ -10,8 +10,7 @@ WMSX = {
 
     PRESETS:                        "",                         // Machine configuration presets to apply after DEFAULT, comma separated
 
-    MACHINE_TYPE:                   1,                          // 1 for MSX1, 2 for MSX2
-    RAM_MAPPER_SIZE:                256,                        // 128 - 4096 KB, MSX2 only
+    MACHINE_TYPE:                    1,                         // 1 for MSX1, 2 for MSX2
 
     BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
     EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM
@@ -23,6 +22,7 @@ WMSX = {
     DISKB_URL:                      "",                         // Full or relative URL of Disk B image file
     TAPE_URL:                       "",                         // Full or relative URL of TAPE image file
     STATE_LOAD_URL:                 "",                         // Full or relative URL of State file to start (takes precedence)
+    RAM_SIZE:                       256,                        // 64, 128, 256, 512, 1024, 2048, 4096 KB Main RAM (fixed in 64KB for MSX1)
     RAM_SLOT:                       2,                          // 1..2
     AUTO_START_DELAY:               2400,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,

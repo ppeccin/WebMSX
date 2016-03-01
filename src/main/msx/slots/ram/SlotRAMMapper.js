@@ -8,10 +8,13 @@ wmsx.SlotRAMMapper = function(content, size) {
         if (content) {
             bytes = content;
         } else {
-            bytes = new Array(size);
+            var i = 0;
+            while (VALID_SIZES[i] < size && i < VALID_SIZES.length - 1) i++;
+            var newSize = VALID_SIZES[i];
+            bytes = new Array(newSize * 1024);
         }
         self.bytes = bytes;
-        pages = (bytes.length / 16384) | 0;
+        pageMask = ((bytes.length / 16384) | 0) - 1;
     }
 
     this.powerOff = function() {
@@ -35,16 +38,16 @@ wmsx.SlotRAMMapper = function(content, size) {
     };
 
     this.outputFC = function(val) {
-        pageOffsets[0] = (val % pages) * 16384;
+        pageOffsets[0] = (val & pageMask) * 16384;
     };
     this.outputFD = function(val) {
-        pageOffsets[1] = (val % pages) * 16384 - 16384;
+        pageOffsets[1] = (val & pageMask) * 16384 - 16384;
     };
     this.outputFE = function(val) {
-        pageOffsets[2] = (val % pages) * 16384 - 32768;
+        pageOffsets[2] = (val & pageMask) * 16384 - 32768;
     };
     this.outputFF = function(val) {
-        pageOffsets[3] = (val % pages) * 16384 - 49152;
+        pageOffsets[3] = (val & pageMask) * 16384 - 49152;
     };
 
     this.read = function(address) {
@@ -60,12 +63,12 @@ wmsx.SlotRAMMapper = function(content, size) {
 
     var bytes;
     var pageOffsets = [ 0, 0, 0, 0 ];
-    var pages = 0;
+    var pageMask = 0;
 
     this.bytes = null;
-
     this.format = wmsx.SlotFormats.RAMMapper;
 
+    var VALID_SIZES = [64, 128, 256, 512, 1024, 2048, 4096];
 
     // Savestate  -------------------------------------------
 
@@ -80,22 +83,23 @@ wmsx.SlotRAMMapper = function(content, size) {
     this.loadState = function(state) {
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
+        pageMask = ((bytes.length / 16384) | 0) - 1;
         pageOffsets[0] = state.p0; pageOffsets[1] = state.p1; pageOffsets[2] = state.p2; pageOffsets[3] = state.p3;
     };
 
 
-    init(this);
+    if (content || size >= 0) init(this);
 
 };
 
 wmsx.SlotRAMMapper.prototype = wmsx.Slot.base;
 
-wmsx.SlotRAMMapper.createNewEmpty = function(size) {
+wmsx.SlotRAMMapper.createNew = function(size) {
     return new wmsx.SlotRAMMapper(null, size);
 };
 
 wmsx.SlotRAMMapper.recreateFromSaveState = function(state, previousSlot) {
-    var ram = previousSlot || new wmsx.SlotRAMMapper(null, 0);
+    var ram = previousSlot || new wmsx.SlotRAMMapper(null, null);
     ram.loadState(state);
     return ram;
 };
