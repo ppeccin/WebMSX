@@ -3,13 +3,20 @@
 WMSX.presets = {
 
     DEFAULT: {
-        MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/MSX2N.bios",
-        EXPANSION0_URL: "wmsx/roms/Disk.rom",
-        EXPANSION1_URL: "wmsx/roms/MSX2NEXT.bios"
+        _INCLUDE:       "MSX2"
     },
 
+    // MSX2 Machine
+
     MSX2: {
+        MACHINE_TYPE:   2,
+        SLOT_0_0_URL:   "wmsx/roms/MSX2N.bios",
+        SLOT_0_1_URL:   "wmsx/roms/MSX2NEXT.bios",
+        SLOT_0_2_URL:   "wmsx/roms/Disk.rom"
+    },
+
+    DOS2: {
+        SLOT_0_3_URL:   "wmsx/roms/MSXDOS22v3.rom"
     },
 
     RAM64: {
@@ -40,18 +47,34 @@ WMSX.presets = {
         RAM_SIZE: 4096
     },
 
+    // MSX1 Machine
+
     MSX1: {
         MACHINE_TYPE:   1,
-        BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios",
-        EXPANSION1_URL: "wmsx/roms/Empty.rom"
+        SLOT_0_URL:     "wmsx/roms/MSX1NTSCa.bios",
+        SLOT_3_0_URL:   "wmsx/roms/Disk.rom"
     },
 
-    NTSC: {
-        BIOS_URL:       "wmsx/roms/MSX1NTSCa.bios"
+    MSX1NTSC: {
+        SLOT_0_URL:     "wmsx/roms/MSX1NTSCa.bios"
     },
 
-    PAL: {
-        BIOS_URL:       "wmsx/roms/MSX1PALa.bios"
+    MSX1PAL: {
+        SLOT_0_URL:     "wmsx/roms/MSX1PALa.bios"
+    },
+
+    MSX1NODISK: {
+        SLOT_3_0_URL:   ""
+    },
+
+    // Genral add-ons and config options
+
+    SCC: {
+        SLOT_3_1_URL:   "wmsx/roms/[SCCExpansion].rom"
+    },
+
+    SCCI: {
+        SLOT_3_1_URL:   "wmsx/roms/[SCCIExpansion].rom"
     },
 
     NOVSYNCH: {
@@ -62,68 +85,44 @@ WMSX.presets = {
         SCREEN_VSYNCH_MODE: 2
     },
 
-    NODISK: {
-        EXPANSION0_URL: ""
-    },
-
     EMPTY: {
-        BIOS_URL:       "",
-        EXPANSION0_URL: "",
-        EXPANSION1_URL: ""
-    },
-
-    // Optional Expansions
-
-    DOS2: {
-        CARTRIDGE2_URL: "wmsx/roms/MSXDOS22v3.rom"
-    },
-
-    SCC: {
-        EXPANSION2_URL: "wmsx/roms/[SCCExpansion].rom"
-    },
-
-    SCCI: {
-        EXPANSION2_URL: "wmsx/roms/[SCCIExpansion].rom"
-    },
-
-    SCCPLUS: {
-        EXPANSION2_URL: "wmsx/roms/[SCCIExpansion].rom"
     },
 
     // Specific machines
 
     EXPERT: {
         MACHINE_TYPE:   1,
-        BIOS_URL:       "wmsx/roms/Expert10.bios",
-        EXPANSION0_URL: "wmsx/roms/DiskCDX2.rom"
-    },
-
-    HBF900: {
-        MACHINE_TYPE:   2,
-        BIOS_URL:       "wmsx/roms/hbf900bios.rom",
-        EXPANSION0_URL: "wmsx/roms/hbf900disk.rom",
-        EXPANSION1_URL: "wmsx/roms/hbf900sub.rom"
+        SLOT_0_URL:     "wmsx/roms/Expert10.bios",
+        SLOT_3_0_URL:   "wmsx/roms/DiskCDX2.rom"
     }
 
 };
 
-WMSX.presets.apply = function() {
 
-    var presetsString = (WMSX.PRESETS || "").trim().toUpperCase();
-    var presetNames = presetsString.split(",");
-    presetNames.unshift("DEFAULT");
+WMSX.presets.applyConfig = function() {
+    WMSX.presets.applyPresets("DEFAULT, " + (WMSX.PRESETS || ""));
+};
 
+WMSX.presets.applyPresets = function(presetsString) {
+    var presetNames = (presetsString || "").trim().toUpperCase().split(",");
     for (var i = 0; i < presetNames.length; i++) {
         var presetName = presetNames[i].trim();
-        if (!presetName) continue;
-        var preset = WMSX.presets[presetName];
-        if (preset) {
-            wmsx.Util.log("Applying preset: " + presetName);
-            for (var par in preset)
-                WMSX[par.trim().toUpperCase()] = preset[par];
-        } else {
-            wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
-        }
+        if (presetName) WMSX.presets.applyPreset(presetName);
     }
+};
 
+WMSX.presets.applyPreset = function(presetName) {
+    var presetPars = WMSX.presets[presetName];
+    if (presetPars) {
+        wmsx.Util.log("Applying preset: " + presetName);
+        for (var par in presetPars) {
+            var parName = par.trim().toUpperCase();
+            if (parName === "_INCLUDE")
+                WMSX.presets.applyPresets(presetPars[parName]);         // Another Presets referenced by _INCLUDE
+            else
+                WMSX[parName] = presetPars[par];                        // Normal Parameter to set
+        }
+    } else {
+        wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
+    }
 };

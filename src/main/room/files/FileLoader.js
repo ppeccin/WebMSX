@@ -5,6 +5,7 @@ wmsx.FileLoader = function() {
 
     this.connect = function(pMachine) {
         machine = pMachine;
+        slotSocket = machine.getSlotSocket();
         biosSocket = machine.getBIOSSocket();
         expansionSocket = machine.getExpansionSocket();
         cartridgeSocket = machine.getCartridgeSocket();
@@ -66,7 +67,7 @@ wmsx.FileLoader = function() {
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
-            self.loadContent(file.name, content, port || 0, altPower, asExpansion);
+            self.loadContentAsMedia(file.name, content, port || 0, altPower, asExpansion);
             if (then) then(true);
         };
         reader.onerror = function (event) {
@@ -81,7 +82,7 @@ wmsx.FileLoader = function() {
         new wmsx.MultiDownloader([{
             url: url,
             onSuccess: function (res) {
-                self.loadContent(url, res.content, port || 0, altPower, asExpansion);
+                self.loadContentAsMedia(url, res.content, port || 0, altPower, asExpansion);
                 if (then) then(true);
             },
             onError: function (res) {
@@ -91,7 +92,7 @@ wmsx.FileLoader = function() {
         }]).start();
     };
 
-    this.loadContent = function (name, content, port, altPower, asExpansion) {
+    this.loadContentAsMedia = function (name, content, port, altPower, asExpansion) {
         var rom, arrContent;
         // First try reading and creating directly
         try {
@@ -106,7 +107,7 @@ wmsx.FileLoader = function() {
             // Then try to load as a Disk file
             if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                 return;
-            // Then try to load as a normal, uncompressed ROM (BIOS or Cartridge)
+            // Then try to load as a ROM
             rom = new wmsx.ROM(name, arrContent);
             var slot = wmsx.SlotCreator.createFromROM(rom);
             if (slot.format === wmsx.SlotFormats.BIOS)
@@ -156,6 +157,48 @@ wmsx.FileLoader = function() {
                     }
                 }
                 showError("No valid ROM, Cassette or Disk files inside zip file");
+            } catch(ez) {
+                // Probably not a zip file. Let the original message show
+                showError(e.message);
+            }
+        }
+    };
+
+    this.loadContentAsSlot = function (name, content, slotPos) {
+        var rom, arrContent;
+        // First try reading and creating directly
+        try {
+            arrContent = new Array(content.length);
+            wmsx.Util.arrayCopy(content, 0, arrContent);
+            rom = new wmsx.ROM(name, arrContent);
+            var slot = wmsx.SlotCreator.createFromROM(rom);
+            slotSocket.insert(slot, slotPos);
+        } catch(e) {
+            if (!e.msx) {
+                wmsx.Util.log(e.stack);
+                throw e;
+            }
+
+            // If it fails, try assuming its a compressed content (zip with ROMs)
+            try {
+                var zip = new JSZip(content);
+                var files = zip.file(ZIP_INNER_FILES_PATTERN);
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    wmsx.Util.log("Trying zip file content: " + file.name);
+                    try {
+                        var cont = file.asUint8Array();
+                        arrContent = new Array(cont.length);
+                        wmsx.Util.arrayCopy(cont, 0, arrContent);
+                        rom = new wmsx.ROM(name + " - " + file.name, arrContent);
+                        slot = wmsx.SlotCreator.createFromROM(rom);
+                        slotSocket.insert(slot, slotPos);
+                        return;
+                    } catch (ef) {
+                        // Move on and try the next file
+                    }
+                }
+                showError("No valid ROMs inside zip file");
             } catch(ez) {
                 // Probably not a zip file. Let the original message show
                 showError(e.message);
@@ -245,6 +288,7 @@ wmsx.FileLoader = function() {
     };
 
     var machine;
+    var slotSocket;
     var biosSocket;
     var expansionSocket;
     var cartridgeSocket;

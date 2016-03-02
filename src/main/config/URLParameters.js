@@ -2,12 +2,12 @@
 
 wmsx.URLParameters = {
 
-    apply: function() {
+    applyParams: function() {
         var params = this.parseURLParams();
 
         // First use all parameters from chosen presets
         WMSX.PRESETS = params.PRESETS || WMSX.PRESETS;
-        WMSX.presets.apply();
+        WMSX.presets.applyConfig();
 
         // Then replace parameters for values passed in URL
         for (var param in params)
@@ -34,13 +34,9 @@ wmsx.URLParameters = {
     },
 
     abbreviations: {
+        PRESET: "PRESETS",
         TYPE: "MACHINE_TYPE",
         RAM: "RAM_MAPPER_SIZE",
-        BIOS: "BIOS_URL",
-        EXP: "EXPANSION0_URL",
-        EXP0: "EXPANSION0_URL",
-        EXP1: "EXPANSION1_URL",
-        EXP2: "EXPANSION2_URL",
         ROM: "CARTRIDGE1_URL",
         CART: "CARTRIDGE1_URL",
         CART1: "CARTRIDGE1_URL",
@@ -51,7 +47,6 @@ wmsx.URLParameters = {
         TAPE: "TAPE_URL",
         STATE: "STATE_LOAD_URL",
         SAVESTATE: "STATE_LOAD_URL",
-        PRESET: "PRESETS",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
     },
 

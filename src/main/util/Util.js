@@ -208,6 +208,16 @@ wmsx.Util = new function() {
         return -1;
     };
 
+    this.stringStartsWith = function(str, start) {
+        if (str.startsWith) return str.startsWith(start);
+        else return str.substr(0, start.length) === start;
+    };
+
+    this.stringEndsWith = function(str, end) {
+        if (str.endsWith) return str.endsWith(end);
+        else return str.substr(str.length - end.length) === end;
+    };
+
     this.dump = function(arr, from, chunk, quant) {
         var res = "";
         var p = from || 0;

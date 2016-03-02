@@ -18,9 +18,9 @@ WMSX.start = function () {
 
     // Read and apply parameters from URL
     if (WMSX.ALLOW_URL_PARAMETERS)
-        wmsx.URLParameters.apply();         // Will also apply specified preset
+        wmsx.URLParameters.applyParams();         // Will also apply specified preset
     else
-        WMSX.presets.apply();               // Apply only predefined preset
+        WMSX.presets.applyConfig();               // Apply only predefined preset
 
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
@@ -42,7 +42,7 @@ WMSX.start = function () {
                     wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                         afterAutoStartWait(function () {
                             WMSX.room.loading(false);
-                            WMSX.room.fileLoader.loadContent(res.url, res.content, 0, false);
+                            WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, false);
                         });
                     });
                 },
@@ -53,65 +53,11 @@ WMSX.start = function () {
                 }
             }]).start();
         } else {
+            // Multiple files. Power Machine on only after all files are loaded and inserted
             WMSX.room.loading(true);
-            var urls = [
-                WMSX.EXPANSION0_URL && {
-                    url: WMSX.EXPANSION0_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true, true);
-                    }
-                },
-                WMSX.EXPANSION1_URL && {
-                    url: WMSX.EXPANSION1_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 1, true, true);
-                    }
-                },
-                WMSX.EXPANSION2_URL && {
-                    url: WMSX.EXPANSION2_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 2, true, true);
-                    }
-                },
-                WMSX.CARTRIDGE1_URL && {
-                    url: WMSX.CARTRIDGE1_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
-                    }
-                },
-                WMSX.CARTRIDGE2_URL && {
-                    url: WMSX.CARTRIDGE2_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 1, true);
-                    }
-                },
-                WMSX.DISKA_URL && {
-                    url: WMSX.DISKA_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
-                    }
-                },
-                WMSX.DISKB_URL && {
-                    url: WMSX.DISKB_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 1, true);
-                    }
-                },
-                WMSX.TAPE_URL && {
-                    url: WMSX.TAPE_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
-                    }
-                },
-                WMSX.BIOS_URL && {
-                    url: WMSX.BIOS_URL,
-                    onSuccess: function (res) {
-                        WMSX.room.fileLoader.loadContent(res.url, res.content, 0, true);
-                    }
-                }
-            ];
-            // Power Machine on only after all slots are loaded and inserted
-            new wmsx.MultiDownloader(urls,
+            var slotURLs = slotURLSpecs();
+            var mediaURLs = mediaURLSpecs();
+            new wmsx.MultiDownloader(slotURLs.concat(mediaURLs),
                 function onSuccessAll() {
                     wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                         afterAutoStartWait(function () {
@@ -137,6 +83,63 @@ WMSX.start = function () {
         var wait = WMSX.AUTO_START_DELAY - (Date.now() - roomPowerOnTime);
         if (wait < 0) wait = 0;
         window.setTimeout(func, wait);
+    }
+
+    function mediaURLSpecs() {
+        // URLs specified by fixed media loading parameters
+        return [
+            WMSX.CARTRIDGE1_URL && {
+                url: WMSX.CARTRIDGE1_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, true);
+                }
+            },
+            WMSX.CARTRIDGE2_URL && {
+                url: WMSX.CARTRIDGE2_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 1, true);
+                }
+            },
+            WMSX.DISKA_URL && {
+                url: WMSX.DISKA_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, true);
+                }
+            },
+            WMSX.DISKB_URL && {
+                url: WMSX.DISKB_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 1, true);
+                }
+            },
+            WMSX.TAPE_URL && {
+                url: WMSX.TAPE_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, true);
+                }
+            }
+        ];
+    }
+
+    function slotURLSpecs() {
+        // Any URL specified in the format SLOT_N_N_URL
+        var slotsPars = Object.keys(WMSX).filter(function(key) {
+            return wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "URL")
+                && key.match(/[0-9]+/g);
+        });
+
+        return slotsPars.map(function(key) {
+            var pos = key.match(/[0-9]+/g).map(function(strNum) {
+                return strNum | 0;
+            });
+            return {
+                url: WMSX[key],
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsSlot(res.url, res.content, pos);
+                }
+            }
+
+        });
     }
 
 

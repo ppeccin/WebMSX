@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// WebMSX version 0.942
+// WebMSX version 2.0
 
 // Main Emulator parameters.
 // You may change any of these after loading the project and before starting the Emulator
@@ -10,20 +10,16 @@ WMSX = {
 
     PRESETS:                        "",                         // Machine configuration presets to apply, comma separated. Overwrites parameters below and DEFAULT preset
 
-    MACHINE_TYPE:                    1,                         // 1 for MSX1, 2 for MSX2
+    CARTRIDGE1_URL:                 "",                         // Full or relative URL of Media files to load
+    CARTRIDGE2_URL:                 "",
+    DISKA_URL:                      "",
+    DISKB_URL:                      "",
+    TAPE_URL:                       "",
+    STATE_LOAD_URL:                 "",
 
-    BIOS_URL:                       "",                         // Full or relative URL of BIOS ROM
-    EXPANSION0_URL:                 "",                         // Full or relative URL of System Expansion 0 ROM
-    EXPANSION1_URL:                 "",                         // Full or relative URL of System Expansion 1 ROM
-    EXPANSION2_URL:                 "",                         // Full or relative URL of System Expansion 2 ROM
-    CARTRIDGE1_URL:                 "",                         // Full or relative URL of Cartridge 1 ROM
-    CARTRIDGE2_URL:                 "",                         // Full or relative URL of Cartridge 2 ROM
-    DISKA_URL:                      "",                         // Full or relative URL of Disk A image file
-    DISKB_URL:                      "",                         // Full or relative URL of Disk B image file
-    TAPE_URL:                       "",                         // Full or relative URL of TAPE image file
-    STATE_LOAD_URL:                 "",                         // Full or relative URL of State file to start (takes precedence)
-    RAM_SIZE:                       256,                        // 64, 128, 256, 512, 1024, 2048, 4096 KB Main RAM (fixed in 64KB for MSX1)
+    MACHINE_TYPE:                   2,                          // 1 for MSX1, 2 for MSX2
     RAM_SLOT:                       2,                          // 1..2
+    RAM_SIZE:                       256,                        // 64, 128, 256, 512, 1024, 2048, 4096 KB Main RAM (fixed in 64KB for MSX1)
     AUTO_START_DELAY:               2400,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
@@ -41,7 +37,7 @@ WMSX = {
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 
-    VERSION:                        "0.96"                      // Don't change!
+    VERSION:                        "2.0"                       // Don't change!
 
 };
 

@@ -63,6 +63,10 @@ wmsx.Machine = function() {
         vdp.clockPulse();
     };
 
+    this.getSlotSocket = function() {
+        return slotSocket;
+    };
+
     this.getBIOSSocket = function() {
         return biosSocket;
     };
