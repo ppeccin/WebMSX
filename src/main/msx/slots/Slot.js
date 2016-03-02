@@ -3,6 +3,8 @@
 // Abstract base Slot
 wmsx.Slot = function() {
 
+    this.addressRange = [0x0000, 0xfff];
+
     this.connect = function(machine) {
     };
 

@@ -12,32 +12,26 @@ wmsx.SlotExpanded = function() {
 
     this.connect = function(pMachine) {
         machine = pMachine;
-        subSlots[0].connect(machine);
-        subSlots[1].connect(machine);
-        subSlots[2].connect(machine);
-        subSlots[3].connect(machine);
+        for (var s = 0; s < 4; s++) subSlots[s].connect(machine);
     };
 
     this.disconnect = function(pMachine) {
-        subSlots[0].disconnect(machine);
-        subSlots[1].disconnect(machine);
-        subSlots[2].disconnect(machine);
-        subSlots[3].disconnect(machine);
+        for (var s = 0; s < 4; s++) subSlots[s].disconnect(machine);
         machine = null;
     };
 
     this.powerOn = function() {
         this.setSecondarySlotConfig(0);
-        for (var i = 0; i < 4; i++) subSlots[i].powerOn();
+        for (var s = 0; s < 4; s++) subSlots[s].powerOn();
     };
 
     this.powerOff = function() {
-        for (var i = 0; i < 4; i++) subSlots[i].powerOff();
+        for (var s = 0; s < 4; s++) subSlots[s].powerOff();
     };
 
     this.reset = function() {
         this.setSecondarySlotConfig(0);
-        for (var i = 0; i < 4; i++) subSlots[i].reset();
+        for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
 
     this.insertSubSlot = function(subSlot, subSlotNumber) {

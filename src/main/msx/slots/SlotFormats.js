@@ -32,15 +32,30 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Partitioned": {
+        name: "Partitioned",
+        desc: "Partitioned Slot",
+        priority: 203,
+        tryFormat: function (rom) {
+            // Not Possible to load Partitioned Slots
+            return null;
+        },
+        createFromROM: null,
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotPartitioned.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "BIOS": {
         name: "BIOS",
         desc: "Main BIOS",
         priority: 206,
         tryFormat: function (rom) {
-            // Assumes any 16K or 32K content without the Cartridge identifier "AB" is a BIOS
+            // Assumes any 16K or 32K content without the Cartridge identifier "AB" or the Extension identifier "CD" is a BIOS
             if (
-                //(rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66)) ||
-                (rom.content.length === 32768 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0x4000] !== 65 || rom.content[0x4001] !== 66))
+                (rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0] !== 67 || rom.content[1] !== 68)) ||
+                (rom.content.length === 32768 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0] !== 67 || rom.content[1] !== 68)
+                    && (rom.content[0x4000] !== 65 || rom.content[0x4001] !== 66) && (rom.content[0x4000] !== 67 || rom.content[0x4001] !== 68))
             )
                 return this;
         },
@@ -57,8 +72,8 @@ wmsx.SlotFormats = {
         desc: "MSX2 BIOS Extension",
         priority: 207,
         tryFormat: function (rom) {
-            // Assumes any 16K content without the Cartridge identifier "AB" is a BIOS Extension
-            if ((rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66)))
+            // Assumes any 16K content without the BIOS Extension identifier "CD" is a BIOS Extension
+            if (rom.content.length === 16384 && rom.content[0] === 67 && rom.content[1] === 68)
                 return this;
         },
         createFromROM: function (rom) {
