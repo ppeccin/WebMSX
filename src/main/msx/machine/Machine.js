@@ -122,11 +122,12 @@ wmsx.Machine = function() {
         if (typeof slotPos === "number") slotPos = [slotPos];
         var pri = slotPos[0], sec = slotPos[1];
 
-        var priSlot = bus.getSlot(pri);
+        var res = bus.getSlot(pri);
         if (sec >= 0) {
-            if (priSlot.isExpanded()) return priSlot.getSubSlot(sec);
-            else return null;
-        } else return priSlot;
+            if (res.isExpanded()) res = res.getSubSlot(sec);
+            else res = null;
+        }
+        return res;
     };
 
     this.insertSlot = function(slot, slotPos) {
@@ -169,30 +170,11 @@ wmsx.Machine = function() {
         return prev;
     };
 
-    this.setBIOS = function(pBIOS) {
+    this.setBIOS = function(pBIOS) {                    // Called by SlotBIOS on connection
         bios = pBIOS === EMPTY_SLOT ? null : pBIOS;
         videoStandardSoft = null;
         setVideoStandardAuto();
     };
-
-    function setCartridge(cartridge, port) {
-        self.insertSlot(cartridge, port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
-        cartridgeSocket.fireStateUpdate();
-    }
-
-    function getCartridge(port) {
-        var cartridge = self.getSlot(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
-        return cartridge === EMPTY_SLOT ? null : cartridge;
-    }
-
-    function setExpansion(expansion, port) {
-        self.insertSlot(expansion, EXPANSIONS_EXP_SLOTS[port]);
-    }
-
-    function getExpansion(port) {
-        var expansion = self.getSlot(EXPANSIONS_EXP_SLOTS[port]);
-        return expansion === EMPTY_SLOT ? null : expansion;
-    }
 
     function setVideoStandard(pVideoStandard) {
         self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, false);
@@ -311,6 +293,7 @@ wmsx.Machine = function() {
     function socketsCreate() {
         machineControlsSocket = new MachineControlsSocket();
         machineControlsSocket.addForwardedInput(self);
+        slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
@@ -338,6 +321,7 @@ wmsx.Machine = function() {
     var userPauseMoreFrames = 0;
     var systemPaused = false;
 
+    var slotSocket;
     var machineControlsSocket;
     var keyboardSocket;
     var joysticksSocket;
@@ -471,10 +455,7 @@ wmsx.Machine = function() {
 
     function BIOSSocket() {
         this.insert = function (bios, altPower) {
-            var powerWasOn = self.powerIsOn;
-            if (powerWasOn) self.powerOff();
-            self.insertSlot(bios, BIOS_SLOT);
-            if (!altPower && bios) self.userPowerOn();
+            slotSocket.insert(bios, BIOS_SLOT);
         };
         this.inserted = function () {
             return bios;
@@ -486,14 +467,11 @@ wmsx.Machine = function() {
 
     function ExpansionSocket() {
         this.insert = function (expansion, port, altPower) {
-            var powerWasOn = self.powerIsOn;
-            if (powerWasOn) self.powerOff();
-            if (expansion == getExpansion(port || 0)) return;
-            setExpansion(expansion, port);
-            if (!altPower && (expansion || powerWasOn)) self.userPowerOn();
+            if (expansion == slotSocket.inserted(EXPANSIONS_EXP_SLOTS[port || 0])) return;
+            slotSocket.insert(expansion, EXPANSIONS_EXP_SLOTS[port || 0], altPower);
         };
         this.inserted = function (port) {
-            return getExpansion(port);
+            return slotSocket.inserted(EXPANSIONS_EXP_SLOTS[port || 0]);
         };
     }
 
@@ -503,16 +481,15 @@ wmsx.Machine = function() {
     function CartridgeSocket() {
 
         this.insert = function (cartridge, port, altPower) {
-            if (cartridge == getCartridge(port || 0)) return;
-            var powerWasOn = self.powerIsOn;
-            if (powerWasOn) self.powerOff();
-            setCartridge(cartridge, port);
+            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            if (cartridge === slotSocket.inserted(slotPos)) return;
+            slotSocket.insert(cartridge, slotPos);
+            cartridgeSocket.fireStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
-            if (!altPower && (cartridge || powerWasOn)) self.userPowerOn();
         };
 
         this.inserted = function (port) {
-            return getCartridge(port);
+            return slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
         };
 
         this.fireStateUpdate = function () {
@@ -538,10 +515,12 @@ wmsx.Machine = function() {
         this.insert = function (slot, slotPos, altPower) {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn) self.powerOff();
-            if (!altPower && powerWasOn) self.userPowerOn();
+            self.insertSlot(slot, slotPos);
+            if (!altPower && (slot || powerWasOn)) self.userPowerOn();
         };
         this.inserted = function (slotPos) {
-            return self.getSlot(slotPos);
+            var res = self.getSlot(slotPos);
+            return res === EMPTY_SLOT ? null : res;
         };
     }
 
