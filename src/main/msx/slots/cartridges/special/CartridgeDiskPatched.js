@@ -1,9 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Patched 16K Disk ROM. Multiple format, used for all Disk ROM manufacturers. Accesses and commands the Disk Drive
-// 0x4000 - 0x7fff
+// 0x4000 - 0xbfff
 
 wmsx.CartridgeDiskPatched = function(rom, format) {
+
+    this.addressRange = [0x4000, 0xbfff];
 
     function init(self) {
         self.rom = rom;

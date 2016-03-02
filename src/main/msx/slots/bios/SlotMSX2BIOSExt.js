@@ -5,6 +5,8 @@
 
 wmsx.SlotMSX2BIOSExt = function(rom) {
 
+    this.addressRange = [0x0000, 0x3fff];
+
     function init(self) {
         self.rom = rom;
         bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);

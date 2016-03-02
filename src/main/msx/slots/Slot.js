@@ -1,9 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Abstract base Slot
+// 0x0000 - 0xffff
+
 wmsx.Slot = function() {
 
-    this.addressRange = [0x0000, 0xfff];
+    this.addressRange = [0x0000, 0xffff];
 
     this.connect = function(machine) {
     };

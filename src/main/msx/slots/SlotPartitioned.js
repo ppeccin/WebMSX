@@ -58,8 +58,8 @@ wmsx.SlotPartitioned = function() {
         var addEnd =   slot.addressRange[1];
         var pAdd = 0;
         for (var p = 0; p < 4; p++) {
-            if (subSlotPages[p] !== emptySlot && pAdd >= addStart && pAdd <= addEnd) {
-                removeSubSlot(p);
+            if (pAdd >= addStart && pAdd <= addEnd) {
+                if (subSlotPages[p] !== emptySlot) removeSubSlot(p);
                 subSlotPages[p] = slot;
             }
             pAdd += 0x4000;
@@ -67,7 +67,7 @@ wmsx.SlotPartitioned = function() {
         if (machine) slot.connect(machine);
     };
 
-    this.getSubSlotPage = function(page) {
+    this.getSubSlot = function(page) {
         return subSlotPages[page];
     };
 
@@ -88,7 +88,7 @@ wmsx.SlotPartitioned = function() {
 
     this.cpuExtensionFinish = function(s) {
         // Receive all CPU Extensions and pass to slot at instruction
-        return slot[s.extPC >>> 14].cpuExtensionFinish(s);
+        return subSlotPages[s.extPC >>> 14].cpuExtensionFinish(s);
     };
 
     function create() {
