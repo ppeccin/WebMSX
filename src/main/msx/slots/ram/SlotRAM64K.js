@@ -3,10 +3,11 @@
 // Standard 64K RAM Slot
 // 0x0000 - 0xffff
 
-wmsx.SlotRAM64K = function(content) {
+wmsx.SlotRAM64K = function(rom) {
 
     function init(self) {
-        bytes = content;
+        self.rom = rom;
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
         self.bytes = bytes;
     }
 
@@ -29,6 +30,7 @@ wmsx.SlotRAM64K = function(content) {
     var bytes;
     this.bytes = null;
 
+    this.rom = null;
     this.format = wmsx.SlotFormats.RAM64K;
 
 
@@ -47,15 +49,11 @@ wmsx.SlotRAM64K = function(content) {
     };
 
 
-    if (content) init(this);
+    if (rom) init(this);
 
 };
 
 wmsx.SlotRAM64K.prototype = wmsx.Slot.base;
-
-wmsx.SlotRAM64K.createNew = function() {
-    return new wmsx.SlotRAM64K(wmsx.Util.arrayFill(new Array(65536), 0x00));
-};
 
 wmsx.SlotRAM64K.recreateFromSaveState = function(state, previousSlot) {
     var ram = previousSlot || new wmsx.SlotRAM64K();

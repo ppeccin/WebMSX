@@ -48,6 +48,11 @@ wmsx.Util = new function() {
         return arr;
     };
 
+    this.arrayIfAbsentAdd = function(arr, element) {
+        if (!this.arrayHasElement(arr, element)) this.arrayAdd(arr, element);
+        return arr;
+    };
+
     this.arrayRemoveAllElement = function(arr, element) {
         var i;
         while ((i = arr.indexOf(element)) >= 0) {

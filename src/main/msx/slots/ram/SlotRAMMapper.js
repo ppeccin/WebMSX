@@ -3,17 +3,14 @@
 // MSX2 Standard RAM Mapper. Supports sizes from 128KB to 4MB
 // 0x0000 - 0xffff
 
-wmsx.SlotRAMMapper = function(content, size) {
+wmsx.SlotRAMMapper = function(rom) {
 
     function init(self) {
-        if (content) {
-            bytes = content;
-        } else {
-            var i = 0;
-            while (VALID_SIZES[i] < size && i < VALID_SIZES.length - 1) i++;
-            var newSize = VALID_SIZES[i];
-            bytes = new Array(newSize * 1024);
-        }
+        self.rom = rom;
+        var i = 0;
+        while (VALID_SIZES[i] < WMSX.RAM_SIZE && i < VALID_SIZES.length - 1) i++;
+        var newSize = VALID_SIZES[i];
+        bytes = new Array(newSize * 1024);
         self.bytes = bytes;
         pageMask = ((bytes.length / 16384) | 0) - 1;
     }
@@ -62,11 +59,13 @@ wmsx.SlotRAMMapper = function(content, size) {
     };
 
 
-    var bytes;
     var pageOffsets = [ 0, 0, 0, 0 ];
     var pageMask = 0;
 
+    var bytes;
     this.bytes = null;
+
+    this.rom = null;
     this.format = wmsx.SlotFormats.RAMMapper;
 
     var VALID_SIZES = [64, 128, 256, 512, 1024, 2048, 4096];
@@ -89,18 +88,14 @@ wmsx.SlotRAMMapper = function(content, size) {
     };
 
 
-    if (content || size >= 0) init(this);
+    if (rom) init(this);
 
 };
 
 wmsx.SlotRAMMapper.prototype = wmsx.Slot.base;
 
-wmsx.SlotRAMMapper.createNew = function(size) {
-    return new wmsx.SlotRAMMapper(null, size);
-};
-
 wmsx.SlotRAMMapper.recreateFromSaveState = function(state, previousSlot) {
-    var ram = previousSlot || new wmsx.SlotRAMMapper(null, null);
+    var ram = previousSlot || new wmsx.SlotRAMMapper();
     ram.loadState(state);
     return ram;
 };

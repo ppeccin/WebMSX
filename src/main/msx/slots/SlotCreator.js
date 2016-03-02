@@ -101,7 +101,7 @@ wmsx.SlotCreator = function () {
         var romURL = romSource.toUpperCase();
         for (var formatName in wmsx.SlotFormats)
             if (formatMatchesByHint(formatName.toUpperCase(), romURL)) {
-                info.f = formatName;
+                info.f = wmsx.SlotFormats[formatName].name;          // Translation from Synonym - Base Name
                 info.t = true;
                 break;
             }

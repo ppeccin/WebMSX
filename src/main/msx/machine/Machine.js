@@ -248,7 +248,6 @@ wmsx.Machine = function() {
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
-        self.ram = self.getSlot(RAM_SLOT);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);
@@ -288,10 +287,6 @@ wmsx.Machine = function() {
         vdp.connectBus(bus);
         psg.connectBus(bus);
         rtc.connectBus(bus);
-
-        // RAM
-        self.ram = MSX2 ? wmsx.SlotRAMMapper.createNew(WMSX.RAM_SIZE) : wmsx.SlotRAM64K.createNew();
-        self.insertSlot(self.ram, RAM_SLOT);
     }
 
     function socketsCreate() {
@@ -346,11 +341,10 @@ wmsx.Machine = function() {
 
     var MSX2 = WMSX.MACHINE_TYPE === 2;
 
-    var BIOS_SLOT = [0, 0];
-    var RAM_SLOT = WMSX.RAM_SLOT;
-    var CARTRIDGE0_SLOT = RAM_SLOT === 1 ? 2 : 1;
-    var CARTRIDGE1_SLOT = [ 3, 3];
-    var EXPANSIONS_EXP_SLOTS = [ [3, 0], [3, 1], [3, 2] ];
+    var BIOS_SLOT = WMSX.BIOS_SLOT;
+    var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
+    var CARTRIDGE1_SLOT = WMSX.CARTRIDGE2_SLOT;
+    var EXPANSIONS_EXP_SLOTS = WMSX.EXPANSION_SLOTS;
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
     // MachineControls interface  --------------------------------------------

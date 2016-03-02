@@ -89,10 +89,12 @@ wmsx.SlotFormats = {
         desc: "RAM 64K",
         priority: 211,
         tryFormat: function (rom) {
-            // Not Possible to load RAMs
-            return null;
+            // Only 0K content. Must be selected via info format hint
+            if (rom.content.length === 0) return this;
         },
-        createFromROM: null,
+        createFromROM: function (rom) {
+            return new wmsx.SlotRAM64K(rom);
+        },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.SlotRAM64K.recreateFromSaveState(state, previousSlot);
         }
@@ -103,10 +105,12 @@ wmsx.SlotFormats = {
         desc: "Standard RAM Mapper",
         priority: 221,
         tryFormat: function (rom) {
-            // Not Possible to load RAMs
-            return null;
+            // Only 0K content. Must be selected via info format hint
+            if (rom.content.length === 0) return this;
         },
-        createFromROM: null,
+        createFromROM: function (rom) {
+            return new wmsx.SlotRAMMapper(rom);
+        },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.SlotRAMMapper.recreateFromSaveState(state, previousSlot);
         }
@@ -389,7 +393,12 @@ wmsx.SlotFormats = {
 
 };
 
-// Backward Compatibility
+// Synonyms
+
+wmsx.SlotFormats.Snatcher = wmsx.SlotFormats.SCCIExpansion;
+wmsx.SlotFormats.SDSnatcher = wmsx.SlotFormats.SCCIExpansion;
+
+// Backward Compatibility  TODO Remove
 
 wmsx.SlotFormats.SlotExpanded = wmsx.SlotFormats.Expanded;
 wmsx.SlotFormats.MSX2BIOSEXT = wmsx.SlotFormats.MSX2BIOSExt;
