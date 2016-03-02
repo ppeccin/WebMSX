@@ -47,11 +47,10 @@ wmsx.Machine = function() {
 
     this.userPowerOn = function(autoRunCassette) {
         if (isLoading) return;
-        if (!getBIOS()) {
+        if (!bios) {
             this.getVideoOutput().showOSD("Insert BIOS!", true);
             return;
         }
-
         this.powerOn();
         if (autoRunCassette) cassetteSocket.typeAutoRunCommandAfterPowerOn();
      };
@@ -119,6 +118,33 @@ wmsx.Machine = function() {
                 self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true);
     };
 
+    this.getSlot = function(slotPos) {
+        if (typeof slotPos === "number") slotPos = [slotPos];
+        var pri = slotPos[0], sec = slotPos[1];
+
+        var priSlot = bus.getSlot(pri);
+        if (sec >= 0) {
+            if (priSlot.isExpanded()) return priSlot.getSubSlot(sec);
+            else return null;
+        } else return priSlot;
+    };
+
+    this.insertSlot = function(slot, slotPos) {
+        if (typeof slotPos === "number") slotPos = [slotPos];
+        var pri = slotPos[0], sec = slotPos[1];
+
+        var curPriSlot = bus.getSlot(pri);
+        if (sec >= 0) {
+            if (!curPriSlot.isExpanded()) {
+                var oldPriSlot = curPriSlot;
+                curPriSlot = new wmsx.SlotExpanded();       // Automatically insert an ExpandedSlot if not present
+                bus.insertSlot(curPriSlot, pri);
+                if (sec !== 0) curPriSlot.insertSubSlot(oldPriSlot, 0);     // Keep old slot at subSlot 0 if possible
+            }
+            curPriSlot.insertSubSlot(slot, sec);
+        } else bus.insertSlot(slot, pri);
+    };
+
     this.loading = function(boo) {
         isLoading = boo;
     };
@@ -143,44 +169,29 @@ wmsx.Machine = function() {
         return prev;
     };
 
-    function setBIOS(bios) {
-        bus.insertSlot(bios || wmsx.SlotEmpty.singleton, BIOS_SLOT);
+    this.setBIOS = function(pBIOS) {
+        bios = pBIOS === EMPTY_SLOT ? null : pBIOS;
         videoStandardSoft = null;
         setVideoStandardAuto();
-    }
-
-    function getBIOS() {
-        var bios = bus.getSlot(BIOS_SLOT);
-        return bios === wmsx.SlotEmpty.singleton ? null : bios;
-    }
+    };
 
     function setCartridge(cartridge, port) {
-        var slot = cartridge || wmsx.SlotEmpty.singleton;
-        if (port === 1)
-            bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, CARTRIDGE1_EXP_SLOT);
-        else
-            bus.insertSlot(slot, CARTRIDGE0_SLOT);
+        self.insertSlot(cartridge, port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
         cartridgeSocket.fireStateUpdate();
     }
 
     function getCartridge(port) {
-        var cartridge = port === 1 ? bus.getSlot(EXPANDED_SLOT).getSubSlot(CARTRIDGE1_EXP_SLOT) : bus.getSlot(CARTRIDGE0_SLOT);
-        return cartridge === wmsx.SlotEmpty.singleton ? null : cartridge;
+        var cartridge = self.getSlot(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
+        return cartridge === EMPTY_SLOT ? null : cartridge;
     }
 
     function setExpansion(expansion, port) {
-        var slot = expansion || wmsx.SlotEmpty.singleton;
-        bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, EXPANSIONS_EXP_SLOTS[port]);
+        self.insertSlot(expansion, EXPANSIONS_EXP_SLOTS[port]);
     }
 
     function getExpansion(port) {
-        var expansion = bus.getSlot(EXPANDED_SLOT).getSubSlot(EXPANSIONS_EXP_SLOTS[port]);
-        return expansion === wmsx.SlotEmpty.singleton ? null : expansion;
-    }
-
-    function getSlot(slotPos) {
-        var pri = (slotPos % 4) | 0;
-
+        var expansion = self.getSlot(EXPANSIONS_EXP_SLOTS[port]);
+        return expansion === EMPTY_SLOT ? null : expansion;
     }
 
     function setVideoStandard(pVideoStandard) {
@@ -198,7 +209,6 @@ wmsx.Machine = function() {
         if (videoStandardSoft) {
             newStandard = videoStandardSoft;
         } else {
-            var bios = getBIOS();
             if (bios) {
                 bios.setVideoStandardUseOriginal();
                 newStandard = bios.originalVideoStandard;
@@ -209,7 +219,7 @@ wmsx.Machine = function() {
 
     function setVideoStandardForced(forcedVideoStandard) {
         videoStandardIsAuto = false;
-        if (getBIOS()) getBIOS().setVideoStandardForced(forcedVideoStandard);
+        if (bios) bios.setVideoStandardForced(forcedVideoStandard);
         setVideoStandard(forcedVideoStandard);
     }
 
@@ -252,7 +262,7 @@ wmsx.Machine = function() {
         psg.loadState(state.ps);
         vdp.loadState(state.vd);
         cpu.loadState(state.c);
-        self.ram = bus.getSlot(RAM_SLOT);
+        self.ram = self.getSlot(RAM_SLOT);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);
@@ -295,13 +305,7 @@ wmsx.Machine = function() {
 
         // RAM
         self.ram = MSX2 ? wmsx.SlotRAMMapper.createNew(WMSX.RAM_SIZE) : wmsx.SlotRAM64K.createNew();
-        bus.insertSlot(self.ram, RAM_SLOT);
-
-        // Expanded Slot
-        bus.insertSlot(new wmsx.SlotExpanded(), EXPANDED_SLOT);
-
-        // Partitioned Slot
-        // bus.insertSlot(new wmsx.SlotPartitioned(), CARTRIDGE0_SLOT);
+        self.insertSlot(self.ram, RAM_SLOT);
     }
 
     function socketsCreate() {
@@ -344,21 +348,22 @@ wmsx.Machine = function() {
     var cassetteSocket;
     var diskDriveSocket;
 
+    var bios;
     var videoStandard;
     var videoStandardSoft;
     var videoStandardIsAuto = false;
+
     var vSynchMode;
 
 
     var MSX2 = WMSX.MACHINE_TYPE === 2;
 
-    var BIOS_SLOT = 0;
+    var BIOS_SLOT = [0, 0];
     var RAM_SLOT = WMSX.RAM_SLOT;
     var CARTRIDGE0_SLOT = RAM_SLOT === 1 ? 2 : 1;
-    var EXPANDED_SLOT = 3;
-    var CARTRIDGE1_EXP_SLOT = 3;
-    var EXPANSIONS_EXP_SLOTS = [ 0, 1, 2 ];
-
+    var CARTRIDGE1_SLOT = [ 3, 3];
+    var EXPANSIONS_EXP_SLOTS = [ [3, 0], [3, 1], [3, 2] ];
+    var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
     // MachineControls interface  --------------------------------------------
 
@@ -468,11 +473,11 @@ wmsx.Machine = function() {
         this.insert = function (bios, altPower) {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn) self.powerOff();
-            setBIOS(bios);
+            self.insertSlot(bios, BIOS_SLOT);
             if (!altPower && bios) self.userPowerOn();
         };
         this.inserted = function () {
-            return getBIOS();
+            return bios;
         };
     }
 
@@ -529,15 +534,14 @@ wmsx.Machine = function() {
 
     // Slot Socket  ---------------------------------------------
 
-
     function SlotSocket() {
-        this.insert = function (slot, slotPosition, altPower) {
+        this.insert = function (slot, slotPos, altPower) {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn) self.powerOff();
             if (!altPower && powerWasOn) self.userPowerOn();
         };
-        this.inserted = function (slotPosition) {
-            return getExpansion(port);
+        this.inserted = function (slotPos) {
+            return self.getSlot(slotPos);
         };
     }
 

@@ -24,7 +24,7 @@ wmsx.EngineBUS = function(machine, cpu) {
 
     this.insertSlot = function(slot, slotNumber) {
         slots[slotNumber].disconnect(machine);
-        slots[slotNumber] = slot;
+        slots[slotNumber] = slot || wmsx.SlotEmpty.singleton;
         slot.connect(machine);
         this.setPrimarySlotConfig(primarySlotConfig);
     };

@@ -19,10 +19,12 @@ wmsx.SlotBIOS = function(rom) {
         basicExtension = new wmsx.BASICExtension(machine.bus);
         cassetteDriver = new wmsx.ImageCassetteDriver();
         cassetteDriver.connect(this, machine);
+        machine.setBIOS(this);
     };
 
     this.disconnect = function(machine) {
         if (cassetteDriver) cassetteDriver.disconnect(this, machine);
+        machine.setBIOS(null);
     };
 
     this.getBASICExtension = function() {
