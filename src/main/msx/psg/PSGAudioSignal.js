@@ -184,13 +184,8 @@ wmsx.PSGAudioSignal = function() {
     };
 
     this.loadState = function(s) {
-        if (s.hasOwnProperty("pa")) {               // Backward compatibility
-            mixedChannel.loadState(s);
-            audioCartridge = undefined;
-        } else {
-            mixedChannel.loadState(s.a);
-            if (!s.ac) audioCartridge = undefined;
-        }
+        mixedChannel.loadState(s.a);
+        if (!s.ac) audioCartridge = undefined;
     };
 
 };

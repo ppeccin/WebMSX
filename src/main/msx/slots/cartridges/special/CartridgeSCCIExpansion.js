@@ -189,13 +189,11 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         bank4Offset = s.b4;
         numBanks = s.n;
         setMode(s.m || 0);
-        if (s.hasOwnProperty("scc")) {              // Backward compatibility
-            scc.loadState(s.scc);
-            sccSelected = s.scs;
-            scciSelected = s.sis;
-            sccConnected = s.scn;
-            sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
-        }
+        scc.loadState(s.scc);
+        sccSelected = s.scs;
+        scciSelected = s.sis;
+        sccConnected = s.scn;
+        sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
     this.eval = function(str) {

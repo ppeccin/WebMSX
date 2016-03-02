@@ -122,12 +122,10 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         bank3Offset = s.b3;
         bank4Offset = s.b4;
         numBanks = s.n;
-        if (s.hasOwnProperty("scc")) {              // Backward compatibility
-            scc.loadState(s.scc);
-            sccSelected = s.scs;
-            sccConnected = s.scn;
-            sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
-        }
+        scc.loadState(s.scc);
+        sccSelected = s.scs;
+        sccConnected = s.scn;
+        sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
 
