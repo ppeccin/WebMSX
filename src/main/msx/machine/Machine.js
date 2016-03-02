@@ -143,51 +143,56 @@ wmsx.Machine = function() {
         return prev;
     };
 
-    var setBIOS = function(bios) {
+    function setBIOS(bios) {
         bus.insertSlot(bios || wmsx.SlotEmpty.singleton, BIOS_SLOT);
         videoStandardSoft = null;
         setVideoStandardAuto();
-    };
+    }
 
-    var getBIOS = function() {
+    function getBIOS() {
         var bios = bus.getSlot(BIOS_SLOT);
         return bios === wmsx.SlotEmpty.singleton ? null : bios;
-    };
+    }
 
-    var setCartridge = function(cartridge, port) {
+    function setCartridge(cartridge, port) {
         var slot = cartridge || wmsx.SlotEmpty.singleton;
         if (port === 1)
             bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, CARTRIDGE1_EXP_SLOT);
         else
             bus.insertSlot(slot, CARTRIDGE0_SLOT);
         cartridgeSocket.fireStateUpdate();
-    };
+    }
 
-    var getCartridge = function(port) {
+    function getCartridge(port) {
         var cartridge = port === 1 ? bus.getSlot(EXPANDED_SLOT).getSubSlot(CARTRIDGE1_EXP_SLOT) : bus.getSlot(CARTRIDGE0_SLOT);
         return cartridge === wmsx.SlotEmpty.singleton ? null : cartridge;
-    };
+    }
 
-    var setExpansion = function(expansion, port) {
+    function setExpansion(expansion, port) {
         var slot = expansion || wmsx.SlotEmpty.singleton;
         bus.getSlot(EXPANDED_SLOT).insertSubSlot(slot, EXPANSIONS_EXP_SLOTS[port]);
-    };
+    }
 
-    var getExpansion = function(port) {
+    function getExpansion(port) {
         var expansion = bus.getSlot(EXPANDED_SLOT).getSubSlot(EXPANSIONS_EXP_SLOTS[port]);
         return expansion === wmsx.SlotEmpty.singleton ? null : expansion;
-    };
+    }
 
-    var setVideoStandard = function(pVideoStandard) {
+    function getSlot(slotPos) {
+        var pri = (slotPos % 4) | 0;
+
+    }
+
+    function setVideoStandard(pVideoStandard) {
         self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, false);
         if (videoStandard === pVideoStandard) return;
 
         videoStandard = pVideoStandard;
         vdp.setVideoStandard(videoStandard);
         mainClockAdjustToNormal();
-    };
+    }
 
-    var setVideoStandardAuto = function() {
+    function setVideoStandardAuto() {
         videoStandardIsAuto = true;
         var newStandard = wmsx.VideoStandard.NTSC;          // Default in case we can't discover it
         if (videoStandardSoft) {
@@ -200,28 +205,28 @@ wmsx.Machine = function() {
             }
         }
         setVideoStandard(newStandard);
-    };
+    }
 
-    var setVideoStandardForced = function(forcedVideoStandard) {
+    function setVideoStandardForced(forcedVideoStandard) {
         videoStandardIsAuto = false;
         if (getBIOS()) getBIOS().setVideoStandardForced(forcedVideoStandard);
         setVideoStandard(forcedVideoStandard);
-    };
+    }
 
-    var setVSynchMode = function(mode) {
+    function setVSynchMode(mode) {
         mode %= 3;
         if (vSynchMode === mode) return;
 
         vSynchMode = mode;
         vdp.setVSynchMode(vSynchMode);
         mainClockAdjustToNormal();
-    };
+    }
 
-    var powerFry = function() {
+    function powerFry() {
         //ram.powerFry();
-    };
+    }
 
-    var saveState = function() {
+    function saveState() {
         return {
             b:  bus.saveState(),
             rc: rtc.saveState(),
@@ -235,9 +240,9 @@ wmsx.Machine = function() {
             dd: diskDriveSocket.getDrive().saveState(),
             ct: cassetteSocket.getDeck().saveState()
         };
-    };
+    }
 
-    var loadState = function(state) {
+    function loadState(state) {
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
@@ -252,28 +257,28 @@ wmsx.Machine = function() {
         cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);
         cassetteSocket.getDeck().loadState(state.ct);
-    };
+    }
 
-    var mainClockAdjustToNormal = function() {
+    function mainClockAdjustToNormal() {
         var freq = vdp.getDesiredBaseFrequency();
         mainClock.setVSynch(vSynchMode > 0);
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
-    };
+    }
 
-    var mainClockAdjustToFast = function() {
+    function mainClockAdjustToFast() {
         var freq = 360;     // About 6x faster if host machine is capable
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
-    };
+    }
 
-    var mainClockAdjustToSlow = function() {
+    function mainClockAdjustToSlow() {
         var freq = 20;      // About 3x slower
         mainClock.setFrequency(freq);
         psg.getAudioOutput().setFps(freq);
-    };
+    }
 
-    var mainComponentsCreate = function() {
+    function mainComponentsCreate() {
         self.mainClock = mainClock = new wmsx.Clock(self);
         self.cpu = cpu = new wmsx.Z80();
         self.psg = psg = new wmsx.PSG();
@@ -297,9 +302,9 @@ wmsx.Machine = function() {
 
         // Partitioned Slot
         // bus.insertSlot(new wmsx.SlotPartitioned(), CARTRIDGE0_SLOT);
-    };
+    }
 
-    var socketsCreate = function() {
+    function socketsCreate() {
         machineControlsSocket = new MachineControlsSocket();
         machineControlsSocket.addForwardedInput(self);
         biosSocket = new BIOSSocket();
@@ -310,7 +315,7 @@ wmsx.Machine = function() {
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
         diskDriveSocket = new DiskDriveSocket();
-    };
+    }
 
 
     this.powerIsOn = false;
@@ -521,6 +526,20 @@ wmsx.Machine = function() {
 
     }
 
+
+    // Slot Socket  ---------------------------------------------
+
+
+    function SlotSocket() {
+        this.insert = function (slot, slotPosition, altPower) {
+            var powerWasOn = self.powerIsOn;
+            if (powerWasOn) self.powerOff();
+            if (!altPower && powerWasOn) self.userPowerOn();
+        };
+        this.inserted = function (slotPosition) {
+            return getExpansion(port);
+        };
+    }
 
     // Cassette Socket  ------------------------------------------
 
