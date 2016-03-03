@@ -163,12 +163,12 @@ wmsx.Settings = function() {
     var keyRedefinitionTry = function (keyCode) {
         if (!controlRedefining) return;
         if (!wmsx.DOMKeys.byCode[keyCode]) return;
-        if (WMSX.preferences[controlKeys[controlRedefining]] !== keyCode) {
+        if (WMSX.userPreferences[controlKeys[controlRedefining]] !== keyCode) {
             for (var con in controlKeys)
-                if (WMSX.preferences[controlKeys[con]] === keyCode)
-                    WMSX.preferences[controlKeys[con]] = -1;
+                if (WMSX.userPreferences[controlKeys[con]] === keyCode)
+                    WMSX.userPreferences[controlKeys[con]] = -1;
 
-            WMSX.preferences[controlKeys[controlRedefining]] = keyCode;
+            WMSX.userPreferences[controlKeys[controlRedefining]] = keyCode;
             preferencesChanged = true;
         }
         keyRedefinitonStop();
@@ -180,20 +180,20 @@ wmsx.Settings = function() {
     };
 
     var controlsDefaults = function () {
-        WMSX.preferences.loadDefaults();
+        WMSX.userPreferences.loadDefaults();
         preferencesChanged = true;
         keyRedefinitonStop();   // will refresh
     };
 
     var controlsRevert = function () {
-        WMSX.preferences.load();
+        WMSX.userPreferences.load();
         preferencesChanged = false;
         keyRedefinitonStop();   // will refresh
     };
 
     var finishPreferences = function () {
         WMSX.room.controls.applyPreferences();
-        WMSX.preferences.save();
+        WMSX.userPreferences.save();
         preferencesChanged = false;
     };
 

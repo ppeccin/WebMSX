@@ -1,8 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-WMSX.preferences = {};
+WMSX.userPreferences = {};
 
-WMSX.preferences.defaults = {
+WMSX.userPreferences.defaults = {
     JP1DEVICE   : -1,  // -1 = auto
     JP1XAXIS    : 0,
     JP1XAXISSIG : 1,
@@ -38,25 +38,25 @@ WMSX.preferences.defaults = {
     JP2PSENS    : 0.75
 };
 
-WMSX.preferences.loadDefaults = function() {
-    for (var pref in WMSX.preferences.defaults)
-        WMSX.preferences[pref] = WMSX.preferences.defaults[pref];
+WMSX.userPreferences.loadDefaults = function() {
+    for (var pref in WMSX.userPreferences.defaults)
+        WMSX.userPreferences[pref] = WMSX.userPreferences.defaults[pref];
 };
 
-WMSX.preferences.load = function() {
+WMSX.userPreferences.load = function() {
     try {
-        WMSX.preferences.loadDefaults();
+        WMSX.userPreferences.loadDefaults();
         var loaded = JSON.parse(localStorage.msxprefs || "{}");
-        for (var pref in WMSX.preferences.defaults)
-            if (loaded[pref]) WMSX.preferences[pref] = loaded[pref];
+        for (var pref in WMSX.userPreferences.defaults)
+            if (loaded[pref]) WMSX.userPreferences[pref] = loaded[pref];
     } catch(e) {
         // giveup
     }
 };
 
-WMSX.preferences.save = function() {
+WMSX.userPreferences.save = function() {
     try {
-        localStorage.msxprefs = JSON.stringify(WMSX.preferences);
+        localStorage.msxprefs = JSON.stringify(WMSX.userPreferences);
     } catch (e) {
         // giveup
     }

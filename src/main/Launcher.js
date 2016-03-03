@@ -6,7 +6,7 @@ WMSX.start = function () {
     delete WMSX.preLoadImagesAndStart;
 
     // Init preferences
-    WMSX.preferences.load();
+    WMSX.userPreferences.load();
 
     // Get container elements
     if (!WMSX.screenElement) {
@@ -18,9 +18,9 @@ WMSX.start = function () {
 
     // Read and apply parameters from URL
     if (WMSX.ALLOW_URL_PARAMETERS)
-        wmsx.URLParameters.applyParams();         // Will also apply specified preset
+        wmsx.Configurator.applyConfig();            // Will also apply specified preset
     else
-        WMSX.presets.applyConfig();               // Apply only predefined preset
+        wmsx.Configurator.applyPresets();           // Apply only predefined preset
 
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);

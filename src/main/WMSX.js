@@ -4,22 +4,24 @@
 
 // Main Emulator parameters.
 // You may change any of these after loading the project and before starting the Emulator
-// Also possible to override values dynamically via URL query parameters
+// It is also possible to override values dynamically via URL query parameters
+// Machine type and components are defined via Configuration Presets
 
 WMSX = {
 
-    PRESETS:                        "",                         // Machine configuration presets to apply, comma separated. Overwrites parameters below and DEFAULT preset
+    // Machine Configuration Presets to apply. See Presets section below
+    PRESETS:                        "",
 
-    CARTRIDGE1_URL:                 "",                         // Full or relative URL of Media files to load
+    // Full or relative URL of Media files to load
+    CARTRIDGE1_URL:                 "",
     CARTRIDGE2_URL:                 "",
     DISKA_URL:                      "",
     DISKB_URL:                      "",
     TAPE_URL:                       "",
     STATE_LOAD_URL:                 "",
 
-    MACHINE_TYPE:                   2,                          // 1 for MSX1, 2 for MSX2
-    RAM_SIZE:                       64,                         // 64, 128, 256, 512, 1024, 2048, 4096 KB Main RAM (fixed in 64KB for MSX1)
-    AUTO_START_DELAY:               2400,                       // Negative = No Auto-Start, Positive = Start then wait specified milliseconds before Power-on
+    // General configuration
+    AUTO_START_DELAY:               2400,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
@@ -37,6 +39,123 @@ WMSX = {
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
 
     VERSION:                        "2.0"                       // Don't change!
+
+};
+
+WMSX.presets = {
+
+    DEFAULT: {
+        _INCLUDE:           "MSX2"
+    },
+
+    // MSX2 Machine Presets
+
+    MSX2: {
+        MACHINE_TYPE:       2,
+        BIOS_SLOT:          [0, 0],
+        CARTRIDGE1_SLOT:    [1],
+        CARTRIDGE2_SLOT:    [3, 0],
+        EXPANSION_SLOTS:    [[3, 2], [3, 3]],
+        SLOT_0_0_URL:       "wmsx/roms/MSX2N.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2NEXT.bios",
+        SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
+        _INCLUDE:           "MSX2DISK, RAM256"
+    },
+
+    MSX2DISK: {
+        SLOT_0_2_URL:       "wmsx/roms/Disk.rom"
+    },
+
+    DOS2: {
+        SLOT_0_3_URL:       "wmsx/roms/MSXDOS22v3.rom"
+    },
+
+    RAM64: {
+        RAM_SIZE: 64
+    },
+    RAM128: {
+        RAM_SIZE: 128
+    },
+    RAM256: {
+        RAM_SIZE: 256
+    },
+    RAM512: {
+        RAM_SIZE: 512
+    },
+    RAM1024: {
+        RAM_SIZE: 1024
+    },
+    RAM2048: {
+        RAM_SIZE: 2048
+    },
+    RAM4096: {
+        RAM_SIZE: 4096
+    },
+
+    // MSX1 Machine Presets
+
+    MSX1: {
+        _EXCLUDE:           "DEFAULT",
+        MACHINE_TYPE:       1,
+        BIOS_SLOT:          [0],
+        CARTRIDGE1_SLOT:    [1],
+        CARTRIDGE2_SLOT:    [3, 0],
+        EXPANSION_SLOTS:    [[3, 2], [3, 3]],
+        SLOT_0_URL:         "wmsx/roms/MSX1NTSCa.bios",
+        SLOT_2_URL:         "wmsx/roms/[RAM64K].rom",
+        _INCLUDE:           "MSX1DISK"
+    },
+
+    MSX1DISK: {
+        SLOT_3_1_URL:       "wmsx/roms/Disk.rom"
+    },
+
+    MSX1NTSC: {
+        SLOT_0_URL:         "wmsx/roms/MSX1NTSCa.bios"
+    },
+    MSX1PAL: {
+        SLOT_0_URL:         "wmsx/roms/MSX1PALa.bios"
+    },
+
+    // Specific Machines Presets
+
+    EXPERT: {
+        _INCLUDE:           "MSX1",
+        SLOT_0_URL:         "wmsx/roms/Expert10.bios"
+    },
+
+    EMPTY: {
+        _EXCLUDE:           "DEFAULT",
+        MACHINE_TYPE:       2,
+        BIOS_SLOT:          [0, 0],
+        CARTRIDGE1_SLOT:    [1],
+        CARTRIDGE2_SLOT:    [3, 0],
+        EXPANSION_SLOTS:    [[3, 2], [3, 3]]
+    },
+
+    // Genral Add-ons options
+
+    NODISK: {
+        _EXCLUDE:           "MSX1DISK, MSX2DISK"
+    },
+
+    SCC: {
+        SLOT_3_3_URL:       "wmsx/roms/[SCCExpansion].rom"
+    },
+
+    SCCI: {
+        SLOT_3_3_URL:       "wmsx/roms/[SCCIExpansion].rom"
+    },
+
+    // Configuration Helper Presets
+
+    NOVSYNCH: {
+        SCREEN_VSYNCH_MODE: 0
+    },
+
+    FORCEVSYNCH: {
+        SCREEN_VSYNCH_MODE: 2
+    }
 
 };
 
