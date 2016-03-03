@@ -4,9 +4,12 @@
 
 wmsx.ROMDatabase = {
 
-	uncompress: function () {
+	create: function () {
+        // Throw away the compressed version, will be garbage collected
 		wmsx.ROMDatabase = JSON.parse(wmsx.Util.uncompressStringBase64ToString(this.data));
-		// Throw away the compressed version, will be garbage collected
+
+        wmsx.ROMDatabase["B9313C16E167922713B3FBD1F1E9E452016DC5C3"] = { n:"WMSX MSX2 Main BIOS", f: "BIOS" };
+        wmsx.ROMDatabase["91D7D72305B737C5155123503DC91D2A7A583125"] = { n:"WMSX MSX2 BIOS Extension", f: "MSX2BIOSExt" };
 	},
 
 	empty: function () {

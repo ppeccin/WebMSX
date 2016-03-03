@@ -29,7 +29,7 @@ WMSX.start = function () {
     var roomPowerOnTime = Date.now();
 
     // Prepare ROM Database
-    wmsx.ROMDatabase.uncompress();
+    wmsx.ROMDatabase.create();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
     if (window.location.protocol.indexOf("http") >= 0) {
