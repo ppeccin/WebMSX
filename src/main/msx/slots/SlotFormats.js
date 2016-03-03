@@ -32,20 +32,6 @@ wmsx.SlotFormats = {
         }
     },
 
-    "Partitioned": {
-        name: "Partitioned",
-        desc: "Partitioned Slot",
-        priority: 203,
-        tryFormat: function (rom) {
-            // Not Possible to load Partitioned Slots
-            return null;
-        },
-        createFromROM: null,
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.SlotPartitioned.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
     "BIOS": {
         name: "BIOS",
         desc: "Main BIOS",

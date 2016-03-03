@@ -5,8 +5,6 @@
 
 wmsx.Slot = function() {
 
-    this.addressRange = [0x0000, 0xffff];
-
     this.connect = function(machine) {
     };
 
