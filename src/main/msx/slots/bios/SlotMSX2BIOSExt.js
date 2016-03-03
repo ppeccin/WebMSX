@@ -7,20 +7,18 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(16384), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
     }
 
-    this.write = function(address, value) {
-        // ROMs cannot be modified
-        //wmsx.Util.log ("Write over BIOS EXT ROM at " + address.toString(16) + " := " + value.toString(16));
-    };
-
     this.read = function(address) {
-        return bytes[address];
+        if (address < 0x4000)
+            return bytes[address];
+        else
+            return 0xff;
     };
 
 

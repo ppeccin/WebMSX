@@ -1,21 +1,19 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Patched 16K Disk ROM. Multiple format, used for all Disk ROM manufacturers. Accesses and commands the Disk Drive
-// 0x4000 - 0xbfff
+// 0x4000 - 0x80ff
 
 wmsx.CartridgeDiskPatched = function(rom, format) {
-
-    this.addressRange = [0x4000, 0xbfff];
 
     function init(self) {
         self.rom = rom;
         self.format = format;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(0x4100), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         var len = content.length;
         for(var i = 0; i < len; i++)
-            bytes[0x4000 + i] = content[i];
+            bytes[i] = content[i];
     }
 
     this.connect = function(machine) {
@@ -32,7 +30,12 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     };
 
     this.read = function(address) {
-        return bytes[address];
+        if (address < 0x4000)
+            return 0xff;
+        else if (address < 0x8100)
+            return bytes[address - 0x4000];
+        else
+            return 0xff;
     };
 
     this.cpuExtensionBegin = function(s) {

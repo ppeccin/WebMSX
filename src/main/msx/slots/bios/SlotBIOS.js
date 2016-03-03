@@ -7,7 +7,7 @@ wmsx.SlotBIOS = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
+        bytes = wmsx.Util.arrayFill(new Array(0x8000), 0xff);
         self.bytes = bytes;
         var content = self.rom.content;
         for(var i = 0, len = content.length; i < len; i++)
@@ -35,13 +35,11 @@ wmsx.SlotBIOS = function(rom) {
         if (cassetteDriver) cassetteDriver.powerOff();
     };
 
-    this.write = function(address, value) {
-        //wmsx.Util.log ("Write over BIOS ROM at " + address.toString(16) + " := " + value.toString(16));
-        // ROMs cannot be modified
-    };
-
     this.read = function(address) {
-        return bytes[address];
+        if (address < 0x8000)
+            return bytes[address];
+        else
+            return 0xff;
     };
 
     this.cpuExtensionBegin = function(s) {

@@ -27,7 +27,6 @@ wmsx.Z80 = function() {
 
     this.clockPulses = function(quant) {
         for (var i = quant; i > 0; i = i - 1) {
-            cycles = cycles + 1;
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T === 1) {
                 instruction.operation();
@@ -37,6 +36,7 @@ wmsx.Z80 = function() {
             if (ackINT) acknowledgeINT();
             else fetchNextInstruction();
         }
+        cycles = cycles + quant;                     // Quantized cycle counting. Lower precision, better performance
     };
 
     this.connectBus = function(aBus) {
