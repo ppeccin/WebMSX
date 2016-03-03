@@ -36,7 +36,7 @@ wmsx.SlotCreator = function () {
             wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : "") + " (" + hash + ")");
         } else {
             info = buildInfo(rom.source);
-            wmsx.Util.log("ROM: Unknown (" + (hash || "0") + ") " + info.n + (info.f ? ", format: " + info.f : ""));
+            wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : ""));
         }
 
         finishInfo(info, rom.source, hash);
