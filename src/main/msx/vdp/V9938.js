@@ -5,8 +5,6 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-// TODO Backdrop color on Power OFF - ON
-
 wmsx.V9938 = function(machine, cpu, psg, isV9918) {
     var self = this;
 
@@ -215,7 +213,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frame = cycles = lastCPUCyclesComputed = 0;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
-        backdropColor = 0;
+        backdropColor = backdropValue = 0;
         pendingBlankingChange = false; pendingBackdropCacheUpdate = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
@@ -225,6 +223,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         updateMode();
         updateSpritesConfig();
         updateBackdropColor();
+        updateTransparency();
         updateSynchronization();
         updateBlinking();
         updatePageAlternance();
@@ -689,12 +688,11 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
                 : colorPaletteSolid[backdropColor];          // From current palette (solid regardless of TP)
 
         if (backdropValue === value) return;
-
-        //logInfo("Backdrop Value: " + backdropValue);
-
         backdropValue = value;
         if (!color0Solid) colorPalette[0] = value;
         pendingBackdropCacheUpdate = true;
+
+        //logInfo("Backdrop Value: " + backdropValue.toString(16));
     }
 
     function updateBackdropCache() {

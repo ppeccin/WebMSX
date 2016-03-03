@@ -37,8 +37,8 @@ wmsx.Machine = function() {
     };
 
     this.reset = function() {
-        bus.reset();
         rtc.reset();
+        bus.reset();
         vdp.reset();
         cpu.reset();
         videoStandardSoft = null;
