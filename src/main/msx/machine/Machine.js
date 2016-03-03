@@ -144,7 +144,7 @@ wmsx.Machine = function() {
                 var oldPriSlot = curPriSlot;
                 curPriSlot = new wmsx.SlotExpanded();       // Automatically insert an ExpandedSlot if not present
                 bus.insertSlot(curPriSlot, pri);
-                if (sec !== 0) curPriSlot.insertSubSlot(oldPriSlot, 0);     // Keep old slot at subSlot 0 if possible
+                if (oldPriSlot !== EMPTY_SLOT && sec !== pri) curPriSlot.insertSubSlot(oldPriSlot, pri);     // Keep old slot at the same position within Expanded Slot if possible
             }
             curPriSlot.insertSubSlot(slot, sec);
         } else bus.insertSlot(slot, pri);
