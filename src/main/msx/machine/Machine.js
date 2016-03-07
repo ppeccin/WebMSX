@@ -225,8 +225,8 @@ wmsx.Machine = function() {
     function saveState() {
         return {
             b:  bus.saveState(),
-            rc: rtc.saveState(),
             pp: ppi.saveState(),
+            rc: rtc.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
             c:  cpu.saveState(),
@@ -242,12 +242,12 @@ wmsx.Machine = function() {
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
-        bus.loadState(state.b);
+        cpu.loadState(state.c);
+        vdp.loadState(state.vd);
+        psg.loadState(state.ps);
         rtc.loadState(state.rc);
         ppi.loadState(state.pp);
-        psg.loadState(state.ps);
-        vdp.loadState(state.vd);
-        cpu.loadState(state.c);
+        bus.loadState(state.b);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);

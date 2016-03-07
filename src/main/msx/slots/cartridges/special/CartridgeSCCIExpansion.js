@@ -31,7 +31,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     this.connect = function(machine) {
         psgAudioOutput = machine.psg.getAudioOutput();
-        if (sccConnectionOnSavestate) psgAudioOutput.connectAudioCartridge(scc);
+        if (audioConnectionActive) psgAudioOutput.connectAudioCartridge(scc);
     };
 
     this.disconnect = function(machine) {
@@ -148,7 +148,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var scc = new wmsx.SCCIMixedAudioChannels();
     var sccSelected, scciSelected = false;
     var sccConnected = false;
-    var sccConnectionOnSavestate = false;        // used to restore connection after a loadState
+    var audioConnectionActive = false;        // used to restore connection after a loadState
     var psgAudioOutput;
 
     this.rom = null;
@@ -193,7 +193,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         sccSelected = s.scs;
         scciSelected = s.sis;
         sccConnected = s.scn;
-        sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
+        audioConnectionActive = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
     this.eval = function(str) {

@@ -1,19 +1,19 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.AudioSignal = function(audioChannel) {
+wmsx.AudioSignal = function(source, sampleRate, volume) {
 
     this.connectMonitor = function(pMonitor) {
         monitor = pMonitor;
     };
 
     this.getMixedAudioChannel = function() {
-        return audioChannel;
+        return source;
     };
 
     this.signalOn = function() {
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        audioChannel.signalOn();
+        source.signalOn();
         this.play();
     };
 
@@ -21,7 +21,7 @@ wmsx.AudioSignal = function(audioChannel) {
         this.mute();
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        audioChannel.signalOff();
+        source.signalOff();
         audioCartridge = undefined;
     };
 
@@ -43,7 +43,7 @@ wmsx.AudioSignal = function(audioChannel) {
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = Math.round(SAMPLE_RATE / fps);
+        samplesPerFrame = Math.round(sampleRate / fps);
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
@@ -104,16 +104,16 @@ wmsx.AudioSignal = function(audioChannel) {
     };
 
     this.getSampleRate = function() {
-        return SAMPLE_RATE;
+        return sampleRate;
     };
 
     var generateNextSampleOn = function() {
         var mixedSample;
-        mixedSample = audioChannel.nextSample();
+        mixedSample = source.nextSample();
         // Add the AudioCartridge value
         if (audioCartridge) mixedSample += audioCartridge.nextSample();
 
-        samples[nextSampleToGenerate] = mixedSample * VOLUME;
+        samples[nextSampleToGenerate] = mixedSample * volume;
         nextSampleToGenerate = nextSampleToGenerate + 1;
         if (nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
@@ -147,10 +147,7 @@ wmsx.AudioSignal = function(audioChannel) {
 
     var audioCartridge;
 
-    var VOLUME = 0.54;
-    var SAMPLE_RATE = 111960;
-
-    var MAX_SAMPLES = 6 * WMSX.AUDIO_BUFFER_SIZE;
+    var MAX_SAMPLES = 12 * WMSX.AUDIO_BUFFER_SIZE;
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
@@ -160,18 +157,11 @@ wmsx.AudioSignal = function(audioChannel) {
         start: 0
     };
 
+
     // Savestate  -------------------------------------------
 
-    this.saveState = function() {
-        return {
-            a: audioChannel.saveState(),
-            ac: !!audioCartridge
-        };
-    };
-
-    this.loadState = function(s) {
-        audioChannel.loadState(s.a);
-        if (!s.ac) audioCartridge = undefined;
+    this.loadState = function() {
+        audioCartridge = undefined;     // Disconnects any AudioCartridge
     };
 
 };

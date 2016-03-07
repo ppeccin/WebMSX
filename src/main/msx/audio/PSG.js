@@ -6,7 +6,7 @@ wmsx.PSG = function() {
 
     function init() {
         mixedAudioChannels = new wmsx.PSGMixedAudioChannels();
-        audioSignal = new wmsx.AudioSignal(mixedAudioChannels);
+        audioSignal = new wmsx.AudioSignal(mixedAudioChannels, SAMPLE_RATE, VOLUME);
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
@@ -91,6 +91,9 @@ wmsx.PSG = function() {
     var audioSignal;
     var mixedAudioChannels;
 
+    var SAMPLE_RATE = 111960;
+    var VOLUME = 0.54;
+
 
     // Savestate  -------------------------------------------
 
@@ -98,15 +101,16 @@ wmsx.PSG = function() {
         return {
             ra: registerAddress,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(registers),
-            a: audioSignal.saveState()
+            ac: mixedAudioChannels.saveState()
         };
     };
 
     this.loadState = function(s) {
         registerAddress = s.ra;
         registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, registers);
-        registers[14] = 0x3f3f;                                  // reset Joysticks inputs
-        audioSignal.loadState(s.a);
+        registers[14] = 0x3f3f;                                 // reset Joysticks inputs
+        if (s.ac) mixedAudioChannels.loadState(s.ac);           // backward compatibility
+        audioSignal.loadState();
     };
 
 

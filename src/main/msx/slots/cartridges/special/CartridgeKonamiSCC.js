@@ -18,7 +18,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
 
     this.connect = function(machine) {
         psgAudioOutput = machine.psg.getAudioOutput();
-        if (sccConnectionOnSavestate) psgAudioOutput.connectAudioCartridge(scc);
+        if (audioConnectionActive) psgAudioOutput.connectAudioCartridge(scc);
     };
 
     this.disconnect = function(machine) {
@@ -84,10 +84,10 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCIMixedAudioChannels()      // will be in SCC mode by default
+    var scc = new wmsx.SCCIMixedAudioChannels();     // will be in SCC mode by default
     var sccSelected = false;
     var sccConnected = false;
-    var sccConnectionOnSavestate = false;            // used to restore connection after a loadState
+    var audioConnectionActive = false;               // used to restore connection after a loadState
     var psgAudioOutput;
 
     this.rom = null;
@@ -125,7 +125,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         scc.loadState(s.scc);
         sccSelected = s.scs;
         sccConnected = s.scn;
-        sccConnectionOnSavestate = s.scna;      // Will reconnect ro PSG if was connected at saveState
+        audioConnectionActive = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
 

@@ -238,8 +238,8 @@ wmsx.SCCIMixedAudioChannels = function() {
 
     var volumeCurve = new Array(16);
 
+    var CHANNEL_MAX_VOLUME = 0.25 / 128;        // Sample values in the range -128..127
     var CHANNEL_VOLUME_CURVE_POWER = 4;         // Sounds more linear than the normal PSG channels
-    var CHANNEL_MAX_VOLUME = 0.26 / 128;        // Sample values in the range -128..127
 
 
     // Savestate  -------------------------------------------
