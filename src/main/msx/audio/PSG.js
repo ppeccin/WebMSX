@@ -5,8 +5,8 @@
 wmsx.PSG = function() {
 
     function init() {
-        audioSignal = new wmsx.AudioSignal();
-        audioChannel = audioSignal.getMixedAudioChannel();
+        mixedAudioChannels = new wmsx.PSGMixedAudioChannels();
+        audioSignal = new wmsx.AudioSignal(mixedAudioChannels);
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
@@ -36,25 +36,25 @@ wmsx.PSG = function() {
     this.outputA1 = function(val) {
         registers[registerAddress] = val;
         if (registerAddress === 0 || registerAddress === 1) {
-            audioChannel.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
+            mixedAudioChannels.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
         } else if (registerAddress === 2 || registerAddress === 3) {
-            audioChannel.setPeriodB(((registers[3] & 0x0f) << 8) | registers[2]);
+            mixedAudioChannels.setPeriodB(((registers[3] & 0x0f) << 8) | registers[2]);
         } else if (registerAddress === 4 || registerAddress === 5) {
-            audioChannel.setPeriodC(((registers[5] & 0x0f) << 8) | registers[4]);
+            mixedAudioChannels.setPeriodC(((registers[5] & 0x0f) << 8) | registers[4]);
         } else if (registerAddress === 6) {
-            audioChannel.setPeriodN(val & 0x1f);
+            mixedAudioChannels.setPeriodN(val & 0x1f);
         } else if (registerAddress === 7) {
-            audioChannel.setMixerControl(val);
+            mixedAudioChannels.setMixerControl(val);
         } else if (registerAddress === 8) {
-            audioChannel.setAmplitudeA(val);
+            mixedAudioChannels.setAmplitudeA(val);
         } else if (registerAddress === 9) {
-            audioChannel.setAmplitudeB(val);
+            mixedAudioChannels.setAmplitudeB(val);
         } else if (registerAddress === 10) {
-            audioChannel.setAmplitudeC(val);
+            mixedAudioChannels.setAmplitudeC(val);
         } else if (registerAddress === 11 || registerAddress === 12) {
-            audioChannel.setPeriodE((registers[12] << 8) | registers[11]);
+            mixedAudioChannels.setPeriodE((registers[12] << 8) | registers[11]);
         } else if (registerAddress === 13) {
-            audioChannel.setEnvelopeControl(val);
+            mixedAudioChannels.setEnvelopeControl(val);
         }
     };
 
@@ -64,6 +64,10 @@ wmsx.PSG = function() {
             else return registers[14] & 0xff;
         }
         return registers[registerAddress];
+    };
+
+    this.setPulseSignal = function(boo) {
+        mixedAudioChannels.setPulseSignal(boo);
     };
 
 
@@ -85,7 +89,7 @@ wmsx.PSG = function() {
     var register15LowInputMode = false;                         // TODO Take this into account?
 
     var audioSignal;
-    var audioChannel;
+    var mixedAudioChannels;
 
 
     // Savestate  -------------------------------------------

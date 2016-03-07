@@ -6,6 +6,18 @@ wmsx.PSGMixedAudioChannels = function() {
         createVolumeCurve();
     }
 
+    this.signalOn = function() {
+        this.signalOff();
+    };
+
+    this.signalOff = function() {
+        this.setMixerControl(0xff);
+        this.setAmplitudeA(0);
+        this.setAmplitudeB(0);
+        this.setAmplitudeC(0);
+        pulseSignal = false;
+    };
+
     this.nextSample = function() {
         // Update values
         if (amplitudeA > 0 && periodA > 0) {
@@ -53,10 +65,11 @@ wmsx.PSGMixedAudioChannels = function() {
             }
         }
 
-        // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1)
+        // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
         return (amplitudeA > 0 ? ((toneA ? currentSampleA : 1) & (noiseA ? currentSampleN : 1)) * amplitudeA : 0)
              + (amplitudeB > 0 ? ((toneB ? currentSampleB : 1) & (noiseB ? currentSampleN : 1)) * amplitudeB : 0)
-             + (amplitudeC > 0 ? ((toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1)) * amplitudeC : 0);
+             + (amplitudeC > 0 ? ((toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1)) * amplitudeC : 0)
+             + (pulseSignal ? CHANNEL_MAX_VOLUME : 0);
     };
 
     this.setPeriodA = function(newPeriod) {
@@ -135,6 +148,10 @@ wmsx.PSGMixedAudioChannels = function() {
         setEnvelopeAmplitudes();
     };
 
+    this.setPulseSignal = function(boo) {
+        pulseSignal = boo;
+    };
+
     function cycleEnvelope(alternate, hold) {
         if (alternate ^ hold) attackE = !attackE;
         currentValueE = attackE ? 0 : 15;
@@ -196,11 +213,13 @@ wmsx.PSGMixedAudioChannels = function() {
     var alternateE = false;
     var holdE = false;
 
+    var pulseSignal = false;
+
     var lfsr = 0x1fffe;             // Noise generator. 17-bit Linear Feedback Shift Register
 
     var volumeCurve = new Array(16);
 
-    var CHANNEL_MAX_VOLUME = 0.26;
+    var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;
 
 
@@ -213,6 +232,7 @@ wmsx.PSGMixedAudioChannels = function() {
             pc: periodC, pcc: periodCCount, cc: currentSampleC, ac: amplitudeC, tc: toneC, nc: noiseC, ec: envelopeC,
             pn: periodN, pnc: periodNCountdown, cn: currentSampleN,
             pe: periodE, pec: periodECountdown, ce: currentValueE, de: directionE, cne: continueE, ate: attackE, ale: alternateE, he: holdE,
+            ps: pulseSignal,
             lf: lfsr
         };
     };
@@ -223,6 +243,7 @@ wmsx.PSGMixedAudioChannels = function() {
         periodC = s.pc; periodCCount = s.pcc; currentSampleC = s.cc; amplitudeC = s.ac; toneC = s.tc; noiseC = s.nc; envelopeC = s.ec;
         periodN = s.pn; periodNCountdown = s.pnc; currentSampleN = s.cn;
         periodE = s.pe; periodECountdown = s.pec; currentValueE = s.ce; directionE = s.de; continueE = s.cne; attackE = s.ate; alternateE = s.ale; holdE = s.he;
+        pulseSignal = s.ps;
         lfsr = s.lf;
     };
 

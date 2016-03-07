@@ -1,20 +1,19 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.AudioSignal = function() {
+wmsx.AudioSignal = function(audioChannel) {
 
     this.connectMonitor = function(pMonitor) {
         monitor = pMonitor;
     };
 
     this.getMixedAudioChannel = function() {
-        return mixedChannel;
+        return audioChannel;
     };
 
     this.signalOn = function() {
-        this.play();
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        lastSample = 0;
+        audioChannel.signalOn();
         this.play();
     };
 
@@ -22,11 +21,7 @@ wmsx.AudioSignal = function() {
         this.mute();
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        lastSample = 0;
-        mixedChannel.setMixerControl(0xff);
-        mixedChannel.setAmplitudeA(0);
-        mixedChannel.setAmplitudeB(0);
-        mixedChannel.setAmplitudeC(0);
+        audioChannel.signalOff();
         audioCartridge = undefined;
     };
 
@@ -48,7 +43,7 @@ wmsx.AudioSignal = function() {
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = Math.round(wmsx.AudioSignal.SAMPLE_RATE / fps);
+        samplesPerFrame = Math.round(SAMPLE_RATE / fps);
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
@@ -62,10 +57,6 @@ wmsx.AudioSignal = function() {
 
     this.getAudioCartridge = function() {
         return audioCartridge
-    };
-
-    this.setExternalSignalValue = function(val) {
-        externalAddedValue = val;
     };
 
     this.audioClockPulse = function() {         // Just one clock pulse, signal always ON
@@ -113,21 +104,14 @@ wmsx.AudioSignal = function() {
     };
 
     this.getSampleRate = function() {
-        return wmsx.AudioSignal.SAMPLE_RATE;
+        return SAMPLE_RATE;
     };
 
     var generateNextSampleOn = function() {
         var mixedSample;
-        mixedSample = mixedChannel.nextSample();
-        // Add the External value. Used by the PPI to generate the Keyboard Click
-        mixedSample -= externalAddedValue;
+        mixedSample = audioChannel.nextSample();
         // Add the AudioCartridge value
         if (audioCartridge) mixedSample += audioCartridge.nextSample();
-        // Add a little damper effect to round the edges of the square wave
-        if (mixedSample !== lastSample) {
-            mixedSample = (mixedSample * 2 + lastSample) / 3;
-            lastSample = mixedSample;
-        }
 
         samples[nextSampleToGenerate] = mixedSample * VOLUME;
         nextSampleToGenerate = nextSampleToGenerate + 1;
@@ -154,7 +138,6 @@ wmsx.AudioSignal = function() {
     var monitor;
 
     var signalOn = false;
-    var mixedChannel = new wmsx.PSGMixedAudioChannels();
 
     var nextSampleToGenerate = 0;
     var nextSampleToRetrieve = 0;
@@ -162,13 +145,12 @@ wmsx.AudioSignal = function() {
     var samplesPerFrame;
     var frameSamples = 0;
 
-    var lastSample = 0;
-
-    var externalAddedValue = 0;
     var audioCartridge;
 
-    var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
     var VOLUME = 0.54;
+    var SAMPLE_RATE = 111960;
+
+    var MAX_SAMPLES = 6 * WMSX.AUDIO_BUFFER_SIZE;
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
@@ -182,16 +164,14 @@ wmsx.AudioSignal = function() {
 
     this.saveState = function() {
         return {
-            a: mixedChannel.saveState(),
+            a: audioChannel.saveState(),
             ac: !!audioCartridge
         };
     };
 
     this.loadState = function(s) {
-        mixedChannel.loadState(s.a);
+        audioChannel.loadState(s.a);
         if (!s.ac) audioCartridge = undefined;
     };
 
 };
-
-wmsx.AudioSignal.SAMPLE_RATE = 111960;

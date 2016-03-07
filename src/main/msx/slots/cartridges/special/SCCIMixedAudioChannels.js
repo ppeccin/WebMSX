@@ -188,7 +188,7 @@ wmsx.SCCIMixedAudioChannels = function() {
 
     function createVolumeCurve() {
         for (var v = 0; v < 16; v++)
-            volumeCurve[v] = (Math.pow(CHANNEL_AMP_CURVE_POWER, v / 15) - 1) / (CHANNEL_AMP_CURVE_POWER - 1) * CHANNEL_MAX_AMP;
+            volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
     }
 
 
@@ -238,8 +238,8 @@ wmsx.SCCIMixedAudioChannels = function() {
 
     var volumeCurve = new Array(16);
 
-    var CHANNEL_AMP_CURVE_POWER = 4;         // Sounds more linear than the normal PSG channels
-    var CHANNEL_MAX_AMP = 0.26 / 128;        // Sample values in the range -128..127
+    var CHANNEL_VOLUME_CURVE_POWER = 4;         // Sounds more linear than the normal PSG channels
+    var CHANNEL_MAX_VOLUME = 0.26 / 128;        // Sample values in the range -128..127
 
 
     // Savestate  -------------------------------------------

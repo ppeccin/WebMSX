@@ -277,7 +277,7 @@ wmsx.Machine = function() {
         self.mainClock = mainClock = new wmsx.Clock(self);
         self.cpu = cpu = new wmsx.Z80();
         self.psg = psg = new wmsx.PSG();
-        self.ppi = ppi = new wmsx.PPI(psg.getAudioOutput());
+        self.ppi = ppi = new wmsx.PPI(psg);
         self.vdp = vdp = new wmsx.V9938(self, cpu, psg, !MSX2);
         self.rtc = rtc = new wmsx.RTC(MSX2);
 

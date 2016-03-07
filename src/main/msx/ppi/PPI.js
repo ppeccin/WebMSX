@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PPI = function(audioOutput) {
+wmsx.PPI = function(psg) {
 
     this.connectBus = function(pBus) {
         bus = pBus;
@@ -61,13 +61,13 @@ wmsx.PPI = function(audioOutput) {
         keyboardRowSelected = registerC & 0x0f;
         if (keyClickSignal === ((registerC & 0x80) > 0)) return;
         keyClickSignal = !keyClickSignal;
-        audioOutput.setExternalSignalValue(keyClickSignal ? KEY_CLICK_AUDIO_VALUE : 0);
+        psg.setPulseSignal(keyClickSignal);
     }
 
     function updateCassetteSignal() {
         if (keyClickSignal === ((registerC & 0x20) > 0)) return;
         casseteSignal = !casseteSignal;
-        audioOutput.setExternalSignalValue(casseteSignal ? KEY_CLICK_AUDIO_VALUE : 0);
+        psg.setPulseSignal(casseteSignal);
     }
 
 
@@ -87,8 +87,6 @@ wmsx.PPI = function(audioOutput) {
     var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var bus;
-
-    var KEY_CLICK_AUDIO_VALUE = 0.24;
 
 
     // Savestate  -------------------------------------------
