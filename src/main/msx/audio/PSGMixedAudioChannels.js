@@ -155,7 +155,7 @@ wmsx.PSGMixedAudioChannels = function() {
 
     function createVolumeCurve() {
         for (var v = 0; v < 16; v++)
-            volumeCurve[v] = (Math.pow(CHANNEL_AMP_CURVE_POWER, v / 15) - 1) / (CHANNEL_AMP_CURVE_POWER - 1) * CHANNEL_MAX_AMP;
+            volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
     }
 
 
@@ -200,8 +200,8 @@ wmsx.PSGMixedAudioChannels = function() {
 
     var volumeCurve = new Array(16);
 
-    var CHANNEL_AMP_CURVE_POWER = 30;
-    var CHANNEL_MAX_AMP = 0.26;
+    var CHANNEL_MAX_VOLUME = 0.26;
+    var CHANNEL_VOLUME_CURVE_POWER = 30;
 
 
     // Savestate  -------------------------------------------

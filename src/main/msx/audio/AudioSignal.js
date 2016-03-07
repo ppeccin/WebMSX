@@ -112,6 +112,10 @@ wmsx.AudioSignal = function() {
         return result;
     };
 
+    this.getSampleRate = function() {
+        return wmsx.AudioSignal.SAMPLE_RATE;
+    };
+
     var generateNextSampleOn = function() {
         var mixedSample;
         mixedSample = mixedChannel.nextSample();
@@ -125,7 +129,7 @@ wmsx.AudioSignal = function() {
             lastSample = mixedSample;
         }
 
-        samples[nextSampleToGenerate] = mixedSample * MAX_AMPLITUDE;
+        samples[nextSampleToGenerate] = mixedSample * VOLUME;
         nextSampleToGenerate = nextSampleToGenerate + 1;
         if (nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
@@ -164,7 +168,7 @@ wmsx.AudioSignal = function() {
     var audioCartridge;
 
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
-    var MAX_AMPLITUDE = 0.54;
+    var VOLUME = 0.54;
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 

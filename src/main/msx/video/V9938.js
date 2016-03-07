@@ -703,7 +703,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
             }
             backdropTileOdd = odd; backdropTileEven = even;
         } else {
-            wmsx.Util.arrayFill(backdropFullLineCache, backdropValue);
+            backdropFullLineCache.fill(backdropValue);
             if (mode == 4) {
                 backdropTileOdd = backdropTileEven = backdropValue;
             }
