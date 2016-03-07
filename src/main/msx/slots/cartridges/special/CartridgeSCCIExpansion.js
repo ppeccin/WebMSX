@@ -145,7 +145,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var bank1Offset, bank2Offset, bank3Offset, bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCIMixedAudioChannel();
+    var scc = new wmsx.SCCIMixedAudioChannels();
     var sccSelected, scciSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;        // used to restore connection after a loadState

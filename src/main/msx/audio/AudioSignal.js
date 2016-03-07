@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PSGAudioSignal = function() {
+wmsx.AudioSignal = function() {
 
     this.connectMonitor = function(pMonitor) {
         monitor = pMonitor;
@@ -48,7 +48,7 @@ wmsx.PSGAudioSignal = function() {
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = Math.round(wmsx.PSGAudioSignal.SAMPLE_RATE / fps);
+        samplesPerFrame = Math.round(wmsx.AudioSignal.SAMPLE_RATE / fps);
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
@@ -150,7 +150,7 @@ wmsx.PSGAudioSignal = function() {
     var monitor;
 
     var signalOn = false;
-    var mixedChannel = new wmsx.PSGMixedAudioChannel();
+    var mixedChannel = new wmsx.PSGMixedAudioChannels();
 
     var nextSampleToGenerate = 0;
     var nextSampleToRetrieve = 0;
@@ -190,4 +190,4 @@ wmsx.PSGAudioSignal = function() {
 
 };
 
-wmsx.PSGAudioSignal.SAMPLE_RATE = 111960;
+wmsx.AudioSignal.SAMPLE_RATE = 111960;

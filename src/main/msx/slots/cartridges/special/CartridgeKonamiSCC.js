@@ -84,7 +84,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCIMixedAudioChannel();      // will be in SCC mode by default
+    var scc = new wmsx.SCCIMixedAudioChannels()      // will be in SCC mode by default
     var sccSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;            // used to restore connection after a loadState

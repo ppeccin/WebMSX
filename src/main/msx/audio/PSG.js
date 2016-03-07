@@ -1,9 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// PSGs AY-3-8910/YM2149 supported
+
 wmsx.PSG = function() {
 
     function init() {
-        audioSignal = new wmsx.PSGAudioSignal();
+        audioSignal = new wmsx.AudioSignal();
         audioChannel = audioSignal.getMixedAudioChannel();
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;

@@ -20,6 +20,10 @@ wmsx.Slot = function() {
     this.reset = function() {
     };
 
+    this.read = function(address) {
+        return 0xff;
+    };
+
     this.write = function(address, value) {
     };
 

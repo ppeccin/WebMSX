@@ -40,7 +40,7 @@ wmsx.WebAudioSpeaker = function() {
             var constr = (window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext);
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
-            resamplingFactor = wmsx.PSGAudioSignal.SAMPLE_RATE / audioContext.sampleRate;
+            resamplingFactor = wmsx.AudioSignal.SAMPLE_RATE / audioContext.sampleRate;
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
             //wmsx.Util.log("Audio resampling factor: " + (1 / resamplingFactor));
         } catch(e) {
@@ -60,13 +60,16 @@ wmsx.WebAudioSpeaker = function() {
 
         // Copy to output performing basic re-sampling
         // Same as Util.arrayCopyCircularSourceWithStep, but optimized with local code
+        var buf = input.buffer;
+        var bufSize = input.bufferSize;
         var s = input.start;
         var d = 0;
         var destEnd = 0 + outputBuffer.length;
         while (d < destEnd) {
-            outputBuffer[d++] = input.buffer[s | 0];   // as integer
-            s += resamplingFactor;
-            if (s >= input.bufferSize) s -= input.bufferSize;
+            outputBuffer[d] = buf[s | 0];   // as integer
+            d = d + 1;
+            s = s + resamplingFactor;
+            if (s >= bufSize) s = s - bufSize;
         }
     };
 

@@ -147,6 +147,10 @@ WMSX.presets = {
         SLOT_3_3_URL:       "wmsx/roms/[SCCIExpansion].rom"
     },
 
+    MSXMUSIC: {
+        SLOT_3_2_URL:       "wmsx/roms/MSXMUSIC.rom"
+    },
+
     // Configuration Helper Presets
 
     NOVSYNCH: {

@@ -47,7 +47,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
     };
 
 
-    var scc = new wmsx.SCCIMixedAudioChannel();
+    var scc = new wmsx.SCCIMixedAudioChannels();
     var sccSelected = false;
     var sccConnected = false;
     var sccConnectionOnSavestate = false;        // used to restore connection after a loadState

@@ -359,6 +359,22 @@ wmsx.SlotFormats = {
         }
     },
 
+    "MSXMUSIC": {
+        name: "MSXMUSIC",
+        desc: "MSX-MUSIC Basic Extension",
+        priority: 503,
+        tryFormat: function (rom) {
+            // Only 16K content. Must be selected via info format hint
+            if (rom.content.length === 16384) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeMSXMUSIC(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeMSXMUSIC.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     // MSX2 only
 
     "DOS2": {

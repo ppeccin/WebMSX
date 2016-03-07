@@ -6,7 +6,7 @@ wmsx.V9918 = function(cpu, psg) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VDPVideoSignal();
+        videoSignal = new wmsx.VideoSignal();
         cpuClockPulses = cpu.clockPulses;
         psgClockPulse = psg.getAudioOutput().audioClockPulse;
         initFrameResources();
