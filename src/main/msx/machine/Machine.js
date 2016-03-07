@@ -4,8 +4,8 @@ wmsx.Machine = function() {
     var self = this;
 
     function init() {
-        mainComponentsCreate();
         socketsCreate();
+        mainComponentsCreate();
         setVideoStandardAuto();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
@@ -95,8 +95,8 @@ wmsx.Machine = function() {
         return vdp.getVideoOutput();
     };
 
-    this.getAudioOutput = function() {
-        return psg.getAudioOutput();
+    this.getAudioSocket = function() {
+        return audioSocket;
     };
 
     this.getSavestateSocket = function() {
@@ -158,8 +158,8 @@ wmsx.Machine = function() {
         var prev = userPaused;
         if (userPaused !== val) {
             userPaused = !!val; userPauseMoreFrames = -1;
-            if (userPaused) this.getAudioOutput().mute();
-            else this.getAudioOutput().play();
+            if (userPaused) audioSocket.mute();
+            else audioSocket.unmute();
         }
         return prev;
     };
@@ -168,8 +168,8 @@ wmsx.Machine = function() {
         var prev = systemPaused;
         if (systemPaused !== val) {
             systemPaused = !!val;
-            if (systemPaused) this.getAudioOutput().pauseMonitor();
-            else this.getAudioOutput().unpauseMonitor();
+            if (systemPaused) audioSocket.pauseMonitor();
+            else audioSocket.unpauseMonitor();
         }
         return prev;
     };
@@ -258,27 +258,27 @@ wmsx.Machine = function() {
         var freq = vdp.getDesiredBaseFrequency();
         mainClock.setVSynch(vSynchMode > 0);
         mainClock.setFrequency(freq);
-        psg.getAudioOutput().setFps(freq);
+        audioSocket.setFps(freq);
     }
 
     function mainClockAdjustToFast() {
         var freq = 360;     // About 6x faster if host machine is capable
         mainClock.setFrequency(freq);
-        psg.getAudioOutput().setFps(freq);
+        audioSocket.setFps(freq);
     }
 
     function mainClockAdjustToSlow() {
         var freq = 20;      // About 3x slower
         mainClock.setFrequency(freq);
-        psg.getAudioOutput().setFps(freq);
+        audioSocket.setFps(freq);
     }
 
     function mainComponentsCreate() {
         self.mainClock = mainClock = new wmsx.Clock(self);
         self.cpu = cpu = new wmsx.Z80();
-        self.psg = psg = new wmsx.PSG();
+        self.psg = psg = new wmsx.PSG(audioSocket);
         self.ppi = ppi = new wmsx.PPI(psg);
-        self.vdp = vdp = new wmsx.V9938(self, cpu, psg, !MSX2);
+        self.vdp = vdp = new wmsx.V9938(self, cpu, !MSX2);
         self.rtc = rtc = new wmsx.RTC(MSX2);
 
         self.bus = bus = new wmsx.EngineBUS(self, cpu);
@@ -292,6 +292,7 @@ wmsx.Machine = function() {
     function socketsCreate() {
         machineControlsSocket = new MachineControlsSocket();
         machineControlsSocket.addForwardedInput(self);
+        audioSocket = new AudioSocket();
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         expansionSocket = new ExpansionSocket();
@@ -320,6 +321,7 @@ wmsx.Machine = function() {
     var userPauseMoreFrames = 0;
     var systemPaused = false;
 
+    var audioSocket;
     var slotSocket;
     var machineControlsSocket;
     var keyboardSocket;
@@ -521,6 +523,45 @@ wmsx.Machine = function() {
             return res === EMPTY_SLOT ? null : res;
         };
     }
+
+
+    // Audio Socket  ---------------------------------------------
+
+    function AudioSocket() {
+        this.connectMonitor = function (pMonitor) {
+            monitor = pMonitor;
+            if (signal) monitor.connectAudioSignal(signal);
+        };
+        this.connectAudioSignal = function(pSignal) {
+            signal = pSignal;
+            if (monitor) monitor.connect(signal);
+        };
+        this.audioClockPulse = function() {
+            signal.audioClockPulse();
+        };
+        this.audioFinishFrame = function() {
+            signal.audioFinishFrame();
+        };
+        this.mute = function() {
+            signal.mute();
+        };
+        this.unmute = function() {
+            signal.play();
+        };
+        this.pauseMonitor = function() {
+            monitor.pause();
+        };
+        this.unpauseMonitor = function() {
+            monitor.unpause();
+        };
+        this.setFps = function(fps) {
+            signal.setFps(fps);
+        };
+
+        var signal;
+        var monitor;
+    }
+
 
     // Cassette Socket  ------------------------------------------
 

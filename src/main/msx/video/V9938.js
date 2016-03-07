@@ -5,13 +5,14 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.V9938 = function(machine, cpu, psg, isV9918) {
+wmsx.V9938 = function(machine, cpu, isV9918) {
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VideoSignal();
         cpuClockPulses = cpu.clockPulses;
-        psgClockPulse = psg.getAudioOutput().audioClockPulse;
+        audioClockPulse = machine.getAudioSocket().audioClockPulse;
+        audioFinishFrame = machine.getAudioSocket().audioFinishFrame;
         initFrameResources();
         initColorCaches();
         initDebugPatternTables();
@@ -65,7 +66,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         frameEvents();
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
-        psg.getAudioOutput().finishFrame();
+        audioFinishFrame();
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
@@ -504,7 +505,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
 
-        cpuClockPulses(33); psgClockPulse();
+        cpuClockPulses(33); audioClockPulse();
 
         // Left border: 56 clocks
 
@@ -518,14 +519,14 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
         status[2] &= ~0x20;                                                                         // HR = 0
 
-        cpuClockPulses(22); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse();
-        cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(22); audioClockPulse();
+        cpuClockPulses(33); audioClockPulse();
+        cpuClockPulses(32); audioClockPulse();
 
         if (currentScanline >= startingTopBorderScanline) renderLine();                             // ~ Middle of Display area
 
-        cpuClockPulses(33); psgClockPulse();
-        cpuClockPulses(32); psgClockPulse();
+        cpuClockPulses(33); audioClockPulse();
+        cpuClockPulses(32); audioClockPulse();
         cpuClockPulses(18);
 
         status[2] |= 0x20;                                                                          // HR = 1
@@ -534,7 +535,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
         // Right border: 59 clocks
         // Right erase: 27 clocks
 
-        cpuClockPulses(15);  psgClockPulse();
+        cpuClockPulses(15);  audioClockPulse();
 
         // End of line
 
@@ -1897,7 +1898,7 @@ wmsx.V9938 = function(machine, cpu, psg, isV9918) {
 
     var videoSignal;
     var cpuClockPulses;
-    var psgClockPulse;
+    var audioClockPulse, audioFinishFrame;
     var commandProcessor;
 
     // Savestate  -------------------------------------------

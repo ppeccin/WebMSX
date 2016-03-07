@@ -2,13 +2,14 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.V9918 = function(cpu, psg) {
+wmsx.V9918 = function(machine, cpu) {
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VideoSignal();
         cpuClockPulses = cpu.clockPulses;
-        psgClockPulse = psg.getAudioOutput().audioClockPulse;
+        audioClockPulse = machine.getAudioSocket().audioClockPulse;
+        audioFinishFrame = machine.getAudioSocket().audioFinishFrame;
         initFrameResources();
         initColorCodePatternValues();
         initDebugPatternTables();
@@ -57,7 +58,7 @@ wmsx.V9918 = function(cpu, psg) {
         updateLines();
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
-        psg.getAudioOutput().finishFrame();
+        audioFinishFrame();
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
@@ -292,10 +293,10 @@ wmsx.V9918 = function(cpu, psg) {
 
     // 228 CPU clocks and 7,125 PSG clocks interleaved
     function lineClockCPUandPSG() {
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse(); cpuClockPulses(32); psgClockPulse();
-        cpuClockPulses(33); psgClockPulse();
+        cpuClockPulses(33); audioClockPulse(); cpuClockPulses(32); audioClockPulse();
+        cpuClockPulses(33); audioClockPulse(); cpuClockPulses(32); audioClockPulse();
+        cpuClockPulses(33); audioClockPulse(); cpuClockPulses(32); audioClockPulse();
+        cpuClockPulses(33); audioClockPulse();
     }
 
     function updateLinesInvisible(toLine) {
@@ -1120,7 +1121,7 @@ wmsx.V9918 = function(cpu, psg) {
     var videoSignal;
 
     var cpuClockPulses;
-    var psgClockPulse;
+    var audioClockPulse, audioFinishFrame;
 
 
     // Savestate  -------------------------------------------

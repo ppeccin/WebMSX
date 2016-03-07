@@ -3,13 +3,13 @@
 wmsx.FileLoader = function() {
     var self = this;
 
-    this.connect = function(pMachine) {
+    this.connect = function(pMachine, pSlotSocket, pBIOSSocket, pExpansionSocket, pCartridgeSocket, pSaveStateSocket) {
         machine = pMachine;
-        slotSocket = machine.getSlotSocket();
-        biosSocket = machine.getBIOSSocket();
-        expansionSocket = machine.getExpansionSocket();
-        cartridgeSocket = machine.getCartridgeSocket();
-        saveStateSocket = machine.getSavestateSocket();
+        slotSocket = pSlotSocket;
+        biosSocket = pBIOSSocket;
+        expansionSocket = pExpansionSocket;
+        cartridgeSocket = pCartridgeSocket;
+        saveStateSocket = pSaveStateSocket;
     };
 
     this.connectPeripherals = function(pCassetteDeck, pDiskDrive) {

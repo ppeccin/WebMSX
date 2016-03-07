@@ -17,12 +17,12 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     }
 
     this.connect = function(machine) {
-        psgAudioOutput = machine.psg.getAudioOutput();
-        if (audioConnectionActive) psgAudioOutput.connectAudioCartridge(scc);
+        psgAudioSignal = machine.psg.getAudioSignal();
+        if (audioConnectionActive) psgAudioSignal.connectAudioCartridge(scc);
     };
 
     this.disconnect = function(machine) {
-        psgAudioOutput.disconnectAudioCartridge(scc);
+        psgAudioSignal.disconnectAudioCartridge(scc);
     };
 
     this.powerOn = function() {
@@ -30,7 +30,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.reset = function() {
-        psgAudioOutput.disconnectAudioCartridge(scc);
+        psgAudioSignal.disconnectAudioCartridge(scc);
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = sccConnected = false;
         scc.reset();
@@ -46,7 +46,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             if ((value & 0x3f) === 0x3f) {                           // Special value to activate the SCC
                 sccSelected = true;
                 if (!sccConnected) {
-                    psgAudioOutput.connectAudioCartridge(scc);
+                    psgAudioSignal.connectAudioCartridge(scc);
                     sccConnected = true;
                 }
             } else
@@ -88,7 +88,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var sccSelected = false;
     var sccConnected = false;
     var audioConnectionActive = false;               // used to restore connection after a loadState
-    var psgAudioOutput;
+    var psgAudioSignal;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.KonamiSCC;
@@ -109,7 +109,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             scc: scc.saveState(),
             scs: sccSelected,
             scn: sccConnected,
-            scna: psgAudioOutput.getAudioCartridge() === scc
+            scna: psgAudioSignal.getAudioCartridge() === scc
         };
     };
 

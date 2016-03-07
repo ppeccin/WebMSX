@@ -5,11 +5,13 @@
 
 wmsx.WebAudioSpeaker = function() {
 
-    this.connect = function(pAudioSignal) {
-        if (audioSignals.indexOf(pAudioSignal) >=0) return;        // Add only once
+    this.connect = function(audioSocket) {
+        audioSocket.connectMonitor(this);
+    };
 
+    this.connectAudioSignal = function(pAudioSignal) {
+        if (audioSignals.indexOf(pAudioSignal) >=0) return;        // Add only once
         wmsx.Util.arrayAdd(audioSignals, pAudioSignal);
-        pAudioSignal.connectMonitor(this);
         updateResamplingFactors();
     };
 

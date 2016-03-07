@@ -71,9 +71,9 @@ wmsx.Room = function(screenElement) {
     var buildAndPlugMachine = function() {
         self.machine = new wmsx.Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
-        self.fileLoader.connect(self.machine);
+        self.fileLoader.connect(self.machine, self.machine.getSlotSocket(), self.machine.getBIOSSocket(), self.machine.getExpansionSocket(), self.machine.getCartridgeSocket(), self.machine.getSavestateSocket());
         self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
-        self.speaker.connect(self.machine.getAudioOutput());
+        self.speaker.connect(self.machine.getAudioSocket());
         self.machineControls.connect(self.machine.getMachineControlsSocket());
         self.keyboard.connect(self.machine.getKeyboardSocket());
         self.joysticksControls.connect(self.machine.getJoysticksSocket(), self.machine.getMachineControlsSocket());

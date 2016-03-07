@@ -30,12 +30,12 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     }
 
     this.connect = function(machine) {
-        psgAudioOutput = machine.psg.getAudioOutput();
-        if (audioConnectionActive) psgAudioOutput.connectAudioCartridge(scc);
+        psgAudioSignal = machine.psg.getAudioSignal();
+        if (audioConnectionActive) psgAudioSignal.connectAudioCartridge(scc);
     };
 
     this.disconnect = function(machine) {
-        psgAudioOutput.disconnectAudioCartridge(scc);
+        psgAudioSignal.disconnectAudioCartridge(scc);
     };
 
     this.powerOn = function() {
@@ -48,7 +48,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     this.reset = function() {
-        psgAudioOutput.disconnectAudioCartridge(scc);
+        psgAudioSignal.disconnectAudioCartridge(scc);
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = scciSelected = sccConnected = false;
         setMode(0);
@@ -129,7 +129,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     function connectSCC() {
         if (!sccConnected) {
-            psgAudioOutput.connectAudioCartridge(scc);
+            psgAudioSignal.connectAudioCartridge(scc);
             sccConnected = true;
         }
     }
@@ -149,7 +149,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var sccSelected, scciSelected = false;
     var sccConnected = false;
     var audioConnectionActive = false;        // used to restore connection after a loadState
-    var psgAudioOutput;
+    var psgAudioSignal;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.SCCIExpansion;
@@ -174,7 +174,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             scs: sccSelected,
             sis: scciSelected,
             scn: sccConnected,
-            scna: psgAudioOutput.getAudioCartridge() === scc
+            scna: psgAudioSignal.getAudioCartridge() === scc
         };
     };
 

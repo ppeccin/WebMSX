@@ -2,11 +2,12 @@
 
 // PSGs AY-3-8910/YM2149 supported
 
-wmsx.PSG = function() {
+wmsx.PSG = function(audioSocket) {
 
     function init() {
         mixedAudioChannels = new wmsx.PSGMixedAudioChannels();
         audioSignal = new wmsx.AudioSignal(mixedAudioChannels, SAMPLE_RATE, VOLUME);
+        audioSocket.connectAudioSignal(audioSignal);
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
@@ -25,7 +26,7 @@ wmsx.PSG = function() {
         audioSignal.signalOff();
     };
 
-    this.getAudioOutput = function() {
+    this.getAudioSignal = function() {
         return audioSignal;
     };
 

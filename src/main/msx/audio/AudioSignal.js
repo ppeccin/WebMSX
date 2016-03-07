@@ -2,10 +2,6 @@
 
 wmsx.AudioSignal = function(source, sampleRate, volume) {
 
-    this.connectMonitor = function(pMonitor) {
-        monitor = pMonitor;
-    };
-
     this.getMixedAudioChannel = function() {
         return source;
     };
@@ -33,14 +29,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
         signalOn = true;
     };
 
-    this.pauseMonitor = function() {
-        monitor.pause();
-    };
-
-    this.unpauseMonitor = function() {
-        monitor.unpause();
-    };
-
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
         samplesPerFrame = Math.round(sampleRate / fps);
@@ -59,14 +47,14 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
         return audioCartridge
     };
 
-    this.audioClockPulse = function() {         // Just one clock pulse, signal always ON
+    this.audioClockPulse = function() {              // Just one clock pulse, signal always ON
         if (frameSamples < samplesPerFrame) {
             generateNextSampleOn();
             frameSamples = frameSamples + 1;
         }
     };
 
-    this.finishFrame = function() {             // Enough samples to complete frame, signal always ON
+    this.audioFinishFrame = function() {             // Enough samples to complete frame, signal always ON
         var missingSamples = samplesPerFrame - frameSamples;
         if (missingSamples > 0)
             for (var i = missingSamples; i > 0; i = i - 1) generateNextSampleOn()
@@ -134,8 +122,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
             for (var j = quant; j > 0; j = j - 1) generateNextSampleOff()
     };
 
-
-    var monitor;
 
     var signalOn = false;
 
