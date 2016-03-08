@@ -38,9 +38,10 @@ wmsx.Machine = function() {
 
     this.reset = function() {
         rtc.reset();
-        bus.reset();
+        psg.reset();
         vdp.reset();
         cpu.reset();
+        bus.reset();
         videoStandardSoft = null;
         if (videoStandardIsAuto) setVideoStandardAuto();
     };
@@ -530,35 +531,39 @@ wmsx.Machine = function() {
     function AudioSocket() {
         this.connectMonitor = function (pMonitor) {
             monitor = pMonitor;
-            if (signal) monitor.connectAudioSignal(signal);
+            for (var i = signals.length - 1; i >= 0; i--) monitor.connectAudioSignal(signals[i]);
         };
-        this.connectAudioSignal = function(pSignal) {
-            signal = pSignal;
-            if (monitor) monitor.connect(signal);
+        this.connectAudioSignal = function(signal) {
+            wmsx.Util.arrayIfAbsentAdd(signals, signal);
+            if (monitor) monitor.connectAudioSignal(signal);
+        };
+        this.disconnectAudioSignal = function(signal) {
+            wmsx.Util.arrayRemoveAllElement(signals, signal);
+            if (monitor) monitor.disconnectAudioSignal(signal);
         };
         this.audioClockPulse = function() {
-            signal.audioClockPulse();
+            for (var i = signals.length - 1; i >= 0; i--) signals[i].audioClockPulse();
         };
         this.audioFinishFrame = function() {
-            signal.audioFinishFrame();
+            for (var i = signals.length - 1; i >= 0; i--) signals[i].audioFinishFrame();
         };
         this.mute = function() {
-            signal.mute();
+            for (var i = signals.length - 1; i >= 0; i--) signals[i].mute();
         };
         this.unmute = function() {
-            signal.play();
-        };
-        this.pauseMonitor = function() {
-            monitor.pause();
-        };
-        this.unpauseMonitor = function() {
-            monitor.unpause();
+            for (var i = signals.length - 1; i >= 0; i--) signals[i].play();
         };
         this.setFps = function(fps) {
-            signal.setFps(fps);
+            for (var i = signals.length - 1; i >= 0; i--) signals[i].setFps(fps);
+        };
+        this.pauseMonitor = function() {
+            if (monitor) monitor.pause();
+        };
+        this.unpauseMonitor = function() {
+            if (monitor) monitor.unpause();
         };
 
-        var signal;
+        var signals = [];
         var monitor;
     }
 

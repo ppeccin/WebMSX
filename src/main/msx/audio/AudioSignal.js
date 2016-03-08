@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.AudioSignal = function(source, sampleRate, volume) {
+wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     this.getMixedAudioChannel = function() {
         return source;
@@ -9,7 +9,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
     this.signalOn = function() {
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        source.signalOn();
         this.play();
     };
 
@@ -17,8 +16,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
         this.mute();
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        source.signalOff();
-        audioCartridge = undefined;
     };
 
     this.mute = function() {
@@ -33,18 +30,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
         // Calculate total samples per frame based on fps
         samplesPerFrame = Math.round(sampleRate / fps);
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
-    };
-
-    this.connectAudioCartridge = function(cart) {
-        audioCartridge = cart;
-    };
-
-    this.disconnectAudioCartridge = function(cart) {
-        if (audioCartridge === cart) audioCartridge = undefined;
-    };
-
-    this.getAudioCartridge = function() {
-        return audioCartridge
     };
 
     this.audioClockPulse = function() {              // Just one clock pulse, signal always ON
@@ -95,13 +80,12 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
         return sampleRate;
     };
 
-    var generateNextSampleOn = function() {
-        var mixedSample;
-        mixedSample = source.nextSample();
-        // Add the AudioCartridge value
-        if (audioCartridge) mixedSample += audioCartridge.nextSample();
+    this.toString = function() {
+        return "AudioSignal " + name;
+    };
 
-        samples[nextSampleToGenerate] = mixedSample * volume;
+    var generateNextSampleOn = function() {
+        samples[nextSampleToGenerate] = source.nextSample() * volume;
         nextSampleToGenerate = nextSampleToGenerate + 1;
         if (nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
@@ -123,6 +107,8 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
     };
 
 
+    this.name = name;
+
     var signalOn = false;
 
     var nextSampleToGenerate = 0;
@@ -130,8 +116,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
 
     var samplesPerFrame;
     var frameSamples = 0;
-
-    var audioCartridge;
 
     var MAX_SAMPLES = 12 * WMSX.AUDIO_BUFFER_SIZE;
 
@@ -141,13 +125,6 @@ wmsx.AudioSignal = function(source, sampleRate, volume) {
         buffer: samples,
         bufferSize: MAX_SAMPLES,
         start: 0
-    };
-
-
-    // Savestate  -------------------------------------------
-
-    this.loadState = function() {
-        audioCartridge = undefined;     // Disconnects any AudioCartridge
     };
 
 };

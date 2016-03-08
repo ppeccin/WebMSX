@@ -1,16 +1,25 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PSGMixedAudioChannels = function() {
+// Controls the 3 PSG Audio Channels and Pulse Signal Channel
 
-    function init() {
+wmsx.PSGMixedAudioChannels = function(audioSocket) {
+
+    function init(self) {
         createVolumeCurve();
+        audioSignal = new wmsx.AudioSignal("PSG", self, SAMPLE_RATE, VOLUME);
+        audioSocket.connectAudioSignal(audioSignal);
     }
 
     this.signalOn = function() {
-        this.signalOff();
+        this.reset();
+        audioSignal.signalOn();
     };
 
     this.signalOff = function() {
+        audioSignal.signalOff();
+    };
+
+    this.reset = function() {
         this.setMixerControl(0xff);
         this.setAmplitudeA(0);
         this.setAmplitudeB(0);
@@ -219,8 +228,13 @@ wmsx.PSGMixedAudioChannels = function() {
 
     var volumeCurve = new Array(16);
 
+    var audioSignal;
+
     var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;
+
+    var VOLUME = 0.54;
+    var SAMPLE_RATE = 111960;
 
 
     // Savestate  -------------------------------------------
@@ -248,6 +262,6 @@ wmsx.PSGMixedAudioChannels = function() {
     };
 
 
-    init();
+    init(this);
 
 };

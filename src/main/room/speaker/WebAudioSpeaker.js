@@ -10,8 +10,14 @@ wmsx.WebAudioSpeaker = function() {
     };
 
     this.connectAudioSignal = function(pAudioSignal) {
-        if (audioSignals.indexOf(pAudioSignal) >=0) return;        // Add only once
+        if (audioSignals.indexOf(pAudioSignal) >= 0) return;        // Add only once
         wmsx.Util.arrayAdd(audioSignals, pAudioSignal);
+        updateResamplingFactors();
+    };
+
+    this.disconnectAudioSignal = function(pAudioSignal) {
+        if (audioSignals.indexOf(pAudioSignal) < 0) return;        // Not present
+        wmsx.Util.arrayRemoveAllElement(audioSignals, pAudioSignal);
         updateResamplingFactors();
     };
 
@@ -94,11 +100,16 @@ wmsx.WebAudioSpeaker = function() {
                 if (s >= inputBufferSize) s = s - inputBufferSize;
             }
         }
+
+        //var str = ""; for (var i = 0; i < audioSignals.length; i++) str = str + audioSignals[i].name + " ";
+        //console.log("AudioProcess: " + str);
     }
 
 
     var audioSignals = [];
+    this.signals = audioSignals;
     var resamplingFactors  = [];
+    this.resamplingFactors = resamplingFactors;
 
     var audioContext;
     var processor;

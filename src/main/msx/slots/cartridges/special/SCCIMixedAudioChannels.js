@@ -9,6 +9,7 @@ wmsx.SCCIMixedAudioChannels = function() {
     }
 
     this.reset = function() {
+        this.disconnectAudio();
         setMixer(0);
         amplitude1 = amplitude2 = amplitude3 = amplitude4 = amplitude5 = 0;
         period1 = period2 = period3 = period4 = period5 = 0;
@@ -28,6 +29,20 @@ wmsx.SCCIMixedAudioChannels = function() {
         } else {
             this.read = readSCC;
             this.write = writeSCC;
+        }
+    };
+
+    this.connectAudio = function(pAudioSocket) {
+        audioSocket = pAudioSocket;
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, SAMPLE_RATE, VOLUME);
+        audioSignal.signalOn();
+        audioSocket.connectAudioSignal(audioSignal);
+    };
+
+    this.disconnectAudio = function() {
+        if (audioSignal) {
+            audioSignal.signalOff();
+            audioSocket.disconnectAudioSignal(audioSignal);
         }
     };
 
@@ -238,8 +253,14 @@ wmsx.SCCIMixedAudioChannels = function() {
 
     var volumeCurve = new Array(16);
 
+    var audioSignal;
+    var audioSocket;
+
     var CHANNEL_MAX_VOLUME = 0.25 / 128;        // Sample values in the range -128..127
     var CHANNEL_VOLUME_CURVE_POWER = 4;         // Sounds more linear than the normal PSG channels
+
+    var VOLUME = 0.54;
+    var SAMPLE_RATE = 111960;
 
 
     // Savestate  -------------------------------------------

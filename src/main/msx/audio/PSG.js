@@ -5,9 +5,7 @@
 wmsx.PSG = function(audioSocket) {
 
     function init() {
-        mixedAudioChannels = new wmsx.PSGMixedAudioChannels();
-        audioSignal = new wmsx.AudioSignal(mixedAudioChannels, SAMPLE_RATE, VOLUME);
-        audioSocket.connectAudioSignal(audioSignal);
+        mixedAudioChannels = new wmsx.PSGMixedAudioChannels(audioSocket);
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
@@ -19,15 +17,15 @@ wmsx.PSG = function(audioSocket) {
     };
 
     this.powerOn = function() {
-        audioSignal.signalOn();
+        mixedAudioChannels.signalOn();
     };
 
     this.powerOff = function() {
-        audioSignal.signalOff();
+        mixedAudioChannels.signalOff();
     };
 
-    this.getAudioSignal = function() {
-        return audioSignal;
+    this.reset = function() {
+        mixedAudioChannels.reset();
     };
 
     this.outputA0 = function(val) {
@@ -89,11 +87,7 @@ wmsx.PSG = function(audioSocket) {
     var registers = wmsx.Util.arrayFill(new Array(16), 0);      // register14 is special, uses 16 bits for 2 sets of Joysticks inputs
     var register15LowInputMode = false;                         // TODO Take this into account?
 
-    var audioSignal;
     var mixedAudioChannels;
-
-    var SAMPLE_RATE = 111960;
-    var VOLUME = 0.54;
 
 
     // Savestate  -------------------------------------------
@@ -110,8 +104,7 @@ wmsx.PSG = function(audioSocket) {
         registerAddress = s.ra;
         registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, registers);
         registers[14] = 0x3f3f;                                 // reset Joysticks inputs
-        if (s.ac) mixedAudioChannels.loadState(s.ac);           // backward compatibility
-        audioSignal.loadState();
+        mixedAudioChannels.loadState(s.ac);
     };
 
 

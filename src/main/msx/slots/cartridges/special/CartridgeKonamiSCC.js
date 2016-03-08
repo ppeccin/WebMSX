@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // ROMs with (n >= 4) * 8K banks, mapped in 4 8K banks starting at 0x4000
-// Controls an internal SCC sound chip with audio output through PSG
+// Controls an internal SCC sound chip
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeKonamiSCC = function(rom) {
@@ -17,20 +17,23 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     }
 
     this.connect = function(machine) {
-        psgAudioSignal = machine.psg.getAudioSignal();
-        if (audioConnectionActive) psgAudioSignal.connectAudioCartridge(scc);
+        audioSocket = machine.getAudioSocket();
+        if (sccConnected) connectSCC();     // needed in LoadStates
     };
 
     this.disconnect = function(machine) {
-        psgAudioSignal.disconnectAudioCartridge(scc);
+        scc.disconnectAudio();
     };
 
     this.powerOn = function() {
         this.reset();
     };
 
+    this.powerOff = function() {
+        scc.disconnectAudio();
+    };
+
     this.reset = function() {
-        psgAudioSignal.disconnectAudioCartridge(scc);
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = sccConnected = false;
         scc.reset();
@@ -45,10 +48,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
             if ((value & 0x3f) === 0x3f) {                           // Special value to activate the SCC
                 sccSelected = true;
-                if (!sccConnected) {
-                    psgAudioSignal.connectAudioCartridge(scc);
-                    sccConnected = true;
-                }
+                if (!sccConnected) connectSCC();
             } else
                 sccSelected = false;
         } else if(sccSelected && address >= 0x9800 && address <= 0x9fff)
@@ -74,6 +74,11 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             return 0xff;
     };
 
+    function connectSCC() {
+        scc.connectAudio(audioSocket);
+        sccConnected = true;
+    }
+
 
     var bytes;
     this.bytes = null;
@@ -84,11 +89,11 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCIMixedAudioChannels();     // will be in SCC mode by default
+    var scc = new wmsx.SCCIMixedAudioChannels();        // will be in SCC mode by default;
     var sccSelected = false;
     var sccConnected = false;
-    var audioConnectionActive = false;               // used to restore connection after a loadState
-    var psgAudioSignal;
+
+    var audioSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.KonamiSCC;
@@ -108,8 +113,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             n: numBanks,
             scc: scc.saveState(),
             scs: sccSelected,
-            scn: sccConnected,
-            scna: psgAudioSignal.getAudioCartridge() === scc
+            scn: sccConnected
         };
     };
 
@@ -125,7 +129,6 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         scc.loadState(s.scc);
         sccSelected = s.scs;
         sccConnected = s.scn;
-        audioConnectionActive = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
 

@@ -3,7 +3,7 @@
 // Behaves like the "Snatcher/SD Snatcher Sound Cartridge" upgraded to 128KB RAM
 // 128KB RAM, mapped in 4 8K banks starting at 0x4000
 // Also Accepts ROMs of 128KB or 64KB (mirrored)
-// Controls an internal SCC-I sound chip with audio output through PSG
+// Controls an internal SCC-I sound chip with
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeSCCIExpansion = function(rom) {
@@ -30,12 +30,12 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     }
 
     this.connect = function(machine) {
-        psgAudioSignal = machine.psg.getAudioSignal();
-        if (audioConnectionActive) psgAudioSignal.connectAudioCartridge(scc);
+        audioSocket = machine.getAudioSocket();
+        if (sccConnected) connectSCC();     // needed in LoadStates
     };
 
     this.disconnect = function(machine) {
-        psgAudioSignal.disconnectAudioCartridge(scc);
+        scc.disconnectAudio();
     };
 
     this.powerOn = function() {
@@ -43,12 +43,12 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     this.powerOff = function() {
+        scc.disconnectAudio();
         if (this.preLoadedContentSize === 0)
             wmsx.Util.arrayFill(bytes, 0xff);
     };
 
     this.reset = function() {
-        psgAudioSignal.disconnectAudioCartridge(scc);
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = scciSelected = sccConnected = false;
         setMode(0);
@@ -78,7 +78,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             else if (address >= 0x9000 && address <= 0x97ff) {
                 bank3Offset = (value & 0x0f) * 0x2000 - 0x8000;
                 sccSelected = value === 0x3f;                        // Special value to activate the SCC
-                if (sccSelected) connectSCC();
+                if (sccSelected && !sccConnected) connectSCC();
             } else if ((address >= 0x9800) && sccSelected && !scciMode)
                 scc.write(address, value);
         } else if (address >= 0xa000 && address <= 0xbfff) {         // Bank 4 access
@@ -87,7 +87,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             else if (address >= 0xb000 && address <= 0xb7ff) {
                 bank4Offset = (value & 0x0f) * 0x2000 - 0xa000;
                 scciSelected = (value & 0x80) === 0x80;              // Special value to activate the SCC-I
-                if (scciSelected) connectSCC();
+                if (scciSelected && !sccConnected) connectSCC();
             } else if ((address >= 0xb800) && scciSelected && scciMode)
                 scc.write(address, value);
         }
@@ -128,10 +128,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     }
 
     function connectSCC() {
-        if (!sccConnected) {
-            psgAudioSignal.connectAudioCartridge(scc);
-            sccConnected = true;
-        }
+        scc.connectAudio(audioSocket);
+        sccConnected = true;
     }
 
 
@@ -148,8 +146,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var scc = new wmsx.SCCIMixedAudioChannels();
     var sccSelected, scciSelected = false;
     var sccConnected = false;
-    var audioConnectionActive = false;        // used to restore connection after a loadState
-    var psgAudioSignal;
+
+    var audioSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.SCCIExpansion;
@@ -173,8 +171,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             scc: scc.saveState(),
             scs: sccSelected,
             sis: scciSelected,
-            scn: sccConnected,
-            scna: psgAudioSignal.getAudioCartridge() === scc
+            scn: sccConnected
         };
     };
 
@@ -193,7 +190,6 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         sccSelected = s.scs;
         scciSelected = s.sis;
         sccConnected = s.scn;
-        audioConnectionActive = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
     this.eval = function(str) {

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Controls only an internal SCC sound chip with audio output through PSG
+// Controls only an internal SCC sound chip
 wmsx.CartridgeSCCExpansion = function(rom) {
 
     function init(self) {
@@ -8,20 +8,23 @@ wmsx.CartridgeSCCExpansion = function(rom) {
     }
 
     this.connect = function(machine) {
-        psgAudioSignal = machine.psg.getAudioSignal();
-        if (audioConnectionActive) psgAudioSignal.connectAudioCartridge(scc);
+        audioSocket = machine.getAudioSocket();
+        if (sccConnected) connectSCC();     // needed in LoadStates
     };
 
     this.disconnect = function(machine) {
-        psgAudioSignal.disconnectAudioCartridge(scc);
+        scc.disconnectAudio();
     };
 
     this.powerOn = function() {
         this.reset();
     };
 
+    this.powerOff = function() {
+        scc.disconnectAudio();
+    };
+
     this.reset = function() {
-        psgAudioSignal.disconnectAudioCartridge(scc);
         sccSelected = sccConnected = false;
         scc.reset();
     };
@@ -30,10 +33,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
         if (address >= 0x9000 && address <= 0x97ff) {
             if ((value & 0x3f) === 0x3f) {                           // Special value to activate the SCC
                 sccSelected = true;
-                if (!sccConnected) {
-                    psgAudioSignal.connectAudioCartridge(scc);
-                    sccConnected = true;
-                }
+                if (!sccConnected) connectSCC();
             } else
                 sccSelected = false;
         }
@@ -46,12 +46,17 @@ wmsx.CartridgeSCCExpansion = function(rom) {
             return 0xff;
     };
 
+    function connectSCC() {
+        scc.connectAudio(audioSocket);
+        sccConnected = true;
+    }
+
 
     var scc = new wmsx.SCCIMixedAudioChannels();
     var sccSelected = false;
     var sccConnected = false;
-    var audioConnectionActive = false;        // used to restore connection after a loadState
-    var psgAudioSignal;
+
+    var audioSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.SCCExpansion;
@@ -65,8 +70,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
             r: this.rom.saveState(),
             scc: scc.saveState(),
             scs: sccSelected,
-            scn: sccConnected,
-            scna: psgAudioSignal.getAudioCartridge() === scc
+            scn: sccConnected
         };
     };
 
@@ -75,7 +79,6 @@ wmsx.CartridgeSCCExpansion = function(rom) {
         scc.loadState(s.scc);
         sccSelected = s.scs;
         sccConnected = s.scn;
-        audioConnectionActive = s.scna;      // Will reconnect ro PSG if was connected at saveState
     };
 
 
