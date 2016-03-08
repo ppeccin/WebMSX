@@ -32,6 +32,8 @@ wmsx.YM2413MixedAudioChannels = function() {
     init();
 
 
+    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;       // Main CPU clock / 72 = 49780hz
+
     var SIN_TABLE = [
         2137, 1731, 1543, 1419, 1326, 1252, 1190, 1137, 1091, 1050, 1013, 979, 949, 920, 894, 869,
         846, 825, 804, 785, 767, 749, 732, 717, 701, 687, 672, 659, 646, 633, 621, 609,

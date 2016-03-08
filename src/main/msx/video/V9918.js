@@ -2,14 +2,12 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.V9918 = function(machine, cpu) {
+wmsx.V9918 = function(machine, clockOutput, cpu) {
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VideoSignal();
-        cpuClockPulses = cpu.clockPulses;
-        audioClockPulse = machine.getAudioSocket().audioClockPulse;
-        audioFinishFrame = machine.getAudioSocket().audioFinishFrame;
+        clockOutputPulses = clockOutput.pulses;
         initFrameResources();
         initColorCodePatternValues();
         initDebugPatternTables();
@@ -50,15 +48,12 @@ wmsx.V9918 = function(machine, cpu) {
         return desiredBaseFrequency;
     };
 
-    this.clockPulse = function() {
+    this.videoClockPulse = function() {
 
         //console.log(">>> FRAME CLOCK");
 
         // Finish video signal (generate any missing lines up to the max per cycle)
         updateLines();
-
-        // Finish audio signal (generate any missing samples to adjust to sample rate)
-        audioFinishFrame();
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
@@ -291,12 +286,9 @@ wmsx.V9918 = function(machine, cpu) {
         for (i = 0x10; i < 0x100; i += 0x10) colorCodeStartPositions[i] = (i | backdropColor) << 8;
     }
 
-    // 228 CPU clocks and 7,125 PSG clocks interleaved
+    // 228 CPU clocks with Audio clocks interleaved
     function lineClockCPUandPSG() {
-        cpuClockPulses(33); audioClockPulse(); cpuClockPulses(32); audioClockPulse();
-        cpuClockPulses(33); audioClockPulse(); cpuClockPulses(32); audioClockPulse();
-        cpuClockPulses(33); audioClockPulse(); cpuClockPulses(32); audioClockPulse();
-        cpuClockPulses(33); audioClockPulse();
+        clockOutputPulses(228);
     }
 
     function updateLinesInvisible(toLine) {
@@ -1120,8 +1112,7 @@ wmsx.V9918 = function(machine, cpu) {
 
     var videoSignal;
 
-    var cpuClockPulses;
-    var audioClockPulse, audioFinishFrame;
+    var clockOutputPulses;
 
 
     // Savestate  -------------------------------------------

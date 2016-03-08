@@ -259,8 +259,8 @@ wmsx.SCCIMixedAudioChannels = function() {
     var CHANNEL_MAX_VOLUME = 0.25 / 128;        // Sample values in the range -128..127
     var CHANNEL_VOLUME_CURVE_POWER = 4;         // Sounds more linear than the normal PSG channels
 
-    var VOLUME = 0.54;
-    var SAMPLE_RATE = 111960;
+    var VOLUME = 0.46;
+    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // main cpu clock / 32 = 112005hz
 
 
     // Savestate  -------------------------------------------

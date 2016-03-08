@@ -21,11 +21,11 @@ wmsx.Machine = function() {
         this.reset();
         this.powerIsOn = true;
         machineControlsSocket.fireRedefinitionUpdate();
-        if (!paused) mainClock.go();
+        if (!paused) mainVideoClock.go();
     };
 
     this.powerOff = function() {
-        mainClock.pause();
+        mainVideoClock.pause();
         cpu.powerOff();
         vdp.powerOff();
         psg.powerOff();
@@ -56,12 +56,16 @@ wmsx.Machine = function() {
         if (autoRunCassette) cassetteSocket.typeAutoRunCommandAfterPowerOn();
      };
 
-    this.clockPulse = function() {
+    this.videoClockPulse = function() {
         if (systemPaused) return;
-        joysticksSocket.clockPulse();
+        joysticksSocket.joysticksClockPulse();
         if (userPaused)
             if (userPauseMoreFrames-- <= 0) return;
-        vdp.clockPulse();
+
+        vdp.videoClockPulse();
+
+        // Finish audio signal (generate any missing samples to adjust to sample rate)
+        audioSocket.audioFinishFrame();
     };
 
     this.getSlotSocket = function() {
@@ -187,7 +191,7 @@ wmsx.Machine = function() {
 
         videoStandard = pVideoStandard;
         vdp.setVideoStandard(videoStandard);
-        mainClockAdjustToNormal();
+        mainVideoClockAdjustToNormal();
     }
 
     function setVideoStandardAuto() {
@@ -216,7 +220,7 @@ wmsx.Machine = function() {
 
         vSynchMode = mode;
         vdp.setVSynchMode(vSynchMode);
-        mainClockAdjustToNormal();
+        mainVideoClockAdjustToNormal();
     }
 
     function powerFry() {
@@ -255,33 +259,38 @@ wmsx.Machine = function() {
         cassetteSocket.getDeck().loadState(state.ct);
     }
 
-    function mainClockAdjustToNormal() {
+    function mainVideoClockAdjustToNormal() {
         var freq = vdp.getDesiredBaseFrequency();
-        mainClock.setVSynch(vSynchMode > 0);
-        mainClock.setFrequency(freq);
+        mainVideoClock.setVSynch(vSynchMode > 0);
+        mainVideoClock.setFrequency(freq);
         audioSocket.setFps(freq);
     }
 
-    function mainClockAdjustToFast() {
-        var freq = 360;     // About 6x faster if host machine is capable
-        mainClock.setFrequency(freq);
+    function mainVideoClockAdjustToFast() {
+        var freq = 600;     // About 10x faster limited to host performance
+        mainVideoClock.setFrequency(freq);
         audioSocket.setFps(freq);
     }
 
-    function mainClockAdjustToSlow() {
+    function mainVideoClockAdjustToSlow() {
         var freq = 20;      // About 3x slower
-        mainClock.setFrequency(freq);
+        mainVideoClock.setFrequency(freq);
         audioSocket.setFps(freq);
     }
 
     function mainComponentsCreate() {
-        self.mainClock = mainClock = new wmsx.Clock(self);
+        // Main clock will be the VDP VideoClock (60Hz/50Hz)
+        self.mainVideoClock = mainVideoClock = new wmsx.Clock(self.videoClockPulse);
+
         self.cpu = cpu = new wmsx.Z80();
+
+        // CPU and other clocks (CPU clock dividers) will be sent through a Multiplexer, fed and synched by the VDP
+        self.clockMultiplexer = clockMultiplexer = new wmsx.ClockMultiplexer(cpu.clockPulses, wmsx.Machine.BASE_CPU_CLOCK);
+
+        self.vdp = vdp = new wmsx.V9938(self, clockMultiplexer, cpu, !MSX2);
         self.psg = psg = new wmsx.PSG(audioSocket);
         self.ppi = ppi = new wmsx.PPI(psg);
-        self.vdp = vdp = new wmsx.V9938(self, cpu, !MSX2);
         self.rtc = rtc = new wmsx.RTC(MSX2);
-
         self.bus = bus = new wmsx.EngineBUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
@@ -310,7 +319,8 @@ wmsx.Machine = function() {
 
     var isLoading = false;
 
-    var mainClock;
+    var mainVideoClock;
+    var clockMultiplexer;
     var cpu;
     var bus;
     var ppi;
@@ -341,7 +351,6 @@ wmsx.Machine = function() {
 
     var vSynchMode;
 
-
     var MSX2 = WMSX.MACHINE_TYPE === 2;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
@@ -359,20 +368,20 @@ wmsx.Machine = function() {
         if (control === controls.FAST_SPEED) {
             if (state) {
                 self.showOSD("FAST FORWARD", true);
-                mainClockAdjustToFast();
+                mainVideoClockAdjustToFast();
             } else {
                 self.showOSD(null, true);
-                mainClockAdjustToNormal();
+                mainVideoClockAdjustToNormal();
             }
             return;
         }
         if (control === controls.SLOW_SPEED) {
             if (state) {
                 self.showOSD("SLOW MOTION", true);
-                mainClockAdjustToSlow();
+                mainVideoClockAdjustToSlow();
             } else {
                 self.showOSD(null, true);
-                mainClockAdjustToNormal();
+                mainVideoClockAdjustToNormal();
             }
             return;
         }
@@ -534,15 +543,15 @@ wmsx.Machine = function() {
             for (var i = signals.length - 1; i >= 0; i--) monitor.connectAudioSignal(signals[i]);
         };
         this.connectAudioSignal = function(signal) {
-            wmsx.Util.arrayIfAbsentAdd(signals, signal);
+            if (signals.indexOf(signal) >= 0) return;
+            wmsx.Util.arrayAdd(signals, signal);
+            clockMultiplexer.addSlave(signal.audioClockPulse, (wmsx.Machine.BASE_CPU_CLOCK / signal.getSampleRate()) | 0);
             if (monitor) monitor.connectAudioSignal(signal);
         };
         this.disconnectAudioSignal = function(signal) {
             wmsx.Util.arrayRemoveAllElement(signals, signal);
+            clockMultiplexer.removeSlave(signal.audioClockPulse);
             if (monitor) monitor.disconnectAudioSignal(signal);
-        };
-        this.audioClockPulse = function() {
-            for (var i = signals.length - 1; i >= 0; i--) signals[i].audioClockPulse();
         };
         this.audioFinishFrame = function() {
             for (var i = signals.length - 1; i >= 0; i--) signals[i].audioFinishFrame();
@@ -644,8 +653,8 @@ wmsx.Machine = function() {
         this.controlValueChanged = function(control, value) {
             psg.joystickControlValueChanged(control, value);
         };
-        this.clockPulse = function() {
-            controls.clockPulse();
+        this.joysticksClockPulse = function() {
+            controls.joysticksClockPulse();
         };
         var controls;
     }
@@ -769,17 +778,17 @@ wmsx.Machine = function() {
     // Debug methods  ------------------------------------------------------
 
     this.runFramesAtTopSpeed = function(frames) {
-        mainClock.pause();
+        mainVideoClock.pause();
         var start = performance.now();
         for (var i = 0; i < frames; i++) {
             //var pulseTime = window.performance.now();
-            self.clockPulse();
+            self.videoClockPulse();
             //console.log(window.performance.now() - pulseTime);
         }
         var duration = performance.now() - start;
         wmsx.Util.log("Done running " + frames + " frames in " + duration + " ms");
         wmsx.Util.log(frames / (duration/1000) + "  frames/sec");
-        mainClock.go();
+        mainVideoClock.go();
     };
 
     this.eval = function(str) {
@@ -790,3 +799,5 @@ wmsx.Machine = function() {
     init();
 
 };
+
+wmsx.Machine.BASE_CPU_CLOCK = 228 * 262 * 60;        // 3584160Hz, rectified to 60Hz (228 clocks per line, 262 lines, 60 fps)

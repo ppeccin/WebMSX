@@ -233,8 +233,8 @@ wmsx.PSGMixedAudioChannels = function(audioSocket) {
     var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;
 
-    var VOLUME = 0.54;
-    var SAMPLE_RATE = 111960;
+    var VOLUME = 0.50;
+    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // Main CPU clock / 32 = 112005Hz
 
 
     // Savestate  -------------------------------------------

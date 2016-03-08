@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Clock = function(clockDriven) {
+// Clock Pulse generator. Intended to be synchronized with Host machine Video Frequency whenever possible
+
+wmsx.Clock = function(clockPulse) {
 
     this.go = function() {
         if (!running) {
@@ -64,7 +66,7 @@ wmsx.Clock = function(clockDriven) {
         //lastPulseTime = pulseTime;
 
         animationFrame = null;
-        clockDriven.clockPulse();
+        clockPulse();
         if (useRequestAnimationFrame && !animationFrame)
             animationFrame = window.requestAnimationFrame(pulse);
 

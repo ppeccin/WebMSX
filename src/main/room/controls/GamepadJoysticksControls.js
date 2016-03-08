@@ -43,7 +43,7 @@ wmsx.GamepadJoysticksControls = function() {
         joy1State.xPosition = joy2State.xPosition = -1;
     };
 
-    this.clockPulse = function() {
+    this.joysticksClockPulse = function() {
         if (!supported) return;
 
         // Try to avoid polling at gamepads if none are present, as it may be expensive

@@ -5,14 +5,12 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.V9938 = function(machine, cpu, isV9918) {
+wmsx.V9938 = function(machine, clockOutput, cpu, isV9918) {
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VideoSignal();
-        cpuClockPulses = cpu.clockPulses;
-        audioClockPulse = machine.getAudioSocket().audioClockPulse;
-        audioFinishFrame = machine.getAudioSocket().audioFinishFrame;
+        clockOutputPulses = clockOutput.pulses;
         initFrameResources();
         initColorCaches();
         initDebugPatternTables();
@@ -61,12 +59,9 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         return desiredBaseFrequency;
     };
 
-    this.clockPulse = function() {
+    this.videoClockPulse = function() {
         // Generate correct amount of lines per cycle, according to the current pulldown cadence
         frameEvents();
-
-        // Finish audio signal (generate any missing samples to adjust to sample rate)
-        audioFinishFrame();
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
@@ -505,7 +500,7 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
 
-        cpuClockPulses(33); audioClockPulse();
+        clockOutputPulses(32);
 
         // Left border: 56 clocks
 
@@ -513,21 +508,17 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
         if (currentScanline === startingBottomBorderScanline) triggerVerticalInterrupt();           // VR = 1, F = 1 at the first Bottom Border line
 
-        cpuClockPulses(10);
+        clockOutputPulses(10);
 
         // Visible Display: 1024 clocks
 
         status[2] &= ~0x20;                                                                         // HR = 0
 
-        cpuClockPulses(22); audioClockPulse();
-        cpuClockPulses(33); audioClockPulse();
-        cpuClockPulses(32); audioClockPulse();
+        clockOutputPulses(86);
 
         if (currentScanline >= startingTopBorderScanline) renderLine();                             // ~ Middle of Display area
 
-        cpuClockPulses(33); audioClockPulse();
-        cpuClockPulses(32); audioClockPulse();
-        cpuClockPulses(18);
+        clockOutputPulses(84);
 
         status[2] |= 0x20;                                                                          // HR = 1
         if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();   // FH = 1
@@ -535,11 +526,9 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         // Right border: 59 clocks
         // Right erase: 27 clocks
 
-        cpuClockPulses(15);  audioClockPulse();
+        clockOutputPulses(16);
 
         // End of line
-
-        // 1 additional PSG clock each 8 lines should be added to be perfectly in sync
     }
 
     function triggerVerticalInterrupt() {
@@ -1897,8 +1886,7 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     // Connections
 
     var videoSignal;
-    var cpuClockPulses;
-    var audioClockPulse, audioFinishFrame;
+    var clockOutputPulses;
     var commandProcessor;
 
     // Savestate  -------------------------------------------
