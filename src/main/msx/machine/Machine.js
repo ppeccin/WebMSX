@@ -280,14 +280,11 @@ wmsx.Machine = function() {
 
     function mainComponentsCreate() {
         // Main clock will be the VDP VideoClock (60Hz/50Hz)
+        // CPU and other clocks (CPU and AudioClocks dividers) will be sent by the VDP
         self.mainVideoClock = mainVideoClock = new wmsx.Clock(self.videoClockPulse);
 
         self.cpu = cpu = new wmsx.Z80();
-
-        // CPU and other clocks (CPU clock dividers) will be sent through a Multiplexer, fed and synched by the VDP
-        self.clockMultiplexer = clockMultiplexer = new wmsx.ClockMultiplexer(cpu.clockPulses, wmsx.Machine.BASE_CPU_CLOCK);
-
-        self.vdp = vdp = new wmsx.V9938(self, clockMultiplexer, cpu, !MSX2);
+        self.vdp = vdp = new wmsx.V9938(self, cpu, !MSX2);
         self.psg = psg = new wmsx.PSG(audioSocket);
         self.ppi = ppi = new wmsx.PPI(psg);
         self.rtc = rtc = new wmsx.RTC(MSX2);
@@ -320,7 +317,6 @@ wmsx.Machine = function() {
     var isLoading = false;
 
     var mainVideoClock;
-    var clockMultiplexer;
     var cpu;
     var bus;
     var ppi;
@@ -545,13 +541,14 @@ wmsx.Machine = function() {
         this.connectAudioSignal = function(signal) {
             if (signals.indexOf(signal) >= 0) return;
             wmsx.Util.arrayAdd(signals, signal);
-            clockMultiplexer.addSlave(signal.audioClockPulse, (wmsx.Machine.BASE_CPU_CLOCK / signal.getSampleRate()) | 0);
             if (monitor) monitor.connectAudioSignal(signal);
         };
         this.disconnectAudioSignal = function(signal) {
             wmsx.Util.arrayRemoveAllElement(signals, signal);
-            clockMultiplexer.removeSlave(signal.audioClockPulse);
             if (monitor) monitor.disconnectAudioSignal(signal);
+        };
+        this.audioClockPulse32 = function() {
+            for (var i = signals.length - 1; i >= 0; i--) signals[i].audioClockPulse();
         };
         this.audioFinishFrame = function() {
             for (var i = signals.length - 1; i >= 0; i--) signals[i].audioFinishFrame();

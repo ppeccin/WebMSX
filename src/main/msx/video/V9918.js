@@ -2,12 +2,13 @@
 
 // This implementation is line-accurate
 // Original base clock: 10738635 Hz which is 3x CPU clock
-wmsx.V9918 = function(machine, clockOutput, cpu) {
+wmsx.V9918 = function(machine, cpu) {
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VideoSignal();
-        clockOutputPulses = clockOutput.pulses;
+        cpuClockPulses = cpu.clockPulses;
+        audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources();
         initColorCodePatternValues();
         initDebugPatternTables();
@@ -288,7 +289,11 @@ wmsx.V9918 = function(machine, clockOutput, cpu) {
 
     // 228 CPU clocks with Audio clocks interleaved
     function lineClockCPUandPSG() {
-        clockOutputPulses(228);
+        cpuClockPulses(33); audioClockPulse32(); cpuClockPulses(32); audioClockPulse32();
+        cpuClockPulses(33); audioClockPulse32(); cpuClockPulses(32); audioClockPulse32();
+        cpuClockPulses(33); audioClockPulse32(); cpuClockPulses(32); audioClockPulse32();
+        cpuClockPulses(33); audioClockPulse32();
+        if ((currentScanline & 0x7) === 0) audioClockPulse32();     // One more audioClock32 each 8 lines
     }
 
     function updateLinesInvisible(toLine) {
@@ -1112,7 +1117,7 @@ wmsx.V9918 = function(machine, clockOutput, cpu) {
 
     var videoSignal;
 
-    var clockOutputPulses;
+    var cpuClockPulses, audioClockPulse32;
 
 
     // Savestate  -------------------------------------------
