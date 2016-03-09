@@ -1916,6 +1916,8 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     };
 
     this.loadState = function(s) {
+        // TODO BackdropColor problem when loading after a SCREEN 8
+
         isV9918 = s.v1;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         cycles = s.c; lastCPUCyclesComputed = s.cc;

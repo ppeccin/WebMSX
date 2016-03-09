@@ -4,37 +4,163 @@ wmsx.YM2413MixedAudioChannels = function() {
     var self = this;
 
     function init() {
-        ST = SIN_TABLE;
-        ET = EXP_TABLE;
-        Y = self;
+        FM = self;
     }
 
-    this.powerOn = function() {
+    this.connectAudioSocket = function(pAudioSocket) {
+        audioSocket = pAudioSocket;
     };
 
-    this.powerOff = function() {
+    this.output7C = function (val) {
+        registerAddress = val & 0x3f;
     };
 
-    this.getSin = function(val) {
-        var res = SIN_TABLE[((val & 256) ? val ^ 255 : val) & 255];      // Flip if in mirrored quarters
-        if (val & 512) res |= 0x8000;                                    // Set sign bit if in negative quarters
-        return res;
+    this.output7D = function (val) {
+        var chan = registerAddress & 0xf;
+        var mod = register[registerAddress] ^ val;
+        register[registerAddress] = val;
+
+        switch(registerAddress) {
+            case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
+                INSTRUMENT_ROM[0][registerAddress] = val;
+                updateCustomInstrChannels();
+                break;
+            case 0x0e:
+                rhythmMode = (val & 0x20) !== 0;
+                this.rhythmMode = rhythmMode;
+                break;
+            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
+                if (mod) {
+                    fNum[chan] = (fNum[chan] & ~0xff) | val;
+                    updatePhaseInc(chan);
+                }
+                break;
+            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
+                if (mod & 0x01) fNum[chan]  = (fNum[chan] & ~0x100) | ((val & 1) << 8);
+                if (mod & 0x0e) block[chan] = (val >> 1) & 0x7;
+                if (mod & 0x0f) updatePhaseInc(chan);
+                if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
+                break;
+            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
+                if (mod & 0x0f) volume[chan] = val & 0xf;
+                if (mod & 0xf0) setInstr(chan, val >>> 4);
+                break;
+        }
     };
 
-    this.getExp = function(val) {
-        var exp = EXP_TABLE[(val & 255) ^ 255];
-        var res = exp >>> ((val & 0x7F00) >> 8);
-        if (val & 0x8000) res = ~res;                                    // Negate if sign bit was set
-        return res >> 4;
+    this.nextSample = function() {
+        var sample = 0;
+        var toChan = rhythmMode ? 6 : 9;
+        for (var chan = 0; chan < toChan; chan++) {
+            if (!keyOn[chan]) continue;
+            var c = chan << 1, m = c + 1;
+
+            var cC = (phaseCounter[c] += phaseInc[c]);
+            var cPh = cC >> 9;
+            var mC = (phaseCounter[m] += phaseInc[m]);
+            var mPh = mC >> 9;
+
+            var mod = getExp(getSin(mPh) + (modTL[c] << 5));
+            var val = getExp(getSin(cPh + (mod << 4)) + (volume[chan] << 7));
+
+            sample += val;
+        }
+
+        //if (sample) console.log(sample);
+
+        return sample / (8 * 256);
     };
+
+    this.connectAudio = function() {
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("MSX-MUSIC", this, SAMPLE_RATE, VOLUME);
+        audioSignal.signalOn();
+        audioSocket.connectAudioSignal(audioSignal);
+    };
+
+    this.disconnectAudio = function() {
+        if (audioSignal) {
+            audioSignal.signalOff();
+            audioSocket.disconnectAudioSignal(audioSignal);
+        }
+    };
+
+    function setKeyOn(chan, boo) {
+        if (keyOn[chan] !== boo) {
+            phaseCounter[chan << 1] = 0;
+            phaseCounter[(chan << 1) + 1] = 0;
+        }
+        keyOn[chan] = boo;
+    }
+
+    function setInstr(chan, ins) {
+        instr[chan] = ins;
+
+        // Copy parameters
+        var c = chan << 1, m = c + 1;
+        multi[c] = MULTI_FACTORS[INSTRUMENT_ROM[ins][0] & 0xf];
+        multi[m] = MULTI_FACTORS[INSTRUMENT_ROM[ins][1] & 0xf];
+        modTL[c] = INSTRUMENT_ROM[ins][2] & 0x3f;
+
+        updatePhaseInc(chan);
+    }
+
+    function updateCustomInstrChannels() {
+        for (var c = 0; c < 9; c++)
+            if (instr[c] === 0) setInstr(c, 0);
+    }
+
+    var updatePhaseInc = function (chan) {
+        phaseInc[chan << 1] =       (fNum[chan] * multi[chan << 1]) >> 1 << block[chan];          // Take back the MULTI doubling in the table (>> 1)
+        phaseInc[(chan << 1) + 1] = (fNum[chan] * multi[(chan << 1) + 1]) >> 1 << block[chan];
+    };
+
+
+    var registerAddress;
+    var register = wmsx.Util.arrayFill(new Array(0x38), 0);
+
+    var rhythmMode = false;
+
+    // Per channel values
+    var keyOn =  wmsx.Util.arrayFill(new Array(9), false);
+    var fNum  =  wmsx.Util.arrayFill(new Array(9), 0);
+    var block =  wmsx.Util.arrayFill(new Array(9), 0);
+    var instr =  wmsx.Util.arrayFill(new Array(9), 0);
+    var volume = wmsx.Util.arrayFill(new Array(9), 0xf);
+
+    // Per operator values
+    var multi =        wmsx.Util.arrayFill(new Array(18), 0);
+    var modTL =        wmsx.Util.arrayFill(new Array(18), 0);
+    var phaseInc =     wmsx.Util.arrayFill(new Array(18), 0);
+    var phaseCounter = wmsx.Util.arrayFill(new Array(18), 0);
+
+
+    // Debug vars
+
+    this.rhythmMode = rhythmMode;
+
+    this.keyOn = keyOn;
+    this.fNum = fNum;
+    this.block = block;
+    this.instr = instr;
+    this.volume = volume;
+
+    this.multi = multi;
+    this.modTL = modTL;
+    this.phaseInc = phaseInc;
+    this.phaseCounter = phaseCounter;
+
+    // -------
+
+    var audioSocket, audioSignal;
+
+    var VOLUME = 0.60;
+    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;       // Main CPU clock / 72 = 49780hz
 
 
     init();
 
 
-    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;       // Main CPU clock / 72 = 49780hz
-
-    var SIN_TABLE = [
+    var SIN_ROM = [
         2137, 1731, 1543, 1419, 1326, 1252, 1190, 1137, 1091, 1050, 1013, 979, 949, 920, 894, 869,
         846, 825, 804, 785, 767, 749, 732, 717, 701, 687, 672, 659, 646, 633, 621, 609,
         598, 587, 576, 566, 556, 546, 536, 527, 518, 509, 501, 492, 484, 476, 468, 461,
@@ -53,7 +179,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         2, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0
     ];
 
-    var EXP_TABLE = [
+    var EXP_ROM = [
         2048, 2054, 2060, 2064, 2070, 2076, 2082, 2088, 2092, 2098, 2104, 2110, 2116, 2122, 2128, 2132,
         2138, 2144, 2150, 2156, 2162, 2168, 2174, 2180, 2186, 2192, 2198, 2204, 2210, 2216, 2222, 2228,
         2234, 2240, 2246, 2252, 2258, 2264, 2270, 2276, 2282, 2288, 2294, 2300, 2308, 2314, 2320, 2326,
@@ -71,6 +197,50 @@ wmsx.YM2413MixedAudioChannels = function() {
         3756, 3766, 3776, 3786, 3796, 3808, 3818, 3828, 3838, 3848, 3860, 3870, 3880, 3890, 3902, 3912,
         3922, 3932, 3944, 3954, 3966, 3976, 3986, 3998, 4008, 4020, 4030, 4040, 4052, 4062, 4074, 4084
     ];
+
+    var INSTRUMENT_ROM = [
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],           // 0 = Custom
+        [0x61, 0x61, 0x1e, 0x17, 0xf0, 0x78, 0x00, 0x17],           // 1 = Violin
+        [0x13, 0x41, 0x1e, 0x0d, 0xd7, 0xf7, 0x13, 0x13],           // 2 = Guitar
+        [0x13, 0x01, 0x99, 0x04, 0xf2, 0xf4, 0x11, 0x23],           // 3 = Piano
+        [0x21, 0x61, 0x1b, 0x07, 0xaf, 0x64, 0x40, 0x27],           // 4 = Flute
+        [0x22, 0x21, 0x1e, 0x06, 0xf0, 0x75, 0x08, 0x18],           // 5 = Clarinet
+        [0x31, 0x22, 0x16, 0x05, 0x90, 0x71, 0x00, 0x13],           // 6 = Oboe
+        [0x21, 0x61, 0x1d, 0x07, 0x82, 0x80, 0x10, 0x17],           // 7 = Trumpet
+        [0x23, 0x21, 0x2d, 0x16, 0xc0, 0x70, 0x07, 0x07],           // 8 = Organ
+        [0x61, 0x61, 0x1b, 0x06, 0x64, 0x65, 0x10, 0x17],           // 9 = Horn
+        [0x61, 0x61, 0x0c, 0x18, 0x85, 0xf0, 0x70, 0x07],           // A = Synthesizer
+        [0x23, 0x01, 0x07, 0x11, 0xf0, 0xa4, 0x00, 0x22],           // B = Harpsichord
+        [0x97, 0xc1, 0x24, 0x07, 0xff, 0xf8, 0x22, 0x12],           // C = Vibraphone
+        [0x61, 0x10, 0x0c, 0x05, 0xf2, 0xf4, 0x40, 0x44],           // D = Synthesizer Bass
+        [0x01, 0x01, 0x55, 0x03, 0xf3, 0x92, 0xf3, 0xf3],           // E = Wood Bass
+        [0x61, 0x41, 0x89, 0x03, 0xf1, 0xf4, 0xf0, 0x13]            // F = Electric Guitar
+    ];
+
+    var MULTI_FACTORS = [
+     // 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15           // Original values
+        1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30        // Double values
+    ];
+
+    function getSin(val) {
+        var res = SIN_ROM[((val & 256) ? val ^ 255 : val) & 255];        // Flip if in mirrored quarters
+        if (val & 512) res |= 0x8000;                                    // Set sign bit if in negative quarters
+        return res;
+    }
+    this.getSin = getSin;
+
+    function getExp(val) {
+        var exp = EXP_ROM[(val & 255) ^ 255];
+        var res = exp >>> ((val & 0x7F00) >> 8);
+        if (val & 0x8000) res = ~res;                                    // Negate if sign bit was set
+        return res >> 4;                                                 // Divide by 16 ???
+    }
+    this.getExp = getExp;
+
+
+    this.eval = function(str) {
+        return eval(str);
+    };
 
 };
 
