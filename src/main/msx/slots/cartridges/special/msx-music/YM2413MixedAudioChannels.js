@@ -7,8 +7,15 @@ wmsx.YM2413MixedAudioChannels = function() {
         FM = self;
     }
 
-    this.connectAudioSocket = function(pAudioSocket) {
-        audioSocket = pAudioSocket;
+    this.connect = function(machine) {
+        machine.bus.connectOutputDevice(0x7c, this.output7C);
+        machine.bus.connectOutputDevice(0x7d, this.output7D);
+        audioSocket = machine.getAudioSocket();
+    };
+
+    this.disconnect = function(machine) {
+        if (machine.bus.getOutputDevice(0x7c) === this.output7C) machine.bus.disconnectInputDevice(0x7c);
+        if (machine.bus.getOutputDevice(0x7d) === this.output7D) machine.bus.disconnectInputDevice(0x7d);
     };
 
     this.output7C = function (val) {
@@ -27,18 +34,18 @@ wmsx.YM2413MixedAudioChannels = function() {
                 break;
             case 0x0e:
                 rhythmMode = (val & 0x20) !== 0;
-                this.rhythmMode = rhythmMode;
+                self.rhythmMode = rhythmMode;
                 break;
             case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
                 if (mod) {
                     fNum[chan] = (fNum[chan] & ~0xff) | val;
-                    updatePhaseInc(chan);
+                    updateFrequency(chan);
                 }
                 break;
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
                 if (mod & 0x01) fNum[chan]  = (fNum[chan] & ~0x100) | ((val & 1) << 8);
                 if (mod & 0x0e) block[chan] = (val >> 1) & 0x7;
-                if (mod & 0x0f) updatePhaseInc(chan);
+                if (mod & 0x0f) updateFrequency(chan);
                 if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
                 break;
             case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
@@ -60,15 +67,13 @@ wmsx.YM2413MixedAudioChannels = function() {
             var mC = (phaseCounter[m] += phaseInc[m]);
             var mPh = mC >> 9;
 
-            var mod = getExp(getSin(mPh) + (modTL[c] << 5));
-            var val = getExp(getSin(cPh + (mod << 4)) + (volume[chan] << 7));
+            var mod = getExp(getSin(mPh - 1) + (modTL[c] << 5) + (kslValue[m] << 4));  // & ~1;
+            var val = getExp(getSin(cPh + mod) + (volume[chan] << 7) + (kslValue[c] << 4)) >> 4;
 
             sample += val;
         }
 
-        //if (sample) console.log(sample);
-
-        return sample / (8 * 256);
+        return sample / (8 * 256);      // Roughly 9 * 255 but more integer
     };
 
     this.connectAudio = function() {
@@ -97,11 +102,14 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         // Copy parameters
         var c = chan << 1, m = c + 1;
-        multi[c] = MULTI_FACTORS[INSTRUMENT_ROM[ins][0] & 0xf];
-        multi[m] = MULTI_FACTORS[INSTRUMENT_ROM[ins][1] & 0xf];
-        modTL[c] = INSTRUMENT_ROM[ins][2] & 0x3f;
+        var pars = INSTRUMENT_ROM[ins];
+        multi[c] = MULTI_FACTORS[pars[0] & 0xf];
+        multi[m] = MULTI_FACTORS[pars[1] & 0xf];
+        ksl[c] =   pars[2] >>> 6;
+        ksl[m] =   pars[3] >>> 6;
+        modTL[c] = pars[2] & 0x3f;
 
-        updatePhaseInc(chan);
+        updateFrequency(chan);
     }
 
     function updateCustomInstrChannels() {
@@ -109,9 +117,12 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (instr[c] === 0) setInstr(c, 0);
     }
 
-    var updatePhaseInc = function (chan) {
-        phaseInc[chan << 1] =       (fNum[chan] * multi[chan << 1]) >> 1 << block[chan];          // Take back the MULTI doubling in the table (>> 1)
-        phaseInc[(chan << 1) + 1] = (fNum[chan] * multi[(chan << 1) + 1]) >> 1 << block[chan];
+    var updateFrequency = function (chan) {
+        var c = chan << 1, m = c + 1;
+        kslValue[c] = KSL_VALUES[ksl[c]][block[chan]][fNum[chan] >>> 5];
+        kslValue[m] = KSL_VALUES[ksl[m]][block[chan]][fNum[chan] >>> 5];
+        phaseInc[c] = ((fNum[chan] * multi[chan << 1]) >> 1) << block[chan];          // Take back the MULTI doubling in the table (>> 1)
+        phaseInc[m] = ((fNum[chan] * multi[m]) >> 1) << block[chan];
     };
 
 
@@ -120,16 +131,21 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     var rhythmMode = false;
 
-    // Per channel values
+    // Per channel settings
     var keyOn =  wmsx.Util.arrayFill(new Array(9), false);
     var fNum  =  wmsx.Util.arrayFill(new Array(9), 0);
     var block =  wmsx.Util.arrayFill(new Array(9), 0);
     var instr =  wmsx.Util.arrayFill(new Array(9), 0);
     var volume = wmsx.Util.arrayFill(new Array(9), 0xf);
 
-    // Per operator values
+    // Per operator settings
     var multi =        wmsx.Util.arrayFill(new Array(18), 0);
+    var ksl =          wmsx.Util.arrayFill(new Array(18), 0);
     var modTL =        wmsx.Util.arrayFill(new Array(18), 0);
+
+    // Per operator ready values
+
+    var kslValue =     wmsx.Util.arrayFill(new Array(18), 0);
     var phaseInc =     wmsx.Util.arrayFill(new Array(18), 0);
     var phaseCounter = wmsx.Util.arrayFill(new Array(18), 0);
 
@@ -145,7 +161,10 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.volume = volume;
 
     this.multi = multi;
+    this.ksl = ksl;
     this.modTL = modTL;
+
+    this.kslValue = kslValue;
     this.phaseInc = phaseInc;
     this.phaseCounter = phaseCounter;
 
@@ -186,6 +205,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         2332, 2338, 2344, 2352, 2358, 2364, 2370, 2376, 2384, 2390, 2396, 2402, 2410, 2416, 2422, 2428,
         2436, 2442, 2448, 2456, 2462, 2468, 2476, 2482, 2488, 2496, 2502, 2510, 2516, 2522, 2530, 2536,
         2544, 2550, 2558, 2564, 2572, 2578, 2584, 2592, 2600, 2606, 2614, 2620, 2628, 2634, 2642, 2648,
+    
         2656, 2664, 2670, 2678, 2684, 2692, 2700, 2706, 2714, 2722, 2728, 2736, 2744, 2752, 2758, 2766,
         2774, 2782, 2788, 2796, 2804, 2812, 2818, 2826, 2834, 2842, 2850, 2858, 2866, 2872, 2880, 2888,
         2896, 2904, 2912, 2920, 2928, 2936, 2944, 2952, 2960, 2968, 2976, 2984, 2992, 3000, 3008, 3016,
@@ -199,28 +219,71 @@ wmsx.YM2413MixedAudioChannels = function() {
     ];
 
     var INSTRUMENT_ROM = [
-        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],           // 0 = Custom
-        [0x61, 0x61, 0x1e, 0x17, 0xf0, 0x78, 0x00, 0x17],           // 1 = Violin
-        [0x13, 0x41, 0x1e, 0x0d, 0xd7, 0xf7, 0x13, 0x13],           // 2 = Guitar
-        [0x13, 0x01, 0x99, 0x04, 0xf2, 0xf4, 0x11, 0x23],           // 3 = Piano
-        [0x21, 0x61, 0x1b, 0x07, 0xaf, 0x64, 0x40, 0x27],           // 4 = Flute
-        [0x22, 0x21, 0x1e, 0x06, 0xf0, 0x75, 0x08, 0x18],           // 5 = Clarinet
-        [0x31, 0x22, 0x16, 0x05, 0x90, 0x71, 0x00, 0x13],           // 6 = Oboe
-        [0x21, 0x61, 0x1d, 0x07, 0x82, 0x80, 0x10, 0x17],           // 7 = Trumpet
-        [0x23, 0x21, 0x2d, 0x16, 0xc0, 0x70, 0x07, 0x07],           // 8 = Organ
-        [0x61, 0x61, 0x1b, 0x06, 0x64, 0x65, 0x10, 0x17],           // 9 = Horn
-        [0x61, 0x61, 0x0c, 0x18, 0x85, 0xf0, 0x70, 0x07],           // A = Synthesizer
-        [0x23, 0x01, 0x07, 0x11, 0xf0, 0xa4, 0x00, 0x22],           // B = Harpsichord
-        [0x97, 0xc1, 0x24, 0x07, 0xff, 0xf8, 0x22, 0x12],           // C = Vibraphone
-        [0x61, 0x10, 0x0c, 0x05, 0xf2, 0xf4, 0x40, 0x44],           // D = Synthesizer Bass
-        [0x01, 0x01, 0x55, 0x03, 0xf3, 0x92, 0xf3, 0xf3],           // E = Wood Bass
-        [0x61, 0x41, 0x89, 0x03, 0xf1, 0xf4, 0xf0, 0x13]            // F = Electric Guitar
+        [ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],              // 0 = Custom
+        [ 0x61, 0x61, 0x1e, 0x17, 0xf0, 0x7f, 0x00, 0x17 ],              // 1 = Violin
+        [ 0x13, 0x41, 0x16, 0x0e, 0xfd, 0xf4, 0x23, 0x23 ],              // 2 = Guitar
+        [ 0x03, 0x01, 0x9a, 0x04, 0xf3, 0xf3, 0x13, 0xf3 ],              // 3 = Piano
+        [ 0x11, 0x61, 0x0e, 0x07, 0xfa, 0x64, 0x70, 0x17 ],              // 4 = Flute
+        [ 0x22, 0x21, 0x1e, 0x06, 0xf0, 0x76, 0x00, 0x28 ],              // 5 = Clarinet
+        [ 0x21, 0x22, 0x16, 0x05, 0xf0, 0x71, 0x00, 0x18 ],              // 6 = Oboe
+        [ 0x21, 0x61, 0x1d, 0x07, 0x82, 0x80, 0x17, 0x17 ],              // 7 = Trumpet
+        [ 0x23, 0x21, 0x2d, 0x16, 0x90, 0x90, 0x00, 0x07 ],              // 8 = Organ
+        [ 0x21, 0x21, 0x1b, 0x06, 0x64, 0x65, 0x10, 0x17 ],              // 9 = Horn
+        [ 0x21, 0x21, 0x0b, 0x1a, 0x85, 0xa0, 0x70, 0x07 ],              // A = Synthesizer
+        [ 0x23, 0x01, 0x83, 0x10, 0xff, 0xb4, 0x10, 0xf4 ],              // B = Harpsichord
+        [ 0x97, 0xc1, 0x20, 0x07, 0xff, 0xf4, 0x22, 0x22 ],              // C = Vibraphone
+        [ 0x61, 0x00, 0x0c, 0x05, 0xc2, 0xf6, 0x40, 0x44 ],              // D = Synthesizer Bass
+        [ 0x01, 0x01, 0x56, 0x03, 0x94, 0xc2, 0x03, 0x12 ],              // E = Wood Bass
+        [ 0x21, 0x01, 0x89, 0x03, 0xf1, 0xe4, 0xf0, 0x23 ]               // F = Electric Guitar
     ];
 
     var MULTI_FACTORS = [
      // 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15           // Original values
         1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30        // Double values
     ];
+
+    var KSL_VALUES = [      //  [ KSL ] [ BLOCK ] [ FNUM (4 higher bits) ]
+        [
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ]
+        ], [
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  2,  2,  3,  3,  4 ],
+            [ 0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  5,  6,  6,  7,  7,  8 ],
+            [ 0,  0,  0,  2,  4,  5,  6,  7,  8,  9,  9, 10, 10, 11, 11, 12 ],
+            [ 0,  0,  4,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 15, 15, 16 ],
+            [ 0,  4,  8, 10, 12, 13, 14, 15, 16, 17, 17, 18, 18, 19, 19, 20 ],
+            [ 0,  8, 12, 14, 16, 17, 18, 19, 20, 21, 21, 22, 22, 23, 23, 24 ],
+            [ 0, 12, 16, 18, 20, 21, 22, 23, 24, 25, 25, 26, 26, 27, 27, 28 ]
+        ], [
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  4,  5,  6,  7,  8 ],
+            [ 0,  0,  0,  0,  0,  3,  5,  7,  8, 10, 11, 12, 13, 14, 15, 16 ],
+            [ 0,  0,  0,  5,  8, 11, 13, 15, 16, 18, 19, 20, 21, 22, 23, 24 ],
+            [ 0,  0,  8, 13, 16, 19, 21, 23, 24, 26, 27, 28, 29, 30, 31, 32 ],
+            [ 0,  8, 16, 21, 24, 27, 29, 31, 32, 34, 35, 36, 37, 38, 39, 40 ],
+            [ 0, 16, 24, 29, 32, 35, 37, 39, 40, 42, 43, 44, 45, 46, 47, 48 ],
+            [ 0, 24, 32, 37, 40, 43, 45, 47, 48, 50, 51, 52, 53, 54, 55, 56 ]
+        ], [
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  6,  8, 10, 12, 14, 16 ],
+            [ 0,  0,  0,  0,  0,  6, 10, 14, 16, 20, 22, 24, 26, 28, 30, 32 ],
+            [ 0,  0,  0, 10, 16, 22, 26, 30, 32, 36, 38, 40, 42, 44, 46, 48 ],
+            [ 0,  0, 16, 26, 32, 38, 42, 46, 48, 52, 54, 56, 58, 60, 62, 64 ],
+            [ 0, 16, 32, 42, 48, 54, 58, 62, 64, 68, 70, 72, 74, 76, 78, 80 ],
+            [ 0, 32, 48, 58, 64, 70, 74, 78, 80, 84, 86, 88, 90, 92, 94, 96 ],
+            [ 0, 48, 64, 74, 80, 86, 90, 94, 96,100,102,104,106,108,110,112 ]
+        ]
+    ];
+
+
+
 
     function getSin(val) {
         var res = SIN_ROM[((val & 256) ? val ^ 255 : val) & 255];        // Flip if in mirrored quarters
@@ -233,7 +296,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         var exp = EXP_ROM[(val & 255) ^ 255];
         var res = exp >>> ((val & 0x7F00) >> 8);
         if (val & 0x8000) res = ~res;                                    // Negate if sign bit was set
-        return res >> 4;                                                 // Divide by 16 ???
+        return res;
     }
     this.getExp = getExp;
 

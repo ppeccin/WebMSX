@@ -15,14 +15,11 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     }
 
     this.connect = function(machine) {
-        machine.bus.connectOutputDevice(0x7c, fm.output7C);
-        machine.bus.connectOutputDevice(0x7d, fm.output7D);
-        fm.connectAudioSocket(machine.getAudioSocket());
+        fm.connect(machine);
     };
 
     this.disconnect = function(machine) {
-        if (machine.bus.getOutputDevice(0x7c) === fm.output7C) machine.bus.disconnectInputDevice(0x7c);
-        if (machine.bus.getOutputDevice(0x7d) === fm.output7D) machine.bus.disconnectInputDevice(0x7d);
+        fm.disconnect(machine);
     };
 
     this.powerOn = function() {
