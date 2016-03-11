@@ -52,7 +52,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                 if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
                 break;
             case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
-                if (mod & 0x0f) volume[chan] = val & 0xf;
+                if (mod & 0x0f) setVolume(chan, val & 0xf);
                 if (mod & 0xf0) setInstr(chan, val >>> 4);
                 break;
         }
@@ -70,8 +70,8 @@ wmsx.YM2413MixedAudioChannels = function() {
             var mC = (phaseCounter[m] += phaseInc[m]);
             var mPh = mC >> 9;
 
-            var mod = expTable[sineTable[mPh & 1023] + (modTL[c] << 5) + (kslValue[m] << 4)];
-            var val = expTable[sineTable[(cPh + mod) & 1023] + (volume[chan] << 7) + (kslValue[c] << 4)] >> 4;
+            var mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
+            var val = expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
 
             sample += val;
         }
@@ -95,7 +95,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     function setKeyOn(chan, boo) {
         if (keyOn[chan] !== boo) {
             phaseCounter[chan << 1] = 0;
-            phaseCounter[(chan << 1) + 1] = 0 ; // -1;     // Modulator phase is 1 behind carrier
+            phaseCounter[(chan << 1) + 1] = 0 - phaseInc[(chan << 1) + 1] ;    // Modulator phase is 1 behind carrier
         }
         keyOn[chan] = boo;
     }
@@ -110,7 +110,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         multi[m] = MULTI_FACTORS[pars[1] & 0xf];
         ksl[c] =   pars[2] >>> 6;
         ksl[m] =   pars[3] >>> 6;
-        modTL[c] = pars[2] & 0x3f;
+        modTL[m] = pars[2] & 0x3f;
 
         updateFrequency(chan);
     }
@@ -120,13 +120,29 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (instr[c] === 0) setInstr(c, 0);
     }
 
-    var updateFrequency = function (chan) {
+    function setVolume(chan, val) {
+        volume[chan] = val;
+        updateTotalAttenuation(chan);
+    }
+
+    function updateFrequency(chan) {
         var c = chan << 1, m = c + 1;
-        kslValue[c] = KSL_VALUES[ksl[c]][block[chan]][fNum[chan] >>> 5];
-        kslValue[m] = KSL_VALUES[ksl[m]][block[chan]][fNum[chan] >>> 5];
         phaseInc[c] = ((fNum[chan] * multi[chan << 1]) >> 1) << block[chan];          // Take back the MULTI doubling in the table (>> 1)
         phaseInc[m] = ((fNum[chan] * multi[m]) >> 1) << block[chan];
-    };
+        updateTotalAttenuation(chan);
+    }
+
+    function updateTotalAttenuation(chan) {
+        var c = chan << 1, m = c + 1;
+
+        var kslAtt = KSL_VALUES[ksl[c]][block[chan]][fNum[chan] >>> 5] << 4;
+        var volAtt = volume[chan] << 7;
+        totalAtt[c] = kslAtt + volAtt;
+
+        kslAtt = KSL_VALUES[ksl[m]][block[chan]][fNum[chan] >>> 5] << 4;
+        var modAtt = modTL[m] << 5;
+        totalAtt[m] = kslAtt + modAtt;
+    }
 
 
     var registerAddress;
@@ -134,21 +150,21 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     var rhythmMode = false;
 
-    // Per channel settings
+    // Settings per channel
     var keyOn =  wmsx.Util.arrayFill(new Array(9), false);
     var fNum  =  wmsx.Util.arrayFill(new Array(9), 0);
     var block =  wmsx.Util.arrayFill(new Array(9), 0);
     var instr =  wmsx.Util.arrayFill(new Array(9), 0);
     var volume = wmsx.Util.arrayFill(new Array(9), 0xf);
 
-    // Per operator settings
+    // Settings per operator
     var multi =        wmsx.Util.arrayFill(new Array(18), 0);
     var ksl =          wmsx.Util.arrayFill(new Array(18), 0);
     var modTL =        wmsx.Util.arrayFill(new Array(18), 0);
 
-    // Per operator ready values
+    // Ready values per operator
 
-    var kslValue =     wmsx.Util.arrayFill(new Array(18), 0);
+    var totalAtt =     wmsx.Util.arrayFill(new Array(18), 0);
     var phaseInc =     wmsx.Util.arrayFill(new Array(18), 0);
     var phaseCounter = wmsx.Util.arrayFill(new Array(18), 0);
 
@@ -167,7 +183,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.ksl = ksl;
     this.modTL = modTL;
 
-    this.kslValue = kslValue;
+    this.totalAtt = totalAtt;
     this.phaseInc = phaseInc;
     this.phaseCounter = phaseCounter;
 
