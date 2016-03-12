@@ -23,11 +23,16 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     };
 
     this.powerOn = function() {
+        this.reset();
         fm.connectAudio();
     };
 
     this.powerOff = function() {
         fm.disconnectAudio();
+    };
+
+    this.reset = function() {
+        fm.reset();
     };
 
     this.read = function(address) {
