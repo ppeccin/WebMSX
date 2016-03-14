@@ -2,7 +2,7 @@
 
 wmsx.YM2413Tables = function() {
 
-    this.createSineTable = function() {
+    this.getSineTable = function() {
         // Complete table for all possible values (1024 entries). Sign in bit 14. No need for get function
         var tab = new Array(1024);
         for (var i = 0; i < 1024; ++i)
@@ -10,7 +10,7 @@ wmsx.YM2413Tables = function() {
         return tab;
     };
 
-    this.createExpTable = function() {
+    this.getExpTable = function() {
         // Complete table for all possible values (32768 entries). Input sign in bit 14. No need for get function
         var tab = new Array(32768);
         for (var i = 0; i < 32768; ++i) {
@@ -32,6 +32,27 @@ wmsx.YM2413Tables = function() {
         // };
     };
 
+    this.getInstrumentsROM = function() {
+        return this.INSTRUMENT_ROM;
+    };
+
+    this.getKSLValues = function() {
+        return this.KSL_VALUES;
+    };
+
+    this.getMultiFactorsDoubled = function() {
+        return this.MULTI_FACTORS;
+    };
+
+    this.getRateDecayDurations = function() {
+        var tab = new Array(64);
+        for (var i = 0; i < 64; ++i) {
+            tab[i] = Math.round(this.RATE_DECAY_DURATIONS[i] / 1000 * 49780 / 128);
+
+        }
+        return tab;
+    };
+
 
     function log2(x) {
         return Math.log(x) / Math.log(2);
@@ -40,6 +61,7 @@ wmsx.YM2413Tables = function() {
     function exp2(x) {
         return Math.pow(2, x);
     }
+
 
     this.INSTRUMENT_ROM = [
         [ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],              // 0 = Custom
@@ -58,11 +80,6 @@ wmsx.YM2413Tables = function() {
         [ 0x61, 0x00, 0x0c, 0x05, 0xc2, 0xf6, 0x40, 0x44 ],              // D = Synthesizer Bass
         [ 0x01, 0x01, 0x56, 0x03, 0x94, 0xc2, 0x03, 0x12 ],              // E = Wood Bass
         [ 0x21, 0x01, 0x89, 0x03, 0xf1, 0xe4, 0xf0, 0x23 ]               // F = Electric Guitar
-    ];
-
-    this.MULTI_FACTORS = [
-     // 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15           // Original values
-        1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30        // Double values
     ];
 
     this.KSL_VALUES = [      //  [ KSL ] [ BLOCK ] [ FNUM (4 higher bits) ]
@@ -105,16 +122,12 @@ wmsx.YM2413Tables = function() {
         ]
     ];
 
-    this.createRateDurationTable = function() {
-        var tab = new Array(64);
-        for (var i = 0; i < 64; ++i) {
-            tab[i] = Math.round(this.RATE_DURATIONS[i] / 1000 * 49780 / 128);
+    this.MULTI_FACTORS = [
+        // 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15           // Original values
+        1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30           // Double values
+    ];
 
-        }
-        return tab;
-    };
-
-    this.RATE_DURATIONS = [
+    this.RATE_DECAY_DURATIONS = [
         99999999999, 99999999999, 99999999999, 99999999999,     // infinite duration
         20926.6    , 16807.2    , 14006.0    , 12028.7    ,
         10463.3    ,  8403.59   ,  7002.99   ,  6014.33   ,
@@ -136,5 +149,5 @@ wmsx.YM2413Tables = function() {
 };
 
 T = new wmsx.YM2413Tables();
-T.sinTable = T.createSineTable();
-T.expTable = T.createExpTable();
+T.sinTable = T.getSineTable();
+T.expTable = T.getExpTable();

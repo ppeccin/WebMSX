@@ -6,9 +6,12 @@ wmsx.YM2413MixedAudioChannels = function() {
     function init() {
         FM = self;
         var tabs = new wmsx.YM2413Tables();
-        sineTable = tabs.createSineTable();
-        expTable =  tabs.createExpTable();
-        rateDurTable = tabs.createRateDurationTable();
+        sineTable = tabs.getSineTable();
+        expTable =  tabs.getExpTable();
+        instrumentsParameters = tabs.getInstrumentsROM();
+        multiFactors = tabs.getMultiFactorsDoubled();
+        kslValues = tabs.getKSLValues();
+        rateDecayDurTable = tabs.getRateDecayDurations();
     }
 
     this.connect = function(machine) {
@@ -34,7 +37,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         switch(registerAddress) {
             case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-                INSTRUMENT_ROM[0][registerAddress] = val;
+                instrumentsParameters[0][registerAddress] = val;
                 updateCustomInstrChannels();
                 break;
             case 0x0e:
@@ -130,7 +133,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         if (on) {
             setEnvStep(chan, ATTACK);
             // Reset and synch M/C phase counters
-            phaseCounter[m] = 0 - phaseInc[m];            // Modulator phase is 1 behind carrier
+            phaseCounter[m] = 0;    // - phaseInc[m];            // TODO Modulator phase is 1 behind carrier
             phaseCounter[c] = 0;
         } else {
             if (envStep[m] > 0) setEnvStepOp(m, RELEASE);
@@ -155,14 +158,14 @@ wmsx.YM2413MixedAudioChannels = function() {
                 envStepNext[op] = IDLE;
                 break;
             case ATTACK:
-                envStepCounter[op] = envStepDur[op] = 0; // rateDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
+                envStepCounter[op] = envStepDur[op] = 0; // rateDecayDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
                 envLevel[op] = 0;         // TODO DAMP step
                 envStepLevelInc[op] = -1;
                 envStepLevelNext[op] = 0;
                 envStepNext[op] = DECAY;
                 break;
             case DECAY:
-                envStepCounter[op] = envStepDur[op] = rateDurTable[((dr[op] << 2) + ksrOffset[op]) & 63];
+                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((dr[op] << 2) + ksrOffset[op]) & 63];
                 envStepLevelInc[op] = 1;
                 envStepLevelNext[op] = sl[op] << 3;
                 envStepNext[op] = SUSTAIN;
@@ -176,7 +179,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                     envStepNext[op] = SUSTAIN;
                 } else {
                     // Percussive tone
-                    envStepCounter[op] = envStepDur[op] = rateDurTable[((rr[op] << 2) + ksrOffset[op]) & 63];
+                    envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((rr[op] << 2) + ksrOffset[op]) & 63];
                     envStepLevelInc[op] = 1;
                     envStepLevelNext[op] = 127;
                     envStepNext[op] = IDLE;
@@ -186,7 +189,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                 var rate = envType[op]
                     ? sustain[op >> 1] ? 5 : rr[op]     // Sustained tone
                     : sustain[op >> 1] ? 5 : 7;         // Percussive tone
-                envStepCounter[op] = envStepDur[op] = rateDurTable[((rate << 2) + ksrOffset[op]) & 63];
+                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((rate << 2) + ksrOffset[op]) & 63];
                 envStepLevelInc[op] = 1;
                 envStepLevelNext[op] = 127;
                 envStepNext[op] = IDLE;
@@ -200,13 +203,13 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         // Copy parameters
         var m = chan << 1, c = m + 1;
-        var pars = INSTRUMENT_ROM[ins];
+        var pars = instrumentsParameters[ins];
         envType[m] = (pars[0] >> 5) & 1;
         envType[c] = (pars[1] >> 5) & 1;
         ksr[m] =     (pars[0] >> 4) & 1;
         ksr[c] =     (pars[1] >> 4) & 1;
-        multi[m] =   MULTI_FACTORS[pars[0] & 0xf];
-        multi[c] =   MULTI_FACTORS[pars[1] & 0xf];
+        multi[m] =   multiFactors[pars[0] & 0xf];
+        multi[c] =   multiFactors[pars[1] & 0xf];
         ksl[m] =     pars[2] >>> 6;
         ksl[c] =     pars[3] >>> 6;
         modTL[chan]   = pars[2] & 0x3f;
@@ -249,8 +252,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function updateKSLAttenuation(chan) {
         var m = chan << 1, c = m + 1;
-        kslAtt[m] = KSL_VALUES[ksl[m]][block[chan]][fNum[chan] >>> 5] << 4;
-        kslAtt[c] = KSL_VALUES[ksl[c]][block[chan]][fNum[chan] >>> 5] << 4;
+        kslAtt[m] = kslValues[ksl[m]][block[chan]][fNum[chan] >>> 5] << 4;
+        kslAtt[c] = kslValues[ksl[c]][block[chan]][fNum[chan] >>> 5] << 4;
         updateTotalAttenuation(chan);
     }
 
@@ -382,85 +385,22 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.phaseCounter = phaseCounter;
 
 
-    // Tables
+    // Pre calculated tables, factors, values
 
-    var sineTable, expTable, rateDurTable;
+    var sineTable, expTable, instrumentsParameters, multiFactors, kslValues, rateDecayDurTable;
 
     var audioSocket, audioSignal;
 
-    var IDLE = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;
 
-    this.VOLUME = 0.60;
-    this.SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;       // Main CPU clock / 72 = 49780hz
-
-
-    init();
+    var IDLE = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
 
     var MAX_INT = 9007199254740991;
 
-    var INSTRUMENT_ROM = [
-        [ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],              // 0 = Custom
-        [ 0x61, 0x61, 0x1e, 0x17, 0xf0, 0x7f, 0x00, 0x17 ],              // 1 = Violin
-        [ 0x13, 0x41, 0x16, 0x0e, 0xfd, 0xf4, 0x23, 0x23 ],              // 2 = Guitar
-        [ 0x03, 0x01, 0x9a, 0x04, 0xf3, 0xf3, 0x13, 0xf3 ],              // 3 = Piano
-        [ 0x11, 0x61, 0x0e, 0x07, 0xfa, 0x64, 0x70, 0x17 ],              // 4 = Flute
-        [ 0x22, 0x21, 0x1e, 0x06, 0xf0, 0x76, 0x00, 0x28 ],              // 5 = Clarinet
-        [ 0x21, 0x22, 0x16, 0x05, 0xf0, 0x71, 0x00, 0x18 ],              // 6 = Oboe
-        [ 0x21, 0x61, 0x1d, 0x07, 0x82, 0x80, 0x17, 0x17 ],              // 7 = Trumpet
-        [ 0x23, 0x21, 0x2d, 0x16, 0x90, 0x90, 0x00, 0x07 ],              // 8 = Organ
-        [ 0x21, 0x21, 0x1b, 0x06, 0x64, 0x65, 0x10, 0x17 ],              // 9 = Horn
-        [ 0x21, 0x21, 0x0b, 0x1a, 0x85, 0xa0, 0x70, 0x07 ],              // A = Synthesizer
-        [ 0x23, 0x01, 0x83, 0x10, 0xff, 0xb4, 0x10, 0xf4 ],              // B = Harpsichord
-        [ 0x97, 0xc1, 0x20, 0x07, 0xff, 0xf4, 0x22, 0x22 ],              // C = Vibraphone
-        [ 0x61, 0x00, 0x0c, 0x05, 0xc2, 0xf6, 0x40, 0x44 ],              // D = Synthesizer Bass
-        [ 0x01, 0x01, 0x56, 0x03, 0x94, 0xc2, 0x03, 0x12 ],              // E = Wood Bass
-        [ 0x21, 0x01, 0x89, 0x03, 0xf1, 0xe4, 0xf0, 0x23 ]               // F = Electric Guitar
-    ];
+    this.VOLUME = 0.60;
+    this.SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
-    var MULTI_FACTORS = [
-     // 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15           // Original values
-        1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30        // Double values
-    ];
 
-    var KSL_VALUES = [      //  [ KSL ] [ BLOCK ] [ FNUM (4 higher bits) ]
-        [
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ]
-        ], [
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  2,  2,  3,  3,  4 ],
-            [ 0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  5,  6,  6,  7,  7,  8 ],
-            [ 0,  0,  0,  2,  4,  5,  6,  7,  8,  9,  9, 10, 10, 11, 11, 12 ],
-            [ 0,  0,  4,  6,  8,  9, 10, 11, 12, 13, 13, 14, 14, 15, 15, 16 ],
-            [ 0,  4,  8, 10, 12, 13, 14, 15, 16, 17, 17, 18, 18, 19, 19, 20 ],
-            [ 0,  8, 12, 14, 16, 17, 18, 19, 20, 21, 21, 22, 22, 23, 23, 24 ],
-            [ 0, 12, 16, 18, 20, 21, 22, 23, 24, 25, 25, 26, 26, 27, 27, 28 ]
-        ], [
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  4,  5,  6,  7,  8 ],
-            [ 0,  0,  0,  0,  0,  3,  5,  7,  8, 10, 11, 12, 13, 14, 15, 16 ],
-            [ 0,  0,  0,  5,  8, 11, 13, 15, 16, 18, 19, 20, 21, 22, 23, 24 ],
-            [ 0,  0,  8, 13, 16, 19, 21, 23, 24, 26, 27, 28, 29, 30, 31, 32 ],
-            [ 0,  8, 16, 21, 24, 27, 29, 31, 32, 34, 35, 36, 37, 38, 39, 40 ],
-            [ 0, 16, 24, 29, 32, 35, 37, 39, 40, 42, 43, 44, 45, 46, 47, 48 ],
-            [ 0, 24, 32, 37, 40, 43, 45, 47, 48, 50, 51, 52, 53, 54, 55, 56 ]
-        ], [
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  6,  8, 10, 12, 14, 16 ],
-            [ 0,  0,  0,  0,  0,  6, 10, 14, 16, 20, 22, 24, 26, 28, 30, 32 ],
-            [ 0,  0,  0, 10, 16, 22, 26, 30, 32, 36, 38, 40, 42, 44, 46, 48 ],
-            [ 0,  0, 16, 26, 32, 38, 42, 46, 48, 52, 54, 56, 58, 60, 62, 64 ],
-            [ 0, 16, 32, 42, 48, 54, 58, 62, 64, 68, 70, 72, 74, 76, 78, 80 ],
-            [ 0, 32, 48, 58, 64, 70, 74, 78, 80, 84, 86, 88, 90, 92, 94, 96 ],
-            [ 0, 48, 64, 74, 80, 86, 90, 94, 96,100,102,104,106,108,110,112 ]
-        ]
-    ];
+    init();
 
 
     this.eval = function(str) {
