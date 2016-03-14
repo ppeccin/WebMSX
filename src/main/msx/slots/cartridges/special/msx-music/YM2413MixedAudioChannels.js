@@ -129,7 +129,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         // Define ADSR phase
         if (on) {
             setEnvStep(chan, ATTACK);
-            // Reset and synch C/M phase counters
+            // Reset and synch M/C phase counters
             phaseCounter[m] = 0 - phaseInc[m];            // Modulator phase is 1 behind carrier
             phaseCounter[c] = 0;
         } else {
@@ -151,33 +151,42 @@ wmsx.YM2413MixedAudioChannels = function() {
                 envLevel[op] = 127;
                 envStepCounter[op] = envStepDur[op] = MAX_INT;
                 envStepLevelInc[op] = 0;
-                envStepLevelNext[op] = 0;
+                envStepLevelNext[op] = null;
                 envStepNext[op] = IDLE;
                 break;
             case ATTACK:
-                //envStepCounter[op] = envStepDur[op] = rateDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
-                // Top attack speed for now rateDurTable[ar[op] << 2];
-                envStepCounter[op] = envStepDur[op] = 0;
-                envLevel[op] = 0;
-                envStepLevelInc[op] = 0;
+                envStepCounter[op] = envStepDur[op] = 0; // rateDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
+                envLevel[op] = 0;         // TODO DAMP step
+                envStepLevelInc[op] = -1;
+                envStepLevelNext[op] = 0;
                 envStepNext[op] = DECAY;
                 break;
             case DECAY:
                 envStepCounter[op] = envStepDur[op] = rateDurTable[((dr[op] << 2) + ksrOffset[op]) & 63];
                 envStepLevelInc[op] = 1;
                 envStepLevelNext[op] = sl[op] << 3;
-                envStepNext[op] = envType[op] ? SUSTAIN : RELEASE;      // Sustained Envelope?
-                break;
-            case SUSTAIN:
-                envStepCounter[op] = envStepDur[op] = MAX_INT;
-                envStepLevelInc[op] = 0;
-                envStepLevelNext[op] = -1;
                 envStepNext[op] = SUSTAIN;
                 break;
+            case SUSTAIN:
+                if (envType[op]) {
+                    // Sustained tone
+                    envStepCounter[op] = envStepDur[op] = MAX_INT;
+                    envStepLevelInc[op] = 0;
+                    envStepLevelNext[op] = null;
+                    envStepNext[op] = SUSTAIN;
+                } else {
+                    // Percussive tone
+                    envStepCounter[op] = envStepDur[op] = rateDurTable[((rr[op] << 2) + ksrOffset[op]) & 63];
+                    envStepLevelInc[op] = 1;
+                    envStepLevelNext[op] = 127;
+                    envStepNext[op] = IDLE;
+                }
+                break;
             case RELEASE:
-                envStepCounter[op] = envStepDur[op] = sustain[op >> 1]
-                    ? rateDurTable[((5 << 2) + ksrOffset[op]) & 63]
-                    : rateDurTable[((rr[op] << 2) + ksrOffset[op]) & 63];
+                var rate = envType[op]
+                    ? sustain[op >> 1] ? 5 : rr[op]     // Sustained tone
+                    : sustain[op >> 1] ? 5 : 7;         // Percussive tone
+                envStepCounter[op] = envStepDur[op] = rateDurTable[((rate << 2) + ksrOffset[op]) & 63];
                 envStepLevelInc[op] = 1;
                 envStepLevelNext[op] = 127;
                 envStepNext[op] = IDLE;
