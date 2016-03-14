@@ -31,7 +31,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     this.output7D = function (val) {
         var chan = registerAddress & 0xf;
-        if (chan === 9) chan = 0;
+        if (chan === 9) chan = 0;                       // Regs 19h, 29h, 39h are the same as 10h, 20h, 30h
         var mod = register[registerAddress] ^ val;
         register[registerAddress] = val;
 
@@ -67,7 +67,10 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.reset = function() {
         for (var chan = 0; chan < 9; ++chan) {
             setVolume(chan, 15);
-            setEnvStep(chan, 0);
+            setEnvStep(chan, IDLE);
+            keyOn[chan] = false;
+            setInstr(chan, 0);
+            updateFrequency(chan);
             updateAllAttenuations(chan);
         }
     };
@@ -79,6 +82,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         var toChan = rhythmMode ? 6 : 9;
         for (var chan = 0; chan < toChan; chan++) {
             var m = chan << 1, c = m + 1;
+            if (envStep[c] === IDLE) continue;
 
             // Update ADSR steps
             tickADSR(m);
@@ -111,10 +115,12 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
     function tickADSR(op) {
-        if (--envStepCounter[op] < 0) {
-            if (envLevel[op] === envStepLevelNext[op])
-                setEnvStepOp(op, envStepNext[op]);
-            else {
+        if (envStep[op] === IDLE) return;       // No need to bother if operator is IDLE
+
+        if (envLevel[op] === envStepLevelNext[op]) {
+            setEnvStepOp(op, envStepNext[op]);
+        } else {
+            if (--envStepCounter[op] < 0) {
                 envStepCounter[op] = envStepDur[op];
                 envLevel[op] += envStepLevelInc[op];
                 updateEnvAttenuationOp(op);
@@ -131,17 +137,17 @@ wmsx.YM2413MixedAudioChannels = function() {
         keyOn[chan] = on;
         // Define ADSR phase
         if (on) {
-            setEnvStep(chan, ATTACK);
+            setEnvStep(chan, DAMP);
             // Reset and synch M/C phase counters
             phaseCounter[m] = 0;    // - phaseInc[m];            // TODO Modulator phase is 1 behind carrier
             phaseCounter[c] = 0;
         } else {
-            if (envStep[m] > 0) setEnvStepOp(m, RELEASE);
+            // Modulator is not affected by KEY-OFF!   if (envStep[m] > 0) setEnvStepOp(m, RELEASE);
             if (envStep[c] > 0) setEnvStepOp(c, RELEASE);
         }
     }
 
-    function setEnvStep(chan, step) {
+    function  setEnvStep(chan, step) {
         var m = chan << 1, c = m + 1;
         setEnvStepOp(m, step);
         setEnvStepOp(c, step);
@@ -150,16 +156,14 @@ wmsx.YM2413MixedAudioChannels = function() {
     function setEnvStepOp(op, step) {
         envStep[op] = step;
         switch (step) {
-            case IDLE:
-                envLevel[op] = 127;
-                envStepCounter[op] = envStepDur[op] = MAX_INT;
-                envStepLevelInc[op] = 0;
-                envStepLevelNext[op] = null;
-                envStepNext[op] = IDLE;
+            case DAMP:
+                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((12 << 2) + ksrOffset[op]) & 63];
+                envStepLevelInc[op] = 1;
+                envStepLevelNext[op] = 127;
+                envStepNext[op] = ATTACK;
                 break;
             case ATTACK:
-                envStepCounter[op] = envStepDur[op] = 0; // rateDecayDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
-                envLevel[op] = 0;         // TODO DAMP step
+                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((15 << 2) + ksrOffset[op]) & 63];  // rateDecayDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
                 envStepLevelInc[op] = -1;
                 envStepLevelNext[op] = 0;
                 envStepNext[op] = DECAY;
@@ -176,7 +180,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                     envStepCounter[op] = envStepDur[op] = MAX_INT;
                     envStepLevelInc[op] = 0;
                     envStepLevelNext[op] = null;
-                    envStepNext[op] = SUSTAIN;
+                    envStepNext[op] = null;
                 } else {
                     // Percussive tone
                     envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((rr[op] << 2) + ksrOffset[op]) & 63];
@@ -194,8 +198,15 @@ wmsx.YM2413MixedAudioChannels = function() {
                 envStepLevelNext[op] = 127;
                 envStepNext[op] = IDLE;
                 break;
+            case IDLE:
+            default:
+                envLevel[op] = 127;
+                envStepCounter[op] = envStepDur[op] = MAX_INT;
+                envStepLevelInc[op] = 0;
+                envStepLevelNext[op] = null;
+                envStepNext[op] = null;
+                break;
         }
-        updateEnvAttenuationOp(op);
     }
 
     function setInstr(chan, ins) {
@@ -246,8 +257,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function updateKSROffset(chan) {
         var m = chan << 1, c = m + 1;
-        ksrOffset[m] = (ksl[m] ? block[chan] << 1 : block[chan] >> 1) | (fNum[chan] >>> (9 - ksl[m]));
-        ksrOffset[c] = (ksl[c] ? block[chan] << 1 : block[chan] >> 1) | (fNum[chan] >>> (9 - ksl[c]));
+        ksrOffset[m] = (ksr[m] ? block[chan] << 1 : block[chan] >> 1) | (fNum[chan] >>> (9 - ksr[m]));
+        ksrOffset[c] = (ksr[c] ? block[chan] << 1 : block[chan] >> 1) | (fNum[chan] >>> (9 - ksr[c]));
     }
 
     function updateKSLAttenuation(chan) {
@@ -298,13 +309,18 @@ wmsx.YM2413MixedAudioChannels = function() {
         updateVolumeAttenuation(chan);
     }
 
-    var registerAddress;
-    var register = wmsx.Util.arrayFill(new Array(0x38), 0);
+
+    // Constants
+
+    var IDLE = -1, DAMP = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
+    var MAX_INT = 9007199254740991;
 
     // Global controls
 
     var clock = 0;
     var rhythmMode = false;
+    var registerAddress;
+    var register = wmsx.Util.arrayFill(new Array(0x38), 0);
 
     // Settings per channel
     var keyOn =   wmsx.Util.arrayFill(new Array(9), false);
@@ -390,11 +406,6 @@ wmsx.YM2413MixedAudioChannels = function() {
     var sineTable, expTable, instrumentsParameters, multiFactors, kslValues, rateDecayDurTable;
 
     var audioSocket, audioSignal;
-
-
-    var IDLE = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
-
-    var MAX_INT = 9007199254740991;
 
     this.VOLUME = 0.60;
     this.SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
