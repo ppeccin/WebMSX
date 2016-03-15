@@ -375,6 +375,22 @@ wmsx.SlotFormats = {
         }
     },
 
+    "FMPAC": {
+        name: "FMPAC",
+        desc: "FM-PAC Sound Cartridge",
+        priority: 504,
+        tryFormat: function (rom) {
+            // Only 64K content. Must be selected via info format hint
+            if (rom.content.length === 65536) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeFMPAC(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeFMPAC.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     // MSX2 only
 
     "DOS2": {

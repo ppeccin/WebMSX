@@ -151,6 +151,10 @@ WMSX.presets = {
         SLOT_3_2_URL:       "wmsx/roms/MSXMUSIC.rom"
     },
 
+    FMPAC: {
+        SLOT_3_2_URL:       "wmsx/roms/FMPAC.rom"
+    },
+
     // Configuration Helper Presets
 
     NOVSYNCH: {

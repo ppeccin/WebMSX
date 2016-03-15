@@ -30,49 +30,16 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
     this.output7D = function (val) {
-        var chan = registerAddress & 0xf;
-        if (chan === 9) chan = 0;                       // Regs 19h, 29h, 39h are the same as 10h, 20h, 30h
-        var mod = register[registerAddress] ^ val;
-        register[registerAddress] = val;
-
-        switch(registerAddress) {
-            case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-                instrumentsParameters[0][registerAddress] = val;
-                updateCustomInstrChannels();
-                break;
-            case 0x0e:
-                rhythmMode = (val & 0x20) !== 0;
-                self.rhythmMode = rhythmMode;
-                break;
-            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
-                if (mod) {
-                    fNum[chan] = (fNum[chan] & ~0xff) | val;
-                    updateFrequency(chan);
-                }
-                break;
-            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29:
-                if (mod & 0x20) setSustain(chan, (val & 0x20) !== 0);
-                if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
-                if (mod & 0x01) fNum[chan]  = (fNum[chan] & ~0x100) | ((val & 1) << 8);
-                if (mod & 0x0e) block[chan] = (val >> 1) & 0x7;
-                if (mod & 0x0f) updateFrequency(chan);
-                break;
-            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38: case 0x39:
-                if (mod & 0x0f) setVolume(chan, val & 0xf);
-                if (mod & 0xf0) setInstr(chan, val >>> 4);
-                break;
-        }
+        registerWrite(registerAddress, val);
     };
 
     this.reset = function() {
         for (var chan = 0; chan < 9; ++chan) {
-            setVolume(chan, 15);
             setEnvStep(chan, IDLE);
-            keyOn[chan] = false;
-            setInstr(chan, 0);
-            updateFrequency(chan);
             updateAllAttenuations(chan);
         }
+        for (var reg = 0; reg < 0x39; ++reg)
+            registerWrite(reg, 0);
     };
 
     this.nextSample = function() {
@@ -92,9 +59,15 @@ wmsx.YM2413MixedAudioChannels = function() {
             var mPh = (phaseCounter[m] += phaseInc[m]) >> 9;
             var cPh = (phaseCounter[c] += phaseInc[c]) >> 9;      // 0..1023
 
-            // Compute mixed sample
-            var mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
+            // Modulator and Feedback
+            var fb = (fbLastMod1[chan] + fbLastMod2[chan]) >>> fbShift[chan];
+            var mod = expTable[sineTable[(mPh + fb) & 1023] + totalAtt[m]];
+            fbLastMod2[chan] = fbLastMod1[chan];
+            fbLastMod1[chan] = mod >> 1;
+
+            // Modulated Carrier, final sample value
             var val = expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+
             sample += val;
         }
 
@@ -113,6 +86,41 @@ wmsx.YM2413MixedAudioChannels = function() {
             audioSocket.disconnectAudioSignal(audioSignal);
         }
     };
+
+    function registerWrite(reg, val) {
+        var chan = reg & 0xf;
+        if (chan === 9) chan = 0;                       // Regs 19h, 29h, 39h are the same as 10h, 20h, 30h
+        var mod = register[reg] ^ val;
+        register[reg] = val;
+
+        switch(reg) {
+            case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
+            instrumentsParameters[0][reg] = val;
+            updateCustomInstrChannels();
+            break;
+            case 0x0e:
+                rhythmMode = (val & 0x20) !== 0;
+                self.rhythmMode = rhythmMode;
+                break;
+            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
+            if (mod) {
+                fNum[chan] = (fNum[chan] & ~0xff) | val;
+                updateFrequency(chan);
+            }
+            break;
+            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29:
+            if (mod & 0x20) setSustain(chan, (val & 0x20) !== 0);
+            if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
+            if (mod & 0x01) fNum[chan]  = (fNum[chan] & ~0x100) | ((val & 1) << 8);
+            if (mod & 0x0e) block[chan] = (val >> 1) & 0x7;
+            if (mod & 0x0f) updateFrequency(chan);
+            break;
+            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38: case 0x39:
+            if (mod & 0x0f) setVolume(chan, val & 0xf);
+            if (mod & 0xf0) setInstr(chan, val >>> 4);
+            break;
+        }
+    }
 
     function tickADSR(op) {
         if (envStep[op] === IDLE) return;       // No need to bother if operator is IDLE
@@ -224,6 +232,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         ksl[m] =     pars[2] >>> 6;
         ksl[c] =     pars[3] >>> 6;
         modTL[chan]   = pars[2] & 0x3f;
+        fbShift[chan] = (pars[3] & 0x07) ? 8 - (pars[3] & 0x07) : 31;   // Maximum shift value to discard all bits in case FB = off
         ar[m] =      pars[4] >>> 4;
         dr[m] =      pars[4] & 0xf;
         ar[c] =      pars[5] >>> 4;
@@ -341,6 +350,12 @@ wmsx.YM2413MixedAudioChannels = function() {
     var sl =      wmsx.Util.arrayFill(new Array(18), 0);
     var rr =      wmsx.Util.arrayFill(new Array(18), 0);
 
+    // Computed values per channel
+
+    var fbShift =    wmsx.Util.arrayFill(new Array(9), 0);
+    var fbLastMod1 = wmsx.Util.arrayFill(new Array(9), 0);
+    var fbLastMod2 = wmsx.Util.arrayFill(new Array(9), 0);
+
     // Computed values per operator
 
     var kslAtt =    wmsx.Util.arrayFill(new Array(18), 0);
@@ -385,6 +400,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.rr = rr;
 
     this.kslAtt = kslAtt;
+    this.fbShift = fbShift;
     this.envAtt = envAtt;
     this.amAtt = amAtt;
     this.volModAtt = volModAtt;

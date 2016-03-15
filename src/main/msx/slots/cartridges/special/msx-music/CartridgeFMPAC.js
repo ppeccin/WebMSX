@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CartridgeMSXMUSIC = function(rom) {
+// TODO Finish implementing mapper
+
+wmsx.CartridgeFMPAC = function(rom) {
     var self = this;
 
     function init() {
@@ -35,19 +37,12 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
         fm.reset();
     };
 
-    this.read = function(address) {
-        if (address >= 0x4000 && address < 0x8000)      // page 1 only
-            return bytes[address - 0x4000];
-        else
-            return 0xff;
-    };
-
 
     var bytes;
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.MSXMUSIC;
+    this.format = wmsx.SlotFormats.FMPAC;
 
     var fm;
     this.fm = null;
@@ -76,10 +71,10 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
 
 };
 
-wmsx.CartridgeMSXMUSIC.prototype = wmsx.Slot.base;
+wmsx.CartridgeFMPAC.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeMSXMUSIC.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeMSXMUSIC();
+wmsx.CartridgeFMPAC.recreateFromSaveState = function(state, previousSlot) {
+    var cart = previousSlot || new wmsx.CartridgeFMPAC();
     cart.loadState(state);
     return cart;
 };
