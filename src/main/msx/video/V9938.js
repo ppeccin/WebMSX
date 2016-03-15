@@ -28,7 +28,9 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         bus.connectOutputDevice(0x98, this.output98);
         bus.connectInputDevice(0x99,  this.input99);
         bus.connectOutputDevice(0x99, this.output99);
+        bus.connectInputDevice(0x9a, this.inputNotAvailable);
         bus.connectOutputDevice(0x9a, this.output9a);
+        bus.connectInputDevice(0x9b, this.inputNotAvailable);
         bus.connectOutputDevice(0x9b, this.output9b);
     };
 
@@ -66,6 +68,11 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
 
         // Send updated image to Monitor if needed
         if (refreshPending) refresh();
+    };
+
+    // Port not available for INPUT
+    this.inputNotAvailable = function() {
+        return 0xff;
     };
 
     // VRAM Read

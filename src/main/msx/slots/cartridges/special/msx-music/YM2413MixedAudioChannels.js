@@ -11,18 +11,28 @@ wmsx.YM2413MixedAudioChannels = function() {
         instrumentsParameters = tabs.getInstrumentsROM();
         multiFactors = tabs.getMultiFactorsDoubled();
         kslValues = tabs.getKSLValues();
+        rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
+
+        self.instrumentsParameters = instrumentsParameters;
     }
 
     this.connect = function(machine) {
         machine.bus.connectOutputDevice(0x7c, this.output7C);
         machine.bus.connectOutputDevice(0x7d, this.output7D);
+        machine.bus.connectInputDevice(0x7c, this.inputNotAvailable);
+        machine.bus.connectInputDevice(0x7d, this.inputNotAvailable);
         audioSocket = machine.getAudioSocket();
     };
 
     this.disconnect = function(machine) {
         if (machine.bus.getOutputDevice(0x7c) === this.output7C) machine.bus.disconnectInputDevice(0x7c);
         if (machine.bus.getOutputDevice(0x7d) === this.output7D) machine.bus.disconnectInputDevice(0x7d);
+    };
+
+    // Port not available for INPUT
+    this.inputNotAvailable = function() {
+        return 0xff;
     };
 
     this.output7C = function (val) {
@@ -34,6 +44,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
     this.reset = function() {
+        clock = 0;
         for (var chan = 0; chan < 9; ++chan) {
             setEnvStep(chan, IDLE);
             updateAllAttenuations(chan);
@@ -51,9 +62,9 @@ wmsx.YM2413MixedAudioChannels = function() {
             var m = chan << 1, c = m + 1;
             if (envStep[c] === IDLE) continue;
 
-            // Update ADSR steps
-            tickADSR(m);
-            tickADSR(c);
+            // Update ADSR envelopes
+            updateEnvelope(m);
+            updateEnvelope(c);
 
             // Update operators phase
             var mPh = (phaseCounter[m] += phaseInc[m]) >> 9;
@@ -95,41 +106,41 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         switch(reg) {
             case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-            instrumentsParameters[0][reg] = val;
-            updateCustomInstrChannels();
-            break;
+                instrumentsParameters[0][reg] = val;
+                updateCustomInstrChannels();
+                break;
             case 0x0e:
                 rhythmMode = (val & 0x20) !== 0;
                 self.rhythmMode = rhythmMode;
                 break;
             case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
-            if (mod) {
-                fNum[chan] = (fNum[chan] & ~0xff) | val;
-                updateFrequency(chan);
-            }
-            break;
+                if (mod) {
+                    fNum[chan] = (fNum[chan] & ~0xff) | val;
+                    updateFrequency(chan);
+                }
+                break;
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29:
-            if (mod & 0x20) setSustain(chan, (val & 0x20) !== 0);
-            if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
-            if (mod & 0x01) fNum[chan]  = (fNum[chan] & ~0x100) | ((val & 1) << 8);
-            if (mod & 0x0e) block[chan] = (val >> 1) & 0x7;
-            if (mod & 0x0f) updateFrequency(chan);
-            break;
+                if (mod & 0x20) setSustain(chan, (val & 0x20) !== 0);
+                if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
+                if (mod & 0x01) fNum[chan]  = (fNum[chan] & ~0x100) | ((val & 1) << 8);
+                if (mod & 0x0e) block[chan] = (val >> 1) & 0x7;
+                if (mod & 0x0f) updateFrequency(chan);
+                break;
             case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38: case 0x39:
-            if (mod & 0x0f) setVolume(chan, val & 0xf);
-            if (mod & 0xf0) setInstr(chan, val >>> 4);
-            break;
+                if (mod & 0x0f) setVolume(chan, val & 0xf);
+                if (mod & 0xf0) setInstr(chan, val >>> 4);
+                break;
         }
     }
 
-    function tickADSR(op) {
+    function updateEnvelope(op) {
         if (envStep[op] === IDLE) return;       // No need to bother if operator is IDLE
 
-        if (envLevel[op] === envStepLevelNext[op]) {
+        if (envLevel[op] === envStepNextAtLevel[op]) {
             setEnvStepOp(op, envStepNext[op]);
         } else {
-            if (--envStepCounter[op] < 0) {
-                envStepCounter[op] = envStepDur[op];
+            if (envStepLevelIncClock[op] === clock) {
+                envStepLevelIncClock[op] += envStepLevelDur[op];
                 envLevel[op] += envStepLevelInc[op];
                 updateEnvAttenuationOp(op);
             }
@@ -147,8 +158,8 @@ wmsx.YM2413MixedAudioChannels = function() {
         if (on) {
             setEnvStep(chan, DAMP);
             // Reset and synch M/C phase counters
-            phaseCounter[m] = 0;    // - phaseInc[m];            // TODO Modulator phase is 1 behind carrier
-            phaseCounter[c] = 0;
+            //phaseCounter[m] = 0 - phaseInc[m];            // TODO Modulator phase is 1 behind carrier
+            //phaseCounter[c] = 0;
         } else {
             // Modulator is not affected by KEY-OFF!   if (envStep[m] > 0) setEnvStepOp(m, RELEASE);
             if (envStep[c] > 0) setEnvStepOp(c, RELEASE);
@@ -165,35 +176,39 @@ wmsx.YM2413MixedAudioChannels = function() {
         envStep[op] = step;
         switch (step) {
             case DAMP:
-                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((12 << 2) + ksrOffset[op]) & 63];
+                envStepLevelDur[op] = rateDecayDurTable[(12 << 2) + ksrOffset[op]];
+                envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = 1;
-                envStepLevelNext[op] = 127;
+                envStepNextAtLevel[op] = 127;
                 envStepNext[op] = ATTACK;
                 break;
             case ATTACK:
-                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((15 << 2) + ksrOffset[op]) & 63];  // rateDecayDurTable[((ar[op] << 2) + ksrOffset[op]) & 63];
+                envStepLevelDur[op] = rateAttackDurTable[(ar[op] << 2) + ksrOffset[op]];
+                envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = -1;
-                envStepLevelNext[op] = 0;
+                envStepNextAtLevel[op] = 0;
                 envStepNext[op] = DECAY;
                 break;
             case DECAY:
-                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((dr[op] << 2) + ksrOffset[op]) & 63];
+                envStepLevelDur[op] = rateDecayDurTable[(dr[op] << 2) + ksrOffset[op]];
+                envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = 1;
-                envStepLevelNext[op] = sl[op] << 3;
+                envStepNextAtLevel[op] = sl[op] << 3;
                 envStepNext[op] = SUSTAIN;
                 break;
             case SUSTAIN:
                 if (envType[op]) {
                     // Sustained tone
-                    envStepCounter[op] = envStepDur[op] = MAX_INT;
+                    envStepLevelIncClock[op] = envStepLevelDur[op] = -1;
                     envStepLevelInc[op] = 0;
-                    envStepLevelNext[op] = null;
+                    envStepNextAtLevel[op] = null;
                     envStepNext[op] = null;
                 } else {
                     // Percussive tone
-                    envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((rr[op] << 2) + ksrOffset[op]) & 63];
+                    envStepLevelDur[op] = rateDecayDurTable[(rr[op] << 2) + ksrOffset[op]];
+                    envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                     envStepLevelInc[op] = 1;
-                    envStepLevelNext[op] = 127;
+                    envStepNextAtLevel[op] = 127;
                     envStepNext[op] = IDLE;
                 }
                 break;
@@ -201,17 +216,18 @@ wmsx.YM2413MixedAudioChannels = function() {
                 var rate = envType[op]
                     ? sustain[op >> 1] ? 5 : rr[op]     // Sustained tone
                     : sustain[op >> 1] ? 5 : 7;         // Percussive tone
-                envStepCounter[op] = envStepDur[op] = rateDecayDurTable[((rate << 2) + ksrOffset[op]) & 63];
+                envStepLevelDur[op] = rateDecayDurTable[((rate << 2) + ksrOffset[op]) & 63];
+                envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = 1;
-                envStepLevelNext[op] = 127;
+                envStepNextAtLevel[op] = 127;
                 envStepNext[op] = IDLE;
                 break;
             case IDLE:
             default:
                 envLevel[op] = 127;
-                envStepCounter[op] = envStepDur[op] = MAX_INT;
+                envStepLevelIncClock[op] = envStepLevelDur[op] = -1;
                 envStepLevelInc[op] = 0;
-                envStepLevelNext[op] = null;
+                envStepNextAtLevel[op] = null;
                 envStepNext[op] = null;
                 break;
         }
@@ -232,7 +248,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         ksl[m] =     pars[2] >>> 6;
         ksl[c] =     pars[3] >>> 6;
         modTL[chan]   = pars[2] & 0x3f;
-        fbShift[chan] = (pars[3] & 0x07) ? 8 - (pars[3] & 0x07) : 31;   // Maximum shift value to discard all bits in case FB = off
+        fbShift[chan] = (pars[3] & 0x07) ? 8 - (pars[3] & 0x07) : 31;   // Maximum shift value to discard all bits when FB = off
         ar[m] =      pars[4] >>> 4;
         dr[m] =      pars[4] & 0xf;
         ar[c] =      pars[5] >>> 4;
@@ -244,6 +260,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         updateFrequency(chan);
         updateModAttenuation(chan);
+
+        //console.log("Custom Instr updated for channel: " + chan);
     }
 
     function updateCustomInstrChannels() {
@@ -326,8 +344,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     // Global controls
 
-    var clock = 0;
-    var rhythmMode = false;
+    var clock;
+    var rhythmMode;
     var registerAddress;
     var register = wmsx.Util.arrayFill(new Array(0x38), 0);
 
@@ -364,13 +382,13 @@ wmsx.YM2413MixedAudioChannels = function() {
     var volModAtt = wmsx.Util.arrayFill(new Array(18), 0);       // For Volume or ModTL
     var totalAtt =  wmsx.Util.arrayFill(new Array(18), 0);
 
-    var envStep =          wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepDur =       wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepCounter =   wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepNext =      wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepLevelInc =  wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepLevelNext = wmsx.Util.arrayFill(new Array(18), 0);
-    var envLevel =         wmsx.Util.arrayFill(new Array(18), 0);
+    var envStep =              wmsx.Util.arrayFill(new Array(18), 0);
+    var envStepLevelDur =      wmsx.Util.arrayFill(new Array(18), 0);
+    var envStepLevelIncClock = wmsx.Util.arrayFill(new Array(18), 0);
+    var envStepLevelInc =      wmsx.Util.arrayFill(new Array(18), 0);
+    var envStepNext =          wmsx.Util.arrayFill(new Array(18), 0);
+    var envStepNextAtLevel =   wmsx.Util.arrayFill(new Array(18), 0);
+    var envLevel =             wmsx.Util.arrayFill(new Array(18), 0);
 
     var ksrOffset =    wmsx.Util.arrayFill(new Array(18), 0);
 
@@ -398,6 +416,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.dr = dr;
     this.sl = sl;
     this.rr = rr;
+    this.ksrOffset = ksrOffset;
 
     this.kslAtt = kslAtt;
     this.fbShift = fbShift;
@@ -407,19 +426,19 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.totalAtt = totalAtt;
 
     this.envStep = envStep;
-    this.envStepDur = envStepDur;
-    this.envStepCounter = envStepCounter;
+    this.envStepLevelDur = envStepLevelDur;
+    this.envStepLevelIncClock = envStepLevelIncClock;
     this.envStepNext = envStepNext;
+    this.envStepNextAtLevel = envStepNextAtLevel;
     this.envStepLevelInc = envStepLevelInc;
     this.envLevel = envLevel;
 
     this.phaseInc = phaseInc;
     this.phaseCounter = phaseCounter;
 
-
     // Pre calculated tables, factors, values
 
-    var sineTable, expTable, instrumentsParameters, multiFactors, kslValues, rateDecayDurTable;
+    var sineTable, expTable, instrumentsParameters, multiFactors, kslValues, rateAttackDurTable, rateDecayDurTable;
 
     var audioSocket, audioSignal;
 
