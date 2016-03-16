@@ -10,6 +10,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         expTable =  tabs.getExpTable();
         instrumentsParameters = tabs.getInstrumentsROM();
         multiFactors = tabs.getMultiFactorsDoubled();
+        vibValues = tabs.getVIBValues();
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
@@ -45,6 +46,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     this.reset = function() {
         clock = 0;
+        amLevel = 0; amLevelInc = -1;   // Starting condition
+        vibPhase = 0;
         for (var chan = 0; chan < 9; ++chan) {
             setEnvStep(chan, IDLE);
             updateAllAttenuations(chan);
@@ -55,6 +58,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     this.nextSample = function() {
         ++clock;
+        clockAM();
+        clockVIB();
 
         var sample = 0;
         var toChan = rhythmMode ? 6 : 9;
@@ -63,8 +68,8 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (envStep[c] === IDLE) continue;
 
             // Update ADSR envelopes
-            updateEnvelope(m);
-            updateEnvelope(c);
+            clockEnvelope(m);
+            clockEnvelope(c);
 
             // Update operators phase
             var mPh = (phaseCounter[m] += phaseInc[m]) >> 9;
@@ -133,7 +138,24 @@ wmsx.YM2413MixedAudioChannels = function() {
         }
     }
 
-    function updateEnvelope(op) {
+    function clockAM() {
+        if (clock & 511) return;        // Only chance once each 512 clocks
+
+        if (amLevel === 0 || amLevel === 13) amLevelInc = -amLevelInc;
+        amLevel += amLevelInc;
+        for (var op = 0; op < 18; ++op)
+            if (am[op]) updateAMAttenuationOp(op);
+    }
+
+    function clockVIB() {
+        if (clock & 1023) return;        // Only chance once each 1024 clocks
+
+        vibPhase = (clock >> 10) & 0x7;
+        for (var op = 0; op < 18; ++op)
+            if (vib[op]) updateFrequencyOp(op);
+    }
+
+    function clockEnvelope(op) {
         if (envStep[op] === IDLE) return;       // No need to bother if operator is IDLE
 
         if (envLevel[op] === envStepNextAtLevel[op]) {
@@ -239,6 +261,10 @@ wmsx.YM2413MixedAudioChannels = function() {
         // Copy parameters
         var m = chan << 1, c = m + 1;
         var pars = instrumentsParameters[ins];
+        am[m] =      (pars[0] >> 7) & 1;
+        am[c] =      (pars[0] >> 7) & 1;
+        vib[m] =     (pars[0] >> 6) & 1;
+        vib[c] =     (pars[0] >> 6) & 1;
         envType[m] = (pars[0] >> 5) & 1;
         envType[c] = (pars[1] >> 5) & 1;
         ksr[m] =     (pars[0] >> 4) & 1;
@@ -258,6 +284,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         sl[c] =      pars[7] >>> 4;
         rr[c] =      pars[7] & 0xf;
 
+        updateAMAttenuation(chan);
         updateFrequency(chan);
         updateModAttenuation(chan);
 
@@ -282,10 +309,32 @@ wmsx.YM2413MixedAudioChannels = function() {
         updateKSROffset(chan);
     }
 
+    function updateFrequencyOp(op) {
+        phaseInc[op] = ((fNum[op >> 1] * multi[op]) >> 1) << block[op >> 1];
+        updateKSLAttenuationOp(op);
+        updateKSROffsetOp(op);
+    }
+
     function updateKSROffset(chan) {
         var m = chan << 1, c = m + 1;
         ksrOffset[m] = (ksr[m] ? block[chan] << 1 : block[chan] >> 1) | (fNum[chan] >>> (9 - ksr[m]));
         ksrOffset[c] = (ksr[c] ? block[chan] << 1 : block[chan] >> 1) | (fNum[chan] >>> (9 - ksr[c]));
+    }
+
+    function updateKSROffsetOp(op) {
+        ksrOffset[op] = (ksr[op] ? block[op >> 1] << 1 : block[op >> 1] >> 1) | (fNum[op >> 1] >>> (9 - ksr[op]));
+    }
+
+    function updateAMAttenuation(chan) {
+        var m = chan << 1, c = m + 1;
+        amAtt[m] = am[m] ? amLevel << 4 : 0;
+        amAtt[c] = am[c] ? amLevel << 4 : 0;
+        updateTotalAttenuation(chan);
+    }
+
+    function updateAMAttenuationOp(op) {
+        amAtt[op] = am[op] ? amLevel << 4 : 0;
+        updateTotalAttenuationOp(op);
     }
 
     function updateKSLAttenuation(chan) {
@@ -293,6 +342,11 @@ wmsx.YM2413MixedAudioChannels = function() {
         kslAtt[m] = kslValues[ksl[m]][block[chan]][fNum[chan] >>> 5] << 4;
         kslAtt[c] = kslValues[ksl[c]][block[chan]][fNum[chan] >>> 5] << 4;
         updateTotalAttenuation(chan);
+    }
+
+    function updateKSLAttenuationOp(op) {
+        kslAtt[op] = kslValues[ksl[op]][block[op >> 1]][fNum[op >> 1] >>> 5] << 4;
+        updateTotalAttenuationOp(op);
     }
 
     function updateEnvAttenuation(chan) {
@@ -321,12 +375,12 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function updateTotalAttenuation(chan) {
         var m = chan << 1, c = m + 1;
-        totalAtt[m] = kslAtt[m] + envAtt[m] + amAtt[m] + volModAtt[m];
-        totalAtt[c] = kslAtt[c] + envAtt[c] + amAtt[c] + volModAtt[c];
+        totalAtt[m] = amAtt[m] + kslAtt[m] + envAtt[m] + amAtt[m] + volModAtt[m];
+        totalAtt[c] = amAtt[c] + kslAtt[c] + envAtt[c] + amAtt[c] + volModAtt[c];
     }
 
     function updateTotalAttenuationOp(op) {
-        totalAtt[op] = kslAtt[op] + envAtt[op] + amAtt[op] + volModAtt[op];
+        totalAtt[op] = amAtt[op] + kslAtt[op] + envAtt[op] + volModAtt[op];
     }
 
     function updateAllAttenuations(chan) {
@@ -345,9 +399,11 @@ wmsx.YM2413MixedAudioChannels = function() {
     // Global controls
 
     var clock;
-    var rhythmMode;
     var registerAddress;
     var register = wmsx.Util.arrayFill(new Array(0x38), 0);
+    var rhythmMode;
+    var amLevel, amLevelInc;
+    var vibPhase;
 
     // Settings per channel
     var keyOn =   wmsx.Util.arrayFill(new Array(9), false);
@@ -359,6 +415,8 @@ wmsx.YM2413MixedAudioChannels = function() {
     var modTL =   wmsx.Util.arrayFill(new Array(9), 0);
 
     // Settings per operator
+    var am =      wmsx.Util.arrayFill(new Array(18), 0);
+    var vib =     wmsx.Util.arrayFill(new Array(18), 0);
     var envType = wmsx.Util.arrayFill(new Array(18), 0);
     var ksr =     wmsx.Util.arrayFill(new Array(18), 0);
     var multi =   wmsx.Util.arrayFill(new Array(18), 0);
@@ -376,9 +434,9 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     // Computed values per operator
 
+    var amAtt =     wmsx.Util.arrayFill(new Array(18), 0);
     var kslAtt =    wmsx.Util.arrayFill(new Array(18), 0);
     var envAtt =    wmsx.Util.arrayFill(new Array(18), 0);
-    var amAtt =     wmsx.Util.arrayFill(new Array(18), 0);
     var volModAtt = wmsx.Util.arrayFill(new Array(18), 0);       // For Volume or ModTL
     var totalAtt =  wmsx.Util.arrayFill(new Array(18), 0);
 
@@ -408,6 +466,8 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.volume = volume;
     this.modTL = modTL;
 
+    this.am = am;
+    this.vib = vib;
     this.envType = envType;
     this.ksr = ksr;
     this.multi = multi;
@@ -438,7 +498,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     // Pre calculated tables, factors, values
 
-    var sineTable, expTable, instrumentsParameters, multiFactors, kslValues, rateAttackDurTable, rateDecayDurTable;
+    var sineTable, expTable, instrumentsParameters, multiFactors, vibValues, kslValues, rateAttackDurTable, rateDecayDurTable;
 
     var audioSocket, audioSignal;
 
@@ -454,4 +514,3 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
 };
-

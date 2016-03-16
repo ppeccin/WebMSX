@@ -36,6 +36,10 @@ wmsx.YM2413Tables = function() {
         return this.INSTRUMENT_ROM;
     };
 
+    this.getVIBValues = function() {
+        return this.VIB_VALUES;
+    };
+
     this.getKSLValues = function() {
         return this.KSL_VALUES;
     };
@@ -95,6 +99,17 @@ wmsx.YM2413Tables = function() {
         [ 0x61, 0x00, 0x0c, 0x05, 0xc2, 0xf6, 0x40, 0x44 ],              // D = Synthesizer Bass
         [ 0x01, 0x01, 0x56, 0x03, 0x94, 0xc2, 0x03, 0x12 ],              // E = Wood Bass
         [ 0x21, 0x01, 0x89, 0x03, 0xf1, 0xe4, 0xf0, 0x23 ]               // F = Electric Guitar
+    ];
+
+    this.VIB_VALUES = [
+        [ 0, 0, 0, 0, 0,  0,  0,  0 ],      // According to (one line for each) fNum >> 6
+        [ 0, 0, 1, 0, 0,  0, -1,  0 ],
+        [ 0, 1, 2, 1, 0, -1, -2, -1 ],
+        [ 0, 1, 3, 1, 0, -1, -3, -1 ],
+        [ 0, 2, 4, 2, 0, -2, -4, -2 ],
+        [ 0, 2, 5, 2, 0, -2, -5, -2 ],
+        [ 0, 3, 6, 3, 0, -3, -6, -3 ],
+        [ 0, 3, 7, 3, 0, -3, -7, -3 ]
     ];
 
     this.KSL_VALUES = [      //  [ KSL ] [ BLOCK ] [ FNUM (4 higher bits) ]
@@ -185,5 +200,6 @@ wmsx.YM2413Tables = function() {
 T = new wmsx.YM2413Tables();
 T.sinTable = T.getSineTable();
 T.expTable = T.getExpTable();
+
 
 

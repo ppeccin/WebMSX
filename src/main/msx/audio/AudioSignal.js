@@ -4,14 +4,16 @@
 wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     function init(self) {
-        switch (wmsx.Machine.BASE_CPU_CLOCK / sampleRate) {
+        var multi = wmsx.Machine.BASE_CPU_CLOCK / sampleRate;
+        switch (multi) {
             case 32:
                 self.audioClockPulse = audioClockPulse32x;
                 break;
             case 72:
                 self.audioClockPulse = audioClockPulse72x;
                 break;
-            //  Otherwise multiple not supported
+            default:
+                throw new Error("Unsupported AudioSignal Sample Rate CPU clock multiple: " + multi);
         }
     }
 
