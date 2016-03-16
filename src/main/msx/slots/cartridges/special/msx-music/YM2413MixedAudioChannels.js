@@ -6,7 +6,8 @@ wmsx.YM2413MixedAudioChannels = function() {
     function init() {
         FM = self;
         var tabs = new wmsx.YM2413Tables();
-        sineTable = tabs.getSineTable();
+        sineTable = tabs.getFullSineTable();
+        halfSineTable = tabs.getHalfSineTable();
         expTable =  tabs.getExpTable();
         instrumentsParameters = tabs.getInstrumentsROM();
         multiFactors = tabs.getMultiFactorsDoubled();
@@ -89,12 +90,12 @@ wmsx.YM2413MixedAudioChannels = function() {
 
             // Modulator and Feedback
             var fb = (fbLastMod1[chan] + fbLastMod2[chan]) >>> fbShift[chan];
-            var mod = expTable[sineTable[(mPh + fb) & 1023] + totalAtt[m]];
+            var mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh + fb) & 1023] + totalAtt[m]];
             fbLastMod2[chan] = fbLastMod1[chan];
             fbLastMod1[chan] = mod >> 1;
 
             // Modulated Carrier, final sample value
-            var val = expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+            var val = expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
 
             sample += val;
         }
@@ -278,28 +279,30 @@ wmsx.YM2413MixedAudioChannels = function() {
         // Copy parameters
         var m = chan << 1, c = m + 1;
         var pars = instrumentsParameters[ins];
-        am[m] =      (pars[0] >> 7) & 1;
-        am[c] =      (pars[0] >> 7) & 1;
-        vib[m] =     (pars[0] >> 6) & 1;
-        vib[c] =     (pars[0] >> 6) & 1;
-        envType[m] = (pars[0] >> 5) & 1;
-        envType[c] = (pars[1] >> 5) & 1;
-        ksr[m] =     (pars[0] >> 4) & 1;
-        ksr[c] =     (pars[1] >> 4) & 1;
-        multi[m] =   multiFactors[pars[0] & 0xf];
-        multi[c] =   multiFactors[pars[1] & 0xf];
-        ksl[m] =     pars[2] >>> 6;
-        ksl[c] =     pars[3] >>> 6;
-        modTL[chan]   = pars[2] & 0x3f;
+        am[m] =         (pars[0] >> 7) & 1;
+        am[c] =         (pars[0] >> 7) & 1;
+        vib[m] =        (pars[0] >> 6) & 1;
+        vib[c] =        (pars[0] >> 6) & 1;
+        envType[m] =    (pars[0] >> 5) & 1;
+        envType[c] =    (pars[1] >> 5) & 1;
+        ksr[m] =        (pars[0] >> 4) & 1;
+        ksr[c] =        (pars[1] >> 4) & 1;
+        multi[m] =      multiFactors[pars[0] & 0xf];
+        multi[c] =      multiFactors[pars[1] & 0xf];
+        ksl[m] =        pars[2] >>> 6;
+        ksl[c] =        pars[3] >>> 6;
+        modTL[chan] =   pars[2] & 0x3f;
+        halfWave[m] =   (pars[3] >> 3) & 1;
+        halfWave[c] =   (pars[3] >> 4) & 1;
         fbShift[chan] = (pars[3] & 0x07) ? 8 - (pars[3] & 0x07) : 31;   // Maximum shift value to discard all bits when FB = off
-        ar[m] =      pars[4] >>> 4;
-        dr[m] =      pars[4] & 0xf;
-        ar[c] =      pars[5] >>> 4;
-        dr[c] =      pars[5] & 0xf;
-        sl[m] =      pars[6] >>> 4;
-        rr[m] =      pars[6] & 0xf;
-        sl[c] =      pars[7] >>> 4;
-        rr[c] =      pars[7] & 0xf;
+        ar[m] =         pars[4] >>> 4;
+        dr[m] =         pars[4] & 0xf;
+        ar[c] =         pars[5] >>> 4;
+        dr[c] =         pars[5] & 0xf;
+        sl[m] =         pars[6] >>> 4;
+        rr[m] =         pars[6] & 0xf;
+        sl[c] =         pars[7] >>> 4;
+        rr[c] =         pars[7] & 0xf;
 
         updateAMAttenuation(chan);
         updateFrequency(chan);
@@ -395,8 +398,8 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function updateTotalAttenuation(chan) {
         var m = chan << 1, c = m + 1;
-        totalAtt[m] = amAtt[m] + kslAtt[m] + envAtt[m] + amAtt[m] + volModAtt[m];
-        totalAtt[c] = amAtt[c] + kslAtt[c] + envAtt[c] + amAtt[c] + volModAtt[c];
+        totalAtt[m] = amAtt[m] + kslAtt[m] + envAtt[m] + volModAtt[m];
+        totalAtt[c] = amAtt[c] + kslAtt[c] + envAtt[c] + volModAtt[c];
     }
 
     function updateTotalAttenuationOp(op) {
@@ -433,18 +436,19 @@ wmsx.YM2413MixedAudioChannels = function() {
     var modTL =   wmsx.Util.arrayFill(new Array(9), 0);
 
     // Settings per operator
-    var am =      wmsx.Util.arrayFill(new Array(18), 0);
-    var vib =     wmsx.Util.arrayFill(new Array(18), 0);
-    var envType = wmsx.Util.arrayFill(new Array(18), 0);
-    var ksr =     wmsx.Util.arrayFill(new Array(18), 0);
-    var multi =   wmsx.Util.arrayFill(new Array(18), 0);
-    var ksl =     wmsx.Util.arrayFill(new Array(18), 0);
-    var ar =      wmsx.Util.arrayFill(new Array(18), 0);
-    var dr =      wmsx.Util.arrayFill(new Array(18), 0);
-    var sl =      wmsx.Util.arrayFill(new Array(18), 0);
-    var rr =      wmsx.Util.arrayFill(new Array(18), 0);
-    var fNum  =   wmsx.Util.arrayFill(new Array(18), 0);     // Actually per channel, but kept per operator
-    var block =   wmsx.Util.arrayFill(new Array(18), 0);     // Actually per channel, but kept per operator
+    var am =       wmsx.Util.arrayFill(new Array(18), 0);
+    var vib =      wmsx.Util.arrayFill(new Array(18), 0);
+    var envType =  wmsx.Util.arrayFill(new Array(18), 0);
+    var ksr =      wmsx.Util.arrayFill(new Array(18), 0);
+    var multi =    wmsx.Util.arrayFill(new Array(18), 0);
+    var ksl =      wmsx.Util.arrayFill(new Array(18), 0);
+    var halfWave = wmsx.Util.arrayFill(new Array(18), 0);
+    var ar =       wmsx.Util.arrayFill(new Array(18), 0);
+    var dr =       wmsx.Util.arrayFill(new Array(18), 0);
+    var sl =       wmsx.Util.arrayFill(new Array(18), 0);
+    var rr =       wmsx.Util.arrayFill(new Array(18), 0);
+    var fNum  =    wmsx.Util.arrayFill(new Array(18), 0);     // Actually per channel, but kept per operator
+    var block =    wmsx.Util.arrayFill(new Array(18), 0);     // Actually per channel, but kept per operator
 
     // Computed values per channel
 
@@ -492,6 +496,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.ksr = ksr;
     this.multi = multi;
     this.ksl = ksl;
+    this.halfWave = halfWave;
     this.ar = ar;
     this.dr = dr;
     this.sl = sl;
@@ -518,7 +523,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     // Pre calculated tables, factors, values
 
-    var sineTable, expTable, instrumentsParameters, multiFactors, vibValues, kslValues, rateAttackDurTable, rateDecayDurTable;
+    var sineTable, halfSineTable, expTable, instrumentsParameters, multiFactors, vibValues, kslValues, rateAttackDurTable, rateDecayDurTable;
 
     var audioSocket, audioSignal;
 

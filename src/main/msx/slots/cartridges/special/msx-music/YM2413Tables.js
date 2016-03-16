@@ -2,16 +2,24 @@
 
 wmsx.YM2413Tables = function() {
 
-    this.getSineTable = function() {
-        // Complete table for all possible values (1024 entries). Sign in bit 14. No need for get function
+    this.getFullSineTable = function() {
+        // Complete table for all possible values (1024 entries). Sign in bit 14
         var tab = new Array(1024);
         for (var i = 0; i < 1024; ++i)
             tab[i] = (i > 511 ? 0x4000 : 0) | Math.round(-log2(Math.abs(Math.sin((i + 0.5) * 2 * Math.PI / 1024))) * 256);
         return tab;
     };
 
+    this.getHalfSineTable = function() {
+        // Complete table for all possible values (1024 entries). Only positive values for first half, zero for second half
+        var tab = new Array(1024);
+        for (var i = 0; i < 1024; ++i)
+            tab[i] = Math.round(-log2(Math.abs(Math.sin((i < 512 ? i + 0.5 : 0.5) * 2 * Math.PI / 1024))) * 256);
+        return tab;
+    };
+
     this.getExpTable = function() {
-        // Complete table for all possible values (32768 entries). Input sign in bit 14. No need for get function
+        // Complete table for all possible values (32768 entries). Input sign in bit 14
         var tab = new Array(32768);
         for (var i = 0; i < 32768; ++i) {
             var v = (Math.round(exp2(((i & 255) ^ 255) / 256) * 1024) << 1) >> ((i & 0x3F00) >> 8);
@@ -102,8 +110,8 @@ wmsx.YM2413Tables = function() {
     ];
 
     this.VIB_VALUES = [
-        [ 0, 0, 0, 0, 0,  0,  0,  0 ],      // According to (one line for each) fNum >> 6
-        [ 0, 0, 1, 0, 0,  0, -1,  0 ],
+        [ 0, 0, 0, 0, 0,  0,  0,  0 ],      // According to fNum >> 6 (one line for each)
+        [ 0, 0, 1, 0, 0,  0, -1,  0 ],      // Half of these values must be added to fNum BEFORE multi
         [ 0, 1, 2, 1, 0, -1, -2, -1 ],
         [ 0, 1, 3, 1, 0, -1, -3, -1 ],
         [ 0, 2, 4, 2, 0, -2, -4, -2 ],
@@ -198,7 +206,7 @@ wmsx.YM2413Tables = function() {
 };
 
 T = new wmsx.YM2413Tables();
-T.sinTable = T.getSineTable();
+T.sinTable = T.getFullSineTable();
 T.expTable = T.getExpTable();
 
 
