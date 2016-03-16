@@ -90,7 +90,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
             // Modulator and Feedback
             var fb = (fbLastMod1[chan] + fbLastMod2[chan]) >>> fbShift[chan];
-            var mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh + fb) & 1023] + totalAtt[m]];
+            var mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh - 1 + fb) & 1023] + totalAtt[m]];
             fbLastMod2[chan] = fbLastMod1[chan];
             fbLastMod1[chan] = mod >> 1;
 
@@ -197,9 +197,6 @@ wmsx.YM2413MixedAudioChannels = function() {
         // Define ADSR phase
         if (on) {
             setEnvStep(chan, DAMP);
-            // Reset and synch M/C phase counters
-            //phaseCounter[m] = 0 - phaseInc[m];            // TODO Modulator phase is 1 behind carrier
-            //phaseCounter[c] = 0;
         } else {
             // Modulator is not affected by KEY-OFF!   if (envStep[m] > 0) setEnvStepOp(m, RELEASE);
             if (envStep[c] > 0) setEnvStepOp(c, RELEASE);
@@ -228,6 +225,8 @@ wmsx.YM2413MixedAudioChannels = function() {
                 envStepLevelInc[op] = -1;
                 envStepNextAtLevel[op] = 0;
                 envStepNext[op] = DECAY;
+                // Reset phase counter ?
+                phaseCounter[op] = 0;
                 break;
             case DECAY:
                 envStepLevelDur[op] = rateDecayDurTable[(dr[op] << 2) + ksrOffset[op]];
@@ -294,7 +293,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         modTL[chan] =   pars[2] & 0x3f;
         halfWave[m] =   (pars[3] >> 3) & 1;
         halfWave[c] =   (pars[3] >> 4) & 1;
-        fbShift[chan] = (pars[3] & 0x07) ? 8 - (pars[3] & 0x07) : 31;   // Maximum shift value to discard all bits when FB = off
+        fbShift[chan] = (pars[3] & 0x7) ? 8 - (pars[3] & 0x7) : 31;   // Maximum shift value to discard all bits when FB = off
         ar[m] =         pars[4] >>> 4;
         dr[m] =         pars[4] & 0xf;
         ar[c] =         pars[5] >>> 4;
