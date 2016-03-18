@@ -46,28 +46,34 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
     this.reset = function() {
+        // Starting conditions
         clock = 0;
-        amLevel = 0; amLevelInc = -1;   // Starting condition
+        amLevel = 0; amLevelInc = -1;
         vibPhase = 0;
+        // Reset all envelope controls
         for (var chan = 0; chan < 9; ++chan) {
             setEnvStep(chan, IDLE);
             updateAllAttenuations(chan);
         }
+        // Zero all registers
         for (var reg = 0; reg < 0x39; ++reg)
             registerWrite(reg, 0);
     };
 
     this.nextSample = function() {
         var amChanged, vibChanged = false;
+        var op, m, c, mPh, cPh, fb, mod;
 
         ++clock;
         amChanged = clockAM();
         if (amChanged) vibChanged = clockVIB();
 
         var sample = 0;
-        var toChan = rhythmMode ? 6 : 9;
-        for (var chan = 0; chan < toChan; chan++) {
-            var m = chan << 1, c = m + 1;
+        var topMelodyChan = rhythmMode ? 5 : 8;
+
+        // Melody channels
+        for (var chan = topMelodyChan; chan >= 0; --chan) {
+            m = chan << 1; c = m + 1;
             if (envStep[c] === IDLE) continue;
 
             // Update AM and VIB
@@ -84,20 +90,49 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (envStep[m] !== IDLE) clockEnvelope(m);
             clockEnvelope(c);
 
-            // Update operators phase
-            var mPh = (phaseCounter[m] += phaseInc[m]) >> 9;
-            var cPh = (phaseCounter[c] += phaseInc[c]) >> 9;      // 0..1023
+            // Update operators phase (0..1023)
+            mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;   // Modulator phase is 1 behind Carrier
+            cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
 
             // Modulator and Feedback
-            var fb = (fbLastMod1[chan] + fbLastMod2[chan]) >>> fbShift[chan];
-            var mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh - 1 + fb) & 1023] + totalAtt[m]];
+            fb = (fbLastMod1[chan] + fbLastMod2[chan]) >>> fbShift[chan];
+            mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh + fb) & 1023] + totalAtt[m]];
             fbLastMod2[chan] = fbLastMod1[chan];
             fbLastMod1[chan] = mod >> 1;
 
             // Modulated Carrier, final sample value
-            var val = expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+            sample += expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+        }
 
-            sample += val;
+        // Rhythm channels
+        if (rhythmMode) {
+            // Bass Drum
+            c = 13;
+            if (envStep[c] !== IDLE) {
+                chan = 6; m = 12;
+                // Update ADSR envelopes
+                clockEnvelope(m);
+                clockEnvelope(c);
+                // Update operators phase (0..1023)
+                mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
+                cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
+                // Modulator (no feedback)
+                mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
+                // Modulated Carrier, final sample value
+                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+            }
+
+            // Snare Drum, Tom Tom, HiHat, Top Cymbal
+            for (op = 14; op < 18; ++op) {
+                if (envStep[op] !== IDLE) {
+                    // Update ADSR envelopes
+                    clockEnvelope(op);
+                    // Update operator phase (0..1023)
+                    phaseCounter[op] += phaseInc[op];
+                    // Carrier only, final sample value
+                    sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 4;
+                }
+            }
         }
 
         return sample / (8 * 256);      // Roughly 9 * 255 but more integer
@@ -130,8 +165,14 @@ wmsx.YM2413MixedAudioChannels = function() {
                 updateCustomInstrChannels();
                 break;
             case 0x0e:
-                rhythmMode = (val & 0x20) !== 0;
-                self.rhythmMode = rhythmMode;
+                if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
+                if (rhythmMode) {
+                    if (mod & 0x10) setKeyOn(6, (val & 0x10) !== 0);              // Bass Drum    (2 ops, like a melody channel)
+                    if (mod & 0x08) setRhythmKeyOnOp(14, (val & 0x08) !== 0);     // Snare Drum   (1 op)
+                    if (mod & 0x04) setRhythmKeyOnOp(15, (val & 0x04) !== 0);     // Tom Tom      (1 op)
+                    if (mod & 0x02) setRhythmKeyOnOp(16, (val & 0x02) !== 0);     // HiHat        (1 op)
+                    if (mod & 0x01) setRhythmKeyOnOp(17, (val & 0x01) !== 0);     // Top Cymbal   (1 op)
+                }
                 break;
             case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
                 if (mod) {
@@ -154,8 +195,13 @@ wmsx.YM2413MixedAudioChannels = function() {
                 if (mod & 0x0f) updateFrequency(chan);
                 break;
             case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38: case 0x39:
-                if (mod & 0x0f) setVolume(chan, val & 0xf);
-                if (mod & 0xf0) setInstr(chan, val >>> 4);
+                if (rhythmMode && chan > 5) {
+                    if (mod & 0xf0) setVolumeOp(m, val >>> 4);
+                    if (mod & 0x0f) setVolumeOp(c, val & 0xf);
+                } else {
+                    if (mod & 0xf0) setInstr(chan, val >>> 4);
+                    if (mod & 0x0f) setVolumeOp(c, val & 0xf);
+                }
                 break;
         }
     }
@@ -193,13 +239,24 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function setKeyOn(chan, on) {
         var m = chan << 1, c = m + 1;
-        keyOn[chan] = on;
+        keyOn[m] = on;
+        keyOn[c] = on;
         // Define ADSR phase
         if (on) {
             setEnvStep(chan, DAMP);
         } else {
-            // Modulator is not affected by KEY-OFF!   if (envStep[m] > 0) setEnvStepOp(m, RELEASE);
+            // Modulator is not affected by KEY-OFF!
             if (envStep[c] > 0) setEnvStepOp(c, RELEASE);
+        }
+    }
+
+    function setRhythmKeyOnOp(op, on) {
+        keyOn[op] = on;
+        // Define ADSR phase
+        if (on) {
+            setEnvStepOp(op, DAMP);
+        } else {
+            if (envStep[op] !== IDLE) setEnvStepOp(op, RELEASE);
         }
     }
 
@@ -272,6 +329,20 @@ wmsx.YM2413MixedAudioChannels = function() {
         }
     }
 
+    function setRhythmMode(boo) {
+        rhythmMode = boo;
+        self.rhythmMode = rhythmMode;
+        if (rhythmMode) {
+            setInstr(6, 16);
+            setInstr(7, 17);
+            setInstr(8, 18);
+        } else {
+            setInstr(6, register[36] >> 4);
+            setInstr(7, register[37] >> 4);
+            setInstr(8, register[38] >> 4);
+        }
+    }
+
     function setInstr(chan, ins) {
         instr[chan] = ins;
 
@@ -290,7 +361,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         multi[c] =      multiFactors[pars[1] & 0xf];
         ksl[m] =        pars[2] >>> 6;
         ksl[c] =        pars[3] >>> 6;
-        modTL[chan] =   pars[2] & 0x3f;
+        modTL[m] =      pars[2] & 0x3f;
         halfWave[m] =   (pars[3] >> 3) & 1;
         halfWave[c] =   (pars[3] >> 4) & 1;
         fbShift[chan] = (pars[3] & 0x7) ? 8 - (pars[3] & 0x7) : 31;   // Maximum shift value to discard all bits when FB = off
@@ -305,7 +376,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         updateAMAttenuation(chan);
         updateFrequency(chan);
-        updateModAttenuation(chan);
+        updateModAttenuationOp(m);
 
         //console.log("Custom Instr updated for channel: " + chan);
     }
@@ -315,9 +386,9 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (instr[chan] === 0) setInstr(chan, 0);
     }
 
-    function setVolume(chan, val) {
-        volume[chan] = val;
-        updateVolumeAttenuation(chan);
+    function setVolumeOp(op, val) {
+        volume[op] = val;
+        updateVolumeAttenuationOp(op);
     }
 
     function updateFrequency(chan) {
@@ -383,16 +454,14 @@ wmsx.YM2413MixedAudioChannels = function() {
         updateTotalAttenuationOp(op);
     }
 
-    function updateModAttenuation(chan) {
-        var m = chan << 1;
-        volModAtt[m] = modTL[chan] << 5;
-        updateTotalAttenuationOp(m);
+    function updateModAttenuationOp(op) {
+        volModAtt[op] = modTL[op] << 5;
+        updateTotalAttenuationOp(op);
     }
 
-    function updateVolumeAttenuation(chan) {
-        var c = (chan << 1) + 1;
-        volModAtt[c] = volume[chan] << 7;
-        updateTotalAttenuationOp(c);
+    function updateVolumeAttenuationOp(op) {
+        volModAtt[op] = volume[op] << 7;
+        updateTotalAttenuationOp(op);
     }
 
     function updateTotalAttenuation(chan) {
@@ -406,10 +475,12 @@ wmsx.YM2413MixedAudioChannels = function() {
     }
 
     function updateAllAttenuations(chan) {
+        var m = chan << 1, c = m + 1;
+        updateAMAttenuation(chan);
         updateKSLAttenuation(chan);
         updateEnvAttenuation(chan);
-        updateModAttenuation(chan);
-        updateVolumeAttenuation(chan);
+        updateModAttenuationOp(m);
+        updateVolumeAttenuationOp(c);
     }
 
 
@@ -428,13 +499,11 @@ wmsx.YM2413MixedAudioChannels = function() {
     var vibPhase;
 
     // Settings per channel
-    var keyOn =   wmsx.Util.arrayFill(new Array(9), false);
     var sustain = wmsx.Util.arrayFill(new Array(9), false);
     var instr =   wmsx.Util.arrayFill(new Array(9), 0);
-    var volume =  wmsx.Util.arrayFill(new Array(9), 0);
-    var modTL =   wmsx.Util.arrayFill(new Array(9), 0);
 
     // Settings per operator
+    var keyOn =    wmsx.Util.arrayFill(new Array(18), false);     // Set per channel, but kept per operator
     var am =       wmsx.Util.arrayFill(new Array(18), 0);
     var vib =      wmsx.Util.arrayFill(new Array(18), 0);
     var envType =  wmsx.Util.arrayFill(new Array(18), 0);
@@ -446,8 +515,10 @@ wmsx.YM2413MixedAudioChannels = function() {
     var dr =       wmsx.Util.arrayFill(new Array(18), 0);
     var sl =       wmsx.Util.arrayFill(new Array(18), 0);
     var rr =       wmsx.Util.arrayFill(new Array(18), 0);
-    var fNum  =    wmsx.Util.arrayFill(new Array(18), 0);     // Actually per channel, but kept per operator
-    var block =    wmsx.Util.arrayFill(new Array(18), 0);     // Actually per channel, but kept per operator
+    var fNum  =    wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
+    var block =    wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
+    var volume =   wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
+    var modTL =    wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
 
     // Computed values per channel
 
@@ -526,7 +597,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     var audioSocket, audioSignal;
 
-    this.VOLUME = 0.60;
+    this.VOLUME = 0.75;
     this.SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
 
