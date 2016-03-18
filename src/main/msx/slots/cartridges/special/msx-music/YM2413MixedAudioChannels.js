@@ -119,7 +119,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                 // Modulator (no feedback)
                 mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
                 // Modulated Carrier, final sample value
-                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
             }
 
             // Snare Drum, Tom Tom, HiHat, Top Cymbal
@@ -130,7 +130,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                     // Update operator phase (0..1023)
                     phaseCounter[op] += phaseInc[op];
                     // Carrier only, final sample value
-                    sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 4;
+                    sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
                 }
             }
         }
@@ -153,7 +153,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function registerWrite(reg, val) {
         var chan = reg & 0xf;
-        if (chan === 9) chan = 0;                       // Regs 19h, 29h, 39h are the same as 10h, 20h, 30h
+        if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
         var m = chan << 1, c = m + 1;
 
         var mod = register[reg] ^ val;
@@ -167,21 +167,26 @@ wmsx.YM2413MixedAudioChannels = function() {
             case 0x0e:
                 if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
                 if (rhythmMode) {
-                    if (mod & 0x10) setKeyOn(6, (val & 0x10) !== 0);              // Bass Drum    (2 ops, like a melody channel)
+                    if (mod & 0x10) {                                             // Bass Drum    (2 ops, like a melody channel)
+                        setRhythmKeyOnOp(12, (val & 0x10) !== 0);
+                        setRhythmKeyOnOp(13, (val & 0x10) !== 0);
+                    }
                     if (mod & 0x08) setRhythmKeyOnOp(14, (val & 0x08) !== 0);     // Snare Drum   (1 op)
                     if (mod & 0x04) setRhythmKeyOnOp(15, (val & 0x04) !== 0);     // Tom Tom      (1 op)
                     if (mod & 0x02) setRhythmKeyOnOp(16, (val & 0x02) !== 0);     // HiHat        (1 op)
                     if (mod & 0x01) setRhythmKeyOnOp(17, (val & 0x01) !== 0);     // Top Cymbal   (1 op)
                 }
                 break;
-            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
+            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
+            case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
                 if (mod) {
                     fNum[m] = (fNum[m] & ~0xff) | val;
                     fNum[c] = fNum[m];
                     updateFrequency(chan);
                 }
                 break;
-            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29:
+            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
+            case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
                 if (mod & 0x20) setSustain(chan, (val & 0x20) !== 0);
                 if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
                 if (mod & 0x01) {
@@ -194,7 +199,8 @@ wmsx.YM2413MixedAudioChannels = function() {
                 }
                 if (mod & 0x0f) updateFrequency(chan);
                 break;
-            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38: case 0x39:
+            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
+            case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
                 if (rhythmMode && chan > 5) {
                     if (mod & 0xf0) setVolumeOp(m, val >>> 4);
                     if (mod & 0x0f) setVolumeOp(c, val & 0xf);
