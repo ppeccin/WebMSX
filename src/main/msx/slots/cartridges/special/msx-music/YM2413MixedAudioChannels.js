@@ -231,7 +231,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         if (envLevel[op] === envStepNextAtLevel[op]) {
             setEnvStepOp(op, envStepNext[op]);
         } else {
-            if (envStepLevelIncClock[op] === clock) {
+            if (clock >= envStepLevelIncClock[op]) {
                 envStepLevelIncClock[op] += envStepLevelDur[op];
                 envLevel[op] += envStepLevelInc[op];
                 updateEnvAttenuationOp(op);
@@ -279,13 +279,13 @@ wmsx.YM2413MixedAudioChannels = function() {
                 envStepLevelDur[op] = rateDecayDurTable[(12 << 2) + ksrOffset[op]];
                 envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = 1;
-                envStepNextAtLevel[op] = 127;
+                envStepNextAtLevel[op] = 128;
                 envStepNext[op] = ATTACK;
                 break;
             case ATTACK:
                 envStepLevelDur[op] = rateAttackDurTable[(ar[op] << 2) + ksrOffset[op]];
                 envStepLevelIncClock[op] = clock + envStepLevelDur[op];
-                envStepLevelInc[op] = -1;
+                envStepLevelInc[op] = -8;
                 envStepNextAtLevel[op] = 0;
                 envStepNext[op] = DECAY;
                 // Reset phase counter ?
@@ -310,7 +310,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                     envStepLevelDur[op] = rateDecayDurTable[(rr[op] << 2) + ksrOffset[op]];
                     envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                     envStepLevelInc[op] = 1;
-                    envStepNextAtLevel[op] = 127;
+                    envStepNextAtLevel[op] = 128;
                     envStepNext[op] = IDLE;
                 }
                 break;
@@ -321,12 +321,12 @@ wmsx.YM2413MixedAudioChannels = function() {
                 envStepLevelDur[op] = rateDecayDurTable[((rate << 2) + ksrOffset[op]) & 63];
                 envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = 1;
-                envStepNextAtLevel[op] = 127;
+                envStepNextAtLevel[op] = 128;
                 envStepNext[op] = IDLE;
                 break;
             case IDLE:
             default:
-                envLevel[op] = 127;
+                envLevel[op] = 128;
                 envStepLevelIncClock[op] = envStepLevelDur[op] = -1;
                 envStepLevelInc[op] = 0;
                 envStepNextAtLevel[op] = null;
