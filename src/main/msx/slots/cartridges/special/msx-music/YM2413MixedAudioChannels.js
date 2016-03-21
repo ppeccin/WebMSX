@@ -48,6 +48,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.reset = function() {
         // Starting conditions
         clock = 0;
+        noiseRegister = 0xffff; noiseOutput = 0;
         amLevel = 0; amLevelInc = -1;
         vibPhase = 0;
         // Reset all envelope controls
@@ -62,9 +63,10 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     this.nextSample = function() {
         var amChanged, vibChanged = false;
-        var op, m, c, mPh, cPh, fb, mod;
+        var m, c, mPh, cPh, fb, mod;
 
         ++clock;
+        clockNoise();
         amChanged = clockAM();
         if (amChanged) vibChanged = clockVIB();
 
@@ -104,38 +106,68 @@ wmsx.YM2413MixedAudioChannels = function() {
             sample += expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
         }
 
-        // Rhythm channels
+        // Rhythm channels (no AM, VIB, KSR, KSL, DC/DM, FB)
         if (rhythmMode) {
-            // Bass Drum
+            // Bass Drum, 2 ops
             c = 13;
             if (envStep[c] !== IDLE) {
-                chan = 6; m = 12;
+                m = 12;
                 // Update ADSR envelopes
                 clockEnvelope(m);
                 clockEnvelope(c);
                 // Update operators phase (0..1023)
                 mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
                 cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
-                // Modulator (no feedback)
+                // Modulator
                 mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
                 // Modulated Carrier, final sample value
                 sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
             }
-
-            // Snare Drum, Tom Tom, HiHat, Top Cymbal
-            for (op = 14; op < 18; ++op) {
-                if (envStep[op] !== IDLE) {
-                    // Update ADSR envelopes
-                    clockEnvelope(op);
-                    // Update operator phase (0..1023)
-                    phaseCounter[op] += phaseInc[op];
-                    // Carrier only, final sample value
-                    sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
-                }
+            // Snare Drum
+            c = 15;
+            if (envStep[c] !== IDLE) {
+                // Update ADSR envelopes
+                clockEnvelope(c);
+                // Update operator phase (0..1023)
+                cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+                // Carrier only, final sample value
+                //sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 200 : noiseOutput ? 0 : 823] + totalAtt[c]] >> 3;
             }
+            // Tom Tom
+            c = 16;
+            if (envStep[c] !== IDLE) {
+                // Update ADSR envelopes
+                clockEnvelope(c);
+                // Update operator phase (0..1023)
+                cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+                // Carrier only, final sample value
+                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+            }
+            //// Cymbal
+            //c = 17;
+            //if (envStep[c] !== IDLE) {
+            //    // Update ADSR envelopes
+            //    clockEnvelope(c);
+            //    // Update operator phase (0..1023)
+            //    cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+            //    // Carrier only, final sample value
+            //    sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+            //}
+            //// HiHat
+            //c = 14;
+            //if (envStep[c] !== IDLE) {
+            //    // Update ADSR envelopes
+            //    clockEnvelope(c);
+            //    // Update operator phase (0..1023)
+            //    cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+            //    // Carrier only, final sample value
+            //    //sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+            //    sample += expTable[sineTable[noiseOutput ? 200 : -823] + totalAtt[c]] >> 3;
+            //}
         }
 
-        return sample / (8 * 256);      // Roughly 9 * 255 but more integer
+        return sample / (8 * 256);
     };
 
     this.connectAudio = function() {
@@ -171,10 +203,10 @@ wmsx.YM2413MixedAudioChannels = function() {
                         setRhythmKeyOnOp(12, (val & 0x10) !== 0);
                         setRhythmKeyOnOp(13, (val & 0x10) !== 0);
                     }
-                    if (mod & 0x08) setRhythmKeyOnOp(14, (val & 0x08) !== 0);     // Snare Drum   (1 op)
-                    if (mod & 0x04) setRhythmKeyOnOp(15, (val & 0x04) !== 0);     // Tom Tom      (1 op)
-                    if (mod & 0x02) setRhythmKeyOnOp(16, (val & 0x02) !== 0);     // HiHat        (1 op)
-                    if (mod & 0x01) setRhythmKeyOnOp(17, (val & 0x01) !== 0);     // Top Cymbal   (1 op)
+                    if (mod & 0x08) setRhythmKeyOnOp(15, (val & 0x08) !== 0);     // Snare Drum   (1 op)
+                    if (mod & 0x04) setRhythmKeyOnOp(16, (val & 0x04) !== 0);     // Tom Tom      (1 op)
+                    if (mod & 0x02) setRhythmKeyOnOp(17, (val & 0x02) !== 0);     // Top Cymbal   (1 op)
+                    if (mod & 0x01) setRhythmKeyOnOp(14, (val & 0x01) !== 0);     // HiHat        (1 op)
                 }
                 break;
             case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
@@ -210,6 +242,12 @@ wmsx.YM2413MixedAudioChannels = function() {
                 }
                 break;
         }
+    }
+
+    function clockNoise() {
+        noiseRegister >>= 1;
+        noiseOutput = noiseRegister & 1;
+        if (noiseOutput) noiseRegister ^= 0x8003020;
     }
 
     function clockAM() {
@@ -501,6 +539,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     var registerAddress;
     var register = wmsx.Util.arrayFill(new Array(0x38), 0);
     var rhythmMode;
+    var noiseRegister, noiseOutput;
     var amLevel, amLevelInc;
     var vibPhase;
 
