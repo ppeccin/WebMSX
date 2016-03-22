@@ -1,5 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// YM2413 FM Sound Chip
+// Implementation based on the excellent findings and measurements by Wouter Vermaelen
+// Instrument settings based on Okazaki's and Burczynski's
+
 wmsx.YM2413MixedAudioChannels = function() {
     var self = this;
 
@@ -66,7 +70,6 @@ wmsx.YM2413MixedAudioChannels = function() {
         var m, c, mPh, cPh, fb, mod;
 
         ++clock;
-        clockNoise();
         amChanged = clockAM();
         if (amChanged) vibChanged = clockVIB();
 
@@ -108,63 +111,58 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         // Rhythm channels (no AM, VIB, KSR, KSL, DC/DM, FB)
         if (rhythmMode) {
-            // Bass Drum, 2 ops
+            clockNoise();
+
+            // Bass Drum, 2 ops, normal channel
             c = 13;
             if (envStep[c] !== IDLE) {
                 m = 12;
-                // Update ADSR envelopes
                 clockEnvelope(m);
                 clockEnvelope(c);
-                // Update operators phase (0..1023)
                 mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
                 cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
-                // Modulator
                 mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
-                // Modulated Carrier, final sample value
-                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
+                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4 << 1;
             }
-            // Snare Drum
+
+            // Snare Drum, 1 op + noise
             c = 15;
             if (envStep[c] !== IDLE) {
-                // Update ADSR envelopes
                 clockEnvelope(c);
-                // Update operator phase (0..1023)
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                // Carrier only, final sample value
-                //sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
-                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 200 : noiseOutput ? 0 : 823] + totalAtt[c]] >> 3;
+                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 100 : noiseOutput ? 0 : 1023 - 100] + totalAtt[c]] >> 4 << 1;
             }
-            // Tom Tom
+
+            // Tom Tom, 1op, no noise
             c = 16;
             if (envStep[c] !== IDLE) {
-                // Update ADSR envelopes
                 clockEnvelope(c);
-                // Update operator phase (0..1023)
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                // Carrier only, final sample value
-                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 4 << 1;
             }
-            //// Cymbal
-            //c = 17;
-            //if (envStep[c] !== IDLE) {
-            //    // Update ADSR envelopes
-            //    clockEnvelope(c);
-            //    // Update operator phase (0..1023)
-            //    cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-            //    // Carrier only, final sample value
-            //    sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
-            //}
-            //// HiHat
-            //c = 14;
-            //if (envStep[c] !== IDLE) {
-            //    // Update ADSR envelopes
-            //    clockEnvelope(c);
-            //    // Update operator phase (0..1023)
-            //    cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-            //    // Carrier only, final sample value
-            //    //sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
-            //    sample += expTable[sineTable[noiseOutput ? 200 : -823] + totalAtt[c]] >> 3;
-            //}
+
+            // Cymbal & HiHat
+            if (envStep[17] !== IDLE || envStep[14] !== IDLE) {
+                // Both share the same phase calculation
+                var ph14 = (phaseCounter[14] += phaseInc[14]) >> 9;
+                var ph17 = (phaseCounter[17] += phaseInc[17]) >> 9;
+                var hhCymPh = (((ph17 & 0x4) != 0) && ((ph17 & 0x10) == 0)) !=
+                                ((((ph14 & 0x02) != 0) != ((ph14 & 0x100) != 0)) || ((ph14 & 0x04) != 0));
+
+                // Cymbal, 1 op, no noise
+                c = 17;
+                if (envStep[c] !== IDLE) {
+                    clockEnvelope(c);
+                    sample += expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 4 << 1;
+                }
+
+                // HiHat, 1op + noise
+                c = 14;
+                if (envStep[c] !== IDLE) {
+                    clockEnvelope(c);
+                    sample += expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 4 << 1;
+                }
+            }
         }
 
         return sample / (8 * 256);
