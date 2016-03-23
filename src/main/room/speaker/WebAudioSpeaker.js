@@ -10,14 +10,14 @@ wmsx.WebAudioSpeaker = function() {
     };
 
     this.connectAudioSignal = function(pAudioSignal) {
-        if (audioSignals.indexOf(pAudioSignal) >= 0) return;        // Add only once
-        wmsx.Util.arrayAdd(audioSignals, pAudioSignal);
+        if (audioSignal.indexOf(pAudioSignal) >= 0) return;        // Add only once
+        wmsx.Util.arrayAdd(audioSignal, pAudioSignal);
         updateResamplingFactors();
     };
 
     this.disconnectAudioSignal = function(pAudioSignal) {
-        if (audioSignals.indexOf(pAudioSignal) < 0) return;        // Not present
-        wmsx.Util.arrayRemoveAllElement(audioSignals, pAudioSignal);
+        if (audioSignal.indexOf(pAudioSignal) < 0) return;         // Not present
+        wmsx.Util.arrayRemoveAllElement(audioSignal, pAudioSignal);
         updateResamplingFactors();
     };
 
@@ -56,7 +56,6 @@ wmsx.WebAudioSpeaker = function() {
             audioContext = new constr();
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
             updateResamplingFactors();
-            //wmsx.Util.log("Audio resampling factor: " + (1 / resamplingFactors));
         } catch(e) {
             wmsx.Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
         }
@@ -64,16 +63,19 @@ wmsx.WebAudioSpeaker = function() {
 
     function updateResamplingFactors() {
         if (!audioContext) return;
-        resamplingFactors.length = audioSignals.length;
-        for (var i = 0; i < audioSignals.length; i++)
-            resamplingFactors[i] = audioSignals[i].getSampleRate() / audioContext.sampleRate;
+        resamplingFactor.length = audioSignal.length;
+        resamplingLeftOver.length = audioSignal.length;
+        for (var i = 0; i < audioSignal.length; i++) {
+            resamplingFactor[i] = audioSignal[i].getSampleRate() / audioContext.sampleRate;
+            resamplingLeftOver[i] = 0;
+        }
     }
 
     function onAudioProcess(event) {
 
         //console.log(audioContext.currentTime);
 
-        if (audioSignals.length === 0) return;
+        if (audioSignal.length === 0) return;
 
         // Assumes there is only one output channel
         var outputBuffer = event.outputBuffer.getChannelData(0);
@@ -83,33 +85,34 @@ wmsx.WebAudioSpeaker = function() {
         for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer[j] = 0;
 
         // Mix all signals, performing resampling on-the-fly
-        for (var i = audioSignals.length - 1; i >= 0; i = i - 1) {
-            var resamplingFactor = resamplingFactors[i];
-            var input = audioSignals[i].retrieveSamples((outputBufferSize * resamplingFactor) | 0);
+        for (var i = audioSignal.length - 1; i >= 0; i = i - 1) {
+            var resampFactor = resamplingFactor[i];
+            var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0);
             var inputBuffer = input.buffer;
             var inputBufferSize = input.bufferSize;
 
             // Copy to output performing basic re-sampling
             // Same as Util.arrayCopyCircularSourceWithStep, but optimized with local code
-            var s = input.start;
+            var s = input.start + resamplingLeftOver[i];
             var d = 0;
             while (d < outputBufferSize) {
                 outputBuffer[d] += inputBuffer[s | 0];   // source position as integer
                 d = d + 1;
-                s = s + resamplingFactor;
+                s = s + resampFactor;
                 if (s >= inputBufferSize) s = s - inputBufferSize;
             }
+            resamplingLeftOver[i] = s - (s | 0);        // fractional part
         }
 
-        //var str = ""; for (var i = 0; i < audioSignals.length; i++) str = str + audioSignals[i].name + " ";
+        //var str = ""; for (var i = 0; i < audioSignal.length; i++) str = str + audioSignal[i].name + " ";
         //console.log("AudioProcess: " + str);
     }
 
 
-    var audioSignals = [];
-    this.signals = audioSignals;
-    var resamplingFactors  = [];
-    this.resamplingFactors = resamplingFactors;
+    var audioSignal = [];
+    this.signals = audioSignal;
+    var resamplingFactor = [];
+    var resamplingLeftOver = [];
 
     var audioContext;
     var processor;

@@ -1,4 +1,3 @@
-
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.AudioSignal = function(name, source, sampleRate, volume) {
@@ -45,7 +44,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = Math.round(sampleRate / fps);
+        samplesPerFrame = ((sampleRate / fps) | 0) + SAMPLES_PER_FRRAME_ADJUST;
         if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
     };
 
@@ -112,15 +111,13 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     function generateNextSampleOn() {
         samples[nextSampleToGenerate] = source.nextSample() * volume;
-        nextSampleToGenerate = nextSampleToGenerate + 1;
-        if (nextSampleToGenerate >= MAX_SAMPLES)
+        if (++nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
     }
 
     function generateNextSampleOff() {
         samples[nextSampleToGenerate] = 0;
-        nextSampleToGenerate = nextSampleToGenerate + 1;
-        if (nextSampleToGenerate >= MAX_SAMPLES)
+        if (++nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
     }
 
@@ -144,7 +141,8 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     var samplesPerFrame;
     var frameSamples = 0;
 
-    var MAX_SAMPLES = 12 * WMSX.AUDIO_BUFFER_SIZE;
+    var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
+    var SAMPLES_PER_FRRAME_ADJUST = -1;             // Helps avoid buffer over-filling
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 

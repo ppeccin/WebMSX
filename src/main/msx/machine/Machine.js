@@ -541,6 +541,7 @@ wmsx.Machine = function() {
         this.connectAudioSignal = function(signal) {
             if (signals.indexOf(signal) >= 0) return;
             wmsx.Util.arrayAdd(signals, signal);
+            signal.setFps(fps);
             if (monitor) monitor.connectAudioSignal(signal);
         };
         this.disconnectAudioSignal = function(signal) {
@@ -559,7 +560,8 @@ wmsx.Machine = function() {
         this.unmute = function() {
             for (var i = signals.length - 1; i >= 0; i--) signals[i].play();
         };
-        this.setFps = function(fps) {
+        this.setFps = function(pFps) {
+            fps = pFps;
             for (var i = signals.length - 1; i >= 0; i--) signals[i].setFps(fps);
         };
         this.pauseMonitor = function() {
@@ -571,6 +573,7 @@ wmsx.Machine = function() {
 
         var signals = [];
         var monitor;
+        var fps;
     }
 
 
