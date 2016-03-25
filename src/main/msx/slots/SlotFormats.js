@@ -415,10 +415,3 @@ wmsx.SlotFormats = {
 
 wmsx.SlotFormats.Snatcher = wmsx.SlotFormats.SCCIExpansion;
 wmsx.SlotFormats.SDSnatcher = wmsx.SlotFormats.SCCIExpansion;
-
-// Backward Compatibility  TODO Remove
-
-wmsx.SlotFormats.SlotExpanded = wmsx.SlotFormats.Expanded;
-wmsx.SlotFormats.MSX2BIOSEXT = wmsx.SlotFormats.MSX2BIOSExt;
-wmsx.SlotFormats.Unbanked = wmsx.SlotFormats.Normal;
-wmsx.SlotFormats.RAMMapper256K = wmsx.SlotFormats.RAMMapper;

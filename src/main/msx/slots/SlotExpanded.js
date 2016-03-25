@@ -103,7 +103,7 @@ wmsx.SlotExpanded = function() {
     var subSlotPages;
     var secondarySlotConfig = 0;
 
-    this.format = wmsx.SlotFormats.SlotExpanded;
+    this.format = wmsx.SlotFormats.Expanded;
 
 
     // Savestate  -------------------------------------------

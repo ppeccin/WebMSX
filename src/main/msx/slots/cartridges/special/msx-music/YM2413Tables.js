@@ -22,8 +22,8 @@ wmsx.YM2413Tables = function() {
         // Complete table for all possible values (32768 entries). Input sign in bit 14
         var tab = new Array(32768);
         for (var i = 0; i < 32768; ++i) {
-            var v = (Math.round(exp2(((i & 255) ^ 255) / 256) * 1024) << 1) >> ((i & 0x3F00) >> 8);
-            if (i & 0x4000) v = ~v;
+            var v = (Math.round(exp2(((i & 255) ^ 255) / 256) * 1024) << 1) >> Math.min((i & 0x3F00) >> 8, 31);
+            if (i & 0x4000) v = -v;
             tab[i] = v;
         }
         return tab;
@@ -59,7 +59,7 @@ wmsx.YM2413Tables = function() {
     this.getRateDecayDurations = function() {
         var tab = new Array(64);
         for (var i = 0; i < 64; ++i)
-            tab[i] = Math.round(this.RATE_DECAY_DURATIONS[i] / 1000 * 49780 / 128);  // TODO Revise
+            tab[i] = Math.round(this.RATE_DECAY_DURATIONS[i] / 1000 * 49780 / 128);
 
         // Repeat last value for exceeding rates (> 63), possible when Rate = 15 and KSR offset > 3, as (Rate x 4 + KSROffset) can be > 63!
         for (i = 64; i < 60 + 16; ++i)
@@ -71,7 +71,7 @@ wmsx.YM2413Tables = function() {
     this.getRateAttackDurations = function() {
         var tab = new Array(64);
         for (var i = 0; i < 64; ++i)
-            tab[i] = Math.round(this.RATE_ATTACK_DURATIONS[i] / 1000 * 49780 / 128 * 8);  // TODO Revise
+            tab[i] = Math.round(this.RATE_ATTACK_DURATIONS[i] / 1000 * 49780 / 128 * 8);
 
         // Repeat last value for exceeding rates (> 63), possible when Rate = 15 and KSR offset > 3, as (Rate x 4 + KSROffset) can be > 63!
         for (i = 64; i < 60 + 16; ++i)

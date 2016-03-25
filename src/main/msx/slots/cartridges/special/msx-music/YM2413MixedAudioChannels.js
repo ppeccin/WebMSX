@@ -4,6 +4,8 @@
 // Implementation based on the excellent findings and measurements by Wouter Vermaelen
 // Instrument settings based on Okazaki's and Burczynski's
 
+// TODO How changes in parameters affect envelops in progress
+
 wmsx.YM2413MixedAudioChannels = function() {
     var self = this;
 
@@ -100,10 +102,14 @@ wmsx.YM2413MixedAudioChannels = function() {
             cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
 
             // Modulator and Feedback
-            fb = (fbLastMod1[chan] + fbLastMod2[chan]) >>> fbShift[chan];
-            mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh + fb) & 1023] + totalAtt[m]];
-            fbLastMod2[chan] = fbLastMod1[chan];
-            fbLastMod1[chan] = mod >> 1;
+            if (fbShift[chan] < 31) {
+                fb = (fbLastMod1[chan] + fbLastMod2[chan]) >> 1 >> fbShift[chan];         // >> 1 because last 2 values sum must be divided by 2
+                mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[(mPh + fb) & 1023] + totalAtt[m]];
+                fbLastMod2[chan] = fbLastMod1[chan];
+                fbLastMod1[chan] = mod;
+            } else {
+                mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
+            }
 
             // Modulated Carrier, final sample value
             sample += expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
@@ -122,7 +128,7 @@ wmsx.YM2413MixedAudioChannels = function() {
                 mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
                 cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
                 mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
-                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 4 << 1;
+                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
             }
 
             // Snare Drum, 1 op + noise
@@ -130,7 +136,7 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (envStep[c] !== IDLE) {
                 clockEnvelope(c);
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 100 : noiseOutput ? 0 : 1023 - 100] + totalAtt[c]] >> 4 << 1;
+                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 100 : noiseOutput ? 0 : 1023 - 100] + totalAtt[c]] >> 3;
             }
 
             // Tom Tom, 1op, no noise
@@ -138,7 +144,7 @@ wmsx.YM2413MixedAudioChannels = function() {
             if (envStep[c] !== IDLE) {
                 clockEnvelope(c);
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 4 << 1;
+                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
             }
 
             // Cymbal & HiHat
@@ -153,19 +159,19 @@ wmsx.YM2413MixedAudioChannels = function() {
                 c = 17;
                 if (envStep[c] !== IDLE) {
                     clockEnvelope(c);
-                    sample += expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 4 << 1;
+                    sample += expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 3;
                 }
 
                 // HiHat, 1op + noise
                 c = 14;
                 if (envStep[c] !== IDLE) {
                     clockEnvelope(c);
-                    sample += expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 4 << 1;
+                    sample += expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 3;
                 }
             }
         }
 
-        return sample / (8 * 256);
+        return sample;
     };
 
     this.connectAudio = function() {
@@ -288,7 +294,7 @@ wmsx.YM2413MixedAudioChannels = function() {
             setEnvStep(chan, DAMP);
         } else {
             // Modulator is not affected by KEY-OFF!
-            if (envStep[c] > 0) setEnvStepOp(c, RELEASE);
+            if (envStep[c] > DAMP) setEnvStepOp(c, RELEASE);
         }
     }
 
@@ -486,13 +492,13 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function updateEnvAttenuation(chan) {
         var m = chan << 1, c = m + 1;
-        envAtt[m] = envLevel[m] << 4;
-        envAtt[c] = envLevel[c] << 4;
+        envAtt[m] = (envLevel[m] === 128 ? 256 : envLevel[m]) << 4;            // Higher attenuation in case of minimum level to produce silence
+        envAtt[c] = (envLevel[c] === 128 ? 256 : envLevel[c]) << 4;
         updateTotalAttenuation(chan);
     }
 
     function updateEnvAttenuationOp(op) {
-        envAtt[op] = envLevel[op] << 4;
+        envAtt[op] = (envLevel[op] === 128 ? 256 : envLevel[op]) << 4;         // Higher attenuation in case of minimum level to produce silence
         updateTotalAttenuationOp(op);
     }
 
@@ -502,7 +508,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     }
 
     function updateVolumeAttenuationOp(op) {
-        volModAtt[op] = volume[op] << 7;
+        volModAtt[op] = (volume[op] === 15 ? 30 : volume[op]) << 7;            // Higher attenuation in case of minimum volume to produce silence
         updateTotalAttenuationOp(op);
     }
 
@@ -640,7 +646,7 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     var audioSocket, audioSignal;
 
-    this.VOLUME = 0.75;
+    this.VOLUME = 0.80 / 9 / 256;
     this.SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
 
