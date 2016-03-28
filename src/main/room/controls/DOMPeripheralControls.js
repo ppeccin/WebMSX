@@ -181,18 +181,14 @@ wmsx.DOMPeripheralControls = function(room) {
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {
-            case controls.SCREEN_SCALE_X_MINUS:
-                monitor.displayScaleXDecrease(); break;
-            case controls.SCREEN_SCALE_X_PLUS:
-                monitor.displayScaleXIncrease(); break;
-            case controls.SCREEN_SCALE_Y_MINUS:
-                monitor.displayScaleYDecrease(); break;
-            case controls.SCREEN_SCALE_Y_PLUS:
-                monitor.displayScaleYIncrease(); break;
-            case controls.SCREEN_SIZE_MINUS:
-                monitor.displaySizeDecrease(); break;
-            case controls.SCREEN_SIZE_PLUS:
-                monitor.displaySizeIncrease(); break;
+            case controls.SCREEN_ASPECT_MINUS:
+                monitor.displayAspectDecrease(); break;
+            case controls.SCREEN_ASPECT_PLUS:
+                monitor.displayAspectIncrease(); break;
+            case controls.SCREEN_SCALE_MINUS:
+                monitor.displayScaleDecrease(); break;
+            case controls.SCREEN_SCALE_PLUS:
+                monitor.displayScaleIncrease(); break;
         }
     };
 
@@ -256,15 +252,15 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
         keyAltCodeMap[KEY_FULLSCREEN]  	= controls.SCREEN_FULLSCREEN;
 
-        keyAltCodeMap[KEY_UP]     = controls.SCREEN_SIZE_MINUS;
-        keyAltCodeMap[KEY_DOWN]   = controls.SCREEN_SIZE_PLUS;
-        keyAltCodeMap[KEY_LEFT]   = controls.SCREEN_SIZE_MINUS;
-        keyAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SIZE_PLUS;
+        keyAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_MINUS;
+        keyAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_PLUS;
+        keyAltCodeMap[KEY_LEFT]   = controls.SCREEN_SCALE_MINUS;
+        keyAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SCALE_PLUS;
 
-        keyShiftAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_Y_MINUS;
-        keyShiftAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_Y_PLUS;
-        keyShiftAltCodeMap[KEY_LEFT]   = controls.SCREEN_SCALE_X_MINUS;
-        keyShiftAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SCALE_X_PLUS;
+        keyShiftAltCodeMap[KEY_UP]     = controls.SCREEN_ASPECT_MINUS;
+        keyShiftAltCodeMap[KEY_DOWN]   = controls.SCREEN_ASPECT_PLUS;
+        keyShiftAltCodeMap[KEY_LEFT]   = controls.SCREEN_ASPECT_MINUS;
+        keyShiftAltCodeMap[KEY_RIGHT]  = controls.SCREEN_ASPECT_PLUS;
 
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
     };

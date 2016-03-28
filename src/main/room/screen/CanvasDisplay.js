@@ -62,24 +62,27 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
-    this.displayDefaultOpeningScaleX = function() {
+    this.displayOptimalScaleY = function(aspectX) {
         if (isFullscreen) {
+            // Maximum size
             var winW = fsElement.clientWidth;
             var winH = fsElement.clientHeight;
-            var scaleX = winW / contentWidth;
-            scaleX -= (scaleX % wmsx.Monitor.SCALE_STEP);		    // Round to multiple of the step
-            var h = scaleX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X * contentHeight;
-            while (h > winH - 25) {							    	// 25 is a little tolerance
-                scaleX -= wmsx.Monitor.SCALE_STEP;				    // Decrease one step
-                h = scaleX / wmsx.Monitor.DEFAULT_SCALE_ASPECT_X * contentHeight;
+            var scY = (winH - 10) / contentHeight;	         	// 10 is a little safety tolerance
+            scY -= (scY % wmsx.Monitor.SCALE_STEP);		    // Round to multiple of the step
+            var w = aspectX * scY * contentWidth;
+            while (w > winW) {
+                scY -= wmsx.Monitor.SCALE_STEP;				    // Decrease one step
+                w = aspectX * scY * contentWidth;
             }
-            return scaleX;
-        } else
+            return scY;
+        } else {
+            // Default window size
             return WMSX.SCREEN_DEFAULT_SCALE;
+        }
     };
 
-    this.displayScale = function(pScaleX, pScaleY) {
-        scaleX = pScaleX;
+    this.displayScale = function(pAspectX, pScaleY) {
+        aspectX = pAspectX;
         scaleY = pScaleY;
         updateScale();
     };
@@ -233,14 +236,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     function fullScreenChanged() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
-        monitor.setDisplayDefaultSize();
+        monitor.setDisplayOptimalScale();
         // Schedule another one to give the browser some time to set full screen properly
-        if (isFullscreen) setTimeout(monitor.setDisplayDefaultSize, 120);
+        if (isFullscreen) setTimeout(monitor.setDisplayOptimalScale, 120);
     }
 
     function updateScale() {
-        var width = (contentWidth * scaleX) | 0;
-        var height = (contentHeight * scaleY) | 0;
+        var width = Math.round(contentWidth * scaleY * aspectX);
+        var height = Math.round(contentHeight * scaleY);
         setElementsSizes(width, height);
     }
 
@@ -460,9 +463,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
             scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4);
-            peripheralControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SIZE_MINUS);
+            peripheralControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
             scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4);
-            peripheralControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SIZE_PLUS);
+            peripheralControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
         }
 
         settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);
@@ -687,7 +690,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var debugMode = false;
     var isLoading = false;
 
-    var scaleX = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
+    var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;                 // Initial setting
     var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
 
     var contentWidth = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;     // Enough to fit V9938 maximum horizontal resolution

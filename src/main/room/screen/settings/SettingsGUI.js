@@ -242,7 +242,7 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Screen Scale' +
+                                'Screen Aspect' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +

@@ -21,14 +21,15 @@ WMSX = {
     STATE_LOAD_URL:                 "",
 
     // General configuration
-    AUTO_START_DELAY:               2400,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
+    AUTO_START_DELAY:               1800,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FILTER_MODE:             1,                          // 0..3
     SCREEN_CRT_MODE:                1,                          // 0..1
-    SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. N, 0.125 steps
+    SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. N, 0.1 steps
+    SCREEN_DEFAULT_ASPECT:          1.1,                        // 0.1 steps
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)
@@ -188,9 +189,3 @@ WMSX.presets = {
 };
 
 wmsx = window.wmsx || {};           // Namespace for all classes and objects
-
-
-
-
-
-
