@@ -4,13 +4,11 @@
 // Implementation based on the excellent findings and measurements by Wouter Vermaelen
 // Instrument settings based on Okazaki's and Burczynski's
 
-// TODO How changes in parameters affect envelops in progress
+// TODO How changes in parameters affect envelopes in progress
 
 wmsx.YM2413MixedAudioChannels = function() {
-    var self = this;
 
     function init() {
-        FM = self;
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
@@ -21,8 +19,6 @@ wmsx.YM2413MixedAudioChannels = function() {
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
-
-        self.instrumentsParameters = instrumentsParameters;
     }
 
     this.connect = function(machine) {
@@ -379,7 +375,6 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     function setRhythmMode(boo) {
         rhythmMode = boo;
-        self.rhythmMode = rhythmMode;
         if (rhythmMode) {
             setInstr(6, 16);
             setInstr(7, 17);
@@ -598,8 +593,6 @@ wmsx.YM2413MixedAudioChannels = function() {
 
 
     // Debug vars
-
-    this.rhythmMode = rhythmMode;
 
     this.keyOn = keyOn;
     this.sustain = sustain;

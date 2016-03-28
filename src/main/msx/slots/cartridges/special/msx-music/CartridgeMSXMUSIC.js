@@ -1,17 +1,14 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.CartridgeMSXMUSIC = function(rom) {
-    var self = this;
 
-    function init() {
+    function init(self) {
         self.rom = rom;
         var content = self.rom.content;
         bytes = new Array(content.length);
         self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
-        fm = new wmsx.YM2413MixedAudioChannels();
-        self.fm = fm;
     }
 
     this.connect = function(machine) {
@@ -49,8 +46,8 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.MSXMUSIC;
 
-    var fm;
-    this.fm = null;
+    var fm = new wmsx.YM2413MixedAudioChannels();
+    this.fm = fm;
 
     var audioSocket;
 
@@ -72,7 +69,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     };
 
 
-    if (rom) init();
+    if (rom) init(this);
 
 };
 

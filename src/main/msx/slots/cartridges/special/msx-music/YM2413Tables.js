@@ -259,9 +259,4 @@ wmsx.YM2413Tables = function() {
 
 };
 
-T = new wmsx.YM2413Tables();
-T.sinTable = T.getFullSineTable();
-T.expTable = T.getExpTable();
-
-
 
