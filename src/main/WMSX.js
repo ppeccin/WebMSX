@@ -51,13 +51,27 @@ WMSX.presets = {
     // MSX2 Machine Presets
 
     MSX2: {
+        _INCLUDE:           "MSX2NTSC"
+    },
+
+    MSX2NTSC: {
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_0_URL:       "wmsx/roms/MSX2N.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2NEXT.bios"
+    },
+
+    MSX2PAL: {
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_0_URL:       "wmsx/roms/MSX2NPAL.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2NEXTPAL.bios"
+    },
+
+    MSX2BASE: {
         MACHINE_TYPE:       2,
         BIOS_SLOT:          [0, 0],
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]],
-        SLOT_0_0_URL:       "wmsx/roms/MSX2N.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2NEXT.bios",
         SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
         _INCLUDE:           "MSX2DISK, RAM256"
     },
@@ -95,13 +109,26 @@ WMSX.presets = {
     // MSX1 Machine Presets
 
     MSX1: {
+        _INCLUDE:           "MSX1NTSC"
+    },
+
+    MSX1NTSC: {
+        _INCLUDE:           "MSX1BASE",
+        SLOT_0_URL:         "wmsx/roms/MSX1NTSCa.bios"
+    },
+
+    MSX1PAL: {
+        _INCLUDE:           "MSX1BASE",
+        SLOT_0_URL:         "wmsx/roms/MSX1PALa.bios"
+    },
+
+    MSX1BASE: {
         _EXCLUDE:           "DEFAULT",
         MACHINE_TYPE:       1,
         BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]],
-        SLOT_0_URL:         "wmsx/roms/MSX1NTSCa.bios",
         SLOT_2_URL:         "wmsx/roms/[RAM64K].rom",
         _INCLUDE:           "MSX1DISK"
     },
@@ -110,17 +137,10 @@ WMSX.presets = {
         SLOT_3_1_URL:       "wmsx/roms/Disk.rom"
     },
 
-    MSX1NTSC: {
-        SLOT_0_URL:         "wmsx/roms/MSX1NTSCa.bios"
-    },
-    MSX1PAL: {
-        SLOT_0_URL:         "wmsx/roms/MSX1PALa.bios"
-    },
-
     // Specific Machines Presets
 
     EXPERT: {
-        _INCLUDE:           "MSX1",
+        _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "wmsx/roms/Expert10.bios"
     },
 

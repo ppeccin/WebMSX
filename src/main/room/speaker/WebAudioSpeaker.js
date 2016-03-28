@@ -4,6 +4,7 @@
 // Mixes all signals performing per-signal resampling as needed
 
 wmsx.WebAudioSpeaker = function() {
+    var self = this;
 
     this.connect = function(audioSocket) {
         audioSocket.connectMonitor(this);
@@ -55,6 +56,14 @@ wmsx.WebAudioSpeaker = function() {
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
+
+            //lowPassFilter = audioContext.createBiquadFilter();
+            //lowPassFilter.type = "lowpass";
+            //lowPassFilter.frequency.value = 20000;
+            //lowPassFilter.Q.value = 1;
+            //lowPassFilter.connect(audioContext.destination);
+            //self.lowPassFilter = lowPassFilter;
+
             updateResamplingFactors();
         } catch(e) {
             wmsx.Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
@@ -115,6 +124,7 @@ wmsx.WebAudioSpeaker = function() {
     var resamplingLeftOver = [];
 
     var audioContext;
+    //var lowPassFilter;
     var processor;
 
 };
