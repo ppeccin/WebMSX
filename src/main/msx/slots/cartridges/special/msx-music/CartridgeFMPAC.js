@@ -3,17 +3,13 @@
 // TODO Finish implementing mapper
 
 wmsx.CartridgeFMPAC = function(rom) {
-    var self = this;
-
-    function init() {
+    function init(self) {
         self.rom = rom;
         var content = self.rom.content;
         bytes = new Array(content.length);
         self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++)
             bytes[i] = content[i];
-        fm = new wmsx.YM2413MixedAudioChannels();
-        self.fm = fm;
     }
 
     this.connect = function(machine) {
@@ -26,11 +22,10 @@ wmsx.CartridgeFMPAC = function(rom) {
 
     this.powerOn = function() {
         this.reset();
-        fm.connectAudio();
     };
 
     this.powerOff = function() {
-        fm.disconnectAudio();
+        this.reset();
     };
 
     this.reset = function() {
@@ -44,10 +39,9 @@ wmsx.CartridgeFMPAC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.FMPAC;
 
-    var fm;
-    this.fm = null;
+    var fm = new wmsx.YM2413MixedAudioChannels();
+    this.fm = fm;
 
-    var audioSocket;
 
     // Savestate  -------------------------------------------
 
@@ -56,7 +50,8 @@ wmsx.CartridgeFMPAC = function(rom) {
             // TODO Make it work
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            fm: fm.saveState()
         };
     };
 
@@ -64,10 +59,11 @@ wmsx.CartridgeFMPAC = function(rom) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
+        fm.loadState(s.fm);
     };
 
 
-    if (rom) init();
+    if (rom) init(self);
 
 };
 

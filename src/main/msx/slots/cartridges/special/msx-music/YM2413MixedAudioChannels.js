@@ -8,7 +8,7 @@
 
 wmsx.YM2413MixedAudioChannels = function() {
 
-    function init() {
+    function init(self) {
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
@@ -19,6 +19,7 @@ wmsx.YM2413MixedAudioChannels = function() {
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
+        self.reset();
     }
 
     this.connect = function(machine) {
@@ -27,11 +28,13 @@ wmsx.YM2413MixedAudioChannels = function() {
         machine.bus.connectInputDevice(0x7c, this.inputNotAvailable);
         machine.bus.connectInputDevice(0x7d, this.inputNotAvailable);
         audioSocket = machine.getAudioSocket();
+        this.connectAudio();
     };
 
     this.disconnect = function(machine) {
         if (machine.bus.getOutputDevice(0x7c) === this.output7C) machine.bus.disconnectInputDevice(0x7c);
         if (machine.bus.getOutputDevice(0x7d) === this.output7D) machine.bus.disconnectInputDevice(0x7d);
+        this.disconnectAudio();
     };
 
     // Port not available for INPUT
@@ -184,6 +187,9 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
     function registerWrite(reg, val) {
+
+        //console.log("Register: " + reg.toString(16) + " write: " + val);
+
         var chan = reg & 0xf;
         if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
         var m = chan << 1, c = m + 1;
@@ -219,8 +225,8 @@ wmsx.YM2413MixedAudioChannels = function() {
                 break;
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
             case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
-                if (mod & 0x20) setSustain(chan, (val & 0x20) !== 0);
-                if (mod & 0x10) setKeyOn(chan, (val & 0x10) !== 0);
+                if (mod & 0x20) setSustain(chan, (val & 0x20) >> 5);
+                if (mod & 0x10) setKeyOn(chan, (val & 0x10) >> 4);
                 if (mod & 0x01) {
                     fNum[m] = (fNum[m] & ~0x100) | ((val & 1) << 8);
                     fNum[c] = fNum[m];
@@ -532,22 +538,21 @@ wmsx.YM2413MixedAudioChannels = function() {
     var IDLE = -1, DAMP = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
     var MAX_INT = 9007199254740991;
 
-    // Global controls
-
+    // Dynamic global values. Change as time passes
     var clock;
-    var registerAddress;
-    var register = wmsx.Util.arrayFill(new Array(0x38), 0);
-    var rhythmMode;
     var noiseRegister, noiseOutput;
     var amLevel, amLevelInc;
     var vibPhase;
 
-    // Settings per channel
-    var sustain = wmsx.Util.arrayFill(new Array(9), false);
-    var instr =   wmsx.Util.arrayFill(new Array(9), 0);
+    // Global settings
+    var registerAddress;
+    var register = wmsx.Util.arrayFill(new Array(0x38), 0);
+    var rhythmMode;
 
-    // Settings per operator
-    var keyOn =    wmsx.Util.arrayFill(new Array(18), false);     // Set per channel, but kept per operator
+    // Settings per channel(9) / operator(18)
+    var sustain =  wmsx.Util.arrayFill(new Array(9), 0);
+    var instr =    wmsx.Util.arrayFill(new Array(9), 0);
+    var keyOn =    wmsx.Util.arrayFill(new Array(18), 0);
     var am =       wmsx.Util.arrayFill(new Array(18), 0);
     var vib =      wmsx.Util.arrayFill(new Array(18), 0);
     var envType =  wmsx.Util.arrayFill(new Array(18), 0);
@@ -559,24 +564,20 @@ wmsx.YM2413MixedAudioChannels = function() {
     var dr =       wmsx.Util.arrayFill(new Array(18), 0);
     var sl =       wmsx.Util.arrayFill(new Array(18), 0);
     var rr =       wmsx.Util.arrayFill(new Array(18), 0);
-    var fNum  =    wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
-    var block =    wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
-    var volume =   wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
-    var modTL =    wmsx.Util.arrayFill(new Array(18), 0);         // Set per channel, but kept per operator
+    var fNum  =    wmsx.Util.arrayFill(new Array(18), 0);
+    var block =    wmsx.Util.arrayFill(new Array(18), 0);
+    var volume =   wmsx.Util.arrayFill(new Array(18), 0);
+    var modTL =    wmsx.Util.arrayFill(new Array(18), 0);
 
-    // Computed values per channel
-
-    var fbShift =    wmsx.Util.arrayFill(new Array(9), 0);
-    var fbLastMod1 = wmsx.Util.arrayFill(new Array(9), 0);
-    var fbLastMod2 = wmsx.Util.arrayFill(new Array(9), 0);
-
-    // Computed values per operator
-
-    var amAtt =     wmsx.Util.arrayFill(new Array(18), 0);
-    var kslAtt =    wmsx.Util.arrayFill(new Array(18), 0);
-    var envAtt =    wmsx.Util.arrayFill(new Array(18), 0);
+    // Computed settings per channel(9) / operator(18)
+    var fbShift =   wmsx.Util.arrayFill(new Array(9), 0);
     var volModAtt = wmsx.Util.arrayFill(new Array(18), 0);       // For Volume or ModTL
-    var totalAtt =  wmsx.Util.arrayFill(new Array(18), 0);
+
+    // Dynamic values per channel(9) / operator(18). May change as time passes without being set by software
+    var amAtt =    wmsx.Util.arrayFill(new Array(18), 0);
+    var envAtt =   wmsx.Util.arrayFill(new Array(18), 0);
+    var kslAtt =   wmsx.Util.arrayFill(new Array(18), 0);
+    var totalAtt = wmsx.Util.arrayFill(new Array(18), 0);
 
     var envStep =              wmsx.Util.arrayFill(new Array(18), 0);
     var envStepLevelDur =      wmsx.Util.arrayFill(new Array(18), 0);
@@ -588,11 +589,16 @@ wmsx.YM2413MixedAudioChannels = function() {
 
     var ksrOffset =    wmsx.Util.arrayFill(new Array(18), 0);
 
+    var fbLastMod1 = wmsx.Util.arrayFill(new Array(9), 0);
+    var fbLastMod2 = wmsx.Util.arrayFill(new Array(9), 0);
+
     var phaseInc =     wmsx.Util.arrayFill(new Array(18), 0);
     var phaseCounter = wmsx.Util.arrayFill(new Array(18), 0);
 
 
     // Debug vars
+
+    this.register = register;
 
     this.keyOn = keyOn;
     this.sustain = sustain;
@@ -643,8 +649,75 @@ wmsx.YM2413MixedAudioChannels = function() {
     this.SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
 
-    init();
+    // Savestate  -------------------------------------------
 
+    this.saveState = function() {
+        return {
+            ra: registerAddress,
+            r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
+
+            c: clock,
+            nr: noiseRegister, no: noiseOutput,
+            al: amLevel, ai: amLevelInc, vp: vibPhase,
+
+            amt: wmsx.Util.storeInt32BitArrayToStringBase64(amAtt),
+            evt: wmsx.Util.storeInt32BitArrayToStringBase64(envAtt),
+            kst: wmsx.Util.storeInt32BitArrayToStringBase64(kslAtt),
+            tot: wmsx.Util.storeInt32BitArrayToStringBase64(totalAtt),
+
+            evs: wmsx.Util.storeInt8BitArrayToStringBase64(envStep),
+            evd: envStepLevelDur,
+            evc: envStepLevelIncClock,
+            evi: envStepLevelInc,
+            evn: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNext),
+            evl: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNextAtLevel),
+            eve: wmsx.Util.storeInt8BitArrayToStringBase64(envLevel),
+            kso: wmsx.Util.storeInt8BitArrayToStringBase64(ksrOffset),
+
+            fb1: wmsx.Util.storeInt32BitArrayToStringBase64(fbLastMod1),
+            fb2: wmsx.Util.storeInt32BitArrayToStringBase64(fbLastMod2),
+
+            phi: phaseInc,
+            phc: phaseCounter
+        };
+    };
+
+    this.loadState = function(s) {
+        this.reset();
+
+        registerAddress = s.ra;
+        var regs = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
+        for (var r = 0; r < regs.length; r++) registerWrite(r, regs[r]);
+
+        clock = s.c;
+        noiseRegister = s.nr; noiseOutput = s.no;
+        amLevel = s.al; amLevelInc = s.ai; vibPhase = s.vp;
+
+        amAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.amt, amAtt);
+        envAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evt, envAtt);
+        kslAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.kst, kslAtt);
+        totalAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.tot, totalAtt);
+
+        envStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evs, envStep);
+        envStepLevelDur = s.evd;
+        envStepLevelIncClock = s.evc;
+        envStepLevelInc = s.evi;
+        envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
+        envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evl, envStepNextAtLevel);
+        envLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.eve, envLevel);
+        ksrOffset = wmsx.Util.restoreStringBase64ToInt8BitArray(s.kso, ksrOffset);
+
+        fbLastMod1 = wmsx.Util.restoreStringBase64ToInt32BitArray(s.fb1, fbLastMod1);
+        fbLastMod2 = wmsx.Util.restoreStringBase64ToInt32BitArray(s.fb2, fbLastMod2);
+
+        phaseInc = s.phi;
+        phaseCounter = s.phc;
+    };
+
+
+    init(this);
+
+    FM = this;
 
     this.eval = function(str) {
         return eval(str);

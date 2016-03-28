@@ -21,11 +21,10 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
 
     this.powerOn = function() {
         this.reset();
-        fm.connectAudio();
     };
 
     this.powerOff = function() {
-        fm.disconnectAudio();
+        this.reset();
     };
 
     this.reset = function() {
@@ -49,16 +48,15 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     var fm = new wmsx.YM2413MixedAudioChannels();
     this.fm = fm;
 
-    var audioSocket;
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
-            // TODO Make it work
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            fm: fm.saveState()
         };
     };
 
@@ -66,6 +64,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
+        fm.loadState(s.fm);
     };
 
 
