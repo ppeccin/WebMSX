@@ -4,16 +4,16 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         clean: {
-            init: ["temp", "release"],
+            init: ["temp", "release/alpha"],
             finish: ["temp"]
         },
 
         copy: {
             main: {
                 files: [
-                    {src: ["src/release/*"], dest: "release/", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["src/release/roms/*"], dest: "release/wmsx/roms", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["src/main/images/*"], dest: "release/wmsx/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["src/release/*"], dest: "release/alpha", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["src/release/roms/*"], dest: "release/alpha/wmsx/roms", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["src/main/images/*"], dest: "release/alpha/wmsx/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         },
@@ -27,37 +27,48 @@ module.exports = function (grunt) {
                     "src/main/util/MultiDownloader.js",
                     "src/main/msx/cpu/Z80.js",
                     "src/main/msx/ppi/PPI.js",
-                    "src/main/msx/vdp/VDP.js",
-                    "src/main/msx/vdp/VDPVideoSignal.js",
-                    "src/main/msx/vdp/VideoStandard.js",
-                    "src/main/msx/psg/PSG.js",
-                    "src/main/msx/psg/PSGAudioSignal.js",
-                    "src/main/msx/psg/PSGMixedAudioChannel.js",
+                    "src/main/msx/video/V9918.js",
+                    "src/main/msx/video/V9938.js",
+                    "src/main/msx/video/V9938CommandProcessor.js",
+                    "src/main/msx/video/VideoSignal.js",
+                    "src/main/msx/video/VideoStandard.js",
+                    "src/main/msx/audio/PSG.js",
+                    "src/main/msx/audio/AudioSignal.js",
+                    "src/main/msx/audio/PSGMixedAudioChannels.js",
+                    "src/main/msx/rtc/RTC.js",
                     "src/main/msx/rom/ROM.js",
                     "src/main/msx/rom/ROMDatabase.js",
                     "src/main/msx/slots/SlotFormats.js",
                     "src/main/msx/slots/Slot.js",
                     "src/main/msx/slots/SlotEmpty.js",
                     "src/main/msx/slots/SlotExpanded.js",
+                    "src/main/msx/slots/SlotNormal.js",
                     "src/main/msx/slots/ram/SlotRAM64K.js",
-                    "src/main/msx/slots/bios/BIOS.js",
+                    "src/main/msx/slots/ram/SlotRAMMapper.js",
+                    "src/main/msx/slots/bios/SlotBIOS.js",
+                    "src/main/msx/slots/bios/SlotMSX2BIOSExt.js",
                     "src/main/msx/slots/bios/ImageCassetteDriver.js",
                     "src/main/msx/slots/bios/BASICExtension.js",
-                    "src/main/msx/slots/cartridges/CartridgeUnbanked.js",
                     "src/main/msx/slots/cartridges/CartridgeASCII8K.js",
                     "src/main/msx/slots/cartridges/CartridgeASCII16K.js",
                     "src/main/msx/slots/cartridges/CartridgeKonami.js",
                     "src/main/msx/slots/cartridges/CartridgeRType.js",
                     "src/main/msx/slots/cartridges/CartridgeCrossBlaim.js",
-                    "src/main/msx/slots/cartridges/special/CartridgeDiskPatched.js",
-                    "src/main/msx/slots/cartridges/special/ImageDiskDriver.js",
-                    "src/main/msx/slots/cartridges/special/SCCIMixedAudioChannel.js",
-                    "src/main/msx/slots/cartridges/special/CartridgeKonamiSCC.js",
-                    "src/main/msx/slots/cartridges/special/CartridgeSCCExpansion.js",
-                    "src/main/msx/slots/cartridges/special/CartridgeSCCIExpansion.js",
+                    "src/main/msx/slots/cartridges/CartridgeDOS2.js",
+                    "src/main/msx/slots/cartridges/special/disk/ImageDiskDriver.js",
+                    "src/main/msx/slots/cartridges/special/disk/CartridgeDiskPatched.js",
+                    "src/main/msx/slots/cartridges/special/scc/SCCIMixedAudioChannels.js",
+                    "src/main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js",
+                    "src/main/msx/slots/cartridges/special/scc/CartridgeSCCExpansion.js",
+                    "src/main/msx/slots/cartridges/special/scc/CartridgeSCCIExpansion.js",
+                    "src/main/msx/slots/cartridges/special/msx-music/YM2413Tables.js",
+                    "src/main/msx/slots/cartridges/special/msx-music/YM2413MixedAudioChannels.js",
+                    "src/main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js",
+                    "src/main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js",
                     "src/main/msx/slots/SlotCreator.js",
                     "src/main/msx/machine/DeviceMissing.js",
                     "src/main/msx/machine/Clock.js",
+                    "src/main/msx/machine/ClockMultuplexer.js",
                     "src/main/msx/machine/EngineBUS.js",
                     "src/main/msx/machine/Machine.js",
                     "src/main/msx/controls/MachineControls.js",
@@ -79,9 +90,8 @@ module.exports = function (grunt) {
                     "src/main/room/controls/PeripheralControls.js",
                     "src/main/room/controls/DOMPeripheralControls.js",
                     "src/main/room/Room.js",
-                    "src/main/config/Preferences.js",
-                    "src/main/config/Presets.js",
-                    "src/main/config/URLParameters.js",
+                    "src/main/userprefs/UserPreferences.js",
+                    "src/main/Configurator.js",
                     "src/main/Launcher.js"
                 ],
                 dest: "temp/wmsx.part.concat.js"
@@ -91,7 +101,7 @@ module.exports = function (grunt) {
                     "src/main/WMSX.js",
                     "temp/wmsx.part.min.js"
                 ],
-                dest: "release/wmsx/wmsx.js"
+                dest: "release/alpha/wmsx/wmsx.js"
             }
         },
 
