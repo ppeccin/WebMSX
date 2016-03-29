@@ -29,10 +29,10 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.disconnect = function(machine) {
-        machine.bus.disconnectOutputDevice(0xfc);
-        machine.bus.disconnectOutputDevice(0xfd);
-        machine.bus.disconnectOutputDevice(0xfe);
-        machine.bus.disconnectOutputDevice(0xff);
+        machine.bus.disconnectOutputDevice(0xfc, this.outputFC);
+        machine.bus.disconnectOutputDevice(0xfd, this.outputFD);
+        machine.bus.disconnectOutputDevice(0xfe, this.outputFE);
+        machine.bus.disconnectOutputDevice(0xff, this.outputFF);
     };
 
     this.outputFC = function(val) {

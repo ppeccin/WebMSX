@@ -549,20 +549,20 @@ wmsx.Machine = function() {
             if (monitor) monitor.disconnectAudioSignal(signal);
         };
         this.audioClockPulse32 = function() {
-            for (var i = signals.length - 1; i >= 0; i--) signals[i].audioClockPulse();
+            for (var i = signals.length - 1; i >= 0; --i) signals[i].audioClockPulse();
         };
         this.audioFinishFrame = function() {
-            for (var i = signals.length - 1; i >= 0; i--) signals[i].audioFinishFrame();
+            for (var i = signals.length - 1; i >= 0; --i) signals[i].audioFinishFrame();
         };
         this.mute = function() {
-            for (var i = signals.length - 1; i >= 0; i--) signals[i].mute();
+            for (var i = signals.length - 1; i >= 0; --i) signals[i].mute();
         };
         this.unmute = function() {
-            for (var i = signals.length - 1; i >= 0; i--) signals[i].play();
+            for (var i = signals.length - 1; i >= 0; --i) signals[i].play();
         };
         this.setFps = function(pFps) {
             fps = pFps;
-            for (var i = signals.length - 1; i >= 0; i--) signals[i].setFps(fps);
+            for (var i = signals.length - 1; i >= 0; --i) signals[i].setFps(fps);
         };
         this.pauseMonitor = function() {
             if (monitor) monitor.pause();

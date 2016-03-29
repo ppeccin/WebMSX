@@ -94,12 +94,12 @@ wmsx.EngineBUS = function(machine, cpu) {
         devicesOutputPorts[port] = handler;
     };
 
-    this.disconnectInputDevice = function(port) {
-        devicesInputPorts[port] = wmsx.DeviceMissing.inputPort;
+    this.disconnectInputDevice = function(port, handler) {
+        if (!handler || devicesInputPorts[port] === handler) devicesInputPorts[port] = wmsx.DeviceMissing.inputPort;
     };
 
-    this.disconnectOutputDevice = function(port) {
-        devicesOutputPorts[port] = wmsx.DeviceMissing.outputPort;
+    this.disconnectOutputDevice = function(port, handler) {
+        if (!handler || devicesInputPorts[port] === handler) devicesOutputPorts[port] = wmsx.DeviceMissing.outputPort;
     };
 
     this.getOutputDevice = function(port) {

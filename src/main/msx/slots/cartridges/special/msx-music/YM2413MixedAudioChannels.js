@@ -6,7 +6,7 @@
 
 // TODO How changes in parameters affect envelopes in progress
 
-wmsx.YM2413MixedAudioChannels = function() {
+wmsx.YM2413MixedAudioChannels = function(name) {
 
     function init(self) {
         var tabs = new wmsx.YM2413Tables();
@@ -28,12 +28,13 @@ wmsx.YM2413MixedAudioChannels = function() {
         machine.bus.connectInputDevice(0x7c, this.inputNotAvailable);
         machine.bus.connectInputDevice(0x7d, this.inputNotAvailable);
         audioSocket = machine.getAudioSocket();
-        this.connectAudio();
     };
 
     this.disconnect = function(machine) {
-        if (machine.bus.getOutputDevice(0x7c) === this.output7C) machine.bus.disconnectInputDevice(0x7c);
-        if (machine.bus.getOutputDevice(0x7d) === this.output7D) machine.bus.disconnectInputDevice(0x7d);
+        machine.bus.disconnectOutputDevice(0x7c, this.output7C);
+        machine.bus.disconnectOutputDevice(0x7d, this.output7D);
+        machine.bus.disconnectInputDevice(0x7c, this.inputNotAvailable);
+        machine.bus.disconnectInputDevice(0x7d, this.inputNotAvailable);
         this.disconnectAudio();
     };
 
@@ -174,7 +175,7 @@ wmsx.YM2413MixedAudioChannels = function() {
     };
 
     this.connectAudio = function() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("MSX-MUSIC", this, this.SAMPLE_RATE, this.VOLUME);
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, this, this.SAMPLE_RATE, this.VOLUME);
         audioSignal.signalOn();
         audioSocket.connectAudioSignal(audioSignal);
     };
@@ -199,8 +200,10 @@ wmsx.YM2413MixedAudioChannels = function() {
 
         switch(reg) {
             case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-                instrumentsParameters[0][reg] = val;
-                updateCustomInstrChannels();
+                if (mod) {
+                    instrumentsParameters[0][reg] = val;
+                    updateCustomInstrChannels();
+                }
                 break;
             case 0x0e:
                 if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);

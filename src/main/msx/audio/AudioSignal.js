@@ -94,6 +94,9 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     };
 
     function audioClockPulse32x() {
+
+        //if (frameSamples === 600) console.log("AudioClock: " + name);
+
         if (frameSamples < samplesPerFrame) {
             generateNextSampleOn();
             frameSamples = frameSamples + 1;

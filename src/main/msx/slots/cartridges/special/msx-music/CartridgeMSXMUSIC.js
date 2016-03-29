@@ -1,5 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// MSX-MUSIC Expansion with 16K ROM
+// Controls a YM2413 FM sound chip
+// 0x4000 - 0x7fff
+
 wmsx.CartridgeMSXMUSIC = function(rom) {
 
     function init(self) {
@@ -13,6 +17,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
 
     this.connect = function(machine) {
         fm.connect(machine);
+        fm.connectAudio();          // FM always active
     };
 
     this.disconnect = function(machine) {
@@ -45,7 +50,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.MSXMUSIC;
 
-    var fm = new wmsx.YM2413MixedAudioChannels();
+    var fm = new wmsx.YM2413MixedAudioChannels("MSX-MUSIC");
     this.fm = fm;
 
 
