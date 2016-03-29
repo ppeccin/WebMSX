@@ -68,7 +68,7 @@ wmsx.SlotNormal = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.Unbanked;
+    this.format = wmsx.SlotFormats.Normal;
 
 
     // Savestate  -------------------------------------------

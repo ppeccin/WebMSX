@@ -209,8 +209,8 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     };
 
     this.setDefaults = function() {
-        spriteDebugMode = 0;
         setDebugMode(0);
+        spriteDebugMode = 0; spriteDebugModeLimit = true; spriteDebugModeCollisions = true;
     };
 
     this.reset = function() {
@@ -418,6 +418,9 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
 
     function paletteRegisterWrite(reg, val, force) {
         if (paletteRegister[reg] === val && !force) return;
+
+        //logInfo("Palette register " + reg + ": " + val);
+
         paletteRegister[reg] = val;
 
         var value = colors512[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
@@ -433,23 +436,21 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
 
         if (reg === backdropColor) updateBackdropValue();
         else if ((mode === 4) && (reg <= 3)) pendingBackdropCacheUpdate = true;
-
-        //logInfo("Pelette register " + reg + " : " + val);
     }
 
     function setDebugMode(mode) {
         debugMode = mode;
-        var oldDebugModeSpriteInfo = debugModeSpriteHighlight;
+        var oldDebugModeSpriteHighlight = debugModeSpriteHighlight;
         debugModeSpriteHighlight = mode >= 1 && mode <= 3;
         debugModeSpriteInfo = mode === 2 || mode === 3;
         debugModeSpriteInfoNumbers = mode === 2;
         // mode 3 is SpriteInfoName
         debugModeSpritesHidden = mode >= 4;
-        var oldDebugModePatternInfo;
+        var oldDebugModePatternInfo = debugModePatternInfo;
         debugModePatternInfo = mode >= 5;
         debugModePatternInfoBlocks = mode === 6;
         debugModePatternInfoNames = mode === 7;
-        if (oldDebugModeSpriteInfo !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
+        if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTableAddress();
@@ -457,12 +458,10 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     }
 
     function debugAdjustPalette() {
-        if (isV9918) {
+        if (isV9918)
             initColorPalette();
-        } else {
+        else
             for (var reg = 0; reg < 16; reg++) paletteRegisterWrite(reg, paletteRegister[reg], true);
-            initColorCaches()
-        }
     }
 
     function updateSynchronization() {
@@ -582,6 +581,8 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
         modeData = modes[mode];
 
+        //logInfo("Update Mode: " + mode.toString(16));
+
         // Update Tables base addresses
         add = (mode === 0x07 || mode === 0x05 ? (register[2] << 11) | 0x400 : register[2] << 10) & 0x1ffff;       // Mode G6 and G7 have different A16 position
         layoutTableAddress = add & modeData.layTBase;
@@ -601,8 +602,6 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         updateLineActiveType();
         updateSignalMetrics();
         commandProcessor.setVDPModeData(modeData);
-
-        //logInfo("Update Mode: " + mode.toString(16) + ", colorTableAddress: " + colorTableAddress.toString(16));
     }
 
     function updateVideoStandardSoft() {
@@ -1875,18 +1874,18 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
 
     var colorPaletteG7 =           new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
-    var colorPaletteInitialV9938 = new Uint32Array([ 0xff000000, 0xff000000, 0xff24db24, 0xff6dff6d, 0xffff2424, 0xffff6d49, 0xff2424b6, 0xffffdb49, 0xff2424ff, 0xff6d6dff, 0xff24dbdb, 0xff92dbdb, 0xff249224, 0xffb649db, 0xffb6b6b6, 0xffffffff ]);
     var colorPaletteInitialV9918 = new Uint32Array([ 0xff000000, 0xff000000, 0xff28ca07, 0xff65e23d, 0xfff04444, 0xfff46d70, 0xff1330d0, 0xfff0e840, 0xff4242f3, 0xff7878f4, 0xff30cad0, 0xff89dcdc, 0xff20a906, 0xffc540da, 0xffbcbcbc, 0xffffffff ]);
-    var paletteRegisterInitialValuesV9938 = [ 0x000, 0x000, 0x189, 0x1db, 0x04f, 0x0d7, 0x069, 0x197, 0x079, 0x0fb, 0x1b1, 0x1b4, 0x109, 0x0b5, 0x16d, 0x1ff ];
+    var colorPaletteInitialV9938 = new Uint32Array([ 0xff000000, 0xff000000, 0xff24db24, 0xff6dff6d, 0xffff2424, 0xffff6d49, 0xff2424b6, 0xffffdb49, 0xff2424ff, 0xff6d6dff, 0xff24dbdb, 0xff92dbdb, 0xff249224, 0xffb649db, 0xffb6b6b6, 0xffffffff ]);
+    var paletteRegisterInitialValuesV9938 =        [      0x000,      0x000,      0x611,      0x733,      0x117,      0x327,      0x151,      0x627,      0x121,      0x373,      0x661,      0x664,      0x411,      0x265,      0x365,      0x777 ];
 
 
    // Sprite and Debug Modes controls
 
-    var debugMode;
-    var debugModeSpriteHighlight, debugModeSpriteInfo, debugModeSpriteInfoNumbers, debugModeSpriteInfoNames, debugModeSpritesHidden;
-    var debugModePatternInfo, debugModePatternInfoBlocks, debugModePatternInfoNames;
+    var debugMode = 0;
+    var debugModeSpriteHighlight = false, debugModeSpriteInfo = false, debugModeSpriteInfoNumbers = false, debugModeSpriteInfoNames = false, debugModeSpritesHidden = false;
+    var debugModePatternInfo = false, debugModePatternInfoBlocks = false, debugModePatternInfoNames = false;
 
-    var spriteDebugMode;
+    var spriteDebugMode = 0;
     var spriteDebugModeLimit = true;
     var spriteDebugModeCollisions = true;
 
@@ -1923,8 +1922,6 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     };
 
     this.loadState = function(s) {
-        // TODO BackdropColor problem when loading after a SCREEN 8
-
         isV9918 = s.v1;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         cycles = s.c; lastCPUCyclesComputed = s.cc;

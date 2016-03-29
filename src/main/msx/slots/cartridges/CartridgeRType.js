@@ -46,7 +46,7 @@ wmsx.CartridgeRType = function(rom) {
     var bank2Offset;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.ASCII16;
+    this.format = wmsx.SlotFormats.RType;
 
 
     // Savestate  -------------------------------------------

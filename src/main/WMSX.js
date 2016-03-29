@@ -69,7 +69,7 @@ WMSX.presets = {
 
     MSX2BASE: {
         MACHINE_TYPE:       2,
-        BIOS_SLOT:          [0, 0],
+        BIOS_SLOT:          [0, 0],     // TODO Some software will not run with BIOS in an ExpandedSlot (ex: AbuSimbel Profanation)
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]],
@@ -148,7 +148,7 @@ WMSX.presets = {
     EMPTY: {
         _EXCLUDE:           "DEFAULT",
         MACHINE_TYPE:       2,
-        BIOS_SLOT:          [0, 0],
+        BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]]
