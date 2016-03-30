@@ -63,8 +63,7 @@ wmsx.YM2413MixedAudioChannels = function(name) {
             updateAllAttenuations(chan);
         }
         // Zero all registers
-        for (var reg = 0; reg < 0x39; ++reg)
-            registerWrite(reg, 0);
+        for (var reg = 0; reg < 0x39; ++reg) registerWrite(reg, 0);
     };
 
     this.nextSample = function() {
@@ -299,7 +298,7 @@ wmsx.YM2413MixedAudioChannels = function(name) {
             setEnvStep(chan, DAMP);
         } else {
             // Modulator is not affected by KEY-OFF!
-            if (envStep[c] > DAMP) setEnvStepOp(c, RELEASE);
+            if (envStep[c] !== IDLE) setEnvStepOp(c, RELEASE);
         }
     }
 
@@ -365,7 +364,7 @@ wmsx.YM2413MixedAudioChannels = function(name) {
                 var rate = envType[op]
                     ? sustain[op >> 1] ? 5 : rr[op]     // Sustained tone
                     : sustain[op >> 1] ? 5 : 7;         // Percussive tone
-                envStepLevelDur[op] = rateDecayDurTable[((rate << 2) + ksrOffset[op]) & 63];
+                envStepLevelDur[op] = rateDecayDurTable[(rate << 2) + ksrOffset[op]];
                 envStepLevelIncClock[op] = clock + envStepLevelDur[op];
                 envStepLevelInc[op] = 1;
                 envStepNextAtLevel[op] = 128;
@@ -384,6 +383,9 @@ wmsx.YM2413MixedAudioChannels = function(name) {
 
     function setRhythmMode(boo) {
         rhythmMode = boo;
+        setEnvStep(6, IDLE); updateEnvAttenuation(6);
+        setEnvStep(7, IDLE); updateEnvAttenuation(7);
+        setEnvStep(8, IDLE); updateEnvAttenuation(8);
         if (rhythmMode) {
             setInstr(6, 16);
             setInstr(7, 17);
