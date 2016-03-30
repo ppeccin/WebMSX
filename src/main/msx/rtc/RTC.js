@@ -6,9 +6,10 @@
 wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
 
     this.connectBus = function(bus) {
+        bus.connectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
         bus.connectOutputDevice(0xb4, this.outputB4);
+        bus.connectInputDevice( 0xb5, this.inputB5);
         bus.connectOutputDevice(0xb5, this.outputB5);
-        bus.connectInputDevice(0xb5,  this.inputB5);
     };
 
     this.powerOn = function() {

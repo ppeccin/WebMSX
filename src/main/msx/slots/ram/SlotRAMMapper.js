@@ -12,7 +12,7 @@ wmsx.SlotRAMMapper = function(rom) {
         var newSize = VALID_SIZES[i];
         bytes = new Array(newSize * 1024);
         self.bytes = bytes;
-        pageMask = ((bytes.length / 16384) | 0) - 1;
+        pageMask = (bytes.length >>> 14) - 1;
     }
 
     this.powerOff = function() {
@@ -22,6 +22,10 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.connect = function(machine) {
+        machine.bus.connectInputDevice(0xfc, this.inputAll);
+        machine.bus.connectInputDevice(0xfd, this.inputAll);
+        machine.bus.connectInputDevice(0xfe, this.inputAll);
+        machine.bus.connectInputDevice(0xff, this.inputAll);
         machine.bus.connectOutputDevice(0xfc, this.outputFC);
         machine.bus.connectOutputDevice(0xfd, this.outputFD);
         machine.bus.connectOutputDevice(0xfe, this.outputFE);
@@ -29,6 +33,10 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.disconnect = function(machine) {
+        machine.bus.disconnectInputDevice(0xfc, this.inputAll);
+        machine.bus.disconnectInputDevice(0xfd, this.inputAll);
+        machine.bus.disconnectInputDevice(0xfe, this.inputAll);
+        machine.bus.disconnectInputDevice(0xff, this.inputAll);
         machine.bus.disconnectOutputDevice(0xfc, this.outputFC);
         machine.bus.disconnectOutputDevice(0xfd, this.outputFD);
         machine.bus.disconnectOutputDevice(0xfe, this.outputFE);
@@ -36,16 +44,21 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.outputFC = function(val) {
-        pageOffsets[0] = (val & pageMask) * 16384;
+        pageOffsets[0] = (val & pageMask) << 14;
     };
     this.outputFD = function(val) {
-        pageOffsets[1] = (val & pageMask) * 16384 - 16384;
+        pageOffsets[1] = ((val & pageMask) << 14) - 0x4000;
     };
     this.outputFE = function(val) {
-        pageOffsets[2] = (val & pageMask) * 16384 - 32768;
+        pageOffsets[2] = ((val & pageMask) << 14) - 0x8000;
     };
     this.outputFF = function(val) {
-        pageOffsets[3] = (val & pageMask) * 16384 - 49152;
+        pageOffsets[3] = ((val & pageMask) << 14) - 0xc000;
+    };
+
+    this.inputAll = function(port) {
+        var page = (port & 255) - 0xfc;
+        return (pageOffsets[page] + (page << 14)) >>> 14;
     };
 
     this.read = function(address) {

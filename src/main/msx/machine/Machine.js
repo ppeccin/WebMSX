@@ -297,9 +297,6 @@ wmsx.Machine = function() {
     }
 
     function socketsCreate() {
-        machineControlsSocket = new MachineControlsSocket();
-        machineControlsSocket.addForwardedInput(self);
-        audioSocket = new AudioSocket();
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         expansionSocket = new ExpansionSocket();
@@ -308,7 +305,10 @@ wmsx.Machine = function() {
         joysticksSocket = new JoysticksSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
+        audioSocket = new AudioSocket();
         diskDriveSocket = new DiskDriveSocket();
+        machineControlsSocket = new MachineControlsSocket();
+        machineControlsSocket.addForwardedInput(self);
     }
 
 
@@ -352,7 +352,7 @@ wmsx.Machine = function() {
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
     var CARTRIDGE1_SLOT = WMSX.CARTRIDGE2_SLOT;
-    var EXPANSIONS_EXP_SLOTS = WMSX.EXPANSION_SLOTS;
+    var EXPANSIONS_SLOTS = WMSX.EXPANSION_SLOTS;
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
     // MachineControls interface  --------------------------------------------
@@ -473,11 +473,11 @@ wmsx.Machine = function() {
 
     function ExpansionSocket() {
         this.insert = function (expansion, port, altPower) {
-            if (expansion == slotSocket.inserted(EXPANSIONS_EXP_SLOTS[port || 0])) return;
-            slotSocket.insert(expansion, EXPANSIONS_EXP_SLOTS[port || 0], altPower);
+            if (expansion == slotSocket.inserted(EXPANSIONS_SLOTS[port || 0])) return;
+            slotSocket.insert(expansion, EXPANSIONS_SLOTS[port || 0], altPower);
         };
         this.inserted = function (port) {
-            return slotSocket.inserted(EXPANSIONS_EXP_SLOTS[port || 0]);
+            return slotSocket.inserted(EXPANSIONS_SLOTS[port || 0]);
         };
     }
 

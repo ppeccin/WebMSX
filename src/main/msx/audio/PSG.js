@@ -11,9 +11,12 @@ wmsx.PSG = function(audioSocket) {
     }
 
     this.connectBus = function(bus) {
+        bus.connectInputDevice( 0xa0, wmsx.DeviceMissing.inputPortIgnored);
         bus.connectOutputDevice(0xa0, this.outputA0);
+        bus.connectInputDevice( 0xa1, wmsx.DeviceMissing.inputPortIgnored);
         bus.connectOutputDevice(0xa1, this.outputA1);
-        bus.connectInputDevice(0xa2,  this.inputA2);
+        bus.connectInputDevice( 0xa2, this.inputA2);
+        bus.connectOutputDevice(0xa2, wmsx.DeviceMissing.outputPortIgnored);
     };
 
     this.powerOn = function() {

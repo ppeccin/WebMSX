@@ -23,18 +23,18 @@ wmsx.YM2413MixedAudioChannels = function(name) {
     }
 
     this.connect = function(machine) {
+        machine.bus.connectInputDevice( 0x7c, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectInputDevice( 0x7d, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.connectOutputDevice(0x7c, this.output7C);
         machine.bus.connectOutputDevice(0x7d, this.output7D);
-        machine.bus.connectInputDevice(0x7c, this.inputNotAvailable);
-        machine.bus.connectInputDevice(0x7d, this.inputNotAvailable);
         audioSocket = machine.getAudioSocket();
     };
 
     this.disconnect = function(machine) {
+        machine.bus.disconnectInputDevice( 0x7c, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.disconnectInputDevice( 0x7d, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.disconnectOutputDevice(0x7c, this.output7C);
         machine.bus.disconnectOutputDevice(0x7d, this.output7D);
-        machine.bus.disconnectInputDevice(0x7c, this.inputNotAvailable);
-        machine.bus.disconnectInputDevice(0x7d, this.inputNotAvailable);
         this.disconnectAudio();
     };
 

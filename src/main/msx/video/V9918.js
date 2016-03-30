@@ -16,9 +16,9 @@ wmsx.V9918 = function(machine, cpu) {
     }
 
     this.connectBus = function(bus) {
-        bus.connectInputDevice(0x98,  this.input98);
+        bus.connectInputDevice( 0x98, this.input98);
         bus.connectOutputDevice(0x98, this.output98);
-        bus.connectInputDevice(0x99,  this.input99);
+        bus.connectInputDevice( 0x99, this.input99);
         bus.connectOutputDevice(0x99, this.output99);
     };
 
