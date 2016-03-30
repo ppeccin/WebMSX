@@ -2,14 +2,16 @@
 
 wmsx.DeviceMissing = {
 
+    self: this,
+
     inputPort: function (port) {
-        if (!wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
+        if (self.debugMode && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
             console.log("Missing IN " + (port & 255).toString(16));
         return 0xff;
     },
 
     outputPort: function (val, port) {
-        if (!wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
+        if (self.debugMode && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
             console.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
     },
 
@@ -25,8 +27,8 @@ wmsx.DeviceMissing = {
         0x90, 0x91, 0x93,                   // Printer
         0xb8, 0xb9, 0xba, 0xbb,             // Card Reader?
 
-        0x80, 0x81, 0x82, 0x83,
-        0x84, 0x85, 0x86, 0x87,             // RS-232
+        0x80, 0x81, 0x82, 0x83,             // RS-232
+        0x84, 0x85, 0x86, 0x87,
 
         0xd8, 0xd9, 0xda, 0xdb,             // Kanji ROM
         0xdc, 0xdd,
@@ -39,6 +41,12 @@ wmsx.DeviceMissing = {
 
         0xf5, 0xf7, 0xf8                    // System / AV Control
 
-    ]
+    ],
+
+    setDebugMode: function(mode) {
+        self.debugMode = mode;
+    },
+
+    debugMode: 0
 
 };

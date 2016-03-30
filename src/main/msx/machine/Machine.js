@@ -439,7 +439,8 @@ wmsx.Machine = function() {
                 vdp.togglePalettes();
                 break;
             case controls.DEBUG:
-                vdp.toggleDebugModes();
+                var resultingMode = vdp.toggleDebugModes();
+                wmsx.DeviceMissing.setDebugMode(resultingMode);
                 break;
             case controls.SPRITE_MODE:
                 vdp.toggleSpriteDebugModes();

@@ -193,6 +193,7 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
         videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": "
             + [ "OFF", "Sprites Highlighted", "Sprite Numbers", "Sprite Names",
                 "Sprites Hidden", "Pattern Bits", "Pattern Color Blocks", "Pattern Names"][debugMode], true);
+        return debugMode;
     };
 
     this.toggleSpriteDebugModes = function() {
