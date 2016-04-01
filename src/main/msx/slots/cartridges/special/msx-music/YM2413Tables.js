@@ -3,7 +3,7 @@
 wmsx.YM2413Tables = function() {
 
     this.getFullSineTable = function() {
-        // Complete table for all possible values (1024 entries). Sign in bit 14
+        // Complete table for all possible values (1024 entries). -255 .. 255 values, sign in bit 14
         var tab = new Array(1024);
         for (var i = 0; i < 1024; ++i)
             tab[i] = (i > 511 ? 0x4000 : 0) | Math.round(-log2(Math.abs(Math.sin((i + 0.5) * 2 * Math.PI / 1024))) * 256);
@@ -27,17 +27,6 @@ wmsx.YM2413Tables = function() {
             tab[i] = v;
         }
         return tab;
-
-        // Original expTable
-        // this.expTable[i] = Math.round(exp2(i / 256) * 1024) << 1;
-        // Original getExp
-        // this.getExp = function(val) {
-        //    var sign = val & 0x4000;
-        //    var t = this.expTable[(val & 255) ^ 255];
-        //    var result = t >> ((val & 0x3F00) >> 8);
-        //    if (sign) result = ~result;
-        //    return result >> 4;
-        // };
     };
 
     this.getInstrumentsROM = function() {
