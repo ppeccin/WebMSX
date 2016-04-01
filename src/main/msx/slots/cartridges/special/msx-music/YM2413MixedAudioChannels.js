@@ -101,7 +101,7 @@ wmsx.YM2413MixedAudioChannels = function(name) {
             cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
 
             // Modulator and Feedback
-            if (fbShift[chan] < 31) {
+            if (fbShift[chan]) {
                 // divide by 2 before shifting because we need the average of last 2 values
                 mPh += (fbLastMod1[chan] + fbLastMod2[chan]) >> 1 >> fbShift[chan];
                 mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
@@ -414,12 +414,12 @@ wmsx.YM2413MixedAudioChannels = function(name) {
         ksr[c] =        (pars[1] >> 4) & 1;
         multi[m] =      multiFactors[pars[0] & 0xf];
         multi[c] =      multiFactors[pars[1] & 0xf];
-        ksl[m] =        pars[2] >>> 6;
-        ksl[c] =        pars[3] >>> 6;
+        ksl[m] =        pars[2] >> 6;
+        ksl[c] =        pars[3] >> 6;
         modTL[m] =      pars[2] & 0x3f;
         halfWave[m] =   (pars[3] >> 3) & 1;
         halfWave[c] =   (pars[3] >> 4) & 1;
-        fbShift[chan] = (pars[3] & 0x7) ? 8 - (pars[3] & 0x7) : 31;   // Maximum shift value to discard all bits when FB = off
+        fbShift[chan] = (pars[3] & 0x7) ? 8 - (pars[3] & 0x7) : 0;      // 0 means no FB, NOT no shifting
         ar[m] =         pars[4] >> 4;
         ar[c] =         pars[5] >> 4;
         dr[m] =         pars[4] & 0xf;
