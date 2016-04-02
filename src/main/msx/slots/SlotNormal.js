@@ -7,65 +7,93 @@ wmsx.SlotNormal = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0xff);
-        self.bytes = bytes;
         var content = self.rom.content;
-        // If 64K or 48K size, it fits just fine starting at 0x0000
-        if (content.length === 65536 || content.length === 49152) {
-            for (var i = 0, len = content.length; i < len; i++) bytes[i] = content[i];
-            return
-        }
-        // Uses position from info if present
-        var position = rom.info.s ? Number.parseInt(rom.info.s) : -1;
-        // If 32K size, position at 0x0000, 0x4000 or 0x8000
-        if (content.length === 32768) {
-            // If no info position present, try to determine by the ROM header
-            if (position < 0) {
-                // Maybe position is 0x4000 (start at 0x4000-0xbfff or BASIC at >= 0x8000
-                if ((content[0x0000] === 65 && content[0x0001] === 66 && ((content[0x0003] >= 0x40 && content[0x0003] < 0xc0) || content[0x0009] >= 0x80))
-                    || (content[0x4000] === 65 && content[0x4001] === 66 && ((content[0x4003] >= 0x40 && content[0x4003] < 0xc0) || content[0x4009] >= 0x80))) {
-                    position = 0x4000;
-                } else {
-                    // Maybe position is 0x8000 (start at >= 0x8000 or BASIC at >= 0x0000)
-                    if (content[0x0000] === 65 && content[0x0001] === 66 && (content[0x0003] >= 0x80 || content[0x0009] >= 0x80))
-                        position = 0x8000;
-                    else     // Then it must be 0x0000
-                        position = 0x0000;
+        var size = content.length < 0x4000 ? 0x4000 : content.length;
+        bytes = new Array(size);
+        self.bytes = bytes;
+        for(var i = 0; i < size; ++i)
+            bytes[i] = content[i % size];
+
+        // Determine startingPage based on size, Header and ROM Info
+        var startingPage = 0;
+
+        // If 64K or 48K, force startingPage to 0
+        if (size === 0x10000 || size === 0xc000)
+            startingPage = 0;
+        else {
+            // 32K or less. Use position from info if present
+            var position = rom.info.s ? Number.parseInt(rom.info.s) : -1;
+            if (position >= 0)
+                startingPage = position >> 14;
+            else {
+                // Search for the first Header with valid Handlers
+                var lowestHandlerPage = null;
+                var headerPosition = 0;
+                for (; headerPosition < size; headerPosition += 0x4000) {
+                    var page = getLowestHandlerPage(headerPosition);
+                    if (page != null) {
+                        lowestHandlerPage = page;
+                        break;
+                    }
+                }
+                // If no Handler found, force startingPage to 1
+                if (lowestHandlerPage === null)
+                    startingPage = 1;
+                else {
+                    // If 32K, position at page 0, 1 or 2. Headers possible at 0x0000 or 0x4000
+                    if (size === 0x8000) {
+                        if (headerPosition === 0x0000) {
+                            if (lowestHandlerPage === 3) startingPage = 2;
+                            else startingPage = 1;
+                        } else {    // headerPosition === 0x4000
+                            if (lowestHandlerPage === 0) startingPage = 0;
+                            else startingPage = 1;
+                        }
+                    }
+                    // If 16K or less, position at page 0, 1 or 2. Headers only possible at 0x0000
+                    else {
+                        startingPage = lowestHandlerPage;
+                    }
                 }
             }
-            for (i = 0; i < 32768; i++) bytes[position + i] = content[i];
-            return;
         }
-        // If 8K or 16K size, position at 0x0000, 0x4000 or 0x8000
-        if (content.length === 8192 || content.length === 16384) {
-            // If no info position present, try to determine by the ROM header
-            if (position < 0) {
-                // Maybe position is 0x4000 (start < 0x8000)
-                if (content[0x0003] >= 0x40 && content[0x0003] < 0x80) {
-                    position = 0x4000;
-                } else {
-                    // Maybe position is 0x8000 (start at >= 0x8000 or BASIC at >= 0x8000)
-                    if (content[0x0003] >= 0x80 || content[0x0009] >= 0x80)
-                        position = 0x8000;
-                    else     // Then it must be 0x0000
-                        position = 0x0000;
-                }
-            }
-            // Mirror m times so it reaches at least 0x7fff, or 0xbfff
-            var end = position < 0x8000 ? 0x8000 : 0xc000;
-            for (var m = position; m < end; m += content.length)
-                for (i = 0; i < content.length; i++) bytes[m + i] = content[i];
-        }
+
+        baseAddress = startingPage << 14;
+        topAddress = baseAddress + size;
     }
 
 
     this.read = function(address) {
-        return bytes[address];
+        if (address < baseAddress)
+            return 0xff;
+        if (address < topAddress)
+            return bytes[address - baseAddress];
+        else
+            return 0xff;
     };
+
+
+    // Check header for Starting Address, CALL handler, Device Handlers or BASIC Starting Address
+    function getLowestHandlerPage(headerPosition) {
+        if (bytes[headerPosition] !== 65 || bytes[headerPosition + 1] !== 66) return null;       // Not a header!
+        var lowest = 0xffff;
+        var addr = headerPosition + 2;
+        for (; addr <= headerPosition + 8; addr += 2) {
+            var handler = (bytes[addr + 1] << 8) | bytes[addr];
+            if (handler === 0) continue;        // Invalid handler
+            if (handler < lowest) lowest = handler;
+        }
+        if (lowest === 0xffff)
+            return null;                            // No handler found
+        else
+            return lowest >> 14;                    // Page of handler
+    }
 
 
     var bytes;
     this.bytes = null;
+
+    var baseAddress, topAddress;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.Normal;
@@ -77,7 +105,8 @@ wmsx.SlotNormal = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            ba: baseAddress
         };
     };
 
@@ -85,6 +114,8 @@ wmsx.SlotNormal = function(rom) {
         this.rom = wmsx.ROM.loadState(state.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
+        baseAddress = state.ba;
+        topAddress = baseAddress + bytes.length;
     };
 
 

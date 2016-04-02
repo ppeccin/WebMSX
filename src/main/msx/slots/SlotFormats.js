@@ -37,7 +37,7 @@ wmsx.SlotFormats = {
         desc: "Main BIOS",
         priority: 206,
         tryFormat: function (rom) {
-            // Assumes any 16K or 32K content without the Cartridge identifier "AB" or the Extension identifier "CD" is a BIOS
+            // Any 16K or 32K content without the Cartridge identifier "AB" or the Extension identifier "CD"
             if (
                 (rom.content.length === 16384 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0] !== 67 || rom.content[1] !== 68)) ||
                 (rom.content.length === 32768 && (rom.content[0] !== 65 || rom.content[1] !== 66) && (rom.content[0] !== 67 || rom.content[1] !== 68)
@@ -55,11 +55,11 @@ wmsx.SlotFormats = {
 
     "MSX2BIOSExt": {
         name: "MSX2BIOSExt",
-        desc: "MSX2 BIOS Extension",
+        desc: "MSX2/2+ BIOS Extension",
         priority: 207,
         tryFormat: function (rom) {
-            // Assumes any 16K content without the BIOS Extension identifier "CD" is a BIOS Extension
-            if (rom.content.length === 16384 && rom.content[0] === 67 && rom.content[1] === 68)
+            // Any multiple of 16K content starting with the BIOS Extension identifier "CD"
+            if (rom.content.length ^ 16384 === 0 && rom.content[0] === 67 && rom.content[1] === 68)
                 return this;
         },
         createFromROM: function (rom) {

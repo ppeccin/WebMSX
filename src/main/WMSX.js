@@ -67,6 +67,21 @@ WMSX.presets = {
         SLOT_0_1_URL:       "wmsx/roms/MSX2NEXTPAL.bios"
     },
 
+    MSX2P: {
+        _EXCLUDE:           "DEFAULT",
+        MACHINE_TYPE:       3,
+        BIOS_SLOT:          [0, 0],
+        CARTRIDGE1_SLOT:    [1],
+        CARTRIDGE2_SLOT:    [3, 0],
+        EXPANSION_SLOTS:    [[3, 2], [3, 3]],
+        SLOT_0_0_URL:       "wmsx/roms/MSX2PN.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2PNEXTOPT.bios",
+        //SLOT_0_0_URL:       "wmsx/roms/MSX2P.rom",
+        //SLOT_0_1_URL:       "wmsx/roms/MSX2PEXTKANJI.rom",
+        SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
+        _INCLUDE:           "RAM512"
+    },
+
     MSX2BASE: {
         MACHINE_TYPE:       2,
         BIOS_SLOT:          [0, 0],     // TODO Some software will not run with BIOS in an ExpandedSlot (ex: AbuSimbel Profanation)

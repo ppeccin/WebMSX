@@ -12,6 +12,7 @@ wmsx.Machine = function() {
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
+        syc.powerOn();
         rtc.powerOn();
         bus.powerOn();
         ppi.powerOn();
@@ -31,12 +32,14 @@ wmsx.Machine = function() {
         psg.powerOff();
         ppi.powerOff();
         rtc.powerOff();
+        syc.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
     };
 
     this.reset = function() {
+        syc.reset();
         rtc.reset();
         psg.reset();
         vdp.reset();
@@ -232,6 +235,7 @@ wmsx.Machine = function() {
             b:  bus.saveState(),
             pp: ppi.saveState(),
             rc: rtc.saveState(),
+            sf: syc.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
             c:  cpu.saveState(),
@@ -251,6 +255,7 @@ wmsx.Machine = function() {
         vdp.loadState(state.vd);
         psg.loadState(state.ps);
         rtc.loadState(state.rc);
+        syc.loadState(state.sf);
         ppi.loadState(state.pp);
         bus.loadState(state.b);
         machineControlsSocket.fireRedefinitionUpdate();
@@ -284,16 +289,18 @@ wmsx.Machine = function() {
         self.mainVideoClock = mainVideoClock = new wmsx.Clock(self.videoClockPulse);
 
         self.cpu = cpu = new wmsx.Z80();
-        self.vdp = vdp = new wmsx.V9938(self, cpu, !MSX2);
+        self.vdp = vdp = new wmsx.V9938(self, cpu, MSX2, MSX2P);
         self.psg = psg = new wmsx.PSG(audioSocket);
         self.ppi = ppi = new wmsx.PPI(psg);
         self.rtc = rtc = new wmsx.RTC(MSX2);
+        self.syc = syc = new wmsx.SystemControl(MSX2, MSX2P);
         self.bus = bus = new wmsx.EngineBUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);
         psg.connectBus(bus);
         rtc.connectBus(bus);
+        syc.connectBus(bus);
     }
 
     function socketsCreate() {
@@ -323,6 +330,7 @@ wmsx.Machine = function() {
     var vdp;
     var psg;
     var rtc;
+    var syc;
 
     var userPaused = false;
     var userPauseMoreFrames = 0;
@@ -348,6 +356,7 @@ wmsx.Machine = function() {
     var vSynchMode;
 
     var MSX2 = WMSX.MACHINE_TYPE === 2;
+    var MSX2P = WMSX.MACHINE_TYPE === 3;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;

@@ -1,21 +1,22 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // MSX2 16K BIOS Extension ROM
-// 0x0000 - 0x3fff
+// 0x0000 -> Size
 
 wmsx.SlotMSX2BIOSExt = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(16384), 0xff);
-        self.bytes = bytes;
         var content = self.rom.content;
-        for(var i = 0, len = content.length; i < len; i++)
+        size = content.length;
+        bytes = new Array(size);
+        self.bytes = bytes;
+        for(var i = 0; i < size; ++i)
             bytes[i] = content[i];
     }
 
     this.read = function(address) {
-        if (address < 0x4000)
+        if (address < size)
             return bytes[address];
         else
             return 0xff;
@@ -24,6 +25,8 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
 
     var bytes;
     this.bytes = null;
+
+    var size;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.MSX2BIOSExt;
@@ -43,6 +46,7 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
         this.rom = wmsx.ROM.loadState(state.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
+        size = bytes.length;
     };
 
 

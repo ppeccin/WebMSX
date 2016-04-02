@@ -5,10 +5,11 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.V9938 = function(machine, cpu, isV9918) {
+wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
     var self = this;
 
     function init() {
+        isV9918 = !msx2 && !msx2p;
         videoSignal = new wmsx.VideoSignal();
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
@@ -1675,11 +1676,11 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
-        status[1] = 0x00;         // VDP ID (mask 0x37), 0x00 = V9938, 0x02 = V9958
-        status[2] = 0x0c;         // Fixed "1" bits
-        status[4] = 0xfe;         // Fixed "1" bits
-        status[6] = 0xfc;         // Fixed "1" bits
-        status[9] = 0xfe;         // Fixed "1" bits
+        status[1] = msx2p ? 0x04 : 0x00;      // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
+        status[2] = 0x0c;                     // Fixed "1" bits
+        status[4] = 0xfe;                     // Fixed "1" bits
+        status[6] = 0xfc;                     // Fixed "1" bits
+        status[9] = 0xfe;                     // Fixed "1" bits
     }
 
     function initFrameResources() {
@@ -1771,6 +1772,8 @@ wmsx.V9938 = function(machine, cpu, isV9918) {
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
     var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
 
+
+    var isV9918;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
