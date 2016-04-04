@@ -5,7 +5,7 @@
 wmsx.PSG = function(audioSocket) {
 
     function init() {
-        mixedAudioChannels = new wmsx.PSGMixedAudioChannels(audioSocket);
+        audioChannels = new wmsx.PSGAudio(audioSocket);
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
@@ -20,15 +20,19 @@ wmsx.PSG = function(audioSocket) {
     };
 
     this.powerOn = function() {
-        mixedAudioChannels.signalOn();
+        audioChannels.signalOn();
     };
 
     this.powerOff = function() {
-        mixedAudioChannels.signalOff();
+        audioChannels.signalOff();
     };
 
     this.reset = function() {
-        mixedAudioChannels.reset();
+        audioChannels.reset();
+    };
+
+    this.getAudioChannel = function() {
+        return audioChannels;
     };
 
     this.outputA0 = function(val) {
@@ -37,26 +41,37 @@ wmsx.PSG = function(audioSocket) {
 
     this.outputA1 = function(val) {
         registers[registerAddress] = val;
-        if (registerAddress === 0 || registerAddress === 1) {
-            mixedAudioChannels.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
-        } else if (registerAddress === 2 || registerAddress === 3) {
-            mixedAudioChannels.setPeriodB(((registers[3] & 0x0f) << 8) | registers[2]);
-        } else if (registerAddress === 4 || registerAddress === 5) {
-            mixedAudioChannels.setPeriodC(((registers[5] & 0x0f) << 8) | registers[4]);
-        } else if (registerAddress === 6) {
-            mixedAudioChannels.setPeriodN(val & 0x1f);
-        } else if (registerAddress === 7) {
-            mixedAudioChannels.setMixerControl(val);
-        } else if (registerAddress === 8) {
-            mixedAudioChannels.setAmplitudeA(val);
-        } else if (registerAddress === 9) {
-            mixedAudioChannels.setAmplitudeB(val);
-        } else if (registerAddress === 10) {
-            mixedAudioChannels.setAmplitudeC(val);
-        } else if (registerAddress === 11 || registerAddress === 12) {
-            mixedAudioChannels.setPeriodE((registers[12] << 8) | registers[11]);
-        } else if (registerAddress === 13) {
-            mixedAudioChannels.setEnvelopeControl(val);
+        switch(registerAddress) {
+            case 0: case 1:
+                audioChannels.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
+                break;
+            case 2: case 3:
+                audioChannels.setPeriodB(((registers[3] & 0x0f) << 8) | registers[2]);
+                break;
+            case 4: case 5:
+                audioChannels.setPeriodC(((registers[5] & 0x0f) << 8) | registers[4]);
+                break;
+            case 6:
+                audioChannels.setPeriodN(val & 0x1f);
+                break;
+            case 7:
+                audioChannels.setMixerControl(val);
+                break;
+            case 8:
+                audioChannels.setAmplitudeA(val);
+                break;
+            case 9:
+                audioChannels.setAmplitudeB(val);
+                break;
+            case 10:
+                audioChannels.setAmplitudeC(val);
+                break;
+            case 11: case 12:
+                audioChannels.setPeriodE((registers[12] << 8) | registers[11]);
+                break;
+            case 13:
+                audioChannels.setEnvelopeControl(val);
+                break;
         }
     };
 
@@ -66,10 +81,6 @@ wmsx.PSG = function(audioSocket) {
             else return registers[14] & 0xff;
         }
         return registers[registerAddress];
-    };
-
-    this.setPulseSignal = function(boo) {
-        mixedAudioChannels.setPulseSignal(boo);
     };
 
 
@@ -90,7 +101,7 @@ wmsx.PSG = function(audioSocket) {
     var registers = wmsx.Util.arrayFill(new Array(16), 0);      // register14 is special, uses 16 bits for 2 sets of Joysticks inputs
     var register15LowInputMode = false;                         // TODO Take this into account?
 
-    var mixedAudioChannels;
+    var audioChannels;
 
 
     // Savestate  -------------------------------------------
@@ -99,7 +110,7 @@ wmsx.PSG = function(audioSocket) {
         return {
             ra: registerAddress,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(registers),
-            ac: mixedAudioChannels.saveState()
+            ac: audioChannels.saveState()
         };
     };
 
@@ -107,7 +118,7 @@ wmsx.PSG = function(audioSocket) {
         registerAddress = s.ra;
         registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, registers);
         registers[14] = 0x3f3f;                                 // reset Joysticks inputs
-        mixedAudioChannels.loadState(s.ac);
+        audioChannels.loadState(s.ac);
     };
 
 

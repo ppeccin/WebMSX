@@ -143,7 +143,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var bank1Offset, bank2Offset, bank3Offset, bank4Offset;
     var numBanks;
 
-    var scc = new wmsx.SCCIMixedAudioChannels();
+    var scc = new wmsx.SCCIAudio();
     var sccSelected, scciSelected = false;
     var sccConnected = false;
 

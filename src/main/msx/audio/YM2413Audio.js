@@ -6,7 +6,7 @@
 
 // TODO How changes in parameters affect envelopes in progress
 
-wmsx.YM2413MixedAudioChannels = function(name) {
+wmsx.YM2413Audio = function(name) {
 
     function init(self) {
         var tabs = new wmsx.YM2413Tables();

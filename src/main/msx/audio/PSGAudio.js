@@ -2,7 +2,7 @@
 
 // Controls the 3 PSG Audio Channels and Pulse Signal Channel
 
-wmsx.PSGMixedAudioChannels = function(audioSocket) {
+wmsx.PSGAudio = function(audioSocket) {
 
     function init(self) {
         createVolumeCurve();

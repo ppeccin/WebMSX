@@ -18,10 +18,6 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     this.audioClockPulse = null;    // Defined at initialization
 
-    this.getMixedAudioChannel = function() {
-        return source;
-    };
-
     this.signalOn = function() {
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;

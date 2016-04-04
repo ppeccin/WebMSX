@@ -52,7 +52,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
     }
 
 
-    var scc = new wmsx.SCCIMixedAudioChannels();
+    var scc = new wmsx.SCCIAudio();
     var sccSelected = false;
     var sccConnected = false;
 

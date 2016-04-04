@@ -105,7 +105,7 @@ wmsx.CartridgeFMPAC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.FMPAC;
 
-    var fm = new wmsx.YM2413MixedAudioChannels("FM-PAC");
+    var fm = new wmsx.YM2413Audio("FM-PAC");
     this.fm = fm;
 
 

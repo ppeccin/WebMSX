@@ -33,6 +33,20 @@ wmsx.BUS = function(machine, cpu) {
         return slots[slotNumber];
     };
 
+    this.addDevice = function(device) {
+        if (devices.indexOf(device) >= 0) return;
+
+        wmsx.Util.arrayAdd(devices, device);
+        device.connect(machine);
+    };
+
+    this.removeDevice = function(device) {
+        if (devices.indexOf(device) < 0) return;
+
+        device.disconnect(machine);
+        wmsx.Util.arrayRemoveAllElement(devices, device);
+    };
+
     this.read = function(address) {
         // Get correct slot
         return slotPages[address >>> 14].read(address);
@@ -102,24 +116,25 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     function create() {
+        // Slots
         slots =     [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
         slotPages = [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
+
+        // Devices
+        devices = [];
 
         devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceInputMissing);
         devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceOutputMissing);
 
+        // Receive all CPU Extensions
+        cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], self);
+
+        // Debug
         self.slots = slots;
         self.slotPages = slotPages;
         self.devicesInputPorts = devicesInputPorts;
         self.devicesOutputPorts = devicesOutputPorts;
-
-        // Receive all CPU Extensions
-        cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], self);
     }
-
-
-    var devicesInputPorts;
-    var devicesOutputPorts;
 
     var slots;
     var slotPages;
@@ -128,6 +143,11 @@ wmsx.BUS = function(machine, cpu) {
     var slotEmpty = wmsx.SlotEmpty.singleton;
     var deviceInputMissing = wmsx.DeviceMissing.inputPort;
     var deviceOutputMissing = wmsx.DeviceMissing.outputPort;
+
+    var devices;
+
+    var devicesInputPorts;
+    var devicesOutputPorts;
 
 
     // Savestate  -------------------------------------------

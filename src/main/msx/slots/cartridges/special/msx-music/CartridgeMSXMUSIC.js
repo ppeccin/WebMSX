@@ -50,7 +50,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.MSXMUSIC;
 
-    var fm = new wmsx.YM2413MixedAudioChannels("MSX-MUSIC");
+    var fm = new wmsx.YM2413Audio("MSX-MUSIC");
     this.fm = fm;
 
 
