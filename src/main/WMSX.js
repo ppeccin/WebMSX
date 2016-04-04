@@ -46,7 +46,7 @@ WMSX = {
 WMSX.presets = {
 
     DEFAULT: {
-        _INCLUDE:           "MSX2"
+        _INCLUDE:           "MSX2NTSC"
     },
 
     // MSX2 Machine Presets
@@ -56,12 +56,15 @@ WMSX.presets = {
     },
 
     MSX2NTSC: {
+        MACHINE_TYPE:       2,
         _INCLUDE:           "MSX2BASE",
         SLOT_0_0_URL:       "wmsx/roms/MSX2.bios",
         SLOT_0_1_URL:       "wmsx/roms/MSX2EXT.bios"
     },
 
     MSX2PAL: {
+        _EXCLUDE:           "DEFAULT",
+        MACHINE_TYPE:       2,
         _INCLUDE:           "MSX2BASE",
         SLOT_0_0_URL:       "wmsx/roms/MSX2_PAL.bios",
         SLOT_0_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
@@ -72,19 +75,22 @@ WMSX.presets = {
     },
 
     MSX2PNTSC: {
+        _EXCLUDE:           "DEFAULT",
+        MACHINE_TYPE:       3,
         _INCLUDE:           "MSX2BASE",
         SLOT_0_0_URL:       "wmsx/roms/MSX2P.bios",
         SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT.bios"
     },
 
     MSX2PPAL: {
+        _EXCLUDE:           "DEFAULT",
+        MACHINE_TYPE:       3,
         _INCLUDE:           "MSX2BASE",
         SLOT_0_0_URL:       "wmsx/roms/MSX2P_PAL.bios",
         SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
     },
 
     MSX2BASE: {
-        MACHINE_TYPE:       2,
         BIOS_SLOT:          [0, 0],     // TODO Some software will not run with BIOS in an ExpandedSlot (ex: AbuSimbel Profanation)
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
@@ -130,17 +136,18 @@ WMSX.presets = {
     },
 
     MSX1NTSC: {
+        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "wmsx/roms/MSX1.bios"
     },
 
     MSX1PAL: {
+        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "wmsx/roms/MSX1_PAL.bios"
     },
 
     MSX1BASE: {
-        _EXCLUDE:           "DEFAULT",
         MACHINE_TYPE:       1,
         BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],

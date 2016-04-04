@@ -24,7 +24,7 @@ wmsx.EngineBUS = function(machine, cpu) {
 
     this.insertSlot = function(slot, slotNumber) {
         slots[slotNumber].disconnect(machine);
-        slots[slotNumber] = slot || wmsx.SlotEmpty.singleton;
+        slots[slotNumber] = slot || slotEmpty;
         slots[slotNumber].connect(machine);
         this.setPrimarySlotConfig(primarySlotConfig);
     };
@@ -78,19 +78,19 @@ wmsx.EngineBUS = function(machine, cpu) {
     };
 
     this.connectInputDevice = function(port, handler) {
-        devicesInputPorts[port] = handler;
+        if (devicesInputPorts[port] === deviceInputMissing) devicesInputPorts[port] = handler;
     };
 
     this.connectOutputDevice = function(port, handler) {
-        devicesOutputPorts[port] = handler;
+        if (devicesOutputPorts[port] === deviceOutputMissing) devicesOutputPorts[port] = handler;
     };
 
     this.disconnectInputDevice = function(port, handler) {
-        if (!handler || devicesInputPorts[port] === handler) devicesInputPorts[port] = wmsx.DeviceMissing.inputPort;
+        if (!handler || devicesInputPorts[port] === handler) devicesInputPorts[port] = deviceInputMissing;
     };
 
     this.disconnectOutputDevice = function(port, handler) {
-        if (!handler || devicesInputPorts[port] === handler) devicesOutputPorts[port] = wmsx.DeviceMissing.outputPort;
+        if (!handler || devicesInputPorts[port] === handler) devicesOutputPorts[port] = deviceOutputMissing;
     };
 
     this.getOutputDevice = function(port) {
@@ -102,12 +102,11 @@ wmsx.EngineBUS = function(machine, cpu) {
     };
 
     function create() {
-        var emptySlot = wmsx.SlotEmpty.singleton;
-        slots =     [ emptySlot, emptySlot, emptySlot, emptySlot ];
-        slotPages = [ emptySlot, emptySlot, emptySlot, emptySlot ];
+        slots =     [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
+        slotPages = [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
 
-        devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), wmsx.DeviceMissing.inputPort);
-        devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), wmsx.DeviceMissing.outputPort);
+        devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceInputMissing);
+        devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceOutputMissing);
 
         self.slots = slots;
         self.slotPages = slotPages;
@@ -125,6 +124,10 @@ wmsx.EngineBUS = function(machine, cpu) {
     var slots;
     var slotPages;
     var primarySlotConfig = 0;
+
+    var slotEmpty = wmsx.SlotEmpty.singleton;
+    var deviceInputMissing = wmsx.DeviceMissing.inputPort;
+    var deviceOutputMissing = wmsx.DeviceMissing.outputPort;
 
 
     // Savestate  -------------------------------------------
