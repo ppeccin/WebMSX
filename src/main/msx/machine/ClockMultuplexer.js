@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Works only with INTEGRAL dividers of the main frequency
+// Works only with INTEGRAL dividers of the main frequency. Not used for now, too slow
 
 wmsx.ClockMultiplexer = function(mainPulses) {
 
