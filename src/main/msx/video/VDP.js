@@ -1,11 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// V9938/V9918 VDPs supported
+// V9958/V9938/V9918 VDPs supported
 // This implementation is line-accurate
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
+wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var self = this;
 
     function init() {
@@ -21,7 +21,7 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
         initSpritesConflictMap();
         mode = 0; modeData = modes[mode];
         self.setDefaults();
-        commandProcessor = new wmsx.V9938CommandProcessor();
+        commandProcessor = new wmsx.VDPCommandProcessor();
         commandProcessor.connectVDP(self, vram, register, status);
         commandProcessor.setVDPModeData(modeData);
     }
@@ -615,8 +615,8 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
 
         // Fixed metrics for V9918
         if (isV9918) {
-            signalWidth = wmsx.V9938.SIGNAL_WIDTH_V9918;
-            signalHeight = wmsx.V9938.SIGNAL_HEIGHT_V9918;
+            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;
+            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918;
             height = 192; vertBorderHeight = 8;
         } else {
             signalWidth = modeData.width === 512 ? 512 + 16 * 2 : 256 + 8 * 2;          // Mode
@@ -1688,8 +1688,8 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
     function initFrameResources() {
         frameCanvas = document.createElement('canvas');
         // Maximum VPD resolution including borders
-        frameCanvas.width =  wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
-        frameCanvas.height = wmsx.V9938.SIGNAL_MAX_HEIGHT_V9938;
+        frameCanvas.width =  wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
+        frameCanvas.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
         //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
         frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1);         // One extra line for the backdrop cache
@@ -1758,11 +1758,11 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
     }
 
 
-    var LINE_WIDTH = wmsx.V9938.SIGNAL_MAX_WIDTH_V9938;
+    var LINE_WIDTH = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
     var SPRITE_MAX_PRIORITY = 9000000000000000;
     var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
 
-    var VRAM_SIZE = wmsx.V9938.VRAM_LIMIT + 1;
+    var VRAM_SIZE = wmsx.VDP.VRAM_LIMIT + 1;
     var DEBUG_PAT_DIGI6_TABLE_ADDRESS = VRAM_SIZE;                                      // Debug pattern tables placed on top of normal VRAM
     var DEBUG_PAT_DIGI8_TABLE_ADDRESS = DEBUG_PAT_DIGI6_TABLE_ADDRESS + 256 * 8;
     var DEBUG_PAT_DIGI16_TABLE_ADDRESS = DEBUG_PAT_DIGI8_TABLE_ADDRESS + 256 * 8;
@@ -1961,11 +1961,11 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
 
 };
 
-wmsx.V9938.VRAM_LIMIT = 0x1ffff;      // 128K
+wmsx.VDP.VRAM_LIMIT = 0x1ffff;      // 128K
 
-wmsx.V9938.SIGNAL_MAX_WIDTH_V9938 = 512 + 16 * 2;
-wmsx.V9938.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
+wmsx.VDP.SIGNAL_MAX_WIDTH_V9938 = 512 + 16 * 2;
+wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
 
-wmsx.V9938.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
-wmsx.V9938.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
+wmsx.VDP.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
+wmsx.VDP.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
 

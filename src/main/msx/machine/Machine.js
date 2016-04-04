@@ -289,12 +289,12 @@ wmsx.Machine = function() {
         self.mainVideoClock = mainVideoClock = new wmsx.Clock(self.videoClockPulse);
 
         self.cpu = cpu = new wmsx.Z80();
-        self.vdp = vdp = new wmsx.V9938(self, cpu, MSX2, MSX2P);
+        self.vdp = vdp = new wmsx.VDP(self, cpu, MSX2, MSX2P);
         self.psg = psg = new wmsx.PSG(audioSocket);
         self.ppi = ppi = new wmsx.PPI(psg);
         self.rtc = rtc = new wmsx.RTC(MSX2);
         self.syc = syc = new wmsx.SystemControl(MSX2, MSX2P);
-        self.bus = bus = new wmsx.EngineBUS(self, cpu);
+        self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);

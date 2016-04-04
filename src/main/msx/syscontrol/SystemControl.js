@@ -34,27 +34,27 @@ wmsx.SystemControl = function(msx2, msx2p) {
 
     this.inputF3 = function() {
 
-        console.log("Reading F3");
+        //console.log("Reading F3");
 
         return 0xff;
     };
 
     this.outputF3 = function(val) {
 
-        console.log("Writing F3: " + val.toString(16));
+        //console.log("Writing F3: " + val.toString(16));
 
     };
 
     this.inputF4 = function() {
 
-        console.log("Reading F4: " + bootFlags.toString(16));
+        //console.log("Reading F4: " + bootFlags.toString(16));
 
         return bootFlags;
     };
 
     this.outputF4 = function(val) {
 
-        console.log("Writing F4: " + val.toString(16));
+        //console.log("Writing F4: " + val.toString(16));
 
         bootFlags = val & 0xff;
     };

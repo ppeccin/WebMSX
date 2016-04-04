@@ -2,7 +2,7 @@
 
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 
-wmsx.V9938CommandProcessor = function() {
+wmsx.VDPCommandProcessor = function() {
 
     this.connectVDP = function(pVDP, pVRAM, pRegister, pStatus) {
         vdp = pVDP;
@@ -815,7 +815,7 @@ wmsx.V9938CommandProcessor = function() {
     }
 
 
-    var VRAM_LIMIT = wmsx.V9938.VRAM_LIMIT;
+    var VRAM_LIMIT = wmsx.VDP.VRAM_LIMIT;
     var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // Used for savestates
     var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
 

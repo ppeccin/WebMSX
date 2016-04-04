@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface. Controls 4 Primary Slots and I/O Device Ports
-wmsx.EngineBUS = function(machine, cpu) {
+wmsx.BUS = function(machine, cpu) {
     var self = this;
 
     function init() {
