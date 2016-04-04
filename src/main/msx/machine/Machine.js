@@ -355,7 +355,7 @@ wmsx.Machine = function() {
 
     var vSynchMode;
 
-    var MSX2 = WMSX.MACHINE_TYPE === 2;
+    var MSX2 = WMSX.MACHINE_TYPE >= 2;
     var MSX2P = WMSX.MACHINE_TYPE === 3;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;

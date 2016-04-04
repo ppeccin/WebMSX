@@ -10,6 +10,8 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
 
     function init() {
         isV9918 = !msx2 && !msx2p;
+        isV9938 = msx2 && !msx2p;
+        isV9958 = !!msx2p;
         videoSignal = new wmsx.VideoSignal();
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
@@ -1676,7 +1678,7 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
-        status[1] = msx2p ? 0x04 : 0x00;      // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
+        status[1] = isV9958 ? 0x04 : 0x00;    // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
         status[2] = 0x0c;                     // Fixed "1" bits
         status[4] = 0xfe;                     // Fixed "1" bits
         status[6] = 0xfc;                     // Fixed "1" bits
@@ -1773,7 +1775,7 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
     var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
 
 
-    var isV9918;
+    var isV9918, isV9938, isV9958;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
@@ -1904,7 +1906,7 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
 
     this.saveState = function() {
         return {
-            v1: isV9918,
+            v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance,
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
@@ -1921,7 +1923,7 @@ wmsx.V9938 = function(machine, cpu, msx2, msx2p) {
     };
 
     this.loadState = function(s) {
-        isV9918 = s.v1;
+        isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;

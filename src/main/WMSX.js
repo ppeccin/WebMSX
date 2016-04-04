@@ -57,29 +57,30 @@ WMSX.presets = {
 
     MSX2NTSC: {
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2N.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2NEXT.bios"
+        SLOT_0_0_URL:       "wmsx/roms/MSX2.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2EXT.bios"
     },
 
     MSX2PAL: {
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2NPAL.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2NEXTPAL.bios"
+        SLOT_0_0_URL:       "wmsx/roms/MSX2_PAL.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
     },
 
     MSX2P: {
-        _EXCLUDE:           "DEFAULT",
-        MACHINE_TYPE:       3,
-        BIOS_SLOT:          [0, 0],
-        CARTRIDGE1_SLOT:    [1],
-        CARTRIDGE2_SLOT:    [3, 0],
-        EXPANSION_SLOTS:    [[3, 2], [3, 3]],
-        SLOT_0_0_URL:       "wmsx/roms/MSX2PN.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2PNEXTOPT.bios",
-        //SLOT_0_0_URL:       "wmsx/roms/MSX2P.rom",
-        //SLOT_0_1_URL:       "wmsx/roms/MSX2PEXTKANJI.rom",
-        SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
-        _INCLUDE:           "RAM512"
+        _INCLUDE:           "MSX2PNTSC"
+    },
+
+    MSX2PNTSC: {
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_0_URL:       "wmsx/roms/MSX2P.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT.bios"
+    },
+
+    MSX2PPAL: {
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_0_URL:       "wmsx/roms/MSX2P_PAL.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
     },
 
     MSX2BASE: {
@@ -130,12 +131,12 @@ WMSX.presets = {
 
     MSX1NTSC: {
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX1NTSCa.bios"
+        SLOT_0_URL:         "wmsx/roms/MSX1.bios"
     },
 
     MSX1PAL: {
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX1PALa.bios"
+        SLOT_0_URL:         "wmsx/roms/MSX1_PAL.bios"
     },
 
     MSX1BASE: {
