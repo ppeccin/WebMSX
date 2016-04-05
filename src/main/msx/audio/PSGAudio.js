@@ -3,20 +3,19 @@
 // Controls the 3 PSG Audio Channels and Pulse Signal Channel
 
 wmsx.PSGAudio = function(audioSocket) {
+    var self = this;
 
-    function init(self) {
+    function init() {
         createVolumeCurve();
-        audioSignal = new wmsx.AudioSignal("PSG", self, SAMPLE_RATE, VOLUME);
-        audioSocket.connectAudioSignal(audioSignal);
     }
 
-    this.signalOn = function() {
+    this.powerOn = function() {
         this.reset();
-        audioSignal.signalOn();
+        connectAudio();
     };
 
-    this.signalOff = function() {
-        audioSignal.signalOff();
+    this.powerOff = function() {
+        disconnectAudio();
     };
 
     this.reset = function() {
@@ -161,6 +160,15 @@ wmsx.PSGAudio = function(audioSocket) {
         pulseSignal = boo;
     };
 
+    function connectAudio() {
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG", self, SAMPLE_RATE, VOLUME);
+        audioSocket.connectAudioSignal(audioSignal);
+    }
+
+    function disconnectAudio() {
+        if (audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
+    }
+
     function cycleEnvelope(alternate, hold) {
         if (alternate ^ hold) attackE = !attackE;
         currentValueE = attackE ? 0 : 15;
@@ -259,9 +267,10 @@ wmsx.PSGAudio = function(audioSocket) {
         periodE = s.pe; periodECountdown = s.pec; currentValueE = s.ce; directionE = s.de; continueE = s.cne; attackE = s.ate; alternateE = s.ale; holdE = s.he;
         pulseSignal = s.ps;
         lfsr = s.lf;
+        if (audioSignal) audioSignal.flush();
     };
 
 
-    init(this);
+    init();
 
 };

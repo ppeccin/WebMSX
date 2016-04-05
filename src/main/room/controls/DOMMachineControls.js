@@ -100,6 +100,7 @@ wmsx.DOMMachineControls = function() {
         withALTCodeMap[KEY_SPEED]  = controls.FAST_SPEED;
 
         withALTCodeMap[KEY_PAUSE]            = controls.PAUSE;
+        withCTRLALTCodeMap[KEY_PAUSE]        = controls.PAUSE_AUDIO_ON;
         withALTCodeMap[KEY_FRAME]            = controls.FRAME;
         withALTCodeMap[KEY_TRACE]            = controls.TRACE;
         withALTCodeMap[KEY_DEBUG]            = controls.DEBUG;

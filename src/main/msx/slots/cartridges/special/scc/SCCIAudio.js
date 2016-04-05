@@ -35,15 +35,11 @@ wmsx.SCCIAudio = function() {
     this.connectAudio = function(pAudioSocket) {
         audioSocket = pAudioSocket;
         if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, SAMPLE_RATE, VOLUME);
-        audioSignal.signalOn();
         audioSocket.connectAudioSignal(audioSignal);
     };
 
     this.disconnectAudio = function() {
-        if (audioSignal) {
-            audioSignal.signalOff();
-            audioSocket.disconnectAudioSignal(audioSignal);
-        }
+        if (audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
     };
 
     this.nextSample = function() {

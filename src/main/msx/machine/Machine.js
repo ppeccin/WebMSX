@@ -6,15 +6,17 @@ wmsx.Machine = function() {
     function init() {
         socketsCreate();
         mainComponentsCreate();
+        optionalComponentsCreate();
         setVideoStandardAuto();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
-        syc.powerOn();
-        rtc.powerOn();
         bus.powerOn();
+        if (fm)  fm.powerOn();
+        if (syc) syc.powerOn();
+        if (rtc) rtc.powerOn();
         ppi.powerOn();
         psg.powerOn();
         vdp.powerOn();
@@ -31,16 +33,18 @@ wmsx.Machine = function() {
         vdp.powerOff();
         psg.powerOff();
         ppi.powerOff();
-        rtc.powerOff();
-        syc.powerOff();
+        if (rtc) rtc.powerOff();
+        if (syc) syc.powerOff();
+        if (fm)  fm.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
     };
 
     this.reset = function() {
-        syc.reset();
-        rtc.reset();
+        if (fm)  fm.reset();
+        if (syc) syc.reset();
+        if (rtc) rtc.reset();
         psg.reset();
         vdp.reset();
         cpu.reset();
@@ -162,12 +166,12 @@ wmsx.Machine = function() {
         isLoading = boo;
     };
 
-    this.userPause = function(val) {
+    this.userPause = function(pause, keepAudio) {
         var prev = userPaused;
-        if (userPaused !== val) {
-            userPaused = !!val; userPauseMoreFrames = -1;
-            if (userPaused) audioSocket.mute();
-            else audioSocket.unmute();
+        if (userPaused !== pause) {
+            userPaused = !!pause; userPauseMoreFrames = -1;
+            if (userPaused && !keepAudio) audioSocket.muteAudio();
+            else audioSocket.unMuteAudio();
         }
         return prev;
     };
@@ -176,8 +180,8 @@ wmsx.Machine = function() {
         var prev = systemPaused;
         if (systemPaused !== val) {
             systemPaused = !!val;
-            if (systemPaused) audioSocket.pauseMonitor();
-            else audioSocket.unpauseMonitor();
+            if (systemPaused) audioSocket.pauseAudio();
+            else audioSocket.unpauseAudio();
         }
         return prev;
     };
@@ -233,9 +237,10 @@ wmsx.Machine = function() {
     function saveState() {
         return {
             b:  bus.saveState(),
+            rc: rtc ? rtc.saveState() : null,
+            sc: syc ? syc.saveState() : null,
+            fm: fm ? fm.saveState() : null,
             pp: ppi.saveState(),
-            rc: rtc.saveState(),
-            sf: syc.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
             c:  cpu.saveState(),
@@ -254,9 +259,8 @@ wmsx.Machine = function() {
         cpu.loadState(state.c);
         vdp.loadState(state.vd);
         psg.loadState(state.ps);
-        rtc.loadState(state.rc);
-        syc.loadState(state.sf);
         ppi.loadState(state.pp);
+        optionalComponentsLoadState(state.rc, state.sc, state.fm);
         bus.loadState(state.b);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
@@ -292,15 +296,47 @@ wmsx.Machine = function() {
         self.vdp = vdp = new wmsx.VDP(self, cpu, MSX2, MSX2P);
         self.psg = psg = new wmsx.PSG(audioSocket);
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel());
-        self.rtc = rtc = new wmsx.RTC(MSX2);
-        self.syc = syc = new wmsx.SystemControl(MSX2, MSX2P);
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);
         psg.connectBus(bus);
-        rtc.connectBus(bus);
-        syc.connectBus(bus);
+    }
+
+    function optionalComponentsCreate() {
+        if (MSX2) {
+            self.rtc = rtc = new wmsx.RTC();
+            rtc.connect(self);
+            self.syc = syc = new wmsx.SystemControl(MSX2P);
+            syc.connect(self);
+            if (MSX2P) {
+                self.fm = fm = new wmsx.YM2413Audio("MSX-MUSIC (built-in)");
+                fm.connect(self);
+            }
+        }
+    }
+
+    function optionalComponentsLoadState(rtcState, sycState, fmState) {
+        var newRtc = wmsx.RTC.recreateFromSavestate(rtc, rtcState);
+        if (newRtc !== rtc) {
+            if (rtc) rtc.disconnect(self);
+            this.rtc = rtc = newRtc;
+            if (rtc) rtc.connect(self);
+        }
+
+        var newSyc = wmsx.SystemControl.recreateFromSavestate(syc, sycState);
+        if (newSyc !== syc) {
+            if (syc) syc.disconnect(self);
+            this.syc = syc = newSyc;
+            if (syc) syc.connect(self);
+        }
+
+        var newFm = wmsx.YM2413Audio.recreateFromSavestate(fm, fmState);
+        if (newFm !== fm) {
+            if (fm) fm.disconnect(self);
+            this.fm = fm = newFm;
+            if (fm) fm.connect(self);
+        }
     }
 
     function socketsCreate() {
@@ -331,6 +367,7 @@ wmsx.Machine = function() {
     var psg;
     var rtc;
     var syc;
+    var fm;
 
     var userPaused = false;
     var userPauseMoreFrames = 0;
@@ -407,8 +444,12 @@ wmsx.Machine = function() {
                 powerFry();
                 break;
             case controls.PAUSE:
-                this.userPause(!userPaused);
+                this.userPause(!userPaused, false);
                 this.getVideoOutput().showOSD(userPaused ? "PAUSE" : "RESUME", true);
+                return;
+            case controls.PAUSE_AUDIO_ON:
+                this.userPause(!userPaused, true);
+                this.getVideoOutput().showOSD(userPaused ? "PAUSE with AUDIO ON" : "RESUME", true);
                 return;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;
@@ -549,6 +590,8 @@ wmsx.Machine = function() {
             for (var i = signals.length - 1; i >= 0; i--) monitor.connectAudioSignal(signals[i]);
         };
         this.connectAudioSignal = function(signal) {
+            signal.flush();
+
             if (signals.indexOf(signal) >= 0) return;
             wmsx.Util.arrayAdd(signals, signal);
             signal.setFps(fps);
@@ -564,20 +607,20 @@ wmsx.Machine = function() {
         this.audioFinishFrame = function() {
             for (var i = signals.length - 1; i >= 0; --i) signals[i].audioFinishFrame();
         };
-        this.mute = function() {
-            for (var i = signals.length - 1; i >= 0; --i) signals[i].mute();
+        this.muteAudio = function() {
+            if (monitor) monitor.mute();
         };
-        this.unmute = function() {
-            for (var i = signals.length - 1; i >= 0; --i) signals[i].play();
+        this.unMuteAudio = function() {
+            if (monitor) monitor.unMute();
         };
         this.setFps = function(pFps) {
             fps = pFps;
             for (var i = signals.length - 1; i >= 0; --i) signals[i].setFps(fps);
         };
-        this.pauseMonitor = function() {
+        this.pauseAudio = function() {
             if (monitor) monitor.pause();
         };
-        this.unpauseMonitor = function() {
+        this.unpauseAudio = function() {
             if (monitor) monitor.unpause();
         };
 

@@ -23,6 +23,8 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.insertSlot = function(slot, slotNumber) {
+        if (slots[slotNumber] === slot) return;
+
         slots[slotNumber].disconnect(machine);
         slots[slotNumber] = slot || slotEmpty;
         slots[slotNumber].connect(machine);
@@ -92,11 +94,11 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.connectInputDevice = function(port, handler) {
-        if (devicesInputPorts[port] === deviceInputMissing) devicesInputPorts[port] = handler;
+        devicesInputPorts[port] = handler;
     };
 
     this.connectOutputDevice = function(port, handler) {
-        if (devicesOutputPorts[port] === deviceOutputMissing) devicesOutputPorts[port] = handler;
+        devicesOutputPorts[port] = handler;
     };
 
     this.disconnectInputDevice = function(port, handler) {
@@ -104,7 +106,7 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.disconnectOutputDevice = function(port, handler) {
-        if (!handler || devicesInputPorts[port] === handler) devicesOutputPorts[port] = deviceOutputMissing;
+        if (!handler || devicesOutputPorts[port] === handler) devicesOutputPorts[port] = deviceOutputMissing;
     };
 
     this.getOutputDevice = function(port) {

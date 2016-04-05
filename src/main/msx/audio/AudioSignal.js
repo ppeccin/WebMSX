@@ -18,24 +18,9 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     this.audioClockPulse = null;    // Defined at initialization
 
-    this.signalOn = function() {
+    this.flush = function() {
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
-        this.play();
-    };
-
-    this.signalOff = function() {
-        this.mute();
-        nextSampleToGenerate = 0;
-        nextSampleToRetrieve = 0;
-    };
-
-    this.mute = function() {
-        signalOn = false;
-    };
-
-    this.play = function() {
-        signalOn = true;
     };
 
     this.setFps = function(fps) {
@@ -47,11 +32,11 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     this.audioFinishFrame = function() {             // Enough samples to complete frame, signal always ON
         var missingSamples = samplesPerFrame - frameSamples;
         if (missingSamples > 0)
-            for (var i = missingSamples; i > 0; i = i - 1) generateNextSampleOn()
+            for (var i = missingSamples; i > 0; i = i - 1) generateNextSample()
         frameSamples = 0;
     };
 
-    this.retrieveSamples = function(quant) {
+    this.retrieveSamples = function(quant, mute) {
         //Util.log(">>> Samples generated: " + (nextSampleToGenerate - nextSampleToRetrieve));
 
         //if (nextSampleToGenerate === nextSampleToRetrieve)
@@ -65,7 +50,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
             : quant - (MAX_SAMPLES - nextSampleToRetrieve + nextSampleToGenerate);
 
         if (missing > 0) {
-            generateMissingSamples(missing);
+            generateMissingSamples(missing, mute);
             //wmsx.Util.log(">>> Missing samples generated: " + missing);
         } else {
             //wmsx.Util.log(">>> No missing samples");
@@ -94,7 +79,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         //if (frameSamples === 600) console.log("AudioClock: " + name);
 
         if (frameSamples < samplesPerFrame) {
-            generateNextSampleOn();
+            generateNextSample();
             frameSamples = frameSamples + 1;
         }
     }
@@ -108,29 +93,27 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         audioClockPulse32x();
     }
 
-    function generateNextSampleOn() {
+    function generateNextSample() {
         samples[nextSampleToGenerate] = source.nextSample() * volume;
         if (++nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
     }
 
-    function generateNextSampleOff() {
+    function generateNextSampleMute() {
         samples[nextSampleToGenerate] = 0;
         if (++nextSampleToGenerate >= MAX_SAMPLES)
             nextSampleToGenerate = 0;
     }
 
-    function generateMissingSamples(quant) {
-        if (signalOn)
-            for (var i = quant; i > 0; i = i - 1) generateNextSampleOn()
+    function generateMissingSamples(quant, mute) {
+        if (mute)
+            for (var j = quant; j > 0; j = j - 1) generateNextSampleMute()
         else
-            for (var j = quant; j > 0; j = j - 1) generateNextSampleOff()
+            for (var i = quant; i > 0; i = i - 1) generateNextSample()
     }
 
 
     this.name = name;
-
-    var signalOn = false;
 
     var clock72xCountDown = 9;              // 4 clocks out of 9 32x clocks. Count from 9 to 0 and misses every odd and the 8th clock
 

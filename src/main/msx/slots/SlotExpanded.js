@@ -39,6 +39,8 @@ wmsx.SlotExpanded = function() {
     };
 
     this.insertSubSlot = function(subSlot, subSlotNumber) {
+        if (subSlots[subSlotNumber] === subSlot) return;
+
         if (machine) subSlots[subSlotNumber].disconnect(machine);
         subSlots[subSlotNumber] = subSlot || wmsx.SlotEmpty.singleton;
         if (machine) subSlots[subSlotNumber].connect(machine);

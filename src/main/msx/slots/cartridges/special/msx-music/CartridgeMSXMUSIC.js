@@ -17,7 +17,6 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
 
     this.connect = function(machine) {
         fm.connect(machine);
-        fm.connectAudio();          // FM always active
     };
 
     this.disconnect = function(machine) {
@@ -25,11 +24,12 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     };
 
     this.powerOn = function() {
+        fm.powerOn();
         this.reset();
     };
 
     this.powerOff = function() {
-        this.reset();
+        fm.powerOff();
     };
 
     this.reset = function() {
@@ -50,7 +50,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.MSXMUSIC;
 
-    var fm = new wmsx.YM2413Audio("MSX-MUSIC");
+    var fm = new wmsx.YM2413Audio("MSX-MUSIC Cartridge");
     this.fm = fm;
 
 

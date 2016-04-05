@@ -6,9 +6,11 @@
 
 // TODO How changes in parameters affect envelopes in progress
 
-wmsx.YM2413Audio = function(name) {
+wmsx.YM2413Audio = function(pName) {
+    var self = this;
 
-    function init(self) {
+    function init() {
+        name = pName || "YM2431";
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
@@ -19,7 +21,6 @@ wmsx.YM2413Audio = function(name) {
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
-        self.reset();
     }
 
     this.connect = function(machine) {
@@ -28,6 +29,7 @@ wmsx.YM2413Audio = function(name) {
         machine.bus.connectOutputDevice(0x7c, this.output7C);
         machine.bus.connectOutputDevice(0x7d, this.output7D);
         audioSocket = machine.getAudioSocket();
+        if (audioConnected) connectAudio();
     };
 
     this.disconnect = function(machine) {
@@ -35,12 +37,70 @@ wmsx.YM2413Audio = function(name) {
         machine.bus.disconnectInputDevice( 0x7d, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.disconnectOutputDevice(0x7c, this.output7C);
         machine.bus.disconnectOutputDevice(0x7d, this.output7D);
-        this.disconnectAudio();
+        disconnectAudio();
+        audioSocket = null;
     };
 
-    // Port not available for INPUT
-    this.inputNotAvailable = function() {
-        return 0xff;
+    this.powerOn = function() {
+        this.reset();
+    };
+
+    this.powerOff = function() {
+        disconnectAudio();
+    };
+
+    this.reset = function() {
+        // Zero all registers
+        registerAddress = 0;
+        wmsx.Util.arrayFill(register, 0);
+        wmsx.Util.arrayFill(instrumentsParameters[0], 0);   // Reset custom instrument
+        // Global controls
+        clock = 0;
+        noiseRegister = 0xffff; noiseOutput = 0;
+        amLevel = 0; amLevelInc = -1; vibPhase = 0;
+        rhythmMode = false;
+        // Settings per channel(9) / operator(18)
+         wmsx.Util.arrayFill(sustain, 0);
+         wmsx.Util.arrayFill(instr, 0);
+         wmsx.Util.arrayFill(keyOn, 0);
+         wmsx.Util.arrayFill(am, 0);
+         wmsx.Util.arrayFill(vib, 0);
+         wmsx.Util.arrayFill(envType, 0);
+         wmsx.Util.arrayFill(ksr, 0);
+         wmsx.Util.arrayFill(multi, 0);
+         wmsx.Util.arrayFill(ksl, 0);
+         wmsx.Util.arrayFill(halfWave, 0);
+         wmsx.Util.arrayFill(ar, 0);
+         wmsx.Util.arrayFill(dr, 0);
+         wmsx.Util.arrayFill(sl, 0);
+         wmsx.Util.arrayFill(rr, 0);
+         wmsx.Util.arrayFill(fNum, 0);
+         wmsx.Util.arrayFill(block, 0);
+         wmsx.Util.arrayFill(volume, 0);
+         wmsx.Util.arrayFill(modTL, 0);
+        // Computed settings per channel(9) / operator(18)
+        wmsx.Util.arrayFill(fbShift, 0);
+        wmsx.Util.arrayFill(volModAtt, 0);
+        // Dynamic values per channel(9) / operator(18). May change as time passes without being set by software
+        wmsx.Util.arrayFill(amAtt, 0);
+        wmsx.Util.arrayFill(envAtt, 0);
+        wmsx.Util.arrayFill(kslAtt, 0);
+        wmsx.Util.arrayFill(totalAtt, 0);
+        wmsx.Util.arrayFill(envStep, -1);
+        wmsx.Util.arrayFill(envStepLevelDur, 0);
+        wmsx.Util.arrayFill(envStepLevelIncClock, 0);
+        wmsx.Util.arrayFill(envStepLevelInc, 0);
+        wmsx.Util.arrayFill(envStepNext, 0);
+        wmsx.Util.arrayFill(envStepNextAtLevel, 0);
+        wmsx.Util.arrayFill(envLevel, 0);
+        wmsx.Util.arrayFill(ksrOffset, 0);
+        wmsx.Util.arrayFill(fbLastMod1, 0);
+        wmsx.Util.arrayFill(fbLastMod2, 0);
+        wmsx.Util.arrayFill(phaseInc, 0);
+        wmsx.Util.arrayFill(phaseCounter, 0);
+
+        // Start with audio disconnected
+        disconnectAudio();
     };
 
     this.output7C = function (val) {
@@ -49,21 +109,6 @@ wmsx.YM2413Audio = function(name) {
 
     this.output7D = function (val) {
         registerWrite(registerAddress, val);
-    };
-
-    this.reset = function() {
-        // Starting conditions
-        clock = 0;
-        noiseRegister = 0xffff; noiseOutput = 0;
-        amLevel = 0; amLevelInc = -1;
-        vibPhase = 0;
-        // Reset all envelope controls
-        for (var chan = 0; chan < 9; ++chan) {
-            setEnvStep(chan, IDLE);
-            updateAllAttenuations(chan);
-        }
-        // Zero all registers
-        for (var reg = 0; reg < 0x39; ++reg) registerWrite(reg, 0);
     };
 
     this.nextSample = function() {
@@ -174,18 +219,18 @@ wmsx.YM2413Audio = function(name) {
         return sample;
     };
 
-    this.connectAudio = function() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, this, this.SAMPLE_RATE, this.VOLUME);
-        audioSignal.signalOn();
-        audioSocket.connectAudioSignal(audioSignal);
-    };
-
-    this.disconnectAudio = function() {
-        if (audioSignal) {
-            audioSignal.signalOff();
-            audioSocket.disconnectAudioSignal(audioSignal);
+    function connectAudio() {
+        if (audioSocket) {
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, self.SAMPLE_RATE, self.VOLUME);
+            audioSocket.connectAudioSignal(audioSignal);
+            audioConnected = true;
         }
-    };
+    }
+
+    function disconnectAudio() {
+        if (audioSocket && audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
+        audioConnected = false;
+    }
 
     function registerWrite(reg, val) {
 
@@ -246,7 +291,10 @@ wmsx.YM2413Audio = function(name) {
                     if (mod & 0xf0) setVolumeOp(m, val >>> 4);
                     if (mod & 0x0f) setVolumeOp(c, val & 0xf);
                 } else {
-                    if (mod & 0xf0) setInstr(chan, val >>> 4);
+                    if (mod & 0xf0) {
+                        if (!audioConnected) connectAudio();
+                        setInstr(chan, val >>> 4);
+                    }
                     if (mod & 0x0f) setVolumeOp(c, val & 0xf);
                 }
                 break;
@@ -388,6 +436,7 @@ wmsx.YM2413Audio = function(name) {
         setEnvStep(7, IDLE); updateEnvAttenuation(7);
         setEnvStep(8, IDLE); updateEnvAttenuation(8);
         if (rhythmMode) {
+            if (!audioConnected) connectAudio();
             setInstr(6, 16);
             setInstr(7, 17);
             setInstr(8, 18);
@@ -539,6 +588,9 @@ wmsx.YM2413Audio = function(name) {
     }
 
 
+    var name;
+    var audioConnected = false;
+
     // Constants
 
     var IDLE = -1, DAMP = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
@@ -552,54 +604,54 @@ wmsx.YM2413Audio = function(name) {
 
     // Global settings
     var registerAddress;
-    var register = wmsx.Util.arrayFill(new Array(0x38), 0);
+    var register = new Array(0x38);
     var rhythmMode;
 
     // Settings per channel(9) / operator(18)
-    var sustain =  wmsx.Util.arrayFill(new Array(9), 0);
-    var instr =    wmsx.Util.arrayFill(new Array(9), 0);
-    var keyOn =    wmsx.Util.arrayFill(new Array(18), 0);
-    var am =       wmsx.Util.arrayFill(new Array(18), 0);
-    var vib =      wmsx.Util.arrayFill(new Array(18), 0);
-    var envType =  wmsx.Util.arrayFill(new Array(18), 0);
-    var ksr =      wmsx.Util.arrayFill(new Array(18), 0);
-    var multi =    wmsx.Util.arrayFill(new Array(18), 0);
-    var ksl =      wmsx.Util.arrayFill(new Array(18), 0);
-    var halfWave = wmsx.Util.arrayFill(new Array(18), 0);
-    var ar =       wmsx.Util.arrayFill(new Array(18), 0);
-    var dr =       wmsx.Util.arrayFill(new Array(18), 0);
-    var sl =       wmsx.Util.arrayFill(new Array(18), 0);
-    var rr =       wmsx.Util.arrayFill(new Array(18), 0);
-    var fNum  =    wmsx.Util.arrayFill(new Array(18), 0);
-    var block =    wmsx.Util.arrayFill(new Array(18), 0);
-    var volume =   wmsx.Util.arrayFill(new Array(18), 0);
-    var modTL =    wmsx.Util.arrayFill(new Array(18), 0);
+    var sustain =  new Array(9);
+    var instr =    new Array(9);
+    var keyOn =    new Array(18);
+    var am =       new Array(18);
+    var vib =      new Array(18);
+    var envType =  new Array(18);
+    var ksr =      new Array(18);
+    var multi =    new Array(18);
+    var ksl =      new Array(18);
+    var halfWave = new Array(18);
+    var ar =       new Array(18);
+    var dr =       new Array(18);
+    var sl =       new Array(18);
+    var rr =       new Array(18);
+    var fNum  =    new Array(18);
+    var block =    new Array(18);
+    var volume =   new Array(18);
+    var modTL =    new Array(18);
 
     // Computed settings per channel(9) / operator(18)
-    var fbShift =   wmsx.Util.arrayFill(new Array(9), 0);
-    var volModAtt = wmsx.Util.arrayFill(new Array(18), 0);       // For Volume or ModTL
+    var fbShift =   new Array(9);
+    var volModAtt = new Array(18);       // For Volume or ModTL
 
     // Dynamic values per channel(9) / operator(18). May change as time passes without being set by software
-    var amAtt =    wmsx.Util.arrayFill(new Array(18), 0);
-    var envAtt =   wmsx.Util.arrayFill(new Array(18), 0);
-    var kslAtt =   wmsx.Util.arrayFill(new Array(18), 0);
-    var totalAtt = wmsx.Util.arrayFill(new Array(18), 0);
+    var amAtt =    new Array(18);
+    var envAtt =   new Array(18);
+    var kslAtt =   new Array(18);
+    var totalAtt = new Array(18);
 
-    var envStep =              wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepLevelDur =      wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepLevelIncClock = wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepLevelInc =      wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepNext =          wmsx.Util.arrayFill(new Array(18), 0);
-    var envStepNextAtLevel =   wmsx.Util.arrayFill(new Array(18), 0);
-    var envLevel =             wmsx.Util.arrayFill(new Array(18), 0);
+    var envStep =              new Array(18);
+    var envStepLevelDur =      new Array(18);
+    var envStepLevelIncClock = new Array(18);
+    var envStepLevelInc =      new Array(18);
+    var envStepNext =          new Array(18);
+    var envStepNextAtLevel =   new Array(18);
+    var envLevel =             new Array(18);
 
-    var ksrOffset =    wmsx.Util.arrayFill(new Array(18), 0);
+    var ksrOffset =  new Array(18);
 
-    var fbLastMod1 = wmsx.Util.arrayFill(new Array(9), 0);
-    var fbLastMod2 = wmsx.Util.arrayFill(new Array(9), 0);
+    var fbLastMod1 = new Array(9);
+    var fbLastMod2 = new Array(9);
 
-    var phaseInc =     wmsx.Util.arrayFill(new Array(18), 0);
-    var phaseCounter = wmsx.Util.arrayFill(new Array(18), 0);
+    var phaseInc =     new Array(18);
+    var phaseCounter = new Array(18);
 
 
     // Debug vars
@@ -662,6 +714,9 @@ wmsx.YM2413Audio = function(name) {
 
     this.saveState = function() {
         return {
+            n: name,
+            ac: audioConnected,
+
             ra: registerAddress,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
 
@@ -694,6 +749,9 @@ wmsx.YM2413Audio = function(name) {
     this.loadState = function(s) {
         this.reset();
 
+        name = s.n;
+        audioConnected = s.ac;
+
         registerAddress = s.ra;
         var regs = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
         for (var r = 0; r < regs.length; r++) registerWrite(r, regs[r]);
@@ -721,10 +779,12 @@ wmsx.YM2413Audio = function(name) {
 
         this.phaseInc = phaseInc = s.phi;
         this.phaseCounter = phaseCounter = s.phc;
+
+        if (audioConnected) connectAudio();
     };
 
 
-    init(this);
+    init();
 
     FM = this;
 
@@ -732,4 +792,13 @@ wmsx.YM2413Audio = function(name) {
         return eval(str);
     };
 
+};
+
+wmsx.YM2413Audio.recreateFromSavestate = function(instance, s) {
+    if (s) {
+        if (!instance) instance = new wmsx.YM2413Audio(s.n);
+        instance.loadState(s);
+        return instance
+    } else
+        return null;
 };

@@ -1,15 +1,23 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// Real Time Clock chip. Optional Device
 // Based on Host clock
 // Alarm and 16Hz/1Hz outputs not observable by MSX so not implemented
 
-wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
+wmsx.RTC = function() {
 
-    this.connectBus = function(bus) {
-        bus.connectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
-        bus.connectOutputDevice(0xb4, this.outputB4);
-        bus.connectInputDevice( 0xb5, this.inputB5);
-        bus.connectOutputDevice(0xb5, this.outputB5);
+    this.connect = function(machine) {
+        machine.bus.connectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0xb4, this.outputB4);
+        machine.bus.connectInputDevice( 0xb5, this.inputB5);
+        machine.bus.connectOutputDevice(0xb5, this.outputB5);
+    };
+
+    this.disconnect = function(machine) {
+        machine.bus.disconnectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.disconnectOutputDevice(0xb4, this.outputB4);
+        machine.bus.disconnectInputDevice( 0xb5, this.inputB5);
+        machine.bus.disconnectOutputDevice(0xb5, this.outputB5);
     };
 
     this.powerOn = function() {
@@ -29,8 +37,6 @@ wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
     };
 
     this.outputB5 = function(val) {
-        if (!active) return;
-
         val &= 0xf;
         if (regAddress < 0xd) {
             switch (mode) {
@@ -61,8 +67,6 @@ wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
     };
 
     this.inputB5 = function() {
-        if (!active) return 0xff;
-
         var res;
         if (regAddress < 0xd) {
             switch (mode) {
@@ -183,7 +187,6 @@ wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
         }
     }
 
-    var active = pActive;
     var mode = 0;
     var clockRunning = true;
 
@@ -204,7 +207,6 @@ wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
     this.saveState = function() {
         return {
             t: Date.now(),
-            a: active,
             m: mode,
             c: clockRunning,
             co: clockOffset, clu: clockLastUpdate, clv: clockLastValue,
@@ -217,7 +219,6 @@ wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
     };
 
     this.loadState = function(s) {
-        active = s.a;
         mode = s.m;
         clockRunning = s.c;
         clockOffset = s.co + (s.t - Date.now());           // Adjust offset to load time
@@ -229,4 +230,13 @@ wmsx.RTC = function(pActive) {             // Can be disabled for MSX1
         regAddress = s.ra;
     };
 
+};
+
+wmsx.RTC.recreateFromSavestate = function(instance, s) {
+    if (s) {
+        if (!instance) instance = new wmsx.RTC();
+        instance.loadState(s);
+        return instance
+    } else
+        return null;
 };

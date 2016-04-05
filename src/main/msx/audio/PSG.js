@@ -5,7 +5,6 @@
 wmsx.PSG = function(audioSocket) {
 
     function init() {
-        audioChannels = new wmsx.PSGAudio(audioSocket);
         registers[14] = 0x3f3f;     // Special 16 bits storing 2 sets of values for 2 Joysticks inputs
         registers[15] = 0x0f;
     }
@@ -20,19 +19,19 @@ wmsx.PSG = function(audioSocket) {
     };
 
     this.powerOn = function() {
-        audioChannels.signalOn();
+        audioChannel.powerOn();
     };
 
     this.powerOff = function() {
-        audioChannels.signalOff();
+        audioChannel.powerOff();
     };
 
     this.reset = function() {
-        audioChannels.reset();
+        audioChannel.reset();
     };
 
     this.getAudioChannel = function() {
-        return audioChannels;
+        return audioChannel;
     };
 
     this.outputA0 = function(val) {
@@ -43,34 +42,34 @@ wmsx.PSG = function(audioSocket) {
         registers[registerAddress] = val;
         switch(registerAddress) {
             case 0: case 1:
-                audioChannels.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
+                audioChannel.setPeriodA(((registers[1] & 0x0f) << 8) | registers[0]);
                 break;
             case 2: case 3:
-                audioChannels.setPeriodB(((registers[3] & 0x0f) << 8) | registers[2]);
+                audioChannel.setPeriodB(((registers[3] & 0x0f) << 8) | registers[2]);
                 break;
             case 4: case 5:
-                audioChannels.setPeriodC(((registers[5] & 0x0f) << 8) | registers[4]);
+                audioChannel.setPeriodC(((registers[5] & 0x0f) << 8) | registers[4]);
                 break;
             case 6:
-                audioChannels.setPeriodN(val & 0x1f);
+                audioChannel.setPeriodN(val & 0x1f);
                 break;
             case 7:
-                audioChannels.setMixerControl(val);
+                audioChannel.setMixerControl(val);
                 break;
             case 8:
-                audioChannels.setAmplitudeA(val);
+                audioChannel.setAmplitudeA(val);
                 break;
             case 9:
-                audioChannels.setAmplitudeB(val);
+                audioChannel.setAmplitudeB(val);
                 break;
             case 10:
-                audioChannels.setAmplitudeC(val);
+                audioChannel.setAmplitudeC(val);
                 break;
             case 11: case 12:
-                audioChannels.setPeriodE((registers[12] << 8) | registers[11]);
+                audioChannel.setPeriodE((registers[12] << 8) | registers[11]);
                 break;
             case 13:
-                audioChannels.setEnvelopeControl(val);
+                audioChannel.setEnvelopeControl(val);
                 break;
         }
     };
@@ -101,7 +100,7 @@ wmsx.PSG = function(audioSocket) {
     var registers = wmsx.Util.arrayFill(new Array(16), 0);      // register14 is special, uses 16 bits for 2 sets of Joysticks inputs
     var register15LowInputMode = false;                         // TODO Take this into account?
 
-    var audioChannels;
+    var audioChannel = new wmsx.PSGAudio(audioSocket);
 
 
     // Savestate  -------------------------------------------
@@ -110,7 +109,7 @@ wmsx.PSG = function(audioSocket) {
         return {
             ra: registerAddress,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(registers),
-            ac: audioChannels.saveState()
+            ac: audioChannel.saveState()
         };
     };
 
@@ -118,7 +117,7 @@ wmsx.PSG = function(audioSocket) {
         registerAddress = s.ra;
         registers = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, registers);
         registers[14] = 0x3f3f;                                 // reset Joysticks inputs
-        audioChannels.loadState(s.ac);
+        audioChannel.loadState(s.ac);
     };
 
 

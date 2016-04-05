@@ -16,8 +16,8 @@ wmsx.CartridgeFMPAC = function(rom) {
         self.sram = sram;
     }
 
-    this.connect = function(machine) {
-        fm.connect(machine);
+    this.connect = function(pMachine) {
+        machine = pMachine;
         updateFMEnable();
     };
 
@@ -26,11 +26,12 @@ wmsx.CartridgeFMPAC = function(rom) {
     };
 
     this.powerOn = function() {
+        fm.powerOn();
         this.reset();
     };
 
     this.powerOff = function() {
-        this.reset();
+        fm.powerOff();
     };
 
     this.reset = function() {
@@ -88,8 +89,10 @@ wmsx.CartridgeFMPAC = function(rom) {
     };
 
     function updateFMEnable() {
-        if (fmEnable & 1) fm.connectAudio();        // bit 0 switches FM on/off
-        else fm.disconnectAudio();
+        if (machine) {
+            if (fmEnable & 1) fm.connect(machine);        // bit 0 switches FM on/off
+            else fm.disconnect(machine);
+        }
     }
 
     var bytes;
@@ -101,6 +104,8 @@ wmsx.CartridgeFMPAC = function(rom) {
 
     var fmEnable;
     var bankOffset;
+
+    var machine;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.FMPAC;
@@ -133,6 +138,7 @@ wmsx.CartridgeFMPAC = function(rom) {
         sramActive = s.sa;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
         fm.loadState(s.fm);
+        updateFMEnable();
     };
 
 

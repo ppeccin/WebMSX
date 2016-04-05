@@ -37,6 +37,14 @@ wmsx.WebAudioSpeaker = function() {
         audioContext = undefined;
     };
 
+    this.mute = function () {
+        mute = true;
+    };
+
+    this.unMute = function () {
+        mute = false;
+    };
+
     this.pause = function () {
         if (processor) processor.disconnect();
     };
@@ -81,11 +89,6 @@ wmsx.WebAudioSpeaker = function() {
     }
 
     function onAudioProcess(event) {
-
-        //console.log(audioContext.currentTime);
-
-        if (audioSignal.length === 0) return;
-
         // Assumes there is only one output channel
         var outputBuffer = event.outputBuffer.getChannelData(0);
         var outputBufferSize = outputBuffer.length;
@@ -93,10 +96,12 @@ wmsx.WebAudioSpeaker = function() {
         // Clear output buffer
         for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer[j] = 0;
 
+        if (audioSignal.length === 0) return;
+
         // Mix all signals, performing resampling on-the-fly
         for (var i = audioSignal.length - 1; i >= 0; i = i - 1) {
             var resampFactor = resamplingFactor[i];
-            var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0);
+            var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
             var inputBuffer = input.buffer;
             var inputBufferSize = input.bufferSize;
 
@@ -127,4 +132,5 @@ wmsx.WebAudioSpeaker = function() {
     //var lowPassFilter;
     var processor;
 
+    var mute = false;
 };
