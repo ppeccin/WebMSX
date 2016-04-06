@@ -17,8 +17,8 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     }
 
     this.connect = function(machine) {
-        audioSocket = machine.getAudioSocket();
-        if (sccConnected) connectSCC();     // needed in LoadStates
+        scc.setAudioSocket(machine.getAudioSocket());
+        if (sccConnected) connectSCC();     // needed after LoadStates
     };
 
     this.disconnect = function(machine) {
@@ -75,7 +75,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     function connectSCC() {
-        scc.connectAudio(audioSocket);
+        scc.connectAudio();
         sccConnected = true;
     }
 
@@ -92,8 +92,6 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     var scc = new wmsx.SCCIAudio();        // will be in SCC mode by default;
     var sccSelected = false;
     var sccConnected = false;
-
-    var audioSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.KonamiSCC;
@@ -129,6 +127,8 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         scc.loadState(s.scc);
         sccSelected = s.scs;
         sccConnected = s.scn;
+
+        if (sccConnected) connectSCC();
     };
 
 

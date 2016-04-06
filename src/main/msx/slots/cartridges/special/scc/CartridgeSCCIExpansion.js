@@ -30,7 +30,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     }
 
     this.connect = function(machine) {
-        audioSocket = machine.getAudioSocket();
+        scc.setAudioSocket(machine.getAudioSocket());
         if (sccConnected) connectSCC();     // needed in LoadStates
     };
 
@@ -128,7 +128,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     }
 
     function connectSCC() {
-        scc.connectAudio(audioSocket);
+        scc.connectAudio();
         sccConnected = true;
     }
 
@@ -146,8 +146,6 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var scc = new wmsx.SCCIAudio();
     var sccSelected, scciSelected = false;
     var sccConnected = false;
-
-    var audioSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.SCCIExpansion;
@@ -190,6 +188,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         sccSelected = s.scs;
         scciSelected = s.sis;
         sccConnected = s.scn;
+
+        if (sccConnected) connectSCC();
     };
 
     this.eval = function(str) {

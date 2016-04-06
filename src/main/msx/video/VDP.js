@@ -216,6 +216,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frame = cycles = lastCPUCyclesComputed = 0;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
+        leftMask = false; leftScrollChar = rightScrollPixel = 0;
         backdropColor = backdropValue = 0;
         pendingBlankingChange = false; pendingBackdropCacheUpdate = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
@@ -359,6 +360,15 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
                 //logInfo("Vertical offset set: " + val);
 
+                break;
+            case 25:
+                if (isV9958) leftMask = (val & 0x02) !== 0;              // MSK
+                break;
+            case 26:
+                if (isV9958) leftScrollChar = val & 0x3f;                // H08-H03
+                break;
+            case 27:
+                if (isV9958) rightScrollPixel = val & 0x07;              // H02-H01
                 break;
             case 44:
                 commandProcessor.cpuWrite(val);
@@ -884,13 +894,12 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG3() {                                           // Graphics 3 (Screen 4)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixel;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
+        var patPos = layoutTableAddress + ((realLine >>> 3) << 5) + leftScrollChar;
         var patPosFinal = patPos + 32;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -904,8 +913,12 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixel + 256;
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteReal);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
+
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixel) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1248,6 +1261,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function paintPattern8(bufferPos, pattern, on, off) {
         frameBackBuffer[bufferPos]     = pattern & 0x80 ? on : off; frameBackBuffer[bufferPos + 1] = pattern & 0x40 ? on : off; frameBackBuffer[bufferPos + 2] = pattern & 0x20 ? on : off; frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? on : off;
         frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? on : off; frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? on : off; frameBackBuffer[bufferPos + 6] = pattern & 0x02 ? on : off; frameBackBuffer[bufferPos + 7] = pattern & 0x01 ? on : off;
+    }
+
+    function paintBackdrop8(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
     }
 
     function paintBackdrop16(bufferPos) {
@@ -1692,9 +1710,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameCanvas.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
         //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
-        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1);         // One extra line for the backdrop cache
+        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);     // One extra line right-overflow and one for the backdrop cache
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
-        backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);
+        backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);
         //backdropFullLineCache = new Uint32Array(frameCanvas.width);
     }
 
@@ -1833,6 +1851,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     var verticalAdjust, horizontalAdjust;
 
+    var leftMask, leftScrollChar, rightScrollPixel;
+
     var layoutTableAddress;                         // Dynamic values, set by program
     var colorTableAddress;
     var patternTableAddress;
@@ -1911,6 +1931,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
+            lm: leftMask, lsc: leftScrollChar, rsp: rightScrollPixel,
             bp: blinkEvenPage, bpd: blinkPageDuration,
             pbc: pendingBlankingChange, pcc: pendingBackdropCacheUpdate,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
@@ -1928,6 +1949,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
+        leftMask = s.lm; leftScrollChar = s.lsc; rightScrollPixel = s.rsp;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingBlankingChange = s.pbc; pendingBackdropCacheUpdate = s.pcc;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;

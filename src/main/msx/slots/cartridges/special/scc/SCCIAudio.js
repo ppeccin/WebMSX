@@ -8,6 +8,19 @@ wmsx.SCCIAudio = function() {
         self.setSCCIMode(false);        // Default in SCC mode for compatibility
     }
 
+    this.setAudioSocket = function(pAudioSocket) {
+        audioSocket = pAudioSocket;
+    };
+
+    this.connectAudio = function() {
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, SAMPLE_RATE, VOLUME);
+        if (audioSocket) audioSocket.connectAudioSignal(audioSignal);
+    };
+
+    this.disconnectAudio = function() {
+        if (audioSignal && audioSocket) audioSocket.disconnectAudioSignal(audioSignal);
+    };
+
     this.reset = function() {
         this.disconnectAudio();
         setMixer(0);
@@ -30,16 +43,6 @@ wmsx.SCCIAudio = function() {
             this.read = readSCC;
             this.write = writeSCC;
         }
-    };
-
-    this.connectAudio = function(pAudioSocket) {
-        audioSocket = pAudioSocket;
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, SAMPLE_RATE, VOLUME);
-        audioSocket.connectAudioSignal(audioSignal);
-    };
-
-    this.disconnectAudio = function() {
-        if (audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
     };
 
     this.nextSample = function() {
