@@ -768,7 +768,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var on =  colorPalette[colorCode >>> 4];
         var off = colorPalette[colorCode & 0xf];
 
-        var patPos = layoutTableAddress + (realLine >>> 3) * 40;            // line / 8 * 40
+        var patPos = layoutTableAddress + (realLine >>> 3) * 40;
 
         paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
         for (var c = 0; c < 40; ++c) {
@@ -791,13 +791,13 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function renderLineModeT2() {                                           // Text (Screen 0 width 80)
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
 
-        paintBackdrop48(bufferPosition); paintBackdrop48(bufferPosition + 512 - 16);
+        paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
 
-        var patPos = layoutTableAddress + (realLine >>> 3) * 80;            // line / 8 * 80
+        var patPos = layoutTableAddress + (realLine >>> 3) * 80;
 
         paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
         if (blinkEvenPage) {                                                // Blink only in Even page
@@ -1105,16 +1105,17 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeT1PatternInfo() {                                // Text (Screen 0)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop24(bufferPos); paintBackdrop24(bufferPos + 256 - 8);
-        bufferPos = bufferPos + 16 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) * 40);          // line / 8 * 40
-        var patPosFinal = patPos + 40;
         var lineInPattern = realLine & 0x07;
-        while (patPos < patPosFinal) {
+
+        var patPos = layoutTableAddress + ((realLine >>> 3) * 40);
+
+        paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
+        for (var c = 0; c < 40; ++c) {
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
                 var on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
@@ -1126,28 +1127,32 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             }
             bufferPos += 6;
         }
+        paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
+        bufferPos -= rightScrollPixels + 256;
 
         // Sprites deactivated
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeT2PatternInfo() {                                // Text (Screen 0 width 80)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
 
-        paintBackdrop48(bufferPos); paintBackdrop48(bufferPos + 512 - 16);
-        bufferPos = bufferPos + 32 + horizontalAdjust * 2;
+        paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + (realLine >>> 3) * 80;            // line / 8 * 80
-        var patPosFinal = patPos + 80;
         var lineInPattern = realLine & 0x07;
         var name, pattern, colorCode, on;
 
+        var patPos = layoutTableAddress + (realLine >>> 3) * 80;
+
+        paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
         if (blinkEvenPage) {                                                // Blink only in Even page
             var blinkPos = colorTableAddress + (realLine >>> 3) * 10;
             var blinkBit = 7;
-            while (patPos < patPosFinal) {
+            for (var c = 0; c < 80; ++c) {
                 var blink = (vram[blinkPos & colorTableAddressMask] >>> blinkBit) & 1;
                 name = vram[patPos++ & layoutTableAddressMask];
                 if (debugModePatternInfoNames) {
@@ -1163,7 +1168,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 bufferPos += 6;
             }
         } else {
-            while (patPos < patPosFinal) {
+            for (c = 0; c < 80; ++c) {
                 name = vram[patPos++ & layoutTableAddressMask];
                 if (debugModePatternInfoNames) {
                     on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
@@ -1176,8 +1181,13 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 bufferPos += 6;
             }
         }
+        paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
+        bufferPos -= (rightScrollPixels << 1) + 512;
 
         // Sprites deactivated
+        if (leftMask) paintBackdrop16(bufferPos); // { paintPattern8(bufferPos, 255, 0xff0000ff, 0); paintPattern8(bufferPos + 8, 255, 0xff0000ff, 0); }
+        if (rightScrollPixels) paintBackdrop16(bufferPos + 512); // { paintPattern8(bufferPos + 512, 255, 0xff0000ff, 0); paintPattern8(bufferPos + 512 + 8, 255, 0xff0000ff, 0); }
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -1190,38 +1200,51 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function renderLineModeMCPatternInfo() {                                // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return renderLineModeMC();
 
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
-        var patPosFinal = patPos + 32;
-        while (patPos < patPosFinal) {
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
             var name = vram[patPos++];
             var pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + (realLine & 0x07)];
             paintPattern8(bufferPos, pattern, 0xffffffff, 0xff000000);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        renderSpritesLineMode1(realLine, bufferPos - 256);
+        renderSpritesLineMode1(realLine, bufferPos);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG1PatternInfo() {                                // Graphics 1 (Screen 1)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
-        var patPosFinal = patPos + 32;
         var lineInPattern = realLine & 0x07;
         var pattern, on, off;
-        while (patPos < patPosFinal) {
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
             var name = vram[patPos++];
             if (debugModePatternInfoNames) {
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
@@ -1240,29 +1263,38 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        renderSpritesLineMode1(realLine, bufferPos - 256);
+        renderSpritesLineMode1(realLine, bufferPos);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG2PatternInfo() {                                // Graphics 2 (Screen 2)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
-        var patPosFinal = patPos + 32;
         var pattern, on, off;
-        while (patPos < patPosFinal) {
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;     // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
+                off = 0xff000000;
                 pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
@@ -1277,25 +1309,33 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        renderSpritesLineMode1(realLine, bufferPos - 256);
+        renderSpritesLineMode1(realLine, bufferPos);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG3PatternInfo() {                                // Graphics 3 (Screen 4)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
-        var patPosFinal = patPos + 32;
         var pattern, on, off;
-        while (patPos < patPosFinal) {
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
             var name = vram[patPos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
@@ -1315,8 +1355,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteReal);
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
