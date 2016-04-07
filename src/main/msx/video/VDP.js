@@ -20,6 +20,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         initDebugPatternTables();
         initSpritesConflictMap();
         mode = 0; modeData = modes[mode];
+        pendingBackdropCacheUpdate = true;
         self.setDefaults();
         commandProcessor = new wmsx.VDPCommandProcessor();
         commandProcessor.connectVDP(self, vram, register, status);
@@ -218,7 +219,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
-        pendingBlankingChange = false; pendingBackdropCacheUpdate = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
         initRegisters();
@@ -761,10 +761,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     // V9958: Only Left Masking and Right Pixel Scroll supported. Left Char Scroll and Scroll Pages not supported
     function renderLineModeT1() {                                           // Text (Screen 0 width 40)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var colorCode = register[7];                                        // fixed text color for all line
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -792,10 +791,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     // V9958: Only Left Masking and Right Pixel Scroll supported. Left Char Scroll and Scroll Pages not supported
     function renderLineModeT2() {                                           // Text (Screen 0 width 80)
-        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
@@ -839,10 +837,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeMC() {                                           // Multicolor (Screen 3)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >>> 2) & 0x01);    // (pattern line % 4) * 2
 
@@ -871,10 +868,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG1() {                                           // Graphics 1 (Screen 1)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
 
@@ -903,10 +899,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG2() {                                           // Graphics 2 (Screen 2)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -937,10 +932,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG3() {                                           // Graphics 3 (Screen 4)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
@@ -971,10 +965,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG4() {                                           // Graphics 4 (Screen 5)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
@@ -1000,11 +993,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG5() {                                           // Graphics 5 (Screen 6)
-        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-
         paintBackdrop32Tiled(bufferPosition); paintBackdrop32Tiled(bufferPosition + 512);
 
-        var pixels;
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
@@ -1016,7 +1007,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             for (var c = 0; c < 32; ++c) {
                 if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
                 for (var m = 0; m < 4; ++m) {
-                    pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                    var pixels = vram[pixelsPos++ & layoutTableAddressMask];
                     frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
                     frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
                     frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
@@ -1044,10 +1035,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG6() {                                           // Graphics 6 (Screen 7)
-        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1073,10 +1063,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG7() {                                           // Graphics 7 (Screen 8)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1100,10 +1089,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeT1PatternInfo() {                                // Text (Screen 0)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
 
@@ -1133,10 +1121,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeT2PatternInfo() {                                // Text (Screen 0 width 80)
-        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var name, pattern, colorCode, on;
@@ -1195,10 +1182,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function renderLineModeMCPatternInfo() {                                // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return renderLineModeMC();
 
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
@@ -1223,10 +1209,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG1PatternInfo() {                                // Graphics 1 (Screen 1)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var pattern, on, off;
@@ -1266,10 +1251,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG2PatternInfo() {                                // Graphics 2 (Screen 2)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
@@ -1311,10 +1295,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG3PatternInfo() {                                // Graphics 3 (Screen 4)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
@@ -1356,10 +1339,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeG7SpriteInfo() {                                 // Graphics 7 (Screen 8)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1827,7 +1809,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);     // One extra line right-overflow and one for the backdrop cache
         frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
         backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);
-        //backdropFullLineCache = new Uint32Array(frameCanvas.width);
     }
 
     function initColorPalette() {
@@ -2048,7 +2029,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
             bp: blinkEvenPage, bpd: blinkPageDuration,
-            pbc: pendingBlankingChange, pcc: pendingBackdropCacheUpdate,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
@@ -2058,8 +2038,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         };
     };
 
-
-    // TODO Backdrop Cache wrong after Load when Power OFF
     this.loadState = function(s) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
@@ -2069,7 +2047,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
         leftScrollCharsInPage = leftScrollChars & 31;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
-        pendingBlankingChange = s.pbc; pendingBackdropCacheUpdate = s.pcc;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
         verticalIntReached = s.vi;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
