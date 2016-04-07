@@ -216,7 +216,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frame = cycles = lastCPUCyclesComputed = 0;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
-        leftMask = leftScroll2Pages = false; leftScrollChars = rightScrollPixels = 0;
+        leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
         pendingBlankingChange = false; pendingBackdropCacheUpdate = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
@@ -361,7 +361,10 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 }
                 break;
             case 26:
-                if (isV9958) leftScrollChars = val & 0x3f;               // H08-H03
+                if (isV9958) {
+                    leftScrollChars = val & 0x3f;                        // H08-H03
+                    leftScrollCharsInPage = leftScrollChars & 31;
+                }
                 break;
             case 27:
                 if (isV9958) rightScrollPixels = val & 0x07;             // H02-H01
@@ -768,11 +771,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var on =  colorPalette[colorCode >>> 4];
         var off = colorPalette[colorCode & 0xf];
 
-        var patPos = layoutTableAddress + (realLine >>> 3) * 40;
+        var namePos = layoutTableAddress + (realLine >>> 3) * 40;
 
         paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
         for (var c = 0; c < 40; ++c) {
-            var name = vram[patPos++];                                      // no masking needed
+            var name = vram[namePos++];                                     // no masking needed
             var pattern = vram[(name << 3) + lineInPattern];                // no masking needed
             paintPattern6(bufferPos, pattern, on, off);
             bufferPos += 6;
@@ -797,7 +800,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
 
-        var patPos = layoutTableAddress + (realLine >>> 3) * 80;
+        var namePos = layoutTableAddress + (realLine >>> 3) * 80;
 
         paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
         if (blinkEvenPage) {                                                // Blink only in Even page
@@ -805,7 +808,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             var blinkBit = 7;
             for (var c = 0; c < 80; ++c) {
                 var blink = (vram[blinkPos & colorTableAddressMask] >>> blinkBit) & 1;
-                name = vram[patPos++ & layoutTableAddressMask];
+                name = vram[namePos++ & layoutTableAddressMask];
                 colorCode = register[blink ? 12 : 7];                       // special colors from register12 if blink bit for position is set
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
                 on = blink ? colorPaletteSolid[colorCode >>> 4] : colorPalette[colorCode >>> 4];    // color 0 is always solid in blink
@@ -819,7 +822,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             on =  colorPalette[colorCode >>> 4];
             off = colorPalette[colorCode & 0xf];
             for (c = 0; c < 80; ++c) {
-                name = vram[patPos++ & layoutTableAddressMask];
+                name = vram[namePos++ & layoutTableAddressMask];
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
                 paintPattern6(bufferPos, pattern, on, off);
                 bufferPos += 6;
@@ -843,15 +846,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >>> 2) & 0x01);    // (pattern line % 4) * 2
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++];                                      // no masking needed
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++];                                     // no masking needed
             var patternLine = (name << 3) + extraPatPos;                    // name * 8 + extra position, no masking needed
             var colorCode = vram[patternLine];                              // no masking needed
             var on =  colorPalette[colorCode >>> 4];
@@ -876,15 +878,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++];                                      // no masking needed
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++];                                     // no masking needed
             var colorCode = vram[colorTableAddress + (name >>> 3)];         // name / 8 (1 color for each 8 patterns), no masking needed
             var pattern = vram[((name << 3) + lineInPattern)];              // name * 8 (8 bytes each pattern) + line inside pattern, no masking needed
             var on =  colorPalette[colorCode >>> 4];
@@ -911,15 +912,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;     // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++] | blockExtra;                                        // no masking needed
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++] | blockExtra;                                       // no masking needed
             var colorCode = vram[((name << 3) + lineInColor) & colorTableAddressMask];     // (8 bytes each pattern) + line inside pattern
             var pattern = vram[((name << 3) + lineInPattern) & patternTableAddressMask];
             var on =  colorPalette[colorCode >>> 4];
@@ -946,15 +946,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++] | blockExtra;                                       // no masking needed
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++] | blockExtra;                                      // no masking needed
             var colorCode = vram[((name << 3) + lineInColor) & colorTableAddressMask];    // (8 bytes each pattern) + line inside pattern
             var pattern = vram[((name << 3) + lineInPattern) & patternTableAddressMask];
             var on =  colorPalette[colorCode >>> 4];
@@ -979,10 +978,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
-        var leftScrollInPage = leftScrollChars & 31;
-        var pixelsPos = pixelsPosBase + (leftScrollInPage << 2);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 2);
         if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
@@ -1010,10 +1008,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
-        var leftScrollInPage = leftScrollChars & 31;
-        var pixelsPos = pixelsPosBase + (leftScrollInPage << 2);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 2);
         if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         if (color0Solid)                                                    // Normal paint for TP = 1
             for (var c = 0; c < 32; ++c) {
@@ -1054,10 +1051,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
-        var leftScrollInPage = leftScrollChars & 31;
-        var pixelsPos = pixelsPosBase + (leftScrollInPage << 3);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
         if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask;   // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
@@ -1084,10 +1080,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
-        var leftScrollInPage = leftScrollChars & 31;
-        var pixelsPos = pixelsPosBase + (leftScrollInPage << 3);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
         if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
@@ -1112,11 +1107,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
 
-        var patPos = layoutTableAddress + ((realLine >>> 3) * 40);
+        var namePos = layoutTableAddress + ((realLine >>> 3) * 40);
 
         paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
         for (var c = 0; c < 40; ++c) {
-            var name = vram[patPos++];
+            var name = vram[namePos++];
             if (debugModePatternInfoNames) {
                 var on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 var pattern = vram[DEBUG_PAT_DIGI6_TABLE_ADDRESS + (name << 3) + lineInPattern];
@@ -1146,7 +1141,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var lineInPattern = realLine & 0x07;
         var name, pattern, colorCode, on;
 
-        var patPos = layoutTableAddress + (realLine >>> 3) * 80;
+        var namePos = layoutTableAddress + (realLine >>> 3) * 80;
 
         paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
         if (blinkEvenPage) {                                                // Blink only in Even page
@@ -1154,7 +1149,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             var blinkBit = 7;
             for (var c = 0; c < 80; ++c) {
                 var blink = (vram[blinkPos & colorTableAddressMask] >>> blinkBit) & 1;
-                name = vram[patPos++ & layoutTableAddressMask];
+                name = vram[namePos++ & layoutTableAddressMask];
                 if (debugModePatternInfoNames) {
                     on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                     if (blink) on &= 0xffa0a0a0;
@@ -1169,7 +1164,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             }
         } else {
             for (c = 0; c < 80; ++c) {
-                name = vram[patPos++ & layoutTableAddressMask];
+                name = vram[namePos++ & layoutTableAddressMask];
                 if (debugModePatternInfoNames) {
                     on = name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                     pattern = vram[DEBUG_PAT_DIGI6_TABLE_ADDRESS + (name << 3) + lineInPattern];
@@ -1206,15 +1201,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++];
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++];
             var pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + (realLine & 0x07)];
             paintPattern8(bufferPos, pattern, 0xffffffff, 0xff000000);
             bufferPos += 8;
@@ -1237,15 +1231,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var lineInPattern = realLine & 0x07;
         var pattern, on, off;
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++];
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++];
             if (debugModePatternInfoNames) {
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
                 off = 0xff000000;
@@ -1282,15 +1275,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var blockExtra = (realLine & 0xc0) << 2;
         var pattern, on, off;
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;     // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++] | blockExtra;
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
@@ -1328,15 +1320,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var blockExtra = (realLine & 0xc0) << 2;
         var pattern, on, off;
 
-        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
-        var leftScrollInPage = leftScrollChars & 31;
-        var patPos = patPosBase + leftScrollInPage;
-        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var namePos = namePosBase + leftScrollCharsInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
-            var name = vram[patPos++] | blockExtra;
+            if (c === scrollCharJump) namePos = leftScroll2Pages && leftScrollChars >= 32 ? namePosBase & modeData.evenPageMask : namePosBase;
+            var name = vram[namePos++] | blockExtra;
             if (debugModePatternInfoNames) {
                 name &= 0xff;
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
@@ -1372,10 +1363,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
-        var leftScrollInPage = leftScrollChars & 31;
-        var pixelsPos = pixelsPosBase + (leftScrollInPage << 3);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
         if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
-        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
@@ -1414,15 +1404,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
     }
 
-    function paintBackdrop24(bufferPos) {
-        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
-        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
-        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
-        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
-        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
-        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
-    }
-
     function paintBackdrop32(bufferPos) {
         frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
         frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
@@ -1432,21 +1413,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
         frameBackBuffer[bufferPos + 24] = backdropValue; frameBackBuffer[bufferPos + 25] = backdropValue; frameBackBuffer[bufferPos + 26] = backdropValue; frameBackBuffer[bufferPos + 27] = backdropValue;
         frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
-    }
-
-    function paintBackdrop48(bufferPos) {
-        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
-        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
-        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
-        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
-        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
-        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
-        frameBackBuffer[bufferPos + 24] = backdropValue; frameBackBuffer[bufferPos + 25] = backdropValue; frameBackBuffer[bufferPos + 26] = backdropValue; frameBackBuffer[bufferPos + 27] = backdropValue;
-        frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
-        frameBackBuffer[bufferPos + 32] = backdropValue; frameBackBuffer[bufferPos + 33] = backdropValue; frameBackBuffer[bufferPos + 34] = backdropValue; frameBackBuffer[bufferPos + 35] = backdropValue;
-        frameBackBuffer[bufferPos + 36] = backdropValue; frameBackBuffer[bufferPos + 37] = backdropValue; frameBackBuffer[bufferPos + 38] = backdropValue; frameBackBuffer[bufferPos + 39] = backdropValue;
-        frameBackBuffer[bufferPos + 40] = backdropValue; frameBackBuffer[bufferPos + 41] = backdropValue; frameBackBuffer[bufferPos + 42] = backdropValue; frameBackBuffer[bufferPos + 43] = backdropValue;
-        frameBackBuffer[bufferPos + 44] = backdropValue; frameBackBuffer[bufferPos + 45] = backdropValue; frameBackBuffer[bufferPos + 46] = backdropValue; frameBackBuffer[bufferPos + 47] = backdropValue;
     }
 
     function paintBackdrop16Tiled(bufferPos) {
@@ -1999,7 +1965,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     var verticalAdjust, horizontalAdjust;
 
-    var leftMask, leftScroll2Pages, leftScrollChars, rightScrollPixels;
+    var leftMask, leftScroll2Pages, leftScrollChars, leftScrollCharsInPage, rightScrollPixels;
 
     var layoutTableAddress;                         // Dynamic values, set by program
     var colorTableAddress;
@@ -2101,6 +2067,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
+        leftScrollCharsInPage = leftScrollChars & 31;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingBlankingChange = s.pbc; pendingBackdropCacheUpdate = s.pcc;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
@@ -2119,7 +2086,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         // TODO Remove Backward compatibility
         if (leftMask === undefined) {
-            leftMask = leftScroll2Pages = false; leftScrollChars = rightScrollPixels = 0;
+            leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         }
     };
 
