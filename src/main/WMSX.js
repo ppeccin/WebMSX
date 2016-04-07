@@ -96,7 +96,7 @@ WMSX.presets = {
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]],
         SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
-        _INCLUDE:           "MSX2DISK, RAM256"
+        _INCLUDE:           "MSX2DISK, RAM512"
     },
 
     MSX2DISK: {

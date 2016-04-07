@@ -188,7 +188,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     };
 
     this.togglePalettes = function() {
-        videoSignal.showOSD("Color Mode not supported in v2.0 yet!", true);    // TODO Verify
+        videoSignal.showOSD("Color Mode not supported in v2.0 yet!", true);    // TODO Implement?
     };
 
     this.toggleDebugModes = function() {
@@ -216,7 +216,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frame = cycles = lastCPUCyclesComputed = 0;
         dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
-        leftMask = false; leftScrollChar = rightScrollPixel = 0;
+        leftMask = leftScroll2Pages = false; leftScrollChars = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
         pendingBlankingChange = false; pendingBackdropCacheUpdate = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
@@ -230,7 +230,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         updateTransparency();
         updateSynchronization();
         updateBlinking();
-        updatePageAlternance();
         beginFrame();
     };
 
@@ -276,13 +275,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 if (mod & 0x03) updateSpritesConfig();                   // SI, MAG
                 break;
             case 2:
-                if ((mod & 0x7f) === 0) break;
-                add = (mode === 0x07 || mode === 0x05 ? (val << 11) | 0x400 : val << 10) & 0x1ffff;     // Mode G6 and G7 have different A16 position
-                layoutTableAddress = add & modeData.layTBase;
-                layoutTableAddressMask = add | layoutTableAddressMaskBase;
-
-                //logInfo(/* "Setting: " + val.toString(16) + " to " + */ "NameTableAddress: " + layoutTableAddress.toString(16));
-
+                if (mod & 0x7f) updateLayoutTableAddress();
                 break;
             case 10:
                 if ((mod & 0x07) === 0) break;
@@ -327,7 +320,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             case 9:
                 if (mod & 0x80) updateSignalMetrics();                   // LN
                 else if (mod & 0x08) updateSignalMetrics();              // IL. Already OK if LN was changed
-                if (mod & 0x04) updatePageAlternance();                  // EO
+                if (mod & 0x04) updateLayoutTableAddressMask();          // EO
                 if (mod & 0x02) updateVideoStandardSoft();               // NT
                 break;
             case 13:
@@ -362,13 +355,16 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
                 break;
             case 25:
-                if (isV9958) leftMask = (val & 0x02) !== 0;              // MSK
+                if (isV9958) {
+                    leftMask = (val & 0x02) !== 0;                       // MSK
+                    leftScroll2Pages = (val & 0x01) !== 0;               // SP2
+                }
                 break;
             case 26:
-                if (isV9958) leftScrollChar = val & 0x3f;                // H08-H03
+                if (isV9958) leftScrollChars = val & 0x3f;               // H08-H03
                 break;
             case 27:
-                if (isV9958) rightScrollPixel = val & 0x07;              // H02-H01
+                if (isV9958) rightScrollPixels = val & 0x07;             // H02-H01
                 break;
             case 44:
                 commandProcessor.cpuWrite(val);
@@ -377,6 +373,21 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 commandProcessor.startCommand(val);
                 break;
         }
+    }
+
+    function updateLayoutTableAddress() {
+        var add = (mode === 0x07 || mode === 0x05 ? (register[2] << 11) | 0x400 : register[2] << 10) & 0x1ffff;    // Mode G6 and G7 have different address bits position
+        layoutTableAddress = add & modeData.layTBase;
+        layoutTableAddressMaskSetValue = add | layoutTableAddressMaskBase;
+        updateLayoutTableAddressMask();
+
+        //logInfo(/* "Setting: " + reg.toString(16) + " to " + */ "LayoutTableAddress: " + layoutTableAddress.toString(16));
+    }
+
+    // Consider Alternative Page (EO and Blink)
+    function updateLayoutTableAddressMask() {
+        layoutTableAddressMask = layoutTableAddressMaskSetValue &
+            (blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? modeData.blinkPageMask : ~0);
     }
 
     function updateSpritePatternTableAddress() {
@@ -593,9 +604,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         //logInfo("Update Mode: " + mode.toString(16));
 
         // Update Tables base addresses
-        add = (mode === 0x07 || mode === 0x05 ? (register[2] << 11) | 0x400 : register[2] << 10) & 0x1ffff;       // Mode G6 and G7 have different A16 position
-        layoutTableAddress = add & modeData.layTBase;
-        layoutTableAddressMask = add | layoutTableAddressMaskBase;
+        updateLayoutTableAddress();
         add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
         colorTableAddress = add & modeData.colorTBase;
         colorTableAddressMask = add | colorTableAddressMaskBase;
@@ -734,10 +743,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         } else {
             blinkEvenPage = true;  blinkPageDuration = 1;        // Force next page to be the Even page and let alternance start
         }
-    }
-
-    function updatePageAlternance() {
-        alternativePageOffset = blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? -modeData.pageSize : 0;     // Consider EO (both register and flag)
+        updateLayoutTableAddressMask();                          // To reflect correct page
     }
 
     function renderLineBorders() {
@@ -750,46 +756,54 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         renderLineBorders();
     }
 
+    // V9958: Only Left Masking and Right Pixel Scroll supported. Left Char Scroll and Scroll Pages not supported
     function renderLineModeT1() {                                           // Text (Screen 0 width 40)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop24(bufferPos); paintBackdrop24(bufferPos + 256 - 8);
-        bufferPos = bufferPos + 16 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + (realLine >>> 3) * 40;            // line / 8 * 40
-        var patPosFinal = patPos + 40;
         var colorCode = register[7];                                        // fixed text color for all line
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var on =  colorPalette[colorCode >>> 4];
         var off = colorPalette[colorCode & 0xf];
-        while (patPos < patPosFinal) {
+
+        var patPos = layoutTableAddress + (realLine >>> 3) * 40;            // line / 8 * 40
+
+        paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
+        for (var c = 0; c < 40; ++c) {
             var name = vram[patPos++];                                      // no masking needed
             var pattern = vram[(name << 3) + lineInPattern];                // no masking needed
             paintPattern6(bufferPos, pattern, on, off);
             bufferPos += 6;
         }
+        paintBackdrop8(bufferPos); bufferPos += 8;                          // Text padding
+        bufferPos -= rightScrollPixels + 256;
 
         // Sprites deactivated
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
+    // V9958: Only Left Masking and Right Pixel Scroll supported. Left Char Scroll and Scroll Pages not supported
     function renderLineModeT2() {                                           // Text (Screen 0 width 80)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
 
-        paintBackdrop48(bufferPos); paintBackdrop48(bufferPos + 512 - 16);
-        bufferPos = bufferPos + 32 + horizontalAdjust * 2;
+        paintBackdrop48(bufferPosition); paintBackdrop48(bufferPosition + 512 - 16);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + (realLine >>> 3) * 80;            // line / 8 * 80
-        var patPosFinal = patPos + 80;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
 
+        var patPos = layoutTableAddress + (realLine >>> 3) * 80;            // line / 8 * 80
+
+        paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
         if (blinkEvenPage) {                                                // Blink only in Even page
             var blinkPos = colorTableAddress + (realLine >>> 3) * 10;
             var blinkBit = 7;
-            while (patPos < patPosFinal) {
+            for (var c = 0; c < 80; ++c) {
                 var blink = (vram[blinkPos & colorTableAddressMask] >>> blinkBit) & 1;
                 name = vram[patPos++ & layoutTableAddressMask];
                 colorCode = register[blink ? 12 : 7];                       // special colors from register12 if blink bit for position is set
@@ -804,54 +818,72 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             colorCode = register[7];
             on =  colorPalette[colorCode >>> 4];
             off = colorPalette[colorCode & 0xf];
-            while (patPos < patPosFinal) {
+            for (c = 0; c < 80; ++c) {
                 name = vram[patPos++ & layoutTableAddressMask];
                 pattern = vram[(name << 3) + lineInPattern];                // no masking needed
                 paintPattern6(bufferPos, pattern, on, off);
                 bufferPos += 6;
             }
         }
+        paintBackdrop16(bufferPos); bufferPos += 16;                        // Text padding
+        bufferPos -= (rightScrollPixels << 1) + 512;
 
         // Sprites deactivated
+        if (leftMask) paintBackdrop16(bufferPos); // { paintPattern8(bufferPos, 255, 0xff0000ff, 0); paintPattern8(bufferPos + 8, 255, 0xff0000ff, 0); }
+        if (rightScrollPixels) paintBackdrop16(bufferPos + 512); // { paintPattern8(bufferPos + 512, 255, 0xff0000ff, 0); paintPattern8(bufferPos + 512 + 8, 255, 0xff0000ff, 0); }
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeMC() {                                           // Multicolor (Screen 3)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
-        var patPosFinal = patPos + 32;
         var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >>> 2) & 0x01);    // (pattern line % 4) * 2
-        while (patPos < patPosFinal) {
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
             var name = vram[patPos++];                                      // no masking needed
             var patternLine = (name << 3) + extraPatPos;                    // name * 8 + extra position, no masking needed
             var colorCode = vram[patternLine];                              // no masking needed
             var on =  colorPalette[colorCode >>> 4];
             var off = colorPalette[colorCode & 0xf];
-            paintPattern8(bufferPos, 0xf0, on, off);                 // always solid blocks of front and back colors;
+            paintPattern8(bufferPos, 0xf0, on, off);                        // always solid blocks of front and back colors;
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        renderSpritesLineMode1(realLine, bufferPos - 256);
+        renderSpritesLineMode1(realLine, bufferPos);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG1() {                                           // Graphics 1 (Screen 1)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
-        var patPosFinal = patPos + 32;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
-        while (patPos < patPosFinal) {
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
             var name = vram[patPos++];                                      // no masking needed
             var colorCode = vram[colorTableAddress + (name >>> 3)];         // name / 8 (1 color for each 8 patterns), no masking needed
             var pattern = vram[((name << 3) + lineInPattern)];              // name * 8 (8 bytes each pattern) + line inside pattern, no masking needed
@@ -860,26 +892,34 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        renderSpritesLineMode1(realLine, bufferPos - 256);
+        renderSpritesLineMode1(realLine, bufferPos);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG2() {                                           // Graphics 2 (Screen 2)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
-        var patPosFinal = patPos + 32;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
-        while (patPos < patPosFinal) {
-            var name = vram[patPos++] | blockExtra;                         // no masking needed
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;     // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
+            var name = vram[patPos++] | blockExtra;                                        // no masking needed
             var colorCode = vram[((name << 3) + lineInColor) & colorTableAddressMask];     // (8 bytes each pattern) + line inside pattern
             var pattern = vram[((name << 3) + lineInPattern) & patternTableAddressMask];
             var on =  colorPalette[colorCode >>> 4];
@@ -887,25 +927,34 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
+        bufferPos -= rightScrollPixels + 256;
 
-        renderSpritesLineMode1(realLine, bufferPos - 256);
+        renderSpritesLineMode1(realLine, bufferPos);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG3() {                                           // Graphics 3 (Screen 4)
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixel;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5) + leftScrollChar;
-        var patPosFinal = patPos + 32;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
-        while (patPos < patPosFinal) {
-            var name = vram[patPos++] | blockExtra;                         // no masking needed
+
+        var patPosBase = layoutTableAddress + ((realLine >>> 3) << 5);
+        var leftScrollInPage = leftScrollChars & 31;
+        var patPos = patPosBase + leftScrollInPage;
+        if (leftScroll2Pages && leftScrollChars < 32) patPos &= modeData.evenPageMask;    // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) patPos = leftScroll2Pages && leftScrollChars >= 32 ? patPosBase & modeData.evenPageMask : patPosBase;
+            var name = vram[patPos++] | blockExtra;                                       // no masking needed
             var colorCode = vram[((name << 3) + lineInColor) & colorTableAddressMask];    // (8 bytes each pattern) + line inside pattern
             var pattern = vram[((name << 3) + lineInPattern) & patternTableAddressMask];
             var on =  colorPalette[colorCode >>> 4];
@@ -913,111 +962,149 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             paintPattern8(bufferPos, pattern, on, off);
             bufferPos += 8;
         }
-        bufferPos -= rightScrollPixel + 256;
+        bufferPos -= rightScrollPixels + 256;
 
         if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
-
         if (leftMask) paintBackdrop8(bufferPos);
-        if (rightScrollPixel) paintBackdrop8(bufferPos + 256);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG4() {                                           // Graphics 4 (Screen 5)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 7);
-        var pixelsPosFinal = pixelsPos + 128;
-        while (pixelsPos < pixelsPosFinal) {
-            var pixels = vram[pixelsPos++ & layoutTableAddressMask];
-            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
-            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
-        }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteReal);
+        var pixelsPosBase = layoutTableAddress + (realLine << 7);
+        var leftScrollInPage = leftScrollChars & 31;
+        var pixelsPos = pixelsPosBase + (leftScrollInPage << 2);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+            for (var m = 0; m < 4; ++m) {
+                var pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            }
+        }
+        bufferPos -= rightScrollPixels + 256;
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG5() {                                           // Graphics 5 (Screen 6)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
 
-        paintBackdrop32Tiled(bufferPos); paintBackdrop32Tiled(bufferPos + 512);
-        bufferPos = bufferPos + 16 + horizontalAdjust * 2;
+        paintBackdrop32Tiled(bufferPosition); paintBackdrop32Tiled(bufferPosition + 512);
 
         var pixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 7);
-        var pixelsPosFinal = pixelsPos + 128;
-        if (color0Solid)                                                    // Normal paint for TP = 1
-            while (pixelsPos < pixelsPosFinal) {
-                pixels = vram[pixelsPos++ & layoutTableAddressMask];
-                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
-                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
-                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
-                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
-            }
-        else                                                                // Tiling for color 0 for TP = 1
-            while (pixelsPos < pixelsPosFinal) {
-                pixels = vram[pixelsPos++ & layoutTableAddressMask];
-                if (pixels & 0xc0) frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
-                else frameBackBuffer[bufferPos++] = backdropTileOdd;
-                if (pixels & 0x30) frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
-                else frameBackBuffer[bufferPos++] = backdropTileEven;
-                if (pixels & 0x0c) frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
-                else frameBackBuffer[bufferPos++] = backdropTileOdd;
-                if (pixels & 0x03) frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
-                else frameBackBuffer[bufferPos++] = backdropTileEven;
-            }
 
-        if (spritesEnabled) renderSpritesLineMode2Tiled(realLine, bufferPos - 512);
+        var pixelsPosBase = layoutTableAddress + (realLine << 7);
+        var leftScrollInPage = leftScrollChars & 31;
+        var pixelsPos = pixelsPosBase + (leftScrollInPage << 2);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        if (color0Solid)                                                    // Normal paint for TP = 1
+            for (var c = 0; c < 32; ++c) {
+                if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+                for (var m = 0; m < 4; ++m) {
+                    pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                    frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                    frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                    frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                    frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
+                }
+            }
+        else                                                                // Tiling for color 0 for TP = 0
+            for (c = 0; c < 32; ++c) {
+                if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+                for (m = 0; m < 4; ++m) {
+                    pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                    frameBackBuffer[bufferPos++] = (pixels & 0xc0) ? colorPaletteSolid[pixels >>> 6] : backdropTileOdd;
+                    frameBackBuffer[bufferPos++] = (pixels & 0x30) ? colorPaletteSolid[(pixels >>> 4) & 0x03] : backdropTileEven;
+                    frameBackBuffer[bufferPos++] = (pixels & 0x0c) ? colorPaletteSolid[(pixels >>> 2) & 0x03] : backdropTileOdd;
+                    frameBackBuffer[bufferPos++] = (pixels & 0x03) ? colorPaletteSolid[pixels & 0x03] : backdropTileEven;
+                }
+            }
+        bufferPos -= (rightScrollPixels << 1) + 512;
+
+        if (spritesEnabled) renderSpritesLineMode2Tiled(realLine, bufferPos);
+        if (leftMask) paintBackdrop16Tiled(bufferPos);
+        if (rightScrollPixels) paintBackdrop16Tiled(bufferPos + 512);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG6() {                                           // Graphics 6 (Screen 7)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
 
-        paintBackdrop32(bufferPos); paintBackdrop32(bufferPos + 512);
-        bufferPos = bufferPos + 16 + horizontalAdjust * 2;
+        paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 8);
-        var pixelsPosFinal = pixelsPos + 256;
-        while (pixelsPos < pixelsPosFinal) {
-            var pixels = vram[pixelsPos++ & layoutTableAddressMask];
-            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
-            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
-        }
 
-        if (spritesEnabled) renderSpritesLineMode2Stretched(realLine, bufferPos - 512, colorPaletteReal);
+        var pixelsPosBase = layoutTableAddress + (realLine << 8);
+        var leftScrollInPage = leftScrollChars & 31;
+        var pixelsPos = pixelsPosBase + (leftScrollInPage << 3);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask;   // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+            for (var m = 0; m < 8; ++m) {
+                var pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            }
+        }
+        bufferPos -= (rightScrollPixels << 1) + 512;
+
+        if (spritesEnabled) renderSpritesLineMode2Stretched(realLine, bufferPos, colorPaletteReal);
+        if (leftMask) paintBackdrop16(bufferPos);
+        if (rightScrollPixels) paintBackdrop16(bufferPos + 512);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function renderLineModeG7() {                                           // Graphics 7 (Screen 8)
-        var bufferPos = bufferPosition;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 8);
-        var pixelsPosFinal = pixelsPos + 256;
-        while (pixelsPos < pixelsPosFinal) {
-            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
-        }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteG7);       // Special fixed palette
+        var pixelsPosBase = layoutTableAddress + (realLine << 8);
+        var leftScrollInPage = leftScrollChars & 31;
+        var pixelsPos = pixelsPosBase + (leftScrollInPage << 3);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+            for (var m = 0; m < 8; ++m) {
+                frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
+            }
+        }
+        bufferPos -= rightScrollPixels + 256;
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteG7);       // Special fixed palette
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeT1PatternInfo() {                                      // Text (Screen 0)
+    function renderLineModeT1PatternInfo() {                                // Text (Screen 0)
         var bufferPos = bufferPosition;
 
         paintBackdrop24(bufferPos); paintBackdrop24(bufferPos + 256 - 8);
@@ -1045,7 +1132,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeT2PatternInfo() {                                      // Text (Screen 0 width 80)
+    function renderLineModeT2PatternInfo() {                                // Text (Screen 0 width 80)
         var bufferPos = bufferPosition;
 
         paintBackdrop48(bufferPos); paintBackdrop48(bufferPos + 512 - 16);
@@ -1100,7 +1187,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? low : off;  frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? low : off;  frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? low : off;
     }
 
-    function renderLineModeMCPatternInfo() {                                      // Multicolor (Screen 3)
+    function renderLineModeMCPatternInfo() {                                // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return renderLineModeMC();
 
         var bufferPos = bufferPosition;
@@ -1109,7 +1196,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPos = bufferPos + 8 + horizontalAdjust;
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);          // line / 8 * 32
+        var patPos = layoutTableAddress + ((realLine >>> 3) << 5);
         var patPosFinal = patPos + 32;
         while (patPos < patPosFinal) {
             var name = vram[patPos++];
@@ -1123,7 +1210,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG1PatternInfo() {                                      // Graphics 1 (Screen 1)
+    function renderLineModeG1PatternInfo() {                                // Graphics 1 (Screen 1)
         var bufferPos = bufferPosition;
 
         paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
@@ -1159,7 +1246,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG2PatternInfo() {                                      // Graphics 2 (Screen 2)
+    function renderLineModeG2PatternInfo() {                                // Graphics 2 (Screen 2)
         var bufferPos = bufferPosition;
 
         paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
@@ -1176,7 +1263,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             if (debugModePatternInfoNames) {
                 name &= 0xff;
                 on =  name === 0 || name === 0x20 ? 0xffee0000 : 0xffffffff;
-                off = 0xff000000;
                 pattern = vram[DEBUG_PAT_DIGI8_TABLE_ADDRESS + (name << 3) + lineInPattern];
             } else if (debugModePatternInfoBlocks) {
                 var colorCode = vram[(colorTableAddress + (name << 3) + lineInPattern) & colorTableAddressMask];
@@ -1197,7 +1283,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG3PatternInfo() {                                      // Graphics 3 (Screen 4)
+    function renderLineModeG3PatternInfo() {                                // Graphics 3 (Screen 4)
         var bufferPos = bufferPosition;
 
         paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
@@ -1235,20 +1321,30 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG7SpriteInfo() {                                      // Graphics 7 (Screen 8)
-        var bufferPos = bufferPosition;
+    function renderLineModeG7SpriteInfo() {                                 // Graphics 7 (Screen 8)
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
 
-        paintBackdrop16(bufferPos); paintBackdrop16(bufferPos + 256);
-        bufferPos = bufferPos + 8 + horizontalAdjust;
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-        var pixelsPos = layoutTableAddress + alternativePageOffset + (realLine << 8);
-        var pixelsPosFinal = pixelsPos + 256;
-        while (pixelsPos < pixelsPosFinal) {
-            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & DEBUG_DIM_ALPHA_MASK;
-        }
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos - 256, colorPaletteG7);       // Special fixed palette
+        var pixelsPosBase = layoutTableAddress + (realLine << 8);
+        var leftScrollInPage = leftScrollChars & 31;
+        var pixelsPos = pixelsPosBase + (leftScrollInPage << 3);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
+        var scrollCharJump = leftScrollInPage ? 32 - leftScrollInPage : -1;
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+            for (var m = 0; m < 8; ++m) {
+                frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & DEBUG_DIM_ALPHA_MASK;
+            }
+        }
+        bufferPos -= rightScrollPixels + 256;
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteG7);       // Special fixed palette
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1308,6 +1404,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameBackBuffer[bufferPos + 36] = backdropValue; frameBackBuffer[bufferPos + 37] = backdropValue; frameBackBuffer[bufferPos + 38] = backdropValue; frameBackBuffer[bufferPos + 39] = backdropValue;
         frameBackBuffer[bufferPos + 40] = backdropValue; frameBackBuffer[bufferPos + 41] = backdropValue; frameBackBuffer[bufferPos + 42] = backdropValue; frameBackBuffer[bufferPos + 43] = backdropValue;
         frameBackBuffer[bufferPos + 44] = backdropValue; frameBackBuffer[bufferPos + 45] = backdropValue; frameBackBuffer[bufferPos + 46] = backdropValue; frameBackBuffer[bufferPos + 47] = backdropValue;
+    }
+
+    function paintBackdrop16Tiled(bufferPos) {
+        var odd = backdropTileOdd; var even = backdropTileEven;
+        frameBackBuffer[bufferPos]      = odd; frameBackBuffer[bufferPos +  1] = even; frameBackBuffer[bufferPos +  2] = odd; frameBackBuffer[bufferPos +  3] = even;
+        frameBackBuffer[bufferPos +  4] = odd; frameBackBuffer[bufferPos +  5] = even; frameBackBuffer[bufferPos +  6] = odd; frameBackBuffer[bufferPos +  7] = even;
+        frameBackBuffer[bufferPos +  8] = odd; frameBackBuffer[bufferPos +  9] = even; frameBackBuffer[bufferPos + 10] = odd; frameBackBuffer[bufferPos + 11] = even;
+        frameBackBuffer[bufferPos + 12] = odd; frameBackBuffer[bufferPos + 13] = even; frameBackBuffer[bufferPos + 14] = odd; frameBackBuffer[bufferPos + 15] = even;
     }
 
     function paintBackdrop32Tiled(bufferPos) {
@@ -1677,7 +1781,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             bufferLineAdvance = LINE_WIDTH;
         }
 
-        updatePageAlternance();
+        // Update mask to reflect correct page (Blink and EO)
+        updateLayoutTableAddressMask();
     }
 
     function finishFrame() {
@@ -1799,7 +1904,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     this.vram = vram;
 
     var frame;
-    var blinkEvenPage, blinkPageDuration, alternativePageOffset;
+    var blinkEvenPage, blinkPageDuration, layoutShowEvenPage;
 
     var videoStandard;
     var desiredBaseFrequency;             // Will depend on VideoStandard and detected Host Native Video Frequency
@@ -1851,7 +1956,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     var verticalAdjust, horizontalAdjust;
 
-    var leftMask, leftScrollChar, rightScrollPixel;
+    var leftMask, leftScroll2Pages, leftScrollChars, rightScrollPixels;
 
     var layoutTableAddress;                         // Dynamic values, set by program
     var colorTableAddress;
@@ -1860,6 +1965,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var spritePatternTableAddress;
 
     var layoutTableAddressMask;                     // Dynamic values, depends on mode
+    var layoutTableAddressMaskSetValue;             // Will contain the orignal mask, with no Alternative Page included
     var colorTableAddressMask;
     var patternTableAddressMask;
 
@@ -1868,18 +1974,18 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFill(new Array(32),
-                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width:   0, layLineBytes:   0, pageSize:     0, renderLine: renderLineBorders, renderLinePatternInfo: renderLineBorders,           spriteMode: 0 });
+                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width:   0, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine: renderLineBorders, renderLinePatternInfo: renderLineBorders,           spriteMode: 0 });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT1,  renderLinePatternInfo: renderLineModeT1PatternInfo, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeT2,  renderLinePatternInfo: renderLineModeT2PatternInfo, spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeMC,  renderLinePatternInfo: renderLineModeMCPatternInfo, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG1,  renderLinePatternInfo: renderLineModeG1PatternInfo, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG2,  renderLinePatternInfo: renderLineModeG2PatternInfo, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, pageSize:     0, renderLine: renderLineModeG3,  renderLinePatternInfo: renderLineModeG3PatternInfo, spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, pageSize: 32768, renderLine: renderLineModeG4,  renderLinePatternInfo: renderLineModeG4,            spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, pageSize: 32768, renderLine: renderLineModeG5,  renderLinePatternInfo: renderLineModeG5,            spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, pageSize: 65536, renderLine: renderLineModeG6,  renderLinePatternInfo: renderLineModeG6,            spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, pageSize: 65536, renderLine: renderLineModeG7,  renderLinePatternInfo: renderLineModeG7,            spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeT1,  renderLinePatternInfo: renderLineModeT1PatternInfo, spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeT2,  renderLinePatternInfo: renderLineModeT2PatternInfo, spriteMode: 0 };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeMC,  renderLinePatternInfo: renderLineModeMCPatternInfo, spriteMode: 1 };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeG1,  renderLinePatternInfo: renderLineModeG1PatternInfo, spriteMode: 1 };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeG2,  renderLinePatternInfo: renderLineModeG2PatternInfo, spriteMode: 1 };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine: renderLineModeG3,  renderLinePatternInfo: renderLineModeG3PatternInfo, spriteMode: 2 };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine: renderLineModeG4,  renderLinePatternInfo: renderLineModeG4,            spriteMode: 2 };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine: renderLineModeG5,  renderLinePatternInfo: renderLineModeG5,            spriteMode: 2 };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine: renderLineModeG6,  renderLinePatternInfo: renderLineModeG6,            spriteMode: 2 };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine: renderLineModeG7,  renderLinePatternInfo: renderLineModeG7,            spriteMode: 2 };
 
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
 
@@ -1931,7 +2037,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
-            lm: leftMask, lsc: leftScrollChar, rsp: rightScrollPixel,
+            lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
             bp: blinkEvenPage, bpd: blinkPageDuration,
             pbc: pendingBlankingChange, pcc: pendingBackdropCacheUpdate,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
@@ -1943,13 +2049,15 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         };
     };
 
+
+    // TODO Backdrop Cache wrong after Load when Power OFF
     this.loadState = function(s) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
-        leftMask = s.lm; leftScrollChar = s.lsc; rightScrollPixel = s.rsp;
+        leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
         pendingBlankingChange = s.pbc; pendingBackdropCacheUpdate = s.pcc;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
@@ -1965,7 +2073,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         debugAdjustPalette();
         updateBackdropColor();
         updateTransparency();
-        updatePageAlternance();
+
+        // TODO Remove Backward compatibility
+        if (leftMask === undefined) {
+            leftMask = leftScroll2Pages = false; leftScrollChars = rightScrollPixels = 0;
+        }
     };
 
 
