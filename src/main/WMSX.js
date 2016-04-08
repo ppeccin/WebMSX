@@ -183,6 +183,10 @@ WMSX.presets = {
         _EXCLUDE:           "MSX1DISK, MSX2DISK"
     },
 
+    NORAMMAPPER: {
+        SLOT_2_URL:         "wmsx/roms/[RAM64K].rom"
+    },
+
     SCC: {
         SLOT_3_3_URL:       "wmsx/roms/[SCCExpansion].rom"
     },

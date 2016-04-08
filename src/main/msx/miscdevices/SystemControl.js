@@ -3,6 +3,7 @@
 // Hold System Control flags used in MSX2, MSX2+ and TurboR
 // Optional Device
 
+// TODO Finish Implementation
 wmsx.SystemControl = function(msx2p) {
 
     this.connect = function(machine) {
