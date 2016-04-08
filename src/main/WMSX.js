@@ -91,7 +91,7 @@ WMSX.presets = {
     },
 
     MSX2BASE: {
-        BIOS_SLOT:          [0, 0],     // TODO Some software will not run with BIOS in an ExpandedSlot (ex: AbuSimbel Profanation)
+        BIOS_SLOT:          [0, 0],     // TODO Some software will not run with BIOS in an ExpandedSlot (ex: AbuSimbel Profanation, IO)
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]],

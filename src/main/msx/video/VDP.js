@@ -604,7 +604,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
         modeData = modes[mode];
 
-        //logInfo("Update Mode: " + mode.toString(16));
+        //logInfo("Update Mode: " + modeData.name);
 
         // Update Tables base addresses
         updateLayoutTableAddress();
@@ -669,7 +669,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateLineActiveType() {
-        var old = renderLineActive;
+        var wasActive = renderLine === renderLineActive;
 
         renderLineActive = (register[1] & 0x40) === 0
             ? renderLineActiveBlanked
@@ -677,7 +677,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 ? debugModeSpriteHighlight ? renderLineModeG7SpriteInfo : renderLineModeG7
                 : debugModePatternInfo ? modeData.renderLinePatternInfo : modeData.renderLine;
 
-        if (renderLine === old) renderLine = renderLineActive;
+        if (wasActive) renderLine = renderLineActive;
         pendingBlankingChange = false;
     }
 
@@ -1964,18 +1964,18 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFill(new Array(32),
-                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width:   0, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine: renderLineBorders, renderLinePatternInfo: renderLineBorders,           spriteMode: 0 });
+                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine: renderLineActiveBlanked, renderLinePatternInfo:      renderLineActiveBlanked, spriteMode: 0 });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeT1,  renderLinePatternInfo: renderLineModeT1PatternInfo, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeT2,  renderLinePatternInfo: renderLineModeT2PatternInfo, spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeMC,  renderLinePatternInfo: renderLineModeMCPatternInfo, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeG1,  renderLinePatternInfo: renderLineModeG1PatternInfo, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine: renderLineModeG2,  renderLinePatternInfo: renderLineModeG2PatternInfo, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine: renderLineModeG3,  renderLinePatternInfo: renderLineModeG3PatternInfo, spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine: renderLineModeG4,  renderLinePatternInfo: renderLineModeG4,            spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine: renderLineModeG5,  renderLinePatternInfo: renderLineModeG5,            spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine: renderLineModeG6,  renderLinePatternInfo: renderLineModeG6,            spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine: renderLineModeG7,  renderLinePatternInfo: renderLineModeG7,            spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeT1,  renderLinePatternInfo: renderLineModeT1PatternInfo, spriteMode: 0 };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeT2,  renderLinePatternInfo: renderLineModeT2PatternInfo, spriteMode: 0 };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeMC,  renderLinePatternInfo: renderLineModeMCPatternInfo, spriteMode: 1 };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeG1,  renderLinePatternInfo: renderLineModeG1PatternInfo, spriteMode: 1 };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeG2,  renderLinePatternInfo: renderLineModeG2PatternInfo, spriteMode: 1 };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:        renderLineModeG3,  renderLinePatternInfo: renderLineModeG3PatternInfo, spriteMode: 2 };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:        renderLineModeG4,  renderLinePatternInfo: renderLineModeG4,            spriteMode: 2 };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:        renderLineModeG5,  renderLinePatternInfo: renderLineModeG5,            spriteMode: 2 };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:        renderLineModeG6,  renderLinePatternInfo: renderLineModeG6,            spriteMode: 2 };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:        renderLineModeG7,  renderLinePatternInfo: renderLineModeG7,            spriteMode: 2 };
 
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
 
