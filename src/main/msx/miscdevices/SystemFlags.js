@@ -1,10 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Hold System Control flags used in MSX2, MSX2+ and TurboR
+// Hold System Control Flags used in MSX2, MSX2+ and TurboR
 // Optional Device
 
-// TODO Finish Implementation
-wmsx.SystemControl = function(msx2p) {
+wmsx.SystemFlags = function(msx2p) {
 
     this.connect = function(machine) {
         if (isMSX2P) {
@@ -40,6 +39,7 @@ wmsx.SystemControl = function(msx2p) {
 
     this.powerOn = function() {
         bootFlags = BOOT_FLAGS_POWERON;
+        vdpFlags = VDP_FLAGS_POWERON;
         this.reset();
     };
 
@@ -50,37 +50,29 @@ wmsx.SystemControl = function(msx2p) {
     };
 
     this.inputF3 = function() {
-
-        //console.log("Reading F3");
-
-        return 0xff;
+        return vdpFlags;
     };
 
     this.outputF3 = function(val) {
-
-        //console.log("Writing F3: " + val.toString(16));
-
+        vdpFlags = val;
     };
 
     this.inputF4 = function() {
-
-        //console.log("Reading F4: " + bootFlags.toString(16));
-
         return bootFlags;
     };
 
     this.outputF4 = function(val) {
-
-        //console.log("Writing F4: " + val.toString(16));
-
-        bootFlags = val & 0xff;
+        bootFlags = val;
     };
 
 
     var isMSX2P = msx2p;
 
     var BOOT_FLAGS_POWERON = 0xff;
+    var VDP_FLAGS_POWERON = 0x00;
+
     var bootFlags;
+    var vdpFlags;
 
 
     // Savestate  -------------------------------------------
@@ -88,20 +80,22 @@ wmsx.SystemControl = function(msx2p) {
     this.saveState = function() {
         return {
             m2p: isMSX2P,
-            bf: bootFlags
+            bf: bootFlags,
+            vf: vdpFlags
         };
     };
 
     this.loadState = function(s) {
         isMSX2P = s.m2p;
         bootFlags = s.bf;
+        vdpFlags = s.vf;
     };
 
 };
 
-wmsx.SystemControl.recreateFromSavestate = function(instance, s) {
+wmsx.SystemFlags.recreateFromSavestate = function(instance, s) {
     if (s) {
-        if (!instance) instance = new wmsx.SystemControl();
+        if (!instance) instance = new wmsx.SystemFlags();
         instance.loadState(s);
         return instance
     } else
