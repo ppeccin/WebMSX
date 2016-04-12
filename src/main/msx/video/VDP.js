@@ -5,6 +5,8 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
+/// TODO YJK Modes, CMD extension
+
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var self = this;
 
@@ -633,27 +635,29 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateSignalMetrics() {
-        var height, vertBorderHeight;
+        var activeHeight, borderHeight, pixelWidth, pixelHeight;
 
         // Fixed metrics for V9918
         if (isV9918) {
-            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;
-            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918;
-            height = 192; vertBorderHeight = 8;
+            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;    pixelWidth = 2;
+            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918;  pixelHeight = 2;
+            activeHeight = 192; borderHeight = 8;
         } else {
-            signalWidth = modeData.width === 512 ? 512 + 16 * 2 : 256 + 8 * 2;          // Mode
-            signalHeight = (register[9] & 0x08) ? 424 + 16 * 2 : 212 + 8 * 2;           // IL
-            if (register[9] & 0x80) { height = 212; vertBorderHeight = 8; }             // LN
-            else { height = 192; vertBorderHeight = 18; }
+            if (modeData.width === 512) { signalWidth = 512 + 16 * 2; pixelWidth = 1; }   // Mode
+            else { signalWidth = 256 + 8 * 2; pixelWidth = 2; }
+            if (register[9] & 0x08) { signalHeight = 424 + 16 * 2; pixelHeight = 1; }     // IL
+            else { signalHeight = 212 + 8 * 2; pixelHeight = 2; }
+            if (register[9] & 0x80) { activeHeight = 212; borderHeight = 8; }             // LN
+            else { activeHeight = 192; borderHeight = 18; }
         }
 
         startingTopBorderScanline = 0;
-        startingActiveScanline = startingTopBorderScanline + vertBorderHeight + verticalAdjust;
-        startingBottomBorderScanline = startingActiveScanline + height;
-        finishingScanline = startingBottomBorderScanline + vertBorderHeight - verticalAdjust;
+        startingActiveScanline = startingTopBorderScanline + borderHeight + verticalAdjust;
+        startingBottomBorderScanline = startingActiveScanline + activeHeight;
+        finishingScanline = startingBottomBorderScanline + borderHeight - verticalAdjust;
         startingScanline = finishingScanline - videoStandard.totalHeight;
 
-        videoSignal.setSignalHeight(height + vertBorderHeight * 2);
+        videoSignal.setSignalMetrics(signalWidth, pixelWidth, signalHeight, pixelHeight);
     }
 
     function enterActiveDisplay() {
@@ -1745,7 +1749,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     function refresh() {
         // Send frame to monitor
-        videoSignal.newFrame(frameCanvas, 0, 0, signalWidth, signalHeight);
+        videoSignal.newFrame(frameCanvas, signalWidth, signalHeight);
         refreshPending = false;
     }
 

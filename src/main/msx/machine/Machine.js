@@ -103,6 +103,10 @@ wmsx.Machine = function() {
         return joysticksSocket;
     };
 
+    this.getMouseSocket = function() {
+        return mouseSocket;
+    };
+
     this.getVideoOutput = function() {
         return vdp.getVideoOutput();
     };
@@ -294,7 +298,7 @@ wmsx.Machine = function() {
 
         self.cpu = cpu = new wmsx.Z80();
         self.vdp = vdp = new wmsx.VDP(self, cpu, MSX2, MSX2P);
-        self.psg = psg = new wmsx.PSG(audioSocket);
+        self.psg = psg = new wmsx.PSG(audioSocket, mouseSocket);
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel());
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
@@ -346,6 +350,7 @@ wmsx.Machine = function() {
         cartridgeSocket = new CartridgeSocket();
         keyboardSocket = new KeyboardSocket();
         joysticksSocket = new JoysticksSocket();
+        mouseSocket = new MouseSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
         audioSocket = new AudioSocket();
@@ -378,6 +383,7 @@ wmsx.Machine = function() {
     var machineControlsSocket;
     var keyboardSocket;
     var joysticksSocket;
+    var mouseSocket;
     var biosSocket;
     var expansionSocket;
     var cartridgeSocket;
@@ -708,6 +714,22 @@ wmsx.Machine = function() {
         };
         this.joysticksClockPulse = function() {
             controls.joysticksClockPulse();
+        };
+        var controls;
+    }
+
+
+    // Mouse Socket  -----------------------------------------
+
+    function MouseSocket() {
+        this.connectControls = function(pControls) {
+            controls = pControls;
+        };
+        this.readMouseDeltaState = function(port, state) {
+            controls.readMouseDeltaState(port, state);
+        };
+        this.writeMouseButtonsState = function(port, state) {
+            psg.writeMouseButtonsState(port, state);
         };
         var controls;
     }

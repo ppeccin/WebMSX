@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Uses a Canvas with double the base resolution for better smoothness
-
 wmsx.CanvasDisplay = function(mainElement) {
 
     function init(self) {
@@ -21,7 +19,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         pCartridgeSocket.addCartridgesStateListener(this);
     };
 
-    this.connectPeripherals = function(fileLoader, fileDownloader, pKeyboard, machineControls, pPeripheralControls) {
+    this.connectPeripherals = function(fileLoader, fileDownloader, pKeyboard, machineControls, pPeripheralControls, pMouseControls) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader.registerForDownloadElement(mainElement);
@@ -30,6 +28,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         machineControls.addInputElements(keyControlsInputElements());
         peripheralControls = pPeripheralControls;
         peripheralControls.addInputElements(keyControlsInputElements());
+        mouseControls = pMouseControls;
+        mouseControls.setInputElement(mouseMovementInputElement())
     };
 
     this.powerOn = function() {
@@ -44,7 +44,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.style.display = "none";
     };
 
-    this.refresh = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
+    this.refresh = function(image, sourceWidth, sourceHeight) {
         if (!signalIsOn) {
             signalIsOn = true;
             updateLogo();
@@ -52,8 +52,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         canvasContext.drawImage(
             image,
-            sourceX, sourceY, sourceWidth, sourceHeight,
-            0, 0, contentWidth, contentHeight
+            0, 0, sourceWidth, sourceHeight,
+            0, 0, targetWidth, targetHeight
         );
     };
 
@@ -62,17 +62,35 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
+    this.displaySignalMetrics = function (sourceWidth, pPixelWidth, sourceHeight, pPixelHeight) {
+        var oldTargetWidth = targetWidth;
+        var oldTargetHeight = targetHeight;
+
+        pixelWidth = pPixelWidth;
+        pixelHeight = pPixelHeight;
+        targetWidth = sourceWidth * pixelWidth;
+        targetHeight = sourceHeight * pixelHeight;
+
+        mouseControls.setPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
+
+        // No need to resize display if target size is unchanged
+        if (targetWidth === oldTargetWidth && targetHeight === oldTargetHeight) return;
+
+        updateCanvasContentSize();
+        updateScale();
+    };
+
     this.displayOptimalScaleY = function(aspectX) {
         if (isFullscreen) {
             // Maximum size
             var winW = fsElement.clientWidth;
             var winH = fsElement.clientHeight;
-            var scY = (winH - 10) / contentHeight;	         	// 10 is a little safety tolerance
-            scY -= (scY % wmsx.Monitor.SCALE_STEP);		    // Round to multiple of the step
-            var w = aspectX * scY * contentWidth;
+            var scY = (winH - 10) / targetHeight;	         	// 10 is a little safety tolerance
+            scY -= (scY % wmsx.Monitor.SCALE_STEP);		        // Round to multiple of the step
+            var w = aspectX * scY * targetWidth;
             while (w > winW) {
                 scY -= wmsx.Monitor.SCALE_STEP;				    // Decrease one step
-                w = aspectX * scY * contentWidth;
+                w = aspectX * scY * targetWidth;
             }
             return scY;
         } else {
@@ -85,6 +103,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         aspectX = pAspectX;
         scaleY = pScaleY;
         updateScale();
+
+        if (mouseControls) mouseControls.setPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
     };
 
     this.displayMinimumSize = function(width, height) {
@@ -119,15 +139,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             osd.style.opacity = 0;
             osdShowing = false;
         }, OSD_TIME);
-    };
-
-    this.setSignalHeight = function (height) {
-        var newContentHeight = height * 2;
-        if (contentHeight === newContentHeight) return;
-
-        contentHeight = newContentHeight;
-        updateCanvasContentSize();
-        updateScale();
     };
 
     this.setDebugMode = function(boo) {
@@ -225,7 +236,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function keyControlsInputElements() {
-        return [mainElement];   // Add ConsolePanel if present
+        return [mainElement];
+    }
+
+    function mouseMovementInputElement() {
+        return canvas;
     }
 
     function openSettings(page) {
@@ -242,8 +257,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateScale() {
-        var width = Math.round(contentWidth * scaleY * aspectX);
-        var height = Math.round(contentHeight * scaleY);
+        var width = Math.round(targetWidth * scaleY * aspectX);
+        var height = Math.round(targetHeight * scaleY);
         setElementsSizes(width, height);
     }
 
@@ -261,8 +276,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateCanvasContentSize() {
-        canvas.width = contentWidth;
-        canvas.height = contentHeight;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
 
         // Prepare Context used to draw frame
         canvasContext = canvas.getContext("2d");
@@ -664,6 +679,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var monitor;
     var keyboard;
     var peripheralControls;
+    var mouseControls;
     var machineControlsSocket;
     var machineControlsStateReport = {};
 
@@ -690,13 +706,15 @@ wmsx.CanvasDisplay = function(mainElement) {
     var debugMode = false;
     var isLoading = false;
 
-    var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;                 // Initial setting
-    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;                   // Initial setting
+    var aspectX = 1;
+    var scaleY = 1;
+    var pixelWidth = 1, pixelHeight = 1;
 
-    var contentWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;     // Enough to fit V9938 maximum horizontal resolution
-    var contentHeight = WMSX.MACHINE_TYPE === 1
-        ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2                  // Enough to fit V9918 vertical resolution (double)
-        : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;                 // Enough to fit V9938 interlaced double vertical resolution
+    var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
+    var targetHeight = WMSX.MACHINE_TYPE === 1
+        ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2
+        : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
+
 
     var logoImage;
     var loadingImage;

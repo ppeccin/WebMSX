@@ -6,8 +6,8 @@ wmsx.VideoSignal = function() {
         monitor = pMonitor;
     };
 
-    this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
-        monitor.newFrame(image, sourceX, sourceY, sourceWidth, sourceHeight);
+    this.newFrame = function(image, sourceWidth, sourceHeight) {
+        monitor.newFrame(image, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
@@ -18,8 +18,8 @@ wmsx.VideoSignal = function() {
         if (monitor) monitor.showOSD(message, overlap);
     };
 
-    this.setSignalHeight = function (height) {
-        if (monitor) monitor.setSignalHeight(height);
+    this.setSignalMetrics = function(sourceWidth, pixelWidth, sourceHeight, pixelHeight) {
+        if (monitor) monitor.setSignalMetrics(sourceWidth, pixelWidth, sourceHeight, pixelHeight);
     };
 
     this.setDebugMode = function(boo) {

@@ -13,8 +13,8 @@ wmsx.Monitor = function(display) {
         videoSignal.connectMonitor(this);
     };
 
-    this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
-        display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight);
+    this.newFrame = function(image, sourceWidth, sourceHeight) {
+        display.refresh(image, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
@@ -25,8 +25,8 @@ wmsx.Monitor = function(display) {
         display.showOSD(message, overlap);
     };
 
-    this.setSignalHeight = function (height) {
-        display.setSignalHeight(height);
+    this.setSignalMetrics = function(sourceWidth, pixelWidth, sourceHeight, pixelHeight) {
+        display.displaySignalMetrics(sourceWidth, pixelWidth, sourceHeight, pixelHeight);
     };
 
     this.cartridgesStateUpdate = function(cartridge1, cartridge2) {

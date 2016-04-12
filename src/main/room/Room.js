@@ -14,12 +14,14 @@ wmsx.Room = function(screenElement) {
         self.speaker.powerOn();
         self.keyboard.powerOn();
         self.joysticksControls.powerOn();
+        self.mouseControls.powerOn();
         if (self.machine.getBIOSSocket().inserted() && !self.machine.powerIsOn) self.machine.powerOn(paused);
     };
 
     this.powerOff = function() {
         self.machine.powerOff();
         self.joysticksControls.powerOff();
+        self.mouseControls.powerOff();
         self.keyboard.powerOff();
         self.speaker.powerOff();
         self.screen.powerOff();
@@ -54,18 +56,19 @@ wmsx.Room = function(screenElement) {
         self.speaker = new wmsx.WebAudioSpeaker();
         self.keyboard = new wmsx.DOMKeyboard();
         self.joysticksControls = new wmsx.GamepadJoysticksControls();
+        self.mouseControls = new wmsx.DOMMouseControls();
         self.machineControls = new wmsx.DOMMachineControls();
         self.peripheralControls = new wmsx.DOMPeripheralControls();
 
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
-        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.keyboard, self.machineControls, self.peripheralControls);
+        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.keyboard, self.machineControls, self.peripheralControls, self.mouseControls);
         self.machineControls.connectPeripherals(self.screen);
         self.keyboard.connectPeripherals(self.screen);
         self.joysticksControls.connectPeripherals(self.screen);
         self.stateMedia.connectPeripherals(self.fileDownloader);
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
         self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);
-        self.peripheralControls.connectPeripherals(self.screen.getMonitor(), self.joysticksControls, self.fileLoader, self.cassetteDeck, self.diskDrive);
+        self.peripheralControls.connectPeripherals(self.screen.getMonitor(), self.joysticksControls, self.mouseControls, self.fileLoader, self.cassetteDeck, self.diskDrive);
     };
 
     var buildAndPlugMachine = function() {
@@ -77,6 +80,7 @@ wmsx.Room = function(screenElement) {
         self.machineControls.connect(self.machine.getMachineControlsSocket());
         self.keyboard.connect(self.machine.getKeyboardSocket());
         self.joysticksControls.connect(self.machine.getJoysticksSocket(), self.machine.getMachineControlsSocket());
+        self.mouseControls.connect(self.machine.getMouseSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
         self.peripheralControls.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
@@ -89,6 +93,7 @@ wmsx.Room = function(screenElement) {
     this.machineControls = null;
     this.keyboard = null;
     this.joysticksControls = null;
+    this.mouseControls = null;
     this.fileDownloader = null;
     this.cassetteDeck = null;
     this.diskDrive = null;

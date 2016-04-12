@@ -13,7 +13,7 @@ wmsx.DOMPeripheralControls = function(room) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pMonitor, pJoystickControls, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pMonitor, pJoystickControls, pMouseControls, pFileLoader, pCassetteDeck, pDiskDrive) {
         monitor = pMonitor;
         joystickControls = pJoystickControls;
         fileLoader = pFileLoader;

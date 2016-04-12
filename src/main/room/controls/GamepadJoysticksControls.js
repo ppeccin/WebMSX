@@ -84,8 +84,8 @@ wmsx.GamepadJoysticksControls = function() {
         }
     };
 
-    var joystickConnectionMessage = function (joy0, conn) {
-        screen.getMonitor().showOSD("Joystick " + (joy0 ^ swappedMode ? "1" : "2") + (conn ? " connected" : " disconnected"), joy0);
+    var joystickConnectionMessage = function (joy1, conn) {
+        screen.getMonitor().showOSD("Joystick " + (joy1 ^ swappedMode ? "1" : "2") + (conn ? " connected" : " disconnected"), joy1);
     };
 
     var detectNewJoystick = function(prefs, notPrefs, gamepads) {
