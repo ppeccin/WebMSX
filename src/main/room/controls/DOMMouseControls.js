@@ -37,15 +37,17 @@ wmsx.DOMMouseControls = function() {
     this.powerOff = function() {
     };
 
+    // port 0 only
     this.readMousePort = function(port) {
         return port === 0 ? mouseState.portValue : 0x3f;
     };
 
+    // port 0 only
     this.writeMousePort = function(value) {
         var mod = mouseState.portWriteValue ^ value;
         mouseState.portWriteValue = value;
 
-        var pin8Flipped = mod & 0x10;                   // port 0 only
+        var pin8Flipped = mod & 0x10;
 
         if (pin8Flipped) ++mouseState.readCycle;
         else mouseState.readCycle = -1;
