@@ -72,7 +72,6 @@ module.exports = function (grunt) {
                     "src/main/msx/machine/BUS.js",
                     "src/main/msx/machine/Machine.js",
                     "src/main/msx/controls/MachineControls.js",
-                    "src/main/msx/controls/JoysticksControls.js",
                     "src/main/room/files/FileLoader.js",
                     "src/main/room/files/FileDownloader.js",
                     "src/main/room/controls/DOMKeys.js",

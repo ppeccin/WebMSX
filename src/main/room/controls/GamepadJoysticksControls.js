@@ -23,6 +23,14 @@ wmsx.GamepadJoysticksControls = function() {
         supported = false;
     };
 
+    this.readJoystickPort = function(port) {
+        return port === 0 ? joy1State.portValue : joy1State.portValue;
+    };
+
+    this.writeJoystickPort = function(value) {
+        // Nothing
+    };
+
     this.toggleMode = function() {
         if (!supported) {
             screen.getMonitor().showOSD("Joystick input not supported by browser", true);
@@ -102,85 +110,53 @@ wmsx.GamepadJoysticksControls = function() {
     };
 
     var initStates = function() {
-        joy1State = newJoystickState();
-        joy2State = newJoystickState();
+        joy1State.reset();
+        joy2State.reset();
     };
 
     var update = function(joystick, joyState, joyPrefs, player0) {
         // Paddle Analog
-        if (paddleMode && joyPrefs.paddleSens !== 0) {
-            var newPosition = joystick.getPaddlePosition();
-            if (newPosition !== joyState.xPosition) {
-                joyState.xPosition = newPosition;
-                joysticksSocket.controlValueChanged(player0 ? controls.PADDLE1_POSITION : controls.PADDLE2_POSITION, newPosition);
-            }
-        }
+        //if (paddleMode && joyPrefs.paddleSens !== 0) {
+        //    joyState.xPosition = joystick.getPaddlePosition();
+        //}
         // Joystick direction (Analog or POV) and Paddle Digital (Analog or POV)
-        var newDirection = joystick.getDPadDirection();
-        if (newDirection === -1 && (!paddleMode || joyPrefs.paddleSens === 0))
-            newDirection = joystick.getStickDirection();
-        if (newDirection !== joyState.direction) {
-            var newUP = newDirection === 7 || newDirection === 0 || newDirection == 1;
-            var newRIGHT = newDirection === 1 || newDirection === 2 || newDirection === 3;
-            var newDOWN = newDirection === 3 || newDirection === 4 || newDirection === 5;
-            var newLEFT = newDirection === 5 || newDirection === 6 || newDirection === 7;
-            if (player0) {
-                joysticksSocket.controlStateChanged(controls.JOY1_UP, newUP, 0);
-                joysticksSocket.controlStateChanged(controls.JOY1_RIGHT, newRIGHT, 0);
-                joysticksSocket.controlStateChanged(controls.JOY1_DOWN, newDOWN, 0);
-                joysticksSocket.controlStateChanged(controls.JOY1_LEFT, newLEFT, 0);
-            } else {
-                joysticksSocket.controlStateChanged(controls.JOY2_UP, newUP, 0);
-                joysticksSocket.controlStateChanged(controls.JOY2_RIGHT, newRIGHT, 0);
-                joysticksSocket.controlStateChanged(controls.JOY2_DOWN, newDOWN, 0);
-                joysticksSocket.controlStateChanged(controls.JOY2_LEFT, newLEFT, 0);
-            }
-            joyState.direction = newDirection;
+        var direction = joystick.getDPadDirection();
+        if (direction === -1 && (!paddleMode || joyPrefs.paddleSens === 0))
+            direction = joystick.getStickDirection();
+        if (direction !== joyState.direction) {
+            joyState.direction = direction;
+            joyState.portValue = (joyState.portValue & ~0xf) | DIRECTION_TO_PORT_VALUE[direction + 1];
         }
         // Joystick buttons
-        if (joyButtonDetection === joystick) {
-            detectButton();
-            return;
-        } else {
-            var newButtonS = joystick.getButtonDigital(joyPrefs.buttonS);
-            var newButton = joystick.getButtonDigital(joyPrefs.button1);
-            if ((newButtonS || newButton) !== joyState.button1) {
-                joyState.button1 = (newButtonS || newButton);
-                joysticksSocket.controlStateChanged(player0 ? controls.JOY1_BUTTON1 : controls.JOY2_BUTTON1, joyState.button1, 0);
-            }
-            newButton = joystick.getButtonDigital(joyPrefs.button2);
-            if ((newButtonS || newButton) !== joyState.button2) {
-                joyState.button2 = (newButtonS || newButton);
-                joysticksSocket.controlStateChanged(player0 ? controls.JOY1_BUTTON2 : controls.JOY2_BUTTON2, joyState.button2, 0);
-            }
-        }
+        //if (joyButtonDetection === joystick) {
+        //    detectButton();
+        //    return;
+        //} else {
+            var button;
+            var buttonS = joystick.getButtonDigital(joyPrefs.buttonS);
+            button =  joystick.getButtonDigital(joyPrefs.button1);
+            joyState.button1 = (buttonS || button);
+            if (joyState.button1) joyState.portValue &= ~0x10; else joyState.portValue |= 0x10;
+            button = joystick.getButtonDigital(joyPrefs.button2);
+            joyState.button2 = (buttonS || button);
+            if (joyState.button2) joyState.portValue &= ~0x20; else joyState.portValue |= 0x20;
+        //}
         // Other Machine controls
-        var newPause = joystick.getButtonDigital(joyPrefs.pause);
-        if (newPause !== joyState.pause) {
-            if (newPause) machineControlsSocket.controlStateChanged(wmsx.MachineControls.PAUSE, true);
-            joyState.pause = newPause;
+        button = joystick.getButtonDigital(joyPrefs.pause);
+        if (button !== joyState.pause) {
+            if (button) machineControlsSocket.controlStateChanged(wmsx.MachineControls.PAUSE, true);
+            joyState.pause = button;
         }
-        var newFastSpeed = joystick.getButtonDigital(joyPrefs.fastSpeed);
-        if (newFastSpeed !== joyState.fastSpeed) {
-            machineControlsSocket.controlStateChanged(wmsx.MachineControls.FAST_SPEED, newFastSpeed);
-            joyState.fastSpeed = newFastSpeed;
+        button = joystick.getButtonDigital(joyPrefs.fastSpeed);
+        if (button !== joyState.fastSpeed) {
+            machineControlsSocket.controlStateChanged(wmsx.MachineControls.FAST_SPEED, button);
+            joyState.fastSpeed = button;
         }
-        var newSlowSpeed = joystick.getButtonDigital(joyPrefs.slowSpeed);
-        if (newSlowSpeed !== joyState.slowSpeed) {
-            machineControlsSocket.controlStateChanged(wmsx.MachineControls.SLOW_SPEED, newSlowSpeed);
-            joyState.slowSpeed = newSlowSpeed;
+        button = joystick.getButtonDigital(joyPrefs.slowSpeed);
+        if (button !== joyState.slowSpeed) {
+            machineControlsSocket.controlStateChanged(wmsx.MachineControls.SLOW_SPEED, button);
+            joyState.slowSpeed = button;
         }
-    };
-
-    var newJoystickState = function() {
-        return {
-            direction: -1,         // CENTER
-            button1: false, button2: false, pause: false, fastSpeed: false, slowSpeed: false,
-            xPosition: -1          // PADDLE POSITION
-        }
-    };
-
-    var detectButton = function() {
     };
 
     this.applyPreferences = function() {
@@ -226,7 +202,6 @@ wmsx.GamepadJoysticksControls = function() {
     var supported = false;
     var gamepadsDetectionDelay = -1;
 
-    var controls = wmsx.JoysticksControls;
     var joysticksSocket;
     var machineControlsSocket;
     var screen;
@@ -234,14 +209,30 @@ wmsx.GamepadJoysticksControls = function() {
     var paddleMode = false;
     var swappedMode = false;
 
+    var joy1State = new JoystickState();
+    var joy2State = new JoystickState();
+
     var joystick1;
     var joystick2;
-    var joy1State;
-    var joy2State;
     var joy1Prefs;
     var joy2Prefs;
 
-    var joyButtonDetection = null;
+    var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
+
+
+    function JoystickState() {
+        this.reset = function() {
+            this.direction = -1;         // CENTER
+            this.xPosition = -1;         // CENTER
+            this.portValue = 0x3f;       // All switches off
+            this.button1 = false;
+            this.button2 = false;
+            this.pause = false;
+            this.fastSpeed = false;
+            this.slowSpeed = false;
+        };
+        this.reset();
+    }
 
 
     function Joystick(index, prefs) {

@@ -65,6 +65,7 @@ wmsx.Room = function(screenElement) {
         self.machineControls.connectPeripherals(self.screen);
         self.keyboard.connectPeripherals(self.screen);
         self.joysticksControls.connectPeripherals(self.screen);
+        self.mouseControls.connectPeripherals(self.screen);
         self.stateMedia.connectPeripherals(self.fileDownloader);
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
         self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);

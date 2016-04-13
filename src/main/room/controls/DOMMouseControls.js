@@ -10,6 +10,10 @@ wmsx.DOMMouseControls = function() {
         mouseSocket.connectControls(this);
     };
 
+    this.connectPeripherals = function(pScreen) {
+        screen = pScreen;
+    };
+
     this.setInputElement = function(pElement) {
         element = pElement;
 
@@ -33,6 +37,25 @@ wmsx.DOMMouseControls = function() {
     this.powerOff = function() {
     };
 
+    this.readMousePort = function(port) {
+        return port === 0 ? mouseState.portValue : 0x3f;
+    };
+
+    this.writeMousePort = function(value) {
+        var mod = mouseState.portWriteValue ^ value;
+        mouseState.portWriteValue = value;
+
+        var pin8Flipped = mod & 0x10;                   // port 0 only
+
+        if (pin8Flipped) ++mouseState.readCycle;
+        else mouseState.readCycle = -1;
+
+        if (mouseState.readCycle === 0) updateDeltas();
+        updatePortValue();
+
+        //console.log("Mouse SET ReadCycle: " + mouseState.readCycle);
+    };
+
     this.setPixelScale = function(scaleX, scaleY) {
         pixelScaleX = scaleX; pixelScaleY = scaleY;
     };
@@ -48,28 +71,40 @@ wmsx.DOMMouseControls = function() {
         }
     };
 
-    this.readMouseDeltaState = function(port, deltaState) {
-        if (port !== 0) return false;
+    function updatePortValue() {
+        switch (mouseState.readCycle) {
+            case 0:
+                mouseState.portValue = (mouseState.portValue & ~0x0f) | ((mouseState.readDX >> 4) & 0xf); break;
+            case 1:
+                mouseState.portValue = (mouseState.portValue & ~0x0f) | (mouseState.readDX & 0xf); break;
+            case 2:
+                mouseState.portValue = (mouseState.portValue & ~0x0f) | ((mouseState.readDY >> 4)& 0xf); break;
+            case 3:
+                mouseState.portValue = (mouseState.portValue & ~0x0f) | (mouseState.readDY & 0xf); break;
+            default:
+                mouseState.portValue = mouseState.portValue & ~0x0f;
+        }
 
+        //console.log("Setting mouse port value: " + (mouseState.portValue & 0xf));
+    }
+
+    function updateDeltas() {
         // Calculate movement deltas, limited to the protocol range
-        var dX = Math.round(reportedState.x - currentState.x);
-        if (dX > 127) dX = 127; else if (dX < -128) dX = -128;
-        reportedState.x -= dX;
-        var dY = Math.round(reportedState.y - currentState.y);
-        if (dY > 127) dY = 127; else if (dY < -128) dY = -128;
-        reportedState.y -= dY;
+        var dX = Math.round(-mouseState.dX);
+        if (dX > 127) dX = 127; else if (dX < -127) dX = -127;
+        mouseState.dX += dX;
+        mouseState.readDX = dX;
 
-        deltaState.dX = dX;
-        deltaState.dY = dY;
+        var dY = Math.round(-mouseState.dY);
+        if (dY > 127) dY = 127; else if (dY < -127) dY = -127;
+        mouseState.dY += dY;
+        mouseState.readDY = dY;
 
-        return true;
-    };
-
+        //if (dX !== 0 && dY !== 0) console.log("New DX: " + dX + ", DY: " + dY);
+    }
 
     function mouseMoveEvent(event) {
         if (event.preventDefault) event.preventDefault();
-
-        E = event;
 
         // Get movement either by movement reported (pointer locked) or by position (pointer unlocked)
         var dX = 0, dY = 0;
@@ -80,38 +115,34 @@ wmsx.DOMMouseControls = function() {
             dX = event.clientX - lastMoveEvent.clientX;
             dY = event.clientY - lastMoveEvent.clientY;
         }
-
-        currentState.x += dX / pixelScaleX;
-        currentState.y += dY / pixelScaleY;
-
         lastMoveEvent = event;
 
-        //console.log("Mouse moved: " + currentState.x + ", " + currentState.y);
+        mouseState.dX += dX / pixelScaleX;
+        mouseState.dY += dY / pixelScaleY;
+
+        //console.log("Mouse moved. DX: " + mouseState.dX + ", DY: " + mouseState.dY);
     }
 
     function mouseButtonEvent(event) {
         if (event.preventDefault) event.preventDefault();
 
-        var lastButtons = currentState.buttons;
-        currentState.buttons = event.buttons & 7;
+        var lastButtons = mouseState.buttons;
+        mouseState.buttons = event.buttons & 7;
+        mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
 
-        if ((currentState.buttons & 4) && !(lastButtons & 4)) self.togglePointerLock();
-
-        mouseSocket.writeMouseButtonsState(0, currentState);
-
-        //console.log("Mouse buttons: " + currentState.buttons.toString(2));
+        if ((mouseState.buttons & 4) && !(lastButtons & 4)) self.togglePointerLock();
     }
 
     function pointerLockChangedEvent() {
         var lockingElement = document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement;
         pointerLocked = lockingElement === element;
 
-        //console.log("Pointer Lock " + (pointerLocked ? "ON" : "OFF"));
+        screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
     }
 
 
-    var currentState = new MouseState();
-    var reportedState = new MouseState();
+    var mouseState = new MouseState();
+
     var pixelScaleX, pixelScaleY;
 
     var element;
@@ -119,14 +150,21 @@ wmsx.DOMMouseControls = function() {
     var pointerLocked = false;
 
     var mouseSocket;
+    var screen;
 
 
     // Stores a complete Mouse state, with positions and buttons
     function MouseState() {
         this.reset = function() {
-            this.x = 0;
-            this.y = 0;
+            this.dX = 0;
+            this.dY = 0;
             this.buttons = 0;
+
+            this.portValue = 0x3f;
+            this.portWriteValue = 0;
+            this.readCycle = -1;
+            this.readDX = 0;
+            this.readDY = 0;
         };
         this.reset();
     }
