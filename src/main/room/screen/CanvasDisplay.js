@@ -232,8 +232,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setMouseActiveCursor = function(boo) {
-        canvas.style.cursor = boo ? "crosshair" : "auto";
-    }
+        canvas.style.cursor = boo ? "url(" + IMAGES_PATH + "mouse.cur" + "), auto" : "auto";
+    };
 
     function lostFocus(e) {
         keyboard.liftAllKeys();

@@ -26,7 +26,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
     };
 
     this.readJoystickPort = function(port) {
-        return port === 0 ? joy1State.portValue : joy1State.portValue;
+        return port === 1 || swappedMode ? joy2State.portValue : joy1State.portValue;
     };
 
     this.toggleMode = function() {
@@ -70,7 +70,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
         if (joystick1) {
             if (joystick1.update(gamepads)) {
                 if (joystick1.hasMoved())
-                    update(joystick1, joy1State, joy1Prefs, !swappedMode);
+                    update(joystick1, joy1State, joy1Prefs, swappedMode);
             } else {
                 joystick1 = null;
                 joy1State.reset();
@@ -86,7 +86,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
         if (joystick2) {
             if (joystick2.update(gamepads)) {
                 if (joystick2.hasMoved())
-                    update(joystick2, joy2State, joy2Prefs, swappedMode);
+                    update(joystick2, joy2State, joy2Prefs, !swappedMode);
             } else {
                 joystick2 = null;
                 joy2State.reset();
