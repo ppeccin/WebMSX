@@ -160,7 +160,7 @@ wmsx.DOMKeyboard = function() {
         normalCodeMap[hostKeys.KEY_M.c]              = [ 4, 2 ];
 
         normalCodeMap[hostKeys.KEY_ESCAPE.c]         = [ 7, 2 ];
-        altCodeMap[hostKeys.KEY_F1.c]                = [ 7, 2 ];        // ALT-F1 works as an alternative ESC
+        altCodeMap[hostKeys.KEY_ESCAPE_EXTRA.c]      = [ 7, 2 ];
         normalCodeMap[hostKeys.KEY_TAB.c]            = [ 7, 3 ];
         normalCodeMap[hostKeys.KEY_BACKSPACE.c]      = [ 7, 5 ];
         normalCodeMap[hostKeys.KEY_ENTER.c]          = [ 7, 7 ];
@@ -263,6 +263,7 @@ wmsx.DOMKeyboard = function() {
             KEY_M: wmsx.DOMKeys.VK_M,
 
             KEY_ESCAPE: wmsx.DOMKeys.VK_ESCAPE,
+            KEY_ESCAPE_EXTRA: wmsx.DOMKeys.VK_F1,
             KEY_TAB: wmsx.DOMKeys.VK_TAB,
             KEY_ENTER: wmsx.DOMKeys.VK_ENTER,
             KEY_BACKSPACE: wmsx.DOMKeys.VK_BACKSPACE,

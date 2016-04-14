@@ -46,7 +46,28 @@ WMSX = {
 WMSX.presets = {
 
     DEFAULT: {
-        _INCLUDE:           "MSX2NTSC"
+        _INCLUDE:           "MSX2PNTSC"
+    },
+
+    // MSX2+ Machine Presets
+
+    MSX2P: {
+        _INCLUDE:           "MSX2PNTSC"
+    },
+
+    MSX2PNTSC: {
+        MACHINE_TYPE:       3,
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_0_URL:       "wmsx/roms/MSX2P.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT.bios"
+    },
+
+    MSX2PPAL: {
+        MACHINE_TYPE:       3,
+        _EXCLUDE:           "DEFAULT",
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_0_URL:       "wmsx/roms/MSX2P_PAL.bios",
+        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
     },
 
     // MSX2 Machine Presets
@@ -57,37 +78,18 @@ WMSX.presets = {
 
     MSX2NTSC: {
         MACHINE_TYPE:       2,
+        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
         SLOT_0_0_URL:       "wmsx/roms/MSX2.bios",
         SLOT_0_1_URL:       "wmsx/roms/MSX2EXT.bios"
     },
 
     MSX2PAL: {
-        _EXCLUDE:           "DEFAULT",
         MACHINE_TYPE:       2,
+        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
         SLOT_0_0_URL:       "wmsx/roms/MSX2_PAL.bios",
         SLOT_0_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
-    },
-
-    MSX2P: {
-        _INCLUDE:           "MSX2PNTSC"
-    },
-
-    MSX2PNTSC: {
-        _EXCLUDE:           "DEFAULT",
-        MACHINE_TYPE:       3,
-        _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2P.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT.bios"
-    },
-
-    MSX2PPAL: {
-        _EXCLUDE:           "DEFAULT",
-        MACHINE_TYPE:       3,
-        _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2P_PAL.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
     },
 
     MSX2BASE: {
@@ -177,7 +179,7 @@ WMSX.presets = {
         EXPANSION_SLOTS:    [[3, 2], [3, 3]]
     },
 
-    // Genral Add-ons options
+    // General Add-ons options
 
     NODISK: {
         _EXCLUDE:           "MSX1DISK, MSX2DISK"

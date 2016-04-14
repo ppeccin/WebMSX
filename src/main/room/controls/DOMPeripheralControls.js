@@ -13,9 +13,9 @@ wmsx.DOMPeripheralControls = function(room) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pMonitor, pJoystickControls, pMouseControls, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pMonitor, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
         monitor = pMonitor;
-        joystickControls = pJoystickControls;
+        controllersHub = pControllersHub;
         fileLoader = pFileLoader;
         cassetteDeck = pCassetteDeck;
         diskDrive = pDiskDrive;
@@ -175,7 +175,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
             case controls.JOYSTICKS_TOGGLE_MODE:
-                joystickControls.toggleMode(); break;
+                controllersHub.toggleJoystickMode(); break;
+            case controls.MOUSE_TOGGLE_MODE:
+                controllersHub.toggleMouseMode(); break;
             case controls.EXIT:
                 room.exit(); break;
         }
@@ -246,7 +248,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 
-        keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]   = controls.JOYSTICKS_TOGGLE_MODE;
+        keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]  = controls.JOYSTICKS_TOGGLE_MODE;
+        keyAltCodeMap[KEY_MOUSE_TOGGLE]      = controls.MOUSE_TOGGLE_MODE;
 
         keyAltCodeMap[KEY_CRT_FILTER]   = controls.SCREEN_CRT_FILTER;
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
@@ -270,7 +273,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var machineControlsSocket;
     var monitor;
-    var joystickControls;
+    var controllersHub;
     var fileLoader;
     var cartridgeSocket;
     var cassetteDeck;
@@ -305,10 +308,11 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CART2  = wmsx.DOMKeys.VK_F10.c;
 
     var KEY_JOYSTICKS_TOGGLE  = wmsx.DOMKeys.VK_J.c;
+    var KEY_MOUSE_TOGGLE      = wmsx.DOMKeys.VK_M.c;
 
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
-    var KEY_FULLSCREEN   = wmsx.DOMKeys.VK_ENTER.c;
+    var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
 
     var KEY_EXIT  = wmsx.DOMKeys.VK_ESCAPE.c;
 

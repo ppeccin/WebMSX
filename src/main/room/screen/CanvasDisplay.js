@@ -19,7 +19,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         pCartridgeSocket.addCartridgesStateListener(this);
     };
 
-    this.connectPeripherals = function(fileLoader, fileDownloader, pKeyboard, machineControls, pPeripheralControls, pMouseControls) {
+    this.connectPeripherals = function(fileLoader, fileDownloader, pKeyboard, machineControls, pPeripheralControls, pControllersHub) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader.registerForDownloadElement(mainElement);
@@ -28,8 +28,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         machineControls.addInputElements(keyControlsInputElements());
         peripheralControls = pPeripheralControls;
         peripheralControls.addInputElements(keyControlsInputElements());
-        mouseControls = pMouseControls;
-        mouseControls.setInputElement(mouseMovementInputElement())
+        controllersHub = pControllersHub;
+        controllersHub.setInputElement(mouseMovementInputElement())
     };
 
     this.powerOn = function() {
@@ -71,7 +71,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         targetWidth = sourceWidth * pixelWidth;
         targetHeight = sourceHeight * pixelHeight;
 
-        mouseControls.setPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
+        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
 
         // No need to resize display if target size is unchanged
         if (targetWidth === oldTargetWidth && targetHeight === oldTargetHeight) return;
@@ -104,7 +104,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         scaleY = pScaleY;
         updateScale();
 
-        if (mouseControls) mouseControls.setPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
+        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
     };
 
     this.displayMinimumSize = function(width, height) {
@@ -679,7 +679,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var monitor;
     var keyboard;
     var peripheralControls;
-    var mouseControls;
+    var controllersHub;
     var machineControlsSocket;
     var machineControlsStateReport = {};
 

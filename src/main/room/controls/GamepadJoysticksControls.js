@@ -1,10 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.GamepadJoysticksControls = function() {
+wmsx.GamepadJoysticksControls = function(hub) {
 
-    this.connect = function(pJoysticksSocket, pMachineControlsSocket) {
-        joysticksSocket = pJoysticksSocket;
-        joysticksSocket.connectControls(this);
+    this.connect = function(pMachineControlsSocket) {
         machineControlsSocket = pMachineControlsSocket;
     };
 
@@ -16,48 +14,59 @@ wmsx.GamepadJoysticksControls = function() {
         supported = !!navigator.getGamepads;
         if (!supported) return;
         this.applyPreferences();
-        initStates();
     };
 
     this.powerOff = function() {
         supported = false;
     };
 
+    this.resetControllers = function() {
+        resetStates();
+    };
+
     this.readJoystickPort = function(port) {
         return port === 0 ? joy1State.portValue : joy1State.portValue;
     };
 
-    this.writeJoystickPort = function(value) {
+    this.writeJoystickPin8Port = function(port, value) {
         // Nothing
     };
 
     this.toggleMode = function() {
         if (!supported) {
-            screen.getMonitor().showOSD("Joystick input not supported by browser", true);
+            showStatusMessage("Joysticks DISABLED (not supported by browser)");
             return;
         }
-        initStates();
-        if (!joystick1 && !joystick2) {
-            screen.getMonitor().showOSD("No Joysticks connected", true);
-            return;
+        ++mode; if (mode > 0) mode = -2;
+
+        if (mode === -2) {
+            joystick1 = joystick2 = null;
+        } else if (mode === -1) {
+            detectionDelayCount = -1;
+            this.controllersClockPulse(true);
         }
-        swappedMode = !swappedMode;
-        screen.getMonitor().showOSD("Joysticks input " + (swappedMode ? "Swapped" : "Normal"), true);
+
+        swappedMode = mode === 0;
+
+        resetStates();
+        updateConnectionsToHub();
+
+        showStatusMessage(mode === -2 ? "Joysticks DISABLED" : "Joysticks AUTO" + (swappedMode ? " (swapped)" : ""));
     };
 
-    this.setPaddleMode = function(state) {
-        if (!supported) return;
-        paddleMode = state;
-        joy1State.xPosition = joy2State.xPosition = -1;
-    };
+    //this.setPaddleMode = function(state) {
+    //    if (!supported) return;
+    //    paddleMode = state;
+    //    joy1State.xPosition = joy2State.xPosition = -1;
+    //};
 
-    this.joysticksClockPulse = function() {
-        if (!supported) return;
+    this.controllersClockPulse = function(noMessage) {
+        if (!supported || mode === -2) return;
 
         // Try to avoid polling at gamepads if none are present, as it may be expensive
         // Only try to detect connected gamepads once each 60 clocks (frames)
-        if (++gamepadsDetectionDelay >= 60) gamepadsDetectionDelay = 0;
-        if (!joystick1 && !joystick2 && gamepadsDetectionDelay !== 0) return;
+        if (++detectionDelayCount >= DETECTION_DELAY) detectionDelayCount = 0;
+        if (!joystick1 && !joystick2 && detectionDelayCount !== 0) return;
 
         var gamepads = navigator.getGamepads();     // Just one poll per clock here then use it several times
 
@@ -67,12 +76,13 @@ wmsx.GamepadJoysticksControls = function() {
                     update(joystick1, joy1State, joy1Prefs, !swappedMode);
             } else {
                 joystick1 = null;
-                joystickConnectionMessage(true, false);
+                joy1State.reset();
+                if (!noMessage) showDeviceConnectionMessage(true, false);
             }
         } else {
-            if (gamepadsDetectionDelay === 0) {
+            if (detectionDelayCount === 0) {
                 joystick1 = detectNewJoystick(joy1Prefs, joy2Prefs, gamepads);
-                if (joystick1) joystickConnectionMessage(true, true);
+                if (joystick1 && !noMessage) showDeviceConnectionMessage(true, true);
             }
         }
 
@@ -82,51 +92,66 @@ wmsx.GamepadJoysticksControls = function() {
                     update(joystick2, joy2State, joy2Prefs, swappedMode);
             } else {
                 joystick2 = null;
-                joystickConnectionMessage(false, false);
+                joy2State.reset();
+                if (!noMessage) showDeviceConnectionMessage(false, false);
             }
         } else {
-            if (gamepadsDetectionDelay === 0) {
+            if (detectionDelayCount === 0) {
                 joystick2 = detectNewJoystick(joy2Prefs, joy1Prefs, gamepads);
-                if (joystick2) joystickConnectionMessage(false, true);
+                if (joystick2 && !noMessage) showDeviceConnectionMessage(false, true);
             }
         }
     };
 
-    var joystickConnectionMessage = function (joy1, conn) {
-        screen.getMonitor().showOSD("Joystick " + (joy1 ^ swappedMode ? "1" : "2") + (conn ? " connected" : " disconnected"), joy1);
+    function updateConnectionsToHub() {
+        var j1 = joystick1 ? "JOY1" : null;
+        var j2 = joystick2 ? "JOY2" : null;
+
+        hub.updateJoystickConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
+    }
+
+    var showDeviceConnectionMessage = function (joy1, conn) {
+        updateConnectionsToHub();
+        showStatusMessage("Joystick " + (joy1 ? "1" : "2") + (conn ? " connected" : " disconnected"));
     };
 
-    var detectNewJoystick = function(prefs, notPrefs, gamepads) {
+    function showStatusMessage(mes) {
+        hub.showStatusMessage(mes);
+    }
+
+    var detectNewJoystick = function(prefs, notPrefs, gamepads) {       // must have at least 1 button to be accepted
         if (!gamepads || gamepads.length === 0) return;
         // Fixed index detection. Also allow the same gamepad to control both  players
         if (prefs.device >= 0)   // pref.device == -1 means "auto"
-            return gamepads[prefs.device] ? new Joystick(prefs.device, prefs) : null;
+            return gamepads[prefs.device] && gamepads[prefs.device].buttons.length > 0 ? new Joystick(prefs.device, prefs) : null;
         // Auto detection
         for (var i = 0, len = gamepads.length; i < len; i++)
-            if (gamepads[i])
+            if (gamepads[i] && gamepads[i].buttons.length > 0)
                 if (i !== notPrefs.device && (!joystick1 || joystick1.index !== i) && (!joystick2 || joystick2.index !== i))
                     // New Joystick found!
                     return new Joystick(i, prefs);
     };
 
-    var initStates = function() {
+    var resetStates = function() {
         joy1State.reset();
         joy2State.reset();
     };
 
-    var update = function(joystick, joyState, joyPrefs, player0) {
+    var update = function(joystick, joyState, joyPrefs, primary) {
         // Paddle Analog
         //if (paddleMode && joyPrefs.paddleSens !== 0) {
         //    joyState.xPosition = joystick.getPaddlePosition();
         //}
+
         // Joystick direction (Analog or POV) and Paddle Digital (Analog or POV)
         var direction = joystick.getDPadDirection();
-        if (direction === -1 && (!paddleMode || joyPrefs.paddleSens === 0))
+        if (direction === -1 /* && (!paddleMode || joyPrefs.paddleSens === 0) */)
             direction = joystick.getStickDirection();
         if (direction !== joyState.direction) {
             joyState.direction = direction;
             joyState.portValue = (joyState.portValue & ~0xf) | DIRECTION_TO_PORT_VALUE[direction + 1];
         }
+
         // Joystick buttons
         //if (joyButtonDetection === joystick) {
         //    detectButton();
@@ -141,7 +166,8 @@ wmsx.GamepadJoysticksControls = function() {
             joyState.button2 = (buttonS || button);
             if (joyState.button2) joyState.portValue &= ~0x20; else joyState.portValue |= 0x20;
         //}
-        // Other Machine controls
+
+        // Other Machine controls, not related to the controller port
         button = joystick.getButtonDigital(joyPrefs.pause);
         if (button !== joyState.pause) {
             if (button) machineControlsSocket.controlStateChanged(wmsx.MachineControls.PAUSE, true);
@@ -200,13 +226,12 @@ wmsx.GamepadJoysticksControls = function() {
 
 
     var supported = false;
-    var gamepadsDetectionDelay = -1;
+    var detectionDelayCount = 1;
 
-    var joysticksSocket;
     var machineControlsSocket;
     var screen;
 
-    var paddleMode = false;
+    var mode = -1;
     var swappedMode = false;
 
     var joy1State = new JoystickState();
@@ -217,8 +242,8 @@ wmsx.GamepadJoysticksControls = function() {
     var joy1Prefs;
     var joy2Prefs;
 
+    var DETECTION_DELAY = 60;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
-
 
     function JoystickState() {
         this.reset = function() {
@@ -311,5 +336,3 @@ wmsx.GamepadJoysticksControls = function() {
     }
 
 };
-
-

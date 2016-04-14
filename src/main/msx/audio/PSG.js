@@ -2,7 +2,7 @@
 
 // PSGs AY-3-8910/YM2149 supported
 
-wmsx.PSG = function(audioSocket, joysticksSocket, mouseSocket) {
+wmsx.PSG = function(audioSocket, controllersSocket) {
 
     this.connectBus = function(bus) {
         bus.connectInputDevice( 0xa0, wmsx.DeviceMissing.inputPortIgnored);
@@ -24,6 +24,7 @@ wmsx.PSG = function(audioSocket, joysticksSocket, mouseSocket) {
 
     this.reset = function() {
         audioChannel.reset();
+        controllersSocket.resetControllers();
     };
 
     this.getAudioChannel = function() {
@@ -59,9 +60,8 @@ wmsx.PSG = function(audioSocket, joysticksSocket, mouseSocket) {
             case 13:
                 audioChannel.setEnvelopeControl(val); break;
             case 15:
-                // TODO Centralize devices in external Hub Controller
-                mouseSocket.writeMousePort(val);
-                joysticksSocket.writeJoystickPort(val);
+                controllersSocket.writePin8Port(0, (val & 0x10) >> 4);
+                controllersSocket.writePin8Port(1, (val & 0x20) >> 5);
                 break;
         }
     };
@@ -72,8 +72,7 @@ wmsx.PSG = function(audioSocket, joysticksSocket, mouseSocket) {
         // Special register 14. Read value depends on register 15 bit 6
         var port = (register[15] >> 6) & 1;
 
-        return mouseSocket.readMousePort(port);
-        //return joysticksSocket.readJoystickPort(port);
+        return controllersSocket.readPort(port);
     };
 
 

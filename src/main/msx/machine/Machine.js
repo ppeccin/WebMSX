@@ -65,7 +65,7 @@ wmsx.Machine = function() {
 
     this.videoClockPulse = function() {
         if (systemPaused) return;
-        joysticksSocket.joysticksClockPulse();
+        controllersSocket.controllersClockPulse();
         if (userPaused)
             if (userPauseMoreFrames-- <= 0) return;
 
@@ -99,12 +99,8 @@ wmsx.Machine = function() {
         return keyboardSocket;
     };
 
-    this.getJoysticksSocket = function() {
-        return joysticksSocket;
-    };
-
-    this.getMouseSocket = function() {
-        return mouseSocket;
+    this.getControllersSocket = function() {
+        return controllersSocket;
     };
 
     this.getVideoOutput = function() {
@@ -298,7 +294,7 @@ wmsx.Machine = function() {
 
         self.cpu = cpu = new wmsx.Z80();
         self.vdp = vdp = new wmsx.VDP(self, cpu, MSX2, MSX2P);
-        self.psg = psg = new wmsx.PSG(audioSocket, joysticksSocket, mouseSocket);
+        self.psg = psg = new wmsx.PSG(audioSocket, controllersSocket);
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel());
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
@@ -349,8 +345,7 @@ wmsx.Machine = function() {
         expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
         keyboardSocket = new KeyboardSocket();
-        joysticksSocket = new JoysticksSocket();
-        mouseSocket = new MouseSocket();
+        controllersSocket = new ControllersSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
         audioSocket = new AudioSocket();
@@ -380,16 +375,15 @@ wmsx.Machine = function() {
 
     var audioSocket;
     var slotSocket;
-    var machineControlsSocket;
-    var keyboardSocket;
-    var joysticksSocket;
-    var mouseSocket;
     var biosSocket;
     var expansionSocket;
     var cartridgeSocket;
     var saveStateSocket;
     var cassetteSocket;
     var diskDriveSocket;
+    var machineControlsSocket;
+    var keyboardSocket;
+    var controllersSocket;
 
     var bios;
     var videoStandard;
@@ -700,36 +694,23 @@ wmsx.Machine = function() {
     }
 
 
-    // Joysticks Socket  -----------------------------------------
+    // Controllers Socket  -----------------------------------------
 
-    function JoysticksSocket() {
+    function ControllersSocket() {
         this.connectControls = function(pControls) {
             controls = pControls;
         };
-        this.readJoystickPort = function(port) {
-            return controls.readJoystickPort(port);
+        this.readPort = function(port) {
+            return controls.readPort(port);
         };
-        this.writeJoystickPort = function(value) {
-            return controls.writeJoystickPort(value);
+        this.writePin8Port = function(port, value) {
+            controls.writePin8Port(port, value);
         };
-        this.joysticksClockPulse = function() {
-            controls.joysticksClockPulse();
+        this.resetControllers = function() {
+            controls.resetControllers();
         };
-        var controls;
-    }
-
-
-    // Mouse Socket  -----------------------------------------
-
-    function MouseSocket() {
-        this.connectControls = function(pControls) {
-            controls = pControls;
-        };
-        this.readMousePort = function(port) {
-            return controls.readMousePort(port);
-        };
-        this.writeMousePort = function(value) {
-            return controls.writeMousePort(value);
+        this.controllersClockPulse = function() {
+            controls.controllersClockPulse();
         };
         var controls;
     }

@@ -5,7 +5,8 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-/// TODO YJK Modes, CMD extension
+// TODO YJK Modes, CMD extension
+// TODO Mouse cursor problem in GraphSaurus opening
 
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var self = this;

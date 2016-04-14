@@ -2,16 +2,65 @@
 
 // Only 1 Mouse supported, always connected at port 1
 
-wmsx.DOMMouseControls = function() {
+wmsx.DOMMouseControls = function(hub, joystickControls) {
     var self = this;
-
-    this.connect = function(pMouseSocket) {
-        mouseSocket = pMouseSocket;
-        mouseSocket.connectControls(this);
-    };
 
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
+    };
+
+    this.powerOn = function() {
+    };
+
+    this.powerOff = function() {
+    };
+
+    this.resetControllers = function() {
+        if (mode === -1) port = -1;     // If in Auto mode, disable mouse
+        mouseState.reset();
+    };
+
+    this.toggleMode = function() {
+        ++mode; if (mode > 1) mode = -2;
+        port = mode < 0 ? -1 : mode;
+
+        updateConnectionsToHub();
+        showStatusMessage(mode === -2 ? "Mouse DISABLED" : mode == -1 ? "Mouse AUTO" : mode === 0 ? "Mouse ENABLED" : "Mouse ENABLED (swapped)");
+    };
+
+    this.readMousePort = function(atPort) {
+        if (atPort === port) return mouseState.portValue;
+        else return 0x3f;
+    };
+
+    this.writeMousePin8Port = function(atPort, val) {
+        if (atPort !== port) return;
+
+        var flipped = mouseState.pin8Value ^ val;
+        mouseState.pin8Value = val;
+
+        if (flipped) ++mouseState.readCycle;
+        else mouseState.readCycle = -1;
+
+        if (mouseState.readCycle === 0) updateDeltas();
+        updatePortValue();
+
+        //console.log("Mouse SET ReadCycle: " + mouseState.readCycle);
+    };
+
+    this.mouseReadAnnounced = function(atPort) {
+        if (port < 0 && mode === -1) autoEnable(atPort);
+    };
+
+    this.togglePointerLock = function() {
+        var func;
+        if (pointerLocked) {
+            func = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+            if (func) func.apply(document);
+        } else {
+            func = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+            if (func) func.apply(element);
+        }
     };
 
     this.setInputElement = function(pElement) {
@@ -31,46 +80,8 @@ wmsx.DOMMouseControls = function() {
         });
     };
 
-    this.powerOn = function() {
-    };
-
-    this.powerOff = function() {
-    };
-
-    // port 0 only
-    this.readMousePort = function(port) {
-        return port === 0 ? mouseState.portValue : 0x3f;
-    };
-
-    // port 0 only
-    this.writeMousePort = function(value) {
-        var mod = mouseState.portWriteValue ^ value;
-        mouseState.portWriteValue = value;
-
-        var pin8Flipped = mod & 0x10;
-
-        if (pin8Flipped) ++mouseState.readCycle;
-        else mouseState.readCycle = -1;
-
-        if (mouseState.readCycle === 0) updateDeltas();
-        updatePortValue();
-
-        //console.log("Mouse SET ReadCycle: " + mouseState.readCycle);
-    };
-
-    this.setPixelScale = function(scaleX, scaleY) {
+    this.setScreenPixelScale = function(scaleX, scaleY) {
         pixelScaleX = scaleX; pixelScaleY = scaleY;
-    };
-
-    this.togglePointerLock = function() {
-        var func;
-        if (pointerLocked) {
-            func = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
-            if (func) func.apply(document);
-        } else {
-            func = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
-            if (func) func.apply(element);
-        }
     };
 
     function updatePortValue() {
@@ -132,6 +143,8 @@ wmsx.DOMMouseControls = function() {
         mouseState.buttons = event.buttons & 7;
         mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
 
+        updateHubPrimaryAbsentPortValue();
+
         if ((mouseState.buttons & 4) && !(lastButtons & 4)) self.togglePointerLock();
     }
 
@@ -142,16 +155,37 @@ wmsx.DOMMouseControls = function() {
         screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
     }
 
+    function updateHubPrimaryAbsentPortValue() {
+        // Send port value to the ControllersHub, to function as alternate detection mode
+        hub.setPrimaryAbsentPortValue(mouseState.portValue | 0xcf);           // Only buttons
+    }
+
+    function autoEnable(atPort) {
+        port = atPort;
+
+        updateConnectionsToHub();
+        showStatusMessage("Mouse AUTO-ENABLED");
+    }
+
+    function updateConnectionsToHub() {
+        hub.updateMouseConnections(port === 0 ? "MOUSE" : null, port === 1 ? "MOUSE" : null);
+    }
+
+    function showStatusMessage(mes) {
+        hub.showStatusMessage(mes);
+    }
+
 
     var mouseState = new MouseState();
 
-    var pixelScaleX, pixelScaleY;
+    var mode = -1;                               // -1: auto, 0: enabled at port 0, 1: enabled at port 1, -2: disabled
+    var port = -1;                               // -1: disconnected, 0: connected at port 0, 1: connected at port 1
+    var pixelScaleX = 1, pixelScaleY = 1;
 
     var element;
     var lastMoveEvent;
     var pointerLocked = false;
 
-    var mouseSocket;
     var screen;
 
 
@@ -163,7 +197,7 @@ wmsx.DOMMouseControls = function() {
             this.buttons = 0;
 
             this.portValue = 0x3f;
-            this.portWriteValue = 0;
+            this.pin8Value = 0;
             this.readCycle = -1;
             this.readDX = 0;
             this.readDY = 0;
