@@ -26,11 +26,6 @@ wmsx.ControllersHub = function() {
     this.resetControllers = function() {
         primaryAbsentPortValue = 0x3f;
 
-        readFromPort[0] = readPortDisconnected;
-        readFromPort[1] = readPortDisconnected;
-        writePin8ToPort[0] =  writePin8PortDisconnected;
-        writePin8ToPort[1] =  writePin8PortDisconnected;
-
         joystickControls.resetControllers();
         mouseControls.resetControllers();
     };
@@ -91,7 +86,7 @@ wmsx.ControllersHub = function() {
                 writePin8ToPort[p] =  mouseControls.writeMousePin8Port;
             } else if (joystickPresent[p]) {
                 readFromPort[p] = joystickControls.readJoystickPort;
-                writePin8ToPort[p] =  joystickControls.writeJoystickPin8Port;
+                writePin8ToPort[p] =  writePin8PortDisconnected;        // Mouse does not take writes
             } else {
                 readFromPort[p] = readPortDisconnected;
                 writePin8ToPort[p] =  writePin8PortDisconnected;
@@ -105,17 +100,17 @@ wmsx.ControllersHub = function() {
 
     function writePin8PortDisconnected(port, val) {
         // Give Mouse a chance to Auto Enable
-        if (val) mouseControls.mouseReadAnnounced(port);
+        mouseControls.portPin8Announced(port, val);
     }
 
 
-    var readFromPort = [ null, null ];
-    var writePin8ToPort =  [ null, null ];
+    var readFromPort = [ readPortDisconnected, readPortDisconnected ];
+    var writePin8ToPort =  [ writePin8PortDisconnected, writePin8PortDisconnected ];
 
     var primaryAbsentPortValue;
 
-    var mousePresent =    [ false, false ];
-    var joystickPresent = [ false, false ];
+    var mousePresent =    [ null, null ];
+    var joystickPresent = [ null, null ];
 
     var joystickControls = new wmsx.GamepadJoysticksControls(this);
     var mouseControls =    new wmsx.DOMMouseControls(this, joystickControls);

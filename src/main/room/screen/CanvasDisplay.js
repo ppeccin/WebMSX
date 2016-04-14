@@ -231,6 +231,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
+    this.setMouseActiveCursor = function(boo) {
+        canvas.style.cursor = boo ? "crosshair" : "auto";
+    }
+
     function lostFocus(e) {
         keyboard.liftAllKeys();
     }

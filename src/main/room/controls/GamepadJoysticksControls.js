@@ -22,14 +22,11 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     this.resetControllers = function() {
         resetStates();
+        updateConnectionsToHub();
     };
 
     this.readJoystickPort = function(port) {
         return port === 0 ? joy1State.portValue : joy1State.portValue;
-    };
-
-    this.writeJoystickPin8Port = function(port, value) {
-        // Nothing
     };
 
     this.toggleMode = function() {

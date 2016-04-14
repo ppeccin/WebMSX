@@ -18,11 +18,13 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
     this.resetControllers = function() {
         if (mode === -1) port = -1;     // If in Auto mode, disable mouse
         mouseState.reset();
+        updateConnectionsToHub();
     };
 
     this.toggleMode = function() {
         ++mode; if (mode > 1) mode = -2;
         port = mode < 0 ? -1 : mode;
+        if (port < 0) mouseState.reset();
 
         updateConnectionsToHub();
         showStatusMessage(mode === -2 ? "Mouse DISABLED" : mode == -1 ? "Mouse AUTO" : mode === 0 ? "Mouse ENABLED" : "Mouse ENABLED (swapped)");
@@ -48,8 +50,8 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         //console.log("Mouse SET ReadCycle: " + mouseState.readCycle);
     };
 
-    this.mouseReadAnnounced = function(atPort) {
-        if (port < 0 && mode === -1) autoEnable(atPort);
+    this.portPin8Announced = function(atPort, val) {
+        if (val === 1 && port < 0 && mode === -1) tryAutoEnable(atPort, val);
     };
 
     this.togglePointerLock = function() {
@@ -160,15 +162,18 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         hub.setPrimaryAbsentPortValue(mouseState.portValue | 0xcf);           // Only buttons
     }
 
-    function autoEnable(atPort) {
+    function tryAutoEnable(atPort, pin8Val) {
         port = atPort;
 
+        self.writeMousePin8Port(port, pin8Val);
         updateConnectionsToHub();
+
         showStatusMessage("Mouse AUTO-ENABLED");
     }
 
     function updateConnectionsToHub() {
         hub.updateMouseConnections(port === 0 ? "MOUSE" : null, port === 1 ? "MOUSE" : null);
+        screen.setMouseActiveCursor(port >= 0);
     }
 
     function showStatusMessage(mes) {
