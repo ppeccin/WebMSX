@@ -59,7 +59,10 @@ wmsx.PSG = function(audioSocket, controllersSocket) {
                 audioChannel.setPeriodE((register[12] << 8) | register[11]); break;
             case 13:
                 audioChannel.setEnvelopeControl(val); break;
+            // case 14:
+                // register 14 is read-only
             case 15:
+                // Bits 4 and 5 mapped to external ports
                 controllersSocket.writePin8Port(0, (val & 0x10) >> 4);
                 controllersSocket.writePin8Port(1, (val & 0x20) >> 5);
                 break;
@@ -69,7 +72,7 @@ wmsx.PSG = function(audioSocket, controllersSocket) {
     this.inputA2 = function() {
         if (registerAddress !== 14) return register[registerAddress];
 
-        // Special register 14. Read value depends on register 15 bit 6
+        // External port mapped to register 14. Port 0 or 1 defined by register 15 bit 6
         var port = (register[15] >> 6) & 1;
 
         return controllersSocket.readPort(port);

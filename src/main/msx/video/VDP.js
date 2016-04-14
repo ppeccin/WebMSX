@@ -7,6 +7,7 @@
 
 // TODO YJK Modes, CMD extension
 // TODO Mouse cursor problem in GraphSaurus opening
+// TODO Starquake top screen bug
 
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var self = this;
