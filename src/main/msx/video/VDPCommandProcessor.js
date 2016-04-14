@@ -12,9 +12,7 @@ wmsx.VDPCommandProcessor = function() {
     };
 
     this.reset = function() {
-        inProgress = false; transferReady = false;
-        writeHandler = null; readHandler = null;
-        finishingCycle = 0;
+        finish();
     };
 
     this.startCommand = function(val) {
@@ -55,14 +53,18 @@ wmsx.VDPCommandProcessor = function() {
 
     this.cpuWrite = function(val) {
         if (writeHandler) writeHandler(val);
+
+        //else console.log("Write UNHANDLED: " + val.toString(16));
     };
 
     this.cpuRead = function() {
         if (readHandler) readHandler();
+
+        //else console.log("Read UNHANDLED");
     };
 
     this.updateStatus = function() {
-        if (inProgress) {
+        if (inProgress & finishingCycle > 0) {
             var cycles = vdp.updateCycles();
             if (cycles >= finishingCycle) finish();
         }
@@ -180,12 +182,12 @@ wmsx.VDPCommandProcessor = function() {
 
         destPos = DY * layoutLineBytes + dx;
 
-        writeStart(HMMCNextWrite, NX * ENY, 0, 1, 50);         // 50L estimated
+        writeStart(HMMCNextWrite);
     }
 
     function HMMCNextWrite(co) {
 
-        //console.log("HMMC Write CX: " + CX + ", CY: " + CY);
+        //console.log("HMMC Write CX: " + CX + ", CY: " + CY + ", CO: " + co.toString(16));
 
         vram[destPos & VRAM_LIMIT] = co;
 
@@ -193,7 +195,7 @@ wmsx.VDPCommandProcessor = function() {
         if (CX >= NX) {
             destPos -= DIX * (NX - 1);
             CX = 0; CY = CY + 1;
-            if (CY >= ENY) { inProgress = false; writeHandler = false; }
+            if (CY >= ENY) finish();
             else destPos += DIY * layoutLineBytes;
         } else {
             destPos += DIX;
@@ -376,7 +378,7 @@ wmsx.VDPCommandProcessor = function() {
         NX = DIX === 1 ? min(NX, modeWidth - DX) : min(NX, DX + 1);
         ENY = DIY === 1 ? NY : min(NY, DY + 1);            // Top limit only
 
-        writeStart(LMMCNextWrite, NX * ENY, 0, 1, 60);     	//  60L estimated
+        writeStart(LMMCNextWrite);
     }
 
     function LMMCNextWrite(co) {
@@ -389,7 +391,7 @@ wmsx.VDPCommandProcessor = function() {
         if (CX >= NX) {
             DX -= DIX * (NX - 1);
             CX = 0; CY = CY + 1; DY += DIY;
-            if (CY >= ENY) { inProgress = false; writeHandler = false; }
+            if (CY >= ENY) finish();
         } else {
             DX += DIX;
         }
@@ -419,7 +421,7 @@ wmsx.VDPCommandProcessor = function() {
         NX = DIX === 1 ? min(NX, modeWidth - SX) : min(NX, SX + 1);
         ENY = DIY === 1 ? NY : min(NY, SY + 1);            // Top limit only
 
-        readStart(LMCMNextRead, NX * ENY, 0, 1, 60);           // 60L estimated
+        readStart(LMCMNextRead);
     }
 
     function LMCMNextRead() {
@@ -429,7 +431,7 @@ wmsx.VDPCommandProcessor = function() {
         if (CX >= NX) {
             SX -= DIX * (NX - 1);
             CX = 0; CY = CY + 1; SY += DIY;
-            if (CY >= ENY) { inProgress = false; readHandler = false; }
+            if (CY >= ENY) finish();
         } else {
             SX += DIX;
         }
@@ -660,7 +662,7 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("STOP: " + writeHandler);
 
-        inProgress = false;
+        finish();
     }
 
     function normalPGET(x, y) {
@@ -734,7 +736,7 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function lopXOR(dest, src, mask) {
-        return (dest & ~mask) | ((dest ^ src) & mask);
+        return dest ^ src;
     }
 
     function lopNOT(dest, src, mask) {
@@ -754,7 +756,7 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function lopTXOR(dest, src, mask) {
-        return src === 0 ? dest : (dest & ~mask) | ((dest ^ src) & mask);
+        return dest ^ src;          // source === 0 doesn't matter since XOR 0 does not change bits
     }
 
     function lopTNOT(dest, src, mask) {
@@ -769,23 +771,27 @@ wmsx.VDPCommandProcessor = function() {
         return a > b ? a : b;
     }
 
-    function start(pixels, cyclesPerPixel, lines, cyclesPerLine) {
+    function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
         inProgress = true;
         transferReady = false;
         writeHandler = null;
         readHandler = null;
-        estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine);
+        estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite);
     }
 
-    function estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine) {
-        var cycles = vdp.updateCycles();
-        finishingCycle = cycles + ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) | 0);
+    function estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
+        if (infinite)
+            finishingCycle = -1;
+        else {
+            var cycles = vdp.updateCycles();
+            finishingCycle = cycles + ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) | 0);
 
-        //console.log ("+++++ Duration: " + (finishingCycle - cycles));
+            //console.log ("+++++ Duration: " + (finishingCycle - cycles));
+        }
     }
 
-    function writeStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
-        start(pixels, cyclesPerPixel, lines, cyclesPerLine);
+    function writeStart(handler) {
+        start(0, 0, 0, 0, true);      // Commands driven by CPU writes do not have a duration and finish when last write is performed
 
         CX = 0; CY = 0;
         writeHandler = handler;
@@ -795,8 +801,8 @@ wmsx.VDPCommandProcessor = function() {
         writeHandler(getCLR());
     }
 
-    function readStart(handler, pixels, cyclesPerPixel, lines, cyclesPerLine) {
-        start(pixels, cyclesPerPixel, lines, cyclesPerLine);
+    function readStart(handler) {
+        start(0, 0, 0, 0, true);      // Commands driven by CPU reads do not have a duration and finish when last read is performed
 
         CX = 0; CY = 0;
         readHandler = handler;
@@ -811,7 +817,10 @@ wmsx.VDPCommandProcessor = function() {
         transferReady = false;
         writeHandler = null;
         readHandler = null;
+        finishingCycle = -1;
         register[46] &= ~0xf0;
+
+        //console.log("FINISH");
     }
 
 

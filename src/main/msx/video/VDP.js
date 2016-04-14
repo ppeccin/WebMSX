@@ -6,7 +6,6 @@
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
 // TODO YJK Modes, CMD extension
-// TODO Mouse cursor problem in GraphSaurus opening
 // TODO Starquake top screen bug
 
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
