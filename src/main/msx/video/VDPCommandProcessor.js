@@ -173,7 +173,8 @@ wmsx.VDPCommandProcessor = function() {
                 dx >>>= 1; NX >>>= 1; break;
             case 0x04:
                 dx >>>= 2; NX >>>= 2; break;
-            case 0x07:
+            default:  // including 0x07
+                // Not needed
         }
 
         // Limit rect size
@@ -229,7 +230,8 @@ wmsx.VDPCommandProcessor = function() {
                 dx >>>= 1; break;
             case 0x04:
                 dx >>>= 2; break;
-            case 0x07:
+            default:  // including 0x07
+                // Not needed
         }
 
         // Limit rect size
@@ -281,7 +283,8 @@ wmsx.VDPCommandProcessor = function() {
                 sx >>>= 1; dx >>>= 1; nx >>>= 1; break;
             case 0x04:
                 sx >>>= 2; dx >>>= 2; nx >>>= 2; break;
-            case 0x07:
+            default:  // including 0x07
+                // Not needed
         }
 
         // Limit rect size
@@ -332,7 +335,8 @@ wmsx.VDPCommandProcessor = function() {
                 dx >>>= 1; nx >>>= 1; break;
             case 0x04:
                 dx >>>= 2; nx >>>= 2; break;
-            case 0x07:
+            default:  // including 0x07
+                // Not needed
         }
 
         // Limit rect size
@@ -675,7 +679,7 @@ wmsx.VDPCommandProcessor = function() {
             case 0x04:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; mask = 0x03 << shift; break;
-            case 0x07:
+            default:  // including 0x07
                 shift = 0; mask = 0xff;
         }
         // Perform operation
@@ -693,7 +697,7 @@ wmsx.VDPCommandProcessor = function() {
             case 0x04:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            case 0x07:
+            default:  // including 0x07
                 mask = 0xff;
         }
         // Perform operation
@@ -711,7 +715,7 @@ wmsx.VDPCommandProcessor = function() {
             case 0x04:
                 sShift = (3 - (sx & 0x3)) * 2; dShift = (3 - (dx & 0x3)) * 2;
                 sx >>>= 2; dx >>>= 2; mask = 0x03; break;
-            case 0x07:
+            default:  // including 0x07
                 sShift = dShift = 0;
                 mask = 0xff;
         }
