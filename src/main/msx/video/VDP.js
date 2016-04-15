@@ -2,10 +2,9 @@
 
 // V9958/V9938/V9918 VDPs supported
 // This implementation is line-accurate
-// Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode not supported
+// Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-// TODO YJK Modes
 // TODO Starquake top screen bug
 
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
@@ -359,6 +358,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 break;
             case 25:
                 if (isV9958) {
+                    if (mod & 0x18) updateLineActiveType();              // YAE, YJK
                     leftMask = (val & 0x02) !== 0;                       // MSK
                     leftScroll2Pages = (val & 0x01) !== 0;               // SP2
                 }
@@ -604,7 +604,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function updateMode() {
         var add;
         var oldMode = mode;
-        mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
+        mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);      // All Mx bits
         modeData = modes[mode];
 
         //logInfo("Update Mode: " + modeData.name);
@@ -679,7 +679,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         renderLineActive = (register[1] & 0x40) === 0
             ? renderLineActiveBlanked
             : mode === 7
-                ? debugModeSpriteHighlight ? renderLineModeG7SpriteInfo : renderLineModeG7
+                ? modeG7Variations[(register[25] & 0x18) >> 3]
                 : debugModePatternInfo ? modeData.renderLinePatternInfo : modeData.renderLine;
 
         if (wasActive) renderLine = renderLineActive;
@@ -982,11 +982,19 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
-            for (var m = 0; m < 4; ++m) {
-                var pixels = vram[pixelsPos++ & layoutTableAddressMask];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
-            }
+
+            var pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
         bufferPos -= rightScrollPixels + 256;
 
@@ -1011,24 +1019,52 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (color0Solid)                                                    // Normal paint for TP = 1
             for (var c = 0; c < 32; ++c) {
                 if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
-                for (var m = 0; m < 4; ++m) {
-                    var pixels = vram[pixelsPos++ & layoutTableAddressMask];
-                    frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
-                    frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
-                    frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
-                    frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
-                }
+
+                var pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels >>> 6];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 4) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[(pixels >>> 2) & 0x03];
+                frameBackBuffer[bufferPos++] = colorPaletteSolid[pixels & 0x03];
             }
         else                                                                // Tiling for color 0 for TP = 0
             for (c = 0; c < 32; ++c) {
                 if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
-                for (m = 0; m < 4; ++m) {
-                    pixels = vram[pixelsPos++ & layoutTableAddressMask];
-                    frameBackBuffer[bufferPos++] = (pixels & 0xc0) ? colorPaletteSolid[pixels >>> 6] : backdropTileOdd;
-                    frameBackBuffer[bufferPos++] = (pixels & 0x30) ? colorPaletteSolid[(pixels >>> 4) & 0x03] : backdropTileEven;
-                    frameBackBuffer[bufferPos++] = (pixels & 0x0c) ? colorPaletteSolid[(pixels >>> 2) & 0x03] : backdropTileOdd;
-                    frameBackBuffer[bufferPos++] = (pixels & 0x03) ? colorPaletteSolid[pixels & 0x03] : backdropTileEven;
-                }
+
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = (pixels & 0xc0) ? colorPaletteSolid[pixels >>> 6] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x30) ? colorPaletteSolid[(pixels >>> 4) & 0x03] : backdropTileEven;
+                frameBackBuffer[bufferPos++] = (pixels & 0x0c) ? colorPaletteSolid[(pixels >>> 2) & 0x03] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x03) ? colorPaletteSolid[pixels & 0x03] : backdropTileEven;
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = (pixels & 0xc0) ? colorPaletteSolid[pixels >>> 6] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x30) ? colorPaletteSolid[(pixels >>> 4) & 0x03] : backdropTileEven;
+                frameBackBuffer[bufferPos++] = (pixels & 0x0c) ? colorPaletteSolid[(pixels >>> 2) & 0x03] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x03) ? colorPaletteSolid[pixels & 0x03] : backdropTileEven;
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = (pixels & 0xc0) ? colorPaletteSolid[pixels >>> 6] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x30) ? colorPaletteSolid[(pixels >>> 4) & 0x03] : backdropTileEven;
+                frameBackBuffer[bufferPos++] = (pixels & 0x0c) ? colorPaletteSolid[(pixels >>> 2) & 0x03] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x03) ? colorPaletteSolid[pixels & 0x03] : backdropTileEven;
+                pixels = vram[pixelsPos++ & layoutTableAddressMask];
+                frameBackBuffer[bufferPos++] = (pixels & 0xc0) ? colorPaletteSolid[pixels >>> 6] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x30) ? colorPaletteSolid[(pixels >>> 4) & 0x03] : backdropTileEven;
+                frameBackBuffer[bufferPos++] = (pixels & 0x0c) ? colorPaletteSolid[(pixels >>> 2) & 0x03] : backdropTileOdd;
+                frameBackBuffer[bufferPos++] = (pixels & 0x03) ? colorPaletteSolid[pixels & 0x03] : backdropTileEven;
             }
         bufferPos -= (rightScrollPixels << 1) + 512;
 
@@ -1052,11 +1088,31 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
-            for (var m = 0; m < 8; ++m) {
-                var pixels = vram[pixelsPos++ & layoutTableAddressMask];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
-                frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
-            }
+
+            var pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
+            pixels = vram[pixelsPos++ & layoutTableAddressMask];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels >>> 4];
+            frameBackBuffer[bufferPos++] = colorPalette[pixels & 0x0f];
         }
         bufferPos -= (rightScrollPixels << 1) + 512;
 
@@ -1072,6 +1128,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var alpha = debugModeSpriteHighlight ? DEBUG_DIM_ALPHA_MASK : 0xffffffff;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1080,17 +1137,135 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
-            for (var m = 0; m < 8; ++m) {
-                frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]];
-            }
+
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
+            frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & alpha;
         }
         bufferPos -= rightScrollPixels + 256;
 
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteG7);       // Special fixed palette
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, spritePaletteG7);       // Special fixed palette
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
         bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function renderLineModeG7YJK() {                                        // Graphics 7 YJK, no YAE (Screen 12)
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
+
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+
+        var pixelsPosBase = layoutTableAddress + (realLine << 8);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
+
+        var y1, y2, y3, y4, y, j, k, r, g, b;
+        var alpha = 0xff000000 & (debugModeSpriteHighlight ? DEBUG_DIM_ALPHA_MASK : 0xff000000);
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+
+            y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
+            j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
+            k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
+            y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+
+            y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
+            j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
+            k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
+            y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+        }
+        bufferPos -= rightScrollPixels + 256;
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);       // Normal palette
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function renderLineModeG7YAE() {                                        // Graphics 7 YJK with YAE (Screen 10/11)
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
+
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+
+        var pixelsPosBase = layoutTableAddress + (realLine << 8);
+        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
+        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
+        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
+
+        var y1, y2, y3, y4, y, j, k, r, g, b;
+        var alpha = 0xff000000 & (debugModeSpriteHighlight ? DEBUG_DIM_ALPHA_MASK : 0xff000000);
+
+        for (var c = 0; c < 32; ++c) {
+            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
+
+            y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
+            j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
+            k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
+            if (y1 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y1 >> 4];
+            else { y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+            if (y2 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y2 >> 4];
+            else { y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+            if (y3 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y3 >> 4];
+            else { y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+            if (y4 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y4 >> 4];
+            else { y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+
+            y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
+            j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
+            k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
+            if (y1 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y1 >> 4];
+            else { y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+            if (y2 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y2 >> 4];
+            else { y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+            if (y3 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y3 >> 4];
+            else { y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+            if (y4 & 0x8) frameBackBuffer[bufferPos++] = colorPalette[y4 >> 4];
+            else { y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+                frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r; }
+        }
+        bufferPos -= rightScrollPixels + 256;
+
+        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);       // Normal palette
+        if (leftMask) paintBackdrop8(bufferPos);
+        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function from5bitsTruncTo8bits(val) {
+        return val <= 0 ? 0 : val >= 31 ? color5to8bits[31] : color5to8bits[val];
     }
 
     function renderLineModeT1PatternInfo() {                                // Text (Screen 0)
@@ -1337,32 +1512,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPos -= rightScrollPixels + 256;
 
         if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
-        if (leftMask) paintBackdrop8(bufferPos);
-        if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
-
-        bufferPosition = bufferPosition + bufferLineAdvance;
-    }
-
-    function renderLineModeG7SpriteInfo() {                                 // Graphics 7 (Screen 8)
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
-
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
-
-        var pixelsPosBase = layoutTableAddress + (realLine << 8);
-        var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
-        if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
-        var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
-
-        for (var c = 0; c < 32; ++c) {
-            if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
-            for (var m = 0; m < 8; ++m) {
-                frameBackBuffer[bufferPos++] = colors256[vram[pixelsPos++ & layoutTableAddressMask]] & DEBUG_DIM_ALPHA_MASK;
-            }
-        }
-        bufferPos -= rightScrollPixels + 256;
-
-        if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteG7);       // Special fixed palette
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
@@ -1982,19 +2131,22 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:        renderLineModeG6,  renderLinePatternInfo: renderLineModeG6,            spriteMode: 2 };
     modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:        renderLineModeG7,  renderLinePatternInfo: renderLineModeG7,            spriteMode: 2 };
 
+    var modeG7Variations = [ renderLineModeG7, renderLineModeG7YJK, renderLineModeG7, renderLineModeG7YAE ];    // According to YAE, YJK
+
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
     var color2to8bits = [ 0, 73, 146, 255 ];
     var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
+    var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];
 
     var color0Solid = false;
     var colorPalette =      new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug
     var colorPaletteSolid = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values, dimmed when in debug
     var colorPaletteReal =  new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
 
-    var colorPaletteG7 =           new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
+    var spritePaletteG7 =          new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
     var colorPaletteInitialV9918 = new Uint32Array([ 0xff000000, 0xff000000, 0xff28ca07, 0xff65e23d, 0xfff04444, 0xfff46d70, 0xff1330d0, 0xfff0e840, 0xff4242f3, 0xff7878f4, 0xff30cad0, 0xff89dcdc, 0xff20a906, 0xffc540da, 0xffbcbcbc, 0xffffffff ]);
     var colorPaletteInitialV9938 = new Uint32Array([ 0xff000000, 0xff000000, 0xff24db24, 0xff6dff6d, 0xffff2424, 0xffff6d49, 0xff2424b6, 0xffffdb49, 0xff2424ff, 0xff6d6dff, 0xff24dbdb, 0xff92dbdb, 0xff249224, 0xffb649db, 0xffb6b6b6, 0xffffffff ]);
