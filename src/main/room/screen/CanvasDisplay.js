@@ -29,7 +29,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         peripheralControls = pPeripheralControls;
         peripheralControls.addInputElements(keyControlsInputElements());
         controllersHub = pControllersHub;
-        controllersHub.setInputElement(mouseMovementInputElement())
+        controllersHub.setMouseInputElement(mouseControlsInputElement())
     };
 
     this.powerOn = function() {
@@ -45,11 +45,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.refresh = function(image, sourceWidth, sourceHeight) {
+        // Hide mouse cursor if not moving for some time
+        if (cursorShowing)
+            if (--cursorHideFrameCountdown < 0) hideCursor();
+
+        // If needed, turn signal on and hide logo
         if (!signalIsOn) {
             signalIsOn = true;
             updateLogo();
         }
 
+        // Update frame
         canvasContext.drawImage(
             image,
             0, 0, sourceWidth, sourceHeight,
@@ -232,19 +238,37 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setMouseActiveCursor = function(boo) {
-        canvas.style.cursor = boo ? "url(" + IMAGES_PATH + "mouse.cur" + "), auto" : "auto";
+        cursorType = boo ? "url(" + IMAGES_PATH + "mouse.cur" + "), auto" : "auto";
+        showCursor(true);
     };
 
     function lostFocus(e) {
         keyboard.liftAllKeys();
     }
 
+    function hideCursor() {
+        cursorShowing = false;
+        updateCursor();
+    }
+
+    function showCursor(force) {
+        if (!cursorShowing || force) {
+            cursorShowing = true;
+            updateCursor()
+        }
+        cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
+    }
+
+    function updateCursor() {
+        fsElement.style.cursor = cursorShowing ? cursorType : "none";
+    }
+
     function keyControlsInputElements() {
         return [mainElement];
     }
 
-    function mouseMovementInputElement() {
-        return canvas;
+    function mouseControlsInputElement() {
+        return fsElement;
     }
 
     function openSettings(page) {
@@ -305,6 +329,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             logoImage.style.display = "none";
             loadingImage.style.display = "none";
         } else {
+            showCursor(true);
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
             /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
             if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";
@@ -356,6 +381,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.style.height = "100%";
         fsElement.style.overflow = "hidden";
         fsElement.style.background = "black";
+
+        fsElement.addEventListener("mousemove", showCursor);
 
         document.addEventListener("fullscreenchange", fullScreenChanged);
         document.addEventListener("webkitfullscreenchange", fullScreenChanged);
@@ -703,6 +730,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     var osdTimeout;
     var osdShowing = false;
 
+    var cursorType = "auto";
+    var cursorShowing = true;
+    var cursorHideFrameCountdown = -1;
+
     var signalIsOn = false;
     var isFullscreen = false;
     var crtFilter = 1;
@@ -751,6 +782,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var IMAGES_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;
+    var CURSOR_HIDE_FRAMES = 150;
 
 
     init(this);

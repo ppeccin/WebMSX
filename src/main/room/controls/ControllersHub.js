@@ -24,14 +24,16 @@ wmsx.ControllersHub = function() {
     };
 
     this.resetControllers = function() {
-        primaryAbsentPortValue = 0x3f;
+        alternatePrimaryPortValue = 0x3f;
 
         joystickControls.resetControllers();
         mouseControls.resetControllers();
     };
 
     this.readPort = function(port) {
-        return readFromPort[port](port);
+        return port === 0
+            ? readFromPort[port](port) & alternatePrimaryPortValue
+            : readFromPort[port](port);
     };
 
     this.writePin8Port = function(port, value) {
@@ -50,7 +52,7 @@ wmsx.ControllersHub = function() {
         mouseControls.toggleMode();
     };
 
-    this.setInputElement = function(element) {
+    this.setMouseInputElement = function(element) {
         mouseControls.setInputElement(element);
     };
 
@@ -58,8 +60,8 @@ wmsx.ControllersHub = function() {
         mouseControls.setScreenPixelScale(scaleX, scaleY);
     };
 
-    this.setPrimaryAbsentPortValue = function(val) {
-        primaryAbsentPortValue = val;
+    this.setAlternatePrimaryPortValue = function(val) {
+        alternatePrimaryPortValue = val;
     };
 
     this.updateMouseConnections = function(onPort0, onPort1) {
@@ -95,7 +97,7 @@ wmsx.ControllersHub = function() {
     }
 
     function readPortDisconnected(port) {
-        return port === 0 ? primaryAbsentPortValue : 0x3f;
+        return 0x3f;
     }
 
     function writePin8PortDisconnected(port, val) {
@@ -107,7 +109,7 @@ wmsx.ControllersHub = function() {
     var readFromPort = [ readPortDisconnected, readPortDisconnected ];
     var writePin8ToPort =  [ writePin8PortDisconnected, writePin8PortDisconnected ];
 
-    var primaryAbsentPortValue;
+    var alternatePrimaryPortValue;
 
     var mousePresent =    [ null, null ];
     var joystickPresent = [ null, null ];

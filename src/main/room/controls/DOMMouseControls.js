@@ -41,9 +41,15 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         var flipped = mouseState.pin8Value ^ val;
         mouseState.pin8Value = val;
 
-        if (flipped) ++mouseState.readCycle;
-        else mouseState.readCycle = -1;
+        if (!flipped) {
+            if (mouseState.readCycle >= 0) {
+                mouseState.readCycle = -1;
+                updatePortValue();
+            }
+            return;
+        }
 
+        ++mouseState.readCycle;
         if (mouseState.readCycle === 0) updateDeltas();
         updatePortValue();
 
@@ -97,7 +103,7 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
             case 3:
                 mouseState.portValue = (mouseState.portValue & ~0x0f) | (mouseState.readDY & 0xf); break;
             default:
-                mouseState.portValue = mouseState.portValue & ~0x0f;
+                mouseState.portValue = mouseState.portValue & ~0x0f;    // Not reading movement, leave only buttons state
         }
 
         //console.log("Setting mouse port value: " + (mouseState.portValue & 0xf));
@@ -145,7 +151,7 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         mouseState.buttons = event.buttons & 7;
         mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
 
-        updateHubPrimaryAbsentPortValue();
+        updateHubAlternatePrimaryPortValue();
 
         if ((mouseState.buttons & 4) && !(lastButtons & 4)) self.togglePointerLock();
     }
@@ -157,9 +163,9 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
     }
 
-    function updateHubPrimaryAbsentPortValue() {
-        // Send port value to the ControllersHub, to function as alternate detection mode
-        hub.setPrimaryAbsentPortValue(mouseState.portValue | 0xcf);           // Only buttons
+    function updateHubAlternatePrimaryPortValue() {
+        // If in Auto mode and not connected, send port value to the ControllersHub, to function as alternate detection mode
+        hub.setAlternatePrimaryPortValue(mode === -1 && port < 0 ? mouseState.portValue | 0x0f : 0x3f);        // Only buttons
     }
 
     function tryAutoEnable(atPort, pin8Val) {
@@ -173,6 +179,7 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
 
     function updateConnectionsToHub() {
         hub.updateMouseConnections(port === 0 ? "MOUSE" : null, port === 1 ? "MOUSE" : null);
+        updateHubAlternatePrimaryPortValue();
         screen.setMouseActiveCursor(port >= 0);
     }
 
