@@ -121,7 +121,7 @@ wmsx.ImageDiskDriver = function() {
         writeToMemory(bytes, HL);
 
         // Success
-        return { F: F & ~1, B: 0, extraIterations: spinTime };
+        return { F: F & ~1, B: 0, extraIterations: spinTime + B * EXTRA_ITERATIONS_PER_SECTOR};
     }
 
     function DSKIOWrite(F, A, B, C, DE, HL) {
@@ -144,7 +144,7 @@ wmsx.ImageDiskDriver = function() {
             return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Success
-        return { F: F & ~1, B: 0, extraIterations: spinTime };
+        return { F: F & ~1, B: 0, extraIterations: spinTime + B * EXTRA_ITERATIONS_PER_SECTOR };
     }
 
     function DSKCHG(F, A, B, C, HL) {
@@ -211,7 +211,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function MTOFF() {
-        // wmsx.Util.log("MTOFF");
+         wmsx.Util.log("MTOFF");
 
         drive.allMotorsOffNow();
     }
@@ -268,7 +268,7 @@ wmsx.ImageDiskDriver = function() {
     var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 360KB, Single Sided\r\n2) 720KB, Double Sided\r\n\0";
     var CHOICE_STRING_ADDRESS = 0x8100;
 
-    var EXTRA_ITERATIONS_PER_SECTOR = 10000;
+    var EXTRA_ITERATIONS_PER_SECTOR = 4000;
     var EXTRA_ITERATIONS_FORMAT = 2000000;
 
 };

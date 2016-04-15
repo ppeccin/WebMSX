@@ -218,7 +218,7 @@ wmsx.FileDiskDrive = function() {
 
     var BYTES_PER_SECTOR = 512;                   // Fixed for now, for all disks
 
-    var MOTOR_SPINUP_EXTRA_ITERATIONS = 280000;
+    var MOTOR_SPINUP_EXTRA_ITERATIONS = 150000;
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;
 
     var FORMAT_OPTION_DESC = [ "360KB", "720KB" ];
