@@ -712,6 +712,9 @@ wmsx.Machine = function() {
         this.controllersClockPulse = function() {
             controls.controllersClockPulse();
         };
+        this.getCPUCycles = function() {
+            return cpu.getCycles();
+        };
         var controls;
     }
 

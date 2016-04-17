@@ -254,7 +254,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function showCursor(force) {
         if (!cursorShowing || force) {
             cursorShowing = true;
-            updateCursor()
+            updateCursor();
         }
         cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
     }
@@ -382,7 +382,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.style.overflow = "hidden";
         fsElement.style.background = "black";
 
-        fsElement.addEventListener("mousemove", showCursor);
+        fsElement.addEventListener("mousemove", function() {
+            showCursor();
+        });
 
         document.addEventListener("fullscreenchange", fullScreenChanged);
         document.addEventListener("webkitfullscreenchange", fullScreenChanged);

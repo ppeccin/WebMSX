@@ -4,6 +4,7 @@ wmsx.ControllersHub = function() {
 
     this.connect = function(controllersSocket, machineControlsSocket) {
         controllersSocket.connectControls(this);
+        mouseControls.connect(controllersSocket);
         joystickControls.connect(machineControlsSocket);
     };
 
@@ -24,16 +25,12 @@ wmsx.ControllersHub = function() {
     };
 
     this.resetControllers = function() {
-        alternatePrimaryPortValue = 0x3f;
-
         joystickControls.resetControllers();
         mouseControls.resetControllers();
     };
 
     this.readPort = function(port) {
-        return port === 0
-            ? readFromPort[port](port) & alternatePrimaryPortValue
-            : readFromPort[port](port);
+        return readFromPort[port](port);
     };
 
     this.writePin8Port = function(port, value) {
@@ -58,10 +55,6 @@ wmsx.ControllersHub = function() {
 
     this.setScreenPixelScale = function(scaleX, scaleY) {
         mouseControls.setScreenPixelScale(scaleX, scaleY);
-    };
-
-    this.setAlternatePrimaryPortValue = function(val) {
-        alternatePrimaryPortValue = val;
     };
 
     this.updateMouseConnections = function(onPort0, onPort1) {
@@ -109,13 +102,11 @@ wmsx.ControllersHub = function() {
     var readFromPort = [ readPortDisconnected, readPortDisconnected ];
     var writePin8ToPort =  [ writePin8PortDisconnected, writePin8PortDisconnected ];
 
-    var alternatePrimaryPortValue;
-
     var mousePresent =    [ null, null ];
     var joystickPresent = [ null, null ];
 
     var joystickControls = new wmsx.GamepadJoysticksControls(this);
-    var mouseControls =    new wmsx.DOMMouseControls(this, joystickControls);
+    var mouseControls =    new wmsx.DOMMouseControls(this);
 
     var screen;
 

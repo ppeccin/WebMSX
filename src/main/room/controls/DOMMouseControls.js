@@ -1,9 +1,13 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Only 1 Mouse supported, always connected at port 1
+// Only 1 Mouse supported
 
-wmsx.DOMMouseControls = function(hub, joystickControls) {
+wmsx.DOMMouseControls = function(hub) {
     var self = this;
+
+    this.connect = function(peControllersSocket) {
+        controllersSocket = peControllersSocket;
+    };
 
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
@@ -39,21 +43,21 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         if (atPort !== port) return;
 
         var flipped = mouseState.pin8Value ^ val;
+        if (!flipped) return;
+
         mouseState.pin8Value = val;
 
-        if (!flipped) {
-            if (mouseState.readCycle >= 0) {
-                mouseState.readCycle = -1;
-                updatePortValue();
-            }
-            return;
-        }
+        var elapsed = controllersSocket.getCPUCycles() - mouseState.lastPin8FlipCPUCycle;
+        mouseState.lastPin8FlipCPUCycle += elapsed;
+
+        // Resets read cycle if timeout passed since last flip
+        if (elapsed > READ_CYCLE_RESET_TIMEOUT) mouseState.readCycle = -1;
 
         ++mouseState.readCycle;
         if (mouseState.readCycle === 0) updateDeltas();
         updatePortValue();
 
-        //console.log("Mouse SET ReadCycle: " + mouseState.readCycle);
+        //console.log("Mouse SET ReadCycle: " + mouseState.readCycle + ", elapsed: " + elapsed);
     };
 
     this.portPin8Announced = function(atPort, val) {
@@ -151,8 +155,6 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         mouseState.buttons = event.buttons & 7;
         mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
 
-        updateHubAlternatePrimaryPortValue();
-
         if ((mouseState.buttons & 4) && !(lastButtons & 4)) self.togglePointerLock();
     }
 
@@ -161,11 +163,6 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
         pointerLocked = lockingElement === element;
 
         screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
-    }
-
-    function updateHubAlternatePrimaryPortValue() {
-        // If in Auto mode and not connected, send port value to the ControllersHub, to function as alternate detection mode
-        hub.setAlternatePrimaryPortValue(mode === -1 && port < 0 ? mouseState.portValue | 0x0f : 0x3f);        // Only buttons
     }
 
     function tryAutoEnable(atPort, pin8Val) {
@@ -179,7 +176,6 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
 
     function updateConnectionsToHub() {
         hub.updateMouseConnections(port === 0 ? "MOUSE" : null, port === 1 ? "MOUSE" : null);
-        updateHubAlternatePrimaryPortValue();
         screen.setMouseActiveCursor(port >= 0);
     }
 
@@ -198,7 +194,9 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
     var lastMoveEvent;
     var pointerLocked = false;
 
-    var screen;
+    var controllersSocket, screen;
+
+    var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 3) | 0;   // 3 milliseconds
 
 
     // Stores a complete Mouse state, with positions and buttons
@@ -210,6 +208,7 @@ wmsx.DOMMouseControls = function(hub, joystickControls) {
 
             this.portValue = 0x3f;
             this.pin8Value = 0;
+            this.lastPin8FlipCPUCycle = 0;
             this.readCycle = -1;
             this.readDX = 0;
             this.readDY = 0;
