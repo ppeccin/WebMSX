@@ -32,7 +32,7 @@ WMSX.start = function () {
     wmsx.ROMDatabase.create();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
-    if (window.location.protocol.indexOf("http") >= 0) {
+    if (window.location.protocol.toLowerCase().indexOf("http") >= 0) {
         if (WMSX.STATE_LOAD_URL) {
             WMSX.room.loading(true);
             // Only 1 file, Machine will Auto Power on
@@ -76,7 +76,9 @@ WMSX.start = function () {
                 }
             ).start();
         }
-    }
+    } else
+        wmsx.Util.message("If you start WebMSX from a local file, it will not be able to auto-load\n" +
+            "System ROMs due to the browser's \"same-origin policy\"\nPlease run from a WebServer (remote or local)");
 
     function afterAutoStartWait(func) {
         if (WMSX.AUTO_START_DELAY < 0) return;
