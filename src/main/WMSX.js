@@ -70,6 +70,14 @@ WMSX.presets = {
         SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
     },
 
+    MSX2PJAP: {
+        MACHINE_TYPE:       3,
+        _EXCLUDE:           "DEFAULT",
+        _INCLUDE:           "MSX2BASE, MSXMUSIC",
+        SLOT_0_URL:         "wmsx/roms/MSX2P_JAP.bios",
+        SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_JAP.bios"
+    },
+
     // MSX2 Machine Presets
 
     MSX2: {
@@ -90,6 +98,14 @@ WMSX.presets = {
         _INCLUDE:           "MSX2BASE",
         SLOT_0_URL:         "wmsx/roms/MSX2_PAL.bios",
         SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
+    },
+
+    MSX2JAP: {
+        MACHINE_TYPE:       2,
+        _EXCLUDE:           "DEFAULT",
+        _INCLUDE:           "MSX2BASE",
+        SLOT_0_URL:         "wmsx/roms/MSX2_JAP.bios",
+        SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_JAP.bios"
     },
 
     // MSX2/2+ Common
@@ -153,6 +169,12 @@ WMSX.presets = {
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "wmsx/roms/MSX1_PAL.bios"
+    },
+
+    MSX1JAP: {
+        _EXCLUDE:           "DEFAULT",
+        _INCLUDE:           "MSX1BASE",
+        SLOT_0_URL:         "wmsx/roms/MSX1_JAP.bios"
     },
 
     MSX1BASE: {

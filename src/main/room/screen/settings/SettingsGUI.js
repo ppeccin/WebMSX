@@ -108,18 +108,6 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'B' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'V-Synch Modes' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
                                     'D' +
                                 '</div>' +
                             '</div>' +
@@ -139,6 +127,18 @@ wmsx.SettingsGUI.html = function() {
                                 'Sprite Modes' +
                             '</div>' +
                         '</div>' +
+                        '<div id="jt-general-toggle-mouse" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                'M' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Toggle Mouse' +
+                            '</div>' +
+                        '</div>' +
                         '<div id="jt-general-swap-joysticks" class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
@@ -148,7 +148,7 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Swap Joysticks' +
+                                'Toggle Joysticks' +
                             '</div>' +
                         '</div>' +
                         '<div id="jt-general-toggle-keyboards" class="hotkey">' +
@@ -160,7 +160,7 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Keyboard Layout' +
+                                'Toggle Keyboards' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -250,11 +250,11 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'E' +
-                            '</div>' +
+                                    'B' +
+                                '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Color Modes' +
+                                'V-Synch Modes' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
@@ -527,7 +527,7 @@ wmsx.SettingsGUI.css = function() {
        ' position: relative;' +
        ' overflow: hidden;' +
        ' width: 580px;' +
-       ' top: 80px;' +
+       ' top: 48px;' +
        ' left: -120px;' +
        ' margin: 0 auto;' +
        ' color: rgba(0, 0, 0, 0.90);' +
