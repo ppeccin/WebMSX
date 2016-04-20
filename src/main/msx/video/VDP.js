@@ -5,8 +5,6 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-// TODO Starquake top screen bug
-
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var self = this;
 

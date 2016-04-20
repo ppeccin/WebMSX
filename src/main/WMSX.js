@@ -57,17 +57,17 @@ WMSX.presets = {
 
     MSX2PNTSC: {
         MACHINE_TYPE:       3,
-        _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2P.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT.bios"
+        _INCLUDE:           "MSX2BASE, MSXMUSIC",
+        SLOT_0_URL:         "wmsx/roms/MSX2P_NTSC.bios",
+        SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_NTSC.bios"
     },
 
     MSX2PPAL: {
         MACHINE_TYPE:       3,
         _EXCLUDE:           "DEFAULT",
-        _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2P_PAL.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
+        _INCLUDE:           "MSX2BASE, MSXMUSIC",
+        SLOT_0_URL:         "wmsx/roms/MSX2P_PAL.bios",
+        SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
     },
 
     // MSX2 Machine Presets
@@ -80,33 +80,39 @@ WMSX.presets = {
         MACHINE_TYPE:       2,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2EXT.bios"
+        SLOT_0_URL:         "wmsx/roms/MSX2_NTSC.bios",
+        SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_NTSC.bios"
     },
 
     MSX2PAL: {
         MACHINE_TYPE:       2,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_0_URL:       "wmsx/roms/MSX2_PAL.bios",
-        SLOT_0_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
+        SLOT_0_URL:         "wmsx/roms/MSX2_PAL.bios",
+        SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
     },
 
+    // MSX2/2+ Common
+
     MSX2BASE: {
-        BIOS_SLOT:          [0, 0],     // TODO Some software will not run with BIOS in an ExpandedSlot (ex: AbuSimbel Profanation, Venom, IO)
+        BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
-        EXPANSION_SLOTS:    [[3, 2], [3, 3]],
+        EXPANSION_SLOTS:    [[2, 2], [2, 3]],
         SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
         _INCLUDE:           "MSX2DISK, RAM512"
     },
 
     MSX2DISK: {
-        SLOT_0_2_URL:       "wmsx/roms/Disk.rom"
+        SLOT_3_2_URL:       "wmsx/roms/DISK.rom"
+    },
+
+    MSXMUSIC: {
+        SLOT_3_3_URL:       "wmsx/roms/MSXMUSIC.rom"
     },
 
     DOS2: {
-        SLOT_0_3_URL:       "wmsx/roms/MSXDOS22v3.rom"
+        SLOT_2_2_URL:       "wmsx/roms/MSXDOS22v3.rom"
     },
 
     RAM64: {
@@ -140,7 +146,7 @@ WMSX.presets = {
     MSX1NTSC: {
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX1.bios"
+        SLOT_0_URL:         "wmsx/roms/MSX1_NTSC.bios"
     },
 
     MSX1PAL: {
@@ -160,19 +166,19 @@ WMSX.presets = {
     },
 
     MSX1DISK: {
-        SLOT_3_1_URL:       "wmsx/roms/Disk.rom"
+        SLOT_3_1_URL:       "wmsx/roms/DISK.rom"
     },
 
     // Specific Machines Presets
 
     EXPERT: {
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/Expert10.bios"
+        SLOT_0_URL:         "wmsx/roms/EXPERT10.bios"
     },
 
     EMPTY: {
         _EXCLUDE:           "DEFAULT",
-        MACHINE_TYPE:       2,
+        MACHINE_TYPE:       3,
         BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
@@ -190,19 +196,15 @@ WMSX.presets = {
     },
 
     SCC: {
-        SLOT_3_3_URL:       "wmsx/roms/[SCCExpansion].rom"
+        SLOT_2_3_URL:       "wmsx/roms/[SCCExpansion].rom"
     },
 
     SCCI: {
-        SLOT_3_3_URL:       "wmsx/roms/[SCCIExpansion].rom"
-    },
-
-    MSXMUSIC: {
-        SLOT_3_2_URL:       "wmsx/roms/MSXMUSIC.rom"
+        SLOT_2_3_URL:       "wmsx/roms/[SCCIExpansion].rom"
     },
 
     FMPAC: {
-        SLOT_3_2_URL:       "wmsx/roms/FMPAC.rom"
+        CARTRIDGE2_URL:     "wmsx/roms/FMPAC.rom"
     },
 
     // Configuration Helper Presets

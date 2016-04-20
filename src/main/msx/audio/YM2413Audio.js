@@ -5,6 +5,7 @@
 // Instrument settings based on Okazaki's and Burczynski's
 
 // TODO How changes in parameters affect envelopes in progress
+// TODO Drums missing in VGMPlay?
 
 wmsx.YM2413Audio = function(pName) {
     var self = this;

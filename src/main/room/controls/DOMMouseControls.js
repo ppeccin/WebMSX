@@ -196,7 +196,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     var controllersSocket, screen;
 
-    var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 3) | 0;   // 3 milliseconds
+    var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
 
 
     // Stores a complete Mouse state, with positions and buttons
