@@ -5,7 +5,6 @@
 // Instrument settings based on Okazaki's and Burczynski's
 
 // TODO How changes in parameters affect envelopes in progress
-// TODO Drums missing in VGMPlay?
 
 wmsx.YM2413Audio = function(pName) {
     var self = this;
@@ -252,16 +251,20 @@ wmsx.YM2413Audio = function(pName) {
                 }
                 break;
             case 0x0e:
-                if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
+
+                //console.log("RY: " + val.toString(2));
+
+                var rhyMod = mod & 0x20;
+                if (rhyMod) setRhythmMode((val & 0x20) !== 0);
                 if (rhythmMode) {
-                    if (mod & 0x10) {                                             // Bass Drum    (2 ops, like a melody channel)
+                    if (rhyMod || (mod & 0x10)) {                                            // Bass Drum    (2 ops, like a melody channel)
                         setRhythmKeyOnOp(12, (val & 0x10) >> 4);
                         setRhythmKeyOnOp(13, (val & 0x10) >> 4);
                     }
-                    if (mod & 0x08) setRhythmKeyOnOp(15, (val & 0x08) >> 3);     // Snare Drum   (1 op)
-                    if (mod & 0x04) setRhythmKeyOnOp(16, (val & 0x04) >> 2);     // Tom Tom      (1 op)
-                    if (mod & 0x02) setRhythmKeyOnOp(17, (val & 0x02) >> 1);     // Top Cymbal   (1 op)
-                    if (mod & 0x01) setRhythmKeyOnOp(14,  val & 0x01);           // HiHat        (1 op)
+                    if (rhyMod || (mod & 0x08)) setRhythmKeyOnOp(15, (val & 0x08) >> 3);     // Snare Drum   (1 op)
+                    if (rhyMod || (mod & 0x04)) setRhythmKeyOnOp(16, (val & 0x04) >> 2);     // Tom Tom      (1 op)
+                    if (rhyMod || (mod & 0x02)) setRhythmKeyOnOp(17, (val & 0x02) >> 1);     // Top Cymbal   (1 op)
+                    if (rhyMod || (mod & 0x01)) setRhythmKeyOnOp(14,  val & 0x01);           // HiHat        (1 op)
                 }
                 break;
             case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
@@ -433,15 +436,15 @@ wmsx.YM2413Audio = function(pName) {
 
     function setRhythmMode(boo) {
         rhythmMode = boo;
-        setEnvStep(6, IDLE); updateEnvAttenuation(6);
-        setEnvStep(7, IDLE); updateEnvAttenuation(7);
-        setEnvStep(8, IDLE); updateEnvAttenuation(8);
         if (rhythmMode) {
             if (!audioConnected) connectAudio();
             setInstr(6, 16);
             setInstr(7, 17);
             setInstr(8, 18);
         } else {
+            setEnvStep(6, IDLE); updateEnvAttenuation(6);
+            setEnvStep(7, IDLE); updateEnvAttenuation(7);
+            setEnvStep(8, IDLE); updateEnvAttenuation(8);
             setInstr(6, register[36] >> 4);
             setInstr(7, register[37] >> 4);
             setInstr(8, register[38] >> 4);
