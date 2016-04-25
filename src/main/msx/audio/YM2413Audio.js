@@ -86,7 +86,7 @@ wmsx.YM2413Audio = function(pName) {
         wmsx.Util.arrayFill(envAtt, 0);
         wmsx.Util.arrayFill(kslAtt, 0);
         wmsx.Util.arrayFill(totalAtt, 0);
-        wmsx.Util.arrayFill(envStep, -1);
+        wmsx.Util.arrayFill(envStep, IDLE);
         wmsx.Util.arrayFill(envStepLevelDur, 0);
         wmsx.Util.arrayFill(envStepLevelIncClock, 0);
         wmsx.Util.arrayFill(envStepLevelInc, 0);
@@ -597,7 +597,7 @@ wmsx.YM2413Audio = function(pName) {
 
     // Constants
 
-    var IDLE = -1, DAMP = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
+    var IDLE = 255, DAMP = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
     var MAX_INT = 9007199254740991;
 
     // Dynamic global values. Change as time passes

@@ -142,7 +142,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         return res;
     };
 
-    // Register/VRAM Address write for V9938
+    // Register/VRAM Address write
     this.output99 = function(val) {
         if (dataToWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
@@ -597,6 +597,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  INT VERTICAL");
         //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  INT HORIZONTAL");
+    }
+
+    function setMode(m) {
+        registerWrite(0, (register[0] & ~0x0e) | ((m & 0x07) << 1));
+        registerWrite(1, (register[1] & ~0x18) | (m & 0x18));
     }
 
     function updateMode() {
@@ -2140,9 +2145,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];
 
     var color0Solid = false;
-    var colorPalette =      new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug
-    var colorPaletteSolid = new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values, dimmed when in debug
-    var colorPaletteReal =  new Uint32Array(32);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
+    var colorPalette =      new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug
+    var colorPaletteSolid = new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with real solid palette values, dimmed when in debug
+    var colorPaletteReal =  new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
 
     var spritePaletteG7 =          new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
