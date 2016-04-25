@@ -8,11 +8,8 @@ wmsx.ROMDatabase = {
         // Throw away the compressed version, will be garbage collected
 		wmsx.ROMDatabase = JSON.parse(wmsx.Util.uncompressStringBase64ToString(this.data));
 
-        // Add Custom ROMs
-        wmsx.ROMDatabase["B9313C16E167922713B3FBD1F1E9E452016DC5C3"] = { n:"WMSX MSX2 Main BIOS", f: "BIOS" };
-
-        // Fixes
-        wmsx.ROMDatabase["2DC4517EBD5A061F9B5AA6B449CC4D4A2073540C"].f = "MSXMUSIC";
+        // Missing System ROMs
+        wmsx.ROMDatabase["8AE39E3947D8C11CBF3A135F0697385C86FCD3A9"] = { n: "MSX-MUSIC Basic Extension", f: "MSXMUSIC" };
 	},
 
 	empty: function () {

@@ -14,7 +14,6 @@ wmsx.Machine = function() {
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();
-        if (fm)  fm.powerOn();
         if (syf) syf.powerOn();
         if (rtc) rtc.powerOn();
         ppi.powerOn();
@@ -35,14 +34,12 @@ wmsx.Machine = function() {
         ppi.powerOff();
         if (rtc) rtc.powerOff();
         if (syf) syf.powerOff();
-        if (fm)  fm.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
         machineControlsSocket.fireRedefinitionUpdate();
     };
 
     this.reset = function() {
-        if (fm)  fm.reset();
         if (syf) syf.reset();
         if (rtc) rtc.reset();
         psg.reset();
@@ -239,7 +236,6 @@ wmsx.Machine = function() {
             b:  bus.saveState(),
             rc: rtc ? rtc.saveState() : null,
             sf: syf ? syf.saveState() : null,
-            fm: fm ? fm.saveState() : null,
             pp: ppi.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
@@ -260,7 +256,7 @@ wmsx.Machine = function() {
         vdp.loadState(state.vd);
         psg.loadState(state.ps);
         ppi.loadState(state.pp);
-        optionalComponentsLoadState(state.rc, state.sf, state.fm);
+        optionalComponentsLoadState(state.rc, state.sf);
         bus.loadState(state.b);
         machineControlsSocket.fireRedefinitionUpdate();
         cartridgeSocket.fireStateUpdate();
@@ -309,14 +305,10 @@ wmsx.Machine = function() {
             rtc.connect(self);
             self.syf = syf = new wmsx.SystemFlags(MSX2P);
             syf.connect(self);
-            if (MSX2P) {
-                self.fm = fm = new wmsx.YM2413Audio("MSX-MUSIC (built-in)");
-                fm.connect(self);
-            }
         }
     }
 
-    function optionalComponentsLoadState(rtcState, sycState, fmState) {
+    function optionalComponentsLoadState(rtcState, sycState) {
         var newRtc = wmsx.RTC.recreateFromSavestate(rtc, rtcState);
         if (newRtc !== rtc) {
             if (rtc) rtc.disconnect(self);
@@ -329,13 +321,6 @@ wmsx.Machine = function() {
             if (syf) syf.disconnect(self);
             this.syf = syf = newSyc;
             if (syf) syf.connect(self);
-        }
-
-        var newFm = wmsx.YM2413Audio.recreateFromSavestate(fm, fmState);
-        if (newFm !== fm) {
-            if (fm) fm.disconnect(self);
-            this.fm = fm = newFm;
-            if (fm) fm.connect(self);
         }
     }
 
@@ -367,7 +352,6 @@ wmsx.Machine = function() {
     var psg;
     var rtc;
     var syf;
-    var fm;
 
     var userPaused = false;
     var userPauseMoreFrames = 0;

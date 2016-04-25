@@ -363,7 +363,7 @@ wmsx.SlotFormats = {
 
     "MSXMUSIC": {
         name: "MSXMUSIC",
-        desc: "MSX-MUSIC Basic Extension",
+        desc: "MSX-MUSIC Extension",
         priority: 503,
         tryFormat: function (rom) {
             // Only 16K content. Must be selected via info format hint
