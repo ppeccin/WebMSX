@@ -19,6 +19,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         initColorCaches();
         initDebugPatternTables();
         initSpritesConflictMap();
+        initRegisters();
         mode = 0; modeData = modes[mode];
         pendingBackdropCacheUpdate = true;
         self.setDefaults();
@@ -221,6 +222,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         backdropColor = backdropValue = 0;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
+        vramInterleaving = false;
         initRegisters();
         initColorPalette();
         updateIRQ();
@@ -311,7 +313,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 if (mod & 0x3f) updateSpritePatternTableAddress();
                 break;
             case 7:
-                if (mod & (mode === 7 ? 0xff : 0x0f)) updateBackdropColor();   // BD. Special case for mode G7
+                if (mod & (modeData.bdPaletted ? 0x0f : 0xff)) updateBackdropColor();  // BD
                 break;
             case 8:
                 if (mod & 0x20) updateTransparency();                    // TP
@@ -380,7 +382,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateLayoutTableAddress() {
-        var add = (mode === 0x07 || mode === 0x05 ? (register[2] << 11) | 0x400 : register[2] << 10) & 0x1ffff;    // Mode G6 and G7 have different address bits position
+        var add = (modeData.vramInter ? (register[2] << 11) | 0x400 : register[2] << 10) & 0x1ffff;    // Mode G6 and G7 have different address bits position
         layoutTableAddress = add & modeData.layTBase;
         layoutTableAddressMaskSetValue = add | layoutTableAddressMaskBase;
         updateLayoutTableAddressMask();
@@ -459,7 +461,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             colorPalette[reg] = value;
 
         if (reg === backdropColor) updateBackdropValue();
-        else if ((mode === 4) && (reg <= 3)) pendingBackdropCacheUpdate = true;
+        else if (modeData.tiled && reg <= 3) pendingBackdropCacheUpdate = true;
     }
 
     function setDebugMode(mode) {
@@ -599,20 +601,48 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  INT HORIZONTAL");
     }
 
+    function vramEnterInterleaving() {
+        var aux = vram.slice();
+        var e = 0;
+        var o = 0x10000;
+        for (var i = 0; i < 0x20000; i += 2) {
+            vram[i] = aux[e++];
+            vram[i + 1] = aux[o++];
+        }
+        vramInterleaving = true;
+
+        console.log("VRAM ENTERING Interleaving");
+    }
+
+    function vramExitInterleaving() {
+        var aux = vram.slice();
+        var e = 0;
+        var o = 0x10000;
+        for (var i = 0; i < 0x20000; i += 2) {
+            vram[e++] = aux[i];
+            vram[o++] = aux[i + 1];
+        }
+        vramInterleaving = false;
+
+        console.log("VRAM EXITING Interleaving");
+    }
+
     function setMode(m) {
         registerWrite(0, (register[0] & ~0x0e) | ((m & 0x07) << 1));
         registerWrite(1, (register[1] & ~0x18) | (m & 0x18));
     }
 
     function updateMode() {
-        var add;
         var oldMode = mode;
+        var oldData = modeData;
+
         mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);      // All Mx bits
         modeData = modes[mode];
 
         //logInfo("Update Mode: " + modeData.name);
 
         // Update Tables base addresses
+        var add;
         updateLayoutTableAddress();
         add = ((register[10] << 14) | (register[3] << 6)) & 0x1ffff ;
         colorTableAddress = add & modeData.colorTBase;
@@ -623,8 +653,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         add = ((register[11] << 15) | (register[5] << 7)) & 0x1ffff ;
         spriteAttrTableAddress = add & modeData.sprAttrTBase;
         updateSpritePatternTableAddress();
-        if ((mode === 7) || (oldMode === 7)) updateBackdropColor();
-        else if ((mode === 4) || (oldMode === 4)) pendingBackdropCacheUpdate = true;
+
+        // Color modes
+        if (modeData.bdPaletted !== oldData.bdPaletted) updateBackdropColor();
+        if (modeData.tiled !== oldData.tiled) pendingBackdropCacheUpdate = true;
+
+        // VRAM Interleaving
+        if (modeData.vramInter && !vramInterleaving) vramEnterInterleaving();
+        else if (modeData.vramInter === false && vramInterleaving) vramExitInterleaving();
 
         updateLineActiveType();
         updateSignalMetrics();
@@ -643,8 +679,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         // Fixed metrics for V9918
         if (isV9918) {
-            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;    pixelWidth = 2;
-            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918;  pixelHeight = 2;
+            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   pixelWidth = 2;
+            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; pixelHeight = 2;
             activeHeight = 192; borderHeight = 8;
         } else {
             if (modeData.width === 512) { signalWidth = 512 + 16 * 2; pixelWidth = 1; }   // Mode
@@ -662,6 +698,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         startingScanline = finishingScanline - videoStandard.totalHeight;
 
         videoSignal.setSignalMetrics(signalWidth, pixelWidth, signalHeight, pixelHeight);
+
+        //logInfo("Update Signal Metrics, reg9: " + register[9].toString(16));
     }
 
     function enterActiveDisplay() {
@@ -679,11 +717,10 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
-        renderLineActive = (register[1] & 0x40) === 0
-            ? renderLineActiveBlanked
-            : mode === 7
-                ? modeG7Variations[(register[25] & 0x18) >> 3]
-                : debugModePatternInfo ? modeData.renderLinePatternInfo : modeData.renderLine;
+        renderLineActive = (register[1] & 0x40) === 0 ? renderLineBlanked
+            : mode === 7 ? modeG7Variations[(register[25] & 0x18) >> 3]
+            : debugModePatternInfo ? modeData.renderLinePatInfo
+            : modeData.renderLine;
 
         if (wasActive) renderLine = renderLineActive;
         pendingBlankingChange = false;
@@ -705,7 +742,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateBackdropColor() {
-        backdropColor = register[7] & (mode === 7 ? 0xff : 0x0f);
+        backdropColor = register[7] & (modeData.bdPaletted ? 0x0f : 0xff);
 
         //console.log("Backdrop Color: " + backdropColor + ", currentLine: " + currentScanline);
 
@@ -713,11 +750,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateBackdropValue() {
-        var value = debugModePatternInfo
-            ? debugBackdropValue
-            : mode === 7
-                ? colors256[backdropColor]                   // From all 256 colors
-                : colorPaletteSolid[backdropColor];          // From current palette (solid regardless of TP)
+        var value = debugModePatternInfo ? debugBackdropValue
+            : modeData.bdPaletted ? colorPaletteSolid[backdropColor]   // From current palette (solid regardless of TP)
+            : colors256[backdropColor];                                // From all 256 colors
 
         if (backdropValue === value) return;
         backdropValue = value;
@@ -728,7 +763,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateBackdropCache() {
-        if (mode === 4 && !debugModePatternInfo) {          // Special case for mode G5 (Screen 6)
+        if (modeData.tiled && !debugModePatternInfo) {          // Special case for tiled mode (G5, Screen 6)
             var odd = colorPaletteSolid[backdropColor >>> 2]; var even = colorPaletteSolid[backdropColor & 0x03];
             for (var i = 0; i < LINE_WIDTH; i += 2) {
                 backdropFullLineCache[i] = odd; backdropFullLineCache[i + 1] = even;
@@ -736,9 +771,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             backdropTileOdd = odd; backdropTileEven = even;
         } else {
             backdropFullLineCache.fill(backdropValue);
-            if (mode == 4) {
-                backdropTileOdd = backdropTileEven = backdropValue;
-            }
+            if (modeData.tiled) backdropTileOdd = backdropTileEven = backdropValue;
         }
 
         pendingBackdropCacheUpdate = false;
@@ -763,7 +796,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineActiveBlanked() {
+    function renderLineBlanked() {
         renderLineBorders();
     }
 
@@ -1271,7 +1304,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         return val <= 0 ? 0 : val >= 31 ? color5to8bits[31] : color5to8bits[val];
     }
 
-    function renderLineModeT1PatternInfo() {                                // Text (Screen 0)
+    function renderLineModeT1PatInfo() {                                // Text (Screen 0)
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
@@ -1303,7 +1336,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeT2PatternInfo() {                                // Text (Screen 0 width 80)
+    function renderLineModeT2PatInfo() {                                // Text (Screen 0 width 80)
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
@@ -1362,7 +1395,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameBackBuffer[bufferPos + 3] = pattern & 0x10 ? low : off;  frameBackBuffer[bufferPos + 4] = pattern & 0x08 ? low : off;  frameBackBuffer[bufferPos + 5] = pattern & 0x04 ? low : off;
     }
 
-    function renderLineModeMCPatternInfo() {                                // Multicolor (Screen 3)
+    function renderLineModeMCPatInfo() {                                // Multicolor (Screen 3)
         if (!debugModePatternInfoNames) return renderLineModeMC();
 
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
@@ -1391,7 +1424,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG1PatternInfo() {                                // Graphics 1 (Screen 1)
+    function renderLineModeG1PatInfo() {                                // Graphics 1 (Screen 1)
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
@@ -1433,7 +1466,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG2PatternInfo() {                                // Graphics 2 (Screen 2)
+    function renderLineModeG2PatInfo() {                                // Graphics 2 (Screen 2)
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
@@ -1477,7 +1510,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeG3PatternInfo() {                                // Graphics 3 (Screen 4)
+    function renderLineModeG3PatInfo() {                                // Graphics 3 (Screen 4)
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
@@ -2049,6 +2082,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
+    var vramInterleaving;
 
     var frame;
     var blinkEvenPage, blinkPageDuration, layoutShowEvenPage;
@@ -2121,18 +2155,18 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFill(new Array(32),
-                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine: renderLineActiveBlanked, renderLinePatternInfo:      renderLineActiveBlanked, spriteMode: 0 });
+                  { code: 0xff, name: "Invalid",   isV9938: true,  layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine: renderLineBlanked, renderLinePatInfo:       renderLineBlanked, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true });
 
-    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeT1,  renderLinePatternInfo: renderLineModeT1PatternInfo, spriteMode: 0 };
-    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeT2,  renderLinePatternInfo: renderLineModeT2PatternInfo, spriteMode: 0 };
-    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeMC,  renderLinePatternInfo: renderLineModeMCPatternInfo, spriteMode: 1 };
-    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeG1,  renderLinePatternInfo: renderLineModeG1PatternInfo, spriteMode: 1 };
-    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:        renderLineModeG2,  renderLinePatternInfo: renderLineModeG2PatternInfo, spriteMode: 1 };
-    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:        renderLineModeG3,  renderLinePatternInfo: renderLineModeG3PatternInfo, spriteMode: 2 };
-    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:        renderLineModeG4,  renderLinePatternInfo: renderLineModeG4,            spriteMode: 2 };
-    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:        renderLineModeG5,  renderLinePatternInfo: renderLineModeG5,            spriteMode: 2 };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:        renderLineModeG6,  renderLinePatternInfo: renderLineModeG6,            spriteMode: 2 };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:        renderLineModeG7,  renderLinePatternInfo: renderLineModeG7,            spriteMode: 2 };
+    modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:  renderLineModeT1, renderLinePatInfo: renderLineModeT1PatInfo, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x12] = { code: 0x12, name: "Screen 0+", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:  renderLineModeT2, renderLinePatInfo: renderLineModeT2PatInfo, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x08] = { code: 0x08, name: "Screen 3",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:  renderLineModeMC, renderLinePatInfo: renderLineModeMCPatInfo, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x00] = { code: 0x00, name: "Screen 1",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:  renderLineModeG1, renderLinePatInfo: renderLineModeG1PatInfo, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x01] = { code: 0x01, name: "Screen 2",  isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:  renderLineModeG2, renderLinePatInfo: renderLineModeG2PatInfo, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:  renderLineModeG3, renderLinePatInfo: renderLineModeG3PatInfo, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:  renderLineModeG4, renderLinePatInfo: renderLineModeG4,        spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true };
+    modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:  renderLineModeG5, renderLinePatInfo: renderLineModeG5,        spriteMode: 2, tiled:  true, vramInter: false, bdPaletted:  true };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:  renderLineModeG6, renderLinePatInfo: renderLineModeG6,        spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:  renderLineModeG7, renderLinePatInfo: renderLineModeG7,        spriteMode: 2, tiled: false, vramInter:  true, bdPaletted: false };
 
     var modeG7Variations = [ renderLineModeG7, renderLineModeG7YJK, renderLineModeG7, renderLineModeG7YAE ];    // According to YAE, YJK
 
@@ -2194,6 +2228,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
             p: wmsx.Util.storeInt32BitArrayToStringBase64(paletteRegister),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
+            vrint: vramInterleaving,
             cp: commandProcessor.saveState()
         };
     };
@@ -2212,6 +2247,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register); status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
         paletteRegister = wmsx.Util.restoreStringBase64ToInt32BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
+        vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         updateIRQ();
