@@ -18,8 +18,8 @@ wmsx.VideoSignal = function() {
         if (monitor) monitor.showOSD(message, overlap);
     };
 
-    this.setSignalMetrics = function(sourceWidth, pixelWidth, sourceHeight, pixelHeight) {
-        if (monitor) monitor.setSignalMetrics(sourceWidth, pixelWidth, sourceHeight, pixelHeight);
+    this.setRenderMetrics = function(sourceWidth, pixelWidth, sourceHeight, pixelHeight) {
+        if (monitor) monitor.setRenderMetrics(sourceWidth, pixelWidth, sourceHeight, pixelHeight);
     };
 
     this.setDebugMode = function(boo) {

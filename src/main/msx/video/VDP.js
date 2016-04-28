@@ -225,9 +225,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
         vramInterleaving = false;
-        modeYJK = modeYAE = false;
         initRegisters();
         initColorPalette();
+        updateSignalMetrics();
         updateIRQ();
         updateMode();
         updateSpritesConfig();
@@ -324,7 +324,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 break;
             case 9:
                 if (mod & 0x80) updateSignalMetrics();                   // LN
-                else if (mod & 0x08) updateSignalMetrics();              // IL. Already OK if LN was changed
+                if (mod & 0x08) updateRenderMetrics();                   // IL
                 if (mod & 0x04) updateLayoutTableAddressMask();          // EO
                 if (mod & 0x02) updateVideoStandardSoft();               // NT
                 break;
@@ -361,14 +361,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 break;
             case 25:
                 if (isV9958) {
-                    if (mod & 0x18) {
-                        modeYJK = (val & 0x08) !== 0;                    // YJK
-                        modeYAE = modeYJK && (val & 0x10) !== 0;         // YAE, only valid if YJK set
-                        updateLineActiveType();
-                        updateBackdropColor();
-                        updateVRAMInterleaving();
-                        updateLayoutTableAddress();
-                    }
+                    if (mod & 0x18) updateMode();                        // YJK, YAE
                     leftMask = (val & 0x02) !== 0;                       // MSK
                     leftScroll2Pages = (val & 0x01) !== 0;               // SP2
                 }
@@ -392,16 +385,10 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateLayoutTableAddress() {
-        var add, base;
-        // Interleaved modes (G6, G7, YJK) have different address bits position in reg 2. A10 always set
-        if (modeData.vramInter || modeYJK) {
-            add = ((register[2] & 0x3f) << 11) | 0x400;
-            base =  modeData.layTBase << 1;
-        } else {
-            add = (register[2] & 0x7f) << 10;
-            base =  modeData.layTBase;
-        }
-        layoutTableAddress = add & base;
+        // Interleaved modes (G6, G7, YJK, YAE) have different address bits position in reg 2. Only A16 can be specified for base address, A10 always set in mask
+        var add = modeData.vramInter ?((register[2] & 0x3f) << 11) | (1 << 10) : (register[2] & 0x7f) << 10;
+
+        layoutTableAddress =  add & modeData.layTBase;
         layoutTableAddressMaskSetValue = add | layoutTableAddressMaskBase;
         updateLayoutTableAddressMask();
 
@@ -620,8 +607,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateVRAMInterleaving() {
-        if ((modeData.vramInter || modeYJK) && !vramInterleaving) vramEnterInterleaving();
-        else if ((modeData.vramInter === false && !modeYJK) && vramInterleaving) vramExitInterleaving();
+        if (modeData.vramInter && !vramInterleaving) vramEnterInterleaving();
+        else if (modeData.vramInter === false && vramInterleaving) vramExitInterleaving();
     }
 
     function vramEnterInterleaving() {
@@ -659,7 +646,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var oldMode = mode;
         var oldData = modeData;
 
-        mode = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);          // All Mx bits
+        mode = (register[1] & 0x18) | ((register[0] & (isV9918 ? 0x02 : 0x0e)) >>> 1);                             // All Mx bits. Ignore M4, M5 if V9918
+        if (isV9958 && (register[25] & 0x08) !== 0 && (mode & 0x10) === 0) mode = (register[25] & 0x18) << 2;      // If YJK is set in any non-TEXT mode, mode is determined by only YAE, YJK
         modeData = modes[mode];
 
         // Update Tables base addresses
@@ -681,7 +669,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         updateVRAMInterleaving();
         updateLineActiveType();
-        updateSignalMetrics();
+        updateRenderMetrics();
         commandProcessor.setVDPModeData(modes[mode]);
 
         //logInfo("Update Mode: " + modeData.name + ". Reg0: " + register[0].toString(16));
@@ -695,18 +683,12 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateSignalMetrics() {
-        var activeHeight, borderHeight, pixelWidth, pixelHeight;
+        var activeHeight, borderHeight;
 
         // Fixed metrics for V9918
         if (isV9918) {
-            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   pixelWidth = 2;
-            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; pixelHeight = 2;
             activeHeight = 192; borderHeight = 8;
         } else {
-            if (modeData.width === 512) { signalWidth = 512 + 16 * 2; pixelWidth = 1; }   // Mode
-            else { signalWidth = 256 + 8 * 2; pixelWidth = 2; }
-            if (register[9] & 0x08) { signalHeight = 424 + 16 * 2; pixelHeight = 1; }     // IL
-            else { signalHeight = 212 + 8 * 2; pixelHeight = 2; }
             if (register[9] & 0x80) { activeHeight = 212; borderHeight = 8; }             // LN
             else { activeHeight = 192; borderHeight = 18; }
         }
@@ -717,9 +699,26 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         finishingScanline = startingBottomBorderScanline + borderHeight - verticalAdjust;
         startingScanline = finishingScanline - videoStandard.totalHeight;
 
-        videoSignal.setSignalMetrics(signalWidth, pixelWidth, signalHeight, pixelHeight);
-
         //logInfo("Update Signal Metrics, reg9: " + register[9].toString(16));
+    }
+
+    function updateRenderMetrics() {
+        var pixelWidth, pixelHeight;
+
+        // Fixed metrics for V9918
+        if (isV9918) {
+            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   pixelWidth = 2;
+            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; pixelHeight = 2;
+        } else {
+            if (modeData.width === 512) { signalWidth = 512 + 16 * 2; pixelWidth = 1; }   // Mode
+            else { signalWidth = 256 + 8 * 2; pixelWidth = 2; }
+            if (register[9] & 0x08) { signalHeight = 424 + 16 * 2; pixelHeight = 1; }     // IL
+            else { signalHeight = 212 + 8 * 2; pixelHeight = 2; }
+        }
+
+        videoSignal.setRenderMetrics(signalWidth, pixelWidth, signalHeight, pixelHeight);
+
+        //logInfo("Update Render Metrics, reg9: " + register[9].toString(16));
     }
 
     function enterActiveDisplay() {
@@ -737,9 +736,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
-        renderLineActive = (register[1] & 0x40) === 0 || mode === 0xff ? renderLineBlanked
-            : modeYAE ? renderLineModeYAE
-            : modeYJK ? renderLineModeYJK
+        renderLineActive = (register[1] & 0x40) === 0 ? renderLineBlanked
             : debugModePatternInfo ? modeData.renderLinePatInfo
             : modeData.renderLine;
 
@@ -763,7 +760,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateBackdropColor() {
-        backdropColor = register[7] & (modeData.bdPaletted || modeYJK ? 0x0f : 0xff);
+        backdropColor = register[7] & (modeData.bdPaletted ? 0x0f : 0xff);
 
         //console.log("Backdrop Color: " + backdropColor + ", currentLine: " + currentScanline);
 
@@ -772,8 +769,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     function updateBackdropValue() {
         var value = debugModePatternInfo ? debugBackdropValue
-            : modeData.bdPaletted || modeYJK ? colorPaletteSolid[backdropColor]   // From current palette (solid regardless of TP)
-            : colors256[backdropColor];                                           // From all 256 colors
+            : modeData.bdPaletted ? colorPaletteSolid[backdropColor]   // From current palette (solid regardless of TP)
+            : colors256[backdropColor];                                // From all 256 colors
 
         if (backdropValue === value) return;
         backdropValue = value;
@@ -1934,8 +1931,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
             spritesLineColors[x] = color;                                                   // Register new color
-            frameBackBuffer[bufferPos] = colorPaletteReal[color];
-            frameBackBuffer[bufferPos + 1] = colorPaletteReal[color];
+            frameBackBuffer[bufferPos] = frameBackBuffer[bufferPos + 1] = colorPaletteReal[color];
         }
     }
 
@@ -1953,8 +1949,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 finalColor = color;
             }
             spritesLineColors[x] = finalColor;                                              // Register new color
-            frameBackBuffer[bufferPos] = colorPaletteReal[finalColor];
-            frameBackBuffer[bufferPos + 1] = colorPaletteReal[finalColor];
+            frameBackBuffer[bufferPos] = frameBackBuffer[bufferPos + 1] = colorPaletteReal[finalColor];
         }
     }
 
@@ -2154,7 +2149,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var mode;
     var modeData;
     var signalWidth, signalHeight;
-    var modeYJK, modeYAE;
 
     var pendingBlankingChange;
     var pendingBackdropCacheUpdate;
@@ -2192,7 +2186,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var colorTableAddressMaskBase = ~(-1 << 6);
     var patternTableAddressMaskBase = ~(-1 << 11);
 
-    var modes = wmsx.Util.arrayFill(new Array(32),
+    var modes = wmsx.Util.arrayFill(new Array(0x80),
                   { code: 0xff, name: "Invalid",   isV9938: true,  layTBase:        0, colorTBase:        0, patTBase:        0, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine:   renderLineBlanked, renderLinePatInfo:       renderLineBlanked, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true });
 
     modes[0x10] = { code: 0x10, name: "Screen 0",  isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT1, renderLinePatInfo: renderLineModeT1PatInfo, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true };
@@ -2203,8 +2197,10 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     modes[0x02] = { code: 0x02, name: "Screen 4",  isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG3, renderLinePatInfo: renderLineModeG3PatInfo, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true };
     modes[0x03] = { code: 0x03, name: "Screen 5",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG4, renderLinePatInfo:        renderLineModeG4, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true };
     modes[0x04] = { code: 0x04, name: "Screen 6",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG5, renderLinePatInfo:        renderLineModeG5, spriteMode: 2, tiled:  true, vramInter: false, bdPaletted:  true };
-    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG6, renderLinePatInfo:        renderLineModeG6, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
-    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG7, renderLinePatInfo:        renderLineModeG7, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted: false };
+    modes[0x05] = { code: 0x05, name: "Screen 7",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG6, renderLinePatInfo:        renderLineModeG6, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
+    modes[0x07] = { code: 0x07, name: "Screen 8",  isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG7, renderLinePatInfo:        renderLineModeG7, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted: false };
+    modes[0x20] = { code: 0x20, name: "Screen 12", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYJK, renderLinePatInfo:       renderLineModeYJK, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
+    modes[0x60] = { code: 0x60, name: "Screen 11", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYAE, renderLinePatInfo:       renderLineModeYAE, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
 
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
 
@@ -2265,7 +2261,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             p: wmsx.Util.storeInt32BitArrayToStringBase64(paletteRegister),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
             vrint: vramInterleaving,
-            yjk: modeYJK, yae: modeYAE,
             cp: commandProcessor.saveState()
         };
     };
@@ -2285,9 +2280,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paletteRegister = wmsx.Util.restoreStringBase64ToInt32BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         vramInterleaving = s.vrint;
-        modeYJK = s.yjk; modeYAE = s.yae;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
+        updateSignalMetrics();
         updateIRQ();
         updateMode();
         updateSpritesConfig();

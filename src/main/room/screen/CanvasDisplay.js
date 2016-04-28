@@ -68,7 +68,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
-    this.displaySignalMetrics = function (sourceWidth, pPixelWidth, sourceHeight, pPixelHeight) {
+    this.displayRenderMetrics = function (sourceWidth, pPixelWidth, sourceHeight, pPixelHeight) {
         var oldTargetWidth = targetWidth;
         var oldTargetHeight = targetHeight;
 
