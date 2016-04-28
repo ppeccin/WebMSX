@@ -2,6 +2,8 @@
 
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 
+// TODO Bug in YJK modes? (Megadoom)
+
 wmsx.VDPCommandProcessor = function() {
 
     this.connectVDP = function(pVDP, pVRAM, pRegister, pStatus) {
