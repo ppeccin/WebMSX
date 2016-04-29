@@ -5,8 +5,6 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-// TODO Screensplits with different metrics (width)
-
 wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var self = this;
 
@@ -15,6 +13,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         isV9938 = msx2 && !msx2p;
         isV9958 = !!msx2p;
         videoSignal = new wmsx.VideoSignal();
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources();
@@ -74,7 +73,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameEvents();
 
         // Send updated image to Monitor if needed
-        if (refreshPending) refresh();
+        if (refreshWidth) refresh();
     };
 
     // VRAM Read
@@ -225,6 +224,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
         vramInterleaving = false;
+        renderMetricsChangePending = false;
+        refreshWidth = refreshHeight = 0;
+        currentScanline = -1;
         initRegisters();
         initColorPalette();
         updateSignalMetrics();
@@ -272,7 +274,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
                 if (mod & 0x20) updateIRQ();                             // IE0
                 if (mod & 0x40) {                                        // BL
-                    pendingBlankingChange = true;      // only at next line
+                    blankingChangePending = true;      // only at next line
 
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
@@ -324,7 +326,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                 break;
             case 9:
                 if (mod & 0x80) updateSignalMetrics();                   // LN
-                if (mod & 0x08) updateRenderMetrics();                   // IL
+                if (mod & 0x08) updateRenderMetrics(false);              // IL
                 if (mod & 0x04) updateLayoutTableAddressMask();          // EO
                 if (mod & 0x02) updateVideoStandardSoft();               // NT
                 break;
@@ -501,8 +503,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         desiredBaseFrequency = videoStandard.targetFPS;
         if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
 
-        scanlinesPerCycle = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;                          // Always generate this amount of lines per cycle
-        pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // Unless its the first pulldown frame and is adjusted
+        scanlinesPerCycle = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;                          // Always generate this amount of lines per cycle...
+        pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // ...unless its the first pulldown frame and is adjusted
     }
 
     // Total frame lines: 262 for NTSC, 313 for PAL
@@ -516,7 +518,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         for (var i = totalLines; i > 0; i = i - 1) {
             // Verify and change sections of the screen
             if (currentScanline === startingActiveScanline) enterActiveDisplay();
-            else if (currentScanline === startingBottomBorderScanline) enterBottomBorder();
+            else if (currentScanline === startingBottomBorderScanline) enterBorderDisplay();
 
             lineEvents();
 
@@ -533,7 +535,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         // Start of line
         //debugLineStartCPUCycles = cpu.getCycles();
 
-        if (pendingBlankingChange) updateLineActiveType();
+        if (blankingChangePending) updateLineActiveType();
 
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
@@ -672,7 +674,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         updateVRAMInterleaving();
         updateLineActiveType();
-        updateRenderMetrics();
+        updateRenderMetrics(false);
 
         //logInfo("Update Mode: " + modeData.name + ". Reg0: " + register[0].toString(16));
     }
@@ -704,35 +706,65 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         //logInfo("Update Signal Metrics, reg9: " + register[9].toString(16));
     }
 
-    function updateRenderMetrics() {
-        var pixelWidth, pixelHeight;
+    function updateRenderMetrics(force) {
+        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false;
 
         // Fixed metrics for V9918
         if (isV9918) {
-            signalWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   pixelWidth = 2;
-            signalHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; pixelHeight = 2;
+            newRenderWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   newPixelWidth = 2;
+            newRenderHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; newPixelHeight = 2;
         } else {
-            if (modeData.width === 512) { signalWidth = 512 + 16 * 2; pixelWidth = 1; }   // Mode
-            else { signalWidth = 256 + 8 * 2; pixelWidth = 2; }
-            if (register[9] & 0x08) { signalHeight = 424 + 16 * 2; pixelHeight = 1; }     // IL
-            else { signalHeight = 212 + 8 * 2; pixelHeight = 2; }
+            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }   // Mode
+            else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
+            if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
+            else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
         }
 
-        videoSignal.setRenderMetrics(signalWidth, pixelWidth, signalHeight, pixelHeight);
+        renderMetricsChangePending = false;
 
-        //logInfo("Update Render Metrics, reg9: " + register[9].toString(16));
+        if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
+
+        // Only change width if before visible display (beginFrame), or if going to higher width
+        if (newRenderWidth !== renderWidth) {
+            if (currentScanline < 0 || newRenderWidth > renderWidth) {
+                if (currentScanline >= 0) stretchFromCurrentToTopScanline();
+                renderWidth = newRenderWidth;
+                changed = true;
+            } else
+                renderMetricsChangePending = true;
+        }
+
+        // Only change height if forced (loadState and beginFrame)
+        if (newRenderHeight !== renderHeight) {
+            if (force) {
+                cleanFrameBuffer();
+                renderHeight = newRenderHeight;
+                changed = true;
+            } else
+                renderMetricsChangePending = true;
+        }
+
+        if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
+
+        //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
     }
+
+    function currentModeRenderWidth() {
+        if (modeData.width === 512) return 512 + 16 * 2;
+        else return 256 + 8 * 2;
+    }
+
 
     function enterActiveDisplay() {
         renderLine = renderLineActive;
 
-        //logInfo("Active");
+        //logInfo("Active Display");
     }
 
-    function enterBottomBorder() {
+    function enterBorderDisplay() {
         renderLine = renderLineBorders;
 
-        //logInfo("Bottom Border");
+        //logInfo("Border Display");
     }
 
     function updateLineActiveType() {
@@ -743,7 +775,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             : modeData.renderLine;
 
         if (wasActive) renderLine = renderLineActive;
-        pendingBlankingChange = false;
+        blankingChangePending = false;
     }
 
     function updateSpritesConfig() {
@@ -790,7 +822,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             }
             backdropTileOdd = odd; backdropTileEven = even;
         } else {
-            backdropFullLineCache.fill(backdropValue);
+            wmsx.Util.arrayFill(backdropFullLineCache, backdropValue);
             if (modeData.tiled) backdropTileOdd = backdropTileEven = backdropValue;
         }
 
@@ -846,6 +878,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         // Sprites deactivated
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -925,6 +959,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
+        if (renderWidth > 500) stretchCurrentLine();
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -955,6 +991,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         renderSpritesLineMode1(realLine, bufferPos);
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -989,6 +1027,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
+        if (renderWidth > 500) stretchCurrentLine();
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -1021,6 +1061,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1057,6 +1099,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1209,6 +1253,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
+        if (renderWidth > 500) stretchCurrentLine();
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -1259,13 +1305,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
-        // Duplicates width if needed
-        if (modeData.width === 512) {
-            var end = 256 + 8*2;
-            var s = bufferPosition + end - 1, d = bufferPosition + end * 2 - 2;
-            for (var i = end; i > 0; --i, --s, d = d - 2)
-                frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
-        }
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1325,13 +1365,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
-        // Duplicates width if needed
-        if (modeData.width === 512) {
-            var end = 256 + 8*2;
-            var s = bufferPosition + end - 1, d = bufferPosition + end * 2 - 2;
-            for (var i = end; i > 0; --i, --s, d = d - 2)
-                frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
-        }
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1368,6 +1402,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         // Sprites deactivated
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1457,6 +1493,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
+        if (renderWidth > 500) stretchCurrentLine();
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -1498,6 +1536,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         renderSpritesLineMode1(realLine, bufferPos);
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1543,6 +1583,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
 
+        if (renderWidth > 500) stretchCurrentLine();
+
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -1586,6 +1628,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         if (spritesEnabled) renderSpritesLineMode2(realLine, bufferPos, colorPaletteReal);
         if (leftMask) paintBackdrop8(bufferPos);
         if (rightScrollPixels) paintBackdrop8(bufferPos + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
@@ -1967,14 +2011,44 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         }
     }
 
+    function stretchCurrentLine() {
+        var end = 256 + 8*2;
+        var s = bufferPosition + end - 1, d = bufferPosition + end * 2 - 2;
+        for (var i = end; i > 0; --i, --s, d = d - 2)
+            frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
+    }
+
+    function stretchFromCurrentToTopScanline() {
+        var end = 256 + 8*2;
+        var pos = bufferPosition;
+        for (var line = currentScanline; line >= 0; --line, pos -= bufferLineAdvance) {
+            var s = pos + end - 1, d = pos + end * 2 - 2;
+            for (var i = end; i > 0; --i, --s, d = d - 2)
+                frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
+        }
+
+        //logInfo("Stretch to top");
+    }
+
+    function cleanFrameBuffer() {
+        //var t = performance.now();
+
+        wmsx.Util.arrayFill(frameBackBuffer, modeData.tiled ? 0xff000000 : backdropValue);
+
+        //logInfo("Clear Buffer. Time: " + (performance.now() - t));
+    }
+
     function refresh() {
         // Send frame to monitor
-        videoSignal.newFrame(frameCanvas, signalWidth, signalHeight);
-        refreshPending = false;
+        videoSignal.newFrame(frameCanvas, refreshWidth, refreshHeight);
+        refreshWidth = refreshHeight = 0;
+
+        //logInfo("REFRESH");
     }
 
     function beginFrame() {
         currentScanline = startingScanline;
+        if (renderMetricsChangePending) updateRenderMetrics(true);
 
         // Page blinking
         if (blinkPageDuration > 0) {
@@ -2006,9 +2080,12 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         //debugFrameStartCPUCycle = cpuCycles;
 
         // Update frame image from backbuffer
-        frameContext.putImageData(frameImageData, 0, 0, 0, 0, signalWidth, signalHeight);
-        refreshPending = true;
+        refreshWidth = renderWidth;
+        refreshHeight = renderHeight;
+        frameContext.putImageData(frameImageData, 0, 0, 0, 0, refreshWidth, refreshHeight);
         frame = frame + 1;
+
+        //logInfo("Finish Frame");
 
         beginFrame();
     }
@@ -2029,10 +2106,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameCanvas.width =  wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
         frameCanvas.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
-        //frameImageData = frameContext.getImageData(0, 0, frameCanvas.width, frameCanvas.height);
-        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);     // One extra line right-overflow and one for the backdrop cache
-        frameBackBuffer = new Uint32Array(frameImageData.data.buffer);
-        backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);
+        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
+        frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // First extra line
+        backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
     }
 
     function initColorPalette() {
@@ -2139,7 +2215,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var startingInvisibleScanline;
     var scanlinesPerCycle;
     var pulldownFirstFrameLinesAdjust;
-    var refreshPending;
 
     var verticalIntReached = false;
     var horizontalIntLine = 0;
@@ -2149,9 +2224,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var paletteRegister = new Array(16);
 
     var modeData;
-    var signalWidth, signalHeight;
 
-    var pendingBlankingChange;
+    var renderMetricsChangePending, renderWidth, renderHeight;
+    var refreshWidth, refreshHeight;
+
+    var blankingChangePending;
     var pendingBackdropCacheUpdate;
 
     var spritesEnabled, spritesSize, spritesMag;
@@ -2250,7 +2327,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     this.saveState = function() {
         return {
             v1: isV9918, v3: isV9938, v5: isV9958,
-            l: currentScanline, b: bufferPosition, ba: bufferLineAdvance,
+            l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
@@ -2269,6 +2346,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     this.loadState = function(s) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
+        if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
         cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
@@ -2290,6 +2368,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         debugAdjustPalette();
         updateBackdropColor();
         updateTransparency();
+        updateRenderMetrics(true);
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
 
         // TODO Remove Backward compatibility
         if (leftMask === undefined) {
@@ -2302,7 +2382,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
 
     function logInfo(text) {
-        console.log(text + ". Frame: " + frame + ", line: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
+        console.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
     }
     this.logInfo = logInfo;
 

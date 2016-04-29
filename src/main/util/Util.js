@@ -16,9 +16,10 @@ wmsx.Util = new function() {
         return total / arr.length;
     };
 
-    this.arrayFill = function(arr, val) {
-        if (arr.fill) return arr.fill(val);       // polyfill for TypedArrays or Arrays with native fill
-        for (var i = arr.length - 1; i >= 0; i = i - 1)
+    this.arrayFill = function(arr, val, from, to) {
+        if (arr.fill) return arr.fill(val, from, to);       // polyfill for TypedArrays or Arrays with native fill
+        if (from === undefined) from = 0;
+        for (var i = (to === undefined ? arr.length : to) - 1; i >= from; i = i - 1)
             arr[i] = val;
         return arr;
     };

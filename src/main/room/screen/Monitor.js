@@ -25,8 +25,12 @@ wmsx.Monitor = function(display) {
         display.showOSD(message, overlap);
     };
 
-    this.setRenderMetrics = function(sourceWidth, pixelWidth, sourceHeight, pixelHeight) {
-        display.displayRenderMetrics(sourceWidth, pixelWidth, sourceHeight, pixelHeight);
+    this.setDisplayMetrics = function(targetWidth, targetHeight) {
+        display.displayMetrics(targetWidth, targetHeight);
+    };
+
+    this.setPixelMetrics = function(pixelWidth, pixelHeight) {
+        display.displayPixelMetrics(pixelWidth, pixelHeight);
     };
 
     this.cartridgesStateUpdate = function(cartridge1, cartridge2) {

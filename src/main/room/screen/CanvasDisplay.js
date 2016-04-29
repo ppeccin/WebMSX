@@ -68,22 +68,23 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
-    this.displayRenderMetrics = function (sourceWidth, pPixelWidth, sourceHeight, pPixelHeight) {
-        var oldTargetWidth = targetWidth;
-        var oldTargetHeight = targetHeight;
+    this.displayMetrics = function (pTargetWidth, pTargetHeight) {
+        // No need to resize display if target size is unchanged
+        if (targetWidth === pTargetWidth && targetHeight === pTargetHeight) return;
+
+        targetWidth = pTargetWidth;
+        targetHeight = pTargetHeight;
+        updateCanvasContentSize();
+        updateScale();
+    };
+
+    this.displayPixelMetrics = function (pPixelWidth, pPixelHeight) {
+        if (pixelWidth === pPixelWidth && pixelHeight === pPixelHeight) return;
 
         pixelWidth = pPixelWidth;
         pixelHeight = pPixelHeight;
-        targetWidth = sourceWidth * pixelWidth;
-        targetHeight = sourceHeight * pixelHeight;
 
         if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
-
-        // No need to resize display if target size is unchanged
-        if (targetWidth === oldTargetWidth && targetHeight === oldTargetHeight) return;
-
-        updateCanvasContentSize();
-        updateScale();
     };
 
     this.displayOptimalScaleY = function(aspectX) {

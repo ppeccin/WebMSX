@@ -74,7 +74,8 @@ wmsx.VDPCommandProcessor = function() {
         status[2] = (status[2] & ~0x81) | (transferReady << 7) | inProgress;
     };
 
-    this.setVDPModeData = function(modeData) {
+    this.setVDPModeData = function(pModeData) {
+        modeData = pModeData;
         modePPB = modeData.ppb;
         modeWidth = modeData.width;
         layoutLineBytes = modeData.layLineBytes;
@@ -834,6 +835,7 @@ wmsx.VDPCommandProcessor = function() {
     var inProgress = false, transferReady = false, writeHandler = null, readHandler = null, finishingCycle = 0;
     var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
 
+    var modeData;
     var modePPB;
     var modeWidth;
     var layoutLineBytes;
