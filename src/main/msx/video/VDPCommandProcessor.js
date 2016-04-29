@@ -75,7 +75,7 @@ wmsx.VDPCommandProcessor = function() {
     };
 
     this.setVDPModeData = function(modeData) {
-        mode = modeData.code;
+        modePPB = modeData.ppb;
         modeWidth = modeData.width;
         layoutLineBytes = modeData.layLineBytes;
     };
@@ -169,13 +169,12 @@ wmsx.VDPCommandProcessor = function() {
         }
 
         // Adjust for whole-byte operation
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 dx >>>= 1; NX >>>= 1; break;
-            case 0x04:
+            case 4:
                 dx >>>= 2; NX >>>= 2; break;
-            default:  // including 0x07
+            default:  // including 1
                 // Not needed
         }
 
@@ -226,13 +225,12 @@ wmsx.VDPCommandProcessor = function() {
         }
 
         // Adjust for whole-byte operation
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 dx >>>= 1; break;
-            case 0x04:
+            case 4:
                 dx >>>= 2; break;
-            default:  // including 0x07
+            default:  // including 1
                 // Not needed
         }
 
@@ -279,13 +277,12 @@ wmsx.VDPCommandProcessor = function() {
         }
 
         // Adjust for whole-byte operation
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 sx >>>= 1; dx >>>= 1; nx >>>= 1; break;
-            case 0x04:
+            case 4:
                 sx >>>= 2; dx >>>= 2; nx >>>= 2; break;
-            default:  // including 0x07
+            default:  // including 1
                 // Not needed
         }
 
@@ -331,13 +328,12 @@ wmsx.VDPCommandProcessor = function() {
         }
 
         // Adjust for whole-byte operation
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 dx >>>= 1; nx >>>= 1; break;
-            case 0x04:
+            case 4:
                 dx >>>= 2; nx >>>= 2; break;
-            default:  // including 0x07
+            default:  // including 1
                 // Not needed
         }
 
@@ -673,15 +669,14 @@ wmsx.VDPCommandProcessor = function() {
 
     function normalPGET(x, y) {
         var shift, mask;
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 shift = (x & 0x1) ? 0 : 4;
                 x >>>= 1; mask = 0x0f << shift; break;
-            case 0x04:
+            case 4:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; mask = 0x03 << shift; break;
-            default:  // including 0x07
+            default:  // including 1
                 shift = 0; mask = 0xff;
         }
         // Perform operation
@@ -691,15 +686,14 @@ wmsx.VDPCommandProcessor = function() {
 
     function logicalPSET(x, y, co, op) {
         var shift, mask;
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 shift = (x & 0x1) ? 0 : 4;
                 x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
-            case 0x04:
+            case 4:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            default:  // including 0x07
+            default:  // including 1
                 mask = 0xff;
         }
         // Perform operation
@@ -709,15 +703,14 @@ wmsx.VDPCommandProcessor = function() {
 
     function logicalPCOPY(dx, dy, sx, sy, op) {
         var sShift, dShift, mask;
-        switch (mode) {
-            case 0x03:
-            case 0x05:
+        switch (modePPB) {
+            case 2:
                 sShift = (sx & 0x1) ? 0 : 4; dShift = (dx & 0x1) ? 0 : 4;
                 sx >>>= 1; dx >>>= 1; mask = 0x0f; break;
-            case 0x04:
+            case 4:
                 sShift = (3 - (sx & 0x3)) * 2; dShift = (3 - (dx & 0x3)) * 2;
                 sx >>>= 2; dx >>>= 2; mask = 0x03; break;
-            default:  // including 0x07
+            default:  // including 1
                 sShift = dShift = 0;
                 mask = 0xff;
         }
@@ -841,7 +834,7 @@ wmsx.VDPCommandProcessor = function() {
     var inProgress = false, transferReady = false, writeHandler = null, readHandler = null, finishingCycle = 0;
     var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
 
-    var mode;
+    var modePPB;
     var modeWidth;
     var layoutLineBytes;
 
