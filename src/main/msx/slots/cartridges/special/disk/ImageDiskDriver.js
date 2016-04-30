@@ -211,7 +211,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function MTOFF() {
-         wmsx.Util.log("MTOFF");
+         //wmsx.Util.log("MTOFF");
 
         drive.allMotorsOffNow();
     }

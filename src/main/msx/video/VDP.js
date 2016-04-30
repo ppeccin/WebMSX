@@ -2107,7 +2107,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameCanvas.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
         frameContext = frameCanvas.getContext("2d");
         frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
-        frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // First extra line
+        frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // One extra line
         backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
     }
 
