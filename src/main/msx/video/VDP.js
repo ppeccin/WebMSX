@@ -229,6 +229,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         currentScanline = -1;
         initRegisters();
         initColorPalette();
+        commandProcessor.reset();
         updateSignalMetrics();
         updateIRQ();
         updateMode();

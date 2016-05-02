@@ -2,8 +2,6 @@
 
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 
-// TODO Bug in YJK modes? (Megadoom)
-
 wmsx.VDPCommandProcessor = function() {
 
     this.connectVDP = function(pVDP, pVRAM, pRegister, pStatus) {
@@ -740,7 +738,7 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function lopNOT(dest, src, mask) {
-        return (dest & ~mask) | (!src & mask);
+        return (dest & ~mask) | (~src & mask);
     }
 
     function lopTIMP(dest, src, mask) {
@@ -760,7 +758,7 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function lopTNOT(dest, src, mask) {
-        return src === 0 ? dest : (dest & ~mask) | (!src & mask);
+        return src === 0 ? dest : (dest & ~mask) | (~src & mask);
     }
 
     function min(a, b) {

@@ -15,12 +15,6 @@ wmsx.SlotRAMMapper = function(rom) {
         pageMask = (bytes.length >>> 14) - 1;
     }
 
-    this.powerOff = function() {
-        // Lose content
-        wmsx.Util.arrayFill(bytes, 0x00);
-        wmsx.Util.arrayFill(pageOffsets, 0);
-    };
-
     this.connect = function(machine) {
         machine.bus.connectInputDevice(0xfc, this.inputAll);
         machine.bus.connectInputDevice(0xfd, this.inputAll);
@@ -41,6 +35,15 @@ wmsx.SlotRAMMapper = function(rom) {
         machine.bus.disconnectOutputDevice(0xfd, this.outputFD);
         machine.bus.disconnectOutputDevice(0xfe, this.outputFE);
         machine.bus.disconnectOutputDevice(0xff, this.outputFF);
+    };
+
+    this.powerOff = function() {
+        // Lose content
+        wmsx.Util.arrayFill(bytes, 0x00);
+    };
+
+    this.reset = function() {
+        wmsx.Util.arrayFill(pageOffsets, 0);
     };
 
     this.outputFC = function(val) {
