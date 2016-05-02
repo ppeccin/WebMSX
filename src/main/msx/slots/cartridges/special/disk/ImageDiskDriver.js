@@ -266,7 +266,7 @@ wmsx.ImageDiskDriver = function() {
     };
 
     var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 360KB, Single Sided\r\n2) 720KB, Double Sided\r\n\0";
-    var CHOICE_STRING_ADDRESS = 0x8100;
+    var CHOICE_STRING_ADDRESS = 0x8040;
 
     var EXTRA_ITERATIONS_PER_SECTOR = 4000;
     var EXTRA_ITERATIONS_FORMAT = 2000000;
