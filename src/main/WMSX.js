@@ -21,7 +21,7 @@ WMSX = {
     STATE_LOAD_URL:                 "",
 
     // General configuration
-    AUTO_START_DELAY:               1800,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
+    AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
@@ -58,24 +58,24 @@ WMSX.presets = {
     MSX2PNTSC: {
         MACHINE_TYPE:       3,
         _INCLUDE:           "MSX2BASE, MSXMUSIC",
-        SLOT_0_URL:         "wmsx/roms/MSX2P_NTSC.bios",
-        SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_NTSC.bios"
+        SLOT_0_URL:         "@MSX2P_NTSC.bios",
+        SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
     },
 
     MSX2PPAL: {
         MACHINE_TYPE:       3,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE, MSXMUSIC",
-        SLOT_0_URL:         "wmsx/roms/MSX2P_PAL.bios",
-        SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_PAL.bios"
+        SLOT_0_URL:         "@MSX2P_PAL.bios",
+        SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios"
     },
 
     MSX2PJAP: {
         MACHINE_TYPE:       3,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE, MSXMUSIC",
-        SLOT_0_URL:         "wmsx/roms/MSX2P_JAP.bios",
-        SLOT_3_1_URL:       "wmsx/roms/MSX2PEXT_JAP.bios"
+        SLOT_0_URL:         "@MSX2P_JAP.bios",
+        SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
     },
 
     // MSX2 Machine Presets
@@ -88,24 +88,24 @@ WMSX.presets = {
         MACHINE_TYPE:       2,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX2_NTSC.bios",
-        SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_NTSC.bios"
+        SLOT_0_URL:         "@MSX2_NTSC.bios",
+        SLOT_3_1_URL:       "@MSX2EXT_NTSC.bios"
     },
 
     MSX2PAL: {
         MACHINE_TYPE:       2,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX2_PAL.bios",
-        SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_PAL.bios"
+        SLOT_0_URL:         "@MSX2_PAL.bios",
+        SLOT_3_1_URL:       "@MSX2EXT_PAL.bios"
     },
 
     MSX2JAP: {
         MACHINE_TYPE:       2,
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX2_JAP.bios",
-        SLOT_3_1_URL:       "wmsx/roms/MSX2EXT_JAP.bios"
+        SLOT_0_URL:         "@MSX2_JAP.bios",
+        SLOT_3_1_URL:       "@MSX2EXT_JAP.bios"
     },
 
     // MSX2/2+ Common
@@ -115,20 +115,20 @@ WMSX.presets = {
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[2, 2], [2, 3]],
-        SLOT_2_URL:         "wmsx/roms/[RAMMapper].rom",
+        SLOT_2_URL:         "@[RAMMapper].rom",
         _INCLUDE:           "MSX2DISK, RAM512"
     },
 
     MSX2DISK: {
-        SLOT_3_2_URL:       "wmsx/roms/DISK.rom"
+        SLOT_3_2_URL:       "@DISK.rom"
     },
 
     MSXMUSIC: {
-        SLOT_3_3_URL:       "wmsx/roms/MSXMUSIC.rom"
+        SLOT_3_3_URL:       "@MSXMUSIC.rom"
     },
 
     DOS2: {
-        SLOT_2_2_URL:       "wmsx/roms/MSXDOS22v3.rom"
+        SLOT_2_2_URL:       "@MSXDOS22v3.rom"
     },
 
     RAM64: {
@@ -162,19 +162,19 @@ WMSX.presets = {
     MSX1NTSC: {
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX1_NTSC.bios"
+        SLOT_0_URL:         "@MSX1_NTSC.bios"
     },
 
     MSX1PAL: {
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX1_PAL.bios"
+        SLOT_0_URL:         "@MSX1_PAL.bios"
     },
 
     MSX1JAP: {
         _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/MSX1_JAP.bios"
+        SLOT_0_URL:         "@MSX1_JAP.bios"
     },
 
     MSX1BASE: {
@@ -183,19 +183,19 @@ WMSX.presets = {
         CARTRIDGE1_SLOT:    [1],
         CARTRIDGE2_SLOT:    [3, 0],
         EXPANSION_SLOTS:    [[3, 2], [3, 3]],
-        SLOT_2_URL:         "wmsx/roms/[RAM64K].rom",
+        SLOT_2_URL:         "@[RAM64K].rom",
         _INCLUDE:           "MSX1DISK"
     },
 
     MSX1DISK: {
-        SLOT_3_1_URL:       "wmsx/roms/DISK.rom"
+        SLOT_3_1_URL:       "@DISK.rom"
     },
 
     // Specific Machines Presets
 
     EXPERT: {
         _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "wmsx/roms/EXPERT10.bios"
+        SLOT_0_URL:         "@EXPERT10.bios"
     },
 
     EMPTY: {
@@ -214,19 +214,19 @@ WMSX.presets = {
     },
 
     NORAMMAPPER: {
-        SLOT_2_URL:         "wmsx/roms/[RAM64K].rom"
+        SLOT_2_URL:         "@[RAM64K].rom"
     },
 
     SCC: {
-        SLOT_2_3_URL:       "wmsx/roms/[SCCExpansion].rom"
+        SLOT_2_3_URL:       "@[SCCExpansion].rom"
     },
 
     SCCI: {
-        SLOT_2_3_URL:       "wmsx/roms/[SCCIExpansion].rom"
+        SLOT_2_3_URL:       "@[SCCIExpansion].rom"
     },
 
     FMPAC: {
-        CARTRIDGE2_URL:     "wmsx/roms/FMPAC.rom"
+        CARTRIDGE2_URL:     "@FMPAC.rom"
     },
 
     // Configuration Helper Presets

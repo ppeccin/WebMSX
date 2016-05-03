@@ -17,6 +17,7 @@
         </script>
 
         <script src="../main/WMSX.js"></script>
+
         <script src="../main/util/Util.js"></script>
         <script src="../main/util/SHA1.js"></script>
         <script src="../main/util/ZIP.js"></script>
@@ -91,37 +92,12 @@
         <script src="../main/Configurator.js"></script>
         <script src="../main/Launcher.js"></script>
 
+        <script src="../release/sysroms/packed/EmbeddedSystemROMs.js"></script>
+
         <script>
 
             WMSX.ALLOW_URL_PARAMETERS = true;
             WMSX.AUTO_START_DELAY = 0;
-
-
-//            // Testing code
-//            function pulser(name) {
-//                var c = 0;
-//                return function(total) {
-//                    total = total || 1;
-//                    for (var end = c + total; c < end; c++)
-//                        console.log(name + ": " + c);
-//                }
-//            }
-//
-//            X = pulser("Main");
-//            A = pulser("A");
-//            B = pulser("B");
-//
-//            M = new wmsx.ClockMultiplexer(X, 20);
-//            M.addSlave(A, 5);
-//            M.addSlave(B, 4);
-//            M.reset();
-
-            //  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20
-            //  A           A           A           A           A           A
-            //  B              B              B              B              B
-
-            //        32       64       96       128       160       192        224       256      288
-            //                     72                 144                  216                     288
 
         </script>
 

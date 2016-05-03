@@ -2371,11 +2371,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         updateTransparency();
         updateRenderMetrics(true);
         videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
-
-        // TODO Remove Backward compatibility
-        if (leftMask === undefined) {
-            leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
-        }
     };
 
 

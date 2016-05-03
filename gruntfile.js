@@ -12,7 +12,6 @@ module.exports = function (grunt) {
             main: {
                 files: [
                     {src: ["src/release/*"], dest: "release/alpha", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["src/release/roms/*"], dest: "release/alpha/wmsx/roms", expand: true, flatten: true, filter: "isFile"},
                     {src: ["src/main/images/*"], dest: "release/alpha/wmsx/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
@@ -93,7 +92,8 @@ module.exports = function (grunt) {
                     "src/main/room/Room.js",
                     "src/main/userprefs/UserPreferences.js",
                     "src/main/Configurator.js",
-                    "src/main/Launcher.js"
+                    "src/main/Launcher.js",
+                    "src/release/sysroms/packed/EmbeddedSystemROMs.js"
                 ],
                 dest: "temp/wmsx.part.concat.js"
             },

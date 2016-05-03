@@ -32,53 +32,49 @@ WMSX.start = function () {
     wmsx.ROMDatabase.create();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
-    if (window.location.protocol.toLowerCase().indexOf("http") >= 0) {
-        if (WMSX.STATE_LOAD_URL) {
-            WMSX.room.loading(true);
-            // Only 1 file, Machine will Auto Power on
-            new wmsx.MultiDownloader([{
-                url: WMSX.STATE_LOAD_URL,
-                onSuccess: function (res) {
-                    wmsx.Clock.detectHostNativeFPSAndCallback(function() {
-                        afterAutoStartWait(function () {
-                            WMSX.room.loading(false);
-                            WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, false);
-                        });
+    if (WMSX.STATE_LOAD_URL) {
+        WMSX.room.loading(true);
+        // Only 1 file, Machine will Auto Power on
+        new wmsx.MultiDownloader([{
+            url: WMSX.STATE_LOAD_URL,
+            onSuccess: function (res) {
+                wmsx.Clock.detectHostNativeFPSAndCallback(function() {
+                    afterAutoStartWait(function () {
+                        WMSX.room.loading(false);
+                        WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, false);
                     });
-                },
-                onError: function (res) {
-                    var mes = "Could not load file: " + res.url + "\nError: " + res.error;
-                    wmsx.Util.log(mes);
-                    wmsx.Util.message(mes);
-                }
-            }]).start();
-        } else {
-            // Multiple files. Power Machine on only after all files are loaded and inserted
-            WMSX.room.loading(true);
-            var slotURLs = slotURLSpecs();
-            var mediaURLs = mediaURLSpecs();
-            new wmsx.MultiDownloader(slotURLs.concat(mediaURLs),
-                function onSuccessAll() {
-                    wmsx.Clock.detectHostNativeFPSAndCallback(function() {
-                        afterAutoStartWait(function () {
-                            WMSX.room.loading(false);
-                            WMSX.room.machine.userPowerOn(true);
-                        });
+                });
+            },
+            onError: function (res) {
+                var mes = "Could not load file: " + res.url + "\nError: " + res.error;
+                wmsx.Util.log(mes);
+                wmsx.Util.message(mes);
+            }
+        }]).start();
+    } else {
+        // Multiple files. Power Machine on only after all files are loaded and inserted
+        WMSX.room.loading(true);
+        var slotURLs = slotURLSpecs();
+        var mediaURLs = mediaURLSpecs();
+        new wmsx.MultiDownloader(slotURLs.concat(mediaURLs),
+            function onSuccessAll() {
+                wmsx.Clock.detectHostNativeFPSAndCallback(function() {
+                    afterAutoStartWait(function () {
+                        WMSX.room.loading(false);
+                        WMSX.room.machine.userPowerOn(true);
                     });
-                }, function onErrorAny(urls) {
-                    for (var i = 0; i < urls.length; i++) {
-                        if (urls[i] && !urls[i].success) {
-                            var mes = "Could not load file: " + urls[i].url + "\nError: " + urls[i].error;
-                            wmsx.Util.log(mes);
-                            wmsx.Util.message(mes);
-                        }
+                });
+            }, function onErrorAny(urls) {
+                for (var i = 0; i < urls.length; i++) {
+                    if (urls[i] && !urls[i].success) {
+                        var mes = "Could not load file: " + urls[i].url + "\nError: " + urls[i].error;
+                        wmsx.Util.log(mes);
+                        wmsx.Util.message(mes);
                     }
                 }
-            ).start();
-        }
-    } else
-        wmsx.Util.message("If you start WebMSX from a local file, it will not be able to auto-load\n" +
-            "System ROMs due to the browser's \"same-origin policy\"\nPlease run from a WebServer (remote or local)");
+            }
+        ).start();
+    }
 
     function afterAutoStartWait(func) {
         if (WMSX.AUTO_START_DELAY < 0) return;
