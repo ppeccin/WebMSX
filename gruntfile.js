@@ -8,18 +8,8 @@ module.exports = function (grunt) {
             finish: ["temp"]
         },
 
-        copy: {
-            main: {
-                files: [
-                    {src: ["src/runtime/*"], dest: "release/alpha", expand: true, flatten: true, filter: "isFile"}
-                    // Using embedded images
-                    // {src: ["src/runtime/images/files/*"], dest: "release/alpha/images", expand: true, flatten: true, filter: "isFile"}
-                ]
-            }
-        },
-
         concat: {
-            part: {
+            emuPart: {
                 src: [
                     "src/main/util/Util.js",
                     "src/main/util/SHA1.js",
@@ -98,19 +88,27 @@ module.exports = function (grunt) {
                     "src/runtime/images/EmbeddedImages.js",             // Use embedded resources
                     "src/runtime/sysroms/EmbeddedSystemROMs.js"         // Use embedded resources
                 ],
-                dest: "temp/wmsx.part.concat.js"
+                dest: "temp/wmsx.part.js"
             },
-            final: {
+            emuFinal: {
                 src: [
                     "src/main/WMSX.js",
                     "temp/wmsx.part.min.js"
                 ],
-                dest: "release/alpha/wmsx.js"
+                dest: "temp/wmsx.js"
+            },
+            standalone: {
+                src: [
+                    "src/runtime/standalone.part1.html",
+                    "temp/wmsx.js",
+                    "src/runtime/standalone.part2.html"
+                ],
+                dest: "temp/wmsx.html"
             }
         },
 
         uglify: {
-            part: {
+            emuPart: {
                 options: {
                     maxLineLen: 7900,
                     mangle: {
@@ -136,8 +134,23 @@ module.exports = function (grunt) {
                     }
                 },
                 files: {
-                    "temp/wmsx.part.min.js": ["temp/wmsx.part.concat.js"]
+                    "temp/wmsx.part.min.js": ["temp/wmsx.part.js"]
                 }
+            }
+        },
+
+        copy: {
+            standalone: {
+                files: [
+                    {src: ["temp/wmsx.html"], dest: "release/alpha/standalone", expand: true, flatten: true, filter: "isFile"}
+                ]
+            },
+            deployable: {
+                files: [
+                    {src: ["src/runtime/example.html"], dest: "release/alpha/deployable", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["temp/wmsx.js"], dest: "release/alpha/deployable", expand: true, flatten: true, filter: "isFile"}
+                    // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/alpha/deployable/images", expand: true, flatten: true, filter: "isFile"}
+                ]
             }
         }
     });
@@ -146,6 +159,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-copy");
-    grunt.registerTask("default", ["clean:init", "copy:main", "concat:part", "uglify:part", "concat:final", "clean:finish"]);
+    grunt.registerTask("default", ["clean:init", "concat:emuPart", "uglify:emuPart", "concat:emuFinal", "concat:standalone", "copy:standalone", "copy:deployable", "clean:finish"]);
 
 };
