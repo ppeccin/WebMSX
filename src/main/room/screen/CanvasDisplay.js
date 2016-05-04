@@ -394,13 +394,14 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         borderElement.appendChild(fsElement);
 
-        // Try to determine correct value for image-rendering for the canvas filter modes. TODO Find better solution, include Edge browser
+        // Try to determine correct value for image-rendering for the canvas filter modes
         switch (wmsx.Util.browserInfo().name) {
             case "CHROME":
+            case "EDGE":
             case "OPERA":   canvasImageRenderingValue = "pixelated"; break;
             case "FIREFOX": canvasImageRenderingValue = "-moz-crisp-edges"; break;
-            case "SAFARI":  canvasImageRenderingValue = "-webkit-crisp-edges"; break;
-            default:        canvasImageRenderingValue = "initial";
+            case "SAFARI":  canvasImageRenderingValue = "-webkit-optimize-contrast"; break;
+            default:        canvasImageRenderingValue = "pixelated";
         }
 
         canvas = document.createElement('canvas');
