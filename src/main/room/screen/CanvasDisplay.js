@@ -239,7 +239,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setMouseActiveCursor = function(boo) {
-        cursorType = boo ? "url(" + IMAGES_PATH + "mouse.cur" + "), auto" : "auto";
+        cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '") -10 -10, auto' : "auto";
         showCursor(true);
     };
 
@@ -550,7 +550,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         but.style.outline = "none";
 
         if (!noImage) {
-            but.style.backgroundImage = "url(" + IMAGES_PATH + "sprites.png" + ")";
+            but.style.backgroundImage = 'url("' + wmsx.Images.urls.sprites + '")';
             but.style.backgroundPosition = "" + px + "px " + py + "px";
             but.style.backgroundRepeat = "no-repeat";
         }
@@ -642,7 +642,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             logoImage.isLoaded = true;
             updateLogo();
         };
-        logoImage.src = IMAGES_PATH + "logo.png";
+        logoImage.src = wmsx.Images.urls.logo;
     }
 
     function setupLoadingIcon() {
@@ -673,7 +673,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             loadingImage.isLoaded = true;
             updateLogo();
         };
-        loadingImage.src = IMAGES_PATH + "loading.gif";
+        loadingImage.src = wmsx.Images.urls.loading;
     }
 
     function setupOSD() {
@@ -783,7 +783,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var KEY_ALT_MASK   =  64;
     var KEY_SHIFT_MASK =  128;
 
-    var IMAGES_PATH = WMSX.IMAGES_PATH;
     var OSD_TIME = 2500;
     var CURSOR_HIDE_FRAMES = 150;
 

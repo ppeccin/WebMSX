@@ -3,7 +3,7 @@
 
     <head lang="en">
         <meta charset="UTF-8">
-        <title>System ROMs Packer</title>
+        <title>System ROMs Embedder</title>
     </head>
 
     <body style="background: #eeeeee">
@@ -13,12 +13,12 @@
         <script src="../../../main/util/ZIP.js"></script>
         <script src="../../../main/util/MultiDownloader.js"></script>
         <script src="../../../main/room/files/FileDownloader.js"></script>
-        <script src="SystemROMsPacker.js"></script>
+        <script src="SystemROMsEmbedder.js"></script>
 
         <script>
 
-            WMSX_SYSTEM_ROMS_PATH = "../";
-            wmsx.SystemROMsPacker.pack();
+            WMSX_SYSTEM_ROMS_PATH = "../files/";
+            wmsx.SystemROMsEmbedder.generate();
 
         </script>
 

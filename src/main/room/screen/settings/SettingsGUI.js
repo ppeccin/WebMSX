@@ -755,7 +755,7 @@ wmsx.SettingsGUI.css = function() {
        ' padding-top: 170px;' +
        ' box-sizing: border-box;' +
        ' text-align: center;' +
-       ' background: black url("' + WMSX.IMAGES_PATH + 'logo.png") center 50px no-repeat;' +
+       ' background: black url("' + wmsx.Images.urls.logo + '") center 50px no-repeat;' +
        ' box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
     '}' +
 

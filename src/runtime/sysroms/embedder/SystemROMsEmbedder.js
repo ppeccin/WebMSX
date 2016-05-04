@@ -1,10 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SystemROMsPacker = {
+wmsx.SystemROMsEmbedder = {
 
-    pack: function() {
+    generate: function() {
 
-        var list = wmsx.SystemROMsPacker.fileList.slice(0);
+        var list = wmsx.SystemROMsEmbedder.fileList.slice(0);
         for (var i = 0; i < list.length; ++i) list[i] = { url: WMSX_SYSTEM_ROMS_PATH + list[i], originalFilename: list[i] };
 
         var d = new wmsx.MultiDownloader(
@@ -33,7 +33,7 @@ wmsx.SystemROMsPacker = {
 
 };
 
-wmsx.SystemROMsPacker.fileList = [
+wmsx.SystemROMsEmbedder.fileList = [
     "DISK.rom",
     "EXPERT10.bios",
     "FMPAC.rom",

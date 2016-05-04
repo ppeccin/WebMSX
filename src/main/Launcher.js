@@ -150,13 +150,12 @@ WMSX.start = function () {
 };
 
 
-// Pre-load images and start emulator as soon as all are loaded and DOM is ready
+// Pre-load images if needed and start emulator as soon as all are loaded and DOM is ready
 WMSX.preLoadImagesAndStart = function() {
-    var images = [ "logo.png", "sprites.png", "loading.gif" ];
-    var numImages = images.length;
 
     var domReady = false;
-    var imagesToLoad = numImages;
+    var imagesToLoad = wmsx.Images.embedded ? 0 : wmsx.Images.urls.length;
+
     function tryLaunch(bypass) {
         if (WMSX.start && WMSX.AUTO_START_DELAY >= 0 && (bypass || (domReady && imagesToLoad === 0)))
             WMSX.start();
@@ -167,13 +166,15 @@ WMSX.preLoadImagesAndStart = function() {
         tryLaunch(false);
     });
 
-    for (var i = 0; i < numImages; i++) {
-        var img = new Image();
-        img.src = WMSX.IMAGES_PATH + images[i];
-        img.onload = function() {
-            imagesToLoad--;
-            tryLaunch(false);
-        };
+    if (imagesToLoad > 0) {
+        for (var i in wmsx.Images.urls) {
+            var img = new Image();
+            img.src = wmsx.Images.urls[i];
+            img.onload = function () {
+                imagesToLoad--;
+                tryLaunch(false);
+            };
+        }
     }
 
     window.addEventListener("load", function() {

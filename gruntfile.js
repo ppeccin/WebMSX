@@ -11,8 +11,9 @@ module.exports = function (grunt) {
         copy: {
             main: {
                 files: [
-                    {src: ["src/release/*"], dest: "release/alpha", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["src/main/images/*"], dest: "release/alpha/wmsx/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["src/runtime/*"], dest: "release/alpha", expand: true, flatten: true, filter: "isFile"}
+                    // Using embedded images
+                    // {src: ["src/runtime/images/files/*"], dest: "release/alpha/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         },
@@ -71,6 +72,7 @@ module.exports = function (grunt) {
                     "src/main/msx/machine/BUS.js",
                     "src/main/msx/machine/Machine.js",
                     "src/main/msx/controls/MachineControls.js",
+                    "src/main/images/Images.js",
                     "src/main/room/files/FileLoader.js",
                     "src/main/room/files/FileDownloader.js",
                     "src/main/room/controls/DOMKeys.js",
@@ -93,7 +95,8 @@ module.exports = function (grunt) {
                     "src/main/userprefs/UserPreferences.js",
                     "src/main/Configurator.js",
                     "src/main/Launcher.js",
-                    "src/release/sysroms/packed/EmbeddedSystemROMs.js"
+                    "src/runtime/images/EmbeddedImages.js",             // Use embedded resources
+                    "src/runtime/sysroms/EmbeddedSystemROMs.js"         // Use embedded resources
                 ],
                 dest: "temp/wmsx.part.concat.js"
             },
@@ -102,7 +105,7 @@ module.exports = function (grunt) {
                     "src/main/WMSX.js",
                     "temp/wmsx.part.min.js"
                 ],
-                dest: "release/alpha/wmsx/wmsx.js"
+                dest: "release/alpha/wmsx.js"
             }
         },
 
