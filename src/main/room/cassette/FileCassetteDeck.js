@@ -28,7 +28,7 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.loadEmptyTape = function() {
-        tapeFileName = null;
+        tapeFileName = "New Tape.cas";
         tapeContent = [];
         toTapeStart();
         screen.showOSD("Cassette loaded with empty Tape", true);
@@ -53,18 +53,21 @@ wmsx.FileCassetteDeck = function() {
 
         try {
             fillToNextSlot();
-            var fileName = tapeFileName;
-            if (!fileName) {
+            if (!tapeFileName || tapeFileName == "New Tape.cas") {
                 var info = peekFileInfo(0);
-                if (info) fileName = info.name && info.name.trim();
-                if (!fileName) fileName = "WebMSXTape";
-                fileName += ".cas";
+                if (info) {
+                    tapeFileName = info.name && info.name.trim();
+                    if (!tapeFileName ) tapeFileName = "New Tape";
+                    tapeFileName += ".cas";
+                }
+                if (!tapeFileName ) tapeFileName = "New Tape.cas";
+                fireStateUpdate();
             }
             var data = new ArrayBuffer(tapeContent.length);
             var view = new Uint8Array(data);
             for (var i = 0; i < tapeContent.length; i++)
                 view[i] = tapeContent[i];
-            fileDownloader.startDownload(fileName, data);
+            fileDownloader.startDownload(tapeFileName, data);
             screen.showOSD("Cassette Tape File saved", true);
         } catch(ex) {
             screen.showOSD("Cassette Tape File save failed", true);
@@ -223,7 +226,7 @@ wmsx.FileCassetteDeck = function() {
     }
 
     function fireStateUpdate() {
-        screen.tapeStateUpdate(!!tapeContent, motor);
+        screen.tapeStateUpdate(tapeFileName, motor);
     }
 
 

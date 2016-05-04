@@ -39,7 +39,7 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.createNewEmptyDisk = function(drive, format) {
-        diskFileName[drive] = "NewDisk" + FORMAT_OPTION_DESC[format] + ".dsk";
+        diskFileName[drive] = "New Disk " + FORMAT_OPTION_DESC[format] + ".dsk";
         diskContent[drive] = wmsx.Util.arrayFill(new Array(FORMAT_OPTION_SIZE[format]), 0);
         diskChanged[drive] = true;
         fireStateUpdate();
@@ -64,7 +64,7 @@ wmsx.FileDiskDrive = function() {
         }
 
         try {
-            var fileName = diskFileName[drive] || "NewDisk.dsk";
+            var fileName = diskFileName[drive] || "New Disk.dsk";
             var data = new ArrayBuffer(dContent.length);
             var view = new Uint8Array(data);
             for (var i = 0; i < dContent.length; i++)
@@ -169,7 +169,7 @@ wmsx.FileDiskDrive = function() {
     }
 
     function fireStateUpdate() {
-        screen.diskDrivesStateUpdate(self.diskPresent(0), diskMotor[0], self.diskPresent(1), diskMotor[1]);
+        screen.diskDrivesStateUpdate(diskFileName[0], diskMotor[0], diskFileName[1], diskMotor[1]);
     }
 
 

@@ -787,12 +787,12 @@ wmsx.Machine = function() {
 
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
-            // Use Cartridge label as file name
-            var cart = cartridgeSocket.inserted(0) || cartridgeSocket.inserted(1);
-            var fileName = cart && cart.rom.info.l;
+            // Use Cartridge label as file name (disabled for now)
+            // var cart = cartridgeSocket.inserted(0) || cartridgeSocket.inserted(1);
+            // var fileName = cart && cart.rom.info.l;
             var state = saveState();
             state.v = VERSION;
-            if (media.saveStateFile(fileName, state))
+            if (media.saveStateFile(null, state))
                 self.showOSD("State File saved", true);
             else
                 self.showOSD("State File save failed", true);

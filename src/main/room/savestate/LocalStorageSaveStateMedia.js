@@ -22,7 +22,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     this.saveStateFile = function(fileName, state) {
         var data = buildDataFromState(state);
-        return data && startDownload(fileName || "WebMSXSave", data);
+        return data && startDownload(fileName || "WMSX SaveState", data);
     };
 
     this.loadStateFile = function(data) {

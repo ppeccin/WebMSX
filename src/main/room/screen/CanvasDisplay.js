@@ -211,20 +211,25 @@ wmsx.CanvasDisplay = function(mainElement) {
         refreshMediaButtons();
     };
 
-    this.diskDrivesStateUpdate = function(diskAPresent, diskAMotor, diskBPresent, diskBMotor) {
-        mediaButtonsState.DiskA = diskAMotor ? 2 : ( diskAPresent ? 1 : 0 );
-        mediaButtonsState.DiskB = diskBMotor ? 2 : ( diskBPresent ? 1 : 0 );
+    this.diskDrivesStateUpdate = function(diskAName, diskAMotor, diskBName, diskBMotor) {
+        mediaButtonsState.DiskA = diskAMotor ? 2 : ( diskAName ? 1 : 0 );
+        mediaButtonsState.DiskB = diskBMotor ? 2 : ( diskBName ? 1 : 0 );
+        mediaButtonsDesc.DiskA = "Disk A" + ( diskAName ? ": " + diskAName : "" );
+        mediaButtonsDesc.DiskB = "Disk B" + ( diskBName ? ": " + diskBName : "" );
         refreshMediaButtons();
     };
 
     this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
         mediaButtonsState.Cartridge1 = cartridge1 ? 1 : 0;
         mediaButtonsState.Cartridge2 = cartridge2 ? 1 : 0;
+        mediaButtonsDesc.Cartridge1 = "Cartridge 1" + ( cartridge1 ? ": " + (cartridge1.rom.source || "<Unknown>") : "" );
+        mediaButtonsDesc.Cartridge2 = "Cartridge 2" + ( cartridge2 ? ": " + (cartridge2.rom.source || "<Unknown>") : "" );
         refreshMediaButtons();
     };
 
-    this.tapeStateUpdate = function(present, motor) {
-        mediaButtonsState.Tape = motor ? 2 : ( present ? 1 : 0 );
+    this.tapeStateUpdate = function(name, motor) {
+        mediaButtonsState.Tape = motor ? 2 : ( name ? 1 : 0 );
+        mediaButtonsDesc.Tape = "Cassette Tape" + ( name ? ": " + name : "" );
         refreshMediaButtons();
     };
 
@@ -361,6 +366,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
+    function suppressContextMenu(element) {
+        element.addEventListener("contextmenu", function (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        });
+    }
+
     function setupMain() {
         mainElement.style.position = "relative";
         mainElement.style.overflow = "hidden";
@@ -386,6 +398,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.addEventListener("mousemove", function() {
             showCursor();
         });
+
+        suppressContextMenu(fsElement);
 
         document.addEventListener("fullscreenchange", fullScreenChanged);
         document.addEventListener("webkitfullscreenchange", fullScreenChanged);
@@ -445,7 +459,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             buttonsBar.style.border = "1px solid black";
         }
 
-        powerButton  = addBarButton(6, -26, 24, 23, -120, -29);
+        suppressContextMenu(buttonsBar);
+
+        powerButton  = addBarButton(6, -26, 24, 23, -120, -29, "System Power");
         var controls = {};
         controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.MACHINE_POWER_TOGGLE;
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.MACHINE_POWER_RESET;
@@ -507,21 +523,21 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
-            fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4);
+            fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4, "Full Screen");
             peripheralControlButton(fullscreenButton, wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fsGap = 0;
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
-            scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4);
+            scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4, "Decrease Screen");
             peripheralControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
-            scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4);
+            scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4, "Increase Screen");
             peripheralControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
         }
 
-        settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4);
+        settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4, "Help Screen");
         localControlButton(settingsButton, openSettings);
 
-        logoButton = addBarButton("CENTER", -23, 51, 19, -38, -35);
+        logoButton = addBarButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX");
         localControlButton(logoButton, function (e) {
             openSettings("ABOUT");
         });
@@ -536,9 +552,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge1Button.style.backgroundPosition = "-150px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge1"]]) + "px";
         cartridge2Button.style.backgroundPosition = "-179px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge2"]]) + "px";
         tapeButton.style.backgroundPosition =       "-208px " + (mediaButtonBackYOffsets[mediaButtonsState["Tape"]]) + "px";
+        diskAButton.title = mediaButtonsDesc["DiskA"];
+        diskBButton.title = mediaButtonsDesc["DiskB"];
+        cartridge1Button.title = mediaButtonsDesc["Cartridge1"];
+        cartridge2Button.title = mediaButtonsDesc["Cartridge2"];
+        tapeButton.title = mediaButtonsDesc["Tape"];
     }
 
-    function addBarButton(x, y, w, h, px, py, noImage) {
+    function addBarButton(x, y, w, h, px, py, tooltip) {
         var but = document.createElement('div');
         but.style.position = "absolute";
         if (x === "CENTER") {
@@ -550,11 +571,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         but.style.height = "" + h + "px";
         but.style.outline = "none";
 
-        if (!noImage) {
+        if ((typeof px) === "number") {
             but.style.backgroundImage = 'url("' + wmsx.Images.urls.sprites + '")';
             but.style.backgroundPosition = "" + px + "px " + py + "px";
             but.style.backgroundRepeat = "no-repeat";
         }
+
+        if (tooltip) but.title = tooltip;
 
         buttonsBar.appendChild(but);
 
@@ -595,11 +618,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.which > 1) handler(e);
         });
 
-        // Suppress Context menu
-        but.addEventListener("contextmenu", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        });
+        suppressContextMenu(but);
     }
 
     function localControlButton(but, func) {
@@ -608,10 +627,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.preventDefault) e.preventDefault();
             func();
         });
-        but.addEventListener("contextmenu", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        });
+        suppressContextMenu(but);
     }
 
     function setupLogo() {
@@ -775,6 +791,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var borderBottom;
 
     var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
+    var mediaButtonsDesc = { Power: "Power", DiskA: "Disk A", DiskB: "Disk B", Cartridge1: "Cartridge 1", Cartridge2: "Cartridge 2", Tape: "Cassette Tape" };
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
 
     var MOUSE_BUT1_MASK = 1;

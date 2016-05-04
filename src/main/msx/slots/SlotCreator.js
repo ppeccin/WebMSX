@@ -95,8 +95,6 @@ wmsx.SlotCreator = function () {
     var finishInfo = function(info, romSource, hash) {
         // Saves the hash on the info
         info.h = hash;
-        // Compute label based on name
-        if (!info.l) info.l = produceCartridgeLabel(info.n);
         // Adjust Format information if hint is present
         var romURL = romSource.toUpperCase();
         for (var formatName in wmsx.SlotFormats)
@@ -105,6 +103,8 @@ wmsx.SlotCreator = function () {
                 info.t = true;
                 break;
             }
+        // Compute label based on other info
+        if (!info.l) info.l = produceCartridgeLabel(info);
     };
 
     var boostPriority = function(formatOption, info) {
@@ -114,8 +114,8 @@ wmsx.SlotCreator = function () {
             formatOption.priorityBoosted = undefined;
     };
 
-    var produceCartridgeLabel = function(name) {
-        return name.split(/(\(|\[)/)[0].trim();
+    var produceCartridgeLabel = function(info) {
+        return info.n[0] === "[" ? (info.f ? info.f : info.n) : info.n.split(/(\(|\[)/)[0].trim();
     };
 
     var formatMatchesByHint = function(formatName, hint) {
