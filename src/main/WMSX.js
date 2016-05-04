@@ -1,15 +1,13 @@
+// WebMSX version 2.0
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// WebMSX version 2.0
-
 // Main Emulator parameters.
-// You may change any of these after loading the project and before starting the Emulator
-// It is also possible to override values dynamically via URL query parameters
-// Machine type and components are defined via Configuration Presets
+// May be overridden dynamically by URL query parameters, if ALLOW_URL_PARAMETERS = true.
+// Machine type and components are defined by Configuration Presets.
 
 WMSX = {
 
-    // Machine Configuration Presets to apply. See Presets section below
+    // Machine Configuration Presets to apply. See Presets section below...
     PRESETS:                        "",
 
     // Full or relative URL of Media files to load
@@ -28,7 +26,7 @@ WMSX = {
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FILTER_MODE:             1,                          // 0..3
     SCREEN_CRT_MODE:                1,                          // 0..1
-    SCREEN_DEFAULT_SCALE:           1,                          // 0.5 .. N, 0.1 steps
+    SCREEN_DEFAULT_SCALE:           1.1,                        // 0.5 .. N, 0.1 steps
     SCREEN_DEFAULT_ASPECT:          1.1,                        // 0.1 steps
     SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
@@ -38,8 +36,6 @@ WMSX = {
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     ALLOW_URL_PARAMETERS:           false,                      // Allows user to override any of these parameters via URL query parameters
-
-    VERSION:                        "2.0"                       // Don't change!
 
 };
 

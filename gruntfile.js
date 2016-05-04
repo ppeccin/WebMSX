@@ -104,6 +104,12 @@ module.exports = function (grunt) {
                     "src/runtime/standalone.part2.html"
                 ],
                 dest: "temp/wmsx.html"
+            },
+            deployable: {
+                src: [
+                    "src/runtime/deploy-example.html"
+                ],
+                dest: "temp/example.html"
             }
         },
 
@@ -147,7 +153,7 @@ module.exports = function (grunt) {
             },
             deployable: {
                 files: [
-                    {src: ["src/runtime/example.html"], dest: "release/alpha/deployable", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["temp/example.html"], dest: "release/alpha/deployable", expand: true, flatten: true, filter: "isFile"},
                     {src: ["temp/wmsx.js"], dest: "release/alpha/deployable", expand: true, flatten: true, filter: "isFile"}
                     // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/alpha/deployable/images", expand: true, flatten: true, filter: "isFile"}
                 ]
@@ -159,6 +165,16 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-copy");
-    grunt.registerTask("default", ["clean:init", "concat:emuPart", "uglify:emuPart", "concat:emuFinal", "concat:standalone", "copy:standalone", "copy:deployable", "clean:finish"]);
+    grunt.registerTask("default", [
+        "clean:init",
+        "concat:emuPart",
+        "uglify:emuPart",
+        "concat:emuFinal",
+        "concat:standalone",
+        "concat:deployable",
+        "copy:standalone",
+        "copy:deployable",
+        "clean:finish"
+    ]);
 
 };

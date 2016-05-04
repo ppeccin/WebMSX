@@ -490,12 +490,12 @@ wmsx.SettingsGUI.html = function() {
                 '</div>' +
                 '<div id="jt-about">' +
                     '<div id="jt-logo-version">' +
-                        'WebMSX&nbsp&nbsp;-&nbsp;&nbsp&nbspversion&nbsp' + WMSX.VERSION +
+                        'WebMSX&nbsp&nbsp;-&nbsp;&nbsp&nbsp' + WMSX.VERSION +
                     '</div>' +
                     '<div class="info">' +
-                        'Created by Paulo Augusto Peccin' +
+                        atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") +
                         '<br>' +
-                        '<a href="http://webmsx.org">http://webmsx.org</a>' +
+                        atob("PGEgaHJlZj0iaHR0cDovL3dlYm1zeC5vcmciPmh0dHA6Ly93ZWJtc3gub3JnPC9hPg==") +
                     '</div>' +
                     '<div id="jt-browserinfo">' +
                     '</div>' +
@@ -527,7 +527,7 @@ wmsx.SettingsGUI.css = function() {
        ' position: relative;' +
        ' overflow: hidden;' +
        ' width: 580px;' +
-       ' top: 48px;' +
+       ' top: 58px;' +
        ' left: -120px;' +
        ' margin: 0 auto;' +
        ' color: rgba(0, 0, 0, 0.90);' +

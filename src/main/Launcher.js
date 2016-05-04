@@ -183,5 +183,7 @@ WMSX.preLoadImagesAndStart = function() {
 
 };
 
+WMSX.VERSION = "version 2.0";
+
 // Start pre-loading images right away
 WMSX.preLoadImagesAndStart();
