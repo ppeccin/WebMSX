@@ -353,13 +353,13 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             case 19:
                 horizontalIntLine = (val - register[23]) & 255;
 
-                //logInfo("Line Interrupt set: " + val);
+                //logInfo("Line Interrup set. IntLine: " + horizontalIntLine + ", scroll offset: " + register[23]);
 
                 break;
             case 23:
                 horizontalIntLine = (register[19] - val) & 255;
 
-                //logInfo("Vertical offset set: " + val);
+                //logInfo("Scroll offset set. IntLine: " + horizontalIntLine + ", scroll offset: " + register[23]);
 
                 break;
             case 25:
