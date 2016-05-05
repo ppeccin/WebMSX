@@ -6,6 +6,7 @@ wmsx.VideoStandard = {
         desc: "NTSC 60Hz",
         totalWidth: 342,
         totalHeight: 262,
+        topBorderHeight: 16,                    // for 212 lines (LN = 1)
         targetFPS: 60,
         pulldowns: {
             60: { // Hz
@@ -23,6 +24,7 @@ wmsx.VideoStandard = {
         desc: "PAL 50Hz",
         totalWidth: 342,
         totalHeight: 313,
+        topBorderHeight: 43,                    // for 212 lines (LN = 1)
         targetFPS: 50,                          // Original is 50.22364217252396, or 50.3846153846153847
         pulldowns: {
             60: { // Hz
