@@ -695,7 +695,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         // Fixed metrics for V9918
         if (isV9918) {
-            activeHeight = 192; addBorderHeight = 10;
+            activeHeight = 192; addBorderHeight = 0;
         } else {
             if (register[9] & 0x80) { activeHeight = 212; addBorderHeight = 0; }                                  // LN
             else { activeHeight = 192; addBorderHeight = 10; }
