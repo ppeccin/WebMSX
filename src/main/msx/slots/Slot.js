@@ -37,8 +37,23 @@ wmsx.Slot = function() {
         return false;
     };
 
-    this.dump = function(from, chunk, quant) {
+    this.dumpBytes = function(from, chunk, quant) {
         wmsx.Util.dump(this.bytes, from, chunk, quant);
+    };
+
+    this.dumpRead = function(from, chunk, quant) {
+        var res = "";
+        var p = from || 0;
+        quant = quant || 1;
+        for(var i = 0; i < quant; i++) {
+            for(var c = 0; c < chunk; c++) {
+                var val = this.read(p++);
+                res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+            }
+            res = res + "   ";
+        }
+
+        console.log(res);
     };
 
 };

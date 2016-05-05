@@ -163,7 +163,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
                     if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataToWrite);
                 }
             } else {
-                // VRAM Address Pointer middle (A13-A8) and mode (r/w)
+                // VRAM Address Pointer middle (A13-A8) and low (A7-A0) and mode (r/w)
                 vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
             }
             dataToWrite = null;
@@ -514,7 +514,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var totalLines = scanlinesPerCycle;
 
         // Adjust for pulldown cadence if this frame is the first pulldown frame
-        if (pulldownFirstFrameLinesAdjust && currentScanline == startingScanline) totalLines += pulldownFirstFrameLinesAdjust;
+        if (pulldownFirstFrameLinesAdjust && currentScanline === startingScanline) totalLines += pulldownFirstFrameLinesAdjust;
 
         for (var i = totalLines; i > 0; i = i - 1) {
             // Verify and change sections of the screen
@@ -551,7 +551,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         cpuClockPulses(10);
 
-        // Visible Display: 1024 clocks
+        // Active Display: 1024 clocks
 
         status[2] &= ~0x20;                                                                         // HR = 0
 
@@ -565,15 +565,18 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         cpuClockPulses(32); audioClockPulse32();
         cpuClockPulses(18);
 
+        // End of Active Display
+
         status[2] |= 0x20;                                                                          // HR = 1
-        if (currentScanline - startingActiveScanline === horizontalIntLine) triggerHorizontalInterrupt();   // FH = 1
+        if (currentScanline - startingActiveScanline === horizontalIntLine)
+            triggerHorizontalInterrupt();                                                           // FH = 1
 
         // Right border: 59 clocks
         // Right erase: 27 clocks
 
         cpuClockPulses(15); audioClockPulse32();
 
-        if ((currentScanline & 0x7) === 0) audioClockPulse32();     // One more audioClock32 each 8 lines
+        if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
 
         // End of line
     }
