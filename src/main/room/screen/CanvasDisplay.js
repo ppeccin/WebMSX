@@ -1,8 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.CanvasDisplay = function(mainElement) {
+    var self = this;
 
-    function init(self) {
+    function init() {
         setupProperties();
         setupMain();
         setupOSD();
@@ -66,6 +67,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.videoSignalOff = function() {
         signalIsOn = false;
         updateLogo();
+    };
+
+    this.openSettings = function(page) {
+        if (!settings) settings = new wmsx.Settings();
+        settings.show(page);
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {
@@ -275,11 +281,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function mouseControlsInputElement() {
         return fsElement;
-    }
-
-    function openSettings(page) {
-        if (!settings) settings = new wmsx.Settings();
-        settings.show(page);
     }
 
     function fullScreenChanged() {
@@ -535,11 +536,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4, "Help Screen");
-        localControlButton(settingsButton, openSettings);
+        localControlButton(settingsButton, self.openSettings);
 
         logoButton = addBarButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX");
         localControlButton(logoButton, function (e) {
-            openSettings("ABOUT");
+            self.openSettings("ABOUT");
         });
 
         mainElement.appendChild(buttonsBar);
@@ -805,7 +806,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var CURSOR_HIDE_FRAMES = 150;
 
 
-    init(this);
+    init();
 
     this.eval = function(str) {
         return eval(str);

@@ -99,15 +99,15 @@ module.exports = function (grunt) {
             },
             standalone: {
                 src: [
-                    "src/runtime/standalone.part1.html",
+                    "src/runtime/html/standalone.part1.html",
                     "temp/wmsx.js",
-                    "src/runtime/standalone.part2.html"
+                    "src/runtime/html/standalone.part2.html"
                 ],
                 dest: "temp/wmsx.html"
             },
             deployable: {
                 src: [
-                    "src/runtime/deploy-example.html"
+                    "src/runtime/html/deploy-example.html"
                 ],
                 dest: "temp/example.html"
             }

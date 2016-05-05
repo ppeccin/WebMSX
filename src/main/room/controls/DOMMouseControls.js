@@ -70,23 +70,23 @@ wmsx.DOMMouseControls = function(hub) {
             func = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
             if (func) func.apply(document);
         } else {
-            func = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
-            if (func) func.apply(element);
+            func = inputElement.requestPointerLock || inputElement.mozRequestPointerLock || inputElement.webkitRequestPointerLock;
+            if (func) func.apply(inputElement);
         }
     };
 
     this.setInputElement = function(pElement) {
-        element = pElement;
+        inputElement = pElement;
 
         // Register events needed
         if ("onpointerlockchange" in document) document.addEventListener('pointerlockchange', pointerLockChangedEvent, false);
         else if ("onmozpointerlockchange" in document) document.addEventListener('mozpointerlockchange', pointerLockChangedEvent, false);
-        element.addEventListener("mousemove", mouseMoveEvent);
-        element.addEventListener("mousedown", mouseButtonEvent);
-        element.addEventListener("mouseup",   mouseButtonEvent);
+        inputElement.addEventListener("mousemove", mouseMoveEvent);
+        inputElement.addEventListener("mousedown", mouseButtonEvent);
+        inputElement.addEventListener("mouseup",   mouseButtonEvent);
 
         // Suppress Context menu
-        element.addEventListener("contextmenu", function (e) {
+        inputElement.addEventListener("contextmenu", function (e) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
         });
@@ -149,7 +149,7 @@ wmsx.DOMMouseControls = function(hub) {
     }
 
     function mouseButtonEvent(event) {
-        if (event.preventDefault) event.preventDefault();
+        //if (event.preventDefault) event.preventDefault();
 
         var lastButtons = mouseState.buttons;
         mouseState.buttons = event.buttons & 7;
@@ -160,7 +160,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     function pointerLockChangedEvent() {
         var lockingElement = document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement;
-        pointerLocked = lockingElement === element;
+        pointerLocked = lockingElement === inputElement;
 
         screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
     }
@@ -190,7 +190,7 @@ wmsx.DOMMouseControls = function(hub) {
     var port = -1;                               // -1: disconnected, 0: connected at port 0, 1: connected at port 1
     var pixelScaleX = 1, pixelScaleY = 1;
 
-    var element;
+    var inputElement;
     var lastMoveEvent;
     var pointerLocked = false;
 
