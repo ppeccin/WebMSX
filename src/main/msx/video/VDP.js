@@ -226,7 +226,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         vramInterleaving = false;
         renderMetricsChangePending = false;
         refreshWidth = refreshHeight = 0;
-        currentScanline = -1000;
+        currentScanline = -1;
         initRegisters();
         initColorPalette();
         commandProcessor.reset();
@@ -353,13 +353,13 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
             case 19:
                 horizontalIntLine = (val - register[23]) & 255;
 
-                //logInfo("Line Interrup set. IntLine: " + horizontalIntLine + ", scroll offset: " + register[23]);
+                //logInfo("Line Interrupt set: " + val);
 
                 break;
             case 23:
                 horizontalIntLine = (register[19] - val) & 255;
 
-                //logInfo("Scroll offset set. IntLine: " + horizontalIntLine + ", scroll offset: " + register[23]);
+                //logInfo("Vertical offset set: " + val);
 
                 break;
             case 25:
@@ -519,7 +519,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         for (var i = totalLines; i > 0; i = i - 1) {
             // Verify and change sections of the screen
             if (currentScanline === startingActiveScanline) enterActiveDisplay();
-            else if (currentScanline === startingVisibleBottomBorderScanline) enterBorderDisplay();
+            else if (currentScanline === startingBottomBorderScanline) enterBorderDisplay();
 
             lineEvents();
 
@@ -547,7 +547,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
-        if (currentScanline === startingVisibleBottomBorderScanline) triggerVerticalInterrupt();    // VR = 1, F = 1 at the first Bottom Border line
+        if (currentScanline === startingBottomBorderScanline) triggerVerticalInterrupt();           // VR = 1, F = 1 at the first Bottom Border line
 
         cpuClockPulses(10);
 
@@ -559,8 +559,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         cpuClockPulses(33); audioClockPulse32();
         cpuClockPulses(32); audioClockPulse32();
 
-        if (currentScanline >= startingVisibleTopBorderScanline                                     // ~ Middle of Display area
-            && currentScanline < startingInvisibleScanline) renderLine();                           // Only render if visible
+        if (currentScanline >= startingTopBorderScanline) renderLine();                             // ~ Middle of Display area
 
         cpuClockPulses(33); audioClockPulse32();
         cpuClockPulses(32); audioClockPulse32();
@@ -569,7 +568,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         // End of Active Display
 
         status[2] |= 0x20;                                                                          // HR = 1
-        if (currentScanline === horizontalIntLine) triggerHorizontalInterrupt();                    // FH = 1
+        if (currentScanline - startingActiveScanline === horizontalIntLine)
+            triggerHorizontalInterrupt();                                                           // FH = 1
 
         // Right border: 59 clocks
         // Right erase: 27 clocks
@@ -691,22 +691,21 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateSignalMetrics() {
-        var addBorderHeight, activeHeight;
+        var activeHeight, borderHeight;
 
         // Fixed metrics for V9918
         if (isV9918) {
-            activeHeight = 192; addBorderHeight = 0;
+            activeHeight = 192; borderHeight = 8;
         } else {
-            if (register[9] & 0x80) { activeHeight = 212; addBorderHeight = 0; }                                  // LN
-            else { activeHeight = 192; addBorderHeight = 10; }
+            if (register[9] & 0x80) { activeHeight = 212; borderHeight = 8; }             // LN
+            else { activeHeight = 192; borderHeight = 18; }
         }
 
-        startingScanline = -(videoStandard.topBorderHeight + addBorderHeight);                                    // Top Border start. Negative part, Invisible lines. Horizontal Interrupts should not occur here
-        startingVisibleTopBorderScanline = -(8 + addBorderHeight + verticalAdjust);                               // Visible Top Border start. Normally 8 lines for LN = 1 and no Vertival Adust
-        startingActiveScanline = 0;                                                                               // Active Display. Always starts at line 0
-        startingVisibleBottomBorderScanline = startingActiveScanline + activeHeight;                              // Visible Bottom Border start
-        startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 + addBorderHeight - verticalAdjust;   // End of Visible Bottom Border. Star of Invisible lines
-        finishingScanline = videoStandard.totalHeight + startingScanline;                                         // End of Frame
+        startingTopBorderScanline = 0;
+        startingActiveScanline = startingTopBorderScanline + borderHeight + verticalAdjust;
+        startingBottomBorderScanline = startingActiveScanline + activeHeight;
+        finishingScanline = startingBottomBorderScanline + borderHeight - verticalAdjust;
+        startingScanline = finishingScanline - videoStandard.totalHeight;
 
         //logInfo("Update Signal Metrics, reg9: " + register[9].toString(16));
     }
@@ -729,10 +728,10 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
 
-        // Only change width if before visible display (ex: beginFrame), or if going to higher width
+        // Only change width if before visible display (beginFrame), or if going to higher width
         if (newRenderWidth !== renderWidth) {
-            if (currentScanline < startingVisibleTopBorderScanline || newRenderWidth > renderWidth) {
-                if (currentScanline >= startingVisibleTopBorderScanline) stretchFromCurrentToStartingVisibleScanline();
+            if (currentScanline < 0 || newRenderWidth > renderWidth) {
+                if (currentScanline >= 0) stretchFromCurrentToTopScanline();
                 renderWidth = newRenderWidth;
                 changed = true;
             } else
@@ -862,7 +861,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var colorCode = register[7];                                        // fixed text color for all line
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var on =  colorPalette[colorCode >>> 4];
@@ -894,7 +893,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
 
@@ -940,7 +939,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >>> 2) & 0x01);    // (pattern line % 4) * 2
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
@@ -973,7 +972,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = patternTableAddress + (realLine & 0x07);
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
@@ -1006,7 +1005,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
@@ -1041,7 +1040,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
@@ -1076,7 +1075,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 2);
@@ -1114,7 +1113,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop32Tiled(bufferPosition); paintBackdrop32Tiled(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 2);
@@ -1184,7 +1183,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1232,7 +1231,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var alpha = debugModeSpriteHighlight ? DEBUG_DIM_ALPHA_MASK : 0xffffffff;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1267,7 +1266,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1319,7 +1318,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1383,7 +1382,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
 
         var namePos = layoutTableAddress + ((realLine >>> 3) * 40);
@@ -1417,7 +1416,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var name, pattern, colorCode, on;
 
@@ -1478,7 +1477,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
         var namePos = namePosBase + leftScrollCharsInPage;
@@ -1507,7 +1506,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var pattern, on, off;
 
@@ -1551,7 +1550,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
         var pattern, on, off;
@@ -1597,7 +1596,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline + register[23]) & 255;
+        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
         var pattern, on, off;
@@ -2017,19 +2016,18 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function stretchCurrentLine() {
-        var lineEnd = 256 + 8*2;
-        var s = bufferPosition + lineEnd - 1, d = bufferPosition + lineEnd * 2 - 2;
-        for (var i = lineEnd; i > 0; --i, --s, d = d - 2)
+        var end = 256 + 8*2;
+        var s = bufferPosition + end - 1, d = bufferPosition + end * 2 - 2;
+        for (var i = end; i > 0; --i, --s, d = d - 2)
             frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
     }
 
-    function stretchFromCurrentToStartingVisibleScanline() {
-        var bufPos = bufferPosition;
-        var lineEnd = 256 + 8*2;
-        var botttomLine = currentScanline >= startingInvisibleScanline ? startingInvisibleScanline - 1 : currentScanline;
-        for (var line = botttomLine; line >= startingVisibleTopBorderScanline; --line, bufPos -= bufferLineAdvance) {
-            var s = bufPos + lineEnd - 1, d = bufPos + lineEnd * 2 - 2;
-            for (var i = lineEnd; i > 0; --i, --s, d = d - 2)
+    function stretchFromCurrentToTopScanline() {
+        var end = 256 + 8*2;
+        var pos = bufferPosition;
+        for (var line = currentScanline; line >= 0; --line, pos -= bufferLineAdvance) {
+            var s = pos + end - 1, d = pos + end * 2 - 2;
+            for (var i = end; i > 0; --i, --s, d = d - 2)
                 frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
         }
 
@@ -2216,8 +2214,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var startingScanline;
     var finishingScanline;
     var startingActiveScanline;
-    var startingVisibleTopBorderScanline;
-    var startingVisibleBottomBorderScanline;
+    var startingTopBorderScanline;
+    var startingBottomBorderScanline;
     var startingInvisibleScanline;
     var scanlinesPerCycle;
     var pulldownFirstFrameLinesAdjust;
@@ -2383,7 +2381,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
 
     function logInfo(text) {
-        console.log(text + ". Frame: " + frame + ", activeLine: " + currentScanline + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
+        console.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
     }
     this.logInfo = logInfo;
 
