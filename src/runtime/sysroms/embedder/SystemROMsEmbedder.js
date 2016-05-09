@@ -10,17 +10,28 @@ wmsx.SystemROMsEmbedder = {
         var d = new wmsx.MultiDownloader(
             list,
             function(specs) {
-                var romsFile = "wmsx.MultiDownloader.addEmbeddedFiles({";
+                var romsFile =
+                    "wmsx.EmbeddedSystemROMs = {\n\n" +
+                    "    flush: function() {\n" +
+                    "        for (var f in this.files) wmsx.MultiDownloader.removeFile(f);\n" +
+                    "        delete this.files;\n" +
+                    "    },\n\n" +
+                    "    add: function() {\n" +
+                    "        for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);\n" +
+                    "    },\n\n" +
+                    "    files: {";
+
                 var first = true;
 
                 for (i = 0; i < specs.length; ++i) {
                     console.log("Packing: " + specs[i].url);
                     if (!first) romsFile += ",";
-                    romsFile += '\n\n\t"' + specs[i].originalFilename + '": "' + wmsx.Util.compressInt8BitArrayToStringBase64(specs[i].content) + '"';
+                    romsFile += '\n\n        "' + specs[i].originalFilename + '": "' + wmsx.Util.compressInt8BitArrayToStringBase64(specs[i].content) + '"';
                     first = false;
                 }
 
-                romsFile += "\n\n});";
+                romsFile += "\n\n    }\n};\n\n" +
+                    "wmsx.EmbeddedSystemROMs.add();";
 
                 var f = new wmsx.FileDownloader();
                 f.registerForDownloadElement(document.getElementsByTagName("body")[0]);
@@ -35,8 +46,6 @@ wmsx.SystemROMsEmbedder = {
 
 wmsx.SystemROMsEmbedder.fileList = [
     "DISK.rom",
-    "EXPERT10.bios",
-    "FMPAC.rom",
     "MSX1_JAP.bios",
     "MSX1_NTSC.bios",
     "MSX1_PAL.bios",

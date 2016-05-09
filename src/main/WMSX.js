@@ -189,11 +189,6 @@ WMSX.presets = {
 
     // Specific Machines Presets
 
-    EXPERT: {
-        _INCLUDE:           "MSX1BASE",
-        SLOT_0_URL:         "@EXPERT10.bios"
-    },
-
     EMPTY: {
         _EXCLUDE:           "DEFAULT",
         MACHINE_TYPE:       3,
@@ -221,17 +216,17 @@ WMSX.presets = {
         SLOT_2_3_URL:       "@[SCCIExpansion].rom"
     },
 
-    FMPAC: {
-        CARTRIDGE2_URL:     "@FMPAC.rom"
-    },
-
     // Configuration Helper Presets
 
     NOVSYNCH: {
         SCREEN_VSYNCH_MODE: 0
     },
 
-    FORCEVSYNCH: {
+    VSYNCHAUTO: {
+        SCREEN_VSYNCH_MODE: 1
+    },
+
+    VSYNCHFORCED: {
         SCREEN_VSYNCH_MODE: 2
     }
 

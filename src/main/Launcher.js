@@ -43,6 +43,7 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, false);
                     });
+                    wmsx.EmbeddedSystemROMs.flush();
                 });
             },
             onError: function (res) {
@@ -63,6 +64,7 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.machine.userPowerOn(true);
                     });
+                    wmsx.EmbeddedSystemROMs.flush();
                 });
             }, function onErrorAny(urls) {
                 for (var i = 0; i < urls.length; i++) {

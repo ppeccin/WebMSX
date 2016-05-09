@@ -67,6 +67,7 @@ wmsx.Configurator = {
             var presetNames = (presetsString || "").trim().toUpperCase().split(",");
             for (var i = 0; i < presetNames.length; i++) {
                 var presetName = presetNames[i].trim();
+                if (!presetName) continue;
                 var presetPars = WMSX.presets[presetName];
                 if (presetPars) {
                     for (var par in presetPars) {
@@ -74,12 +75,14 @@ wmsx.Configurator = {
                         // Update final preset collection
                         if (include) wmsx.Util.arrayIfAbsentAdd(finalPresets, presetName);
                         else wmsx.Util.arrayRemoveAllElement(finalPresets, presetName);
-                        // Include or Exclude Presets referenced by _INCLUDE / _EXCLYDE
+                        // Include or Exclude Presets referenced by _INCLUDE / _EXCLUDE
                         if (parName === "_INCLUDE")
                             visitPresets(presetPars[parName], finalPresets, include);
                         else if (parName === "_EXCLUDE")
                             visitPresets(presetPars[parName], finalPresets, !include);
                     }
+                } else {
+                    wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
                 }
             }
         }
@@ -92,13 +95,13 @@ wmsx.Configurator = {
                     var parName = par.trim().toUpperCase();
                     if (parName[0] !== "_") WMSX[parName] = presetPars[par];              // Normal Parameter to set
                 }
-            } else {
-                wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
             }
         }
     },
 
     abbreviations: {
+        P: "PRESETS",
+        M: "PRESETS",
         PRESET: "PRESETS",
         TYPE: "MACHINE_TYPE",
         ROM: "CARTRIDGE1_URL",
