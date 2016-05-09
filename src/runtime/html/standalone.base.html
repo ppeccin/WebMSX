@@ -15,13 +15,6 @@
                 color: rgba(0, 0, 0, .92);
                 background: #eeeeee;
             }
-            #topbar {
-                height: 54px;
-                color: rgba(255, 255, 255, .95);
-                overflow: hidden;
-                background: rgb(44, 44, 44);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-            }
             .container {
                 width: 680px;
                 margin: 0 auto;
@@ -30,7 +23,7 @@
                 float: left;
                 width: 107px;
                 height: 32px;
-                margin: 10px 20px 0;
+                margin: 8px 20px 0;
                 background: url("data:image/png;base64,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");
             }
             a {
@@ -47,16 +40,16 @@
 
     <body>
 
-        <div id="topbar" style="height: 51px; color: rgba(255, 255, 255, .95); overflow: hidden; background: rgb(44, 44, 44); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);">
+        <div id="topbar" style="height: 47px; color: rgba(255, 255, 255, .95); overflow: hidden; background: rgb(70, 70, 70); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);">
             <div class="container">
                 <a href="http://webmsx.org" target="_blank"><div id="logo"></div></a>
-                <div id="desc" style="float: right; font-size: 14px; line-height: 13px; margin: 25px 30px 0; font-weight: 600;">
+                <div id="desc" style="float: right; font-size: 14px; line-height: 13px; margin: 24px 30px 0; font-weight: 600;">
                     WebMSX - Online MSX Emulator
                 </div>
             </div>
         </div>
 
-        <div id="wmsx" style="margin: 30px auto 0;">
+        <div id="wmsx" style="margin: 20px auto 0;">
             <div id="wmsx-screen" style="margin: 0 auto; box-shadow: 2px 2px 10px rgb(60, 60, 60);"></div>
         </div>
 
@@ -67,7 +60,7 @@
         </script>
 
         <div id="info" class="container">
-            <h1 style="margin: 40px 0 10px; text-align: center; font-size: 18px; font-weight: bold;">
+            <h1 style="margin: 25px 0 10px; text-align: center; font-size: 18px; font-weight: bold;">
                 Click the media icons to load <a href="http://www.google.com/search?q=MSX+roms+Good" target="_blank">ROMs / Disks / Tapes</a>, or drag & drop files
             </h1>
             <p style="text-align: center;">
