@@ -12,12 +12,12 @@ wmsx.SystemROMsEmbedder = {
             function(specs) {
                 var romsFile =
                     "wmsx.EmbeddedSystemROMs = {\n\n" +
-                    "    flush: function() {\n" +
-                    "        for (var f in this.files) wmsx.MultiDownloader.removeFile(f);\n" +
-                    "        delete this.files;\n" +
-                    "    },\n\n" +
-                    "    add: function() {\n" +
+                    "    embed: function() {\n" +
                     "        for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);\n" +
+                    "    },\n\n" +
+                    "    flush: function() {\n" +
+                    "        wmsx.MultiDownloader.flushEmbeddedFiles();\n" +
+                    "        delete this.files;\n" +
                     "    },\n\n" +
                     "    files: {";
 
@@ -31,7 +31,7 @@ wmsx.SystemROMsEmbedder = {
                 }
 
                 romsFile += "\n\n    }\n};\n\n" +
-                    "wmsx.EmbeddedSystemROMs.add();";
+                    "wmsx.EmbeddedSystemROMs.embed();";
 
                 var f = new wmsx.FileDownloader();
                 f.registerForDownloadElement(document.getElementsByTagName("body")[0]);

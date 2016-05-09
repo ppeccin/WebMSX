@@ -735,8 +735,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         // Only change width if before visible display (beginFrame), or if going to higher width
         if (newRenderWidth !== renderWidth) {
-            if (currentScanline < 0 || newRenderWidth > renderWidth) {
-                if (currentScanline >= 0) stretchFromCurrentToTopScanline();
+            if (currentScanline < startingVisibleTopBorderScanline || newRenderWidth > renderWidth) {
+                if (currentScanline >= startingVisibleTopBorderScanline) stretchFromCurrentToTopScanline();
                 renderWidth = newRenderWidth;
                 changed = true;
             } else
@@ -757,12 +757,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
     }
-
-    function currentModeRenderWidth() {
-        if (modeData.width === 512) return 512 + 16 * 2;
-        else return 256 + 8 * 2;
-    }
-
 
     function enterActiveDisplay() {
         renderLine = renderLineActive;
@@ -2033,12 +2027,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var s = bufferPosition + end - 1, d = bufferPosition + end * 2 - 2;
         for (var i = end; i > 0; --i, --s, d = d - 2)
             frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
+
+        //logInfo("Stretch currentLine");
     }
 
     function stretchFromCurrentToTopScanline() {
         var end = 256 + 8*2;
         var pos = bufferPosition;
-        for (var line = currentScanline; line >= 0; --line, pos -= bufferLineAdvance) {
+        for (var line = currentScanline; line >= startingVisibleTopBorderScanline; --line, pos -= bufferLineAdvance) {
             var s = pos + end - 1, d = pos + end * 2 - 2;
             for (var i = end; i > 0; --i, --s, d = d - 2)
                 frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];

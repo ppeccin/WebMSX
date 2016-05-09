@@ -1,12 +1,12 @@
 wmsx.EmbeddedSystemROMs = {
 
-    flush: function() {
-        for (var f in this.files) wmsx.MultiDownloader.removeFile(f);
-        delete this.files;
+    embed: function() {
+        for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);
     },
 
-    add: function() {
-        for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);
+    flush: function() {
+        wmsx.MultiDownloader.flushEmbeddedFiles();
+        delete this.files;
     },
 
     files: {
@@ -60,4 +60,4 @@ wmsx.EmbeddedSystemROMs = {
     }
 };
 
-wmsx.EmbeddedSystemROMs.add();
+wmsx.EmbeddedSystemROMs.embed();
