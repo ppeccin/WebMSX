@@ -133,7 +133,7 @@ WMSX.start = function () {
             return {
                 url: WMSX[key],
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsSlot(res.url, res.content, pos);
+                    WMSX.room.fileLoader.loadContentAsSlot(res.url, res.content, pos, true);
                 }
             }
 

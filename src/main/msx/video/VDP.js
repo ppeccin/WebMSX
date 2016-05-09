@@ -51,8 +51,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     this.setVideoStandard = function(pVideoStandard) {
         videoStandard = pVideoStandard;
         updateSynchronization();
-        updateSignalMetrics();
-        if (currentScanline < startingScanline) currentScanline = startingScanline;          // When going from PAL to NTSC
+
+        //logInfo("VideoStandard set: " + videoStandard.name);
     };
 
     this.setVSynchMode = function(mode) {
@@ -65,12 +65,12 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     };
 
     this.getDesiredBaseFrequency = function () {
-        return desiredBaseFrequency;
+        return pulldown.frequency;
     };
 
     this.videoClockPulse = function() {
         // Generate correct amount of lines per cycle, according to the current pulldown cadence
-        frameEvents();
+        cycleEvents();
 
         // Send updated image to Monitor if needed
         if (refreshWidth) refresh();
@@ -226,6 +226,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         vramInterleaving = false;
         renderMetricsChangePending = false;
         refreshWidth = refreshHeight = 0;
+        frameVideoStandard = videoStandard; framePulldown = pulldown;
         currentScanline = -1;
         initRegisters();
         initColorPalette();
@@ -501,28 +502,25 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     function updateSynchronization() {
         // Use the native frequency (60Hz or 50Hz) if detected and VSynch matches or is forced, otherwise use the Video Standard target FPS
         var hostFreq = wmsx.Clock.HOST_NATIVE_FPS;
-        desiredBaseFrequency = videoStandard.targetFPS;
+        var desiredBaseFrequency = videoStandard.targetFPS;
         if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
 
-        scanlinesPerCycle = videoStandard.pulldowns[desiredBaseFrequency].linesPerCycle;                          // Always generate this amount of lines per cycle...
-        pulldownFirstFrameLinesAdjust = videoStandard.pulldowns[desiredBaseFrequency].firstFrameLinesAdjust;      // ...unless its the first pulldown frame and is adjusted
+        pulldown = videoStandard.pulldowns[desiredBaseFrequency];
+
+        //logInfo("Update Synchronization: " + pulldown.frequency);
     }
 
     // Total frame lines: 262 for NTSC, 313 for PAL
     // Total frame CPU clocks: 59736 for NTSC, 71364 for PAL
-    function frameEvents() {
-        var totalLines = scanlinesPerCycle;
+    function cycleEvents() {
+        var cycleLines = framePulldown.linesPerCycle;
 
-        // Adjust for pulldown cadence if this frame is the first pulldown frame
-        if (pulldownFirstFrameLinesAdjust && currentScanline === startingScanline) totalLines += pulldownFirstFrameLinesAdjust;
+        // Adjust pulldown cadence if necessary
+        if (pulldown.steps > 1 && (frame % pulldown.steps) === 0) cycleLines += pulldown.firstStepCycleLinesAdjust;
 
-        for (var i = totalLines; i > 0; i = i - 1) {
-            // Verify and change sections of the screen
-            if (currentScanline === startingActiveScanline) enterActiveDisplay();
-            else if (currentScanline === startingBottomBorderScanline) enterBorderDisplay();
+        for (var i = cycleLines; i > 0; i = i - 1) {
 
             lineEvents();
-
             currentScanline = currentScanline + 1;
 
             if (currentScanline === finishingScanline) finishFrame();
@@ -536,7 +534,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         // Start of line
         //debugLineStartCPUCycles = cpu.getCycles();
 
-        if (blankingChangePending) updateLineActiveType();
+        // Verify and change sections of the screen
+        if (currentScanline === startingActiveScanline) enterActiveDisplay();
+        else if (currentScanline === startingVisibleBottomBorderScanline) enterBorderDisplay();
 
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
@@ -545,9 +545,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         // Left border: 56 clocks
 
+        if (blankingChangePending) updateLineActiveType();
+
         if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
-        if (currentScanline === startingBottomBorderScanline) triggerVerticalInterrupt();           // VR = 1, F = 1 at the first Bottom Border line
+        if (currentScanline === startingVisibleBottomBorderScanline) triggerVerticalInterrupt();    // VR = 1, F = 1 at the first Bottom Border line
 
         cpuClockPulses(10);
 
@@ -559,7 +561,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         cpuClockPulses(33); audioClockPulse32();
         cpuClockPulses(32); audioClockPulse32();
 
-        if (currentScanline >= startingTopBorderScanline) renderLine();                             // ~ Middle of Display area
+        if (currentScanline >= startingVisibleTopBorderScanline                                     // ~ Middle of Display area
+            && currentScanline < startingInvisibleScanline) renderLine();                           // Only render if visible
 
         cpuClockPulses(33); audioClockPulse32();
         cpuClockPulses(32); audioClockPulse32();
@@ -567,18 +570,18 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
         // End of Active Display
 
+        // Right border: 59 clocks
+        // Right erase: 27 clocks
+
         status[2] |= 0x20;                                                                          // HR = 1
         if (currentScanline - startingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();                                                           // FH = 1
 
-        // Right border: 59 clocks
-        // Right erase: 27 clocks
-
         cpuClockPulses(15); audioClockPulse32();
 
-        if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
-
         // End of line
+
+        if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
     }
 
     function triggerVerticalInterrupt() {
@@ -691,21 +694,23 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function updateSignalMetrics() {
-        var activeHeight, borderHeight;
+        var activeHeight, addBorder;
 
         // Fixed metrics for V9918
         if (isV9918) {
-            activeHeight = 192; borderHeight = 8;
+            activeHeight = 192; addBorder = 0;
         } else {
-            if (register[9] & 0x80) { activeHeight = 212; borderHeight = 8; }             // LN
-            else { activeHeight = 192; borderHeight = 18; }
+            if (register[9] & 0x80) { activeHeight = 212; addBorder = 0; }             // LN
+            else { activeHeight = 192; addBorder = 10; }
         }
 
-        startingTopBorderScanline = 0;
-        startingActiveScanline = startingTopBorderScanline + borderHeight + verticalAdjust;
-        startingBottomBorderScanline = startingActiveScanline + activeHeight;
-        finishingScanline = startingBottomBorderScanline + borderHeight - verticalAdjust;
-        startingScanline = finishingScanline - videoStandard.totalHeight;
+        // UX decision: Visible border height with LN = 1 and no Vertical Adjust is 8
+        startingScanline = 0;
+        startingVisibleTopBorderScanline = 16 - 8;                                                              // Minimal Border left invisible (NTSC with LN = 0)
+        startingActiveScanline = startingVisibleTopBorderScanline + 8 + addBorder + verticalAdjust;
+        startingVisibleBottomBorderScanline = startingActiveScanline + activeHeight;
+        startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 + addBorder - verticalAdjust;       // Remaining Bottom border and other parts left invisible
+        finishingScanline = frameVideoStandard.totalHeight;
 
         //logInfo("Update Signal Metrics, reg9: " + register[9].toString(16));
     }
@@ -1263,9 +1268,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeYJK() {                                          // Bitmap modes in YJK. Both horizontal resolutions (256, 512)
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
+        paintBackdrop20(bufferPosition); paintBackdrop16(bufferPosition + 256 + 4);
 
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels + 4;    // In YJK modes, the screen is shifted 4 pixels to the rignt
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1315,9 +1320,9 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     }
 
     function renderLineModeYAE() {                                          // Bitmap modes in YJK with YAE. Both horizontal resolutions (256, 512)
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
+        paintBackdrop20(bufferPosition); paintBackdrop16(bufferPosition + 256 + 4);
 
-        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
+        var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels + 4;    // In YJK modes, the screen is shifted 4 pixels to the rignt
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1658,6 +1663,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
         frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
         frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+    }
+
+    function paintBackdrop20(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
     }
 
     function paintBackdrop32(bufferPos) {
@@ -2047,11 +2060,19 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         videoSignal.newFrame(frameCanvas, refreshWidth, refreshHeight);
         refreshWidth = refreshHeight = 0;
 
-        //logInfo("REFRESH");
+        //logInfo("REFRESH. currentScanline: " + currentScanline);
     }
 
     function beginFrame() {
+        // Adjust for pending VideoStandard/Pulldown changes
+        if (framePulldown !== pulldown) {
+            frameVideoStandard = videoStandard;
+            framePulldown = pulldown;
+            updateSignalMetrics();
+        }
+
         currentScanline = startingScanline;
+
         if (renderMetricsChangePending) updateRenderMetrics(true);
 
         // Page blinking
@@ -2201,9 +2222,8 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var frame;
     var blinkEvenPage, blinkPageDuration, layoutShowEvenPage;
 
-    var videoStandard;
-    var desiredBaseFrequency;             // Will depend on VideoStandard and detected Host Native Video Frequency
     var vSynchMode;
+    var videoStandard, pulldown;
 
     var bufferPosition;
     var bufferLineAdvance;
@@ -2214,11 +2234,11 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var startingScanline;
     var finishingScanline;
     var startingActiveScanline;
-    var startingTopBorderScanline;
-    var startingBottomBorderScanline;
+    var startingVisibleTopBorderScanline;
+    var startingVisibleBottomBorderScanline;
     var startingInvisibleScanline;
-    var scanlinesPerCycle;
-    var pulldownFirstFrameLinesAdjust;
+
+    var frameVideoStandard, framePulldown;                  // Delays VideoStandard change until next frame
 
     var verticalIntReached = false;
     var horizontalIntLine = 0;
@@ -2332,7 +2352,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         return {
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
-            c: cycles, cc: lastCPUCyclesComputed,
+            f: frame, c: cycles, cc: lastCPUCyclesComputed,
             vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
@@ -2351,7 +2371,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
-        cycles = s.c; lastCPUCyclesComputed = s.cc;
+        frame = s.f || 0; cycles = s.c; lastCPUCyclesComputed = s.cc;
         vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;

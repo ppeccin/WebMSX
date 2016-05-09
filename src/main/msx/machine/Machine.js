@@ -189,9 +189,9 @@ wmsx.Machine = function() {
         setVideoStandardAuto();
     };
 
-    function setVideoStandard(pVideoStandard) {
+    function setVideoStandard(pVideoStandard, forceUpdate) {
         self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, false);
-        if (videoStandard === pVideoStandard) return;
+        if (!forceUpdate && videoStandard === pVideoStandard) return;
 
         videoStandard = pVideoStandard;
         vdp.setVideoStandard(videoStandard);
@@ -209,7 +209,7 @@ wmsx.Machine = function() {
                 newStandard = bios.originalVideoStandard;
             }
         }
-        setVideoStandard(newStandard);
+        setVideoStandard(newStandard, true);
     }
 
     function setVideoStandardForced(forcedVideoStandard) {

@@ -164,7 +164,7 @@ wmsx.FileLoader = function() {
         }
     };
 
-    this.loadContentAsSlot = function (name, content, slotPos) {
+    this.loadContentAsSlot = function (name, content, slotPos, altPower) {
         var rom, arrContent;
         // First try reading and creating directly
         try {
@@ -172,7 +172,7 @@ wmsx.FileLoader = function() {
             wmsx.Util.arrayCopy(content, 0, arrContent);
             rom = new wmsx.ROM(name, arrContent);
             var slot = wmsx.SlotCreator.createFromROM(rom);
-            slotSocket.insert(slot, slotPos);
+            slotSocket.insert(slot, slotPos, altPower);
         } catch(e) {
             if (!e.msx) {
                 wmsx.Util.log(e.stack);
@@ -192,7 +192,7 @@ wmsx.FileLoader = function() {
                         wmsx.Util.arrayCopy(cont, 0, arrContent);
                         rom = new wmsx.ROM(name + " - " + file.name, arrContent);
                         slot = wmsx.SlotCreator.createFromROM(rom);
-                        slotSocket.insert(slot, slotPos);
+                        slotSocket.insert(slot, slotPos, altPower);
                         return;
                     } catch (ef) {
                         // Move on and try the next file
