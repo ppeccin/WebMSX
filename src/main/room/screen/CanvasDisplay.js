@@ -72,6 +72,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.openSettings = function(page) {
         if (!settings) settings = new wmsx.Settings();
         settings.show(page);
+        return false;
+    };
+
+    this.openLoadFileDialog = function() {
+        diskAButton.click();
+        return false;
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {
