@@ -7,7 +7,7 @@ wmsx.Machine = function() {
         socketsCreate();
         mainComponentsCreate();
         optionalComponentsCreate();
-        setVideoStandardAuto();
+        setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
 
@@ -195,7 +195,7 @@ wmsx.Machine = function() {
 
         videoStandard = pVideoStandard;
         vdp.setVideoStandard(videoStandard);
-        mainVideoClockAdjustToNormal();
+        mainVideoClockUpdateSpeed();
     }
 
     function setVideoStandardAuto() {
@@ -224,7 +224,7 @@ wmsx.Machine = function() {
 
         vSynchMode = mode;
         vdp.setVSynchMode(vSynchMode);
-        mainVideoClockAdjustToNormal();
+        mainVideoClockUpdateSpeed();
     }
 
     function powerFry() {
@@ -242,6 +242,7 @@ wmsx.Machine = function() {
             c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
+            s: speedControl,
             vss: videoStandardSoft && videoStandardSoft.name,
             dd: diskDriveSocket.getDrive().saveState(),
             ct: cassetteSocket.getDeck().saveState()
@@ -252,6 +253,8 @@ wmsx.Machine = function() {
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
+        speedControl = state.s || 1;
+        mainVideoClockUpdateSpeed();
         cpu.loadState(state.c);
         vdp.loadState(state.vd);
         psg.loadState(state.ps);
@@ -264,22 +267,10 @@ wmsx.Machine = function() {
         cassetteSocket.getDeck().loadState(state.ct);
     }
 
-    function mainVideoClockAdjustToNormal() {
+    function mainVideoClockUpdateSpeed() {
         var freq = vdp.getDesiredBaseFrequency();
         mainVideoClock.setVSynch(vSynchMode > 0);
-        mainVideoClock.setFrequency(freq);
-        audioSocket.setFps(freq);
-    }
-
-    function mainVideoClockAdjustToFast() {
-        var freq = 600;     // About 10x faster limited to host performance
-        mainVideoClock.setFrequency(freq);
-        audioSocket.setFps(freq);
-    }
-
-    function mainVideoClockAdjustToSlow() {
-        var freq = 20;      // About 3x slower
-        mainVideoClock.setFrequency(freq);
+        mainVideoClock.setFrequency((freq * (alternateSpeed || speedControl)) | 0);
         audioSocket.setFps(freq);
     }
 
@@ -339,8 +330,19 @@ wmsx.Machine = function() {
         machineControlsSocket.addForwardedInput(self);
     }
 
+    function setDefaults() {
+        setVideoStandardAuto();
+        vdp.setDefaults();
+        speedControl = 1;
+        alternateSpeed = null;
+        mainVideoClockUpdateSpeed();
+    }
+
 
     this.powerIsOn = false;
+
+    var speedControl = 1;
+    var alternateSpeed = false;
 
     var isLoading = false;
 
@@ -385,6 +387,9 @@ wmsx.Machine = function() {
     var EXPANSIONS_SLOTS = WMSX.EXPANSION_SLOTS;
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
+    var SPEEDS = [ 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 5, 10 ];
+    var SPEED_FAST = 10, SPEED_SLOW = 0.3;
+
     // MachineControls interface  --------------------------------------------
 
     var controls = wmsx.MachineControls;
@@ -394,21 +399,23 @@ wmsx.Machine = function() {
         if (control === controls.FAST_SPEED) {
             if (state) {
                 self.showOSD("FAST FORWARD", true);
-                mainVideoClockAdjustToFast();
+                alternateSpeed = SPEED_FAST;
             } else {
                 self.showOSD(null, true);
-                mainVideoClockAdjustToNormal();
+                alternateSpeed = null;
             }
+            mainVideoClockUpdateSpeed();
             return;
         }
         if (control === controls.SLOW_SPEED) {
             if (state) {
                 self.showOSD("SLOW MOTION", true);
-                mainVideoClockAdjustToSlow();
+                alternateSpeed = SPEED_SLOW;
             } else {
                 self.showOSD(null, true);
-                mainVideoClockAdjustToNormal();
+                alternateSpeed = null;
             }
+            mainVideoClockUpdateSpeed();
             return;
         }
         // Toggles
@@ -437,6 +444,16 @@ wmsx.Machine = function() {
                 return;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;
+                return;
+            case controls.INC_SPEED: case controls.DEC_SPEED: case controls.NORMAL_SPEED: case controls.MIN_SPEED:
+                var speedIndex = SPEEDS.indexOf(speedControl);
+                if (control === controls.INC_SPEED && speedIndex < SPEEDS.length - 1) ++speedIndex;
+                else if (control === controls.DEC_SPEED && speedIndex > 0) --speedIndex;
+                else if (control === controls.MIN_SPEED) speedIndex = 0;
+                else if (control === controls.NORMAL_SPEED) speedIndex = SPEEDS.indexOf(1);
+                speedControl = SPEEDS[speedIndex];
+                self.showOSD("Speed: " + ((speedControl * 100) | 0) + "%", true);
+                mainVideoClockUpdateSpeed();
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
@@ -480,8 +497,7 @@ wmsx.Machine = function() {
                 vdp.toggleSpriteDebugModes();
                 break;
             case controls.DEFAULTS:
-                setVideoStandardAuto();
-                vdp.setDefaults();
+                setDefaults();
                 break;
         }
     };

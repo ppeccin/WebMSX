@@ -91,13 +91,17 @@ wmsx.DOMMachineControls = function() {
         normalCodeMap[KEY_POWER]            = controls.POWER;
         withCTRLCodeMap[KEY_POWER]          = controls.RESET;
 
-        withCTRLALTCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
+        normalCodeMap[KEY_ALTERNATE_SPEED]    = controls.FAST_SPEED;
+        withCTRLCodeMap[KEY_ALTERNATE_SPEED]  = controls.SLOW_SPEED;
 
-        normalCodeMap[KEY_SPEED]    = controls.FAST_SPEED;
-        withCTRLCodeMap[KEY_SPEED]  = controls.SLOW_SPEED;
+        withALTCodeMap[KEY_POWER]                = controls.POWER;
+        withALTCodeMap[KEY_ALTERNATE_SPEED]      = controls.FAST_SPEED;
+        withCTRLALTCodeMap[KEY_ALTERNATE_SPEED]  = controls.SLOW_SPEED;
 
-        withALTCodeMap[KEY_POWER]  = controls.POWER;
-        withALTCodeMap[KEY_SPEED]  = controls.FAST_SPEED;
+        withALTCodeMap[KEY_INC_SPEED]     = controls.INC_SPEED;
+        withALTCodeMap[KEY_DEC_SPEED]     = controls.DEC_SPEED;
+        withALTCodeMap[KEY_NORMAL_SPEED]  = controls.NORMAL_SPEED;
+        withALTCodeMap[KEY_MIN_SPEED]     = controls.MIN_SPEED;
 
         withALTCodeMap[KEY_PAUSE]            = controls.PAUSE;
         withCTRLALTCodeMap[KEY_PAUSE]        = controls.PAUSE_AUDIO_ON;
@@ -144,6 +148,8 @@ wmsx.DOMMachineControls = function() {
         withALTCodeMap[KEY_STATE_11a] = controls.LOAD_STATE_11;
         withALTCodeMap[KEY_STATE_12] = controls.LOAD_STATE_12;
         withALTCodeMap[KEY_STATE_12a] = controls.LOAD_STATE_12;
+
+        withCTRLALTCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
     };
 
     this.applyPreferences = function() {
@@ -166,12 +172,19 @@ wmsx.DOMMachineControls = function() {
 
     // Default Key Values
 
-    var KEY_SPEED            = wmsx.DOMKeys.VK_F12.c;
-    var KEY_PAUSE            = wmsx.DOMKeys.VK_P.c;
 
     var KEY_POWER            = wmsx.DOMKeys.VK_F11.c;
 
-    var KEY_FRAME            = wmsx.DOMKeys.VK_F.c;
+    var KEY_ALTERNATE_SPEED  = wmsx.DOMKeys.VK_F12.c;
+
+    var KEY_INC_SPEED        = wmsx.DOMKeys.VK_RIGHT.c;
+    var KEY_DEC_SPEED        = wmsx.DOMKeys.VK_LEFT.c;
+    var KEY_NORMAL_SPEED     = wmsx.DOMKeys.VK_UP.c;
+    var KEY_MIN_SPEED        = wmsx.DOMKeys.VK_DOWN.c;
+
+    var KEY_PAUSE            = wmsx.DOMKeys.VK_P.c;
+    var KEY_FRAME            = wmsx.DOMKeys.VK_O.c;
+
     var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
     var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
     var KEY_SPRITE_MODE      = wmsx.DOMKeys.VK_S.c;

@@ -255,15 +255,11 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
         keyAltCodeMap[KEY_FULLSCREEN]  	= controls.SCREEN_FULLSCREEN;
 
-        keyAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_MINUS;
-        keyAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_PLUS;
-        keyAltCodeMap[KEY_LEFT]   = controls.SCREEN_SCALE_MINUS;
-        keyAltCodeMap[KEY_RIGHT]  = controls.SCREEN_SCALE_PLUS;
+        keyControlAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_MINUS;
+        keyControlAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_PLUS;
 
-        keyShiftAltCodeMap[KEY_UP]     = controls.SCREEN_ASPECT_MINUS;
-        keyShiftAltCodeMap[KEY_DOWN]   = controls.SCREEN_ASPECT_PLUS;
-        keyShiftAltCodeMap[KEY_LEFT]   = controls.SCREEN_ASPECT_MINUS;
-        keyShiftAltCodeMap[KEY_RIGHT]  = controls.SCREEN_ASPECT_PLUS;
+        keyControlAltCodeMap[KEY_LEFT]   = controls.SCREEN_ASPECT_MINUS;
+        keyControlAltCodeMap[KEY_RIGHT]  = controls.SCREEN_ASPECT_PLUS;
 
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
     };

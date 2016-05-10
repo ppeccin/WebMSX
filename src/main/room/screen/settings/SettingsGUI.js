@@ -45,51 +45,17 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
-                                '<div class="key">' +
-                                    'F12' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Fast Speed' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
                                 '<div class="key key-fixed">' +
                                     'Ctrl' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F12' +
+                                    'F11' +
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Slow Speed' +
+                                'Reset' +
                             '</div>' +
                         '</div>' +
                         '<div class="full-divider">' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'P' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Pause' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Next Frame' +
-                            '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -101,6 +67,42 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="desc">' +
                                 'NTSC/PAL' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'B' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'V-Synch Modes' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                'R' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'CRT Modes' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                'T' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'CRT Filters' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
@@ -126,6 +128,8 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="desc">' +
                                 'Sprite Modes' +
                             '</div>' +
+                        '</div>' +
+                        '<div class="full-divider">' +
                         '</div>' +
                         '<div id="jt-general-toggle-mouse" class="hotkey">' +
                             '<div class="command">' +
@@ -209,6 +213,58 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
+                                '<div class="key">' +
+                                    'F12' +
+                                '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                    'Ctrl' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'F12' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Fast / Slow Speed' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'Arrows' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Adjust Speed' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'P' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Toggle Pause' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'O' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">' +
+                                'Next Frame' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="full-divider">' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
@@ -221,20 +277,8 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
-                                '<div class="key">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'Arrows' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Screen Size' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
-                                    'Shift' +
+                                '<div class="key key-fixed">' +
+                                    'Ctrl' +
                                 '</div>&nbsp;<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
@@ -242,43 +286,7 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Screen Aspect' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'B' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'V-Synch Modes' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'R' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'CRT Modes' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'T' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'CRT Filters' +
+                                'Screen Size / Width' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
@@ -526,8 +534,8 @@ wmsx.SettingsGUI.css = function() {
     '#jt-modal {' +
        ' position: relative;' +
        ' overflow: hidden;' +
-       ' width: 580px;' +
-       ' top: 58px;' +
+       ' width: 600px;' +
+       ' top: 50px;' +
        ' left: -120px;' +
        ' margin: 0 auto;' +
        ' color: rgba(0, 0, 0, 0.90);' +
@@ -660,52 +668,52 @@ wmsx.SettingsGUI.css = function() {
        ' position: relative;' +
        ' left: 0;' +
        ' width: 2300px;' +
-       ' height: 360px;' +
+       ' height: 378px;' +
        ' background-color: rgb(220, 220, 220);' +
        ' transition: left 0.3s ease-in-out' +
     '}' +
 
     '#jt-general, #jt-media, #jt-controls, #jt-about {' +
        ' position: absolute;' +
-       ' width: 580px;' +
+       ' width: 600px;' +
        ' height: 100%;' +
        ' box-sizing: border-box;' +
     '}' +
 
     '#jt-general {' +
        ' padding-top: 20px;' +
-       ' padding-left: 33px;' +
+       ' padding-left: 39px;' +
     '}' +
 
     '#jt-general .left {' +
        ' float: left;' +
-       ' width: 251px;' +
+       ' width: 248px;' +
+    '}' +
+
+    '#jt-general .left .command {' +
+       ' width: 102px;' +
     '}' +
 
     '#jt-general .right {' +
        ' float: left;' +
     '}' +
 
-    '#jt-general .left .command {' +
-       ' width: 100px;' +
-    '}' +
-
     '#jt-general .right .command {' +
-       ' width: 166px;' +
+       ' width: 160px;' +
     '}' +
 
     '#jt-media {' +
-       ' left: 580px;' +
+       ' left: 600px;' +
     '}' +
 
     '#jt-media {' +
        ' padding-top: 23px;' +
-       ' padding-left: 25px;' +
+       ' padding-left: 32px;' +
     '}' +
 
     '#jt-media .top-left {' +
        ' float: left;' +
-       ' width: 255px;' +
+       ' width: 259px;' +
     '}' +
 
     '#jt-media .top-right {' +
@@ -714,7 +722,7 @@ wmsx.SettingsGUI.css = function() {
 
     '#jt-media .bottom-left {' +
        ' float: left;' +
-       ' width: 265px;' +
+       ' width: 260px;' +
     '}' +
 
     '#jt-media .bottom-right {' +
@@ -743,7 +751,7 @@ wmsx.SettingsGUI.css = function() {
 
 
     '#jt-about {' +
-       ' left: 1160px;' +
+       ' left: 1200px;' +
     '}' +
 
     '#jt-about #jt-logo-version {' +
