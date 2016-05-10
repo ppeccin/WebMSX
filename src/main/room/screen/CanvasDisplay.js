@@ -381,7 +381,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMain() {
-        mainElement.style.position = "relative";
+        if (!mainElement.style.position || mainElement.style.position === "static" || mainElement.style.position === "initial")
+            mainElement.style.position = "relative";
         mainElement.style.overflow = "hidden";
         mainElement.style.outline = "none";
         mainElement.tabIndex = "-1";               // Make it focusable
@@ -389,16 +390,21 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.addEventListener("focusout", lostFocus);
 
         borderElement = document.createElement('div');
-        borderElement.style.position = "relative";
+        borderElement.id = "wmsx-border";
+        borderElement.style.position = "absolute";
+        borderElement.style.left = borderElement.style.right = 0;
+        borderElement.style.top = 0;
+        borderElement.style.margin = "auto";
         borderElement.style.overflow = "hidden";
         borderElement.style.background = "black";
         borderElement.style.border = "0 solid black";
         borderElement.style.borderWidth = "" + borderTop + "px " + borderLateral + "px " + borderBottom + "px";
 
         fsElement = document.createElement('div');
-        fsElement.style.position = "relative";
-        fsElement.style.width = "100%";
-        fsElement.style.height = "100%";
+        fsElement.id = "wmsx-fs";
+        fsElement.style.position = "absolute";
+        fsElement.style.left = fsElement.style.right = 0;
+        fsElement.style.top = fsElement.style.bottom = 0;
         fsElement.style.overflow = "hidden";
         fsElement.style.background = "black";
 
@@ -426,6 +432,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         canvas = document.createElement('canvas');
+        canvas.id = "wmsx-canvas";
         canvas.style.position = "absolute";
         canvas.style.display = "block";
         canvas.style.left = canvas.style.right = 0;
@@ -443,6 +450,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function setupButtonsBar() {
         buttonsBar = document.createElement('div');
+        buttonsBar.id = "wmsx-bar";
         buttonsBar.style.position = "absolute";
         buttonsBar.style.left = "0";
         buttonsBar.style.right = "0";
