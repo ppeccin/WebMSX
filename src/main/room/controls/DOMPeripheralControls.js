@@ -180,7 +180,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
             case controls.PASTE_STRING:
-                screen.openPasteDialog();
+                screen.togglePasteDialog();
                 break;
             case controls.EXIT:
                 room.exit(); break;

@@ -149,8 +149,6 @@ wmsx.DOMMouseControls = function(hub) {
     }
 
     function mouseButtonEvent(event) {
-        //if (event.preventDefault) event.preventDefault();
-
         var lastButtons = mouseState.buttons;
         mouseState.buttons = event.buttons & 7;
         mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);

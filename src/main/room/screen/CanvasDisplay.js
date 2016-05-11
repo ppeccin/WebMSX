@@ -71,6 +71,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.openSettings = function(page) {
         if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog();
+        if (pasteDialog) pasteDialog.hide();
         settingsDialog.show(page);
         return false;
     };
@@ -80,9 +81,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         return false;
     };
 
-    this.openPasteDialog = function(page) {
+    this.togglePasteDialog = function(page) {
+        if (!signalIsOn) return;
         if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement);
-        pasteDialog.show();
+        pasteDialog.toggle();
         return false;
     };
 
@@ -348,6 +350,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             logoImage.style.display = "none";
             loadingImage.style.display = "none";
         } else {
+            if (pasteDialog) pasteDialog.hide();
             showCursor(true);
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
             /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
@@ -653,6 +656,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function setupLogo() {
         logoImage = new Image();
+        logoImage.id = "wmsx-logo";
         logoImage.isLoaded = false;
         logoImage.draggable = false;
         logoImage.style.position = "absolute";
@@ -716,6 +720,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function setupOSD() {
         osd = document.createElement('div');
+        osd.id = "wmsx-osd";
         osd.style.position = "absolute";
         osd.style.overflow = "hidden";
         osd.style.top = "-29px";

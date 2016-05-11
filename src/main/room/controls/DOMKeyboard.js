@@ -42,7 +42,7 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.keyDown = function(event) {
-        //console.log(event.keyCode + " " + event.location);
+        //console.log("Keyboard: " + event.keyCode + " " + event.location);
         var modifiers = 0 | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
