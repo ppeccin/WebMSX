@@ -13,8 +13,9 @@ wmsx.DOMPeripheralControls = function(room) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pMonitor, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
-        monitor = pMonitor;
+    this.connectPeripherals = function(pScreen, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+        screen = pScreen;
+        monitor = pScreen.getMonitor();
         controllersHub = pControllersHub;
         fileLoader = pFileLoader;
         cassetteDeck = pCassetteDeck;
@@ -178,6 +179,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 controllersHub.toggleJoystickMode(); break;
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
+            case controls.PASTE_STRING:
+                screen.openPasteDialog();
+                break;
             case controls.EXIT:
                 room.exit(); break;
         }
@@ -262,12 +266,15 @@ wmsx.DOMPeripheralControls = function(room) {
         keyControlAltCodeMap[KEY_RIGHT]  = controls.SCREEN_ASPECT_PLUS;
 
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
+
+        keyAltCodeMap[KEY_PASTE]  = controls.PASTE_STRING;
     };
 
 
     var controls = wmsx.PeripheralControls;
 
     var machineControlsSocket;
+    var screen;
     var monitor;
     var controllersHub;
     var fileLoader;
@@ -291,6 +298,8 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_DOWN    = wmsx.DOMKeys.VK_DOWN.c;
 
     var KEY_DEFAULTS  = wmsx.DOMKeys.VK_BACKSPACE.c;
+
+    var KEY_PASTE  = wmsx.DOMKeys.VK_X.c;
 
     var KEY_DISKA  = wmsx.DOMKeys.VK_F6.c;
     var KEY_DISKB  = wmsx.DOMKeys.VK_F7.c;

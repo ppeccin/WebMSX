@@ -66,7 +66,7 @@ wmsx.Room = function(screenElement) {
         self.stateMedia.connectPeripherals(self.fileDownloader);
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
         self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);
-        self.peripheralControls.connectPeripherals(self.screen.getMonitor(), self.controllersHub, self.fileLoader, self.cassetteDeck, self.diskDrive);
+        self.peripheralControls.connectPeripherals(self.screen, self.controllersHub, self.fileLoader, self.cassetteDeck, self.diskDrive);
     };
 
     var buildAndPlugMachine = function() {

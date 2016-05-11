@@ -70,13 +70,19 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openSettings = function(page) {
-        if (!settings) settings = new wmsx.Settings();
-        settings.show(page);
+        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog();
+        settingsDialog.show(page);
         return false;
     };
 
     this.openLoadFileDialog = function() {
         diskAButton.click();
+        return false;
+    };
+
+    this.openPasteDialog = function(page) {
+        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement);
+        pasteDialog.show();
         return false;
     };
 
@@ -749,7 +755,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var machineControlsSocket;
     var machineControlsStateReport = {};
 
-    var settings;
+    var settingsDialog;
+    var pasteDialog;
 
     var borderElement;
     var fsElement;
