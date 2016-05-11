@@ -62,6 +62,7 @@ wmsx.Machine = function() {
 
     this.videoClockPulse = function() {
         if (systemPaused) return;
+        if (bios) bios.getKeyboardExtension().keyboardClockPulse();
         controllersSocket.controllersClockPulse();
         if (userPaused)
             if (userPauseMoreFrames-- <= 0) return;

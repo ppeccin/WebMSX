@@ -16,7 +16,7 @@ wmsx.SlotBIOS = function(rom) {
     }
 
     this.connect = function(machine) {
-        basicExtension = new wmsx.BASICExtension(machine.bus);
+        keyboardExtension = new wmsx.BIOSKeyboardExtension(machine.bus);
         cassetteDriver = new wmsx.ImageCassetteDriver();
         cassetteDriver.connect(this, machine);
         machine.setBIOS(this);
@@ -27,8 +27,8 @@ wmsx.SlotBIOS = function(rom) {
         machine.setBIOS(null);
     };
 
-    this.getBASICExtension = function() {
-        return basicExtension;
+    this.getKeyboardExtension = function() {
+        return keyboardExtension;
     };
 
     this.powerOff = function() {
@@ -92,7 +92,7 @@ wmsx.SlotBIOS = function(rom) {
 
 
     var cassetteDriver;
-    var basicExtension;
+    var keyboardExtension;
 
 
     if (rom) init(this);

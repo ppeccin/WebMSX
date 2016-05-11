@@ -38,7 +38,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/bios/SlotBIOS.js",
                     "src/main/msx/slots/bios/SlotMSX2BIOSExt.js",
                     "src/main/msx/slots/bios/ImageCassetteDriver.js",
-                    "src/main/msx/slots/bios/BASICExtension.js",
+                    "src/main/msx/slots/bios/BIOSKeyboardExtension.js",
                     "src/main/msx/slots/cartridges/CartridgeASCII8K.js",
                     "src/main/msx/slots/cartridges/CartridgeASCII16K.js",
                     "src/main/msx/slots/cartridges/CartridgeKonami.js",

@@ -7,7 +7,7 @@ wmsx.ImageCassetteDriver = function() {
     this.connect = function(bios, machine) {
         machine.getCassetteSocket().connectDriver(this);
         deck = machine.getCassetteSocket().getDeck();
-        basicExtension = bios.getBASICExtension();
+        keyboardExtension = bios.getKeyboardExtension();
         patchBIOS(bios);
     };
 
@@ -21,7 +21,7 @@ wmsx.ImageCassetteDriver = function() {
 
     this.typeCurrentAutoRunCommand = function() {
         var command = self.currentAutoRunCommand();
-        if (command) basicExtension.typeString(command);
+        if (command) keyboardExtension.typeString(command);
     };
 
     this.currentAutoRunCommand = function() {
@@ -142,7 +142,7 @@ wmsx.ImageCassetteDriver = function() {
     }
 
 
-    var basicExtension;
+    var keyboardExtension;
     var deck;
 
     var HEADER_WRITE_LONG_EXTRA_ITERATIONS = 300000;
