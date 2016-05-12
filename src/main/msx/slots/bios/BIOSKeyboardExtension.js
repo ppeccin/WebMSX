@@ -7,6 +7,11 @@ wmsx.BIOSKeyboardExtension = function(bus) {
         typeFromPosition = 0;
     };
 
+    this.cancelTypeString = function() {
+        stringToType = null;
+        typeFromPosition = 0;
+    };
+
     this.keyboardClockPulse = function() {
         if (!stringToType) return;
 
@@ -54,4 +59,9 @@ wmsx.BIOSKeyboardExtension = function(bus) {
 WMSX.typeString = function(str) {
     var bios = WMSX.room.machine.getBIOSSocket().inserted();
     if (bios) bios.getKeyboardExtension().typeString(str);
+};
+
+WMSX.cancelTypeString = function() {
+    var bios = WMSX.room.machine.getBIOSSocket().inserted();
+    if (bios) bios.getKeyboardExtension().cancelTypeString();
 };

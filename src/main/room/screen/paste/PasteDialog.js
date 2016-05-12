@@ -9,6 +9,7 @@ wmsx.PasteDialog = function(mainElement) {
     };
 
     this.show = function () {
+        WMSX.cancelTypeString();
         if (!this.cover) {
             create();
             self.show();
