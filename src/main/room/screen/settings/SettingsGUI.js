@@ -306,6 +306,11 @@ wmsx.SettingsGUI.html = function() {
                     '</div>' +
                 '</div>' +
                 '<div id="jt-media">' +
+                    '<div class="hotkey">' +
+                        '<div class="desc" style="position: relative; top: -2px;">' +
+                            'Click the media icons on the bottom bar to load files. Left-click / modifier keys also apply' +
+                        '</div>' +
+                    '</div>' +
                     '<div class="top-left">' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -345,16 +350,16 @@ wmsx.SettingsGUI.html = function() {
                     '<div class="top-right">' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
-                                '<div class="key">' +
-                                    'Shift' +
+                                '<div class="key key-fixed">' +
+                                    'Ctrl' +
                                 '</div>&nbsp;<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F6 - F10' +
+                                    'F6 - F8' +
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Load from URL' +
+                                'Save Media File' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
@@ -371,16 +376,16 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Ctrl' +
+                                '<div class="key">' +
+                                    'Shift' +
                                 '</div>&nbsp;<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F6 - F8' +
+                                    'F6 - F10' +
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
-                                'Save Media File' +
+                                'Load from URL' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
@@ -399,7 +404,7 @@ wmsx.SettingsGUI.html = function() {
                     '<div class="divider">' +
                     '</div>' +
                     '<div class="hotkey">' +
-                        '<div class="desc">' +
+                        '<div class="desc" style="position: relative; top: -2px;">' +
                             'Drag & Drop File or URL to load Media' +
                         '</div>' +
                     '</div>' +
@@ -707,7 +712,7 @@ wmsx.SettingsGUI.css = function() {
     '}' +
 
     '#jt-media {' +
-       ' padding-top: 23px;' +
+       ' padding-top: 18px;' +
        ' padding-left: 32px;' +
     '}' +
 
