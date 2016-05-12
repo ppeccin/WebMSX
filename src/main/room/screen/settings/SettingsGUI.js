@@ -62,7 +62,7 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'V' +
+                                    'Q' +
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +
@@ -74,7 +74,7 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'B' +
+                                    'W' +
                                 '</div>' +
                             '</div>' +
                             '<div class="desc">' +

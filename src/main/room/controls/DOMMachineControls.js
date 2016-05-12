@@ -189,8 +189,8 @@ wmsx.DOMMachineControls = function() {
     var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
     var KEY_SPRITE_MODE      = wmsx.DOMKeys.VK_S.c;
     var KEY_PALETTE          = wmsx.DOMKeys.VK_E.c;
-    var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_V.c;
-    var KEY_VSYNCH           = wmsx.DOMKeys.VK_B.c;
+    var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_Q.c;
+    var KEY_VSYNCH           = wmsx.DOMKeys.VK_W.c;
 
     var KEY_DEFAULTS         = wmsx.DOMKeys.VK_BACKSPACE.c;
 

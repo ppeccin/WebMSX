@@ -267,7 +267,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
 
-        keyAltCodeMap[KEY_PASTE]  = controls.PASTE_STRING;
+        keyAltCodeMap[KEY_PASTE]   = controls.PASTE_STRING;
+        keyAltCodeMap[KEY_PASTE2]  = controls.PASTE_STRING;
     };
 
 
@@ -299,7 +300,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_DEFAULTS  = wmsx.DOMKeys.VK_BACKSPACE.c;
 
-    var KEY_PASTE  = wmsx.DOMKeys.VK_X.c;
+    var KEY_PASTE   = wmsx.DOMKeys.VK_V.c;
+    var KEY_PASTE2  = wmsx.DOMKeys.VK_INSERT.c;
 
     var KEY_DISKA  = wmsx.DOMKeys.VK_F6.c;
     var KEY_DISKB  = wmsx.DOMKeys.VK_F7.c;
