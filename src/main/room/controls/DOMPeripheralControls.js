@@ -117,6 +117,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.CARTRIDGE1_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
                 break;
+            case controls.CARTRIDGE1_LOAD_FILE_ALT_POWER:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
+                break;
             case controls.CARTRIDGE1_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, false);
                 break;
@@ -125,6 +128,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.CARTRIDGE2_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, true);
+                break;
+            case controls.CARTRIDGE2_LOAD_FILE_ALT_POWER:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
                 break;
             case controls.CARTRIDGE2_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, true);

@@ -521,6 +521,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER;
         peripheralControlButton(cartridge1Button, controls);
 
         cartridge2Button = addBarButton(44 + 26 * 3, -26, 24, 23, -179, -53);
@@ -529,6 +530,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
         controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
+        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER;
         peripheralControlButton(cartridge2Button, controls);
 
         tapeButton = addBarButton(45 + 26 * 4, -26, 24, 23, -208, -53);

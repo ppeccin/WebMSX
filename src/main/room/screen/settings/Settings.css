@@ -57,6 +57,11 @@
     padding-top: 3px;
 }
 
+#jt-modal .hotkey-msx {
+    font-weight: 600;
+    color: rgba(0, 0, 0, .54);
+}
+
 #jt-modal .key {
     position: relative;
     display: inline-block;
@@ -74,6 +79,21 @@
     border: 1px solid rgb(210, 210, 210);
     box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);
     text-align: center;
+}
+
+#jt-modal .key-msx {
+    width: 65px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(90, 90, 90);
+    font-weight: normal;
+    border-radius: 0px;
+    border: 1px solid rgb(140, 140, 140);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);
+}
+
+#jt-modal .key-msx-stop {
+    background-color: rgb(250, 40, 40);
+    border: 1px solid rgb(250, 110, 110);
 }
 
 #jt-modal .key-fixed {
@@ -171,7 +191,7 @@
 }
 
 #jt-general {
-    padding-top: 20px;
+    padding-top: 23px;
     padding-left: 39px;
 }
 
@@ -192,30 +212,12 @@
     width: 160px;
 }
 
-#jt-inputs {
+#jt-media {
     left: 600px;
 }
 
-#jt-inputs {
-    padding-top: 18px;
-    padding-left: 32px;
-}
-
-#jt-inputs .left {
-    float: left;
-    width: 259px;
-}
-
-#jt-inputs .left .command {
-    width: 102px;
-}
-
 #jt-media {
-    left: 1200px;
-}
-
-#jt-media {
-    padding-top: 18px;
+    padding-top: 16px;
     padding-left: 40px;
 }
 
@@ -259,6 +261,36 @@
 
 #jt-media .bottom .command {
     width: 174px;
+}
+
+#jt-inputs {
+    left: 1200px;
+}
+
+#jt-inputs {
+    padding-top: 23px;
+    padding-left: 40px;
+}
+
+#jt-inputs .left {
+    float: left;
+    width: 275px;
+}
+
+#jt-inputs .left .command {
+    width: 95px;
+}
+
+#jt-inputs .right .command {
+    width: 95px;
+}
+
+#jt-inputs .bottom {
+    margin: 5px 0 0 95px;
+}
+
+#jt-inputs .bottom .command {
+    width: 100px;
 }
 
 #jt-about {
@@ -318,9 +350,9 @@
 }
 
 #jt-content {
-    left: -600px;
+    left: -1200px;
 }
 
 #jt-content {
-    left: -1200px;
+    left: -600px;
 }

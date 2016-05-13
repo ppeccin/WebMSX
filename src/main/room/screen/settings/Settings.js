@@ -30,14 +30,14 @@ wmsx.SettingsDialog = function() {
     this.setPage = function (page) {
         var contentPosition = {
             "GENERAL": "0",
-            "INPUTS": "-600px",
-            "MEDIA": "-1200px",
+            "MEDIA": "-600px",
+            "INPUTS": "-1200px",
             "ABOUT": "-1800px"
         }[page];
         var selectionPosition = {
             "GENERAL": "0",
-            "INPUTS": "25%",
-            "MEDIA": "50%",
+            "MEDIA": "25%",
+            "INPUTS": "50%",
             "ABOUT": "75%"
         }[page];
 
@@ -45,8 +45,8 @@ wmsx.SettingsDialog = function() {
         if (selectionPosition) self["jt-menu-selection"].style.left = selectionPosition;
 
         self["jt-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("selected");
-        self["jt-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("selected");
         self["jt-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("selected");
+        self["jt-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("selected");
         self["jt-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("selected");
     };
 

@@ -5,8 +5,8 @@
 wmsx.SettingsGUI = {};
 
 wmsx.SettingsGUI.html = function() {
-    return '<div id="jt-cover" class="show">' +
-        '<div id="jt-modal" class="show">' +
+    return '<div id="jt-cover">' +
+        '<div id="jt-modal">' +
             '<div id="jt-menu">' +
                 '<div id="jt-back">' +
                     '<div id="jt-back-arrow">' +
@@ -20,11 +20,11 @@ wmsx.SettingsGUI.html = function() {
                     '<div id="jt-menu-general" class="item selected">' +
                         'GENERAL' +
                     '</div>' +
-                    '<div id="jt-menu-inputs" class="item">' +
-                        'INPUTS' +
-                    '</div>' +
                     '<div id="jt-menu-media" class="item">' +
                         'MEDIA' +
+                    '</div>' +
+                    '<div id="jt-menu-inputs" class="item">' +
+                        'INPUTS' +
                     '</div>' +
                     '<div id="jt-menu-about" class="item">' +
                         'ABOUT' +
@@ -118,6 +118,7 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="desc">Sprite Modes</div>' +
                         '</div>' +
+                        '<div class="full-divider"></div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
@@ -244,40 +245,6 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div id="jt-inputs">' +
-                    '<div class="left">' +
-                        '<div id="jt-inputs-toggle-mouse" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'M' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">Toggle Mouse</div>' +
-                        '</div>' +
-                        '<div id="jt-inputs-swap-joysticks" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'J' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">Toggle Joysticks</div>' +
-                        '</div>' +
-                        '<div id="jt-inputs-toggle-keyboards" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'K' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">Toggle Keyboards</div>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
                 '<div id="jt-media">' +
                     '<div class="top-left">' +
                         '<div class="hotkey heading">' +
@@ -351,8 +318,8 @@ wmsx.SettingsGUI.html = function() {
                                 '+ <div class="key key-fixed">' +
                                     'Ctrl' +
                                 '</div>&nbsp;<div class="key key-fixed">' +
-                                'Alt' +
-                            '</div>' +
+                                    'Alt' +
+                                '</div>' +
                             '</div>' +
                             '<div class="desc">Save Media File</div>' +
                         '</div>' +
@@ -430,14 +397,153 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                     '</div>' +
                 '</div>' +
+                '<div id="jt-inputs">' +
+                    '<div class="left">' +
+                        '<div id="jt-inputs-swap-joysticks" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'J' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Toggle Joysticks</div>' +
+                        '</div>' +
+                        '<div id="jt-inputs-toggle-keyboards" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'K' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Toggle Keyboards</div>' +
+                        '</div>' +
+                        '<div id="jt-inputs-toggle-mouse" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'M' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Toggle Mouse</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="desc">Press middle Mouse button to lock pointer</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="right">' +
+                        '<div id="jt-inputs-toggle-autofire" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'H' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Toggle Auto-fire Modes</div>' +
+                        '</div>' +
+                        '<div id="jt-inputs-paste" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'V' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Open Text Paste Box</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="full-divider"></div>' +
+                    '<div class="bottom">' +
+                        '<div class="hotkey heading">' +
+                            'Special MSX Keys' +
+                        '</div>' +
+                        '<div class="hotkey hotkey-msx">' +
+                            '<div class="command">' +
+                                '<div class="key key-msx">' +
+                                    'SELECT' +
+                               '</div> :' +
+                            '</div>' +
+                            '<div class="key">' +
+                                'ScrLck' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key">' +
+                                'F9' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '[' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-msx key-msx-stop">' +
+                                    'STOP' +
+                                '</div> :' +
+                            '</div>' +
+                            '<div class="key">' +
+                                'Pause' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key">' +
+                                'F10' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                                ']' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-msx">' +
+                                    'CODE' +
+                                '</div> :' +
+                            '</div>' +
+                            '<div class="key">' +
+                                'PgUp' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                                ',' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-msx">' +
+                                    'GRAPH' +
+                                '</div> :' +
+                            '</div>' +
+                            '<div class="key">' +
+                                'PgDn' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '.' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-msx">' +
+                                    'DEAD' +
+                                '</div> :' +
+                            '</div>' +
+                            '<div class="key">' +
+                                'End' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '/' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
                 '<div id="jt-about">' +
                     '<div id="jt-logo-version">' +
-                        'WebMSX &nbsp;-&nbsp; version XX' +
+                        'WebMSX&nbsp&nbsp;-&nbsp;&nbsp&nbsp' + WMSX.VERSION +
                     '</div>' +
                     '<div class="info">' +
-                        'Created by XX' +
+                        atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") +
                         '<br>' +
-                        '<a href="http://webmsx.org">http://webmsx.org</a>' +
+                        atob("PGEgaHJlZj0iaHR0cDovL3dlYm1zeC5vcmciPmh0dHA6Ly93ZWJtc3gub3JnPC9hPg==") +
                     '</div>' +
                     '<div id="jt-browserinfo">' +
                     '</div>' +
@@ -449,319 +555,350 @@ wmsx.SettingsGUI.html = function() {
 
 wmsx.SettingsGUI.css = function() {
     return '#jt-cover {' +
-            'position: fixed;' +
-            'top: 0;' +
-            'right: 0;' +
-            'bottom: 0;' +
-            'left: 0;' +
-            'visibility: hidden;' +
-            'opacity: 0;' +
-            'background-color: rgba(0, 0, 0, 0.6);' +
-            'transition: all .2s ease-out;' +
-        '}' +
+           'position: fixed;' +
+           'top: 0;' +
+           'right: 0;' +
+           'bottom: 0;' +
+           'left: 0;' +
+           'visibility: hidden;' +
+           'opacity: 0;' +
+           'background-color: rgba(0, 0, 0, 0.6);' +
+           'transition: all .2s ease-out;' +
+       '}' +
 
-        '#jt-cover.show {' +
-            'visibility: visible;' +
-            'opacity: 1;' +
-        '}' +
+       '#jt-cover.show {' +
+           'visibility: visible;' +
+           'opacity: 1;' +
+       '}' +
 
-        '#jt-modal {' +
-            'position: relative;' +
-            'overflow: hidden;' +
-            'width: 600px;' +
-            'top: 50px;' +
-            'left: -120px;' +
-            'margin: 0 auto;' +
-            'color: rgba(0, 0, 0, 0.90);' +
-            'font-family: arial, sans-serif;' +
-            'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
-            'transition: all .2s ease-out;' +
-        '}' +
+       '#jt-modal {' +
+           'position: relative;' +
+           'overflow: hidden;' +
+           'width: 600px;' +
+           'top: 50px;' +
+           'left: -120px;' +
+           'margin: 0 auto;' +
+           'color: rgba(0, 0, 0, 0.90);' +
+           'font-family: arial, sans-serif;' +
+           'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
+           'transition: all .2s ease-out;' +
+       '}' +
 
-        '#jt-modal.show {' +
-            'left: -0px;' +
-        '}' +
+       '#jt-modal.show {' +
+           'left: -0px;' +
+       '}' +
 
-        '#jt-modal .hotkey {' +
-            'height: 27px;' +
-            'padding: 3px 5px;' +
-            'font-size: 13px;' +
-            'box-sizing: border-box;' +
-        '}' +
+       '#jt-modal .hotkey {' +
+           'height: 27px;' +
+           'padding: 3px 5px;' +
+           'font-size: 13px;' +
+           'box-sizing: border-box;' +
+       '}' +
 
-        '#jt-modal .heading {' +
-            'font-size: 13px;' +
-            'font-weight: 700;' +
-            'color: rgba(0, 0, 0, .60);' +
-        '}' +
+       '#jt-modal .heading {' +
+           'font-size: 13px;' +
+           'font-weight: 700;' +
+           'color: rgba(0, 0, 0, .60);' +
+       '}' +
 
-        '#jt-modal .hotkey .command {' +
-            'position: relative;' +
-            'float: left;' +
-            'font-weight: 600;' +
-            'color: rgba(0, 0, 0, .54);' +
-        '}' +
+       '#jt-modal .hotkey .command {' +
+           'position: relative;' +
+           'float: left;' +
+           'font-weight: 600;' +
+           'color: rgba(0, 0, 0, .54);' +
+       '}' +
 
-        '#jt-modal .hotkey .desc {' +
-            'float: left;' +
-            'padding-top: 3px;' +
-        '}' +
+       '#jt-modal .hotkey .desc {' +
+           'float: left;' +
+           'padding-top: 3px;' +
+       '}' +
 
-        '#jt-modal .key {' +
-            'position: relative;' +
-            'display: inline-block;' +
-            'top: -1px;' +
-            'min-width: 25px;' +
-            'height: 21px;' +
-            'padding: 4px 6px 3px;' +
-            'box-sizing: border-box;' +
-            'font-weight: 600;' +
-            'font-size: 12px;' +
-            'line-height: 12px;' +
-            'color: rgba(0, 0, 0, .71);' +
-            'background-color: white;' +
-            'border-radius: 3px;' +
-            'border: 1px solid rgb(210, 210, 210);' +
-            'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
-            'text-align: center;' +
-        '}' +
+       '#jt-modal .hotkey-msx {' +
+           'font-weight: 600;' +
+           'color: rgba(0, 0, 0, .54);' +
+       '}' +
 
-        '#jt-modal .key-fixed {' +
-            'width: 31px;' +
-            'padding-left: 0;' +
-            'padding-right: 2px;' +
-        '}' +
+       '#jt-modal .key {' +
+           'position: relative;' +
+           'display: inline-block;' +
+           'top: -1px;' +
+           'min-width: 25px;' +
+           'height: 21px;' +
+           'padding: 4px 6px 3px;' +
+           'box-sizing: border-box;' +
+           'font-weight: 600;' +
+           'font-size: 12px;' +
+           'line-height: 12px;' +
+           'color: rgba(0, 0, 0, .71);' +
+           'background-color: white;' +
+           'border-radius: 3px;' +
+           'border: 1px solid rgb(210, 210, 210);' +
+           'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
+           'text-align: center;' +
+       '}' +
 
-        '#jt-menu {' +
-            'position: relative;' +
-            'background-color: white;' +
-            'border-bottom: 1px solid rgb(200, 200, 200);' +
-        '}' +
+       '#jt-modal .key-msx {' +
+           'width: 65px;' +
+           'color: rgb(255, 255, 255);' +
+           'background-color: rgb(90, 90, 90);' +
+           'font-weight: normal;' +
+           'border-radius: 0px;' +
+           'border: 1px solid rgb(140, 140, 140);' +
+           'box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);' +
+       '}' +
 
-        '#jt-menu #jt-back {' +
-            'position: absolute;' +
-            'width: 18px;' +
-            'height: 32px;' +
-            'margin: 3px;' +
-            'padding: 0 11px;' +
-            'font-size: 35px;' +
-            'color: white;' +
-            'cursor: pointer;' +
-        '}' +
+       '#jt-modal .key-msx-stop {' +
+           'background-color: rgb(250, 40, 40);' +
+           'border: 1px solid rgb(250, 110, 110);' +
+       '}' +
 
-        '#jt-menu #jt-back:hover {' +
-            'background-color: rgba(0, 0, 0, .12);' +
-        '}' +
+       '#jt-modal .key-fixed {' +
+           'width: 31px;' +
+           'padding-left: 0;' +
+           'padding-right: 2px;' +
+       '}' +
 
-        '#jt-menu #jt-back-arrow {' +
-            'position: relative;' +
-            'overflow: hidden;' +
-            'top: -7px;' +
-        '}' +
+       '#jt-menu {' +
+           'position: relative;' +
+           'background-color: white;' +
+           'border-bottom: 1px solid rgb(200, 200, 200);' +
+       '}' +
 
-        '#jt-menu .caption {' +
-            'height: 29px;' +
-            'margin: 0 -1px;' +
-            'padding: 10px 0 0 48px;' +
-            'font-size: 18px;' +
-            'color: white;' +
-            'background-color: rgb(235, 62, 35);' +
-            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
-            'vertical-align: middle;' +
-        '}' +
+       '#jt-menu #jt-back {' +
+           'position: absolute;' +
+           'width: 18px;' +
+           'height: 32px;' +
+           'margin: 3px;' +
+           'padding: 0 11px;' +
+           'font-size: 35px;' +
+           'color: white;' +
+           'cursor: pointer;' +
+       '}' +
 
-        '#jt-menu .items {' +
-            'position: relative;' +
-            'width: 75%;' +
-            'height: 39px;' +
-            'margin: 0 auto;' +
-            'font-weight: 600;' +
-        '}' +
+       '#jt-menu #jt-back:hover {' +
+           'background-color: rgba(0, 0, 0, .12);' +
+       '}' +
 
-        '#jt-menu .item {' +
-            'float: left;' +
-            'width: 25%;' +
-            'height: 100%;' +
-            'padding-top: 13px;' +
-            'font-size: 14px;' +
-            'color: rgba(0, 0, 0, .43);' +
-            'text-align: center;' +
-            'cursor: pointer;' +
-        '}' +
+       '#jt-menu #jt-back-arrow {' +
+           'position: relative;' +
+           'overflow: hidden;' +
+           'top: -7px;' +
+       '}' +
 
-        '#jt-menu .selected {' +
-            'color: rgb(224, 56, 34);' +
-        '}' +
+       '#jt-menu .caption {' +
+           'height: 29px;' +
+           'margin: 0 -1px;' +
+           'padding: 10px 0 0 48px;' +
+           'font-size: 18px;' +
+           'color: white;' +
+           'background-color: rgb(235, 62, 35);' +
+           'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
+           'vertical-align: middle;' +
+       '}' +
 
-        '#jt-menu #jt-menu-selection {' +
-            'position: absolute;' +
-            'left: 0;' +
-            'bottom: 0;' +
-            'width: 25%;' +
-            'height: 3px;' +
-            'background-color: rgb(235, 62, 35);' +
-            'transition: left 0.3s ease-in-out;' +
-        '}' +
+       '#jt-menu .items {' +
+           'position: relative;' +
+           'width: 75%;' +
+           'height: 39px;' +
+           'margin: 0 auto;' +
+           'font-weight: 600;' +
+       '}' +
 
-'' +
-        '#jt-content {' +
-            'position: relative;' +
-            'left: 0;' +
-            'width: 3000px;' +
-            'height: 378px;' +
-            'background-color: rgb(220, 220, 220);' +
-            'transition: left 0.3s ease-in-out' +
-        '}' +
+       '#jt-menu .item {' +
+           'float: left;' +
+           'width: 25%;' +
+           'height: 100%;' +
+           'padding-top: 13px;' +
+           'font-size: 14px;' +
+           'color: rgba(0, 0, 0, .43);' +
+           'text-align: center;' +
+           'cursor: pointer;' +
+       '}' +
 
-        '#jt-general, #jt-inputs, #jt-media, #jt-controls, #jt-about {' +
-            'position: absolute;' +
-            'width: 600px;' +
-            'height: 100%;' +
-            'box-sizing: border-box;' +
-        '}' +
+       '#jt-menu .selected {' +
+           'color: rgb(224, 56, 34);' +
+       '}' +
 
-        '#jt-general {' +
-            'padding-top: 20px;' +
-            'padding-left: 39px;' +
-        '}' +
+       '#jt-menu #jt-menu-selection {' +
+           'position: absolute;' +
+           'left: 0;' +
+           'bottom: 0;' +
+           'width: 25%;' +
+           'height: 3px;' +
+           'background-color: rgb(235, 62, 35);' +
+           'transition: left 0.3s ease-in-out;' +
+       '}' +
 
-        '#jt-general .left {' +
-            'float: left;' +
-            'width: 248px;' +
-        '}' +
+    '' +
+       '#jt-content {' +
+           'position: relative;' +
+           'left: 0;' +
+           'width: 3000px;' +
+           'height: 378px;' +
+           'background-color: rgb(220, 220, 220);' +
+           'transition: left 0.3s ease-in-out' +
+       '}' +
 
-        '#jt-general .left .command {' +
-            'width: 102px;' +
-        '}' +
+       '#jt-general, #jt-inputs, #jt-media, #jt-controls, #jt-about {' +
+           'position: absolute;' +
+           'width: 600px;' +
+           'height: 100%;' +
+           'box-sizing: border-box;' +
+       '}' +
 
-        '#jt-general .right {' +
-            'float: left;' +
-        '}' +
+       '#jt-general {' +
+           'padding-top: 23px;' +
+           'padding-left: 39px;' +
+       '}' +
 
-        '#jt-general .right .command {' +
-            'width: 160px;' +
-        '}' +
+       '#jt-general .left {' +
+           'float: left;' +
+           'width: 248px;' +
+       '}' +
 
-        '#jt-inputs {' +
-            'left: 600px;' +
-        '}' +
+       '#jt-general .left .command {' +
+           'width: 102px;' +
+       '}' +
 
-        '#jt-inputs {' +
-            'padding-top: 18px;' +
-            'padding-left: 32px;' +
-        '}' +
+       '#jt-general .right {' +
+           'float: left;' +
+       '}' +
 
-        '#jt-inputs .left {' +
-            'float: left;' +
-            'width: 259px;' +
-        '}' +
+       '#jt-general .right .command {' +
+           'width: 160px;' +
+       '}' +
 
-        '#jt-inputs .left .command {' +
-            'width: 102px;' +
-        '}' +
+       '#jt-media {' +
+           'left: 600px;' +
+       '}' +
 
-        '#jt-media {' +
-            'left: 1200px;' +
-        '}' +
+       '#jt-media {' +
+           'padding-top: 16px;' +
+           'padding-left: 40px;' +
+       '}' +
 
-        '#jt-media {' +
-            'padding-top: 18px;' +
-            'padding-left: 40px;' +
-        '}' +
+       '#jt-media .heading {' +
 
-        '#jt-media .heading {' +
+       '}' +
 
-        '}' +
+       '#jt-media .top-left {' +
+           'float: left;' +
+           'width: 275px;' +
+       '}' +
 
-        '#jt-media .top-left {' +
-            'float: left;' +
-            'width: 275px;' +
-        '}' +
+       '#jt-media .top-right {' +
+           'float: left;' +
+       '}' +
 
-        '#jt-media .top-right {' +
-            'float: left;' +
-        '}' +
+       '#jt-media .bottom-left {' +
+           'float: left;' +
+           'width: 275px;' +
+       '}' +
 
-        '#jt-media .bottom-left {' +
-            'float: left;' +
-            'width: 275px;' +
-        '}' +
+       '#jt-media .bottom-right {' +
+           'float: left;' +
+       '}' +
 
-        '#jt-media .bottom-right {' +
-            'float: left;' +
-        '}' +
+       '#jt-media .top-left .command {' +
+           'width: 55px;' +
+       '}' +
 
-        '#jt-media .top-left .command {' +
-            'width: 55px;' +
-        '}' +
+       '#jt-media .top-right .command {' +
+           'width: 110px;' +
+       '}' +
 
-        '#jt-media .top-right .command {' +
-            'width: 110px;' +
-        '}' +
+       '#jt-media .bottom-left .command {' +
+           'width: 110px;' +
+       '}' +
 
-        '#jt-media .bottom-left .command {' +
-            'width: 110px;' +
-        '}' +
+       '#jt-media .bottom-right .command {' +
+           'width: 110px;' +
+       '}' +
 
-        '#jt-media .bottom-right .command {' +
-            'width: 110px;' +
-        '}' +
+       '#jt-media .bottom .command {' +
+           'width: 174px;' +
+       '}' +
 
-        '#jt-media .bottom .command {' +
-            'width: 174px;' +
-        '}' +
+       '#jt-inputs {' +
+           'left: 1200px;' +
+       '}' +
 
-        '#jt-about {' +
-            'left: 1800px;' +
-        '}' +
+       '#jt-inputs {' +
+           'padding-top: 23px;' +
+           'padding-left: 40px;' +
+       '}' +
 
-        '#jt-about #jt-logo-version {' +
-            'width: 380px;' +
-            'height: 212px;' +
-            'margin: 36px auto 24px;' +
-            'font-size: 18px;' +
-            'color: rgba(255, 255, 255, 0.97);' +
-            'padding-top: 170px;' +
-            'box-sizing: border-box;' +
-            'text-align: center;' +
-            'background: black url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAKtQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8PDwZWVlTExMc3Nz////Jh+BnQAAADR0Uk5TAAYPCR8VFyodOSgNETEwIQEDDCBESywUBAILPCQTYzsbi1OfX5dXQ79/I1yTWysFNI8zTzUuY4wAAAABYktHRDigB6XWAAAACXBIWXMAAABIAAAASABGyWs+AAAArklEQVQ4y+3QyQ6CMBAGYFb3BaoColVcCyLg0g59/yezTTi2vXkw8U96+r9MOmNZ//x8bMdxbVPvUeY7BtCjrD9wDUAMGI7GBjCZUjabB4GmDtFiSdkqilGyVoIUAFrxNluknoCB85Zz2O2xGmQdOBwzzQ7QysDp7OkAl/kmyDpwuWo+GRMpIC+IZs1bVIoz5feqTtWg8R9l8SyqFw7VIGj8iLxJretFEoR7OJX9BzzSGd6yIruAAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE2LTA1LTAzVDE5OjIxOjQxLTA0OjAwyfh0YgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNi0wNS0wM1QxOToyMTo0MS0wNDowMLilzN4AAAAASUVORK5CYII=") center 50px no-repeat;' +
-            'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
-        '}' +
+       '#jt-inputs .left {' +
+           'float: left;' +
+           'width: 275px;' +
+       '}' +
 
-        '#jt-about .info {' +
-            'font-size: 18px;' +
-            'line-height: 30px;' +
-            'text-align: center;' +
-        '}' +
+       '#jt-inputs .left .command {' +
+           'width: 95px;' +
+       '}' +
 
-        '#jt-about a {' +
-            'color: rgb(0, 80, 230);' +
-            'text-decoration: none;' +
-        '}' +
+       '#jt-inputs .right .command {' +
+           'width: 95px;' +
+       '}' +
 
-        '#jt-about #jt-browserinfo {' +
-            'position: absolute;' +
-            'left: 0;' +
-            'right: 0;' +
-            'bottom: 7px;' +
-            'font-size: 10px;' +
-            'text-align: center;' +
-            'color: transparent;' +
-        '}' +
+       '#jt-inputs .bottom {' +
+           'margin: 5px 0 0 95px;' +
+       '}' +
 
-        '.divider {' +
-            'clear: both;' +
-        '}' +
+       '#jt-inputs .bottom .command {' +
+           'width: 100px;' +
+       '}' +
 
-        '.full-divider {' +
-            'clear: both;' +
-            'height: 21px;' +
-        '}' +
+       '#jt-about {' +
+           'left: 1800px;' +
+       '}' +
 
-        '#jt-general .full-divider {' +
-            'clear: both;' +
-            'height: 18px;' +
-        '}';
+       '#jt-about #jt-logo-version {' +
+           'width: 380px;' +
+           'height: 212px;' +
+           'margin: 36px auto 24px;' +
+           'font-size: 18px;' +
+           'color: rgba(255, 255, 255, 0.97);' +
+           'padding-top: 170px;' +
+           'box-sizing: border-box;' +
+           'text-align: center;' +
+           'background: black url("' + wmsx.Images.urls.logo + '") center 50px no-repeat;' +
+           'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
+       '}' +
 
+       '#jt-about .info {' +
+           'font-size: 18px;' +
+           'line-height: 30px;' +
+           'text-align: center;' +
+       '}' +
+
+       '#jt-about a {' +
+           'color: rgb(0, 80, 230);' +
+           'text-decoration: none;' +
+       '}' +
+
+       '#jt-about #jt-browserinfo {' +
+           'position: absolute;' +
+           'left: 0;' +
+           'right: 0;' +
+           'bottom: 7px;' +
+           'font-size: 10px;' +
+           'text-align: center;' +
+           'color: transparent;' +
+       '}' +
+
+       '.divider {' +
+           'clear: both;' +
+       '}' +
+
+       '.full-divider {' +
+           'clear: both;' +
+           'height: 21px;' +
+       '}' +
+
+       '#jt-general .full-divider {' +
+           'clear: both;' +
+           'height: 18px;' +
+       '}';
 };
 
