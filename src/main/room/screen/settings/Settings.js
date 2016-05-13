@@ -15,15 +15,15 @@ wmsx.SettingsDialog = function() {
         controlRedefining = null;
         refreshData();
         if (page) this.setPage(page);
-        this["jt-cover"].classList.add("show");
-        this["jt-modal"].classList.add("show");
+        this["wmsx-cover"].classList.add("wmsx-show");
+        this["wmsx-modal"].classList.add("wmsx-show");
         this.panel.focus();
     };
 
     this.hide = function () {
         if (preferencesChanged) finishPreferences();
-        this["jt-modal"].classList.remove("show");
-        this["jt-cover"].classList.remove("show");
+        this["wmsx-modal"].classList.remove("wmsx-show");
+        this["wmsx-cover"].classList.remove("wmsx-show");
         WMSX.room.screen.focus();
     };
 
@@ -41,13 +41,13 @@ wmsx.SettingsDialog = function() {
             "ABOUT": "75%"
         }[page];
 
-        if (contentPosition) self["jt-content"].style.left = contentPosition;
-        if (selectionPosition) self["jt-menu-selection"].style.left = selectionPosition;
+        if (contentPosition) self["wmsx-content"].style.left = contentPosition;
+        if (selectionPosition) self["wmsx-menu-selection"].style.left = selectionPosition;
 
-        self["jt-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("selected");
-        self["jt-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("selected");
-        self["jt-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("selected");
-        self["jt-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("selected");
+        self["wmsx-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("wmsx-selected");
+        self["wmsx-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("wmsx-selected");
+        self["wmsx-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("wmsx-selected");
+        self["wmsx-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("wmsx-selected");
     };
 
     var create = function () {
@@ -93,12 +93,12 @@ wmsx.SettingsDialog = function() {
             self.hide();
         });
         // But do not close the modal with a click inside
-        self["jt-modal"].addEventListener("mousedown", function (e) {
+        self["wmsx-modal"].addEventListener("mousedown", function (e) {
             if (e.stopPropagation) e.stopPropagation();
             keyRedefinitonStop();
         });
         // Close with the back button
-        self["jt-back"].addEventListener("mousedown", function (e) {
+        self["wmsx-back"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
             self.hide();
@@ -112,19 +112,19 @@ wmsx.SettingsDialog = function() {
         });
 
         // Tabs
-        self["jt-menu-general"].addEventListener("mousedown", function (e) {
+        self["wmsx-menu-general"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             self.setPage("GENERAL");
         });
-        self["jt-menu-inputs"].addEventListener("mousedown", function (e) {
+        self["wmsx-menu-inputs"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             self.setPage("INPUTS");
         });
-        self["jt-menu-media"].addEventListener("mousedown", function (e) {
+        self["wmsx-menu-media"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             self.setPage("MEDIA");
         });
-        self["jt-menu-about"].addEventListener("mousedown", function (e) {
+        self["wmsx-menu-about"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             self.setPage("ABOUT");
         });
@@ -142,7 +142,7 @@ wmsx.SettingsDialog = function() {
     };
 
     var refreshData = function () {
-        self["jt-browserinfo"].innerHTML = navigator.userAgent;
+        self["wmsx-browserinfo"].innerHTML = navigator.userAgent;
     };
 
     var processKeyEvent = function (e) {
@@ -207,10 +207,12 @@ wmsx.SettingsDialog = function() {
     var controlKeys = {
     };
 
-    var controlRedefining = null;
 
+    this.panel = null;
+
+    var controlRedefining = null;
     var controlsCommandKeys = {};
-        //controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK] = "jt-general-swap-joysticks";
+        //controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK] = "wmsx-general-swap-joysticks";
 
     var preferencesChanged = false;
 

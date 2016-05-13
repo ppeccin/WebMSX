@@ -5,547 +5,547 @@
 wmsx.SettingsGUI = {};
 
 wmsx.SettingsGUI.html = function() {
-    return '<div id="jt-cover">' +
-        '<div id="jt-modal">' +
-            '<div id="jt-menu">' +
-                '<div id="jt-back">' +
-                    '<div id="jt-back-arrow">' +
+    return '<div id="wmsx-cover">' +
+        '<div id="wmsx-modal">' +
+            '<div id="wmsx-menu">' +
+                '<div id="wmsx-back">' +
+                    '<div id="wmsx-back-arrow">' +
                         '&larr;' +
                     '</div>' +
                 '</div>' +
-                '<div class="caption">' +
+                '<div class="wmsx-caption">' +
                     'WebMSX Help' +
                 '</div>' +
                 '<div class="items">' +
-                    '<div id="jt-menu-general" class="item selected">' +
+                    '<div id="wmsx-menu-general" class="item wmsx-selected">' +
                         'GENERAL' +
                     '</div>' +
-                    '<div id="jt-menu-media" class="item">' +
+                    '<div id="wmsx-menu-media" class="item">' +
                         'MEDIA' +
                     '</div>' +
-                    '<div id="jt-menu-inputs" class="item">' +
+                    '<div id="wmsx-menu-inputs" class="item">' +
                         'INPUTS' +
                     '</div>' +
-                    '<div id="jt-menu-about" class="item">' +
+                    '<div id="wmsx-menu-about" class="item">' +
                         'ABOUT' +
                     '</div>' +
-                    '<div id="jt-menu-selection">' +
+                    '<div id="wmsx-menu-selection">' +
                     '</div>' +
                 '</div>' +
             '</div>' +
-            '<div id="jt-content">' +
-                '<div id="jt-general">' +
-                    '<div class="left">' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
+            '<div id="wmsx-content">' +
+                '<div id="wmsx-general">' +
+                    '<div class="wmsx-left">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key">' +
                                     'F11' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
+                            '<div class="wmsx-desc">' +
                                 'Power' +
                             '</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'F11' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Reset</div>' +
+                            '<div class="wmsx-desc">Reset</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Q' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">NTSC/PAL</div>' +
+                            '<div class="wmsx-desc">NTSC/PAL</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'W' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">V-Synch Modes</div>' +
+                            '<div class="wmsx-desc">V-Synch Modes</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp<div class="key">' +
+                                '</div>&nbsp;+&nbsp<div class="wmsx-key">' +
                                     'R' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">CRT Modes</div>' +
+                            '<div class="wmsx-desc">CRT Modes</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'T' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">CRT Filters</div>' +
+                            '<div class="wmsx-desc">CRT Filters</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'D' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Debug Modes</div>' +
+                            '<div class="wmsx-desc">Debug Modes</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'S' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Sprite Modes</div>' +
+                            '<div class="wmsx-desc">Sprite Modes</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'G' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Capture Screen</div>' +
+                            '<div class="wmsx-desc">Capture Screen</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
+                        '<div class="wmsx-full-divider"></div>' +
                     '</div>' +
-                    '<div class="right">' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                    '<div class="wmsx-right">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     '0 - 9' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Load State</div>' +
+                            '<div class="wmsx-desc">Load State</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
+                                '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     '0 - 9' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Save State</div>' +
+                            '<div class="wmsx-desc">Save State</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
+                                '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'F11' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Save State File</div>' +
+                            '<div class="wmsx-desc">Save State File</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
+                        '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key">' +
                                     'F12' +
-                                '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                                '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'F12' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Fast / Slow Speed</div>' +
+                            '<div class="wmsx-desc">Fast / Slow Speed</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Arrows' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Adjust Speed</div>' +
+                            '<div class="wmsx-desc">Adjust Speed</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'P' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Toggle Pause</div>' +
+                            '<div class="wmsx-desc">Toggle Pause</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'O' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Next Frame</div>' +
+                            '<div class="wmsx-desc">Next Frame</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Enter' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Full Screen</div>' +
+                            '<div class="wmsx-desc">Full Screen</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
+                                '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Arrows' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Screen Size / Width</div>' +
+                            '<div class="wmsx-desc">Screen Size / Width</div>' +
                         '</div>' +
-                        '<div class="full-divider"></div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Backspace' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Defaults</div>' +
+                            '<div class="wmsx-desc">Defaults</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div id="jt-media">' +
-                    '<div class="top-left">' +
-                        '<div class="hotkey heading">' +
+                '<div id="wmsx-media">' +
+                    '<div class="wmsx-top-left">' +
+                        '<div class="wmsx-hotkey wmsx-heading">' +
                             'Media Commands:' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key">' +
                                     'F6' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Load Disk</div>' +
+                            '<div class="wmsx-desc">Load Disk</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key">' +
                                     'F7' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Load Cartridge</div>' +
+                            '<div class="wmsx-desc">Load Cartridge</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key">' +
                                     'F8' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Load Cassette Tape</div>' +
+                            '<div class="wmsx-desc">Load Cassette Tape</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="desc">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">' +
                                 'Drag &amp; Drop Media Files or URLs' +
                             '</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="desc">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">' +
                                 'Click the Media icons on the bottom bar' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="top-right">' +
-                        '<div class="hotkey heading">' +
+                    '<div class="wmsx-top-right">' +
+                        '<div class="wmsx-hotkey wmsx-heading">' +
                             'Modifiers for Media Commands:' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '+ <div class="key">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '+ <div class="wmsx-key">' +
                                     'Shift' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Use Drive B, Slot 2</div>' +
+                            '<div class="wmsx-desc">Use Drive B, Slot 2</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '+ <div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '+ <div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Load Empty Media</div>' +
+                            '<div class="wmsx-desc">Load Empty Media</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '+ <div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '+ <div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Remove Media</div>' +
+                            '<div class="wmsx-desc">Remove Media</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '+ <div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '+ <div class="wmsx-key wmsx-key-fixed">' +
                                     'Ctrl' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
+                                '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Save Media File</div>' +
+                            '<div class="wmsx-desc">Save Media File</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="full-divider"></div>' +
-                    '<div class="hotkey">' +
-                        '<div class="command">' +
-                            '<div class="key key-fixed">' +
+                    '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-hotkey">' +
+                        '<div class="wmsx-command">' +
+                            '<div class="wmsx-key wmsx-key-fixed">' +
                                 'Ctrl' +
                             '</div>' +
                         '</div>' +
-                        '<div class="desc">&nbsp;+ Drag &amp; Drop File or URL to load Media with alternate Auto-Power' +
+                        '<div class="wmsx-desc">&nbsp;+ Drag &amp; Drop File or URL to load Media with alternate Auto-Power' +
                         '</div>' +
                     '</div>' +
-                    '<div class="full-divider"></div>' +
-                    '<div class="bottom-left">' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                    '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-bottom-left">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Home' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Rewind Tape</div>' +
+                            '<div class="wmsx-desc">Rewind Tape</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'End' +
                             '</div>' +
                             '</div>' +
-                            '<div class="desc">Seek to Tape end</div>' +
+                            '<div class="wmsx-desc">Seek to Tape end</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="bottom-right">' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                    '<div class="wmsx-bottom-right">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'PgUp' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Seek Tape backward</div>' +
+                            '<div class="wmsx-desc">Seek Tape backward</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'PgDn' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Seek Tape forward</div>' +
+                            '<div class="wmsx-desc">Seek Tape forward</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="full-divider"></div>' +
-                    '<div class="hotkey bottom">' +
-                        '<div class="command">' +
-                            '<div class="key">' +
+                    '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-hotkey wmsx-bottom">' +
+                        '<div class="wmsx-command">' +
+                            '<div class="wmsx-key">' +
                                 'Shift' +
-                            '</div>&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Ctrl' +
-                            '</div>&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 'F8' +
                             '</div>' +
                         '</div>' +
-                        '<div class="desc">' +
+                        '<div class="wmsx-desc">' +
                             'Auto-Run Cassette program at current Tape position' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div id="jt-inputs">' +
-                    '<div class="left">' +
-                        '<div id="jt-inputs-swap-joysticks" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                '<div id="wmsx-inputs">' +
+                    '<div class="wmsx-left">' +
+                        '<div id="wmsx-inputs-swap-joysticks" class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'J' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Toggle Joysticks</div>' +
+                            '<div class="wmsx-desc">Toggle Joysticks</div>' +
                         '</div>' +
-                        '<div id="jt-inputs-toggle-keyboards" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div id="wmsx-inputs-toggle-keyboards" class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'K' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Toggle Keyboards</div>' +
+                            '<div class="wmsx-desc">Toggle Keyboards</div>' +
                         '</div>' +
-                        '<div id="jt-inputs-toggle-mouse" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div id="wmsx-inputs-toggle-mouse" class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'M' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Toggle Mouse</div>' +
+                            '<div class="wmsx-desc">Toggle Mouse</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="desc">Press middle Mouse button to lock pointer</div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">Press middle Mouse button to lock pointer</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="right">' +
-                        '<div id="jt-inputs-toggle-autofire" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                    '<div class="wmsx-right">' +
+                        '<div id="wmsx-inputs-toggle-autofire" class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'H' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Toggle Auto-fire Modes</div>' +
+                            '<div class="wmsx-desc">Toggle Auto-fire Modes</div>' +
                         '</div>' +
-                        '<div id="jt-inputs-paste" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                        '<div id="wmsx-inputs-paste" class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'V' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">Open Text Paste Box</div>' +
+                            '<div class="wmsx-desc">Open Text Paste Box</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="full-divider"></div>' +
-                    '<div class="bottom">' +
-                        '<div class="hotkey heading">' +
+                    '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-bottom">' +
+                        '<div class="wmsx-hotkey wmsx-heading">' +
                             'Special MSX Keys' +
                         '</div>' +
-                        '<div class="hotkey hotkey-msx">' +
-                            '<div class="command">' +
-                                '<div class="key key-msx">' +
+                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-msx">' +
                                     'SELECT' +
                                '</div> :' +
                             '</div>' +
-                            '<div class="key">' +
+                            '<div class="wmsx-key">' +
                                 'ScrLck' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">' +
                                 'F9' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 '[' +
                             '</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-msx key-msx-stop">' +
+                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-msx wmsx-key-msx-stop">' +
                                     'STOP' +
                                 '</div> :' +
                             '</div>' +
-                            '<div class="key">' +
+                            '<div class="wmsx-key">' +
                                 'Pause' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">' +
                                 'F10' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 ']' +
                             '</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-msx">' +
+                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-msx">' +
                                     'CODE' +
                                 '</div> :' +
                             '</div>' +
-                            '<div class="key">' +
+                            '<div class="wmsx-key">' +
                                 'PgUp' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 ',' +
                             '</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-msx">' +
+                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-msx">' +
                                     'GRAPH' +
                                 '</div> :' +
                             '</div>' +
-                            '<div class="key">' +
+                            '<div class="wmsx-key">' +
                                 'PgDn' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 '.' +
                             '</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-msx">' +
+                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-msx">' +
                                     'DEAD' +
                                 '</div> :' +
                             '</div>' +
-                            '<div class="key">' +
+                            '<div class="wmsx-key">' +
                                 'End' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="key key-fixed">' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="key">' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 '/' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div id="jt-about">' +
-                    '<div id="jt-logo-version">' +
+                '<div id="wmsx-about">' +
+                    '<div id="wmsx-logo-version">' +
                         'WebMSX&nbsp&nbsp;-&nbsp;&nbsp&nbsp' + WMSX.VERSION +
                     '</div>' +
-                    '<div class="info">' +
+                    '<div class="wmsx-info">' +
                         atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") +
                         '<br>' +
                         atob("PGEgaHJlZj0iaHR0cDovL3dlYm1zeC5vcmciPmh0dHA6Ly93ZWJtc3gub3JnPC9hPg==") +
                     '</div>' +
-                    '<div id="jt-browserinfo">' +
+                    '<div id="wmsx-browserinfo">' +
                     '</div>' +
                 '</div>' +
             '</div>' +
@@ -554,24 +554,25 @@ wmsx.SettingsGUI.html = function() {
 };
 
 wmsx.SettingsGUI.css = function() {
-    return '#jt-cover {' +
+    return '#wmsx-cover {' +
            'position: fixed;' +
            'top: 0;' +
            'right: 0;' +
            'bottom: 0;' +
            'left: 0;' +
            'visibility: hidden;' +
+           'outline: none;' +
            'opacity: 0;' +
            'background-color: rgba(0, 0, 0, 0.6);' +
            'transition: all .2s ease-out;' +
        '}' +
 
-       '#jt-cover.show {' +
+       '#wmsx-cover.wmsx-show {' +
            'visibility: visible;' +
            'opacity: 1;' +
        '}' +
 
-       '#jt-modal {' +
+       '#wmsx-modal {' +
            'position: relative;' +
            'overflow: hidden;' +
            'width: 600px;' +
@@ -584,41 +585,41 @@ wmsx.SettingsGUI.css = function() {
            'transition: all .2s ease-out;' +
        '}' +
 
-       '#jt-modal.show {' +
+       '#wmsx-modal.wmsx-show {' +
            'left: -0px;' +
        '}' +
 
-       '#jt-modal .hotkey {' +
+       '#wmsx-modal .wmsx-hotkey {' +
            'height: 27px;' +
            'padding: 3px 5px;' +
            'font-size: 13px;' +
            'box-sizing: border-box;' +
        '}' +
 
-       '#jt-modal .heading {' +
+       '#wmsx-modal .wmsx-heading {' +
            'font-size: 13px;' +
            'font-weight: 700;' +
            'color: rgba(0, 0, 0, .60);' +
        '}' +
 
-       '#jt-modal .hotkey .command {' +
+       '#wmsx-modal .wmsx-hotkey .wmsx-command {' +
            'position: relative;' +
            'float: left;' +
            'font-weight: 600;' +
            'color: rgba(0, 0, 0, .54);' +
        '}' +
 
-       '#jt-modal .hotkey .desc {' +
+       '#wmsx-modal .wmsx-hotkey .wmsx-desc {' +
            'float: left;' +
            'padding-top: 3px;' +
        '}' +
 
-       '#jt-modal .hotkey-msx {' +
+       '#wmsx-modal .wmsx-hotkey-msx {' +
            'font-weight: 600;' +
            'color: rgba(0, 0, 0, .54);' +
        '}' +
 
-       '#jt-modal .key {' +
+       '#wmsx-modal .wmsx-key {' +
            'position: relative;' +
            'display: inline-block;' +
            'top: -1px;' +
@@ -637,7 +638,7 @@ wmsx.SettingsGUI.css = function() {
            'text-align: center;' +
        '}' +
 
-       '#jt-modal .key-msx {' +
+       '#wmsx-modal .wmsx-key-msx {' +
            'width: 65px;' +
            'color: rgb(255, 255, 255);' +
            'background-color: rgb(90, 90, 90);' +
@@ -647,24 +648,24 @@ wmsx.SettingsGUI.css = function() {
            'box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);' +
        '}' +
 
-       '#jt-modal .key-msx-stop {' +
+       '#wmsx-modal .wmsx-key-msx-stop {' +
            'background-color: rgb(250, 40, 40);' +
            'border: 1px solid rgb(250, 110, 110);' +
        '}' +
 
-       '#jt-modal .key-fixed {' +
+       '#wmsx-modal .wmsx-key-fixed {' +
            'width: 31px;' +
            'padding-left: 0;' +
            'padding-right: 2px;' +
        '}' +
 
-       '#jt-menu {' +
+       '#wmsx-menu {' +
            'position: relative;' +
            'background-color: white;' +
            'border-bottom: 1px solid rgb(200, 200, 200);' +
        '}' +
 
-       '#jt-menu #jt-back {' +
+       '#wmsx-menu #wmsx-back {' +
            'position: absolute;' +
            'width: 18px;' +
            'height: 32px;' +
@@ -675,17 +676,17 @@ wmsx.SettingsGUI.css = function() {
            'cursor: pointer;' +
        '}' +
 
-       '#jt-menu #jt-back:hover {' +
+       '#wmsx-menu #wmsx-back:hover {' +
            'background-color: rgba(0, 0, 0, .12);' +
        '}' +
 
-       '#jt-menu #jt-back-arrow {' +
+       '#wmsx-menu #wmsx-back-arrow {' +
            'position: relative;' +
            'overflow: hidden;' +
            'top: -7px;' +
        '}' +
 
-       '#jt-menu .caption {' +
+       '#wmsx-menu .wmsx-caption {' +
            'height: 29px;' +
            'margin: 0 -1px;' +
            'padding: 10px 0 0 48px;' +
@@ -696,7 +697,7 @@ wmsx.SettingsGUI.css = function() {
            'vertical-align: middle;' +
        '}' +
 
-       '#jt-menu .items {' +
+       '#wmsx-menu .items {' +
            'position: relative;' +
            'width: 75%;' +
            'height: 39px;' +
@@ -704,7 +705,7 @@ wmsx.SettingsGUI.css = function() {
            'font-weight: 600;' +
        '}' +
 
-       '#jt-menu .item {' +
+       '#wmsx-menu .item {' +
            'float: left;' +
            'width: 25%;' +
            'height: 100%;' +
@@ -715,11 +716,11 @@ wmsx.SettingsGUI.css = function() {
            'cursor: pointer;' +
        '}' +
 
-       '#jt-menu .selected {' +
+       '#wmsx-menu .wmsx-selected {' +
            'color: rgb(224, 56, 34);' +
        '}' +
 
-       '#jt-menu #jt-menu-selection {' +
+       '#wmsx-menu #wmsx-menu-selection {' +
            'position: absolute;' +
            'left: 0;' +
            'bottom: 0;' +
@@ -730,7 +731,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
     '' +
-       '#jt-content {' +
+       '#wmsx-content {' +
            'position: relative;' +
            'left: 0;' +
            'width: 3000px;' +
@@ -739,121 +740,117 @@ wmsx.SettingsGUI.css = function() {
            'transition: left 0.3s ease-in-out' +
        '}' +
 
-       '#jt-general, #jt-inputs, #jt-media, #jt-controls, #jt-about {' +
+       '#wmsx-general, #wmsx-inputs, #wmsx-media, #wmsx-controls, #wmsx-about {' +
            'position: absolute;' +
            'width: 600px;' +
            'height: 100%;' +
            'box-sizing: border-box;' +
        '}' +
 
-       '#jt-general {' +
+       '#wmsx-general {' +
            'padding-top: 23px;' +
            'padding-left: 39px;' +
        '}' +
 
-       '#jt-general .left {' +
+       '#wmsx-general .wmsx-left {' +
            'float: left;' +
            'width: 248px;' +
        '}' +
 
-       '#jt-general .left .command {' +
+       '#wmsx-general .wmsx-left .wmsx-command {' +
            'width: 102px;' +
        '}' +
 
-       '#jt-general .right {' +
+       '#wmsx-general .wmsx-right {' +
            'float: left;' +
        '}' +
 
-       '#jt-general .right .command {' +
+       '#wmsx-general .wmsx-right .wmsx-command {' +
            'width: 160px;' +
        '}' +
 
-       '#jt-media {' +
+       '#wmsx-media {' +
            'left: 600px;' +
        '}' +
 
-       '#jt-media {' +
+       '#wmsx-media {' +
            'padding-top: 16px;' +
            'padding-left: 40px;' +
        '}' +
 
-       '#jt-media .heading {' +
-
-       '}' +
-
-       '#jt-media .top-left {' +
+       '#wmsx-media .wmsx-top-left {' +
            'float: left;' +
            'width: 275px;' +
        '}' +
 
-       '#jt-media .top-right {' +
+       '#wmsx-media .wmsx-top-right {' +
            'float: left;' +
        '}' +
 
-       '#jt-media .bottom-left {' +
+       '#wmsx-media .wmsx-bottom-left {' +
            'float: left;' +
            'width: 275px;' +
        '}' +
 
-       '#jt-media .bottom-right {' +
+       '#wmsx-media .wmsx-bottom-right {' +
            'float: left;' +
        '}' +
 
-       '#jt-media .top-left .command {' +
+       '#wmsx-media .wmsx-top-left .wmsx-command {' +
            'width: 55px;' +
        '}' +
 
-       '#jt-media .top-right .command {' +
+       '#wmsx-media .wmsx-top-right .wmsx-command {' +
            'width: 110px;' +
        '}' +
 
-       '#jt-media .bottom-left .command {' +
+       '#wmsx-media .wmsx-bottom-left .wmsx-command {' +
            'width: 110px;' +
        '}' +
 
-       '#jt-media .bottom-right .command {' +
+       '#wmsx-media .wmsx-bottom-right .wmsx-command {' +
            'width: 110px;' +
        '}' +
 
-       '#jt-media .bottom .command {' +
+       '#wmsx-media .wmsx-bottom .wmsx-command {' +
            'width: 174px;' +
        '}' +
 
-       '#jt-inputs {' +
+       '#wmsx-inputs {' +
            'left: 1200px;' +
        '}' +
 
-       '#jt-inputs {' +
+       '#wmsx-inputs {' +
            'padding-top: 23px;' +
            'padding-left: 40px;' +
        '}' +
 
-       '#jt-inputs .left {' +
+       '#wmsx-inputs .wmsx-left {' +
            'float: left;' +
            'width: 275px;' +
        '}' +
 
-       '#jt-inputs .left .command {' +
+       '#wmsx-inputs .wmsx-left .wmsx-command {' +
            'width: 95px;' +
        '}' +
 
-       '#jt-inputs .right .command {' +
+       '#wmsx-inputs .wmsx-right .wmsx-command {' +
            'width: 95px;' +
        '}' +
 
-       '#jt-inputs .bottom {' +
+       '#wmsx-inputs .wmsx-bottom {' +
            'margin: 5px 0 0 95px;' +
        '}' +
 
-       '#jt-inputs .bottom .command {' +
+       '#wmsx-inputs .wmsx-bottom .wmsx-command {' +
            'width: 100px;' +
        '}' +
 
-       '#jt-about {' +
+       '#wmsx-about {' +
            'left: 1800px;' +
        '}' +
 
-       '#jt-about #jt-logo-version {' +
+       '#wmsx-about #wmsx-logo-version {' +
            'width: 380px;' +
            'height: 212px;' +
            'margin: 36px auto 24px;' +
@@ -866,18 +863,18 @@ wmsx.SettingsGUI.css = function() {
            'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
        '}' +
 
-       '#jt-about .info {' +
+       '#wmsx-about .wmsx-info {' +
            'font-size: 18px;' +
            'line-height: 30px;' +
            'text-align: center;' +
        '}' +
 
-       '#jt-about a {' +
+       '#wmsx-about a {' +
            'color: rgb(0, 80, 230);' +
            'text-decoration: none;' +
        '}' +
 
-       '#jt-about #jt-browserinfo {' +
+       '#wmsx-about #wmsx-browserinfo {' +
            'position: absolute;' +
            'left: 0;' +
            'right: 0;' +
@@ -887,16 +884,12 @@ wmsx.SettingsGUI.css = function() {
            'color: transparent;' +
        '}' +
 
-       '.divider {' +
-           'clear: both;' +
-       '}' +
-
-       '.full-divider {' +
+       '.wmsx-full-divider {' +
            'clear: both;' +
            'height: 21px;' +
        '}' +
 
-       '#jt-general .full-divider {' +
+       '#wmsx-general .wmsx-full-divider {' +
            'clear: both;' +
            'height: 18px;' +
        '}';

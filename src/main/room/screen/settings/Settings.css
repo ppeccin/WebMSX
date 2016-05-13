@@ -1,21 +1,22 @@
-#jt-cover {
+#wmsx-cover {
     position: fixed;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
     visibility: hidden;
+    outline: none;
     opacity: 0;
     background-color: rgba(0, 0, 0, 0.6);
     transition: all .2s ease-out;
 }
 
-#jt-cover.show {
+#wmsx-cover.wmsx-show {
     visibility: visible;
     opacity: 1;
 }
 
-#jt-modal {
+#wmsx-modal {
     position: relative;
     overflow: hidden;
     width: 600px;
@@ -28,41 +29,41 @@
     transition: all .2s ease-out;
 }
 
-#jt-modal.show {
+#wmsx-modal.wmsx-show {
     left: -0px;
 }
 
-#jt-modal .hotkey {
+#wmsx-modal .wmsx-hotkey {
     height: 27px;
     padding: 3px 5px;
     font-size: 13px;
     box-sizing: border-box;
 }
 
-#jt-modal .heading {
+#wmsx-modal .wmsx-heading {
     font-size: 13px;
     font-weight: 700;
     color: rgba(0, 0, 0, .60);
 }
 
-#jt-modal .hotkey .command {
+#wmsx-modal .wmsx-hotkey .wmsx-command {
     position: relative;
     float: left;
     font-weight: 600;
     color: rgba(0, 0, 0, .54);
 }
 
-#jt-modal .hotkey .desc {
+#wmsx-modal .wmsx-hotkey .wmsx-desc {
     float: left;
     padding-top: 3px;
 }
 
-#jt-modal .hotkey-msx {
+#wmsx-modal .wmsx-hotkey-msx {
     font-weight: 600;
     color: rgba(0, 0, 0, .54);
 }
 
-#jt-modal .key {
+#wmsx-modal .wmsx-key {
     position: relative;
     display: inline-block;
     top: -1px;
@@ -81,7 +82,7 @@
     text-align: center;
 }
 
-#jt-modal .key-msx {
+#wmsx-modal .wmsx-key-msx {
     width: 65px;
     color: rgb(255, 255, 255);
     background-color: rgb(90, 90, 90);
@@ -91,24 +92,24 @@
     box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);
 }
 
-#jt-modal .key-msx-stop {
+#wmsx-modal .wmsx-key-msx-stop {
     background-color: rgb(250, 40, 40);
     border: 1px solid rgb(250, 110, 110);
 }
 
-#jt-modal .key-fixed {
+#wmsx-modal .wmsx-key-fixed {
     width: 31px;
     padding-left: 0;
     padding-right: 2px;
 }
 
-#jt-menu {
+#wmsx-menu {
     position: relative;
     background-color: white;
     border-bottom: 1px solid rgb(200, 200, 200);
 }
 
-#jt-menu #jt-back {
+#wmsx-menu #wmsx-back {
     position: absolute;
     width: 18px;
     height: 32px;
@@ -119,17 +120,17 @@
     cursor: pointer;
 }
 
-#jt-menu #jt-back:hover {
+#wmsx-menu #wmsx-back:hover {
     background-color: rgba(0, 0, 0, .12);
 }
 
-#jt-menu #jt-back-arrow {
+#wmsx-menu #wmsx-back-arrow {
     position: relative;
     overflow: hidden;
     top: -7px;
 }
 
-#jt-menu .caption {
+#wmsx-menu .wmsx-caption {
     height: 29px;
     margin: 0 -1px;
     padding: 10px 0 0 48px;
@@ -140,7 +141,7 @@
     vertical-align: middle;
 }
 
-#jt-menu .items {
+#wmsx-menu .wmsx-items {
     position: relative;
     width: 75%;
     height: 39px;
@@ -148,7 +149,7 @@
     font-weight: 600;
 }
 
-#jt-menu .item {
+#wmsx-menu .wmsx-item {
     float: left;
     width: 25%;
     height: 100%;
@@ -159,11 +160,11 @@
     cursor: pointer;
 }
 
-#jt-menu .selected {
+#wmsx-menu .wmsx-selected {
     color: rgb(224, 56, 34);
 }
 
-#jt-menu #jt-menu-selection {
+#wmsx-menu #wmsx-menu-selection {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -174,7 +175,7 @@
 }
 
 
-#jt-content {
+#wmsx-content {
     position: relative;
     left: 0;
     width: 3000px;
@@ -183,121 +184,117 @@
     transition: left 0.3s ease-in-out
 }
 
-#jt-general, #jt-inputs, #jt-media, #jt-controls, #jt-about {
+#wmsx-general, #wmsx-inputs, #wmsx-media, #wmsx-controls, #wmsx-about {
     position: absolute;
     width: 600px;
     height: 100%;
     box-sizing: border-box;
 }
 
-#jt-general {
+#wmsx-general {
     padding-top: 23px;
     padding-left: 39px;
 }
 
-#jt-general .left {
+#wmsx-general .wmsx-left {
     float: left;
     width: 248px;
 }
 
-#jt-general .left .command {
+#wmsx-general .wmsx-left .wmsx-command {
     width: 102px;
 }
 
-#jt-general .right {
+#wmsx-general .wmsx-right {
     float: left;
 }
 
-#jt-general .right .command {
+#wmsx-general .wmsx-right .wmsx-command {
     width: 160px;
 }
 
-#jt-media {
+#wmsx-media {
     left: 600px;
 }
 
-#jt-media {
+#wmsx-media {
     padding-top: 16px;
     padding-left: 40px;
 }
 
-#jt-media .heading {
-
-}
-
-#jt-media .top-left {
+#wmsx-media .wmsx-top-left {
     float: left;
     width: 275px;
 }
 
-#jt-media .top-right {
+#wmsx-media .wmsx-top-right {
     float: left;
 }
 
-#jt-media .bottom-left {
+#wmsx-media .wmsx-bottom-left {
     float: left;
     width: 275px;
 }
 
-#jt-media .bottom-right {
+#wmsx-media .wmsx-bottom-right {
     float: left;
 }
 
-#jt-media .top-left .command {
+#wmsx-media .wmsx-top-left .wmsx-command {
     width: 55px;
 }
 
-#jt-media .top-right .command {
+#wmsx-media .wmsx-top-right .wmsx-command {
     width: 110px;
 }
 
-#jt-media .bottom-left .command {
+#wmsx-media .wmsx-bottom-left .wmsx-command {
     width: 110px;
 }
 
-#jt-media .bottom-right .command {
+#wmsx-media .wmsx-bottom-right .wmsx-command {
     width: 110px;
 }
 
-#jt-media .bottom .command {
+#wmsx-media .wmsx-bottom .wmsx-command {
     width: 174px;
 }
 
-#jt-inputs {
+#wmsx-inputs {
     left: 1200px;
 }
 
-#jt-inputs {
+#wmsx-inputs {
     padding-top: 23px;
     padding-left: 40px;
 }
 
-#jt-inputs .left {
+#wmsx-inputs .wmsx-left {
     float: left;
     width: 275px;
 }
 
-#jt-inputs .left .command {
+#wmsx-inputs .wmsx-left .wmsx-command {
     width: 95px;
 }
 
-#jt-inputs .right .command {
+#wmsx-inputs .wmsx-right .wmsx-command {
     width: 95px;
 }
 
-#jt-inputs .bottom {
+#wmsx-inputs .wmsx-bottom {
     margin: 5px 0 0 95px;
 }
 
-#jt-inputs .bottom .command {
+#wmsx-inputs .wmsx-bottom .wmsx-command {
     width: 100px;
 }
 
-#jt-about {
+#wmsx-about {
     left: 1800px;
 }
 
-#jt-about #jt-logo-version {
+#wmsx-about #wmsx-logo-version {
     width: 380px;
     height: 212px;
     margin: 36px auto 24px;
@@ -306,22 +303,22 @@
     padding-top: 170px;
     box-sizing: border-box;
     text-align: center;
-    background: black url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAKtQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8PDwZWVlTExMc3Nz////Jh+BnQAAADR0Uk5TAAYPCR8VFyodOSgNETEwIQEDDCBESywUBAILPCQTYzsbi1OfX5dXQ79/I1yTWysFNI8zTzUuY4wAAAABYktHRDigB6XWAAAACXBIWXMAAABIAAAASABGyWs+AAAArklEQVQ4y+3QyQ6CMBAGYFb3BaoColVcCyLg0g59/yezTTi2vXkw8U96+r9MOmNZ//x8bMdxbVPvUeY7BtCjrD9wDUAMGI7GBjCZUjabB4GmDtFiSdkqilGyVoIUAFrxNluknoCB85Zz2O2xGmQdOBwzzQ7QysDp7OkAl/kmyDpwuWo+GRMpIC+IZs1bVIoz5feqTtWg8R9l8SyqFw7VIGj8iLxJretFEoR7OJX9BzzSGd6yIruAAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE2LTA1LTAzVDE5OjIxOjQxLTA0OjAwyfh0YgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNi0wNS0wM1QxOToyMTo0MS0wNDowMLilzN4AAAAASUVORK5CYII=") center 50px no-repeat;
+    background: black;
     box-shadow: 3px 3px 14px rgb(75, 75, 75);
 }
 
-#jt-about .info {
+#wmsx-about .wmsx-info {
     font-size: 18px;
     line-height: 30px;
     text-align: center;
 }
 
-#jt-about a {
+#wmsx-about a {
     color: rgb(0, 80, 230);
     text-decoration: none;
 }
 
-#jt-about #jt-browserinfo {
+#wmsx-about #wmsx-browserinfo {
     position: absolute;
     left: 0;
     right: 0;
@@ -331,28 +328,24 @@
     color: transparent;
 }
 
-.divider {
-    clear: both;
-}
-
-.full-divider {
+.wmsx-full-divider {
     clear: both;
     height: 21px;
 }
 
-#jt-general .full-divider {
+#wmsx-general .wmsx-full-divider {
     clear: both;
     height: 18px;
 }
 
-#jt-content {
+#wmsx-content {
     left: -1800px;
 }
 
-#jt-content {
+#wmsx-content {
     left: -1200px;
 }
 
-#jt-content {
+#wmsx-content {
     left: -600px;
 }
