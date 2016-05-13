@@ -541,7 +541,7 @@ wmsx.Machine = function() {
         this.insert = function (cartridge, port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             if (cartridge === slotSocket.inserted(slotPos)) return;
-            slotSocket.insert(cartridge, slotPos);
+            slotSocket.insert(cartridge, slotPos, altPower);
             cartridgeSocket.fireStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
         };

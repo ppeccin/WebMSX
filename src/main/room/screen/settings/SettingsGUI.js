@@ -5,8 +5,8 @@
 wmsx.SettingsGUI = {};
 
 wmsx.SettingsGUI.html = function() {
-    return  '<div id="jt-cover">' +
-        '<div id="jt-modal">' +
+    return '<div id="jt-cover" class="show">' +
+        '<div id="jt-modal" class="show">' +
             '<div id="jt-menu">' +
                 '<div id="jt-back">' +
                     '<div id="jt-back-arrow">' +
@@ -19,6 +19,9 @@ wmsx.SettingsGUI.html = function() {
                 '<div class="items">' +
                     '<div id="jt-menu-general" class="item selected">' +
                         'GENERAL' +
+                    '</div>' +
+                    '<div id="jt-menu-inputs" class="item">' +
+                        'INPUTS' +
                     '</div>' +
                     '<div id="jt-menu-media" class="item">' +
                         'MEDIA' +
@@ -51,12 +54,9 @@ wmsx.SettingsGUI.html = function() {
                                     'F11' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Reset' +
-                            '</div>' +
+                            '<div class="desc">Reset</div>' +
                         '</div>' +
-                        '<div class="full-divider">' +
-                        '</div>' +
+                        '<div class="full-divider"></div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
@@ -65,9 +65,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Q' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'NTSC/PAL' +
-                            '</div>' +
+                            '<div class="desc">NTSC/PAL</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -77,34 +75,29 @@ wmsx.SettingsGUI.html = function() {
                                     'W' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'V-Synch Modes' +
+                            '<div class="desc">V-Synch Modes</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp<div class="key">' +
+                                    'R' +
+                                '</div>' +
                             '</div>' +
+                            '<div class="desc">CRT Modes</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'R' +
+                                    'T' +
+                                '</div>' +
                             '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'CRT Modes' +
-                            '</div>' +
+                            '<div class="desc">CRT Filters</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'T' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'CRT Filters' +
-                            '</div>' +
-                        '</div>' +
+                        '<div class="full-divider"></div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
@@ -113,9 +106,7 @@ wmsx.SettingsGUI.html = function() {
                                     'D' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Debug Modes' +
-                            '</div>' +
+                            '<div class="desc">Debug Modes</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -125,48 +116,19 @@ wmsx.SettingsGUI.html = function() {
                                     'S' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Sprite Modes' +
-                            '</div>' +
+                            '<div class="desc">Sprite Modes</div>' +
                         '</div>' +
-                        '<div class="full-divider">' +
-                        '</div>' +
-                        '<div id="jt-general-toggle-mouse" class="hotkey">' +
+                        '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'M' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Toggle Mouse' +
-                            '</div>' +
-                        '</div>' +
-                        '<div id="jt-general-swap-joysticks" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'J' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Toggle Joysticks' +
-                            '</div>' +
-                        '</div>' +
-                        '<div id="jt-general-toggle-keyboards" class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'K' +
+                                    'G' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Toggle Keyboards' +
-                            '</div>' +
+                            '<div class="desc">Capture Screen</div>' +
                         '</div>' +
+                        '<div class="full-divider"></div>' +
                     '</div>' +
                     '<div class="right">' +
                         '<div class="hotkey">' +
@@ -177,9 +139,7 @@ wmsx.SettingsGUI.html = function() {
                                     '0 - 9' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Load State' +
-                            '</div>' +
+                            '<div class="desc">Load State</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -191,9 +151,7 @@ wmsx.SettingsGUI.html = function() {
                                     '0 - 9' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Save State' +
-                            '</div>' +
+                            '<div class="desc">Save State</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -205,12 +163,9 @@ wmsx.SettingsGUI.html = function() {
                                     'F11' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Save State File' +
-                            '</div>' +
+                            '<div class="desc">Save State File</div>' +
                         '</div>' +
-                        '<div class="full-divider">' +
-                        '</div>' +
+                        '<div class="full-divider"></div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key">' +
@@ -221,9 +176,7 @@ wmsx.SettingsGUI.html = function() {
                                     'F12' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Fast / Slow Speed' +
-                            '</div>' +
+                            '<div class="desc">Fast / Slow Speed</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -233,9 +186,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Arrows' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Adjust Speed' +
-                            '</div>' +
+                            '<div class="desc">Adjust Speed</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -245,9 +196,7 @@ wmsx.SettingsGUI.html = function() {
                                     'P' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Toggle Pause' +
-                            '</div>' +
+                            '<div class="desc">Toggle Pause</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -257,12 +206,9 @@ wmsx.SettingsGUI.html = function() {
                                     'O' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Next Frame' +
-                            '</div>' +
+                            '<div class="desc">Next Frame</div>' +
                         '</div>' +
-                        '<div class="full-divider">' +
-                        '</div>' +
+                        '<div class="full-divider"></div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
@@ -271,9 +217,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Enter' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Full Screen' +
-                            '</div>' +
+                            '<div class="desc">Full Screen</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -285,44 +229,75 @@ wmsx.SettingsGUI.html = function() {
                                     'Arrows' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Screen Size / Width' +
-                            '</div>' +
+                            '<div class="desc">Screen Size / Width</div>' +
                         '</div>' +
-                        '<div class="hotkey">' +
-                        '</div>' +
+                        '<div class="full-divider"></div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
-                                'Backspace' +
+                                    'Backspace' +
+                                '</div>' +
                             '</div>' +
+                            '<div class="desc">Defaults</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div id="jt-inputs">' +
+                    '<div class="left">' +
+                        '<div id="jt-inputs-toggle-mouse" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'M' +
+                                '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Defaults' +
+                            '<div class="desc">Toggle Mouse</div>' +
+                        '</div>' +
+                        '<div id="jt-inputs-swap-joysticks" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'J' +
+                                '</div>' +
                             '</div>' +
+                            '<div class="desc">Toggle Joysticks</div>' +
+                        '</div>' +
+                        '<div id="jt-inputs-toggle-keyboards" class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="key">' +
+                                    'K' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Toggle Keyboards</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div id="jt-media">' +
-                    '<div class="hotkey">' +
-                        '<div class="desc" style="position: relative; top: -2px;">' +
-                            'Click the media icons on the bottom bar to load files. Left-click / modifier keys also apply' +
-                        '</div>' +
-                    '</div>' +
                     '<div class="top-left">' +
+                        '<div class="hotkey heading">' +
+                            'Media Commands:' +
+                        '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
                                 '<div class="key">' +
                                     'F6' +
-                                '</div>&nbsp;,&nbsp;<div class="key">' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Load Disk</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '<div class="key">' +
                                     'F7' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Load Disk Drive A, B' +
-                            '</div>' +
+                            '<div class="desc">Load Cartridge</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -330,106 +305,69 @@ wmsx.SettingsGUI.html = function() {
                                     'F8' +
                                 '</div>' +
                             '</div>' +
+                            '<div class="desc">Load Cassette Tape</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
                             '<div class="desc">' +
-                                'Load Cassette Tape' +
+                                'Drag &amp; Drop Media Files or URLs' +
                             '</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
-                                    'F9' +
-                                '</div>&nbsp;,&nbsp;<div class="key">' +
-                                    'F10' +
-                                '</div>' +
-                            '</div>' +
                             '<div class="desc">' +
-                                'Load Cartridge Slot 1, 2' +
+                                'Click the Media icons on the bottom bar' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="top-right">' +
+                        '<div class="hotkey heading">' +
+                            'Modifiers for Media Commands:' +
+                        '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
-                                '<div class="key key-fixed">' +
+                                '+ <div class="key">' +
+                                    'Shift' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Use Drive B, Slot 2</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '+ <div class="key key-fixed">' +
+                                    'Ctrl' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Load Empty Media</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '+ <div class="key key-fixed">' +
+                                    'Alt' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="desc">Remove Media</div>' +
+                        '</div>' +
+                        '<div class="hotkey">' +
+                            '<div class="command">' +
+                                '+ <div class="key key-fixed">' +
                                     'Ctrl' +
                                 '</div>&nbsp;<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F6 - F8' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Save Media File' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
-                                    'Shift' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F6 - F8' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Load Empty Media' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key">' +
-                                    'Shift' +
-                                '</div>&nbsp;<div class="key key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F6 - F10' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Load from URL' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="hotkey">' +
-                            '<div class="command">' +
-                                '<div class="key key-fixed">' +
-                                    'Ctrl' +
-                                '</div>&nbsp;+&nbsp;<div class="key">' +
-                                    'F6 - F10' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="desc">' +
-                                'Remove Media' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="divider">' +
-                    '</div>' +
-                    '<div class="hotkey">' +
-                        '<div class="desc" style="position: relative; top: -2px;">' +
-                            'Drag & Drop File or URL to load Media' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="hotkey">' +
-                        '<div class="command">' +
-                            '<div class="key key-fixed">' +
                                 'Alt' +
                             '</div>' +
-                        '</div>' +
-                        '<div class="desc">' +
-                            '&nbsp;+ Drag & Drop File or URL to load Media in Drive B or Cartridge Slot 2' +
+                            '</div>' +
+                            '<div class="desc">Save Media File</div>' +
                         '</div>' +
                     '</div>' +
+                    '<div class="full-divider"></div>' +
                     '<div class="hotkey">' +
                         '<div class="command">' +
                             '<div class="key key-fixed">' +
                                 'Ctrl' +
                             '</div>' +
                         '</div>' +
-                        '<div class="desc">' +
-                            '&nbsp;+ Drag & Drop File or URL to load Media with alternate Auto-Power' +
+                        '<div class="desc">&nbsp;+ Drag &amp; Drop File or URL to load Media with alternate Auto-Power' +
                         '</div>' +
                     '</div>' +
-                    '<div class="full-divider">' +
-                    '</div>' +
+                    '<div class="full-divider"></div>' +
                     '<div class="bottom-left">' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -439,9 +377,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Home' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Rewind Tape' +
-                            '</div>' +
+                            '<div class="desc">Rewind Tape</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -449,11 +385,9 @@ wmsx.SettingsGUI.html = function() {
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="key">' +
                                     'End' +
-                                '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Seek to Tape end' +
                             '</div>' +
+                            '<div class="desc">Seek to Tape end</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="bottom-right">' +
@@ -465,9 +399,7 @@ wmsx.SettingsGUI.html = function() {
                                     'PgUp' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Seek Tape backward' +
-                            '</div>' +
+                            '<div class="desc">Seek Tape backward</div>' +
                         '</div>' +
                         '<div class="hotkey">' +
                             '<div class="command">' +
@@ -477,13 +409,10 @@ wmsx.SettingsGUI.html = function() {
                                     'PgDn' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="desc">' +
-                                'Seek Tape forward' +
-                            '</div>' +
+                            '<div class="desc">Seek Tape forward</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="full-divider">' +
-                    '</div>' +
+                    '<div class="full-divider"></div>' +
                     '<div class="hotkey bottom">' +
                         '<div class="command">' +
                             '<div class="key">' +
@@ -503,12 +432,12 @@ wmsx.SettingsGUI.html = function() {
                 '</div>' +
                 '<div id="jt-about">' +
                     '<div id="jt-logo-version">' +
-                        'WebMSX&nbsp&nbsp;-&nbsp;&nbsp&nbsp' + WMSX.VERSION +
+                        'WebMSX &nbsp;-&nbsp; version XX' +
                     '</div>' +
                     '<div class="info">' +
-                        atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") +
+                        'Created by XX' +
                         '<br>' +
-                        atob("PGEgaHJlZj0iaHR0cDovL3dlYm1zeC5vcmciPmh0dHA6Ly93ZWJtc3gub3JnPC9hPg==") +
+                        '<a href="http://webmsx.org">http://webmsx.org</a>' +
                     '</div>' +
                     '<div id="jt-browserinfo">' +
                     '</div>' +
@@ -520,292 +449,319 @@ wmsx.SettingsGUI.html = function() {
 
 wmsx.SettingsGUI.css = function() {
     return '#jt-cover {' +
-       ' position: fixed;' +
-       ' top: 0;' +
-       ' right: 0;' +
-       ' bottom: 0;' +
-       ' left: 0;' +
-       ' visibility: hidden;' +
-       ' opacity: 0;' +
-       ' background-color: rgba(0, 0, 0, 0.6);' +
-       ' transition: all .2s ease-out;' +
-    '}' +
+            'position: fixed;' +
+            'top: 0;' +
+            'right: 0;' +
+            'bottom: 0;' +
+            'left: 0;' +
+            'visibility: hidden;' +
+            'opacity: 0;' +
+            'background-color: rgba(0, 0, 0, 0.6);' +
+            'transition: all .2s ease-out;' +
+        '}' +
 
-    '#jt-cover.show {' +
-       ' visibility: visible;' +
-       ' opacity: 1;' +
-    '}' +
+        '#jt-cover.show {' +
+            'visibility: visible;' +
+            'opacity: 1;' +
+        '}' +
 
-    '#jt-modal {' +
-       ' position: relative;' +
-       ' overflow: hidden;' +
-       ' width: 600px;' +
-       ' top: 50px;' +
-       ' left: -120px;' +
-       ' margin: 0 auto;' +
-       ' color: rgba(0, 0, 0, 0.90);' +
-       ' font-family: arial, sans-serif;' +
-       ' box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
-       ' transition: all .2s ease-out;' +
-    '}' +
+        '#jt-modal {' +
+            'position: relative;' +
+            'overflow: hidden;' +
+            'width: 600px;' +
+            'top: 50px;' +
+            'left: -120px;' +
+            'margin: 0 auto;' +
+            'color: rgba(0, 0, 0, 0.90);' +
+            'font-family: arial, sans-serif;' +
+            'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
+            'transition: all .2s ease-out;' +
+        '}' +
 
-    '#jt-modal.show {' +
-       ' left: -0px;' +
-    '}' +
+        '#jt-modal.show {' +
+            'left: -0px;' +
+        '}' +
 
-    '#jt-modal .hotkey {' +
-       ' height: 27px;' +
-       ' padding: 3px 5px;' +
-       ' font-size: 13px;' +
-       ' box-sizing: border-box;' +
-    '}' +
+        '#jt-modal .hotkey {' +
+            'height: 27px;' +
+            'padding: 3px 5px;' +
+            'font-size: 13px;' +
+            'box-sizing: border-box;' +
+        '}' +
 
-    '#jt-modal .hotkey .command {' +
-       ' position: relative;' +
-       ' float: left;' +
-       ' font-weight: 600;' +
-       ' color: rgba(0, 0, 0, .54);' +
-    '}' +
+        '#jt-modal .heading {' +
+            'font-size: 13px;' +
+            'font-weight: 700;' +
+            'color: rgba(0, 0, 0, .60);' +
+        '}' +
 
-    '#jt-modal .hotkey .desc {' +
-       ' float: left;' +
-       ' padding-top: 3px;' +
-    '}' +
+        '#jt-modal .hotkey .command {' +
+            'position: relative;' +
+            'float: left;' +
+            'font-weight: 600;' +
+            'color: rgba(0, 0, 0, .54);' +
+        '}' +
 
-    '#jt-modal .key {' +
-       ' position: relative;' +
-       ' display: inline-block;' +
-       ' top: -1px;' +
-       ' min-width: 25px;' +
-       ' height: 21px;' +
-       ' padding: 4px 6px 3px;' +
-       ' box-sizing: border-box;' +
-       ' font-weight: 600;' +
-       ' font-size: 12px;' +
-       ' line-height: 12px;' +
-       ' color: rgba(0, 0, 0, .71);' +
-       ' background-color: white;' +
-       ' border-radius: 3px;' +
-       ' border: 1px solid rgb(210, 210, 210);' +
-       ' box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
-       ' text-align: center;' +
-    '}' +
+        '#jt-modal .hotkey .desc {' +
+            'float: left;' +
+            'padding-top: 3px;' +
+        '}' +
 
-    '#jt-modal .key-fixed {' +
-       ' width: 31px;' +
-       ' padding-left: 0;' +
-       ' padding-right: 2px;' +
-    '}' +
+        '#jt-modal .key {' +
+            'position: relative;' +
+            'display: inline-block;' +
+            'top: -1px;' +
+            'min-width: 25px;' +
+            'height: 21px;' +
+            'padding: 4px 6px 3px;' +
+            'box-sizing: border-box;' +
+            'font-weight: 600;' +
+            'font-size: 12px;' +
+            'line-height: 12px;' +
+            'color: rgba(0, 0, 0, .71);' +
+            'background-color: white;' +
+            'border-radius: 3px;' +
+            'border: 1px solid rgb(210, 210, 210);' +
+            'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
+            'text-align: center;' +
+        '}' +
 
-    '#jt-menu {' +
-       ' position: relative;' +
-       ' background-color: white;' +
-       ' border-bottom: 1px solid rgb(200, 200, 200);' +
-    '}' +
+        '#jt-modal .key-fixed {' +
+            'width: 31px;' +
+            'padding-left: 0;' +
+            'padding-right: 2px;' +
+        '}' +
 
-    '#jt-menu #jt-back {' +
-       ' position: absolute;' +
-       ' width: 18px;' +
-       ' height: 32px;' +
-       ' margin: 3px;' +
-       ' padding: 0 11px;' +
-       ' font-size: 35px;' +
-       ' color: white;' +
-       ' cursor: pointer;' +
-    '}' +
+        '#jt-menu {' +
+            'position: relative;' +
+            'background-color: white;' +
+            'border-bottom: 1px solid rgb(200, 200, 200);' +
+        '}' +
 
-    '#jt-menu #jt-back:hover {' +
-       ' background-color: rgba(0, 0, 0, .12);' +
-    '}' +
+        '#jt-menu #jt-back {' +
+            'position: absolute;' +
+            'width: 18px;' +
+            'height: 32px;' +
+            'margin: 3px;' +
+            'padding: 0 11px;' +
+            'font-size: 35px;' +
+            'color: white;' +
+            'cursor: pointer;' +
+        '}' +
 
-    '#jt-menu #jt-back-arrow {' +
-       ' position: relative;' +
-       ' overflow: hidden;' +
-       ' top: -7px;' +
-    '}' +
+        '#jt-menu #jt-back:hover {' +
+            'background-color: rgba(0, 0, 0, .12);' +
+        '}' +
 
-    '#jt-menu .caption {' +
-       ' height: 29px;' +
-       ' margin: 0 -1px;' +
-       ' padding: 10px 0 0 48px;' +
-       ' font-size: 18px;' +
-       ' color: white;' +
-       ' background-color: rgb(235, 62, 35);' +
-       ' box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
-       ' vertical-align: middle;' +
-    '}' +
+        '#jt-menu #jt-back-arrow {' +
+            'position: relative;' +
+            'overflow: hidden;' +
+            'top: -7px;' +
+        '}' +
 
-    '#jt-menu .items {' +
-       ' position: relative;' +
-       ' width: 70%;' +
-       ' height: 39px;' +
-       ' margin: 0 auto;' +
-       ' font-weight: 600;' +
-    '}' +
+        '#jt-menu .caption {' +
+            'height: 29px;' +
+            'margin: 0 -1px;' +
+            'padding: 10px 0 0 48px;' +
+            'font-size: 18px;' +
+            'color: white;' +
+            'background-color: rgb(235, 62, 35);' +
+            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
+            'vertical-align: middle;' +
+        '}' +
 
-    '#jt-menu .item {' +
-       ' float: left;' +
-       ' width: 33.3%;' +
-       ' height: 100%;' +
-       ' padding-top: 13px;' +
-       ' font-size: 14px;' +
-       ' color: rgba(0, 0, 0, .43);' +
-       ' text-align: center;' +
-       ' cursor: pointer;' +
-    '}' +
+        '#jt-menu .items {' +
+            'position: relative;' +
+            'width: 75%;' +
+            'height: 39px;' +
+            'margin: 0 auto;' +
+            'font-weight: 600;' +
+        '}' +
 
-    '#jt-menu .selected {' +
-       ' color: rgb(224, 56, 34);' +
-    '}' +
+        '#jt-menu .item {' +
+            'float: left;' +
+            'width: 25%;' +
+            'height: 100%;' +
+            'padding-top: 13px;' +
+            'font-size: 14px;' +
+            'color: rgba(0, 0, 0, .43);' +
+            'text-align: center;' +
+            'cursor: pointer;' +
+        '}' +
 
-    '#jt-menu #jt-menu-selection {' +
-       ' position: absolute;' +
-       ' left: 0;' +
-       ' bottom: 0;' +
-       ' width: 33.3%;' +
-       ' height: 3px;' +
-       ' background-color: rgb(235, 62, 35);' +
-       ' transition: left 0.3s ease-in-out;' +
-    '}' +
+        '#jt-menu .selected {' +
+            'color: rgb(224, 56, 34);' +
+        '}' +
 
+        '#jt-menu #jt-menu-selection {' +
+            'position: absolute;' +
+            'left: 0;' +
+            'bottom: 0;' +
+            'width: 25%;' +
+            'height: 3px;' +
+            'background-color: rgb(235, 62, 35);' +
+            'transition: left 0.3s ease-in-out;' +
+        '}' +
 
-    '#jt-content {' +
-       ' position: relative;' +
-       ' left: 0;' +
-       ' width: 2300px;' +
-       ' height: 378px;' +
-       ' background-color: rgb(220, 220, 220);' +
-       ' transition: left 0.3s ease-in-out' +
-    '}' +
+'' +
+        '#jt-content {' +
+            'position: relative;' +
+            'left: 0;' +
+            'width: 3000px;' +
+            'height: 378px;' +
+            'background-color: rgb(220, 220, 220);' +
+            'transition: left 0.3s ease-in-out' +
+        '}' +
 
-    '#jt-general, #jt-media, #jt-controls, #jt-about {' +
-       ' position: absolute;' +
-       ' width: 600px;' +
-       ' height: 100%;' +
-       ' box-sizing: border-box;' +
-    '}' +
+        '#jt-general, #jt-inputs, #jt-media, #jt-controls, #jt-about {' +
+            'position: absolute;' +
+            'width: 600px;' +
+            'height: 100%;' +
+            'box-sizing: border-box;' +
+        '}' +
 
-    '#jt-general {' +
-       ' padding-top: 20px;' +
-       ' padding-left: 39px;' +
-    '}' +
+        '#jt-general {' +
+            'padding-top: 20px;' +
+            'padding-left: 39px;' +
+        '}' +
 
-    '#jt-general .left {' +
-       ' float: left;' +
-       ' width: 248px;' +
-    '}' +
+        '#jt-general .left {' +
+            'float: left;' +
+            'width: 248px;' +
+        '}' +
 
-    '#jt-general .left .command {' +
-       ' width: 102px;' +
-    '}' +
+        '#jt-general .left .command {' +
+            'width: 102px;' +
+        '}' +
 
-    '#jt-general .right {' +
-       ' float: left;' +
-    '}' +
+        '#jt-general .right {' +
+            'float: left;' +
+        '}' +
 
-    '#jt-general .right .command {' +
-       ' width: 160px;' +
-    '}' +
+        '#jt-general .right .command {' +
+            'width: 160px;' +
+        '}' +
 
-    '#jt-media {' +
-       ' left: 600px;' +
-    '}' +
+        '#jt-inputs {' +
+            'left: 600px;' +
+        '}' +
 
-    '#jt-media {' +
-       ' padding-top: 18px;' +
-       ' padding-left: 32px;' +
-    '}' +
+        '#jt-inputs {' +
+            'padding-top: 18px;' +
+            'padding-left: 32px;' +
+        '}' +
 
-    '#jt-media .top-left {' +
-       ' float: left;' +
-       ' width: 259px;' +
-    '}' +
+        '#jt-inputs .left {' +
+            'float: left;' +
+            'width: 259px;' +
+        '}' +
 
-    '#jt-media .top-right {' +
-       ' float: left;' +
-    '}' +
+        '#jt-inputs .left .command {' +
+            'width: 102px;' +
+        '}' +
 
-    '#jt-media .bottom-left {' +
-       ' float: left;' +
-       ' width: 260px;' +
-    '}' +
+        '#jt-media {' +
+            'left: 1200px;' +
+        '}' +
 
-    '#jt-media .bottom-right {' +
-       ' float: left;' +
-    '}' +
+        '#jt-media {' +
+            'padding-top: 18px;' +
+            'padding-left: 40px;' +
+        '}' +
 
-    '#jt-media .top-left .command {' +
-       ' width: 89px;' +
-    '}' +
+        '#jt-media .heading {' +
 
-    '#jt-media .top-right .command {' +
-       ' width: 166px;' +
-    '}' +
+        '}' +
 
-    '#jt-media .bottom-left .command {' +
-       ' width: 110px;' +
-    '}' +
+        '#jt-media .top-left {' +
+            'float: left;' +
+            'width: 275px;' +
+        '}' +
 
-    '#jt-media .bottom-right .command {' +
-       ' width: 107px;' +
-    '}' +
+        '#jt-media .top-right {' +
+            'float: left;' +
+        '}' +
 
-    '#jt-media .bottom .command {' +
-       ' width: 170px;' +
-    '}' +
+        '#jt-media .bottom-left {' +
+            'float: left;' +
+            'width: 275px;' +
+        '}' +
 
+        '#jt-media .bottom-right {' +
+            'float: left;' +
+        '}' +
 
-    '#jt-about {' +
-       ' left: 1200px;' +
-    '}' +
+        '#jt-media .top-left .command {' +
+            'width: 55px;' +
+        '}' +
 
-    '#jt-about #jt-logo-version {' +
-       ' width: 380px;' +
-       ' height: 212px;' +
-       ' margin: 36px auto 24px;' +
-       ' font-size: 18px;' +
-       ' color: rgba(255, 255, 255, 0.97);' +
-       ' padding-top: 170px;' +
-       ' box-sizing: border-box;' +
-       ' text-align: center;' +
-       ' background: black url("' + wmsx.Images.urls.logo + '") center 50px no-repeat;' +
-       ' box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
-    '}' +
+        '#jt-media .top-right .command {' +
+            'width: 110px;' +
+        '}' +
 
-    '#jt-about .info {' +
-       ' font-size: 18px;' +
-       ' line-height: 30px;' +
-       ' text-align: center;' +
-    '}' +
+        '#jt-media .bottom-left .command {' +
+            'width: 110px;' +
+        '}' +
 
-    '#jt-about a {' +
-       ' color: rgb(0, 80, 230);' +
-       ' text-decoration: none;' +
-    '}' +
+        '#jt-media .bottom-right .command {' +
+            'width: 110px;' +
+        '}' +
 
-    '#jt-about #jt-browserinfo {' +
-       ' position: absolute;' +
-       ' left: 0;' +
-       ' right: 0;' +
-       ' bottom: 7px;' +
-       ' font-size: 10px;' +
-       ' text-align: center;' +
-       ' color: transparent;' +
-    '}' +
+        '#jt-media .bottom .command {' +
+            'width: 174px;' +
+        '}' +
 
-    '.divider {' +
-       ' clear: both;' +
-    '}' +
+        '#jt-about {' +
+            'left: 1800px;' +
+        '}' +
 
-    '.full-divider {' +
-       ' clear: both;' +
-       ' height: 21px;' +
-    '}' +
+        '#jt-about #jt-logo-version {' +
+            'width: 380px;' +
+            'height: 212px;' +
+            'margin: 36px auto 24px;' +
+            'font-size: 18px;' +
+            'color: rgba(255, 255, 255, 0.97);' +
+            'padding-top: 170px;' +
+            'box-sizing: border-box;' +
+            'text-align: center;' +
+            'background: black url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAKtQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8PDwZWVlTExMc3Nz////Jh+BnQAAADR0Uk5TAAYPCR8VFyodOSgNETEwIQEDDCBESywUBAILPCQTYzsbi1OfX5dXQ79/I1yTWysFNI8zTzUuY4wAAAABYktHRDigB6XWAAAACXBIWXMAAABIAAAASABGyWs+AAAArklEQVQ4y+3QyQ6CMBAGYFb3BaoColVcCyLg0g59/yezTTi2vXkw8U96+r9MOmNZ//x8bMdxbVPvUeY7BtCjrD9wDUAMGI7GBjCZUjabB4GmDtFiSdkqilGyVoIUAFrxNluknoCB85Zz2O2xGmQdOBwzzQ7QysDp7OkAl/kmyDpwuWo+GRMpIC+IZs1bVIoz5feqTtWg8R9l8SyqFw7VIGj8iLxJretFEoR7OJX9BzzSGd6yIruAAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE2LTA1LTAzVDE5OjIxOjQxLTA0OjAwyfh0YgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNi0wNS0wM1QxOToyMTo0MS0wNDowMLilzN4AAAAASUVORK5CYII=") center 50px no-repeat;' +
+            'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
+        '}' +
 
-    '#jt-general .full-divider {' +
-       ' clear: both;' +
-       ' height: 18px;' +
-    '}';
+        '#jt-about .info {' +
+            'font-size: 18px;' +
+            'line-height: 30px;' +
+            'text-align: center;' +
+        '}' +
+
+        '#jt-about a {' +
+            'color: rgb(0, 80, 230);' +
+            'text-decoration: none;' +
+        '}' +
+
+        '#jt-about #jt-browserinfo {' +
+            'position: absolute;' +
+            'left: 0;' +
+            'right: 0;' +
+            'bottom: 7px;' +
+            'font-size: 10px;' +
+            'text-align: center;' +
+            'color: transparent;' +
+        '}' +
+
+        '.divider {' +
+            'clear: both;' +
+        '}' +
+
+        '.full-divider {' +
+            'clear: both;' +
+            'height: 21px;' +
+        '}' +
+
+        '#jt-general .full-divider {' +
+            'clear: both;' +
+            'height: 18px;' +
+        '}';
 
 };
 

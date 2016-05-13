@@ -30,19 +30,22 @@ wmsx.SettingsDialog = function() {
     this.setPage = function (page) {
         var contentPosition = {
             "GENERAL": "0",
-            "MEDIA": "-600px",
-            "ABOUT": "-1200px"
+            "INPUTS": "-600px",
+            "MEDIA": "-1200px",
+            "ABOUT": "-1800px"
         }[page];
         var selectionPosition = {
             "GENERAL": "0",
-            "MEDIA": "33.3%",
-            "ABOUT": "66.6%"
+            "INPUTS": "25%",
+            "MEDIA": "50%",
+            "ABOUT": "75%"
         }[page];
 
         if (contentPosition) self["jt-content"].style.left = contentPosition;
         if (selectionPosition) self["jt-menu-selection"].style.left = selectionPosition;
 
         self["jt-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("selected");
+        self["jt-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("selected");
         self["jt-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("selected");
         self["jt-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("selected");
     };
@@ -113,6 +116,10 @@ wmsx.SettingsDialog = function() {
             if (e.preventDefault) e.preventDefault();
             self.setPage("GENERAL");
         });
+        self["jt-menu-inputs"].addEventListener("mousedown", function (e) {
+            if (e.preventDefault) e.preventDefault();
+            self.setPage("INPUTS");
+        });
         self["jt-menu-media"].addEventListener("mousedown", function (e) {
             if (e.preventDefault) e.preventDefault();
             self.setPage("MEDIA");
@@ -122,7 +129,7 @@ wmsx.SettingsDialog = function() {
             self.setPage("ABOUT");
         });
 
-        // Generic Console Controls Commands
+        // Generic Controls Commands
         for (var key in controlsCommandKeys) {
             (function(keyLocal) {
                 self[controlsCommandKeys[key]].addEventListener("mousedown", function (e) {

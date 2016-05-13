@@ -207,48 +207,34 @@ wmsx.DOMPeripheralControls = function(room) {
     };
 
     var initKeys = function() {
-        keyCodeMap[KEY_DISKA] = controls.DISKA_LOAD_FILE;
-        keyCodeMap[KEY_DISKB] = controls.DISKB_LOAD_FILE;
-        keyCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_FILE;
-        keyCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_FILE;
+        keyCodeMap[KEY_DISK] = controls.DISKA_LOAD_FILE;
+        keyControlCodeMap[KEY_DISK] = controls.DISKA_EMPTY;
+        keyAltCodeMap[KEY_DISK] = controls.DISKA_REMOVE;
+        keyControlAltCodeMap[KEY_DISK] = controls.DISKA_SAVE_FILE;
+
+        keyShiftCodeMap[KEY_DISK] = controls.DISKB_LOAD_FILE;
+        keyShiftControlCodeMap[KEY_DISK] = controls.DISKB_EMPTY;
+        keyShiftAltCodeMap[KEY_DISK] = controls.DISKB_REMOVE;
+        keyShiftControlAltCodeMap[KEY_DISK] = controls.DISKB_SAVE_FILE;
+
+        keyCodeMap[KEY_CART] = controls.CARTRIDGE1_LOAD_FILE;
+        keyAltCodeMap[KEY_CART] = controls.CARTRIDGE1_REMOVE;
+
+        keyShiftCodeMap[KEY_CART] = controls.CARTRIDGE2_LOAD_FILE;
+        keyShiftAltCodeMap[KEY_CART] = controls.CARTRIDGE2_REMOVE;
+
         keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
-
-        keyAltCodeMap[KEY_DISKA] = controls.DISKA_LOAD_FILE;
-        keyAltCodeMap[KEY_DISKB] = controls.DISKB_LOAD_FILE;
-        keyAltCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_FILE;
-        keyAltCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_FILE;
-        keyAltCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
-
-        keyShiftControlCodeMap[KEY_DISKA] = controls.DISKA_LOAD_FILE_ALT_POWER;
-        keyShiftControlCodeMap[KEY_DISKB] = controls.DISKB_LOAD_FILE_ALT_POWER;
-        keyShiftControlCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE_ALT_POWER;
-
-        keyShiftAltCodeMap[KEY_DISKA] = controls.DISKA_LOAD_URL;
-        keyShiftAltCodeMap[KEY_DISKB] = controls.DISKB_LOAD_URL;
-        keyShiftAltCodeMap[KEY_CART1] = controls.CARTRIDGE1_LOAD_URL;
-        keyShiftAltCodeMap[KEY_CART2] = controls.CARTRIDGE2_LOAD_URL;
-        keyShiftAltCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_URL;
-
-        keyControlCodeMap[KEY_DISKA] = controls.DISKA_REMOVE;
-        keyControlCodeMap[KEY_DISKB] = controls.DISKB_REMOVE;
-        keyControlCodeMap[KEY_CART1] = controls.CARTRIDGE1_REMOVE;
-        keyControlCodeMap[KEY_CART2] = controls.CARTRIDGE2_REMOVE;
-        keyControlCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
-
-        keyShiftCodeMap[KEY_DISKA] = controls.DISKA_EMPTY;
-        keyShiftCodeMap[KEY_DISKB] = controls.DISKB_EMPTY;
-        keyShiftCodeMap[KEY_TAPE]  = controls.TAPE_EMPTY;
-
-        keyControlAltCodeMap[KEY_DISKA] = controls.DISKA_SAVE_FILE;
-        keyControlAltCodeMap[KEY_DISKB] = controls.DISKB_SAVE_FILE;
+        keyControlCodeMap[KEY_TAPE]  = controls.TAPE_EMPTY;
+        keyAltCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
         keyControlAltCodeMap[KEY_TAPE]  = controls.TAPE_SAVE_FILE;
 
         keyAltCodeMap[KEY_TAPE_REW]  = controls.TAPE_REWIND;
         keyAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
         keyAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
         keyAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
-
         keyShiftControlAltCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
+
+        keyShiftCodeMap[KEY_TAPE] = controls.DISKA_LOAD_URL;
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 
@@ -303,16 +289,15 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_PASTE   = wmsx.DOMKeys.VK_V.c;
     var KEY_PASTE2  = wmsx.DOMKeys.VK_INSERT.c;
 
-    var KEY_DISKA  = wmsx.DOMKeys.VK_F6.c;
-    var KEY_DISKB  = wmsx.DOMKeys.VK_F7.c;
+    var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
+
+    var KEY_CART  = wmsx.DOMKeys.VK_F7.c;
 
     var KEY_TAPE       = wmsx.DOMKeys.VK_F8.c;
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
-    var KEY_CART1  = wmsx.DOMKeys.VK_F9.c;
-    var KEY_CART2  = wmsx.DOMKeys.VK_F10.c;
 
     var KEY_JOYSTICKS_TOGGLE  = wmsx.DOMKeys.VK_J.c;
     var KEY_MOUSE_TOGGLE      = wmsx.DOMKeys.VK_M.c;

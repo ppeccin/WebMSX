@@ -39,6 +39,12 @@
     box-sizing: border-box;
 }
 
+#jt-modal .heading {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, .60);
+}
+
 #jt-modal .hotkey .command {
     position: relative;
     float: left;
@@ -116,7 +122,7 @@
 
 #jt-menu .items {
     position: relative;
-    width: 70%;
+    width: 75%;
     height: 39px;
     margin: 0 auto;
     font-weight: 600;
@@ -124,7 +130,7 @@
 
 #jt-menu .item {
     float: left;
-    width: 33.3%;
+    width: 25%;
     height: 100%;
     padding-top: 13px;
     font-size: 14px;
@@ -141,7 +147,7 @@
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 33.3%;
+    width: 25%;
     height: 3px;
     background-color: rgb(235, 62, 35);
     transition: left 0.3s ease-in-out;
@@ -151,13 +157,13 @@
 #jt-content {
     position: relative;
     left: 0;
-    width: 2300px;
+    width: 3000px;
     height: 378px;
     background-color: rgb(220, 220, 220);
     transition: left 0.3s ease-in-out
 }
 
-#jt-general, #jt-media, #jt-controls, #jt-about {
+#jt-general, #jt-inputs, #jt-media, #jt-controls, #jt-about {
     position: absolute;
     width: 600px;
     height: 100%;
@@ -186,18 +192,40 @@
     width: 160px;
 }
 
-#jt-media {
+#jt-inputs {
     left: 600px;
 }
 
-#jt-media {
+#jt-inputs {
     padding-top: 18px;
     padding-left: 32px;
 }
 
-#jt-media .top-left {
+#jt-inputs .left {
     float: left;
     width: 259px;
+}
+
+#jt-inputs .left .command {
+    width: 102px;
+}
+
+#jt-media {
+    left: 1200px;
+}
+
+#jt-media {
+    padding-top: 18px;
+    padding-left: 40px;
+}
+
+#jt-media .heading {
+
+}
+
+#jt-media .top-left {
+    float: left;
+    width: 275px;
 }
 
 #jt-media .top-right {
@@ -206,7 +234,7 @@
 
 #jt-media .bottom-left {
     float: left;
-    width: 260px;
+    width: 275px;
 }
 
 #jt-media .bottom-right {
@@ -214,11 +242,11 @@
 }
 
 #jt-media .top-left .command {
-    width: 89px;
+    width: 55px;
 }
 
 #jt-media .top-right .command {
-    width: 166px;
+    width: 110px;
 }
 
 #jt-media .bottom-left .command {
@@ -226,16 +254,15 @@
 }
 
 #jt-media .bottom-right .command {
-    width: 107px;
+    width: 110px;
 }
 
 #jt-media .bottom .command {
-    width: 170px;
+    width: 174px;
 }
 
-
 #jt-about {
-    left: 1200px;
+    left: 1800px;
 }
 
 #jt-about #jt-logo-version {
@@ -287,9 +314,13 @@
 }
 
 #jt-content {
-    left: -1200px;
+    left: -1800px;
 }
 
 #jt-content {
     left: -600px;
+}
+
+#jt-content {
+    left: -1200px;
 }

@@ -10,8 +10,8 @@
 
 <body>
 
-    <div id="jt-cover" class="_show">
-        <div id="jt-modal" class="_show">
+    <div id="jt-cover" class="show">
+        <div id="jt-modal" class="show">
             <div id="jt-menu">
                 <div id="jt-back">
                     <div id="jt-back-arrow">
@@ -24,6 +24,9 @@
                 <div class="items">
                     <div id="jt-menu-general" class="item selected">
                         GENERAL
+                    </div>
+                    <div id="jt-menu-inputs" class="item">
+                        INPUTS
                     </div>
                     <div id="jt-menu-media" class="item">
                         MEDIA
@@ -83,7 +86,7 @@
                             <div class="command">
                                 <div class="key key-fixed">
                                     Alt
-                                </div>&nbsp;+&nbsp <div class="key">
+                                </div>&nbsp;+&nbsp<div class="key">
                                     R
                                 </div>
                             </div>
@@ -99,6 +102,7 @@
                             </div>
                             <div class="desc">CRT Filters</div>
                         </div>
+                        <div class="full-divider"></div>
                         <div class="hotkey">
                             <div class="command">
                                 <div class="key key-fixed">
@@ -119,37 +123,17 @@
                             </div>
                             <div class="desc">Sprite Modes</div>
                         </div>
+                        <div class="hotkey">
+                            <div class="command">
+                                <div class="key key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="key">
+                                    G
+                                </div>
+                            </div>
+                            <div class="desc">Capture Screen</div>
+                        </div>
                         <div class="full-divider"></div>
-                        <div id="jt-general-toggle-mouse" class="hotkey">
-                            <div class="command">
-                                <div class="key key-fixed">
-                                    Alt
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    M
-                                </div>
-                            </div>
-                            <div class="desc">Toggle Mouse</div>
-                        </div>
-                        <div id="jt-general-swap-joysticks" class="hotkey">
-                            <div class="command">
-                                <div class="key key-fixed">
-                                    Alt
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    J
-                                </div>
-                            </div>
-                            <div class="desc">Toggle Joysticks</div>
-                        </div>
-                        <div id="jt-general-toggle-keyboards" class="hotkey">
-                            <div class="command">
-                                <div class="key key-fixed">
-                                    Alt
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    K
-                                </div>
-                            </div>
-                            <div class="desc">Toggle Keyboards</div>
-                        </div>
                     </div>
                     <div class="right">
                         <div class="hotkey">
@@ -252,7 +236,7 @@
                             </div>
                             <div class="desc">Screen Size / Width</div>
                         </div>
-                        <div class="hotkey"></div>
+                        <div class="full-divider"></div>
                         <div class="hotkey">
                             <div class="command">
                                 <div class="key key-fixed">
@@ -265,22 +249,60 @@
                         </div>
                     </div>
                 </div>
-                <div id="jt-media">
-                    <div class="hotkey">
-                        <div class="desc" style="position: relative; top: -2px;">
-                            Click the media icons on the bottom bar to load files. Left-click / modifier keys also apply
+                <div id="jt-inputs">
+                    <div class="left">
+                        <div id="jt-inputs-toggle-mouse" class="hotkey">
+                            <div class="command">
+                                <div class="key key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="key">
+                                    M
+                                </div>
+                            </div>
+                            <div class="desc">Toggle Mouse</div>
+                        </div>
+                        <div id="jt-inputs-swap-joysticks" class="hotkey">
+                            <div class="command">
+                                <div class="key key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="key">
+                                    J
+                                </div>
+                            </div>
+                            <div class="desc">Toggle Joysticks</div>
+                        </div>
+                        <div id="jt-inputs-toggle-keyboards" class="hotkey">
+                            <div class="command">
+                                <div class="key key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="key">
+                                    K
+                                </div>
+                            </div>
+                            <div class="desc">Toggle Keyboards</div>
                         </div>
                     </div>
+                </div>
+                <div id="jt-media">
                     <div class="top-left">
+                        <div class="hotkey heading">
+                            Media Commands:
+                        </div>
                         <div class="hotkey">
                             <div class="command">
                                 <div class="key">
                                     F6
-                                </div>&nbsp;,&nbsp;<div class="key">
+                                </div>
+                            </div>
+                            <div class="desc">Load Disk</div>
+                        </div>
+                        <div class="hotkey">
+                            <div class="command">
+                                <div class="key">
                                     F7
                                 </div>
                             </div>
-                            <div class="desc">Load Disk Drive A, B</div>
+                            <div class="desc">Load Cartridge</div>
                         </div>
                         <div class="hotkey">
                             <div class="command">
@@ -291,78 +313,56 @@
                             <div class="desc">Load Cassette Tape</div>
                         </div>
                         <div class="hotkey">
-                            <div class="command">
-                                <div class="key">
-                                    F9
-                                </div>&nbsp;,&nbsp;<div class="key">
-                                    F10
-                                </div>
+                            <div class="desc">
+                                Drag &amp; Drop Media Files or URLs
                             </div>
-                            <div class="desc">Load Cartridge Slot 1, 2</div>
+                        </div>
+                        <div class="hotkey">
+                            <div class="desc">
+                                Click the Media icons on the bottom bar
+                            </div>
                         </div>
                     </div>
                     <div class="top-right">
-                        <div class="hotkey">
-                            <div class="command">
-                                <div class="key key-fixed">
-                                    Ctrl
-                                </div>&nbsp;<div class="key key-fixed">
-                                    Alt
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    F6 - F8
-                                </div>
-                            </div>
-                            <div class="desc">Save Media File</div>
+                        <div class="hotkey heading">
+                            Modifiers for Media Commands:
                         </div>
                         <div class="hotkey">
                             <div class="command">
-                                <div class="key">
+                                + <div class="key">
                                     Shift
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    F6 - F8
+                                </div>
+                            </div>
+                            <div class="desc">Use Drive B, Slot 2</div>
+                        </div>
+                        <div class="hotkey">
+                            <div class="command">
+                                + <div class="key key-fixed">
+                                    Ctrl
                                 </div>
                             </div>
                             <div class="desc">Load Empty Media</div>
                         </div>
                         <div class="hotkey">
                             <div class="command">
-                                <div class="key">
-                                    Shift
-                                </div>&nbsp;<div class="key key-fixed">
+                                + <div class="key key-fixed">
                                     Alt
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    F6 - F10
-                                </div>
-                            </div>
-                            <div class="desc">Load from URL</div>
-                        </div>
-                        <div class="hotkey">
-                            <div class="command">
-                                <div class="key key-fixed">
-                                    Ctrl
-                                </div>&nbsp;+&nbsp;<div class="key">
-                                    F6 - F10
                                 </div>
                             </div>
                             <div class="desc">Remove Media</div>
                         </div>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="hotkey">
-                        <div class="desc" style="position: relative; top: -2px;">
-                            Drag &amp; Drop File or URL to load Media
-                        </div>
-                    </div>
-                    <div class="hotkey">
-                        <div class="command">
-                            <div class="key key-fixed">
-                                Alt
+                        <div class="hotkey">
+                            <div class="command">
+                                + <div class="key key-fixed">
+                                    Ctrl
+                                </div>&nbsp;<div class="key key-fixed">
+                                    Alt
+                                </div>
                             </div>
-                        </div>
-                        <div class="desc">&nbsp;+ Drag &amp; Drop File or URL to load Media in Drive B or Cartridge Slot
-                            2
+                            <div class="desc">Save Media File</div>
                         </div>
                     </div>
+                    <div class="full-divider"></div>
                     <div class="hotkey">
                         <div class="command">
                             <div class="key key-fixed">

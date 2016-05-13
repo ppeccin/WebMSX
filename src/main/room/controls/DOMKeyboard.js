@@ -334,8 +334,8 @@ wmsx.DOMKeyboard = function() {
 
         };
 
-        hostKeys.KEY_STOP_EXTRA = hostKeys.KEY_CLOSE_BRACKET;
-        hostKeys.KEY_SELECT_EXTRA = hostKeys.KEY_OPEN_BRACKET;
+        hostKeys.KEY_SELECT_EXTRA =  hostKeys.KEY_OPEN_BRACKET;
+        hostKeys.KEY_STOP_EXTRA =    hostKeys.KEY_CLOSE_BRACKET;
 
         initHostKeysForKeyboard(wmsx.DOMKeys.getKeyboard());
     };

@@ -252,9 +252,9 @@ wmsx.FileLoader = function() {
 
         var wasPaused = machine.systemPause(true);
 
-        var port = event.altKey ? 1 : 0;
+        var port = event.shiftKey ? 1 : 0;
         var altPower = event.ctrlKey;
-        var asExpansion = event.shiftKey;
+        var asExpansion = event.altKey;
 
         // Try to get local file if present
         var files = event.dataTransfer && event.dataTransfer.files;
