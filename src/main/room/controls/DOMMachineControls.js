@@ -177,10 +177,10 @@ wmsx.DOMMachineControls = function() {
 
     var KEY_ALTERNATE_SPEED  = wmsx.DOMKeys.VK_F12.c;
 
-    var KEY_INC_SPEED        = wmsx.DOMKeys.VK_RIGHT.c;
-    var KEY_DEC_SPEED        = wmsx.DOMKeys.VK_LEFT.c;
-    var KEY_NORMAL_SPEED     = wmsx.DOMKeys.VK_UP.c;
-    var KEY_MIN_SPEED        = wmsx.DOMKeys.VK_DOWN.c;
+    var KEY_INC_SPEED        = wmsx.DOMKeys.VK_UP.c;
+    var KEY_DEC_SPEED        = wmsx.DOMKeys.VK_DOWN.c;
+    var KEY_NORMAL_SPEED     = wmsx.DOMKeys.VK_RIGHT.c;
+    var KEY_MIN_SPEED        = wmsx.DOMKeys.VK_LEFT.c;
 
     var KEY_PAUSE            = wmsx.DOMKeys.VK_P.c;
     var KEY_FRAME            = wmsx.DOMKeys.VK_O.c;

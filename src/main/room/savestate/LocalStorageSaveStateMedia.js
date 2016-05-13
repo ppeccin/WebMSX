@@ -101,7 +101,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     var startDownload = function (fileName, data) {
         if (fileName) fileName = fileName + SAVE_STATE_FILE_EXTENSION;
-        fileDownloader.startDownload(fileName, data);
+        fileDownloader.startDownloadBinary(fileName, data);
         return true;
     };
 

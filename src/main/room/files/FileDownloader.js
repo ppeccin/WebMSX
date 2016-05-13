@@ -6,7 +6,7 @@ wmsx.FileDownloader = function() {
         downloadLinkElementParent = element;
     };
 
-    this.startDownload = function (fileName, data) {
+    this.startDownloadBinary = function (fileName, data) {
         if (!downloadLinkElement) createDownloadLinkElement();
 
         // Release previous URL
@@ -15,6 +15,17 @@ wmsx.FileDownloader = function() {
         var blob = new Blob([data], {type: "data:application/octet-stream"});
         downloadLinkElement.download = fileName && fileName.trim();
         downloadLinkElement.href = (window.URL || window.webkitURL).createObjectURL(blob);
+        downloadLinkElement.click();
+    };
+
+    this.startDownloadURL = function (fileName, url) {
+        if (!downloadLinkElement) createDownloadLinkElement();
+
+        // Release previous URL
+        if (downloadLinkElement.href) (window.URL || window.webkitURL).revokeObjectURL(downloadLinkElement.href);
+
+        downloadLinkElement.download = fileName && fileName.trim();
+        downloadLinkElement.href = url;
         downloadLinkElement.click();
     };
 

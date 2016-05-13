@@ -69,7 +69,7 @@ wmsx.FileDiskDrive = function() {
             var view = new Uint8Array(data);
             for (var i = 0; i < dContent.length; i++)
                 view[i] = dContent[i];
-            fileDownloader.startDownload(fileName, data);
+            fileDownloader.startDownloadBinary(fileName, data);
             screen.showOSD("Disk " + dName + " File saved", true);
         } catch(ex) {
             screen.showOSD("Disk " + dName + " File save failed", true);

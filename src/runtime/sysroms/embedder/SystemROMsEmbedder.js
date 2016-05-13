@@ -35,7 +35,7 @@ wmsx.SystemROMsEmbedder = {
 
                 var f = new wmsx.FileDownloader();
                 f.registerForDownloadElement(document.getElementsByTagName("body")[0]);
-                f.startDownload("SystemROMs.js", romsFile);
+                f.startDownloadBinary("SystemROMs.js", romsFile);
             }
         );
 

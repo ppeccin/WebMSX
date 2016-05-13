@@ -430,7 +430,7 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="wmsx-desc">Toggle Mouse</div>' +
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
-                            '<div class="wmsx-desc">Press middle Mouse button to lock pointer</div>' +
+                            '<div class="wmsx-desc">Middle Mouse Button: Lock/unlock pointer</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-right">' +

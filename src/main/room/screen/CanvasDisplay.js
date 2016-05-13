@@ -20,9 +20,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         pCartridgeSocket.addCartridgesStateListener(this);
     };
 
-    this.connectPeripherals = function(fileLoader, fileDownloader, pKeyboard, machineControls, pPeripheralControls, pControllersHub) {
+    this.connectPeripherals = function(fileLoader, pFileDownloader, pKeyboard, machineControls, pPeripheralControls, pControllersHub) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
+        fileDownloader = pFileDownloader;
         fileDownloader.registerForDownloadElement(mainElement);
         keyboard = pKeyboard;
         keyboard.addInputElements(keyControlsInputElements());
@@ -81,11 +82,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         return false;
     };
 
-    this.togglePasteDialog = function(page) {
+    this.togglePasteDialog = function() {
         if (!signalIsOn) return;
         if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement);
         pasteDialog.toggle();
         return false;
+    };
+
+    this.captureScreen = function() {
+        if (!signalIsOn) return;
+        fileDownloader.startDownloadURL("WMSX Screen", canvas.toDataURL('image/png'));
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {
@@ -758,6 +764,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var monitor;
     var keyboard;
     var peripheralControls;
+    var fileDownloader;
     var controllersHub;
     var machineControlsSocket;
     var machineControlsStateReport = {};

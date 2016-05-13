@@ -67,7 +67,7 @@ wmsx.FileCassetteDeck = function() {
             var view = new Uint8Array(data);
             for (var i = 0; i < tapeContent.length; i++)
                 view[i] = tapeContent[i];
-            fileDownloader.startDownload(tapeFileName, data);
+            fileDownloader.startDownloadBinary(tapeFileName, data);
             screen.showOSD("Cassette Tape File saved", true);
         } catch(ex) {
             screen.showOSD("Cassette Tape File save failed", true);

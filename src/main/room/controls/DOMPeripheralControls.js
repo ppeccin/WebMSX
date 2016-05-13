@@ -188,6 +188,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.PASTE_STRING:
                 screen.togglePasteDialog();
                 break;
+            case controls.CAPTURE_SCREEN:
+                screen.captureScreen();
+                break;
             case controls.EXIT:
                 room.exit(); break;
         }
@@ -261,6 +264,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyAltCodeMap[KEY_PASTE]   = controls.PASTE_STRING;
         keyAltCodeMap[KEY_PASTE2]  = controls.PASTE_STRING;
+
+        keyAltCodeMap[KEY_CAPTURE_SCREEN]   = controls.CAPTURE_SCREEN;
     };
 
 
@@ -294,6 +299,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_PASTE   = wmsx.DOMKeys.VK_V.c;
     var KEY_PASTE2  = wmsx.DOMKeys.VK_INSERT.c;
+
+    var KEY_CAPTURE_SCREEN  = wmsx.DOMKeys.VK_G.c;
 
     var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
 
