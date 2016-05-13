@@ -50,7 +50,7 @@ wmsx.DOMMachineControls = function() {
         }
     };
 
-    this.processKeyEvent = function(keyCode, press, modifiers) {
+    var processKeyEvent = function(keyCode, press, modifiers) {
         var control = controlForEvent(keyCode, modifiers);
         if (control == null) return false;
 
@@ -61,7 +61,6 @@ wmsx.DOMMachineControls = function() {
         }
         return true;
     };
-    var processKeyEvent = this.processKeyEvent;
 
     var controlForEvent = function(keyCode, modif) {
         switch (modif) {

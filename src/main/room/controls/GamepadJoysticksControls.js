@@ -51,9 +51,9 @@ wmsx.GamepadJoysticksControls = function(hub) {
         showStatusMessage(mode === -2 ? "Joysticks DISABLED" : "Joysticks AUTO" + (swappedMode ? " (swapped)" : ""));
     };
 
-    this.setTurboFireMode = function(mode) {
-        turboFire = !!mode;
-        turboFireFlip = true;
+    this.setTurboFireSpeed = function(speed) {
+        turboFireSpeed = speed ? speed * speed + 3 : 0;
+        turboFireFlipClockCount = 0;
     };
 
     //this.setPaddleMode = function(state) {
@@ -72,12 +72,12 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
         var gamepads = navigator.getGamepads();     // Just one poll per clock here then use it several times
 
-        if (turboFire)
-            if (++turboFireFlipClockCount & 1) turboFireFlip = !turboFireFlip;
+        if (turboFireSpeed)
+            if (--turboFireFlipClockCount <= 0) turboFireFlipClockCount = turboFireSpeed;
 
         if (joystick1) {
             if (joystick1.update(gamepads)) {
-                if (joystick1.hasMoved() || (turboFire && joystick1.getButtonDigital(joy1Prefs.button1)))
+                if (joystick1.hasMoved() || (turboFireSpeed && joy1State.button1Real))
                     update(joystick1, joy1State, joy1Prefs, swappedMode);
             } else {
                 joystick1 = null;
@@ -93,7 +93,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
         if (joystick2) {
             if (joystick2.update(gamepads)) {
-                if (joystick2.hasMoved() || (turboFire && joystick2.getButtonDigital(joy2Prefs.button1)))
+                if (joystick2.hasMoved() || (turboFireSpeed && joy2State.button1Real))
                     update(joystick2, joy2State, joy2Prefs, !swappedMode);
             } else {
                 joystick2 = null;
@@ -164,12 +164,14 @@ wmsx.GamepadJoysticksControls = function(hub) {
         //} else {
             var button;
             var buttonS = joystick.getButtonDigital(joyPrefs.buttonS);
-            button =  joystick.getButtonDigital(joyPrefs.button1);
-            joyState.button1 = (buttonS || button) && turboFireFlip;
+            button = buttonS || joystick.getButtonDigital(joyPrefs.button1);
+            if (turboFireSpeed && button && !joyState.button1Real) turboFireFlipClockCount = 2;
+            joyState.button1Real = button;
+            joyState.button1 = button && (turboFireFlipClockCount <= 2);
             if (joyState.button1) joyState.portValue &= ~0x10; else joyState.portValue |= 0x10;
-            button = joystick.getButtonDigital(joyPrefs.button2);
-            joyState.button2 = (buttonS || button);
-            if (joyState.button2) joyState.portValue &= ~0x20; else joyState.portValue |= 0x20;
+            button = buttonS || joystick.getButtonDigital(joyPrefs.button2);
+            joyState.button2 = button;
+            if (button) joyState.portValue &= ~0x20; else joyState.portValue |= 0x20;
         //}
 
         // Other Machine controls, not related to the controller port
@@ -238,7 +240,8 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     var mode = -1;
     var swappedMode = false;
-    var turboFire = false, turboFireFlip = true, turboFireFlipClockCount = 0;
+
+    var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
     var joy1State = new JoystickState();
     var joy2State = new JoystickState();
@@ -257,7 +260,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
             this.direction = -1;         // CENTER
             this.xPosition = -1;         // CENTER
             this.portValue = 0x3f;       // All switches off
-            this.button1 = false;
+            this.button1 = this.button1Real = false;
             this.button2 = false;
             this.pause = false;
             this.fastSpeed = false;

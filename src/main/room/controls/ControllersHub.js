@@ -47,6 +47,7 @@ wmsx.ControllersHub = function() {
     };
 
     this.controllersClockPulse = function() {
+        keyboard.controllersClockPulse();
         joystickControls.controllersClockPulse();
     };
 
@@ -62,10 +63,11 @@ wmsx.ControllersHub = function() {
         mouseControls.toggleMode();
     };
 
-    this.toggleTurboFireMode = function() {
-        turboFireMode = (turboFireMode + 1) % 2;
-        screen.showOSD("Turbo-Fire: " + (turboFireMode ? "ON" : "OFF"), true);
-        joystickControls.setTurboFireMode(turboFireMode);
+    this.toggleTurboFireSpeed = function() {
+        turboFireSpeed = (turboFireSpeed + 1) % 7;
+        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (7 - turboFireSpeed) : ": OFF"), true);
+        keyboard.setTurboFireSpeed(turboFireSpeed);
+        joystickControls.setTurboFireSpeed(turboFireSpeed);
     };
 
     this.setKeyInputElements = function(elements) {
@@ -132,7 +134,7 @@ wmsx.ControllersHub = function() {
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this);
 
-    var turboFireMode = 0;
+    var turboFireSpeed = 0;
 
     var screen;
 

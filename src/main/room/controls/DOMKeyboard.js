@@ -22,8 +22,18 @@ wmsx.DOMKeyboard = function(hub) {
     this.powerOff = function() {
     };
 
+    this.controllersClockPulse = function() {
+        if (turboFireSpeed)
+            if (--turboFireFlipClockCount <= 0) turboFireFlipClockCount = turboFireSpeed;
+    };
+
     this.readKeyboardPort = function(row) {
-        return keyboardRowValues[row];
+        if (turboFireSpeed)
+            return row === 8
+                ? keyboardRowValues[8] | (turboFireFlipClockCount > 2)
+                : keyboardRowValues[row];
+        else
+            return keyboardRowValues[row];
     };
 
     this.addInputElements = function(elements) {
@@ -38,6 +48,11 @@ wmsx.DOMKeyboard = function(hub) {
         monitor.showOSD("Host Keyboard: " + wmsx.DOMKeys.getKeyboard().name, true);
         initHostKeys();
         initMatrix();
+    };
+
+    this.setTurboFireSpeed = function(speed) {
+        turboFireSpeed = speed ? speed * speed + 3 : 0;
+        turboFireFlipClockCount = 0;
     };
 
     this.resetControllers = function() {
@@ -66,19 +81,21 @@ wmsx.DOMKeyboard = function(hub) {
         }
     };
 
-    this.processKeyEvent = function(keyCode, press, modifiers) {
+    var processKeyEvent = function(keyCode, press, modifiers) {
         var key = keyForEvent(keyCode, modifiers);
         if (!key) return false;
 
         var state = keyStateMap[key];
         if (!state || (state !== press)) {
             keyStateMap[key] = press;
-            if (press) keyboardRowValues[key[0]] &= ~(1 << key[1]);
-            else keyboardRowValues[key[0]] |= (1 << key[1]);
+            if (press) {
+                keyboardRowValues[key[0]] &= ~(1 << key[1]);
+                if (turboFireSpeed && key === spaceKey) turboFireFlipClockCount = 3;
+            } else
+                keyboardRowValues[key[0]] |= (1 << key[1]);
         }
         return true;
     };
-    var processKeyEvent = this.processKeyEvent;
 
     var keyForEvent = function(keyCode, modif) {
         if (modif & KEY_ALT_MASK)
@@ -158,7 +175,9 @@ wmsx.DOMKeyboard = function(hub) {
         normalCodeMap[hostKeys.KEY_TAB.c]            = [ 7, 3 ];
         normalCodeMap[hostKeys.KEY_BACKSPACE.c]      = [ 7, 5 ];
         normalCodeMap[hostKeys.KEY_ENTER.c]          = [ 7, 7 ];
-        normalCodeMap[hostKeys.KEY_SPACE.c]          = [ 8, 0 ];
+
+        spaceKey = [ 8, 0 ];
+        normalCodeMap[hostKeys.KEY_SPACE.c]          = spaceKey;
 
         normalCodeMap[hostKeys.KEY_MINUS.c]          = [ 1, 2 ];
         normalCodeMap[hostKeys.KEY_MINUS2.c]         = [ 1, 2 ];
@@ -358,6 +377,8 @@ wmsx.DOMKeyboard = function(hub) {
     var altCodeMap;
     var hostKeys;
 
+    var spaceKey;
+    var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;

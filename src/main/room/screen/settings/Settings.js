@@ -129,16 +129,16 @@ wmsx.SettingsDialog = function() {
             self.setPage("ABOUT");
         });
 
-        // Generic Controls Commands
-        for (var key in controlsCommandKeys) {
-            (function(keyLocal) {
-                self[controlsCommandKeys[key]].addEventListener("mousedown", function (e) {
-                    if (e.preventDefault) e.preventDefault();
-                    WMSX.room.machineControls.processKeyEvent(keyLocal, true, wmsx.DOMConsoleControls.KEY_ALT_MASK);
-                    keyRedefinitonStop();   // will refresh
-                });
-            })(key | 0);    // must be a number to simulate a keyCode
-        }
+        //// Generic Controls Commands
+        //for (var key in controlsCommandKeys) {
+        //    (function(keyLocal) {
+        //        self[controlsCommandKeys[key]].addEventListener("mousedown", function (e) {
+        //            if (e.preventDefault) e.preventDefault();
+        //            WMSX.room.machineControls.processKeyEvent(keyLocal, true, wmsx.DOMConsoleControls.KEY_ALT_MASK);
+        //            keyRedefinitonStop();   // will refresh
+        //        });
+        //    })(key | 0);    // must be a number to simulate a keyCode
+        //}
     };
 
     var refreshData = function () {

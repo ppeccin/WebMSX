@@ -188,7 +188,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
             case controls.TURBO_FIRE_TOGGLE:
-                controllersHub.toggleTurboFireMode(); break;
+                controllersHub.toggleTurboFireSpeed(); break;
             case controls.PASTE_STRING:
                 screen.togglePasteDialog();
                 break;
