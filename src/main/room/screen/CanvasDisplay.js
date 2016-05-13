@@ -20,18 +20,17 @@ wmsx.CanvasDisplay = function(mainElement) {
         pCartridgeSocket.addCartridgesStateListener(this);
     };
 
-    this.connectPeripherals = function(fileLoader, pFileDownloader, pKeyboard, machineControls, pPeripheralControls, pControllersHub) {
+    this.connectPeripherals = function(fileLoader, pFileDownloader, machineControls, pPeripheralControls, pControllersHub) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader = pFileDownloader;
         fileDownloader.registerForDownloadElement(mainElement);
-        keyboard = pKeyboard;
-        keyboard.addInputElements(keyControlsInputElements());
         machineControls.addInputElements(keyControlsInputElements());
         peripheralControls = pPeripheralControls;
         peripheralControls.addInputElements(keyControlsInputElements());
         controllersHub = pControllersHub;
-        controllersHub.setMouseInputElement(mouseControlsInputElement())
+        controllersHub.setKeyInputElements(keyControlsInputElements());
+        controllersHub.setMouseInputElement(mouseControlsInputElement());
     };
 
     this.powerOn = function() {
@@ -275,7 +274,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     function lostFocus(e) {
-        keyboard.liftAllKeys();
+        controllersHub.resetControllers();
     }
 
     function hideCursor() {
@@ -762,7 +761,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
 
     var monitor;
-    var keyboard;
     var peripheralControls;
     var fileDownloader;
     var controllersHub;

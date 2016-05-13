@@ -2,43 +2,52 @@
 
 wmsx.ControllersHub = function() {
 
-    this.connect = function(controllersSocket, machineControlsSocket) {
+    this.connect = function(keyboardSocket, controllersSocket, machineControlsSocket) {
         controllersSocket.connectControls(this);
+        keyboard.connect(keyboardSocket);
         mouseControls.connect(controllersSocket);
         joystickControls.connect(machineControlsSocket);
     };
 
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
-        joystickControls.connectPeripherals(screen);
+        keyboard.connectPeripherals(screen);
         mouseControls.connectPeripherals(screen);
+        joystickControls.connectPeripherals(screen);
     };
 
     this.powerOn = function() {
-        joystickControls.powerOn();
+        keyboard.powerOn();
         mouseControls.powerOn();
+        joystickControls.powerOn();
     };
 
     this.powerOff = function() {
-        joystickControls.powerOff();
+        keyboard.powerOff();
         mouseControls.powerOff();
+        joystickControls.powerOff();
     };
 
     this.resetControllers = function() {
+        keyboard.liftAllKeys();
         joystickControls.resetControllers();
         mouseControls.resetControllers();
     };
 
-    this.readPort = function(port) {
-        return readFromPort[port](port);
+    this.readControllerPort = function(port) {
+        return readFromControllerPort[port](port);
     };
 
-    this.writePin8Port = function(port, value) {
-        writePin8ToPort[port](port, value);
+    this.writePin8ControllerPort = function(port, value) {
+        writePin8ToControllerPort[port](port, value);
     };
 
     this.controllersClockPulse = function() {
         joystickControls.controllersClockPulse();
+    };
+
+    this.toggleKeyboardHostLayout = function() {
+        keyboard.toggleHostKeyboards();
     };
 
     this.toggleJoystickMode = function() {
@@ -47,6 +56,16 @@ wmsx.ControllersHub = function() {
 
     this.toggleMouseMode = function() {
         mouseControls.toggleMode();
+    };
+
+    this.toggleTurboFireMode = function() {
+        turboFireMode = (turboFireMode + 1) % 2;
+        screen.showOSD("Turbo-Fire: " + (turboFireMode ? "ON" : "OFF"), true);
+        joystickControls.setTurboFireMode(turboFireMode);
+    };
+
+    this.setKeyInputElements = function(elements) {
+        keyboard.addInputElements(elements);
     };
 
     this.setMouseInputElement = function(element) {
@@ -77,14 +96,14 @@ wmsx.ControllersHub = function() {
         // Mouse takes precedence
         for (var p = 0; p <= 1; ++p) {
             if (mousePresent[p]) {
-                readFromPort[p] = mouseControls.readMousePort;
-                writePin8ToPort[p] =  mouseControls.writeMousePin8Port;
+                readFromControllerPort[p] = mouseControls.readMousePort;
+                writePin8ToControllerPort[p] =  mouseControls.writeMousePin8Port;
             } else if (joystickPresent[p]) {
-                readFromPort[p] = joystickControls.readJoystickPort;
-                writePin8ToPort[p] =  writePin8PortDisconnected;        // Mouse does not take writes
+                readFromControllerPort[p] = joystickControls.readJoystickPort;
+                writePin8ToControllerPort[p] =  writePin8PortDisconnected;        // Mouse does not take writes
             } else {
-                readFromPort[p] = readPortDisconnected;
-                writePin8ToPort[p] =  writePin8PortDisconnected;
+                readFromControllerPort[p] = readPortDisconnected;
+                writePin8ToControllerPort[p] =  writePin8PortDisconnected;
             }
         }
     }
@@ -99,14 +118,17 @@ wmsx.ControllersHub = function() {
     }
 
 
-    var readFromPort = [ readPortDisconnected, readPortDisconnected ];
-    var writePin8ToPort =  [ writePin8PortDisconnected, writePin8PortDisconnected ];
+    var readFromControllerPort = [ readPortDisconnected, readPortDisconnected ];
+    var writePin8ToControllerPort =  [ writePin8PortDisconnected, writePin8PortDisconnected ];
 
     var mousePresent =    [ null, null ];
     var joystickPresent = [ null, null ];
 
-    var joystickControls = new wmsx.GamepadJoysticksControls(this);
+    var keyboard =         new wmsx.DOMKeyboard(this);
     var mouseControls =    new wmsx.DOMMouseControls(this);
+    var joystickControls = new wmsx.GamepadJoysticksControls(this);
+
+    var turboFireMode = 0;
 
     var screen;
 

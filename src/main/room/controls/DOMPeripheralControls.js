@@ -181,10 +181,14 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
+            case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
+                controllersHub.toggleKeyboardHostLayout(); break;
             case controls.JOYSTICKS_TOGGLE_MODE:
                 controllersHub.toggleJoystickMode(); break;
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
+            case controls.TURBO_FIRE_TOGGLE:
+                controllersHub.toggleTurboFireMode(); break;
             case controls.PASTE_STRING:
                 screen.togglePasteDialog();
                 break;
@@ -247,8 +251,10 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 
-        keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]  = controls.JOYSTICKS_TOGGLE_MODE;
-        keyAltCodeMap[KEY_MOUSE_TOGGLE]      = controls.MOUSE_TOGGLE_MODE;
+        keyAltCodeMap[KEY_KEYBOARD_TOGGLE_HOST]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
+        keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]      = controls.JOYSTICKS_TOGGLE_MODE;
+        keyAltCodeMap[KEY_MOUSE_TOGGLE]          = controls.MOUSE_TOGGLE_MODE;
+        keyAltCodeMap[KEY_TURBO_FIRE_TOGGLE]     = controls.TURBO_FIRE_TOGGLE;
 
         keyAltCodeMap[KEY_CRT_FILTER]   = controls.SCREEN_CRT_FILTER;
         keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
@@ -312,8 +318,10 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
-    var KEY_JOYSTICKS_TOGGLE  = wmsx.DOMKeys.VK_J.c;
-    var KEY_MOUSE_TOGGLE      = wmsx.DOMKeys.VK_M.c;
+    var KEY_KEYBOARD_TOGGLE_HOST  = wmsx.DOMKeys.VK_K.c;
+    var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;
+    var KEY_MOUSE_TOGGLE          = wmsx.DOMKeys.VK_M.c;
+    var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
 
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;

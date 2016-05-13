@@ -48,6 +48,7 @@ wmsx.Machine = function() {
         bus.reset();
         videoStandardSoft = null;
         if (videoStandardIsAuto) setVideoStandardAuto();
+        controllersSocket.resetControllers();
     };
 
     this.userPowerOn = function(autoRunCassette) {
@@ -62,7 +63,7 @@ wmsx.Machine = function() {
 
     this.videoClockPulse = function() {
         if (systemPaused) return;
-        if (bios) bios.getKeyboardExtension().keyboardClockPulse();
+        if (bios) bios.getKeyboardExtension().keyboardExtensionClockPulse();
         controllersSocket.controllersClockPulse();
         if (userPaused)
             if (userPauseMoreFrames-- <= 0) return;
@@ -701,11 +702,11 @@ wmsx.Machine = function() {
         this.connectControls = function(pControls) {
             controls = pControls;
         };
-        this.readPort = function(port) {
-            return controls.readPort(port);
+        this.readControllerPort = function(port) {
+            return controls.readControllerPort(port);
         };
-        this.writePin8Port = function(port, value) {
-            controls.writePin8Port(port, value);
+        this.writePin8ControllerPort = function(port, value) {
+            controls.writePin8ControllerPort(port, value);
         };
         this.resetControllers = function() {
             controls.resetControllers();

@@ -12,7 +12,7 @@ wmsx.BIOSKeyboardExtension = function(bus) {
         typeFromPosition = 0;
     };
 
-    this.keyboardClockPulse = function() {
+    this.keyboardExtensionClockPulse = function() {
         if (!stringToType) return;
 
         // Get buffer address info

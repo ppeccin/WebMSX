@@ -51,6 +51,11 @@ wmsx.GamepadJoysticksControls = function(hub) {
         showStatusMessage(mode === -2 ? "Joysticks DISABLED" : "Joysticks AUTO" + (swappedMode ? " (swapped)" : ""));
     };
 
+    this.setTurboFireMode = function(mode) {
+        turboFire = !!mode;
+        turboFireFlip = true;
+    };
+
     //this.setPaddleMode = function(state) {
     //    if (!supported) return;
     //    paddleMode = state;
@@ -67,9 +72,12 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
         var gamepads = navigator.getGamepads();     // Just one poll per clock here then use it several times
 
+        if (turboFire)
+            if (++turboFireFlipClockCount & 1) turboFireFlip = !turboFireFlip;
+
         if (joystick1) {
             if (joystick1.update(gamepads)) {
-                if (joystick1.hasMoved())
+                if (joystick1.hasMoved() || (turboFire && joystick1.getButtonDigital(joy1Prefs.button1)))
                     update(joystick1, joy1State, joy1Prefs, swappedMode);
             } else {
                 joystick1 = null;
@@ -85,7 +93,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
         if (joystick2) {
             if (joystick2.update(gamepads)) {
-                if (joystick2.hasMoved())
+                if (joystick2.hasMoved() || (turboFire && joystick2.getButtonDigital(joy2Prefs.button1)))
                     update(joystick2, joy2State, joy2Prefs, !swappedMode);
             } else {
                 joystick2 = null;
@@ -157,7 +165,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
             var button;
             var buttonS = joystick.getButtonDigital(joyPrefs.buttonS);
             button =  joystick.getButtonDigital(joyPrefs.button1);
-            joyState.button1 = (buttonS || button);
+            joyState.button1 = (buttonS || button) && turboFireFlip;
             if (joyState.button1) joyState.portValue &= ~0x10; else joyState.portValue |= 0x10;
             button = joystick.getButtonDigital(joyPrefs.button2);
             joyState.button2 = (buttonS || button);
@@ -230,6 +238,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     var mode = -1;
     var swappedMode = false;
+    var turboFire = false, turboFireFlip = true, turboFireFlipClockCount = 0;
 
     var joy1State = new JoystickState();
     var joy2State = new JoystickState();
@@ -241,6 +250,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     var DETECTION_DELAY = 60;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
+
 
     function JoystickState() {
         this.reset = function() {

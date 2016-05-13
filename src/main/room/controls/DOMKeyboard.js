@@ -29,7 +29,7 @@ wmsx.DOMKeyboard = function() {
         }
     };
 
-    this.cycleHostKeyboards = function() {
+    this.toggleHostKeyboards = function() {
         wmsx.DOMKeys.setKeyboard(wmsx.DOMKeys.getKeyboard().code + 1);
         monitor.showOSD("Host Keyboard: " + wmsx.DOMKeys.getKeyboard().name, true);
         initHostKeys();
@@ -63,7 +63,6 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.processKeyEvent = function(keyCode, press, modifiers) {
-        if (checkLocalControlKey(keyCode, modifiers, press)) return true;
         var key = keyForEvent(keyCode, modifiers);
         if (!key) return false;
 
@@ -81,16 +80,6 @@ wmsx.DOMKeyboard = function() {
             return altCodeMap[keyCode];     // Special "extra" bindings with ALT
         else
             return normalCodeMap[keyCode];
-    };
-
-    var checkLocalControlKey = function(keyCode, modif, press) {
-        if (press && (modif & KEY_ALT_MASK)) {
-            switch (keyCode) {
-                case KEY_LOCAL_CYCLE_HOST_KEYBOARDS:
-                    self.cycleHostKeyboards(); return true;
-            }
-        }
-        return false;
     };
 
     // International Matrix
@@ -363,8 +352,6 @@ wmsx.DOMKeyboard = function() {
     var altCodeMap;
     var hostKeys;
 
-
-    var KEY_LOCAL_CYCLE_HOST_KEYBOARDS = wmsx.DOMKeys.VK_K.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;
