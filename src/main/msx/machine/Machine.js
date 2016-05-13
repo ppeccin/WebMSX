@@ -94,10 +94,6 @@ wmsx.Machine = function() {
         return machineControlsSocket;
     };
 
-    this.getKeyboardSocket = function() {
-        return keyboardSocket;
-    };
-
     this.getControllersSocket = function() {
         return controllersSocket;
     };
@@ -284,7 +280,7 @@ wmsx.Machine = function() {
         self.cpu = cpu = new wmsx.Z80();
         self.vdp = vdp = new wmsx.VDP(self, cpu, MSX2, MSX2P);
         self.psg = psg = new wmsx.PSG(audioSocket, controllersSocket);
-        self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel());
+        self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket);
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
@@ -322,7 +318,6 @@ wmsx.Machine = function() {
         biosSocket = new BIOSSocket();
         expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
-        keyboardSocket = new KeyboardSocket();
         controllersSocket = new ControllersSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
@@ -370,7 +365,6 @@ wmsx.Machine = function() {
     var cassetteSocket;
     var diskDriveSocket;
     var machineControlsSocket;
-    var keyboardSocket;
     var controllersSocket;
 
     var bios;
@@ -684,23 +678,15 @@ wmsx.Machine = function() {
     }
 
 
-    // Keyboard Socket  -----------------------------------------
-
-    function KeyboardSocket() {
-        this.keyboardKeyChanged = function(key, press) {
-            ppi.keyboardKeyChanged(key, press);
-        };
-        this.keyboardReset = function() {
-            ppi.keyboardReset();
-        };
-    }
-
-
-    // Controllers Socket  -----------------------------------------
+    // Controllers / Keyboard Socket  -----------------------------------------
 
     function ControllersSocket() {
         this.connectControls = function(pControls) {
             controls = pControls;
+
+        };
+        this.readKeyboardPort = function(row) {
+            return controls.readKeyboardPort(row);
         };
         this.readControllerPort = function(port) {
             return controls.readControllerPort(port);

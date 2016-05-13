@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PPI = function(psgAudioChannel) {
+wmsx.PPI = function(psgAudioChannel, controllersSocket) {
 
     this.connectBus = function(pBus) {
         bus = pBus;
@@ -29,7 +29,7 @@ wmsx.PPI = function(psgAudioChannel) {
     };
 
     this.inputA9 = function() {
-        return keyboardRowValues[keyboardRowSelected];
+        return controllersSocket.readKeyboardPort(keyboardRowSelected);
     };
 
     this.inputAA = function() {
@@ -55,10 +55,6 @@ wmsx.PPI = function(psgAudioChannel) {
         }
     };
 
-    this.keyboardReset = function() {
-        wmsx.Util.arrayFill(keyboardRowValues, 0xff);
-    };
-
     function updateKeyboardConfig() {
         keyboardRowSelected = registerC & 0x0f;
         if (keyClickSignal === ((registerC & 0x80) > 0)) return;
@@ -73,20 +69,11 @@ wmsx.PPI = function(psgAudioChannel) {
     }
 
 
-    // Keyboard Socket interface
-
-    this.keyboardKeyChanged = function(key, press) {
-        if (press) keyboardRowValues[key[0]] &= ~(1 << key[1]);
-        else keyboardRowValues[key[0]] |= (1 << key[1]);
-    };
-
-
     var registerC = 0;
     var keyClickSignal = false;
     var casseteSignal = false;
 
     var keyboardRowSelected = 0;
-    var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var bus;
 
@@ -103,7 +90,6 @@ wmsx.PPI = function(psgAudioChannel) {
         registerC = s.c || 0;
         updateKeyboardConfig(registerC);
         updateCassetteSignal(registerC);
-        wmsx.Util.arrayFill(keyboardRowValues, 0xff);       // reset keys
     };
 
 };

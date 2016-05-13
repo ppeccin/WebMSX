@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMKeyboard = function() {
+wmsx.DOMKeyboard = function(hub) {
     var self = this;
 
     function init() {
@@ -8,8 +8,8 @@ wmsx.DOMKeyboard = function() {
         initMatrix();
     }
 
-    this.connect = function(pKeyboardSocket) {
-        keyboardSocket = pKeyboardSocket;
+    this.connect = function(pControllersSocket) {
+        controllersSocket = pControllersSocket;
     };
 
     this.connectPeripherals = function(pScreen) {
@@ -20,6 +20,10 @@ wmsx.DOMKeyboard = function() {
     };
 
     this.powerOff = function() {
+    };
+
+    this.readKeyboardPort = function(row) {
+        return keyboardRowValues[row];
     };
 
     this.addInputElements = function(elements) {
@@ -36,9 +40,9 @@ wmsx.DOMKeyboard = function() {
         initMatrix();
     };
 
-    this.liftAllKeys = function() {
-        keyboardSocket.keyboardReset();
+    this.resetControllers = function() {
         keyStateMap = {};
+        wmsx.Util.arrayFill(keyboardRowValues, 0xff);
     };
 
     this.keyDown = function(event) {
@@ -69,7 +73,8 @@ wmsx.DOMKeyboard = function() {
         var state = keyStateMap[key];
         if (!state || (state !== press)) {
             keyStateMap[key] = press;
-            keyboardSocket.keyboardKeyChanged(key, press);
+            if (press) keyboardRowValues[key[0]] &= ~(1 << key[1]);
+            else keyboardRowValues[key[0]] |= (1 << key[1]);
         }
         return true;
     };
@@ -343,10 +348,11 @@ wmsx.DOMKeyboard = function() {
     };
 
 
-    var keyboardSocket;
+    var controllersSocket;
     var monitor;
 
     var keyStateMap =  {};
+    var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var normalCodeMap;
     var altCodeMap;

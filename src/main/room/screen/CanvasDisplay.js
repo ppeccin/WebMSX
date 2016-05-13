@@ -13,11 +13,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor = new wmsx.Monitor(self);
     }
 
-    this.connect = function(pVideoSignal, pMachineControlsSocket, pCartridgeSocket) {
+    this.connect = function(pVideoSignal, pMachineControlsSocket, pCartridgeSocket, pControllersSocket) {
         monitor.connect(pVideoSignal, pCartridgeSocket);
         machineControlsSocket = pMachineControlsSocket;
         machineControlsSocket.addRedefinitionListener(this);
         pCartridgeSocket.addCartridgesStateListener(this);
+        controllersSocket = pControllersSocket;
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, machineControls, pPeripheralControls, pControllersHub) {
@@ -274,7 +275,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     function lostFocus(e) {
-        controllersHub.resetControllers();
+        controllersSocket.resetControllers();
     }
 
     function hideCursor() {
@@ -764,6 +765,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var peripheralControls;
     var fileDownloader;
     var controllersHub;
+    var controllersSocket;
+
     var machineControlsSocket;
     var machineControlsStateReport = {};
 

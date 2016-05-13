@@ -2,9 +2,9 @@
 
 wmsx.ControllersHub = function() {
 
-    this.connect = function(keyboardSocket, controllersSocket, machineControlsSocket) {
+    this.connect = function(controllersSocket, machineControlsSocket) {
         controllersSocket.connectControls(this);
-        keyboard.connect(keyboardSocket);
+        keyboard.connect(controllersSocket);
         mouseControls.connect(controllersSocket);
         joystickControls.connect(machineControlsSocket);
     };
@@ -29,9 +29,13 @@ wmsx.ControllersHub = function() {
     };
 
     this.resetControllers = function() {
-        keyboard.liftAllKeys();
+        keyboard.resetControllers();
         joystickControls.resetControllers();
         mouseControls.resetControllers();
+    };
+
+    this.readKeyboardPort = function(row) {
+        return keyboard.readKeyboardPort(row);
     };
 
     this.readControllerPort = function(port) {
