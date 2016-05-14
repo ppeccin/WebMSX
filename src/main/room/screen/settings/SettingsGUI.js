@@ -442,7 +442,7 @@ wmsx.SettingsGUI.html = function() {
                                     'H' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="wmsx-desc">Toggle Turbo-Fire Modes</div>' +
+                            '<div class="wmsx-desc">Adjust Turbo-Fire speed</div>' +
                         '</div>' +
                         '<div id="wmsx-inputs-paste" class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
@@ -495,7 +495,7 @@ wmsx.SettingsGUI.html = function() {
                         '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-msx">' +
-                                    'CODE' +
+                                    'GRAPH' +
                                 '</div> :' +
                             '</div>' +
                             '<div class="wmsx-key">' +
@@ -509,7 +509,7 @@ wmsx.SettingsGUI.html = function() {
                         '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-msx">' +
-                                    'GRAPH' +
+                                    'CODE' +
                                 '</div> :' +
                             '</div>' +
                             '<div class="wmsx-key">' +

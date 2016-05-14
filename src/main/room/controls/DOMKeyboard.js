@@ -193,9 +193,11 @@ wmsx.DOMKeyboard = function(hub) {
         altCodeMap[hostKeys.KEY_CONTROL_EXTRA.c]     = [ 6, 1 ];
         normalCodeMap[hostKeys.KEY_CAPS_LOCK.c]      = [ 6, 3 ];
         normalCodeMap[hostKeys.KEY_GRAPH.c]          = [ 6, 2 ];
+        altCodeMap[hostKeys.KEY_GRAPH_EXTRA.c]       = [ 6, 2 ];
         normalCodeMap[hostKeys.KEY_CODE.c]           = [ 6, 4 ];
         normalCodeMap[hostKeys.KEY_CODE2.c]          = [ 6, 4 ];
         normalCodeMap[hostKeys.KEY_CODE3.c]          = [ 6, 4 ];
+        altCodeMap[hostKeys.KEY_CODE_EXTRA.c]        = [ 6, 4 ];
 
         normalCodeMap[hostKeys.KEY_COMMA.c]          = [ 2, 2 ];
         normalCodeMap[hostKeys.KEY_PERIOD.c]         = [ 2, 3 ];
@@ -206,6 +208,7 @@ wmsx.DOMKeyboard = function(hub) {
         normalCodeMap[hostKeys.KEY_DEAD.c]           = [ 2, 5 ];
         normalCodeMap[hostKeys.KEY_DEAD2.c]          = [ 2, 5 ];
         normalCodeMap[hostKeys.KEY_DEAD3.c]          = [ 2, 5 ];
+        altCodeMap[hostKeys.KEY_DEAD_EXTRA.c]        = [ 2, 5 ];
 
         normalCodeMap[hostKeys.KEY_QUOTE.c]          = [ 2, 0 ];
         normalCodeMap[hostKeys.KEY_BACKQUOTE.c]      = [ 2, 1 ];
@@ -321,12 +324,15 @@ wmsx.DOMKeyboard = function(hub) {
             KEY_CAPS_LOCK: wmsx.DOMKeys.VK_CAPS_LOCK,
 
             KEY_GRAPH: wmsx.DOMKeys.VK_PAGE_UP,
+            KEY_GRAPH_EXTRA: wmsx.DOMKeys.VK_COMMA,
             KEY_CODE:  wmsx.DOMKeys.VK_PAGE_DOWN,
             KEY_CODE2: wmsx.DOMKeys.VK_UNBOUND,
             KEY_CODE3: wmsx.DOMKeys.VK_UNBOUND,
+            KEY_CODE_EXTRA: wmsx.DOMKeys.VK_PERIOD,
             KEY_DEAD:  wmsx.DOMKeys.VK_END,
             KEY_DEAD2: wmsx.DOMKeys.VK_UNBOUND,
             KEY_DEAD3: wmsx.DOMKeys.VK_UNBOUND,
+            KEY_DEAD_EXTRA: wmsx.DOMKeys.VK_SLASH,
 
             KEY_NUM_0: wmsx.DOMKeys.VK_NUM_0,
             KEY_NUM_1: wmsx.DOMKeys.VK_NUM_1,
