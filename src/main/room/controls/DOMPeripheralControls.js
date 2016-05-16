@@ -193,8 +193,6 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.CAPTURE_SCREEN:
                 screen.captureScreen();
                 break;
-            case controls.EXIT:
-                room.exit(); break;
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {
@@ -246,8 +244,6 @@ wmsx.DOMPeripheralControls = function(room) {
         keyShiftControlAltCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
 
         keyShiftCodeMap[KEY_TAPE] = controls.DISKA_LOAD_URL;
-
-        keyAltCodeMap[KEY_EXIT]         = controls.EXIT;
 
         keyAltCodeMap[KEY_KEYBOARD_TOGGLE_HOST]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
         keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]      = controls.JOYSTICKS_TOGGLE_MODE;
@@ -324,8 +320,6 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
     var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
-
-    var KEY_EXIT  = wmsx.DOMKeys.VK_ESCAPE.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;

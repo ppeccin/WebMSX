@@ -24,25 +24,27 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     };
 
     this.keyDown = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
+        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
+            keyForwardControls.keyDown(event);
             return false;
         } else
-            keyForwardControls.keyDown(event);
+            return keyForwardControls.keyDown(event);
     };
 
     this.keyUp = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
+        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0);
         if (processKeyEvent(event.keyCode, false, modifiers)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
+            keyForwardControls.keyUp(event);
             return false;
         } else
-            keyForwardControls.keyUp(event);
+            return keyForwardControls.keyUp(event);
     };
 
     var processKeyEvent = function(keyCode, press, modifiers) {
@@ -61,8 +63,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         switch (modif) {
             case 0:
                 return normalCodeMap[keyCode];
-            case KEY_SHIFT_MASK:
-                return withSHIFTCodeMap[keyCode];
             case KEY_CTRL_MASK:
                 return withCTRLCodeMap[keyCode];
             case KEY_ALT_MASK:
@@ -156,7 +156,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var monitor;
 
     var normalCodeMap = {};
-    var withSHIFTCodeMap = {};
     var withCTRLCodeMap = {};
     var withALTCodeMap = {};
     var withCTRLALTCodeMap = {};
@@ -208,12 +207,10 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F11.c;
 
     var KEY_CTRL_MASK  = 1;
-    var KEY_ALT_MASK   = wmsx.DOMMachineControls.KEY_ALT_MASK;
+    var KEY_ALT_MASK   = 2;
     var KEY_SHIFT_MASK = 4;
 
 
     init();
 
 };
-
-wmsx.DOMMachineControls.KEY_ALT_MASK   = 2;

@@ -70,7 +70,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             if (event.stopPropagation) event.stopPropagation();
             return false;
         } else
-            keyForwardControls.keyDown(event);
+            return keyForwardControls.keyDown(event);
     };
 
     this.keyUp = function(event) {
@@ -82,7 +82,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             if (event.stopPropagation) event.stopPropagation();
             return false;
         } else
-            keyForwardControls.keyUp(event);
+            return keyForwardControls.keyUp(event);
     };
 
     var processKeyEvent = function(keyCode, press, alt, ctrl) {
