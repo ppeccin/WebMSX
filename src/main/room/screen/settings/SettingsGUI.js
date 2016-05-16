@@ -458,7 +458,7 @@ wmsx.SettingsGUI.html = function() {
                     '<div class="wmsx-full-divider"></div>' +
                     '<div class="wmsx-bottom">' +
                         '<div class="wmsx-hotkey wmsx-heading">' +
-                            'Special MSX Keys' +
+                            'Special / Alternative MSX Key bindings:' +
                         '</div>' +
                         '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
                             '<div class="wmsx-command">' +
@@ -503,6 +503,10 @@ wmsx.SettingsGUI.html = function() {
                             '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
                             '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
+                                'F9' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 ',' +
                             '</div>' +
                         '</div>' +
@@ -514,6 +518,10 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="wmsx-key">' +
                                 'PgDn' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
+                                'F10' +
                             '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                 'Alt' +
                             '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
@@ -532,6 +540,20 @@ wmsx.SettingsGUI.html = function() {
                                 'Alt' +
                             '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                 '/' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-msx">' +
+                                    'ESC' +
+                                '</div> :' +
+                            '</div>' +
+                            '<div class="wmsx-key">' +
+                                'Escape' +
+                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
+                                'Alt' +
+                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
+                                'F1' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -839,7 +861,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-inputs .wmsx-bottom {' +
-           'margin: 5px 0 0 95px;' +
+           'margin-left: 95px;' +
        '}' +
 
        '#wmsx-inputs .wmsx-bottom .wmsx-command {' +
