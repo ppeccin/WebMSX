@@ -208,6 +208,10 @@ WMSX.presets = {
         SLOT_2_URL:         "@[RAM64K].rom"
     },
 
+    NOMSXMUSIC: {
+        _EXCLUDE:           "MSXMUSIC"
+    },
+
     SCC: {
         SLOT_2_3_URL:       "@[SCCExpansion].rom"
     },
