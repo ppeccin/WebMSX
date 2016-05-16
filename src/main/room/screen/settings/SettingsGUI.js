@@ -462,12 +462,12 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
                             '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx">' +
-                                    'SELECT' +
-                               '</div> :' +
+                                '<div class="wmsx-key wmsx-key-msx wmsx-key-msx-stop">' +
+                                    'STOP' +
+                                '</div> :' +
                             '</div>' +
                             '<div class="wmsx-key">' +
-                                'ScrLck' +
+                                'Pause' +
                             '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">' +
                                 'F9' +
                             '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
@@ -478,12 +478,12 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
                             '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx wmsx-key-msx-stop">' +
-                                    'STOP' +
-                                '</div> :' +
+                                '<div class="wmsx-key wmsx-key-msx">' +
+                                    'SELECT' +
+                               '</div> :' +
                             '</div>' +
                             '<div class="wmsx-key">' +
-                                'Pause' +
+                                'ScrLck' +
                             '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">' +
                                 'F10' +
                             '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
