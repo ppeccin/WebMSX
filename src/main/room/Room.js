@@ -50,12 +50,12 @@ wmsx.Room = function(screenElement) {
         self.fileLoader = new wmsx.FileLoader();
         self.screen = new wmsx.CanvasDisplay(screenElement);
         self.speaker = new wmsx.WebAudioSpeaker();
-        self.controllersHub = new wmsx.ControllersHub();
-        self.machineControls = new wmsx.DOMMachineControls();
         self.peripheralControls = new wmsx.DOMPeripheralControls();
+        self.machineControls = new wmsx.DOMMachineControls(self.peripheralControls);
+        self.controllersHub = new wmsx.ControllersHub(self.machineControls);
 
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
-        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.machineControls, self.peripheralControls, self.controllersHub);
+        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.peripheralControls, self.controllersHub);
         self.machineControls.connectPeripherals(self.screen);
         self.controllersHub.connectPeripherals(self.screen);
         self.stateMedia.connectPeripherals(self.fileDownloader);

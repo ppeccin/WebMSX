@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.ControllersHub = function() {
+wmsx.ControllersHub = function(keyForwardControls) {
 
     this.connect = function(controllersSocket, machineControlsSocket) {
         controllersSocket.connectControls(this);
@@ -130,7 +130,7 @@ wmsx.ControllersHub = function() {
     var mousePresent =    [ null, null ];
     var joystickPresent = [ null, null ];
 
-    var keyboard =         new wmsx.DOMKeyboard(this);
+    var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this);
 

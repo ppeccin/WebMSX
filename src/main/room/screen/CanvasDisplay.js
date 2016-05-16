@@ -21,14 +21,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         controllersSocket = pControllersSocket;
     };
 
-    this.connectPeripherals = function(fileLoader, pFileDownloader, machineControls, pPeripheralControls, pControllersHub) {
+    this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader = pFileDownloader;
         fileDownloader.registerForDownloadElement(mainElement);
-        machineControls.addInputElements(keyControlsInputElements());
         peripheralControls = pPeripheralControls;
-        peripheralControls.addInputElements(keyControlsInputElements());
         controllersHub = pControllersHub;
         controllersHub.setKeyInputElements(keyControlsInputElements());
         controllersHub.setMouseInputElement(mouseControlsInputElement());

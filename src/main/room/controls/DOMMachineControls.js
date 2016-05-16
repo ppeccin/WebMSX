@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMMachineControls = function() {
+wmsx.DOMMachineControls = function(keyForwardControls) {
     var self = this;
 
     function init() {
@@ -23,13 +23,6 @@ wmsx.DOMMachineControls = function() {
     this.powerOff = function() {
     };
 
-    this.addInputElements = function(elements) {
-        for (var i = 0; i < elements.length; i++) {
-            elements[i].addEventListener("keydown", this.keyDown);
-            elements[i].addEventListener("keyup", this.keyUp);
-        }
-    };
-
     this.keyDown = function(event) {
         var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
@@ -37,7 +30,8 @@ wmsx.DOMMachineControls = function() {
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             return false;
-        }
+        } else
+            keyForwardControls.keyDown(event);
     };
 
     this.keyUp = function(event) {
@@ -47,7 +41,8 @@ wmsx.DOMMachineControls = function() {
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             return false;
-        }
+        } else
+            keyForwardControls.keyUp(event);
     };
 
     var processKeyEvent = function(keyCode, press, modifiers) {

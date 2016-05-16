@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMKeyboard = function(hub) {
+wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var self = this;
 
     function init() {
@@ -57,51 +57,71 @@ wmsx.DOMKeyboard = function(hub) {
 
     this.resetControllers = function() {
         keyStateMap = {};
+        extraModifiersActive.clear();
         wmsx.Util.arrayFill(keyboardRowValues, 0xff);
     };
 
     this.keyDown = function(event) {
-        //console.log("Keyboard: " + event.keyCode + " " + event.location);
-        var modifiers = 0 | (event.altKey ? KEY_ALT_MASK : 0);
-        if (processKeyEvent(event.keyCode, true, modifiers)) {
+        //console.log("Keyboard Down: " + event.keyCode + " " + event.altKey);
+
+        if (processKeyEvent(event.keyCode, true, event.altKey, event.ctrlKey)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             return false;
-        }
+        } else
+            keyForwardControls.keyDown(event);
     };
 
     this.keyUp = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
-        if (processKeyEvent(event.keyCode, false, modifiers)) {
+        //console.log("Keyboard Up: " + event.keyCode + " " + event.altKey);
+
+        if (processKeyEvent(event.keyCode, false, event.altKey, event.ctrlKey)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             return false;
-        }
+        } else
+            keyForwardControls.keyUp(event);
     };
 
-    var processKeyEvent = function(keyCode, press, modifiers) {
-        var key = keyForEvent(keyCode, modifiers);
+    var processKeyEvent = function(keyCode, press, alt, ctrl) {
+        var key = keyForEvent(keyCode, alt, ctrl);
         if (!key) return false;
+        //console.log(key);
 
         var state = keyStateMap[key];
         if (!state || (state !== press)) {
             keyStateMap[key] = press;
             if (press) {
+                if (key.extraModifier) extraModifiersActive.add(key);
                 keyboardRowValues[key[0]] &= ~(1 << key[1]);
                 if (turboFireSpeed && key === spaceKey) turboFireFlipClockCount = 3;
-            } else
+            } else {
+                if (key.extraModifier) extraModifiersActive.delete(key);
                 keyboardRowValues[key[0]] |= (1 << key[1]);
+            }
         }
         return true;
     };
 
-    var keyForEvent = function(keyCode, modif) {
-        if (modif & KEY_ALT_MASK)
-            return altCodeMap[keyCode];     // Special "extra" bindings with ALT
-        else
-            return normalCodeMap[keyCode];
+    var keyForEvent = function(keyCode, alt, ctrl) {
+        var key;
+        if (extraModifiersActive.size > 0) {         // If extra modifiers active, ignore ALT unless its also an extra modifier
+            if (alt) {
+                key = altCodeMap[keyCode];
+                return key && key.extraModifier ? key : normalCodeMap[keyCode];
+            } else
+                key = normalCodeMap[keyCode];
+                var mod = key && key.extraModifier;
+                return mod && extraModifiersActive.has(mod) ? mod : key;
+        } else {
+            return alt
+                ? ctrl
+                    ? ctrlAltCodeMap[keyCode] || altCodeMap[keyCode]
+                    : altCodeMap[keyCode]
+                : normalCodeMap[keyCode];
+        }
     };
 
     // International Matrix
@@ -110,18 +130,7 @@ wmsx.DOMKeyboard = function(hub) {
 
         normalCodeMap = {};
         altCodeMap = {};
-
-        normalCodeMap[hostKeys.KEY_F1.c]             = [ 6, 5 ];
-        normalCodeMap[hostKeys.KEY_F2.c]             = [ 6, 6 ];
-        normalCodeMap[hostKeys.KEY_F3.c]             = [ 6, 7 ];
-        normalCodeMap[hostKeys.KEY_F4.c]             = [ 7, 0 ];
-        normalCodeMap[hostKeys.KEY_F5.c]             = [ 7, 1 ];
-
-        normalCodeMap[hostKeys.KEY_STOP.c]           = [ 7, 4 ];
-        normalCodeMap[hostKeys.KEY_STOP2.c]          = [ 7, 4 ];
-        altCodeMap[hostKeys.KEY_STOP_EXTRA.c]        = [ 7, 4 ];
-        normalCodeMap[hostKeys.KEY_SELECT.c]         = [ 7, 6 ];
-        altCodeMap[hostKeys.KEY_SELECT_EXTRA.c]      = [ 7, 6 ];
+        ctrlAltCodeMap = {};
 
         normalCodeMap[hostKeys.KEY_HOME.c]           = [ 8, 1 ];
         normalCodeMap[hostKeys.KEY_INSERT.c]         = [ 8, 2 ];
@@ -131,6 +140,12 @@ wmsx.DOMKeyboard = function(hub) {
         normalCodeMap[hostKeys.KEY_DOWN.c]           = [ 8, 6 ];
         normalCodeMap[hostKeys.KEY_LEFT.c]           = [ 8, 4 ];
         normalCodeMap[hostKeys.KEY_RIGHT.c]          = [ 8, 7 ];
+
+        normalCodeMap[hostKeys.KEY_F1.c]             = [ 6, 5 ];
+        normalCodeMap[hostKeys.KEY_F2.c]             = [ 6, 6 ];
+        normalCodeMap[hostKeys.KEY_F3.c]             = [ 6, 7 ];
+        normalCodeMap[hostKeys.KEY_F4.c]             = [ 7, 0 ];
+        normalCodeMap[hostKeys.KEY_F5.c]             = [ 7, 1 ];
 
         normalCodeMap[hostKeys.KEY_1.c]              = [ 0, 1 ];
         normalCodeMap[hostKeys.KEY_2.c]              = [ 0, 2 ];
@@ -143,35 +158,35 @@ wmsx.DOMKeyboard = function(hub) {
         normalCodeMap[hostKeys.KEY_9.c]              = [ 1, 1 ];
         normalCodeMap[hostKeys.KEY_0.c]              = [ 0, 0 ];
 
-        normalCodeMap[hostKeys.KEY_Q.c]              = [ 4, 6 ];
-        normalCodeMap[hostKeys.KEY_W.c]              = [ 5, 4 ];
-        normalCodeMap[hostKeys.KEY_E.c]              = [ 3, 2 ];
-        normalCodeMap[hostKeys.KEY_R.c]              = [ 4, 7 ];
-        normalCodeMap[hostKeys.KEY_T.c]              = [ 5, 1 ];
-        normalCodeMap[hostKeys.KEY_Y.c]              = [ 5, 6 ];
-        normalCodeMap[hostKeys.KEY_U.c]              = [ 5, 2 ];
-        normalCodeMap[hostKeys.KEY_I.c]              = [ 3, 6 ];
-        normalCodeMap[hostKeys.KEY_O.c]              = [ 4, 4 ];
-        normalCodeMap[hostKeys.KEY_P.c]              = [ 4, 5 ];
-        normalCodeMap[hostKeys.KEY_A.c]              = [ 2, 6 ];
-        normalCodeMap[hostKeys.KEY_S.c]              = [ 5, 0 ];
-        normalCodeMap[hostKeys.KEY_D.c]              = [ 3, 1 ];
-        normalCodeMap[hostKeys.KEY_F.c]              = [ 3, 3 ];
-        normalCodeMap[hostKeys.KEY_G.c]              = [ 3, 4 ];
-        normalCodeMap[hostKeys.KEY_H.c]              = [ 3, 5 ];
-        normalCodeMap[hostKeys.KEY_J.c]              = [ 3, 7 ];
-        normalCodeMap[hostKeys.KEY_K.c]              = [ 4, 0 ];
-        normalCodeMap[hostKeys.KEY_L.c]              = [ 4, 1 ];
-        normalCodeMap[hostKeys.KEY_Z.c]              = [ 5, 7 ];
-        normalCodeMap[hostKeys.KEY_X.c]              = [ 5, 5 ];
-        normalCodeMap[hostKeys.KEY_C.c]              = [ 3, 0 ];
-        normalCodeMap[hostKeys.KEY_V.c]              = [ 5, 3 ];
-        normalCodeMap[hostKeys.KEY_B.c]              = [ 2, 7 ];
-        normalCodeMap[hostKeys.KEY_N.c]              = [ 4, 3 ];
-        normalCodeMap[hostKeys.KEY_M.c]              = [ 4, 2 ];
+        // Map "normal" keys also to alternatively Ctrl+Alt+key to avoid browsers hotkeys with Ctrl
+        ctrlAltCodeMap[hostKeys.KEY_Q.c] = normalCodeMap[hostKeys.KEY_Q.c] = [ 4, 6 ];
+        ctrlAltCodeMap[hostKeys.KEY_W.c] = normalCodeMap[hostKeys.KEY_W.c] = [ 5, 4 ];
+        ctrlAltCodeMap[hostKeys.KEY_E.c] = normalCodeMap[hostKeys.KEY_E.c] = [ 3, 2 ];
+        ctrlAltCodeMap[hostKeys.KEY_R.c] = normalCodeMap[hostKeys.KEY_R.c] = [ 4, 7 ];
+        ctrlAltCodeMap[hostKeys.KEY_T.c] = normalCodeMap[hostKeys.KEY_T.c] = [ 5, 1 ];
+        ctrlAltCodeMap[hostKeys.KEY_Y.c] = normalCodeMap[hostKeys.KEY_Y.c] = [ 5, 6 ];
+        ctrlAltCodeMap[hostKeys.KEY_U.c] = normalCodeMap[hostKeys.KEY_U.c] = [ 5, 2 ];
+        ctrlAltCodeMap[hostKeys.KEY_I.c] = normalCodeMap[hostKeys.KEY_I.c] = [ 3, 6 ];
+        ctrlAltCodeMap[hostKeys.KEY_O.c] = normalCodeMap[hostKeys.KEY_O.c] = [ 4, 4 ];
+        ctrlAltCodeMap[hostKeys.KEY_P.c] = normalCodeMap[hostKeys.KEY_P.c] = [ 4, 5 ];
+        ctrlAltCodeMap[hostKeys.KEY_A.c] = normalCodeMap[hostKeys.KEY_A.c] = [ 2, 6 ];
+        ctrlAltCodeMap[hostKeys.KEY_S.c] = normalCodeMap[hostKeys.KEY_S.c] = [ 5, 0 ];
+        ctrlAltCodeMap[hostKeys.KEY_D.c] = normalCodeMap[hostKeys.KEY_D.c] = [ 3, 1 ];
+        ctrlAltCodeMap[hostKeys.KEY_F.c] = normalCodeMap[hostKeys.KEY_F.c] = [ 3, 3 ];
+        ctrlAltCodeMap[hostKeys.KEY_G.c] = normalCodeMap[hostKeys.KEY_G.c] = [ 3, 4 ];
+        ctrlAltCodeMap[hostKeys.KEY_H.c] = normalCodeMap[hostKeys.KEY_H.c] = [ 3, 5 ];
+        ctrlAltCodeMap[hostKeys.KEY_J.c] = normalCodeMap[hostKeys.KEY_J.c] = [ 3, 7 ];
+        ctrlAltCodeMap[hostKeys.KEY_K.c] = normalCodeMap[hostKeys.KEY_K.c] = [ 4, 0 ];
+        ctrlAltCodeMap[hostKeys.KEY_L.c] = normalCodeMap[hostKeys.KEY_L.c] = [ 4, 1 ];
+        ctrlAltCodeMap[hostKeys.KEY_Z.c] = normalCodeMap[hostKeys.KEY_Z.c] = [ 5, 7 ];
+        ctrlAltCodeMap[hostKeys.KEY_X.c] = normalCodeMap[hostKeys.KEY_X.c] = [ 5, 5 ];
+        ctrlAltCodeMap[hostKeys.KEY_C.c] = normalCodeMap[hostKeys.KEY_C.c] = [ 3, 0 ];
+        ctrlAltCodeMap[hostKeys.KEY_V.c] = normalCodeMap[hostKeys.KEY_V.c] = [ 5, 3 ];
+        ctrlAltCodeMap[hostKeys.KEY_B.c] = normalCodeMap[hostKeys.KEY_B.c] = [ 2, 7 ];
+        ctrlAltCodeMap[hostKeys.KEY_N.c] = normalCodeMap[hostKeys.KEY_N.c] = [ 4, 3 ];
+        ctrlAltCodeMap[hostKeys.KEY_M.c] = normalCodeMap[hostKeys.KEY_M.c] = [ 4, 2 ];
 
         normalCodeMap[hostKeys.KEY_ESCAPE.c]         = [ 7, 2 ];
-        altCodeMap[hostKeys.KEY_ESCAPE_EXTRA.c]      = [ 7, 2 ];
         normalCodeMap[hostKeys.KEY_TAB.c]            = [ 7, 3 ];
         normalCodeMap[hostKeys.KEY_BACKSPACE.c]      = [ 7, 5 ];
         normalCodeMap[hostKeys.KEY_ENTER.c]          = [ 7, 7 ];
@@ -187,28 +202,11 @@ wmsx.DOMKeyboard = function(hub) {
         normalCodeMap[hostKeys.KEY_OPEN_BRACKET.c]   = [ 1, 5 ];
         normalCodeMap[hostKeys.KEY_CLOSE_BRACKET.c]  = [ 1, 6 ];
 
-        normalCodeMap[hostKeys.KEY_SHIFT.c]          = [ 6, 0 ];
-        altCodeMap[hostKeys.KEY_SHIFT_EXTRA.c]       = [ 6, 0 ];
-        normalCodeMap[hostKeys.KEY_CONTROL.c]        = [ 6, 1 ];
-        altCodeMap[hostKeys.KEY_CONTROL_EXTRA.c]     = [ 6, 1 ];
-        normalCodeMap[hostKeys.KEY_CAPS_LOCK.c]      = [ 6, 3 ];
-        normalCodeMap[hostKeys.KEY_GRAPH.c]          = [ 6, 2 ];
-        altCodeMap[hostKeys.KEY_GRAPH_EXTRA.c]       = [ 6, 2 ];
-        normalCodeMap[hostKeys.KEY_CODE.c]           = [ 6, 4 ];
-        normalCodeMap[hostKeys.KEY_CODE2.c]          = [ 6, 4 ];
-        normalCodeMap[hostKeys.KEY_CODE3.c]          = [ 6, 4 ];
-        altCodeMap[hostKeys.KEY_CODE_EXTRA.c]        = [ 6, 4 ];
-
         normalCodeMap[hostKeys.KEY_COMMA.c]          = [ 2, 2 ];
         normalCodeMap[hostKeys.KEY_PERIOD.c]         = [ 2, 3 ];
         normalCodeMap[hostKeys.KEY_SEMICOLON.c]      = [ 1, 7 ];
         normalCodeMap[hostKeys.KEY_SEMICOLON2.c]     = [ 1, 7 ];
         normalCodeMap[hostKeys.KEY_SLASH.c]          = [ 2, 4 ];
-
-        normalCodeMap[hostKeys.KEY_DEAD.c]           = [ 2, 5 ];
-        normalCodeMap[hostKeys.KEY_DEAD2.c]          = [ 2, 5 ];
-        normalCodeMap[hostKeys.KEY_DEAD3.c]          = [ 2, 5 ];
-        altCodeMap[hostKeys.KEY_DEAD_EXTRA.c]        = [ 2, 5 ];
 
         normalCodeMap[hostKeys.KEY_QUOTE.c]          = [ 2, 0 ];
         normalCodeMap[hostKeys.KEY_BACKQUOTE.c]      = [ 2, 1 ];
@@ -229,6 +227,47 @@ wmsx.DOMKeyboard = function(hub) {
         normalCodeMap[hostKeys.KEY_NUM_DIVIDE.c]     = [ 9, 2 ];
         normalCodeMap[hostKeys.KEY_NUM_PERIOD.c]     = [ 10, 7 ];
         normalCodeMap[hostKeys.KEY_NUM_COMMA.c]      = [ 10, 6 ];
+
+        normalCodeMap[hostKeys.KEY_SHIFT.c]          = [ 6, 0 ];
+        altCodeMap[hostKeys.KEY_SHIFT.c]             = [ 6, 0 ];
+        normalCodeMap[hostKeys.KEY_CONTROL.c]        = [ 6, 1 ];
+        altCodeMap[hostKeys.KEY_CONTROL.c]           = [ 6, 1 ];
+        normalCodeMap[hostKeys.KEY_CAPS_LOCK.c]      = [ 6, 3 ];
+
+        normalCodeMap[hostKeys.KEY_GRAPH.c]          = [ 6, 2 ];
+        normalCodeMap[hostKeys.KEY_CODE.c]           = [ 6, 4 ];
+        normalCodeMap[hostKeys.KEY_DEAD.c]           = [ 2, 5 ];
+        normalCodeMap[hostKeys.KEY_DEAD2.c]          = [ 2, 5 ];
+        normalCodeMap[hostKeys.KEY_DEAD3.c]          = [ 2, 5 ];
+
+        normalCodeMap[hostKeys.KEY_STOP.c]           = [ 7, 4 ];
+        normalCodeMap[hostKeys.KEY_STOP2.c]          = [ 7, 4 ];
+        normalCodeMap[hostKeys.KEY_STOP3.c]          = [ 7, 4 ];
+        normalCodeMap[hostKeys.KEY_SELECT.c]         = [ 7, 6 ];
+        normalCodeMap[hostKeys.KEY_SELECT2.c]        = [ 7, 6 ];
+
+
+        // Extra mappings involving ALT to overcome certain missing keys
+
+        var graphExMod = [ 6, 2 ]; graphExMod.extraModifier = graphExMod;
+        altCodeMap[hostKeys.KEY_GRAPH_EXTRA.c] = graphExMod; normalCodeMap[hostKeys.KEY_GRAPH_EXTRA.c].extraModifier = graphExMod;
+        altCodeMap[hostKeys.KEY_GRAPH_EXTRA2.c] = graphExMod; normalCodeMap[hostKeys.KEY_GRAPH_EXTRA2.c].extraModifier = graphExMod;
+
+        var codeExMod = [ 6, 4 ]; codeExMod.extraModifier = codeExMod;
+        altCodeMap[hostKeys.KEY_CODE_EXTRA.c] = codeExMod; normalCodeMap[hostKeys.KEY_CODE_EXTRA.c].extraModifier = codeExMod;
+        altCodeMap[hostKeys.KEY_CODE_EXTRA2.c] = codeExMod; normalCodeMap[hostKeys.KEY_CODE_EXTRA2.c].extraModifier = codeExMod;
+
+        var deadExMod = [ 2, 5 ]; deadExMod.extraModifier = deadExMod;
+        altCodeMap[hostKeys.KEY_DEAD_EXTRA.c] = deadExMod; normalCodeMap[hostKeys.KEY_DEAD_EXTRA.c].extraModifier = deadExMod;
+
+        var stopExMod = [ 7, 4 ]; stopExMod.extraModifier = stopExMod;
+        altCodeMap[hostKeys.KEY_STOP_EXTRA.c] = stopExMod; normalCodeMap[hostKeys.KEY_STOP_EXTRA.c].extraModifier = stopExMod;
+
+        var selectExMod = [ 7, 6 ]; selectExMod.extraModifier = selectExMod;
+        altCodeMap[hostKeys.KEY_SELECT_EXTRA.c] = selectExMod; normalCodeMap[hostKeys.KEY_SELECT_EXTRA.c].extraModifier = selectExMod;
+
+        var escapeExMod = [ 7, 2 ]; escapeExMod.extraModifier = escapeExMod;
+        altCodeMap[hostKeys.KEY_ESCAPE_EXTRA.c] = escapeExMod; normalCodeMap[hostKeys.KEY_ESCAPE_EXTRA.c].extraModifier = escapeExMod;
     };
 
     var initHostKeys = function() {
@@ -288,7 +327,12 @@ wmsx.DOMKeyboard = function(hub) {
 
             KEY_STOP: wmsx.DOMKeys.VK_PAUSE,
             KEY_STOP2: wmsx.DOMKeys.VK_CTRL_PAUSE,
+            KEY_STOP3: wmsx.DOMKeys.VK_F9,
+            KEY_STOP_EXTRA: wmsx.DOMKeys.VK_OPEN_BRACKET,
+
             KEY_SELECT: wmsx.DOMKeys.VK_SCROLL_LOCK,
+            KEY_SELECT2: wmsx.DOMKeys.VK_F10,
+            KEY_SELECT_EXTRA: wmsx.DOMKeys.VK_CLOSE_BRACKET,
 
             KEY_HOME: wmsx.DOMKeys.VK_HOME,
             KEY_INSERT: wmsx.DOMKeys.VK_INSERT,
@@ -318,17 +362,15 @@ wmsx.DOMKeyboard = function(hub) {
             KEY_BACKQUOTE: wmsx.DOMKeys.VK_BACKQUOTE,
 
             KEY_SHIFT: wmsx.DOMKeys.VK_SHIFT,
-            KEY_SHIFT_EXTRA: wmsx.DOMKeys.VK_SHIFT,
             KEY_CONTROL: wmsx.DOMKeys.VK_CONTROL,
-            KEY_CONTROL_EXTRA: wmsx.DOMKeys.VK_CONTROL,
             KEY_CAPS_LOCK: wmsx.DOMKeys.VK_CAPS_LOCK,
 
             KEY_GRAPH: wmsx.DOMKeys.VK_PAGE_UP,
-            KEY_GRAPH_EXTRA: wmsx.DOMKeys.VK_COMMA,
+            KEY_GRAPH_EXTRA: wmsx.DOMKeys.VK_F9,
+            KEY_GRAPH_EXTRA2: wmsx.DOMKeys.VK_COMMA,
             KEY_CODE:  wmsx.DOMKeys.VK_PAGE_DOWN,
-            KEY_CODE2: wmsx.DOMKeys.VK_UNBOUND,
-            KEY_CODE3: wmsx.DOMKeys.VK_UNBOUND,
-            KEY_CODE_EXTRA: wmsx.DOMKeys.VK_PERIOD,
+            KEY_CODE_EXTRA: wmsx.DOMKeys.VK_F10,
+            KEY_CODE_EXTRA2: wmsx.DOMKeys.VK_PERIOD,
             KEY_DEAD:  wmsx.DOMKeys.VK_END,
             KEY_DEAD2: wmsx.DOMKeys.VK_UNBOUND,
             KEY_DEAD3: wmsx.DOMKeys.VK_UNBOUND,
@@ -353,9 +395,6 @@ wmsx.DOMKeyboard = function(hub) {
 
         };
 
-        hostKeys.KEY_STOP_EXTRA =    hostKeys.KEY_OPEN_BRACKET;
-        hostKeys.KEY_SELECT_EXTRA =  hostKeys.KEY_CLOSE_BRACKET;
-
         initHostKeysForKeyboard(wmsx.DOMKeys.getKeyboard());
     };
 
@@ -364,8 +403,6 @@ wmsx.DOMKeyboard = function(hub) {
             case "pt-BR":
                 hostKeys.KEY_DEAD2 = wmsx.DOMKeys.BR_VK_TILDE;
                 hostKeys.KEY_DEAD3 = wmsx.DOMKeys.BR_VK_TILDE_FF;
-                hostKeys.KEY_CODE2 = wmsx.DOMKeys.BR_VK_CEDILLA;
-                hostKeys.KEY_CODE3 = wmsx.DOMKeys.BR_VK_CEDILLA_FF;
         }
     };
 
@@ -376,19 +413,19 @@ wmsx.DOMKeyboard = function(hub) {
     var controllersSocket;
     var monitor;
 
-    var keyStateMap =  {};
+    var keyStateMap = {};
+    var extraModifiersActive = new Set();
     var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var normalCodeMap;
     var altCodeMap;
+    var ctrlAltCodeMap;
+
     var hostKeys;
 
     var spaceKey;
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
-    var KEY_CTRL_MASK  = 1;
-    var KEY_ALT_MASK   = 2;
-    var KEY_SHIFT_MASK = 4;
 
     init();
 

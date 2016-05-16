@@ -22,11 +22,6 @@ wmsx.DOMPeripheralControls = function(room) {
         diskDrive = pDiskDrive;
     };
 
-    this.addInputElements = function(elements) {
-        for (var i = 0; i < elements.length; i++)
-            elements[i].addEventListener("keydown", this.keyDown);
-    };
-
     this.keyDown = function(event) {
         var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
         if (processKeyPress(event.keyCode, modifiers)) {
@@ -35,6 +30,9 @@ wmsx.DOMPeripheralControls = function(room) {
             if (event.stopPropagation) event.stopPropagation();
             return false;
         }
+    };
+
+    this.keyUp = function(event) {
     };
 
     var processKeyPress = function(keyCode, modifiers) {
