@@ -287,7 +287,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     function lostFocus(e) {
-        controllersSocket.resetControllers();
+        controllersSocket.releaseControllers();
     }
 
     function hideCursor() {

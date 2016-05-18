@@ -19,9 +19,13 @@ wmsx.DOMMouseControls = function(hub) {
     this.powerOff = function() {
     };
 
-    this.resetControllers = function() {
-        if (mode === -1) port = -1;     // If in Auto mode, disable mouse
+    this.releaseControllers = function() {
         mouseState.reset();
+    };
+
+    this.resetControllers = function() {
+        this.releaseControllers();
+        if (mode === -1) port = -1;     // If in Auto mode, disable mouse
         updateConnectionsToHub();
     };
 
@@ -65,14 +69,8 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.togglePointerLock = function() {
-        var func;
-        if (pointerLocked) {
-            func = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
-            if (func) func.apply(document);
-        } else {
-            func = inputElement.requestPointerLock || inputElement.mozRequestPointerLock || inputElement.webkitRequestPointerLock;
-            if (func) func.apply(inputElement);
-        }
+        if (pointerLocked) unlockPointer();
+        else lockPointer();
     };
 
     this.setMouseInputElement = function(pElement) {
@@ -89,6 +87,18 @@ wmsx.DOMMouseControls = function(hub) {
     this.setScreenPixelScale = function(scaleX, scaleY) {
         pixelScaleX = scaleX; pixelScaleY = scaleY;
     };
+
+    function lockPointer() {
+        if (port < 0)
+            return screen.showOSD("Mouse Pointer Locking only when MOUSE is ENABLED!", true);
+        var func = inputElement.requestPointerLock || inputElement.mozRequestPointerLock || inputElement.webkitRequestPointerLock;
+        if (func) func.apply(inputElement);
+    }
+
+    function unlockPointer() {
+        var func = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+        if (func) func.apply(document);
+    }
 
     function updatePortValue() {
         switch (mouseState.readCycle) {
@@ -154,7 +164,7 @@ wmsx.DOMMouseControls = function(hub) {
         var lockingElement = document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement;
         pointerLocked = lockingElement === inputElement;
         screen.mousePointerLocked(pointerLocked);
-        screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
+        screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", pointerLocked);   // Only force message when Locking
     }
 
     function tryAutoEnable(atPort, pin8Val) {
@@ -167,6 +177,7 @@ wmsx.DOMMouseControls = function(hub) {
     }
 
     function updateConnectionsToHub() {
+        if (pointerLocked && port < 0) unlockPointer();
         hub.updateMouseConnections(port === 0 ? "MOUSE" : null, port === 1 ? "MOUSE" : null);
         screen.setMouseActiveCursor(port >= 0);
     }

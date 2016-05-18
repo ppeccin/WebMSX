@@ -53,10 +53,14 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         turboFireFlipClockCount = 0;
     };
 
-    this.resetControllers = function() {
+    this.releaseControllers = function() {
         keyStateMap = {};
         extraModifiersActive.clear();
         wmsx.Util.arrayFill(keyboardRowValues, 0xff);
+    };
+
+    this.resetControllers = function() {
+        this.releaseControllers();
     };
 
     this.keyDown = function(event) {

@@ -28,6 +28,12 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.powerOff();
     };
 
+    this.releaseControllers = function() {
+        keyboard.releaseControllers();
+        joystickControls.releaseControllers();
+        mouseControls.releaseControllers();
+    };
+
     this.resetControllers = function() {
         keyboard.resetControllers();
         joystickControls.resetControllers();

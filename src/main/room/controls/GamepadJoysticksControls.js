@@ -20,8 +20,12 @@ wmsx.GamepadJoysticksControls = function(hub) {
         supported = false;
     };
 
-    this.resetControllers = function() {
+    this.releaseControllers = function() {
         resetStates();
+    };
+
+    this.resetControllers = function() {
+        this.releaseControllers();
         updateConnectionsToHub();
     };
 

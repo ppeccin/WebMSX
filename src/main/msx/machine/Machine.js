@@ -696,6 +696,9 @@ wmsx.Machine = function() {
         this.writePin8ControllerPort = function(port, value) {
             controls.writePin8ControllerPort(port, value);
         };
+        this.releaseControllers = function() {
+            controls.releaseControllers();
+        };
         this.resetControllers = function() {
             controls.resetControllers();
         };
