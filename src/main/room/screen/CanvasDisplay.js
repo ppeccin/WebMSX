@@ -1,12 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Hover Bar + Menu, implement better show/hide, timeout
-
 wmsx.CanvasDisplay = function(mainElement) {
     var self = this;
 
     function init() {
-        setupProperties();
         setupMain();
         setupOSD();
         setupBar();
@@ -68,6 +65,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.videoSignalOff = function() {
         signalIsOn = false;
         updateLogo();
+    };
+
+    this.mousePointerLocked = function(state) {
+        mousePointerLocked = state;
+        if (mousePointerLocked) hideBar();
+        else showBar();
     };
 
     this.openHelp = function() {
@@ -290,6 +293,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function hideCursor() {
         cursorShowing = false;
         updateCursor();
+        hideBar();
     }
 
     function showCursor(force) {
@@ -325,8 +329,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (isFullscreen) return;
         borderElement.style.width = "" + width + "px";
         borderElement.style.height = "" + height + "px";
-        width += borderLateral * 2;
-        height += borderTop + borderBottom;
+        width += BORDER_LATERAL * 2;
+        height += BORDER_TOP + BORDER_BOTTOM;
         mainElement.style.width = "" + width + "px";
         mainElement.style.height = "" + height + "px";
     }
@@ -358,6 +362,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             loadingImage.style.display = "none";
         } else {
             if (pasteDialog) pasteDialog.hide();
+            showBar();
             showCursor(true);
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
             /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
@@ -417,7 +422,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         borderElement.style.overflow = "hidden";
         borderElement.style.background = "black";
         borderElement.style.border = "0 solid black";
-        borderElement.style.borderWidth = "" + borderTop + "px " + borderLateral + "px " + borderBottom + "px";
+        borderElement.style.borderWidth = "" + BORDER_TOP + "px " + BORDER_LATERAL + "px " + BORDER_BOTTOM + "px";
 
         fsElement = document.createElement('div');
         fsElement.id = "wmsx-fs";
@@ -430,6 +435,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         fsElement.addEventListener("mousemove", function() {
             showCursor();
+            showBar();
         });
 
         document.addEventListener("fullscreenchange", fullScreenChanged);
@@ -473,25 +479,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.style.left = 0;
         buttonsBar.style.right = 0;
         buttonsBar.style.zIndex = 30;
-        buttonsBar.style.height = "29px";
-        if (WMSX.SCREEN_CONTROL_BAR === 1) {
-            buttonsBar.style.bottom = "-30px";
-            buttonsBar.style.background = "rgba(30, 30, 30, .75)";
+        buttonsBar.style.height = "" + BAR_HEIGHT + "px";
+        buttonsBar.style.background = "rgb(40, 40, 40)";
+        buttonsBar.style.border = "1px solid black";
+        buttonsBar.style.bottom = "0";
+        if (BAR_AUTO_HIDE) {
+            hideBar();
             buttonsBar.style.transition = "bottom 0.3s ease-in-out";
-            mainElement.addEventListener("mouseover", function() {
-                if (buttonsBarHideTimeout) clearTimeout(buttonsBarHideTimeout);
-                buttonsBar.style.bottom = "0px";
-            });
             mainElement.addEventListener("mouseleave", function() {
-                buttonsBarHideTimeout = setTimeout(function() {
-                    hideBarMenu();
-                    buttonsBar.style.bottom = "-30px";
-                }, 1000);
+                hideBar();
             });
-        } else {
-            buttonsBar.style.bottom = "0";
-            buttonsBar.style.background = "rgb(40, 40, 40)";
-            buttonsBar.style.border = "1px solid black";
         }
 
         var menuOptions = [
@@ -771,15 +768,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.appendChild(osd);
     }
 
-    function setupProperties() {
-        if (WMSX.SCREEN_CONTROL_BAR == 1) {            // Hover
-            borderTop = 1;
-            borderLateral = 1;
-            borderBottom = 1;
-        } else {                                       // Always
-            borderTop = 1;
-            borderLateral = 1;
-            borderBottom = 31;
+    function showBar() {
+        if (BAR_AUTO_HIDE && !mousePointerLocked) buttonsBar.style.bottom = "0px";
+    }
+
+    function hideBar() {
+        if (BAR_AUTO_HIDE && !barMenuActive) {
+            hideBarMenu();
+            buttonsBar.style.bottom = "-" + (BAR_HEIGHT + 2) + "px";
         }
     }
 
@@ -828,7 +824,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         barMenuActive = true;
         barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
-        barMenu.style.height = "" + (((item + 1) * BAR_MENU_ITEM_HEIGHT) + borderBottom + 2) + "px";
+        barMenu.style.height = "" + (((item + 1) * BAR_MENU_ITEM_HEIGHT) + 4) + "px";
         barMenu.wmsxTitle.focus();
     }
 
@@ -851,7 +847,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.position = "absolute";
         style.overflow = "hidden";
         style.height = 0;
-        style.bottom = 0;
+        style.bottom = "" + BAR_HEIGHT + "px";
         style.border = "0 solid black";
         style.borderWidth = "0 1px";
         style.background = "rgb(40, 40, 40)";
@@ -936,12 +932,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             '' +
             '.wmsx-bar-menu-item:hover { ' +
             '   color: white;' +
-            '   background-color: rgb(200, 30, 25);' +
+            '   background-color: rgb(210, 28, 23);' +
             '}'
         ;
         document.head.appendChild(style);
     }
-
 
 
     var monitor;
@@ -987,6 +982,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var scaleY = 1;
     var pixelWidth = 1, pixelHeight = 1;
 
+    var mousePointerLocked = false;
+
     var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
     var targetHeight = WMSX.MACHINE_TYPE === 1
         ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2
@@ -1008,10 +1005,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullscreenButton;
     var settingsButton;
 
-    var borderTop;
-    var borderLateral;
-    var borderBottom;
-
     var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
     var mediaButtonsDesc = { Power: "Power", DiskA: "Disk A", DiskB: "Disk B", Cartridge1: "Cartridge 1", Cartridge2: "Cartridge 2", Tape: "Cassette Tape" };
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
@@ -1025,12 +1018,20 @@ wmsx.CanvasDisplay = function(mainElement) {
     var KEY_ALT_MASK   =  64;
     var KEY_SHIFT_MASK =  128;
 
+    var BAR_HEIGHT = 29;
+    var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 1;
+
     var BAR_MENU_WIDTH = 130;
     var BAR_MENU_ITEM_HEIGHT = 28;
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 2500;
     var CURSOR_HIDE_FRAMES = 150;
+
+    var BORDER_TOP = 1;
+    var BORDER_LATERAL = 1;
+    var BORDER_BOTTOM = BAR_AUTO_HIDE ? 1 : BAR_HEIGHT + 2;
+
 
     init();
 

@@ -153,7 +153,7 @@ wmsx.DOMMouseControls = function(hub) {
     function pointerLockChangedEvent() {
         var lockingElement = document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement;
         pointerLocked = lockingElement === inputElement;
-
+        screen.mousePointerLocked(pointerLocked);
         screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", true);
     }
 
