@@ -926,16 +926,14 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   text-shadow: 1px 1px 1px black;' +
             '   background: transparent;' +
             '   outline: none;' +
-            '   border: none; ' +
+            '   border: 2px solid transparent;' +
             '   cursor: pointer; ' +
             '}' +
             '' +
             '.wmsx-bar-menu-item:hover { ' +
-            '   border: 2px solid red; ' +
-            '}' +
-            '#wmsx-bar-menu-title:hover { ' +
-            '   border: none; ' +
-            '}';
+            '   border-color: red;' +
+            '}'
+        ;
         document.head.appendChild(style);
     }
 
