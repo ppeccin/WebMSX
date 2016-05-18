@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Hover Bar + Menu, implement better show/hide, timeout
+
 wmsx.CanvasDisplay = function(mainElement) {
     var self = this;
 
@@ -470,7 +472,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.style.position = "absolute";
         buttonsBar.style.left = 0;
         buttonsBar.style.right = 0;
-        buttonsBar.style.zIndex = 20;
+        buttonsBar.style.zIndex = 30;
         buttonsBar.style.height = "29px";
         if (WMSX.SCREEN_CONTROL_BAR === 1) {
             buttonsBar.style.bottom = "-30px";
@@ -482,6 +484,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             });
             mainElement.addEventListener("mouseleave", function() {
                 buttonsBarHideTimeout = setTimeout(function() {
+                    hideBarMenu();
                     buttonsBar.style.bottom = "-30px";
                 }, 1000);
             });
@@ -649,7 +652,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             // Has menu options, toggle menu with right-click
             if (options.menuTitle && e.buttons === MOUSE_BUT2_MASK) {
                 if (barMenuActive) hideBarMenu();
-                showBarMenu(options, but);
+                showBarMenu(options, but, false);
                 return;
             }
 
@@ -672,10 +675,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Mouse hover switch menus if already open
         but.addEventListener("mouseenter", function(e) {
-            if (barMenuActive && options.menuTitle) {
-                hideBarMenu();
-                showBarMenu(options, but);
-            }
+            if (barMenuActive && options.menuTitle) showBarMenu(options, but, true);
         });
 
         return but;
@@ -779,47 +779,52 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function showBarMenu(options, refElement) {
-        if (barMenuActive) return;
+    function showBarMenu(options, refElement, redefine) {
+        if (barMenuActive && !redefine) return;
         if (!options.menuTitle) return;
 
-        if (!barMenu) setupBarMenu();
+        if (!barMenu) {
+            setupBarMenu();
+            window.setTimeout(function() {
+                showBarMenu(options, refElement, redefine);
+            }, 1);
+            return;
+        }
+
         barMenu.wmsxTitle.innerHTML = options.menuTitle;
 
         var item = 0;
         for (var op = 0; op < options.length; ++op) {
             if (options[op].label) {
                 barMenu.wmsxItems[item].innerHTML = options[op].label;
-                barMenu.wmsxItems[item].classList.add("wmsx-popup-menu-item-show");
-                barMenu.wmsxItems[item].classList.remove("wmsx-popup-menu-item-hide");
+                barMenu.wmsxItems[item].style.display = "block";
                 barMenu.wmsxItems[item].wmsxPeripheralControl = options[op].control;
                 ++item;
             }
         }
-        for (; item < 10; ++item) {
-            barMenu.wmsxItems[item].innerHTML = "";
-            barMenu.wmsxItems[item].classList.remove("wmsx-popup-menu-item-show");
-            barMenu.wmsxItems[item].classList.add("wmsx-popup-menu-item-hide");
-            barMenu.wmsxItems[item].wmsxPeripheralControl = null;
+        for (var r = item; r < 10; ++r) {
+            barMenu.wmsxItems[r].innerHTML = "";
+            barMenu.wmsxItems[r].style.display = "none";
+            barMenu.wmsxItems[r].wmsxPeripheralControl = null;
         }
 
         if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
             var p;
             if (refElement.wmsxMidLeft) {
                 p = (refElement.wmsxMidLeft - BAR_MENU_WIDTH / 2) | 0; if (p < 0) p = 0;
-                barMenu.style.left = "" + p + "px"; barMenu.style.right = "initial";
+                barMenu.style.left = "" + p + "px"; barMenu.style.right = "auto";
             }
             else {
                 p = (refElement.wmsxMidRight - BAR_MENU_WIDTH / 2) | 0; if (p < 0) p = 0;
-                barMenu.style.right = "" + p + "px"; barMenu.style.left = "initial";
+                barMenu.style.right = "" + p + "px"; barMenu.style.left = "auto";
             }
         } else {
             barMenu.style.left = barMenu.style.right = 0;
         }
 
         barMenuActive = true;
-        barMenu.classList.add("wmsx-popup-menu-show");
-        barMenu.classList.remove("wmsx-popup-menu-hide");
+        barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
+        barMenu.style.height = "" + (((item + 1) * BAR_MENU_ITEM_HEIGHT) + borderBottom + 2) + "px";
         barMenu.wmsxTitle.focus();
     }
 
@@ -827,8 +832,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!barMenuActive) return;
 
         barMenuActive = false;
-        barMenu.classList.remove("wmsx-popup-menu-show");
-        barMenu.classList.add("wmsx-popup-menu-hide");
+        barMenu.style.transition = BAR_MENU_TRANSITION;
+        barMenu.style.height = 0;
         self.focus();
     }
 
@@ -837,28 +842,30 @@ wmsx.CanvasDisplay = function(mainElement) {
         var style;
 
         barMenu = document.createElement('div');
-        barMenu.id = "wmsx-popup-menu";
-        barMenu.classList.add("wmsx-popup-menu-hide");
+        barMenu.id = "wmsx-bar-menu";
         style = barMenu.style;
         style.position = "absolute";
         style.overflow = "hidden";
-        style.border = "1px solid black";
+        style.height = 0;
+        style.bottom = 0;
+        style.border = "0 solid black";
+        style.borderWidth = "0 1px";
         style.background = "rgb(40, 40, 40)";
         style.font = "13px Helvetica, Arial, sans-serif";
         style.outline = "none";
-        style.paddingBottom = "2px";
-        style.zIndex = 30;
+        style.zIndex = 20;
 
         var title = document.createElement('button');
-        title.id = "wmsx-popup-menu-title";
-        title.classList.add("wmsx-popup-menu-item");
+        title.id = "wmsx-bar-menu-title";
+        title.classList.add("wmsx-bar-menu-item");
         style = title.style;
         style.display = "block";
         style.color = "white";
         style.fontWeight = "bold";
-        style.borderBottom = "1px solid black";
+        style.border = "0px solid black";
+        style.borderWidth = "1px 0";
         style.background = "rgb(65, 65, 65)";
-        style.cursor = "initial";
+        style.cursor = "auto";
         title.innerHTML = "Menu Title";
         barMenu.appendChild(title);
         barMenu.wmsxTitle = title;
@@ -866,9 +873,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenu.wmsxItems = new Array(10);
         for (var i = 0; i < 10; ++i) {
             var item = document.createElement('button');
-            item.id = "wmsx-popup-menu-item-" + i;
-            item.classList.add("wmsx-popup-menu-item");
-            item.classList.add("wmsx-popup-menu-item-hide");
+            item.classList.add("wmsx-bar-menu-item");
+            item.id = "wmsx-bar-menu-item-" + i;
+            item.style.display = "none";
             item.innerHTML = "Menu Item " + i;
             barMenu.appendChild(item);
             barMenu.wmsxItems[i] = item;
@@ -911,16 +918,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         var style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = '' +'' +
-            '.wmsx-popup-menu-show { ' +
-            '   bottom: ' + (borderBottom - 1) + 'px;' +
-            '}' +
-            '.wmsx-popup-menu-hide { ' +
-            '   bottom: -500px;' +
-            '}' +
-            '' +
-            '.wmsx-popup-menu-item { ' +
+            '.wmsx-bar-menu-item { ' +
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
-            '   height: 28px;' +
+            '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
             '   color: lightgray;' +
             '   font: inherit;' +
             '   text-shadow: 1px 1px 1px black;' +
@@ -930,21 +930,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   cursor: pointer; ' +
             '}' +
             '' +
-            '.wmsx-popup-menu-item:hover { ' +
+            '.wmsx-bar-menu-item:hover { ' +
             '   border: 2px solid red; ' +
             '}' +
-            '#wmsx-popup-menu-title:hover { ' +
+            '#wmsx-bar-menu-title:hover { ' +
             '   border: none; ' +
-            '}' +
-            '' +
-            '.wmsx-popup-menu-item-show { ' +
-            '   display: block;' +
-            '}' +
-            '' +
-            '.wmsx-popup-menu-item-hide { ' +
-            '   display: none;' +
-            '}'
-        ;
+            '}';
         document.head.appendChild(style);
     }
 
@@ -1032,6 +1023,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var KEY_SHIFT_MASK =  128;
 
     var BAR_MENU_WIDTH = 130;
+    var BAR_MENU_ITEM_HEIGHT = 28;
+    var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 2500;
     var CURSOR_HIDE_FRAMES = 150;
