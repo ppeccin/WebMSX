@@ -89,7 +89,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
                 break;
             case controls.DISKA_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadEmptyDisk(0);
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0);
                 break;
             case controls.DISKA_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(0);
@@ -107,7 +107,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
                 break;
             case controls.DISKB_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadEmptyDisk(1);
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1);
                 break;
             case controls.DISKB_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(1);
@@ -173,12 +173,21 @@ wmsx.DOMPeripheralControls = function(room) {
                 monitor.crtModeToggle(); break;
             case controls.SCREEN_CRT_FILTER:
                 monitor.crtFilterToggle(); break;
-            case controls.SCREEN_DEFAULTS:
-                monitor.setDefaults();
-                monitor.showOSD("Initial Settings", true);
-                break;
             case controls.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
+            case controls.SCREEN_DEFAULTS:
+                monitor.setDefaults();
+                monitor.showOSD("Default Settings", true);
+                break;
+            case controls.SCREEN_OPEN_HELP:
+                screen.openHelp();
+                break;
+            case controls.SCREEN_OPEN_ABOUT:
+                screen.openAbout();
+                break;
+            case controls.SCREEN_OPEN_SETTINGS:
+                screen.openSettings();
+                break;
             case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardHostLayout(); break;
             case controls.JOYSTICKS_TOGGLE_MODE:

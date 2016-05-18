@@ -75,7 +75,7 @@ wmsx.DOMMouseControls = function(hub) {
         }
     };
 
-    this.setInputElement = function(pElement) {
+    this.setMouseInputElement = function(pElement) {
         inputElement = pElement;
 
         // Register events needed
@@ -84,12 +84,6 @@ wmsx.DOMMouseControls = function(hub) {
         inputElement.addEventListener("mousemove", mouseMoveEvent);
         inputElement.addEventListener("mousedown", mouseButtonEvent);
         inputElement.addEventListener("mouseup",   mouseButtonEvent);
-
-        // Suppress Context menu
-        inputElement.addEventListener("contextmenu", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        });
     };
 
     this.setScreenPixelScale = function(scaleX, scaleY) {

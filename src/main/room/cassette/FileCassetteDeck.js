@@ -36,13 +36,13 @@ wmsx.FileCassetteDeck = function() {
     };
 
     this.removeTape = function() {
+        if (noTapeMessage()) return;
         tapeFileName = null;
         tapeContent = null;
         tapePosition = -1;
         screen.showOSD("Cassette Tape removed", true);
         fireStateUpdate();
     };
-
 
     this.saveTapeFile = function() {
         if (noTapeMessage()) return;

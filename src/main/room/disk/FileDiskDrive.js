@@ -21,7 +21,7 @@ wmsx.FileDiskDrive = function() {
         diskFileName[drive] = name;
         diskContent[drive] = arrContent.slice(0);
         diskChanged[drive] = true;
-        screen.showOSD("Disk " + (drive === 0 ? "A:" : "B:") + " loaded", true);
+        screen.showOSD("Disk " + driveName(drive) + " loaded", true);
         fireStateUpdate();
 
         diskDriveSocket.autoPowerCycle(altPower);
@@ -29,12 +29,12 @@ wmsx.FileDiskDrive = function() {
         return diskContent[drive];
     };
 
-    this.loadEmptyDisk = function(drive) {      // Formatted
+    this.loadNewFormattedDisk = function(drive) {      // Formatted
         if (++(nextNewDiskFormat[drive]) >= FORMAT_OPTION_DESC.length) (nextNewDiskFormat[drive]) = 0;      // Cycle available formats
         var format = nextNewDiskFormat[drive];
         this.createNewEmptyDisk(drive, format);
         this.formatDisk(drive, format);
-        screen.showOSD("New formatted " + FORMAT_OPTION_DESC[format] + " disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
+        screen.showOSD("New formatted " + FORMAT_OPTION_DESC[format] + " disk loaded in " + driveName(drive), true);
         return diskContent[drive];
     };
 
@@ -43,36 +43,34 @@ wmsx.FileDiskDrive = function() {
         diskContent[drive] = wmsx.Util.arrayFill(new Array(FORMAT_OPTION_SIZE[format]), 0);
         diskChanged[drive] = true;
         fireStateUpdate();
-        screen.showOSD("New empty " + FORMAT_OPTION_DESC[format] + " disk loaded in " + (drive === 0 ? "A:" : "B:"), true);
+        screen.showOSD("New empty " + FORMAT_OPTION_DESC[format] + " disk loaded in " + driveName(drive), true);
         return diskContent[drive];
     };
 
     this.removeDisk = function(drive) {
+        if (noDiskMessage(drive)) return;
+
         diskFileName[drive] = null;
         diskContent[drive] = null;
         diskChanged[drive] = null;
-        screen.showOSD("Disk " + (drive === 0 ? "A:" : "B:") + " removed", true);
+        screen.showOSD("Disk " + driveName(drive) + " removed", true);
         fireStateUpdate();
     };
 
     this.saveDiskFile = function(drive) {
-        var dContent = diskContent[drive];
-        var dName = (drive === 0 ? "A:" : "B:");
-        if (!dContent || (dContent.length === 0)) {
-            screen.showOSD("Drive " + dName + " is empty!", true);
-            return;
-        }
+        if (noDiskMessage(drive)) return;
 
         try {
+            var dContent = diskContent[drive];
             var fileName = diskFileName[drive] || "New Disk.dsk";
             var data = new ArrayBuffer(dContent.length);
             var view = new Uint8Array(data);
             for (var i = 0; i < dContent.length; i++)
                 view[i] = dContent[i];
             fileDownloader.startDownloadBinary(fileName, data);
-            screen.showOSD("Disk " + dName + " File saved", true);
+            screen.showOSD("Disk " + driveName(drive) + " File saved", true);
         } catch(ex) {
-            screen.showOSD("Disk " + dName + " File save failed", true);
+            screen.showOSD("Disk " + driveName(drive) + " File save failed", true);
         }
     };
 
@@ -83,7 +81,7 @@ wmsx.FileDiskDrive = function() {
             diskChanged[drive] = false;
             return true;
         }
-        return diskChanged[drive];         // false = no, null = unknowm
+        return diskChanged[drive];         // false = no, null = unknown
     };
 
     this.diskPresent = function(drive) {
@@ -170,6 +168,18 @@ wmsx.FileDiskDrive = function() {
 
     function fireStateUpdate() {
         screen.diskDrivesStateUpdate(diskFileName[0], diskMotor[0], diskFileName[1], diskMotor[1]);
+    }
+
+    function noDiskMessage(drive) {
+        if (!self.diskPresent(drive)) {
+            screen.showOSD("No Disk in Drive " + driveName(drive), true);
+            return true;
+        } else
+            return false;
+    }
+
+    function driveName(drive) {
+        return (drive === 0 ? "A:" : "B:");
     }
 
 

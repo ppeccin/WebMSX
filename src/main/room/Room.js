@@ -43,6 +43,9 @@ wmsx.Room = function(screenElement) {
     };
 
     var buildPeripherals = function() {
+        self.peripheralControls = new wmsx.DOMPeripheralControls();
+        self.machineControls = new wmsx.DOMMachineControls(self.peripheralControls);
+        self.controllersHub = new wmsx.ControllersHub(self.machineControls);
         self.fileDownloader = new wmsx.FileDownloader();
         self.stateMedia = new wmsx.LocalStorageSaveStateMedia();
         self.cassetteDeck = new wmsx.FileCassetteDeck();
@@ -50,9 +53,6 @@ wmsx.Room = function(screenElement) {
         self.fileLoader = new wmsx.FileLoader();
         self.screen = new wmsx.CanvasDisplay(screenElement);
         self.speaker = new wmsx.WebAudioSpeaker();
-        self.peripheralControls = new wmsx.DOMPeripheralControls();
-        self.machineControls = new wmsx.DOMMachineControls(self.peripheralControls);
-        self.controllersHub = new wmsx.ControllersHub(self.machineControls);
 
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
         self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.peripheralControls, self.controllersHub);

@@ -279,11 +279,6 @@ wmsx.SettingsGUI.html = function() {
                                 'Drag &amp; Drop Media Files or URLs' +
                             '</div>' +
                         '</div>' +
-                        '<div class="wmsx-hotkey">' +
-                            '<div class="wmsx-desc">' +
-                                'Click the Media icons on the bottom bar' +
-                            '</div>' +
-                        '</div>' +
                     '</div>' +
                     '<div class="wmsx-top-right">' +
                         '<div class="wmsx-hotkey wmsx-heading">' +
@@ -322,6 +317,11 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="wmsx-desc">Save Media File</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="wmsx-hotkey wmsx-clear">' +
+                        '<div class="wmsx-desc">' +
+                            'Click / Right-click Media icons on bottom bar' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +
@@ -587,6 +587,7 @@ wmsx.SettingsGUI.css = function() {
            'opacity: 0;' +
            'background-color: rgba(0, 0, 0, 0.6);' +
            'transition: all .2s ease-out;' +
+            'z-index: 100;' +
        '}' +
 
        '#wmsx-cover.wmsx-show {' +
@@ -802,7 +803,7 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-media .wmsx-top-left {' +
            'float: left;' +
-           'width: 275px;' +
+           'width: 285px;' +
        '}' +
 
        '#wmsx-media .wmsx-top-right {' +
@@ -904,6 +905,10 @@ wmsx.SettingsGUI.css = function() {
            'font-size: 10px;' +
            'text-align: center;' +
            'color: transparent;' +
+       '}' +
+
+       '.wmsx-clear {' +
+           'clear: both;' +
        '}' +
 
        '.wmsx-full-divider {' +

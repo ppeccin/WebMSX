@@ -70,12 +70,12 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.setTurboFireSpeed(turboFireSpeed);
     };
 
-    this.setKeyInputElements = function(elements) {
-        keyboard.addInputElements(elements);
+    this.setKeyInputElement = function(element) {
+        keyboard.setKeyInputElement(element);
     };
 
     this.setMouseInputElement = function(element) {
-        mouseControls.setInputElement(element);
+        mouseControls.setMouseInputElement(element);
     };
 
     this.setScreenPixelScale = function(scaleX, scaleY) {

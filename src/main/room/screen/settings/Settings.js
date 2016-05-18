@@ -62,6 +62,13 @@ wmsx.SettingsDialog = function() {
         self.panel.tabIndex = -1;
         document.body.appendChild(self.panel);
 
+        // Supress context menu
+        self.panel.addEventListener("contextmenu", function stopContextMenu(e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+            return false;
+        });
+
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
         delete wmsx.SettingsGUI;

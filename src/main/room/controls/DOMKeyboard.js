@@ -36,11 +36,9 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             return keyboardRowValues[row];
     };
 
-    this.addInputElements = function(elements) {
-        for (var i = 0; i < elements.length; i++) {
-            elements[i].addEventListener("keydown", this.keyDown);
-            elements[i].addEventListener("keyup", this.keyUp);
-        }
+    this.setKeyInputElement = function(element) {
+        element.addEventListener("keydown", this.keyDown);
+        element.addEventListener("keyup", this.keyUp);
     };
 
     this.toggleHostKeyboards = function() {

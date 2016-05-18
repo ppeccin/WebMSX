@@ -9,6 +9,7 @@
     opacity: 0;
     background-color: rgba(0, 0, 0, 0.6);
     transition: all .2s ease-out;
+    z-index: 100;
 }
 
 #wmsx-cover.wmsx-show {
@@ -224,7 +225,7 @@
 
 #wmsx-media .wmsx-top-left {
     float: left;
-    width: 275px;
+    width: 285px;
 }
 
 #wmsx-media .wmsx-top-right {
@@ -326,6 +327,10 @@
     font-size: 10px;
     text-align: center;
     color: transparent;
+}
+
+.wmsx-clear {
+    clear: both;
 }
 
 .wmsx-full-divider {

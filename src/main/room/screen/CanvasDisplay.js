@@ -7,7 +7,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupProperties();
         setupMain();
         setupOSD();
-        setupButtonsBar();
+        setupBar();
         setupLogo();
         setupLoadingIcon();
         monitor = new wmsx.Monitor(self);
@@ -28,8 +28,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         fileDownloader.registerForDownloadElement(mainElement);
         peripheralControls = pPeripheralControls;
         controllersHub = pControllersHub;
-        controllersHub.setKeyInputElements(keyControlsInputElements());
-        controllersHub.setMouseInputElement(mouseControlsInputElement());
+        controllersHub.setKeyInputElement(mainElement);
+        controllersHub.setMouseInputElement(fsElement);
     };
 
     this.powerOn = function() {
@@ -68,11 +68,20 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     };
 
+    this.openHelp = function() {
+        self.openSettings("GENERAL");
+        return false;
+    };
+
+    this.openAbout = function() {
+        self.openSettings("ABOUT");
+        return false;
+    };
+
     this.openSettings = function(page) {
         if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog();
         if (pasteDialog) pasteDialog.hide();
         settingsDialog.show(page);
-        return false;
     };
 
     this.openLoadFileDialog = function() {
@@ -293,14 +302,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.style.cursor = cursorShowing ? cursorType : "none";
     }
 
-    function keyControlsInputElements() {
-        return [mainElement];
-    }
-
-    function mouseControlsInputElement() {
-        return fsElement;
-    }
-
     function fullScreenChanged() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
@@ -387,9 +388,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function suppressContextMenu(element) {
-        element.addEventListener("contextmenu", function (e) {
+        element.addEventListener("contextmenu", function stopContextMenu(e) {
             if (e.preventDefault) e.preventDefault();
             if (e.stopPropagation) e.stopPropagation();
+            return false;
         });
     }
 
@@ -398,9 +400,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             mainElement.style.position = "relative";
         mainElement.style.overflow = "hidden";
         mainElement.style.outline = "none";
-        mainElement.tabIndex = "-1";               // Make it focusable
+        mainElement.tabIndex = "0";               // Make it focusable
+        suppressContextMenu(mainElement);
 
-        mainElement.addEventListener("focusout", lostFocus);
+        mainElement.addEventListener("focusout", lostFocus, true);
+        mainElement.addEventListener("blur", lostFocus, true);
 
         borderElement = document.createElement('div');
         borderElement.id = "wmsx-border";
@@ -420,12 +424,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.style.top = fsElement.style.bottom = 0;
         fsElement.style.overflow = "hidden";
         fsElement.style.background = "black";
+        suppressContextMenu(fsElement);
 
         fsElement.addEventListener("mousemove", function() {
             showCursor();
         });
-
-        suppressContextMenu(fsElement);
 
         document.addEventListener("fullscreenchange", fullScreenChanged);
         document.addEventListener("webkitfullscreenchange", fullScreenChanged);
@@ -461,16 +464,17 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateCanvasContentSize();
     }
 
-    function setupButtonsBar() {
+    function setupBar() {
         buttonsBar = document.createElement('div');
         buttonsBar.id = "wmsx-bar";
         buttonsBar.style.position = "absolute";
-        buttonsBar.style.left = "0";
-        buttonsBar.style.right = "0";
+        buttonsBar.style.left = 0;
+        buttonsBar.style.right = 0;
+        buttonsBar.style.zIndex = 20;
         buttonsBar.style.height = "29px";
-        if (WMSX.SCREEN_CONTROL_BAR == 1) {
+        if (WMSX.SCREEN_CONTROL_BAR === 1) {
             buttonsBar.style.bottom = "-30px";
-            buttonsBar.style.background = "rgba(30, 30, 28, .75)";
+            buttonsBar.style.background = "rgba(30, 30, 30, .75)";
             buttonsBar.style.transition = "bottom 0.3s ease-in-out";
             mainElement.addEventListener("mouseover", function() {
                 if (buttonsBarHideTimeout) clearTimeout(buttonsBarHideTimeout);
@@ -483,94 +487,91 @@ wmsx.CanvasDisplay = function(mainElement) {
             });
         } else {
             buttonsBar.style.bottom = "0";
-            buttonsBar.style.background = "rgb(40, 40, 37)";
+            buttonsBar.style.background = "rgb(40, 40, 40)";
             buttonsBar.style.border = "1px solid black";
         }
 
-        suppressContextMenu(buttonsBar);
+        var menuOptions = [
+            { mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
+            { mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
+            { mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
+            { mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE }
+        ];
+        menuOptions.menuTitle = null;
+        powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", menuOptions);
 
-        powerButton  = addBarButton(6, -26, 24, 23, -120, -29, "System Power");
-        var controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.MACHINE_POWER_TOGGLE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.MACHINE_POWER_RESET;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.MACHINE_POWER_RESET;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE;
-        peripheralControlButton(powerButton, controls);
+        menuOptions = [
+            { label: "Load from File", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE },
+            { label: "Load from URL",  mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
+            { label: "New Empty Disk", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
+            { label: "Remove Disk",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
+            { label: "Save Disk",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
+            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
+        ];
+        menuOptions.menuTitle = "Drive A:";
+        diskAButton = addPeripheralControlButton(44, -26, 24, 23, -150, -53, null, menuOptions);
 
-        diskAButton = addBarButton(44, -26, 24, 23, -150, -53);
-        controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.DISKA_LOAD_FILE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKA_EMPTY;
-        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKA_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKA_SAVE_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKA_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER;
-        peripheralControlButton(diskAButton, controls);
+        menuOptions = [
+            { label: "Load from File", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE },
+            { label: "Load from URL",  mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_URL },
+            { label: "New Empty Disk", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
+            { label: "Remove Disk",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
+            { label: "Save Disk",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE },
+            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
+        ];
+        menuOptions.menuTitle = "Drive B:";
+        diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -150, -53, null, menuOptions);
 
-        diskBButton = addBarButton(43 + 26, -26, 24, 23, -150, -53);
-        controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.DISKB_LOAD_FILE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKB_EMPTY;
-        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKB_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.DISKB_SAVE_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.DISKB_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER;
-        peripheralControlButton(diskBButton, controls);
+        menuOptions = [
+            { label: "Load from File",   mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE },
+            { label: "Load from URL",    mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE },
+            {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
+        ];
+        menuOptions.menuTitle = "Cartridge 1";
+        cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -53, null, menuOptions);
 
-        cartridge1Button = addBarButton(43 + 26 * 2, -26, 24, 23, -150, -53);
-        controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER;
-        peripheralControlButton(cartridge1Button, controls);
+        menuOptions = [
+            { label: "Load from File",   mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE },
+            { label: "Load from URL",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
+            {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
+        ];
+        menuOptions.menuTitle = "Cartridge 2";
+        cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -53, null, menuOptions);
 
-        cartridge2Button = addBarButton(44 + 26 * 3, -26, 24, 23, -179, -53);
-        controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER;
-        peripheralControlButton(cartridge2Button, controls);
-
-        tapeButton = addBarButton(45 + 26 * 4, -26, 24, 23, -208, -53);
-        controls = {};
-        controls[MOUSE_BUT1_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE;
-        controls[MOUSE_BUT2_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_EMPTY;
-        controls[MOUSE_BUT1_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_REMOVE;
-        controls[MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_SAVE_FILE;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK] = wmsx.PeripheralControls.TAPE_LOAD_URL;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK] = wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER;
-
-        controls[MOUSE_BUT3_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
-        controls[MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK] = wmsx.PeripheralControls.TAPE_AUTO_RUN;
-        peripheralControlButton(tapeButton, controls);
+        menuOptions = [
+            { label: "Load from File", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
+            { label: "Load from URL",  mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_URL },
+            { label: "New Empty Tape", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
+            { label: "Remove Tape",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE },
+            { label: "Rewind Tape",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.TAPE_REWIND },
+            { label: "Run Program",    mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
+            { label: "Save Tape",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE },
+            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
+            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
+        ];
+        menuOptions.menuTitle = "Cassette Tape";
+        tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -53, null, menuOptions);
 
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
-            fullscreenButton = addBarButton(-53, -26, 24, 22, -71, -4, "Full Screen");
-            peripheralControlButton(fullscreenButton, wmsx.PeripheralControls.SCREEN_FULLSCREEN);
+            fullscreenButton = addPeripheralControlButton(-53, -26, 24, 22, -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fsGap = 0;
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
-            scaleDownButton = addBarButton(-92 + fsGap, -26, 18, 22, -26, -4, "Decrease Screen");
-            peripheralControlButton(scaleDownButton, wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
-            scaleUpButton = addBarButton(-74 + fsGap, -26, 21, 22, -48, -4, "Increase Screen");
-            peripheralControlButton(scaleUpButton, wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
+            scaleDownButton = addPeripheralControlButton(-92 + fsGap, -26, 18, 22, -26, -4, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
+            scaleUpButton = addPeripheralControlButton(-74 + fsGap, -26, 21, 22, -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
         }
 
-        settingsButton  = addBarButton(-29, -26, 24, 22, -96, -4, "Help Screen");
-        localControlButton(settingsButton, self.openSettings);
+        logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
 
-        logoButton = addBarButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX");
-        localControlButton(logoButton, function (e) {
-            self.openSettings("ABOUT");
-        });
+        menuOptions = [
+            { label: "Help Screen", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS },
+            { label: "Defaults",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS }
+        ];
+        menuOptions.menuTitle = "Options";
+        settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Options", menuOptions);
 
         mainElement.appendChild(buttonsBar);
     }
@@ -595,7 +596,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (x === "CENTER") {
             but.style.left = but.style.right = 0;
             but.style.margin = "0 auto";
-        } else if (x > 0) but.style.left = "" + x + "px"; else but.style.right = "" + (-w - x) + "px";
+            but.wmsxMidLeft = but.wmsxMidRight = null;
+        } else if (x > 0) {
+            but.style.left = "" + x + "px";
+            but.wmsxMidLeft = (x + w/2) | 0;
+        } else {
+            but.style.right = "" + (-w - x) + "px";
+            but.wmsxMidRight = (-x - w/2) | 0;
+        }
         if (y > 0) but.style.top = "" + y + "px"; else but.style.bottom = "" + (-h - y) + "px";
         but.style.width = "" + w + "px";
         but.style.height = "" + h + "px";
@@ -618,46 +626,59 @@ wmsx.CanvasDisplay = function(mainElement) {
         return but;
     }
 
-    function peripheralControlButton(but, control) {
+    function addPeripheralControlButton(x, y, w, h, px, py, tooltip, options) {
+        var but = addBarButton(x, y, w, h, px, py, tooltip);
+
         but.style.cursor = "pointer";
 
         // We need a separate approach for left button and the others (middle and right).
         // The left click needs to be a "click" as explained below
         // The others use a "mousedown" since a click only fires for the left button on many browsers
 
-        var handler = function (e) {
-            if (e.preventDefault) e.preventDefault();
-            // Simple control, only left-click
-            if ((typeof control) == "number") {
-                if (!e.buttons || e.buttons === 1) peripheralControls.controlActivated(control);
+        var clickHandler = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            hideBarMenu();
+
+            // Single option, only left-click
+            if ((typeof options) == "number") {
+                if (!e.buttons || e.buttons === MOUSE_BUT1_MASK) peripheralControls.controlActivated(options);
                 return;
             }
-            // Complex control
+
+            // Has menu options, toggle menu with right-click
+            if (options.menuTitle && e.buttons === MOUSE_BUT2_MASK) {
+                if (barMenuActive) hideBarMenu();
+                showBarMenu(options, but);
+                return;
+            }
+
+            // Complex click options
             var mask = (e.buttons || 1) | (e.altKey ? KEY_ALT_MASK : 0) | (e.ctrlKey ? KEY_CTRL_MASK : 0) | (e.shiftKey ? KEY_SHIFT_MASK : 0);
-            if (control[mask]) peripheralControls.controlActivated(control[mask]);
+            for (var i = 0; i < options.length; ++i)
+                if (options[i].mouseMask === mask) peripheralControls.controlActivated(options[i].control);
         };
 
         // Left Button: a "click" event and not a "mousedown" is necessary here. Without a click, FF does not open the Open File window
         // TODO Hotkeys for this are also not working in FF since they're not click events!
         but.addEventListener("click", function(e) {
-            if (e.which === 1) handler(e);            // :-( Chrome fires this for middle button so we need this ugly check
+            if (e.which === 1) clickHandler(e);            // :-( Chrome fires this for middle button so we need this ugly check
         });
 
         // Middle and Right buttons, use mousedown but ignore Left clicks
         but.addEventListener("mousedown", function(e) {
-            if (e.which > 1) handler(e);
+            if (e.which > 1) clickHandler(e);
         });
 
-        suppressContextMenu(but);
-    }
-
-    function localControlButton(but, func) {
-        but.style.cursor = "pointer";
-        but.addEventListener("click", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            func();
+        // Mouse hover switch menus if already open
+        but.addEventListener("mouseenter", function(e) {
+            if (barMenuActive && options.menuTitle) {
+                hideBarMenu();
+                showBarMenu(options, but);
+            }
         });
-        suppressContextMenu(but);
+
+        return but;
     }
 
     function setupLogo() {
@@ -758,6 +779,176 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
+    function showBarMenu(options, refElement) {
+        if (barMenuActive) return;
+        if (!options.menuTitle) return;
+
+        if (!barMenu) setupBarMenu();
+        barMenu.wmsxTitle.innerHTML = options.menuTitle;
+
+        var item = 0;
+        for (var op = 0; op < options.length; ++op) {
+            if (options[op].label) {
+                barMenu.wmsxItems[item].innerHTML = options[op].label;
+                barMenu.wmsxItems[item].classList.add("wmsx-popup-menu-item-show");
+                barMenu.wmsxItems[item].classList.remove("wmsx-popup-menu-item-hide");
+                barMenu.wmsxItems[item].wmsxPeripheralControl = options[op].control;
+                ++item;
+            }
+        }
+        for (; item < 10; ++item) {
+            barMenu.wmsxItems[item].innerHTML = "";
+            barMenu.wmsxItems[item].classList.remove("wmsx-popup-menu-item-show");
+            barMenu.wmsxItems[item].classList.add("wmsx-popup-menu-item-hide");
+            barMenu.wmsxItems[item].wmsxPeripheralControl = null;
+        }
+
+        if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
+            var p;
+            if (refElement.wmsxMidLeft) {
+                p = (refElement.wmsxMidLeft - BAR_MENU_WIDTH / 2) | 0; if (p < 0) p = 0;
+                barMenu.style.left = "" + p + "px"; barMenu.style.right = "initial";
+            }
+            else {
+                p = (refElement.wmsxMidRight - BAR_MENU_WIDTH / 2) | 0; if (p < 0) p = 0;
+                barMenu.style.right = "" + p + "px"; barMenu.style.left = "initial";
+            }
+        } else {
+            barMenu.style.left = barMenu.style.right = 0;
+        }
+
+        barMenuActive = true;
+        barMenu.classList.add("wmsx-popup-menu-show");
+        barMenu.classList.remove("wmsx-popup-menu-hide");
+        barMenu.wmsxTitle.focus();
+    }
+
+    function hideBarMenu() {
+        if (!barMenuActive) return;
+
+        barMenuActive = false;
+        barMenu.classList.remove("wmsx-popup-menu-show");
+        barMenu.classList.add("wmsx-popup-menu-hide");
+        self.focus();
+    }
+
+    function setupBarMenu() {
+        setupBarMenuCSS();
+        var style;
+
+        barMenu = document.createElement('div');
+        barMenu.id = "wmsx-popup-menu";
+        barMenu.classList.add("wmsx-popup-menu-hide");
+        style = barMenu.style;
+        style.position = "absolute";
+        style.overflow = "hidden";
+        style.border = "1px solid black";
+        style.background = "rgb(40, 40, 40)";
+        style.font = "13px Helvetica, Arial, sans-serif";
+        style.outline = "none";
+        style.paddingBottom = "2px";
+        style.zIndex = 30;
+
+        var title = document.createElement('button');
+        title.id = "wmsx-popup-menu-title";
+        title.classList.add("wmsx-popup-menu-item");
+        style = title.style;
+        style.display = "block";
+        style.color = "white";
+        style.fontWeight = "bold";
+        style.borderBottom = "1px solid black";
+        style.background = "rgb(65, 65, 65)";
+        style.cursor = "initial";
+        title.innerHTML = "Menu Title";
+        barMenu.appendChild(title);
+        barMenu.wmsxTitle = title;
+
+        barMenu.wmsxItems = new Array(10);
+        for (var i = 0; i < 10; ++i) {
+            var item = document.createElement('button');
+            item.id = "wmsx-popup-menu-item-" + i;
+            item.classList.add("wmsx-popup-menu-item");
+            item.classList.add("wmsx-popup-menu-item-hide");
+            item.innerHTML = "Menu Item " + i;
+            barMenu.appendChild(item);
+            barMenu.wmsxItems[i] = item;
+        }
+
+        // Block keys and hide with ESC
+        barMenu.addEventListener("keydown", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) {
+                hideBarMenu();
+                return false;
+            }
+        });
+
+        // Fire menu item with a left-click
+        barMenu.addEventListener("click", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (e.which === 1 && e.target.wmsxPeripheralControl) {
+                hideBarMenu();
+                peripheralControls.controlActivated(e.target.wmsxPeripheralControl);
+                return false;
+            }
+        });
+        // And block other mouse events
+        barMenu.addEventListener("mousedown", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+
+        // Hide on lost focus
+        barMenu.addEventListener("blur", hideBarMenu, true);
+        barMenu.addEventListener("focusout", hideBarMenu, true);
+
+        mainElement.appendChild(barMenu);
+    }
+
+    function setupBarMenuCSS() {
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = '' +'' +
+            '.wmsx-popup-menu-show { ' +
+            '   bottom: ' + (borderBottom - 1) + 'px;' +
+            '}' +
+            '.wmsx-popup-menu-hide { ' +
+            '   bottom: -500px;' +
+            '}' +
+            '' +
+            '.wmsx-popup-menu-item { ' +
+            '   width: ' + BAR_MENU_WIDTH + 'px;' +
+            '   height: 28px;' +
+            '   color: lightgray;' +
+            '   font: inherit;' +
+            '   text-shadow: 1px 1px 1px black;' +
+            '   background: transparent;' +
+            '   outline: none;' +
+            '   border: none; ' +
+            '   cursor: pointer; ' +
+            '}' +
+            '' +
+            '.wmsx-popup-menu-item:hover { ' +
+            '   border: 2px solid red; ' +
+            '}' +
+            '#wmsx-popup-menu-title:hover { ' +
+            '   border: none; ' +
+            '}' +
+            '' +
+            '.wmsx-popup-menu-item-show { ' +
+            '   display: block;' +
+            '}' +
+            '' +
+            '.wmsx-popup-menu-item-hide { ' +
+            '   display: none;' +
+            '}'
+        ;
+        document.head.appendChild(style);
+    }
+
+
 
     var monitor;
     var peripheralControls;
@@ -781,6 +972,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var buttonsBar;
     var buttonsBarHideTimeout;
 
+    var barMenu;
+    var barMenuActive = false;
+
     var osd;
     var osdTimeout;
     var osdShowing = false;
@@ -788,7 +982,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var cursorType = "auto";
     var cursorShowing = true;
     var cursorHideFrameCountdown = -1;
-
     var signalIsOn = false;
     var isFullscreen = false;
     var crtFilter = 1;
@@ -832,13 +1025,16 @@ wmsx.CanvasDisplay = function(mainElement) {
     var MOUSE_BUT1_MASK = 1;
     var MOUSE_BUT2_MASK = 2;
     var MOUSE_BUT3_MASK = 4;
+    var MOUSE_VOID_MASK = 0xff00;     // Any impossible value
+
     var KEY_CTRL_MASK  =  32;
     var KEY_ALT_MASK   =  64;
     var KEY_SHIFT_MASK =  128;
 
+    var BAR_MENU_WIDTH = 130;
+
     var OSD_TIME = 2500;
     var CURSOR_HIDE_FRAMES = 150;
-
 
     init();
 
