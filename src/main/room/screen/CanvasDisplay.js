@@ -509,7 +509,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "New Empty Disk", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
             { label: "Remove Disk",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
             { label: "Save Disk",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
-            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
+            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER },
+            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE }
         ];
         menuOptions.menuTitle = "Drive A:";
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -150, -53, null, menuOptions);
@@ -520,7 +521,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "New Empty Disk", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
             { label: "Remove Disk",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
             { label: "Save Disk",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE },
-            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
+            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER },
+            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE }
         ];
         menuOptions.menuTitle = "Drive B:";
         diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -150, -53, null, menuOptions);
@@ -529,7 +531,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load from File",   mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE },
             { label: "Load from URL",    mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL },
             { label: "Remove Cartridge", mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE },
-            {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
+            {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER },
+            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE }
         ];
         menuOptions.menuTitle = "Cartridge 1";
         cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -53, null, menuOptions);
@@ -538,7 +541,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load from File",   mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE },
             { label: "Load from URL",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE },
             { label: "Remove Cartridge", mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
-            {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
+            {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER },
+            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE }
         ];
         menuOptions.menuTitle = "Cartridge 2";
         cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -53, null, menuOptions);
@@ -551,8 +555,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Rewind Tape",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.TAPE_REWIND },
             { label: "Run Program",    mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
             { label: "Save Tape",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE },
-            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
-            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
+            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER },
+            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE }
         ];
         menuOptions.menuTitle = "Cassette Tape";
         tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -53, null, menuOptions);
@@ -571,7 +575,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menuOptions = [
             { label: "Help Screen", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS },
-            { label: "Defaults",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS }
+            { label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS }
         ];
         menuOptions.menuTitle = "Options";
         settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Options", menuOptions);
@@ -923,15 +927,16 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
             '   color: lightgray;' +
             '   font: inherit;' +
+            '   border: none;' +
             '   text-shadow: 1px 1px 1px black;' +
-            '   background: transparent;' +
+            '   background-color: transparent;' +
             '   outline: none;' +
-            '   border: 2px solid transparent;' +
             '   cursor: pointer; ' +
             '}' +
             '' +
             '.wmsx-bar-menu-item:hover { ' +
-            '   border-color: red;' +
+            '   color: white;' +
+            '   background-color: rgb(200, 30, 25);' +
             '}'
         ;
         document.head.appendChild(style);

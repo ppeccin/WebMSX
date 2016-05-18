@@ -532,7 +532,6 @@ wmsx.Machine = function() {
     // CartridgeSocket  -----------------------------------------
 
     function CartridgeSocket() {
-
         this.insert = function (cartridge, port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             if (cartridge === slotSocket.inserted(slotPos)) return;
@@ -540,25 +539,28 @@ wmsx.Machine = function() {
             cartridgeSocket.fireStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
         };
-
+        this.remove = function (port, altPower) {
+            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            if (slotSocket.inserted(slotPos) === null)
+                return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+            slotSocket.insert(null, slotPos, altPower);
+            cartridgeSocket.fireStateUpdate();
+            self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + " removed", true);
+        };
         this.inserted = function (port) {
             return slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
         };
-
         this.fireStateUpdate = function () {
             for (var i = 0; i < listeners.length; i++)
                 listeners[i].cartridgesStateUpdate(this.inserted(0), this.inserted(1));
         };
-
         this.addCartridgesStateListener = function (listener) {
             if (listeners.indexOf(listener) < 0) {
                 listeners.push(listener);
                 listener.cartridgesStateUpdate(this.inserted(0), this.inserted(1));		// Fire event
             }
         };
-
         var listeners = [];
-
     }
 
 

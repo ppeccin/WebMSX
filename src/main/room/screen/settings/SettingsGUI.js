@@ -672,7 +672,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-modal .wmsx-key-msx-stop {' +
-           'background-color: rgb(250, 40, 40);' +
+           'background-color: rgb(235, 50, 50);' +
            'border: 1px solid rgb(250, 110, 110);' +
        '}' +
 
@@ -715,7 +715,7 @@ wmsx.SettingsGUI.css = function() {
            'padding: 10px 0 0 48px;' +
            'font-size: 18px;' +
            'color: white;' +
-           'background-color: rgb(235, 62, 35);' +
+           'background-color: rgb(230, 50, 30);' +
            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
            'vertical-align: middle;' +
        '}' +
@@ -740,7 +740,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-menu .wmsx-selected {' +
-           'color: rgb(224, 56, 34);' +
+           'color: rgb(230, 50, 30);' +
        '}' +
 
        '#wmsx-menu #wmsx-menu-selection {' +
@@ -749,7 +749,7 @@ wmsx.SettingsGUI.css = function() {
            'bottom: 0;' +
            'width: 25%;' +
            'height: 3px;' +
-           'background-color: rgb(235, 62, 35);' +
+           'background-color: rgb(230, 50, 30);' +
            'transition: left 0.3s ease-in-out;' +
        '}' +
 
