@@ -91,12 +91,14 @@ wmsx.SlotRAMMapper = function(rom) {
     this.saveState = function() {
         return {
             f: this.format.name,
+            r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             p0: pageOffsets[0], p1: pageOffsets[1], p2: pageOffsets[2], p3: pageOffsets[3]
         };
     };
 
     this.loadState = function(state) {
+        this.rom = wmsx.ROM.loadState(state.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
         pageMask = ((bytes.length / 16384) | 0) - 1;

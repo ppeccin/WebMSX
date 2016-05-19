@@ -39,11 +39,13 @@ wmsx.SlotRAM64K = function(rom) {
     this.saveState = function() {
         return {
             f: this.format.name,
+            r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
         };
     };
 
     this.loadState = function(state) {
+        this.rom = wmsx.ROM.loadState(state.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
     };

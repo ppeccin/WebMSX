@@ -109,9 +109,9 @@ WMSX.presets = {
     MSX2BASE: {
         BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],
-        CARTRIDGE2_SLOT:    [3, 0],
+        CARTRIDGE2_SLOT:    [2],
         EXPANSION_SLOTS:    [[2, 2], [2, 3]],
-        SLOT_2_URL:         "@[RAMMapper].rom",
+        SLOT_3_0_URL:       "@[RAMMapper].rom",
         _INCLUDE:           "MSX2DISK, RAM512"
     },
 
@@ -124,7 +124,7 @@ WMSX.presets = {
     },
 
     DOS2: {
-        SLOT_2_2_URL:       "@MSXDOS22v3.rom"
+        SLOT_2_1_URL:       "@MSXDOS22v3.rom"
     },
 
     RAM64: {
@@ -194,8 +194,8 @@ WMSX.presets = {
         MACHINE_TYPE:       3,
         BIOS_SLOT:          [0],
         CARTRIDGE1_SLOT:    [1],
-        CARTRIDGE2_SLOT:    [3, 0],
-        EXPANSION_SLOTS:    [[3, 2], [3, 3]]
+        CARTRIDGE2_SLOT:    [2],
+        EXPANSION_SLOTS:    [[2, 2], [2, 3]]
     },
 
     // General Add-ons options
@@ -205,7 +205,7 @@ WMSX.presets = {
     },
 
     NORAMMAPPER: {
-        SLOT_2_URL:         "@[RAM64K].rom"
+        SLOT_3_0_URL:       "@[RAM64K].rom"
     },
 
     NOMSXMUSIC: {

@@ -137,6 +137,8 @@ wmsx.Machine = function() {
         if (sec >= 0) {
             if (res.isExpanded()) res = res.getSubSlot(sec);
             else res = null;
+        } else {
+            if (res.isExpanded()) res = res.getSubSlot(0);
         }
         return res;
     };
@@ -154,7 +156,12 @@ wmsx.Machine = function() {
                 if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
             }
             curPriSlot.insertSubSlot(slot, sec);
-        } else bus.insertSlot(slot, pri);
+        } else {
+            if (curPriSlot.isExpanded()) {
+                curPriSlot.insertSubSlot(slot, 0);
+            } else
+                bus.insertSlot(slot, pri);
+        }
     };
 
     this.loading = function(boo) {
