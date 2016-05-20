@@ -15,36 +15,32 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.loadDiskFile = function(drive, name, arrContent, altPower) {
-        if ((arrContent[0] !== 0xEB) && (arrContent[0] !== 0xE9))
+        if ((arrContent[0] !== 0xEB) && (arrContent[0] !== 0xE9))           // Not a valid disk image file
             return null;
 
-        diskFileName[drive] = name;
-        diskContent[drive] = arrContent.slice(0);
-        diskChanged[drive] = true;
-        screen.showOSD("Disk " + driveName(drive) + " loaded", true);
-        fireStateUpdate();
-
+        var content = loadDisk(drive, name, arrContent.slice(0));
         diskDriveSocket.autoPowerCycle(altPower);
+        screen.showOSD("Disk " + driveName(drive) + " loaded", true);
 
-        return diskContent[drive];
+        return content;
     };
 
-    this.loadNewFormattedDisk = function(drive) {      // Formatted
-        if (++(nextNewDiskFormat[drive]) >= FORMAT_OPTION_DESC.length) (nextNewDiskFormat[drive]) = 0;      // Cycle available formats
-        var format = nextNewDiskFormat[drive];
-        this.createNewEmptyDisk(drive, format);
-        this.formatDisk(drive, format);
-        screen.showOSD("New formatted " + FORMAT_OPTION_DESC[format] + " disk loaded in " + driveName(drive), true);
-        return diskContent[drive];
+    this.loadNewEmptyDisk = function(drive, mediaType) {
+        var fileName = "New Disk " + this.MEDIA_TYPE_DESC[mediaType] + ".dsk";
+        var content = images.createNewEmptyDisk(mediaType);
+        loadDisk(drive, fileName, content);
+        screen.showOSD("New blank " + this.MEDIA_TYPE_DESC[mediaType] + " disk loaded in " + driveName(drive), true);
     };
 
-    this.createNewEmptyDisk = function(drive, format) {
-        diskFileName[drive] = "New Disk " + FORMAT_OPTION_DESC[format] + ".dsk";
-        diskContent[drive] = wmsx.Util.arrayFill(new Array(FORMAT_OPTION_SIZE[format]), 0);
-        diskChanged[drive] = true;
-        fireStateUpdate();
-        screen.showOSD("New empty " + FORMAT_OPTION_DESC[format] + " disk loaded in " + driveName(drive), true);
-        return diskContent[drive];
+    this.loadNewFormattedDisk = function(drive, mediaType) {                // Cycle among format options if no mediaType given
+        if (!mediaType) {
+            if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
+            mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
+        }
+        var fileName = "New Disk " + this.MEDIA_TYPE_DESC[mediaType] + ".dsk";
+        var content = images.createNewFormattedDisk(mediaType);
+        loadDisk(drive, fileName, content);
+        screen.showOSD("New formatted " + this.MEDIA_TYPE_DESC[mediaType] + " disk loaded in " + driveName(drive), true);
     };
 
     this.removeDisk = function(drive) {
@@ -53,6 +49,7 @@ wmsx.FileDiskDrive = function() {
         diskFileName[drive] = null;
         diskContent[drive] = null;
         diskChanged[drive] = null;
+
         screen.showOSD("Disk " + driveName(drive) + " removed", true);
         fireStateUpdate();
     };
@@ -73,6 +70,15 @@ wmsx.FileDiskDrive = function() {
             screen.showOSD("Disk " + driveName(drive) + " File save failed", true);
         }
     };
+
+    function loadDisk(drive, name, content) {
+        diskFileName[drive] = name;
+        diskContent[drive] = content;
+        diskChanged[drive] = true;
+        fireStateUpdate();
+        return diskContent[drive];
+    }
+
 
     // DiskDriver interface methods
 
@@ -144,11 +150,8 @@ wmsx.FileDiskDrive = function() {
         fireStateUpdate();
     };
 
-    this.formatDisk = function(drive, format) {
-        // Write Boot Sector
-        self.writeBytes(drive, FORMAT_OPTION_BOOT_SECTOR[format], 0);
-        // Write starting bytes of FAT
-        self.writeBytes(drive, FORMAT_OPTION_FAT_START[format], 1 * BYTES_PER_SECTOR);
+    this.formatDisk = function(content, mediaType) {
+        return images.formatDisk(content, mediaType);
     };
 
     // Add a delay before turning the motor off (drive LED simulation)
@@ -212,6 +215,7 @@ wmsx.FileDiskDrive = function() {
         return eval(str);
     };
 
+    var images = new wmsx.DiskImages();
 
     var screen;
     var fileDownloader;
@@ -224,45 +228,18 @@ wmsx.FileDiskDrive = function() {
 
     var diskMotorOffTimer = [ null, null ];
 
-    var nextNewDiskFormat = [ 0, 0 ];
+    var nextNewDiskFormatOption = [ 0, 0 ];
 
     var BYTES_PER_SECTOR = 512;                   // Fixed for now, for all disks
 
     var MOTOR_SPINUP_EXTRA_ITERATIONS = 150000;
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;
 
-    var FORMAT_OPTION_DESC = [ "360KB", "720KB" ];
-    var FORMAT_OPTION_SIZE = [ 360 * 1024, 720 * 1024 ];
-    var FORMAT_OPTION_BOOT_SECTOR = [
-        [
-            0xEB, 0xFE, 0x90, 0x4E, 0x4D, 0x53, 0x20, 0x32, 0x2E, 0x30, 0x50, 0x00, 0x02, 0x02, 0x01, 0x00,
-            0x02, 0x70, 0x00, 0xD0, 0x02, 0xF8, 0x02, 0x00, 0x09, 0x00, 0x01, 0x00, 0x00, 0x00, 0xD0, 0xED,
-            0x53, 0x59, 0xC0, 0x32, 0xD0, 0xC0, 0x36, 0x56, 0x23, 0x36, 0xC0, 0x31, 0x1F, 0xF5, 0x11, 0xAB,
-            0xC0, 0x0E, 0x0F, 0xCD, 0x7D, 0xF3, 0x3C, 0xCA, 0x63, 0xC0, 0x11, 0x00, 0x01, 0x0E, 0x1A, 0xCD,
-            0x7D, 0xF3, 0x21, 0x01, 0x00, 0x22, 0xB9, 0xC0, 0x21, 0x00, 0x3F, 0x11, 0xAB, 0xC0, 0x0E, 0x27,
-            0xCD, 0x7D, 0xF3, 0xC3, 0x00, 0x01, 0x58, 0xC0, 0xCD, 0x00, 0x00, 0x79, 0xE6, 0xFE, 0xFE, 0x02,
-            0xC2, 0x6A, 0xC0, 0x3A, 0xD0, 0xC0, 0xA7, 0xCA, 0x22, 0x40, 0x11, 0x85, 0xC0, 0xCD, 0x77, 0xC0,
-            0x0E, 0x07, 0xCD, 0x7D, 0xF3, 0x18, 0xB4, 0x1A, 0xB7, 0xC8, 0xD5, 0x5F, 0x0E, 0x06, 0xCD, 0x7D,
-            0xF3, 0xD1, 0x13, 0x18, 0xF2, 0x42, 0x6F, 0x6F, 0x74, 0x20, 0x65, 0x72, 0x72, 0x6F, 0x72, 0x0D,
-            0x0A, 0x50, 0x72, 0x65, 0x73, 0x73, 0x20, 0x61, 0x6E, 0x79, 0x20, 0x6B, 0x65, 0x79, 0x20, 0x66,
-            0x6F, 0x72, 0x20, 0x72, 0x65, 0x74, 0x72, 0x79, 0x0D, 0x0A, 0x00, 0x00, 0x4D, 0x53, 0x58, 0x44,
-            0x4F, 0x53, 0x20, 0x20, 0x53, 0x59, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-        ],
-        [
-            0xEB, 0xFE, 0x90, 0x4E, 0x4D, 0x53, 0x20, 0x32, 0x2E, 0x30, 0x50, 0x00, 0x02, 0x02, 0x01, 0x00,
-            0x02, 0x70, 0x00, 0xA0, 0x05, 0xF9, 0x03, 0x00, 0x09, 0x00, 0x02, 0x00, 0x00, 0x00, 0xD0, 0xED,
-            0x53, 0x59, 0xC0, 0x32, 0xD0, 0xC0, 0x36, 0x56, 0x23, 0x36, 0xC0, 0x31, 0x1F, 0xF5, 0x11, 0xAB,
-            0xC0, 0x0E, 0x0F, 0xCD, 0x7D, 0xF3, 0x3C, 0xCA, 0x63, 0xC0, 0x11, 0x00, 0x01, 0x0E, 0x1A, 0xCD,
-            0x7D, 0xF3, 0x21, 0x01, 0x00, 0x22, 0xB9, 0xC0, 0x21, 0x00, 0x3F, 0x11, 0xAB, 0xC0, 0x0E, 0x27,
-            0xCD, 0x7D, 0xF3, 0xC3, 0x00, 0x01, 0x58, 0xC0, 0xCD, 0x00, 0x00, 0x79, 0xE6, 0xFE, 0xFE, 0x02,
-            0xC2, 0x6A, 0xC0, 0x3A, 0xD0, 0xC0, 0xA7, 0xCA, 0x22, 0x40, 0x11, 0x85, 0xC0, 0xCD, 0x77, 0xC0,
-            0x0E, 0x07, 0xCD, 0x7D, 0xF3, 0x18, 0xB4, 0x1A, 0xB7, 0xC8, 0xD5, 0x5F, 0x0E, 0x06, 0xCD, 0x7D,
-            0xF3, 0xD1, 0x13, 0x18, 0xF2, 0x42, 0x6F, 0x6F, 0x74, 0x20, 0x65, 0x72, 0x72, 0x6F, 0x72, 0x0D,
-            0x0A, 0x50, 0x72, 0x65, 0x73, 0x73, 0x20, 0x61, 0x6E, 0x79, 0x20, 0x6B, 0x65, 0x79, 0x20, 0x66,
-            0x6F, 0x72, 0x20, 0x72, 0x65, 0x74, 0x72, 0x79, 0x0D, 0x0A, 0x00, 0x00, 0x4D, 0x53, 0x58, 0x44,
-            0x4F, 0x53, 0x20, 0x20, 0x53, 0x59, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-        ]
-    ];
-    var FORMAT_OPTION_FAT_START = [ [ 0xF8, 0xFF, 0xFF ], [ 0xF9, 0xFF, 0xFF ] ];
+    this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
+    this.MEDIA_TYPE_DESC = images.MEDIA_TYPE_DESC;
+    this.MEDIA_TYPE_DISK_SIZE = images.MEDIA_TYPE_DISK_SIZE;
+    this.MEDIA_TYPE_BOOT_SECTOR = images.MEDIA_TYPE_BOOT_SECTOR;
+    this.MEDIA_TYPE_FAT_START = images.MEDIA_TYPE_FAT_START;
+    this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
 
 };

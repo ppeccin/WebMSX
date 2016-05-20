@@ -175,10 +175,10 @@ wmsx.ImageDiskDriver = function() {
     function GETDPB(A, B, C, HL) {
         // wmsx.Util.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL));
 
-        var mediaDesc = B === 0 ? C : B;
-        if (mediaDesc < 0xF8) return;           // Invalid Media Descriptor
+        var mediaType = B === 0 ? C : B;
+        if (mediaType < 0xF8) return;           // Invalid Media Descriptor
 
-        var dpb = DPBS_FOR_MEDIA_DESCRIPTORS[mediaDesc];
+        var dpb = drive.MEDIA_TYPE_DPB[mediaType];
         writeToMemory(dpb, HL + 1);
     }
 
@@ -194,7 +194,7 @@ wmsx.ImageDiskDriver = function() {
         var d = DE >>> 8;
         var f = A - 1;
 
-        // Bad Parameter error if Disk or Format Option is invalid
+        // Bad Parameter error if Disk or Format Option is invalid. Only options 0 and 1 supported
         if ((f < 0 || f > 1) || (d < 0 || d > 1))
             return { F: F | 1, A: 12 };
 
@@ -202,10 +202,12 @@ wmsx.ImageDiskDriver = function() {
         if (drive.diskWriteProtected(d))
             return { F: F | 1, A: 0 };
 
-        drive.createNewEmptyDisk(d, f);
+        var mediaType = drive.FORMAT_OPTIONS_MEDIA_TYPES[f];
+
+        drive.loadNewEmptyDisk(d, mediaType);
 
         drive.motorOn(d);
-        drive.formatDisk(d, f);
+        drive.formatDisk(d, mediaType);
 
         return { F: F & ~1, extraIterations: EXTRA_ITERATIONS_FORMAT};
     }
@@ -245,25 +247,6 @@ wmsx.ImageDiskDriver = function() {
 
 
     var BYTES_PER_SECTOR = 512;                 // Fixed for now, for all disks
-
-    var DPBS_FOR_MEDIA_DESCRIPTORS = {
-        // Media F8; 80 Tracks; 9 sectors; 1 side; 3.5" 360 Kb
-        0xF8: [0xF8, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x63, 0x01, 0x02, 0x05, 0x00],
-        // Media F9; 80 Tracks; 9 sectors; 2 sides; 3.5" 720 Kb
-        0xF9: [0xF9, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0e, 0x00, 0xca, 0x02, 0x03, 0x07, 0x00],
-        // Media FA; 80 Tracks; 8 sectors; 1 side; 3.5" 320 Kb
-        0xFA: [0xFA, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00],
-        // Media FB; 80 Tracks; 8 sectors; 2 sides; 3.5" 640 Kb
-        0xFB: [0xFB, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x7b, 0x02, 0x02, 0x05, 0x00],
-        // Media FC; 40 Tracks; 9 sectors; 1 side; 5.25" 180 Kb
-        0xFC: [0xFC, 0x00, 0x02, 0x0F, 0x04, 0x00, 0x01, 0x01, 0x00, 0x02, 0x40, 0x09, 0x00, 0x60, 0x01, 0x02, 0x05, 0x00],
-        // Media FD; 40 Tracks; 9 sectors; 2 sides; 5.25" 360 Kb
-        0xFD: [0xFD, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0c, 0x00, 0x63, 0x01, 0x02, 0x05, 0x00],
-        // Media FE; 40 Tracks; 8 sectors; 1 side; 5.25" 160 Kb
-        0xFE: [0xFE, 0x00, 0x02, 0x0F, 0x04, 0x00, 0x01, 0x01, 0x00, 0x02, 0x40, 0x07, 0x00, 0x3a, 0x01, 0x01, 0x03, 0x00],
-        // Media FF; 40 Tracks; 8 sectors; 2 sides; 5.25" 320 Kb
-        0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
-    };
 
     var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 360KB, Single Sided\r\n2) 720KB, Double Sided\r\n\0";
     var CHOICE_STRING_ADDRESS = 0x8040;
