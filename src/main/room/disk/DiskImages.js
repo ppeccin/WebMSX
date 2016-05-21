@@ -9,7 +9,6 @@ wmsx.DiskImages = function() {
         var dpb = this.MEDIA_TYPE_DPB[mediaType];
         var bytesPerSector = (dpb[2] << 8) + dpb[1];
         var fatStartSector = (dpb[8] << 8) + dpb[7];
-        var numberOfFats = dpb[9];
         var sectorsPerFat = dpb[15];
         var rootDirEntrySize = 32;
         var rootDirStartSector = (dpb[17] << 8) + dpb[16];
@@ -17,11 +16,12 @@ wmsx.DiskImages = function() {
         var dataStartSector = (dpb[12] << 8) + dpb[11];
         var sectorsPerCluster = dpb[5] + 1;
         var totalDataClusters = ((dpb[14] << 8) + dpb[13]) - 1;
-        var bytesPerCluster = sectorsPerCluster + bytesPerSector;
+        var bytesPerCluster = sectorsPerCluster * bytesPerSector;
 
         var image = this.createNewFormattedDisk(mediaType);
         var rootDirEntry = 0;
         var freeCluster = 2;
+        var fileNames = new Set();
 
         // Write each file until disk is full
         for (var f = 0; f < files.length; ++f) {
@@ -32,18 +32,17 @@ wmsx.DiskImages = function() {
             if (fileClusters > totalDataClusters - (freeCluster - 2)) break;
 
             // Write data
-            sanitizeFileName(file);
-            padFileContent(file, bytesPerCluster);
+            padFileContent(file, fileClusters * bytesPerCluster);
             writeRootDirEntry(rootDirEntry, freeCluster, file);
             writeFatChain(freeCluster, fileClusters);
             writeFileContent(freeCluster, file);
 
             // Advance
-            ++rootDirEntry; if (totalRootDirEntries >= totalRootDirEntries) break;
+            ++rootDirEntry; if (rootDirEntry >= totalRootDirEntries) break;
             freeCluster += fileClusters; if (freeCluster - 2 >= totalDataClusters) break;
         }
 
-        // TODO FAT copies
+        this.mirrorFatCopies(mediaType, image);
 
         return image;
 
@@ -56,8 +55,11 @@ wmsx.DiskImages = function() {
 
             // File Name
             pos = entryPos;
-            var name = file.name;
+            var name = fat12Filename(file.name);
             for (var c = 0; c < 11; ++c) image[pos + c] = name.charCodeAt(c);
+
+            // Attributes. Set "Archive" only
+            image[pos + 0x0b] = 0x20;
 
             // Starting Cluster
             pos = entryPos + 0x1a;
@@ -70,21 +72,21 @@ wmsx.DiskImages = function() {
         }
 
         function writeFileContent(cluster, file) {
-            var pos = (dataStartSector + cluster * sectorsPerCluster) * bytesPerSector;
+            var pos = (dataStartSector + (cluster - 2) * sectorsPerCluster) * bytesPerSector;
 
             var content = file.content;
             for (var b = 0, len = content.length; b < len; ++b) image[pos + b] = content[b];
         }
 
         function writeFatChain(cluster, quant) {
-            while (quant-- > 0)
+            while (--quant > 0)
                 writeFatEntry(cluster, ++cluster);
 
             writeFatEntry(cluster, 0xfff);              // Enf of chain
         }
 
         function writeFatEntry(entry, value) {
-            var pos = fatStartSector * bytesPerSector + (entry >> 1) * 3;             // Each 2 entries take 2 bytes
+            var pos = fatStartSector * bytesPerSector + (entry >> 1) * 3;             // Each 2 entries take 3 bytes
             if (entry & 1) {
                 // odd entry
                 image[pos + 1] = (image[pos + 1] & 0x0f) | ((value & 0xf00) >> 4);
@@ -96,14 +98,34 @@ wmsx.DiskImages = function() {
             }
         }
 
-        function padFileContent(file, bytesPerCluster) {
+        function padFileContent(file, size) {
             var content = file.content;
-            var clusters = Math.ceil(content.length / bytesPerCluster);
-            for (var b = content.length, len = clusters * bytesPerCluster; b < len; ++b) content[b] = 0;
+            for (var b = content.length; b < size; ++b) content[b] = 0;
         }
 
-        function sanitizeFileName(file) {
-            file.name = file.name.substr(0, 8);
+        function fat12Filename(fileName) {
+            var finalName;
+
+            var name = sanitize(fileName.split(".")[0]);
+            var ext = sanitize(fileName.indexOf(".") ? fileName.split(".").pop() : "");
+            ext = (ext + "   ").substr(0,3);
+
+            finalName = (name + "        ").substr(0,8) + ext;
+            if (name.length > 8 || fileNames.has(finalName)) {
+                var index = 0, suffix;
+                do {
+                    ++index;
+                    suffix = "~" + index;
+                    finalName = (name.substr(0, 8 - suffix.length) + suffix + "        ").substr(0, 8) + ext;
+                } while (fileNames.has(finalName));
+            }
+
+            fileNames.add(finalName);
+            return finalName;
+        }
+
+        function sanitize(name) {
+            return name.toUpperCase().replace(/[^a-z0-9!#$%&'\(\)\-@\^_`{}~]/gi, '_');
         }
     };
 
@@ -113,18 +135,40 @@ wmsx.DiskImages = function() {
 
     this.createNewFormattedDisk = function (mediaType) {
         var content = this.createNewEmptyDisk(mediaType);
-        this.formatDisk(content, mediaType);
+        this.formatDisk(mediaType, content);
         return content;
     };
 
-    this.formatDisk = function (content, mediaType) {
+    this.formatDisk = function (mediaType, content) {                   // TODO Volume label problem? INCOMPATIBLE DISK error in MSX-DOS 2
         // Write Boot Sector
         var bootSector = this.MEDIA_TYPE_BOOT_SECTOR[mediaType];
         for (var b = 0; b < bootSector.length; ++b) content[b] = bootSector[b];
 
-        // Write starting bytes of FAT
+        // Initialize FATs
         var fatStart = this.MEDIA_TYPE_FAT_START[mediaType];
-        for (b = 0; b < fatStart.length; ++b) content[1 * this.BYTES_PER_SECTOR + b] = fatStart[b];       // TODO What about the SECOND FAT?
+        for (b = 0; b < fatStart.length; ++b) content[this.BYTES_PER_SECTOR + b] = fatStart[b];
+        this.mirrorFatCopies(mediaType, content);
+
+        // Initialize data area
+        var dpb = this.MEDIA_TYPE_DPB[mediaType];
+        var bytesPerSector = (dpb[2] << 8) + dpb[1];
+        var dataStartSector = (dpb[12] << 8) + dpb[11];
+        for (b = dataStartSector * bytesPerSector; b < content.length; ++b) content[b] = 0xff
+    };
+
+    this.mirrorFatCopies = function(mediaType, content) {
+        var dpb = this.MEDIA_TYPE_DPB[mediaType];
+        var numFats = dpb[9];
+        var bytesPerSector = (dpb[2] << 8) + dpb[1];
+        var fatStartSector = (dpb[8] << 8) + dpb[7];
+        var sectorsPerFat = dpb[15];
+        var bytesPerFat = sectorsPerFat * bytesPerSector;
+
+        var dest = fatStartSector * bytesPerSector + bytesPerFat;     // start at second fat
+        for (var f = 2; f <= numFats; ++f) {
+            var src = fatStartSector * bytesPerSector;
+            for (var b = 0; b < bytesPerFat; ++b) content[dest++] = content[src++];
+        }
     };
 
 

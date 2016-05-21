@@ -78,6 +78,20 @@ wmsx.FileLoader = function() {
         reader.readAsArrayBuffer(file);
     };
 
+    this.loadFromFiles = function (files, port, altPower, then) {
+        var reader = new wmsx.MultiFileReader(files,
+            function onSuccessAll(files) {
+                self.loadFilesAsDisk(files, port, altPower);
+                if (then) then(true);
+            },
+            function onFirstError(files, error) {
+                showError("File reading error: " + error);
+                if (then) then(false);
+            }
+        );
+        reader.start();
+    };
+
     this.loadFromURL = function (url, port, altPower, asExpansion, then) {
         new wmsx.MultiDownloader([{
             url: url,
@@ -206,6 +220,18 @@ wmsx.FileLoader = function() {
         }
     };
 
+    this.loadFilesAsDisk = function (files, port, altPower) {
+        // First try reading and creating directly
+        try {
+            diskDrive.loadFilesAsDisk(port, files, altPower);
+        } catch(e) {
+            if (!e.msx) {
+                wmsx.Util.log(e.stack);
+                throw e;
+            }
+        }
+    };
+
     var onFileInputChange = function(event) {
         event.returnValue = false;  // IE
         if (event.preventDefault) event.preventDefault();
@@ -256,19 +282,21 @@ wmsx.FileLoader = function() {
         var altPower = event.ctrlKey;
         var asExpansion = event.altKey;
 
-        // Try to get local file if present
+        // Try to get local file/files if present
         var files = event.dataTransfer && event.dataTransfer.files;
+        var resume = function (s) {
+            if (!wasPaused) machine.systemPause(false);
+        };
         if (files && files.length > 0) {
-            self.loadFromFile(files[0], port, altPower, asExpansion, function(s) {
-                if (!wasPaused) machine.systemPause(false);
-            });
+            if (files.length === 1)
+                self.loadFromFile(files[0], port, altPower, asExpansion, resume);
+            else
+                self.loadFromFiles(files, port, altPower, resume);
         } else {
             // If not, try to get URL
             var url = event.dataTransfer.getData("text");
             if (url && url.length > 0)
-                self.loadFromURL(url, port, altPower, asExpansion, function(s) {
-                    if (!wasPaused) machine.systemPause(false);
-                });
+                self.loadFromURL(url, port, altPower, asExpansion, resume);
         }
     };
 

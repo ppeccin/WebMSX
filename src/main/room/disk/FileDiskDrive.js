@@ -25,13 +25,6 @@ wmsx.FileDiskDrive = function() {
         return content;
     };
 
-    this.loadNewEmptyDisk = function(drive, mediaType) {
-        var fileName = "New Disk " + this.MEDIA_TYPE_DESC[mediaType] + ".dsk";
-        var content = images.createNewEmptyDisk(mediaType);
-        loadDisk(drive, fileName, content);
-        screen.showOSD("New blank " + this.MEDIA_TYPE_DESC[mediaType] + " disk loaded in " + driveName(drive), true);
-    };
-
     this.loadNewFormattedDisk = function(drive, mediaType) {                // Cycle among format options if no mediaType given
         if (!mediaType) {
             if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
@@ -70,6 +63,18 @@ wmsx.FileDiskDrive = function() {
             screen.showOSD("Disk " + driveName(drive) + " File save failed", true);
         }
     };
+
+    this.loadFilesAsDisk = function(drive, files, altPower) {
+        var content = images.createFromFiles(0xF9, files);
+        if (!content) return null;
+
+        loadDisk(drive, "Disk Files.dsk", content);
+        diskDriveSocket.autoPowerCycle(altPower);
+        screen.showOSD("Disk " + driveName(drive) + " loaded from files", true);
+
+        return content;
+    };
+
 
     function loadDisk(drive, name, content) {
         diskFileName[drive] = name;
@@ -150,8 +155,15 @@ wmsx.FileDiskDrive = function() {
         fireStateUpdate();
     };
 
-    this.formatDisk = function(content, mediaType) {
-        return images.formatDisk(content, mediaType);
+    this.loadNewEmptyDisk = function(drive, mediaType) {
+        var fileName = "New Disk " + this.MEDIA_TYPE_DESC[mediaType] + ".dsk";
+        var content = images.createNewEmptyDisk(mediaType);
+        loadDisk(drive, fileName, content);
+        screen.showOSD("New blank " + this.MEDIA_TYPE_DESC[mediaType] + " disk loaded in " + driveName(drive), true);
+    };
+
+    this.formatDisk = function(drive, mediaType) {
+        return images.formatDisk(mediaType, diskContent[drive]);
     };
 
     // Add a delay before turning the motor off (drive LED simulation)
