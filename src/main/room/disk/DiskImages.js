@@ -145,8 +145,8 @@ wmsx.DiskImages = function() {
         for (var b = 0; b < bootSector.length; ++b) content[b] = bootSector[b];
 
         // Initialize FATs
-        var fatStart = this.MEDIA_TYPE_FAT_START[mediaType];
-        for (b = 0; b < fatStart.length; ++b) content[this.BYTES_PER_SECTOR + b] = fatStart[b];
+        var fatStart = this.BYTES_PER_SECTOR;
+        content[fatStart] = mediaType; content[fatStart + 1] = 0xff; content[fatStart + 2] = 0xff;
         this.mirrorFatCopies(mediaType, content);
 
         // Initialize data area
@@ -219,8 +219,6 @@ wmsx.DiskImages = function() {
             0x4F, 0x53, 0x20, 0x20, 0x53, 0x59, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         ]
     };
-
-    this.MEDIA_TYPE_FAT_START = { 0xF9: [0xF9, 0xFF, 0xFF], 0xF8: [0xF8, 0xFF, 0xFF] };
 
     this.MEDIA_TYPE_DPB = {
         // Media F8; 80 Tracks; 9 sectors; 1 side; 3.5" 360 Kb

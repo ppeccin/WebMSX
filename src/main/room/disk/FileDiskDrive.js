@@ -18,18 +18,9 @@ wmsx.FileDiskDrive = function() {
         var size = arrContent.length;
         if (!this.MEDIA_TYPE_VALID_SIZES.has(size)) return null;        // Invalid disk size
 
-        var mediaType;
-        for (var m in this.MEDIA_TYPE_INFO) {
-            if (arrContent[0x15] == m) {
-                mediaType = m;
-                break;
-            }
-        }
-        if (!mediaType) return null;                                    // Invalid media type
-
         var content = loadDisk(drive, name, arrContent.slice(0));
         diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD(this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in drive " + driveName(drive), true);
+        screen.showOSD("" + ((size / 1024) || 0) + "KB Disk loaded in drive " + driveName(drive), true);
 
         return content;
     };
@@ -260,7 +251,6 @@ wmsx.FileDiskDrive = function() {
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
     this.MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
     this.MEDIA_TYPE_BOOT_SECTOR = images.MEDIA_TYPE_BOOT_SECTOR;
-    this.MEDIA_TYPE_FAT_START = images.MEDIA_TYPE_FAT_START;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
 
 };
