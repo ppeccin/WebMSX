@@ -240,7 +240,7 @@ wmsx.FileDiskDrive = function() {
 
     var diskMotorOffTimer = [ null, null ];
 
-    var nextNewDiskFormatOption = [ 0, 0 ];
+    var nextNewDiskFormatOption = [ -1, -1 ];
 
     var BYTES_PER_SECTOR = 512;                   // Fixed for now, for all disks
 

@@ -3,9 +3,9 @@
 // Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageDiskDriver = function() {
 
-    this.connect = function(diskBIOS, pMachine) {
-        machine = pMachine;
+    this.connect = function(diskBIOS, machine) {
         drive = machine.getDiskDriveSocket().getDrive();
+        bus = machine.bus;
         patchDiskBIOS(diskBIOS);
     };
 
@@ -183,13 +183,13 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function CHOICE() {
-        // wmsx.Util.Util.log("CHOICE");
+        // wmsx.Util.log("CHOICE" + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         return { HL: CHOICE_STRING_ADDRESS };
     }
 
     function DSKFMT(F, A, DE) {
-        // wmsx.Util.log("DSKFMT");
+        // wmsx.Util.log("DSKFMT" + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         var d = DE >>> 8;
         var f = A - 1;
@@ -234,21 +234,22 @@ wmsx.ImageDiskDriver = function() {
             slot.write(address + i, bytes[i]);
     }
 
+    // Get RAM location from System Area in RAM (assumes RAM is switched in page 3)
     function getSlotToMemoryAccess(address) {
-        var page = address >>> 14;
-        if (page === 1) page = 2;           // TODO If page is in DISK-BIOS, assumes the same slot as in page 2 (probably RAM or Cartridge)
-        var slotNumber = (machine.bus.getPrimarySlotConfig() >>> (page << 1)) & 0x03;
-        return machine.bus.slots[slotNumber];
+        var slotSpec = bus.read(0xf341 + (address >> 14));                      // Desired page location in System Area
+        var slot = bus.slots[slotSpec & 3];
+        if (slotSpec & 0x80) slot = slot.subSlots[(slotSpec >> 2) & 3];         // Expanded
+        return slot;
     }
 
 
-    var machine;
     var drive;
+    var bus;
 
 
     var BYTES_PER_SECTOR = 512;                 // Fixed for now, for all disks
 
-    var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 360KB, Single Sided\r\n2) 720KB, Double Sided\r\n\0";
+    var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 720KB, Double Sided\r\n2) 360KB, Single Sided\r\n\0";
     var CHOICE_STRING_ADDRESS = 0x8040;
 
     var EXTRA_ITERATIONS_PER_SECTOR = 4000;
