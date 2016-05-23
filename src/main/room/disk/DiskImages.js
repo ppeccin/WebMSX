@@ -107,7 +107,7 @@ wmsx.DiskImages = function() {
             var finalName;
 
             var name = sanitize(fileName.split(".")[0]);
-            var ext = sanitize(fileName.indexOf(".") ? fileName.split(".").pop() : "");
+            var ext = sanitize(fileName.indexOf(".") >= 1 ? fileName.split(".").pop() : "");
             ext = (ext + "   ").substr(0,3);
 
             finalName = (name + "        ").substr(0,8) + ext;
@@ -130,7 +130,7 @@ wmsx.DiskImages = function() {
     };
 
     this.createNewEmptyDisk = function (mediaType) {
-        return wmsx.Util.arrayFill(new Array(this.MEDIA_TYPE_DISK_SIZE[mediaType]), 0);
+        return wmsx.Util.arrayFill(new Array(this.MEDIA_TYPE_INFO[mediaType].size), 0);
     };
 
     this.createNewFormattedDisk = function (mediaType) {
@@ -176,9 +176,18 @@ wmsx.DiskImages = function() {
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = [0xF9, 0xF8];
 
-    this.MEDIA_TYPE_DESC = {0xF9: "720KB", 0xF8: "360KB"};
+    this.MEDIA_TYPE_INFO = {
+        0xF8: { desc: "360KB", size: 368640 },
+        0xF9: { desc: "720KB", size: 737280 },
+        0xFA: { desc: "320KB", size: 327680 },
+        0xFB: { desc: "640KB", size: 655360 },
+        0xFC: { desc: "180KB", size: 184320 },
+        0xFD: { desc: "360KB", size: 368640 },
+        0xFE: { desc: "160KB", size: 163840 },
+        0xFF: { desc: "320KB", size: 327680 }
+    };
 
-    this.MEDIA_TYPE_DISK_SIZE = {0xF9: 720 * 1024, 0xF8: 360 * 1024};
+    this.MEDIA_TYPE_VALID_SIZES = new Set([ 368640, 737280, 327680, 655360, 184320, 163840 ]);
 
     this.MEDIA_TYPE_BOOT_SECTOR = {
         0xF9: [

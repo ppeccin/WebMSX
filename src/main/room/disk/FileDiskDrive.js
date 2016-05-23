@@ -15,12 +15,21 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.loadDiskFile = function(drive, name, arrContent, altPower) {
-        if ((arrContent[0] !== 0xEB) && (arrContent[0] !== 0xE9))           // Not a valid disk image file
-            return null;
+        var size = arrContent.length;
+        if (!this.MEDIA_TYPE_VALID_SIZES.has(size)) return null;        // Invalid disk size
+
+        var mediaType;
+        for (var m in this.MEDIA_TYPE_INFO) {
+            if (arrContent[0x15] == m) {
+                mediaType = m;
+                break;
+            }
+        }
+        if (!mediaType) return null;                                    // Invalid media type
 
         var content = loadDisk(drive, name, arrContent.slice(0));
         diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD("Disk " + driveName(drive) + " loaded", true);
+        screen.showOSD(this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in drive " + driveName(drive), true);
 
         return content;
     };
@@ -30,10 +39,10 @@ wmsx.FileDiskDrive = function() {
             if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
             mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
         }
-        var fileName = "New Disk " + this.MEDIA_TYPE_DESC[mediaType] + ".dsk";
+        var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = images.createNewFormattedDisk(mediaType);
         loadDisk(drive, fileName, content);
-        screen.showOSD("New formatted " + this.MEDIA_TYPE_DESC[mediaType] + " disk loaded in " + driveName(drive), true);
+        screen.showOSD("New formatted " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in " + driveName(drive), true);
     };
 
     this.removeDisk = function(drive) {
@@ -156,10 +165,10 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.loadNewEmptyDisk = function(drive, mediaType) {
-        var fileName = "New Disk " + this.MEDIA_TYPE_DESC[mediaType] + ".dsk";
+        var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = images.createNewEmptyDisk(mediaType);
         loadDisk(drive, fileName, content);
-        screen.showOSD("New blank " + this.MEDIA_TYPE_DESC[mediaType] + " disk loaded in " + driveName(drive), true);
+        screen.showOSD("New blank " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in " + driveName(drive), true);
     };
 
     this.formatDisk = function(drive, mediaType) {
@@ -248,8 +257,8 @@ wmsx.FileDiskDrive = function() {
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
-    this.MEDIA_TYPE_DESC = images.MEDIA_TYPE_DESC;
-    this.MEDIA_TYPE_DISK_SIZE = images.MEDIA_TYPE_DISK_SIZE;
+    this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
+    this.MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
     this.MEDIA_TYPE_BOOT_SECTOR = images.MEDIA_TYPE_BOOT_SECTOR;
     this.MEDIA_TYPE_FAT_START = images.MEDIA_TYPE_FAT_START;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
