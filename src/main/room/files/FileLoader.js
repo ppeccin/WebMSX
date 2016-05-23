@@ -38,7 +38,7 @@ wmsx.FileLoader = function() {
         var port = inSecondaryPort ? 1 : 0;
         var url;
         try {
-            url = localStorage && localStorage[LOCAL_STOARAGE_LAST_URL_KEY];
+            url = localStorage && localStorage[LOCAL_STORAGE_LAST_URL_KEY];
         } catch (e) {
             // give up
         }
@@ -50,7 +50,7 @@ wmsx.FileLoader = function() {
 
         if (url) {
             try {
-                localStorage[LOCAL_STOARAGE_LAST_URL_KEY] = url;
+                localStorage[LOCAL_STORAGE_LAST_URL_KEY] = url;
             } catch (e) {
                 // give up
             }
@@ -176,7 +176,7 @@ wmsx.FileLoader = function() {
         }
     };
 
-    this.loadContentAsSlot = function (name, content, slotPos, altPower) {
+    this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher
         var rom, arrContent;
         // First try reading and creating directly
         try {
@@ -230,9 +230,10 @@ wmsx.FileLoader = function() {
         if (event.preventDefault) event.preventDefault();
         if (event.stopPropagation) event.stopPropagation();
         event.target.focus();
-        if (!this.files || !this.files.length) return;
+        if (!this.files || this.files.length === 0) return;           // this will have a property "files"!
 
-        var file = this.files[0];
+        var files = Array.prototype.slice.call(this.files);
+
         // Tries to clear the last selected file so the same file can be chosen
         try {
             fileInputElement.value = "";
@@ -241,10 +242,14 @@ wmsx.FileLoader = function() {
         }
 
         var wasPaused = machine.systemPause(true);
-
-        self.loadFromFile(file, chooserPort, chooserAltPower, chooserAsExpansion, function(s) {
+        var resume = function (s) {
             if (!wasPaused) machine.systemPause(false);
-        });
+        };
+
+        if (files.length === 1)
+            self.loadFromFile(files[0], chooserPort, chooserAltPower, chooserAsExpansion, resume);
+        else
+            self.loadFromFiles(files, chooserPort, chooserAltPower, resume);
 
         return false;
     };
@@ -302,6 +307,7 @@ wmsx.FileLoader = function() {
         fileInputElement = document.createElement("input");
         fileInputElement.id = "ROMLoaderFileInput";
         fileInputElement.type = "file";
+        fileInputElement.multiple = true;
         fileInputElement.accept = INPUT_ELEM_ACCEPT_PROP;
         fileInputElement.style.display = "none";
         fileInputElement.addEventListener("change", onFileInputChange);
@@ -327,7 +333,7 @@ wmsx.FileLoader = function() {
 
     var ZIP_INNER_FILES_PATTERN = /^.*\.(bin|BIN|dsk|DSK|rom|ROM|bios|BIOS|cas|CAS|tape|TAPE|wst|WST)$/;
     var INPUT_ELEM_ACCEPT_PROP  = ".bin,.dsk,.rom,.bios,.cas,.tape,.wst,.zip";
-    var LOCAL_STOARAGE_LAST_URL_KEY = "wmsxlasturl";
+    var LOCAL_STORAGE_LAST_URL_KEY = "wmsxlasturl";
 
 
     WMSX.loadROMFromURL = this.loadFromURL;

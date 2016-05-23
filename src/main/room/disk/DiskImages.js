@@ -49,7 +49,7 @@ wmsx.DiskImages = function() {
 
         // Auxiliary functions
 
-        function writeRootDirEntry(entry, cluster, file) {
+        function writeRootDirEntry(entry, cluster, file) {                                          // TODO Dates, times
             var entryPos = rootDirStartSector * bytesPerSector + entry * rootDirEntrySize;
             var pos;
 
