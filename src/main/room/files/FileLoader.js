@@ -87,7 +87,8 @@ wmsx.FileLoader = function() {
             function onFirstError(files, error) {
                 showError("File reading error: " + error);
                 if (then) then(false);
-            }
+            },
+            720 * 1024
         );
         reader.start();
     };
@@ -131,10 +132,7 @@ wmsx.FileLoader = function() {
             else
                 cartridgeSocket.insert(slot, port, altPower);
         } catch(e) {
-            if (!e.msx) {
-                wmsx.Util.log(e.stack);
-                throw e;
-            }
+            if (!e.wmsxError) throw e;
 
             // If it fails, try assuming its a compressed content (zip with ROMs)
             try {
@@ -188,10 +186,7 @@ wmsx.FileLoader = function() {
             var slot = wmsx.SlotCreator.createFromROM(rom);
             slotSocket.insert(slot, slotPos, altPower);
         } catch(e) {
-            if (!e.msx) {
-                wmsx.Util.log(e.stack);
-                throw e;
-            }
+            if (!e.wmsxError) throw e;
 
             // If it fails, try assuming its a compressed content (zip with ROMs)
             try {
@@ -221,15 +216,13 @@ wmsx.FileLoader = function() {
     };
 
     this.loadFilesAsDisk = function (files, port, altPower) {
-        // First try reading and creating directly
-        try {
-            diskDrive.loadFilesAsDisk(port, files, altPower);
-        } catch(e) {
-            if (!e.msx) {
-                wmsx.Util.log(e.stack);
-                throw e;
-            }
-        }
+        // Sort files by name
+        files = Array.prototype.slice.call(files);
+        files.sort(function sortFiles(a, b) {
+            return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+        });
+
+        diskDrive.loadFilesAsDisk(port, files, altPower);
     };
 
     var onFileInputChange = function(event) {
@@ -302,7 +295,7 @@ wmsx.FileLoader = function() {
 
     var showError = function(message) {
         wmsx.Util.log("" + message);
-        wmsx.Util.message("Could not load file:\n\n" + message);
+        wmsx.Util.message("Could not load file(s):\n\n" + message);
     };
 
     var createFileInputElement = function () {

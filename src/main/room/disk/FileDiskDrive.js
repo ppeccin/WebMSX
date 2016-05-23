@@ -20,7 +20,7 @@ wmsx.FileDiskDrive = function() {
 
         var content = loadDisk(drive, name, arrContent.slice(0));
         diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD("" + ((size / 1024) || 0) + "KB Disk loaded in drive " + driveName(drive), true);
+        screen.showOSD("" + ((size / 1024) || 0) + "KB Disk loaded in Drive " + driveName(drive), true);
 
         return content;
     };
@@ -33,7 +33,7 @@ wmsx.FileDiskDrive = function() {
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = images.createNewFormattedDisk(mediaType);
         loadDisk(drive, fileName, content);
-        screen.showOSD("New formatted " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in " + driveName(drive), true);
+        screen.showOSD("New formatted " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in Drive " + driveName(drive), true);
     };
 
     this.removeDisk = function(drive) {
@@ -58,9 +58,9 @@ wmsx.FileDiskDrive = function() {
             for (var i = 0; i < dContent.length; i++)
                 view[i] = dContent[i];
             fileDownloader.startDownloadBinary(fileName, data);
-            screen.showOSD("Disk " + driveName(drive) + " File saved", true);
+            screen.showOSD("Disk " + driveName(drive) + " file saved", true);
         } catch(ex) {
-            screen.showOSD("Disk " + driveName(drive) + " File save failed", true);
+            screen.showOSD("Disk " + driveName(drive) + " file save failed", true);
         }
     };
 
@@ -68,9 +68,9 @@ wmsx.FileDiskDrive = function() {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 
-        loadDisk(drive, "Disk Files.dsk", content);
+        loadDisk(drive, "New Files as Disk.dsk", content);
         diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD("Disk " + driveName(drive) + " loaded from files", true);
+        screen.showOSD("Files as Disk loaded in Drive " + driveName(drive), true);
 
         return content;
     };
@@ -159,7 +159,7 @@ wmsx.FileDiskDrive = function() {
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = images.createNewEmptyDisk(mediaType);
         loadDisk(drive, fileName, content);
-        screen.showOSD("New blank " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in " + driveName(drive), true);
+        screen.showOSD("New blank " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in Drive " + driveName(drive), true);
     };
 
     this.formatDisk = function(drive, mediaType) {

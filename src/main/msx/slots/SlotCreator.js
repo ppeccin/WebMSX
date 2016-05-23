@@ -16,8 +16,8 @@ wmsx.SlotCreator = function () {
     this.recreateFromSaveState = function (saveState, previousSlot) {
         var format = wmsx.SlotFormats[saveState.f];
         if (!format) {
-            var ex = new Error("Unsupported ROM Format: " + saveState.f);
-            ex.msx = true;
+            var ex = new Error("Unsupported ROM Format in Savestate: " + saveState.f);
+            ex.wmsxError = true;
             throw ex;
         }
         if (previousSlot && previousSlot.format !== format) previousSlot = null;       // Only possible to reuse previousSlot if the format is the same
@@ -46,22 +46,16 @@ wmsx.SlotCreator = function () {
     function getFormatOptions(rom) {
         var formatOptions = [];
         var formatOption;
-        var denialEx;
         for (var format in wmsx.SlotFormats) {
-            try {
-                formatOption = wmsx.SlotFormats[format].tryFormat(rom);
-                if (!formatOption) continue;	    	    // rejected by format
-                boostPriority(formatOption, rom.info);	    // adjust priority based on ROM info
-                formatOptions.push(formatOption);
-            } catch (ex) {
-                if (!ex.formatDenial) throw ex;
-                if (!denialEx) denialEx = ex;               // Keep only the first one
-            }
+            formatOption = wmsx.SlotFormats[format].tryFormat(rom);
+            if (!formatOption) continue;	    	    // rejected by format
+            boostPriority(formatOption, rom.info);	    // adjust priority based on ROM info
+            formatOptions.push(formatOption);
         }
         // If no Format could be found, throw error
         if (formatOptions.length === 0) {
-            var ex = denialEx || new Error("Unsupported ROM Format. Size: " + rom.content.length);
-            ex.msx = true;
+            var ex = new Error("Unsupported ROM Format. Size: " + rom.content.length);
+            ex.wmsxError = true;
             throw ex;
         }
         // Sort according to priority

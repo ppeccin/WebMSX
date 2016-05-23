@@ -1,16 +1,17 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError) {
+wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError, maxTotalSize) {
 
     this.start = function() {
         if (!files || files.length === 0)
             onAllSuccess(files);
         else {
+            if (!maxTotalSize) maxTotalSize = MAX_TOTAL_SIZE;
             var totalSize = 0;
             for (var i = 0; i < files.length; i++) totalSize += files[i].size;
-            if (totalSize > MAX_TOTAL_SIZE) {
-                if (onFirstError) onFirstError(files, "Maximum size limit exceeded!");
-                return files;
+            if (totalSize > maxTotalSize) {
+                if (onFirstError) onFirstError(files, "Maximum total size limit exceeded: " + ((maxTotalSize / 1024) | 0) + "KB");
+                return;
             }
 
             for (i = 0; i < files.length; i++) load(files[i]);
