@@ -492,12 +492,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         var menuOptions = [
-            { mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
-            { mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
-            { mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
-            { mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE }
+            { label: "Power",           mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
+            { label: "Hard Reset",      mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
+            { label: "Load State File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
+            { label: "Save State File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE },
+            {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET }
         ];
-        menuOptions.menuTitle = null;
+        menuOptions.menuTitle = "System";
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", menuOptions);
 
         menuOptions = [

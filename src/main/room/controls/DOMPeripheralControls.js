@@ -68,13 +68,16 @@ wmsx.DOMPeripheralControls = function(room) {
         // All controls are Press-only and repeatable
         switch(control) {
             case controls.MACHINE_POWER_TOGGLE:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen button
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen
                 break;
             case controls.MACHINE_POWER_RESET:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen button
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen
+                break;
+            case controls.MACHINE_LOAD_STATE_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);       // No local keys for this, used only by Screen
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen button
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen
                 break;
             case controls.DISKA_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
