@@ -15,11 +15,7 @@ wmsx.SlotCreator = function () {
 
     this.recreateFromSaveState = function (saveState, previousSlot) {
         var format = wmsx.SlotFormats[saveState.f];
-        if (!format) {
-            var ex = new Error("Unsupported ROM Format in Savestate: " + saveState.f);
-            ex.wmsxError = true;
-            throw ex;
-        }
+        if (!format) throw new Error("Unsupported ROM Format in Savestate: " + saveState.f);
         if (previousSlot && previousSlot.format !== format) previousSlot = null;       // Only possible to reuse previousSlot if the format is the same
         return format.recreateFromSaveState(saveState, previousSlot);
     };
@@ -51,12 +47,6 @@ wmsx.SlotCreator = function () {
             if (!formatOption) continue;	    	    // rejected by format
             boostPriority(formatOption, rom.info);	    // adjust priority based on ROM info
             formatOptions.push(formatOption);
-        }
-        // If no Format could be found, throw error
-        if (formatOptions.length === 0) {
-            var ex = new Error("Unsupported ROM Format. Size: " + rom.content.length);
-            ex.wmsxError = true;
-            throw ex;
         }
         // Sort according to priority
         formatOptions.sort(function formatOptionComparator(a, b) {

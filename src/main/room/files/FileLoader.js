@@ -108,110 +108,93 @@ wmsx.FileLoader = function() {
     };
 
     this.loadContentAsMedia = function (name, content, port, altPower, asExpansion) {
-        var rom, arrContent;
+        var arrContent;
         // First try reading and creating directly
+        arrContent = new Array(content.length);
+        wmsx.Util.arrayCopy(content, 0, arrContent);
+        // First try to load as a SaveState file
+        if (saveStateSocket.loadStateFile(arrContent, altPower))
+            return;
+        // Then try to load as a Cassette file
+        if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
+            return;
+        // Then try to load as a Disk file
+        if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
+            return;
+        // Then try to load as a ROM
+        var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
+        if (slot) {
+            if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
+            else if (asExpansion) expansionSocket.insert(slot, port, altPower);
+            else cartridgeSocket.insert(slot, port, altPower);
+            return;
+        }
+        // Then try as compressed content (zip file)
         try {
-            arrContent = new Array(content.length);
-            wmsx.Util.arrayCopy(content, 0, arrContent);
-            // First try to load as a SaveState file
-            if (saveStateSocket.loadStateFile(arrContent, altPower))
-                return;
-            // Then try to load as a Cassette file
-            if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
-                return;
-            // Then try to load as a Disk file
-            if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
-                return;
-            // Then try to load as a ROM
-            rom = new wmsx.ROM(name, arrContent);
-            var slot = wmsx.SlotCreator.createFromROM(rom);
-            if (slot.format === wmsx.SlotFormats.BIOS)
-                biosSocket.insert(slot, altPower);
-            else if (asExpansion)
-                expansionSocket.insert(slot, port, altPower);
-            else
-                cartridgeSocket.insert(slot, port, altPower);
-        } catch(e) {
-            if (!e.wmsxError) throw e;
-
-            // If it fails, try assuming its a compressed content (zip with ROMs)
-            try {
-                var zip = new JSZip(content);
-                var files = zip.file(ZIP_INNER_FILES_PATTERN);
-                for (var i = 0; i < files.length; i++) {
-                    var file = files[i];
-                    wmsx.Util.log("Trying zip file content: " + file.name);
-                    try {
-                        var cont = file.asUint8Array();
-                        arrContent = new Array(cont.length);
-                        wmsx.Util.arrayCopy(cont, 0, arrContent);
-                        // First try to load as a SaveState file
-                        if (saveStateSocket.loadStateFile(arrContent, altPower))
-                            return;
-                        // Then try to load as a Cassette file
-                        if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
-                            return;
-                        // Then try to load as a Disk file
-                        if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
-                            return;
-                        // Then try to load as a ROM (BIOS or Cartridge)
-                        rom = new wmsx.ROM(name + " - " + file.name, arrContent);
-                        slot = wmsx.SlotCreator.createFromROM(rom);
-                        if (slot.format === wmsx.SlotFormats.BIOS)
-                            biosSocket.insert(slot, altPower);
-                        else if (asExpansion)
-                            expansionSocket.insert(slot, port, altPower);
-                        else
-                            cartridgeSocket.insert(slot, port, altPower);
-                        return;
-                    } catch (ef) {
-                        // Move on and try the next file
-                    }
+            var zip = new JSZip(content);
+            var files = zip.file(ZIP_INNER_FILES_PATTERN);
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                wmsx.Util.log("Trying zip file content: " + file.name);
+                var cont = file.asUint8Array();
+                arrContent = new Array(cont.length);
+                wmsx.Util.arrayCopy(cont, 0, arrContent);
+                // First try to load as a SaveState file
+                if (saveStateSocket.loadStateFile(arrContent, altPower))
+                    return;
+                // Then try to load as a Cassette file
+                if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
+                    return;
+                // Then try to load as a Disk file
+                if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
+                    return;
+                // Then try to load as a ROM (BIOS or Cartridge)
+                slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name + " - " + file.name, arrContent));
+                if (slot) {
+                    if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
+                    else if (asExpansion) expansionSocket.insert(slot, port, altPower);
+                    else cartridgeSocket.insert(slot, port, altPower);
+                    return;
                 }
-                showError("No valid ROM, Cassette or Disk files inside zip file");
-            } catch(ez) {
-                // Probably not a zip file. Let the original message show
-                showError(e.message);
+                // Not this file... Move on and try the next file
             }
+            showError("No valid ROM, Cassette or Disk files inside zip file");
+        } catch(ez) {
+            // Error decompressing. Probably not a zip file. Give up
+            showError("Unsupported file!");
         }
     };
 
     this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher
-        var rom, arrContent;
+        var arrContent;
         // First try reading and creating directly
-        try {
-            arrContent = new Array(content.length);
-            wmsx.Util.arrayCopy(content, 0, arrContent);
-            rom = new wmsx.ROM(name, arrContent);
-            var slot = wmsx.SlotCreator.createFromROM(rom);
+        arrContent = new Array(content.length);
+        wmsx.Util.arrayCopy(content, 0, arrContent);
+        var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
+        if (slot) {
             slotSocket.insert(slot, slotPos, altPower);
-        } catch(e) {
-            if (!e.wmsxError) throw e;
-
-            // If it fails, try assuming its a compressed content (zip with ROMs)
-            try {
-                var zip = new JSZip(content);
-                var files = zip.file(ZIP_INNER_FILES_PATTERN);
-                for (var i = 0; i < files.length; i++) {
-                    var file = files[i];
-                    wmsx.Util.log("Trying zip file content: " + file.name);
-                    try {
-                        var cont = file.asUint8Array();
-                        arrContent = new Array(cont.length);
-                        wmsx.Util.arrayCopy(cont, 0, arrContent);
-                        rom = new wmsx.ROM(name + " - " + file.name, arrContent);
-                        slot = wmsx.SlotCreator.createFromROM(rom);
-                        slotSocket.insert(slot, slotPos, altPower);
-                        return;
-                    } catch (ef) {
-                        // Move on and try the next file
-                    }
+            return;
+        }
+        // Then try as compressed content (zip file)
+        try {
+            var zip = new JSZip(content);
+            var files = zip.file(ZIP_INNER_FILES_PATTERN);
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                wmsx.Util.log("Trying zip file content: " + file.name);
+                var cont = file.asUint8Array();
+                arrContent = new Array(cont.length);
+                wmsx.Util.arrayCopy(cont, 0, arrContent);
+                slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name + " - " + file.name, arrContent));
+                if (slot) {
+                    slotSocket.insert(slot, slotPos, altPower);
+                    return;
                 }
-                showError("No valid ROMs inside zip file");
-            } catch(ez) {
-                // Probably not a zip file. Let the original message show
-                showError(e.message);
+                // Not this file... Move on and try the next file
             }
+            showError("No valid ROMs inside zip file");
+        } catch(ez) {
+            showError("Unsupported file!");
         }
     };
 
@@ -300,7 +283,7 @@ wmsx.FileLoader = function() {
 
     var showError = function(message) {
         wmsx.Util.log("" + message);
-        wmsx.Util.message("Could not load file(s):\n\n" + message);
+        wmsx.Util.message("Could not load file(s):\n\n" + message + "\n");
     };
 
     var createFileInputElement = function () {
