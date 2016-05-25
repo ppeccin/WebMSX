@@ -74,19 +74,19 @@ wmsx.DOMPeripheralControls = function(room) {
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen
                 break;
             case controls.MACHINE_LOAD_STATE_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);       // No local keys for this, used only by Screen
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false);       // No local keys for this, used only by Screen
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen
                 break;
             case controls.DISKA_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, false);
                 break;
             case controls.DISKA_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, true, false);
                 break;
             case controls.DISKA_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, false);
                 break;
             case controls.DISKA_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
@@ -98,13 +98,13 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(0);
                 break;
             case controls.DISKB_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, true);
                 break;
             case controls.DISKB_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, true, true);
                 break;
             case controls.DISKB_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, true);
                 break;
             case controls.DISKB_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
@@ -116,37 +116,37 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(1);
                 break;
             case controls.CARTRIDGE1_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, false, false);
                 break;
             case controls.CARTRIDGE1_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, true, false);
                 break;
             case controls.CARTRIDGE1_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, false, false);
                 break;
             case controls.CARTRIDGE1_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(0, false);
                 break;
             case controls.CARTRIDGE2_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, false, true);
                 break;
             case controls.CARTRIDGE2_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, true, true);
                 break;
             case controls.CARTRIDGE2_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false, true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, false, true);
                 break;
             case controls.CARTRIDGE2_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(1, false);
                 break;
             case controls.TAPE_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, false, false);
                 break;
             case controls.TAPE_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(true);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, true, false);
                 break;
             case controls.TAPE_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, false);
                 break;
             case controls.TAPE_REMOVE:
                 if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
@@ -301,6 +301,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var keyControlAltCodeMap = {};
     var keyShiftControlAltCodeMap = {};
 
+    var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 
     var KEY_LEFT    = wmsx.DOMKeys.VK_LEFT.c;
     var KEY_UP      = wmsx.DOMKeys.VK_UP.c;

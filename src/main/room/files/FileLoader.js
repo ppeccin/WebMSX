@@ -26,15 +26,19 @@ wmsx.FileLoader = function() {
         fileInputElementParent = element;
     };
 
-    this.openFileChooserDialog = function(altPower, inSecondaryPort) {
+    this.openFileChooserDialog = function (openType, altPower, inSecondaryPort) {
         if (!fileInputElement) createFileInputElement();
+        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.ALL];
+        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.ALL];
+
+        chooserOpenType = openType;
         chooserPort = inSecondaryPort ? 1 : 0;
         chooserAltPower = altPower;
         chooserAsExpansion = false;     // No means to load expansion via chooser for now
         fileInputElement.click();
     };
 
-    this.openURLChooserDialog = function(altPower, inSecondaryPort, asExpansion) {
+    this.openURLChooserDialog = function (openType, altPower, inSecondaryPort, asExpansion) {
         var port = inSecondaryPort ? 1 : 0;
         var url;
         try {
@@ -54,7 +58,7 @@ wmsx.FileLoader = function() {
             } catch (e) {
                 // give up
             }
-            this.loadFromURL(url, port, altPower, asExpansion, function(s) {
+            this.readFromURL(url, openType, port, altPower, asExpansion, function (s) {
                 if (!wasPaused) machine.systemPause(false);
             });
         } else {
@@ -62,30 +66,31 @@ wmsx.FileLoader = function() {
         }
     };
 
-    this.loadFromFile = function (file, port, altPower, asExpansion, then) {
+    this.readFromFile = function (file, openType, port, altPower, asExpansion, then) {
         wmsx.Util.log("Reading file: " + file.name);
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
-            self.loadContentAsMedia(file.name, content, port || 0, altPower, asExpansion);
+            self.loadContentAsMedia(file.name, content, openType, port || 0, altPower, asExpansion);
             if (then) then(true);
         };
         reader.onerror = function (event) {
-            showError("File reading error: " + event.target.error.name);
+            showError("File reading error: " + event.target.error.name + DIR_NOT_SUPPORTED_HINT);     // Directories not supported
             if (then) then(false);
         };
 
         reader.readAsArrayBuffer(file);
     };
 
-    this.loadFromFiles = function (files, port, altPower, then) {              // Directories not supported
+    this.readFromFiles = function (files, port, altPower, then) {
         var reader = new wmsx.MultiFileReader(files,
             function onSuccessAll(files) {
                 self.loadFilesAsDisk(files, port, altPower);
                 if (then) then(true);
             },
-            function onFirstError(files, error) {
-                showError("File reading error: " + error + "\n\nIMPORTANT: Directories are not supported via drag & drop, only files!\nPlease use a ZIP file for sub directory support.");
+            function onFirstError(files, error, known) {
+                if (!known) error += DIR_NOT_SUPPORTED_HINT;    // Directories not supported
+                showError("File reading error: " + error);
                 if (then) then(false);
             },
             720 * 1024
@@ -93,11 +98,11 @@ wmsx.FileLoader = function() {
         reader.start();
     };
 
-    this.loadFromURL = function (url, port, altPower, asExpansion, then) {
+    this.readFromURL = function (url, openType, port, altPower, asExpansion, then) {
         new wmsx.MultiDownloader([{
             url: url,
             onSuccess: function (res) {
-                self.loadContentAsMedia(url, res.content, port || 0, altPower, asExpansion);
+                self.loadContentAsMedia(url, res.content, openType, port || 0, altPower, asExpansion);
                 if (then) then(true);
             },
             onError: function (res) {
@@ -107,59 +112,80 @@ wmsx.FileLoader = function() {
         }]).start();
     };
 
-    this.loadContentAsMedia = function (name, content, port, altPower, asExpansion) {
+    this.loadContentAsMedia = function (name, content, openType, port, altPower, asExpansion) {
         var arrContent;
+        openType = OPEN_TYPE[openType] || OPEN_TYPE.ALL;
         // First try reading and creating directly
         arrContent = new Array(content.length);
         wmsx.Util.arrayCopy(content, 0, arrContent);
-        // First try to load as a SaveState file
-        if (saveStateSocket.loadStateFile(arrContent, altPower))
-            return;
+        // First try to load as a Disk file
+        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
+            if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
+                return;
         // Then try to load as a Cassette file
-        if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
-            return;
-        // Then try to load as a Disk file
-        if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
-            return;
+        if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
+            if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
+                return;
         // Then try to load as a ROM
-        var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
-        if (slot) {
-            if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
-            else if (asExpansion) expansionSocket.insert(slot, port, altPower);
-            else cartridgeSocket.insert(slot, port, altPower);
-            return;
+        if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.ALL) {
+            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
+            if (slot) {
+                if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
+                else if (asExpansion) expansionSocket.insert(slot, port, altPower);
+                else cartridgeSocket.insert(slot, port, altPower);
+                return;
+            }
         }
-        // Then try as compressed content (zip file)
+        // Then try to load as a SaveState file
+        if (openType === OPEN_TYPE.STATE || openType === OPEN_TYPE.ALL)
+            if (saveStateSocket.loadStateFile(arrContent, altPower))
+                return;
+        // Then try as compressed content (zip file). Any file extension
         try {
             var zip = new JSZip(content);
-            var files = zip.file(ZIP_INNER_FILES_PATTERN);
+            var files = zip.file(ZIP_PATTERN.ALL);
+
+            // If loading as "ZIP as Disk", try only this option
+            if (openType === OPEN_TYPE.ZIP)
+                return this.loadZipAsDisk(name, zip, port, altPower);
+
+            // If not, try finding a valid file inside
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 wmsx.Util.log("Trying zip file content: " + file.name);
                 var cont = file.asUint8Array();
                 arrContent = new Array(cont.length);
                 wmsx.Util.arrayCopy(cont, 0, arrContent);
-                // First try to load as a SaveState file
-                if (saveStateSocket.loadStateFile(arrContent, altPower))
-                    return;
+                // First try to load as a Disk file
+                if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
+                    if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
+                        return;
                 // Then try to load as a Cassette file
-                if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
-                    return;
-                // Then try to load as a Disk file
-                if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
-                    return;
+                if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
+                    if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
+                        return;
                 // Then try to load as a ROM (BIOS or Cartridge)
-                slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
-                if (slot) {
-                    if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
-                    else if (asExpansion) expansionSocket.insert(slot, port, altPower);
-                    else cartridgeSocket.insert(slot, port, altPower);
-                    return;
+                if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.ALL) {
+                    slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
+                    if (slot) {
+                        if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
+                        else if (asExpansion) expansionSocket.insert(slot, port, altPower);
+                        else cartridgeSocket.insert(slot, port, altPower);
+                        return;
+                    }
                 }
-                // Not this file... Move on and try the next file
+                // Then try to load as a SaveState file
+                if (openType === OPEN_TYPE.STATE || openType === OPEN_TYPE.ALL)
+                    if (saveStateSocket.loadStateFile(arrContent, altPower))
+                        return;
+                // Not a valid file to load... Next!
             }
-            //showError("No valid ROM, Cassette or Disk files inside zip file");
-            this.loadZipAsDisk(name, zip, port, altPower);
+            // Try again as "ZIP as Disk" if type is ALL
+            if (openType === OPEN_TYPE.ALL)
+                return this.loadZipAsDisk(name, zip, port, altPower);
+
+            // If nothing worked, error
+            showError("No valid " + TYPE_DESC[openType] + " image files found in ZIP file");
         } catch(ez) {
             // Error decompressing. Probably not a zip file. Give up
             console.log(ez.stack);
@@ -177,10 +203,10 @@ wmsx.FileLoader = function() {
             slotSocket.insert(slot, slotPos, altPower);
             return;
         }
-        // Then try as compressed content (zip file)
+        // Then try as compressed content (zip file). Any file extension
         try {
             var zip = new JSZip(content);
-            var files = zip.file(ZIP_INNER_FILES_PATTERN);
+            var files = zip.file(ZIP_PATTERN.ALL);
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 wmsx.Util.log("Trying zip file content: " + file.name);
@@ -192,9 +218,9 @@ wmsx.FileLoader = function() {
                     slotSocket.insert(slot, slotPos, altPower);
                     return;
                 }
-                // Not this file... Move on and try the next file
+                // Not a valid file to load... Next!
             }
-            showError("No valid ROMs inside zip file");
+            showError("No valid ROMs found in ZIP file");
         } catch(ez) {
             console.log(ez.stack);
             showError("Unsupported file!");
@@ -212,10 +238,10 @@ wmsx.FileLoader = function() {
     };
 
     this.loadZipAsDisk = function (name, zip, port, altPower) {
-        diskDrive.loadFilesAsDisk(port, name, this.createTreeFromZip(zip), altPower, "ZIP as Disk");
+        diskDrive.loadFilesAsDisk(port, name, createTreeFromZip(zip), altPower, "ZIP as Disk");
     };
 
-    this.createTreeFromZip = function (zip) {
+    function createTreeFromZip(zip) {
         // Build file tree structure as required by image creator
         var rootDir = [];
         var dirs = zip.folder(/.+/).filter(function(f) { return f.dir && f.name; });         // get only directories first
@@ -268,7 +294,7 @@ wmsx.FileLoader = function() {
             file.content = file.asUint8Array();
             dir.push(file);
         }
-    };
+    }
 
     var onFileInputChange = function(event) {
         event.returnValue = false;  // IE
@@ -292,9 +318,9 @@ wmsx.FileLoader = function() {
         };
 
         if (files.length === 1)
-            self.loadFromFile(files[0], chooserPort, chooserAltPower, chooserAsExpansion, resume);
+            self.readFromFile(files[0], chooserOpenType, chooserPort, chooserAltPower, chooserAsExpansion, resume);
         else
-            self.loadFromFiles(files, chooserPort, chooserAltPower, resume);
+            self.readFromFiles(files, chooserPort, chooserAltPower, resume);
 
         return false;
     };
@@ -332,14 +358,14 @@ wmsx.FileLoader = function() {
         };
         if (files && files.length > 0) {
             if (files.length === 1)
-                self.loadFromFile(files[0], port, altPower, asExpansion, resume);
+                self.readFromFile(files[0], null, port, altPower, asExpansion, resume);
             else
-                self.loadFromFiles(files, port, altPower, resume);
+                self.readFromFiles(files, port, altPower, resume);
         } else {
             // If not, try to get URL
             var url = event.dataTransfer.getData("text");
             if (url && url.length > 0)
-                self.loadFromURL(url, port, altPower, asExpansion, resume);
+                self.readFromURL(url, null, port, altPower, asExpansion, resume);
         }
     };
 
@@ -353,7 +379,7 @@ wmsx.FileLoader = function() {
         fileInputElement.id = "ROMLoaderFileInput";
         fileInputElement.type = "file";
         fileInputElement.multiple = true;
-        fileInputElement.accept = INPUT_ELEM_ACCEPT_PROP;
+        fileInputElement.accept = INPUT_ACCEPT.ALL;
         fileInputElement.style.display = "none";
         fileInputElement.addEventListener("change", onFileInputChange);
         fileInputElementParent.appendChild(fileInputElement);
@@ -371,16 +397,60 @@ wmsx.FileLoader = function() {
     var fileInputElement;
     var fileInputElementParent;
 
+    var chooserOpenType;
     var chooserPort = 0;
     var chooserAltPower = false;
     var chooserAsExpansion = false;
 
 
-    var ZIP_INNER_FILES_PATTERN = /^.+\.(bin|BIN|dsk|DSK|rom|ROM|bios|BIOS|cas|CAS|tape|TAPE|wst|WST)$/;
-    var INPUT_ELEM_ACCEPT_PROP  = ".bin,.dsk,.rom,.bios,.cas,.tape,.wst,.zip";
+    var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
+
+    var ZIP_PATTERN = {
+        ROM:   /^.+\.(bin|BIN|rom|ROM|bios|BIOS)$/,
+        DISK:  /^.+\.(bin|BIN|dsk|DSK)$/,
+        TAPE:  /^.+\.(bin|BIN|cas|CAS|tape|TAPE)$/,
+        STATE: /^.+\.(wst|WST)$/,
+        FILES: /.+/,
+        ZIP:   /.+/,
+        ALL:   /.+/
+    };
+
+    var INPUT_ACCEPT = {
+        ROM:   ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP",
+        DISK:  ".bin,.BIN,.dsk,.DSK,.zip,.ZIP",
+        TAPE:  ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP",
+        STATE: ".wst,.WST",
+        FILES: ".*",
+        ZIP:   ".zip,.ZIP",
+        ALL:   ".bin,.BIN,.dsk,.DSK,.rom,.ROM,.bios,.BIOS,.cas,.CAS,.tape,.TAPE,.wst,.WST,.zip,.ZIP"
+    };
+
+    var INPUT_MULTI = {
+        ROM:   false,
+        DISK:  false,
+        TAPE:  false,
+        STATE: false,
+        FILES: true,
+        ZIP:   false,
+        ALL:   false
+    };
+
+    var TYPE_DESC = {
+        ROM:   "ROM",
+        DISK:  "Disk",
+        TAPE:  "Cassette",
+        STATE: "Savestate",
+        FILES: "Files",
+        ZIP:   "ZIP",
+        ALL:   "ROM, Cassette or Disk"
+    };
+
     var LOCAL_STORAGE_LAST_URL_KEY = "wmsxlasturl";
 
+    var DIR_NOT_SUPPORTED_HINT = '\n\nIMPORTANT: Directories are not supported for loading!\nPlease use "ZIP as Disk" loading for full directories support.';
 
-    WMSX.loadROMFromURL = this.loadFromURL;
+    WMSX.fileLoader = this;
 
 };
+
+wmsx.FileLoader.OPEN_TYPE = { ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", ALL: "ALL" };

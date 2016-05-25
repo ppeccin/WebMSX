@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PasteDialog = function(mainElement) {
+wmsx.PasteDialog = function(mainElement, screen) {
     var self = this;
 
     this.toggle = function() {
@@ -26,7 +26,7 @@ wmsx.PasteDialog = function(mainElement) {
         if (!this.cover) return;
         this.cover.style.visibility = "hidden";
         this.cover.style.opacity = "0";
-        WMSX.room.screen.focus();
+        screen.focus();
     };
 
     var create = function () {

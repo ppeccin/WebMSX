@@ -31,6 +31,8 @@ WMSX.start = function () {
     // Prepare ROM Database
     wmsx.ROMDatabase.create();
 
+    var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
+
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
     if (WMSX.STATE_LOAD_URL) {
         WMSX.room.loading(true);
@@ -41,7 +43,7 @@ WMSX.start = function () {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.loading(false);
-                        WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, false);
+                        WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.STATE, 0, false);
                     });
                     wmsx.EmbeddedSystemROMs.flush();
                 });
@@ -91,31 +93,31 @@ WMSX.start = function () {
             WMSX.CARTRIDGE1_URL && {
                 url: WMSX.CARTRIDGE1_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.ROM, 0, true);
                 }
             },
             WMSX.CARTRIDGE2_URL && {
                 url: WMSX.CARTRIDGE2_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 1, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.ROM, 1, true);
                 }
             },
             WMSX.DISKA_URL && {
                 url: WMSX.DISKA_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.DISK, 0, true);
                 }
             },
             WMSX.DISKB_URL && {
                 url: WMSX.DISKB_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 1, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.DISK, 1, true);
                 }
             },
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, 0, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.TAPE, 0, true);
                 }
             }
         ];
