@@ -53,7 +53,7 @@ wmsx.FileDiskDrive = function() {
 
         try {
             var dContent = diskContent[drive];
-            var fileName = diskFileName[drive] || "New Disk.dsk";
+            var fileName = makeFileNameToSave(diskFileName[drive]);
             var data = new ArrayBuffer(dContent.length);
             var view = new Uint8Array(data);
             for (var i = 0; i < dContent.length; i++)
@@ -62,16 +62,18 @@ wmsx.FileDiskDrive = function() {
             screen.showOSD("Disk " + driveName(drive) + " file saved", true);
         } catch(ex) {
             screen.showOSD("Disk " + driveName(drive) + " file save failed", true);
+            console.log(ex.stack);
         }
     };
 
-    this.loadFilesAsDisk = function(drive, name, files, altPower) {
+    this.loadFilesAsDisk = function(drive, name, files, altPower, type) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 
-        loadDisk(drive, "New Files as Disk.dsk", content);
+        type = type || "Files as Disk";
+        loadDisk(drive, name || ("New " + type + ".dsk"), content);
         diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD("Files as Disk loaded in Drive " + driveName(drive), true);
+        screen.showOSD(type + " loaded in Drive " + driveName(drive), true);
 
         return content;
     };
@@ -85,6 +87,13 @@ wmsx.FileDiskDrive = function() {
         return diskContent[drive];
     }
 
+    function makeFileNameToSave(fileName) {
+        if (!fileName) return "New Disk.dsk";
+
+        var period = fileName.lastIndexOf(".");
+        fileName = period < 0 ? fileName : fileName.substr(0, period);
+        return fileName + ".dsk";
+    }
 
     // DiskDriver interface methods
 

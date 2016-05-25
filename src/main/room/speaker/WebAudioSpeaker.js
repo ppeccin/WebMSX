@@ -73,8 +73,9 @@ wmsx.WebAudioSpeaker = function() {
             //self.lowPassFilter = lowPassFilter;
 
             updateResamplingFactors();
-        } catch(e) {
-            wmsx.Util.log("Could not create AudioContext. Audio disabled.\n" + e.message);
+        } catch(ex) {
+            console.log(ex.stack);
+            wmsx.Util.log("Could not create AudioContext. Audio disabled.");
         }
     };
 

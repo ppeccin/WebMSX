@@ -31,7 +31,7 @@ wmsx.FileCassetteDeck = function() {
         tapeFileName = "New Tape.cas";
         tapeContent = [];
         toTapeStart();
-        screen.showOSD("Cassette loaded with empty Tape", true);
+        screen.showOSD("Cassette loaded with new blank Tape", true);
         fireStateUpdate();
     };
 
@@ -63,21 +63,23 @@ wmsx.FileCassetteDeck = function() {
                 if (!tapeFileName ) tapeFileName = "New Tape.cas";
                 fireStateUpdate();
             }
+            var fileName = makeFileNameToSave(tapeFileName);
             var data = new ArrayBuffer(tapeContent.length);
             var view = new Uint8Array(data);
             for (var i = 0; i < tapeContent.length; i++)
                 view[i] = tapeContent[i];
-            fileDownloader.startDownloadBinary(tapeFileName, data);
+            fileDownloader.startDownloadBinary(fileName, data);
             screen.showOSD("Cassette Tape File saved", true);
         } catch(ex) {
             screen.showOSD("Cassette Tape File save failed", true);
+            console.log(ex.stack);
         }
     };
 
     this.rewind = function() {
         if (noTapeMessage()) return;
         toTapeStart();
-        screen.showOSD("Cassette rewound." + positionMessage(), true);
+        screen.showOSD("Cassette Tape rewound." + positionMessage(), true);
     };
 
     this.seekToEnd = function() {
@@ -118,6 +120,13 @@ wmsx.FileCassetteDeck = function() {
         cassetteSocket.getDriver().typeCurrentAutoRunCommand();
     };
 
+    function makeFileNameToSave(fileName) {
+        if (!fileName) return "New Tape.cas";
+
+        var period = fileName.lastIndexOf(".");
+        fileName = period < 0 ? fileName : fileName.substr(0, period);
+        return fileName + ".cas";
+    }
 
     // Access interface methods
 

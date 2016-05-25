@@ -34,7 +34,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
             var res = data && JSON.stringify(data);
             return saveToLocalStorage(entry, res);
         } catch(ex) {
-            wmsx.Util.log(ex);
+            console.log(ex.stack);
             // give up
         }
     };
@@ -44,7 +44,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
             var res = loadFromLocalStorage(entry);
             return res && JSON.parse(res);
         } catch(ex) {
-            wmsx.Util.log(ex);
+            console.log(ex.stack);
             // give up
         }
     };
@@ -54,7 +54,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
             localStorage["wmsx" + entry] = data;
             return true;
         } catch (ex) {
-            wmsx.Util.log(ex);
+            console.log(ex.stack);
             return false;
         }
     };
@@ -63,7 +63,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
         try {
             return localStorage["wmsx" + entry];
         } catch (ex) {
-            wmsx.Util.log(ex);
+            console.log(ex.stack);
             // give up
         }
     };
@@ -72,7 +72,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
         try {
             return SAVE_STATE_IDENTIFIER + JSON.stringify(state);
         } catch(ex) {
-            wmsx.Util.log(ex);
+            console.log(ex.stack);
             // give up
         }
     };
@@ -96,6 +96,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
             return stateData && JSON.parse(stateData);
         } catch(e) {
+            console.log(ex.stack);
         }
     };
 

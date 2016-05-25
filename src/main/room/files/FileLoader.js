@@ -149,7 +149,7 @@ wmsx.FileLoader = function() {
                 if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                     return;
                 // Then try to load as a ROM (BIOS or Cartridge)
-                slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name + " - " + file.name, arrContent));
+                slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, arrContent));
                 if (slot) {
                     if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
                     else if (asExpansion) expansionSocket.insert(slot, port, altPower);
@@ -162,6 +162,7 @@ wmsx.FileLoader = function() {
             this.loadZipAsDisk(name, zip, port, altPower);
         } catch(ez) {
             // Error decompressing. Probably not a zip file. Give up
+            console.log(ez.stack);
             showError("Unsupported file!");
         }
     };
@@ -195,6 +196,7 @@ wmsx.FileLoader = function() {
             }
             showError("No valid ROMs inside zip file");
         } catch(ez) {
+            console.log(ez.stack);
             showError("Unsupported file!");
         }
     };
@@ -206,11 +208,11 @@ wmsx.FileLoader = function() {
             return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
         });
 
-        diskDrive.loadFilesAsDisk(port, null, files, altPower);
+        diskDrive.loadFilesAsDisk(port, null, files, altPower, "Files as Disk");
     };
 
     this.loadZipAsDisk = function (name, zip, port, altPower) {
-        diskDrive.loadFilesAsDisk(port, name, this.createTreeFromZip(zip), altPower);
+        diskDrive.loadFilesAsDisk(port, name, this.createTreeFromZip(zip), altPower, "ZIP as Disk");
     };
 
     this.createTreeFromZip = function (zip) {
