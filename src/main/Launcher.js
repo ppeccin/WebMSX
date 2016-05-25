@@ -64,7 +64,7 @@ WMSX.start = function () {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.loading(false);
-                        WMSX.room.machine.userPowerOn(true);
+                        WMSX.room.machine.userPowerOn(true);        // Auto-run cassette if any
                     });
                     wmsx.EmbeddedSystemROMs.flush();
                 });

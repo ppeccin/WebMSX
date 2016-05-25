@@ -426,7 +426,7 @@ wmsx.Machine = function() {
         switch (control) {
             case controls.POWER:
                 if (self.powerIsOn) self.powerOff();
-                else self.userPowerOn();
+                else self.userPowerOn(false);
                 break;
             case controls.RESET:
                 if (self.powerIsOn) self.reset();
@@ -578,7 +578,7 @@ wmsx.Machine = function() {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn) self.powerOff();
             self.insertSlot(slot, slotPos);
-            if (!altPower && (slot || powerWasOn)) self.userPowerOn();
+            if (!altPower && (slot || powerWasOn)) self.userPowerOn(false);
         };
         this.inserted = function (slotPos) {
             var res = self.getSlot(slotPos);
@@ -650,13 +650,10 @@ wmsx.Machine = function() {
         this.getDriver = function() {
             return driver;
         };
-        this.autoPowerCycle = function (altPower) {
-            // No power cycle by default if machine is on, only auto power on.
-            // With Alt Power, only do power cycle if there is an executable at position
-            if (!driver || !driver.currentAutoRunCommand()) return;     // Only do power cycle if there is an executable at position
-            var powerWasOn = self.powerIsOn;
-            if (powerWasOn && altPower) self.powerOff();
-            if (!self.powerIsOn && (!altPower || (powerWasOn && altPower))) self.userPowerOn(true);
+        this.autoPowerCycle = function () {
+            // No power if machine is on, only auto power on, and only if there is an executable at position
+            if (!driver) return;
+            if (!self.powerIsOn && driver.currentAutoRunCommand()) self.userPowerOn(true);      // Auto-run
         };
         this.typeAutoRunCommandAfterPowerOn = function () {
             if (driver && driver.currentAutoRunCommand())
@@ -677,11 +674,9 @@ wmsx.Machine = function() {
         this.getDrive = function() {
             return drive;
         };
-        this.autoPowerCycle = function (altPower) {
-            // No power cycle by default if machine is on, only auto power on.
-            var powerWasOn = self.powerIsOn;
-            if (powerWasOn && altPower) self.powerOff();
-            if (!self.powerIsOn && (!altPower || (powerWasOn && altPower))) self.userPowerOn(true);
+        this.autoPowerCycle = function () {
+            // No power cycle if machine is on, only auto power on
+            if (!self.powerIsOn) self.userPowerOn(false);
         };
         var drive;
     }
@@ -787,7 +782,7 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " save failed", true);
         };
 
-        this.loadState = function(slot, altPower) {
+        this.loadState = function(slot) {
             if (!media) return;
             var state = media.loadState(slot);
             if (!state) {
@@ -795,7 +790,7 @@ wmsx.Machine = function() {
             } else if (state.v !== VERSION) {
                 self.showOSD("State " + slot + " load failed, wrong version", true);
             } else {
-                if (!altPower && !self.powerIsOn) self.powerOn();
+                if (!self.powerIsOn) self.powerOn();
                 loadState(state);
                 self.showOSD("State " + slot + " loaded", true);
             }
@@ -814,7 +809,7 @@ wmsx.Machine = function() {
                 self.showOSD("State File save failed", true);
         };
 
-        this.loadStateFile = function(data, altPower) {       // Returns true if data was indeed a SaveState
+        this.loadStateFile = function(data) {       // Returns true if data was indeed a SaveState
             if (!media) return false;
             var state = media.loadStateFile(data);
             if (!state) return false;
@@ -822,7 +817,7 @@ wmsx.Machine = function() {
             if (state.v !== VERSION) {
                 self.showOSD("State File load failed, wrong version", true);
             } else {
-                if (!altPower && !self.powerIsOn) self.powerOn();
+                if (!self.powerIsOn) self.powerOn();
                 loadState(state);
                 self.showOSD("State File loaded", true);
             }
