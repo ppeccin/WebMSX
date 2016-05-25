@@ -195,7 +195,12 @@ wmsx.Util = new function() {
             .replace(/\?/g,"&#063;")
             .replace(/\-/g, "&#045;")
             .replace(/\|/g, "&#0124;");
+    };
 
+    this.arrayFind = function(arr, pred) {
+        if (arr.find) return arr.find(pred);
+        for (var i = 0, len = arr.length; i < len; ++i)
+            if (pred(arr[i], i, arr)) return arr[i];
     };
 
     this.arrayIndexOfSubArray = function(arr, subarr, fromIndex, step) {
@@ -210,6 +215,13 @@ wmsx.Util = new function() {
             return i;
         }
         return -1;
+    };
+
+    this.stringCountOccurrences = function(str, char) {
+        var total = 0;
+        for (var i = 0, len = str.length; i < len; ++i)
+            if (str[i] == char) ++total;
+        return total;
     };
 
     this.stringStartsWith = function(str, start) {

@@ -65,7 +65,7 @@ wmsx.FileDiskDrive = function() {
         }
     };
 
-    this.loadFilesAsDisk = function(drive, files, altPower) {
+    this.loadFilesAsDisk = function(drive, name, files, altPower) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 
