@@ -279,6 +279,16 @@ wmsx.SettingsGUI.html = function() {
                                 'Drag &amp; Drop Media Files or URLs' +
                             '</div>' +
                         '</div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">' +
+                                'Click Media icons on the bottom bar' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">' +
+                                'Right-Click Media icons: Open Media Menu' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
                     '<div class="wmsx-top-right">' +
                         '<div class="wmsx-hotkey wmsx-heading">' +
@@ -318,10 +328,10 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="wmsx-desc">Save Media File</div>' +
                         '</div>' +
-                    '</div>' +
-                    '<div class="wmsx-hotkey wmsx-clear">' +
-                        '<div class="wmsx-desc">' +
-                            'Click / Right-click Media icons on bottom bar' +
+                        '<div class="wmsx-hotkey wmsx-clear">' +
+                            '<div class="wmsx-desc">' +
+                                'Right-Drag / Right-Click: No Auto-Reset' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +
@@ -331,7 +341,7 @@ wmsx.SettingsGUI.html = function() {
                                 'Ctrl' +
                             '</div>' +
                         '</div>' +
-                        '<div class="wmsx-desc">&nbsp;+ Drag &amp; Drop File or URL to load Media with alternate Auto-Power' +
+                        '<div class="wmsx-desc">&nbsp;+ Drag &amp; Drop Files or ZIP File to force "Files as Disk" or "ZIP as Disk" loading' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +
@@ -379,7 +389,7 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="wmsx-desc">Seek Tape forward</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-clear"></div>' +
                     '<div class="wmsx-hotkey wmsx-bottom">' +
                         '<div class="wmsx-command">' +
                             '<div class="wmsx-key">' +
@@ -803,7 +813,7 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-media .wmsx-top-left {' +
            'float: left;' +
-           'width: 285px;' +
+           'width: 284px;' +
        '}' +
 
        '#wmsx-media .wmsx-top-right {' +

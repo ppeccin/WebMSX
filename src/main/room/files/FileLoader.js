@@ -334,6 +334,8 @@ wmsx.FileLoader = function() {
             event.dataTransfer.dropEffect = "none";
         else
             event.dataTransfer.dropEffect = "link";
+
+        dragButtons = event.buttons > 0 ? event.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
     };
 
     var onDrop = function (event) {
@@ -348,7 +350,7 @@ wmsx.FileLoader = function() {
         var wasPaused = machine.systemPause(true);
 
         var port = event.shiftKey ? 1 : 0;
-        var altPower = event.ctrlKey;
+        var altPower = dragButtons & MOUSE_BUT2_MASK;
         var asExpansion = event.altKey;
 
         // Try to get local file/files if present
@@ -401,6 +403,11 @@ wmsx.FileLoader = function() {
     var chooserPort = 0;
     var chooserAltPower = false;
     var chooserAsExpansion = false;
+
+    var dragButtons = 1;
+
+    var MOUSE_BUT1_MASK = 1;
+    var MOUSE_BUT2_MASK = 2;
 
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
