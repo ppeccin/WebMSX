@@ -576,9 +576,10 @@ wmsx.Machine = function() {
     function SlotSocket() {
         this.insert = function (slot, slotPos, altPower) {
             var powerWasOn = self.powerIsOn;
-            if (powerWasOn) self.powerOff();
+            if (powerWasOn && !altPower) self.powerOff();
             self.insertSlot(slot, slotPos);
             if (!altPower && (slot || powerWasOn)) self.userPowerOn(false);
+            else if (slot && self.powerIsOn) slot.powerOn();
         };
         this.inserted = function (slotPos) {
             var res = self.getSlot(slotPos);
