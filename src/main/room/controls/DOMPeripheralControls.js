@@ -82,6 +82,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.DISKA_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, false);
                 break;
+            case controls.DISKA_LOAD_FILE_ALT_POWER:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, true, false);
+                break;
             case controls.DISKA_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, false);
                 break;
@@ -96,6 +99,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.DISKB_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, true);
+                break;
+            case controls.DISKB_LOAD_FILE_ALT_POWER:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, true, true);
                 break;
             case controls.DISKB_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, true);
@@ -135,6 +141,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, false, false);
+                break;
+            case controls.TAPE_LOAD_FILE_ALT_POWER:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, true, false);
                 break;
             case controls.TAPE_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, false);

@@ -12,7 +12,7 @@ wmsx.FileCassetteDeck = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadTapeFile = function(name, arrContent) {
+    this.loadTapeFile = function(name, arrContent, altPower) {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
 
@@ -22,7 +22,7 @@ wmsx.FileCassetteDeck = function() {
         screen.showOSD("Cassette loaded." + positionMessage(), true);
         fireStateUpdate();
 
-        cassetteSocket.autoPowerCycle();
+        cassetteSocket.autoPowerCycle(altPower);
 
         return tapeContent;
     };

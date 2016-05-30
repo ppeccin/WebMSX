@@ -82,10 +82,10 @@ wmsx.FileLoader = function() {
         reader.readAsArrayBuffer(file);
     };
 
-    this.readFromFiles = function (files, port, then) {   // Files as Disk
+    this.readFromFiles = function (files, port, altPower, then) {   // Files as Disk
         var reader = new wmsx.MultiFileReader(files,
             function onSuccessAll(files) {
-                self.loadFilesAsDisk(files, port);
+                self.loadFilesAsDisk(files, port, altPower);
                 if (then) then(true);
             },
             function onFirstError(files, error, known) {
@@ -120,11 +120,11 @@ wmsx.FileLoader = function() {
         wmsx.Util.arrayCopy(content, 0, arrContent);
         // First try to load as a Disk file
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskFile(port, name, arrContent))
+            if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                 return;
         // Then try to load as a Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
-            if (cassetteDeck.loadTapeFile(name, arrContent))
+            if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
                 return;
         // Then try to load as a ROM
         if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.ALL) {
@@ -147,7 +147,7 @@ wmsx.FileLoader = function() {
 
             // If loading as "ZIP as Disk", try only this option
             if (openType === OPEN_TYPE.ZIP)
-                return this.loadZipAsDisk(name, zip, port);
+                return this.loadZipAsDisk(name, zip, port, altPower);
 
             // If not, try finding a valid file inside
             for (var i = 0; i < files.length; i++) {
@@ -158,11 +158,11 @@ wmsx.FileLoader = function() {
                 wmsx.Util.arrayCopy(cont, 0, arrContent);
                 // First try to load as a Disk file
                 if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-                    if (diskDrive.loadDiskFile(port, name, arrContent))
+                    if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
                         return;
                 // Then try to load as a Cassette file
                 if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
-                    if (cassetteDeck.loadTapeFile(name, arrContent))
+                    if (cassetteDeck.loadTapeFile(name, arrContent, altPower))
                         return;
                 // Then try to load as a ROM (BIOS or Cartridge)
                 if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.ALL) {
@@ -182,7 +182,7 @@ wmsx.FileLoader = function() {
             }
             // Try again as "ZIP as Disk" if type is ALL
             if (openType === OPEN_TYPE.ALL)
-                return this.loadZipAsDisk(name, zip, port);
+                return this.loadZipAsDisk(name, zip, port, altPower);
 
             // If nothing worked, error
             showError("No valid " + TYPE_DESC[openType] + " image files found in ZIP file");
@@ -227,18 +227,18 @@ wmsx.FileLoader = function() {
         }
     };
 
-    this.loadFilesAsDisk = function (files, port) {
+    this.loadFilesAsDisk = function (files, port, altPower) {
         // Sort files by name
         files = Array.prototype.slice.call(files);
         files.sort(function sortFiles(a, b) {
             return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
         });
 
-        diskDrive.loadFilesAsDisk(port, null, files, "Files as Disk");
+        diskDrive.loadFilesAsDisk(port, null, files, altPower, "Files as Disk");
     };
 
-    this.loadZipAsDisk = function (name, zip, port) {
-        diskDrive.loadFilesAsDisk(port, name, createTreeFromZip(zip), "ZIP as Disk");
+    this.loadZipAsDisk = function (name, zip, port, altPower) {
+        diskDrive.loadFilesAsDisk(port, name, createTreeFromZip(zip), altPower, "ZIP as Disk");
     };
 
     function createTreeFromZip(zip) {
@@ -320,7 +320,7 @@ wmsx.FileLoader = function() {
         if (files.length === 1)
             self.readFromFile(files[0], chooserOpenType, chooserPort, chooserAltPower, chooserAsExpansion, resume);
         else
-            self.readFromFiles(files, chooserPort, resume);     // Files as Disk
+            self.readFromFiles(files, chooserPort, chooserAltPower, resume);
 
         return false;
     };
@@ -362,7 +362,7 @@ wmsx.FileLoader = function() {
             if (files.length === 1)
                 self.readFromFile(files[0], null, port, altPower, asExpansion, resume);
             else
-                self.readFromFiles(files, port, resume);        // Files as Disk
+                self.readFromFiles(files, port, altPower, resume);
         } else {
             // If not, try to get URL
             var url = event.dataTransfer.getData("text");

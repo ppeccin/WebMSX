@@ -651,10 +651,10 @@ wmsx.Machine = function() {
         this.getDriver = function() {
             return driver;
         };
-        this.autoPowerCycle = function () {
-            // No power if machine is on, only auto power on, and only if there is an executable at position
-            if (!driver) return;
-            if (!self.powerIsOn && driver.currentAutoRunCommand()) self.userPowerOn(true);      // Auto-run
+        this.autoPowerCycle = function (altPower) {
+            // No power cycle by default if machine is on, only auto power on.
+            if (!driver || !driver.currentAutoRunCommand()) return;     // Only do power-on if there is an executable at position
+            if (!self.powerIsOn && !altPower) self.userPowerOn(true);
         };
         this.typeAutoRunCommandAfterPowerOn = function () {
             if (driver && driver.currentAutoRunCommand())
@@ -675,9 +675,9 @@ wmsx.Machine = function() {
         this.getDrive = function() {
             return drive;
         };
-        this.autoPowerCycle = function () {
-            // No power cycle if machine is on, only auto power on
-            if (!self.powerIsOn) self.userPowerOn(false);
+        this.autoPowerCycle = function (altPower) {
+            // No power cycle by default if machine is on, only auto power on.
+            if (!self.powerIsOn && !altPower) self.userPowerOn(false);
         };
         var drive;
     }

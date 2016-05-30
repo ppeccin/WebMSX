@@ -14,13 +14,13 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskFile = function(drive, name, arrContent) {
+    this.loadDiskFile = function(drive, name, arrContent, altPower) {
         var size = arrContent.length;
         if (!this.MEDIA_TYPE_VALID_SIZES.has(size)) return null;                      // Invalid image size
         if (arrContent[0] !== 0xe9 && arrContent[0] !== 0xeb) return null;            // Probably not a disk image
 
         var content = loadDisk(drive, name, arrContent.slice(0));
-        diskDriveSocket.autoPowerCycle();
+        diskDriveSocket.autoPowerCycle(altPower);
         screen.showOSD("" + ((size / 1024) || 0) + "KB Disk loaded in Drive " + driveName(drive), true);
 
         return content;
@@ -66,13 +66,13 @@ wmsx.FileDiskDrive = function() {
         }
     };
 
-    this.loadFilesAsDisk = function(drive, name, files, type) {
+    this.loadFilesAsDisk = function(drive, name, files, altPower, type) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 
         type = type || "Files as Disk";
         loadDisk(drive, name || ("New " + type + ".dsk"), content);
-        diskDriveSocket.autoPowerCycle();
+        diskDriveSocket.autoPowerCycle(altPower);
         screen.showOSD(type + " loaded in Drive " + driveName(drive), true);
 
         return content;
