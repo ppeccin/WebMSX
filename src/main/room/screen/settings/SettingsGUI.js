@@ -276,17 +276,17 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-desc">' +
-                                'Drag &amp; Drop Media Files or URLs' +
+                                'Drag &amp; Drop Files or URLs (auto detect)' +
                             '</div>' +
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-desc">' +
-                                'Click Media icons on the bottom bar' +
+                                'Click Media Icons on the bottom bar' +
                             '</div>' +
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-desc">' +
-                                'Right-Click Media icons: Open Media Menu' +
+                                'Right-Click Media Icons: Open Media Menu' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
