@@ -88,6 +88,12 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.DISKA_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, false);
                 break;
+            case controls.DISKA_LOAD_FILES:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, false, false);
+                break;
+            case controls.DISKA_LOAD_ZIP:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, false, false);
+                break;
             case controls.DISKA_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
                 break;
@@ -105,6 +111,12 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.DISKB_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, true);
+                break;
+            case controls.DISKB_LOAD_FILES:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, false, true);
+                break;
+            case controls.DISKB_LOAD_ZIP:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, false, true);
                 break;
             case controls.DISKB_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);

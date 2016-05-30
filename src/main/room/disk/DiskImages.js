@@ -20,10 +20,18 @@ wmsx.DiskImages = function() {
 
         var image = this.createNewFormattedDisk(mediaType);
         var rootDirContentPosition = rootDirStartSector * bytesPerSector;
+        var filesWritten = 0, filesNotWritten = 0;
         var freeCluster = 2;
 
         // Write root entries, including sub-directories recursively up to available space
         writeDir(0, 0, items);
+
+        // If there were files that could not be written, AND no files could be written, error
+        if (filesNotWritten > 0 && filesWritten === 0) {
+            var err = new Error("No files could fit in the the Disk!");
+            err.wmsx = true;
+            throw err;
+        }
 
         // Finish image and return
         this.mirrorFatCopies(mediaType, image);
@@ -71,12 +79,16 @@ wmsx.DiskImages = function() {
                 var fileClusters = clustersTaken(file.content.length);
 
                 // Check if file fits in the remaining space
-                if (fileClusters > availClusters()) continue;
+                if (fileClusters > availClusters()) {
+                    ++filesNotWritten;
+                    continue;
+                }
 
                 writeDirEntry(dirContentPosition, dirEntry, freeCluster, file, usedNames);
                 writeFatChain(freeCluster, fileClusters);
                 writeContent(freeCluster, file.content);
 
+                ++filesWritten;
                 freeCluster += fileClusters;
                 ++dirEntry;
             }

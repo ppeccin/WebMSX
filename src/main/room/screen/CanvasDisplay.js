@@ -502,13 +502,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", menuOptions);
 
         menuOptions = [
-            { label: "Load Disk File", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE },
-            { label: "Load Disk URL",  mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
-            { label: "New Empty Disk", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
-            { label: "Remove Disk",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
-            { label: "Save Disk File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
-            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER },
-            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE }
+            { label: "Load Disk File",     mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE },
+            { label: "Load Disk URL",      mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
+            { label: "Load Filas as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILES },
+            { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_ZIP },
+            { label: "New Empty Disk",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
+            { label: "Save Disk File",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
+            {                              mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER },
+            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE }
         ];
         menuOptions.menuTitle = "Drive A:";
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -150, -53, null, menuOptions);
@@ -516,6 +518,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         menuOptions = [
             { label: "Load Disk File",     mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE },
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_URL },
+            { label: "Load Filas as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILES },
+            { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_ZIP },
             { label: "New Empty Disk",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
             { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
             { label: "Save Disk File",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE },

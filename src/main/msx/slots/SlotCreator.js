@@ -44,8 +44,9 @@ wmsx.SlotCreator = function () {
         var formatOption;
         for (var format in wmsx.SlotFormats) {
             formatOption = wmsx.SlotFormats[format].tryFormat(rom);
-            if (!formatOption) continue;	    	    // rejected by format
-            boostPriority(formatOption, rom.info);	    // adjust priority based on ROM info
+            if (!formatOption) continue;	    	                                             // rejected by format
+            boostPriority(formatOption, rom.info);                                               // adjust priority based on ROM info
+            if (formatOption.priority >= 1000 && !formatOption.priorityBoosted) continue;        // reject options that require hints
             formatOptions.push(formatOption);
         }
         // Sort according to priority
@@ -83,7 +84,7 @@ wmsx.SlotCreator = function () {
         var romURL = romSource.toUpperCase();
         for (var formatName in wmsx.SlotFormats)
             if (formatMatchesByHint(formatName.toUpperCase(), romURL)) {
-                info.f = wmsx.SlotFormats[formatName].name;          // Translation from Synonym - Base Name
+                info.f = wmsx.SlotFormats[formatName].name;          // Translation from Synonym to Base Name
                 info.t = true;
                 break;
             }
