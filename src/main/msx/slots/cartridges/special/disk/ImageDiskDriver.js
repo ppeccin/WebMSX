@@ -108,7 +108,10 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function DSKIORead(F, A, B, C, DE, HL) {
-        //wmsx.Util.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL) + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
+        //var pri = bus.getPrimarySlotConfig();
+        //wmsx.Util.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL)
+        //    + " Slots: " + wmsx.Util.toHex2(pri)
+        //    + " Sub Slots: " + wmsx.Util.toHex2(~bus.slots[pri >> 6].read(0xffff) & 0xff));
 
         var spinTime = drive.motorOn(A);
         var bytes = drive.readSectors(A, DE, B);
@@ -234,12 +237,12 @@ wmsx.ImageDiskDriver = function() {
             slot.write(address + i, bytes[i]);
     }
 
-    // Get RAM location from System Area in RAM (assumes RAM is switched in page 3)
     function getSlotToMemoryAccess(address) {
-        var slotSpec = bus.read(0xf341 + (address >> 14));                      // Desired page location in System Area
-        var slot = bus.slots[slotSpec & 3];
-        if (slotSpec & 0x80) slot = slot.subSlots[(slotSpec >> 2) & 3];         // Expanded
-        return slot;
+        // If address is in DISK-BIOS range, assumes the same slot as in page 2 (probably RAM or Cartridge)
+        // The selected slot will be used for the entire transfer even if it crosses a page boundary
+        var toAddress = (address & 0xc000) === 0x4000 ? 0x8000 : address;
+        var slot = bus.getSlotForAddress(toAddress);
+        return slot.isExpanded() ? slot.getSubSlotForAddress(toAddress) : slot;
     }
 
 

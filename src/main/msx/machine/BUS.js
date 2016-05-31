@@ -35,6 +35,10 @@ wmsx.BUS = function(machine, cpu) {
         return slots[slotNumber];
     };
 
+    this.getSlotForAddress = function(address) {
+        return slotPages[address >>> 14];
+    };
+
     this.addDevice = function(device) {
         if (devices.indexOf(device) >= 0) return;
 

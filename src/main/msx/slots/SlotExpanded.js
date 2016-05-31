@@ -51,6 +51,10 @@ wmsx.SlotExpanded = function() {
         return subSlots[subSlotNumber];
     };
 
+    this.getSubSlotForAddress = function(address) {
+        return subSlotPages[address >>> 14];
+    };
+
     this.read = function(address) {
         // Check for control register
         if (address === 0xffff) return (~secondarySlotConfig) & 0xff;       // Inverted per specification
