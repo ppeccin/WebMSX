@@ -940,6 +940,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   text-shadow: 1px 1px 1px black;' +
             '   background-color: transparent;' +
             '   outline: none;' +
+            '   backface-visibility: hidden;' +
+            '   -webkit-backface-visibility: hidden;' +
             '   cursor: pointer; ' +
             '}' +
             '' +
