@@ -509,8 +509,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "New Empty Disk",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
             { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
             { label: "Save Disk File",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
-            {                              mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER },
-            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE }
+            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Drive A:";
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -150, -53, null, menuOptions);
@@ -523,8 +522,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "New Empty Disk",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
             { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
             { label: "Save Disk File",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE },
-            {                              mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER },
-            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE }
+            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Drive B:";
         diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -150, -53, null, menuOptions);
@@ -534,7 +532,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load ROM URL",     mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL },
             { label: "Remove Cartridge", mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE },
             {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER },
-            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE }
+            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Cartridge 1";
         cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -53, null, menuOptions);
@@ -544,7 +542,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load ROM URL",     mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
             { label: "Remove Cartridge", mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE },
             {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER },
-            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE }
+            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Cartridge 2";
         cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -53, null, menuOptions);
@@ -557,8 +555,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Tape",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE },
             { label: "Run Program",    mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
             { label: "Save Tape File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE },
-            {                          mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER },
-            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE }
+            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Cassette Tape";
         tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -53, null, menuOptions);
@@ -896,20 +893,31 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
         });
 
-        // Fire menu item with a left-click
-        barMenu.addEventListener("click", function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            if (e.which === 1 && e.target.wmsxPeripheralControl) {
+        var fire = function(e) {
+            if (e.target.wmsxPeripheralControl) {
                 hideBarMenu();
                 peripheralControls.controlActivated(e.target.wmsxPeripheralControl);
-                return false;
             }
-        });
-        // And block other mouse events
-        barMenu.addEventListener("mousedown", function(e) {
+        };
+        // Fire menu item with a left-click
+        barMenu.addEventListener("click", function (e) {
             e.stopPropagation();
             e.preventDefault();
+            if (e.which === 1)  fire(e);
+            return false;
+        });
+        // Fire menu item with a right mouse up
+        barMenu.addEventListener("mouseup", function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (e.button === 2)  fire(e);
+            return false;
+        });
+        // Block mousedown
+        barMenu.addEventListener("mousedown", function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
         });
 
         // Hide on lost focus
@@ -926,7 +934,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '.wmsx-bar-menu-item { ' +
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
-            '   color: lightgray;' +
+            '   color: rgb(203, 203, 203);' +
             '   font: inherit;' +
             '   border: none;' +
             '   text-shadow: 1px 1px 1px black;' +
@@ -937,7 +945,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '' +
             '.wmsx-bar-menu-item:hover { ' +
             '   color: white;' +
-            '   background-color: rgb(210, 28, 23);' +
+            '   background-color: rgb(220, 32, 26);' +
             '}'
         ;
         document.head.appendChild(style);

@@ -330,7 +330,7 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="wmsx-hotkey wmsx-clear">' +
                             '<div class="wmsx-desc">' +
-                                'Right-Drag / Right-Click: No Auto-Reset' +
+                                'Right-Drag / Middle-Click: No Auto-Reset' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -725,7 +725,7 @@ wmsx.SettingsGUI.css = function() {
            'padding: 10px 0 0 48px;' +
            'font-size: 18px;' +
            'color: white;' +
-           'background-color: rgb(230, 50, 30);' +
+           'background-color: rgb(235, 40, 35);' +
            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
            'vertical-align: middle;' +
        '}' +
@@ -750,7 +750,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-menu .wmsx-selected {' +
-           'color: rgb(230, 50, 30);' +
+           'color: rgb(235, 40, 35);' +
        '}' +
 
        '#wmsx-menu #wmsx-menu-selection {' +
@@ -759,7 +759,7 @@ wmsx.SettingsGUI.css = function() {
            'bottom: 0;' +
            'width: 25%;' +
            'height: 3px;' +
-           'background-color: rgb(230, 50, 30);' +
+           'background-color: rgb(235, 40, 35);' +
            'transition: left 0.3s ease-in-out;' +
        '}' +
 
