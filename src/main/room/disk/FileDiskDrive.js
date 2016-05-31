@@ -14,10 +14,10 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskFile = function(drive, name, arrContent, altPower) {
+    this.loadDiskFile = function (drive, name, arrContent, altPower, lenient) {
         var size = arrContent.length;
-        if (!this.MEDIA_TYPE_VALID_SIZES.has(size)) return null;                      // Invalid image size
-        if (arrContent[0] !== 0xe9 && arrContent[0] !== 0xeb) return null;            // Probably not a disk image
+        if (!this.MEDIA_TYPE_VALID_SIZES.has(size)) return null;                                // Invalid image size
+        if (!lenient && (arrContent[0] !== 0xe9 && arrContent[0] !== 0xeb)) return null;        // Probably not a disk image
 
         var content = loadDisk(drive, name, arrContent.slice(0));
         diskDriveSocket.autoPowerCycle(altPower);

@@ -130,7 +130,7 @@ wmsx.FileLoader = function() {
         wmsx.Util.arrayCopy(content, 0, arrContent);
         // First try to load as a Disk file
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
+            if (diskDrive.loadDiskFile(port, name, arrContent, altPower, openType === OPEN_TYPE.DISK))
                 return;
         // Then try to load as a Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
@@ -163,7 +163,7 @@ wmsx.FileLoader = function() {
                 wmsx.Util.arrayCopy(cont, 0, arrContent);
                 // First try to load as a Disk file
                 if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-                    if (diskDrive.loadDiskFile(port, name, arrContent, altPower))
+                    if (diskDrive.loadDiskFile(port, name, arrContent, altPower, openType === OPEN_TYPE.DISK))
                         return;
                 // Then try to load as a Cassette file
                 if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
@@ -191,11 +191,11 @@ wmsx.FileLoader = function() {
                     return;
 
             // If nothing worked, error
-            showError("No valid " + TYPE_DESC[openType] + " image files found in ZIP file");
+            showError("No valid " + TYPE_DESC[openType] + " files detected in ZIP file!");
         } catch(ez) {
             // Error decompressing. Probably not a zip file.
             console.log(ez.stack);
-            showError("Unsupported " + TYPE_DESC[openType] + " file!");
+            showError("No valid " + TYPE_DESC[openType] + " file detected!");
         }
     };
 
