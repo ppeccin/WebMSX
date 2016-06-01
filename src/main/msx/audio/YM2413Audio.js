@@ -180,7 +180,7 @@ wmsx.YM2413Audio = function(pName) {
             if (envStep[c] !== IDLE) {
                 clockEnvelope(c);
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 100 : noiseOutput ? 0 : 1023 - 100] + totalAtt[c]] >> 3;
+                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 130 : noiseOutput ? 0 : 1023 - 130] + totalAtt[c]] >> 3;
             }
 
             // Tom Tom, 1op, no noise
