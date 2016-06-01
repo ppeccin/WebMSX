@@ -252,19 +252,18 @@ wmsx.YM2413Audio = function(pName) {
                 break;
             case 0x0e:
 
-                //console.log("RY: " + val.toString(2));
+                //if (mod) console.log("RY: " + val.toString(2));
 
-                var rhyMod = mod & 0x20;
-                if (rhyMod) setRhythmMode((val & 0x20) !== 0);
+                if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
                 if (rhythmMode) {
-                    if (rhyMod || (mod & 0x10)) {                                            // Bass Drum    (2 ops, like a melody channel)
+                    if (mod & 0x30) {                                            // Bass Drum    (2 ops, like a melody channel)
                         setRhythmKeyOnOp(12, (val & 0x10) >> 4);
                         setRhythmKeyOnOp(13, (val & 0x10) >> 4);
                     }
-                    if (rhyMod || (mod & 0x08)) setRhythmKeyOnOp(15, (val & 0x08) >> 3);     // Snare Drum   (1 op)
-                    if (rhyMod || (mod & 0x04)) setRhythmKeyOnOp(16, (val & 0x04) >> 2);     // Tom Tom      (1 op)
-                    if (rhyMod || (mod & 0x02)) setRhythmKeyOnOp(17, (val & 0x02) >> 1);     // Top Cymbal   (1 op)
-                    if (rhyMod || (mod & 0x01)) setRhythmKeyOnOp(14,  val & 0x01);           // HiHat        (1 op)
+                    if (mod & 0x28) setRhythmKeyOnOp(15, (val & 0x08) >> 3);     // Snare Drum   (1 op)
+                    if (mod & 0x24) setRhythmKeyOnOp(16, (val & 0x04) >> 2);     // Tom Tom      (1 op)
+                    if (mod & 0x22) setRhythmKeyOnOp(17, (val & 0x02) >> 1);     // Top Cymbal   (1 op)
+                    if (mod & 0x21) setRhythmKeyOnOp(14,  val & 0x01);           // HiHat        (1 op)
                 }
                 break;
             case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
@@ -278,7 +277,7 @@ wmsx.YM2413Audio = function(pName) {
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
             case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
                 if (mod & 0x20) setSustain(chan, (val & 0x20) >> 5);
-                if (mod & 0x10) setKeyOn(chan, (val & 0x10) >> 4);
+                if ((mod & 0x10) && !(rhythmMode && chan > 5)) setKeyOn(chan, (val & 0x10) >> 4);
                 if (mod & 0x01) {
                     fNum[m] = (fNum[m] & ~0x100) | ((val & 1) << 8);
                     fNum[c] = fNum[m];
@@ -292,7 +291,7 @@ wmsx.YM2413Audio = function(pName) {
             case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
             case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
                 if (rhythmMode && chan > 5) {
-                    if (mod & 0xf0) setVolumeOp(m, val >>> 4);
+                    if ((mod & 0xf0) && chan > 6) setVolumeOp(m, val >>> 4);        // BD has a normal modulator
                     if (mod & 0x0f) setVolumeOp(c, val & 0xf);
                 } else {
                     if (mod & 0xf0) {
@@ -365,7 +364,7 @@ wmsx.YM2413Audio = function(pName) {
         }
     }
 
-    function  setEnvStep(chan, step) {
+    function setEnvStep(chan, step) {
         var m = chan << 1, c = m + 1;
         setEnvStepOp(m, step);
         setEnvStepOp(c, step);
