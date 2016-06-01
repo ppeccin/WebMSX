@@ -679,6 +679,16 @@ wmsx.Machine = function() {
             // No power cycle by default if machine is on, only auto power on.
             if (!self.powerIsOn && !altPower) self.userPowerOn(false);
         };
+        this.dos2CartridgeConnected = function(cart) {
+            dos2Carts.add(cart);
+        };
+        this.dos2CartridgeDisconnected = function(cart) {
+            dos2Carts.delete(cart);
+        };
+        this.isDOS2 = function() {
+            return dos2Carts.size > 0;
+        };
+        var dos2Carts = new Set();
         var drive;
     }
 

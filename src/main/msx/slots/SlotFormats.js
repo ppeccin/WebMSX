@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Missing formats. ASCII SRAM?
+// TODO Missing less used formats
 
 wmsx.SlotFormats = {
 

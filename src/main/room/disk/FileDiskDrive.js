@@ -7,6 +7,7 @@ wmsx.FileDiskDrive = function() {
     this.connect = function(pDiskDriveSocket) {
         diskDriveSocket = pDiskDriveSocket;
         diskDriveSocket.connectDrive(this);
+        images.connect(diskDriveSocket);
     };
 
     this.connectPeripherals = function(pScreen, pDownloader) {
@@ -260,7 +261,6 @@ wmsx.FileDiskDrive = function() {
     this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
     this.MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
-    this.MEDIA_TYPE_BOOT_SECTOR = images.MEDIA_TYPE_BOOT_SECTOR;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
 
 };

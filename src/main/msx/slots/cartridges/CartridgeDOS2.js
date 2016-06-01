@@ -14,6 +14,14 @@ wmsx.CartridgeDOS2 = function(rom) {
             bytes[i] = content[i];
     }
 
+    this.connect = function(machine) {
+        machine.getDiskDriveSocket().dos2CartridgeConnected(this);
+    };
+
+    this.disconnect = function(machine) {
+        machine.getDiskDriveSocket().dos2CartridgeDisconnected(this);
+    };
+
     this.powerOn = function() {
         this.reset();
     };
