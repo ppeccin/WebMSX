@@ -113,6 +113,7 @@ wmsx.ImageDiskDriver = function() {
         //wmsx.Util.log("DSKIO Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL)
         //    + " Slots: " + wmsx.Util.toHex2(pri)
         //    + " Sub Slots: " + wmsx.Util.toHex2(~bus.slots[pri >> 6].read(0xffff) & 0xff));
+        //WMSX.room.machine.bus.slots[3].subSlots[0].dumpRead(0xf341, 4);
 
         var spinTime = drive.motorOn(A);
         var bytes = drive.readSectors(A, DE, B);
@@ -224,7 +225,7 @@ wmsx.ImageDiskDriver = function() {
 
     function readFromMemory(address, quant) {
         // wmsx.Util.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
-        var slot = getSlotToMemoryAccess(address);
+        var slot = getSlotForMemoryAccess(address);
         var res = new Array(quant);
         for (var i = 0; i < quant; i++)
             res[i] = slot.read(address + i);
@@ -233,17 +234,24 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function writeToMemory(bytes, address) {
-        var slot = getSlotToMemoryAccess(address);
+        var slot = getSlotForMemoryAccess(address);
         for (var i = 0; i < bytes.length; i++)
             slot.write(address + i, bytes[i]);
     }
 
-    function getSlotToMemoryAccess(address) {
-        // If address is in DISK-BIOS range, assumes the same slot as in page 2 (probably RAM or Cartridge)
+    function getSlotForMemoryAccess(address) {
+        // If address is in DISK-BIOS range, force to RAM slot as per F342h
         // The selected slot will be used for the entire transfer even if it crosses a page boundary
-        var toAddress = (address & 0xc000) === 0x4000 ? 0x8000 : address;
-        var slot = bus.getSlotForAddress(toAddress);
-        return slot.isExpanded() ? slot.getSubSlotForAddress(toAddress) : slot;
+        var slot;
+        if (address >= 0x4000 && address <= 0x7fff) {
+            var slotSpec = bus.read(0xf342);
+            slot = bus.getSlot(slotSpec & 3);
+            if (slot.isExpanded()) slot = slot.getSubSlot((slotSpec >> 2) & 3);
+        } else {
+            slot = bus.getSlotForAddress(address);
+            if (slot.isExpanded()) slot = slot.getSubSlotForAddress(address);
+        }
+        return slot;
     }
 
 
