@@ -246,7 +246,7 @@ wmsx.ImageDiskDriver = function() {
         if (address >= 0x4000 && address <= 0x7fff) {
             var slotSpec = bus.read(0xf342);
             slot = bus.getSlot(slotSpec & 3);
-            if (slot.isExpanded()) slot = slot.getSubSlot((slotSpec >> 2) & 3);
+            if ((slotSpec & 0x80) !== 0 && slot.isExpanded()) slot = slot.getSubSlot((slotSpec >> 2) & 3);
         } else {
             slot = bus.getSlotForAddress(address);
             if (slot.isExpanded()) slot = slot.getSubSlotForAddress(address);
