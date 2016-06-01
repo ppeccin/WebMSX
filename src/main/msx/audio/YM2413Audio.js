@@ -196,8 +196,8 @@ wmsx.YM2413Audio = function(pName) {
                 // Both share the same phase calculation
                 var ph14 = (phaseCounter[14] += phaseInc[14]) >> 9;
                 var ph17 = (phaseCounter[17] += phaseInc[17]) >> 9;
-                var hhCymPh = (((ph17 & 0x4) != 0) && ((ph17 & 0x10) == 0)) !=
-                                ((((ph14 & 0x02) != 0) != ((ph14 & 0x100) != 0)) || ((ph14 & 0x04) != 0));
+                var hhCymPh = (((ph17 & 0x4) !== 0) && ((ph17 & 0x10) === 0)) !==
+                                ((((ph14 & 0x02) !== 0) !== ((ph14 & 0x100) !== 0)) || ((ph14 & 0x04) !== 0));
 
                 // Cymbal, 1 op, no noise
                 c = 17;
