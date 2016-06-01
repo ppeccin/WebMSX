@@ -98,7 +98,13 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
                 break;
             case controls.DISKA_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0);
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0, null);
+                break;
+            case controls.DISKA_EMPTY_720:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+                break;
+            case controls.DISKA_EMPTY_360:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
             case controls.DISKA_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(0);
@@ -122,7 +128,13 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
                 break;
             case controls.DISKB_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1);
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1, null);
+                break;
+            case controls.DISKB_EMPTY_720:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+                break;
+            case controls.DISKB_EMPTY_360:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
             case controls.DISKB_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(1);

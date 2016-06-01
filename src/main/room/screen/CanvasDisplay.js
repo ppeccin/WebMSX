@@ -506,9 +506,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
             { label: "Load Filas as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILES },
             { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_ZIP },
-            { label: "New Empty Disk",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
-            { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
+            { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_720 },
+            { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_360 },
             { label: "Save Disk File",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
+            {                              mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
             {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Drive A:";
@@ -519,9 +521,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_URL },
             { label: "Load Filas as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILES },
             { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_ZIP },
-            { label: "New Empty Disk",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
-            { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
+            { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_720 },
+            { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_360 },
             { label: "Save Disk File",     mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
+            {                              mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
             {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Drive B:";
@@ -550,11 +554,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         menuOptions = [
             { label: "Load Tape File", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
             { label: "Load Tape URL",  mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_URL },
-            { label: "Rewind Tape",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.TAPE_REWIND },
             { label: "New Empty Tape", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
-            { label: "Remove Tape",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE },
+            { label: "Rewind Tape",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.TAPE_REWIND },
             { label: "Run Program",    mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
             { label: "Save Tape File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE },
+            { label: "Remove Tape",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE },
             {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menuTitle = "Cassette Tape";
