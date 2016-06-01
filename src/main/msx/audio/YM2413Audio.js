@@ -147,11 +147,10 @@ wmsx.YM2413Audio = function(pName) {
 
             // Modulator and Feedback
             if (fbShift[chan]) {
-                // divide by 2 before shifting because we need the average of last 2 values
-                mPh += (fbLastMod1[chan] + fbLastMod2[chan]) >> 1 >> fbShift[chan];
+                mPh += (fbLastMod1[chan] + fbLastMod2[chan]) >> fbShift[chan];
                 mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
-                fbLastMod2[chan] = fbLastMod1[chan];
-                fbLastMod1[chan] = mod;
+                fbLastMod2[chan] = fbLastMod1[chan] >> 1;
+                fbLastMod1[chan] = mod >> 1;
             } else {
                 mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
             }
