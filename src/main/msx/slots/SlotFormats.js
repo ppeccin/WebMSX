@@ -280,6 +280,22 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Kanji1": {
+        name: "Kanji1",
+        desc: "Kanji Font",
+        priority: 1556,
+        tryFormat: function (rom) {
+            // 128K or 256K content. Must be selected via info format hint
+            if (rom.content.length === 131072 || rom.content.length === 262144) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeKanjiFont(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     // Common formats used in titles
 
     "Normal": {

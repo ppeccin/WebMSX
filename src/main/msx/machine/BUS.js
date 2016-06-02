@@ -39,20 +39,6 @@ wmsx.BUS = function(machine, cpu) {
         return slotPages[address >>> 14];
     };
 
-    this.addDevice = function(device) {
-        if (devices.indexOf(device) >= 0) return;
-
-        wmsx.Util.arrayAdd(devices, device);
-        device.connect(machine);
-    };
-
-    this.removeDevice = function(device) {
-        if (devices.indexOf(device) < 0) return;
-
-        device.disconnect(machine);
-        wmsx.Util.arrayRemoveAllElement(devices, device);
-    };
-
     this.read = function(address) {
         // Get correct slot
         return slotPages[address >>> 14].read(address);
@@ -127,8 +113,6 @@ wmsx.BUS = function(machine, cpu) {
         slotPages = [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
 
         // Devices
-        devices = [];
-
         devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceInputMissing);
         devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceOutputMissing);
 
@@ -149,8 +133,6 @@ wmsx.BUS = function(machine, cpu) {
     var slotEmpty = wmsx.SlotEmpty.singleton;
     var deviceInputMissing = wmsx.DeviceMissing.inputPort;
     var deviceOutputMissing = wmsx.DeviceMissing.outputPort;
-
-    var devices;
 
     var devicesInputPorts;
     var devicesOutputPorts;
