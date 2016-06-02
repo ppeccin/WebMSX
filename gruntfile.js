@@ -15,6 +15,7 @@ module.exports = function (grunt) {
                     "src/main/util/SHA1.js",
                     "src/main/util/ZIP.js",
                     "src/main/util/MultiDownloader.js",
+                    "src/main/util/MultiFileReader.js",
                     "src/main/msx/cpu/Z80.js",
                     "src/main/msx/ppi/PPI.js",
                     "src/main/msx/video/VDP.js",
@@ -51,6 +52,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeSCCExpansion.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeSCCIExpansion.js",
+                    "src/main/msx/slots/cartridges/special/kanji/CartridgeKanjiFont.js",
                     "src/main/msx/audio/YM2413Tables.js",
                     "src/main/msx/audio/YM2413Audio.js",
                     "src/main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js",
@@ -79,6 +81,7 @@ module.exports = function (grunt) {
                     "src/main/room/speaker/WebAudioSpeaker.js",
                     "src/main/room/savestate/LocalStorageSaveStateMedia.js",
                     "src/main/room/cassette/FileCassetteDeck.js",
+                    "src/main/room/disk/DiskImages.js",
                     "src/main/room/disk/FileDiskDrive.js",
                     "src/main/room/controls/PeripheralControls.js",
                     "src/main/room/controls/DOMPeripheralControls.js",
@@ -86,8 +89,8 @@ module.exports = function (grunt) {
                     "src/main/userprefs/UserPreferences.js",
                     "src/main/Configurator.js",
                     "src/main/Launcher.js",
-                    "src/runtime/images/EmbeddedImages.js",             // Use embedded resources
-                    "src/runtime/sysroms/EmbeddedSystemROMs.js"         // Use embedded resources
+                    "src/runtime/images/EmbeddedImages.js",         // Use embedded resources-->
+                    "src/runtime/sysroms/EmbeddedSystemROMs.js"     // Use embedded resources-->
                 ],
                 dest: "temp/wmsx.part.js"
             },
