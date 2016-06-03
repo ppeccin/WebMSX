@@ -1,10 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SystemROMsEmbedder = {
+wmsx.EmbeddedSystemROMsGenerator = {
 
     generate: function() {
 
-        var list = wmsx.SystemROMsEmbedder.fileList.slice(0);
+        var list = wmsx.EmbeddedSystemROMsGenerator.fileList.slice(0);
         for (var i = 0; i < list.length; ++i) list[i] = { url: WMSX_SYSTEM_ROMS_PATH + list[i], originalFilename: list[i] };
 
         var d = new wmsx.MultiDownloader(
@@ -12,12 +12,12 @@ wmsx.SystemROMsEmbedder = {
             function(specs) {
                 var romsFile =
                     "wmsx.EmbeddedSystemROMs = {\n\n" +
-                    "    embed: function() {\n" +
+                    "    embedFiles: function() {\n" +
                     "        for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);\n" +
-                    "    },\n\n" +
-                    "    flush: function() {\n" +
-                    "        wmsx.MultiDownloader.flushEmbeddedFiles();\n" +
                     "        delete this.files;\n" +
+                    "    },\n\n" +
+                    "    flushNonExtensionFiles: function() {\n" +
+                    "        for (var f = 0; f < this.nonExtensionFiles.length; ++f) wmsx.MultiDownloader.flushEmbeddedFile(this.nonExtensionFiles[f]);\n" +
                     "    },\n\n" +
                     "    files: {";
 
@@ -30,8 +30,13 @@ wmsx.SystemROMsEmbedder = {
                     first = false;
                 }
 
-                romsFile += "\n\n    }\n};\n\n" +
-                    "wmsx.EmbeddedSystemROMs.embed();";
+                romsFile += "\n\n    },\n\n" +
+                    '    nonExtensionFiles: [\n' +
+                    '        "MSX1_JAP.bios", "MSX1_NTSC.bios", "MSX1_PAL.bios",\n' +
+                    '        "MSX2_JAP.bios", "MSX2_NTSC.bios", "MSX2_PAL.bios", "MSX2EXT_JAP.bios", "MSX2EXT_NTSC.bios", "MSX2EXT_PAL.bios",\n' +
+                    '        "MSX2P_JAP.bios", "MSX2P_NTSC.bios", "MSX2P_PAL.bios", "MSX2PEXT_JAP.bios", "MSX2PEXT_NTSC.bios", "MSX2PEXT_PAL.bios"\n' +
+                    "    ]\n\n};\n\n" +
+                    "wmsx.EmbeddedSystemROMs.embedFiles();";
 
                 var f = new wmsx.FileDownloader();
                 f.registerForDownloadElement(document.getElementsByTagName("body")[0]);
@@ -44,7 +49,7 @@ wmsx.SystemROMsEmbedder = {
 
 };
 
-wmsx.SystemROMsEmbedder.fileList = [
+wmsx.EmbeddedSystemROMsGenerator.fileList = [
     "DISK.rom",
     "MSX1_JAP.bios",
     "MSX1_NTSC.bios",

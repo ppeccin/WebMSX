@@ -93,12 +93,8 @@ wmsx.MultiDownloader.embedCompressedFile = function(fileName, compressedContent)
     wmsx.MultiDownloader.embeddedCompressedFiles[fileName] = compressedContent;
 };
 
-wmsx.MultiDownloader.removeEmbeddedFile = function(fileName) {
+wmsx.MultiDownloader.flushEmbeddedFile = function(fileName) {
     delete wmsx.MultiDownloader.embeddedCompressedFiles[fileName];
 };
 
-wmsx.MultiDownloader.flushEmbeddedFiles = function() {
-    wmsx.MultiDownloader.embeddedCompressedFiles = {};
-};
-
-wmsx.MultiDownloader.flushEmbeddedFiles();
+wmsx.MultiDownloader.embeddedCompressedFiles = {};

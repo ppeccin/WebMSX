@@ -45,7 +45,7 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.STATE, 0, false);
                     });
-                    wmsx.EmbeddedSystemROMs.flush();
+                    wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
                 });
             },
             onError: function (res) {
@@ -59,14 +59,16 @@ WMSX.start = function () {
         WMSX.room.loading(true);
         var slotURLs = slotURLSpecs();
         var mediaURLs = mediaURLSpecs();
-        new wmsx.MultiDownloader(slotURLs.concat(mediaURLs),
+        var extensionsURLs = WMSX.room.machine.getExtensionsSocket().getDefaultActiveLoaderURLSpecs();
+        new wmsx.MultiDownloader(slotURLs.concat(mediaURLs).concat(extensionsURLs),
             function onSuccessAll() {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.loading(false);
+                        WMSX.room.machine.getExtensionsSocket().confirmDefaultActive();
                         WMSX.room.machine.userPowerOn(true);        // Auto-run cassette if any
                     });
-                    wmsx.EmbeddedSystemROMs.flush();
+                    wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
                 });
             }, function onErrorAny(urls) {
                 for (var i = 0; i < urls.length; i++) {

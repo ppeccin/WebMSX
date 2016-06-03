@@ -1,12 +1,12 @@
 wmsx.EmbeddedSystemROMs = {
 
-    embed: function() {
+    embedFiles: function() {
         for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);
+        delete this.files;
     },
 
-    flush: function() {
-        wmsx.MultiDownloader.flushEmbeddedFiles();
-        delete this.files;
+    flushNonExtensionFiles: function() {
+        for (var f = 0; f < this.nonExtensionFiles.length; ++f) wmsx.MultiDownloader.flushEmbeddedFile(this.nonExtensionFiles[f]);
     },
 
     files: {
@@ -57,7 +57,14 @@ wmsx.EmbeddedSystemROMs = {
 
         "[SCCIExpansion].rom": ""
 
-    }
+    },
+
+    nonExtensionFiles: [
+        "MSX1_JAP.bios", "MSX1_NTSC.bios", "MSX1_PAL.bios",
+        "MSX2_JAP.bios", "MSX2_NTSC.bios", "MSX2_PAL.bios", "MSX2EXT_JAP.bios", "MSX2EXT_NTSC.bios", "MSX2EXT_PAL.bios",
+        "MSX2P_JAP.bios", "MSX2P_NTSC.bios", "MSX2P_PAL.bios", "MSX2PEXT_JAP.bios", "MSX2PEXT_NTSC.bios", "MSX2PEXT_PAL.bios"
+    ]
+
 };
 
-wmsx.EmbeddedSystemROMs.embed();
+wmsx.EmbeddedSystemROMs.embedFiles();

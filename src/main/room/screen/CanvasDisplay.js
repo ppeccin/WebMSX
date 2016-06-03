@@ -496,7 +496,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Reset",           mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "Load State File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
             { label: "Save State File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE },
-            {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET }
+            {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
+            //{ label: "MSX-MUSIC",       mouseMask: MOUSE_VOID_MASK, toggle: true }
         ];
         menuOptions.menuTitle = "System";
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", menuOptions);
@@ -799,19 +800,32 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         barMenu.wmsxTitle.innerHTML = options.menuTitle;
 
-        var item = 0;
-        for (var op = 0; op < options.length; ++op) {
+        var it = 0;
+        var item;
+        var maxShown = Math.min(options.length, BAR_MENU_MAX_ITEMS);
+        for (var op = 0; op < maxShown; ++op) {
             if (options[op].label) {
-                barMenu.wmsxItems[item].innerHTML = options[op].label;
-                barMenu.wmsxItems[item].style.display = "block";
-                barMenu.wmsxItems[item].wmsxPeripheralControl = options[op].control;
-                ++item;
+                item = barMenu.wmsxItems[it];
+                item.firstChild.textContent = options[op].label;
+                item.style.display = "block";
+                item.wmsxPeripheralControl = options[op].control;
+
+                if (options[op].toggle) {
+                    item.classList.add("wmsx-bar-menu-item-toggle");
+                } else {
+                    item.classList.remove("wmsx-bar-menu-item-toggle");
+                }
+
+                X = item;
+
+                ++it;
             }
         }
-        for (var r = item; r < 10; ++r) {
-            barMenu.wmsxItems[r].innerHTML = "";
-            barMenu.wmsxItems[r].style.display = "none";
-            barMenu.wmsxItems[r].wmsxPeripheralControl = null;
+        for (var r = it; r < BAR_MENU_MAX_ITEMS; ++r) {
+            item = barMenu.wmsxItems[r];
+            item.firstChild.textContent = "";
+            item.style.display = "none";
+            item.wmsxPeripheralControl = null;
         }
 
         if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
@@ -830,7 +844,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         barMenuActive = true;
         barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
-        barMenu.style.height = "" + (((item + 1) * BAR_MENU_ITEM_HEIGHT) + 4) + "px";
+        barMenu.style.height = "" + (((it + 1) * BAR_MENU_ITEM_HEIGHT) + 4) + "px";
         barMenu.wmsxTitle.focus();
     }
 
@@ -858,6 +872,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.borderWidth = "0 1px";
         style.background = "rgb(40, 40, 40)";
         style.font = "13px Helvetica, Arial, sans-serif";
+        style.lineHeight = "" + (BAR_MENU_ITEM_HEIGHT + 2) + "px";
         style.outline = "none";
         style.zIndex = 20;
 
@@ -870,19 +885,23 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.fontWeight = "bold";
         style.border = "0px solid black";
         style.borderWidth = "1px 0";
+        style.padding = 0;
+        style.textAlign = "center";
         style.background = "rgb(65, 65, 65)";
         style.cursor = "auto";
         title.innerHTML = "Menu Title";
         barMenu.appendChild(title);
         barMenu.wmsxTitle = title;
 
-        barMenu.wmsxItems = new Array(10);
-        for (var i = 0; i < 10; ++i) {
+        barMenu.wmsxItems = new Array(BAR_MENU_MAX_ITEMS);
+        for (var i = 0; i < BAR_MENU_MAX_ITEMS; ++i) {
             var item = document.createElement('button');
             item.classList.add("wmsx-bar-menu-item");
-            item.id = "wmsx-bar-menu-item-" + i;
             item.style.display = "none";
             item.innerHTML = "Menu Item " + i;
+            var check = document.createElement('div');
+            check.classList.add("wmsx-bar-menu-item-check");
+            item.appendChild(check);
             barMenu.appendChild(item);
             barMenu.wmsxItems[i] = item;
         }
@@ -935,10 +954,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         var style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = '' +'' +
-            '.wmsx-bar-menu-item { ' +
+            '.wmsx-bar-menu-item {' +
+            '   position: relative;' +
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
-            '   color: rgb(203, 203, 203);' +
+            '   color: rgb(200, 200, 200);' +
             '   font: inherit;' +
             '   border: none;' +
             '   text-shadow: 1px 1px 1px black;' +
@@ -946,12 +966,32 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   outline: none;' +
             '   backface-visibility: hidden;' +
             '   -webkit-backface-visibility: hidden;' +
+            '   padding: 0 0 0 20px;' +
+            '   text-align: left;' +
+            '   box-sizing: border-box;' +
             '   cursor: pointer; ' +
             '}' +
             '' +
             '.wmsx-bar-menu-item:hover { ' +
             '   color: white;' +
             '   background-color: rgb(220, 32, 26);' +
+            '}' +
+            '' +
+            '.wmsx-bar-menu-item-check { ' +
+            '   position: absolute;' +
+            '   width: 5px;' +
+            '   height: 20px;' +
+            '   top: 4px;' +
+            '   left: 5px;' +
+            '   background-color: transparent;' +
+            '}' +
+            '' +
+            '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
+            '   background-color: rgb(100, 100, 100);' +
+            '}' +
+            '' +
+            '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check { ' +
+            '   background-color: rgb(203, 203, 203);' +
             '}'
         ;
         document.head.appendChild(style);
@@ -1040,8 +1080,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var BAR_HEIGHT = 29;
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 1;
 
-    var BAR_MENU_WIDTH = 130;
+    var BAR_MENU_WIDTH = 145;
     var BAR_MENU_ITEM_HEIGHT = 28;
+    var BAR_MENU_MAX_ITEMS = 8;
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 2500;

@@ -8,7 +8,7 @@
 WMSX = {
 
     // Machine Configuration Presets to apply. See Presets section below...
-    PRESETS:                        "",
+    PRESETS:                        "",                         // Default: MSX2+ NTSC, 512K RAM, 2 Drives, MSX-MUSIC
 
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
@@ -17,6 +17,16 @@ WMSX = {
     DISKB_URL:                      "",
     TAPE_URL:                       "",
     STATE_LOAD_URL:                 "",
+
+    // Extensions
+    EXTENSIONS: {
+        DISK:                       false,
+        RAMMAPPER:                  false,
+        MSXMUSIC:                   false,
+        SCC:                        false,
+        SCCI:                       false,
+        DOS2:                       false
+    },
 
     // General configuration
     AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
@@ -35,6 +45,20 @@ WMSX = {
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
+    EXTENSIONS_CONFIG: {
+        RAMMAPPER:                  { slot: [3, 0], url: "@[RAMMapper].rom" },
+        DISK:                       { slot: [3, 2], url: "@DISK.rom" },
+        MSXMUSIC:                   { slot: [3, 3], url: "@MSXMUSIC.rom" },
+        DOS2:                       { slot: [2, 2], url: "@MSXDOS22v3.rom" },
+        SCC:                        { slot: [2, 3], url: "@[SCCExpansion].rom" },
+        SCCI:                       { slot: [2, 3], url: "@[SCCIExpansion].rom" }
+    },
+
+    BIOS_SLOT:                      [0],
+    CARTRIDGE1_SLOT:                [1],
+    CARTRIDGE2_SLOT:                [2],
+    EXPANSION_SLOTS:                [[2, 1], [2, 2]],
+
     ALLOW_URL_PARAMETERS:           false                       // Allows user to override any of these parameters via URL query parameters
 
 };
@@ -52,26 +76,26 @@ WMSX.presets = {
     },
 
     MSX2PNTSC: {
-        MACHINE_TYPE:       3,
-        _INCLUDE:           "MSX2BASE, MSXMUSIC",
+        _INCLUDE:           "MSX2PBASE",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
     },
 
     MSX2PPAL: {
-        MACHINE_TYPE:       3,
-        _EXCLUDE:           "DEFAULT",
-        _INCLUDE:           "MSX2BASE, MSXMUSIC",
+        _INCLUDE:           "MSX2PBASE",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios"
     },
 
     MSX2PJAP: {
-        MACHINE_TYPE:       3,
-        _EXCLUDE:           "DEFAULT",
-        _INCLUDE:           "MSX2BASE, MSXMUSIC",
+        _INCLUDE:           "MSX2PBASE",
         SLOT_0_URL:         "@MSX2P_JAP.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
+    },
+
+    MSX2PBASE: {
+        _INCLUDE:           "MSX2BASE",
+        MACHINE_TYPE:       3
     },
 
     // MSX2 Machine Presets
@@ -81,24 +105,18 @@ WMSX.presets = {
     },
 
     MSX2NTSC: {
-        MACHINE_TYPE:       2,
-        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
         SLOT_0_URL:         "@MSX2_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2EXT_NTSC.bios"
     },
 
     MSX2PAL: {
-        MACHINE_TYPE:       2,
-        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
         SLOT_0_URL:         "@MSX2_PAL.bios",
         SLOT_3_1_URL:       "@MSX2EXT_PAL.bios"
     },
 
     MSX2JAP: {
-        MACHINE_TYPE:       2,
-        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX2BASE",
         SLOT_0_URL:         "@MSX2_JAP.bios",
         SLOT_3_1_URL:       "@MSX2EXT_JAP.bios"
@@ -107,46 +125,8 @@ WMSX.presets = {
     // MSX2/2+ Common
 
     MSX2BASE: {
-        BIOS_SLOT:          [0],
-        CARTRIDGE1_SLOT:    [1],
-        CARTRIDGE2_SLOT:    [2],
-        EXPANSION_SLOTS:    [[2, 2], [2, 3]],
-        SLOT_3_0_URL:       "@[RAMMapper].rom",
-        _INCLUDE:           "MSX2DISK, RAM512"
-    },
-
-    MSX2DISK: {
-        SLOT_3_2_URL:       "@DISK.rom"
-    },
-
-    MSXMUSIC: {
-        SLOT_3_3_URL:       "@MSXMUSIC.rom"
-    },
-
-    DOS2: {
-        SLOT_2_1_URL:       "@MSXDOS22v3.rom"
-    },
-
-    RAM64: {
-        RAM_SIZE: 64
-    },
-    RAM128: {
-        RAM_SIZE: 128
-    },
-    RAM256: {
-        RAM_SIZE: 256
-    },
-    RAM512: {
-        RAM_SIZE: 512
-    },
-    RAM1024: {
-        RAM_SIZE: 1024
-    },
-    RAM2048: {
-        RAM_SIZE: 2048
-    },
-    RAM4096: {
-        RAM_SIZE: 4096
+        _INCLUDE:           "MSX1BASE, RAMMAPPER, RAM512, MSXMUSIC",
+        MACHINE_TYPE:       2
     },
 
     // MSX1 Machine Presets
@@ -156,68 +136,64 @@ WMSX.presets = {
     },
 
     MSX1NTSC: {
-        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "@MSX1_NTSC.bios"
     },
 
     MSX1PAL: {
-        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "@MSX1_PAL.bios"
     },
 
     MSX1JAP: {
-        _EXCLUDE:           "DEFAULT",
         _INCLUDE:           "MSX1BASE",
         SLOT_0_URL:         "@MSX1_JAP.bios"
     },
 
     MSX1BASE: {
         MACHINE_TYPE:       1,
-        BIOS_SLOT:          [0],
-        CARTRIDGE1_SLOT:    [1],
-        CARTRIDGE2_SLOT:    [3, 0],
-        EXPANSION_SLOTS:    [[3, 2], [3, 3]],
-        SLOT_2_URL:         "@[RAM64K].rom",
-        _INCLUDE:           "MSX1DISK"
-    },
-
-    MSX1DISK: {
-        SLOT_3_1_URL:       "@DISK.rom"
+        SLOT_3_URL:         "@[RAM64K].rom",
+        _INCLUDE:           "DISK"
     },
 
     // Specific Machines Presets
 
     EMPTY: {
-        _EXCLUDE:           "DEFAULT",
-        MACHINE_TYPE:       3,
-        BIOS_SLOT:          [0],
-        CARTRIDGE1_SLOT:    [1],
-        CARTRIDGE2_SLOT:    [2],
-        EXPANSION_SLOTS:    [[2, 2], [2, 3]]
+        MACHINE_TYPE:         3
     },
 
-    // General Add-ons options
+    // Extensions Options
 
+    DISK: {
+        "EXTENSIONS.DISK": true
+    },
     NODISK: {
-        _EXCLUDE:           "MSX1DISK, MSX2DISK"
+        "EXTENSIONS.DISK": false
     },
 
+    RAMMAPPER: {
+        "EXTENSIONS.RAMMAPPER": true
+    },
     NORAMMAPPER: {
-        SLOT_3_0_URL:       "@[RAM64K].rom"
+        "EXTENSIONS.RAMMAPPER": false
     },
 
+    MSXMUSIC: {
+        "EXTENSIONS.MSXMUSIC": true
+    },
     NOMSXMUSIC: {
-        _EXCLUDE:           "MSXMUSIC"
+        "EXTENSIONS.MSXMUSIC": false
+    },
+
+    DOS2: {
+        "EXTENSIONS.DOS2":  true
     },
 
     SCC: {
-        SLOT_2_3_URL:       "@[SCCExpansion].rom"
+        "EXTENSIONS.SCC": true
     },
-
     SCCI: {
-        SLOT_2_3_URL:       "@[SCCIExpansion].rom"
+        "EXTENSIONS.SCCI": true
     },
 
     // Configuration Helper Presets
@@ -225,13 +201,33 @@ WMSX.presets = {
     NOVSYNCH: {
         SCREEN_VSYNCH_MODE: 0
     },
-
     VSYNCHAUTO: {
         SCREEN_VSYNCH_MODE: 1
     },
-
     VSYNCHFORCED: {
         SCREEN_VSYNCH_MODE: 2
+    },
+
+    RAM64: {
+        RAMMAPPER_SIZE: 64
+    },
+    RAM128: {
+        RAMMAPPER_SIZE: 128
+    },
+    RAM256: {
+        RAMMAPPER_SIZE: 256
+    },
+    RAM512: {
+        RAMMAPPER_SIZE: 512
+    },
+    RAM1024: {
+        RAMMAPPER_SIZE: 1024
+    },
+    RAM2048: {
+        RAMMAPPER_SIZE: 2048
+    },
+    RAM4096: {
+        RAMMAPPER_SIZE: 4096
     }
 
 };

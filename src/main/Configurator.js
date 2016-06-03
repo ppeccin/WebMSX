@@ -6,37 +6,47 @@ wmsx.Configurator = {
         var params = parseURLParams();
 
         // First use all parameters from chosen presets
-        WMSX.PRESETS = params.PRESETS || WMSX.PRESETS;
-        this.applyPresets();
+        if (params.PRESETS) WMSX.PRESETS += (WMSX.PRESETS ? ", " : "") + params.PRESETS;
+        if (!machineSpecified(WMSX.PRESETS)) WMSX.PRESETS = "DEFAULT, " + WMSX.PRESETS;
+        this.applyPresets(WMSX.PRESETS);
 
-        // Then replace parameters for values passed in URL
-        for (var param in params)
-            if (WMSX[param] !== undefined) WMSX[param] = params[param];
+        // Then override specific parameters with values set in URL
+        for (var param in params) this.applyParam(param, params[param]);
 
         // Ensures the correct types of the parameters
-        normalizeParameters();
-
+        normalizeParameterTypes();
 
         function parseURLParams() {
-            if (this.parameters) return this.parameters;
-
             var search = (window.location.search || "").split('+').join(' ');
             var reg = /[?&]?([^=]+)=([^&]*)/g;
             var tokens;
-
-            this.parameters = {};
+            var parameters = {};
             while (tokens = reg.exec(search)) {
                 var parName = decodeURIComponent(tokens[1]).trim().toUpperCase();
                 parName = wmsx.Configurator.abbreviations[parName] || parName;
-                this.parameters[parName] = decodeURIComponent(tokens[2]).trim();
+                parameters[parName] = decodeURIComponent(tokens[2]).trim();
             }
-
-            return this.parameters;
+            return parameters;
         }
 
-        function normalizeParameters() {
+        function machineSpecified(presetList) {
+            var presetNames = (presetList || "").trim().toUpperCase().split(",");
+            for (var i = 0; i < presetNames.length; ++i) {
+                var presetPars = WMSX.presets[presetNames[i]];
+                if (presetPars) {
+                    for (var par in presetPars) {
+                        var parName = par.trim().toUpperCase();
+                        if (parName === "MACHINE_TYPE") return true;
+                        else if (parName === "_INCLUDE") if (machineSpecified(presetPars[par])) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function normalizeParameterTypes() {
             WMSX.MACHINE_TYPE = WMSX.MACHINE_TYPE | 0;
-            WMSX.RAM_SIZE = WMSX.RAM_SIZE | 0;
+            WMSX.RAMMAPPER_SIZE = WMSX.RAMMAPPER_SIZE | 0;
             WMSX.AUTO_START_DELAY = WMSX.AUTO_START_DELAY | 0;
             WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
             WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
@@ -54,48 +64,37 @@ wmsx.Configurator = {
         }
     },
 
-    applyPresets: function() {
-        var finalPresets = [];
-        // Collect final list of Presets to apply
-        visitPresets("DEFAULT, " + (WMSX.PRESETS || ""), finalPresets, true);
-        // Apply list
-        for (var i = 0; i < finalPresets.length; i++)
-            applyPreset(finalPresets[i]);
+    applyPresets: function(presetList) {
+        var presetNames = (presetList || "").trim().toUpperCase().split(",");
+        // Apply list in order
+        for (var i = 0; i < presetNames.length; i++)
+            this.applyPreset(presetNames[i].trim());
+    },
 
-
-        function visitPresets(presetsString, finalPresets, include) {
-            var presetNames = (presetsString || "").trim().toUpperCase().split(",");
-            for (var i = 0; i < presetNames.length; i++) {
-                var presetName = presetNames[i].trim();
-                if (!presetName) continue;
-                var presetPars = WMSX.presets[presetName];
-                if (presetPars) {
-                    for (var par in presetPars) {
-                        var parName = par.trim().toUpperCase();
-                        // Update final preset collection
-                        if (include) wmsx.Util.arrayIfAbsentAdd(finalPresets, presetName);
-                        else wmsx.Util.arrayRemoveAllElement(finalPresets, presetName);
-                        // Include or Exclude Presets referenced by _INCLUDE / _EXCLUDE
-                        if (parName === "_INCLUDE")
-                            visitPresets(presetPars[parName], finalPresets, include);
-                        else if (parName === "_EXCLUDE")
-                            visitPresets(presetPars[parName], finalPresets, !include);
-                    }
-                } else {
-                    wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
-                }
+    applyPreset: function(presetName) {
+        if (!presetName) return;
+        var presetPars = WMSX.presets[presetName];
+        if (presetPars) {
+            wmsx.Util.log("Applying preset: " + presetName);
+            for (var par in presetPars) {
+                var parName = par.trim().toUpperCase();
+                if (parName[0] !== "_") this.applyParam(parName, presetPars[par]);      // Normal Parameter to set
+                else if (parName === "_INCLUDE") this.applyPresets(presetPars[par]);    // Preset to include
             }
-        }
+        } else
+            wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
+    },
 
-        function applyPreset(presetName) {
-            var presetPars = WMSX.presets[presetName];
-            if (presetPars) {
-                wmsx.Util.log("Applying preset: " + presetName);
-                for (var par in presetPars) {
-                    var parName = par.trim().toUpperCase();
-                    if (parName[0] !== "_") WMSX[parName] = presetPars[par];              // Normal Parameter to set
-                }
+    applyParam: function(name, value) {
+        if (name.indexOf(".") < 0)
+            WMSX[name] = value;
+        else {
+            var obj = WMSX;
+            var parts = name.split('.');
+            for (var p = 0; p < parts.length - 1; ++p) {
+                obj = obj[parts[p]];
             }
+            obj[parts[parts.length - 1]] = value;
         }
     },
 

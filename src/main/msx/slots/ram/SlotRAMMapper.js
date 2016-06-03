@@ -8,7 +8,7 @@ wmsx.SlotRAMMapper = function(rom) {
     function init(self) {
         self.rom = rom;
         var i = 0;
-        while (VALID_SIZES[i] < WMSX.RAM_SIZE && i < VALID_SIZES.length - 1) i++;
+        while (VALID_SIZES[i] < WMSX.RAMMAPPER_SIZE && i < VALID_SIZES.length - 1) i++;
         var newSize = VALID_SIZES[i];
         bytes = new Array(newSize * 1024);
         self.bytes = bytes;

@@ -82,6 +82,10 @@ wmsx.Machine = function() {
         return biosSocket;
     };
 
+    this.getExtensionsSocket = function() {
+        return extensionsSocket;
+    };
+
     this.getExpansionSocket = function() {
         return expansionSocket;
     };
@@ -250,7 +254,8 @@ wmsx.Machine = function() {
             s: speedControl,
             vss: videoStandardSoft && videoStandardSoft.name,
             dd: diskDriveSocket.getDrive().saveState(),
-            ct: cassetteSocket.getDeck().saveState()
+            ct: cassetteSocket.getDeck().saveState(),
+            ex: extensionsSocket.saveState()
         };
     }
 
@@ -270,6 +275,7 @@ wmsx.Machine = function() {
         cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);
         cassetteSocket.getDeck().loadState(state.ct);
+        extensionsSocket.loadState(state.ex);
     }
 
     function mainVideoClockUpdateSpeed() {
@@ -323,6 +329,7 @@ wmsx.Machine = function() {
     function socketsCreate() {
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
+        extensionsSocket = new wmsx.ExtensionsSocket(self);
         expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
         controllersSocket = new ControllersSocket();
@@ -366,6 +373,7 @@ wmsx.Machine = function() {
     var audioSocket;
     var slotSocket;
     var biosSocket;
+    var extensionsSocket;
     var expansionSocket;
     var cartridgeSocket;
     var saveStateSocket;
