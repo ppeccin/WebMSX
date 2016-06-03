@@ -12,12 +12,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor = new wmsx.Monitor(self);
     }
 
-    this.connect = function(pVideoSignal, pMachineControlsSocket, pCartridgeSocket, pControllersSocket) {
+    this.connect = function(pVideoSignal, pMachineControlsSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
         monitor.connect(pVideoSignal, pCartridgeSocket);
         machineControlsSocket = pMachineControlsSocket;
         machineControlsSocket.addRedefinitionListener(this);
-        pCartridgeSocket.addCartridgesStateListener(this);
         controllersSocket = pControllersSocket;
+        extensionsSocket = pExtensionsSocket;
+        extensionsSocket.addExtensionsStateListener(this);
+        pCartridgeSocket.addCartridgesStateListener(this);
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub) {
@@ -276,6 +278,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         this.powerStateUpdate(machineControlsStateReport[wmsx.MachineControls.POWER]);
     };
 
+    this.extensionStateUpdate = function() {
+        refreshSettingsMenuOptions();
+    };
+
     this.loading = function(boo) {
         isLoading = boo;
         updateLogo();
@@ -494,11 +500,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         var menuOptions = [
             { label: "Power",           mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",           mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
+            { label: "-",               divider: true },
             { label: "Load State File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
             { label: "Save State File", mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE },
-            {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
-            //{ label: "MSX-MUSIC",       mouseMask: MOUSE_VOID_MASK, toggle: true }
+            {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET }
         ];
+        menuOptions.menu = "System";
         menuOptions.menuTitle = "System";
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", menuOptions);
 
@@ -514,6 +521,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
             {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
         ];
+        menuOptions.menu = "DriveA";
         menuOptions.menuTitle = "Drive A:";
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -150, -53, null, menuOptions);
 
@@ -529,6 +537,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              mouseMask: MOUSE_BUT1_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
             {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
         ];
+        menuOptions.menu = "DriveB";
         menuOptions.menuTitle = "Drive B:";
         diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -150, -53, null, menuOptions);
 
@@ -539,6 +548,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER },
             {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
         ];
+        menuOptions.menu = "Cartridge1";
         menuOptions.menuTitle = "Cartridge 1";
         cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -53, null, menuOptions);
 
@@ -549,6 +559,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                            mouseMask: MOUSE_BUT1_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER },
             {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
         ];
+        menuOptions.menu = "Cartridge2";
         menuOptions.menuTitle = "Cartridge 2";
         cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -53, null, menuOptions);
 
@@ -562,6 +573,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Tape",    mouseMask: MOUSE_BUT1_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE },
             {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
         ];
+        menuOptions.menu = "Tape";
         menuOptions.menuTitle = "Cassette Tape";
         tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -53, null, menuOptions);
 
@@ -577,11 +589,9 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
 
-        menuOptions = [
-            { label: "Help Screen", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS },
-            { label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS }
-        ];
-        menuOptions.menuTitle = "Options";
+        settingsMenuOptions = menuOptions = [];     // Will be defined latter
+        menuOptions.menu = "Options";
+        menuOptions.menuTitle = "Settings";
         settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Options", menuOptions);
 
         mainElement.appendChild(buttonsBar);
@@ -599,6 +609,23 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge1Button.title = mediaButtonsDesc["Cartridge1"];
         cartridge2Button.title = mediaButtonsDesc["Cartridge2"];
         tapeButton.title = mediaButtonsDesc["Tape"];
+    }
+
+    function refreshSettingsMenuOptions() {
+        settingsMenuOptions.length = 0;
+        var extConfig = extensionsSocket.getConfiguration();
+        for (var ext in extConfig) {
+            var conf = extConfig[ext];
+            if (conf.desc) {            // Only show extensions with descriptions
+                var opt = { label: conf.desc, mouseMask: MOUSE_VOID_MASK, extension: ext, toggle: true, checked: extensionsSocket.isActive(ext) };
+                settingsMenuOptions.push(opt);
+            }
+        }
+        settingsMenuOptions.push({ label: "-", divider: true });
+        settingsMenuOptions.push({ label: "Help Screen", mouseMask: MOUSE_BUT1_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
+        settingsMenuOptions.push({ label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+
+        if (barMenuActive === settingsMenuOptions.menu) refreshBarMenu(settingsMenuOptions);
     }
 
     function addBarButton(x, y, w, h, px, py, tooltip) {
@@ -658,7 +685,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
 
             // Has menu options, toggle menu with right-click
-            if (options.menuTitle && e.buttons === MOUSE_BUT2_MASK) {
+            if (options.menu && e.buttons === MOUSE_BUT2_MASK) {
                 if (barMenuActive) hideBarMenu();
                 showBarMenu(options, but, false);
                 return;
@@ -683,7 +710,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Mouse hover switch menus if already open
         but.addEventListener("mouseenter", function(e) {
-            if (barMenuActive && options.menuTitle) showBarMenu(options, but, true);
+            if (barMenuActive && options.menu) showBarMenu(options, but, true);
         });
 
         return but;
@@ -788,7 +815,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function showBarMenu(options, refElement, redefine) {
         if (barMenuActive && !redefine) return;
-        if (!options.menuTitle) return;
+        if (!options.menu) return;
 
         if (!barMenu) {
             setupBarMenu();
@@ -798,9 +825,38 @@ wmsx.CanvasDisplay = function(mainElement) {
             return;
         }
 
+        // Define items
+        refreshBarMenu(options);
+
+        // Position
+        if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
+            var p;
+            if (refElement.wmsxMidLeft) {
+                p = (refElement.wmsxMidLeft - BAR_MENU_WIDTH / 2) | 0;
+                if (p < 0) p = 0;
+                barMenu.style.left = "" + p + "px";
+                barMenu.style.right = "auto";
+            } else {
+                p = (refElement.wmsxMidRight - BAR_MENU_WIDTH / 2) | 0;
+                if (p < 0) p = 0;
+                barMenu.style.right = "" + p + "px";
+                barMenu.style.left = "auto";
+            }
+        } else {
+            barMenu.style.left = barMenu.style.right = 0;
+        }
+
+        // Show
+        barMenuActive = options.menu;
+        barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
+        barMenu.wmsxTitle.focus();
+    }
+
+    function refreshBarMenu(options) {
         barMenu.wmsxTitle.innerHTML = options.menuTitle;
 
         var it = 0;
+        var height = BAR_MENU_ITEM_HEIGHT + 4;
         var item;
         var maxShown = Math.min(options.length, BAR_MENU_MAX_ITEMS);
         for (var op = 0; op < maxShown; ++op) {
@@ -808,15 +864,22 @@ wmsx.CanvasDisplay = function(mainElement) {
                 item = barMenu.wmsxItems[it];
                 item.firstChild.textContent = options[op].label;
                 item.style.display = "block";
-                item.wmsxPeripheralControl = options[op].control;
+                item.wmsxOption = options[op];
 
-                if (options[op].toggle) {
+                // Divider?
+                if (options[op].divider) item.classList.add("wmsx-bar-menu-item-divider");
+                else item.classList.remove("wmsx-bar-menu-item-divider");
+
+                // Toggle option?
+                if (options[op].toggle !== undefined) {
                     item.classList.add("wmsx-bar-menu-item-toggle");
+                    if (options[op].checked) item.classList.add("wmsx-bar-menu-item-toggle-checked");
+                    else item.classList.remove("wmsx-bar-menu-item-toggle-checked");
                 } else {
                     item.classList.remove("wmsx-bar-menu-item-toggle");
                 }
 
-                X = item;
+                height += options[op].divider ? 3 : BAR_MENU_ITEM_HEIGHT;
 
                 ++it;
             }
@@ -825,33 +888,16 @@ wmsx.CanvasDisplay = function(mainElement) {
             item = barMenu.wmsxItems[r];
             item.firstChild.textContent = "";
             item.style.display = "none";
-            item.wmsxPeripheralControl = null;
+            item.wmsxOption = null;
         }
 
-        if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
-            var p;
-            if (refElement.wmsxMidLeft) {
-                p = (refElement.wmsxMidLeft - BAR_MENU_WIDTH / 2) | 0; if (p < 0) p = 0;
-                barMenu.style.left = "" + p + "px"; barMenu.style.right = "auto";
-            }
-            else {
-                p = (refElement.wmsxMidRight - BAR_MENU_WIDTH / 2) | 0; if (p < 0) p = 0;
-                barMenu.style.right = "" + p + "px"; barMenu.style.left = "auto";
-            }
-        } else {
-            barMenu.style.left = barMenu.style.right = 0;
-        }
-
-        barMenuActive = true;
-        barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
-        barMenu.style.height = "" + (((it + 1) * BAR_MENU_ITEM_HEIGHT) + 4) + "px";
-        barMenu.wmsxTitle.focus();
+        barMenu.style.height = "" + height + "px";
     }
 
     function hideBarMenu() {
         if (!barMenuActive) return;
 
-        barMenuActive = false;
+        barMenuActive = null;
         barMenu.style.transition = BAR_MENU_TRANSITION;
         barMenu.style.height = 0;
         self.focus();
@@ -885,9 +931,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.fontWeight = "bold";
         style.border = "0px solid black";
         style.borderWidth = "1px 0";
-        style.padding = 0;
+        style.margin = "0 0 1px";
         style.textAlign = "center";
-        style.background = "rgb(65, 65, 65)";
+        style.background = "rgb(70, 70, 70)";
         style.cursor = "auto";
         title.innerHTML = "Menu Title";
         barMenu.appendChild(title);
@@ -917,9 +963,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         var fire = function(e) {
-            if (e.target.wmsxPeripheralControl) {
-                hideBarMenu();
-                peripheralControls.controlActivated(e.target.wmsxPeripheralControl);
+            if (e.target.wmsxOption) {
+                if (e.target.wmsxOption.extension) extensionsSocket.toggle(e.target.wmsxOption.extension);
+                if (e.target.wmsxOption.control) {
+                    peripheralControls.controlActivated(e.target.wmsxOption.control);
+                    hideBarMenu();
+                }
             }
         };
         // Fire menu item with a left-click
@@ -961,37 +1010,41 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   color: rgb(200, 200, 200);' +
             '   font: inherit;' +
             '   border: none;' +
+            '   padding: 0;' +
             '   text-shadow: 1px 1px 1px black;' +
             '   background-color: transparent;' +
             '   outline: none;' +
             '   backface-visibility: hidden;' +
             '   -webkit-backface-visibility: hidden;' +
-            '   padding: 0 0 0 20px;' +
-            '   text-align: left;' +
-            '   box-sizing: border-box;' +
             '   cursor: pointer; ' +
-            '}' +
-            '' +
-            '.wmsx-bar-menu-item:hover { ' +
+            '}\n' +
+            '.wmsx-bar-menu-item:hover:not(.wmsx-bar-menu-item-divider) { ' +
             '   color: white;' +
             '   background-color: rgb(220, 32, 26);' +
-            '}' +
-            '' +
+            '}\n' +
+            '.wmsx-bar-menu-item-divider { ' +
+            '   height: 1px;' +
+            '   margin: 1px 0;' +
+            '   background-color: black;' +
+            '}\n' +
             '.wmsx-bar-menu-item-check { ' +
+            '   display: none;' +
             '   position: absolute;' +
-            '   width: 5px;' +
-            '   height: 20px;' +
+            '   width: 6px;' +
+            '   height: 19px;' +
             '   top: 4px;' +
-            '   left: 5px;' +
-            '   background-color: transparent;' +
-            '}' +
-            '' +
+            '   left: 8px;' +
+            '   box-shadow: black 1px 1px 1px;' +
+            '}\n' +
             '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
-            '   background-color: rgb(100, 100, 100);' +
-            '}' +
-            '' +
+            '   display: block;' +
+            '   background-color: rgb(81, 81, 81);' +
+            '}\n' +
+            '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked { ' +
+            '   color: white;' +
+            '}\n' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check { ' +
-            '   background-color: rgb(203, 203, 203);' +
+            '   background-color: rgb(248, 33, 28);' +
             '}'
         ;
         document.head.appendChild(style);
@@ -1002,6 +1055,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var peripheralControls;
     var fileDownloader;
     var controllersHub;
+    var extensionsSocket;
     var controllersSocket;
 
     var machineControlsSocket;
@@ -1020,8 +1074,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     var buttonsBar;
     var buttonsBarHideTimeout;
 
+    var settingsMenuOptions;
+
     var barMenu;
-    var barMenuActive = false;
+    var barMenuActive = null;
 
     var osd;
     var osdTimeout;
@@ -1080,9 +1136,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var BAR_HEIGHT = 29;
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 1;
 
-    var BAR_MENU_WIDTH = 145;
+    var BAR_MENU_WIDTH = 138;
     var BAR_MENU_ITEM_HEIGHT = 28;
-    var BAR_MENU_MAX_ITEMS = 8;
+    var BAR_MENU_MAX_ITEMS = 10;
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 2500;

@@ -13,6 +13,17 @@ wmsx.ExtensionsSocket = function(machine) {
         fileLoader = pFileLoader;
     };
 
+    this.addExtensionsStateListener = function (listener) {
+        if (listeners.indexOf(listener) < 0) {
+            listeners.push(listener);
+            listener.extensionStateUpdate();
+        }
+    };
+
+    this.getConfiguration = function() {
+        return config;
+    };
+
     this.isActive = function(ext) {
         return all[ext];
     };
@@ -21,6 +32,9 @@ wmsx.ExtensionsSocket = function(machine) {
         if (all[ext] === undefined) return;
 
         all[ext] = !all[ext];
+        if (config[ext].mutual) all[config[ext].mutual] = !all[ext];
+        if (config[ext].exclude) all[config[ext].exclude] = false;
+
         this.refresh(altPower);
     };
 
@@ -63,6 +77,7 @@ wmsx.ExtensionsSocket = function(machine) {
             }
         ).start();
 
+        for (var u = 0; u < listeners.length; ++u) listeners[u].extensionStateUpdate();
     };
 
     this.getDefaultActiveLoaderURLSpecs = function() {
@@ -106,7 +121,8 @@ wmsx.ExtensionsSocket = function(machine) {
         all = s.a;
         loaded = s.l;
         config = s.c;
-        // No need to refresh since slots will be already in place
+        // No need to refresh slots since they will be already in place
+        for (var u = 0; u < listeners.length; ++u) listeners[u].extensionStateUpdate();
     };
 
 
@@ -115,6 +131,7 @@ wmsx.ExtensionsSocket = function(machine) {
     var slotSocket = machine.getSlotSocket();
     var fileLoader;
 
+    var listeners = [];
 
     init();
 
