@@ -30,10 +30,13 @@ wmsx.ExtensionsSocket = function(machine) {
 
     this.toggle = function(ext, altPower) {
         if (all[ext] === undefined) return;
+        if (WMSX.MEDIA_CHANGE_DISABLED) return machine.showOSD("Extension change is disabled", true);
 
         all[ext] = !all[ext];
         if (config[ext].mutual) all[config[ext].mutual] = !all[ext];
         if (config[ext].exclude) all[config[ext].exclude] = false;
+
+        machine.showOSD(config[ext].desc + " Extension " + (all[ext] ? "enabled" : "disabled"), true);
 
         this.refresh(altPower);
     };
