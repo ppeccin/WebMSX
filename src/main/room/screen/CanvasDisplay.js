@@ -590,9 +590,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
 
         settingsMenuOptions = menuOptions = [];     // Will be defined latter
-        menuOptions.menu = "Options";
+        menuOptions.menu = "Settings";
         menuOptions.menuTitle = "Settings";
-        settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Options", menuOptions);
+        settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Settings", menuOptions);
 
         mainElement.appendChild(buttonsBar);
     }
@@ -999,7 +999,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
             '   color: rgb(200, 200, 200);' +
-            '   font: inherit;' +
             '   border: none;' +
             '   padding: 0;' +
             '   text-shadow: 1px 1px 1px black;' +

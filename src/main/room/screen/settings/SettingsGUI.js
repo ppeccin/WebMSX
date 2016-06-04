@@ -276,17 +276,12 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-desc">' +
+                                'Right-Click Media Icons on the bottom bar' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">' +
                                 'Drag &amp; Drop Files or URLs (auto detect)' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey">' +
-                            '<div class="wmsx-desc">' +
-                                'Click Media Icons on the bottom bar' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey">' +
-                            '<div class="wmsx-desc">' +
-                                'Right-Click Media Icons: Open Media Menu' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -389,7 +384,7 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="wmsx-desc">Seek Tape forward</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="wmsx-clear"></div>' +
+                    '<div class="wmsx-full-divider"></div>' +
                     '<div class="wmsx-hotkey wmsx-bottom">' +
                         '<div class="wmsx-command">' +
                             '<div class="wmsx-key">' +
