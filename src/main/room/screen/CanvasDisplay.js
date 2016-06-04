@@ -999,6 +999,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
             '   color: rgb(200, 200, 200);' +
+            '   font: inherit;' +
             '   border: none;' +
             '   padding: 0;' +
             '   text-shadow: 1px 1px 1px black;' +

@@ -34,7 +34,12 @@ wmsx.ExtensionsSocket = function(machine) {
 
         all[ext] = !all[ext];
         if (config[ext].mutual) all[config[ext].mutual] = !all[ext];
-        if (config[ext].exclude) all[config[ext].exclude] = false;
+        if (all[ext]) {
+            if (config[ext].require) all[config[ext].require] = true;
+            if (config[ext].exclude) all[config[ext].exclude] = false;
+        } else {
+            for (var dep in config) if (config[dep].require === ext) all[dep] = false;
+        }
 
         machine.showOSD(config[ext].desc + " Extension " + (all[ext] ? "enabled" : "disabled"), true);
 
