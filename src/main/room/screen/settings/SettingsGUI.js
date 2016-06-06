@@ -24,7 +24,7 @@ wmsx.SettingsGUI.html = function() {
                         'MEDIA' +
                     '</div>' +
                     '<div id="wmsx-menu-inputs" class="item">' +
-                        'INPUTS' +
+                        'INPUT' +
                     '</div>' +
                     '<div id="wmsx-menu-about" class="item">' +
                         'ABOUT' +
@@ -118,7 +118,6 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="wmsx-desc">Sprite Modes</div>' +
                         '</div>' +
-                        '<div class="wmsx-full-divider"></div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
@@ -130,6 +129,9 @@ wmsx.SettingsGUI.html = function() {
                             '<div class="wmsx-desc">Capture Screen</div>' +
                         '</div>' +
                         '<div class="wmsx-full-divider"></div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-desc">Right-Click Bar Icons: Default Action</div>' +
+                        '</div>' +
                     '</div>' +
                     '<div class="wmsx-right">' +
                         '<div class="wmsx-hotkey">' +
@@ -205,6 +207,8 @@ wmsx.SettingsGUI.html = function() {
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'O' +
+                                '</div>&nbsp;/&nbsp;<div class="wmsx-key">' +
+                                    'F' +
                                 '</div>' +
                             '</div>' +
                             '<div class="wmsx-desc">Next Frame</div>' +

@@ -100,6 +100,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         withALTCodeMap[KEY_PAUSE]            = controls.PAUSE;
         withCTRLALTCodeMap[KEY_PAUSE]        = controls.PAUSE_AUDIO_ON;
         withALTCodeMap[KEY_FRAME]            = controls.FRAME;
+        withALTCodeMap[KEY_FRAMEa]           = controls.FRAME;
         withALTCodeMap[KEY_TRACE]            = controls.TRACE;
         withALTCodeMap[KEY_DEBUG]            = controls.DEBUG;
         withALTCodeMap[KEY_SPRITE_MODE]      = controls.SPRITE_MODE;
@@ -177,6 +178,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
 
     var KEY_PAUSE            = wmsx.DOMKeys.VK_P.c;
     var KEY_FRAME            = wmsx.DOMKeys.VK_O.c;
+    var KEY_FRAMEa           = wmsx.DOMKeys.VK_F.c;
 
     var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
     var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
