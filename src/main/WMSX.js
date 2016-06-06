@@ -8,7 +8,7 @@
 WMSX = {
 
     // Machine Configuration Presets to apply. See Presets section below...
-    PRESETS:                        "",                         // Default: MSX2+ NTSC, 512K RAM, 2 Drives, MSX-MUSIC
+    PRESETS:                        "",                         // Default: MSX2+ NTSC, 256K RAM, 2 Drives, MSX-MUSIC
 
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
@@ -43,11 +43,12 @@ WMSX = {
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)
     SCREEN_VSYNCH_MODE:             1,                          // 0 = disabled, 1 = auto (when matches), 2 = forced (only for 60/50Hz)
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
+    KEYBOARD_JAPAN_LAYOUT:          1,                          // 0 = ANSI, 1 = JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     EXTENSIONS_CONFIG: {
-        RAMMAPPER:                  { desc: "RAM Mapper",    slot: [3, 0], url: "@[RAMMapper].rom",     mutual: "NORMALRAM" },
-        NORMALRAM:                  {                        slot: [3, 0], url: "@[RAM64K].rom",        mutual: "RAMMAPPER" },
+        RAMMAPPER:                  { desc: "RAM Mapper",    slot: [3, 0], url: "@[RAMMapper].rom",     mutual: "RAM64K" },
+        RAM64K:                     {                        slot: [3, 0], url: "@[RAM64K].rom",        mutual: "RAMMAPPER" },
         DISK:                       { desc: "Floppy Drives", slot: [3, 2], url: "@DISK.rom"},
         DOS2:                       { desc: "MSX-DOS 2",     slot: [2, 2], url: "@MSXDOS22v3.rom",      require: "DISK" },
         MSXMUSIC:                   { desc: "MSX-MUSIC",     slot: [3, 3], url: "@MSXMUSIC.rom" },
@@ -59,6 +60,7 @@ WMSX = {
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
     EXPANSION_SLOTS:                [[2, 1], [2, 2]],
+    RAMMAPPER_SIZE:                 256,
 
     ALLOW_URL_PARAMETERS:           false                       // Allows user to override any of these parameters via URL query parameters
 
@@ -126,7 +128,7 @@ WMSX.presets = {
     // MSX2/2+ Common
 
     MSX2BASE: {
-        _INCLUDE:           "MSX1BASE, RAMMAPPER, RAM512, MSXMUSIC",
+        _INCLUDE:           "MSX1BASE, RAMMAPPER, MSXMUSIC",
         MACHINE_TYPE:       2
     },
 
@@ -153,8 +155,7 @@ WMSX.presets = {
 
     MSX1BASE: {
         MACHINE_TYPE:       1,
-        SLOT_3_URL:         "@[RAM64K].rom",
-        _INCLUDE:           "DISK"
+        _INCLUDE:           "RAM64K, DISK"
     },
 
     // Specific Machines Presets
@@ -173,10 +174,12 @@ WMSX.presets = {
     },
 
     RAMMAPPER: {
-        "EXTENSIONS.RAMMAPPER": true
+        "EXTENSIONS.RAMMAPPER": true,
+        "EXTENSIONS.RAM64K": false
     },
-    NORAMMAPPER: {
-        "EXTENSIONS.RAMMAPPER": false
+    RAM64K: {
+        "EXTENSIONS.RAMMAPPER": false,
+        "EXTENSIONS.RAM64K": true
     },
 
     MSXMUSIC: {
@@ -207,28 +210,6 @@ WMSX.presets = {
     },
     VSYNCHFORCED: {
         SCREEN_VSYNCH_MODE: 2
-    },
-
-    RAM64: {
-        RAMMAPPER_SIZE: 64
-    },
-    RAM128: {
-        RAMMAPPER_SIZE: 128
-    },
-    RAM256: {
-        RAMMAPPER_SIZE: 256
-    },
-    RAM512: {
-        RAMMAPPER_SIZE: 512
-    },
-    RAM1024: {
-        RAMMAPPER_SIZE: 1024
-    },
-    RAM2048: {
-        RAMMAPPER_SIZE: 2048
-    },
-    RAM4096: {
-        RAMMAPPER_SIZE: 4096
     }
 
 };

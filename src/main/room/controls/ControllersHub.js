@@ -45,7 +45,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.readControllerPort = function(port) {
-        return readFromControllerPort[port](port);
+        return readFromControllerPort[port](port) | keyboard.readJapaneseKeyboardLayoutPort();
     };
 
     this.writePin8ControllerPort = function(port, value) {
