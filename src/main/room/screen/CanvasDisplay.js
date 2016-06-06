@@ -962,7 +962,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         var fire = function(e) {
             if (e.target.wmsxOption) {
-                if (e.target.wmsxOption.extension) extensionsSocket.toggle(e.target.wmsxOption.extension);
+                if (e.target.wmsxOption.extension) extensionsSocket.toggleExtension(e.target.wmsxOption.extension);
                 if (e.target.wmsxOption.control) {
                     peripheralControls.controlActivated(e.target.wmsxOption.control);
                     hideBarMenu();
@@ -1024,12 +1024,16 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   width: 6px;' +
             '   height: 19px;' +
             '   top: 4px;' +
-            '   left: 8px;' +
+            '   left: 9px;' +
             '   box-shadow: black 1px 1px 1px;' +
+            '}\n' +
+            '.wmsx-bar-menu-item-toggle { ' +
+            '   text-align: left;' +
+            '   padding: 0 0 0 28px;' +
             '}\n' +
             '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
             '   display: block;' +
-            '   background-color: rgb(81, 81, 81);' +
+            '   background-color: rgb(80, 80, 80);' +
             '}\n' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked { ' +
             '   color: white;' +

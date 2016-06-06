@@ -3,10 +3,7 @@
 wmsx.ExtensionsSocket = function(machine) {
 
     function init() {
-        all = {};
-        loaded = {};
-        config = WMSX.EXTENSIONS_CONFIG;
-        for (var ext in config) all[ext] = !!WMSX.EXTENSIONS[ext];
+        for (var ext in config) active[ext] = !!WMSX.EXTENSIONS[ext];
     }
 
     this.connectFileLoader = function(pFileLoader) {
@@ -25,32 +22,23 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.isActive = function(ext) {
-        return all[ext];
+        return active[ext];
     };
 
-    this.toggle = function(ext, altPower) {
-        if (all[ext] === undefined) return;
+    this.toggleExtension = function(ext, altPower) {
+        if (config[ext] === undefined) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return machine.showOSD("Extension change is disabled", true);
 
-        all[ext] = !all[ext];
-        if (config[ext].mutual) all[config[ext].mutual] = !all[ext];
-        if (all[ext]) {
-            if (config[ext].require) all[config[ext].require] = true;
-            if (config[ext].exclude) all[config[ext].exclude] = false;
-        } else {
-            for (var dep in config) if (config[dep].require === ext) all[dep] = false;
-        }
-
-        machine.showOSD(config[ext].desc + " Extension " + (all[ext] ? "enabled" : "disabled"), true);
-
+        set(ext, !active[ext], altPower);
+        machine.showOSD(config[ext].desc + " Extension " + (active[ext] ? "enabled" : "disabled"), true);
         this.refresh(altPower);
     };
 
     this.refresh = function (altPower) {
         var toLoadUrlSpecs = [];
         var toRemoveSlots = [];
-        for (var ext in all) {
-            if (all[ext]) {
+        for (var ext in config) {
+            if (active[ext]) {
                 if (!loaded[ext]) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext));
                 loaded[ext] = true;
             } else {
@@ -90,14 +78,30 @@ wmsx.ExtensionsSocket = function(machine) {
 
     this.getDefaultActiveLoaderURLSpecs = function() {
         var loaderUrlSpecs = [];
-        for (var ext in all)
-            if (all[ext]) loaderUrlSpecs.push(makeLoaderUrlSpec(ext));
+        for (var ext in config)
+            if (active[ext]) loaderUrlSpecs.push(makeLoaderUrlSpec(ext));
         return loaderUrlSpecs;
     };
 
-    this.confirmDefaultActive = function() {
-        for (var ext in all) loaded[ext] = all[ext];
+    this.confirmDefaultActiveLoaded = function() {
+        for (var ext in config) loaded[ext] = active[ext];
     };
+
+    function set(ext, val, altPower) {
+        if (active[ext] == val) return;
+
+        active[ext] = val;
+        if (config[ext].mutual) set(config[ext].mutual, !val, altPower);
+        if (val) {
+            if (config[ext].require)
+                for (var r = 0, req = config[ext].require.split(","); r < req.length; ++r) set(req[r].trim(), true, altPower);
+            if (config[ext].exclude)
+                for (var e = 0, exc = config[ext].exclude.split(","); e < exc.length; ++e) set(exc[e].trim(), false, altPower);
+        } else {
+            for (var dep in config)
+                if (config[dep].require && config[dep].require.indexOf(ext) >= 0) set(dep, false, altPower);
+        }
+    }
 
     function makeLoaderUrlSpec(ext) {
         return {
@@ -119,14 +123,14 @@ wmsx.ExtensionsSocket = function(machine) {
 
     this.saveState = function() {
         return {
-            a: all,
+            a: active,
             l: loaded,
             c: config
         };
     };
 
     this.loadState = function(s) {
-        all = s.a;
+        active = s.a;
         loaded = s.l;
         config = s.c;
         // No need to refresh slots since they will be already in place
@@ -134,7 +138,9 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
 
-    var all, loaded, config;
+    var active = {};
+    var loaded = {};
+    var config = WMSX.EXTENSIONS_CONFIG;
 
     var slotSocket = machine.getSlotSocket();
     var fileLoader;

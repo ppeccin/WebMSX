@@ -65,7 +65,7 @@ WMSX.start = function () {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.loading(false);
-                        WMSX.room.machine.getExtensionsSocket().confirmDefaultActive();
+                        WMSX.room.machine.getExtensionsSocket().confirmDefaultActiveLoaded();
                         WMSX.room.machine.userPowerOn(true);        // Auto-run cassette if any
                     });
                     wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
