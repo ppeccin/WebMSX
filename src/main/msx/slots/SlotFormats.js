@@ -202,7 +202,7 @@ wmsx.SlotFormats = {
 
     "SCCExpansion": {
         name: "SCCExpansion",
-        desc: "SCC Expansion Cartridge",
+        desc: "SCC Sound Cartridge",
         priority: 1551,
         tryFormat: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -218,7 +218,7 @@ wmsx.SlotFormats = {
 
     "SCCIExpansion": {
         name: "SCCIExpansion",
-        desc: "SCC-I (SCC+) Expansion Cartridge",
+        desc: "SCC-I (SCC+) Sound Cartridge",
         priority: 1552,
         tryFormat: function (rom) {
             // 0K, 64K or 128K content. Must be selected via info format hint
@@ -295,6 +295,23 @@ wmsx.SlotFormats = {
             return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
         }
     },
+
+    "PACExpansion": {
+        name: "PACExpansion",
+        desc: "PAC SRAM Cartridge",
+        priority: 1557,
+        tryFormat: function (rom) {
+            // Only 0K content selected via info format hint, or 16 + 0x1ffe size starting with "PAC2 BACKUP DATA"      // TODO Make data loading work
+            if (rom.content.length === 0) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgePAC(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgePAC.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
 
     // Common formats used in titles
 

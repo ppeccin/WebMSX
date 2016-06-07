@@ -72,5 +72,6 @@ wmsx.EmbeddedSystemROMsGenerator.fileList = [
     "[RAM64K].rom",
     "[RAMMapper].rom",
     "[SCCExpansion].rom",
-    "[SCCIExpansion].rom"
+    "[SCCIExpansion].rom",
+    "[PACExpansion].rom"
 ];

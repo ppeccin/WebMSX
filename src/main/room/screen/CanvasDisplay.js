@@ -282,6 +282,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.extensionStateUpdate = function() {
+        this.cartridgesStateUpdate();
         refreshSettingsMenuOptions();
     };
 
@@ -993,7 +994,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.appendChild(barMenu);
     }
 
-    function setupBarMenuCSS() {
+    function setupBarMenuCSS() {                                // TODO Fix hover on dividers
         var style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = '' +'' +
@@ -1137,7 +1138,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var BAR_MENU_WIDTH = 136;
     var BAR_MENU_ITEM_HEIGHT = 28;
-    var BAR_MENU_MAX_ITEMS = 10;
+    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 2500;

@@ -55,7 +55,9 @@ wmsx.EmbeddedSystemROMs = {
 
         "[SCCExpansion].rom": "",
 
-        "[SCCIExpansion].rom": ""
+        "[SCCIExpansion].rom": "",
+
+        "[PACExpansion].rom": ""
 
     },
 

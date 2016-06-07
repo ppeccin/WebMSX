@@ -53,7 +53,8 @@ WMSX = {
         DOS2:                       { SLOT: [2, 2], desc: "MSX-DOS 2",     url: "@MSXDOS22v3.rom",      require: "RAMMAPPER, DISK" },
         MSXMUSIC:                   { SLOT: [3, 3], desc: "MSX-MUSIC",     url: "@MSXMUSIC.rom" },
         SCC:                        { SLOT: [1],    desc: "Konami SCC",    url: "@[SCCExpansion].rom",  exclude: "SCCI" },
-        SCCI:                       { SLOT: [1],    desc: "Konami SCC-I",  url: "@[SCCIExpansion].rom", exclude: "SCC" }
+        SCCI:                       { SLOT: [1],    desc: "Konami SCC-I",  url: "@[SCCIExpansion].rom", exclude: "SCC" },
+        PAC:                        { SLOT: [1],    desc: "PAC SRAM",      url: "@[PACExpansion].rom"}
     },
 
     BIOS_SLOT:                      [0],
