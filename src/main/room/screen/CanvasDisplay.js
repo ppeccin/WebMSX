@@ -17,9 +17,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         machineControlsSocket = pMachineControlsSocket;
         machineControlsSocket.addRedefinitionListener(this);
         controllersSocket = pControllersSocket;
+        cartridgeSocket = pCartridgeSocket;
+        cartridgeSocket.addCartridgesStateListener(this);
         extensionsSocket = pExtensionsSocket;
         extensionsSocket.addExtensionsStateListener(this);
-        pCartridgeSocket.addCartridgesStateListener(this);
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub) {
@@ -259,11 +260,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         refreshMediaButtons();
     };
 
-    this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
-        mediaButtonsState.Cartridge1 = cartridge1 ? 1 : 0;
-        mediaButtonsState.Cartridge2 = cartridge2 ? 1 : 0;
-        mediaButtonsDesc.Cartridge1 = "Cartridge 1" + ( cartridge1 ? ": " + (cartridge1.rom.source || "<Unknown>") : "" );
-        mediaButtonsDesc.Cartridge2 = "Cartridge 2" + ( cartridge2 ? ": " + (cartridge2.rom.source || "<Unknown>") : "" );
+    this.cartridgesStateUpdate = function() {
+        var cart1 = cartridgeSocket.inserted(0);
+        var cart2 = cartridgeSocket.inserted(1);
+        mediaButtonsState.Cartridge1 = cart1 ? 1 : 0;
+        mediaButtonsState.Cartridge2 = cart2 ? 1 : 0;
+        mediaButtonsDesc.Cartridge1 = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") : "" );
+        mediaButtonsDesc.Cartridge2 = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") : "" );
         refreshMediaButtons();
     };
 
@@ -1052,6 +1055,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var controllersHub;
     var extensionsSocket;
     var controllersSocket;
+    var cartridgeSocket;
 
     var machineControlsSocket;
     var machineControlsStateReport = {};

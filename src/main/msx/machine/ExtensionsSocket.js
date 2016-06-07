@@ -42,7 +42,7 @@ wmsx.ExtensionsSocket = function(machine) {
                 if (!loaded[ext]) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext));
                 loaded[ext] = true;
             } else {
-                if (loaded[ext] && isExtensionLoadedInSlot(ext)) toRemoveSlots.push(config[ext].slot);
+                if (loaded[ext] && isExtensionLoadedInSlot(ext)) toRemoveSlots.push(config[ext].SLOT);
                 loaded[ext] = false;
             }
         }
@@ -73,7 +73,7 @@ wmsx.ExtensionsSocket = function(machine) {
             }
         ).start();
 
-        for (var u = 0; u < listeners.length; ++u) listeners[u].extensionStateUpdate();
+        fireUpdate();
     };
 
     this.getDefaultActiveLoaderURLSpecs = function() {
@@ -85,6 +85,7 @@ wmsx.ExtensionsSocket = function(machine) {
 
     this.confirmDefaultActiveLoaded = function() {
         for (var ext in config) loaded[ext] = active[ext];
+        fireUpdate();
     };
 
     function set(ext, val, altPower) {
@@ -103,18 +104,22 @@ wmsx.ExtensionsSocket = function(machine) {
         }
     }
 
+    function fireUpdate() {
+        for (var u = 0; u < listeners.length; ++u) listeners[u].extensionStateUpdate();
+    }
+
     function makeLoaderUrlSpec(ext) {
         return {
             url: config[ext].url,
             onSuccess: function (res) {
-                fileLoader.loadContentAsSlot(res.url, res.content, config[ext].slot, true);
+                fileLoader.loadContentAsSlot(res.url, res.content, config[ext].SLOT, true);
             }
         };
     }
 
     function isExtensionLoadedInSlot(ext) {
         var conf = config[ext];
-        var loaded = slotSocket.inserted(conf.slot);
+        var loaded = slotSocket.inserted(conf.SLOT);
         return loaded && loaded.rom && loaded.rom.source == conf.url;
     }
 

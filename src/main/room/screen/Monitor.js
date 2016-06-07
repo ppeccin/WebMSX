@@ -33,8 +33,8 @@ wmsx.Monitor = function(display) {
         display.displayPixelMetrics(pixelWidth, pixelHeight);
     };
 
-    this.cartridgesStateUpdate = function(cartridge1, cartridge2) {
-        crtSetModeForCartridges(cartridge1, cartridge2);
+    this.cartridgesStateUpdate = function() {
+        crtSetModeForCartridges();
     };
 
     this.setDisplayOptimalScale = function() {
@@ -102,7 +102,7 @@ wmsx.Monitor = function(display) {
         //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
     };
 
-    var crtSetModeForCartridges = function(cartridge1, cartridge2) {
+    var crtSetModeForCartridges = function() {
         // Nothing yet available to set in ROMDatabase
     };
 

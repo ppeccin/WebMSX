@@ -133,41 +133,6 @@ wmsx.Machine = function() {
                 self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true);
     };
 
-    this.getSlot = function(slotPos) {
-        if (typeof slotPos === "number") slotPos = [slotPos];
-        var pri = slotPos[0], sec = slotPos[1];
-
-        var res = bus.getSlot(pri);
-        if (sec >= 0) {
-            if (res.isExpanded()) res = res.getSubSlot(sec);
-            else res = null;
-        } else {
-            if (res.isExpanded()) res = res.getSubSlot(0);
-        }
-        return res;
-    };
-
-    this.insertSlot = function(slot, slotPos) {
-        if (typeof slotPos === "number") slotPos = [slotPos];
-        var pri = slotPos[0], sec = slotPos[1];
-
-        var curPriSlot = bus.getSlot(pri);
-        if (sec >= 0) {
-            if (!curPriSlot.isExpanded()) {
-                var oldPriSlot = curPriSlot;
-                curPriSlot = new wmsx.SlotExpanded();       // Automatically insert an ExpandedSlot if not present
-                bus.insertSlot(curPriSlot, pri);
-                if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
-            }
-            curPriSlot.insertSubSlot(slot, sec);
-        } else {
-            if (curPriSlot.isExpanded()) {
-                curPriSlot.insertSubSlot(slot, 0);
-            } else
-                bus.insertSlot(slot, pri);
-        }
-    };
-
     this.loading = function(boo) {
         isLoading = boo;
     };
@@ -197,6 +162,41 @@ wmsx.Machine = function() {
         videoStandardSoft = null;
         setVideoStandardAuto();
     };
+
+    function getSlot(slotPos) {
+        if (typeof slotPos === "number") slotPos = [slotPos];
+        var pri = slotPos[0], sec = slotPos[1];
+
+        var res = bus.getSlot(pri);
+        if (sec >= 0) {
+            if (res.isExpanded()) res = res.getSubSlot(sec);
+            else res = null;
+        } else {
+            if (res.isExpanded()) res = res.getSubSlot(0);
+        }
+        return res;
+    }
+
+    function insertSlot(slot, slotPos) {
+        if (typeof slotPos === "number") slotPos = [slotPos];
+        var pri = slotPos[0], sec = slotPos[1];
+
+        var curPriSlot = bus.getSlot(pri);
+        if (sec >= 0) {
+            if (!curPriSlot.isExpanded()) {
+                var oldPriSlot = curPriSlot;
+                curPriSlot = new wmsx.SlotExpanded();       // Automatically insert an ExpandedSlot if not present
+                bus.insertSlot(curPriSlot, pri);
+                if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
+            }
+            curPriSlot.insertSubSlot(slot, sec);
+        } else {
+            if (curPriSlot.isExpanded()) {
+                curPriSlot.insertSubSlot(slot, 0);
+            } else
+                bus.insertSlot(slot, pri);
+        }
+    }
 
     function setVideoStandard(pVideoStandard, forceUpdate) {
         self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, false);
@@ -567,12 +567,12 @@ wmsx.Machine = function() {
         };
         this.fireStateUpdate = function () {
             for (var i = 0; i < listeners.length; i++)
-                listeners[i].cartridgesStateUpdate(this.inserted(0), this.inserted(1));
+                listeners[i].cartridgesStateUpdate();
         };
         this.addCartridgesStateListener = function (listener) {
             if (listeners.indexOf(listener) < 0) {
                 listeners.push(listener);
-                listener.cartridgesStateUpdate(this.inserted(0), this.inserted(1));		// Fire event
+                listener.cartridgesStateUpdate();
             }
         };
         var listeners = [];
@@ -585,12 +585,12 @@ wmsx.Machine = function() {
         this.insert = function (slot, slotPos, altPower) {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn && !altPower) self.powerOff();
-            self.insertSlot(slot, slotPos);
+            insertSlot(slot, slotPos);
             if (!altPower && (slot || powerWasOn)) self.userPowerOn(false);
             else if (slot && self.powerIsOn) slot.powerOn();
         };
         this.inserted = function (slotPos) {
-            var res = self.getSlot(slotPos);
+            var res = getSlot(slotPos);
             return res === EMPTY_SLOT ? null : res;
         };
     }
