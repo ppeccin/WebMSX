@@ -545,6 +545,9 @@ wmsx.Machine = function() {
     // CartridgeSocket  -----------------------------------------
 
     function CartridgeSocket() {
+        this.connectFileDownloader = function (pFileDownloader) {
+            fileDownloader = pFileDownloader;
+        };
         this.insert = function (cartridge, port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             if (cartridge === slotSocket.inserted(slotPos)) return;
@@ -554,14 +557,29 @@ wmsx.Machine = function() {
         };
         this.remove = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            if (slotSocket.inserted(slotPos) === null)
-                return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+            if (slotSocket.inserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
             slotSocket.insert(null, slotPos, altPower);
             cartridgeSocket.fireStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + " removed", true);
         };
         this.inserted = function (port) {
             return slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
+        };
+        this.loadCartridgeData = function (port, name, arrContent) {
+            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var cart = slotSocket.inserted(slotPos);
+            if (!cart) return null;
+            if (!cart.loadData(name, arrContent)) return;
+            self.showOSD(cart.getDataDesc() + " loaded in Cartridge " + (port === 1 ? "2" : "1"), true);
+            return arrContent;
+        };
+        this.saveCartridgeDataFile = function (port) {
+            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var cart = slotSocket.inserted(slotPos);
+            if (cart === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+            var dataToSave = cart.getDataToSave();
+            if (!dataToSave) return self.showOSD("Data Saving not supported for Cartridge " + (port === 1 ? "2" : "1"), true);
+            fileDownloader.startDownloadBinary(dataToSave.fileName, dataToSave.content, cart.getDataDesc());
         };
         this.fireStateUpdate = function () {
             for (var i = 0; i < listeners.length; i++)
@@ -573,6 +591,7 @@ wmsx.Machine = function() {
                 if (!silent) listener.cartridgesStateUpdate();
             }
         };
+        var fileDownloader;
         var listeners = [];
     }
 
@@ -815,15 +834,9 @@ wmsx.Machine = function() {
 
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
-            // Use Cartridge label as file name (disabled for now)
-            // var cart = cartridgeSocket.inserted(0) || cartridgeSocket.inserted(1);
-            // var fileName = cart && cart.rom.info.l;
             var state = saveState();
             state.v = VERSION;
-            if (media.saveStateFile(null, state))
-                self.showOSD("State File saved", true);
-            else
-                self.showOSD("State File save failed", true);
+            media.saveStateFile(state);
         };
 
         this.loadStateFile = function(data) {       // Returns true if data was indeed a SaveState

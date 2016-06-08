@@ -129,7 +129,11 @@ wmsx.FileLoader = function() {
         // First try reading and creating directly
         arrContent = new Array(content.length);
         wmsx.Util.arrayCopy(content, 0, arrContent);
-        // First try to load as a Disk file
+        // First try to load as Cartridge Data (SRAM, etc)
+        if (openType === OPEN_TYPE.CART_DATA || openType === OPEN_TYPE.ALL)
+            if (cartridgeSocket.loadCartridgeData(port, name, arrContent))
+                return;
+        // Then try to load as a Disk file
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
             if (diskDrive.loadDiskFile(port, name, arrContent, altPower, openType === OPEN_TYPE.DISK))
                 return;
@@ -162,7 +166,11 @@ wmsx.FileLoader = function() {
                 var cont = file.asUint8Array();
                 arrContent = new Array(cont.length);
                 wmsx.Util.arrayCopy(cont, 0, arrContent);
-                // First try to load as a Disk file
+                // First try to load as Cartridge Data (SRAM, etc)
+                if (openType === OPEN_TYPE.CART_DATA || openType === OPEN_TYPE.ALL)
+                    if (cartridgeSocket.loadCartridgeData(port, name, arrContent))
+                        return;
+                // Then try to load as a Disk file
                 if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
                     if (diskDrive.loadDiskFile(port, name, arrContent, altPower, openType === OPEN_TYPE.DISK))
                         return;
@@ -453,6 +461,7 @@ wmsx.FileLoader = function() {
         DISK:  /^.+\.(bin|BIN|dsk|DSK)$/,
         TAPE:  /^.+\.(bin|BIN|cas|CAS|tape|TAPE)$/,
         STATE: /^.+\.(wst|WST)$/,
+        CART_DATA: /^.+\.(pac|PAC|dat|DAT|sram|SRAM)$/,
         FILES_AS_DISK: /.+/,
         ZIP_AS_DISK:   /.+/,
         AUTO_AS_DISK:  /.+/,
@@ -464,6 +473,7 @@ wmsx.FileLoader = function() {
         DISK:  ".bin,.BIN,.dsk,.DSK,.zip,.ZIP",
         TAPE:  ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP",
         STATE: ".wst,.WST",
+        CART_DATA: ".pac,.PAC,.dat,.DAT,.sram,.SRAM",
         FILES_AS_DISK: "",
         ZIP_AS_DISK:   ".zip,.ZIP",
         AUTO_AS_DISK:  "",
@@ -475,6 +485,7 @@ wmsx.FileLoader = function() {
         DISK:  false,
         TAPE:  false,
         STATE: false,
+        CART_DATA: false,
         FILES_AS_DISK: true,
         ZIP_AS_DISK:   false,
         AUTO_AS_DISK:  true,
@@ -486,6 +497,7 @@ wmsx.FileLoader = function() {
         DISK:  "Disk",
         TAPE:  "Cassette",
         STATE: "Savestate",
+        CART_DATA: "Cartridge Data",
         FILES_AS_DISK: "Files as Disk",
         ZIP_AS_DISK:   "ZIP as Disk",
         AUTO_AS_DISK:  "Load as Disk",
@@ -500,4 +512,4 @@ wmsx.FileLoader = function() {
 
 };
 
-wmsx.FileLoader.OPEN_TYPE = { ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK", ALL: "ALL" };
+wmsx.FileLoader.OPEN_TYPE = { ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK", ALL: "ALL" };

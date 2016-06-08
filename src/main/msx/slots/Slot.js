@@ -11,6 +11,15 @@ wmsx.Slot = function() {
     this.disconnect = function(machine) {
     };
 
+    this.getDataDesc = function() {
+    };
+
+    this.loadData = function(name, arrContent) {
+    };
+
+    this.getDataToSave = function() {
+    };
+
     this.powerOn = function(paused) {
     };
 

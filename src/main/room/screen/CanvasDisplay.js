@@ -103,7 +103,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.captureScreen = function() {
         if (!signalIsOn) return;
-        fileDownloader.startDownloadURL("WMSX Screen", canvas.toDataURL('image/png'));
+        fileDownloader.startDownloadURL("WMSX Screen", canvas.toDataURL('image/png'), "Screen Capture");
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {

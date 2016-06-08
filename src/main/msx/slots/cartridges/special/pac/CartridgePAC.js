@@ -6,12 +6,27 @@
 wmsx.CartridgePAC = function(rom) {
     function init(self) {
         self.rom = rom;
-        var content = self.rom.content;
         sram = wmsx.Util.arrayFill(new Array(0x2000), 0);
-        for(var i = 0, len = sram.length; i < len; i++)
-            sram[i] = content[i];
         self.sram = sram;
+        var content = self.rom.content;
+        if (content.length !== 0) loadSRAM(rom.source, content);
     }
+
+    this.getDataDesc = function() {
+        return "PAC Data";
+    };
+
+    this.loadData = function(name, arrContent) {
+        if (!wmsx.CartridgePAC.isPACFileContentValid(arrContent)) return null;
+
+        loadSRAM(name, arrContent);
+        return sram;
+    };
+
+    this.getDataToSave = function() {
+        var content = wmsx.CartridgePAC.buildPACFileContentToSave(sram);
+        return { fileName: sramContentName || (this.getDataDesc() + ".pac"), content: content };
+    };
 
     this.connect = function(pMachine) {
         machine = pMachine;
@@ -45,9 +60,18 @@ wmsx.CartridgePAC = function(rom) {
             return 0xff;
     };
 
+    function loadSRAM(name, content) {
+        sramContentName = name;
+        var start = wmsx.CartridgePAC.DATA_FILE_IDENTIFIER.length;
+        for(var i = 0, finish = sram.length - 2; i < finish; i++)
+            sram[i] = content[start + i];
+    }
+
+
     var sram;
     var sramActive;
     this.sram = null;
+    var sramContentName;
 
     var machine;
 
@@ -62,7 +86,8 @@ wmsx.CartridgePAC = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             sa: sramActive,
-            s: wmsx.Util.compressInt8BitArrayToStringBase64(sram)
+            s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
+            sn: sramContentName
         };
     };
 
@@ -70,6 +95,7 @@ wmsx.CartridgePAC = function(rom) {
         this.rom = wmsx.ROM.loadState(s.r);
         sramActive = s.sa;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
+        sramContentName = s.sn;
     };
 
 
@@ -84,3 +110,18 @@ wmsx.CartridgePAC.recreateFromSaveState = function(state, previousSlot) {
     cart.loadState(state);
     return cart;
 };
+
+wmsx.CartridgePAC.isPACFileContentValid = function(content) {
+    // Only 8206 bytes content, starting with "PAC2 BACKUP DATA"
+    if (content.length !== 8206) return false;
+    return wmsx.Util.int8BitArrayToByteString(content, 0, wmsx.CartridgePAC.DATA_FILE_IDENTIFIER.length) == wmsx.CartridgePAC.DATA_FILE_IDENTIFIER;
+};
+
+wmsx.CartridgePAC.buildPACFileContentToSave = function(sram) {
+    var content = new Uint8Array(wmsx.CartridgePAC.DATA_FILE_IDENTIFIER.length + sram.length - 2);
+    content.set(wmsx.Util.byteStringToInt8BitArray(wmsx.CartridgePAC.DATA_FILE_IDENTIFIER));
+    content.set(sram.slice(0, -2), wmsx.CartridgePAC.DATA_FILE_IDENTIFIER.length);
+    return content;
+};
+
+wmsx.CartridgePAC.DATA_FILE_IDENTIFIER = "PAC2 BACKUP DATA";

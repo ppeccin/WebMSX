@@ -55,6 +55,7 @@ wmsx.Room = function(screenElement) {
         self.speaker = new wmsx.WebAudioSpeaker();
 
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
+        self.fileDownloader.connectPeripherals(self.screen);
         self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.peripheralControls, self.controllersHub);
         self.machineControls.connectPeripherals(self.screen);
         self.controllersHub.connectPeripherals(self.screen);
@@ -75,6 +76,7 @@ wmsx.Room = function(screenElement) {
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
         self.peripheralControls.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
+        self.machine.getCartridgeSocket().connectFileDownloader(self.fileDownloader);
     };
 
 

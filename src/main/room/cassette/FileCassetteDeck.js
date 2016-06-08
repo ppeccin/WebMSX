@@ -63,16 +63,9 @@ wmsx.FileCassetteDeck = function() {
                 if (!tapeFileName ) tapeFileName = "New Tape.cas";
                 fireStateUpdate();
             }
-            var fileName = makeFileNameToSave(tapeFileName);
-            var data = new ArrayBuffer(tapeContent.length);
-            var view = new Uint8Array(data);
-            for (var i = 0; i < tapeContent.length; i++)
-                view[i] = tapeContent[i];
-            fileDownloader.startDownloadBinary(fileName, data);
-            screen.showOSD("Cassette Tape File saved", true);
+            fileDownloader.startDownloadBinary(makeFileNameToSave(tapeFileName), new Uint8Array(tapeContent), "Cassette Tape file");
         } catch(ex) {
-            screen.showOSD("Cassette Tape File save failed", true);
-            console.log(ex.stack);
+            // give up
         }
     };
 

@@ -9,7 +9,7 @@ wmsx.SlotCreator = function () {
 
         // Choose the best option
         var bestOption = options[0];
-        wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.priority + (bestOption.priorityBoosted ? " (" + bestOption.priorityBoosted + ")" : ""));
+        wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.prioritySelected);
         return bestOption.createFromROM(rom);
     };
 
@@ -43,15 +43,16 @@ wmsx.SlotCreator = function () {
         var formatOptions = [];
         var formatOption;
         for (var format in wmsx.SlotFormats) {
-            formatOption = wmsx.SlotFormats[format].tryFormat(rom);
-            if (!formatOption) continue;	    	                                             // rejected by format
-            boostPriority(formatOption, rom.info);                                               // adjust priority based on ROM info
-            if (formatOption.priority >= 1000 && !formatOption.priorityBoosted) continue;        // reject options that require hints
+            formatOption = wmsx.SlotFormats[format];
+            formatOption.prioritySelected = formatOption.priorityForRom(rom);
+            if (!formatOption.prioritySelected) continue;	    	                      // rejected by format
+            boostPriority(formatOption, rom.info);                                        // adjust priority selected based on ROM info
+            if (formatOption.prioritySelected >= FORMAT_PRIORITY_LIMIT) continue;         // reject options that require hints
             formatOptions.push(formatOption);
         }
         // Sort according to priority
         formatOptions.sort(function formatOptionComparator(a, b) {
-            return (a.priorityBoosted || a.priority) - (b.priorityBoosted || b.priority);
+            return a.prioritySelected - b.prioritySelected;
         });
         return formatOptions;
     }
@@ -94,9 +95,7 @@ wmsx.SlotCreator = function () {
 
     var boostPriority = function(formatOption, info) {
         if (info.f && (formatOption.name === info.f))
-            formatOption.priorityBoosted = formatOption.priority - (info.t ? FORMAT_FORCE_PRIORITY_BOOST : FORMAT_PRIORITY_BOOST);
-        else
-            formatOption.priorityBoosted = undefined;
+            formatOption.prioritySelected -= info.t ? FORMAT_FORCE_PRIORITY_BOOST : FORMAT_PRIORITY_BOOST;
     };
 
     var produceCartridgeLabel = function(info) {
@@ -111,8 +110,11 @@ wmsx.SlotCreator = function () {
     var HINTS_PREFIX_REGEX = "\\[";
     var HINTS_SUFFIX_REGEX = "\\]";
 
+    var FORMAT_PRIORITY_LIMIT = 1000;
     var FORMAT_PRIORITY_BOOST = 1000;
     var FORMAT_FORCE_PRIORITY_BOOST = 2000;
+
+    this.FORMAT_PRIORITY_BOOST = FORMAT_PRIORITY_BOOST;
 
 };
 

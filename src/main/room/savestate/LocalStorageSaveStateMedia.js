@@ -20,9 +20,9 @@ wmsx.LocalStorageSaveStateMedia = function() {
         return buildStateFromData(data);
     };
 
-    this.saveStateFile = function(fileName, state) {
+    this.saveStateFile = function(state) {
         var data = buildDataFromState(state);
-        return data && startDownload(fileName || "WMSX SaveState", data);
+        if (data) fileDownloader.startDownloadBinary("WMSX SaveState" + SAVE_STATE_FILE_EXTENSION, data, "System State file");
     };
 
     this.loadStateFile = function(data) {
@@ -98,12 +98,6 @@ wmsx.LocalStorageSaveStateMedia = function() {
         } catch(e) {
             console.log(ex.stack);
         }
-    };
-
-    var startDownload = function (fileName, data) {
-        if (fileName) fileName = fileName + SAVE_STATE_FILE_EXTENSION;
-        fileDownloader.startDownloadBinary(fileName, data);
-        return true;
     };
 
 

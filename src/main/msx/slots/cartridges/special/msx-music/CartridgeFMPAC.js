@@ -16,6 +16,22 @@ wmsx.CartridgeFMPAC = function(rom) {
         self.sram = sram;
     }
 
+    this.getDataDesc = function() {
+        return "FM-PAC Data";
+    };
+
+    this.loadData = function(name, arrContent) {
+        if (!wmsx.CartridgePAC.isPACFileContentValid(arrContent)) return null;
+
+        loadSRAM(name, arrContent);
+        return sram;
+    };
+
+    this.getDataToSave = function() {
+        var content = wmsx.CartridgePAC.buildPACFileContentToSave(sram);
+        return { fileName: sramContentName || (this.getDataDesc() + ".pac"), content: content };
+    };
+
     this.connect = function(pMachine) {
         machine = pMachine;
         updateFMEnable();
@@ -95,12 +111,21 @@ wmsx.CartridgeFMPAC = function(rom) {
         }
     }
 
+    function loadSRAM(name, content) {
+        sramContentName = name;
+        var start = wmsx.CartridgePAC.DATA_FILE_IDENTIFIER.length;
+        for(var i = 0, finish = sram.length - 2; i < finish; i++)
+            sram[i] = content[start + i];
+    }
+
+
     var bytes;
     this.bytes = null;
 
     var sram;
     var sramActive;
     this.sram = null;
+    var sramContentName;
 
     var fmEnable;
     var bankOffset;
@@ -125,6 +150,7 @@ wmsx.CartridgeFMPAC = function(rom) {
             fe: fmEnable,
             sa: sramActive,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
+            sn: sramContentName,
             fm: fm.saveState()
         };
     };
@@ -137,6 +163,7 @@ wmsx.CartridgeFMPAC = function(rom) {
         fmEnable = s.fe;
         sramActive = s.sa;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
+        sramContentName = s.sn;
         fm.loadState(s.fm);
         updateFMEnable();
     };

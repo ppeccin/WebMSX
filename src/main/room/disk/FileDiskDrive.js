@@ -53,17 +53,9 @@ wmsx.FileDiskDrive = function() {
         if (noDiskMessage(drive)) return;
 
         try {
-            var dContent = diskContent[drive];
-            var fileName = makeFileNameToSave(diskFileName[drive]);
-            var data = new ArrayBuffer(dContent.length);
-            var view = new Uint8Array(data);
-            for (var i = 0; i < dContent.length; i++)
-                view[i] = dContent[i];
-            fileDownloader.startDownloadBinary(fileName, data);
-            screen.showOSD("Disk " + driveName(drive) + " file saved", true);
+            fileDownloader.startDownloadBinary(makeFileNameToSave(diskFileName[drive]), new Uint8Array(diskContent[drive]), "Disk " + driveName(drive) + " file");
         } catch(ex) {
-            screen.showOSD("Disk " + driveName(drive) + " file save failed", true);
-            console.log(ex.stack);
+            // give up
         }
     };
 

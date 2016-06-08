@@ -68,16 +68,16 @@ wmsx.DOMPeripheralControls = function(room) {
         // All controls are Press-only and repeatable
         switch(control) {
             case controls.MACHINE_POWER_TOGGLE:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);   // No local keys for this, used only by Screen
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);
                 break;
             case controls.MACHINE_POWER_RESET:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);   // No local keys for this, used only by Screen
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);
                 break;
             case controls.MACHINE_LOAD_STATE_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false);       // No local keys for this, used only by Screen
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false);
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);   // No local keys for this, used only by Screen
+                machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);
                 break;
             case controls.DISKA_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, false);
@@ -151,6 +151,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.CARTRIDGE1_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(0, false);
                 break;
+            case controls.CARTRIDGE1_SAVE_DATA_FILE:
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(0);
+                break;
             case controls.CARTRIDGE2_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, false, true);
                 break;
@@ -162,6 +165,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.CARTRIDGE2_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(1, false);
+                break;
+            case controls.CARTRIDGE2_SAVE_DATA_FILE:
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(1);
                 break;
             case controls.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, false, false);
@@ -264,9 +270,11 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyCodeMap[KEY_CART] = controls.CARTRIDGE1_LOAD_FILE;
         keyAltCodeMap[KEY_CART] = controls.CARTRIDGE1_REMOVE;
+        keyControlAltCodeMap[KEY_CART] = controls.CARTRIDGE1_SAVE_DATA_FILE;
 
         keyShiftCodeMap[KEY_CART] = controls.CARTRIDGE2_LOAD_FILE;
         keyShiftAltCodeMap[KEY_CART] = controls.CARTRIDGE2_REMOVE;
+        keyShiftControlAltCodeMap[KEY_CART] = controls.CARTRIDGE2_SAVE_DATA_FILE;
 
         keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
         keyControlCodeMap[KEY_TAPE]  = controls.TAPE_EMPTY;

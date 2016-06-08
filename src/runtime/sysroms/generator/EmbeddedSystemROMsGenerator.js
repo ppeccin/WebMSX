@@ -39,13 +39,16 @@ wmsx.EmbeddedSystemROMsGenerator = {
                     "wmsx.EmbeddedSystemROMs.embedFiles();";
 
                 var f = new wmsx.FileDownloader();
+                f.connectPeripherals(this);             // Dummy screen for OSD
                 f.registerForDownloadElement(document.getElementsByTagName("body")[0]);
-                f.startDownloadBinary("SystemROMs.js", romsFile);
+                f.startDownloadBinary("SystemROMs.js", romsFile, "EmbeddedSystemROMs file");
             }
         );
 
         d.start();
-    }
+    },
+
+    showOSD: function() {}
 
 };
 
