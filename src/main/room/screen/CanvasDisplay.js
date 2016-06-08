@@ -245,33 +245,43 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerStateUpdate = function(power) {
-        mediaButtonsState.Power = power ? 2 : 1;
-        refreshMediaButtons();
+        powerButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
+        powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
+    };
+
+    this.diskDrivesStateUpdate = function(diskAName, diskAMotor, diskBName, diskBMotor) {
+        diskAButton.title = "Disk A" + ( diskAName ? ": " + diskAName : "" );
+        diskBButton.title = "Disk B" + ( diskBName ? ": " + diskBName : "" );
+        diskAButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskAName ? 1 : 0 ))]) + "px";
+        diskBButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskBName ? 1 : 0 ))]) + "px";
+        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskAName;
+        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskBName;
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
         var cart1 = cartridgeSocket.inserted(0);
         var cart2 = cartridgeSocket.inserted(1);
-        mediaButtonsState.Cartridge1 = cart1 ? 1 : 0;
-        mediaButtonsState.Cartridge2 = cart2 ? 1 : 0;
-        mediaButtonsDesc.Cartridge1 = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") : "" );
-        mediaButtonsDesc.Cartridge2 = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") : "" );
-        refreshMediaButtons();
+        cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") : "" );
+        cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") : "" );
+        cartridge1Button.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(cart1 ? 1 : 0)]) + "px";
+        cartridge2Button.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(cart2 ? 1 : 0)]) + "px";
+        var dataDesc = cart1 && cart1.getDataDesc();
+        cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = !dataDesc;
+        cartridge1Button.wmsxMenu[2].label = "Load " + (dataDesc || "Data");
+        cartridge1Button.wmsxMenu[3].label = "Save " + (dataDesc || "Data");
+        cartridge1Button.wmsxMenu[4].disabled = !cart1;
+        dataDesc = cart2 && cart2.getDataDesc();
+        cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = !dataDesc;
+        cartridge2Button.wmsxMenu[2].label = "Load " + (dataDesc || "Data");
+        cartridge2Button.wmsxMenu[3].label = "Save " + (dataDesc || "Data");
+        cartridge2Button.wmsxMenu[4].disabled = !cart2;
         refreshSettingsMenuOptions();
     };
 
-    this.diskDrivesStateUpdate = function(diskAName, diskAMotor, diskBName, diskBMotor) {
-        mediaButtonsState.DiskA = diskAMotor ? 2 : ( diskAName ? 1 : 0 );
-        mediaButtonsState.DiskB = diskBMotor ? 2 : ( diskBName ? 1 : 0 );
-        mediaButtonsDesc.DiskA = "Disk A" + ( diskAName ? ": " + diskAName : "" );
-        mediaButtonsDesc.DiskB = "Disk B" + ( diskBName ? ": " + diskBName : "" );
-        refreshMediaButtons();
-    };
-
     this.tapeStateUpdate = function(name, motor) {
-        mediaButtonsState.Tape = motor ? 2 : ( name ? 1 : 0 );
-        mediaButtonsDesc.Tape = "Cassette Tape" + ( name ? ": " + name : "" );
-        refreshMediaButtons();
+        tapeButton.title = "Cassette Tape" + ( name ? ": " + name : "" );
+        tapeButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[motor ? 2 : ( name ? 1 : 0 )]) + "px";
+        tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = tapeButton.wmsxMenu[6].disabled = !name;
     };
 
     this.controlsStatesRedefined = function () {
@@ -498,87 +508,81 @@ wmsx.CanvasDisplay = function(mainElement) {
             });
         }
 
-        var menuOptions = [
+        var menu = [
             { label: "Power",           mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",           mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "",                divider: true },
             { label: "Load State File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
-            { label: "Save State File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE },
+            { label: "Save State File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE, disabled: true },
             {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET }
         ];
-        menuOptions.menu = "System";
-        menuOptions.menuTitle = "System";
-        powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", menuOptions);
+        menu.menuTitle = "System";
+        powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", null, menu);
 
-        menuOptions = [
+        menu = [
             { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE },
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
             { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILES },
             { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_ZIP },
             { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_720 },
             { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_360 },
-            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE },
-            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE },
+            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE, disabled: true },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE, disabled: true },
             {                              mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
             {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
         ];
-        menuOptions.menu = "DriveA";
-        menuOptions.menuTitle = "Drive A:";
-        diskAButton = addPeripheralControlButton(44, -26, 24, 23, -150, -53, null, menuOptions);
+        menu.menuTitle = "Drive A:";
+        diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A", null, menu);
 
-        menuOptions = [
+        menu = [
             { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE },
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_URL },
             { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILES },
             { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_ZIP },
             { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_720 },
             { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_360 },
-            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE },
-            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE },
+            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE, disabled: true },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE, disabled: true },
             {                              mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
             {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
         ];
-        menuOptions.menu = "DriveB";
-        menuOptions.menuTitle = "Drive B:";
-        diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -150, -53, null, menuOptions);
+        menu.menuTitle = "Drive B:";
+        diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -266, -54, "Disk B", null, menu);
 
-        menuOptions = [
+        menu = [
             { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE },
             { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL },
-            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_DATA_FILE },
-            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_SAVE_DATA_FILE },
-            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE },
+            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_DATA_FILE, disabled: true },
+            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_SAVE_DATA_FILE, disabled: true },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE, disabled: true },
             {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
         ];
-        menuOptions.menu = "Cartridge1";
-        menuOptions.menuTitle = "Cartridge 1";
-        cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -53, null, menuOptions);
+        menu.menuTitle = "Cartridge 1";
+        cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -54, "Cartridge 1", null, menu);
 
-        menuOptions = [
+        menu = [
             { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE },
             { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
-            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_DATA_FILE },
-            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_SAVE_DATA_FILE },
-            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE },
+            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_DATA_FILE, disabled: true },
+            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_SAVE_DATA_FILE, disabled: true },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE, disabled: true },
             {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
         ];
-        menuOptions.menu = "Cartridge2";
-        menuOptions.menuTitle = "Cartridge 2";
-        cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -53, null, menuOptions);
+        menu.menuTitle = "Cartridge 2";
+        cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -54, "Cartridge 2", null, menu);
 
-        menuOptions = [
+        menu = [
             { label: "Load Tape File", mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
             { label: "Load Tape URL",  mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_URL },
             { label: "New Empty Tape", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
-            { label: "Rewind Tape",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.TAPE_REWIND },
-            { label: "Run Program",    mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN },
-            { label: "Save Tape File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE },
-            { label: "Remove Tape",    mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE },
+            { label: "Rewind Tape",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true },
+            { label: "Run Program",    mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, disabled: true },
+            { label: "Save Tape File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true },
+            { label: "Remove Tape",    mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true },
             {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
         ];
-        menuOptions.menu = "Tape";
-        menuOptions.menuTitle = "Cassette Tape";
-        tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -53, null, menuOptions);
+        menu.menuTitle = "Cassette Tape";
+        tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -54, "Cassette Tape", null, menu);
 
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
@@ -592,55 +596,40 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
 
-        settingsMenuOptions = menuOptions = [];     // Will be populated later
-        menuOptions.menu = "Settings";
-        menuOptions.menuTitle = "Settings";
-        settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Settings", menuOptions);
-
-        refreshMediaButtons();
+        menu = [];     // Will be populated later
+        menu.menuTitle = "Settings";
+        settingsButton = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Settings", null, menu);
 
         mainElement.appendChild(buttonsBar);
     }
 
-    function refreshMediaButtons() {
-        powerButton.style.backgroundPosition =      "-120px " + (mediaButtonBackYOffsets[mediaButtonsState["Power"]]) + "px";
-        diskAButton.style.backgroundPosition =      "-237px " + (mediaButtonBackYOffsets[mediaButtonsState["DiskA"]]) + "px";
-        diskBButton.style.backgroundPosition =      "-266px " + (mediaButtonBackYOffsets[mediaButtonsState["DiskB"]]) + "px";
-        cartridge1Button.style.backgroundPosition = "-150px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge1"]]) + "px";
-        cartridge2Button.style.backgroundPosition = "-179px " + (mediaButtonBackYOffsets[mediaButtonsState["Cartridge2"]]) + "px";
-        tapeButton.style.backgroundPosition =       "-208px " + (mediaButtonBackYOffsets[mediaButtonsState["Tape"]]) + "px";
-        diskAButton.title = mediaButtonsDesc["DiskA"];
-        diskBButton.title = mediaButtonsDesc["DiskB"];
-        cartridge1Button.title = mediaButtonsDesc["Cartridge1"];
-        cartridge2Button.title = mediaButtonsDesc["Cartridge2"];
-        tapeButton.title = mediaButtonsDesc["Tape"];
-    }
-
     function createSettingsMenuOptions() {
-        settingsMenuOptions.length = 0;
+        var menu = settingsButton.wmsxMenu;
+        menu.length = 0;
         var extConfig = WMSX.EXTENSIONS_CONFIG;
         for (var ext in extConfig) {
             var conf = extConfig[ext];
             if (conf.desc) {            // Only show extensions with descriptions
                 var opt = { label: conf.desc, mouseMask: MOUSE_VOID_MASK, extension: ext, toggle: true, checked: extensionsSocket.isActive(ext) };
-                settingsMenuOptions.push(opt);
+                menu.push(opt);
             }
         }
-        settingsMenuOptions.push({ label: "",            divider: true });
-        settingsMenuOptions.push({ label: "Help Screen", mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
-        settingsMenuOptions.push({ label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+        menu.push({ label: "",            divider: true });
+        menu.push({ label: "Help Screen", mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
+        menu.push({ label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
     }
 
     function refreshSettingsMenuOptions() {
-        if (settingsMenuOptions.length === 0) createSettingsMenuOptions();
-        for (var i = 0; i < settingsMenuOptions.length; ++i) {
-            var opt = settingsMenuOptions[i];
+        var menu = settingsButton.wmsxMenu;
+        if (menu.length === 0) createSettingsMenuOptions();
+        for (var i = 0; i < menu.length; ++i) {
+            var opt = menu[i];
             if (opt.extension) opt.checked = extensionsSocket.isActive(opt.extension);
         }
-        if (barMenuActive === settingsMenuOptions.menu) refreshBarMenu(settingsMenuOptions);
+        if (barMenuActive === menu) refreshBarMenu(menu);
     }
 
-    function addBarButton(x, y, w, h, px, py, tooltip) {
+    function addBarButton(x, y, w, h, bx, by, tooltip) {
         var but = document.createElement('div');
         but.style.position = "absolute";
         if (x === "CENTER") {
@@ -659,9 +648,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         but.style.height = "" + h + "px";
         but.style.outline = "none";
 
-        if ((typeof px) === "number") {
+        if ((typeof bx) === "number") {
             but.style.backgroundImage = 'url("' + wmsx.Images.urls.sprites + '")';
-            but.style.backgroundPosition = "" + px + "px " + py + "px";
+            but.style.backgroundPosition = "" + bx + "px " + by + "px";
             but.style.backgroundRepeat = "no-repeat";
         }
 
@@ -676,33 +665,35 @@ wmsx.CanvasDisplay = function(mainElement) {
         return but;
     }
 
-    function addPeripheralControlButton(x, y, w, h, px, py, tooltip, options) {
-        var but = addBarButton(x, y, w, h, px, py, tooltip);
+    function addPeripheralControlButton(x, y, w, h, bx, by, tooltip, control, menu) {
+        var but = addBarButton(x, y, w, h, bx, by, tooltip);
+
+        but.wmsxMenu = menu;
 
         but.style.cursor = "pointer";
 
         var clickHandler = function (e) {
             e.stopPropagation();
             e.preventDefault();
-            var menuWasActive = barMenuActive;
+            var prevActiveMenu = barMenuActive;
             hideBarMenu();
 
             // Single option, only left-click
-            if ((typeof options) == "number") {
-                if (e.buttons === MOUSE_BUT1_MASK) peripheralControls.controlActivated(options);
+            if (control) {
+                if (e.buttons === MOUSE_BUT1_MASK) peripheralControls.controlActivated(control);
                 return;
             }
 
-            // Has menu options, open menu with left-click
-            if (options.menu && menuWasActive !== options.menu && e.buttons === MOUSE_BUT1_MASK) {
-                showBarMenu(options, but, false);
+            // Has menu, open menu with left-click
+            if (menu && prevActiveMenu !== menu && e.buttons === MOUSE_BUT1_MASK) {
+                showBarMenu(menu, but, false);
                 return;
             }
 
             // Complex click options
             var mask = e.buttons | (e.altKey ? KEY_ALT_MASK : 0) | (e.ctrlKey ? KEY_CTRL_MASK : 0) | (e.shiftKey ? KEY_SHIFT_MASK : 0);
-            for (var i = 0; i < options.length; ++i)
-                if (options[i].mouseMask === mask) peripheralControls.controlActivated(options[i].control);
+            for (var i = 0; i < menu.length; ++i)
+                if (menu[i].mouseMask === mask) peripheralControls.controlActivated(menu[i].control);
         };
 
          // Mouse buttons perform the various actions
@@ -712,7 +703,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Mouse hover switch menus if already open
         but.addEventListener("mouseenter", function(e) {
-            if (barMenuActive && options.menu) showBarMenu(options, but, true);
+            if (barMenuActive && menu) showBarMenu(menu, but, true);
         });
 
         return but;
@@ -815,20 +806,20 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function showBarMenu(options, refElement, redefine) {
+    function showBarMenu(menu, refElement, redefine) {
         if (barMenuActive && !redefine) return;
-        if (!options.menu) return;
+        if (!menu) return;
 
         if (!barMenu) {
             setupBarMenu();
             window.setTimeout(function() {
-                showBarMenu(options, refElement, redefine);
+                showBarMenu(menu, refElement, redefine);
             }, 1);
             return;
         }
 
         // Define items
-        refreshBarMenu(options);
+        refreshBarMenu(menu);
 
         // Position
         if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
@@ -849,39 +840,43 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         // Show
-        barMenuActive = options.menu;
+        barMenuActive = menu;
         barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
         barMenu.wmsxTitle.focus();
     }
 
-    function refreshBarMenu(options) {
-        barMenu.wmsxTitle.innerHTML = options.menuTitle;
+    function refreshBarMenu(menu) {
+        barMenu.wmsxTitle.innerHTML = menu.menuTitle;
 
         var it = 0;
         var height = BAR_MENU_ITEM_HEIGHT + 4;
         var item;
-        var maxShown = Math.min(options.length, BAR_MENU_MAX_ITEMS);
+        var maxShown = Math.min(menu.length, BAR_MENU_MAX_ITEMS);
         for (var op = 0; op < maxShown; ++op) {
-            if (options[op].label !== undefined) {
+            if (menu[op].label !== undefined) {
                 item = barMenu.wmsxItems[it];
-                item.firstChild.textContent = options[op].label;
+                item.firstChild.textContent = menu[op].label;
                 item.style.display = "block";
-                item.wmsxOption = options[op];
+                item.wmsxMenuOption = menu[op];
+
+                // Disabled ?
+                if (menu[op].disabled) item.classList.add("wmsx-bar-menu-item-disabled");
+                else item.classList.remove("wmsx-bar-menu-item-disabled");
 
                 // Divider?
-                if (options[op].divider) item.classList.add("wmsx-bar-menu-item-divider");
+                if (menu[op].divider) item.classList.add("wmsx-bar-menu-item-divider");
                 else item.classList.remove("wmsx-bar-menu-item-divider");
 
                 // Toggle option?
-                if (options[op].toggle !== undefined) {
+                if (menu[op].toggle !== undefined) {
                     item.classList.add("wmsx-bar-menu-item-toggle");
-                    if (options[op].checked) item.classList.add("wmsx-bar-menu-item-toggle-checked");
+                    if (menu[op].checked) item.classList.add("wmsx-bar-menu-item-toggle-checked");
                     else item.classList.remove("wmsx-bar-menu-item-toggle-checked");
                 } else {
                     item.classList.remove("wmsx-bar-menu-item-toggle");
                 }
 
-                height += options[op].divider ? 3 : BAR_MENU_ITEM_HEIGHT;
+                height += menu[op].divider ? 3 : BAR_MENU_ITEM_HEIGHT;
 
                 ++it;
             }
@@ -890,7 +885,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             item = barMenu.wmsxItems[r];
             item.firstChild.textContent = "";
             item.style.display = "none";
-            item.wmsxOption = null;
+            item.wmsxMenuOption = null;
         }
 
         barMenu.style.height = "" + height + "px";
@@ -973,10 +968,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         var fire = function(e) {
-            if (e.target.wmsxOption) {
-                if (e.target.wmsxOption.extension) extensionsSocket.toggleExtension(e.target.wmsxOption.extension);
-                if (e.target.wmsxOption.control) {
-                    peripheralControls.controlActivated(e.target.wmsxOption.control);
+            if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
+                if (e.target.wmsxMenuOption.extension) extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension);
+                if (e.target.wmsxMenuOption.control) {
+                    peripheralControls.controlActivated(e.target.wmsxMenuOption.control);
                     hideBarMenu();
                 }
             }
@@ -1010,7 +1005,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   position: relative;' +
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
-            '   color: rgb(200, 200, 200);' +
+            '   color: rgb(205, 205, 205);' +
             '   font: inherit;' +
             '   border: none;' +
             '   padding: 0;' +
@@ -1021,9 +1016,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   -webkit-backface-visibility: hidden;' +
             '   cursor: pointer; ' +
             '}\n' +
-            '.wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-divider) { ' +
+            '.wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-disabled):not(.wmsx-bar-menu-item-divider) { ' +
             '   color: white;' +
             '   background-color: rgb(220, 32, 26);' +
+            '}\n' +
+            '.wmsx-bar-menu-item-disabled { ' +
+            '   color: rgb(110, 110, 110);' +
             '}\n' +
             '.wmsx-bar-menu-item-divider { ' +
             '   height: 1px;' +
@@ -1045,7 +1043,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '}\n' +
             '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
             '   display: block;' +
-            '   background-color: rgb(80, 80, 80);' +
+            '   background-color: rgb(70, 70, 70);' +
             '}\n' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked { ' +
             '   color: white;' +
@@ -1081,8 +1079,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var buttonsBar;
     var buttonsBarHideTimeout;
-
-    var settingsMenuOptions;
 
     var barMenu;
     var barMenuActive = null;
@@ -1128,8 +1124,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullscreenButton;
     var settingsButton;
 
-    var mediaButtonsState = { Power: 1, DiskA: 0, DiskB: 0, Cartridge1: 0, Cartridge2: 0, Tape: 0 };
-    var mediaButtonsDesc = { Power: "Power", DiskA: "Disk A", DiskB: "Disk B", Cartridge1: "Cartridge 1", Cartridge2: "Cartridge 2", Tape: "Cassette Tape" };
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
 
     var MOUSE_BUT1_MASK = 1;
