@@ -610,7 +610,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         for (var ext in extConfig) {
             var conf = extConfig[ext];
             if (conf.desc) {            // Only show extensions with descriptions
-                var opt = { label: conf.desc, mouseMask: MOUSE_VOID_MASK, extension: ext, toggle: true, checked: extensionsSocket.isActive(ext) };
+                var opt = { label: conf.desc, mouseMask: MOUSE_VOID_MASK, extension: ext, toggle: true, checked: false };
                 menu.push(opt);
             }
         }
@@ -624,7 +624,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (menu.length === 0) createSettingsMenuOptions();
         for (var i = 0; i < menu.length; ++i) {
             var opt = menu[i];
-            if (opt.extension) opt.checked = extensionsSocket.isActive(opt.extension);
+            if (opt.extension) opt.checked = extensionsSocket.isActiveAnySlot(opt.extension);
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
@@ -967,20 +967,23 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
         });
 
-        var fire = function(e) {
+        var fireItem = function(e) {
             if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
-                if (e.target.wmsxMenuOption.extension) extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension);
-                if (e.target.wmsxMenuOption.control) {
+                if (e.target.wmsxMenuOption.extension) {
+                    var altPower = e.button === 1;
+                    var secSlot = e.shiftKey;
+                    extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, secSlot, altPower);
+                } else if (e.target.wmsxMenuOption.control) {
                     peripheralControls.controlActivated(e.target.wmsxMenuOption.control);
                     hideBarMenu();
                 }
             }
         };
-        // Fire menu item with a left mouse up
+        // Fire menu item with a left or middle mouse up
         barMenu.addEventListener("mouseup", function (e) {
             e.stopPropagation();
             e.preventDefault();
-            if (e.button === 0) fire(e);
+            if (e.button === 0 || e.button === 1) fireItem(e);
             return false;
         });
         // Block mousedown
