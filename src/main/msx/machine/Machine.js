@@ -565,6 +565,19 @@ wmsx.Machine = function() {
         this.inserted = function (port) {
             return slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
         };
+        this.dataOperationNotSupportedMessage = function(port, operation, silent) {
+            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var cart = slotSocket.inserted(slotPos);
+            if (cart === null) {
+                if (!silent) self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+                return true;
+            }
+            if (!cart.getDataDesc()) {
+                if (!silent)  self.showOSD("Data " + (operation ? "Saving" : "Loading") + " not supported for Cartridge " + (port === 1 ? "2" : "1"), true);
+                return true;
+            }
+            return false;
+        };
         this.loadCartridgeData = function (port, name, arrContent) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             var cart = slotSocket.inserted(slotPos);
@@ -574,11 +587,9 @@ wmsx.Machine = function() {
             return arrContent;
         };
         this.saveCartridgeDataFile = function (port) {
-            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            var cart = slotSocket.inserted(slotPos);
-            if (cart === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+            if (this.dataOperationNotSupportedMessage(port, true, false)) return;
+            var cart = slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
             var dataToSave = cart.getDataToSave();
-            if (!dataToSave) return self.showOSD("Data Saving not supported for Cartridge " + (port === 1 ? "2" : "1"), true);
             fileDownloader.startDownloadBinary(dataToSave.fileName, dataToSave.content, cart.getDataDesc());
         };
         this.fireStateUpdate = function () {

@@ -513,7 +513,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menuOptions = [
             { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE },
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
-            { label: "Load Filas as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILES },
+            { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILES },
             { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_ZIP },
             { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_720 },
             { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_360 },
@@ -529,7 +529,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menuOptions = [
             { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE },
             { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_URL },
-            { label: "Load Filas as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILES },
+            { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILES },
             { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_ZIP },
             { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_720 },
             { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_360 },
@@ -545,8 +545,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         menuOptions = [
             { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE },
             { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL },
+            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_DATA_FILE },
+            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_SAVE_DATA_FILE },
             { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE },
-            {                            mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER },
             {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menu = "Cartridge1";
@@ -555,9 +556,10 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menuOptions = [
             { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE },
-            { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
-            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE },
-            {                            mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER },
+            { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
+            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_DATA_FILE },
+            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_SAVE_DATA_FILE },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE },
             {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
         ];
         menuOptions.menu = "Cartridge2";

@@ -151,6 +151,10 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.CARTRIDGE1_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(0, false);
                 break;
+            case controls.CARTRIDGE1_LOAD_DATA_FILE:
+                if (cartridgeSocket.dataOperationNotSupportedMessage(0, false, false)) break;
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, false, false);
+                break;
             case controls.CARTRIDGE1_SAVE_DATA_FILE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(0);
                 break;
@@ -165,6 +169,10 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.CARTRIDGE2_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(1, false);
+                break;
+            case controls.CARTRIDGE2_LOAD_DATA_FILE:
+                if (cartridgeSocket.dataOperationNotSupportedMessage(1, false, false)) break;
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, false, true);
                 break;
             case controls.CARTRIDGE2_SAVE_DATA_FILE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(1);
@@ -270,10 +278,12 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyCodeMap[KEY_CART] = controls.CARTRIDGE1_LOAD_FILE;
         keyAltCodeMap[KEY_CART] = controls.CARTRIDGE1_REMOVE;
+        keyControlCodeMap[KEY_CART] = controls.CARTRIDGE1_LOAD_DATA_FILE;
         keyControlAltCodeMap[KEY_CART] = controls.CARTRIDGE1_SAVE_DATA_FILE;
 
         keyShiftCodeMap[KEY_CART] = controls.CARTRIDGE2_LOAD_FILE;
         keyShiftAltCodeMap[KEY_CART] = controls.CARTRIDGE2_REMOVE;
+        keyShiftControlCodeMap[KEY_CART] = controls.CARTRIDGE2_LOAD_DATA_FILE;
         keyShiftControlAltCodeMap[KEY_CART] = controls.CARTRIDGE2_SAVE_DATA_FILE;
 
         keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
