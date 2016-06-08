@@ -20,12 +20,13 @@ WMSX = {
 
     // Extensions
     EXTENSIONS: {
-        DISK:                       false,
         RAMMAPPER:                  false,
+        DISK:                       false,
+        DOS2:                       false,
         MSXMUSIC:                   false,
         SCC:                        false,
         SCCI:                       false,
-        DOS2:                       false
+        PAC:                        false
     },
 
     // General configuration
@@ -165,53 +166,34 @@ WMSX.presets = {
         MACHINE_TYPE:         3
     },
 
-    // Extensions Options
+    // Extensions Options Presets
 
-    DISK: {
-        "EXTENSIONS.DISK": true
-    },
-    NODISK: {
-        "EXTENSIONS.DISK": false
-    },
+    DISK: { "EXTENSIONS.DISK": true},
+    NODISK: { "EXTENSIONS.DISK": false},
 
-    RAMMAPPER: {
-        "EXTENSIONS.RAMMAPPER": true,
-        "EXTENSIONS.RAM64K": false
-    },
-    RAM64K: {
-        "EXTENSIONS.RAMMAPPER": false,
-        "EXTENSIONS.RAM64K": true
-    },
+    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": true, "EXTENSIONS.RAM64K": false},
+    RAM64K: { "EXTENSIONS.RAMMAPPER": false, "EXTENSIONS.RAM64K": true},
 
-    MSXMUSIC: {
-        "EXTENSIONS.MSXMUSIC": true
-    },
-    NOMSXMUSIC: {
-        "EXTENSIONS.MSXMUSIC": false
-    },
+    MSXMUSIC: { "EXTENSIONS.MSXMUSIC": true},
+    NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": false},
 
-    DOS2: {
-        "EXTENSIONS.DOS2":  true
-    },
+    DOS2: { "EXTENSIONS.DOS2":  true},
 
-    SCC: {
-        "EXTENSIONS.SCC": true
-    },
-    SCCI: {
-        "EXTENSIONS.SCCI": true
-    },
+    SCC: { "EXTENSIONS.SCC": true},
+    SCCSLOT2: { "EXTENSIONS.SCC": true, "EXTENSIONS_CONFIG.SCC.SLOT": 2 },
+
+    SCCI: { "EXTENSIONS.SCCI": true},
+    SCCISLOT2: { "EXTENSIONS.SCCI": true, "EXTENSIONS_CONFIG.SCCI.SLOT": 2 },
+
+    PAC: { "EXTENSIONS.PAC": true},
+    PACSLOT2: { "EXTENSIONS.PAC": true, "EXTENSIONS_CONFIG.PAC.SLOT": 2 },
+
 
     // Configuration Helper Presets
 
-    NOVSYNCH: {
-        SCREEN_VSYNCH_MODE: 0
-    },
-    VSYNCHAUTO: {
-        SCREEN_VSYNCH_MODE: 1
-    },
-    VSYNCHFORCED: {
-        SCREEN_VSYNCH_MODE: 2
-    }
+    NOVSYNCH: { SCREEN_VSYNCH_MODE: 0},
+    VSYNCHAUTO: { SCREEN_VSYNCH_MODE: 1},
+    VSYNCHFORCED: { SCREEN_VSYNCH_MODE: 2}
 
 };
 
