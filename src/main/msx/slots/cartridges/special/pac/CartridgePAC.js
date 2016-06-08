@@ -52,7 +52,7 @@ wmsx.CartridgePAC = function(rom) {
     var machine;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.PAC;
+    this.format = wmsx.SlotFormats.PACExpansion;
 
 
     // Savestate  -------------------------------------------

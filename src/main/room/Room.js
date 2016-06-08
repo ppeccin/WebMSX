@@ -24,8 +24,8 @@ wmsx.Room = function(screenElement) {
     };
 
     this.loading = function(boo) {
-        this.screen.loading(boo);
         this.machine.loading(boo);
+        this.screen.loading(boo);
     };
 
     this.exit = function() {

@@ -13,14 +13,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     this.connect = function(pVideoSignal, pMachineControlsSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
-        monitor.connect(pVideoSignal, pCartridgeSocket);
+        monitor.connect(pVideoSignal);
         machineControlsSocket = pMachineControlsSocket;
-        machineControlsSocket.addRedefinitionListener(this);
         controllersSocket = pControllersSocket;
         cartridgeSocket = pCartridgeSocket;
-        cartridgeSocket.addCartridgesStateListener(this);
         extensionsSocket = pExtensionsSocket;
-        extensionsSocket.addExtensionsStateListener(this);
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub) {
@@ -252,21 +249,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         refreshMediaButtons();
     };
 
-    this.diskDrivesStateUpdate = function(diskAName, diskAMotor, diskBName, diskBMotor) {
-        mediaButtonsState.DiskA = diskAMotor ? 2 : ( diskAName ? 1 : 0 );
-        mediaButtonsState.DiskB = diskBMotor ? 2 : ( diskBName ? 1 : 0 );
-        mediaButtonsDesc.DiskA = "Disk A" + ( diskAName ? ": " + diskAName : "" );
-        mediaButtonsDesc.DiskB = "Disk B" + ( diskBName ? ": " + diskBName : "" );
-        refreshMediaButtons();
-    };
-
-    this.cartridgesStateUpdate = function() {
+    this.extensionsAndCartridgesStateUpdate = function() {
         var cart1 = cartridgeSocket.inserted(0);
         var cart2 = cartridgeSocket.inserted(1);
         mediaButtonsState.Cartridge1 = cart1 ? 1 : 0;
         mediaButtonsState.Cartridge2 = cart2 ? 1 : 0;
         mediaButtonsDesc.Cartridge1 = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") : "" );
         mediaButtonsDesc.Cartridge2 = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") : "" );
+        refreshMediaButtons();
+        refreshSettingsMenuOptions();
+    };
+
+    this.diskDrivesStateUpdate = function(diskAName, diskAMotor, diskBName, diskBMotor) {
+        mediaButtonsState.DiskA = diskAMotor ? 2 : ( diskAName ? 1 : 0 );
+        mediaButtonsState.DiskB = diskBMotor ? 2 : ( diskBName ? 1 : 0 );
+        mediaButtonsDesc.DiskA = "Disk A" + ( diskAName ? ": " + diskAName : "" );
+        mediaButtonsDesc.DiskB = "Disk B" + ( diskBName ? ": " + diskBName : "" );
         refreshMediaButtons();
     };
 
@@ -281,14 +279,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         this.powerStateUpdate(machineControlsStateReport[wmsx.MachineControls.POWER]);
     };
 
-    this.extensionStateUpdate = function() {
-        this.cartridgesStateUpdate();
-        refreshSettingsMenuOptions();
-    };
-
-    this.loading = function(boo) {
-        isLoading = boo;
+    this.loading = function(state) {
+        isLoading = state;
         updateLogo();
+        if (!state) {
+            machineControlsSocket.addRedefinitionListener(this);
+            extensionsSocket.addExtensionsAndCartridgesStateListener(this);
+        }
     };
 
     this.setMouseActiveCursor = function(boo) {
@@ -593,10 +590,12 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
 
-        settingsMenuOptions = menuOptions = [];     // Will be defined latter
+        settingsMenuOptions = menuOptions = [];     // Will be populated later
         menuOptions.menu = "Settings";
         menuOptions.menuTitle = "Settings";
         settingsButton  = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Settings", menuOptions);
+
+        refreshMediaButtons();
 
         mainElement.appendChild(buttonsBar);
     }
@@ -615,9 +614,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         tapeButton.title = mediaButtonsDesc["Tape"];
     }
 
-    function refreshSettingsMenuOptions() {
+    function createSettingsMenuOptions() {
         settingsMenuOptions.length = 0;
-        var extConfig = extensionsSocket.getConfiguration();
+        var extConfig = WMSX.EXTENSIONS_CONFIG;
         for (var ext in extConfig) {
             var conf = extConfig[ext];
             if (conf.desc) {            // Only show extensions with descriptions
@@ -628,7 +627,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         settingsMenuOptions.push({ label: "",            divider: true });
         settingsMenuOptions.push({ label: "Help Screen", mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
         settingsMenuOptions.push({ label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+    }
 
+    function refreshSettingsMenuOptions() {
+        if (settingsMenuOptions.length === 0) createSettingsMenuOptions();
+        for (var i = 0; i < settingsMenuOptions.length; ++i) {
+            var opt = settingsMenuOptions[i];
+            if (opt.extension) opt.checked = extensionsSocket.isActive(opt.extension);
+        }
         if (barMenuActive === settingsMenuOptions.menu) refreshBarMenu(settingsMenuOptions);
     }
 
@@ -994,7 +1000,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.appendChild(barMenu);
     }
 
-    function setupBarMenuCSS() {                                // TODO Fix hover on dividers
+    function setupBarMenuCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = '' +'' +
@@ -1013,7 +1019,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   -webkit-backface-visibility: hidden;' +
             '   cursor: pointer; ' +
             '}\n' +
-            '.wmsx-bar-menu-item.wmsx-hover { ' +
+            '.wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-divider) { ' +
             '   color: white;' +
             '   background-color: rgb(220, 32, 26);' +
             '}\n' +

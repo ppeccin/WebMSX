@@ -8,6 +8,7 @@ wmsx.SlotFormats = {
         name: "Empty",
         desc: "Empty Slot",
         priority: 1001,
+        embeddedURL: "@[Empty].rom",
         tryFormat: function (rom) {
             // Only 0K content. Must be selected via info format hint
             if (!rom || !rom.content || rom.content.length === 0) return this;
@@ -72,6 +73,7 @@ wmsx.SlotFormats = {
         name: "RAM64K",
         desc: "RAM 64K",
         priority: 1011,
+        embeddedURL: "@[RAM64K].rom",
         tryFormat: function (rom) {
             // Only 0K content. Must be selected via info format hint
             if (rom.content.length === 0) return this;
@@ -88,6 +90,7 @@ wmsx.SlotFormats = {
         name: "RAMMapper",
         desc: "Standard RAM Mapper",
         priority: 1021,
+        embeddedURL: "@[RAMMapper].rom",
         tryFormat: function (rom) {
             // Only 0K content. Must be selected via info format hint
             if (rom.content.length === 0) return this;
@@ -106,6 +109,7 @@ wmsx.SlotFormats = {
         name: "DiskPatched",
         desc: "Generic Patched Disk BIOS",
         priority: 1301,
+        embeddedURL: "@DISK.rom",
         tryFormat: function (rom) {
             // Only DiskPatched 16K content. Must be selected via info format hint
             if (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) return this;
@@ -204,6 +208,7 @@ wmsx.SlotFormats = {
         name: "SCCExpansion",
         desc: "SCC Sound Cartridge",
         priority: 1551,
+        embeddedURL: "@[SCCExpansion].rom",
         tryFormat: function (rom) {
             // Only 0K content. Must be selected via info format hint
             if (rom.content.length === 0) return this;
@@ -220,6 +225,7 @@ wmsx.SlotFormats = {
         name: "SCCIExpansion",
         desc: "SCC-I (SCC+) Sound Cartridge",
         priority: 1552,
+        embeddedURL: "@[SCCIExpansion].rom",
         tryFormat: function (rom) {
             // 0K, 64K or 128K content. Must be selected via info format hint
             if (rom.content.length === 0 || rom.content.length === 65536 || rom.content.length === 131072) return this;
@@ -236,6 +242,7 @@ wmsx.SlotFormats = {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Extension",
         priority: 1553,
+        embeddedURL: "@MSXMUSIC.rom",
         tryFormat: function (rom) {
             // Only 16K content. Must be selected via info format hint
             if (rom.content.length === 16384) return this;
@@ -268,6 +275,7 @@ wmsx.SlotFormats = {
         name: "DOS2",
         desc: "MSX-DOS 2 ROM Mapper",
         priority: 1555,
+        embeddedURL: "@MSXDOS22v3.rom",
         tryFormat: function (rom) {
             // Only 64K content. Must be selected via info format hint
             if (rom.content.length === 65536) return this;
@@ -280,26 +288,11 @@ wmsx.SlotFormats = {
         }
     },
 
-    "Kanji1": {
-        name: "Kanji1",
-        desc: "Kanji Font",
-        priority: 1556,
-        tryFormat: function (rom) {
-            // 128K or 256K content. Must be selected via info format hint
-            if (rom.content.length === 131072 || rom.content.length === 262144) return this;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeKanjiFont(rom);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
     "PACExpansion": {
         name: "PACExpansion",
         desc: "PAC SRAM Cartridge",
-        priority: 1557,
+        priority: 1556,
+        embeddedURL: "@[PACExpansion].rom",
         tryFormat: function (rom) {
             // Only 0K content selected via info format hint, or 16 + 0x1ffe size starting with "PAC2 BACKUP DATA"      // TODO Make data loading work
             if (rom.content.length === 0) return this;
@@ -309,6 +302,22 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgePAC.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Kanji1": {
+        name: "Kanji1",
+        desc: "Kanji Font",
+        priority: 1557,
+        tryFormat: function (rom) {
+            // 128K or 256K content. Must be selected via info format hint
+            if (rom.content.length === 131072 || rom.content.length === 262144) return this;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeKanjiFont(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
         }
     },
 

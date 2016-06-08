@@ -7,8 +7,6 @@ wmsx.Monitor = function(display) {
     }
 
     this.connect = function(pVideoSignal, pCartridgeSocket) {
-        cartridgeSocket = pCartridgeSocket;
-        cartridgeSocket.addCartridgesStateListener(this);
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
     };
@@ -31,10 +29,6 @@ wmsx.Monitor = function(display) {
 
     this.setPixelMetrics = function(pixelWidth, pixelHeight) {
         display.displayPixelMetrics(pixelWidth, pixelHeight);
-    };
-
-    this.cartridgesStateUpdate = function() {
-        crtSetModeForCartridges();
     };
 
     this.setDisplayOptimalScale = function() {
@@ -112,7 +106,6 @@ wmsx.Monitor = function(display) {
 
 
     var videoSignal;
-    var cartridgeSocket;
 
     var displayAspectX;
     var displayScaleY;

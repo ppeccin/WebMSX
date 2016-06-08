@@ -47,14 +47,14 @@ WMSX = {
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     EXTENSIONS_CONFIG: {
-        RAMMAPPER:                  { SLOT: [3, 0], desc: "RAM Mapper",    url: "@[RAMMapper].rom",     mutual: "RAM64K" },
-        RAM64K:                     { SLOT: [3, 0],                        url: "@[RAM64K].rom",        mutual: "RAMMAPPER" },
-        DISK:                       { SLOT: [3, 2], desc: "Floppy Drives", url: "@DISK.rom"},
-        DOS2:                       { SLOT: [2, 2], desc: "MSX-DOS 2",     url: "@MSXDOS22v3.rom",      require: "RAMMAPPER, DISK" },
-        MSXMUSIC:                   { SLOT: [3, 3], desc: "MSX-MUSIC",     url: "@MSXMUSIC.rom" },
-        SCC:                        { SLOT: [1],    desc: "Konami SCC",    url: "@[SCCExpansion].rom",  exclude: "SCCI" },
-        SCCI:                       { SLOT: [1],    desc: "Konami SCC-I",  url: "@[SCCIExpansion].rom", exclude: "SCC" },
-        PAC:                        { SLOT: [1],    desc: "PAC SRAM",      url: "@[PACExpansion].rom"}
+        RAMMAPPER:                  { SLOT: [3, 0], desc: "RAM Mapper",    format: "RAMMapper",     mutual: "RAM64K" },
+        RAM64K:                     { SLOT: [3, 0],                        format: "RAM64K",        mutual: "RAMMAPPER" },
+        DISK:                       { SLOT: [3, 2], desc: "Floppy Drives", format: "DiskPatched" },
+        DOS2:                       { SLOT: [2, 2], desc: "MSX-DOS 2",     format: "DOS2",          require: "RAMMAPPER, DISK" },
+        MSXMUSIC:                   { SLOT: [3, 3], desc: "MSX-MUSIC",     format: "MSXMUSIC" },
+        SCC:                        { SLOT: [1],    desc: "Konami SCC",    format: "SCCExpansion" },
+        SCCI:                       { SLOT: [1],    desc: "Konami SCC-I",  format: "SCCIExpansion" },
+        PAC:                        { SLOT: [1],    desc: "PAC SRAM",      format: "PACExpansion" }
     },
 
     BIOS_SLOT:                      [0],

@@ -133,8 +133,8 @@ wmsx.Machine = function() {
                 self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true);
     };
 
-    this.loading = function(boo) {
-        isLoading = boo;
+    this.loading = function(state) {
+        isLoading = state;
     };
 
     this.userPause = function(pause, keepAudio) {
@@ -254,8 +254,7 @@ wmsx.Machine = function() {
             s: speedControl,
             vss: videoStandardSoft && videoStandardSoft.name,
             dd: diskDriveSocket.getDrive().saveState(),
-            ct: cassetteSocket.getDeck().saveState(),
-            ex: extensionsSocket.saveState()
+            ct: cassetteSocket.getDeck().saveState()
         };
     }
 
@@ -271,11 +270,10 @@ wmsx.Machine = function() {
         ppi.loadState(state.pp);
         optionalComponentsLoadState(state.rc, state.sf);
         bus.loadState(state.b);
-        machineControlsSocket.fireRedefinitionUpdate();
-        cartridgeSocket.fireStateUpdate();
         diskDriveSocket.getDrive().loadState(state.dd);
         cassetteSocket.getDeck().loadState(state.ct);
-        extensionsSocket.loadState(state.ex);
+        extensionsSocket.fireStateUpdate();
+        machineControlsSocket.fireRedefinitionUpdate();
     }
 
     function mainVideoClockUpdateSpeed() {
@@ -330,8 +328,8 @@ wmsx.Machine = function() {
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         extensionsSocket = new wmsx.ExtensionsSocket(self);
-        expansionSocket = new ExpansionSocket();
         cartridgeSocket = new CartridgeSocket();
+        expansionSocket = new ExpansionSocket();
         controllersSocket = new ControllersSocket();
         saveStateSocket = new SaveStateSocket();
         cassetteSocket = new CassetteSocket();
@@ -569,10 +567,10 @@ wmsx.Machine = function() {
             for (var i = 0; i < listeners.length; i++)
                 listeners[i].cartridgesStateUpdate();
         };
-        this.addCartridgesStateListener = function (listener) {
+        this.addCartridgesStateListener = function (listener, silent) {
             if (listeners.indexOf(listener) < 0) {
                 listeners.push(listener);
-                listener.cartridgesStateUpdate();
+                if (!silent) listener.cartridgesStateUpdate();
             }
         };
         var listeners = [];
