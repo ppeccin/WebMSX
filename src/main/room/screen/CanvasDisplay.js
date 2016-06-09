@@ -94,8 +94,29 @@ wmsx.CanvasDisplay = function(mainElement) {
         return false;
     };
 
-    this.togglePasteDialog = function() {
-        if (!signalIsOn) return;
+    this.executeTextCopy = function() {
+        if (!signalIsOn) return this.showOSD("Screen Text Copy available only when Power is ON!", true);
+
+        if (!document.queryCommandSupported || !document.queryCommandSupported('copy'))
+            return this.showOSD("Copy to Clipboard not supported by browser!", true);
+
+        var text = monitor.getScreenText();
+
+        if (!text) return this.showOSD("Sreen Text Copy not available in this Screen!", true);
+
+        if (!copyTextArea) setupCopyTextArea();
+        copyTextArea.innerHTML = text;
+        copyTextArea.select();
+
+        if (document.execCommand("copy"))
+            this.showOSD("Screen text copied to Clibpoard", true);
+        else
+            this.showOSD("Copy to Clipboard not supported by browser!", true);
+    };
+
+    this.toggleTextPasteDialog = function() {
+        if (!signalIsOn) return this.showOSD("Text Paste available only when Power is ON!", true);
+
         if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement, this);
         pasteDialog.toggle();
         return false;
@@ -792,6 +813,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.appendChild(osd);
     }
 
+    function setupCopyTextArea() {
+        copyTextArea = document.createElement("textarea");
+        copyTextArea.id = "wmsx-copy-texarea";
+        copyTextArea.style.position = "absolute";
+        copyTextArea.style.width = "50px";
+        copyTextArea.style.height = "20px";
+        copyTextArea.style.bottom = "-100px";
+        mainElement.appendChild(copyTextArea);
+    }
+
     function showBar() {
         if (BAR_AUTO_HIDE && !mousePointerLocked) buttonsBar.style.bottom = "0px";
     }
@@ -1071,6 +1102,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var settingsDialog;
     var pasteDialog;
+    var copyTextArea;
 
     var borderElement;
     var fsElement;

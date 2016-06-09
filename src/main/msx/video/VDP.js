@@ -12,7 +12,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         isV9918 = !msx2 && !msx2p;
         isV9938 = msx2 && !msx2p;
         isV9958 = !!msx2p;
-        videoSignal = new wmsx.VideoSignal();
+        videoSignal = new wmsx.VideoSignal(self);
         videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
@@ -251,6 +251,20 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         cycles += elapsed;
 
         return cycles;
+    };
+
+    this.getScreenText = function() {
+        var cols = modeData.textCols;
+        if (!cols) return null;
+
+        var lines = (register[9] & 0x80) ? 27 : 24;
+        var linesStr = [];
+
+        for (var line = 0; line < lines; ++line) {
+            linesStr.push(wmsx.Util.int8BitArrayToByteString(vram, layoutTableAddress + line * cols, cols).replace(/\s+$/,""));      // right trim
+        }
+
+        return linesStr.join("\n").replace(/[\x00\xff]/g, " ").replace(/\s+$/,"");      // right trim
     };
 
     function registerWrite(reg, val) {
@@ -2285,20 +2299,20 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var patternTableAddressMaskBase = ~(-1 << 11);
 
     var modes = wmsx.Util.arrayFill(new Array(0x24),
-                  { name: "NUL", isV9938: true,  layTBase:        0, colorTBase:        0, patTBase:        0, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine:   renderLineBlanked, renderLinePatInfo:       renderLineBlanked, ppb: 0, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true });
+                  { name: "NUL", isV9938: true,  layTBase:        0, colorTBase:        0, patTBase:        0, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine:   renderLineBlanked, renderLinePatInfo:       renderLineBlanked, ppb: 0, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true, textCols: 0 });
 
-    modes[0x10] = { name:  "T1", isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT1, renderLinePatInfo: renderLineModeT1PatInfo, ppb: 0, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x12] = { name:  "T2", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT2, renderLinePatInfo: renderLineModeT2PatInfo, ppb: 0, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x08] = { name:  "MC", isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeMC, renderLinePatInfo: renderLineModeMCPatInfo, ppb: 0, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x00] = { name:  "G1", isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeG1, renderLinePatInfo: renderLineModeG1PatInfo, ppb: 0, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x01] = { name:  "G2", isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeG2, renderLinePatInfo: renderLineModeG2PatInfo, ppb: 0, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x02] = { name:  "G3", isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG3, renderLinePatInfo: renderLineModeG3PatInfo, ppb: 0, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x03] = { name:  "G4", isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG4, renderLinePatInfo:        renderLineModeG4, ppb: 2, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true };
-    modes[0x04] = { name:  "G5", isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG5, renderLinePatInfo:        renderLineModeG5, ppb: 4, spriteMode: 2, tiled:  true, vramInter: false, bdPaletted:  true };
-    modes[0x05] = { name:  "G6", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG6, renderLinePatInfo:        renderLineModeG6, ppb: 2, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
-    modes[0x07] = { name:  "G7", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG7, renderLinePatInfo:        renderLineModeG7, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted: false };
-    modes[0x21] = { name: "YJK", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYJK, renderLinePatInfo:       renderLineModeYJK, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
-    modes[0x23] = { name: "YAE", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYAE, renderLinePatInfo:       renderLineModeYAE, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true };
+    modes[0x10] = { name:  "T1", isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT1, renderLinePatInfo: renderLineModeT1PatInfo, ppb: 0, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true, textCols: 40 };
+    modes[0x12] = { name:  "T2", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT2, renderLinePatInfo: renderLineModeT2PatInfo, ppb: 0, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true, textCols: 80 };
+    modes[0x08] = { name:  "MC", isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeMC, renderLinePatInfo: renderLineModeMCPatInfo, ppb: 0, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true, textCols: 0 };
+    modes[0x00] = { name:  "G1", isV9938: false, layTBase: -1 << 10, colorTBase: -1 <<  6, patTBase: -1 << 11, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeG1, renderLinePatInfo: renderLineModeG1PatInfo, ppb: 0, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true, textCols: 32 };
+    modes[0x01] = { name:  "G2", isV9938: false, layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 <<  7, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeG2, renderLinePatInfo: renderLineModeG2PatInfo, ppb: 0, spriteMode: 1, tiled: false, vramInter: false, bdPaletted:  true, textCols: 0 };
+    modes[0x02] = { name:  "G3", isV9938: true,  layTBase: -1 << 10, colorTBase: -1 << 13, patTBase: -1 << 13, sprAttrTBase: -1 << 10, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG3, renderLinePatInfo: renderLineModeG3PatInfo, ppb: 0, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true, textCols: 0 };
+    modes[0x03] = { name:  "G4", isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG4, renderLinePatInfo:        renderLineModeG4, ppb: 2, spriteMode: 2, tiled: false, vramInter: false, bdPaletted:  true, textCols: 0 };
+    modes[0x04] = { name:  "G5", isV9938: true,  layTBase: -1 << 15, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 128, evenPageMask: ~(1 << 15), blinkPageMask: ~(1 << 15), renderLine:    renderLineModeG5, renderLinePatInfo:        renderLineModeG5, ppb: 4, spriteMode: 2, tiled:  true, vramInter: false, bdPaletted:  true, textCols: 0 };
+    modes[0x05] = { name:  "G6", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 512, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG6, renderLinePatInfo:        renderLineModeG6, ppb: 2, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true, textCols: 0 };
+    modes[0x07] = { name:  "G7", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:    renderLineModeG7, renderLinePatInfo:        renderLineModeG7, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted: false, textCols: 0 };
+    modes[0x21] = { name: "YJK", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYJK, renderLinePatInfo:       renderLineModeYJK, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true, textCols: 0 };
+    modes[0x23] = { name: "YAE", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYAE, renderLinePatInfo:       renderLineModeYAE, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true, textCols: 0 };
 
     var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
 

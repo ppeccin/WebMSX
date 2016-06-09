@@ -85,6 +85,10 @@ wmsx.Monitor = function(display) {
         this.showOSD("Display Size: " + displayScaleY.toFixed(1) + "x", true);
     };
 
+    this.getScreenText = function() {
+        return videoSignal.getScreenText();
+    };
+
     var setDisplayScale = function(aspectX, scaleY) {
         displayAspectX = aspectX;
         if (displayAspectX < 0.5) displayAspectX = 0.5;

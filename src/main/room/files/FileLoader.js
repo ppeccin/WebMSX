@@ -422,7 +422,7 @@ wmsx.FileLoader = function() {
 
     var createFileInputElement = function () {
         fileInputElement = document.createElement("input");
-        fileInputElement.id = "ROMLoaderFileInput";
+        fileInputElement.id = "wmsx-file-loader-input";
         fileInputElement.type = "file";
         fileInputElement.multiple = true;
         fileInputElement.accept = INPUT_ACCEPT.ALL;

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.VideoSignal = function() {
+wmsx.VideoSignal = function(vdp) {
 
     this.connectMonitor = function(pMonitor) {
         monitor = pMonitor;
@@ -28,6 +28,10 @@ wmsx.VideoSignal = function() {
 
     this.setDebugMode = function(boo) {
         if (monitor) monitor.setDebugMode(boo);
+    };
+
+    this.getScreenText = function() {
+        return vdp.getScreenText();
     };
 
     var monitor;

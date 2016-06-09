@@ -408,7 +408,7 @@ wmsx.SettingsGUI.html = function() {
                 '</div>' +
                 '<div id="wmsx-inputs">' +
                     '<div class="wmsx-left">' +
-                        '<div id="wmsx-inputs-swap-joysticks" class="wmsx-hotkey">' +
+                        '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
@@ -418,7 +418,7 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="wmsx-desc">Toggle Joysticks</div>' +
                         '</div>' +
-                        '<div id="wmsx-inputs-toggle-keyboards" class="wmsx-hotkey">' +
+                        '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
@@ -428,7 +428,7 @@ wmsx.SettingsGUI.html = function() {
                             '</div>' +
                             '<div class="wmsx-desc">Toggle Keyboards</div>' +
                         '</div>' +
-                        '<div id="wmsx-inputs-toggle-mouse" class="wmsx-hotkey">' +
+                        '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
@@ -443,7 +443,27 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-right">' +
-                        '<div id="wmsx-inputs-toggle-turbofire" class="wmsx-hotkey">' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
+                                    'C' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="wmsx-desc">Copy Screen Text</div>' +
+                        '</div>' +
+                        '<div class="wmsx-hotkey">' +
+                            '<div class="wmsx-command">' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
+                                    'V' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="wmsx-desc">Paste Text</div>' +
+                        '</div>' +
+                        '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
@@ -452,16 +472,6 @@ wmsx.SettingsGUI.html = function() {
                                 '</div>' +
                             '</div>' +
                             '<div class="wmsx-desc">Adjust Turbo-Fire speed</div>' +
-                        '</div>' +
-                        '<div id="wmsx-inputs-paste" class="wmsx-hotkey">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                    'V' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="wmsx-desc">Open Text Paste Box</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +

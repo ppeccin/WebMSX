@@ -177,12 +177,12 @@ wmsx.DOMPeripheralControls = function(room) {
                 controllersHub.toggleMouseMode(); break;
             case controls.TURBO_FIRE_TOGGLE:
                 controllersHub.toggleTurboFireSpeed(); break;
+            case controls.COPY_STRING:
+                screen.executeTextCopy(); break;
             case controls.PASTE_STRING:
-                screen.togglePasteDialog();
-                break;
+                screen.toggleTextPasteDialog(); break;
             case controls.CAPTURE_SCREEN:
-                screen.captureScreen();
-                break;
+                screen.captureScreen(); break;
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {
@@ -243,9 +243,9 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
 
+        keyAltCodeMap[KEY_COPY]    = controls.COPY_STRING;
         keyAltCodeMap[KEY_PASTE]   = controls.PASTE_STRING;
         keyAltCodeMap[KEY_PASTE2]  = controls.PASTE_STRING;
-
         keyAltCodeMap[KEY_CAPTURE_SCREEN]   = controls.CAPTURE_SCREEN;
 
         keyControlCodeMap[KEY_MACHINE_POWER] = controls.MACHINE_LOAD_STATE_FILE;
@@ -277,6 +277,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_DEFAULTS  = wmsx.DOMKeys.VK_BACKSPACE.c;
 
+    var KEY_COPY   = wmsx.DOMKeys.VK_C.c;
     var KEY_PASTE   = wmsx.DOMKeys.VK_V.c;
     var KEY_PASTE2  = wmsx.DOMKeys.VK_INSERT.c;
 
