@@ -23,8 +23,7 @@ wmsx.DOMPeripheralControls = function(room) {
     };
 
     this.keyDown = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0) | (event.shiftKey ? KEY_SHIFT_MASK : 0);
-        if (processKeyPress(event.keyCode, modifiers)) {
+        if (processKeyPress(event.keyCode, event.shiftKey, event.ctrlKey, event.altKey)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
@@ -35,39 +34,28 @@ wmsx.DOMPeripheralControls = function(room) {
     this.keyUp = function(event) {
     };
 
-    var processKeyPress = function(keyCode, modifiers) {
-        var control = controlForEvent(keyCode, modifiers);
+    var processKeyPress = function(keyCode, shiftKey, ctrlKey, altKey) {
+        var control = controlForEvent(keyCode, ctrlKey, altKey);
         if (!control) return false;
-        self.controlActivated(control);
+        self.controlActivated(control, false, shiftKey);      // Never altPower
         return true;
     };
 
-    var controlForEvent = function(keyCode, modif) {
-        switch (modif) {
-            case 0:
-                return keyCodeMap[keyCode];
-            case KEY_ALT_MASK:
-                return keyAltCodeMap[keyCode];
-            case KEY_SHIFT_MASK:
-                return keyShiftCodeMap[keyCode];
-            case KEY_CTRL_MASK:
-                return keyControlCodeMap[keyCode];
-            case KEY_CTRL_MASK | KEY_ALT_MASK:
-                return keyControlAltCodeMap[keyCode];
-            case KEY_SHIFT_MASK | KEY_CTRL_MASK:
-                return keyShiftControlCodeMap[keyCode];
-            case KEY_SHIFT_MASK | KEY_ALT_MASK:
-                return keyShiftAltCodeMap[keyCode];
-            case KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK:
-                return keyShiftControlAltCodeMap[keyCode];
-        }
-        return null;
+    var controlForEvent = function(keyCode, ctrlKey, altKey) {
+        if (ctrlKey && altKey)
+            return keyControlAltCodeMap[keyCode];
+        if (ctrlKey)
+            return keyControlCodeMap[keyCode];
+        if (altKey)
+            return keyAltCodeMap[keyCode];
+        return keyCodeMap[keyCode];
     };
 
-    this.controlActivated = function(control) {
+    this.controlActivated = function(control, altPower, secPort) {
         // All controls are Press-only and repeatable
         switch(control) {
             case controls.MACHINE_POWER_TOGGLE:
+                if (altPower) return this.controlActivated(controls.MACHINE_POWER_RESET);
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);
                 break;
             case controls.MACHINE_POWER_RESET:
@@ -79,112 +67,54 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.MACHINE_SAVE_STATE_FILE:
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);
                 break;
-            case controls.DISKA_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, false);
+            case controls.DISK_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
                 break;
-            case controls.DISKA_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, true, false);
+            case controls.DISK_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
                 break;
-            case controls.DISKA_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, false);
+            case controls.DISK_LOAD_FILES:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort);
                 break;
-            case controls.DISKA_LOAD_FILES:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, false, false);
+            case controls.DISK_LOAD_ZIP:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort);
                 break;
-            case controls.DISKA_LOAD_ZIP:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, false, false);
+            case controls.DISK_REMOVE:
+                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(secPort ? 1 : 0);
                 break;
-            case controls.DISKA_REMOVE:
-                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(0);
+            case controls.DISK_EMPTY:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(secPort ? 1 : 0, null);
                 break;
-            case controls.DISKA_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0, null);
+            case controls.DISK_EMPTY_720:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
                 break;
-            case controls.DISKA_EMPTY_720:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+            case controls.DISK_EMPTY_360:
+                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
-            case controls.DISKA_EMPTY_360:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
+            case controls.DISK_SAVE_FILE:
+                if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(secPort ? 1 : 0);
                 break;
-            case controls.DISKA_SAVE_FILE:
-                if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(0);
+            case controls.CARTRIDGE_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
-            case controls.DISKB_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, false, true);
+            case controls.CARTRIDGE_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
-            case controls.DISKB_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, true, true);
+            case controls.CARTRIDGE_REMOVE:
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(secPort ? 1 : 0, altPower);
                 break;
-            case controls.DISKB_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, false, true);
+            case controls.CARTRIDGE_LOAD_DATA_FILE:
+                if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, secPort);
                 break;
-            case controls.DISKB_LOAD_FILES:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, false, true);
-                break;
-            case controls.DISKB_LOAD_ZIP:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, false, true);
-                break;
-            case controls.DISKB_REMOVE:
-                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(1);
-                break;
-            case controls.DISKB_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1, null);
-                break;
-            case controls.DISKB_EMPTY_720:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
-                break;
-            case controls.DISKB_EMPTY_360:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(1, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
-                break;
-            case controls.DISKB_SAVE_FILE:
-                if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(1);
-                break;
-            case controls.CARTRIDGE1_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, false, false);
-                break;
-            case controls.CARTRIDGE1_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, true, false);
-                break;
-            case controls.CARTRIDGE1_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, false, false);
-                break;
-            case controls.CARTRIDGE1_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(0, false);
-                break;
-            case controls.CARTRIDGE1_LOAD_DATA_FILE:
-                if (cartridgeSocket.dataOperationNotSupportedMessage(0, false, false)) break;
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, false, false);
-                break;
-            case controls.CARTRIDGE1_SAVE_DATA_FILE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(0);
-                break;
-            case controls.CARTRIDGE2_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, false, true);
-                break;
-            case controls.CARTRIDGE2_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, true, true);
-                break;
-            case controls.CARTRIDGE2_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, false, true);
-                break;
-            case controls.CARTRIDGE2_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(1, false);
-                break;
-            case controls.CARTRIDGE2_LOAD_DATA_FILE:
-                if (cartridgeSocket.dataOperationNotSupportedMessage(1, false, false)) break;
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, false, true);
-                break;
-            case controls.CARTRIDGE2_SAVE_DATA_FILE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(1);
+            case controls.CARTRIDGE_SAVE_DATA_FILE:
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case controls.TAPE_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, false, false);
-                break;
-            case controls.TAPE_LOAD_FILE_ALT_POWER:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, true, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case controls.TAPE_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case controls.TAPE_REMOVE:
                 if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
@@ -193,6 +123,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmptyTape();
                 break;
             case controls.TAPE_SAVE_FILE:
+                if (secPort) return this.controlActivated(controls.TAPE_AUTO_RUN);
                 if (!mediaChangeDisabledWarning()) cassetteDeck.saveTapeFile();
                 break;
             case controls.TAPE_REWIND:
@@ -209,6 +140,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.TAPE_AUTO_RUN:
                 cassetteDeck.userTypeCurrentAutoRunCommand();
+                break;
+            case controls.ALL_LOAD_URL:     // TODO Make it work
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ALL, altPower, secPort);
                 break;
             case controls.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
@@ -227,6 +161,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openAbout();
                 break;
             case controls.SCREEN_OPEN_SETTINGS:
+                if (altPower) return this.controlActivated(controls.SCREEN_DEFAULTS);
                 screen.openSettings();
                 break;
             case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
@@ -266,25 +201,15 @@ wmsx.DOMPeripheralControls = function(room) {
     };
 
     var initKeys = function() {
-        keyCodeMap[KEY_DISK] = controls.DISKA_LOAD_FILE;
-        keyControlCodeMap[KEY_DISK] = controls.DISKA_EMPTY;
-        keyAltCodeMap[KEY_DISK] = controls.DISKA_REMOVE;
-        keyControlAltCodeMap[KEY_DISK] = controls.DISKA_SAVE_FILE;
+        keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILE;
+        keyControlCodeMap[KEY_DISK] = controls.DISK_EMPTY;
+        keyAltCodeMap[KEY_DISK] = controls.DISK_REMOVE;
+        keyControlAltCodeMap[KEY_DISK] = controls.DISK_SAVE_FILE;
 
-        keyShiftCodeMap[KEY_DISK] = controls.DISKB_LOAD_FILE;
-        keyShiftControlCodeMap[KEY_DISK] = controls.DISKB_EMPTY;
-        keyShiftAltCodeMap[KEY_DISK] = controls.DISKB_REMOVE;
-        keyShiftControlAltCodeMap[KEY_DISK] = controls.DISKB_SAVE_FILE;
-
-        keyCodeMap[KEY_CART] = controls.CARTRIDGE1_LOAD_FILE;
-        keyAltCodeMap[KEY_CART] = controls.CARTRIDGE1_REMOVE;
-        keyControlCodeMap[KEY_CART] = controls.CARTRIDGE1_LOAD_DATA_FILE;
-        keyControlAltCodeMap[KEY_CART] = controls.CARTRIDGE1_SAVE_DATA_FILE;
-
-        keyShiftCodeMap[KEY_CART] = controls.CARTRIDGE2_LOAD_FILE;
-        keyShiftAltCodeMap[KEY_CART] = controls.CARTRIDGE2_REMOVE;
-        keyShiftControlCodeMap[KEY_CART] = controls.CARTRIDGE2_LOAD_DATA_FILE;
-        keyShiftControlAltCodeMap[KEY_CART] = controls.CARTRIDGE2_SAVE_DATA_FILE;
+        keyCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_FILE;
+        keyAltCodeMap[KEY_CART] = controls.CARTRIDGE_REMOVE;
+        keyControlCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_DATA_FILE;
+        keyControlAltCodeMap[KEY_CART] = controls.CARTRIDGE_SAVE_DATA_FILE;
 
         keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
         keyControlCodeMap[KEY_TAPE]  = controls.TAPE_EMPTY;
@@ -295,9 +220,6 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
         keyAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
         keyAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
-        keyShiftControlAltCodeMap[KEY_TAPE] = controls.TAPE_AUTO_RUN;
-
-        keyShiftCodeMap[KEY_TAPE] = controls.DISKA_LOAD_URL;
 
         keyAltCodeMap[KEY_KEYBOARD_TOGGLE_HOST]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
         keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]      = controls.JOYSTICKS_TOGGLE_MODE;
@@ -334,14 +256,10 @@ wmsx.DOMPeripheralControls = function(room) {
     var cassetteDeck;
     var diskDrive;
 
-    var keyCodeMap = {};
-    var keyShiftCodeMap = {};
+    var keyCodeMap = {};                // Shift is a different matter
     var keyAltCodeMap = {};
-    var keyShiftControlCodeMap = {};
-    var keyShiftAltCodeMap = {};
     var keyControlCodeMap = {};
     var keyControlAltCodeMap = {};
-    var keyShiftControlAltCodeMap = {};
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 
@@ -375,10 +293,6 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
     var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
-
-    var KEY_CTRL_MASK  = 1;
-    var KEY_ALT_MASK   = 2;
-    var KEY_SHIFT_MASK = 4;
 
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;

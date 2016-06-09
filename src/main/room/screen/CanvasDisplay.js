@@ -514,59 +514,54 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "",                divider: true },
             { label: "Load State File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
             { label: "Save State File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE, disabled: true },
-            {                           mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET }
         ];
         menu.menuTitle = "System";
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", null, menu);
 
         menu = [
-            { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE },
-            { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_URL },
-            { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILES },
-            { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_ZIP },
-            { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_720 },
-            { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY_360 },
-            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_SAVE_FILE, disabled: true },
-            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKA_REMOVE, disabled: true },
-            {                              mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKA_EMPTY },
-            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKA_LOAD_FILE_ALT_POWER }
+            { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISK_LOAD_FILE },
+            { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL },
+            { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
+            { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_LOAD_ZIP },
+            { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_EMPTY_720 },
+            { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_EMPTY_360 },
+            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true },
+            {                              mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
         ];
         menu.menuTitle = "Drive A:";
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A", null, menu);
 
         menu = [
-            { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE },
-            { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_URL },
-            { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILES },
-            { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_ZIP },
-            { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_720 },
-            { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY_360 },
-            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_SAVE_FILE, disabled: true },
-            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISKB_REMOVE, disabled: true },
-            {                              mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISKB_EMPTY },
-            {                              mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.DISKB_LOAD_FILE_ALT_POWER }
+            { label: "Load Disk File",     mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.DISK_LOAD_FILE, secSlot: true },
+            { label: "Load Disk URL",      mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL, secSlot: true },
+            { label: "Load Files as Disk", mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
+            { label: "Load ZIP as Disk",   mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_LOAD_ZIP, secSlot: true },
+            { label: "New 720KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
+            { label: "New 360KB Disk",     mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
+            { label: "Save Disk File",     mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true },
+            { label: "Remove Disk",        mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true },
+            {                              mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
         menu.menuTitle = "Drive B:";
         diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -266, -54, "Disk B", null, menu);
 
         menu = [
-            { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE },
-            { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_URL },
-            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_DATA_FILE, disabled: true },
-            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_SAVE_DATA_FILE, disabled: true },
-            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_REMOVE, disabled: true },
-            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE1_LOAD_FILE_ALT_POWER }
+            { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
+            { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_URL },
+            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true },
+            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cartridge 1";
         cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -54, "Cartridge 1", null, menu);
 
         menu = [
-            { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE },
-            { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_URL },
-            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_DATA_FILE, disabled: true },
-            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_SAVE_DATA_FILE, disabled: true },
-            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_REMOVE, disabled: true },
-            {                            mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.CARTRIDGE2_LOAD_FILE_ALT_POWER }
+            { label: "Load ROM File",    mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
+            { label: "Load ROM URL",     mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_URL, secSlot: true },
+            { label: "Load Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true },
+            { label: "Save Data",        mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true },
+            { label: "Remove Cartridge", mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
         menu.menuTitle = "Cartridge 2";
         cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -54, "Cartridge 2", null, menu);
@@ -579,7 +574,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Run Program",    mouseMask: MOUSE_BUT2_MASK | KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, disabled: true },
             { label: "Save Tape File", mouseMask: MOUSE_BUT2_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true },
             { label: "Remove Tape",    mouseMask: MOUSE_BUT2_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true },
-            {                          mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_FILE_ALT_POWER }
         ];
         menu.menuTitle = "Cassette Tape";
         tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -54, "Cassette Tape", null, menu);
@@ -616,7 +610,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
         menu.push({ label: "",            divider: true });
         menu.push({ label: "Help Screen", mouseMask: MOUSE_BUT2_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
-        menu.push({ label: "Defaults",    mouseMask: MOUSE_BUT3_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+        menu.push({ label: "Defaults",    mouseMask: MOUSE_VOID_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
     }
 
     function refreshSettingsMenuOptions() {
@@ -969,12 +963,14 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         var fireItem = function(e) {
             if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
+                var altPower = e.button === 1;
+                var secSlot;
                 if (e.target.wmsxMenuOption.extension) {
-                    var altPower = e.button === 1;
-                    var secSlot = e.shiftKey;
-                    extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, secSlot, altPower);
+                    secSlot = e.shiftKey;
+                    extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);
                 } else if (e.target.wmsxMenuOption.control) {
-                    peripheralControls.controlActivated(e.target.wmsxMenuOption.control);
+                    secSlot = e.target.wmsxMenuOption.secSlot;
+                    peripheralControls.controlActivated(e.target.wmsxMenuOption.control, altPower, secSlot);
                     hideBarMenu();
                 }
             }
