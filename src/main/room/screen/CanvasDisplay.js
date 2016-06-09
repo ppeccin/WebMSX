@@ -112,6 +112,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             this.showOSD("Screen text copied to Clibpoard", true);
         else
             this.showOSD("Copy to Clipboard not supported by browser!", true);
+
+        this.focus();
     };
 
     this.toggleTextPasteDialog = function() {
@@ -818,8 +820,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         copyTextArea.id = "wmsx-copy-texarea";
         copyTextArea.style.position = "absolute";
         copyTextArea.style.width = "50px";
-        copyTextArea.style.height = "20px";
-        copyTextArea.style.bottom = "-100px";
+        copyTextArea.style.height = "0px";
+        copyTextArea.style.bottom = "0px";
+        copyTextArea.style.zIndex = -10;
+        copyTextArea.style.opacity = 0;
         mainElement.appendChild(copyTextArea);
     }
 
