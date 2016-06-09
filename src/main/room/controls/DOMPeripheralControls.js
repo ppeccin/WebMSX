@@ -54,14 +54,14 @@ wmsx.DOMPeripheralControls = function(room) {
     this.controlActivated = function(control, altPower, secPort) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case controls.MACHINE_POWER_TOGGLE:
+            case controls.MACHINE_POWER_TOGGLE:                                                         // Machine Controls called directly by Screen
                 if (altPower) return this.controlActivated(controls.MACHINE_POWER_RESET);
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);
                 break;
             case controls.MACHINE_POWER_RESET:
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);
                 break;
-            case controls.MACHINE_LOAD_STATE_FILE:
+            case controls.MACHINE_LOAD_STATE_FILE:                                                      // Only this Machine Control has a key here
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false);
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
@@ -111,6 +111,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case controls.TAPE_LOAD_FILE:
+                if (secPort) return this.controlActivated(controls.ALL_LOAD_FILE);
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case controls.TAPE_LOAD_URL:
@@ -120,10 +121,11 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
                 break;
             case controls.TAPE_EMPTY:
+                if (secPort) return this.controlActivated(controls.ALL_LOAD_URL, altPower, false);
                 if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmptyTape();
                 break;
             case controls.TAPE_SAVE_FILE:
-                if (secPort) return this.controlActivated(controls.TAPE_AUTO_RUN);
+                if (secPort) return this.controlActivated(controls.TAPE_AUTO_RUN, altPower, false);
                 if (!mediaChangeDisabledWarning()) cassetteDeck.saveTapeFile();
                 break;
             case controls.TAPE_REWIND:
@@ -141,7 +143,10 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.TAPE_AUTO_RUN:
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
-            case controls.ALL_LOAD_URL:     // TODO Make it work
+            case controls.ALL_LOAD_FILE:
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ALL, altPower, secPort);
+                break;
+            case controls.ALL_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ALL, altPower, secPort);
                 break;
             case controls.SCREEN_CRT_MODE:
@@ -242,6 +247,8 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_PASTE2]  = controls.PASTE_STRING;
 
         keyAltCodeMap[KEY_CAPTURE_SCREEN]   = controls.CAPTURE_SCREEN;
+
+        keyControlCodeMap[KEY_MACHINE_POWER] = controls.MACHINE_LOAD_STATE_FILE;
     };
 
 
@@ -294,6 +301,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
     var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
 
+    var KEY_MACHINE_POWER  = wmsx.DOMKeys.VK_F11.c;
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 

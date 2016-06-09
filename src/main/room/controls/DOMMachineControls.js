@@ -24,7 +24,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     };
 
     this.keyDown = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0);
+        var modifiers = 0 | (event.ctrlKey && KEY_CTRL_MASK) | (event.altKey && KEY_ALT_MASK) | (event.shiftKey && KEY_SHIFT_MASK);
         if (processKeyEvent(event.keyCode, true, modifiers)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
@@ -36,7 +36,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     };
 
     this.keyUp = function(event) {
-        var modifiers = 0 | (event.ctrlKey ? KEY_CTRL_MASK : 0) | (event.altKey ? KEY_ALT_MASK : 0);
+        var modifiers = 0 | (event.ctrlKey && KEY_CTRL_MASK) | (event.altKey && KEY_ALT_MASK) | (event.shiftKey && KEY_SHIFT_MASK);
         if (processKeyEvent(event.keyCode, false, modifiers)) {
             event.returnValue = false;  // IE
             if (event.preventDefault) event.preventDefault();
@@ -63,6 +63,8 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         switch (modif) {
             case 0:
                 return normalCodeMap[keyCode];
+            case KEY_SHIFT_MASK:
+                return withShiftCodeMap[keyCode];
             case KEY_CTRL_MASK:
                 return withCTRLCodeMap[keyCode];
             case KEY_ALT_MASK:
@@ -83,7 +85,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         self.applyPreferences();
 
         normalCodeMap[KEY_POWER]            = controls.POWER;
-        withCTRLCodeMap[KEY_POWER]          = controls.RESET;
+        withShiftCodeMap[KEY_POWER]          = controls.RESET;
 
         normalCodeMap[KEY_ALTERNATE_SPEED]    = controls.FAST_SPEED;
         withCTRLCodeMap[KEY_ALTERNATE_SPEED]  = controls.SLOW_SPEED;
@@ -144,7 +146,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         withALTCodeMap[KEY_STATE_12] = controls.LOAD_STATE_12;
         withALTCodeMap[KEY_STATE_12a] = controls.LOAD_STATE_12;
 
-        withCTRLALTCodeMap[KEY_SAVE_STATE_FILE]  = controls.SAVE_STATE_FILE;
+        withCTRLALTCodeMap[KEY_POWER] = controls.SAVE_STATE_FILE;
     };
 
     this.applyPreferences = function() {
@@ -157,6 +159,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var monitor;
 
     var normalCodeMap = {};
+    var withShiftCodeMap = {};
     var withCTRLCodeMap = {};
     var withALTCodeMap = {};
     var withCTRLALTCodeMap = {};
@@ -205,8 +208,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_STATE_11a        = wmsx.DOMKeys.VK_MINUS_FF.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS_FF.c;
-
-    var KEY_SAVE_STATE_FILE  = wmsx.DOMKeys.VK_F11.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;

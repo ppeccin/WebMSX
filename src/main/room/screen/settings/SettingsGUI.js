@@ -48,8 +48,8 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-fixed">' +
-                                    'Ctrl' +
+                                '<div class="wmsx-key">' +
+                                    'Shift' +
                                 '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'F11' +
                                 '</div>' +
@@ -299,7 +299,7 @@ wmsx.SettingsGUI.html = function() {
                                     'Shift' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="wmsx-desc">Use Drive B, Slot 2</div>' +
+                            '<div class="wmsx-desc">Use Drive B / Slot 2</div>' +
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
@@ -790,7 +790,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-general .wmsx-left .wmsx-command {' +
-           'width: 102px;' +
+           'width: 105px;' +
        '}' +
 
        '#wmsx-general .wmsx-right {' +
