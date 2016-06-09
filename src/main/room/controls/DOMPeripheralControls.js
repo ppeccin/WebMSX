@@ -111,7 +111,6 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case controls.TAPE_LOAD_FILE:
-                if (secPort) return this.controlActivated(controls.ALL_LOAD_FILE);
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case controls.TAPE_LOAD_URL:
@@ -121,7 +120,6 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
                 break;
             case controls.TAPE_EMPTY:
-                if (secPort) return this.controlActivated(controls.ALL_LOAD_URL, altPower, false);
                 if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmptyTape();
                 break;
             case controls.TAPE_SAVE_FILE:
@@ -144,6 +142,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case controls.ALL_LOAD_FILE:
+                if (secPort) return this.controlActivated(controls.ALL_LOAD_URL, altPower, false);
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ALL, altPower, secPort);
                 break;
             case controls.ALL_LOAD_URL:
@@ -206,6 +205,8 @@ wmsx.DOMPeripheralControls = function(room) {
     };
 
     var initKeys = function() {
+        keyControlCodeMap[KEY_ALL] = controls.ALL_LOAD_FILE;
+
         keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILE;
         keyControlCodeMap[KEY_DISK] = controls.DISK_EMPTY;
         keyAltCodeMap[KEY_DISK] = controls.DISK_REMOVE;
@@ -284,10 +285,10 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CAPTURE_SCREEN  = wmsx.DOMKeys.VK_G.c;
 
     var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
-
     var KEY_CART  = wmsx.DOMKeys.VK_F7.c;
+    var KEY_TAPE  = wmsx.DOMKeys.VK_F8.c;
+    var KEY_ALL   = wmsx.DOMKeys.VK_F12.c;
 
-    var KEY_TAPE       = wmsx.DOMKeys.VK_F8.c;
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
