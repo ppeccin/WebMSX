@@ -46,6 +46,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/CartridgeRType.js",
                     "src/main/msx/slots/cartridges/CartridgeCrossBlaim.js",
                     "src/main/msx/slots/cartridges/CartridgeDOS2.js",
+                    "src/main/msx/slots/cartridges/special/pac/CartridgePAC.js",
                     "src/main/msx/slots/cartridges/special/disk/ImageDiskDriver.js",
                     "src/main/msx/slots/cartridges/special/disk/CartridgeDiskPatched.js",
                     "src/main/msx/slots/cartridges/special/scc/SCCIAudio.js",
@@ -90,8 +91,8 @@ module.exports = function (grunt) {
                     "src/main/userprefs/UserPreferences.js",
                     "src/main/Configurator.js",
                     "src/main/Launcher.js",
-                    "src/runtime/images/EmbeddedImages.js",         // Use embedded resources
-                    "src/runtime/sysroms/EmbeddedSystemROMs.js"     // Use embedded resources
+                    "src/runtime/images/EmbeddedImages.js",
+                    "src/runtime/sysroms/EmbeddedSystemROMs.js"
                 ],
                 dest: "temp/wmsx.part.js"
             },
