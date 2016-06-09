@@ -177,6 +177,11 @@ wmsx.Machine = function() {
         return res;
     }
 
+    function getSlotDesc(slotPos) {
+        var pri = typeof slotPos === "number" ? slotPos : slotPos[0];
+        return pri.toString() + (bus.getSlot(pri).isExpanded() ? "-" + (slotPos[1] || 0) : "");
+    }
+
     function insertSlot(slot, slotPos) {
         if (typeof slotPos === "number") slotPos = [slotPos];
         var pri = slotPos[0], sec = slotPos[1];
@@ -621,6 +626,9 @@ wmsx.Machine = function() {
             var res = getSlot(slotPos);
             return res === EMPTY_SLOT ? null : res;
         };
+        this.getSlotDesc = function (slotPos) {
+            return getSlotDesc(slotPos);
+        }
     }
 
 

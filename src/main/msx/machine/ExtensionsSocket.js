@@ -46,7 +46,8 @@ wmsx.ExtensionsSocket = function(machine) {
         setNewState(ext, newVal, secSlot);
         refreshNewState(altPower);
 
-        machine.showOSD(config[ext].desc + " Extension " + (newVal ? "enabled" : "disabled"), true);        // TODO Show slot number
+        machine.showOSD(config[ext].desc + " Extension " +
+            (newVal ? "enabled at slot " + machine.getSlotSocket().getSlotDesc(secSlot ? config[ext].SLOT2 : config[ext].SLOT) : "disabled"), true);
     };
 
     this.getDefaultActiveLoaderURLSpecs = function() {
