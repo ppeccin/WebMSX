@@ -98,7 +98,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!signalIsOn) return this.showOSD("Screen Text Copy available only when Power is ON!", true);
 
         if (!document.queryCommandSupported || !document.queryCommandSupported('copy'))
-            return this.showOSD("Copy to Clipboard not supported by browser!", true);
+            return this.showOSD("Copy to Clipboard not supported by the browser!", true);
 
         var text = monitor.getScreenText();
 
@@ -109,9 +109,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         copyTextArea.select();
 
         if (document.execCommand("copy"))
-            this.showOSD("Screen text copied to Clibpoard", true);
+            this.showOSD("Screen text copied to Clipboard", true);
         else
-            this.showOSD("Copy to Clipboard not supported by browser!", true);
+            this.showOSD("Copy to Clipboard not supported by the browser!", true);
 
         this.focus();
     };

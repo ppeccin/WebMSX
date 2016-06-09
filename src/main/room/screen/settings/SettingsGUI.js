@@ -461,7 +461,7 @@ wmsx.SettingsGUI.html = function() {
                                     'V' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="wmsx-desc">Paste Text</div>' +
+                            '<div class="wmsx-desc">Open Text Paste box</div>' +
                         '</div>' +
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +

@@ -4,6 +4,9 @@ wmsx.BIOSKeyboardExtension = function(bus) {
 
     this.typeString = function(str) {
         stringToType = str !== undefined && str !== null ? str.toString() : null;
+
+        if (stringToType) stringToType = stringToType.replace(/\r\n/g, '\r').replace(/\n/g, '\r');       // Normalize to the MSX like break
+
         typeFromPosition = 0;
     };
 
@@ -39,10 +42,6 @@ wmsx.BIOSKeyboardExtension = function(bus) {
         // Update and check for termination
         typeFromPosition += str.length;
         if (typeFromPosition >= stringToType.length) stringToType = null;
-    };
-
-    this.pasteFromClipboard = function() {
-
     };
 
 

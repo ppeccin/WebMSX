@@ -101,8 +101,6 @@ wmsx.PasteDialog = function(mainElement, screen) {
 
         // Capture the paste event
         self.box.addEventListener("paste", function(e) {
-            console.log("PASTE from: " + window.document.activeElement.id);
-
             if (self.cover.style.visibility !== "visible") return;
 
             if (e.clipboardData && e.clipboardData.getData) {
