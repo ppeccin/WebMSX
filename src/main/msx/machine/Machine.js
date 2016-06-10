@@ -874,7 +874,7 @@ wmsx.Machine = function() {
         };
 
         var media;
-        var VERSION = 7;
+        var VERSION = 8;
     }
 
 

@@ -80,19 +80,25 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort);
                 break;
             case controls.DISK_REMOVE:
-                if (!mediaChangeDisabledWarning()) diskDrive.removeDisk(secPort ? 1 : 0);
+                if (!mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
                 break;
             case controls.DISK_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(secPort ? 1 : 0, null);
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNewFormattedDisk(secPort ? 1 : 0, null);
                 break;
             case controls.DISK_EMPTY_720:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
                 break;
             case controls.DISK_EMPTY_360:
-                if (!mediaChangeDisabledWarning()) diskDrive.loadNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
             case controls.DISK_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(secPort ? 1 : 0);
+                break;
+            case controls.DISK_PREVIOUS:
+                if (!mediaChangeDisabledWarning()) diskDrive.insertPreviousDisk(secPort ? 1 : 0);
+                break;
+            case controls.DISK_NEXT:
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNextDisk(secPort ? 1 : 0);
                 break;
             case controls.CARTRIDGE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
@@ -212,6 +218,9 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_DISK] = controls.DISK_REMOVE;
         keyControlAltCodeMap[KEY_DISK] = controls.DISK_SAVE_FILE;
 
+        keyAltCodeMap[KEY_DISK_PREV]  = controls.DISK_PREVIOUS;
+        keyAltCodeMap[KEY_DISK_NEXT]  = controls.DISK_NEXT;
+
         keyCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_FILE;
         keyAltCodeMap[KEY_CART] = controls.CARTRIDGE_REMOVE;
         keyControlCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_DATA_FILE;
@@ -222,10 +231,10 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
         keyControlAltCodeMap[KEY_TAPE]  = controls.TAPE_SAVE_FILE;
 
-        keyAltCodeMap[KEY_TAPE_REW]  = controls.TAPE_REWIND;
-        keyAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
-        keyAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
-        keyAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
+        keyControlAltCodeMap[KEY_TAPE_REW]  = controls.TAPE_REWIND;
+        keyControlAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
+        keyControlAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
+        keyControlAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
 
         keyAltCodeMap[KEY_KEYBOARD_TOGGLE_HOST]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
         keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]      = controls.JOYSTICKS_TOGGLE_MODE;
@@ -293,6 +302,9 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+
+    var KEY_DISK_PREV  = wmsx.DOMKeys.VK_PAGE_UP.c;
+    var KEY_DISK_NEXT  = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
     var KEY_KEYBOARD_TOGGLE_HOST  = wmsx.DOMKeys.VK_K.c;
     var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;

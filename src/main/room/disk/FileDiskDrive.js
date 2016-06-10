@@ -4,6 +4,11 @@
 wmsx.FileDiskDrive = function() {
     var self = this;
 
+    function init() {
+        emptyStack(0);
+        emptyStack(1);
+    }
+
     this.connect = function(pDiskDriveSocket) {
         diskDriveSocket = pDiskDriveSocket;
         diskDriveSocket.connectDrive(this);
@@ -15,69 +20,112 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskFile = function (drive, name, arrContent, altPower, anyContent) {
-        var size = arrContent.length;
-        if (!this.MEDIA_TYPE_VALID_SIZES.has(size)) return null;                                 // Invalid image size
-        if (!anyContent && (arrContent[0] !== 0xe9 && arrContent[0] !== 0xeb)) return null;      // Probably not a disk image
-
-        var content = loadDisk(drive, name, arrContent.slice(0));
-        diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD("" + ((size / 1024) || 0) + "KB Disk loaded in Drive " + driveName(drive), true);
-
-        return content;
+    this.loadDiskStackFromFiles = function (drive, name, files, altPower, anyContent, fromZIP) {
+        var stack = [];
+        try {
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                if (fromZIP && file.content === undefined) file.content = file.asUint8Array();
+                if (!isContentValidImage(file.content, anyContent)) continue;
+                var fileName = file.name.split("/").pop();
+                stack.push({ name: fileName, content: file.content});
+            }
+            if (stack.length > 0) {
+                loadStack(drive, name, stack);
+                diskDriveSocket.autoPowerCycle(altPower);
+                stackLoadedMessage(drive);
+                return stack;
+            }
+        } catch(ez) {
+            console.log(ez.stack);      // Error decompressing files. Abort
+        }
+        return null;
     };
 
-    this.loadNewFormattedDisk = function(drive, mediaType) {                // Cycle among format options if no mediaType given
+    this.loadSingleDiskFromFilesAsDisk = function(drive, name, files, altPower, type) {
+        var content = images.createFromFiles(0xF9, files);
+        if (!content) return null;
+
+        type = type || "Files";
+        name = name || ("New " + type + ".dsk");
+        var stack = [{ name: name, content: content }];
+        loadStack(drive, name, stack);
+        diskDriveSocket.autoPowerCycle(altPower);
+        stackLoadedMessage(drive, type);
+        return stack;
+    };
+
+    this.insertNewFormattedDisk = function(drive, mediaType) {                // Cycle among format options if no mediaType given
         if (!mediaType) {
             if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
             mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
         }
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = images.createNewFormattedDisk(mediaType);
-        loadDisk(drive, fileName, content);
-        screen.showOSD("New formatted " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in Drive " + driveName(drive), true);
+        replaceCurrentDisk(drive, fileName, content);
+        screen.showOSD("New formatted " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in Drive " + driveName[drive], true);
     };
 
-    this.removeDisk = function(drive) {
-        if (noDiskMessage(drive)) return;
+    this.removeStack = function(drive) {
+        // TODO Check already empty stack
 
-        diskFileName[drive] = null;
-        diskContent[drive] = null;
-        diskChanged[drive] = null;
+        emptyStack(drive);
+        driveDiskChanged[drive] = null;
 
-        screen.showOSD("Disk " + driveName(drive) + " removed", true);
+        screen.showOSD("Disk " + driveName[drive] + " removed", true);
         fireStateUpdate();
     };
 
     this.saveDiskFile = function(drive) {
-        if (noDiskMessage(drive)) return;
+        if (noDiskInsertedMessage(drive)) return;
 
         try {
-            fileDownloader.startDownloadBinary(makeFileNameToSave(diskFileName[drive]), new Uint8Array(diskContent[drive]), "Disk " + driveName(drive) + " file");
+            fileDownloader.startDownloadBinary(makeFileNameToSave(currentDisk(drive).name), new Uint8Array(currentDisk(drive).content), "Disk " + driveName[drive] + " file");
         } catch(ex) {
             // give up
         }
     };
 
-    this.loadFilesAsDisk = function(drive, name, files, altPower, type) {
-        var content = images.createFromFiles(0xF9, files);
-        if (!content) return null;
-
-        type = type || "Files as Disk";
-        loadDisk(drive, name || ("New " + type + ".dsk"), content);
-        diskDriveSocket.autoPowerCycle(altPower);
-        screen.showOSD(type + " loaded in Drive " + driveName(drive), true);
-
-        return content;
+    this.insertPreviousDisk = function(drive) {
+        var newNum = curDisk[drive] - 1;
+        if (newNum >= 0) setCurrentDisk(drive, newNum);
+        stackDiskInsertedMessage(drive);
     };
 
+    this.insertNextDisk = function(drive) {
+        var newNum = curDisk[drive] + 1;
+        if (newNum < driveStack[drive].length) setCurrentDisk(drive, newNum);
+        stackDiskInsertedMessage(drive);
+    };
 
-    function loadDisk(drive, name, content) {
-        diskFileName[drive] = name;
-        diskContent[drive] = content;
-        diskChanged[drive] = true;
+    function isContentValidImage(content, anyContent) {
+        return self.MEDIA_TYPE_VALID_SIZES.has(content.length)                    // Valid image size
+            && (anyContent || content[0] === 0xe9 || content[0] === 0xeb);        // Valid boot sector?
+    }
+
+    function emptyStack(drive) {
+        driveStack[drive].length = 0;
+        driveStack[drive][0] = { name: null, content: null };
+        curDisk[drive] = 0;
+    }
+
+    function loadStack(drive, name, stack) {
+        driveStack[drive] = stack;
+        setCurrentDisk(drive, 0);
+    }
+
+    function setCurrentDisk(drive, num) {
+        curDisk[drive] = num;
+        driveDiskChanged[drive] = true;
         fireStateUpdate();
-        return diskContent[drive];
+    }
+
+    function replaceCurrentDisk(drive, name, content) {     // Affects only current disk from stack
+        currentDisk(drive).name = name;
+        currentDisk(drive).content = content;
+        driveDiskChanged[drive] = true;
+        fireStateUpdate();
+        return content;
     }
 
     function makeFileNameToSave(fileName) {
@@ -91,15 +139,15 @@ wmsx.FileDiskDrive = function() {
     // DiskDriver interface methods
 
     this.diskHasChanged = function(drive) {
-        if (diskChanged[drive]) {
-            diskChanged[drive] = false;
+        if (driveDiskChanged[drive]) {
+            driveDiskChanged[drive] = false;
             return true;
         }
-        return diskChanged[drive];         // false = no, null = unknown
+        return driveDiskChanged[drive];         // false = no, null = unknown
     };
 
-    this.diskPresent = function(drive) {
-        return !!(diskContent[drive] && diskContent[drive].length);
+    this.isDiskInserted = function(drive) {
+        return !!(currentDisk(drive).content);
     };
 
     this.diskWriteProtected = function(drive) {
@@ -107,8 +155,8 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.readSectors = function(drive, logicalSector, quantSectors) {
-        if (!this.diskPresent(drive)) return null;
-        var dContent = diskContent[drive];
+        if (!this.isDiskInserted(drive)) return null;
+        var dContent = currentDisk(drive).content;
         var startByte = logicalSector * BYTES_PER_SECTOR;
         var finishByte = startByte + quantSectors * BYTES_PER_SECTOR;
         // Disk boundary check
@@ -122,9 +170,9 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.writeBytes = function (drive, bytes, startByte, quantBytes) {
-        if (!this.diskPresent(drive)) return false;
+        if (!this.isDiskInserted(drive)) return false;
 
-        var dContent = diskContent[drive];
+        var dContent = currentDisk(drive).content;
         if (!quantBytes) quantBytes = bytes.length;
 
         // Disk boundary check
@@ -142,8 +190,8 @@ wmsx.FileDiskDrive = function() {
             window.clearTimeout(diskMotorOffTimer[drive]);
             diskMotorOffTimer[drive] = null;
         }
-        if (diskMotor[drive]) return 0;
-        diskMotor[drive] = true;
+        if (driveMotor[drive]) return 0;
+        driveMotor[drive] = true;
         fireStateUpdate();
         return MOTOR_SPINUP_EXTRA_ITERATIONS;
     };
@@ -154,24 +202,24 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.allMotorsOffNow = function() {                 // Instantly with no delays
-        diskMotor[0] = diskMotor[1] = false;
+        driveMotor[0] = driveMotor[1] = false;
         fireStateUpdate();
     };
 
-    this.loadNewEmptyDisk = function(drive, mediaType) {
+    this.insertNewEmptyDisk = function(drive, mediaType) {
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = images.createNewEmptyDisk(mediaType);
-        loadDisk(drive, fileName, content);
-        screen.showOSD("New blank " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in Drive " + driveName(drive), true);
+        replaceCurrentDisk(drive, fileName, content);
+        screen.showOSD("New blank " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk loaded in Drive " + driveName[drive], true);
     };
 
     this.formatDisk = function(drive, mediaType) {
-        return images.formatDisk(mediaType, diskContent[drive]);
+        return images.formatDisk(mediaType, currentDisk(drive).content);
     };
 
     // Add a delay before turning the motor off (drive LED simulation)
     function motorOff(drive, resetDelay) {
-        if (!diskMotor[drive]) return;
+        if (!driveMotor[drive]) return;
         if (diskMotorOffTimer[drive] && resetDelay) {
             window.clearTimeout(diskMotorOffTimer[drive]);
             diskMotorOffTimer[drive] = null;
@@ -179,48 +227,56 @@ wmsx.FileDiskDrive = function() {
         if (!diskMotorOffTimer[drive])
             diskMotorOffTimer[drive] = window.setTimeout(function() {
                 diskMotorOffTimer[drive] = null;
-                diskMotor[drive] = false;
+                driveMotor[drive] = false;
                 fireStateUpdate();
             }, MOTOR_SPINDOWN_EXTRA_MILLIS);
     }
 
     function fireStateUpdate() {
-        screen.diskDrivesStateUpdate(diskFileName[0], diskMotor[0], diskFileName[1], diskMotor[1]);
+        screen.diskDrivesStateUpdate(currentDisk(0).name, driveMotor[0], currentDisk(1).name, driveMotor[1]);
     }
 
-    function noDiskMessage(drive) {
-        if (!self.diskPresent(drive)) {
-            screen.showOSD("No Disk in Drive " + driveName(drive), true);
+    function noDiskInsertedMessage(drive) {
+        if (!self.isDiskInserted(drive)) {
+            screen.showOSD("No Disk in Drive " + driveName[drive], true);
             return true;
         } else
             return false;
     }
 
-    function driveName(drive) {
-        return (drive === 0 ? "A:" : "B:");
+    function stackLoadedMessage(drive, type) {
+        if (driveStack[drive].length <= 1) {
+            type = type ? " from " + type : "";
+            var size = driveStack[drive][0].content ? "" + ((driveStack[drive][0].content.length / 1024) | 0) + "KB" : "";
+            screen.showOSD("Single " + size + " Disk" + type + " loaded in Drive " + driveName[drive], true);
+        } else {
+            screen.showOSD("Disk Stack loaded in Drive " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true);
+        }
+    }
+
+    function stackDiskInsertedMessage(drive) {      // TODO Message size, No disk message
+        screen.showOSD("Drive " + driveName[drive] + " Disk " + (curDisk[drive] + 1) + "/" + driveStack[drive].length + " (" + currentDisk(drive).name + ") inserted", true);
+    }
+
+    function currentDisk(drive) {
+        return driveStack[drive][curDisk[drive]];
     }
 
 
     // Savestate  -------------------------------------------
 
-    this.saveState = function() {
+    this.saveState = function() {                       // TODO Compress
         return {
-            f: diskFileName,
-            c: [ wmsx.Util.compressInt8BitArrayToStringBase64(diskContent[0]),
-                 wmsx.Util.compressInt8BitArrayToStringBase64(diskContent[1]) ],
-            g: diskChanged,
-            m: diskMotor
+            s: driveStack,
+            g: driveDiskChanged,
+            m: driveMotor
         };
     };
 
     this.loadState = function(state) {
-        diskFileName = state.f;
-        var a = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[0], diskContent[0]);
-        var b = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c[1], diskContent[1]);
-        if (diskContent[0] !== a) diskContent[0] = a;
-        if (diskContent[1] !== b) diskContent[1] = b;
-        diskChanged = state.g;
-        diskMotor = state.m;
+        driveStack = state.s;
+        driveDiskChanged = state.g;
+        driveMotor = state.m;
         fireStateUpdate();
         this.allMotorsOff(true);
     };
@@ -236,16 +292,17 @@ wmsx.FileDiskDrive = function() {
     var fileDownloader;
     var diskDriveSocket;
 
-    var diskFileName = [ null, null ];
-    var diskContent =  [ null, null ];
-    var diskChanged =  [ null, null ];            // true = yes, false = no, null = unknown
-    var diskMotor =    [ false, false ];
+    var driveStack   = [[], []];                    // Several disks can be loaded for each drive
+    var curDisk      = [0, 0];                      // Current disk from stack inserted in drive
 
+    var driveDiskChanged  = [ null, null ];         // true = yes, false = no, null = unknown
+    var driveMotor        = [ false, false ];
     var diskMotorOffTimer = [ null, null ];
 
+    var driveName = [ "A:", "B:" ];
     var nextNewDiskFormatOption = [ -1, -1 ];
 
-    var BYTES_PER_SECTOR = 512;                   // Fixed for now, for all disks
+    var BYTES_PER_SECTOR = 512;                     // Fixed for now, for all disks
 
     var MOTOR_SPINUP_EXTRA_ITERATIONS = 100000;
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;
@@ -254,5 +311,8 @@ wmsx.FileDiskDrive = function() {
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
     this.MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
+
+
+    init();
 
 };

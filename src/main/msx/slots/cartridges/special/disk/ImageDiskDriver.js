@@ -135,7 +135,7 @@ wmsx.ImageDiskDriver = function() {
         var spinTime = drive.motorOn(A);
 
         // Not Ready error if Disk not present
-        if (!drive.diskPresent(A))
+        if (!drive.isDiskInserted(A))
             return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Disk Write Protected
@@ -209,7 +209,7 @@ wmsx.ImageDiskDriver = function() {
 
         var mediaType = drive.FORMAT_OPTIONS_MEDIA_TYPES[f];
 
-        drive.loadNewEmptyDisk(d, mediaType);
+        drive.insertNewEmptyDisk(d, mediaType);
 
         drive.motorOn(d);
         drive.formatDisk(d, mediaType);
