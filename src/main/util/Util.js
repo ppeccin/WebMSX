@@ -234,6 +234,16 @@ wmsx.Util = new function() {
         else return str.substr(str.length - end.length) === end;
     };
 
+    this.checkContentIsZIP = function(content) {
+        if (content && content[0] === 0x50 && content[1] === 0x4b)      // PK signature
+            try {
+                return new JSZip(content);
+            } catch(ez) {
+                console.log(ez.stack);      // Error decompressing files. Abort
+            }
+        return null;
+    };
+
     this.dump = function(arr, from, chunk, quant) {
         var res = "";
         var p = from || 0;

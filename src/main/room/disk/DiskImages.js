@@ -32,7 +32,7 @@ wmsx.DiskImages = function() {
 
         // If there were files that could not be written, AND no files could be written, error
         if (filesNotWritten > 0 && filesWritten === 0) {
-            var err = new Error("No files could fit in the the Disk!");
+            var err = new Error("No files could fit in a 720KB Disk!");
             err.wmsx = true;
             throw err;
         }
@@ -158,8 +158,6 @@ wmsx.DiskImages = function() {
             var size = item.isDir ? 0 : item.content.length;
             pos = entryPos + 0x1c;
             image[pos] = size & 255; image[pos + 1] = (size >> 8) & 255; image[pos + 2] = (size >> 16) & 255; image[pos + 3] = (size >> 24) & 255;
-
-            console.log("WriteDirEntry: " + name);
         }
 
         function writeAvailableDirEntry(dirContentPosition, entry) {
