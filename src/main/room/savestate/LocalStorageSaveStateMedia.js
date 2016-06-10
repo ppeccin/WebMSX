@@ -95,7 +95,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
                 stateData = data.slice(SAVE_STATE_IDENTIFIER.length);
 
             return stateData && JSON.parse(stateData);
-        } catch(e) {
+        } catch(ex) {
             console.log(ex.stack);
         }
     };

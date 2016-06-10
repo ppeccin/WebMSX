@@ -714,9 +714,9 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
 
-        // Open menu with left-click if no modifiers
-        if (modifs === 0 && e.button === 0 && prevActiveMenu !== menu) {
-            showBarMenu(menu, e.target, false);
+        // Open/close menu with left-click if no modifiers
+        if (modifs === 0 && e.button === 0) {
+            if (prevActiveMenu !== menu) showBarMenu(menu, e.target, false);
             return;
         }
 
