@@ -42,7 +42,7 @@ wmsx.FileDiskDrive = function() {
         return null;
     };
 
-    this.loadSingleDiskFromFilesAsDisk = function(drive, name, files, altPower, type) {
+    this.loadAsDiskFromFiles = function(drive, name, files, altPower, type) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 

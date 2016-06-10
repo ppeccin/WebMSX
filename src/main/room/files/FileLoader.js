@@ -91,7 +91,14 @@ wmsx.FileLoader = function() {
     this.readFromFiles = function (files, openType, port, altPower, then) {   // Files as Disk only
         var reader = new wmsx.MultiFileReader(files,
             function onSuccessAll(files) {
-                self.loadFilesAsDisk(files, port, altPower);
+                // Sort files by name
+                files = Array.prototype.slice.call(files);
+                files.sort(function sortFiles(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+
+                if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK)
+                    self.loadFilesAsDisk(files, port, altPower);
+                else
+                    self.loadFilesAsMedia(files, openType, port, altPower);
                 if (then) then(true);
             },
             function onFirstError(files, error, known) {
@@ -227,27 +234,31 @@ wmsx.FileLoader = function() {
         // Fail now if only ZIP loading asked
         if (openType === OPEN_TYPE.ZIP_AS_DISK)
             return showError("Unsupported " + TYPE_DESC[OPEN_TYPE.ZIP_AS_DISK] + " load!" + (mes ? " " + mes : ""));
-        // Try Files as Disk (single file)
+        // Try Files as Disk (only 1 file)
         this.loadFilesAsDisk([file], port, altPower);
     };
 
     this.loadFilesAsDisk = function (files, port, altPower) {
-        // Sort files by name
-        files = Array.prototype.slice.call(files);
-        files.sort(function sortFiles(a, b) {
-            return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
-        });
-
         try {
-            diskDrive.loadSingleDiskFromFilesAsDisk(port, null, files, altPower, "Files");     // throws exception
+            diskDrive.loadAsDiskFromFiles(port, null, files, altPower, "Files");     // throws exception
         } catch(ex) {
             console.log(ex.stack);
             showError("Unsupported " + TYPE_DESC[OPEN_TYPE.FILES_AS_DISK] + " load!" + (ex.wmsx ? " " + ex.message : ""));
         }
     };
 
+    this.loadFilesAsMedia = function (files, openType, port, altPower) {
+        // Try as a Disk Stack (load all images found in files)
+        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
+            if (diskDrive.loadDiskStackFromFiles(port, "Files Stack", files, altPower, openType === OPEN_TYPE.DISK, false)) return;
+        // Finally load Files as Disk if allowed
+        if (openType === OPEN_TYPE.ALL)
+            self.loadFilesAsDisk(files, port, altPower);
+        // TODO else Error?
+    };
+
     this.loadZipAsDisk = function (name, zip, port, altPower) {     // throws exceptions
-        return diskDrive.loadSingleDiskFromFilesAsDisk(port, name, createTreeFromZip(zip), altPower, "ZIP");    // throws exception
+        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, "ZIP");    // throws exception
     };
 
     function createTreeFromZip(zip) {
@@ -452,7 +463,7 @@ wmsx.FileLoader = function() {
 
     var INPUT_MULTI = {
         ROM:   false,
-        DISK:  false,
+        DISK:  true,
         TAPE:  false,
         STATE: false,
         CART_DATA: false,
