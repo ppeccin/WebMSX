@@ -88,7 +88,7 @@ wmsx.FileLoader = function() {
         reader.readAsArrayBuffer(file);
     };
 
-    this.readFromFiles = function (files, openType, port, altPower, then) {   // Files as Disk only
+    this.readFromFiles = function (files, openType, port, altPower, asExpansion, then) {   // Files as Disk only
         var reader = new wmsx.MultiFileReader(files,
             function onSuccessAll(files) {
                 // Sort files by name
@@ -98,7 +98,7 @@ wmsx.FileLoader = function() {
                 if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK)
                     self.loadFilesAsDisk(files, port, altPower);
                 else
-                    self.loadFilesAsMedia(files, openType, port, altPower);
+                    self.loadFilesAsMedia("Files", files, openType, port, altPower, asExpansion, false);
                 if (then) then(true);
             },
             function onFirstError(files, error, known) {
@@ -188,6 +188,20 @@ wmsx.FileLoader = function() {
         return false;
     }
 
+    this.loadFilesAsMedia = function (name, files, openType, port, altPower, asExpansion, filesFromZIP) {
+        // Try as a Disk Stack (all images found)
+        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
+            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, openType === OPEN_TYPE.DISK, true)) return true;
+        // Try as other Single media (first found)
+        if (openType !== OPEN_TYPE.DISK && openType !== OPEN_TYPE.AUTO_AS_DISK && openType !== OPEN_TYPE.FILES_AS_DISK && openType !== OPEN_TYPE.ZIP_AS_DISK)
+            for (var i = 0; i < files.length; i++)
+                if (tryLoadSingleContentAsMedia(name, files[i].asUint8Array(), openType, port, altPower, asExpansion)) return true;
+        // Finally load Files as Disk if allowed
+        if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ALL)
+            return self.loadFilesAsDisk(files, port, altPower);
+    };
+
+
     this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
@@ -245,16 +259,6 @@ wmsx.FileLoader = function() {
             console.log(ex.stack);
             showError("Unsupported " + TYPE_DESC[OPEN_TYPE.FILES_AS_DISK] + " load!" + (ex.wmsx ? " " + ex.message : ""));
         }
-    };
-
-    this.loadFilesAsMedia = function (files, openType, port, altPower) {
-        // Try as a Disk Stack (load all images found in files)
-        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskStackFromFiles(port, "Files Stack", files, altPower, openType === OPEN_TYPE.DISK, false)) return;
-        // Finally load Files as Disk if allowed
-        if (openType === OPEN_TYPE.ALL)
-            self.loadFilesAsDisk(files, port, altPower);
-        // TODO else Error?
     };
 
     this.loadZipAsDisk = function (name, zip, port, altPower) {     // throws exceptions
@@ -341,7 +345,7 @@ wmsx.FileLoader = function() {
             if (files.length === 1)
                 self.readFromFile(files[0], chooserOpenType, chooserPort, chooserAltPower, chooserAsExpansion, resume);
             else
-                self.readFromFiles(files, chooserOpenType, chooserPort, chooserAltPower, resume);
+                self.readFromFiles(files, chooserOpenType, chooserPort, chooserAltPower, chooserAsExpansion, resume);
         }
 
         return false;
@@ -387,7 +391,7 @@ wmsx.FileLoader = function() {
             if (files.length === 1)
                 self.readFromFile(files[0], openType, port, altPower, asExpansion, resume);
             else
-                self.readFromFiles(files, openType, port, altPower, resume);
+                self.readFromFiles(files, openType, port, altPower, asExpansion, resume);
         } else {
             // If not, try to get URL
             var url = event.dataTransfer.getData("text");

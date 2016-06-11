@@ -20,12 +20,12 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskStackFromFiles = function (drive, name, files, altPower, anyContent, fromZIP) {
+    this.loadDiskStackFromFiles = function (drive, name, files, altPower, anyContent, filesFromZip) {
         var stack = [];
         try {
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                if (fromZIP && file.content === undefined) file.content = file.asUint8Array();
+                if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
                 if (!isContentValidImage(file.content, anyContent)) continue;
                 var fileName = file.name.split("/").pop();
                 stack.push({ name: fileName, content: file.content});
