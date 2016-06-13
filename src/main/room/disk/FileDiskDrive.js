@@ -26,7 +26,7 @@ wmsx.FileDiskDrive = function() {
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                if (!isContentValidImage(file.content, anyContent)) continue;
+                if (!checkContentIsValidImage(file.content, anyContent)) continue;
                 var fileName = file.name.split("/").pop();
                 stack.push({ name: fileName, content: file.content});
             }
@@ -98,9 +98,21 @@ wmsx.FileDiskDrive = function() {
         stackDiskInsertedMessage(drive);
     };
 
-    function isContentValidImage(content, anyContent) {
-        return self.MEDIA_TYPE_VALID_SIZES.has(content.length)                    // Valid image size
-            && (anyContent || content[0] === 0xe9 || content[0] === 0xeb);        // Valid boot sector?
+    function checkContentIsValidImage(content, anyContent) {
+        var zip = wmsx.Util.checkContentIsZIP(content);
+        if (zip) {
+            var files = zip.file(/.+/);
+            for (var f in files) {
+                var res = checkInnerContentIsValidImage(files[f].asUint8Array(), anyContent);
+                if (res) return res;
+            }
+            return null
+        } else return checkInnerContentIsValidImage(content, anyContent);
+    }
+
+    function checkInnerContentIsValidImage(content, anyContent) {
+        if (!self.MEDIA_TYPE_VALID_SIZES.has(content.length)) return null;                         // Valid image size
+        return (anyContent || content[0] === 0xe9 || content[0] === 0xeb) ? content : null;        // Valid boot sector?
     }
 
     function emptyStack(drive) {

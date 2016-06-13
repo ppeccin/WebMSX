@@ -239,7 +239,7 @@ wmsx.Util = new function() {
             try {
                 return new JSZip(content);
             } catch(ez) {
-                console.log(ez.stack);      // Error decompressing files. Abort
+                // Error decompressing files. Abort
             }
         return null;
     };

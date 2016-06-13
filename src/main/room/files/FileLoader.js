@@ -72,12 +72,8 @@ wmsx.FileLoader = function() {
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
-            if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
-                var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModifiedDate };
-                self.loadFileAsDisk(aFile, openType, port, altPower);
-            } else {
-                self.loadContentAsMedia(file.name, content, openType, port || 0, altPower, asExpansion);
-            }
+            var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModifiedDate };
+            self.loadFromFile(aFile, openType, port, altPower, asExpansion);
             if (then) then(true);
         };
         reader.onerror = function (event) {
@@ -88,17 +84,25 @@ wmsx.FileLoader = function() {
         reader.readAsArrayBuffer(file);
     };
 
+    this.readFromURL = function (url, openType, port, altPower, asExpansion, then) {
+        new wmsx.MultiDownloader([{
+            url: url,
+            onSuccess: function (res) {
+                var aFile = { name: url, content: res.content, lastModifiedDate: null };
+                self.loadFromFile(aFile, openType, port, altPower, asExpansion);
+                if (then) then(true);
+            },
+            onError: function (res) {
+                showError("URL reading error: " + res.error);
+                if (then) then(false);
+            }
+        }]).start();
+    };
+
     this.readFromFiles = function (files, openType, port, altPower, asExpansion, then) {   // Files as Disk only
         var reader = new wmsx.MultiFileReader(files,
             function onSuccessAll(files) {
-                // Sort files by name
-                files = Array.prototype.slice.call(files);
-                files.sort(function sortFiles(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
-
-                if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK)
-                    self.loadFilesAsDisk(files, port, altPower);
-                else
-                    self.loadFilesAsMedia("Files", files, openType, port, altPower, asExpansion, false);
+                loadFromFiles(files, openType, port, altPower, asExpansion);
                 if (then) then(true);
             },
             function onFirstError(files, error, known) {
@@ -111,60 +115,91 @@ wmsx.FileLoader = function() {
         reader.start();
     };
 
-    this.readFromURL = function (url, openType, port, altPower, asExpansion, then) {
-        new wmsx.MultiDownloader([{
-            url: url,
-            onSuccess: function (res) {
-                if (openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK || openType === OPEN_TYPE.AUTO_AS_DISK) {
-                    var file = { name: url, content: res.content };
-                    self.loadFileAsDisk(file, openType, port, altPower);
+    this.loadFromFile = function (file, openType, port, altPower, asExpansion) {
+        var zip, mes;
+        // If As-Disk forced
+        if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
+            try {
+                if (openType === OPEN_TYPE.FILES_AS_DISK) {
+                    if (tryLoadFilesAsDisk([file], port, altPower)) return;     // throws
                 } else {
-                    self.loadContentAsMedia(url, res.content, openType, port || 0, altPower, asExpansion);
+                    zip = wmsx.Util.checkContentIsZIP(file.content);
+                    if (zip) {
+                        if (tryLoadZipAsDisk(name, zip, port, altPower)) return;     // throws
+                    } else {
+                        if (openType === OPEN_TYPE.ZIP_AS_DISK)
+                            mes = "Not a ZIP file!";
+                        else if (tryLoadFilesAsDisk([file], port, altPower)) return;     // throws
+                    }
                 }
-                if (then) then(true);
-            },
-            onError: function (res) {
-                showError("URL reading error: " + res.error);
-                if (then) then(false);
+            } catch(ex) {
+                if (ex.wmsx) mes = ex.message;
             }
-        }]).start();
-    };
-
-    this.loadContentAsMedia = function (name, content, openType, port, altPower, asExpansion) {
-        openType = OPEN_TYPE[openType] || OPEN_TYPE.ALL;
-
-        var zip = wmsx.Util.checkContentIsZIP(content);
-        if (zip) {
-            if (loadZipAsMedia(name, zip, openType, port, altPower, asExpansion)) return;
-            showError("No valid " + TYPE_DESC[openType] + " detected in ZIP file!");
+            showError("Error loading " + TYPE_DESC[openType] + (mes ?  ": " + mes : ""));
         } else {
-            if (loadSingleContentAsMedia(name, content, openType, port, altPower, asExpansion)) return;
-            showError("No valid " + TYPE_DESC[openType] + " detected!");
+            // As-Disk NOT forced
+            zip = wmsx.Util.checkContentIsZIP(file.content);
+            if (zip) {
+                try {
+                    var files = zip.file(/.+/);
+                    // Try normal loading from files
+                    if (tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, true)) return;
+                } catch(ez) {
+                    console.log(ez.stack);      // Error decompressing files. Abort
+                }
+            } else {
+                // Try normal loading from files
+                if (tryLoadFilesAsMedia(name, [file], openType, port, altPower, asExpansion, true)) return;
+            }
+            showError("No valid " + TYPE_DESC[openType] + " found.")
         }
     };
 
-    function loadZipAsMedia (name, zip, openType, port, altPower, asExpansion) {
-        try {
-            var files = zip.file(/.+/);
-            // Try as a Disk Stack (load all images found in ZIP)
-            if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-                if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, openType === OPEN_TYPE.DISK, true)) return true;
-            // Try as other Single media
-            for (var i = 0; i < files.length; i++)
-                if (loadSingleContentAsMedia(name, files[i].asUint8Array(), openType, port, altPower, asExpansion)) return true;
-            // Finally load ZIP as Disk if allowed
-            if (openType === OPEN_TYPE.ALL)
-                if (self.loadZipAsDisk(name, zip, port, altPower)) return true;
-        } catch(ez) {
-            console.log(ez.stack);      // Error decompressing files. Abort
+    function loadFromFiles(files, openType, port, altPower, asExpansion) {
+        // Sort files by name
+        files = Array.prototype.slice.call(files);
+        files.sort(function sortFiles(a, b) {
+            return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+        });
+
+        // If As-Disk forced
+        if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
+            var mes;
+            try {
+                if (tryLoadFilesAsDisk(files, port, altPower)) return;      // throws
+            } catch(ex) {
+                if (ex.wmsx) mes = ex.message;
+            }
+            showError("Error loading " + TYPE_DESC[openType] + (mes ?  ": " + mes : ""));
+        } else {
+            if (tryLoadFilesAsMedia(files[0].name, files, openType, port, altPower, asExpansion, false)) return;
+            showError("No valid " + TYPE_DESC[openType] + " found.")
         }
+    }
+
+    function tryLoadZipAsDisk(name, zip, port, altPower) {     // throws
+        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, "ZIP");    // throws
+    }
+
+    function tryLoadFilesAsDisk (files, port, altPower) {     // throws
+        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, "Files");     // throws
+    }
+
+    function tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, filesFromZIP) {
+        // Try as a Disk Stack (all images found)
+        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
+            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, openType === OPEN_TYPE.DISK, filesFromZIP)) return true;
+        // Try as other Single media (first found)
+        if (openType !== OPEN_TYPE.DISK)
+            for (var i = 0; i < files.length; i++)
+                if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, filesFromZIP)) return true;
         return false;
     }
 
-    function loadSingleContentAsMedia(name, content, openType, port, altPower, asExpansion) {
-        // Try as Single Disk
-        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskStackFromFiles(port, name, [ { name: name, content: content } ], altPower, openType === OPEN_TYPE.DISK, false)) return true;
+    function tryLoadFileAsSingleMedia(file, openType, port, altPower, asExpansion, fileFromZIP) {
+        if (fileFromZIP && !file.content) file.content = file.asUint8Array();
+        var name = file.name;
+        var content = file.content;
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
             if (cassetteDeck.loadTapeFile(name, content, altPower)) return true;
@@ -188,82 +223,28 @@ wmsx.FileLoader = function() {
         return false;
     }
 
-    this.loadFilesAsMedia = function (name, files, openType, port, altPower, asExpansion, filesFromZIP) {
-        // Try as a Disk Stack (all images found)
-        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, openType === OPEN_TYPE.DISK, true)) return true;
-        // Try as other Single media (first found)
-        if (openType !== OPEN_TYPE.DISK && openType !== OPEN_TYPE.AUTO_AS_DISK && openType !== OPEN_TYPE.FILES_AS_DISK && openType !== OPEN_TYPE.ZIP_AS_DISK)
-            for (var i = 0; i < files.length; i++)
-                if (tryLoadSingleContentAsMedia(name, files[i].asUint8Array(), openType, port, altPower, asExpansion)) return true;
-        // Finally load Files as Disk if allowed
-        if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ALL)
-            return self.loadFilesAsDisk(files, port, altPower);
-    };
-
-
     this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
-            if (loadZipAsSlot(zip, name, slotPos, altPower)) return;
-            showError("No valid ROMs found in ZIP file");
+            try {
+                var files = zip.file(/.+/);
+                for (var i = 0; i < files.length; i++)
+                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower)) return;
+            } catch (ez) {
+                // Error decompressing files. Abort
+            }
         } else {
-            if (loadSingleContentAsSlot(name, content, slotPos, altPower)) return;
-            showError("Unsupported ROM file!");
+            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower)) return;
         }
+        showError("Unsupported ROM file!");
     };
 
-    function loadZipAsSlot(zip, name, slotPos, altPower) {
-        try {
-            var files = zip.file(/.+/);
-            for (var i = 0; i < files.length; i++)
-                if (loadSingleContentAsSlot(name, files[i].asUint8Array(), slotPos, altPower)) return true;
-        } catch (ez) {
-            console.log(ez.stack);      // Error decompressing files. Abort
-        }
-        return false;
-    }
-
-    function loadSingleContentAsSlot(name, content, slotPos, altPower) {
+    function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower) {
         var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content));
         if (!slot) return false;
         slotSocket.insert(slot, slotPos, altPower);
         return true;
     }
-
-    this.loadFileAsDisk = function (file, openType, port, altPower) {
-        // Try as ZIP as Disk if type allows
-        var mes;
-        var zip = wmsx.Util.checkContentIsZIP(file.content);
-        if (zip && (openType === OPEN_TYPE.ZIP_AS_DISK || openType === OPEN_TYPE.AUTO_AS_DISK)) {
-            try {
-                if (this.loadZipAsDisk(file.name, zip, port, altPower)) return;     // throws exception
-            } catch (ex) {
-                // Error decompressing or loading. Probably not a zip file.
-                console.log(ex.stack);
-                if (ex.wmsx) mes = ex.message;
-            }
-        } else
-            mes = "Not a ZIP File!";
-        // Fail now if only ZIP loading asked
-        if (openType === OPEN_TYPE.ZIP_AS_DISK)
-            return showError("Unsupported " + TYPE_DESC[OPEN_TYPE.ZIP_AS_DISK] + " load!" + (mes ? " " + mes : ""));
-        // Try Files as Disk (only 1 file)
-        this.loadFilesAsDisk([file], port, altPower);
-    };
-
-    this.loadFilesAsDisk = function (files, port, altPower) {
-        try {
-            diskDrive.loadAsDiskFromFiles(port, null, files, altPower, "Files");     // throws exception
-        } catch(ex) {
-            console.log(ex.stack);
-            showError("Unsupported " + TYPE_DESC[OPEN_TYPE.FILES_AS_DISK] + " load!" + (ex.wmsx ? " " + ex.message : ""));
-        }
-    };
-
-    this.loadZipAsDisk = function (name, zip, port, altPower) {     // throws exceptions
-        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, "ZIP");    // throws exception
-    };
 
     function createTreeFromZip(zip) {
         // Build file tree structure as required by image creator
@@ -485,7 +466,7 @@ wmsx.FileLoader = function() {
         CART_DATA: "Cartridge Data",
         FILES_AS_DISK: "Files as Disk",
         ZIP_AS_DISK:   "ZIP as Disk",
-        AUTO_AS_DISK:  "Load as Disk",
+        AUTO_AS_DISK:  "as Disk",
         ALL:   "ROM, Cassette or Disk"
     };
 
