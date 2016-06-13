@@ -273,8 +273,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskBStack, diskBName) {
-        diskAButton.title = "Disk A" + ( diskAName ? ": " + diskAName : "" );
-        diskBButton.title = "Disk B" + ( diskBName ? ": " + diskBName : "" );
+        diskAButton.title = diskAName;
+        diskBButton.title = diskBName;
         diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskAName;
         diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskBName;
         diskAButton.wmsxMenu[7].label = "Remove " + (diskAStack ? "Stack" : "Disk");
@@ -558,7 +558,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
         ];
         menu.menuTitle = "Drive A:";
-        diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A", null, menu);
+        diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A:", null, menu);
 
         menu = [
             { label: "Load Disk Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE, secSlot: true },
@@ -572,7 +572,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
         menu.menuTitle = "Drive B:";
-        diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -266, -54, "Disk B", null, menu);
+        diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -266, -54, "Disk B:", null, menu);
 
         menu = [
             { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },

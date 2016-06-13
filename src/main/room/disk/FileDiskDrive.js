@@ -46,7 +46,7 @@ wmsx.FileDiskDrive = function() {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 
-        type = type || "Files";
+        type = type || "Files as Disk";
         name = name || ("New " + type + ".dsk");
         var stack = [{ name: name, content: content }];
         loadStack(drive, name, stack);
@@ -248,10 +248,7 @@ wmsx.FileDiskDrive = function() {
     function fireMediaStateUpdate() {
         var stackA = driveStack[0].length > 1;
         var stackB = driveStack[1].length > 1;
-        screen.diskDrivesMediaStateUpdate(
-            stackA, stackA ? "(" + (curDisk[0] + 1) + "/" + driveStack[0].length + ") " + currentDisk(0).name : currentDisk(0).name,
-            stackB, stackB ? "(" + (curDisk[1] + 1) + "/" + driveStack[1].length + ") " + currentDisk(1).name : currentDisk(1).name
-        );
+        screen.diskDrivesMediaStateUpdate(stackA, stackDiskDesc(0), stackB, stackDiskDesc(1));
         fireMotorStateUpdate();
     }
 
@@ -269,9 +266,9 @@ wmsx.FileDiskDrive = function() {
 
     function stackLoadedMessage(drive, type) {
         if (driveStack[drive].length <= 1) {
-            type = type ? " from " + type : "";
+            type = type ? " " + type + " " : " Disk ";
             var size = driveStack[drive][0].content ? "" + ((driveStack[drive][0].content.length / 1024) | 0) + "KB" : "";
-            screen.showOSD("" + size + " Disk" + type + " loaded in Drive " + driveName[drive], true);
+            screen.showOSD("" + size + type + " loaded in Drive " + driveName[drive], true);
         } else {
             screen.showOSD("Disk Stack loaded in Drive " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true);
         }
@@ -279,7 +276,12 @@ wmsx.FileDiskDrive = function() {
 
     function stackDiskInsertedMessage(drive) {
         if (noDiskInsertedMessage(drive)) return;
-        screen.showOSD("Drive " + driveName[drive] + " (" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ") " + currentDisk(drive).name, true);
+        screen.showOSD(stackDiskDesc(drive), true);
+    }
+
+    function stackDiskDesc(drive) {
+        var stack = driveStack[drive].length > 1;
+        return "Disk " + driveName[drive] + " " + (stack ? "(" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ") " : "") + (currentDisk(drive).name || "");
     }
 
     function currentDisk(drive) {

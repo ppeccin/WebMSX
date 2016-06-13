@@ -178,11 +178,11 @@ wmsx.FileLoader = function() {
     }
 
     function tryLoadZipAsDisk(name, zip, port, altPower) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, "ZIP");    // throws
+        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, "ZIP as Disk");    // throws
     }
 
     function tryLoadFilesAsDisk (files, port, altPower) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, "Files");     // throws
+        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, "Files as Disk");     // throws
     }
 
     function tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, filesFromZIP) {
