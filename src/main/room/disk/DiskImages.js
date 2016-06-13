@@ -239,12 +239,12 @@ wmsx.DiskImages = function() {
 
     };
 
-    this.createNewEmptyDisk = function (mediaType) {
+    this.createNewBlankDisk = function (mediaType) {
         return wmsx.Util.arrayFill(new Array(this.MEDIA_TYPE_INFO[mediaType].size), 0);
     };
 
     this.createNewFormattedDisk = function (mediaType) {
-        var content = this.createNewEmptyDisk(mediaType);
+        var content = this.createNewBlankDisk(mediaType);
         this.formatDisk(mediaType, content);
         return content;
     };

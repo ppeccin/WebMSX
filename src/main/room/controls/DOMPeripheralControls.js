@@ -83,13 +83,13 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
                 break;
             case controls.DISK_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNewFormattedDisk(secPort ? 1 : 0, null);
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNewDisk(secPort ? 1 : 0, null);
                 break;
             case controls.DISK_EMPTY_720:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
                 break;
             case controls.DISK_EMPTY_360:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNewFormattedDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
+                if (!mediaChangeDisabledWarning()) diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
             case controls.DISK_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(secPort ? 1 : 0);

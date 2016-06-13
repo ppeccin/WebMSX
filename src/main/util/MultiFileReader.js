@@ -59,6 +59,6 @@ wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError, maxTotalSize
 
     var finished = false;
 
-    var MAX_TOTAL_SIZE = 10 * 720 * 1024;   // Read up 10 720KB disks of files
+    var MAX_TOTAL_SIZE = 8 * 720 * 1024;   // Read up 8 720KB disks of files
 
 };

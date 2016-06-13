@@ -272,11 +272,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
     };
 
-    this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskBStack, diskBName) {
+    this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskAContent, diskBStack, diskBName, diskBContent) {
         diskAButton.title = diskAName;
         diskBButton.title = diskBName;
-        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskAName;
-        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskBName;
+        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskAContent;
+        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskBContent;
         diskAButton.wmsxMenu[7].label = "Remove " + (diskAStack ? "Stack" : "Disk");
         diskBButton.wmsxMenu[7].label = "Remove " + (diskBStack ? "Stack" : "Disk");
     };
@@ -551,8 +551,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load Disk URL",      clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL },
             { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES },
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP },
-            { label: "New 720KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_720 },
-            { label: "New 360KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_360 },
+            { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
+            { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360 },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
@@ -565,8 +565,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load Disk URL",      clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL, secSlot: true },
             { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP, secSlot: true },
-            { label: "New 720KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
-            { label: "New 360KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
+            { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
+            { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
