@@ -272,13 +272,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
     };
 
-    this.diskDrivesStateUpdate = function(diskAName, diskAMotor, diskBName, diskBMotor) {
+    this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskBStack, diskBName) {
         diskAButton.title = "Disk A" + ( diskAName ? ": " + diskAName : "" );
         diskBButton.title = "Disk B" + ( diskBName ? ": " + diskBName : "" );
-        diskAButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskAName ? 1 : 0 ))]) + "px";
-        diskBButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskBName ? 1 : 0 ))]) + "px";
         diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskAName;
         diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskBName;
+        diskAButton.wmsxMenu[7].label = "Remove " + (diskAStack ? "Stack" : "Disk");
+        diskBButton.wmsxMenu[7].label = "Remove " + (diskBStack ? "Stack" : "Disk");
+    };
+
+    this.diskDrivesMotorStateUpdate = function(diskAContent, diskAMotor, diskBContent, diskBMotor) {
+        diskAButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskAContent ? 1 : 0 ))]) + "px";
+        diskBButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskBContent ? 1 : 0 ))]) + "px";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -542,10 +547,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", null, menu);
 
         menu = [
-            { label: "Load Disk File",     clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE },
+            { label: "Load Disk Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE },
             { label: "Load Disk URL",      clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL },
-            { label: "Load Files as Disk",             control: wmsx.PeripheralControls.DISK_LOAD_FILES },
-            { label: "Load ZIP as Disk",               control: wmsx.PeripheralControls.DISK_LOAD_ZIP },
+            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES },
+            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP },
             { label: "New 720KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_720 },
             { label: "New 360KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_360 },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true },
@@ -556,10 +561,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A", null, menu);
 
         menu = [
-            { label: "Load Disk File",     clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE, secSlot: true },
+            { label: "Load Disk Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE, secSlot: true },
             { label: "Load Disk URL",      clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL, secSlot: true },
-            { label: "Load Files as Disk",             control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
-            { label: "Load ZIP as Disk",               control: wmsx.PeripheralControls.DISK_LOAD_ZIP, secSlot: true },
+            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
+            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP, secSlot: true },
             { label: "New 720KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
             { label: "New 360KB Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true },
@@ -596,7 +601,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Rewind Tape",                control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true },
             { label: "Run Program",    clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, disabled: true },
             { label: "Save Tape File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true },
-            { label: "Remove Tape",    clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true },
+            { label: "Remove Tape",    clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cassette Tape";
         tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -54, "Cassette Tape", null, menu);
