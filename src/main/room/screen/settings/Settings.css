@@ -85,6 +85,8 @@
     width: 65px;
     color: rgb(255, 255, 255);
     background: rgb(90, 90, 90);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-weight: normal;
     border-radius: 0;
     border: 1px solid rgb(140, 140, 140);
@@ -116,6 +118,8 @@
     padding: 0 11px;
     font-size: 35px;
     color: white;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     cursor: pointer;
 }
 
@@ -137,6 +141,8 @@
     color: white;
     background: rgb(235, 40, 35);
     box-shadow: 0 1px 4px rgba(0, 0, 0, .80);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     vertical-align: middle;
 }
 
@@ -304,6 +310,8 @@
     text-align: center;
     background: black;
     box-shadow: 3px 3px 14px rgb(75, 75, 75);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 #wmsx-about .wmsx-info {

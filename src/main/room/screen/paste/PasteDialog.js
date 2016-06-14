@@ -63,6 +63,8 @@ wmsx.PasteDialog = function(mainElement, screen) {
         style.border = "2px dashed rgba(240, 240, 240, 0.70)";
         style.borderRadius = "10px";
         style.textShadow = "0 0 0 rgb(240, 240, 240)";
+        style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
+        style.MozOsxFontSmoothing = "grayscale";
         style.padding = "0";
         style.outline = "none";
         self.cover.appendChild(self.box);

@@ -689,6 +689,8 @@ wmsx.SettingsGUI.css = function() {
            'border-radius: 0px;' +
            'border: 1px solid rgb(140, 140, 140);' +
            'box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);' +
+           '-webkit-font-smoothing: antialiased;' +
+           '-moz-osx-font-smoothing: grayscale;' +
        '}' +
 
        '#wmsx-modal .wmsx-key-msx-stop {' +
@@ -717,6 +719,8 @@ wmsx.SettingsGUI.css = function() {
            'font-size: 35px;' +
            'color: white;' +
            'cursor: pointer;' +
+           '-webkit-font-smoothing: antialiased;' +
+           '-moz-osx-font-smoothing: grayscale;' +
        '}' +
 
        '#wmsx-menu #wmsx-back:hover {' +
@@ -738,6 +742,8 @@ wmsx.SettingsGUI.css = function() {
            'background: rgb(235, 40, 35);' +
            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
            'vertical-align: middle;' +
+           '-webkit-font-smoothing: antialiased;' +
+           '-moz-osx-font-smoothing: grayscale;' +
        '}' +
 
        '#wmsx-menu .items {' +
@@ -904,6 +910,8 @@ wmsx.SettingsGUI.css = function() {
            'text-align: center;' +
            'background: black url("' + wmsx.Images.urls.logo + '") center 50px no-repeat;' +
            'box-shadow: 3px 3px 14px rgb(75, 75, 75);' +
+           '-webkit-font-smoothing: antialiased;' +
+           '-moz-osx-font-smoothing: grayscale;' +
        '}' +
 
        '#wmsx-about .wmsx-info {' +

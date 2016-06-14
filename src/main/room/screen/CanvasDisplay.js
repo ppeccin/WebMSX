@@ -462,24 +462,28 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.addEventListener("focusout", lostFocus, true);
         mainElement.addEventListener("blur", lostFocus, true);
 
+        var style;
+
         borderElement = document.createElement('div');
         borderElement.id = "wmsx-border";
-        borderElement.style.position = "absolute";
-        borderElement.style.left = borderElement.style.right = 0;
-        borderElement.style.top = 0;
-        borderElement.style.margin = "auto";
-        borderElement.style.overflow = "hidden";
-        borderElement.style.background = "black";
-        borderElement.style.border = "0 solid black";
-        borderElement.style.borderWidth = "" + BORDER_TOP + "px " + BORDER_LATERAL + "px " + BORDER_BOTTOM + "px";
+        style = borderElement.style;
+        style.position = "absolute";
+        style.left = style.right = 0;
+        style.top = 0;
+        style.margin = "auto";
+        style.overflow = "hidden";
+        style.background = "black";
+        style.border = "0 solid black";
+        style.borderWidth = "" + BORDER_TOP + "px " + BORDER_LATERAL + "px " + BORDER_BOTTOM + "px";
 
         fsElement = document.createElement('div');
         fsElement.id = "wmsx-fs";
-        fsElement.style.position = "absolute";
-        fsElement.style.left = fsElement.style.right = 0;
-        fsElement.style.top = fsElement.style.bottom = 0;
-        fsElement.style.overflow = "hidden";
-        fsElement.style.background = "black";
+        style = fsElement.style;
+        style.position = "absolute";
+        style.left = style.right = 0;
+        style.top = style.bottom = 0;
+        style.overflow = "hidden";
+        style.background = "black";
         suppressContextMenu(fsElement);
 
         fsElement.addEventListener("mousemove", function() {
@@ -506,15 +510,16 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         canvas = document.createElement('canvas');
         canvas.id = "wmsx-canvas";
-        canvas.style.position = "absolute";
-        canvas.style.display = "block";
-        canvas.style.left = canvas.style.right = 0;
-        canvas.style.top = canvas.style.bottom = 0;
-        canvas.style.background = "black";
-        canvas.style.margin = "auto";
+        style = canvas.style;
+        style.position = "absolute";
+        style.display = "block";
+        style.left = style.right = 0;
+        style.top = style.bottom = 0;
+        style.background = "black";
+        style.margin = "auto";
+        style.outline = "none";
+        style.border = "none";
         canvas.tabIndex = "-1";               // Make it focusable
-        canvas.style.outline = "none";
-        canvas.style.border = "none";
         fsElement.appendChild(canvas);
         mainElement.appendChild(borderElement);
 
@@ -524,17 +529,18 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupBar() {
         buttonsBar = document.createElement('div');
         buttonsBar.id = "wmsx-bar";
-        buttonsBar.style.position = "absolute";
-        buttonsBar.style.left = 0;
-        buttonsBar.style.right = 0;
-        buttonsBar.style.zIndex = 30;
-        buttonsBar.style.height = "" + BAR_HEIGHT + "px";
-        buttonsBar.style.background = "rgb(40, 40, 40)";
-        buttonsBar.style.border = "1px solid black";
-        buttonsBar.style.bottom = "0";
+        var style = buttonsBar.style;
+        style.position = "absolute";
+        style.left = 0;
+        style.right = 0;
+        style.zIndex = 30;
+        style.height = "" + BAR_HEIGHT + "px";
+        style.background = "rgb(40, 40, 40)";
+        style.border = "1px solid black";
+        style.bottom = "0";
         if (BAR_AUTO_HIDE) {
             hideBar();
-            buttonsBar.style.transition = "bottom 0.3s ease-in-out";
+            style.transition = "bottom 0.3s ease-in-out";
             mainElement.addEventListener("mouseleave", function() {
                 hideBar();
             });
@@ -954,6 +960,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.background = "rgb(40, 40, 40)";
         style.font = "normal 13px sans-serif";
         style.outline = "none";
+        style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
+        style.MozOsxFontSmoothing = "grayscale";
         style.zIndex = 20;
 
         var title = document.createElement('button');
