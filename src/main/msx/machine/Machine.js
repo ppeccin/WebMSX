@@ -540,6 +540,7 @@ wmsx.Machine = function() {
         this.insert = function (expansion, port, altPower) {
             if (expansion == slotSocket.inserted(EXPANSIONS_SLOTS[port || 0])) return;
             slotSocket.insert(expansion, EXPANSIONS_SLOTS[port || 0], altPower);
+            self.showOSD("Expansion " + (port === 1 ? "2" : "1") + (expansion ? " inserted" : " removed"), true);
         };
         this.inserted = function (port) {
             return slotSocket.inserted(EXPANSIONS_SLOTS[port || 0]);

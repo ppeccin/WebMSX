@@ -201,13 +201,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         osd.style.top = "15px";
         osd.style.opacity = 1;
         osdShowing = true;
-        osdTimeout = setTimeout(function() {
-            osd.style.transition = "all 0.15s linear";
-            osd.style.top = "-29px";
-            osd.style.opacity = 0;
-            osdShowing = false;
-        }, OSD_TIME);
+        osdTimeout = setTimeout(hideOSD, OSD_TIME);
     };
+
+    function hideOSD() {
+        osd.style.transition = "all 0.15s linear";
+        osd.style.top = "-29px";
+        osd.style.opacity = 0;
+        osdShowing = false;
+    }
 
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
@@ -294,22 +296,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge1Button.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(cart1 ? 1 : 0)]) + "px";
         cartridge2Button.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(cart2 ? 1 : 0)]) + "px";
         var dataDesc = cart1 && cart1.getDataDesc();
-        cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = !dataDesc;
-        cartridge1Button.wmsxMenu[2].label = "Load " + (dataDesc || "Memory");
-        cartridge1Button.wmsxMenu[3].label = "Save " + (dataDesc || "Memory");
-        cartridge1Button.wmsxMenu[4].disabled = !cart1;
+        cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
+        cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Memory");
+        cartridge1Button.wmsxMenu[2].label = "Save " + (dataDesc || "Memory");
+        cartridge1Button.wmsxMenu[3].disabled = !cart1;
         dataDesc = cart2 && cart2.getDataDesc();
-        cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = !dataDesc;
-        cartridge2Button.wmsxMenu[2].label = "Load " + (dataDesc || "Memory");
-        cartridge2Button.wmsxMenu[3].label = "Save " + (dataDesc || "Memory");
-        cartridge2Button.wmsxMenu[4].disabled = !cart2;
+        cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = !dataDesc;
+        cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Memory");
+        cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Memory");
+        cartridge2Button.wmsxMenu[3].disabled = !cart2;
         refreshSettingsMenuOptions();
     };
 
     this.tapeStateUpdate = function(name, motor) {
         tapeButton.title = "Cassette Tape" + ( name ? ": " + name : "" );
         tapeButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[motor ? 2 : ( name ? 1 : 0 )]) + "px";
-        tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = tapeButton.wmsxMenu[6].disabled = !name;
+        tapeButton.wmsxMenu[2].disabled = tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = !name;
     };
 
     this.controlsStatesRedefined = function () {
@@ -547,10 +549,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", null, menu);
 
         menu = [
-            { label: "Load Disk Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE },
-            { label: "Load Disk URL",      clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL },
-            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES },
-            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP },
+            { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
+            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES },
+            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK },
+            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
             { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360 },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true },
@@ -561,10 +563,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A:", null, menu);
 
         menu = [
-            { label: "Load Disk Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILE, secSlot: true },
-            { label: "Load Disk URL",      clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_LOAD_URL, secSlot: true },
-            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
-            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP, secSlot: true },
+            { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
+            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true },
+            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true },
+            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
             { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true },
@@ -575,8 +577,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -266, -54, "Disk B:", null, menu);
 
         menu = [
-            { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
-            { label: "Load ROM URL",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_URL },
+            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
             { label: "Load Memory",        clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true },
             { label: "Save Memory",        clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
@@ -585,8 +586,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -54, "Cartridge 1", null, menu);
 
         menu = [
-            { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
-            { label: "Load ROM URL",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_URL, secSlot: true },
+            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
             { label: "Load Memory",        clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true },
             { label: "Save Memory",        clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
@@ -595,9 +595,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -54, "Cartridge 2", null, menu);
 
         menu = [
-            { label: "Load Tape File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
-            { label: "Load Tape URL",  clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.TAPE_LOAD_URL },
-            { label: "New Empty Tape", clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
+            { label: "Load form File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
+            { label: "New Blank Tape", clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
             { label: "Rewind Tape",                control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true },
             { label: "Run Program",    clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, disabled: true },
             { label: "Save Tape File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true },
@@ -1186,7 +1185,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
-    var OSD_TIME = 2500;
+    var OSD_TIME = 3000;
     var CURSOR_HIDE_FRAMES = 150;
 
     var BORDER_TOP = 1;

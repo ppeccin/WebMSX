@@ -27,7 +27,7 @@ wmsx.FileLoader = function() {
         fileInputElementParent = element;
     };
 
-    this.openFileChooserDialog = function (openType, altPower, inSecondaryPort) {
+    this.openFileChooserDialog = function (openType, altPower, inSecondaryPort, asExpansion) {
         if (!fileInputElement) createFileInputElement();
         fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.ALL];
         fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.ALL];
@@ -35,7 +35,7 @@ wmsx.FileLoader = function() {
         chooserOpenType = openType;
         chooserPort = inSecondaryPort ? 1 : 0;
         chooserAltPower = altPower;
-        chooserAsExpansion = false;     // No means to load expansion via chooser for now
+        chooserAsExpansion = asExpansion;
         fileInputElement.click();
     };
 
@@ -121,15 +121,15 @@ wmsx.FileLoader = function() {
         if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
             try {
                 if (openType === OPEN_TYPE.FILES_AS_DISK) {
-                    if (tryLoadFilesAsDisk([file], port, altPower)) return;     // throws
+                    if (tryLoadFilesAsDisk([file], port, altPower, asExpansion)) return;     // throws
                 } else {
                     zip = wmsx.Util.checkContentIsZIP(file.content);
                     if (zip) {
-                        if (tryLoadZipAsDisk(name, zip, port, altPower)) return;     // throws
+                        if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
                     } else {
                         if (openType === OPEN_TYPE.ZIP_AS_DISK)
                             mes = "Not a ZIP file!";
-                        else if (tryLoadFilesAsDisk([file], port, altPower)) return;     // throws
+                        else if (tryLoadFilesAsDisk([file], port, altPower, asExpansion)) return;     // throws
                     }
                 }
             } catch(ex) {
@@ -143,13 +143,13 @@ wmsx.FileLoader = function() {
                 try {
                     var files = zip.file(/.+/);
                     // Try normal loading from files
-                    if (tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, true)) return;
+                    if (tryLoadFilesAsMedia(file.name, files, openType, port, altPower, asExpansion, true)) return;
                 } catch(ez) {
                     console.log(ez.stack);      // Error decompressing files. Abort
                 }
             } else {
                 // Try normal loading from files
-                if (tryLoadFilesAsMedia(name, [file], openType, port, altPower, asExpansion, true)) return;
+                if (tryLoadFilesAsMedia(file.name, [file], openType, port, altPower, asExpansion, false)) return;
             }
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
@@ -166,7 +166,7 @@ wmsx.FileLoader = function() {
         if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
             var mes;
             try {
-                if (tryLoadFilesAsDisk(files, port, altPower)) return;      // throws
+                if (tryLoadFilesAsDisk(files, port, altPower, asExpansion)) return;      // throws
             } catch(ex) {
                 if (ex.wmsx) mes = ex.message;
             }
@@ -177,18 +177,18 @@ wmsx.FileLoader = function() {
         }
     }
 
-    function tryLoadZipAsDisk(name, zip, port, altPower) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, "ZIP as Disk");    // throws
+    function tryLoadZipAsDisk(name, zip, port, altPower, asExpansion) {     // throws
+        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, asExpansion, "ZIP as Disk");    // throws
     }
 
-    function tryLoadFilesAsDisk (files, port, altPower) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, "Files as Disk");     // throws
+    function tryLoadFilesAsDisk (files, port, altPower, asExpansion) {     // throws
+        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, asExpansion, "Files as Disk");     // throws
     }
 
     function tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, filesFromZIP) {
         // Try as a Disk Stack (all images found)
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, openType === OPEN_TYPE.DISK, filesFromZIP)) return true;
+            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, asExpansion, openType === OPEN_TYPE.DISK, filesFromZIP)) return true;
         // Try as other Single media (first found)
         if (openType !== OPEN_TYPE.DISK)
             for (var i = 0; i < files.length; i++)
@@ -340,7 +340,7 @@ wmsx.FileLoader = function() {
         if (WMSX.MEDIA_CHANGE_DISABLED)
             event.dataTransfer.dropEffect = "none";
         else
-            event.dataTransfer.dropEffect = "link";
+            event.dataTransfer.dropEffect = event.ctrlKey ? "copy" : "link";
 
         dragButtons = event.buttons > 0 ? event.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
     };
@@ -358,10 +358,10 @@ wmsx.FileLoader = function() {
 
         var port = event.shiftKey ? 1 : 0;
         var altPower = dragButtons & MOUSE_BUT2_MASK;
-        var asExpansion = event.altKey;
-        var forceAsDisk = event.ctrlKey;
+        var asExpansion = event.ctrlKey;
+        var asDisk = event.altKey;
 
-        var openType = forceAsDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.ALL;
+        var openType = asDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.ALL;
 
         // Try to get local file/files if present
         var files = event.dataTransfer && event.dataTransfer.files;

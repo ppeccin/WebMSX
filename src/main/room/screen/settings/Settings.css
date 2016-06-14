@@ -194,7 +194,7 @@
 
 #wmsx-general {
     padding-top: 23px;
-    padding-left: 39px;
+    padding-left: 36px;
 }
 
 #wmsx-general .wmsx-left {
@@ -220,12 +220,12 @@
 
 #wmsx-media {
     padding-top: 16px;
-    padding-left: 40px;
+    padding-left: 32px;
 }
 
 #wmsx-media .wmsx-top-left {
     float: left;
-    width: 285px;
+    width: 290px;
 }
 
 #wmsx-media .wmsx-top-right {
@@ -234,7 +234,7 @@
 
 #wmsx-media .wmsx-bottom-left {
     float: left;
-    width: 275px;
+    width: 294px;
 }
 
 #wmsx-media .wmsx-bottom-right {
@@ -250,11 +250,11 @@
 }
 
 #wmsx-media .wmsx-bottom-left .wmsx-command {
-    width: 110px;
+    width: 174px;
 }
 
 #wmsx-media .wmsx-bottom-right .wmsx-command {
-    width: 110px;
+    width: 138px;
 }
 
 #wmsx-media .wmsx-bottom .wmsx-command {

@@ -340,6 +340,15 @@ wmsx.SettingsGUI.html = function() {
                                 'Ctrl' +
                             '</div>' +
                         '</div>' +
+                        '<div class="wmsx-desc">&nbsp;+ Drag &amp; Drop Disk Files to Load and Add Disks to the current Drive Stack' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="wmsx-hotkey">' +
+                        '<div class="wmsx-command">' +
+                            '<div class="wmsx-key wmsx-key-fixed">' +
+                                'Alt' +
+                            '</div>' +
+                        '</div>' +
                         '<div class="wmsx-desc">&nbsp;+ Drag &amp; Drop Files or ZIP File to force "Files as Disk" or "ZIP as Disk" loading' +
                         '</div>' +
                     '</div>' +
@@ -348,6 +357,8 @@ wmsx.SettingsGUI.html = function() {
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
+                                    'Ctrl' +
+                                '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'Home' +
@@ -358,12 +369,14 @@ wmsx.SettingsGUI.html = function() {
                         '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
                                 '<div class="wmsx-key wmsx-key-fixed">' +
+                                    'Ctrl' +
+                                '</div>&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                    'End' +
+                                   'Pg Up / Dn' +
+                                '</div>' +
                             '</div>' +
-                            '</div>' +
-                            '<div class="wmsx-desc">Seek to Tape end</div>' +
+                            '<div class="wmsx-desc">Seek Tape</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-bottom-right">' +
@@ -372,23 +385,13 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                    'PgUp' +
-                                '</div>' +
+                                  'Pg Up / Dn' +
+                               '</div>' +
                             '</div>' +
-                            '<div class="wmsx-desc">Seek Tape backward</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                    'PgDn' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="wmsx-desc">Seek Tape forward</div>' +
+                            '<div class="wmsx-desc">Prev. / Next Disk</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-clear"></div>' +
                     '<div class="wmsx-hotkey wmsx-bottom">' +
                         '<div class="wmsx-command">' +
                             '<div class="wmsx-key">' +
@@ -791,7 +794,7 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-general {' +
            'padding-top: 23px;' +
-           'padding-left: 39px;' +
+           'padding-left: 36px;' +
        '}' +
 
        '#wmsx-general .wmsx-left {' +
@@ -817,12 +820,12 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-media {' +
            'padding-top: 16px;' +
-           'padding-left: 40px;' +
+           'padding-left: 32px;' +
        '}' +
 
        '#wmsx-media .wmsx-top-left {' +
            'float: left;' +
-           'width: 284px;' +
+           'width: 290px;' +
        '}' +
 
        '#wmsx-media .wmsx-top-right {' +
@@ -831,7 +834,7 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-media .wmsx-bottom-left {' +
            'float: left;' +
-           'width: 275px;' +
+           'width: 294px;' +
        '}' +
 
        '#wmsx-media .wmsx-bottom-right {' +
@@ -847,11 +850,11 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-media .wmsx-bottom-left .wmsx-command {' +
-           'width: 110px;' +
+           'width: 174px;' +
        '}' +
 
        '#wmsx-media .wmsx-bottom-right .wmsx-command {' +
-           'width: 110px;' +
+           'width: 138px;' +
        '}' +
 
        '#wmsx-media .wmsx-bottom .wmsx-command {' +

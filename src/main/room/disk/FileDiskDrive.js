@@ -20,10 +20,12 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskStackFromFiles = function (drive, name, files, altPower, anyContent, filesFromZip) {
+    this.loadDiskStackFromFiles = function (drive, name, files, altPower, addToStack, anyContent, filesFromZip) {
+        if (maxStackReachedMessage(drive)) return;
+
         var stack = [];
         try {
-            for (var i = 0; i < files.length && stack.length < MAX_STACK; i++) {
+            for (var i = 0; i < files.length && stack.length < MAX_STACK; i++) {            // TODO Consider already loaded stack towards the max
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
                 if (!checkContentIsValidImage(file.content, anyContent)) continue;
@@ -31,9 +33,9 @@ wmsx.FileDiskDrive = function() {
                 stack.push({ name: fileName, content: file.content});
             }
             if (stack.length > 0) {
-                loadStack(drive, name, stack);
+                loadStack(drive, stack, addToStack);
                 diskDriveSocket.autoPowerCycle(altPower);
-                stackLoadedMessage(drive);
+                stackLoadedMessage(drive, null, stack.length, addToStack);
                 return stack;
             }
         } catch(ez) {
@@ -42,16 +44,16 @@ wmsx.FileDiskDrive = function() {
         return null;
     };
 
-    this.loadAsDiskFromFiles = function(drive, name, files, altPower, type) {
+    this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
 
         type = type || "Files as Disk";
         name = name || ("New " + type + ".dsk");
         var stack = [{ name: name, content: content }];
-        loadStack(drive, name, stack);
+        loadStack(drive, stack, addToStack);
         diskDriveSocket.autoPowerCycle(altPower);
-        stackLoadedMessage(drive, type);
+        stackLoadedMessage(drive, type, stack.length, addToStack);
         return stack;
     };
 
@@ -131,10 +133,11 @@ wmsx.FileDiskDrive = function() {
         curDisk[drive] = 0;
     }
 
-    function loadStack(drive, name, stack) {
-        driveStack[drive] = stack;
+    function loadStack(drive, stack, add) {
+        if (currentDisk(drive).content && add) driveStack[drive] = driveStack[drive].concat(stack);
+        else driveStack[drive] = stack;
         driveBlankDiskAdded[drive] = false;
-        setCurrentDisk(drive, 0);
+        setCurrentDisk(drive, driveStack[drive].length - stack.length);
     }
 
     function setCurrentDisk(drive, num) {
@@ -267,13 +270,21 @@ wmsx.FileDiskDrive = function() {
             return false;
     }
 
-    function stackLoadedMessage(drive, type) {
+    function maxStackReachedMessage(drive) {
+        if (driveStack[drive].length >= MAX_STACK) {
+            screen.showOSD("Maximum Stack size in Drive " + driveName[drive], true);
+            return true;
+        } else
+            return false;
+    }
+
+    function stackLoadedMessage(drive, type, quant, added) {
         if (driveStack[drive].length <= 1) {
             type = type ? " " + type + " " : " Disk ";
             var size = driveStack[drive][0].content ? "" + ((driveStack[drive][0].content.length / 1024) | 0) + "KB" : "";
             screen.showOSD("" + size + type + " loaded in Drive " + driveName[drive], true);
         } else {
-            screen.showOSD("Disk Stack loaded in Drive " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true);
+            screen.showOSD("Disk Stack " + (added ? "added to" : "loaded in") + " Drive " + driveName[drive] + " (" + quant + " disks)", true);
         }
     }
 
