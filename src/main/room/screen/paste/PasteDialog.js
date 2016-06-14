@@ -38,7 +38,7 @@ wmsx.PasteDialog = function(mainElement, screen) {
         style.position = "absolute";
         style.top = style.bottom = 0;
         style.left = style.right = 0;
-        style.backgroundColor = "rgba(0, 0, 0, 0.6)";
+        style.background = "rgba(0, 0, 0, 0.6)";
         style.transition = "opacity .1s ease-out";
         style.zIndex = 10;
         mainElement.appendChild(self.cover);
@@ -56,10 +56,8 @@ wmsx.PasteDialog = function(mainElement, screen) {
         style.width = "270px";
         style.height = "66px";
         style.margin = "auto";
-        style.backgroundColor = "rgba(255, 40, 40, 0.75)";
-        style.fontFamily = "Helvetica Arial, sans-serif";
-        style.fontWeight = "bold";
-        style.fontSize = "26px";
+        style.background = "rgba(255, 40, 40, 0.75)";
+        style.font = "bold 26px sans-serif";
         style.textAlign = "center";
         style.color = "transparent";
         style.border = "2px dashed rgba(240, 240, 240, 0.70)";

@@ -252,9 +252,7 @@ wmsx.FileDiskDrive = function() {
     }
 
     function fireMediaStateUpdate() {
-        var stackA = driveStack[0].length > 1;
-        var stackB = driveStack[1].length > 1;
-        screen.diskDrivesMediaStateUpdate(stackA, stackDiskInsertedDesc(0), currentDisk(0), stackB, stackDiskInsertedDesc(1), currentDisk(1));
+        screen.diskDrivesMediaStateUpdate(driveStack[0].length, stackDiskInsertedDesc(0), driveStack[0].length < MAX_STACK, driveStack[1].length, stackDiskInsertedDesc(1), driveStack[1].length < MAX_STACK);
         fireMotorStateUpdate();
     }
 

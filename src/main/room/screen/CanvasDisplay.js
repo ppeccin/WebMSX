@@ -274,13 +274,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
     };
 
-    this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskA, diskBStack, diskBName, diskB) {
+    this.diskDrivesMediaStateUpdate = function(diskAQuant, diskAName, diskAAddAllowed, diskBQuant, diskBName, diskBAddAllowed) {
         diskAButton.title = diskAName;
         diskBButton.title = diskBName;
-        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskA;
-        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskB;
-        diskAButton.wmsxMenu[7].label = "Remove " + (diskAStack ? "Stack" : "Disk");
-        diskBButton.wmsxMenu[7].label = "Remove " + (diskBStack ? "Stack" : "Disk");
+        diskAButton.wmsxMenu[1].disabled = diskAQuant === 0 || !diskAAddAllowed;
+        diskBButton.wmsxMenu[1].disabled = diskBQuant === 0 || !diskBAddAllowed;
+        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = diskAQuant === 0;
+        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = diskBQuant === 0;
+        diskAButton.wmsxMenu[7].label = "Remove " + (diskAQuant > 1 ? "Stack" : "Disk");
+        diskBButton.wmsxMenu[7].label = "Remove " + (diskBQuant > 1 ? "Stack" : "Disk");
     };
 
     this.diskDrivesMotorStateUpdate = function(diskA, diskAMotor, diskB, diskBMotor) {
@@ -550,7 +552,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
-            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES },
+            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES, disabled: true },
             { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK },
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
@@ -564,7 +566,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
-            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true },
+            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, disabled: true },
             { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true },
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
@@ -950,7 +952,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.border = "0 solid black";
         style.borderWidth = "0 1px";
         style.background = "rgb(40, 40, 40)";
-        style.font = "13px Helvetica, Arial, sans-serif";
+        style.font = "normal 13px sans-serif";
         style.outline = "none";
         style.zIndex = 20;
 
@@ -1047,11 +1049,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
             '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
             '   color: rgb(205, 205, 205);' +
-            '   font: inherit;' +
             '   border: none;' +
             '   padding: 0;' +
             '   text-shadow: 1px 1px 1px black;' +
-            '   background-color: transparent;' +
+            '   background: transparent;' +
             '   outline: none;' +
             '   backface-visibility: hidden;' +
             '   -webkit-backface-visibility: hidden;' +
@@ -1059,7 +1060,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '}\n' +
             '.wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-disabled):not(.wmsx-bar-menu-item-divider) { ' +
             '   color: white;' +
-            '   background-color: rgb(220, 32, 26);' +
+            '   background: rgb(220, 32, 26);' +
             '}\n' +
             '.wmsx-bar-menu-item-disabled { ' +
             '   color: rgb(110, 110, 110);' +
@@ -1067,7 +1068,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '.wmsx-bar-menu-item-divider { ' +
             '   height: 1px;' +
             '   margin: 1px 0;' +
-            '   background-color: black;' +
+            '   background: black;' +
             '}\n' +
             '.wmsx-bar-menu-item-check { ' +
             '   display: none;' +
@@ -1084,13 +1085,13 @@ wmsx.CanvasDisplay = function(mainElement) {
             '}\n' +
             '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
             '   display: block;' +
-            '   background-color: rgb(70, 70, 70);' +
+            '   background: rgb(70, 70, 70);' +
             '}\n' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked { ' +
             '   color: white;' +
             '}\n' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check { ' +
-            '   background-color: rgb(248, 33, 28);' +
+            '   background: rgb(248, 33, 28);' +
             '}'
         ;
         document.head.appendChild(style);

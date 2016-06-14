@@ -607,7 +607,7 @@ wmsx.SettingsGUI.css = function() {
            'visibility: hidden;' +
            'outline: none;' +
            'opacity: 0;' +
-           'background-color: rgba(0, 0, 0, 0.6);' +
+           'background: rgba(0, 0, 0, 0.6);' +
            'transition: all .2s ease-out;' +
             'z-index: 100;' +
        '}' +
@@ -625,7 +625,7 @@ wmsx.SettingsGUI.css = function() {
            'left: -120px;' +
            'margin: 0 auto;' +
            'color: rgba(0, 0, 0, 0.90);' +
-           'font-family: arial, sans-serif;' +
+           'font: normal 13px sans-serif;' +
            'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
            'transition: all .2s ease-out;' +
        '}' +
@@ -637,12 +637,10 @@ wmsx.SettingsGUI.css = function() {
        '#wmsx-modal .wmsx-hotkey {' +
            'height: 27px;' +
            'padding: 3px 5px;' +
-           'font-size: 13px;' +
            'box-sizing: border-box;' +
        '}' +
 
        '#wmsx-modal .wmsx-heading {' +
-           'font-size: 13px;' +
            'font-weight: 700;' +
            'color: rgba(0, 0, 0, .60);' +
        '}' +
@@ -676,7 +674,7 @@ wmsx.SettingsGUI.css = function() {
            'font-size: 12px;' +
            'line-height: 12px;' +
            'color: rgba(0, 0, 0, .71);' +
-           'background-color: white;' +
+           'background: white;' +
            'border-radius: 3px;' +
            'border: 1px solid rgb(210, 210, 210);' +
            'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
@@ -686,7 +684,7 @@ wmsx.SettingsGUI.css = function() {
        '#wmsx-modal .wmsx-key-msx {' +
            'width: 65px;' +
            'color: rgb(255, 255, 255);' +
-           'background-color: rgb(90, 90, 90);' +
+           'background: rgb(90, 90, 90);' +
            'font-weight: normal;' +
            'border-radius: 0px;' +
            'border: 1px solid rgb(140, 140, 140);' +
@@ -694,7 +692,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-modal .wmsx-key-msx-stop {' +
-           'background-color: rgb(235, 50, 50);' +
+           'background: rgb(235, 50, 50);' +
            'border: 1px solid rgb(250, 110, 110);' +
        '}' +
 
@@ -706,7 +704,7 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-menu {' +
            'position: relative;' +
-           'background-color: white;' +
+           'background: white;' +
            'border-bottom: 1px solid rgb(200, 200, 200);' +
        '}' +
 
@@ -722,7 +720,7 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-menu #wmsx-back:hover {' +
-           'background-color: rgba(0, 0, 0, .12);' +
+           'background: rgba(0, 0, 0, .12);' +
        '}' +
 
        '#wmsx-menu #wmsx-back-arrow {' +
@@ -737,7 +735,7 @@ wmsx.SettingsGUI.css = function() {
            'padding: 10px 0 0 48px;' +
            'font-size: 18px;' +
            'color: white;' +
-           'background-color: rgb(235, 40, 35);' +
+           'background: rgb(235, 40, 35);' +
            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
            'vertical-align: middle;' +
        '}' +
@@ -771,7 +769,7 @@ wmsx.SettingsGUI.css = function() {
            'bottom: 0;' +
            'width: 25%;' +
            'height: 3px;' +
-           'background-color: rgb(235, 40, 35);' +
+           'background: rgb(235, 40, 35);' +
            'transition: left 0.3s ease-in-out;' +
        '}' +
 
@@ -781,7 +779,7 @@ wmsx.SettingsGUI.css = function() {
            'left: 0;' +
            'width: 3000px;' +
            'height: 378px;' +
-           'background-color: rgb(220, 220, 220);' +
+           'background: rgb(220, 220, 220);' +
            'transition: left 0.3s ease-in-out' +
        '}' +
 
@@ -893,13 +891,13 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-about {' +
            'left: 1800px;' +
+           'font-size: 18px;' +
        '}' +
 
        '#wmsx-about #wmsx-logo-version {' +
            'width: 380px;' +
            'height: 212px;' +
            'margin: 36px auto 24px;' +
-           'font-size: 18px;' +
            'color: rgba(255, 255, 255, 0.97);' +
            'padding-top: 170px;' +
            'box-sizing: border-box;' +
@@ -909,7 +907,6 @@ wmsx.SettingsGUI.css = function() {
        '}' +
 
        '#wmsx-about .wmsx-info {' +
-           'font-size: 18px;' +
            'line-height: 30px;' +
            'text-align: center;' +
        '}' +
