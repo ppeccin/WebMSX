@@ -339,8 +339,10 @@ wmsx.FileLoader = function() {
 
         if (WMSX.MEDIA_CHANGE_DISABLED)
             event.dataTransfer.dropEffect = "none";
-        else
-            event.dataTransfer.dropEffect = event.ctrlKey ? "copy" : "link";
+        else if (event.ctrlKey)
+            event.dataTransfer.dropEffect = "copy";
+        else if (event.altKey)
+            event.dataTransfer.dropEffect = "link";
 
         dragButtons = event.buttons > 0 ? event.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
     };

@@ -279,15 +279,15 @@ wmsx.FileDiskDrive = function() {
     }
 
     function stackLoadedMessage(drive, type, quant, added) {
+        type = type || "Disk";
         if (driveStack[drive].length <= 1) {
-            type = type ? " " + type + " " : " Disk ";
             var size = driveStack[drive][0].content ? "" + ((driveStack[drive][0].content.length / 1024) | 0) + "KB" : "";
-            screen.showOSD("" + size + type + " loaded in Drive " + driveName[drive], true);
+            screen.showOSD("" + size + " " + type + " loaded in Drive " + driveName[drive], true);
         } else {
             if (added)
-                screen.showOSD("" + quant + " Disk" + (quant > 1 ? "s" : "") + " added to the Stack in Drive " + driveName[drive] + " " + stackDiskQuantDesc(drive), true);
+                screen.showOSD("" + quant + " " + type + (quant > 1 ? "s" : "") + " added to the Stack in Drive " + driveName[drive] + " " + stackDiskInsertedNum(drive), true);
             else
-                screen.showOSD("Disk Stack loaded in" + " Drive " + driveName[drive] + " " + stackDiskQuantDesc(drive), true);
+                screen.showOSD("Disk Stack loaded in" + " Drive " + driveName[drive] + " " + stackDiskInsertedNum(drive), true);
         }
     }
 
