@@ -274,18 +274,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
     };
 
-    this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskAContent, diskBStack, diskBName, diskBContent) {
+    this.diskDrivesMediaStateUpdate = function(diskAStack, diskAName, diskA, diskBStack, diskBName, diskB) {
         diskAButton.title = diskAName;
         diskBButton.title = diskBName;
-        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskAContent;
-        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskBContent;
+        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = !diskA;
+        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = !diskB;
         diskAButton.wmsxMenu[7].label = "Remove " + (diskAStack ? "Stack" : "Disk");
         diskBButton.wmsxMenu[7].label = "Remove " + (diskBStack ? "Stack" : "Disk");
     };
 
-    this.diskDrivesMotorStateUpdate = function(diskAContent, diskAMotor, diskBContent, diskBMotor) {
-        diskAButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskAContent ? 1 : 0 ))]) + "px";
-        diskBButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskBContent ? 1 : 0 ))]) + "px";
+    this.diskDrivesMotorStateUpdate = function(diskA, diskAMotor, diskB, diskBMotor) {
+        diskAButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskA ? 1 : 0 ))]) + "px";
+        diskBButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskB ? 1 : 0 ))]) + "px";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {

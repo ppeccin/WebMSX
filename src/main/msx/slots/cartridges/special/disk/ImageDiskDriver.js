@@ -212,7 +212,7 @@ wmsx.ImageDiskDriver = function() {
         drive.insertNewDisk(d, mediaType, true);    // unformatted
 
         drive.motorOn(d);
-        drive.formatDisk(d, mediaType);
+        drive.formatCurrentDisk(d, mediaType);
 
         return { F: F & ~1, extraIterations: EXTRA_ITERATIONS_FORMAT};
     }
