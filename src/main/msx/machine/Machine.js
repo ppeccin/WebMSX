@@ -540,7 +540,7 @@ wmsx.Machine = function() {
         this.insert = function (expansion, port, altPower) {
             if (expansion == slotSocket.inserted(EXPANSIONS_SLOTS[port || 0])) return;
             slotSocket.insert(expansion, EXPANSIONS_SLOTS[port || 0], altPower);
-            self.showOSD("Expansion " + (port === 1 ? "2" : "1") + (expansion ? " inserted" : " removed"), true);
+            self.showOSD("Expansion " + (port === 1 ? "2" : "1") + ": " + (expansion ? expansion.rom.source : "EMPTY"), true);
         };
         this.inserted = function (port) {
             return slotSocket.inserted(EXPANSIONS_SLOTS[port || 0]);
@@ -559,7 +559,7 @@ wmsx.Machine = function() {
             if (cartridge === slotSocket.inserted(slotPos)) return;
             slotSocket.insert(cartridge, slotPos, altPower);
             cartridgeSocket.fireStateUpdate();
-            self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + (cartridge ? " inserted" : " removed"), true);
+            self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
         };
         this.remove = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;

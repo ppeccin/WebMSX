@@ -244,6 +244,16 @@ wmsx.Util = new function() {
         return null;
     };
 
+    this.getZIPFilesSorted = function(zip) {
+        var files = zip.file(/.+/);
+        files.sort(sortByName);
+        return files;
+    };
+
+    function sortByName(a, b) {
+        return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+    }
+
     this.dump = function(arr, from, chunk, quant) {
         var res = "";
         var p = from || 0;

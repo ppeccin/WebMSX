@@ -141,7 +141,7 @@ wmsx.FileLoader = function() {
             zip = wmsx.Util.checkContentIsZIP(file.content);
             if (zip) {
                 try {
-                    var files = zip.file(/.+/);
+                    var files = wmsx.Util.getZIPFilesSorted(zip);
                     // Try normal loading from files
                     if (tryLoadFilesAsMedia(file.name, files, openType, port, altPower, asExpansion, true)) return;
                 } catch(ez) {
@@ -188,7 +188,7 @@ wmsx.FileLoader = function() {
     function tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, filesFromZIP) {
         // Try as a Disk Stack (all images found)
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
-            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, asExpansion, openType === OPEN_TYPE.DISK, filesFromZIP)) return true;
+            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, asExpansion, filesFromZIP)) return true;
         // Try as other Single media (first found)
         if (openType !== OPEN_TYPE.DISK)
             for (var i = 0; i < files.length; i++)
@@ -227,7 +227,7 @@ wmsx.FileLoader = function() {
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
             try {
-                var files = zip.file(/.+/);
+                var files = wmsx.Util.getZIPFilesSorted(zip);
                 for (var i = 0; i < files.length; i++)
                     if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower)) return;
             } catch (ez) {

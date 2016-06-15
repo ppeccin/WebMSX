@@ -20,7 +20,7 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskStackFromFiles = function (drive, name, files, altPower, addToStack, anyContent, filesFromZip) {
+    this.loadDiskStackFromFiles = function (drive, name, files, altPower, addToStack, filesFromZip) {
         if (addToStack && maxStackReachedMessage(drive)) return [];
 
         var stack = [];
@@ -29,9 +29,10 @@ wmsx.FileDiskDrive = function() {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                if (!checkContentIsValidImage(file.content, anyContent)) continue;
+                var content = checkContentIsValidImage(file.content);
+                if (!content) continue;
                 var fileName = file.name.split("/").pop();
-                stack.push({ name: fileName, content: file.content});
+                stack.push({ name: fileName, content: content});
             }
             if (stack.length > 0) {
                 loadStack(drive, stack, addToStack);
@@ -67,7 +68,7 @@ wmsx.FileDiskDrive = function() {
         var content = unformatted ? images.createNewBlankDisk(mediaType) : images.createNewFormattedDisk(mediaType);
 
         // Add a new disk to the stack?
-        var add = !driveBlankDiskAdded[drive];    // Only add 1 disk to loaded stacks, always to the bottom
+        var add = driveStack[drive].length === 0 || !driveBlankDiskAdded[drive];    // Only add 1 disk to loaded stacks, always to the bottom
         if (add) driveStack[drive].push({});
 
         curDisk[drive] = driveStack[drive].length - 1;
@@ -75,7 +76,7 @@ wmsx.FileDiskDrive = function() {
         driveBlankDiskAdded[drive] = true;
 
         add = add && driveStack[drive].length > 1;
-        screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added to the Stack" : "inserted") + " in Drive " + driveName[drive] + " " + stackDiskInsertedNum(drive), true);
+        screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + stackDiskInsertedDesc(drive), true);
     };
 
     this.removeStack = function(drive) {
@@ -111,21 +112,21 @@ wmsx.FileDiskDrive = function() {
         stackDiskInsertedMessage(drive);
     };
 
-    function checkContentIsValidImage(content, anyContent) {
+    function checkContentIsValidImage(content) {
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
-            var files = zip.file(/.+/);
+            var files = wmsx.Util.getZIPFilesSorted(zip);
             for (var f in files) {
-                var res = checkInnerContentIsValidImage(files[f].asUint8Array(), anyContent);
+                var res = checkInnerContentIsValidImage(files[f].asUint8Array());
                 if (res) return res;
             }
             return null
-        } else return checkInnerContentIsValidImage(content, anyContent);
+        } else return checkInnerContentIsValidImage(content);
     }
 
-    function checkInnerContentIsValidImage(content, anyContent) {
-        if (!self.MEDIA_TYPE_VALID_SIZES.has(content.length)) return null;                         // Valid image size
-        return (anyContent || content[0] === 0xe9 || content[0] === 0xeb) ? content : null;        // Valid boot sector?
+    function checkInnerContentIsValidImage(content) {
+        return self.MEDIA_TYPE_VALID_SIZES.has(content.length) ? content : null;            // Valid image size
+        //(anyContent || content[0] === 0xe9 || content[0] === 0xeb);                       // Valid boot sector?
     }
 
     function emptyStack(drive) {
@@ -278,15 +279,10 @@ wmsx.FileDiskDrive = function() {
 
     function stackLoadedMessage(drive, type, quant, added) {
         type = type || "Disk";
-        if (driveStack[drive].length <= 1) {
-            var size = driveStack[drive][0].content ? "" + ((driveStack[drive][0].content.length / 1024) | 0) + "KB" : "";
-            screen.showOSD("" + size + " " + type + " loaded in Drive " + driveName[drive], true);
-        } else {
-            if (added)
-                screen.showOSD("" + quant + " " + type + (quant > 1 ? "s" : "") + " added to the Stack in Drive " + driveName[drive] + " " + stackDiskInsertedNum(drive), true);
-            else
-                screen.showOSD("Disk Stack loaded in" + " Drive " + driveName[drive] + " " + stackDiskInsertedNum(drive), true);
-        }
+        if (added)
+            screen.showOSD("" + quant + " " + type + (quant > 1 ? "s" : "") + " added. " + stackDiskInsertedDesc(drive), true);
+        else
+            screen.showOSD("" + (quant > 1 ? quant + " Disks loaded. " : "") + stackDiskInsertedDesc(drive), true);
     }
 
     function stackDiskInsertedMessage(drive) {

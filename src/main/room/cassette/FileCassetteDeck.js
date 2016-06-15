@@ -19,7 +19,7 @@ wmsx.FileCassetteDeck = function() {
         tapeFileName = name;
         tapeContent = arrContent.slice(0);
         toTapeStart();
-        screen.showOSD("Cassette loaded." + positionMessage(), true);
+        screen.showOSD("Cassette: " + name + ". " + positionMessage(), true);
         fireStateUpdate();
 
         cassetteSocket.autoPowerCycle(altPower);
@@ -222,7 +222,7 @@ wmsx.FileCassetteDeck = function() {
             mes += " Tape at end";
         } else {
             var info = peekFileInfo(tapePosition);
-            if (info) mes += ' Tape at ' + info.type + ' file "' + info.name + '"';
+            if (info) mes += ' Tape at ' + info.type + ' "' + info.name + '"';
         }
         return mes;
     }
