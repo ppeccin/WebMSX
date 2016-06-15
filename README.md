@@ -1,22 +1,26 @@
 # WebMSX
 
-**WebMSX**, or simply **WMSX**, is a new MSX emulator designed for the Web.
+**WebMSX**, or simply **WMSX**, is a new cross platform MSX emulator designed for the Web.
 
 Its goal is not to emulate every single machine combination and piece of hardware in existence. 
-Instead, it will focus on delivering a simple and straight forward experience, with ease of use and deployment in webpages.
+Instead, deliver a simple and straight forward experience, ease of use and deployment in webpages.
 
 Please go to **http://webmsx.org** to enjoy it online!
 
-Refer to the [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) folder for downloading stable release files and deployment examples.
+Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-#### Version 2.0 Features and Highlights
+#### Version 2.0
 
-- 100% HTML5/JS. Runs in any modern Browser. Tested in Chrome and Firefox
+- MSX1, MSX2 and MSX2+ machines. NTSC 60Hz or PAL 50Hz
+- PSG, SCC, SCC-I, FM-PAC and MSX-MUSIC sound
+- Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox
 - Put games or any MSX software in webpages easily
-- Or run it locally with a single HTML file
-- MSX1, MSX2 and MSX2+ standards. NTSC 60Hz or PAL 50Hz
-- Cartridge ROMs, Disks and Tape images
-- PSG, SCC-I and MSX-MUSIC sound
+- Run it locally with a single HTML file, no install needed
+- Play Cartridge ROMs, Disk and Tape images
+- Load several disks at once and easily switch disks
+- Load "Files as Disk" or "ZIP as Disk"
 - Savestates support. Export and share Savestate files
 - Keyboard, Gamepad and Mouse controllers with auto-detection
-- Full Screen mode
+- Adjustable speed, Pause and Frame-by-frame advance
+- Copy & Paste text, Screen Capture, Debug modes
+- Resizable Screen, Full Screen mode
