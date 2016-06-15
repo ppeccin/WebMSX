@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Review cursor hiding
+
 wmsx.CanvasDisplay = function(mainElement) {
     var self = this;
 
@@ -20,7 +22,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         extensionsSocket = pExtensionsSocket;
     };
 
-    this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub) {
+    this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive) {
         fileLoader.registerForDnD(mainElement);
         fileLoader.registerForFileInputElement(mainElement);
         fileDownloader = pFileDownloader;
@@ -29,6 +31,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controllersHub = pControllersHub;
         controllersHub.setKeyInputElement(mainElement);
         controllersHub.setMouseInputElement(fsElement);
+        diskDrive = pDiskDrive;
     };
 
     this.powerOn = function() {
@@ -88,6 +91,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (pasteDialog) pasteDialog.hide();
         settingsDialog.show(page);
     };
+
+    this.openDiskSelectDialog = function(drive, altPower) {
+        createDiskSelectDialog();
+        if (pasteDialog) pasteDialog.hide();
+        diskSelectDialog.show(drive, altPower);
+    };
+
+    this.toggleDiskSelectDialog = function(drive, altPower) {
+        createDiskSelectDialog();
+        if (pasteDialog) pasteDialog.hide();
+        diskSelectDialog.toggle(drive, altPower);
+    };
+
+    function createDiskSelectDialog() {
+        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, this);
+    }
 
     this.openLoadFileDialog = function() {
         peripheralControls.controlActivated(wmsx.PeripheralControls.ALL_LOAD_FILE);
@@ -274,15 +293,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
     };
 
-    this.diskDrivesMediaStateUpdate = function(diskAQuant, diskAName, diskAAddAllowed, diskBQuant, diskBName, diskBAddAllowed) {
-        diskAButton.title = diskAName;
-        diskBButton.title = diskBName;
-        diskAButton.wmsxMenu[1].disabled = diskAQuant === 0 || !diskAAddAllowed;
-        diskBButton.wmsxMenu[1].disabled = diskBQuant === 0 || !diskBAddAllowed;
-        diskAButton.wmsxMenu[6].disabled = diskAButton.wmsxMenu[7].disabled = diskAQuant === 0;
-        diskBButton.wmsxMenu[6].disabled = diskBButton.wmsxMenu[7].disabled = diskBQuant === 0;
-        diskAButton.wmsxMenu[7].label = "Remove " + (diskAQuant > 1 ? "Stack" : "Disk");
-        diskBButton.wmsxMenu[7].label = "Remove " + (diskBQuant > 1 ? "Stack" : "Disk");
+    this.diskDrivesMediaStateUpdate = function(drive) {
+        var button = drive === 1 ? diskBButton : diskAButton;
+        var stack = diskDrive.getDriveStack(drive);
+        button.title = diskDrive.getCurrentDiskDesc(drive);
+        button.wmsxMenu[1].disabled = stack.length === 0 || stack.length >= wmsx.FileDiskDrive.MAX_STACK;
+        button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = stack.length === 0;
+        button.wmsxMenu[7].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
+        if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
     };
 
     this.diskDrivesMotorStateUpdate = function(diskA, diskAMotor, diskB, diskBMotor) {
@@ -963,6 +981,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.outline = "none";
         style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
         style.MozOsxFontSmoothing = "grayscale";
+        style.cursor = "auto";
         style.zIndex = 20;
 
         var title = document.createElement('button');
@@ -977,7 +996,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.margin = "0 0 1px";
         style.textAlign = "center";
         style.background = "rgb(70, 70, 70)";
-        style.cursor = "auto";
         title.innerHTML = "Menu Title";
         barMenu.appendChild(title);
         barMenu.wmsxTitle = title;
@@ -1114,11 +1132,13 @@ wmsx.CanvasDisplay = function(mainElement) {
     var extensionsSocket;
     var controllersSocket;
     var cartridgeSocket;
+    var diskDrive;
 
     var machineControlsSocket;
     var machineControlsStateReport = {};
 
     var settingsDialog;
+    var diskSelectDialog;
     var pasteDialog;
     var copyTextArea;
 

@@ -97,6 +97,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case controls.DISK_SAVE_FILE:
                 if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(secPort ? 1 : 0);
                 break;
+            case controls.DISK_SELECT:
+                if (!mediaChangeDisabledWarning()) diskDrive.toggleDiskSelectDialog(secPort ? 1 : 0, altPower);
+                break;
             case controls.DISK_PREVIOUS:
                 if (!mediaChangeDisabledWarning()) diskDrive.insertPreviousDisk(secPort ? 1 : 0);
                 break;
@@ -221,8 +224,10 @@ wmsx.DOMPeripheralControls = function(room) {
         keyAltCodeMap[KEY_DISK] = controls.DISK_REMOVE;
         keyControlAltCodeMap[KEY_DISK] = controls.DISK_SAVE_FILE;
 
-        keyAltCodeMap[KEY_DISK_PREV]  = controls.DISK_PREVIOUS;
-        keyAltCodeMap[KEY_DISK_NEXT]  = controls.DISK_NEXT;
+        keyAltCodeMap[KEY_DISK_SELECT]  = controls.DISK_SELECT;
+        keyAltCodeMap[KEY_DISK_SELECT2] = controls.DISK_SELECT;
+        keyAltCodeMap[KEY_DISK_PREV]    = controls.DISK_PREVIOUS;
+        keyAltCodeMap[KEY_DISK_NEXT]    = controls.DISK_NEXT;
 
         keyCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_FILE;
         keyAltCodeMap[KEY_CART] = controls.CARTRIDGE_REMOVE;
@@ -306,8 +311,10 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
-    var KEY_DISK_PREV  = wmsx.DOMKeys.VK_PAGE_UP.c;
-    var KEY_DISK_NEXT  = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+    var KEY_DISK_SELECT  = wmsx.DOMKeys.VK_HOME.c;
+    var KEY_DISK_SELECT2 = wmsx.DOMKeys.VK_END.c;
+    var KEY_DISK_PREV    = wmsx.DOMKeys.VK_PAGE_UP.c;
+    var KEY_DISK_NEXT    = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
     var KEY_KEYBOARD_TOGGLE_HOST  = wmsx.DOMKeys.VK_K.c;
     var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;

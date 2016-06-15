@@ -84,8 +84,8 @@ wmsx.PasteDialog = function(mainElement, screen) {
                 return;
             }
 
-           // Ignore
-            if (e.preventDefault && IGNORE_KEYS.indexOf(e.keyCode) >= 0) e.preventDefault();
+           // Block default
+           if (e.preventDefault && ALLOW_DEFAULT_KEYS.indexOf(e.keyCode) < 0) e.preventDefault();
         });
 
         // Close the modal with a click outside the box...
@@ -96,7 +96,7 @@ wmsx.PasteDialog = function(mainElement, screen) {
         });
         // ... but not with a click inside
         self.box.addEventListener("mousedown", function (e) {
-            if (e.stopPropagation) e.stopPropagation();
+            if (e.stopPropagation) e.stopPropagation();             // TODO Trust without if
         });
 
         // Capture the paste event
@@ -117,14 +117,9 @@ wmsx.PasteDialog = function(mainElement, screen) {
     this.box = null;
 
     var k = wmsx.DOMKeys;
-    var IGNORE_KEYS = [
-        k.VK_SPACE.c, k.VK_ENTER.c, k.VK_TAB.c,  k.VK_BACKSPACE.c,
-        k.VK_UP.c, k.VK_DOWN.c, k.VK_LEFT.c, k.VK_RIGHT.c,
-        k.VK_HOME.c, k.VK_END.c, k.VK_PAGE_UP.c, k.VK_PAGE_DOWN.c,
-        k.VK_F1.c, k.VK_F2.c, k.VK_F3.c, k.VK_F4.c, k.VK_F5.c, k.VK_F6.c,
-        k.VK_F7.c, k.VK_F8.c, k.VK_F9.c, k.VK_F10.c, k.VK_F11.c, k.VK_F12.c
+    var ALLOW_DEFAULT_KEYS = [
+        k.VK_V.c, k.VK_INSERT.c
     ];
-
     var ESC_KEY = k.VK_ESCAPE.c, EXIT_KEY = k.VK_V.c, EXIT_KEY2 = k.VK_INSERT.c;
 
 };

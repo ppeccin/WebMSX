@@ -35,8 +35,7 @@ wmsx.FileDiskDrive = function() {
                 stack.push({ name: fileName, content: content});
             }
             if (stack.length > 0) {
-                loadStack(drive, stack, addToStack);
-                diskDriveSocket.autoPowerCycle(altPower);
+                loadStack(drive, stack, altPower, addToStack);
                 stackLoadedMessage(drive, null, stack.length, addToStack);
                 return stack;
             }
@@ -49,12 +48,12 @@ wmsx.FileDiskDrive = function() {
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return null;
+        if (addToStack && maxStackReachedMessage(drive)) return [];
 
         type = type || "Files as Disk";
         name = name || ("New " + type + ".dsk");
         var stack = [{ name: name, content: content }];
-        loadStack(drive, stack, addToStack);
-        diskDriveSocket.autoPowerCycle(altPower);
+        loadStack(drive, stack, altPower, addToStack);
         stackLoadedMessage(drive, type, stack.length, addToStack);
         return stack;
     };
@@ -77,6 +76,8 @@ wmsx.FileDiskDrive = function() {
 
         add = add && driveStack[drive].length > 1;
         screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + stackDiskInsertedDesc(drive), true);
+
+        if (add) this.openDiskSelectDialog(drive, true);
     };
 
     this.removeStack = function(drive) {
@@ -87,7 +88,7 @@ wmsx.FileDiskDrive = function() {
         driveDiskChanged[drive] = null;
 
         screen.showOSD((wasStack ? "Stack in " : "Disk ") + driveName[drive] + " removed", true);
-        fireMediaStateUpdate();
+        fireMediaStateUpdate(drive);
     };
 
     this.saveDiskFile = function(drive) {
@@ -100,16 +101,44 @@ wmsx.FileDiskDrive = function() {
         }
     };
 
+    this.autoPowerCycle = function(altPower) {
+        if (currentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
+    };
+
+    this.openDiskSelectDialog = function(drive, altPower) {
+        screen.openDiskSelectDialog(drive, altPower);
+    };
+
+    this.toggleDiskSelectDialog = function(drive, altPower) {
+        screen.toggleDiskSelectDialog(drive, altPower);
+    };
+
     this.insertPreviousDisk = function(drive) {
         var newNum = curDisk[drive] - 1;
-        if (newNum >= 0) setCurrentDisk(drive, newNum);
-        stackDiskInsertedMessage(drive);
+        if (newNum >= 0) this.insertDisk(drive, newNum);
     };
 
     this.insertNextDisk = function(drive) {
         var newNum = curDisk[drive] + 1;
-        if (newNum < driveStack[drive].length) setCurrentDisk(drive, newNum);
+        if (newNum < driveStack[drive].length)  this.insertDisk(drive, newNum);
+    };
+
+    this.insertDisk = function(drive, num) {
+        setCurrentDisk(drive, num);
         stackDiskInsertedMessage(drive);
+        fireMediaStateUpdate(drive);
+    };
+
+    this.getDriveStack = function(drive) {
+        return driveStack[drive];
+    };
+
+    this.getCurrentDiskNum = function(drive) {
+        return curDisk[drive];
+    };
+
+    this.getCurrentDiskDesc = function(drive) {
+        return stackDiskInsertedDesc(drive);
     };
 
     function checkContentIsValidImage(content) {
@@ -134,24 +163,24 @@ wmsx.FileDiskDrive = function() {
         curDisk[drive] = -1;
     }
 
-    function loadStack(drive, stack, add) {
-        if (add) driveStack[drive] = driveStack[drive].concat(stack);
-        else driveStack[drive] = stack;
-        driveBlankDiskAdded[drive] = false;
-        setCurrentDisk(drive, driveStack[drive].length - stack.length);
-    }
-
-    function setCurrentDisk(drive, num) {
-        curDisk[drive] = num;
-        driveDiskChanged[drive] = true;
-        fireMediaStateUpdate();
+    function loadStack(drive, stack, altPower, add) {
+        if (add) {
+            driveStack[drive] = driveStack[drive].concat(stack);
+        } else {
+            driveStack[drive] = stack;
+            driveBlankDiskAdded[drive] = false;
+            setCurrentDisk(drive, 0);
+        }
+        fireMediaStateUpdate(drive);
+        if (driveStack[drive].length > 1) self.openDiskSelectDialog(drive, altPower);
+        else self.autoPowerCycle(altPower);
     }
 
     function replaceCurrentDisk(drive, name, content) {     // Affects only current disk from stack
         currentDisk(drive).name = name;
         currentDisk(drive).content = content;
         driveDiskChanged[drive] = true;
-        fireMediaStateUpdate();
+        fireMediaStateUpdate(drive);
         return content;
     }
 
@@ -252,8 +281,8 @@ wmsx.FileDiskDrive = function() {
             }, MOTOR_SPINDOWN_EXTRA_MILLIS);
     }
 
-    function fireMediaStateUpdate() {
-        screen.diskDrivesMediaStateUpdate(driveStack[0].length, stackDiskInsertedDesc(0), driveStack[0].length < MAX_STACK, driveStack[1].length, stackDiskInsertedDesc(1), driveStack[1].length < MAX_STACK);
+    function fireMediaStateUpdate(drive) {
+        screen.diskDrivesMediaStateUpdate(drive);
         fireMotorStateUpdate();
     }
 
@@ -304,6 +333,11 @@ wmsx.FileDiskDrive = function() {
         return "(" + quant + " disk" + (quant !== 1 ? "s" : "") + ")";
     }
 
+    function setCurrentDisk(drive, num) {
+        curDisk[drive] = num;
+        driveDiskChanged[drive] = true;
+    }
+
     function currentDisk(drive) {
         return driveStack[drive][curDisk[drive]];
     }
@@ -334,7 +368,7 @@ wmsx.FileDiskDrive = function() {
         driveBlankDiskAdded = state.b;
         driveDiskChanged = state.g;
         driveMotor = state.m;
-        fireMediaStateUpdate();
+        fireMediaStateUpdate(0); fireMediaStateUpdate(1);
         this.allMotorsOff(true);
     };
 
@@ -366,7 +400,7 @@ wmsx.FileDiskDrive = function() {
     var MOTOR_SPINUP_EXTRA_ITERATIONS = 100000;
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;
 
-    var MAX_STACK = 5;
+    var MAX_STACK = wmsx.FileDiskDrive.MAX_STACK;
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
@@ -377,3 +411,5 @@ wmsx.FileDiskDrive = function() {
     init();
 
 };
+
+wmsx.FileDiskDrive.MAX_STACK = 5;
