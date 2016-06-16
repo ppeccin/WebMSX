@@ -6,7 +6,7 @@ wmsx.Monitor = function(display) {
         self.setDefaults();
     }
 
-    this.connect = function(pVideoSignal, pCartridgeSocket) {
+    this.connect = function(pVideoSignal) {
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
     };

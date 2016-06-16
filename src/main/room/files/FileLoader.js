@@ -424,18 +424,6 @@ wmsx.FileLoader = function() {
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 
-    var ZIP_PATTERN = {
-        ROM:   /^.+\.(bin|BIN|rom|ROM|bios|BIOS)$/,
-        DISK:  /^.+\.(bin|BIN|dsk|DSK)$/,
-        TAPE:  /^.+\.(bin|BIN|cas|CAS|tape|TAPE)$/,
-        STATE: /^.+\.(wst|WST)$/,
-        CART_DATA: /^.+\.(pac|PAC|dat|DAT|sram|SRAM)$/,
-        FILES_AS_DISK: /.+/,
-        ZIP_AS_DISK:   /.+/,
-        AUTO_AS_DISK:  /.+/,
-        ALL:   /.+/
-    };
-
     var INPUT_ACCEPT = {
         ROM:   ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP",
         DISK:  ".bin,.BIN,.dsk,.DSK,.zip,.ZIP",

@@ -82,7 +82,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
         if (joystick1) {
             if (joystick1.update(gamepads)) {
                 if (joystick1.hasMoved() || (turboFireSpeed && joy1State.button1Real))
-                    update(joystick1, joy1State, joy1Prefs, swappedMode);
+                    update(joystick1, joy1State, joy1Prefs);
             } else {
                 joystick1 = null;
                 joy1State.reset();
@@ -98,7 +98,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
         if (joystick2) {
             if (joystick2.update(gamepads)) {
                 if (joystick2.hasMoved() || (turboFireSpeed && joy2State.button1Real))
-                    update(joystick2, joy2State, joy2Prefs, !swappedMode);
+                    update(joystick2, joy2State, joy2Prefs);
             } else {
                 joystick2 = null;
                 joy2State.reset();
@@ -146,7 +146,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
         joy2State.reset();
     };
 
-    var update = function(joystick, joyState, joyPrefs, primary) {
+    var update = function(joystick, joyState, joyPrefs) {
         // Paddle Analog
         //if (paddleMode && joyPrefs.paddleSens !== 0) {
         //    joyState.xPosition = joystick.getPaddlePosition();

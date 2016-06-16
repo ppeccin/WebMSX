@@ -113,7 +113,7 @@ wmsx.YM2413Audio = function(pName) {
 
     this.nextSample = function() {
         var amChanged, vibChanged = false;
-        var m, c, mPh, cPh, fb, mod;
+        var m, c, mPh, cPh, mod;
 
         ++clock;
         amChanged = clockAM();
@@ -580,15 +580,6 @@ wmsx.YM2413Audio = function(pName) {
         totalAtt[op] = amAtt[op] + kslAtt[op] + envAtt[op] + volModAtt[op];
     }
 
-    function updateAllAttenuations(chan) {
-        var m = chan << 1, c = m + 1;
-        updateAMAttenuation(chan);
-        updateKSLAttenuation(chan);
-        updateEnvAttenuation(chan);
-        updateModAttenuationOp(m);
-        updateVolumeAttenuationOp(c);
-    }
-
 
     var name;
     var audioConnected = false;
@@ -596,7 +587,6 @@ wmsx.YM2413Audio = function(pName) {
     // Constants
 
     var IDLE = 255, DAMP = 0, ATTACK = 1, DECAY = 2, SUSTAIN = 3, RELEASE = 4;       // Envelope steps
-    var MAX_INT = 9007199254740991;
 
     // Dynamic global values. Change as time passes
     var clock;
@@ -658,49 +648,49 @@ wmsx.YM2413Audio = function(pName) {
 
     // Debug vars
 
-    this.register = register;
+    //this.register = register;
 
-    this.keyOn = keyOn;
-    this.sustain = sustain;
-    this.fNum = fNum;
-    this.block = block;
-    this.instr = instr;
-    this.volume = volume;
-    this.modTL = modTL;
+    //this.keyOn = keyOn;
+    //this.sustain = sustain;
+    //this.fNum = fNum;
+    //this.block = block;
+    //this.instr = instr;
+    //this.volume = volume;
+    //this.modTL = modTL;
 
-    this.am = am;
-    this.vib = vib;
-    this.envType = envType;
-    this.ksr = ksr;
-    this.multi = multi;
-    this.ksl = ksl;
-    this.halfWave = halfWave;
-    this.ar = ar;
-    this.dr = dr;
-    this.sl = sl;
-    this.rr = rr;
-    this.ksrOffset = ksrOffset;
+    //this.am = am;
+    //this.vib = vib;
+    //this.envType = envType;
+    //this.ksr = ksr;
+    //this.multi = multi;
+    //this.ksl = ksl;
+    //this.halfWave = halfWave;
+    //this.ar = ar;
+    //this.dr = dr;
+    //this.sl = sl;
+    //this.rr = rr;
+    //this.ksrOffset = ksrOffset;
 
-    this.kslAtt = kslAtt;
-    this.fbShift = fbShift;
-    this.envAtt = envAtt;
-    this.amAtt = amAtt;
-    this.volModAtt = volModAtt;
-    this.totalAtt = totalAtt;
+    //this.kslAtt = kslAtt;
+    //this.fbShift = fbShift;
+    //this.envAtt = envAtt;
+    //this.amAtt = amAtt;
+    //this.volModAtt = volModAtt;
+    //this.totalAtt = totalAtt;
 
-    this.envStep = envStep;
-    this.envStepLevelDur = envStepLevelDur;
-    this.envStepLevelIncClock = envStepLevelIncClock;
-    this.envStepNext = envStepNext;
-    this.envStepNextAtLevel = envStepNextAtLevel;
-    this.envStepLevelInc = envStepLevelInc;
-    this.envLevel = envLevel;
+    //this.envStep = envStep;
+    //this.envStepLevelDur = envStepLevelDur;
+    //this.envStepLevelIncClock = envStepLevelIncClock;
+    //this.envStepNext = envStepNext;
+    //this.envStepNextAtLevel = envStepNextAtLevel;
+    //this.envStepLevelInc = envStepLevelInc;
+    //this.envLevel = envLevel;
 
-    this.fbLastMod1 = fbLastMod1;
-    this.fbLastMod2 = fbLastMod2;
+    //this.fbLastMod1 = fbLastMod1;
+    //this.fbLastMod2 = fbLastMod2;
 
-    this.phaseInc = phaseInc;
-    this.phaseCounter = phaseCounter;
+    //this.phaseInc = phaseInc;
+    //this.phaseCounter = phaseCounter;
 
     // Pre calculated tables, factors, values
 
@@ -779,8 +769,8 @@ wmsx.YM2413Audio = function(pName) {
         fbLastMod1 = wmsx.Util.restoreStringBase64ToInt32BitArray(s.fb1, fbLastMod1);
         fbLastMod2 = wmsx.Util.restoreStringBase64ToInt32BitArray(s.fb2, fbLastMod2);
 
-        this.phaseInc = phaseInc = s.phi;
-        this.phaseCounter = phaseCounter = s.phc;
+        //this.phaseInc = phaseInc = s.phi;
+        //this.phaseCounter = phaseCounter = s.phc;
 
         if (audioConnected) connectAudio();
     };

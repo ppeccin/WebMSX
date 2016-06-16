@@ -526,7 +526,7 @@ wmsx.Machine = function() {
 
     function BIOSSocket() {
         this.insert = function (bios, altPower) {
-            slotSocket.insert(bios, BIOS_SLOT);
+            slotSocket.insert(bios, BIOS_SLOT, altPower);
         };
         this.inserted = function () {
             return bios;
@@ -818,14 +818,6 @@ wmsx.Machine = function() {
 
         this.connectMedia = function(pMedia) {
             media = pMedia;
-        };
-
-        this.getMedia = function() {
-            return media;
-        };
-
-            this.externalStateChange = function() {
-            // Nothing
         };
 
         this.saveState = function(slot) {

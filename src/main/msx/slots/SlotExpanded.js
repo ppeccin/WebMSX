@@ -20,7 +20,7 @@ wmsx.SlotExpanded = function() {
     };
 
     this.disconnect = function(pMachine) {
-        for (var s = 0; s < 4; s++) subSlots[s].disconnect(machine);
+        for (var s = 0; s < 4; s++) subSlots[s].disconnect(pMachine);
         machine = null;
     };
 

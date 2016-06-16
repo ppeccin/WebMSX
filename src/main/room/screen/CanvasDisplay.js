@@ -566,7 +566,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Reset",              clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "",                   divider: true },
             { label: "Load State File",    clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
-            { label: "Save State File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE, disabled: true },
+            { label: "Save State File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE, disabled: true }
         ];
         menu.menuTitle = "System";
         powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", null, menu);
@@ -1149,7 +1149,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasImageRenderingValue;
 
     var buttonsBar;
-    var buttonsBarHideTimeout;
 
     var barMenu;
     var barMenuActive = null;

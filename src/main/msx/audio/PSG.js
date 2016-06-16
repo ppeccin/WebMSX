@@ -35,7 +35,6 @@ wmsx.PSG = function(audioSocket, controllersSocket) {
     };
 
     this.outputA1 = function(val) {
-        var mod = register[registerAddress] ^ val;
         register[registerAddress] = val;
         switch(registerAddress) {
             case 0: case 1:

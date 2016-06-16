@@ -4,7 +4,6 @@
 // Mixes all signals performing per-signal resampling as needed
 
 wmsx.WebAudioSpeaker = function() {
-    var self = this;
 
     this.connect = function(audioSocket) {
         audioSocket.connectMonitor(this);
