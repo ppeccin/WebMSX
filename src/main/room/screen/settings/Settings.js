@@ -4,7 +4,7 @@ wmsx.SettingsDialog = function() {
     var self = this;
 
     this.show = function (page) {
-        if (!this.dialog) {
+        if (!this.cover) {
             create();
             setTimeout(function() {
                 self.show(page);
@@ -17,7 +17,7 @@ wmsx.SettingsDialog = function() {
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
-        this.dialog.focus();
+        this.cover.focus();
     };
 
     this.hide = function () {
@@ -56,14 +56,14 @@ wmsx.SettingsDialog = function() {
         styles.innerHTML = wmsx.SettingsGUI.css();
         document.head.appendChild(styles);
 
-        self.dialog = document.createElement("div");
-        self.dialog.innerHTML = wmsx.SettingsGUI.html();
-        self.dialog.style.outline = "none";
-        self.dialog.tabIndex = -1;
-        document.body.appendChild(self.dialog);
+        self.cover = document.createElement("div");
+        self.cover.innerHTML = wmsx.SettingsGUI.html();
+        self.cover.style.outline = "none";
+        self.cover.tabIndex = -1;
+        document.body.appendChild(self.cover);
 
         // Supress context menu
-        self.dialog.addEventListener("contextmenu", function stopContextMenu(e) {
+        self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
             e.preventDefault();
             e.stopPropagation();
             return false;
@@ -79,7 +79,7 @@ wmsx.SettingsDialog = function() {
 
     // Automatic set fields for each child element that has the "id" attribute
     var setFields = function () {
-        traverseDOM(self.dialog, function (element) {
+        traverseDOM(self.cover, function (element) {
             if (element.id) self[element.id] = element;
         });
 
@@ -94,7 +94,7 @@ wmsx.SettingsDialog = function() {
 
     var setEvents = function () {
         // Close the modal with a click outside
-        self.dialog.addEventListener("mousedown", function (e) {
+        self.cover.addEventListener("mousedown", function (e) {
             e.preventDefault();
             e.stopPropagation();
             self.hide();
@@ -112,7 +112,7 @@ wmsx.SettingsDialog = function() {
         });
 
         // Several key events
-        self.dialog.addEventListener("keydown", function (e) {
+        self.cover.addEventListener("keydown", function (e) {
             e.preventDefault();
             e.stopPropagation();
             processKeyEvent(e);
@@ -215,7 +215,7 @@ wmsx.SettingsDialog = function() {
     };
 
 
-    this.dialog = null;
+    this.cover = null;
 
     var controlRedefining = null;
     var controlsCommandKeys = {};

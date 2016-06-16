@@ -150,6 +150,15 @@ wmsx.FileDiskDrive = function() {
         return currentDiskNumDesc(drive);
     };
 
+    this.moveDiskInStack = function (drive, from, to) {
+        var stack = driveStack[drive];
+        if (from < 0 || to < 0 || from > stack.length -1 || to > stack.length -1) return;
+        var disk = stack[curDisk[drive]];
+        stack.splice(to, 0, stack.splice(from, 1)[0]);
+        if (disk) curDisk[drive] = stack.indexOf(disk);
+        fireMediaStateUpdate(drive);
+    };
+
     function checkContentIsValidImage(content) {
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {

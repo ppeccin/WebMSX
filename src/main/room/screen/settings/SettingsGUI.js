@@ -609,7 +609,11 @@ wmsx.SettingsGUI.css = function() {
            'opacity: 0;' +
            'background: rgba(0, 0, 0, 0.6);' +
            'transition: all .2s ease-out;' +
-            'z-index: 100;' +
+           'user-select: none;' +
+           '-webkit-user-select: none;' +
+           '-moz-user-select: none;' +
+           '-ms-user-select: none;' +
+           'z-index: 100;' +
        '}' +
 
        '#wmsx-cover.wmsx-show {' +

@@ -40,8 +40,6 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     };
 
     function refreshList() {
-        console.log("REFRESH");
-
         var stack = diskDrive.getDriveStack(drive);
         var currDiskNum = diskDrive.getCurrentDiskNum(drive);
 
@@ -57,7 +55,10 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             } else {
                 li.classList.remove("wmsx-diskselect-visible");
             }
+            li.classList.remove("wmsx-diskselect-droptarget");
         }
+
+        diskSelect = diskMoveFrom = diskMoveTo = undefined;
     }
 
     function create() {
@@ -87,6 +88,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         }
         dialog.appendChild(list);
 
+        setupEvents();
+        setupDnD();
+
+        mainElement.appendChild(dialog);
+    }
+
+    function setupEvents() {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
 
@@ -111,26 +119,27 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog.addEventListener("blur", hideAbort, true);
         dialog.addEventListener("focusout", hideAbort, true);
 
-        // Select Disk with mouseup
-        function mouseDiskSelect(e) {
-            var diskNum = e.target.wmsxDiskNum;
-            if (diskNum === undefined) return;
+        // Determine Disk to select with mousedown
+        list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
             e.stopPropagation();
+            if (e.button === 0 && e.target.wmsxDiskNum !== undefined) diskSelect = e.target;
+            return false;
+        });
 
-            console.log("SELECT: " + diskNum);
-
+        // Select Disk with mouseup
+        list.addEventListener("mouseup", function mouseUpDiskSelect(e) {
+            e.stopPropagation();
+            if (e.button !== 0 || e.target !== diskSelect) return false;
+            diskSelect = undefined;
+            var diskNum = e.target.wmsxDiskNum;
+            if (diskNum === undefined) return false;
             diskDrive.insertDisk(drive, diskNum);
             window.setTimeout(hideConfirm, 140);
-        }
-        dialog.addEventListener("mouseup", mouseDiskSelect);
+            return false;
+        });
 
-        // Prevent other preventions for mouse events
-        function stopEventPropagation(e) {
-            e.stopPropagation();
-        }
-        dialog.addEventListener("mousedown", stopEventPropagation);
-        dialog.addEventListener("mouseup",   stopEventPropagation);
-        dialog.addEventListener("mousemove", stopEventPropagation);
+        // Block mousemove preventions down event stack, so drags can start
+        list.addEventListener("mousemove", function(e) { e.stopPropagation(); });
 
         // Supress context menu
         dialog.addEventListener("contextmenu", function stopContextMenu(e) {
@@ -138,8 +147,38 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             e.stopPropagation();
             return false;
         });
+    }
 
-        mainElement.appendChild(dialog);
+    function setupDnD() {
+        list.addEventListener("dragstart", function dragStart(e) {
+            if (e.target.wmsxDiskNum === undefined) return false;
+            diskSelect = undefined;
+            diskMoveFrom = e.target;
+            e.dataTransfer.setData('text/html', e.target.innerHTML);
+            return false;
+        });
+        list.addEventListener("dragend", function dragEnd(e) {
+            if (diskMoveTo) diskMoveTo.classList.remove("wmsx-diskselect-droptarget");
+            diskMoveFrom = diskMoveTo = undefined;
+            return false;
+        });
+
+        list.addEventListener("drop", function dragStart(e) {
+            if (!diskMoveFrom || !diskMoveTo) return false;
+            var from = diskMoveFrom.wmsxDiskNum;
+            var to = diskMoveTo.wmsxDiskNum;
+            if (from === undefined || to === undefined || to === from) return false;
+            diskDrive.moveDiskInStack(drive, from, to);
+            return false;
+        });
+
+        list.addEventListener("dragenter", function dragEnter(e) {
+            if (!diskMoveFrom || e.target.wmsxDiskNum === undefined) return false;
+            if (diskMoveTo && diskMoveTo !== e.target) diskMoveTo.classList.remove("wmsx-diskselect-droptarget");
+            diskMoveTo = e.target !== diskMoveFrom  ? e.target : undefined;
+            if (diskMoveTo) diskMoveTo.classList.add("wmsx-diskselect-droptarget");
+            return false;
+        });
     }
 
     function css() {
@@ -162,6 +201,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '    text-align: center;' +
             '    border: 1px solid black;' +
             '    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
+            '    -webkit-font-smoothing: antialiased;' +
+            '    -moz-osx-font-smoothing: grayscale;' +
             '    cursor: auto;' +
             '    outline: none;' +
             '}' +
@@ -183,11 +224,11 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '    overflow: hidden;' +
             '    background: rgb(70, 70, 70);' +
             '    margin: 7px 0;' +
-            '    padding: 4px 10px;' +
+            '    padding: 2px 10px;' +
             '    text-align: left;' +
             '    text-overflow: ellipsis;' +
+            '    border: 2px dashed transparent;' +
             '    white-space: nowrap;' +
-            //'    cursor: n-resize;' +
             '}' +
             '#wmsx-diskselect-list li.wmsx-diskselect-visible {' +
             '    display: block;' +
@@ -195,6 +236,10 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '#wmsx-diskselect-list li.wmsx-diskselect-selected {' +
             '    color: white;' +
             '    background: rgb(220, 32, 26);' +
+            '}' +
+            '#wmsx-diskselect-list li.wmsx-diskselect-droptarget {' +
+            '    color: white;' +
+            '    border-color: lightgray;' +
             '}';
     }
 
@@ -205,6 +250,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
     var drive = 0;
     var altPower = true;
+
+    var diskMoveFrom, diskMoveTo, diskSelect;
 
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;

@@ -49,7 +49,6 @@ wmsx.PasteDialog = function(mainElement, screen) {
         self.box.readOnly = "readonly";
         self.box.innerHTML = "PASTE NOW!";
         style = self.box.style;
-        style.userSelect = style.webkitUserSelect = style.MozUserSelect = style.msUserSelect = "none";
         style.position = "absolute";
         style.top = style.bottom = 0;
         style.left = style.right = 0;

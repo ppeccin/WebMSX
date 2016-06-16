@@ -9,6 +9,10 @@
     opacity: 0;
     background: rgba(0, 0, 0, 0.6);
     transition: all .2s ease-out;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     z-index: 100;
 }
 

@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Review cursor hiding
-
 wmsx.CanvasDisplay = function(mainElement) {
     var self = this;
 
@@ -467,17 +465,16 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMain() {
-        if (!mainElement.style.position || mainElement.style.position === "static" || mainElement.style.position === "initial")
-            mainElement.style.position = "relative";
-        mainElement.style.overflow = "hidden";
-        mainElement.style.outline = "none";
+        var style = mainElement.style;
+        if (!style.position || style.position === "static" || style.position === "initial") style.position = "relative";
+        style.userSelect = style.webkitUserSelect = style.MozUserSelect = style.msUserSelect = "none";
+        style.overflow = "hidden";
+        style.outline = "none";
         mainElement.tabIndex = "0";               // Make it focusable
         suppressContextMenu(mainElement);
 
         mainElement.addEventListener("focusout", lostFocus, true);
         mainElement.addEventListener("blur", lostFocus, true);
-
-        var style;
 
         borderElement = document.createElement('div');
         borderElement.id = "wmsx-border";
