@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, screen) {
+wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     var self = this;
 
     this.show = function (pDrive, pAltPower) {
@@ -115,7 +115,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, scr
         function mouseDiskSelect(e) {
             var diskNum = e.target.wmsxDiskNum;
             if (diskNum === undefined) return;
-            if (e.stopPropagation) e.stopPropagation();
+            e.stopPropagation();
 
             console.log("SELECT: " + diskNum);
 
@@ -134,8 +134,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, scr
 
         // Supress context menu
         dialog.addEventListener("contextmenu", function stopContextMenu(e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             return false;
         });
 

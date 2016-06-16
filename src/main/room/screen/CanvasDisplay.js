@@ -105,7 +105,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     function createDiskSelectDialog() {
-        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls, this);
+        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
     }
 
     this.openLoadFileDialog = function() {
@@ -192,9 +192,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateScale();
 
         if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
-    };
-
-    this.displayMinimumSize = function(width, height) {
     };
 
     this.displayCenter = function() {
@@ -463,8 +460,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function suppressContextMenu(element) {
         element.addEventListener("contextmenu", function stopContextMenu(e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             return false;
         });
     }
@@ -1199,11 +1196,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var settingsButton;
 
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
-
-    var MOUSE_BUT1_MASK = 1;
-    var MOUSE_BUT2_MASK = 2;
-    var MOUSE_BUT3_MASK = 4;
-    var MOUSE_VOID_MASK = 0xff00;     // Any impossible value
 
     var KEY_CTRL_MASK  =  32;
     var KEY_ALT_MASK   =  64;

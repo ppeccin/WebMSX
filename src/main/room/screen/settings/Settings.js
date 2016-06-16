@@ -64,8 +64,8 @@ wmsx.SettingsDialog = function() {
 
         // Supress context menu
         self.dialog.addEventListener("contextmenu", function stopContextMenu(e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             return false;
         });
 
@@ -95,44 +95,44 @@ wmsx.SettingsDialog = function() {
     var setEvents = function () {
         // Close the modal with a click outside
         self.dialog.addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             self.hide();
         });
         // But do not close the modal with a click inside
         self["wmsx-modal"].addEventListener("mousedown", function (e) {
-            if (e.stopPropagation) e.stopPropagation();
+            e.stopPropagation();
             keyRedefinitonStop();
         });
         // Close with the back button
         self["wmsx-back"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             self.hide();
         });
 
         // Several key events
         self.dialog.addEventListener("keydown", function (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             processKeyEvent(e);
         });
 
         // Tabs
         self["wmsx-menu-general"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
+            e.preventDefault();
             self.setPage("GENERAL");
         });
         self["wmsx-menu-inputs"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
+            e.preventDefault();
             self.setPage("INPUTS");
         });
         self["wmsx-menu-media"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
+            e.preventDefault();
             self.setPage("MEDIA");
         });
         self["wmsx-menu-about"].addEventListener("mousedown", function (e) {
-            if (e.preventDefault) e.preventDefault();
+            e.preventDefault();
             self.setPage("ABOUT");
         });
 
@@ -140,7 +140,7 @@ wmsx.SettingsDialog = function() {
         //for (var key in controlsCommandKeys) {
         //    (function(keyLocal) {
         //        self[controlsCommandKeys[key]].addEventListener("mousedown", function (e) {
-        //            if (e.preventDefault) e.preventDefault();
+        //            e.preventDefault();
         //            WMSX.room.machineControls.processKeyEvent(keyLocal, true, wmsx.DOMConsoleControls.KEY_ALT_MASK);
         //            keyRedefinitonStop();   // will refresh
         //        });

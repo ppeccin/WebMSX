@@ -23,28 +23,28 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     this.powerOff = function() {
     };
 
-    this.keyDown = function(event) {
-        var modifiers = 0 | (event.ctrlKey && KEY_CTRL_MASK) | (event.altKey && KEY_ALT_MASK) | (event.shiftKey && KEY_SHIFT_MASK);
-        if (processKeyEvent(event.keyCode, true, modifiers)) {
-            event.returnValue = false;  // IE
-            if (event.preventDefault) event.preventDefault();
-            if (event.stopPropagation) event.stopPropagation();
-            keyForwardControls.keyDown(event);
+    this.keyDown = function(e) {
+        var modifiers = 0 | (e.ctrlKey && KEY_CTRL_MASK) | (e.altKey && KEY_ALT_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
+        if (processKeyEvent(e.keyCode, true, modifiers)) {
+            e.returnValue = false;  // IE
+            e.preventDefault();
+            e.stopPropagation();
+            keyForwardControls.keyDown(e);
             return false;
         } else
-            return keyForwardControls.keyDown(event);
+            return keyForwardControls.keyDown(e);
     };
 
-    this.keyUp = function(event) {
-        var modifiers = 0 | (event.ctrlKey && KEY_CTRL_MASK) | (event.altKey && KEY_ALT_MASK) | (event.shiftKey && KEY_SHIFT_MASK);
-        if (processKeyEvent(event.keyCode, false, modifiers)) {
-            event.returnValue = false;  // IE
-            if (event.preventDefault) event.preventDefault();
-            if (event.stopPropagation) event.stopPropagation();
-            keyForwardControls.keyUp(event);
+    this.keyUp = function(e) {
+        var modifiers = 0 | (e.ctrlKey && KEY_CTRL_MASK) | (e.altKey && KEY_ALT_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
+        if (processKeyEvent(e.keyCode, false, modifiers)) {
+            e.returnValue = false;  // IE
+            e.preventDefault();
+            e.stopPropagation();
+            keyForwardControls.keyUp(e);
             return false;
         } else
-            return keyForwardControls.keyUp(event);
+            return keyForwardControls.keyUp(e);
     };
 
     var processKeyEvent = function(keyCode, press, modifiers) {

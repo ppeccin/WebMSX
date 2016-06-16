@@ -1,10 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-function handleFileSelect(event) {
-    if (event.stopPropagation) event.stopPropagation();
-    if (event.preventDefault) event.preventDefault();
+function handleFileSelect(e) {
+    e.stopPropagation();
+    e.preventDefault();
 
-    var files = event.dataTransfer.files; // FileList object.
+    var files = e.dataTransfer.files; // FileList object.
     if (!files || files.length === 0) {
         return
     }
@@ -15,10 +15,10 @@ function handleFileSelect(event) {
     readFile(file);
 }
 
-function handleDragOver(event) {
-    if (event.stopPropagation) event.stopPropagation();
-    if (event.preventDefault) event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
+function handleDragOver(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
 }
 
 function readFile(file) {

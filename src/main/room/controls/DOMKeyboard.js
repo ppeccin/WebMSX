@@ -67,28 +67,28 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         this.releaseControllers();
     };
 
-    this.keyDown = function(event) {
-        //console.log("Keyboard Down: " + event.keyCode + " " + event.altKey);
+    this.keyDown = function(e) {
+        //console.log("Keyboard Down: " + e.keyCode + " " + e.altKey);
 
-        if (processKeyEvent(event.keyCode, true, event.altKey, event.ctrlKey)) {
-            event.returnValue = false;  // IE
-            if (event.preventDefault) event.preventDefault();
-            if (event.stopPropagation) event.stopPropagation();
+        if (processKeyEvent(e.keyCode, true, e.altKey, e.ctrlKey)) {
+            e.returnValue = false;  // IE
+            e.preventDefault();
+            e.stopPropagation();
             return false;
         } else
-            return keyForwardControls.keyDown(event);
+            return keyForwardControls.keyDown(e);
     };
 
-    this.keyUp = function(event) {
-        //console.log("Keyboard Up: " + event.keyCode + " " + event.altKey);
+    this.keyUp = function(e) {
+        //console.log("Keyboard Up: " + e.keyCode + " " + e.altKey);
 
-        if (processKeyEvent(event.keyCode, false, event.altKey, event.ctrlKey)) {
-            event.returnValue = false;  // IE
-            if (event.preventDefault) event.preventDefault();
-            if (event.stopPropagation) event.stopPropagation();
+        if (processKeyEvent(e.keyCode, false, e.altKey, e.ctrlKey)) {
+            e.returnValue = false;  // IE
+            e.preventDefault();
+            e.stopPropagation();
             return false;
         } else
-            return keyForwardControls.keyUp(event);
+            return keyForwardControls.keyUp(e);
     };
 
     var processKeyEvent = function(keyCode, press, alt, ctrl) {

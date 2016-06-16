@@ -132,19 +132,19 @@ wmsx.DOMMouseControls = function(hub) {
         //if (dX !== 0 && dY !== 0) console.log("New DX: " + dX + ", DY: " + dY);
     }
 
-    function mouseMoveEvent(event) {
-        if (event.preventDefault) event.preventDefault();
+    function mouseMoveEvent(e) {
+        e.preventDefault();
 
         // Get movement either by movement reported (pointer locked) or by position (pointer unlocked)
         var dX = 0, dY = 0;
         if (pointerLocked) {
-            dX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-            dY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+            dX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+            dY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
         } else if (lastMoveEvent) {
-            dX = event.clientX - lastMoveEvent.clientX;
-            dY = event.clientY - lastMoveEvent.clientY;
+            dX = e.clientX - lastMoveEvent.clientX;
+            dY = e.clientY - lastMoveEvent.clientY;
         }
-        lastMoveEvent = event;
+        lastMoveEvent = e;
 
         mouseState.dX += dX / pixelScaleX;
         mouseState.dY += dY / pixelScaleY;

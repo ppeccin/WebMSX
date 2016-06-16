@@ -1,8 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Revise MediaChangeDisabled
-
-wmsx.DOMPeripheralControls = function(room) {
+wmsx.DOMPeripheralControls = function() {
 
     var self = this;
 
@@ -29,11 +27,11 @@ wmsx.DOMPeripheralControls = function(room) {
         groupRestriction = pGroup || null;
     };
 
-    this.keyDown = function(event) {
-        if (processKeyPress(event.keyCode, event.shiftKey, event.ctrlKey, event.altKey)) {
-            event.returnValue = false;  // IE
-            if (event.preventDefault) event.preventDefault();
-            if (event.stopPropagation) event.stopPropagation();
+    this.keyDown = function(e) {
+        if (processKeyPress(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey)) {
+            e.returnValue = false;  // IE
+            e.preventDefault();
+            e.stopPropagation();
             return false;
         }
     };
@@ -94,25 +92,25 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
                 break;
             case controls.DISK_EMPTY:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNewDisk(secPort ? 1 : 0, null);
+                diskDrive.insertNewDisk(secPort ? 1 : 0, null);
                 break;
             case controls.DISK_EMPTY_720:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+                diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
                 break;
             case controls.DISK_EMPTY_360:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
+                diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
             case controls.DISK_SAVE_FILE:
-                if (!mediaChangeDisabledWarning()) diskDrive.saveDiskFile(secPort ? 1 : 0);
+                diskDrive.saveDiskFile(secPort ? 1 : 0);
                 break;
             case controls.DISK_SELECT:
-                if (!mediaChangeDisabledWarning()) diskDrive.toggleDiskSelectDialog(secPort ? 1 : 0, altPower);
+                diskDrive.toggleDiskSelectDialog(secPort ? 1 : 0, altPower);
                 break;
             case controls.DISK_PREVIOUS:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertPreviousDisk(secPort ? 1 : 0);
+                diskDrive.insertPreviousDisk(secPort ? 1 : 0);
                 break;
             case controls.DISK_NEXT:
-                if (!mediaChangeDisabledWarning()) diskDrive.insertNextDisk(secPort ? 1 : 0);
+                diskDrive.insertNextDisk(secPort ? 1 : 0);
                 break;
             case controls.CARTRIDGE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
@@ -125,10 +123,10 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.CARTRIDGE_LOAD_DATA_FILE:
                 if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, secPort, false);
+                fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, secPort, false);
                 break;
             case controls.CARTRIDGE_SAVE_DATA_FILE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
+                cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case controls.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
@@ -144,19 +142,19 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case controls.TAPE_SAVE_FILE:
                 if (secPort) return this.controlActivated(controls.TAPE_AUTO_RUN, altPower, false);
-                if (!mediaChangeDisabledWarning()) cassetteDeck.saveTapeFile();
+                cassetteDeck.saveTapeFile();
                 break;
             case controls.TAPE_REWIND:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.rewind();
+                cassetteDeck.rewind();
                 break;
             case controls.TAPE_TO_END:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.seekToEnd();
+                cassetteDeck.seekToEnd();
                 break;
             case controls.TAPE_SEEK_BACK:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.seekBackward();
+                cassetteDeck.seekBackward();
                 break;
             case controls.TAPE_SEEK_FWD:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.seekForward();
+                cassetteDeck.seekForward();
                 break;
             case controls.TAPE_AUTO_RUN:
                 cassetteDeck.userTypeCurrentAutoRunCommand();

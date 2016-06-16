@@ -301,11 +301,11 @@ wmsx.FileLoader = function() {
         }
     }
 
-    var onFileInputChange = function(event) {
-        event.returnValue = false;  // IE
-        if (event.preventDefault) event.preventDefault();
-        if (event.stopPropagation) event.stopPropagation();
-        event.target.focus();
+    var onFileInputChange = function(e) {
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
+        e.target.focus();
         if (!this.files || this.files.length === 0) return;           // this will have a property "files"!
 
         var files = Array.prototype.slice.call(this.files);
@@ -313,7 +313,7 @@ wmsx.FileLoader = function() {
         // Tries to clear the last selected file so the same file can be chosen
         try {
             fileInputElement.value = "";
-        } catch (e) {
+        } catch (ex) {
             // Ignore
         }
 
@@ -332,41 +332,41 @@ wmsx.FileLoader = function() {
         return false;
     };
 
-    var onDragOver = function (event) {
-        event.returnValue = false;  // IE
-        if (event.preventDefault) event.preventDefault();
-        if (event.stopPropagation) event.stopPropagation();
+    var onDragOver = function (e) {
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
 
         if (WMSX.MEDIA_CHANGE_DISABLED)
-            event.dataTransfer.dropEffect = "none";
-        else if (event.ctrlKey)
-            event.dataTransfer.dropEffect = "copy";
-        else if (event.altKey)
-            event.dataTransfer.dropEffect = "link";
+            e.dataTransfer.dropEffect = "none";
+        else if (e.ctrlKey)
+            e.dataTransfer.dropEffect = "copy";
+        else if (e.altKey)
+            e.dataTransfer.dropEffect = "link";
 
-        dragButtons = event.buttons > 0 ? event.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
+        dragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
     };
 
-    var onDrop = function (event) {
-        event.returnValue = false;  // IE
-        if (event.preventDefault) event.preventDefault();
-        if (event.stopPropagation) event.stopPropagation();
-        event.target.focus();
+    var onDrop = function (e) {
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
+        e.target.focus();
 
         if (WMSX.MEDIA_CHANGE_DISABLED) return;
-        if (!event.dataTransfer) return;
+        if (!e.dataTransfer) return;
 
         var wasPaused = machine.systemPause(true);
 
-        var port = event.shiftKey ? 1 : 0;
+        var port = e.shiftKey ? 1 : 0;
         var altPower = dragButtons & MOUSE_BUT2_MASK;
-        var asExpansion = event.ctrlKey;
-        var asDisk = event.altKey;
+        var asExpansion = e.ctrlKey;
+        var asDisk = e.altKey;
 
         var openType = asDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.ALL;
 
         // Try to get local file/files if present
-        var files = event.dataTransfer && event.dataTransfer.files;
+        var files = e.dataTransfer && e.dataTransfer.files;
         var resume = function (s) {
             if (!wasPaused) machine.systemPause(false);
         };
@@ -377,7 +377,7 @@ wmsx.FileLoader = function() {
                 self.readFromFiles(files, openType, port, altPower, asExpansion, resume);
         } else {
             // If not, try to get URL
-            var url = event.dataTransfer.getData("text");
+            var url = e.dataTransfer.getData("text");
             if (url && url.length > 0)
                 self.readFromURL(url, null, port, altPower, asExpansion, resume);
         }
