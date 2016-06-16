@@ -151,6 +151,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
     function setupDnD() {
         list.addEventListener("dragstart", function dragStart(e) {
+            e.stopPropagation();
             if (e.target.wmsxDiskNum === undefined) return false;
             diskSelect = undefined;
             diskMoveFrom = e.target;
@@ -158,12 +159,14 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             return false;
         });
         list.addEventListener("dragend", function dragEnd(e) {
+            e.stopPropagation();
             if (diskMoveTo) diskMoveTo.classList.remove("wmsx-diskselect-droptarget");
             diskMoveFrom = diskMoveTo = undefined;
             return false;
         });
 
         list.addEventListener("drop", function dragStart(e) {
+            e.stopPropagation();
             if (!diskMoveFrom || !diskMoveTo) return false;
             var from = diskMoveFrom.wmsxDiskNum;
             var to = diskMoveTo.wmsxDiskNum;

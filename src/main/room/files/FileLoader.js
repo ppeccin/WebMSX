@@ -109,8 +109,7 @@ wmsx.FileLoader = function() {
                 if (!known) error += DIR_NOT_SUPPORTED_HINT;                  // Directories not supported
                 showError("File reading error: " + error);
                 if (then) then(false);
-            },
-            null
+            }
         );
         reader.start();
     };
@@ -380,6 +379,8 @@ wmsx.FileLoader = function() {
             var url = e.dataTransfer.getData("text");
             if (url && url.length > 0)
                 self.readFromURL(url, null, port, altPower, asExpansion, resume);
+            else
+                resume();
         }
     };
 
