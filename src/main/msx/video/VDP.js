@@ -1431,7 +1431,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
         var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
         var lineInPattern = realLine & 0x07;
-        var name, pattern, colorCode, on;
+        var name, pattern, on;
 
         var namePos = layoutTableAddress + (realLine >>> 3) * 80;
 
@@ -2230,7 +2230,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var vramInterleaving;
 
     var frame;
-    var blinkEvenPage, blinkPageDuration, layoutShowEvenPage;
+    var blinkEvenPage, blinkPageDuration;
 
     var vSynchMode;
     var videoStandard, pulldown;
@@ -2314,7 +2314,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     modes[0x21] = { name: "YJK", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYJK, renderLinePatInfo:       renderLineModeYJK, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true, textCols: 0 };
     modes[0x23] = { name: "YAE", isV9938: true,  layTBase: -1 << 16, colorTBase:        0, patTBase:        0, sprAttrTBase: -1 << 10, width: 256, layLineBytes: 256, evenPageMask: ~(1 << 16), blinkPageMask: ~(1 << 16), renderLine:   renderLineModeYAE, renderLinePatInfo:       renderLineModeYAE, ppb: 1, spriteMode: 2, tiled: false, vramInter:  true, bdPaletted:  true, textCols: 0 };
 
-    var renderLine, renderLineActive, blankedLineValues;         // Update functions for current mode
+    var renderLine, renderLineActive;         // Update functions for current mode
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
@@ -2337,7 +2337,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
    // Sprite and Debug Modes controls
 
     var debugMode = 0;
-    var debugModeSpriteHighlight = false, debugModeSpriteInfo = false, debugModeSpriteInfoNumbers = false, debugModeSpriteInfoNames = false, debugModeSpritesHidden = false;
+    var debugModeSpriteHighlight = false, debugModeSpriteInfo = false, debugModeSpriteInfoNumbers = false, debugModeSpritesHidden = false;
     var debugModePatternInfo = false, debugModePatternInfoBlocks = false, debugModePatternInfoNames = false;
 
     var spriteDebugMode = 0;
@@ -2346,7 +2346,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     var debugBackdropValue    = 0xff2a2a2a;
 
-    var debugFrameStartCPUCycle = 0;
     var debugLineStartCPUCycles = 0;
 
 
