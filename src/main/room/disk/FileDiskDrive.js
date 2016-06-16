@@ -75,7 +75,7 @@ wmsx.FileDiskDrive = function() {
         driveBlankDiskAdded[drive] = true;
 
         add = add && driveStack[drive].length > 1;
-        screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + stackDiskInsertedDesc(drive), true);
+        screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
 
         if (add) this.openDiskSelectDialog(drive, true);
     };
@@ -87,7 +87,7 @@ wmsx.FileDiskDrive = function() {
         emptyStack(drive);
         driveDiskChanged[drive] = null;
 
-        screen.showOSD((wasStack ? "Stack in " : "Disk ") + driveName[drive] + " removed", true);
+        screen.showOSD((wasStack ? "Disk Stack in Drive " : "Disk ") + driveName[drive] + " removed", true);
         fireMediaStateUpdate(drive);
     };
 
@@ -95,14 +95,14 @@ wmsx.FileDiskDrive = function() {
         if (noDiskInsertedMessage(drive)) return;
 
         try {
-            fileDownloader.startDownloadBinary(makeFileNameToSave(currentDisk(drive).name), new Uint8Array(currentDisk(drive).content), "Disk " + driveName[drive] + " file");
+            fileDownloader.startDownloadBinary(makeFileNameToSave(getCurrentDisk(drive).name), new Uint8Array(getCurrentDisk(drive).content), "Disk " + driveName[drive] + " file");
         } catch(ex) {
             // give up
         }
     };
 
     this.autoPowerCycle = function(altPower) {
-        if (currentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
+        if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
     };
 
     this.openDiskSelectDialog = function(drive, altPower) {
@@ -110,22 +110,27 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.toggleDiskSelectDialog = function(drive, altPower) {
+        if (noDiskInsertedMessage(drive)) return;
         screen.toggleDiskSelectDialog(drive, altPower);
     };
 
     this.insertPreviousDisk = function(drive) {
+        if (noDiskInsertedMessage(drive)) return;
         var newNum = curDisk[drive] - 1;
         if (newNum >= 0) this.insertDisk(drive, newNum);
+        this.openDiskSelectDialog(drive, false);
     };
 
     this.insertNextDisk = function(drive) {
+        if (noDiskInsertedMessage(drive)) return;
         var newNum = curDisk[drive] + 1;
         if (newNum < driveStack[drive].length)  this.insertDisk(drive, newNum);
+        this.openDiskSelectDialog(drive, false);
     };
 
     this.insertDisk = function(drive, num) {
-        setCurrentDisk(drive, num);
-        stackDiskInsertedMessage(drive);
+        setCurrentDiskNum(drive, num);
+        diskInsertedMessage(drive);
         fireMediaStateUpdate(drive);
     };
 
@@ -138,7 +143,11 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.getCurrentDiskDesc = function(drive) {
-        return stackDiskInsertedDesc(drive);
+        return currentDiskDesc(drive);
+    };
+
+    this.getCurrentDiskNumDesc = function(drive) {
+        return currentDiskNumDesc(drive);
     };
 
     function checkContentIsValidImage(content) {
@@ -169,7 +178,7 @@ wmsx.FileDiskDrive = function() {
         } else {
             driveStack[drive] = stack;
             driveBlankDiskAdded[drive] = false;
-            setCurrentDisk(drive, 0);
+            setCurrentDiskNum(drive, 0);
         }
         fireMediaStateUpdate(drive);
         if (driveStack[drive].length > 1) self.openDiskSelectDialog(drive, altPower);
@@ -177,8 +186,8 @@ wmsx.FileDiskDrive = function() {
     }
 
     function replaceCurrentDisk(drive, name, content) {     // Affects only current disk from stack
-        currentDisk(drive).name = name;
-        currentDisk(drive).content = content;
+        getCurrentDisk(drive).name = name;
+        getCurrentDisk(drive).content = content;
         driveDiskChanged[drive] = true;
         fireMediaStateUpdate(drive);
         return content;
@@ -203,7 +212,7 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.isDiskInserted = function(drive) {
-        return !!currentDisk(drive);
+        return !!getCurrentDisk(drive);
     };
 
     this.diskWriteProtected = function(drive) {
@@ -212,7 +221,7 @@ wmsx.FileDiskDrive = function() {
 
     this.readSectors = function(drive, logicalSector, quantSectors) {
         if (!this.isDiskInserted(drive)) return null;
-        var dContent = currentDisk(drive).content;
+        var dContent = getCurrentDisk(drive).content;
         var startByte = logicalSector * BYTES_PER_SECTOR;
         var finishByte = startByte + quantSectors * BYTES_PER_SECTOR;
         // Disk boundary check
@@ -228,7 +237,7 @@ wmsx.FileDiskDrive = function() {
     this.writeBytes = function (drive, bytes, startByte, quantBytes) {
         if (!this.isDiskInserted(drive)) return false;
 
-        var dContent = currentDisk(drive).content;
+        var dContent = getCurrentDisk(drive).content;
         if (!quantBytes) quantBytes = bytes.length;
 
         // Disk boundary check
@@ -263,7 +272,7 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.formatCurrentDisk = function(drive, mediaType) {
-        return images.formatDisk(mediaType, currentDisk(drive).content);
+        return images.formatDisk(mediaType, getCurrentDisk(drive).content);
     };
 
     // Add a delay before turning the motor off (drive LED simulation)
@@ -281,13 +290,22 @@ wmsx.FileDiskDrive = function() {
             }, MOTOR_SPINDOWN_EXTRA_MILLIS);
     }
 
+    function setCurrentDiskNum(drive, num) {
+        curDisk[drive] = num;
+        driveDiskChanged[drive] = true;
+    }
+
+    function getCurrentDisk(drive) {
+        return driveStack[drive][curDisk[drive]];
+    }
+
     function fireMediaStateUpdate(drive) {
         screen.diskDrivesMediaStateUpdate(drive);
         fireMotorStateUpdate();
     }
 
     function fireMotorStateUpdate() {
-        screen.diskDrivesMotorStateUpdate(currentDisk(0), driveMotor[0], currentDisk(1), driveMotor[1]);
+        screen.diskDrivesMotorStateUpdate(getCurrentDisk(0), driveMotor[0], getCurrentDisk(1), driveMotor[1]);
     }
 
     function noDiskInsertedMessage(drive) {
@@ -308,38 +326,24 @@ wmsx.FileDiskDrive = function() {
 
     function stackLoadedMessage(drive, type, quant, added) {
         type = type || "Disk";
-        if (added)
-            screen.showOSD("" + quant + " " + type + (quant > 1 ? "s" : "") + " added. " + stackDiskInsertedDesc(drive), true);
-        else
-            screen.showOSD("" + (quant > 1 ? quant + " Disks loaded. " : "") + stackDiskInsertedDesc(drive), true);
+        var mes = added ? "" + quant + " " + type + (quant > 1 ? "s" : "") + " added to Drive " + driveName[drive]
+            : quant > 1 ? "" + quant + " Disks loaded in Drive " + driveName[drive]
+            : currentDiskDesc(drive);
+        screen.showOSD(mes, true);
     }
 
-    function stackDiskInsertedMessage(drive) {
+    function diskInsertedMessage(drive) {
         if (noDiskInsertedMessage(drive)) return;
-        screen.showOSD(stackDiskInsertedDesc(drive), true);
+        screen.showOSD(currentDiskDesc(drive), true);
     }
 
-    function stackDiskInsertedDesc(drive) {
-        var disk = currentDisk(drive);
-        return [ "Disk " + driveName[drive], stackDiskInsertedNum(drive), disk && disk.name].join(" ");
+    function currentDiskDesc(drive) {
+        var disk = getCurrentDisk(drive);
+        return [ "Disk " + driveName[drive], currentDiskNumDesc(drive), disk && disk.name].join(" ");
     }
 
-    function stackDiskInsertedNum(drive) {
+    function currentDiskNumDesc(drive) {
         return driveStack[drive].length > 1 ? "(" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ") " : "";
-    }
-
-    function stackDiskQuantDesc(drive) {
-        var quant = driveStack[drive].length;
-        return "(" + quant + " disk" + (quant !== 1 ? "s" : "") + ")";
-    }
-
-    function setCurrentDisk(drive, num) {
-        curDisk[drive] = num;
-        driveDiskChanged[drive] = true;
-    }
-
-    function currentDisk(drive) {
-        return driveStack[drive][curDisk[drive]];
     }
 
 

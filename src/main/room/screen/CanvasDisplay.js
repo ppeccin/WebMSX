@@ -105,7 +105,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     function createDiskSelectDialog() {
-        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, this);
+        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls, this);
     }
 
     this.openLoadFileDialog = function() {
@@ -298,7 +298,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         var stack = diskDrive.getDriveStack(drive);
         button.title = diskDrive.getCurrentDiskDesc(drive);
         button.wmsxMenu[1].disabled = stack.length === 0 || stack.length >= wmsx.FileDiskDrive.MAX_STACK;
-        button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = stack.length === 0;
+        button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
         button.wmsxMenu[7].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
         if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
     };
@@ -581,6 +581,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
             { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360 },
+            { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, disabled: true },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
@@ -595,6 +596,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
             { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
+            { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, secSlot: true, disabled: true },
             { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
@@ -1041,8 +1043,8 @@ wmsx.CanvasDisplay = function(mainElement) {
                     extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);
                 } else if (e.target.wmsxMenuOption.control) {
                     secSlot = e.target.wmsxMenuOption.secSlot;
-                    peripheralControls.controlActivated(e.target.wmsxMenuOption.control, altPower, secSlot);
                     hideBarMenu();
+                    peripheralControls.controlActivated(e.target.wmsxMenuOption.control, altPower, secSlot);
                 }
             }
         };

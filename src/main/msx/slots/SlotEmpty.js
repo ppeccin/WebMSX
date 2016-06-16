@@ -10,7 +10,7 @@ wmsx.SlotEmpty.impl = function() {
         return 0xff;
     };
 
-    this.rom = new wmsx.ROM("EMPTY", [], null);
+    this.rom = new wmsx.ROM("EMPTY", [], {n: "EMPTY", h: "", l: "EMPTY"});
 
     this.format = wmsx.SlotFormats.Empty;
 

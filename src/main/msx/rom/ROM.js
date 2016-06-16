@@ -4,9 +4,7 @@ wmsx.ROM = function(source, content, info) {
 
     this.source = source;
     this.content = content;
-    if (info) this.info = info;
-    else this.info = wmsx.SlotCreator.produceInfo(this);
-
+    this.info = info || wmsx.SlotCreator.produceInfo(this);
 
     // Savestate  -------------------------------------------
 

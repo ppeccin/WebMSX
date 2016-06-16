@@ -1,11 +1,14 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Revise MediaChangeDisabled
+
 wmsx.DOMPeripheralControls = function(room) {
 
     var self = this;
 
     function init() {
         initKeys();
+        initGroups();
     }
 
     this.connect = function(pMachineControlsSocket, pCartridgeSocket) {
@@ -20,6 +23,10 @@ wmsx.DOMPeripheralControls = function(room) {
         fileLoader = pFileLoader;
         cassetteDeck = pCassetteDeck;
         diskDrive = pDiskDrive;
+    };
+
+    this.setGroupRestriction = function(pGroup) {
+        groupRestriction = pGroup || null;
     };
 
     this.keyDown = function(event) {
@@ -37,6 +44,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var processKeyPress = function(keyCode, shiftKey, ctrlKey, altKey) {
         var control = controlForEvent(keyCode, ctrlKey, altKey);
         if (!control) return false;
+        if (groupRestriction && !groups[groupRestriction].has(control)) return false;
         self.controlActivated(control, false, shiftKey);      // Never altPower
         return true;
     };
@@ -269,6 +277,15 @@ wmsx.DOMPeripheralControls = function(room) {
         keyControlCodeMap[KEY_MACHINE_POWER] = controls.MACHINE_LOAD_STATE_FILE;
     };
 
+    function initGroups() {
+        groups.DISK = new Set([
+            controls.DISK_LOAD_FILES, controls.DISK_LOAD_URL, controls.DISK_LOAD_FILES_AS_DISK, controls.DISK_LOAD_ZIP_AS_DISK,
+            controls.DISK_ADD_FILES, controls.DISK_EMPTY, controls.DISK_EMPTY_360, controls.DISK_EMPTY_720,
+            controls.DISK_SELECT, controls.DISK_PREVIOUS, controls.DISK_NEXT, controls.DISK,
+            controls.DISK_SAVE_FILE, controls.DISK_REMOVE
+        ]);
+    }
+
 
     var controls = wmsx.PeripheralControls;
 
@@ -285,6 +302,9 @@ wmsx.DOMPeripheralControls = function(room) {
     var keyAltCodeMap = {};
     var keyControlCodeMap = {};
     var keyControlAltCodeMap = {};
+
+    var groups = {};
+    var groupRestriction = null;
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 

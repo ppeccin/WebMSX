@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DiskSelectDialog = function(mainElement, diskDrive, screen) {
+wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, screen) {
     var self = this;
 
     this.show = function (pDrive, pAltPower) {
@@ -14,15 +14,17 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, screen) {
 
         drive = pDrive;
         altPower = pAltPower;
+        visible = true;
+        peripheralControls.setGroupRestriction("DISK");
         dialog.classList.add("wmsx-diskselect-show");
         dialog.focus();
-        visible = true;
         refreshList();
     };
 
     this.hide = function (confirm) {
         dialog.classList.remove("wmsx-diskselect-show");
         visible = false;
+        peripheralControls.setGroupRestriction(null);
         WMSX.room.screen.focus();
         if (confirm) diskDrive.autoPowerCycle(altPower);     // altPower defined at show time
     };
@@ -40,10 +42,10 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, screen) {
     function refreshList() {
         console.log("REFRESH");
 
-        label.textContent = "Select Disk for Drive " + (drive === 1 ? "B:" : "A:");
-
         var stack = diskDrive.getDriveStack(drive);
         var currDiskNum = diskDrive.getCurrentDiskNum(drive);
+
+        label.textContent = "Select Disk in Drive " + (drive === 1 ? "B:" : "A:") + " " + diskDrive.getCurrentDiskNumDesc(drive);
 
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
@@ -66,7 +68,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, screen) {
 
         dialog = document.createElement("div");
         dialog.id = "wmsx-diskselect-modal";
-        dialog.tabIndex = 1;
+        dialog.tabIndex = -1;
 
         label = document.createTextNode("Select Disk");
         dialog.appendChild(label);
@@ -88,17 +90,19 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, screen) {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
 
-        // Block keys, respond to some
+        // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             e.preventDefault();
+            e.stopPropagation();
 
             // Abort
             if (e.keyCode === ESC_KEY) hideAbort();
             // Confirm
             else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
-
-            // Only let event through for known commands
-            if (!(e.altKey && SELECTION_KEYS.lastIndexOf(e.keyCode) >= 0)) e.stopPropagation();
+            // Select
+            else if (SELECTION_KEYS.indexOf(e.keyCode) >= 0) peripheralControls.controlActivated(CONTROLS[e.keyCode], true, drive !== 0);
+            // Forward
+            else peripheralControls.keyDown(e);
 
             return false;
         });
@@ -205,6 +209,9 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, screen) {
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;
     var CONFIRM_KEYS =   [ k.VK_ENTER.c, k.VK_SPACE.c ];
-    var SELECTION_KEYS = [ k.VK_HOME.c, k.VK_END.c, k.VK_PAGE_UP.c, k.VK_PAGE_DOWN.c ];
+    var SELECTION_KEYS = [ k.VK_UP.c, k.VK_DOWN.c ];
+    var CONTROLS = {};
+        CONTROLS[k.VK_UP.c] = wmsx.PeripheralControls.DISK_PREVIOUS;
+        CONTROLS[k.VK_DOWN.c] = wmsx.PeripheralControls.DISK_NEXT;
 
 };
