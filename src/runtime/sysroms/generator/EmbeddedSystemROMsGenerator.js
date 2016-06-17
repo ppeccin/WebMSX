@@ -9,7 +9,7 @@ wmsx.EmbeddedSystemROMsGenerator = {
 
         var d = new wmsx.MultiDownloader(
             list,
-            function(specs) {
+            function onAllSuccess(specs) {
                 var romsFile =
                     "wmsx.EmbeddedSystemROMs = {\n\n" +
                     "    embedFiles: function() {\n" +

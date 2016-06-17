@@ -10,6 +10,8 @@ WMSX = {
     // Machine Configuration Presets to apply. See Presets section below...
     PRESETS:                        "",                         // Default: MSX2+ NTSC, 256K RAM, 2 Drives, MSX-MUSIC
 
+    MACHINE:                        "MSX2PJAP",
+
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
     CARTRIDGE2_URL:                 "",
@@ -47,17 +49,6 @@ WMSX = {
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0 = ANSI, 1 = JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
-    EXTENSIONS_CONFIG: {
-        RAMMAPPER:                  { SLOT: [3, 0],          desc: "RAM Mapper",    format: "RAMMapper",     mutual: "RAM64K" },
-        RAM64K:                     { SLOT: [3, 0],                                 format: "RAM64K",        mutual: "RAMMAPPER" },
-        DISK:                       { SLOT: [3, 2],          desc: "Floppy Drives", format: "DiskPatched" },
-        DOS2:                       { SLOT: [2, 2],          desc: "MSX-DOS 2",     format: "DOS2",          require: "RAMMAPPER, DISK" },
-        MSXMUSIC:                   { SLOT: [3, 3],          desc: "MSX-MUSIC",     format: "MSXMUSIC" },
-        SCC:                        { SLOT: [1], SLOT2: [2], desc: "Konami SCC",    format: "SCCExpansion" },
-        SCCI:                       { SLOT: [1], SLOT2: [2], desc: "Konami SCC-I",  format: "SCCIExpansion" },
-        PAC:                        { SLOT: [1], SLOT2: [2], desc: "PAC SRAM",      format: "PACExpansion" }
-    },
-
     BIOS_SLOT:                      [0],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
@@ -68,7 +59,36 @@ WMSX = {
 
 };
 
-WMSX.presets = {
+WMSX.MACHINES_CONFIG = {
+
+    MSX2PNTSC: {
+        NAME:                "MSX2PNTSC",
+        TYPE:                3,
+        SLOT_0_URL:         "@MSX2P_NTSC.bios",
+        SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
+    },
+
+    MSX2PJAP: {
+        MACHINE_NAME:       "MSX2PJAP",
+        MACHINE_TYPE:       3,
+        SLOT_0_URL:         "@MSX2P_JAP.bios",
+        SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
+    }
+
+};
+
+WMSX.EXTENSIONS_CONFIG = {
+    RAMMAPPER:                  { SLOT: [3, 0],          desc: "RAM Mapper",    format: "RAMMapper",     mutual: "RAM64K" },
+    RAM64K:                     { SLOT: [3, 0],                                 format: "RAM64K",        mutual: "RAMMAPPER" },
+    DISK:                       { SLOT: [3, 2],          desc: "Floppy Drives", format: "DiskPatched" },
+    DOS2:                       { SLOT: [2, 2],          desc: "MSX-DOS 2",     format: "DOS2",          require: "RAMMAPPER, DISK" },
+    MSXMUSIC:                   { SLOT: [3, 3],          desc: "MSX-MUSIC",     format: "MSXMUSIC" },
+    SCC:                        { SLOT: [1], SLOT2: [2], desc: "Konami SCC",    format: "SCCExpansion" },
+    SCCI:                       { SLOT: [1], SLOT2: [2], desc: "Konami SCC-I",  format: "SCCIExpansion" },
+    PAC:                        { SLOT: [1], SLOT2: [2], desc: "PAC SRAM",      format: "PACExpansion" }
+};
+
+WMSX.PRESETS_CONFIG = {
 
     DEFAULT: {
         _INCLUDE:           "MSX2PNTSC"

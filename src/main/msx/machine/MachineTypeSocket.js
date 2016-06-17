@@ -1,53 +1,36 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.ExtensionsSocket = function(machine) {
+wmsx.MachineTypeSocket = function(machine) {
     var self = this;
 
     function init() {
-        config = WMSX.EXTENSIONS_CONFIG;
-        for (var c in config) if (!config[c].SLOT2) config[c].SLOT2 = config[c].SLOT;
+        config = WMSX.MACHINES_CONFIG;
     }
 
     this.connectFileLoader = function(pFileLoader) {
         fileLoader = pFileLoader;
     };
 
-    this.addExtensionsAndCartridgesStateListener = function (listener) {
-        machine.getCartridgeSocket().addCartridgesStateListener(this, true);
+    this.addMachineTypeStateListener = function (listener) {
         if (listeners.indexOf(listener) < 0) {
             listeners.push(listener);
-            listener.extensionsAndCartridgesStateUpdate();
+            listener.machineTypeStateUpdate();
         }
     };
 
-    this.cartridgesStateUpdate = function() {
-        this.fireStateUpdate();
+    this.isActive = function(machine) {
+        return WMSX.MACHINE == machine;
     };
 
-    this.isActive = function(ext, secSlot) {
-        var loaded = slotSocket.inserted(secSlot ? config[ext].SLOT2 : config[ext].SLOT);
-        return loaded && loaded.format.name == config[ext].format;
-    };
+    this.toggleExtension = function (name) {
+        if (config[name] === undefined) return;
+        if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);
 
-    this.isActiveAnySlot = function(ext) {
-        var conf = config[ext];
-        var loaded = slotSocket.inserted(conf.SLOT);
-        if (loaded && loaded.format.name == conf.format) return true;
-        if (conf.SLOT2 === conf.SLOT) return false;
-        loaded = slotSocket.inserted(conf.SLOT2);
-        return loaded && loaded.format.name == conf.format;
-    };
+        var newVal = !this.isActive(name);
+        setNewState(name);
+        refreshNewState();
 
-    this.toggleExtension = function (ext, altPower, secSlot) {
-        if (config[ext] === undefined) return;
-        if (WMSX.MEDIA_CHANGE_DISABLED) return machine.showOSD("Extension change is disabled!", true, true);
-
-        var newVal = !this.isActive(ext, secSlot);
-        setNewState(ext, newVal, secSlot);
-        applyNewState(altPower);
-
-        machine.showOSD(config[ext].desc + " Extension " +
-            (newVal ? "enabled at slot " + machine.getSlotSocket().getSlotDesc(secSlot ? config[ext].SLOT2 : config[ext].SLOT) : "disabled"), true);
+        machine.showOSD(config[name].desc + " machine activated", true);
     };
 
     this.getInitialLoaderURLSpecs = function() {
@@ -58,7 +41,7 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.fireStateUpdate = function() {
-        for (var u = 0; u < listeners.length; ++u) listeners[u].extensionsAndCartridgesStateUpdate();
+        for (var u = 0; u < listeners.length; ++u) listeners[u].machineTypeStateUpdate();
     };
 
     function setNewState(ext, val, secSlot, stopRecursion) {
@@ -78,7 +61,7 @@ wmsx.ExtensionsSocket = function(machine) {
         conf.newStateSecSlot = secSlot;
     }
 
-    function applyNewState(altPower) {
+    function refreshNewState(altPower) {
         var toLoadUrlSpecs = [];
         var toRemoveSlots = [];
         for (var ext in config) {
@@ -102,6 +85,15 @@ wmsx.ExtensionsSocket = function(machine) {
             function onSuccessAll() {
                 self.fireStateUpdate();
                 if (!altPower && powerWasOn) machine.userPowerOn(true);
+            },
+            function onErrorAny(urls) {
+                for (var i = 0; i < urls.length; i++) {
+                    if (urls[i] && !urls[i].success) {
+                        var mes = "Could not load file: " + urls[i].url + "\nError: " + urls[i].error;
+                        wmsx.Util.log(mes);
+                        wmsx.Util.message(mes);
+                    }
+                }
             }
         ).start();
     }

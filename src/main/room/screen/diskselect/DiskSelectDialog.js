@@ -240,7 +240,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '    padding: 0;' +
             '    list-style: none;' +
             '    font-size: 14px;' +
-            '    color: rgb(210, 210, 210);' +
+            '    color: rgb(225, 225, 225);' +
             '}' +
             '#wmsx-diskselect-list li {' +
             '    display: none;' +

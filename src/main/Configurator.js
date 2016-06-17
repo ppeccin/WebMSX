@@ -32,7 +32,7 @@ wmsx.Configurator = {
         function machineSpecified(presetList) {
             var presetNames = (presetList || "").trim().toUpperCase().split(",");
             for (var i = 0; i < presetNames.length; ++i) {
-                var presetPars = WMSX.presets[presetNames[i]];
+                var presetPars = WMSX.PRESETS_CONFIG[presetNames[i]];
                 if (presetPars) {
                     for (var par in presetPars) {
                         var parName = par.trim().toUpperCase();
@@ -72,7 +72,7 @@ wmsx.Configurator = {
 
     applyPreset: function(presetName) {
         if (!presetName) return;
-        var presetPars = WMSX.presets[presetName];
+        var presetPars = WMSX.PRESETS_CONFIG[presetName];
         if (presetPars) {
             wmsx.Util.log("Applying preset: " + presetName);
             for (var par in presetPars) {
@@ -95,6 +95,68 @@ wmsx.Configurator = {
             }
             obj[parts[parts.length - 1]] = value;
         }
+    },
+
+    slotURLSpecs: function() {
+        // Any URL specified in the format SLOT_N_N_URL
+        var slotsPars = Object.keys(WMSX).filter(function(key) {
+            return wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "URL")
+                && key.match(/[0-9]+/g);
+        });
+
+        return slotsPars.map(function(key) {
+            var pos = key.match(/[0-9]+/g).map(function(strNum) {
+                return strNum | 0;
+            });
+            return {
+                url: WMSX[key],
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadContentAsSlot(res.url, res.content, pos, true);
+                }
+            }
+
+        });
+    },
+
+    mediaURLSpecs: function() {
+        // URLs specified by fixed media loading parameters
+        var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
+        return [
+            WMSX.CARTRIDGE1_URL && {
+                url: WMSX.CARTRIDGE1_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.ROM, 0, true);
+                }
+            },
+            WMSX.CARTRIDGE2_URL && {
+                url: WMSX.CARTRIDGE2_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.ROM, 1, true);
+                }
+            },
+            WMSX.DISKA_URL && {
+                url: WMSX.DISKA_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.DISK, 0, true);
+                }
+            },
+            WMSX.DISKB_URL && {
+                url: WMSX.DISKB_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.DISK, 1, true);
+                }
+            },
+            WMSX.TAPE_URL && {
+                url: WMSX.TAPE_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.TAPE, 0, true);
+                }
+            }
+        ];
+    },
+
+    extensionsInitialURLSpecs: function() {
+        return WMSX.room.machine.getExtensionsSocket().getInitialLoaderURLSpecs();
     },
 
     abbreviations: {
