@@ -68,19 +68,18 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.keyDown = function(e) {
-        //console.log("Keyboard Down: " + e.keyCode + " " + e.altKey);
+        //console.log("Keyboard KeyDown: " + e.keyCode + " " + e.altKey);
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
 
-        if (processKeyEvent(e.keyCode, true, e.altKey, e.ctrlKey)) {
-            e.returnValue = false;  // IE
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        } else
-            return keyForwardControls.keyDown(e);
+        if (!processKeyEvent(e.keyCode, true, e.altKey, e.ctrlKey)) keyForwardControls.keyDown(e);
+
+        return false;
     };
 
     this.keyUp = function(e) {
-        //console.log("Keyboard Up: " + e.keyCode + " " + e.altKey);
+        //console.log("Keyboard KeyUp: " + e.keyCode + " " + e.altKey);
 
         if (processKeyEvent(e.keyCode, false, e.altKey, e.ctrlKey)) {
             e.returnValue = false;  // IE

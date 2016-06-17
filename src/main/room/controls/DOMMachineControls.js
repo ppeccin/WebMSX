@@ -24,27 +24,15 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     };
 
     this.keyDown = function(e) {
+        //console.log("Machine KeyDown: " + e.keyCode + " " + e.altKey);
+
         var modifiers = 0 | (e.ctrlKey && KEY_CTRL_MASK) | (e.altKey && KEY_ALT_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
-        if (processKeyEvent(e.keyCode, true, modifiers)) {
-            e.returnValue = false;  // IE
-            e.preventDefault();
-            e.stopPropagation();
-            keyForwardControls.keyDown(e);
-            return false;
-        } else
-            return keyForwardControls.keyDown(e);
+        if (!processKeyEvent(e.keyCode, true, modifiers)) keyForwardControls.keyDown(e);
     };
 
     this.keyUp = function(e) {
         var modifiers = 0 | (e.ctrlKey && KEY_CTRL_MASK) | (e.altKey && KEY_ALT_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
-        if (processKeyEvent(e.keyCode, false, modifiers)) {
-            e.returnValue = false;  // IE
-            e.preventDefault();
-            e.stopPropagation();
-            keyForwardControls.keyUp(e);
-            return false;
-        } else
-            return keyForwardControls.keyUp(e);
+        if (!processKeyEvent(e.keyCode, false, modifiers)) keyForwardControls.keyUp(e);
     };
 
     var processKeyEvent = function(keyCode, press, modifiers) {

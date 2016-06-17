@@ -28,12 +28,9 @@ wmsx.DOMPeripheralControls = function() {
     };
 
     this.keyDown = function(e) {
-        if (processKeyPress(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey)) {
-            e.returnValue = false;  // IE
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
+        //console.log("Peripheral KeyDown: " + e.keyCode + " " + e.altKey);
+
+        processKeyPress(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey);
     };
 
     this.keyUp = function(event) {
@@ -60,7 +57,7 @@ wmsx.DOMPeripheralControls = function() {
     this.controlActivated = function(control, altPower, secPort) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case controls.MACHINE_POWER_TOGGLE:                                                         // Machine Controls called directly by Screen
+            case controls.MACHINE_POWER_TOGGLE:                                                         // Machine Controls called directly by Screen, no keys here
                 if (altPower) return this.controlActivated(controls.MACHINE_POWER_RESET);
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);
                 break;
