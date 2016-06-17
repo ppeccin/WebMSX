@@ -1,23 +1,20 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Real Time Clock chip. Optional Device
+// Real Time Clock chip. MSX2, MSX2+ and TurboR
 // Based on Host clock
 // Alarm and 16Hz/1Hz outputs not observable by MSX so not implemented
 
 wmsx.RTC = function() {
 
-    this.connect = function(machine) {
-        machine.bus.connectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.connectOutputDevice(0xb4, this.outputB4);
-        machine.bus.connectInputDevice( 0xb5, this.inputB5);
-        machine.bus.connectOutputDevice(0xb5, this.outputB5);
+    this.setMachineType = function(type) {
+        isMSX2 = type >= 2;
     };
 
-    this.disconnect = function(machine) {
-        machine.bus.disconnectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.disconnectOutputDevice(0xb4, this.outputB4);
-        machine.bus.disconnectInputDevice( 0xb5, this.inputB5);
-        machine.bus.disconnectOutputDevice(0xb5, this.outputB5);
+    this.connectBus = function(bus) {
+        bus.connectInputDevice( 0xb4, wmsx.DeviceMissing.inputPortIgnored);
+        bus.connectOutputDevice(0xb4, this.outputB4);
+        bus.connectInputDevice( 0xb5, this.inputB5);
+        bus.connectOutputDevice(0xb5, this.outputB5);
     };
 
     this.powerOn = function() {
@@ -33,10 +30,12 @@ wmsx.RTC = function() {
     };
 
     this.outputB4 = function(val) {
-        regAddress = val & 0xf;
+        if (isMSX2) regAddress = val & 0xf;
     };
 
     this.outputB5 = function(val) {
+        if (!isMSX2) return;
+
         val &= 0xf;
         if (regAddress < 0xd) {
             switch (mode) {
@@ -67,6 +66,8 @@ wmsx.RTC = function() {
     };
 
     this.inputB5 = function() {
+        if (!isMSX2) return 0xff;
+
         var res;
         if (regAddress < 0xd) {
             switch (mode) {
@@ -187,6 +188,9 @@ wmsx.RTC = function() {
         }
     }
 
+
+    var isMSX2;
+
     var mode = 0;
     var clockRunning = true;
 
@@ -206,8 +210,9 @@ wmsx.RTC = function() {
 
     this.saveState = function() {
         return {
-            t: Date.now(),
+            m2: isMSX2,
             m: mode,
+            t: Date.now(),
             c: clockRunning,
             co: clockOffset, clu: clockLastUpdate, clv: clockLastValue,
             rc: wmsx.Util.storeInt8BitArrayToStringBase64(regClock),
@@ -219,6 +224,7 @@ wmsx.RTC = function() {
     };
 
     this.loadState = function(s) {
+        isMSX2 = s.m2;
         mode = s.m;
         clockRunning = s.c;
         clockOffset = s.co + (s.t - Date.now());           // Adjust offset to load time
@@ -230,13 +236,4 @@ wmsx.RTC = function() {
         regAddress = s.ra;
     };
 
-};
-
-wmsx.RTC.recreateFromSavestate = function(instance, s) {
-    if (s) {
-        if (!instance) instance = new wmsx.RTC();
-        instance.loadState(s);
-        return instance
-    } else
-        return null;
 };

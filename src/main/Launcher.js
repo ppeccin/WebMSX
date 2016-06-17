@@ -16,11 +16,8 @@ WMSX.start = function () {
             'HTML document is missing screen element with id "' + WMSX.SCREEN_ELEMENT_ID + '"');
     }
 
-    // Read and apply parameters from URL
-    if (WMSX.ALLOW_URL_PARAMETERS)
-        wmsx.Configurator.applyConfig();            // Will also apply specified preset
-    else
-        wmsx.Configurator.applyPresets();           // Apply only predefined preset
+    // Apply Configuration, including Machine Typye and URL Parameters if allowed
+    wmsx.Configurator.applyConfig();
 
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
@@ -34,7 +31,7 @@ WMSX.start = function () {
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
     if (WMSX.STATE_LOAD_URL) {
-        // Only 1 file, Machine will Auto Power on
+        // Machine State loading, Machine will Auto Power on
         new wmsx.MultiDownloader([{
             url: WMSX.STATE_LOAD_URL,
             onSuccess: function (res) {
@@ -43,12 +40,12 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.fileLoader.loadFromFile(res.url, res.content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                     });
-                    wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
+                    //wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
                 });
             }
         }]).start();
     } else {
-        // Multiple files. Power Machine on only after all files are loaded and inserted
+        // Normal parameters loading. Power Machine on only after all files are loaded and inserted
         var slotURLs = wmsx.Configurator.slotURLSpecs();
         var mediaURLs = wmsx.Configurator.mediaURLSpecs();
         var extensionsURLs = wmsx.Configurator.extensionsInitialURLSpecs();
@@ -60,7 +57,7 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.machine.userPowerOn(true);        // Auto-run cassette if any
                     });
-                    wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
+                    //wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
                 });
             }
         ).start();

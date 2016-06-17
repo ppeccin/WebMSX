@@ -6,10 +6,17 @@ wmsx.Machine = function() {
     function init() {
         socketsCreate();
         mainComponentsCreate();
-        optionalComponentsCreate();
+        self.setMachineType(WMSX.MACHINE_TYPE);
         setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
+
+    this.setMachineType = function(type) {
+        machineType = type;
+        vdp.setMachineType(type);
+        rtc.setMachineType(type);
+        syf.setMachineType(type);
+    };
 
     this.powerOn = function(paused) {
         if (this.powerIsOn) this.powerOff();
@@ -72,6 +79,10 @@ wmsx.Machine = function() {
 
         // Finish audio signal (generate any missing samples to adjust to sample rate)
         audioSocket.audioFinishFrame();
+    };
+
+    this.getMachineTypeSocket = function() {
+        return machineTypeSocket;
     };
 
     this.getSlotSocket = function() {
@@ -247,9 +258,10 @@ wmsx.Machine = function() {
 
     function saveState() {
         return {
+            mt: machineType,
             b:  bus.saveState(),
-            rc: rtc ? rtc.saveState() : null,
-            sf: syf ? syf.saveState() : null,
+            rc: rtc.saveState(),
+            sf: syf.saveState(),
             pp: ppi.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(),
@@ -264,6 +276,7 @@ wmsx.Machine = function() {
     }
 
     function loadState(state) {
+        machineType = state.mt;
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
@@ -273,7 +286,8 @@ wmsx.Machine = function() {
         vdp.loadState(state.vd);
         psg.loadState(state.ps);
         ppi.loadState(state.pp);
-        optionalComponentsLoadState(state.rc, state.sf);
+        rtc.loadState(state.rc);
+        syf.loadState(state.sf);
         bus.loadState(state.b);
         diskDriveSocket.getDrive().loadState(state.dd);
         cassetteSocket.getDeck().loadState(state.ct);
@@ -294,42 +308,22 @@ wmsx.Machine = function() {
         self.mainVideoClock = mainVideoClock = new wmsx.Clock(self.videoClockPulse);
 
         self.cpu = cpu = new wmsx.Z80();
-        self.vdp = vdp = new wmsx.VDP(self, cpu, MSX2, MSX2P);
+        self.vdp = vdp = new wmsx.VDP(self, cpu);
         self.psg = psg = new wmsx.PSG(audioSocket, controllersSocket);
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket);
+        self.rtc = rtc = new wmsx.RTC();
+        self.syf = syf = new wmsx.SystemFlags();
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);
         psg.connectBus(bus);
-    }
-
-    function optionalComponentsCreate() {
-        if (MSX2) {
-            self.rtc = rtc = new wmsx.RTC();
-            rtc.connect(self);
-            self.syf = syf = new wmsx.SystemFlags(MSX2P);
-            syf.connect(self);
-        }
-    }
-
-    function optionalComponentsLoadState(rtcState, sycState) {
-        var newRtc = wmsx.RTC.recreateFromSavestate(rtc, rtcState);
-        if (newRtc !== rtc) {
-            if (rtc) rtc.disconnect(self);
-            this.rtc = rtc = newRtc;
-            if (rtc) rtc.connect(self);
-        }
-
-        var newSyc = wmsx.SystemFlags.recreateFromSavestate(syf, sycState);
-        if (newSyc !== syf) {
-            if (syf) syf.disconnect(self);
-            this.syf = syf = newSyc;
-            if (syf) syf.connect(self);
-        }
+        rtc.connectBus(bus);
+        syf.connectBus(bus);
     }
 
     function socketsCreate() {
+        machineTypeSocket = new wmsx.MachineTypeSocket(self);
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         extensionsSocket = new wmsx.ExtensionsSocket(self);
@@ -355,6 +349,8 @@ wmsx.Machine = function() {
 
     this.powerIsOn = false;
 
+    var machineType;
+
     var speedControl = 1;
     var alternateSpeed = false;
 
@@ -373,7 +369,7 @@ wmsx.Machine = function() {
     var userPauseMoreFrames = 0;
     var systemPaused = false;
 
-    var audioSocket;
+    var machineTypeSocket;
     var slotSocket;
     var biosSocket;
     var extensionsSocket;
@@ -384,6 +380,7 @@ wmsx.Machine = function() {
     var diskDriveSocket;
     var machineControlsSocket;
     var controllersSocket;
+    var audioSocket;
 
     var bios;
     var videoStandard;
@@ -391,9 +388,6 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
 
     var vSynchMode;
-
-    var MSX2 = WMSX.MACHINE_TYPE >= 2;
-    var MSX2P = WMSX.MACHINE_TYPE === 3;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
@@ -867,7 +861,7 @@ wmsx.Machine = function() {
         };
 
         var media;
-        var VERSION = 8;
+        var VERSION = 9;
     }
 
 

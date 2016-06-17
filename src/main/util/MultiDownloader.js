@@ -25,9 +25,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
             } else {
                 urlSpec.success = false;
                 urlSpec.error = "Embedded file not found: " + urlSpec.url;
-                wmsx.Util.log(urlSpec.error);
-                if (urlSpec.onError) urlSpec.onError(urlSpec);
-                else wmsx.Util.message(urlSpec.error);
+                if (urlSpec.onError) {
+                    wmsx.Util.log(urlSpec.error);
+                    urlSpec.onError(urlSpec);
+                } else wmsx.Util.message(urlSpec.error);
             }
             checkFinish();
             return;
@@ -64,9 +65,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         urlSpec.success = false;
         urlSpec.error = (req.statusText || req.status);
         var mes = "Could not load file: " + urlSpec.url + "\nError: " + res.error;
-        wmsx.Util.log(mes);
-        if (urlSpec.onError) urlSpec.onError(urlSpec);
-        else wmsx.Util.message(mes);
+        if (urlSpec.onError) {
+            wmsx.Util.log(mes);
+            urlSpec.onError(urlSpec);
+        } else wmsx.Util.message(mes);
     }
 
     function checkFinish() {

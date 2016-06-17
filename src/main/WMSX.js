@@ -7,10 +7,9 @@
 
 WMSX = {
 
-    // Machine Configuration Presets to apply. See Presets section below...
-    PRESETS:                        "",                         // Default: MSX2+ NTSC, 256K RAM, 2 Drives, MSX-MUSIC
+    MACHINE:                        "MSX2PNTSC",                // Machine Type. See Machine Configuration
 
-    MACHINE:                        "MSX2PJAP",
+    PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
 
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
@@ -62,17 +61,18 @@ WMSX = {
 WMSX.MACHINES_CONFIG = {
 
     MSX2PNTSC: {
-        NAME:                "MSX2PNTSC",
-        TYPE:                3,
-        SLOT_0_URL:         "@MSX2P_NTSC.bios",
-        SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
+        desc:               "MSX2+ European",
+        presets:            "MSX2PNTSC"
     },
 
     MSX2PJAP: {
-        MACHINE_NAME:       "MSX2PJAP",
-        MACHINE_TYPE:       3,
-        SLOT_0_URL:         "@MSX2P_JAP.bios",
-        SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
+        desc:               "MSX2+ Japanese",
+        presets:            "MSX2PJAP"
+    },
+
+    MSX1: {
+        desc:               "MSX1 European",
+        presets:            "MSX1"
     }
 
 };
@@ -89,10 +89,6 @@ WMSX.EXTENSIONS_CONFIG = {
 };
 
 WMSX.PRESETS_CONFIG = {
-
-    DEFAULT: {
-        _INCLUDE:           "MSX2PNTSC"
-    },
 
     // MSX2+ Machine Presets
 

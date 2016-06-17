@@ -3,15 +3,25 @@
 wmsx.Configurator = {
 
     applyConfig: function() {
-        var params = parseURLParams();
 
-        // First use all parameters from chosen presets
-        if (params.PRESETS) WMSX.PRESETS += (WMSX.PRESETS ? ", " : "") + params.PRESETS;
-        if (!machineSpecified(WMSX.PRESETS)) WMSX.PRESETS = "DEFAULT, " + WMSX.PRESETS;
+        // Override parameters with values set in URL, if allowed
+        if (WMSX.ALLOW_URL_PARAMETERS) {
+            var params = parseURLParams();
+            for (var param in params) this.applyParam(param, params[param]);
+        }
+
+        // Apply main Machine Type presets
+        WMSX.MACHINE = (WMSX.MACHINE || "").trim().toUpperCase();
+        var machineConfig = WMSX.MACHINES_CONFIG[WMSX.MACHINE];
+        if (!machineConfig) {
+            wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
+            return;
+        }
+        this.applyPresets(machineConfig.presets);
+
+        // Apply additional presets
         this.applyPresets(WMSX.PRESETS);
 
-        // Then override specific parameters with values set in URL
-        for (var param in params) this.applyParam(param, params[param]);
 
         // Ensures the correct types of the parameters
         normalizeParameterTypes();
@@ -27,21 +37,6 @@ wmsx.Configurator = {
                 parameters[parName] = decodeURIComponent(tokens[2]).trim();
             }
             return parameters;
-        }
-
-        function machineSpecified(presetList) {
-            var presetNames = (presetList || "").trim().toUpperCase().split(",");
-            for (var i = 0; i < presetNames.length; ++i) {
-                var presetPars = WMSX.PRESETS_CONFIG[presetNames[i]];
-                if (presetPars) {
-                    for (var par in presetPars) {
-                        var parName = par.trim().toUpperCase();
-                        if (parName === "MACHINE_TYPE") return true;
-                        else if (parName === "_INCLUDE") if (machineSpecified(presetPars[par])) return true;
-                    }
-                }
-            }
-            return false;
         }
 
         function normalizeParameterTypes() {
@@ -161,7 +156,7 @@ wmsx.Configurator = {
 
     abbreviations: {
         P: "PRESETS",
-        M: "PRESETS",
+        M: "MACHINE",
         PRESET: "PRESETS",
         TYPE: "MACHINE_TYPE",
         ROM: "CARTRIDGE1_URL",

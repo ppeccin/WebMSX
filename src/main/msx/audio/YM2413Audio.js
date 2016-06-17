@@ -778,19 +778,8 @@ wmsx.YM2413Audio = function(pName) {
 
     init();
 
-    FM = this;
-
     this.eval = function(str) {
         return eval(str);
     };
 
-};
-
-wmsx.YM2413Audio.recreateFromSavestate = function(instance, s) {
-    if (s) {
-        if (!instance) instance = new wmsx.YM2413Audio(s.n);
-        instance.loadState(s);
-        return instance
-    } else
-        return null;
 };

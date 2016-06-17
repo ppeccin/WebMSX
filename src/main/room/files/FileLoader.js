@@ -385,7 +385,6 @@ wmsx.FileLoader = function() {
     };
 
     var showError = function(message) {
-        wmsx.Util.log("" + message);
         wmsx.Util.message("Could not load file(s):\n\n" + message + "\n");
     };
 

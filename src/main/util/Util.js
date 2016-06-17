@@ -7,6 +7,7 @@ wmsx.Util = new function() {
     };
 
     this.message = function(str) {
+        console.log(str);
         alert(str);
     };
 

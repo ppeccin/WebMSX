@@ -5,22 +5,17 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.VDP = function(machine, cpu, msx2, msx2p) {
+wmsx.VDP = function(machine, cpu) {
     var self = this;
 
     function init() {
-        isV9918 = !msx2 && !msx2p;
-        isV9938 = msx2 && !msx2p;
-        isV9958 = !!msx2p;
         videoSignal = new wmsx.VideoSignal(self);
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources();
         initColorCaches();
         initDebugPatternTables();
         initSpritesConflictMap();
-        initRegisters();
         modeData = modes[0];
         pendingBackdropCacheUpdate = true;
         self.setDefaults();
@@ -28,6 +23,14 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         commandProcessor.connectVDP(self, vram, register, status);
         commandProcessor.setVDPModeData(modeData);
     }
+
+    this.setMachineType = function(type) {
+        machineType = type;
+        isV9918 = type <= 1;
+        isV9938 = type === 2;
+        isV9958 = type >= 3;
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+    };
 
     this.connectBus = function(bus) {
         bus.connectInputDevice( 0x98, this.input98);
@@ -2223,7 +2226,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
 
 
-    var isV9918, isV9938, isV9958;
+    var machineType, isV9918, isV9938, isV9958;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
@@ -2359,6 +2362,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
     this.saveState = function() {
         return {
+            mt: machineType,
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             f: frame, c: cycles, cc: lastCPUCyclesComputed,
@@ -2377,6 +2381,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     };
 
     this.loadState = function(s) {
+        this.setMachineType(s.mt);
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
@@ -2402,7 +2407,6 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
         updateBackdropColor();
         updateTransparency();
         updateRenderMetrics(true);
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
     };
 
 
@@ -2410,7 +2414,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
 
 
     function logInfo(text) {
-        console.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
+        wmsx.Util.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
     }
     this.logInfo = logInfo;
 
