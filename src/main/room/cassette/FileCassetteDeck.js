@@ -47,7 +47,7 @@ wmsx.FileCassetteDeck = function() {
     this.saveTapeFile = function() {
         if (noTapeMessage()) return;
         if (tapeContent.length === 0) {
-            screen.showOSD("Cassette Tape is empty!", true);
+            screen.showOSD("Cassette Tape is empty!", true, true);
             return;
         }
 
@@ -102,12 +102,12 @@ wmsx.FileCassetteDeck = function() {
     this.userTypeCurrentAutoRunCommand = function() {
         if (noTapeMessage()) return;
         if (tapeContent.length === 0) {
-            screen.showOSD("Cassette Tape is empty!", true);
+            screen.showOSD("Cassette Tape is empty!", true, true);
             return;
         }
         var command = cassetteSocket.getDriver().currentAutoRunCommand();
         if (!command) {
-            screen.showOSD("No executable at current Tape position!", true);
+            screen.showOSD("No executable at current Tape position!", true, true);
             return;
         }
         cassetteSocket.getDriver().typeCurrentAutoRunCommand();
@@ -171,7 +171,7 @@ wmsx.FileCassetteDeck = function() {
 
     function noTapeMessage() {
         if (!tapeContent) {
-            screen.showOSD("No Cassette Tape!", true);
+            screen.showOSD("No Cassette Tape!", true, true);
             return true;
         } else
             return false;

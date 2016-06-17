@@ -14,8 +14,8 @@ wmsx.VideoSignal = function(vdp) {
         if (monitor) monitor.signalOff();
     };
 
-    this.showOSD = function(message, overlap) {
-        if (monitor) monitor.showOSD(message, overlap);
+    this.showOSD = function(message, overlap, error) {
+        if (monitor) monitor.showOSD(message, overlap, error);
     };
 
     this.setDisplayMetrics = function(targetWidth, targetHeight) {

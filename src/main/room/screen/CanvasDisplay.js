@@ -112,14 +112,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.executeTextCopy = function() {
-        if (!signalIsOn) return this.showOSD("Screen Text Copy available only when Power is ON!", true);
+        if (!signalIsOn) return this.showOSD("Screen Text Copy only available when Power is ON!", true, true);
 
         if (!document.queryCommandSupported || !document.queryCommandSupported('copy'))
-            return this.showOSD("Copy to Clipboard not supported by the browser!", true);
+            return this.showOSD("Copy to Clipboard not supported by the browser!", true, true);
 
         var text = monitor.getScreenText();
 
-        if (!text) return this.showOSD("Sreen Text Copy not available in this Screen!", true);
+        if (!text) return this.showOSD("Sreen Text Copy not available in this Screen!", true, true);
 
         if (!copyTextArea) setupCopyTextArea();
         copyTextArea.innerHTML = text;
@@ -128,13 +128,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (document.execCommand("copy"))
             this.showOSD("Screen text copied to Clipboard", true);
         else
-            this.showOSD("Copy to Clipboard not supported by the browser!", true);
+            this.showOSD("Copy to Clipboard not supported by the browser!", true, true);
 
         this.focus();
     };
 
     this.toggleTextPasteDialog = function() {
-        if (!signalIsOn) return this.showOSD("Text Paste available only when Power is ON!", true);
+        if (!signalIsOn) return this.showOSD("Text Paste only available when Power is ON!", true, true);
 
         if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement, this);
         pasteDialog.toggle();
@@ -200,8 +200,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         return monitor;
     };
 
-    this.showOSD = function(message, overlap) {
-        //Util.log(message);
+    this.showOSD = function(message, overlap, error) {
         if (osdTimeout) clearTimeout(osdTimeout);
         if (!message) {
             osd.style.transition = "all 0.15s linear";
@@ -213,6 +212,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (overlap || !osdShowing) osd.innerHTML = message;
         osd.style.transition = "none";
         osd.style.top = "15px";
+        osd.style.color = error ? "rgb(255, 70, 50)" : "rgb(10, 255, 10)";
         osd.style.opacity = 1;
         osdShowing = true;
         osdTimeout = setTimeout(hideOSD, OSD_TIME);
@@ -265,7 +265,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             else if (fsElement.msRequestFullscreen)
                 fsElement.msRequestFullscreen();
             else
-                this.showOSD("Fullscreen is not supported by your browser!");
+                this.showOSD("Fullscreen is not supported by your browser!", true, true);
         } else {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
@@ -836,9 +836,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.margin = "0";
         style.font = 'bold 15px/29px sans-serif';
         style.color = "rgb(0, 255, 0)";
-        style.background = "rgba(0, 0, 0, 0.6)";
+        style.background = "rgba(0, 0, 0, 0.7)";
+        style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
+        style.MozOsxFontSmoothing = "grayscale";
         style.opacity = 0;
-        style.userSelect = style.webkitUserSelect = style.MozUserSelect = style.msUserSelect = "none";
         osd.innerHTML = "";
         fsElement.appendChild(osd);
     }

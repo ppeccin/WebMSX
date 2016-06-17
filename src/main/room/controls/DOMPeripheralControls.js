@@ -216,7 +216,7 @@ wmsx.DOMPeripheralControls = function() {
 
     var mediaChangeDisabledWarning = function() {
         if (WMSX.MEDIA_CHANGE_DISABLED) {
-            monitor.showOSD("Media change is disabled", true);
+            monitor.showOSD("Media change is disabled!", true, true);
             return true;
         }
         return false;

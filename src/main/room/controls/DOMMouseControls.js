@@ -90,7 +90,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     function lockPointer() {
         if (port < 0)
-            return screen.showOSD("Mouse Pointer Locking only when MOUSE is ENABLED!", true);
+            return screen.showOSD("Mouse Pointer Locking only when MOUSE is ENALBED!", true, true);
         var func = inputElement.requestPointerLock || inputElement.mozRequestPointerLock || inputElement.webkitRequestPointerLock;
         if (func) func.apply(inputElement);
     }

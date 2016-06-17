@@ -54,7 +54,7 @@ wmsx.Machine = function() {
     this.userPowerOn = function(autoRunCassette) {
         if (isLoading) return;
         if (!bios) {
-            this.getVideoOutput().showOSD("Insert BIOS!", true);
+            this.getVideoOutput().showOSD("Insert BIOS!", true, true);
             return;
         }
         this.powerOn();
@@ -122,15 +122,15 @@ wmsx.Machine = function() {
         return diskDriveSocket;
     };
 
-    this.showOSD = function(message, overlap) {
-        this.getVideoOutput().showOSD(message, overlap);
+    this.showOSD = function(message, overlap, error) {
+        this.getVideoOutput().showOSD(message, overlap, error);
     };
 
     this.setVideoStandardSoft = function(pVideoStandard) {
         videoStandardSoft = pVideoStandard;
         if (videoStandardIsAuto && videoStandard !== pVideoStandard) setVideoStandard(pVideoStandard);
         else if (!videoStandardIsAuto && videoStandard !== pVideoStandard)
-                self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true);
+                self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true, true);
     };
 
     this.loading = function(state) {
@@ -494,7 +494,7 @@ wmsx.Machine = function() {
                 break;
             case controls.VSYNCH:
                 if (wmsx.Clock.HOST_NATIVE_FPS === -1) {
-                    self.showOSD("V-Synch is disabled / unsupported", true);
+                    self.showOSD("V-Synch is disabled / unsupported", true, true);
                 } else {
                     setVSynchMode(vSynchMode + 1);
                     self.showOSD("V-Synch: " + (vSynchMode === 1 ? "AUTO" : vSynchMode === 0 ? "DISABLED" : "FORCED"), true);
@@ -563,7 +563,7 @@ wmsx.Machine = function() {
         };
         this.remove = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            if (slotSocket.inserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+            if (slotSocket.inserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
             slotSocket.insert(null, slotPos, altPower);
             cartridgeSocket.fireStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + " removed", true);
@@ -575,11 +575,11 @@ wmsx.Machine = function() {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             var cart = slotSocket.inserted(slotPos);
             if (cart === null) {
-                if (!silent) self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true);
+                if (!silent) self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
                 return true;
             }
             if (!cart.getDataDesc()) {
-                if (!silent)  self.showOSD("Data " + (operation ? "Saving" : "Loading") + " not supported for Cartridge " + (port === 1 ? "2" : "1"), true);
+                if (!silent)  self.showOSD("Data " + (operation ? "Saving" : "Loading") + " not supported for Cartridge " + (port === 1 ? "2" : "1"), true, true);
                 return true;
             }
             return false;
@@ -827,16 +827,16 @@ wmsx.Machine = function() {
             if (media.saveState(slot, state))
                 self.showOSD("State " + slot + " saved", true);
             else
-                self.showOSD("State " + slot + " save failed", true);
+                self.showOSD("State " + slot + " save FAILED!", true, true);
         };
 
         this.loadState = function(slot) {
             if (!media) return;
             var state = media.loadState(slot);
             if (!state) {
-                self.showOSD("State " + slot + " not found", true);
+                self.showOSD("State " + slot + " not found!", true, true);
             } else if (state.v !== VERSION) {
-                self.showOSD("State " + slot + " load failed, wrong version", true);
+                self.showOSD("State " + slot + " load failed, wrong version!", true, true);
             } else {
                 if (!self.powerIsOn) self.powerOn();
                 loadState(state);
@@ -857,7 +857,7 @@ wmsx.Machine = function() {
             if (!state) return false;
             wmsx.Util.log("SaveState file loaded");
             if (state.v !== VERSION) {
-                self.showOSD("State File load failed, wrong version", true);
+                self.showOSD("State File load failed, wrong version!", true, true);
             } else {
                 if (!self.powerIsOn) self.powerOn();
                 loadState(state);

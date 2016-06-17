@@ -19,8 +19,8 @@ wmsx.Monitor = function(display) {
         display.videoSignalOff();
     };
 
-    this.showOSD = function(message, overlap) {
-        display.showOSD(message, overlap);
+    this.showOSD = function(message, overlap, error) {
+        display.showOSD(message, overlap, error);
     };
 
     this.setDisplayMetrics = function(targetWidth, targetHeight) {

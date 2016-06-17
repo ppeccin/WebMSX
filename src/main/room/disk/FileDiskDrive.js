@@ -319,7 +319,7 @@ wmsx.FileDiskDrive = function() {
 
     function noDiskInsertedMessage(drive) {
         if (!self.isDiskInserted(drive)) {
-            screen.showOSD("No Disk in Drive " + driveName[drive], true);
+            screen.showOSD("No Disk in Drive " + driveName[drive], true, true);
             return true;
         } else
             return false;
@@ -327,7 +327,7 @@ wmsx.FileDiskDrive = function() {
 
     function maxStackReachedMessage(drive) {
         if (driveStack[drive].length >= MAX_STACK) {
-            screen.showOSD("Maximum Stack size in Drive " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true);
+            screen.showOSD("Maximum Stack size in Drive " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true, true);
             return true;
         } else
             return false;

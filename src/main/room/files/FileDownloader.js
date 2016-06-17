@@ -23,7 +23,7 @@ wmsx.FileDownloader = function() {
             downloadLinkElement.click();
             screen.showOSD(desc + " saved", true);
         } catch(ex) {
-            screen.showOSD(desc + " save failed", true);
+            screen.showOSD(desc + " save FAILED!", true, true);
             console.log(ex.stack);
         }
     };
@@ -40,7 +40,7 @@ wmsx.FileDownloader = function() {
             downloadLinkElement.click();
             screen.showOSD(desc + " saved", true);
         } catch(ex) {
-            screen.showOSD(desc + " save failed", true);
+            screen.showOSD(desc + " save FAILED!", true, true);
             console.log(ex.stack);
         }
     };

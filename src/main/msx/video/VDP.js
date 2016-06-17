@@ -191,7 +191,7 @@ wmsx.VDP = function(machine, cpu, msx2, msx2p) {
     };
 
     this.togglePalettes = function() {
-        videoSignal.showOSD("Color Mode not supported in v2.0 yet!", true);    // TODO Implement?
+        videoSignal.showOSD("Color Mode not supported in v2.0 yet!", true, true);    // TODO Implement?
     };
 
     this.toggleDebugModes = function() {
