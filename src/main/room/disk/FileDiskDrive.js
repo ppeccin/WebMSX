@@ -77,7 +77,7 @@ wmsx.FileDiskDrive = function() {
         add = add && driveStack[drive].length > 1;
         screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
 
-        if (add) this.openDiskSelectDialog(drive, true);
+        if (add) screen.openDiskSelectDialog(drive);
     };
 
     this.removeStack = function(drive) {
@@ -105,27 +105,23 @@ wmsx.FileDiskDrive = function() {
         if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
     };
 
-    this.openDiskSelectDialog = function(drive, altPower) {
-        screen.openDiskSelectDialog(drive, altPower);
-    };
-
-    this.toggleDiskSelectDialog = function(drive, altPower) {
-        if (noDiskInsertedMessage(drive)) return;
-        screen.toggleDiskSelectDialog(drive, altPower);
+    this.selectDisk = function(drive) {
+        if (noDiskInsertedMessage(drive)) screen.toggleCloseDiskSelectDialog(drive);
+        else screen.toggleDiskSelectDialog(drive);
     };
 
     this.insertPreviousDisk = function(drive) {
         if (noDiskInsertedMessage(drive)) return;
         var newNum = curDisk[drive] - 1;
         if (newNum >= 0) this.insertDisk(drive, newNum);
-        this.openDiskSelectDialog(drive, false);
+        screen.openDiskSelectDialog(drive);
     };
 
     this.insertNextDisk = function(drive) {
         if (noDiskInsertedMessage(drive)) return;
         var newNum = curDisk[drive] + 1;
         if (newNum < driveStack[drive].length)  this.insertDisk(drive, newNum);
-        this.openDiskSelectDialog(drive, false);
+        screen.openDiskSelectDialog(drive);
     };
 
     this.insertDisk = function(drive, num) {
@@ -190,7 +186,7 @@ wmsx.FileDiskDrive = function() {
             setCurrentDiskNum(drive, 0);
         }
         fireMediaStateUpdate(drive);
-        if (driveStack[drive].length > 1) self.openDiskSelectDialog(drive, altPower);
+        if (driveStack[drive].length > 1) screen.openDiskSelectDialog(drive);
         else self.autoPowerCycle(altPower);
     }
 

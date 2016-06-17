@@ -104,7 +104,7 @@ wmsx.DOMPeripheralControls = function() {
                 diskDrive.saveDiskFile(secPort ? 1 : 0);
                 break;
             case controls.DISK_SELECT:
-                diskDrive.toggleDiskSelectDialog(secPort ? 1 : 0, altPower);
+                diskDrive.selectDisk(secPort ? 1 : 0);
                 break;
             case controls.DISK_PREVIOUS:
                 diskDrive.insertPreviousDisk(secPort ? 1 : 0);

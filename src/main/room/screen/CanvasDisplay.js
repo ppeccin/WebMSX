@@ -90,16 +90,21 @@ wmsx.CanvasDisplay = function(mainElement) {
         settingsDialog.show(page);
     };
 
-    this.openDiskSelectDialog = function(drive, altPower) {
+    this.openDiskSelectDialog = function(drive) {
         createDiskSelectDialog();
         if (pasteDialog) pasteDialog.hide();
-        diskSelectDialog.show(drive, altPower);
+        diskSelectDialog.show(drive);
     };
 
-    this.toggleDiskSelectDialog = function(drive, altPower) {
+    this.toggleDiskSelectDialog = function(drive) {
         createDiskSelectDialog();
         if (pasteDialog) pasteDialog.hide();
-        diskSelectDialog.toggle(drive, altPower);
+        diskSelectDialog.toggle(drive);
+    };
+
+    this.toggleCloseDiskSelectDialog = function(drive) {
+        createDiskSelectDialog();
+        diskSelectDialog.toggleClose(drive);
     };
 
     function createDiskSelectDialog() {
@@ -212,7 +217,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (overlap || !osdShowing) osd.innerHTML = message;
         osd.style.transition = "none";
         osd.style.top = "15px";
-        osd.style.color = error ? "rgb(255, 70, 50)" : "rgb(10, 255, 10)";
+        osd.style.color = error ? "rgb(255, 60, 40)" : "rgb(0, 255, 0)";
         osd.style.opacity = 1;
         osdShowing = true;
         osdTimeout = setTimeout(hideOSD, OSD_TIME);
@@ -294,7 +299,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         button.title = diskDrive.getCurrentDiskDesc(drive);
         button.wmsxMenu[1].disabled = stack.length === 0 || stack.length >= wmsx.FileDiskDrive.MAX_STACK;
         button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
-        button.wmsxMenu[7].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
+        button.wmsxMenu[8].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
         if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
     };
 

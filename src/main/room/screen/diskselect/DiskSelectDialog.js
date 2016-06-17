@@ -3,7 +3,7 @@
 wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     var self = this;
 
-    this.show = function (pDrive, pAltPower) {
+    this.show = function (pDrive) {
         if (!dialog) {
             create();
             setTimeout(function() {
@@ -13,7 +13,6 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         }
 
         drive = pDrive;
-        altPower = pAltPower;
         visible = true;
         peripheralControls.setGroupRestriction("DISK");
         dialog.classList.add("wmsx-diskselect-show");
@@ -26,12 +25,16 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         visible = false;
         peripheralControls.setGroupRestriction(null);
         WMSX.room.screen.focus();
-        if (confirm) diskDrive.autoPowerCycle(altPower);     // altPower defined at show time
+        if (confirm) diskDrive.autoPowerCycle(false);
     };
 
-    this.toggle = function(drive, altPower) {
+    this.toggle = function(drive) {
         if (visible) this.hide(false);
-        else this.show(drive, altPower);
+        else this.show(drive);
+    };
+
+    this.toggleClose = function(drive) {
+        if (visible) this.hide(false);
     };
 
     this.diskDrivesMediaStateUpdate = function(drive) {
@@ -113,7 +116,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             // Confirm
             else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
             // Select
-            else if (SELECTION_KEYS.indexOf(e.keyCode) >= 0) peripheralControls.controlActivated(CONTROLS[e.keyCode], true, drive !== 0);
+            else if (CONTROLS[e.keyCode] && !e.altKey) peripheralControls.controlActivated(CONTROLS[e.keyCode], true, drive !== 0);
             // Forward
             else peripheralControls.keyDown(e);
 
@@ -279,9 +282,10 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;
     var CONFIRM_KEYS =   [ k.VK_ENTER.c, k.VK_SPACE.c ];
-    var SELECTION_KEYS = [ k.VK_UP.c, k.VK_DOWN.c ];
     var CONTROLS = {};
         CONTROLS[k.VK_UP.c] = wmsx.PeripheralControls.DISK_PREVIOUS;
+        CONTROLS[k.VK_PAGE_UP.c] = wmsx.PeripheralControls.DISK_PREVIOUS;
         CONTROLS[k.VK_DOWN.c] = wmsx.PeripheralControls.DISK_NEXT;
+        CONTROLS[k.VK_PAGE_DOWN.c] = wmsx.PeripheralControls.DISK_NEXT;
 
 };
