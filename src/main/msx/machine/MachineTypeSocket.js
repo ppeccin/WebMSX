@@ -8,6 +8,7 @@ wmsx.MachineTypeSocket = function(machine) {
     };
 
     this.activateMachine = function (name) {
+        if (WMSX.MACHINE == name) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);
 
         var machineConfig = WMSX.MACHINES_CONFIG[name];

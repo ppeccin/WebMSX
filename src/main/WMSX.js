@@ -61,17 +61,17 @@ WMSX = {
 WMSX.MACHINES_CONFIG = {
 
     MSX2PNTSC: {
-        desc:               "MSX2+ European",
+        desc:               "MSX2+ Europe",
         presets:            "MSX2PNTSC"
     },
 
     MSX2PJAP: {
-        desc:               "MSX2+ Japanese",
+        desc:               "MSX2+ Japan",
         presets:            "MSX2PJAP"
     },
 
     MSX1: {
-        desc:               "MSX1 European",
+        desc:               "MSX1 Europe",
         presets:            "MSX1"
     }
 
@@ -173,13 +173,14 @@ WMSX.PRESETS_CONFIG = {
 
     MSX1BASE: {
         MACHINE_TYPE:       1,
+        SLOT_3_1_URL:       "@[Empty].rom",
         _INCLUDE:           "RAM64K, DISK"
     },
 
     // Specific Machines Presets
 
     EMPTY: {
-        MACHINE_TYPE:         3
+        MACHINE_TYPE:       3
     },
 
     // Extensions Options Presets

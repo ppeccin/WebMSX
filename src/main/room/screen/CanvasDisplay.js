@@ -12,12 +12,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor = new wmsx.Monitor(self);
     }
 
-    this.connect = function(pVideoSignal, pMachineControlsSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
+    this.connect = function(pVideoSignal, pMachineControlsSocket, pMachineTypeSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
         monitor.connect(pVideoSignal);
         machineControlsSocket = pMachineControlsSocket;
         controllersSocket = pControllersSocket;
         cartridgeSocket = pCartridgeSocket;
         extensionsSocket = pExtensionsSocket;
+        machineTypeSocket = pMachineTypeSocket;
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive) {
@@ -288,6 +289,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.focus();
     };
 
+    this.machineTypeStateUpdate = function() {
+        refreshSettingsMenuOptions();
+    };
+
     this.powerStateUpdate = function(power) {
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
@@ -344,6 +349,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
         if (!state) {
             machineControlsSocket.addRedefinitionListener(this);
+            machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
         }
     };
@@ -657,15 +663,25 @@ wmsx.CanvasDisplay = function(mainElement) {
     function createSettingsMenuOptions() {
         var menu = settingsButton.wmsxMenu;
         menu.length = 0;
+
+        var macConfig = WMSX.MACHINES_CONFIG;
+        for (var mac in macConfig) {
+            var conf = macConfig[mac];
+            var opt = { label: conf.desc, machine: mac, toggle: true, checked: false };
+            menu.push(opt);
+        }
+        menu.push({ label: "",            divider: true });
+
         var extConfig = WMSX.EXTENSIONS_CONFIG;
         for (var ext in extConfig) {
-            var conf = extConfig[ext];
+            conf = extConfig[ext];
             if (conf.desc) {            // Only show extensions with descriptions
-                var opt = { label: conf.desc, extension: ext, toggle: true, checked: false };
+                opt = { label: conf.desc, extension: ext, toggle: true, checked: false };
                 menu.push(opt);
             }
         }
         menu.push({ label: "",            divider: true });
+
         menu.push({ label: "Help Screen", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
         menu.push({ label: "Defaults",                   control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
     }
@@ -676,6 +692,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         for (var i = 0; i < menu.length; ++i) {
             var opt = menu[i];
             if (opt.extension) opt.checked = extensionsSocket.isActiveAnySlot(opt.extension);
+            else if (opt.machine) opt.checked = machineTypeSocket.isActive(opt.machine);
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
@@ -1039,7 +1056,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
                 var altPower = e.button === 1;
                 var secSlot;
-                if (e.target.wmsxMenuOption.extension) {
+                if (e.target.wmsxMenuOption.machine) {
+                    machineTypeSocket.activateMachine(e.target.wmsxMenuOption.machine);
+                } else if (e.target.wmsxMenuOption.extension) {
                     secSlot = e.shiftKey;
                     extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);
                 } else if (e.target.wmsxMenuOption.control) {
@@ -1133,6 +1152,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fileDownloader;
     var controllersHub;
     var extensionsSocket;
+    var machineTypeSocket;
     var controllersSocket;
     var cartridgeSocket;
     var diskDrive;
@@ -1209,7 +1229,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var BAR_MENU_WIDTH = 136;
     var BAR_MENU_ITEM_HEIGHT = 28;
-    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 3);
+    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.MACHINES_CONFIG).length + Object.keys(WMSX.EXTENSIONS_CONFIG).length + 2 + 2);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 3000;
