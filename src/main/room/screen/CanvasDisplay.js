@@ -284,7 +284,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerStateUpdate = function(power) {
-        powerButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
+        powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
     };
 
@@ -299,8 +299,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.diskDrivesMotorStateUpdate = function(diskA, diskAMotor, diskB, diskBMotor) {
-        diskAButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskA ? 1 : 0 ))]) + "px";
-        diskBButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskB ? 1 : 0 ))]) + "px";
+        diskAButton.style.backgroundPosition = "" + diskAButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskA ? 1 : 0 ))]) + "px";
+        diskBButton.style.backgroundPosition = "" + diskBButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskB ? 1 : 0 ))]) + "px";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -308,8 +308,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         var cart2 = cartridgeSocket.inserted(1);
         cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") : "" );
         cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") : "" );
-        cartridge1Button.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(cart1 ? 1 : 0)]) + "px";
-        cartridge2Button.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[(cart2 ? 1 : 0)]) + "px";
+        cartridge1Button.style.backgroundPosition = "" + cartridge1Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart1 ? 1 : 0)]) + "px";
+        cartridge2Button.style.backgroundPosition = "" + cartridge2Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart2 ? 1 : 0)]) + "px";
         var dataDesc = cart1 && cart1.getDataDesc();
         cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
         cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Memory");
@@ -325,7 +325,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.tapeStateUpdate = function(name, motor) {
         tapeButton.title = "Cassette Tape" + ( name ? ": " + name : "" );
-        tapeButton.style.backgroundPositionY = "" + (mediaButtonBackYOffsets[motor ? 2 : ( name ? 1 : 0 )]) + "px";
+        tapeButton.style.backgroundPosition = "" + tapeButton.wmsxBX + "px " + (mediaButtonBackYOffsets[motor ? 2 : ( name ? 1 : 0 )]) + "px";
         tapeButton.wmsxMenu[2].disabled = tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = !name;
     };
 
@@ -710,6 +710,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             but.style.backgroundImage = 'url("' + wmsx.Images.urls.sprites + '")';
             but.style.backgroundPosition = "" + bx + "px " + by + "px";
             but.style.backgroundRepeat = "no-repeat";
+            but.wmsxBX = bx; but.wmsxBY = by;
         }
 
         if (tooltip) but.title = tooltip;

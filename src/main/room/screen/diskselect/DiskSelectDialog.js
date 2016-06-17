@@ -43,7 +43,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         var stack = diskDrive.getDriveStack(drive);
         var currDiskNum = diskDrive.getCurrentDiskNum(drive);
 
-        label.textContent = "Select Disk in Drive " + (drive === 1 ? "B:" : "A:") + " " + diskDrive.getCurrentDiskNumDesc(drive);
+        header.textContent = "Select Disk in Drive " + (drive === 1 ? "B:" : "A:") + " " + diskDrive.getCurrentDiskNumDesc(drive);
 
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
@@ -71,8 +71,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog.id = "wmsx-diskselect-modal";
         dialog.tabIndex = -1;
 
-        label = document.createTextNode("Select Disk");
-        dialog.appendChild(label);
+        header = document.createTextNode("Select Disk");
+        dialog.appendChild(header);
+
+        footer = document.createElement("div");
+        footer.id = "wmsx-diskselect-modal-footer";
+        footer.innerHTML = "(drag items to change order)";
+        dialog.appendChild(footer);
 
         // Define list
         list = document.createElement('ul');
@@ -167,6 +172,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
         list.addEventListener("drop", function dragStart(e) {
             e.stopPropagation();
+            e.preventDefault();
             if (!diskMoveFrom || !diskMoveTo) return false;
             var from = diskMoveFrom.wmsxDiskNum;
             var to = diskMoveTo.wmsxDiskNum;
@@ -194,8 +200,10 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '    bottom: 0;' +
             '    left: 0;' +
             '    right: 0;' +
-            '    width: 450px;' +
+            '    width: 540px;' +
+            '    max-width: 92%;' +
             '    height: 270px;' +
+            '    max-height: 98%;' +
             '    margin: auto;' +
             '    color: white;' +
             '    font: normal 19px sans-serif;' +
@@ -203,6 +211,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '    padding-top: 20px;' +
             '    text-align: center;' +
             '    border: 1px solid black;' +
+            '    text-shadow: 1px 1px 1px black;' +
             '    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
             '    -webkit-font-smoothing: antialiased;' +
             '    -moz-osx-font-smoothing: grayscale;' +
@@ -212,15 +221,23 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '#wmsx-diskselect-modal.wmsx-diskselect-show {' +
             '    display: block;' +
             '}' +
+            '#wmsx-diskselect-modal-footer {' +
+            '    position: absolute;' +
+            '    width: 100%;' +
+            '    bottom: 6px;' +
+            '    font-size: 13px;' +
+            '    text-align: center;' +
+            '    color: rgb(170, 170, 170);' +
+            '}' +
             '#wmsx-diskselect-list {' +
             '    position: relative;' +
-            '    width: 80%;' +
-            '    top: 20px;' +
+            '    width: 88%;' +
+            '    top: 15px;' +
             '    margin: auto;' +
             '    padding: 0;' +
             '    list-style: none;' +
-            '    font-size: 13px;' +
-            '    color: rgb(205, 205, 205);' +
+            '    font-size: 14px;' +
+            '    color: rgb(210, 210, 210);' +
             '}' +
             '#wmsx-diskselect-list li {' +
             '    display: none;' +
@@ -228,10 +245,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             '    background: rgb(70, 70, 70);' +
             '    margin: 7px 0;' +
             '    padding: 2px 10px;' +
+            '    line-height: 15px;' +
             '    text-align: left;' +
             '    text-overflow: ellipsis;' +
             '    border: 2px dashed transparent;' +
+            '    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);' +
             '    white-space: nowrap;' +
+            '    cursor: pointer;' +
             '}' +
             '#wmsx-diskselect-list li.wmsx-diskselect-visible {' +
             '    display: block;' +
@@ -247,7 +267,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     }
 
 
-    var dialog, label, list;
+    var dialog, header, footer, list;
     var listItems = [];
     var visible = false;
 
