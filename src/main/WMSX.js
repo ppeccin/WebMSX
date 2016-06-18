@@ -21,13 +21,13 @@ WMSX = {
 
     // Extensions
     EXTENSIONS: {
-        RAMMAPPER:                  false,
-        DISK:                       false,
-        DOS2:                       false,
-        MSXMUSIC:                   false,
-        SCC:                        false,
-        SCCI:                       false,
-        PAC:                        false
+        RAMMAPPER:                  0,
+        DISK:                       0,
+        DOS2:                       0,
+        MSXMUSIC:                   0,
+        SCC:                        0,
+        SCCI:                       0,
+        PAC:                        0
     },
 
     // General configuration
@@ -78,17 +78,17 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    RAMMAPPER:                  { SLOT: [3, 0],          desc: "RAM Mapper",    format: "RAMMapper",     mutual: "RAM64K" },
-    RAM64K:                     { SLOT: [3, 0],                                 format: "RAM64K",        mutual: "RAMMAPPER" },
-    DISK:                       { SLOT: [3, 2],          desc: "Floppy Drives", format: "DiskPatched" },
-    DOS2:                       { SLOT: [2, 2],          desc: "MSX-DOS 2",     format: "DOS2",          require: "RAMMAPPER, DISK" },
-    MSXMUSIC:                   { SLOT: [3, 3],          desc: "MSX-MUSIC",     format: "MSXMUSIC" },
-    SCC:                        { SLOT: [1], SLOT2: [2], desc: "Konami SCC",    format: "SCCExpansion" },
-    SCCI:                       { SLOT: [1], SLOT2: [2], desc: "Konami SCC-I",  format: "SCCIExpansion" },
-    PAC:                        { SLOT: [1], SLOT2: [2], desc: "PAC SRAM",      format: "PACExpansion" }
+    RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3, 0],          format: "RAMMapper",     mutual: "RAM64K" },
+    RAM64K:                     {                        SLOT: [3, 0],          format: "RAM64K",        mutual: "RAMMAPPER" },
+    DISK:                       { desc: "Floppy Drives", SLOT: [3, 2],          format: "DiskPatched" },
+    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [2, 2],          format: "DOS2",          require: "RAMMAPPER, DISK" },
+    MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [3, 3],          format: "MSXMUSIC" },
+    SCC:                        { desc: "Konami SCC",    SLOT: [1], SLOT2: [2], format: "SCCExpansion",  remove: "SCCI, PAC" },
+    SCCI:                       { desc: "Konami SCC-I",  SLOT: [1], SLOT2: [2], format: "SCCIExpansion", remove: "SCC, PAC" },
+    PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2], format: "PACExpansion",  remove: "SCC, SCCI" }
 };
 
-WMSX.PRESETS_CONFIG = {
+WMSX.PRESETS_CONFIG = {         // TODO Review
 
     // MSX2+ Machine Presets
 
@@ -185,26 +185,25 @@ WMSX.PRESETS_CONFIG = {
 
     // Extensions Options Presets
 
-    DISK: { "EXTENSIONS.DISK": true},
-    NODISK: { "EXTENSIONS.DISK": false},
+    DISK: { "EXTENSIONS.DISK": 1 },
+    NODISK: { "EXTENSIONS.DISK": 0 },
 
-    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": true, "EXTENSIONS.RAM64K": false},
-    RAM64K: { "EXTENSIONS.RAMMAPPER": false, "EXTENSIONS.RAM64K": true},
+    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAM64K": 0 },
+    RAM64K: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAM64K": 1 },
 
-    MSXMUSIC: { "EXTENSIONS.MSXMUSIC": true},
-    NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": false},
+    MSXMUSIC: { "EXTENSIONS.MSXMUSIC": 1 },
+    NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
 
-    DOS2: { "EXTENSIONS.DOS2":  true},
+    DOS2: { "EXTENSIONS.DOS2":  1 },
 
-    SCC: { "EXTENSIONS.SCC": true},
-    SCCSLOT2: { "EXTENSIONS.SCC": true, "EXTENSIONS_CONFIG.SCC.SLOT": 2 },
+    SCC: { "EXTENSIONS.SCC": 1 },
+    SCCS2: { "EXTENSIONS.SCC": 2 },
 
-    SCCI: { "EXTENSIONS.SCCI": true},
-    SCCISLOT2: { "EXTENSIONS.SCCI": true, "EXTENSIONS_CONFIG.SCCI.SLOT": 2 },
+    SCCI: { "EXTENSIONS.SCCI": 1 },
+    SCCI2: { "EXTENSIONS.SCCI": 2 },
 
-    PAC: { "EXTENSIONS.PAC": true},
-    PACSLOT2: { "EXTENSIONS.PAC": true, "EXTENSIONS_CONFIG.PAC.SLOT": 2 },
-
+    PAC: { "EXTENSIONS.PAC": 1 },
+    PACS2: { "EXTENSIONS.PAC": 2 },
 
     // Configuration Helper Presets
 

@@ -8,6 +8,7 @@ wmsx.RTC = function() {
 
     this.setMachineType = function(type) {
         isMSX2 = type >= 2;
+        wmsx.Util.arrayFill(ram[0], 0); wmsx.Util.arrayFill(ram[1], 0);     // clear RAM
     };
 
     this.connectBus = function(bus) {
@@ -196,7 +197,7 @@ wmsx.RTC = function() {
 
     var regClock = wmsx.Util.arrayFill(new Array(13), 0);
     var regAlarm = wmsx.Util.arrayFill(new Array(13), 0);
-    var ram = [ wmsx.Util.arrayFill(new Array(13), 0), wmsx.Util.arrayFill(new Array(13), 0) ];
+    var ram = [ new Array(13), new Array(13) ];
 
     var regAddress = 0;
     var clockOffset = 0;

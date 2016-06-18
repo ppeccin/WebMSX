@@ -289,10 +289,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.focus();
     };
 
-    this.machineTypeStateUpdate = function() {
-        refreshSettingsMenuOptions();
-    };
-
     this.powerStateUpdate = function(power) {
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
@@ -330,13 +326,17 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Memory");
         cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Memory");
         cartridge2Button.wmsxMenu[3].disabled = !cart2;
-        refreshSettingsMenuOptions();
+        refreshSettingsMenuForExtensions();
     };
 
     this.tapeStateUpdate = function(name, motor) {
         tapeButton.title = "Cassette Tape" + ( name ? ": " + name : "" );
         tapeButton.style.backgroundPosition = "" + tapeButton.wmsxBX + "px " + (mediaButtonBackYOffsets[motor ? 2 : ( name ? 1 : 0 )]) + "px";
         tapeButton.wmsxMenu[2].disabled = tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = !name;
+    };
+
+    this.machineTypeStateUpdate = function() {
+        refreshSettingsMenuForMachineType();
     };
 
     this.controlsStatesRedefined = function () {
@@ -650,7 +650,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
 
-        menu = [];     // Will be populated later
+        menu = createSettingsMenuOptions();
         menu.menuTitle = "Settings";
         settingsButton = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Settings", null, menu);
 
@@ -661,8 +661,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function createSettingsMenuOptions() {
-        var menu = settingsButton.wmsxMenu;
-        menu.length = 0;
+        var menu = [ ];
 
         var macConfig = WMSX.MACHINES_CONFIG;
         for (var mac in macConfig) {
@@ -684,15 +683,30 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu.push({ label: "Help Screen", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
         menu.push({ label: "Defaults",                   control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+        return menu;
     }
 
-    function refreshSettingsMenuOptions() {
+    function refreshSettingsMenuForExtensions() {
+
+        console.log("REFRESH EXTENSIONS");
+
         var menu = settingsButton.wmsxMenu;
-        if (menu.length === 0) createSettingsMenuOptions();
         for (var i = 0; i < menu.length; ++i) {
             var opt = menu[i];
             if (opt.extension) opt.checked = extensionsSocket.isActiveAnySlot(opt.extension);
             else if (opt.machine) opt.checked = machineTypeSocket.isActive(opt.machine);
+        }
+        if (barMenuActive === menu) refreshBarMenu(menu);
+    }
+
+    function refreshSettingsMenuForMachineType() {
+
+        console.log("REFRESH MACHINE");
+
+        var menu = settingsButton.wmsxMenu;
+        for (var i = 0; i < menu.length; ++i) {
+            var opt = menu[i];
+            if (opt.machine) opt.checked = machineTypeSocket.isActive(opt.machine);
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
@@ -1057,7 +1071,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 var altPower = e.button === 1;
                 var secSlot;
                 if (e.target.wmsxMenuOption.machine) {
-                    machineTypeSocket.activateMachine(e.target.wmsxMenuOption.machine);
+                    machineTypeSocket.changeMachine(e.target.wmsxMenuOption.machine);
                 } else if (e.target.wmsxMenuOption.extension) {
                     secSlot = e.shiftKey;
                     extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);

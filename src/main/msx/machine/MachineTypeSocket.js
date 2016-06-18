@@ -7,7 +7,7 @@ wmsx.MachineTypeSocket = function(machine) {
         return WMSX.MACHINE == name;
     };
 
-    this.activateMachine = function (name) {
+    this.changeMachine = function (name) {
         if (WMSX.MACHINE == name) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);
 
@@ -23,10 +23,12 @@ wmsx.MachineTypeSocket = function(machine) {
         new wmsx.MultiDownloader(
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
-                machine.setMachineType(WMSX.MACHINE_TYPE);
-                if (wasOn) machine.powerOn();
-                machine.showOSD(machineConfig.desc + " machine activated", true);
-                self.fireStateUpdate();
+                machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
+                    machine.setMachineType(WMSX.MACHINE_TYPE);
+                    if (wasOn) machine.powerOn();
+                    machine.showOSD(machineConfig.desc + " machine activated", true);
+                    self.fireMachineTypeStateUpdate();
+                });
             }
         ).start();
     };
@@ -38,7 +40,7 @@ wmsx.MachineTypeSocket = function(machine) {
         }
     };
 
-    this.fireStateUpdate = function() {
+    this.fireMachineTypeStateUpdate = function() {
         for (var u = 0; u < listeners.length; ++u) listeners[u].machineTypeStateUpdate();
     };
 

@@ -12,7 +12,6 @@ wmsx.Machine = function() {
     }
 
     this.setMachineType = function(type) {
-        machineType = type;
         vdp.setMachineType(type);
         rtc.setMachineType(type);
         syf.setMachineType(type);
@@ -258,7 +257,6 @@ wmsx.Machine = function() {
 
     function saveState() {
         return {
-            mt: machineType,
             b:  bus.saveState(),
             rc: rtc.saveState(),
             sf: syf.saveState(),
@@ -276,7 +274,6 @@ wmsx.Machine = function() {
     }
 
     function loadState(state) {
-        machineType = state.mt;
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
@@ -291,7 +288,8 @@ wmsx.Machine = function() {
         bus.loadState(state.b);
         diskDriveSocket.getDrive().loadState(state.dd);
         cassetteSocket.getDeck().loadState(state.ct);
-        extensionsSocket.fireStateUpdate();
+        machineTypeSocket.fireMachineTypeStateUpdate();     // TODO Machine Name is not retrieved!
+        cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.fireRedefinitionUpdate();
     }
 
@@ -348,8 +346,6 @@ wmsx.Machine = function() {
 
 
     this.powerIsOn = false;
-
-    var machineType;
 
     var speedControl = 1;
     var alternateSpeed = false;
@@ -552,14 +548,14 @@ wmsx.Machine = function() {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             if (cartridge === slotSocket.inserted(slotPos)) return;
             slotSocket.insert(cartridge, slotPos, altPower);
-            cartridgeSocket.fireStateUpdate();
+            this.fireCartridgesStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
         };
         this.remove = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             if (slotSocket.inserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
             slotSocket.insert(null, slotPos, altPower);
-            cartridgeSocket.fireStateUpdate();
+            this.fireCartridgesStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + " removed", true);
         };
         this.inserted = function (port) {
@@ -592,7 +588,7 @@ wmsx.Machine = function() {
             var dataToSave = cart.getDataToSave();
             fileDownloader.startDownloadBinary(dataToSave.fileName, dataToSave.content, cart.getDataDesc());
         };
-        this.fireStateUpdate = function () {
+        this.fireCartridgesStateUpdate = function () {
             for (var i = 0; i < listeners.length; i++)
                 listeners[i].cartridgesStateUpdate();
         };
