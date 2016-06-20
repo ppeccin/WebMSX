@@ -4,17 +4,16 @@ wmsx.MachineTypeSocket = function(machine) {
     var self = this;
 
     this.isActive = function(name) {
-        return WMSX.MACHINE == name;
+        return machine.machineName == name;
     };
 
     this.changeMachine = function (name) {
-        if (WMSX.MACHINE == name) return;
+        if (machine.machineName == name) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);
 
         var machineConfig = WMSX.MACHINES_CONFIG[name];
         if (!machineConfig) return;
 
-        WMSX.MACHINE = name;
         wmsx.Configurator.applyPresets(machineConfig.presets);
 
         var wasOn = machine.powerIsOn;
@@ -24,7 +23,7 @@ wmsx.MachineTypeSocket = function(machine) {
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
-                    machine.setMachineType(WMSX.MACHINE_TYPE);
+                    machine.setMachineType(WMSX.MACHINE, WMSX.MACHINE_TYPE);
                     if (wasOn) machine.powerOn();
                     machine.showOSD(machineConfig.desc + " machine activated", true);
                     self.fireMachineTypeStateUpdate();

@@ -61,18 +61,42 @@ WMSX = {
 WMSX.MACHINES_CONFIG = {
 
     MSX2PNTSC: {
+        desc:               "MSX2+ Brazil",
+        presets:            "MSX2PNTSC"
+    },
+    MSX2PPAL: {
         desc:               "MSX2+ Europe",
         presets:            "MSX2PNTSC"
     },
-
     MSX2PJAP: {
         desc:               "MSX2+ Japan",
         presets:            "MSX2PJAP"
     },
 
-    MSX1: {
+    MSX2NTSC: {
+        desc:               "MSX2 Brazil",
+        presets:            "MSX2NTSC"
+    },
+    MSX2PAL: {
+        desc:               "MSX2 Europe",
+        presets:            "MSX2NTSC"
+    },
+    MSX2JAP: {
+        desc:               "MSX2 Japan",
+        presets:            "MSX2JAP"
+    },
+
+    MSX1NTSC: {
+        desc:               "MSX1 Brazil",
+        presets:            "MSX1NTSC"
+    },
+    MSX1PAL: {
         desc:               "MSX1 Europe",
-        presets:            "MSX1"
+        presets:            "MSX1NTSC"
+    },
+    MSX1JAP: {
+        desc:               "MSX1 Japan",
+        presets:            "MSX1JAP"
     }
 
 };
@@ -98,18 +122,21 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
 
     MSX2PNTSC: {
         _INCLUDE:           "MSX2PBASE",
+        MACHINE:            "MSX2PNTSC",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
     },
 
     MSX2PPAL: {
         _INCLUDE:           "MSX2PBASE",
+        MACHINE:            "MSX2PPAL",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios"
     },
 
     MSX2PJAP: {
         _INCLUDE:           "MSX2PBASE",
+        MACHINE:            "MSX2PJAP",
         SLOT_0_URL:         "@MSX2P_JAP.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
     },
@@ -127,18 +154,21 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
 
     MSX2NTSC: {
         _INCLUDE:           "MSX2BASE",
+        MACHINE:            "MSX2NTSC",
         SLOT_0_URL:         "@MSX2_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2EXT_NTSC.bios"
     },
 
     MSX2PAL: {
         _INCLUDE:           "MSX2BASE",
+        MACHINE:            "MSX2PAL",
         SLOT_0_URL:         "@MSX2_PAL.bios",
         SLOT_3_1_URL:       "@MSX2EXT_PAL.bios"
     },
 
     MSX2JAP: {
         _INCLUDE:           "MSX2BASE",
+        MACHINE:            "MSX2JAP",
         SLOT_0_URL:         "@MSX2_JAP.bios",
         SLOT_3_1_URL:       "@MSX2EXT_JAP.bios"
     },
@@ -158,23 +188,26 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
 
     MSX1NTSC: {
         _INCLUDE:           "MSX1BASE",
+        MACHINE:            "MSX1NTSC",
         SLOT_0_URL:         "@MSX1_NTSC.bios"
     },
 
     MSX1PAL: {
         _INCLUDE:           "MSX1BASE",
+        MACHINE:            "MSX1PAL",
         SLOT_0_URL:         "@MSX1_PAL.bios"
     },
 
     MSX1JAP: {
         _INCLUDE:           "MSX1BASE",
+        MACHINE:            "MSX1JAP",
         SLOT_0_URL:         "@MSX1_JAP.bios"
     },
 
     MSX1BASE: {
         MACHINE_TYPE:       1,
         SLOT_3_1_URL:       "@[Empty].rom",
-        _INCLUDE:           "RAM64K, DISK"
+        _INCLUDE:           "RAM64K, DISK, NOMSXMUSIC, NODOS2"
     },
 
     // Specific Machines Presets
@@ -195,6 +228,7 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
 
     DOS2: { "EXTENSIONS.DOS2":  1 },
+    NODOS2: { "EXTENSIONS.DOS2":  0 },
 
     SCC: { "EXTENSIONS.SCC": 1 },
     SCCS2: { "EXTENSIONS.SCC": 2 },

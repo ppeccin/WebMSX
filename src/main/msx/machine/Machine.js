@@ -6,12 +6,14 @@ wmsx.Machine = function() {
     function init() {
         socketsCreate();
         mainComponentsCreate();
-        self.setMachineType(WMSX.MACHINE_TYPE);
+        self.setMachineType(WMSX.MACHINE, WMSX.MACHINE_TYPE);
         setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
 
-    this.setMachineType = function(type) {
+    this.setMachineType = function(name, type) {
+        this.machineName = name;
+        this.machineType = type;
         vdp.setMachineType(type);
         rtc.setMachineType(type);
         syf.setMachineType(type);
@@ -257,6 +259,8 @@ wmsx.Machine = function() {
 
     function saveState() {
         return {
+            mn: self.machineName,
+            mt: self.machineType,
             b:  bus.saveState(),
             rc: rtc.saveState(),
             sf: syf.saveState(),
@@ -274,6 +278,8 @@ wmsx.Machine = function() {
     }
 
     function loadState(state) {
+        self.machineName = state.mn;
+        self.machineType = state.mt;
         videoStandardIsAuto = state.va;
         setVideoStandard(wmsx.VideoStandard[state.vs]);
         videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
@@ -288,7 +294,7 @@ wmsx.Machine = function() {
         bus.loadState(state.b);
         diskDriveSocket.getDrive().loadState(state.dd);
         cassetteSocket.getDeck().loadState(state.ct);
-        machineTypeSocket.fireMachineTypeStateUpdate();     // TODO Machine Name is not retrieved!
+        machineTypeSocket.fireMachineTypeStateUpdate();
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.fireRedefinitionUpdate();
     }
@@ -345,12 +351,15 @@ wmsx.Machine = function() {
     }
 
 
+    this.machineName = null;
+    this.machineType = 0;
     this.powerIsOn = false;
 
     var speedControl = 1;
     var alternateSpeed = false;
 
     var isLoading = false;
+
 
     var mainVideoClock;
     var cpu;
