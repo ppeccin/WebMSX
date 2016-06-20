@@ -67,7 +67,7 @@ WMSX.start = function () {
         if (WMSX.AUTO_START_DELAY < 0) return;
         var wait = WMSX.AUTO_START_DELAY - (Date.now() - roomPowerOnTime);
         if (wait < 0) wait = 0;
-        window.setTimeout(func, wait);
+        setTimeout(func, wait);
     }
 
     WMSX.shutdown = function () {

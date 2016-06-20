@@ -257,7 +257,7 @@ wmsx.FileDiskDrive = function() {
     // Returns the extra time for motor to spin (drive LED simulation)
     this.motorOn = function(drive) {
         if (driveMotorOffTimer[drive]) {
-            window.clearTimeout(driveMotorOffTimer[drive]);
+            clearTimeout(driveMotorOffTimer[drive]);
             driveMotorOffTimer[drive] = null;
         }
         if (driveMotor[drive]) return 0;
@@ -284,11 +284,11 @@ wmsx.FileDiskDrive = function() {
     function motorOff(drive, resetDelay) {
         if (!driveMotor[drive]) return;
         if (driveMotorOffTimer[drive] && resetDelay) {
-            window.clearTimeout(driveMotorOffTimer[drive]);
+            clearTimeout(driveMotorOffTimer[drive]);
             driveMotorOffTimer[drive] = null;
         }
         if (!driveMotorOffTimer[drive])
-            driveMotorOffTimer[drive] = window.setTimeout(function() {
+            driveMotorOffTimer[drive] = setTimeout(function() {
                 driveMotorOffTimer[drive] = null;
                 driveMotor[drive] = false;
                 fireMotorStateUpdate();

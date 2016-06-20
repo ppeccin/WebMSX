@@ -703,7 +703,7 @@ wmsx.Machine = function() {
         this.typeAutoRunCommandAfterPowerOn = function () {
             if (driver && driver.currentAutoRunCommand())
                 // Give some time for reboot and then enter command
-                window.setTimeout(driver.typeCurrentAutoRunCommand, 1700);      // TODO Arbitrary time...
+                setTimeout(driver.typeCurrentAutoRunCommand, 1700);      // TODO Arbitrary time...
         };
         var deck;
         var driver;
@@ -876,9 +876,9 @@ wmsx.Machine = function() {
         mainVideoClock.pause();
         var start = performance.now();
         for (var i = 0; i < frames; i++) {
-            //var pulseTime = window.performance.now();
+            //var pulseTime = performance.now();
             self.videoClockPulse();
-            //console.log(window.performance.now() - pulseTime);
+            //console.log(performance.now() - pulseTime);
         }
         var duration = performance.now() - start;
         wmsx.Util.log("Done running " + frames + " frames in " + duration + " ms");
