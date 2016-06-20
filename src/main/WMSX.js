@@ -20,15 +20,7 @@ WMSX = {
     STATE_LOAD_URL:                 "",
 
     // Extensions
-    EXTENSIONS: {
-        RAMMAPPER:                  0,
-        DISK:                       0,
-        DOS2:                       0,
-        MSXMUSIC:                   0,
-        SCC:                        0,
-        SCCI:                       0,
-        PAC:                        0
-    },
+    EXTENSIONS: { },
 
     // General configuration
     AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
@@ -46,7 +38,7 @@ WMSX = {
     SCREEN_VSYNCH_MODE:             1,                          // 0 = disabled, 1 = auto (when matches), 2 = forced (only for 60/50Hz)
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0 = ANSI, 1 = JIS
-    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
+    IMAGES_PATH:                    WMSX_IMAGES_PATH || "images/",
 
     BIOS_SLOT:                      [0],
     CARTRIDGE1_SLOT:                [1],
@@ -59,46 +51,15 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-
-    MSX2PNTSC: {
-        desc:               "MSX2+ Brazil",
-        presets:            "MSX2PNTSC"
-    },
-    MSX2PPAL: {
-        desc:               "MSX2+ Europe",
-        presets:            "MSX2PNTSC"
-    },
-    MSX2PJAP: {
-        desc:               "MSX2+ Japan",
-        presets:            "MSX2PJAP"
-    },
-
-    MSX2NTSC: {
-        desc:               "MSX2 Brazil",
-        presets:            "MSX2NTSC"
-    },
-    MSX2PAL: {
-        desc:               "MSX2 Europe",
-        presets:            "MSX2NTSC"
-    },
-    MSX2JAP: {
-        desc:               "MSX2 Japan",
-        presets:            "MSX2JAP"
-    },
-
-    MSX1NTSC: {
-        desc:               "MSX1 Brazil",
-        presets:            "MSX1NTSC"
-    },
-    MSX1PAL: {
-        desc:               "MSX1 Europe",
-        presets:            "MSX1NTSC"
-    },
-    MSX1JAP: {
-        desc:               "MSX1 Japan",
-        presets:            "MSX1JAP"
-    }
-
+    MSX2PNTSC: { desc: "MSX2+ America (NTSC)", presets: "MSX2PNTSC"},
+    MSX2PPAL:  { desc: "MSX2+ Europe (PAL)",   presets: "MSX2PPAL"},
+    MSX2PJAP:  { desc: "MSX2+ Japan (NTSC)",   presets: "MSX2PJAP"},
+    MSX2NTSC:  { desc: "MSX2 America (NTSC)",  presets: "MSX2NTSC"},
+    MSX2PAL:   { desc: "MSX2 Europe (PAL)",    presets: "MSX2PAL"},
+    MSX2JAP:   { desc: "MSX2 Japan (NTSC)",    presets: "MSX2JAP"},
+    MSX1NTSC:  { desc: "MSX America (NTSC)",   presets: "MSX1NTSC"},
+    MSX1PAL:   { desc: "MSX Europe (PAL)",     presets: "MSX1PAL"},
+    MSX1JAP:   { desc: "MSX Japan (NTSC)",     presets: "MSX1JAP"}
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -112,28 +73,25 @@ WMSX.EXTENSIONS_CONFIG = {
     PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2], format: "PACExpansion",  remove: "SCC, SCCI" }
 };
 
-WMSX.PRESETS_CONFIG = {         // TODO Review
+WMSX.PRESETS_CONFIG = {
 
     // MSX2+ Machine Presets
 
     MSX2P: {
         _INCLUDE:           "MSX2PNTSC"
     },
-
     MSX2PNTSC: {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PNTSC",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
     },
-
     MSX2PPAL: {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PPAL",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios"
     },
-
     MSX2PJAP: {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PJAP",
@@ -151,21 +109,18 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
     MSX2: {
         _INCLUDE:           "MSX2NTSC"
     },
-
     MSX2NTSC: {
         _INCLUDE:           "MSX2BASE",
         MACHINE:            "MSX2NTSC",
         SLOT_0_URL:         "@MSX2_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2EXT_NTSC.bios"
     },
-
     MSX2PAL: {
         _INCLUDE:           "MSX2BASE",
         MACHINE:            "MSX2PAL",
         SLOT_0_URL:         "@MSX2_PAL.bios",
         SLOT_3_1_URL:       "@MSX2EXT_PAL.bios"
     },
-
     MSX2JAP: {
         _INCLUDE:           "MSX2BASE",
         MACHINE:            "MSX2JAP",
@@ -173,31 +128,25 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
         SLOT_3_1_URL:       "@MSX2EXT_JAP.bios"
     },
 
-    // MSX2/2+ Common
-
     MSX2BASE: {
         _INCLUDE:           "MSX1BASE, RAMMAPPER, MSXMUSIC",
         MACHINE_TYPE:       2
     },
 
     // MSX1 Machine Presets
-
     MSX1: {
         _INCLUDE:           "MSX1NTSC"
     },
-
     MSX1NTSC: {
         _INCLUDE:           "MSX1BASE",
         MACHINE:            "MSX1NTSC",
         SLOT_0_URL:         "@MSX1_NTSC.bios"
     },
-
     MSX1PAL: {
         _INCLUDE:           "MSX1BASE",
         MACHINE:            "MSX1PAL",
         SLOT_0_URL:         "@MSX1_PAL.bios"
     },
-
     MSX1JAP: {
         _INCLUDE:           "MSX1BASE",
         MACHINE:            "MSX1JAP",
@@ -205,9 +154,9 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
     },
 
     MSX1BASE: {
+        _INCLUDE:           "RAM64K, DISK, NOMSXMUSIC, NODOS2",
         MACHINE_TYPE:       1,
-        SLOT_3_1_URL:       "@[Empty].rom",
-        _INCLUDE:           "RAM64K, DISK, NOMSXMUSIC, NODOS2"
+        SLOT_3_1_URL:       "@[Empty].rom"
     },
 
     // Specific Machines Presets
@@ -218,31 +167,31 @@ WMSX.PRESETS_CONFIG = {         // TODO Review
 
     // Extensions Options Presets
 
-    DISK: { "EXTENSIONS.DISK": 1 },
+    DISK:   { "EXTENSIONS.DISK": 1 },
     NODISK: { "EXTENSIONS.DISK": 0 },
 
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAM64K": 0 },
-    RAM64K: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAM64K": 1 },
+    RAM64K:    { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAM64K": 1 },
 
-    MSXMUSIC: { "EXTENSIONS.MSXMUSIC": 1 },
+    MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
 
-    DOS2: { "EXTENSIONS.DOS2":  1 },
+    DOS2:   { "EXTENSIONS.DOS2":  1 },
     NODOS2: { "EXTENSIONS.DOS2":  0 },
 
-    SCC: { "EXTENSIONS.SCC": 1 },
+    SCC:   { "EXTENSIONS.SCC": 1 },
     SCCS2: { "EXTENSIONS.SCC": 2 },
 
-    SCCI: { "EXTENSIONS.SCCI": 1 },
+    SCCI:  { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
 
-    PAC: { "EXTENSIONS.PAC": 1 },
+    PAC:   { "EXTENSIONS.PAC": 1 },
     PACS2: { "EXTENSIONS.PAC": 2 },
 
     // Configuration Helper Presets
 
-    NOVSYNCH: { SCREEN_VSYNCH_MODE: 0},
-    VSYNCHAUTO: { SCREEN_VSYNCH_MODE: 1},
+    NOVSYNCH:     { SCREEN_VSYNCH_MODE: 0},
+    VSYNCHAUTO:   { SCREEN_VSYNCH_MODE: 1},
     VSYNCHFORCED: { SCREEN_VSYNCH_MODE: 2}
 
 };

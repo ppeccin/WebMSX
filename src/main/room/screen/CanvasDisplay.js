@@ -108,10 +108,22 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskSelectDialog.toggleClose(drive);
     };
 
+    this.openMachineSelectDialog = function() {
+        createMachineSelectDialog();
+        if (pasteDialog) pasteDialog.hide();
+        machineSelectDialog.show();
+    };
+
     function createDiskSelectDialog() {
         if (diskSelectDialog) return;
         setupSelectDialogCSS();
         diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
+    }
+
+    function createMachineSelectDialog() {
+        if (machineSelectDialog) return;
+        setupSelectDialogCSS();
+        machineSelectDialog = new wmsx.MachineSelectDialog(fsElement, machineTypeSocket);
     }
 
     this.openLoadFileDialog = function() {
@@ -665,14 +677,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     function createSettingsMenuOptions() {
         var menu = [ ];
 
-        var macConfig = WMSX.MACHINES_CONFIG;
-        for (var mac in macConfig) {
-            var conf = macConfig[mac];
-            var opt = { label: conf.desc, machine: mac, toggle: true, checked: false };
-            menu.push(opt);
-        }
-        menu.push({ label: "",            divider: true });
-
         var extConfig = WMSX.EXTENSIONS_CONFIG;
         for (var ext in extConfig) {
             conf = extConfig[ext];
@@ -683,15 +687,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
         menu.push({ label: "",            divider: true });
 
-        menu.push({ label: "Help Screen", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
-        menu.push({ label: "Defaults",                   control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+        menu.push({ label: "Select Machine",                control: wmsx.PeripheralControls.MACHINE_SELECT });
+        menu.push({ label: "Help Screen",    clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
+        menu.push({ label: "Defaults",                      control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
         return menu;
     }
 
     function refreshSettingsMenuForExtensions() {
-
-        console.log("REFRESH EXTENSIONS");
-
         var menu = settingsButton.wmsxMenu;
         for (var i = 0; i < menu.length; ++i) {
             var opt = menu[i];
@@ -702,14 +704,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function refreshSettingsMenuForMachineType() {
-
-        console.log("REFRESH MACHINE");
-
         var menu = settingsButton.wmsxMenu;
-        for (var i = 0; i < menu.length; ++i) {
-            var opt = menu[i];
-            if (opt.machine) opt.checked = machineTypeSocket.isActive(opt.machine);
-        }
+        menu.menuTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].desc.split("(")[0] || "Settings").trim();
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
 
@@ -911,7 +907,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (!barMenu) {
             setupBarMenu();
-            window.setTimeout(function() {
+            setTimeout(function() {
                 showBarMenu(menu, refElement, redefine);
             }, 1);
             return;
@@ -1260,6 +1256,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var settingsDialog;
     var diskSelectDialog;
+    var machineSelectDialog;
     var pasteDialog;
     var copyTextArea;
 
@@ -1329,7 +1326,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var BAR_MENU_WIDTH = 136;
     var BAR_MENU_ITEM_HEIGHT = 28;
-    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.MACHINES_CONFIG).length + Object.keys(WMSX.EXTENSIONS_CONFIG).length + 2 + 2);
+    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var OSD_TIME = 3000;

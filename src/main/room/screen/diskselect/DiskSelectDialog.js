@@ -6,10 +6,9 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     this.show = function (pDrive) {
         if (!dialog) {
             create();
-            setTimeout(function() {
+            return setTimeout(function() {
                 self.show(pDrive);
             }, 0);
-            return;
         }
 
         drive = pDrive;
@@ -138,7 +137,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             var diskNum = e.target.wmsxDiskNum;
             if (diskNum === undefined) return false;
             diskDrive.insertDisk(drive, diskNum);
-            window.setTimeout(hideConfirm, 140);
+            setTimeout(hideConfirm, 140);
             return false;
         });
 

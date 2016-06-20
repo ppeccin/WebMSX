@@ -57,7 +57,10 @@ wmsx.DOMPeripheralControls = function() {
     this.controlActivated = function(control, altPower, secPort) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case controls.MACHINE_POWER_TOGGLE:                                                         // Machine Controls called directly by Screen, no keys here
+            case controls.MACHINE_SELECT:                                                         // Machine Controls called directly by Screen, no keys here
+                if (!mediaChangeDisabledWarning()) screen.openMachineSelectDialog();
+                break;
+            case controls.MACHINE_POWER_TOGGLE:
                 if (altPower) return this.controlActivated(controls.MACHINE_POWER_RESET);
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);
                 break;

@@ -22,7 +22,6 @@ wmsx.Configurator = {
         // Apply additional presets
         this.applyPresets(WMSX.PRESETS);
 
-
         // Ensures the correct types of the parameters
         normalizeParameterTypes();
 
