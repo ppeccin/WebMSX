@@ -7,7 +7,7 @@
 
 WMSX = {
 
-    MACHINE:                        "MSX2PNTSC",                // Machine Type. See Machine Configuration
+    MACHINE:                        "MSX2PA",                   // Machine Type. See Machine Configuration
 
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
 
@@ -20,7 +20,7 @@ WMSX = {
     STATE_LOAD_URL:                 "",
 
     // Extensions
-    EXTENSIONS: { },
+    EXTENSIONS:                     { },
 
     // General configuration
     AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
@@ -38,7 +38,7 @@ WMSX = {
     SCREEN_VSYNCH_MODE:             1,                          // 0 = disabled, 1 = auto (when matches), 2 = forced (only for 60/50Hz)
     AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0 = ANSI, 1 = JIS
-    IMAGES_PATH:                    WMSX_IMAGES_PATH || "images/",
+    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     BIOS_SLOT:                      [0],
     CARTRIDGE1_SLOT:                [1],
@@ -51,15 +51,15 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSX2PNTSC: { desc: "MSX2+ America (NTSC)", presets: "MSX2PNTSC"},
-    MSX2PPAL:  { desc: "MSX2+ Europe (PAL)",   presets: "MSX2PPAL"},
-    MSX2PJAP:  { desc: "MSX2+ Japan (NTSC)",   presets: "MSX2PJAP"},
-    MSX2NTSC:  { desc: "MSX2 America (NTSC)",  presets: "MSX2NTSC"},
-    MSX2PAL:   { desc: "MSX2 Europe (PAL)",    presets: "MSX2PAL"},
-    MSX2JAP:   { desc: "MSX2 Japan (NTSC)",    presets: "MSX2JAP"},
-    MSX1NTSC:  { desc: "MSX America (NTSC)",   presets: "MSX1NTSC"},
-    MSX1PAL:   { desc: "MSX Europe (PAL)",     presets: "MSX1PAL"},
-    MSX1JAP:   { desc: "MSX Japan (NTSC)",     presets: "MSX1JAP"}
+    MSX2PA: { desc: "MSX2+ America (NTSC)", presets: "MSX2PA"},
+    MSX2PE: { desc: "MSX2+ Europe (PAL)",   presets: "MSX2PE"},
+    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",   presets: "MSX2PJ"},
+    MSX2A:  { desc: "MSX2 America (NTSC)",  presets: "MSX2A"},
+    MSX2E:  { desc: "MSX2 Europe (PAL)",    presets: "MSX2E"},
+    MSX2J:  { desc: "MSX2 Japan (NTSC)",    presets: "MSX2J"},
+    MSX1A:  { desc: "MSX America (NTSC)",   presets: "MSX1A"},
+    MSX1E:  { desc: "MSX Europe (PAL)",     presets: "MSX1E"},
+    MSX1J:  { desc: "MSX Japan (NTSC)",     presets: "MSX1J"}
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -78,23 +78,23 @@ WMSX.PRESETS_CONFIG = {
     // MSX2+ Machine Presets
 
     MSX2P: {
-        _INCLUDE:           "MSX2PNTSC"
+        _INCLUDE:           "MSX2PA"
     },
-    MSX2PNTSC: {
+    MSX2PA: {
         _INCLUDE:           "MSX2PBASE",
-        MACHINE:            "MSX2PNTSC",
+        MACHINE:            "MSX2PA",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
     },
-    MSX2PPAL: {
+    MSX2PE: {
         _INCLUDE:           "MSX2PBASE",
-        MACHINE:            "MSX2PPAL",
+        MACHINE:            "MSX2PE",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios"
     },
-    MSX2PJAP: {
+    MSX2PJ: {
         _INCLUDE:           "MSX2PBASE",
-        MACHINE:            "MSX2PJAP",
+        MACHINE:            "MSX2PJ",
         SLOT_0_URL:         "@MSX2P_JAP.bios",
         SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
     },
@@ -107,23 +107,23 @@ WMSX.PRESETS_CONFIG = {
     // MSX2 Machine Presets
 
     MSX2: {
-        _INCLUDE:           "MSX2NTSC"
+        _INCLUDE:           "MSX2A"
     },
-    MSX2NTSC: {
+    MSX2A: {
         _INCLUDE:           "MSX2BASE",
-        MACHINE:            "MSX2NTSC",
+        MACHINE:            "MSX2A",
         SLOT_0_URL:         "@MSX2_NTSC.bios",
         SLOT_3_1_URL:       "@MSX2EXT_NTSC.bios"
     },
-    MSX2PAL: {
+    MSX2E: {
         _INCLUDE:           "MSX2BASE",
-        MACHINE:            "MSX2PAL",
+        MACHINE:            "MSX2E",
         SLOT_0_URL:         "@MSX2_PAL.bios",
         SLOT_3_1_URL:       "@MSX2EXT_PAL.bios"
     },
-    MSX2JAP: {
+    MSX2J: {
         _INCLUDE:           "MSX2BASE",
-        MACHINE:            "MSX2JAP",
+        MACHINE:            "MSX2J",
         SLOT_0_URL:         "@MSX2_JAP.bios",
         SLOT_3_1_URL:       "@MSX2EXT_JAP.bios"
     },
@@ -135,21 +135,21 @@ WMSX.PRESETS_CONFIG = {
 
     // MSX1 Machine Presets
     MSX1: {
-        _INCLUDE:           "MSX1NTSC"
+        _INCLUDE:           "MSX1A"
     },
-    MSX1NTSC: {
+    MSX1A: {
         _INCLUDE:           "MSX1BASE",
-        MACHINE:            "MSX1NTSC",
+        MACHINE:            "MSX1A",
         SLOT_0_URL:         "@MSX1_NTSC.bios"
     },
-    MSX1PAL: {
+    MSX1E: {
         _INCLUDE:           "MSX1BASE",
-        MACHINE:            "MSX1PAL",
+        MACHINE:            "MSX1E",
         SLOT_0_URL:         "@MSX1_PAL.bios"
     },
-    MSX1JAP: {
+    MSX1J: {
         _INCLUDE:           "MSX1BASE",
-        MACHINE:            "MSX1JAP",
+        MACHINE:            "MSX1J",
         SLOT_0_URL:         "@MSX1_JAP.bios"
     },
 

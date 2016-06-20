@@ -22,7 +22,7 @@ wmsx.SlotNormal = function(rom) {
             startingPage = 0;
         else {
             // 32K or less. Use position from info if present
-            var position = rom.info.s ? Number.parseInt(rom.info.s) : -1;
+            var position = rom.info.s ? parseInt(rom.info.s) : -1;
             if (position >= 0)
                 startingPage = position >> 14;
             else {

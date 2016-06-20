@@ -40,7 +40,6 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.fileLoader.loadFromFile(res.url, res.content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                     });
-                    //wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
                 });
             }
         }]).start();
@@ -57,7 +56,6 @@ WMSX.start = function () {
                         WMSX.room.loading(false);
                         WMSX.room.machine.userPowerOn(true);        // Auto-run cassette if any
                     });
-                    //wmsx.EmbeddedSystemROMs.flushNonExtensionFiles();
                 });
             }
         ).start();

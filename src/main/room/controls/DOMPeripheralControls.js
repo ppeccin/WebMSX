@@ -226,6 +226,8 @@ wmsx.DOMPeripheralControls = function() {
     var initKeys = function() {
         keyControlCodeMap[KEY_ALL] = controls.ALL_LOAD_FILE;
 
+        keyControlAltCodeMap[KEY_ALL] = controls.MACHINE_SELECT;
+
         keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILES;
         keyControlCodeMap[KEY_DISK] = controls.DISK_EMPTY;
         keyAltCodeMap[KEY_DISK] = controls.DISK_REMOVE;

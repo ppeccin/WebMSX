@@ -16,9 +16,6 @@ wmsx.EmbeddedSystemROMsGenerator = {
                     "        for (var f in this.files) wmsx.MultiDownloader.embedCompressedFile(f, this.files[f]);\n" +
                     "        delete this.files;\n" +
                     "    },\n\n" +
-                    "    flushNonExtensionFiles: function() {\n" +
-                    "        for (var f = 0; f < this.nonExtensionFiles.length; ++f) wmsx.MultiDownloader.flushEmbeddedFile(this.nonExtensionFiles[f]);\n" +
-                    "    },\n\n" +
                     "    files: {";
 
                 var first = true;

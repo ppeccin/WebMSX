@@ -2183,22 +2183,22 @@ wmsx.VDP = function(machine, cpu) {
             var dig2 = info % 16;
             // 8 x 8, 6 x 8
             for (var i = 0; i < 5; i++) {
-                vram[pos6++] = Number.parseInt(digitPatterns[dig1][i] + digitPatterns[dig2][i] + "00", 2);
-                vram[pos8++] = Number.parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
+                vram[pos6++] = parseInt(digitPatterns[dig1][i] + digitPatterns[dig2][i] + "00", 2);
+                vram[pos8++] = parseInt(digitPatterns[dig1][i] + "0" + digitPatterns[dig2][i] + "0", 2);
             }
-            vram[pos6++] = vram[pos8++] = Number.parseInt("00000000", 2);
-            vram[pos6++] = vram[pos8++] = Number.parseInt("01111100", 2);
-            vram[pos6++] = vram[pos8++] = Number.parseInt("00000000", 2);
+            vram[pos6++] = vram[pos8++] = parseInt("00000000", 2);
+            vram[pos6++] = vram[pos8++] = parseInt("01111100", 2);
+            vram[pos6++] = vram[pos8++] = parseInt("00000000", 2);
             // 16 x 16
-            vram[pos16++] = Number.parseInt("11111111", 2);
-            for (i = 0; i < 4; i++) vram[pos16++] = Number.parseInt("10000000", 2);
-            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
-            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("10000000", 2);
-            for (i = 0; i < 2; i++) vram[pos16++] = Number.parseInt("11111111", 2);
-            for (i = 0; i < 4; i++) vram[pos16++] = Number.parseInt("00000001", 2);
-            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
-            for (i = 0; i < 5; i++) vram[pos16++] = Number.parseInt("00000001", 2);
-            vram[pos16++] = Number.parseInt("11111111", 2);
+            vram[pos16++] = parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) vram[pos16++] = parseInt("10000000", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = parseInt("1000" + digitPatterns[dig1][i] + "0", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = parseInt("10000000", 2);
+            for (i = 0; i < 2; i++) vram[pos16++] = parseInt("11111111", 2);
+            for (i = 0; i < 4; i++) vram[pos16++] = parseInt("00000001", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = parseInt("0" + digitPatterns[dig2][i] + "0001", 2);
+            for (i = 0; i < 5; i++) vram[pos16++] = parseInt("00000001", 2);
+            vram[pos16++] = parseInt("11111111", 2);
         }
         vram[posB] = vram [posB + 7] = 0;
         vram[posB + 1] = vram[posB + 2] = vram[posB + 3] = vram[posB + 4] = vram[posB + 5] = vram[posB + 6] = 0x7e;
