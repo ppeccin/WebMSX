@@ -15,13 +15,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         drive = pDrive;
         visible = true;
         peripheralControls.setGroupRestriction("DISK");
-        dialog.classList.add("wmsx-diskselect-show");
+        dialog.classList.add("wmsx-show");
         dialog.focus();
         refreshList();
     };
 
     this.hide = function (confirm) {
-        dialog.classList.remove("wmsx-diskselect-show");
+        dialog.classList.remove("wmsx-show");
         visible = false;
         peripheralControls.setGroupRestriction(null);
         WMSX.room.screen.focus();
@@ -51,40 +51,36 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
             if (i < stack.length) {
-                li.classList.add("wmsx-diskselect-visible");
+                li.classList.add("wmsx-visible");
                 li.innerHTML = stack[i].name;
-                if (i === currDiskNum) li.classList.add("wmsx-diskselect-selected");
-                else li.classList.remove("wmsx-diskselect-selected");
+                if (i === currDiskNum) li.classList.add("wmsx-selected");
+                else li.classList.remove("wmsx-selected");
             } else {
-                li.classList.remove("wmsx-diskselect-visible");
+                li.classList.remove("wmsx-visible");
             }
-            li.classList.remove("wmsx-diskselect-droptarget");
+            li.classList.remove("wmsx-droptarget");
         }
 
         diskSelect = diskMoveFrom = diskMoveTo = undefined;
     }
 
     function create() {
-        var styles = document.createElement('style');
-        styles.type = 'text/css';
-        styles.innerHTML = css();
-        document.head.appendChild(styles);
-
         dialog = document.createElement("div");
-        dialog.id = "wmsx-diskselect-modal";
+        dialog.id = "wmsx-diskselect";
+        dialog.classList.add("wmsx-select-dialog");
         dialog.tabIndex = -1;
 
         header = document.createTextNode("Select Disk");
         dialog.appendChild(header);
 
         footer = document.createElement("div");
-        footer.id = "wmsx-diskselect-modal-footer";
+        footer.id = "wmsx-diskselect-footer";
+        footer.classList.add("wmsx-footer");
         footer.innerHTML = "(drag items to change order)";
         dialog.appendChild(footer);
 
         // Define list
         list = document.createElement('ul');
-        list.id = "wmsx-diskselect-list";
 
         var max = wmsx.FileDiskDrive.MAX_STACK + 1;     // + 1 for the additional Blank User Disk
         for (var i = 0; i < max; ++i) {
@@ -168,7 +164,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         });
         list.addEventListener("dragend", function dragEnd(e) {
             e.stopPropagation();
-            if (diskMoveTo) diskMoveTo.classList.remove("wmsx-diskselect-droptarget");
+            if (diskMoveTo) diskMoveTo.classList.remove("wmsx-droptarget");
             diskMoveFrom = diskMoveTo = undefined;
             return false;
         });
@@ -186,87 +182,11 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
         list.addEventListener("dragenter", function dragEnter(e) {
             if (!diskMoveFrom || e.target.wmsxDiskNum === undefined) return false;
-            if (diskMoveTo && diskMoveTo !== e.target) diskMoveTo.classList.remove("wmsx-diskselect-droptarget");
+            if (diskMoveTo && diskMoveTo !== e.target) diskMoveTo.classList.remove("wmsx-droptarget");
             diskMoveTo = e.target !== diskMoveFrom  ? e.target : undefined;
-            if (diskMoveTo) diskMoveTo.classList.add("wmsx-diskselect-droptarget");
+            if (diskMoveTo) diskMoveTo.classList.add("wmsx-droptarget");
             return false;
         });
-    }
-
-    function css() {
-        return '' +
-            '#wmsx-diskselect-modal {' +
-            '    position: absolute;' +
-            '    overflow: hidden;' +
-            '    display: none;' +
-            '    top: 0;' +
-            '    bottom: 0;' +
-            '    left: 0;' +
-            '    right: 0;' +
-            '    width: 540px;' +
-            '    max-width: 92%;' +
-            '    height: 270px;' +
-            '    max-height: 98%;' +
-            '    margin: auto;' +
-            '    color: white;' +
-            '    font: normal 19px sans-serif;' +
-            '    background: rgb(40, 40, 40);' +
-            '    padding-top: 20px;' +
-            '    text-align: center;' +
-            '    border: 1px solid black;' +
-            '    text-shadow: 1px 1px 1px black;' +
-            '    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
-            '    -webkit-font-smoothing: antialiased;' +
-            '    -moz-osx-font-smoothing: grayscale;' +
-            '    cursor: auto;' +
-            '    outline: none;' +
-            '}' +
-            '#wmsx-diskselect-modal.wmsx-diskselect-show {' +
-            '    display: block;' +
-            '}' +
-            '#wmsx-diskselect-modal-footer {' +
-            '    position: absolute;' +
-            '    width: 100%;' +
-            '    bottom: 6px;' +
-            '    font-size: 13px;' +
-            '    text-align: center;' +
-            '    color: rgb(170, 170, 170);' +
-            '}' +
-            '#wmsx-diskselect-list {' +
-            '    position: relative;' +
-            '    width: 88%;' +
-            '    top: 15px;' +
-            '    margin: auto;' +
-            '    padding: 0;' +
-            '    list-style: none;' +
-            '    font-size: 14px;' +
-            '    color: rgb(225, 225, 225);' +
-            '}' +
-            '#wmsx-diskselect-list li {' +
-            '    display: none;' +
-            '    overflow: hidden;' +
-            '    background: rgb(70, 70, 70);' +
-            '    margin: 7px 0;' +
-            '    padding: 2px 10px;' +
-            '    line-height: 15px;' +
-            '    text-align: left;' +
-            '    text-overflow: ellipsis;' +
-            '    border: 2px dashed transparent;' +
-            '    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);' +
-            '    white-space: nowrap;' +
-            '    cursor: pointer;' +
-            '}' +
-            '#wmsx-diskselect-list li.wmsx-diskselect-visible {' +
-            '    display: block;' +
-            '}' +
-            '#wmsx-diskselect-list li.wmsx-diskselect-selected {' +
-            '    color: white;' +
-            '    background: rgb(220, 32, 26);' +
-            '}' +
-            '#wmsx-diskselect-list li.wmsx-diskselect-droptarget {' +
-            '    color: white;' +
-            '    border-color: lightgray;' +
-            '}';
     }
 
 

@@ -109,7 +109,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     function createDiskSelectDialog() {
-        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
+        if (diskSelectDialog) return;
+        setupSelectDialogCSS();
+        diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
     }
 
     this.openLoadFileDialog = function() {
@@ -1160,6 +1162,88 @@ wmsx.CanvasDisplay = function(mainElement) {
         document.head.appendChild(style);
     }
 
+    function setupSelectDialogCSS() {                       // Used by various simple Select Dialogs
+        if (selectDialogCSSReady) return;
+
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = '' +
+            '.wmsx-select-dialog {' +
+            '    position: absolute;' +
+            '    overflow: hidden;' +
+            '    display: none;' +
+            '    top: 0;' +
+            '    bottom: 0;' +
+            '    left: 0;' +
+            '    right: 0;' +
+            '    width: 540px;' +
+            '    max-width: 92%;' +
+            '    height: 270px;' +
+            '    max-height: 98%;' +
+            '    margin: auto;' +
+            '    color: white;' +
+            '    font: normal 19px sans-serif;' +
+            '    background: rgb(40, 40, 40);' +
+            '    padding-top: 20px;' +
+            '    text-align: center;' +
+            '    border: 1px solid black;' +
+            '    text-shadow: 1px 1px 1px black;' +
+            '    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
+            '    -webkit-font-smoothing: antialiased;' +
+            '    -moz-osx-font-smoothing: grayscale;' +
+            '    cursor: auto;' +
+            '    outline: none;' +
+            '}' +
+            '.wmsx-select-dialog.wmsx-show {' +
+            '    display: block;' +
+            '}' +
+            '.wmsx-select-dialog .wmsx-footer {' +
+            '    position: absolute;' +
+            '    width: 100%;' +
+            '    bottom: 6px;' +
+            '    font-size: 13px;' +
+            '    text-align: center;' +
+            '    color: rgb(170, 170, 170);' +
+            '}' +
+            '.wmsx-select-dialog ul {' +
+            '    position: relative;' +
+            '    width: 88%;' +
+            '    top: 15px;' +
+            '    margin: auto;' +
+            '    padding: 0;' +
+            '    list-style: none;' +
+            '    font-size: 14px;' +
+            '    color: rgb(225, 225, 225);' +
+            '}' +
+            '.wmsx-select-dialog li {' +
+            '    display: none;' +
+            '    overflow: hidden;' +
+            '    background: rgb(70, 70, 70);' +
+            '    margin: 7px 0;' +
+            '    padding: 2px 10px;' +
+            '    line-height: 15px;' +
+            '    text-align: left;' +
+            '    text-overflow: ellipsis;' +
+            '    border: 2px dashed transparent;' +
+            '    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);' +
+            '    white-space: nowrap;' +
+            '    cursor: pointer;' +
+            '}' +
+            '.wmsx-select-dialog li.wmsx-visible {' +
+            '    display: block;' +
+            '}' +
+            '.wmsx-select-dialog li.wmsx-selected {' +
+            '    color: white;' +
+            '    background: rgb(220, 32, 26);' +
+            '}' +
+            '.wmsx-select-dialog li.wmsx-droptarget {' +
+            '    color: white;' +
+            '    border-color: lightgray;' +
+            '}';
+        document.head.appendChild(style);
+
+        selectDialogCSSReady = true;
+    }
 
     var monitor;
     var peripheralControls;
@@ -1178,6 +1262,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var diskSelectDialog;
     var pasteDialog;
     var copyTextArea;
+
+    var selectDialogCSSReady = false;
 
     var borderElement;
     var fsElement;
