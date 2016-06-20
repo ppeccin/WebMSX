@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.PPI = function(psgAudioChannel, controllersSocket) {
+"use strict";
 
     this.connectBus = function(pBus) {
         bus = pBus;

@@ -3,6 +3,7 @@
 // Clock Pulse generator. Intended to be synchronized with Host machine Video Frequency whenever possible
 
 wmsx.Clock = function(clockPulse) {
+"use strict";
 
     this.go = function() {
         if (!running) {

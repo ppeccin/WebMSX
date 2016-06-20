@@ -2,17 +2,15 @@
 
 wmsx.DeviceMissing = {
 
-    self: this,
-
     inputPort: function (port) {
-        if (self.debugMode && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
-            wmsx.Util.log("Missing IN " + (port & 255).toString(16));
+        //if (self.debugMode && !wmsx.DeviceMissing.IGNORED_PORTS.has(port & 255))
+        //    wmsx.Util.log("Missing IN " + (port & 255).toString(16));
         return 0xff;
     },
 
     outputPort: function (val, port) {
-        if (self.debugMode && !wmsx.Util.arrayHasElement(wmsx.DeviceMissing.IGNORED_PORTS, port & 255))
-            wmsx.Util.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
+        //if (self.debugMode && !wmsx.DeviceMissing.IGNORED_PORTS.has(port & 255))
+        //    wmsx.Util.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
     },
 
     inputPortIgnored: function (port) {
@@ -22,7 +20,7 @@ wmsx.DeviceMissing = {
     outputPortIgnored: function (val, port) {
     },
 
-    IGNORED_PORTS: [
+    IGNORED_PORTS: new Set([
 
         0x90, 0x91, 0x93,                   // Printer
         0xb8, 0xb9, 0xba, 0xbb,             // Card Reader?
@@ -39,7 +37,7 @@ wmsx.DeviceMissing = {
         0xca, 0xcb, 0xcc, 0xcd, 0xce,
         0xcf
 
-    ],
+    ]),
 
     setDebugMode: function(mode) {
         self.debugMode = mode;

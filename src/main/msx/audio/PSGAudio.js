@@ -3,6 +3,8 @@
 // Controls the 3 PSG Audio Channels and Pulse Signal Channel
 
 wmsx.PSGAudio = function(audioSocket) {
+"use strict";
+
     var self = this;
 
     function init() {

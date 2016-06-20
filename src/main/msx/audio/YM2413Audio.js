@@ -7,6 +7,8 @@
 // TODO How changes in parameters affect envelopes in progress
 
 wmsx.YM2413Audio = function(pName) {
+"use strict";
+
     var self = this;
 
     function init() {

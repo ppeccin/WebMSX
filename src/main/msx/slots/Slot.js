@@ -4,6 +4,7 @@
 // 0x0000 - 0xffff
 
 wmsx.Slot = function() {
+"use strict";
 
     this.connect = function(machine) {
     };

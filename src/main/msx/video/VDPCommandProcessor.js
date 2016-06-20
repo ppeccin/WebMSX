@@ -3,6 +3,7 @@
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated and does not consider VRAM access slots
 
 wmsx.VDPCommandProcessor = function() {
+"use strict";
 
     this.connectVDP = function(pVDP, pVRAM, pRegister, pStatus) {
         vdp = pVDP;

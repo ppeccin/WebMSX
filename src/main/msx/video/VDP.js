@@ -6,6 +6,8 @@
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
 wmsx.VDP = function(machine, cpu) {
+"use strict";
+
     var self = this;
 
     function init() {

@@ -3,6 +3,7 @@
 // PSGs AY-3-8910/YM2149 supported
 
 wmsx.PSG = function(audioSocket, controllersSocket) {
+"use strict";
 
     this.connectBus = function(bus) {
         bus.connectInputDevice( 0xa0, wmsx.DeviceMissing.inputPortIgnored);

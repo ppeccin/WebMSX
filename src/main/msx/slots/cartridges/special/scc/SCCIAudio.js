@@ -1,7 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Implements the SCC and SCC-I Audio chip. Mode can be switched between SCC and SCC-I
+
 wmsx.SCCIAudio = function() {
+"use strict";
 
     function init(self) {
         createVolumeCurve();

@@ -1,7 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface. Controls 4 Primary Slots and I/O Device Ports
+
 wmsx.BUS = function(machine, cpu) {
+"use strict";
+
     var self = this;
 
     function init() {

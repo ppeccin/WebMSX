@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.CanvasDisplay = function(mainElement) {
+"use strict";
+
     var self = this;
 
     function init() {
@@ -679,9 +681,9 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         var extConfig = WMSX.EXTENSIONS_CONFIG;
         for (var ext in extConfig) {
-            conf = extConfig[ext];
+            var conf = extConfig[ext];
             if (conf.desc) {            // Only show extensions with descriptions
-                opt = { label: conf.desc, extension: ext, toggle: true, checked: false };
+                var opt = { label: conf.desc, extension: ext, toggle: true, checked: false };
                 menu.push(opt);
             }
         }

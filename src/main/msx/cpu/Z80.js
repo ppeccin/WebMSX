@@ -7,11 +7,12 @@
 // Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160Hz
 
 wmsx.Z80 = function() {
+"use strict";
+
     var self = this;
 
     function init() {
         defineAllInstructions();
-        delete defineAllInstructions;
     }
 
     this.powerOn = function() {
@@ -30,11 +31,11 @@ wmsx.Z80 = function() {
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T === 1) {
                 instruction.operation();
-                continue;
+            } else {
+                R = R + 1;                           // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+                if (ackINT) acknowledgeINT();
+                else fetchNextInstruction();
             }
-            R = R + 1;                               // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
-            if (ackINT) acknowledgeINT();
-            else fetchNextInstruction();
         }
         cycles = cycles + quant;                     // Quantized cycle counting. Lower precision, better performance
     };
