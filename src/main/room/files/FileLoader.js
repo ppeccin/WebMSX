@@ -195,10 +195,24 @@ wmsx.FileLoader = function() {
         return false;
     }
 
-    function tryLoadFileAsSingleMedia(file, openType, port, altPower, asExpansion, fileFromZIP) {
-        if (fileFromZIP && !file.content) file.content = file.asUint8Array();
+    function tryLoadFileAsSingleMedia(file, openType, port, altPower, asExpansion, fileFromZIP, stopRecursion) {
+        try {
+            if (fileFromZIP && !file.content) file.content = file.asUint8Array();
+            var content = file.content;
+
+            var zip = wmsx.Util.checkContentIsZIP(content);
+            if (zip && !stopRecursion) {
+                var files = wmsx.Util.getZIPFilesSorted(zip);
+                for (var i = 0; i < files.length; i++)
+                    if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, true, true)) return true;
+                return false;
+            }
+        } catch (ez) {
+            console.log(ez.stack);      // Error decompressing files. Abort
+            return false;
+        }
+
         var name = file.name;
-        var content = file.content;
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
             if (cassetteDeck.loadTapeFile(name, content, altPower)) return true;
@@ -245,7 +259,7 @@ wmsx.FileLoader = function() {
         return true;
     }
 
-    function createTreeFromZip(zip) {
+    function createTreeFromZip(zip) {     // throws
         // Build file tree structure as required by image creator
         var rootDir = [];
         var dirs = zip.folder(/.+/).filter(function(f) { return f.dir && f.name; });         // get only directories first
@@ -300,7 +314,7 @@ wmsx.FileLoader = function() {
         }
     }
 
-    var onFileInputChange = function(e) {
+    function onFileInputChange(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
         e.stopPropagation();
@@ -329,24 +343,26 @@ wmsx.FileLoader = function() {
         }
 
         return false;
-    };
+    }
 
-    var onDragOver = function (e) {
+    function onDragOver(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
         e.stopPropagation();
 
-        if (WMSX.MEDIA_CHANGE_DISABLED)
-            e.dataTransfer.dropEffect = "none";
-        else if (e.ctrlKey)
-            e.dataTransfer.dropEffect = "copy";
-        else if (e.altKey)
-            e.dataTransfer.dropEffect = "link";
+        if (e.dataTransfer) {
+            if (WMSX.MEDIA_CHANGE_DISABLED)
+                e.dataTransfer.dropEffect = "none";
+            else if (e.ctrlKey)
+                e.dataTransfer.dropEffect = "copy";
+            else if (e.altKey)
+                e.dataTransfer.dropEffect = "link";
+        }
 
         dragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
-    };
+    }
 
-    var onDrop = function (e) {
+    function onDrop(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
         e.stopPropagation();
@@ -382,13 +398,13 @@ wmsx.FileLoader = function() {
             else
                 resume();
         }
-    };
+    }
 
-    var showError = function(message) {
+    function showError(message) {
         wmsx.Util.message("Could not load file(s):\n\n" + message + "\n");
-    };
+    }
 
-    var createFileInputElement = function () {
+    function createFileInputElement() {
         fileInputElement = document.createElement("input");
         fileInputElement.id = "wmsx-file-loader-input";
         fileInputElement.type = "file";
@@ -397,7 +413,8 @@ wmsx.FileLoader = function() {
         fileInputElement.style.display = "none";
         fileInputElement.addEventListener("change", onFileInputChange);
         fileInputElementParent.appendChild(fileInputElement);
-    };
+    }
+
 
     var machine;
     var slotSocket;

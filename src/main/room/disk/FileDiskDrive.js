@@ -29,10 +29,8 @@ wmsx.FileDiskDrive = function() {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                var content = checkContentIsValidImage(file.content);
-                if (!content) continue;
-                var fileName = file.name.split("/").pop();
-                stack.push({ name: fileName, content: content});
+                var disk = checkFileIsValidImage(file);
+                if (disk) stack.push(disk);
             }
             if (stack.length > 0) {
                 loadStack(drive, stack, altPower, addToStack);
@@ -155,19 +153,29 @@ wmsx.FileDiskDrive = function() {
         fireMediaStateUpdate(drive);
     };
 
-    function checkContentIsValidImage(content) {
-        var zip = wmsx.Util.checkContentIsZIP(content);
-        if (zip) {
-            var files = wmsx.Util.getZIPFilesSorted(zip);
-            for (var f in files) {
-                var res = checkInnerContentIsValidImage(files[f].asUint8Array());
-                if (res) return res;
+    function checkFileIsValidImage(file, stopRecursion) {
+        var zip = wmsx.Util.checkContentIsZIP(file.content);
+        if (zip && !stopRecursion) {
+            try {
+                var files = wmsx.Util.getZIPFilesSorted(zip);
+                for (var f in files) {
+                    files[f].content = files[f].asUint8Array();
+                    var res = checkFileIsValidImage(files[f], true);
+                    if (res) return res;
+                }
+            } catch (ez) {
+                console.log(ez.stack);      // Error decompressing files. Abort
             }
-            return null
-        } else return checkInnerContentIsValidImage(content);
+            return null;
+        }
+
+        if (!checkContentIsValidImage(file.content)) return null;
+
+        var fileName = file.name.split("/").pop();
+        return { name: fileName, content: file.content };
     }
 
-    function checkInnerContentIsValidImage(content) {
+    function checkContentIsValidImage(content) {
         return self.MEDIA_TYPE_VALID_SIZES.has(content.length) ? content : null;            // Valid image size
         //(anyContent || content[0] === 0xe9 || content[0] === 0xeb);                       // Valid boot sector?
     }
