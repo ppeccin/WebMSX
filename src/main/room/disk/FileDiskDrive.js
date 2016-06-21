@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Dual Disk Drive ( A: = drive 0, B: = drive 1 )
+
 wmsx.FileDiskDrive = function() {
     var self = this;
 
@@ -174,6 +175,7 @@ wmsx.FileDiskDrive = function() {
     function loadStack(drive, stack, altPower, add) {
         if (add) {
             driveStack[drive] = driveStack[drive].concat(stack);
+            if (!getCurrentDisk(drive)) setCurrentDiskNum(drive, 0);
         } else {
             driveStack[drive] = stack;
             driveBlankDiskAdded[drive] = false;
