@@ -171,6 +171,21 @@ wmsx.Z80 = function() {
         }
     }
 
+    function pcInc() {
+        var old = PC;
+        PC = (PC + 1) & 0xffff;
+        return old;
+    }
+
+    function spInc() {
+        var old = SP;
+        SP = (SP + 1) & 0xffff;
+        return old;
+    }
+
+    function decSP() {
+        return SP = (SP - 1) & 0xffff;
+    }
 
     function fromA() {
         return A;
@@ -315,62 +330,62 @@ wmsx.Z80 = function() {
 
     var preReadIXYdOffset = 0;
     function preReadIXYd() {
-        preReadIXYdOffset = bus.read(PC++);
+        preReadIXYdOffset = bus.read(pcInc());
     }
 
     function from_IXd_8() {
-        return bus.read(sum16Signed(IX, bus.read(PC++)));
+        return bus.read(sum16Signed(IX, bus.read(pcInc())));
     }
     from_IXd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(IX, preReadIXYdOffset));
     };
 
     function from_IYd_8() {
-        return bus.read(sum16Signed(IY, bus.read(PC++)));
+        return bus.read(sum16Signed(IY, bus.read(pcInc())));
     }
     from_IYd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(IY, preReadIXYdOffset));
     };
 
     function to_IXd_8(val) {
-        bus.write(sum16Signed(IX, bus.read(PC++)), val);
+        bus.write(sum16Signed(IX, bus.read(pcInc())), val);
     }
     to_IXd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(IX, preReadIXYdOffset), val);
     };
 
     function to_IYd_8(val) {
-        bus.write(sum16Signed(IY, bus.read(PC++)), val);
+        bus.write(sum16Signed(IY, bus.read(pcInc())), val);
     }
     to_IYd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(IY, preReadIXYdOffset), val);
     };
 
     function fromN() {
-        return bus.read(PC++);
+        return bus.read(pcInc());
     }
     function fromNN() {
-        return bus.read(PC++) | (bus.read(PC++) << 8);
+        return bus.read(pcInc()) | (bus.read(pcInc()) << 8);
     }
 
     function from_NN_8() {
-        return bus.read(bus.read(PC++) | (bus.read(PC++) << 8));
+        return bus.read(bus.read(pcInc()) | (bus.read(pcInc()) << 8));
     }
 
     function to_NN_8(val) {
-        var addr = bus.read(PC++) | (bus.read(PC++) << 8);
+        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
         bus.write(addr, val);
     }
 
     function from_NN_16() {
-        var addr = bus.read(PC++) | (bus.read(PC++) << 8);
+        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
         var low = bus.read(addr);
         addr = addr +  1; if (addr > 0xffff) addr = 0;
         return (bus.read(addr) << 8) | low;
     }
 
     function to_NN_16(val) {
-        var addr = bus.read(PC++) | (bus.read(PC++) << 8);
+        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
         bus.write(addr, val & 255);
         addr = addr + 1; if (addr > 0xffff) addr = 0;
         bus.write(addr, val >>> 8);
@@ -381,12 +396,12 @@ wmsx.Z80 = function() {
     }
 
     function push16(val) {
-        bus.write(--SP, val >>> 8);
-        bus.write(--SP, val & 255);
+        bus.write(decSP(), val >>> 8);
+        bus.write(decSP(), val & 255);
     }
 
     function pop16() {
-        return bus.read(SP++) | (bus.read(SP++) << 8);
+        return bus.read(spInc()) | (bus.read(spInc()) << 8);
     }
 
     var parities = [    // 0b00000100 ready for P flag
@@ -407,7 +422,7 @@ wmsx.Z80 = function() {
     function HALT() {
         //Util.log("HALT!");
         //self.breakpoint("HALT");
-        PC = PC - 1;    // Keep repeating HALT instruction until an INT or RESET
+        --PC;    // Keep repeating HALT instruction until an INT or RESET
     }
 
     function newLD(to, from) {
@@ -1320,7 +1335,7 @@ wmsx.Z80 = function() {
     function pINT() {
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionHALT) PC = PC + 1;     // To "escape" from the HALT, and continue in the next instruction after RET
+        if (instruction === instructionHALT) pcInc();     // To "escape" from the HALT, and continue in the next instruction after RET
         push16(PC);
         instruction = instructionADT_CYCLES;
         if (IM === 1) {
