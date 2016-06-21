@@ -172,18 +172,19 @@ wmsx.Z80 = function() {
     }
 
     function pcInc() {
-        if (PC === 0xffff) { PC = 0; return 0xfff; }
-        else return PC++;
+        var old = PC;
+        PC = (PC + 1) & 0xffff;
+        return old;
     }
 
     function spInc() {
-        if (SP === 0xffff) { SP = 0; return 0xfff; }
-        else return SP++;
+        var old = SP;
+        SP = (SP + 1) & 0xffff;
+        return old;
     }
 
     function decSP() {
-        if (SP === 0) { SP = 0xffff; return 0; }
-        else return --SP;
+        return SP = (SP - 1) & 0xffff;
     }
 
     function fromA() {
