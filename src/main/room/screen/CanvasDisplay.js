@@ -93,21 +93,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         settingsDialog.show(page);
     };
 
-    this.openDiskSelectDialog = function(drive) {
+    this.openDiskSelectDialog = function(drive, inc, altPower) {
         createDiskSelectDialog();
         if (pasteDialog) pasteDialog.hide();
-        diskSelectDialog.show(drive);
-    };
-
-    this.toggleDiskSelectDialog = function(drive) {
-        createDiskSelectDialog();
-        if (pasteDialog) pasteDialog.hide();
-        diskSelectDialog.toggle(drive);
-    };
-
-    this.toggleCloseDiskSelectDialog = function(drive) {
-        createDiskSelectDialog();
-        diskSelectDialog.toggleClose(drive);
+        diskSelectDialog.show(drive, inc, altPower);
     };
 
     this.openMachineSelectDialog = function() {

@@ -105,13 +105,13 @@ wmsx.DOMPeripheralControls = function() {
                 diskDrive.saveDiskFile(secPort ? 1 : 0);
                 break;
             case controls.DISK_SELECT:
-                diskDrive.selectDisk(secPort ? 1 : 0);
+                diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 0, altPower);
                 break;
             case controls.DISK_PREVIOUS:
-                diskDrive.insertPreviousDisk(secPort ? 1 : 0);
+                diskDrive.openDiskSelectDialog(secPort ? 1 : 0, -1, altPower);
                 break;
             case controls.DISK_NEXT:
-                diskDrive.insertNextDisk(secPort ? 1 : 0);
+                diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 1, altPower);
                 break;
             case controls.CARTRIDGE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);

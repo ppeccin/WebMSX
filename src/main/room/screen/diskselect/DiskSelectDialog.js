@@ -3,64 +3,66 @@
 wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     var self = this;
 
-    this.show = function (pDrive) {
+    this.show = function (pDrive, inc, pAltPower) {
         if (!dialog) {
             create();
             return setTimeout(function() {
-                self.show(pDrive);
+                self.show(pDrive, inc, pAltPower);
             }, 0);
         }
 
         drive = pDrive;
+        altPower = pAltPower;
         visible = true;
-        peripheralControls.setGroupRestriction("DISK");
+        getInitialState();
+        incDiskSelected(inc);
+        refreshList();
         dialog.classList.add("wmsx-show");
         dialog.focus();
-        refreshList();
     };
 
     this.hide = function (confirm) {
         dialog.classList.remove("wmsx-show");
         visible = false;
-        peripheralControls.setGroupRestriction(null);
         WMSX.room.screen.focus();
-        if (confirm) diskDrive.autoPowerCycle(false);
+        if (confirm && diskSelectedNum >= 0) {
+            diskDrive.insertDisk(drive, diskSelectedNum);
+            diskDrive.autoPowerCycle(altPower);
+        }
     };
 
-    this.toggle = function(drive) {
-        if (visible) this.hide(false);
-        else this.show(drive);
-    };
-
-    this.toggleClose = function(drive) {
-        if (visible) this.hide(false);
-    };
-
-    this.diskDrivesMediaStateUpdate = function(drive) {
-        if (!visible) return;
+    this.diskDrivesMediaStateUpdate = function(pDrive) {
+        if (!visible || pDrive !== drive) return;
+        getInitialState();
         refreshList();
     };
 
     function refreshList() {
-        var stack = diskDrive.getDriveStack(drive);
-        var currDiskNum = diskDrive.getCurrentDiskNum(drive);
-
         header.textContent = "Select Disk in Drive " + (drive === 1 ? "B:" : "A:") + " " + diskDrive.getCurrentDiskNumDesc(drive);
-
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
-            if (i < stack.length) {
+            if (i < diskStack.length) {
                 li.classList.add("wmsx-visible");
-                li.innerHTML = stack[i].name;
-                if (i === currDiskNum) li.classList.add("wmsx-selected");
+                li.innerHTML = diskStack[i].name;
+                if (i === diskSelectedNum) li.classList.add("wmsx-selected");
                 else li.classList.remove("wmsx-selected");
             } else {
                 li.classList.remove("wmsx-visible");
             }
             li.classList.remove("wmsx-droptarget");
         }
+        diskMoveFrom = diskMoveTo = undefined;
+    }
 
-        diskSelect = diskMoveFrom = diskMoveTo = undefined;
+    function getInitialState() {
+        diskStack = diskDrive.getDriveStack(drive);
+        diskSelectedNum = diskDrive.getCurrentDiskNum(drive);
+    }
+
+    function incDiskSelected(inc) {
+        var newNum = diskSelectedNum + inc;
+        if (newNum < 0 || newNum >= diskStack.length) return;
+        diskSelectedNum = newNum;
     }
 
     function create() {
@@ -110,10 +112,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             if (e.keyCode === ESC_KEY) hideAbort();
             // Confirm
             else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
+            // Control to Forward
+            else if (e.keyCode === DISK_CONTROL_KEY) peripheralControls.keyDown(e);
             // Select
-            else if (CONTROLS[e.keyCode] && !e.altKey) peripheralControls.controlActivated(CONTROLS[e.keyCode], true, drive !== 0);
-            // Forward
-            else peripheralControls.keyDown(e);
+            else if (SELECT_KEYS[e.keyCode]) {
+                incDiskSelected(SELECT_KEYS[e.keyCode]);
+                refreshList();
+            }
 
             return false;
         });
@@ -122,22 +127,15 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog.addEventListener("blur", hideAbort, true);
         dialog.addEventListener("focusout", hideAbort, true);
 
-        // Determine Disk to select with mousedown
-        list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
+        // Select Disk with click
+        list.addEventListener("click", function mouseClickDiskSelect(e) {
             e.stopPropagation();
-            if (e.button === 0 && e.target.wmsxDiskNum !== undefined) diskSelect = e.target;
-            return false;
-        });
-
-        // Select Disk with mouseup
-        list.addEventListener("mouseup", function mouseUpDiskSelect(e) {
-            e.stopPropagation();
-            if (e.button !== 0 || e.target !== diskSelect) return false;
-            diskSelect = undefined;
             var diskNum = e.target.wmsxDiskNum;
-            if (diskNum === undefined) return false;
-            diskDrive.insertDisk(drive, diskNum);
-            setTimeout(hideConfirm, 140);
+            if (diskNum !== undefined) {
+                diskSelectedNum = diskNum;
+                refreshList();
+                setTimeout(hideConfirm, 200);
+            }
             return false;
         });
 
@@ -156,7 +154,6 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         list.addEventListener("dragstart", function dragStart(e) {
             e.stopPropagation();
             if (e.target.wmsxDiskNum === undefined) return false;
-            diskSelect = undefined;
             diskMoveFrom = e.target;
             e.dataTransfer.setData('text/html', e.target.innerHTML);
             return false;
@@ -195,16 +192,18 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
     var drive = 0;
     var altPower = true;
+    var diskStack, diskSelectedNum;
 
-    var diskMoveFrom, diskMoveTo, diskSelect;
+    var diskMoveFrom, diskMoveTo;
 
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;
     var CONFIRM_KEYS =   [ k.VK_ENTER.c, k.VK_SPACE.c ];
-    var CONTROLS = {};
-        CONTROLS[k.VK_UP.c] = wmsx.PeripheralControls.DISK_PREVIOUS;
-        CONTROLS[k.VK_PAGE_UP.c] = wmsx.PeripheralControls.DISK_PREVIOUS;
-        CONTROLS[k.VK_DOWN.c] = wmsx.PeripheralControls.DISK_NEXT;
-        CONTROLS[k.VK_PAGE_DOWN.c] = wmsx.PeripheralControls.DISK_NEXT;
+    var DISK_CONTROL_KEY = k.VK_F6.c;
+    var SELECT_KEYS = {};
+        SELECT_KEYS[k.VK_UP.c] = -1;
+        SELECT_KEYS[k.VK_PAGE_UP.c] = -1;
+        SELECT_KEYS[k.VK_DOWN.c] = 1;
+        SELECT_KEYS[k.VK_PAGE_DOWN.c] = 1;
 
 };

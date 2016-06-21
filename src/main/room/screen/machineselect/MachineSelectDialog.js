@@ -81,11 +81,13 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
             // Confirm
             else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
             // Select
-            else if (e.keyCode === UP_KEY || e.keyCode === DOWN_KEY) {
-                var idx = machines.indexOf(machineSelected) + (e.keyCode === UP_KEY ? -1 : +1);
+            else if (SELECT_KEYS[e.keyCode]) {
+                var idx = machines.indexOf(machineSelected) + SELECT_KEYS[e.keyCode];
                 var newMachine = machines[idx];
-                if (newMachine) machineSelected = newMachine;
-                refreshList();
+                if (newMachine) {
+                    machineSelected = newMachine;
+                    refreshList();
+                }
             }
 
             return false;
@@ -124,6 +126,9 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
 
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c, UP_KEY = k.VK_UP.c, DOWN_KEY = k.VK_DOWN.c;
-    var CONFIRM_KEYS =   [ k.VK_ENTER.c, k.VK_SPACE.c ];
+    var CONFIRM_KEYS = [ k.VK_ENTER.c, k.VK_SPACE.c ];
+    var SELECT_KEYS = {};
+        SELECT_KEYS[k.VK_UP.c] = -1;
+        SELECT_KEYS[k.VK_DOWN.c] = 1;
 
 };
