@@ -640,7 +640,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function vramEnterInterleaving() {
-        var aux = vram.slice();
+        var aux = vram.slice();                     // TODO Optimize
         var e = 0;
         var o = 0x10000;
         for (var i = 0; i < 0x20000; i += 2) {
@@ -653,7 +653,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function vramExitInterleaving() {
-        var aux = vram.slice();
+        var aux = vram.slice();                     // TODO Optimize
         var e = 0;
         var o = 0x10000;
         for (var i = 0; i < 0x20000; i += 2) {
@@ -2043,7 +2043,7 @@ wmsx.VDP = function(machine, cpu) {
 
     function stretchCurrentLine() {
         var end = 256 + 8*2;
-        var s = bufferPosition + end - 1, d = bufferPosition + end * 2 - 2;
+        var s = bufferPosition + end - 1, d = bufferPosition + (end << 1) - 2;
         for (var i = end; i > 0; --i, --s, d = d - 2)
             frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
 
@@ -2054,7 +2054,7 @@ wmsx.VDP = function(machine, cpu) {
         var end = 256 + 8*2;
         var pos = bufferPosition;
         for (var line = currentScanline; line >= startingVisibleTopBorderScanline; --line, pos -= bufferLineAdvance) {
-            var s = pos + end - 1, d = pos + end * 2 - 2;
+            var s = pos + end - 1, d = pos + (end << 1) - 2;
             for (var i = end; i > 0; --i, --s, d = d - 2)
                 frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
         }
@@ -2063,11 +2063,9 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function cleanFrameBuffer() {
-        //var t = performance.now();
-
         wmsx.Util.arrayFill(frameBackBuffer, modeData.tiled ? 0xff000000 : backdropValue);
 
-        //logInfo("Clear Buffer. Time: " + (performance.now() - t));
+        //logInfo("Clear Buffer");
     }
 
     function refresh() {
