@@ -11,7 +11,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 
 #### Version 2.0
 
-- MSX1, MSX2 and MSX2+ machines. NTSC 60Hz or PAL 50Hz
+- 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
 - PSG, SCC, SCC-I, FM-PAC and MSX-MUSIC sound
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox
 - Put games or any MSX software in webpages easily

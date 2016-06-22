@@ -63,11 +63,11 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
+    DISK:                       { desc: "Floppy Drives", SLOT: [3, 2],          format: "DiskPatched" },
     RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3, 0],          format: "RAMMapper",     mutual: "RAM64K" },
     RAM64K:                     {                        SLOT: [3, 0],          format: "RAM64K",        mutual: "RAMMAPPER" },
-    DISK:                       { desc: "Floppy Drives", SLOT: [3, 2],          format: "DiskPatched" },
-    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [2, 2],          format: "DOS2",          require: "RAMMAPPER, DISK" },
     MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [3, 3],          format: "MSXMUSIC" },
+    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [2, 2],          format: "DOS2",          require: "RAMMAPPER, DISK" },
     SCC:                        { desc: "Konami SCC",    SLOT: [1], SLOT2: [2], format: "SCCExpansion",  remove: "SCCI, PAC" },
     SCCI:                       { desc: "Konami SCC-I",  SLOT: [1], SLOT2: [2], format: "SCCIExpansion", remove: "SCC, PAC" },
     PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2], format: "PACExpansion",  remove: "SCC, SCCI" }

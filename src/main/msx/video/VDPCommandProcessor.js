@@ -75,9 +75,12 @@ wmsx.VDPCommandProcessor = function() {
 
     this.setVDPModeData = function(pModeData) {
         modeData = pModeData;
-        modePPB = modeData.ppb;
         modeWidth = modeData.width;
-        layoutLineBytes = modeData.layLineBytes;
+        modePPB = modeData.ppb || 1;                            // works as in mode G7 if not defined
+        modePPBShift = modePPB >> 1;
+        modePPBMask = ~0 << modePPBShift;
+        layoutLineBytes = modeData.layLineBytes || 256;         // works as in mode G7 if not defined
+
     };
 
     function getSX() {
@@ -103,11 +106,11 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function getNX() {
-        return (((register[41] & 0x01) << 8) | register[40]) || 512;      // Max size if 0
+        return ((register[41] & 0x01) << 8) | register[40];
     }
 
     function getNY() {
-        return (((register[43] & 0x03) << 8) | register[42]) || 1024;     // Max size if 0
+        return ((register[43] & 0x03) << 8) | register[42];
     }
     function setNY(val) {
         register[43] = (val >> 8) & 0x03; register[42] = val & 0xff;
@@ -163,24 +166,20 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("HMMC Start dx: " + dx + ", dy: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
-        if (dx >= modeWidth) {
-            dx &= 255; NX = 1;
-        }
-
         // Adjust for whole-byte operation
-        switch (modePPB) {
-            case 2:
-                dx >>>= 1; NX >>>= 1; break;
-            case 4:
-                dx >>>= 2; NX >>>= 2; break;
-            default:  // including 1
-                // Not needed
+        dx >>= modePPBShift; NX >>= modePPBShift;
+
+        // Horizontal limits. Wrap X and narrow to only 1 unit wide
+        if (dx >= layoutLineBytes) {
+            dx &= layoutLineBytes - 1; NX = 1;
+        } else {
+            NX = NX || layoutLineBytes;                                             // max width if 0
+            NX = DIX === 1 ? min(NX, layoutLineBytes - dx) : min(NX, dx + 1);       // limit width
         }
 
-        // Limit rect size
-        NX = DIX === 1 ? min(NX, layoutLineBytes - dx) : min(NX, dx + 1);
-        ENY = DIY === 1 ? NY : min(NY, DY + 1);              // Top limit only
+        // Vertical limit, top only
+        NY = NY || 1024;                                // max height if 0
+        ENY = DIY === 1 ? NY : min(NY, DY + 1);
 
         destPos = DY * layoutLineBytes + dx;
 
@@ -219,24 +218,16 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("YMMM sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
-        if (dx >= modeWidth) {
-            dx &= 255;
-        }
-
         // Adjust for whole-byte operation
-        switch (modePPB) {
-            case 2:
-                dx >>>= 1; break;
-            case 4:
-                dx >>>= 2; break;
-            default:  // including 1
-                // Not needed
-        }
+        dx >>= modePPBShift;
 
-        // Limit rect size
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
+        if (dx >= layoutLineBytes) dx &= layoutLineBytes - 1;
         var nx = dix === 1 ? layoutLineBytes - dx : dx + 1;
-        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
+
+        // Vertical limit, top only
+        ny = ny || 1024;                                        // max height if 0
+        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);
 
         // Perform operation
         var sPos = sy * layoutLineBytes + dx;
@@ -271,24 +262,20 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("HMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
-        if (sx >= modeWidth || dx >= modeWidth) {
-            sx &= 255; dx &= 255; nx = 1;
-        }
-
         // Adjust for whole-byte operation
-        switch (modePPB) {
-            case 2:
-                sx >>>= 1; dx >>>= 1; nx >>>= 1; break;
-            case 4:
-                sx >>>= 2; dx >>>= 2; nx >>>= 2; break;
-            default:  // including 1
-                // Not needed
+        sx >>= modePPBShift; dx >>= modePPBShift; nx >>= modePPBShift;
+
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
+        if (sx >= layoutLineBytes || dx >= layoutLineBytes) {
+            sx &= layoutLineBytes - 1; dx &= layoutLineBytes - 1; nx = 1;
+        } else {
+            nx = nx || layoutLineBytes;                                                             // max width if 0
+            nx = dix === 1 ? min(nx, layoutLineBytes - max(sx, dx)) : min(nx, min(sx, dx) + 1);     // limit width
         }
 
-        // Limit rect size
-        nx = dix === 1 ? min(nx, layoutLineBytes - max(sx, dx)) : min(nx, min(sx, dx) + 1);
-        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
+        // Vertical limit, top only
+        ny = ny || 1024;                                        // max height if 0
+        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);
 
         // Perform operation
         var sPos = sy * layoutLineBytes + sx;
@@ -322,24 +309,20 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("HMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
-        if (dx >= modeWidth) {
-            dx &= 255; nx = 1;
-        }
-
         // Adjust for whole-byte operation
-        switch (modePPB) {
-            case 2:
-                dx >>>= 1; nx >>>= 1; break;
-            case 4:
-                dx >>>= 2; nx >>>= 2; break;
-            default:  // including 1
-                // Not needed
+        dx >>= modePPBShift; nx >>= modePPBShift;
+
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
+        if (dx >= layoutLineBytes) {
+            dx &= layoutLineBytes - 1; nx = 1;
+        } else {
+            nx = nx || layoutLineBytes;                                             // max width if 0
+            nx = dix === 1 ? min(nx, layoutLineBytes - dx) : min(nx, dx + 1);       // limit width
         }
 
-        // Limit rect size
-        nx = dix === 1 ? min(nx, layoutLineBytes - dx) : min(nx, dx + 1);
-        var eny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
+        // Vertical limit, top only
+        ny = ny || 1024;                                // max height if 0
+        var eny = diy === 1 ? ny : min(ny, dy + 1);
 
         // Perform operation
         var pos = dy * layoutLineBytes + dx;
@@ -371,14 +354,17 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
         if (DX >= modeWidth) {
-            DX &= 255; NX = 1;
+            DX &= modeWidth - 1; NX = 1;
+        } else {
+            NX = NX || modeWidth;                                            // max width if 0
+            NX = DIX === 1 ? min(NX, modeWidth - DX) : min(NX, DX + 1);      // limit width
         }
 
-        // Limit rect size
-        NX = DIX === 1 ? min(NX, modeWidth - DX) : min(NX, DX + 1);
-        ENY = DIY === 1 ? NY : min(NY, DY + 1);            // Top limit only
+        // Vertical limit, top only
+        NY = NY || 1024;                                // max height if 0
+        ENY = DIY === 1 ? NY : min(NY, DY + 1);
 
         writeStart(LMMCNextWrite);
     }
@@ -414,14 +400,17 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
         if (SX >= modeWidth) {
-            SX &= 255; NX = 1;
+            SX &= modeWidth - 1; NX = 1;
+        } else {
+            NX = NX || modeWidth;                                            // max width if 0
+            NX = DIX === 1 ? min(NX, modeWidth - SX) : min(NX, SX + 1);      // limit width
         }
 
-        // Limit rect size
-        NX = DIX === 1 ? min(NX, modeWidth - SX) : min(NX, SX + 1);
-        ENY = DIY === 1 ? NY : min(NY, SY + 1);            // Top limit only
+        // Vertical limit, top only
+        NY = NY || 1024;                                // max height if 0
+        ENY = DIY === 1 ? NY : min(NY, SY + 1);
 
         readStart(LMCMNextRead);
     }
@@ -457,14 +446,17 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
         if (sx >= modeWidth || dx >= modeWidth) {
-            sx &= 255; dx &= 255; nx = 1;
+            sx &= modeWidth - 1; dx &= modeWidth - 1; nx = 1;
+        } else {
+            nx = nx || modeWidth;                                                              // max width if 0
+            nx = dix === 1 ? min(nx, modeWidth - max(sx, dx)) : min(nx, min(sx, dx) + 1);      // limit width
         }
 
-        // Limit rect size
-        nx = dix === 1 ? min(nx, modeWidth - max(sx, dx)) : min(nx, min(sx, dx) + 1);
-        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);              // Top limit only
+        // Vertical limit, top only
+        ny = ny || 1024;                                // max height if 0
+        var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);
 
         // Perform operation
         for (var cy = eny; cy > 0; cy = cy - 1) {
@@ -497,14 +489,17 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
 
-        // If out of horizontal limits, wrap X and narrow to only 1 unit wide. Will trigger only for modes with width = 256
+        // Horizontal limits, wrap X and narrow to only 1 unit wide
         if (dx >= modeWidth) {
-            dx &= 255; nx = 1;
+            dx &= modeWidth - 1; nx = 1;
+        } else {
+            nx = nx || modeWidth;                                            // max width if 0
+            nx = dix === 1 ? min(nx, modeWidth - dx) : min(nx, dx + 1);      // limit width
         }
 
-        // Limit rect size
-        nx = dix === 1 ? min(nx, modeWidth - dx) : min(nx, dx + 1);
-        var eny = diy === 1 ? ny : min(ny, dy + 1);              // Top limit only
+        // Vertical limit, top only
+        ny = ny || 1024;                                // max height if 0
+        var eny = diy === 1 ? ny : min(ny, dy + 1);
 
         // Perform operation
         for (var cy = eny; cy > 0; cy = cy - 1) {
@@ -527,8 +522,8 @@ wmsx.VDPCommandProcessor = function() {
         // Collect parameters
         var dx = getDX();
         var dy = getDY();
-        var nx = getNX() & 511;       // Range 0 - 511.  Value 0 is OK
-        var ny = getNY() & 1023;      // Range 0 - 1023. Value 0 is OK
+        var nx = getNX();             // Range 0 - 511.  Value 0 is OK
+        var ny = getNY();             // Range 0 - 1023. Value 0 is OK
         var co = getCLR();
         var dix = getDIX();
         var diy = getDIY();
@@ -584,10 +579,8 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("SRCH sx: " + sx + ", sy: " + sy + ", co: " + co + ", eq: " + eq + ", dix: " + dix);
 
-        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
-        if (sx >= modeWidth) {
-            sx &= 255;
-        }
+        // Horizontal limits
+        if (sx >= modeWidth) sx &= modeWidth - 1;
 
         // Search boundary X
         var stopX = dix === 1 ? modeWidth : -1;
@@ -627,10 +620,8 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("PSET dx: " + dx + ", dy: " + dy);
 
-        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
-        if (dx >= modeWidth) {
-            dx &= 255;
-        }
+        // Horizontal limits
+        if (dx >= modeWidth) dx &= modeWidth - 1;
 
         logicalPSET(dx, dy, co, op);
 
@@ -646,10 +637,8 @@ wmsx.VDPCommandProcessor = function() {
 
         //console.log("POINT sx: " + sx + ", sy: " + sy);
 
-        // If out of horizontal limits, wrap X. Will trigger only for modes with width = 256
-        if (sx >= modeWidth) {
-            sx &= 255;
-        }
+        // Horizontal limits
+        if (sx >= modeWidth) sx &= modeWidth - 1;
 
         var co = normalPGET(sx, sy);
 
@@ -835,7 +824,7 @@ wmsx.VDPCommandProcessor = function() {
     var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
 
     var modeData;
-    var modePPB;
+    var modePPB, modePPBShift, modePPBMask;
     var modeWidth;
     var layoutLineBytes;
 
