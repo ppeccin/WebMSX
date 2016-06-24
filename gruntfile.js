@@ -14,6 +14,7 @@ module.exports = function (grunt) {
                     "src/main/util/Util.js",
                     "src/main/util/SHA1.js",
                     "src/main/util/ZIP.js",
+                    "src/main/util/EmbeddedFiles.js",
                     "src/main/util/MultiDownloader.js",
                     "src/main/util/MultiFileReader.js",
                     "src/main/msx/cpu/Z80.js",
@@ -95,6 +96,7 @@ module.exports = function (grunt) {
                     "src/main/Configurator.js",
                     "src/main/Launcher.js",
                     "src/runtime/images/EmbeddedImages.js",
+                    "src/runtime/sysroms/CompressedSystemROMs.js",
                     "src/runtime/sysroms/EmbeddedSystemROMs.js"
                 ],
                 dest: "temp/wmsx.part.js"
