@@ -3,7 +3,7 @@
 
 // Main Emulator parameters.
 // May be overridden dynamically by URL query parameters, if ALLOW_URL_PARAMETERS = true.
-// Machine type and components are defined by Configuration Presets.
+// Machine type and Components are defined by Configuration Presets.
 
 WMSX = {
 
@@ -50,18 +50,17 @@ WMSX = {
 
 };
 
-// TODO Provide Empty Machine?
-
 WMSX.MACHINES_CONFIG = {
-    MSX2PA: { desc: "MSX2+ America (NTSC)", presets: "MSX2PA"},
-    MSX2PE: { desc: "MSX2+ Europe (PAL)",   presets: "MSX2PE"},
-    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",   presets: "MSX2PJ"},
-    MSX2A:  { desc: "MSX2 America (NTSC)",  presets: "MSX2A"},
-    MSX2E:  { desc: "MSX2 Europe (PAL)",    presets: "MSX2E"},
-    MSX2J:  { desc: "MSX2 Japan (NTSC)",    presets: "MSX2J"},
-    MSX1A:  { desc: "MSX America (NTSC)",   presets: "MSX1A"},
-    MSX1E:  { desc: "MSX Europe (PAL)",     presets: "MSX1E"},
-    MSX1J:  { desc: "MSX Japan (NTSC)",     presets: "MSX1J"}
+    EMPTY:  { desc: "MSX2+ Barebone (NTSC)", presets: "EMPTY"},
+    MSX2PA: { desc: "MSX2+ America (NTSC)",  presets: "MSX2PA"},
+    MSX2PE: { desc: "MSX2+ Europe (PAL)",    presets: "MSX2PE"},
+    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",    presets: "MSX2PJ"},
+    MSX2A:  { desc: "MSX2 America (NTSC)",   presets: "MSX2A"},
+    MSX2E:  { desc: "MSX2 Europe (PAL)",     presets: "MSX2E"},
+    MSX2J:  { desc: "MSX2 Japan (NTSC)",     presets: "MSX2J"},
+    MSX1A:  { desc: "MSX America (NTSC)",    presets: "MSX1A"},
+    MSX1E:  { desc: "MSX Europe (PAL)",      presets: "MSX1E"},
+    MSX1J:  { desc: "MSX Japan (NTSC)",      presets: "MSX1J"}
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -138,6 +137,7 @@ WMSX.PRESETS_CONFIG = {
     },
 
     // MSX1 Machine Presets
+
     MSX1: {
         _INCLUDE:           "MSX1A"
     },
@@ -204,8 +204,6 @@ WMSX.PRESETS_CONFIG = {
     NOVSYNCH:     { SCREEN_VSYNCH_MODE: 0},
     VSYNCHAUTO:   { SCREEN_VSYNCH_MODE: 1},
     VSYNCHFORCED: { SCREEN_VSYNCH_MODE: 2}
-
-
 
 };
 

@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Why NTSC at first with PAL Bios loaded?
-
 wmsx.Machine = function() {
 "use strict";
 

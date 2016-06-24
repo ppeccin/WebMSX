@@ -220,10 +220,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             osdShowing = false;
             return;
         }
-        if (overlap || !osdShowing) osd.innerHTML = message;
+        if (overlap || !osdShowing) {
+            osd.innerHTML = message;
+            osd.style.color = error ? "rgb(255, 60, 40)" : "rgb(0, 255, 0)";
+        }
         osd.style.transition = "none";
         osd.style.top = "15px";
-        osd.style.color = error ? "rgb(255, 60, 40)" : "rgb(0, 255, 0)";
         osd.style.opacity = 1;
         osdShowing = true;
         osdTimeout = setTimeout(hideOSD, OSD_TIME);
