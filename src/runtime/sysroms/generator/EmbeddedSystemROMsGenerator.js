@@ -27,12 +27,7 @@ wmsx.EmbeddedSystemROMsGenerator = {
                     first = false;
                 }
 
-                romsFile += "\n\n    },\n\n" +
-                    '    nonExtensionFiles: [\n' +
-                    '        "MSX1_JAP.bios", "MSX1_NTSC.bios", "MSX1_PAL.bios",\n' +
-                    '        "MSX2_JAP.bios", "MSX2_NTSC.bios", "MSX2_PAL.bios", "MSX2EXT_JAP.bios", "MSX2EXT_NTSC.bios", "MSX2EXT_PAL.bios",\n' +
-                    '        "MSX2P_JAP.bios", "MSX2P_NTSC.bios", "MSX2P_PAL.bios", "MSX2PEXT_JAP.bios", "MSX2PEXT_NTSC.bios", "MSX2PEXT_PAL.bios"\n' +
-                    "    ]\n\n};\n\n" +
+                romsFile += "\n\n    }\n\n};\n\n" +
                     "wmsx.EmbeddedSystemROMs.embedFiles();";
 
                 var f = new wmsx.FileDownloader();
@@ -68,7 +63,7 @@ wmsx.EmbeddedSystemROMsGenerator.fileList = [
     "MSX2_PAL.bios",
     "MSXDOS22v3.rom",
     "MSXMUSIC.rom",
-    "[EMPTY].rom",
+    "[Empty].rom",
     "[RAM64K].rom",
     "[RAMMapper].rom",
     "[SCCExpansion].rom",

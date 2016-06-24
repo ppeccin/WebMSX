@@ -706,6 +706,9 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateVideoStandardSoft() {
+        //logInfo("PC: " + cpu.eval("PC").toString(16) + ", reg9: " + register[9].toString(16) + ", slots: " + machine.bus.getPrimarySlotConfig().toString(16));
+        //wmsx.Util.dumpSlot(WMSX.room.machine.bus.slots[3].subSlots[0], cpu.eval("SP"), 30);
+
         var pal = (register[9] & 0x02);
         machine.setVideoStandardSoft(pal ? wmsx.VideoStandard.PAL : wmsx.VideoStandard.NTSC);
 
@@ -2131,6 +2134,7 @@ wmsx.VDP = function(machine, cpu) {
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
+        register[9] = videoStandard === wmsx.VideoStandard.PAL ? 0x02 : 0;      // NT (PAL mode bit)
         status[1] = isV9958 ? 0x04 : 0x00;    // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
         status[2] = 0x0c;                     // Fixed "1" bits
         status[4] = 0xfe;                     // Fixed "1" bits

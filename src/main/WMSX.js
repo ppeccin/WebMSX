@@ -50,6 +50,8 @@ WMSX = {
 
 };
 
+// TODO Provide Empty Machine?
+
 WMSX.MACHINES_CONFIG = {
     MSX2PA: { desc: "MSX2+ America (NTSC)", presets: "MSX2PA"},
     MSX2PE: { desc: "MSX2+ Europe (PAL)",   presets: "MSX2PE"},
