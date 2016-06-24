@@ -15,7 +15,7 @@ wmsx.EmbeddedSystemROMs = {
     romDiffs: {
 
         "MSX1_NTSC.bios": { based: "MSX1_PAL.bios", diffs: {
-            0x2b: [ 0x11 ],                                              // NTSC flag
+            0x2b: [ 0x11 ],                                             // NTSC flag
             0x7754: [ 0x40, 0x00, 0x45, 0x14 ]                          // PLAY NTSC timing
         }},
 
@@ -32,8 +32,7 @@ wmsx.EmbeddedSystemROMs = {
 
         "MSX2PEXT_PAL.bios": { based: "MSX2PEXT_JAP.bios", diffs: {
             0x57e: [ 0x00, 0x05, 0x02, 0x0f, 0x04, 0x04 ],              // mode & colors
-            0x2c63: [ 0x02 ],                                           // reg9 PAL init
-            0x7c9b: [ 0x02 ]                                            // reg9 PAL init (in Kanji)
+            0x2c63: [ 0x02 ]                                            // reg9 PAL init
         }},
 
         "MSX2P_NTSC.bios": { based: "MSX2P_PAL.bios", diffs: {
@@ -42,8 +41,11 @@ wmsx.EmbeddedSystemROMs = {
         }},
 
         "MSX2PEXT_NTSC.bios": { based: "MSX2PEXT_PAL.bios", diffs: {
-            0x2c63: [ 0x00 ],                                           // reg9 NTSC init
-            0x7c9b: [ 0x00 ]                                            // reg9 NTSC init (in Kanji)
+            0x2c63: [ 0x00 ]                                            // reg9 NTSC init
+        }},
+
+        "MSXKANJI_PAL.bios": { based: "MSXKANJI.bios", diffs: {
+            0x3c9b: [ 0x02 ]                                            // reg9 PAL init
         }}
 
     }

@@ -86,24 +86,25 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PA",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
-        SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios"
+        SLOT_3_1_URL:       "@MSX2PEXT_NTSC.bios, @MSXKANJI.bios"
     },
     MSX2PE: {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PE",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
-        SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios"
+        SLOT_3_1_URL:       "@MSX2PEXT_PAL.bios, @MSXKANJI_PAL.bios"
     },
     MSX2PJ: {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PJ",
         SLOT_0_URL:         "@MSX2P_JAP.bios",
-        SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios"
+        SLOT_3_1_URL:       "@MSX2PEXT_JAP.bios, @MSXKANJI.bios"
     },
 
     MSX2PBASE: {
         _INCLUDE:           "MSX2BASE",
-        MACHINE_TYPE:       3
+        MACHINE_TYPE:       3,
+        SLOT_2_3_URL:       "@KANJIFONT.rom"
     },
 
     // MSX2 Machine Presets
@@ -127,7 +128,8 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "MSX2BASE",
         MACHINE:            "MSX2J",
         SLOT_0_URL:         "@MSX2_JAP.bios",
-        SLOT_3_1_URL:       "@MSX2EXT_JAP.bios"
+        SLOT_3_1_URL:       "@MSX2EXT_JAP.bios, @MSXKANJI.bios",
+        SLOT_2_3_URL:       "@KANJIFONT.rom"
     },
 
     MSX2BASE: {

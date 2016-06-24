@@ -49,6 +49,8 @@ wmsx.CompressedSystemROMsGenerator.fileList = [
     "MSX2P_JAP.bios",
     "MSX2P_PAL.bios",
     "MSX2PEXT_JAP.bios",
+    "MSXKANJI.bios",        // Must be concatenated with all MSX2P_EXTs. Optional for MSX2_EXTs. Invalid for MSX1
+    "KANJIFONT.rom",
     "DISK.rom",
     "MSXMUSIC.rom",
     "MSXDOS22v3.rom",

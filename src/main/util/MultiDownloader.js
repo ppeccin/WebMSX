@@ -13,35 +13,49 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
 
     function load(urlSpec) {
         if (!urlSpec) return;
-        wmsx.Util.log("Reading file from URL: " + urlSpec.url);
 
-        // Check for embedded file request
-        if (urlSpec.url[0] === "@") {
-            var file = wmsx.EmbeddedFiles.get(urlSpec.url.substr(1));
-            if (file !== undefined) loadSuccess(urlSpec,file.content);
-            else loadError(urlSpec, "Embedded file not found!");
-            return;
+        var urls = urlSpec.url.trim().split(/\s*,\s*/);
+        urlSpec.filesToLoad = urls.length;
+        urlSpec.filesContent = new Array(urlSpec.filesToLoad);
+
+        // Ask to load all files
+        for (var f = 0; f < urls.length; ++f) {
+            var url = urls[f];
+            if (url[0] === "@") getEmbedded(urlSpec, f, url);         // Embedded file?
+            else getHTTP(urlSpec, f, url);                             // No, HTTP...
         }
+    }
 
-        // If not, request download
+    function getEmbedded(urlSpec, f, url) {
+        wmsx.Util.log("Reading Embedded file: " + url);
+        var file = wmsx.EmbeddedFiles.get(url.substr(1));
+        if (file !== undefined) loadSuccess(urlSpec, f, file.content);
+        else loadError(urlSpec, "Embedded file not found!");
+    }
+
+    function getHTTP(urlSpec, f, url) {
         var req = new XMLHttpRequest();
         req.withCredentials = true;
-        req.open("GET", urlSpec.url, true);
+        req.open("GET", url, true);
         req.responseType = "arraybuffer";
         req.timeout = timeout !== undefined ? timeout : DEFAULT_TIMEOUT;
         req.onload = function () {
-            if (req.status === 200) loadSuccess(urlSpec, req.response);
+            if (req.status === 200) loadSuccess(urlSpec, f, new Uint8Array(req.response));
             else req.onerror();
         };
-        req.onerror =  req.ontimeout = function () {
+        req.onerror = req.ontimeout = function () {
             loadError(urlSpec, "" + req.status + " " + req.statusText);
         };
+        wmsx.Util.log("Reading file from: " + url);
         req.send();
     }
 
-    function loadSuccess(urlSpec, content) {
+    function loadSuccess(urlSpec, f, content) {
+        urlSpec.filesContent[f] = content;
+        if (--urlSpec.filesToLoad > 0) return;                                   // Still some files to complete loading
+
         urlSpec.success = true;
-        urlSpec.content = new Uint8Array(content);
+        urlSpec.content = wmsx.Util.arraysConcatAll(urlSpec.filesContent);       // Concat all files in order
         if (urlSpec.onSuccess) urlSpec.onSuccess(urlSpec);
         checkFinish();
     }

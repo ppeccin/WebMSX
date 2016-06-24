@@ -11,23 +11,11 @@ wmsx.Util = new function() {
         alert(str);
     };
 
-    this.arrayAverage = function(arr) {
-        var total = 0;
-        for (var i = arr.length - 1; i >= 0; i--) total += arr[i];
-        return total / arr.length;
-    };
-
     this.arrayFill = function(arr, val, from, to) {
         if (arr.fill) return arr.fill(val, from, to);       // polyfill for TypedArrays or Arrays with native fill
         if (from === undefined) from = 0;
         for (var i = (to === undefined ? arr.length : to) - 1; i >= from; i = i - 1)
             arr[i] = val;
-        return arr;
-    };
-
-    this.arrayFillFunc = function(arr, func) {
-        for (var i = 0, len = arr.length; i < len; i = i + 1)
-            arr[i] = func(i);
         return arr;
     };
 
@@ -39,17 +27,8 @@ wmsx.Util = new function() {
         return dest;
     };
 
-    this.arrayHasElement = function(arr, element) {
-        return arr.indexOf(element) >= 0;
-    };
-
     this.arrayAdd = function(arr, element) {
         arr[arr.length] = element;
-        return arr;
-    };
-
-    this.arrayIfAbsentAdd = function(arr, element) {
-        if (!this.arrayHasElement(arr, element)) this.arrayAdd(arr, element);
         return arr;
     };
 
@@ -59,6 +38,18 @@ wmsx.Util = new function() {
             arr.splice(i, 1);
         }
         return arr;
+    };
+
+    this.arraysConcatAll = function(arrs) {
+        var len = 0;
+        for (var i = 0; i < arrs.length; ++i) len += arrs[i].length;
+        var res = new Array(len);
+        var pos = 0;
+        for (i = 0; i < arrs.length; ++i) {
+            this.arrayCopy(arrs[i], 0, res, pos);
+            pos += arrs[i].length;
+        }
+        return res;
     };
 
     // Only 8 bit values
