@@ -18,19 +18,8 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         // Check for embedded file request
         if (urlSpec.url[0] === "@") {
             var file = wmsx.EmbeddedFiles.get(urlSpec.url.substr(1));
-            if (file !== undefined) {
-                urlSpec.success = true;
-                urlSpec.content = file.content;
-                if (urlSpec.onSuccess) urlSpec.onSuccess(urlSpec);
-            } else {
-                urlSpec.success = false;
-                urlSpec.error = "Embedded file not found: " + urlSpec.url;
-                if (urlSpec.onError) {
-                    wmsx.Util.log(urlSpec.error);
-                    urlSpec.onError(urlSpec);
-                } else wmsx.Util.message(urlSpec.error);
-            }
-            checkFinish();
+            if (file !== undefined) loadSuccess(urlSpec,file.content);
+            else loadError(urlSpec, "Embedded file not found!");
             return;
         }
 
@@ -41,34 +30,31 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         req.responseType = "arraybuffer";
         req.timeout = timeout !== undefined ? timeout : DEFAULT_TIMEOUT;
         req.onload = function () {
-            if (req.status === 200) {
-                urlSpec.success = true;
-                urlSpec.content = new Uint8Array(req.response);
-                if (urlSpec.onSuccess) urlSpec.onSuccess(urlSpec);
-            } else {
-                getError(urlSpec, req);
-            }
-            checkFinish();
+            if (req.status === 200) loadSuccess(urlSpec, req.response);
+            else req.onerror();
         };
-        req.onerror = function () {
-            getError(urlSpec, req);
-            checkFinish();
-        };
-        req.ontimeout = function () {
-            getError(urlSpec, req);
-            checkFinish();
+        req.onerror =  req.ontimeout = function () {
+            loadError(urlSpec, "" + req.status + " " + req.statusText);
         };
         req.send();
     }
 
-    function getError(urlSpec, req) {
+    function loadSuccess(urlSpec, content) {
+        urlSpec.success = true;
+        urlSpec.content = new Uint8Array(content);
+        if (urlSpec.onSuccess) urlSpec.onSuccess(urlSpec);
+        checkFinish();
+    }
+
+    function loadError(urlSpec, error) {
         urlSpec.success = false;
-        urlSpec.error = (req.statusText || req.status);
-        var mes = "Could not load file: " + urlSpec.url + "\nError: " + res.error;
+        urlSpec.error = error;
+        var mes = "Could not load file: " + urlSpec.url + "\nError: " + error;
         if (urlSpec.onError) {
             wmsx.Util.log(mes);
             urlSpec.onError(urlSpec);
         } else wmsx.Util.message(mes);
+        checkFinish();
     }
 
     function checkFinish() {
@@ -77,9 +63,8 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         for (var i = 0; i < urlSpecs.length; i++)
             if (urlSpecs[i] && (urlSpecs[i].success === undefined)) return;
 
-        finished = true;
-
         // All urls have a definition, check for errors
+        finished = true;
         for (i = 0; i < urlSpecs.length; i++)
             if (urlSpecs[i] && !urlSpecs[i].success) {
                 if (onAnyError) onAnyError(urlSpecs);
