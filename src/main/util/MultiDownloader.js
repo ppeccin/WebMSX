@@ -17,10 +17,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
 
         // Check for embedded file request
         if (urlSpec.url[0] === "@") {
-            var compressedContent = wmsx.MultiDownloader.embeddedCompressedFiles[urlSpec.url.substr(1)];
-            if (compressedContent !== undefined) {
+            var file = wmsx.EmbeddedFiles.get(urlSpec.url.substr(1));
+            if (file !== undefined) {
                 urlSpec.success = true;
-                urlSpec.content = wmsx.Util.uncompressStringBase64ToInt8BitArray(compressedContent);
+                urlSpec.content = file.content;
                 if (urlSpec.onSuccess) urlSpec.onSuccess(urlSpec);
             } else {
                 urlSpec.success = false;
@@ -95,13 +95,3 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     var DEFAULT_TIMEOUT = 8000;
 
 };
-
-wmsx.MultiDownloader.embedCompressedFile = function(fileName, compressedContent) {
-    wmsx.MultiDownloader.embeddedCompressedFiles[fileName] = compressedContent;
-};
-
-wmsx.MultiDownloader.flushEmbeddedFile = function(fileName) {
-    delete wmsx.MultiDownloader.embeddedCompressedFiles[fileName];
-};
-
-wmsx.MultiDownloader.embeddedCompressedFiles = {};
