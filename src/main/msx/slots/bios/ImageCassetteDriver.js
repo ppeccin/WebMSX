@@ -2,6 +2,8 @@
 
 // Cassette Driver for cassette images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageCassetteDriver = function() {
+"use strict";
+
     var self = this;
 
     this.connect = function(bios, machine) {

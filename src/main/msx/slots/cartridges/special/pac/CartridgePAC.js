@@ -4,6 +4,8 @@
 // 0x4000 - 0x7fff
 
 wmsx.CartridgePAC = function(rom) {
+"use strict";
+
     function init(self) {
         self.rom = rom;
         sram = wmsx.Util.arrayFill(new Array(0x2000), 0);

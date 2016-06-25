@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.YM2413Tables = function() {
+"use strict";
 
     this.getFullSineTable = function() {
         // Complete table for all possible values (1024 entries). -255 .. 255 values, sign in bit 14

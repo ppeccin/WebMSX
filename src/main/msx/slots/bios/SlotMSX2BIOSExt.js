@@ -4,6 +4,7 @@
 // 0x0000 -> Size
 
 wmsx.SlotMSX2BIOSExt = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

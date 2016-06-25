@@ -2,6 +2,7 @@
 
 // Controls only an internal SCC sound chip
 wmsx.CartridgeSCCExpansion = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

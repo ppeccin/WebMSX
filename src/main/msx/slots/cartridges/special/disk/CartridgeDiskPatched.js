@@ -4,6 +4,7 @@
 // 0x4000 - 0x80ff
 
 wmsx.CartridgeDiskPatched = function(rom, format) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

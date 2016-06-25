@@ -4,6 +4,7 @@
 // 0x0000 - 0xffff
 
 wmsx.SlotRAMMapper = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

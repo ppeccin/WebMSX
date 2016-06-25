@@ -7,6 +7,7 @@
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeSCCIExpansion = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

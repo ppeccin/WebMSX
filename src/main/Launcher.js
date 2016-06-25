@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 WMSX.start = function () {
+"use strict";
+
     // Emulator can only be started once
     delete WMSX.start;
     delete WMSX.preLoadImagesAndStart;
@@ -71,7 +73,6 @@ WMSX.start = function () {
     WMSX.shutdown = function () {
         if (WMSX.room) WMSX.room.powerOff();
         wmsx.Util.log("shutdown");
-        delete WMSX;
     };
 
 };

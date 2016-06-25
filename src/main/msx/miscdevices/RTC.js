@@ -1,10 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Real Time Clock chip. MSX2, MSX2+ and TurboR
-// Based on Host clock
-// Alarm and 16Hz/1Hz outputs not observable by MSX so not implemented
+// Based on Host clock. Alarm and 16Hz/1Hz outputs not observable by MSX so not implemented
 
 wmsx.RTC = function() {
+"use strict";
 
     this.setMachineType = function(type) {
         isMSX2 = type >= 2;

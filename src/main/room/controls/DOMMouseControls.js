@@ -3,6 +3,8 @@
 // Only 1 Mouse supported
 
 wmsx.DOMMouseControls = function(hub) {
+"use strict";
+
     var self = this;
 
     this.connect = function(peControllersSocket) {

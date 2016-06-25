@@ -5,6 +5,7 @@
 
 wmsx.SlotEmpty = {};
 wmsx.SlotEmpty.impl = function() {
+"use strict";
 
     this.read = function(address) {
         return 0xff;

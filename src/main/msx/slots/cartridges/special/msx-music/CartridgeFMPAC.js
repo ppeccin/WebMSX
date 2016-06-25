@@ -5,6 +5,8 @@
 // 0x4000 - 0x7fff
 
 wmsx.CartridgeFMPAC = function(rom) {
+"use strict";
+
     function init(self) {
         self.rom = rom;
         var content = self.rom.content;

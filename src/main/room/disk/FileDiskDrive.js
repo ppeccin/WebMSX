@@ -3,6 +3,8 @@
 // Dual Disk Drive ( A: = drive 0, B: = drive 1 )
 
 wmsx.FileDiskDrive = function() {
+"use strict";
+
     var self = this;
 
     function init() {

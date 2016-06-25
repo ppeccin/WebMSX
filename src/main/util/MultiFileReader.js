@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError, maxTotalSize) {
+"use strict";
 
     this.start = function() {
         if (!files || files.length === 0)

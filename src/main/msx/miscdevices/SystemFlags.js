@@ -3,6 +3,7 @@
 // Hold System Control Flags used in MSX2, MSX2+ and TurboR
 
 wmsx.SystemFlags = function() {
+"use strict";
 
     this.setMachineType = function(type) {
         isMSX2P = type >= 3;

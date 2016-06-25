@@ -4,6 +4,8 @@
 // 0x0000 - 0xffff
 
 wmsx.SlotExpanded = function() {
+"use strict";
+
     var self = this;
 
     function init() {

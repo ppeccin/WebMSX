@@ -4,6 +4,7 @@
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeASCII8K = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

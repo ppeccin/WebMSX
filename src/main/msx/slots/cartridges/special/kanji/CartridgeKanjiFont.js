@@ -4,6 +4,7 @@
 // NO memory mapped. Provides only access to device ports
 
 wmsx.CartridgeKanjiFont = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

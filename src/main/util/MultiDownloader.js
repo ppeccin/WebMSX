@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
+"use strict";
 
     this.start = function() {
         if (!urlSpecs || urlSpecs.length === 0)

@@ -2,6 +2,7 @@
 
 // Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageDiskDriver = function() {
+"use strict";
 
     this.connect = function(diskBIOS, machine) {
         drive = machine.getDiskDriveSocket().getDrive();

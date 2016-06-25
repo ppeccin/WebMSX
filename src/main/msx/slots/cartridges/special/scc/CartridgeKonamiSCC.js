@@ -5,6 +5,7 @@
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeKonamiSCC = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

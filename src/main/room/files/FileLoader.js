@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.FileLoader = function() {
+"use strict";
+
     var self = this;
 
     this.connect = function(pMachine) {

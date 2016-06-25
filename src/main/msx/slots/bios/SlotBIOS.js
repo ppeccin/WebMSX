@@ -4,6 +4,7 @@
 // 0x0000 - 0x7fff,
 
 wmsx.SlotBIOS = function(rom) {
+"use strict";
 
     function init(self) {
         self.rom = rom;

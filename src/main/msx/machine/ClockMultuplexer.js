@@ -3,6 +3,7 @@
 // Works only with INTEGRAL dividers of the main frequency. Not used for now, too slow
 
 wmsx.ClockMultiplexer = function(mainPulses) {
+"use strict";
 
     this.addSlave = function(pulse, divider) {
         if (slavesPulse.indexOf(pulse) >= 0) return;
