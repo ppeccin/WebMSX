@@ -156,14 +156,7 @@ wmsx.SlotExpanded = function() {
 
     init();
 
-
-    this.eval = function(str) {
-        return eval(str);
-    };
-
 };
-
-//wmsx.SlotExpanded.prototype = wmsx.Slot.base;
 
 wmsx.SlotExpanded.recreateFromSaveState = function(state, previousSlot) {
     var expandedSlot = previousSlot || new wmsx.SlotExpanded();

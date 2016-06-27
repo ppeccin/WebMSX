@@ -44,9 +44,9 @@ wmsx.SlotExpanded3 = function() {
         subSlot = subSlot || wmsx.SlotEmpty.singleton;
         if (subSlots[subSlotNumber] === subSlot) return;
 
-        if (machine) subSlots[subSlotNumber].disconnect(machine);
+        subSlots[subSlotNumber].disconnect(machine);
         subSlots[subSlotNumber] = subSlot;
-        if (machine) subSlots[subSlotNumber].connect(machine);
+        subSlots[subSlotNumber].connect(machine);
 
         switch (subSlotNumber) {
             case 0: subSlot0 = subSlot; return;
@@ -156,14 +156,7 @@ wmsx.SlotExpanded3 = function() {
 
     init();
 
-
-    this.eval = function(str) {
-        return eval(str);
-    };
-
 };
-
-//wmsx.SlotExpanded3.prototype = wmsx.Slot.base;
 
 wmsx.SlotExpanded3.recreateFromSaveState = function(state, previousSlot) {
     var expandedSlot = previousSlot || new wmsx.SlotExpanded3();
