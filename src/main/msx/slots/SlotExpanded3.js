@@ -163,7 +163,7 @@ wmsx.SlotExpanded3 = function() {
 
 };
 
-wmsx.SlotExpanded3.prototype = wmsx.Slot.base;
+//wmsx.SlotExpanded3.prototype = wmsx.Slot.base;
 
 wmsx.SlotExpanded3.recreateFromSaveState = function(state, previousSlot) {
     var expandedSlot = previousSlot || new wmsx.SlotExpanded3();

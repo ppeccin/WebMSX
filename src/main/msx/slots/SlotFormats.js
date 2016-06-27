@@ -325,6 +325,7 @@ wmsx.SlotFormats = {
         name: "Kanji1",
         desc: "Kanji Font",
         priority: 1557,
+        embeddedURL: "@KANJIFONT.rom",
         priorityForRom: function (rom) {
             // 128K or 256K content. Must be selected via info format hint
             return (rom.content.length === 131072 || rom.content.length === 262144) ? this.priority : null;
