@@ -388,7 +388,7 @@ wmsx.SettingsGUI.html = function() {
                                   'Pg Up / Dn' +
                                '</div>' +
                             '</div>' +
-                            '<div class="wmsx-desc">Prev. / Next Disk</div>' +
+                            '<div class="wmsx-desc">Select Disk</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-clear"></div>' +

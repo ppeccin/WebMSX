@@ -133,7 +133,7 @@ WMSX.PRESETS_CONFIG = {
     },
 
     MSX2BASE: {
-        _INCLUDE:           "MSX1BASE, RAMMAPPER, MSXMUSIC",
+        _INCLUDE:           "BASE, RAMMAPPER, MSXMUSIC",
         MACHINE_TYPE:       2,
         MSX2:               true
     },
@@ -160,14 +160,18 @@ WMSX.PRESETS_CONFIG = {
     },
 
     MSX1BASE: {
-        _INCLUDE:           "RAM64K, DISK, NOMSXMUSIC, NOKANJI, NODOS2",
+        _INCLUDE:           "BASE, NOMSXMUSIC, NODOS2",
         MACHINE_TYPE:       1,
-        MSX2:               false,
-        KANJIBASIC:         false,
         SLOT_3_1_URL:       "@[Empty].rom"
     },
 
-    // Specific Machines Presets
+    // Base Machines Presets
+
+    BASE: {
+        _INCLUDE:           "RAM64K, DISK, NOKANJI",
+        MSX2:               false,
+        KANJIBASIC:         false
+    },
 
     EMPTY: {
         MACHINE_TYPE:       3
