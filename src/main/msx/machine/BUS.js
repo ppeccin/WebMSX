@@ -132,8 +132,8 @@ wmsx.BUS = function(machine, cpu) {
     function create() {
         // Slots
         slot0 = slot1 = slot2 = slot3 = slotEmpty;
-        slot3 = new wmsx.SlotExpanded3();   // Predefined Special Expanded Slot at 3
-        slot3.connect(machine);
+        slot2 = new wmsx.SlotExpandedSpecial();   // Predefined Special Expanded Slot at 2
+        slot2.connect(machine);
         slots = [ slot0, slot1, slot2, slot3 ];
 
         // Devices

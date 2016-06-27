@@ -35,9 +35,9 @@ wmsx.SlotFormats = {
         }
     },
 
-    "Expanded3": {
-        name: "Expanded3",
-        desc: "System Expanded Slot 3",
+    "ExpandedS": {
+        name: "ExpandedS",
+        desc: "System Expanded Slot",
         priority: 1003,
         priorityForRom: function (rom) {
             // Not Possible to load Expanded Slots
@@ -45,7 +45,7 @@ wmsx.SlotFormats = {
         },
         createFromROM: null,
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.SlotExpanded3.recreateFromSaveState(state, previousSlot);
+            return wmsx.SlotExpandedSpecial.recreateFromSaveState(state, previousSlot);
         }
     },
 

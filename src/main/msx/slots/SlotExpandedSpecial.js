@@ -3,7 +3,7 @@
 // Secondary Slot. Controls 4 subSlots. Must be used only as a PrimarySlot
 // 0x0000 - 0xffff
 
-wmsx.SlotExpanded3 = function() {
+wmsx.SlotExpandedSpecial = function() {
 "use strict";
 
     var self = this;
@@ -129,7 +129,7 @@ wmsx.SlotExpanded3 = function() {
     var subSlot0, subSlot1, subSlot2, subSlot3;
     var secondarySlotConfig = 0;
 
-    this.format = wmsx.SlotFormats.Expanded3;
+    this.format = wmsx.SlotFormats.ExpandedS;
 
 
     // Savestate  -------------------------------------------
@@ -158,8 +158,8 @@ wmsx.SlotExpanded3 = function() {
 
 };
 
-wmsx.SlotExpanded3.recreateFromSaveState = function(state, previousSlot) {
-    var expandedSlot = previousSlot || new wmsx.SlotExpanded3();
+wmsx.SlotExpandedSpecial.recreateFromSaveState = function(state, previousSlot) {
+    var expandedSlot = previousSlot || new wmsx.SlotExpandedSpecial();
     expandedSlot.loadState(state);
     return expandedSlot;
 };
