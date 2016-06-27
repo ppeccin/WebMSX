@@ -31,6 +31,11 @@ wmsx.ExtensionsSocket = function(machine) {
         return this.isActive(ext, false) || (config[ext].SLOT2 && this.isActive(ext, true));
     };
 
+    this.isValid = function(ext) {
+        var regFlag = config[ext].requireFlag;
+        return !regFlag || WMSX[regFlag];
+    };
+
     this.toggleExtension = function (ext, altPower, secSlot) {
         if (config[ext] === undefined) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return machine.showOSD("Extension change is disabled!", true, true);
@@ -83,14 +88,17 @@ wmsx.ExtensionsSocket = function(machine) {
         }
 
         // Nothing to do?
-        if (toLoadUrlSpecs.length === 0 && toRemoveSlots.length === 0) return then(false);
+        if (toLoadUrlSpecs.length === 0 && toRemoveSlots.length === 0) {
+            self.fireExtensionsAndCartridgesStateUpdate();
+            return then(false);
+        }
 
         // Remove
         for (var i = 0; i < toRemoveSlots.length; ++i) slotSocket.insert(null, toRemoveSlots[i], true);
 
         // Insert
         new wmsx.MultiDownloader(toLoadUrlSpecs,
-            function onSuccessAll() {
+            function done() {
                 self.fireExtensionsAndCartridgesStateUpdate();
                 then(true);
             }

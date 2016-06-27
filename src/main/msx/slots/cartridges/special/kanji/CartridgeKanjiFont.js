@@ -52,6 +52,13 @@ wmsx.CartridgeKanjiFont = function(rom) {
         readAddress1 = readAddress2 = 0;
     };
 
+    this.read = function(address) {
+        return 0xff;
+    };
+
+    this.write = function(address, value) {
+    };
+
     this.outputD8 = function (val) {
         charToRead1 = (charToRead1 & 0xfc0) | (val & 0x3f);
         readAddress1 = charToRead1 << 5;

@@ -690,8 +690,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         var menu = settingsButton.wmsxMenu;
         for (var i = 0; i < menu.length; ++i) {
             var opt = menu[i];
-            if (opt.extension) opt.checked = extensionsSocket.isActiveAnySlot(opt.extension);
-            else if (opt.machine) opt.checked = machineTypeSocket.isActive(opt.machine);
+            if (opt.extension) {
+                opt.hidden = !extensionsSocket.isValid(opt.extension);
+                opt.checked = extensionsSocket.isActiveAnySlot(opt.extension);
+            }
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
@@ -944,27 +946,32 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (menu[op].label !== undefined) {
                 item = barMenu.wmsxItems[it];
                 item.firstChild.textContent = menu[op].label;
-                item.style.display = "block";
                 item.wmsxMenuOption = menu[op];
 
-                // Disabled ?
-                if (menu[op].disabled) item.classList.add("wmsx-bar-menu-item-disabled");
-                else item.classList.remove("wmsx-bar-menu-item-disabled");
-
-                // Divider?
-                if (menu[op].divider) item.classList.add("wmsx-bar-menu-item-divider");
-                else item.classList.remove("wmsx-bar-menu-item-divider");
-
-                // Toggle option?
-                if (menu[op].toggle !== undefined) {
-                    item.classList.add("wmsx-bar-menu-item-toggle");
-                    if (menu[op].checked) item.classList.add("wmsx-bar-menu-item-toggle-checked");
-                    else item.classList.remove("wmsx-bar-menu-item-toggle-checked");
+                if (menu[op].hidden) {
+                    item.style.display = "none";
                 } else {
-                    item.classList.remove("wmsx-bar-menu-item-toggle");
-                }
+                    item.style.display = "block";
 
-                height += menu[op].divider ? 3 : BAR_MENU_ITEM_HEIGHT;
+                    // Disabled ?
+                    if (menu[op].disabled) item.classList.add("wmsx-bar-menu-item-disabled");
+                    else item.classList.remove("wmsx-bar-menu-item-disabled");
+
+                    // Divider?
+                    if (menu[op].divider) item.classList.add("wmsx-bar-menu-item-divider");
+                    else item.classList.remove("wmsx-bar-menu-item-divider");
+
+                    // Toggle option?
+                    if (menu[op].toggle !== undefined) {
+                        item.classList.add("wmsx-bar-menu-item-toggle");
+                        if (menu[op].checked) item.classList.add("wmsx-bar-menu-item-toggle-checked");
+                        else item.classList.remove("wmsx-bar-menu-item-toggle-checked");
+                    } else {
+                        item.classList.remove("wmsx-bar-menu-item-toggle");
+                    }
+
+                    height += menu[op].divider ? 3 : BAR_MENU_ITEM_HEIGHT;
+                }
 
                 ++it;
             }
