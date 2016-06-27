@@ -35,6 +35,20 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Expanded3": {
+        name: "Expanded3",
+        desc: "System Expanded Slot 3",
+        priority: 1003,
+        priorityForRom: function (rom) {
+            // Not Possible to load Expanded Slots
+            return null;
+        },
+        createFromROM: null,
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotExpanded3.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "BIOS": {
         name: "BIOS",
         desc: "Main BIOS",

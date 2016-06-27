@@ -26,30 +26,53 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.insertSlot = function(slot, slotNumber) {
+        slot = slot || slotEmpty;
         if (slots[slotNumber] === slot) return;
 
         slots[slotNumber].disconnect(machine);
-        slots[slotNumber] = slot || slotEmpty;
+        slots[slotNumber] = slot;
         slots[slotNumber].connect(machine);
-        this.setPrimarySlotConfig(primarySlotConfig);
+
+        switch (slotNumber) {
+            case 0: slot0 = slot; return;
+            case 1: slot1 = slot; return;
+            case 2: slot2 = slot; return;
+            case 3: slot3 = slot; return;
+        }
     };
 
     this.getSlot = function(slotNumber) {
         return slots[slotNumber];
     };
 
-    this.getSlotForAddress = function(address) {
-        return slotPages[address >>> 14];
-    };
+    function getSlotForAddress(address) {
+        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
+            case 0: return slot0;
+            case 1: return slot1;
+            case 2: return slot2;
+            case 3: return slot3;
+        }
+    }
+    this.getSlotForAddress = getSlotForAddress;
 
     this.read = function(address) {
         // Get correct slot
-        return slotPages[address >>> 14].read(address);
+        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
+            case 0: return slot0.read(address);
+            case 1: return slot1.read(address);
+            case 2: return slot2.read(address);
+            case 3: return slot3.read(address);
+        }
     };
 
     this.write = function(address, val) {
         // Get correct slot
-        slotPages[address >>> 14].write(address, val);
+        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
+            case 0: slot0.write(address, val); return;
+            case 1: slot1.write(address, val); return;
+            case 2: slot2.write(address, val); return;
+            case 3: slot3.write(address, val); return;
+        }
     };
 
     this.input = function(port) {
@@ -65,10 +88,6 @@ wmsx.BUS = function(machine, cpu) {
     this.setPrimarySlotConfig = function(val) {
         //wmsx.Util.log("PrimarySlot Select: " + val.toString(16));
         primarySlotConfig = val;
-        slotPages[0] = slots[val & 0x03];
-        slotPages[1] = slots[(val >>> 2) & 0x03];
-        slotPages[2] = slots[(val >>> 4) & 0x03];
-        slotPages[3] = slots[(val >>> 6)];
     };
 
     this.getPrimarySlotConfig = function() {
@@ -78,12 +97,12 @@ wmsx.BUS = function(machine, cpu) {
 
     this.cpuExtensionBegin = function(s) {
         // Receive all CPU Extensions and pass to slot at instruction
-        return slotPages[s.extPC >>> 14].cpuExtensionBegin(s);
+        return getSlotForAddress(s.extPC).cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
         // Receive all CPU Extensions and pass to slot at instruction
-        return slotPages[s.extPC >>> 14].cpuExtensionFinish(s);
+        return getSlotForAddress(s.extPC).cpuExtensionFinish(s);
     };
 
     this.connectInputDevice = function(port, handler) {
@@ -112,8 +131,10 @@ wmsx.BUS = function(machine, cpu) {
 
     function create() {
         // Slots
-        slots =     [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
-        slotPages = [ slotEmpty, slotEmpty, slotEmpty, slotEmpty ];
+        slot0 = slot1 = slot2 = slotEmpty;
+        slot3 = new wmsx.SlotExpanded3();    // Predefined Special Expanded Slot at 3
+        slot3.connect(machine);
+        slots = [ slot0, slot1, slot2, slot3 ];
 
         // Devices
         devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceInputMissing);
@@ -124,13 +145,12 @@ wmsx.BUS = function(machine, cpu) {
 
         // Debug
         self.slots = slots;
-        self.slotPages = slotPages;
         self.devicesInputPorts = devicesInputPorts;
         self.devicesOutputPorts = devicesOutputPorts;
     }
 
     var slots;
-    var slotPages;
+    var slot0, slot1, slot2, slot3;
     var primarySlotConfig = 0;
 
     var slotEmpty = wmsx.SlotEmpty.singleton;
@@ -146,18 +166,18 @@ wmsx.BUS = function(machine, cpu) {
     this.saveState = function() {
         return {
             p: primarySlotConfig,
-            s0: slots[0].saveState(),
-            s1: slots[1].saveState(),
-            s2: slots[2].saveState(),
-            s3: slots[3].saveState()
+            s0: slot0.saveState(),
+            s1: slot1.saveState(),
+            s2: slot2.saveState(),
+            s3: slot3.saveState()
         };
     };
 
     this.loadState = function(s) {
-        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s0, slots[0]), 0);
-        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, slots[1]), 1);
-        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, slots[2]), 2);
-        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, slots[3]), 3);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s0, slot0), 0);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, slot1), 1);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, slot2), 2);
+        this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, slot3), 3);
         this.setPrimarySlotConfig(s.p);
     };
 

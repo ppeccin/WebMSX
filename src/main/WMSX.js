@@ -43,7 +43,7 @@ WMSX = {
     BIOS_SLOT:                      [0],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
-    EXPANSION_SLOTS:                [[2, 1], [2, 2]],
+    EXPANSION_SLOTS:                [[2, 2], [2, 3]],
     RAMMAPPER_SIZE:                 256,
 
     ALLOW_URL_PARAMETERS:           false                       // Allows user to override any of these parameters via URL query parameters
@@ -68,7 +68,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3, 0],          format: "RAMMapper",     mutual: "RAM64K" },
     RAM64K:                     {                        SLOT: [3, 0],          format: "RAM64K",        mutual: "RAMMAPPER" },
     MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [3, 3],          format: "MSXMUSIC" },
-    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [2, 2],          format: "DOS2",          require: "RAMMAPPER, DISK" },
+    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [2, 3],          format: "DOS2",          require: "RAMMAPPER, DISK" },
     SCC:                        { desc: "Konami SCC",    SLOT: [1], SLOT2: [2], format: "SCCExpansion",  remove: "SCCI, PAC" },
     SCCI:                       { desc: "Konami SCC-I",  SLOT: [1], SLOT2: [2], format: "SCCIExpansion", remove: "SCC, PAC" },
     PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2], format: "PACExpansion",  remove: "SCC, SCCI" }
@@ -103,7 +103,7 @@ WMSX.PRESETS_CONFIG = {
     MSX2PBASE: {
         _INCLUDE:           "MSX2BASE",
         MACHINE_TYPE:       3,
-        SLOT_2_3_URL:       "@KANJIFONT.rom"
+        SLOT_2_1_URL:       "@KANJIFONT.rom"
     },
 
     // MSX2 Machine Presets
@@ -128,7 +128,7 @@ WMSX.PRESETS_CONFIG = {
         MACHINE:            "MSX2J",
         SLOT_0_URL:         "@MSX2_JAP.bios",
         SLOT_3_1_URL:       "@MSX2EXT_JAP.bios, @MSXKANJI.bios",
-        SLOT_2_3_URL:       "@KANJIFONT.rom"
+        SLOT_2_1_URL:       "@KANJIFONT.rom"
     },
 
     MSX2BASE: {
