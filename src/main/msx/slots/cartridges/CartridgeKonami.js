@@ -35,18 +35,13 @@ wmsx.CartridgeKonami = function(rom) {
     };
 
     this.read = function(address) {
-        if (address < 0x4000)
-            return 0xff;
-        else if (address < 0x6000)
-            return bytes[bank1Offset + address];
-        else if (address < 0x8000)
-            return bytes[bank2Offset + address];
-        else if (address < 0xa000)
-            return bytes[bank3Offset + address];
-        else if (address < 0xc000)
-            return bytes[bank4Offset + address];
-        else
-            return 0xff;
+        switch (address & 0xe000) {
+            case 0x4000: return bytes[bank1Offset + address];
+            case 0x6000: return bytes[bank2Offset + address];
+            case 0x8000: return bytes[bank3Offset + address];
+            case 0xa000: return bytes[bank4Offset + address];
+            default:     return 0xff;
+        }
     };
 
 

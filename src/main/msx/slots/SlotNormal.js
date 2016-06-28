@@ -65,12 +65,9 @@ wmsx.SlotNormal = function(rom) {
 
 
     this.read = function(address) {
-        if (address < baseAddress)
-            return 0xff;
-        if (address < topAddress)
+        if (address >= baseAddress && address < topAddress)
             return bytes[address - baseAddress];
-        else
-            return 0xff;
+        return 0xff;
     };
 
 

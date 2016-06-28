@@ -39,8 +39,7 @@ wmsx.CartridgeDOS2 = function(rom) {
     this.read = function(address) {
         if (address >= 0x4000 && address < 0x8000)      // page 1 only
             return bytes[bankOffset + address];
-        else
-            return 0xff;
+        return 0xff;
     };
 
 

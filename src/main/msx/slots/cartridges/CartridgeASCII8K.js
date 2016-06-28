@@ -25,29 +25,32 @@ wmsx.CartridgeASCII8K = function(rom) {
     };
 
     this.write = function(address, value) {
-        if (address >= 0x6000 && address < 0x6800)
+        if (address < 0x6000)
+            return;
+        if (address < 0x6800) {
             bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
-        else if (address >= 0x6800 && address < 0x7000)
+            return;
+        }
+        if (address < 0x7000) {
             bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
-        else if (address >= 0x7000 && address < 0x7800)
+            return;
+        }
+        if (address < 0x7800) {
             bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
-        else if (address >= 0x7800 && address < 0x8000)
+            return;
+        }
+        if (address < 0x8000)
             bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
     };
 
     this.read = function(address) {
-        if (address < 0x4000)
-            return 0xff;
-        else if (address < 0x6000)
-            return bytes[bank1Offset + address];
-        else if (address < 0x8000)
-            return bytes[bank2Offset + address];
-        else if (address < 0xa000)
-            return bytes[bank3Offset + address];
-        else if (address < 0xc000)
-            return bytes[bank4Offset + address];
-        else
-            return 0xff;
+        switch (address & 0xe000) {
+            case 0x4000: return bytes[bank1Offset + address];
+            case 0x6000: return bytes[bank2Offset + address];
+            case 0x8000: return bytes[bank3Offset + address];
+            case 0xa000: return bytes[bank4Offset + address];
+            default:     return 0xff;
+        }
     };
 
 

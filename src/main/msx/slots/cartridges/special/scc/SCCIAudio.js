@@ -107,27 +107,28 @@ wmsx.SCCIAudio = function() {
             channelSamples[(address >>> 5)][address & 0x1f] = value < 128 ? value : -256 + value;
             // If writing to channel 4, also put the same sample to channel 5
             if ((address >>> 5) === 3) channel5Samples[address & 0x1f] = value < 128 ? value : -256 + value;
-        } else if (address < 0xa0) {
+            return;
+        }
+        if (address < 0xa0) {
             address &= 0xef;
             if (address < 0x8a) {                           // Frequency access
                 setPeriod((address - 0x80) >>> 1, value, address & 0x01);
-            } else if (address < 0x8f) {                    // Volume access
-                setAmplitude(address - 0x8a, value & 0x0f);
-            } else {                                        // Mixer access
-                setMixer(value);
+                return;
             }
-        } else if (address < 0xe0) {                        // No function
-        } else {                                            // Test register, not implemented
+            if (address < 0x8f) {                           // Volume access
+                setAmplitude(address - 0x8a, value & 0x0f);
+                return;
+            }
+            setMixer(value);                                // Mixer access
         }
-    }
+    }                                                       // Test register not implemented
 
     function readSCC(address) {
         address &= 0xff;
         if (address < 0x80)                                // Wavetable access
             return channelSamples[address >>> 5][address & 0x1f];
         // All other registers always return 0xff
-        else
-            return 0xff;
+        return 0xff;
     }
 
     function writeSCCI(address, value) {
@@ -135,27 +136,28 @@ wmsx.SCCIAudio = function() {
         address &= 0xff;
         if (address < 0xa0) {                               // Wavetable access
             channelSamples[address >>> 5][address & 0x1f] = value < 128 ? value : -256 + value;
-        } else if (address < 0xc0) {
+            return;
+        }
+        if (address < 0xc0) {
             address &= 0xef;
             if (address < 0xaa) {                           // Frequency access
                 setPeriod((address - 0xa0) >>> 1, value, address & 0x01);
-            } else if (address < 0xaf) {                    // Volume access
-                setAmplitude(address - 0xaa, value & 0x0f);
-            } else {                                        // Mixer access
-                setMixer(value);
+                return;
             }
-        } else if (address < 0xe0) {                        // Test register, not implemented
-        } else {                                            // No function
+            if (address < 0xaf) {                           // Volume access
+                setAmplitude(address - 0xaa, value & 0x0f);
+                return;
+            }
+            setMixer(value);                                // Mixer access
         }
-    }
+    }                                                       // Test register not implemented
 
     function readSCCI(address) {
         address &= 0xff;
         if (address < 0xa0)                                // Wavetable access
             return channelSamples[address >>> 5][address & 0x1f];
         // All other registers always return 0xff
-        else
-            return 0xff;
+        return 0xff;
     }
 
     function setAmplitude(channel, amplitude) {

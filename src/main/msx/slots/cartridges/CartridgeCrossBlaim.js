@@ -30,12 +30,11 @@ wmsx.CartridgeCrossBlaim = function(rom) {
     this.read = function(address) {
         if (address < 0x4000)
             return 0xff;
-        else if (address < 0x8000)
+        if (address < 0x8000)
             return bytes[address - 0x4000];         // bank1 (at 0x4000) is fixed at position 0
-        else if (address < 0xc000)
+        if (address < 0xc000)
             return bytes[bank2Offset + address];
-        else
-            return 0xff;
+        return 0xff;
     };
 
 

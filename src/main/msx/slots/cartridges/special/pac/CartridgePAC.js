@@ -47,19 +47,18 @@ wmsx.CartridgePAC = function(rom) {
         if (address === 0x5ffe || address === 0x5fff) {
             sram[address - 0x4000] = value;
             sramActive = sram[0x1ffe] === 0x4d && sram[0x1fff] === 0x69;
+            return;
         }
         // SRAM write
-        else if (sramActive && address >= 0x4000 && address <= 0x5ffd) {
+        if (sramActive && address >= 0x4000 && address <= 0x5ffd)
             sram[address - 0x4000] = value;
-        }
     };
 
     this.read = function(address) {
         // SRAM read
         if (sramActive && address >= 0x4000 && address <= 0x5fff)
             return sram[address - 0x4000];
-        else
-            return 0xff;
+        return 0xff;
     };
 
     function loadSRAM(name, content) {

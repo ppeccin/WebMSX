@@ -13,7 +13,7 @@ wmsx.SlotRAMMapper = function(rom) {
         var newSize = VALID_SIZES[i];
         bytes = new Array(newSize * 1024);
         self.bytes = bytes;
-        pageMask = (bytes.length >>> 14) - 1;
+        pageMask = (bytes.length >> 14) - 1;
     }
 
     this.connect = function(machine) {
@@ -44,39 +44,53 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.reset = function() {
-        wmsx.Util.arrayFill(pageOffsets, 0);
+        page0Offset = page1Offset = page2Offset = page3Offset = 0;
     };
 
     this.outputFC = function(val) {
-        pageOffsets[0] = (val & pageMask) << 14;
+        page0Offset = (val & pageMask) << 14;
     };
     this.outputFD = function(val) {
-        pageOffsets[1] = ((val & pageMask) << 14) - 0x4000;
+        page1Offset = ((val & pageMask) << 14) - 0x4000;
     };
     this.outputFE = function(val) {
-        pageOffsets[2] = ((val & pageMask) << 14) - 0x8000;
+        page2Offset = ((val & pageMask) << 14) - 0x8000;
     };
     this.outputFF = function(val) {
-        pageOffsets[3] = ((val & pageMask) << 14) - 0xc000;
+        page3Offset = ((val & pageMask) << 14) - 0xc000;
     };
 
     this.inputAll = function(port) {
-        var page = (port & 255) - 0xfc;
-        return (pageOffsets[page] + (page << 14)) >>> 14;
+        switch (port & 255) {
+            case 0xfc: return page0Offset >> 14;
+            case 0xfd: return (page1Offset + 0x4000) >> 14;
+            case 0xfe: return (page2Offset + 0x8000) >> 14;
+            case 0xff: return (page3Offset + 0xc000) >> 14;
+        }
     };
 
     this.read = function(address) {
         //wmsx.Util.log ("RAM Mapper read: " + address.toString(16) + ", " + bytes[address].toString(16));
-        return bytes[address + pageOffsets[address >>> 14]];
+        switch (address & 0xc000) {
+            case 0x0000: return bytes[address + page0Offset];
+            case 0x4000: return bytes[address + page1Offset];
+            case 0x8000: return bytes[address + page2Offset];
+            case 0xc000: return bytes[address + page3Offset];
+        }
     };
 
     this.write = function(address, value) {
         //wmsx.Util.log ("RAM Mapper write: " + address.toString(16) + ", " + value.toString(16));
-        bytes[address + pageOffsets[address >>> 14]] = value;
+        switch (address & 0xc000) {
+            case 0x0000: bytes[address + page0Offset] = value; return;
+            case 0x4000: bytes[address + page1Offset] = value; return;
+            case 0x8000: bytes[address + page2Offset] = value; return;
+            case 0xc000: bytes[address + page3Offset] = value; return;
+        }
     };
 
 
-    var pageOffsets = [ 0, 0, 0, 0 ];
+    var page0Offset, page1Offset, page2Offset, page3Offset;
     var pageMask = 0;
 
     var bytes;
@@ -94,7 +108,7 @@ wmsx.SlotRAMMapper = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            p0: pageOffsets[0], p1: pageOffsets[1], p2: pageOffsets[2], p3: pageOffsets[3]
+            p0: page0Offset, p1: page1Offset, p2: page2Offset, p3: page3Offset
         };
     };
 
@@ -102,8 +116,8 @@ wmsx.SlotRAMMapper = function(rom) {
         this.rom = wmsx.ROM.loadState(state.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
-        pageMask = ((bytes.length / 16384) | 0) - 1;
-        pageOffsets[0] = state.p0; pageOffsets[1] = state.p1; pageOffsets[2] = state.p2; pageOffsets[3] = state.p3;
+        pageMask = (bytes.length >> 14) - 1;
+        page0Offset = state.p0; page1Offset = state.p1; page2Offset = state.p2; page3Offset = state.p3;
     };
 
 

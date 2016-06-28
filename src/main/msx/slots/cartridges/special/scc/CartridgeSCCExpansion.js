@@ -43,8 +43,7 @@ wmsx.CartridgeSCCExpansion = function(rom) {
     this.read = function(address) {
         if (sccSelected && address >= 0x9800 && address <= 0x9fff)
             return scc.read(address);
-        else
-            return 0xff;
+        return 0xff;
     };
 
     function connectSCC() {

@@ -41,38 +41,47 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.write = function(address, value) {
-        if (address >= 0x5000 && address <= 0x57ff)
+        if (address >= 0x5000 && address <= 0x57ff) {
             bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
-        else if (address >= 0x7000 && address <= 0x77ff)
+            return;
+        }
+        if (address >= 0x7000 && address <= 0x77ff) {
             bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
-        else if (address >= 0x9000 && address <= 0x97ff) {
+            return;
+        }
+        if (address >= 0x9000 && address <= 0x97ff) {
             bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
             if ((value & 0x3f) === 0x3f) {                           // Special value to activate the SCC
                 sccSelected = true;
                 if (!sccConnected) connectSCC();
             } else
                 sccSelected = false;
-        } else if(sccSelected && address >= 0x9800 && address <= 0x9fff)
+            return;
+        }
+        if(sccSelected && address >= 0x9800 && address <= 0x9fff) {
             scc.write(address, value);
-        else if (address >= 0xb000 && address <= 0xb7ff)
+            return;
+        }
+        if (address >= 0xb000 && address <= 0xb7ff)
             bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
     };
 
     this.read = function(address) {
-        if (address < 0x4000)
-            return 0xff;
-        else if (address < 0x6000)
-            return bytes[bank1Offset + address];
-        else if (address < 0x8000)
-            return bytes[bank2Offset + address];
-        else if (address < 0x9800)
-            return bytes[bank3Offset + address];
-        else if (address < 0xa000)
-            return sccSelected ? scc.read(address) : bytes[bank3Offset + address];
-        else if (address < 0xc000)
-            return bytes[bank4Offset + address];
-        else
-            return 0xff;
+        switch (address & 0xe000) {
+            case 0x4000:
+                return bytes[bank1Offset + address];
+            case 0x6000:
+                return  bytes[bank2Offset + address];
+            case 0x8000:
+                if (address >= 0x9800)
+                    return sccSelected ? scc.read(address) : bytes[bank3Offset + address];
+                else
+                    return bytes[bank3Offset + address];
+            case 0xa000:
+                return bytes[bank4Offset + address];
+            default:
+                return 0xff;
+        }
     };
 
     function connectSCC() {

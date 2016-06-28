@@ -60,20 +60,26 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         // wmsx.Util.log("Write: " + wmsx.Util.toHex4(address) + ', ' + value);
 
         // Mode Register
-        if (address === 0xbffe || address === 0xbfff)
-            return setMode(value);
+        if (address === 0xbffe || address === 0xbfff) {
+            setMode(value);
+            return
+        }
 
         if (address >= 0x4000 && address <= 0x5fff) {                // Bank 1 access
             if (bank1RamMode)
                 bytes[bank1Offset + address] = value;
             else if (address >= 0x5000 && address <= 0x57ff)
                 bank1Offset = (value & 0x0f) * 0x2000 - 0x4000;
-        } else if (address >= 0x6000 && address <= 0x7fff) {         // Bank 2 access
+            return;
+        }
+        if (address >= 0x6000 && address <= 0x7fff) {                // Bank 2 access
             if (bank2RamMode)
                 bytes[bank2Offset + address] = value;
             else if (address >= 0x7000 && address <= 0x77ff)
                 bank2Offset = (value & 0x0f) * 0x2000 - 0x6000;
-        } else if (address >= 0x8000 && address <= 0x9fff) {         // Bank 3 access
+            return;
+        }
+        if (address >= 0x8000 && address <= 0x9fff) {                // Bank 3 access
             if (bank3RamMode)
                 bytes[bank3Offset + address] = value;
             else if (address >= 0x9000 && address <= 0x97ff) {
@@ -82,7 +88,9 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
                 if (sccSelected && !sccConnected) connectSCC();
             } else if ((address >= 0x9800) && sccSelected && !scciMode)
                 scc.write(address, value);
-        } else if (address >= 0xa000 && address <= 0xbfff) {         // Bank 4 access
+            return;
+        }
+        if (address >= 0xa000 && address <= 0xbfff) {                // Bank 4 access
             if (bank4RamMode)
                 bytes[bank4Offset + address] = value;
             else if (address >= 0xb000 && address <= 0xb7ff) {
@@ -96,23 +104,24 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     this.read = function(address) {
         // wmsx.Util.log("Read: " + wmsx.Util.toHex4(address));
-
-        if (address < 0x4000)
-            return 0xff;
-        else if (address < 0x6000)
-            return bytes[bank1Offset + address];
-        else if (address < 0x8000)
-            return bytes[bank2Offset + address];
-        else if (address < 0x9800)
-            return bytes[bank3Offset + address];
-        else if (address < 0xa000)
-            return (sccSelected && !scciMode) ? scc.read(address) : bytes[bank3Offset + address];
-        else if (address < 0xb800)
-            return bytes[bank4Offset + address];
-        else if (address < 0xc000)
-            return (scciSelected && scciMode) ? scc.read(address) : bytes[bank4Offset + address];
-        else
-            return 0xff;
+        switch (address & 0xe000) {
+            case 0x4000:
+                return bytes[bank1Offset + address];
+            case 0x6000:
+                return bytes[bank2Offset + address];
+            case 0x8000:
+                if (address >= 0x9800)
+                    return (sccSelected && !scciMode) ? scc.read(address) : bytes[bank3Offset + address];
+                else
+                    return bytes[bank3Offset + address];
+            case 0xa000:
+                if (address >= 0xb800)
+                    return (scciSelected && scciMode) ? scc.read(address) : bytes[bank4Offset + address];
+                else
+                    return bytes[bank4Offset + address];
+            default:
+                return 0xff;
+        }
     };
 
     function setMode(pMode) {

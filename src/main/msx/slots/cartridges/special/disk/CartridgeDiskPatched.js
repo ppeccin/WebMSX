@@ -31,12 +31,9 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     };
 
     this.read = function(address) {
-        if (address < 0x4000)
-            return 0xff;
-        else if (address < 0x8100)
+        if (address >= 0x4000 && address < 0x8100)
             return bytes[address - 0x4000];
-        else
-            return 0xff;
+        return 0xff;
     };
 
     this.cpuExtensionBegin = function(s) {

@@ -32,12 +32,11 @@ wmsx.CartridgeRType = function(rom) {
     this.read = function(address) {
         if (address < 0x4000)
             return 0xff;
-        else if (address < 0x8000)
+        if (address < 0x8000)
             return bytes[0x38000 + address];         // Bank 1 fixed at page 0x0f, so 0x0f * 16304 - 0x4000
-        else if (address < 0xc000)
+        if (address < 0xc000)
             return bytes[bank2Offset + address];
-        else
-            return 0xff;
+        return 0xff;
     };
 
 

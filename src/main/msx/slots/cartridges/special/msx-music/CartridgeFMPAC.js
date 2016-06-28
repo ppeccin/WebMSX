@@ -61,28 +61,29 @@ wmsx.CartridgeFMPAC = function(rom) {
     };
 
     this.write = function(address, value) {
-        // FM port write
-        if (address === 0x7ff4)
-            fm.output7C(value);
-        else if (address === 0x7ff5)
-            fm.output7D(value);
-        // FM enable/disable
-        else if (address === 0x7ff6) {
-            fmEnable = value & 0x11;
-            updateFMEnable();
+        switch (address) {
+            case 0x7ff4:                                            // FM port writes
+                fm.output7C(value);
+                break;
+            case 0x7ff5:
+                fm.output7D(value);
+                break;
+            case 0x7ff6:                                            // FM enable/disable
+                fmEnable = value & 0x11;
+                updateFMEnable();
+                break;
+            case 0x7ff7:                                            // ROM bank switch
+                bankOffset = ((value & 0x03) << 14) - 0x4000;
+                break;
+            case 0x5ffe:
+            case 0x5fff:                                            // SRAM enable/disable
+                sram[address - 0x4000] = value;
+                sramActive = sram[0x1ffe] === 0x4d && sram[0x1fff] === 0x69;
         }
-        // ROM bank switch
-        else if (address === 0x7ff7)
-            bankOffset = ((value & 0x03) << 14) - 0x4000;
-        // SRAM enable/disable
-        else if (address === 0x5ffe || address === 0x5fff) {
-            sram[address - 0x4000] = value;
-            sramActive = sram[0x1ffe] === 0x4d && sram[0x1fff] === 0x69;
-        }
+
         // SRAM write
-        else if (sramActive && address >= 0x4000 && address <= 0x5ffd) {
+        if (sramActive && address >= 0x4000 && address <= 0x5ffd)
             sram[address - 0x4000] = value;
-        }
     };
 
     this.read = function(address) {
@@ -90,20 +91,19 @@ wmsx.CartridgeFMPAC = function(rom) {
         if (address === 0x7ff6)
             return fmEnable;
         // ROM bank read
-        else if (address === 0x7ff7)
+        if (address === 0x7ff7)
             return (bankOffset + 0x4000) >> 14;
         // SRAM read
-        else if (sramActive) {
+        if (sramActive) {
             if (address >= 0x4000 && address <= 0x5fff)
                 return sram[address - 0x4000];
-            else
-                return 0xff;
+            return 0xff;
+        }
         // ROM read
-        } else if (address >= 0x4000 && address < 0x8000)
+        if (address >= 0x4000 && address < 0x8000)
             return bytes[bankOffset + address];
         // Empty read
-        else
-            return 0xff;
+        return 0xff;
     };
 
     function updateFMEnable() {

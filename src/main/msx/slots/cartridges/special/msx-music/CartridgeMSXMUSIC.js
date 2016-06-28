@@ -40,8 +40,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     this.read = function(address) {
         if (address >= 0x4000 && address < 0x8000)      // page 1 only
             return bytes[address - 0x4000];
-        else
-            return 0xff;
+        return 0xff;
     };
 
 
