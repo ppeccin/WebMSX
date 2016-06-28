@@ -123,6 +123,10 @@ wmsx.SlotRAMMapper = function(rom) {
 
     if (rom) init(this);
 
+    this.eval = function(str) {
+        return eval(str);
+    };
+
 };
 
 wmsx.SlotRAMMapper.prototype = wmsx.Slot.base;

@@ -13,7 +13,7 @@ wmsx.VDPCommandProcessor = function() {
     };
 
     this.reset = function() {
-        finish();
+        STOP();
     };
 
     this.startCommand = function(val) {
@@ -54,23 +54,28 @@ wmsx.VDPCommandProcessor = function() {
 
     this.cpuWrite = function(val) {
         if (writeHandler) writeHandler(val);
+        else {
+            writeReady = true;
+            TR = 0;
+        }
 
         //else console.log("Write UNHANDLED: " + val.toString(16));
     };
 
     this.cpuRead = function() {
         if (readHandler) readHandler();
+        else TR = 0;
 
         //else console.log("Read UNHANDLED");
     };
 
     this.updateStatus = function() {
-        if (inProgress & finishingCycle > 0) {
+        if (CE & finishingCycle > 0) {
             var cycles = vdp.updateCycles();
             if (cycles >= finishingCycle) finish();
         }
 
-        status[2] = (status[2] & ~0x81) | (transferReady << 7) | inProgress;
+        status[2] = (status[2] & ~0x81) | (TR << 7) | CE;
     };
 
     this.setVDPModeData = function(pModeData) {
@@ -187,7 +192,6 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function HMMCNextWrite(co) {
-
         //console.log("HMMC Write CX: " + CX + ", CY: " + CY + ", CO: " + co.toString(16));
 
         vram[destPos & VRAM_LIMIT] = co;
@@ -196,7 +200,10 @@ wmsx.VDPCommandProcessor = function() {
         if (CX >= NX) {
             destPos -= DIX * (NX - 1);
             CX = 0; CY = CY + 1;
-            if (CY >= ENY) finish();
+            if (CY >= ENY) {
+                finish();
+                TR = 0;
+            }
             else destPos += DIY * layoutLineBytes;
         } else {
             destPos += DIX;
@@ -370,7 +377,6 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function LMMCNextWrite(co) {
-
         //console.log("LMMC Write CX: " + CX + ", CY: " + CY);
 
         logicalPSET(DX, DY, co, LOP);
@@ -379,7 +385,10 @@ wmsx.VDPCommandProcessor = function() {
         if (CX >= NX) {
             DX -= DIX * (NX - 1);
             CX = 0; CY = CY + 1; DY += DIY;
-            if (CY >= ENY) finish();
+            if (CY >= ENY) {
+                finish();
+                TR = 0;
+            }
         } else {
             DX += DIX;
         }
@@ -654,6 +663,7 @@ wmsx.VDPCommandProcessor = function() {
         //console.log("STOP: " + writeHandler);
 
         finish();
+        TR = 0;
     }
 
     function normalPGET(x, y) {
@@ -760,8 +770,7 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
-        inProgress = true;
-        transferReady = false;
+        CE = 1;
         writeHandler = null;
         readHandler = null;
         estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite);
@@ -783,10 +792,13 @@ wmsx.VDPCommandProcessor = function() {
 
         CX = 0; CY = 0;
         writeHandler = handler;
-        transferReady = true;
+        TR = 1;
 
-        // Perform first iteration with current data
-        writeHandler(getCLR());
+        // Perform first iteration with last written data, only if available
+        if (writeReady) {
+            writeHandler(getCLR());
+            writeReady = false;
+        }
     }
 
     function readStart(handler) {
@@ -794,16 +806,16 @@ wmsx.VDPCommandProcessor = function() {
 
         CX = 0; CY = 0;
         readHandler = handler;
-        transferReady = true;
+        TR = 1;
 
         // Perform first iteration
         readHandler();
     }
 
     function finish() {
-        inProgress = false;
-        transferReady = false;
+        CE = 0;
         writeHandler = null;
+        writeReady = false;
         readHandler = null;
         finishingCycle = -1;
         register[46] &= ~0xf0;
@@ -820,8 +832,9 @@ wmsx.VDPCommandProcessor = function() {
     // Main VDP connections
     var vdp, vram, register, status;
 
-    var inProgress = false, transferReady = false, writeHandler = null, readHandler = null, finishingCycle = 0;
+    var CE = false, TR = false;
     var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
+    var writeReady = false, writeHandler = null, readHandler = null, finishingCycle = 0;
 
     var modeData;
     var modePPB, modePPBShift, modePPBMask;
@@ -833,16 +846,16 @@ wmsx.VDPCommandProcessor = function() {
 
     this.saveState = function() {
         return {
-            ip: inProgress, tr: transferReady,
-            wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
+            ce: CE, tr: TR,
+            wr: writeReady, wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
             SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
             DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP, dp: destPos
         };
     };
 
     this.loadState = function(s) {
-        inProgress = s.ip; transferReady = s.tr;
-        writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
+        CE = s.ce; TR = s.tr;
+        writeReady = s.wr; writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
         SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
         DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP; destPos = s.dp;
     };

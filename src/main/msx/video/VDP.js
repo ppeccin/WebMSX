@@ -134,8 +134,8 @@ wmsx.VDP = function(machine, cpu) {
                 status[3] = status[4] = status[5] = status[6] = 0;
                 break;
             case 7:
-                commandProcessor.cpuRead();
                 res = status[7];
+                commandProcessor.cpuRead();
                 break;
             case 8: case 9:
                 res = status[reg];
