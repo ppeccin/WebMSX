@@ -100,7 +100,7 @@ wmsx.CartridgeKanjiFont = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.Kanji1;
+    this.format = wmsx.SlotFormats.KanjiFont;
 
 
     // Savestate  -------------------------------------------

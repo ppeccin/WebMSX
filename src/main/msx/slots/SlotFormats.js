@@ -116,7 +116,7 @@ wmsx.SlotFormats = {
         }
     },
 
-    // Disk Interfaces
+    // Special Expansion Cartridges
 
     "DiskPatched": {
         name: "DiskPatched",
@@ -134,88 +134,6 @@ wmsx.SlotFormats = {
             return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
         }
     },
-
-    "DiskWD": {
-        name: "DiskWD",
-        desc: "WD 2793 based Disk BIOS (Patched)",
-        priority: 1302,
-        priorityForRom: function (rom) {
-            // Only DiskWD 16K content. Must be selected via info format hint
-            return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom, this);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    "DiskFujitsu": {
-        name: "DiskFujitsu",
-        desc: "Fujitsu MB8877A based Disk BIOS (Patched)",
-        priority: 1303,
-        priorityForRom: function (rom) {
-            // Only DiskFujitsu 16K content. Must be selected via info format hint
-            return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom, this);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    "DiskToshiba": {
-        name: "DiskToshiba",
-        desc: "Toshiba TC8566AF based Disk BIOS (Patched)",
-        priority: 1304,
-        priorityForRom: function (rom) {
-            // Only DiskToshiba 16K content. Must be selected via info format hint
-            return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom, this);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    "DiskMicrosol": {
-        name: "DiskMicrosol",
-        desc: "Microsol WD2793 based Disk BIOS (Patched)",
-        priority: 1305,
-        priorityForRom: function (rom) {
-            // Only DiskMicrosol 16K content. Must be selected via info format hint
-            return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom, this);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    "DiskSVI": {
-        name: "DiskSVI",
-        desc: "SVI 738 based Disk BIOS (Patched)",
-        priority: 1306,
-        priorityForRom: function (rom) {
-            // Only DiskSVI 16K content. Must be selected via info format hint
-            return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom, this);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    // Special Expansion Cartridges
 
     "SCCExpansion": {
         name: "SCCExpansion",
@@ -321,8 +239,8 @@ wmsx.SlotFormats = {
         }
     },
 
-    "Kanji1": {
-        name: "Kanji1",
+    "KanjiFont": {
+        name: "KanjiFont",
         desc: "Kanji Font",
         priority: 1557,
         embeddedURL: "@KANJIFONT.rom",
@@ -337,7 +255,6 @@ wmsx.SlotFormats = {
             return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
         }
     },
-
 
     // Common formats used in titles
 

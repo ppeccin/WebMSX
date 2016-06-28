@@ -69,7 +69,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAM64K:                     {                        SLOT: [3],                format: "RAM64K",        mutual: "RAMMAPPER" },
     MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
     DOS2:                       { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "DOS2",          require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
-    KANJI:                      { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1",        requireFlag: "KANJIBASIC" },
+    KANJI:                      { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "KanjiFont",     requireFlag: "KANJIBASIC" },
     SCC:                        { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
     SCCI:                       { desc: "Konami SCC-I",  SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
     PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2, 0], format: "PACExpansion",  remove: "SCC, SCCI" }
