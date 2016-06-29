@@ -55,7 +55,7 @@ wmsx.CompressedSystemROMsGenerator.fileList = [
     "[MSXMUSIC].rom",
     "[MSXDOS2]v22.rom",
     "[Empty].rom",
-    "[RAM64K].rom",
+    "[RAMNormal].rom",
     "[RAMMapper].rom",
     "[SCCExpansion].rom",
     "[SCCIExpansion].rom",

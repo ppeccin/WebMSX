@@ -32,7 +32,7 @@ wmsx.SlotRAM64K = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.RAM64K;
+    this.format = wmsx.SlotFormats.RAMNormal;
 
 
     // Savestate  -------------------------------------------

@@ -32,7 +32,7 @@ wmsx.CompressedSystemROMs = {
 
    "[Empty].rom": "",
 
-   "[RAM64K].rom": "",
+   "[RAMNormal].rom": "",
 
    "[RAMMapper].rom": "",
 

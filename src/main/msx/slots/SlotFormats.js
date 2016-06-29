@@ -82,11 +82,11 @@ wmsx.SlotFormats = {
         }
     },
 
-    "RAM64K": {
-        name: "RAM64K",
-        desc: "RAM 64K",
+    "RAMNormal": {
+        name: "RAMNormal",
+        desc: "Normal RAM 64K",
         priority: 1011,
-        embeddedURL: "@[RAM64K].rom",
+        embeddedURL: "@[RAMNormal].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
             return (rom.content.length === 0) ? this.priority : null;

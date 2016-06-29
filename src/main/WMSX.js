@@ -27,7 +27,7 @@ WMSX = {
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2, 0],
     EXPANSION_SLOTS:                [[3, 2], [3, 3]],
-    RAMMAPPER_SIZE:                 256,
+    RAMMAPPER_SIZE:                 512,
 
     AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
@@ -65,8 +65,8 @@ WMSX.MACHINES_CONFIG = {
 
 WMSX.EXTENSIONS_CONFIG = {
     DISK:                       { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
-    RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAM64K" },
-    RAM64K:                     {                        SLOT: [3],                format: "RAM64K",        mutual: "RAMMAPPER" },
+    RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAMNORMAL" },
+    RAMNORMAL:                  {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
     MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
     DOS2:                       { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "MSXDOS2",       require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
     KANJI:                      { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1",        requireFlag: "KANJIBASIC" },
@@ -133,7 +133,7 @@ WMSX.PRESETS_CONFIG = {
     },
 
     MSX2BASE: {
-        _INCLUDE:           "BASE, RAMMAPPER, MSXMUSIC",
+        _INCLUDE:           "BASE, RAM512, MSXMUSIC",
         MACHINE_TYPE:       2,
         MSX2:               true
     },
@@ -168,7 +168,7 @@ WMSX.PRESETS_CONFIG = {
     // Base Machines Presets
 
     BASE: {
-        _INCLUDE:           "RAM64K, DISK, NOKANJI",
+        _INCLUDE:           "RAMNormal, DISK, NOKANJI",
         MSX2:               false,
         KANJIBASIC:         false
     },
@@ -182,8 +182,8 @@ WMSX.PRESETS_CONFIG = {
     DISK:   { "EXTENSIONS.DISK": 1 },
     NODISK: { "EXTENSIONS.DISK": 0 },
 
-    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAM64K": 0 },
-    RAM64K:    { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAM64K": 1 },
+    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
+    RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
 
     MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
@@ -194,23 +194,24 @@ WMSX.PRESETS_CONFIG = {
     DOS2:   { "EXTENSIONS.DOS2":  1 },
     NODOS2: { "EXTENSIONS.DOS2":  0 },
 
-    SCC:   { "EXTENSIONS.SCC": 1 },
-    SCCS2: { "EXTENSIONS.SCC": 2 },
+    SCC:  { "EXTENSIONS.SCC": 1 },
+    SCC2: { "EXTENSIONS.SCC": 2 },
 
     SCCI:  { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
 
-    PAC:   { "EXTENSIONS.PAC": 1 },
-    PACS2: { "EXTENSIONS.PAC": 2 },
+    PAC:  { "EXTENSIONS.PAC": 1 },
+    PAC2: { "EXTENSIONS.PAC": 2 },
 
     // Configuration Helper Presets
 
-    RAM128:  { RAMMAPPER_SIZE: 128 },
-    RAM256:  { RAMMAPPER_SIZE: 256 },
-    RAM512:  { RAMMAPPER_SIZE: 512 },
-    RAM1024: { RAMMAPPER_SIZE: 1024 },
-    RAM2048: { RAMMAPPER_SIZE: 2048 },
-    RAM4096: { RAMMAPPER_SIZE: 4096 },
+    RAM64:   { _INCLUDE: "RAMNORMAL"},
+    RAM128:  { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 128 },
+    RAM256:  { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 256 },
+    RAM512:  { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 512 },
+    RAM1024: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 1024 },
+    RAM2048: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
+    RAM4096: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
 
     NOVSYNCH:     { SCREEN_VSYNCH_MODE: 0},
     VSYNCHAUTO:   { SCREEN_VSYNCH_MODE: 1},
