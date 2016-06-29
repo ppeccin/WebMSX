@@ -56,6 +56,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeSCCExpansion.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeSCCIExpansion.js",
+                    "src/main/msx/slots/cartridges/special/scc/CartridgeManbow2.js",
                     "src/main/msx/slots/cartridges/special/kanji/CartridgeKanjiFont.js",
                     "src/main/msx/audio/YM2413Tables.js",
                     "src/main/msx/audio/YM2413Audio.js",

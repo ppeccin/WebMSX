@@ -3,7 +3,7 @@
 // Behaves like the "Snatcher/SD Snatcher Sound Cartridge" upgraded to 128KB RAM
 // 128KB RAM, mapped in 4 8K banks starting at 0x4000
 // Also Accepts ROMs of 128KB or 64KB (mirrored)
-// Controls an internal SCC-I sound chip with
+// Controls an internal SCC-I sound chip (in SCC or SCC-I mode)
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeSCCIExpansion = function(rom) {
@@ -27,7 +27,6 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
                 for(i = 0, len = content.length; i < len; i++)
                     bytes[i] = content[i];
         }
-       numBanks = 16;       // Fixed
     }
 
     this.connect = function(machine) {
@@ -56,6 +55,24 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         scc.reset();
     };
 
+    this.read = function(address) {
+        // wmsx.Util.log("Read: " + wmsx.Util.toHex4(address));
+        switch (address & 0xe000) {
+            case 0x4000:
+                return bytes[bank1Offset + address];
+            case 0x6000:
+                return bytes[bank2Offset + address];
+            case 0x8000:
+                if (address >= 0x9800 && sccSelected && !scciMode) return scc.read(address);
+                else return bytes[bank3Offset + address];
+            case 0xa000:
+                if (address >= 0xb800 && scciSelected && scciMode) return scc.read(address);
+                else return bytes[bank4Offset + address];
+            default:
+                return 0xff;
+        }
+    };
+
     this.write = function(address, value) {
         // wmsx.Util.log("Write: " + wmsx.Util.toHex4(address) + ', ' + value);
 
@@ -65,62 +82,38 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             return
         }
 
-        if (address >= 0x4000 && address <= 0x5fff) {                // Bank 1 access
-            if (bank1RamMode)
-                bytes[bank1Offset + address] = value;
-            else if (address >= 0x5000 && address <= 0x57ff)
-                bank1Offset = (value & 0x0f) * 0x2000 - 0x4000;
-            return;
-        }
-        if (address >= 0x6000 && address <= 0x7fff) {                // Bank 2 access
-            if (bank2RamMode)
-                bytes[bank2Offset + address] = value;
-            else if (address >= 0x7000 && address <= 0x77ff)
-                bank2Offset = (value & 0x0f) * 0x2000 - 0x6000;
-            return;
-        }
-        if (address >= 0x8000 && address <= 0x9fff) {                // Bank 3 access
-            if (bank3RamMode)
-                bytes[bank3Offset + address] = value;
-            else if (address >= 0x9000 && address <= 0x97ff) {
-                bank3Offset = (value & 0x0f) * 0x2000 - 0x8000;
-                sccSelected = value === 0x3f;                        // Special value to activate the SCC
-                if (sccSelected && !sccConnected) connectSCC();
-            } else if ((address >= 0x9800) && sccSelected && !scciMode)
-                scc.write(address, value);
-            return;
-        }
-        if (address >= 0xa000 && address <= 0xbfff) {                // Bank 4 access
-            if (bank4RamMode)
-                bytes[bank4Offset + address] = value;
-            else if (address >= 0xb000 && address <= 0xb7ff) {
-                bank4Offset = (value & 0x0f) * 0x2000 - 0xa000;
-                scciSelected = (value & 0x80) === 0x80;              // Special value to activate the SCC-I
-                if (scciSelected && !sccConnected) connectSCC();
-            } else if ((address >= 0xb800) && scciSelected && scciMode)
-                scc.write(address, value);
-        }
-    };
-
-    this.read = function(address) {
-        // wmsx.Util.log("Read: " + wmsx.Util.toHex4(address));
         switch (address & 0xe000) {
             case 0x4000:
-                return bytes[bank1Offset + address];
+                if (bank1RamMode)
+                    bytes[bank1Offset + address] = value;
+                else if (address >= 0x5000 && address <= 0x57ff)
+                    bank1Offset = (value & 0x0f) * 0x2000 - 0x4000;
+                return;
             case 0x6000:
-                return bytes[bank2Offset + address];
+                if (bank2RamMode)
+                    bytes[bank2Offset + address] = value;
+                else if (address >= 0x7000 && address <= 0x77ff)
+                    bank2Offset = (value & 0x0f) * 0x2000 - 0x6000;
+                return;
             case 0x8000:
-                if (address >= 0x9800)
-                    return (sccSelected && !scciMode) ? scc.read(address) : bytes[bank3Offset + address];
-                else
-                    return bytes[bank3Offset + address];
+                if (bank3RamMode)
+                    bytes[bank3Offset + address] = value;
+                else if (address >= 0x9000 && address <= 0x97ff) {
+                    bank3Offset = (value & 0x0f) * 0x2000 - 0x8000;
+                    sccSelected = (value & 0x3f) === 0x3f;               // Special value to activate the SCC
+                    if (sccSelected && !sccConnected) connectSCC();
+                } else if ((address >= 0x9800) && sccSelected && !scciMode)
+                    scc.write(address, value);
+                return;
             case 0xa000:
-                if (address >= 0xb800)
-                    return (scciSelected && scciMode) ? scc.read(address) : bytes[bank4Offset + address];
-                else
-                    return bytes[bank4Offset + address];
-            default:
-                return 0xff;
+                if (bank4RamMode)
+                    bytes[bank4Offset + address] = value;
+                else if (address >= 0xb000 && address <= 0xb7ff) {
+                    bank4Offset = (value & 0x0f) * 0x2000 - 0xa000;
+                    scciSelected = (value & 0x80) === 0x80;              // Special value to activate the SCC-I
+                    if (scciSelected && !sccConnected) connectSCC();
+                } else if ((address >= 0xb800) && scciSelected && scciMode)
+                    scc.write(address, value);
         }
     };
 
@@ -151,7 +144,6 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     var bank4RamMode, bank3RamMode, bank2RamMode, bank1RamMode;
 
     var bank1Offset, bank2Offset, bank3Offset, bank4Offset;
-    var numBanks;
 
     var scc = new wmsx.SCCIAudio();
     var sccSelected, scciSelected = false;
@@ -175,7 +167,6 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             b2: bank2Offset,
             b3: bank3Offset,
             b4: bank4Offset,
-            n: numBanks,
             scc: scc.saveState(),
             scs: sccSelected,
             sis: scciSelected,
@@ -192,7 +183,6 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         bank2Offset = s.b2;
         bank3Offset = s.b3;
         bank4Offset = s.b4;
-        numBanks = s.n;
         setMode(s.m || 0);
         scc.loadState(s.scc);
         sccSelected = s.scs;

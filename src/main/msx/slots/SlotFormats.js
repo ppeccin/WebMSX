@@ -52,7 +52,7 @@ wmsx.SlotFormats = {
     "BIOS": {
         name: "BIOS",
         desc: "Main BIOS",
-        priority: 206,
+        priority: 201,
         priorityForRom: function (rom) {
             // Any 16K or 32K content starting with "F3 C3" (DI; JP) or "F3 18" (DI; JR)
             return ((rom.content.length === 16384 || rom.content.length === 32768) && rom.content[0x0000] === 0xF3
@@ -69,7 +69,7 @@ wmsx.SlotFormats = {
     "MSX2BIOSExt": {
         name: "MSX2BIOSExt",
         desc: "MSX2/2+ BIOS Extension",
-        priority: 207,
+        priority: 202,
         priorityForRom: function (rom) {
             // Any multiple of 16K content starting with the BIOS Extension identifier "CD"
             return (rom.content.length ^ 16384 === 0 && rom.content[0] === 67 && rom.content[1] === 68) ? this.priority : null;
@@ -102,7 +102,7 @@ wmsx.SlotFormats = {
     "RAMMapper": {
         name: "RAMMapper",
         desc: "Standard RAM Mapper",
-        priority: 1021,
+        priority: 1012,
         embeddedURL: "@[RAMMapper].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -138,7 +138,7 @@ wmsx.SlotFormats = {
     "SCCExpansion": {
         name: "SCCExpansion",
         desc: "SCC Sound Cartridge",
-        priority: 1551,
+        priority: 1501,
         embeddedURL: "@[SCCExpansion].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -155,7 +155,7 @@ wmsx.SlotFormats = {
     "SCCIExpansion": {
         name: "SCCIExpansion",
         desc: "SCC-I (SCC+) Sound Cartridge",
-        priority: 1552,
+        priority: 1502,
         embeddedURL: "@[SCCIExpansion].rom",
         priorityForRom: function (rom) {
             // 0K, 64K or 128K content. Must be selected via info format hint
@@ -172,7 +172,7 @@ wmsx.SlotFormats = {
     "MSXMUSIC": {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Extension",
-        priority: 1553,
+        priority: 1503,
         embeddedURL: "@[MSXMUSIC].rom",
         priorityForRom: function (rom) {
             // Only 16K content. Must be selected via info format hint
@@ -189,7 +189,7 @@ wmsx.SlotFormats = {
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC Sound Cartridge",
-        priority: 1554,
+        priority: 1504,
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
@@ -205,7 +205,7 @@ wmsx.SlotFormats = {
     "MSXDOS2": {
         name: "MSXDOS2",
         desc: "MSX-DOS 2 ROM Mapper",
-        priority: 1555,
+        priority: 1505,
         embeddedURL: "@[MSXDOS2]v22.rom",
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
@@ -222,7 +222,7 @@ wmsx.SlotFormats = {
     "PACExpansion": {
         name: "PACExpansion",
         desc: "PAC SRAM Cartridge",
-        priority: 1556,
+        priority: 1506,
         embeddedURL: "@[PACExpansion].rom",
         priorityForRom: function (rom) {
             // Only 0K content selected via info format hint
@@ -242,7 +242,7 @@ wmsx.SlotFormats = {
     "Kanji1": {
         name: "Kanji1",
         desc: "Kanji Font",
-        priority: 1557,
+        priority: 1507,
         embeddedURL: "@[Kanji1].rom",
         priorityForRom: function (rom) {
             // 128K or 256K content. Must be selected via info format hint
@@ -287,7 +287,7 @@ wmsx.SlotFormats = {
     "ASCII8": {
         name: "ASCII8",
         desc: "ASCII 8K Mapper Cartridge",
-        priority: 931,
+        priority: 911,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             return (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -304,7 +304,7 @@ wmsx.SlotFormats = {
     "ASCII16": {
         name: "ASCII16",
         desc: "ASCII 16K Mapper Cartridge",
-        priority: 932,
+        priority: 912,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 16K, starting with the Cartridge identifier "AB"
             return (rom.content.length > 32768 && (rom.content.length % 16384) === 0
@@ -321,7 +321,7 @@ wmsx.SlotFormats = {
     "Konami": {
         name: "Konami",
         desc: "Konami Mapper Cartridge",
-        priority: 933,
+        priority: 913,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             return (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -338,7 +338,7 @@ wmsx.SlotFormats = {
     "KonamiSCC": {
         name: "KonamiSCC",
         desc: "KonamiSCC Mapper Cartridge",
-        priority: 934,
+        priority: 914,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
             return (rom.content.length > 32768 && (rom.content.length % 8192) === 0
@@ -355,7 +355,7 @@ wmsx.SlotFormats = {
     "RType": {
         name: "RType",
         desc: "R-Type Mapper Cartridge",
-        priority: 1951,
+        priority: 1101,
         priorityForRom: function (rom) {
             // Only R-Type 384K content. Must be selected via info format hint
             return (rom.content.length === 393216) ? this.priority : null;
@@ -371,7 +371,7 @@ wmsx.SlotFormats = {
     "CrossBlaim": {
         name: "CrossBlaim",
         desc: "CrossBlaim Mapper Cartridge",
-        priority: 1952,
+        priority: 1102,
         priorityForRom: function (rom) {
             // Only CrossBlaim 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
@@ -382,7 +382,24 @@ wmsx.SlotFormats = {
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeCrossBlaim.recreateFromSaveState(state, previousSlot);
         }
+    },
+
+    "Manbow2": {
+        name: "Manbow2",
+        desc: "Space Manbow 2 SCC Mapper Cartridge",
+        priority: 1103,
+        priorityForRom: function (rom) {
+            // Only Manbow2 512K content. Must be selected via info format hint
+            return (rom.content.length === 524288) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeManbow2(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeManbow2.recreateFromSaveState(state, previousSlot);
+        }
     }
+
 
 };
 
