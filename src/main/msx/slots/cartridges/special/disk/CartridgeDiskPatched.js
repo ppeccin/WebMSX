@@ -50,7 +50,7 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = null;
+    this.format = wmsx.SlotFormats.DiskPatch;
 
     var driver;
 

@@ -49,7 +49,7 @@ wmsx.CartridgeDOS2 = function(rom) {
     var bankOffset;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.DOS2;
+    this.format = wmsx.SlotFormats.MSXDOS2;
 
 
     // Savestate  -------------------------------------------

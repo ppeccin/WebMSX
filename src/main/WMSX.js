@@ -64,12 +64,12 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    DISK:                       { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatched" },
+    DISK:                       { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
     RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAM64K" },
     RAM64K:                     {                        SLOT: [3],                format: "RAM64K",        mutual: "RAMMAPPER" },
     MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
-    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "DOS2",          require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
-    KANJI:                      { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "KanjiFont",     requireFlag: "KANJIBASIC" },
+    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "MSXDOS2",       require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
+    KANJI:                      { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1",        requireFlag: "KANJIBASIC" },
     SCC:                        { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
     SCCI:                       { desc: "Konami SCC-I",  SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
     PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2, 0], format: "PACExpansion",  remove: "SCC, SCCI" }
@@ -86,19 +86,19 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PA",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios, @MSXKANJI.bios"
+        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios, @[KanjiBasic].bios"
     },
     MSX2PE: {
         _INCLUDE:           "MSX2PBASE",
         MACHINE:            "MSX2PE",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios, @MSXKANJI_PAL.bios"
+        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios, @KanjiBasic_PAL.bios"
     },
     MSX2PJ: {
         _INCLUDE:           "MSX2PBASE, KANJI",
         MACHINE:            "MSX2PJ",
         SLOT_0_URL:         "@MSX2P_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios, @MSXKANJI.bios"
+        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios, @[KanjiBasic].bios"
     },
 
     MSX2PBASE: {
@@ -128,7 +128,7 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "MSX2BASE, KANJI",
         MACHINE:            "MSX2J",
         SLOT_0_URL:         "@MSX2_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios, @MSXKANJI.bios",
+        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios, @[KanjiBasic].bios",
         KANJIBASIC:         true
     },
 

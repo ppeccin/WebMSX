@@ -118,11 +118,11 @@ wmsx.SlotFormats = {
 
     // Special Expansion Cartridges
 
-    "DiskPatched": {
-        name: "DiskPatched",
+    "DiskPatch": {
+        name: "DiskPatch",
         desc: "Generic Patched Disk BIOS",
         priority: 1301,
-        embeddedURL: "@DISK.rom",
+        embeddedURL: "@[DiskPatch].rom",
         priorityForRom: function (rom) {
             // Only DiskPatched 16K content. Must be selected via info format hint
             return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
@@ -173,7 +173,7 @@ wmsx.SlotFormats = {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Extension",
         priority: 1553,
-        embeddedURL: "@MSXMUSIC.rom",
+        embeddedURL: "@[MSXMUSIC].rom",
         priorityForRom: function (rom) {
             // Only 16K content. Must be selected via info format hint
             return (rom.content.length === 16384) ? this.priority : null;
@@ -202,11 +202,11 @@ wmsx.SlotFormats = {
         }
     },
 
-    "DOS2": {
-        name: "DOS2",
+    "MSXDOS2": {
+        name: "MSXDOS2",
         desc: "MSX-DOS 2 ROM Mapper",
         priority: 1555,
-        embeddedURL: "@MSXDOS22v3.rom",
+        embeddedURL: "@[MSXDOS2]v22.rom",
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
@@ -239,11 +239,11 @@ wmsx.SlotFormats = {
         }
     },
 
-    "KanjiFont": {
-        name: "KanjiFont",
+    "Kanji1": {
+        name: "Kanji1",
         desc: "Kanji Font",
         priority: 1557,
-        embeddedURL: "@KANJIFONT.rom",
+        embeddedURL: "@[Kanji1].rom",
         priorityForRom: function (rom) {
             // 128K or 256K content. Must be selected via info format hint
             return (rom.content.length === 131072 || rom.content.length === 262144) ? this.priority : null;
