@@ -224,11 +224,13 @@ wmsx.SlotFormats = {
         desc: "PAC SRAM Cartridge",
         priority: 1506,
         embeddedURL: "@[PACExpansion].rom",
-        priorityForRom: function (rom) {
+        priorityForRom: function (rom, insertedCartridge) {
             // Only 0K content selected via info format hint
             if (rom.content.length === 0) return this.priority;
-            // Or 8206 size starting with "PAC2 BACKUP DATA"
-            if (wmsx.CartridgePAC.isPACFileContentValid(rom.content)) return this.priority - wmsx.SlotCreator.FORMAT_PRIORITY_BOOST;
+            // Or 8206 size (PAC file) only when slot is empty or there is already a PAC cartridge present
+            if (wmsx.CartridgePAC.isPACFileContentValid(rom.content)
+                && (!insertedCartridge || insertedCartridge.format === wmsx.SlotFormats.PACExpansion || insertedCartridge.format === wmsx.SlotFormats.FMPAC))
+                    return this.priority - wmsx.SlotCreator.FORMAT_PRIORITY_BOOST;
             return null;
         },
         createFromROM: function (rom) {

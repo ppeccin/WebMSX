@@ -226,7 +226,7 @@ wmsx.FileLoader = function() {
             if (cartridgeSocket.loadCartridgeData(port, name, content)) return true;
         // Try to load as ROM (BIOS or Cartridge)
         if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.ALL) {
-            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content));
+            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content), cartridgeSocket.inserted(port));
             if (slot) {
                 if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
                 else if (asExpansion) expansionSocket.insert(slot, port, altPower);
@@ -238,7 +238,7 @@ wmsx.FileLoader = function() {
         return false;
     }
 
-    this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher
+    this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher and Extensions
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
             try {

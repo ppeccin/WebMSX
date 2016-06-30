@@ -3,9 +3,9 @@
 wmsx.SlotCreator = function () {
 "use strict";
 
-    this.createFromROM = function (rom) {
+    this.createFromROM = function (rom, insertedCartridge) {
         // Try to build the Slot if a supported format is found
-        var options = getFormatOptions(rom);
+        var options = getFormatOptions(rom, insertedCartridge);
         if (options.length === 0) return;
 
         // Choose the best option
@@ -40,12 +40,12 @@ wmsx.SlotCreator = function () {
         return info;
     };
 
-    function getFormatOptions(rom) {
+    function getFormatOptions(rom, insertedCartridge) {
         var formatOptions = [];
         var formatOption;
         for (var format in wmsx.SlotFormats) {
             formatOption = wmsx.SlotFormats[format];
-            formatOption.prioritySelected = formatOption.priorityForRom(rom);
+            formatOption.prioritySelected = formatOption.priorityForRom(rom, insertedCartridge);
             if (!formatOption.prioritySelected) continue;	    	                      // rejected by format
             boostPriority(formatOption, rom.info);                                        // adjust priority selected based on ROM info
             if (formatOption.prioritySelected >= FORMAT_PRIORITY_LIMIT) continue;         // reject options that require hints
