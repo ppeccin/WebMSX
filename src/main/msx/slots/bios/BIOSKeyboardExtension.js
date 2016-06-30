@@ -55,13 +55,3 @@ wmsx.BIOSKeyboardExtension = function(bus) {
     var BUFFER_END =    0xfc17;     // 40 bytes, but only 39 are usable
 
 };
-
-WMSX.typeString = function(str) {
-    var bios = WMSX.room.machine.getBIOSSocket().inserted();
-    if (bios) bios.getKeyboardExtension().typeString(str);
-};
-
-WMSX.cancelTypeString = function() {
-    var bios = WMSX.room.machine.getBIOSSocket().inserted();
-    if (bios) bios.getKeyboardExtension().cancelTypeString();
-};

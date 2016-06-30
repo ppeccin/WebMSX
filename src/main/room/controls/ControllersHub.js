@@ -3,9 +3,9 @@
 wmsx.ControllersHub = function(keyForwardControls) {
 "use strict";
 
-    this.connect = function(controllersSocket, machineControlsSocket) {
+    this.connect = function(controllersSocket, machineControlsSocket, biosSocket) {
         controllersSocket.connectControls(this);
-        keyboard.connect(controllersSocket);
+        keyboard.connect(controllersSocket, biosSocket);
         mouseControls.connect(controllersSocket);
         joystickControls.connect(machineControlsSocket);
     };
@@ -27,6 +27,10 @@ wmsx.ControllersHub = function(keyForwardControls) {
         keyboard.powerOff();
         mouseControls.powerOff();
         joystickControls.powerOff();
+    };
+
+    this.getKeyboard = function() {
+        return keyboard;
     };
 
     this.releaseControllers = function() {

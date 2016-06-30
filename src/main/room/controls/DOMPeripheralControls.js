@@ -200,7 +200,7 @@ wmsx.DOMPeripheralControls = function() {
             case controls.PASTE_STRING:
                 screen.toggleTextPasteDialog(); break;
             case controls.CAPTURE_SCREEN:
-                screen.captureScreen(); break;
+                screen.saveScreenCapture(); break;
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {

@@ -119,31 +119,31 @@ wmsx.Configurator = {
             WMSX.CARTRIDGE1_URL && {
                 url: WMSX.CARTRIDGE1_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.ROM, 0, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.ROM, 0, true);
                 }
             },
             WMSX.CARTRIDGE2_URL && {
                 url: WMSX.CARTRIDGE2_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.ROM, 1, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.ROM, 1, true);
                 }
             },
             WMSX.DISKA_URL && {
                 url: WMSX.DISKA_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.DISK, 0, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.DISK, 0, true);
                 }
             },
             WMSX.DISKB_URL && {
                 url: WMSX.DISKB_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.DISK, 1, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.DISK, 1, true);
                 }
             },
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromFile(res.url, res.content, OPEN_TYPE.TAPE, 0, true);
+                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.TAPE, 0, true);
                 }
             }
         ];

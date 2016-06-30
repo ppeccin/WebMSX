@@ -147,14 +147,19 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.toggleTextPasteDialog = function() {
         if (!signalIsOn) return this.showOSD("Text Paste only available when Power is ON!", true, true);
 
-        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement, this);
+        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement, this, controllersHub.getKeyboard());
         pasteDialog.toggle();
         return false;
     };
 
-    this.captureScreen = function() {
+    this.getScreenCapture = function() {
         if (!signalIsOn) return;
-        fileDownloader.startDownloadURL("WMSX Screen", canvas.toDataURL('image/png'), "Screen Capture");
+        return canvas.toDataURL('image/png');
+    };
+
+    this.saveScreenCapture = function() {
+        var cap = this.getScreenCapture();
+        if (cap) fileDownloader.startDownloadURL("WMSX Screen", cap, "Screen Capture");
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {

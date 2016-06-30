@@ -75,7 +75,7 @@ wmsx.FileLoader = function() {
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
             var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModifiedDate };
-            self.loadFromFile(aFile, openType, port, altPower, asExpansion);
+            loadFromFile(aFile, openType, port, altPower, asExpansion);
             if (then) then(true);
         };
         reader.onerror = function (event) {
@@ -91,7 +91,7 @@ wmsx.FileLoader = function() {
             url: url,
             onSuccess: function (res) {
                 var aFile = { name: url, content: res.content, lastModifiedDate: null };
-                self.loadFromFile(aFile, openType, port, altPower, asExpansion);
+                loadFromFile(aFile, openType, port, altPower, asExpansion);
                 if (then) then(true);
             },
             onError: function (res) {
@@ -116,7 +116,7 @@ wmsx.FileLoader = function() {
         reader.start();
     };
 
-    this.loadFromFile = function (file, openType, port, altPower, asExpansion) {
+    function loadFromFile(file, openType, port, altPower, asExpansion) {
         var zip, mes;
         // If As-Disk forced
         if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
@@ -154,7 +154,7 @@ wmsx.FileLoader = function() {
             }
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
-    };
+    }
 
     function loadFromFiles(files, openType, port, altPower, asExpansion) {
         // Sort files by name
@@ -214,7 +214,11 @@ wmsx.FileLoader = function() {
             return false;
         }
 
-        var name = file.name;
+        return self.loadContentAsMedia(file.name, content, openType, port, altPower, asExpansion);
+    }
+
+    this.loadContentAsMedia = function (name, content, openType, port, altPower, asExpansion) {
+        openType = openType || OPEN_TYPE.ALL;
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
             if (cassetteDeck.loadTapeFile(name, content, altPower)) return true;
@@ -236,9 +240,9 @@ wmsx.FileLoader = function() {
         }
         // Not a valid content
         return false;
-    }
+    };
 
-    this.loadContentAsSlot = function (name, content, slotPos, altPower) {      // Used only by Launcher and Extensions
+    this.loadContentAsSlot = function (name, content, slotPos, altPower) {
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
             try {

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PasteDialog = function(mainElement, screen) {
+wmsx.PasteDialog = function(mainElement, screen, keyboard) {
 "use strict";
 
     var self = this;
@@ -11,7 +11,7 @@ wmsx.PasteDialog = function(mainElement, screen) {
     };
 
     this.show = function () {
-        WMSX.cancelTypeString();
+        keyboard.cancelTypeString();
         if (!this.cover) {
             create();
             self.show();
@@ -108,7 +108,7 @@ wmsx.PasteDialog = function(mainElement, screen) {
                 var str = e.clipboardData.getData("text/plain");
                 if (str) {
                     self.hide();
-                    WMSX.typeString(str);
+                    keyboard.typeString(str);
                 }
             }
         });

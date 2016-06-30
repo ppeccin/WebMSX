@@ -10,8 +10,9 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         initMatrix();
     }
 
-    this.connect = function(pControllersSocket) {
+    this.connect = function(pControllersSocket, pBIOSSocket) {
         controllersSocket = pControllersSocket;
+        biosSocket = pBIOSSocket;
     };
 
     this.connectPeripherals = function(pScreen) {
@@ -22,6 +23,16 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.powerOff = function() {
+    };
+
+    this.typeString = function(str) {
+        var bios = biosSocket.inserted();
+        if (bios) bios.getKeyboardExtension().typeString(str);
+    };
+
+    this.cancelTypeString = function() {
+        var bios = biosSocket.inserted();
+        if (bios) bios.getKeyboardExtension().cancelTypeString();
     };
 
     this.controllersClockPulse = function() {
@@ -418,6 +429,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
 
     var controllersSocket;
+    var biosSocket;
     var monitor;
 
     var keyStateMap = {};

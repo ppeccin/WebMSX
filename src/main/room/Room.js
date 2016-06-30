@@ -48,6 +48,7 @@ wmsx.Room = function(screenElement) {
         self.peripheralControls = new wmsx.DOMPeripheralControls();
         self.machineControls = new wmsx.DOMMachineControls(self.peripheralControls);
         self.controllersHub = new wmsx.ControllersHub(self.machineControls);
+        self.keyboard = self.controllersHub.getKeyboard();
         self.fileDownloader = new wmsx.FileDownloader();
         self.stateMedia = new wmsx.LocalStorageSaveStateMedia();
         self.cassetteDeck = new wmsx.FileCassetteDeck();
@@ -74,7 +75,7 @@ wmsx.Room = function(screenElement) {
         self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getMachineTypeSocket(), self.machine.getExtensionsSocket(), self.machine.getCartridgeSocket(), self.machine.getControllersSocket());
         self.speaker.connect(self.machine.getAudioSocket());
         self.machineControls.connect(self.machine.getMachineControlsSocket());
-        self.controllersHub.connect(self.machine.getControllersSocket(), self.machine.getMachineControlsSocket());
+        self.controllersHub.connect(self.machine.getControllersSocket(), self.machine.getMachineControlsSocket(), self.machine.getBIOSSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
         self.peripheralControls.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
@@ -87,6 +88,7 @@ wmsx.Room = function(screenElement) {
     this.speaker = null;
     this.machineControls = null;
     this.controllersHub = null;
+    this.keyboard = null;
     this.fileDownloader = null;
     this.cassetteDeck = null;
     this.diskDrive = null;
