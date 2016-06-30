@@ -31,7 +31,7 @@ wmsx.Z80 = function() {
             if (T === 1) {
                 instruction.operation();
             } else {
-                R = R + 1;                           // TODO R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+                R = R + 1;                           // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
                 if (ackINT) acknowledgeINT();
                 else fetchNextInstruction();
             }
@@ -500,7 +500,7 @@ wmsx.Z80 = function() {
         // Flags
         F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);         // PV = BC != 0
-        // TODO Undocumented f5/f3 behavior for all LD block instructions, not implemented. Left 0
+        // Verify: Undocumented f5/f3 behavior for all LD block instructions, not implemented. Left 0
     }
 
     function LDIR() {
@@ -753,7 +753,7 @@ wmsx.Z80 = function() {
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
-        // TODO Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
+        // Verify: Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
     }
 
     function INIR() {
@@ -1217,7 +1217,7 @@ wmsx.Z80 = function() {
             } else {
                 F = (F & bC) | 0x54;                   // S = 0, Z = 1; f5 = 0; H = 1; f3 = 0; P = 1; N = 0; C = C
             }
-            // TODO Undocumented f5/f3 behavior when (HL/IX/IY) used, not implemented. Left 0
+            // Verify: Undocumented f5/f3 behavior when (HL/IX/IY) used, not implemented. Left 0
         }
     }
 

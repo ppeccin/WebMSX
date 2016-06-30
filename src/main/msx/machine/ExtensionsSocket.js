@@ -48,7 +48,7 @@ wmsx.ExtensionsSocket = function(machine) {
         if (!altPower && powerWasOn) machine.powerOff();
 
         this.refreshSlotsFromConfig(function(changed) {
-            if (!altPower && powerWasOn) machine.userPowerOn(true);
+            if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed) machine.showOSD(config[ext].desc + " Extension " +
                 (newVal ? "enabled at slot " + machine.getSlotSocket().getSlotDesc(secSlot ? config[ext].SLOT2 : config[ext].SLOT) : "disabled"), true);
         });

@@ -6,7 +6,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var self = this;
 
     function init() {
-        //gamepadControls = new GamepadConsoleControls(self);
         initKeys();
     }
 
@@ -102,8 +101,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         withAltCodeMap[KEY_VIDEO_STANDARD]   = controls.VIDEO_STANDARD;
         withAltCodeMap[KEY_VSYNCH]           = controls.VSYNCH;
 
-        withAltCodeMap[KEY_DEFAULTS]   = controls.DEFAULTS;
-
         withCtrlAltCodeMap[KEY_STATE_0] = controls.SAVE_STATE_0;
         withCtrlAltCodeMap[KEY_STATE_0a] = controls.SAVE_STATE_0;
         withCtrlAltCodeMap[KEY_STATE_1] = controls.SAVE_STATE_1;
@@ -182,8 +179,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_PALETTE          = wmsx.DOMKeys.VK_E.c;
     var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_Q.c;
     var KEY_VSYNCH           = wmsx.DOMKeys.VK_W.c;
-
-    var KEY_DEFAULTS         = wmsx.DOMKeys.VK_BACKSPACE.c;
 
     var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
     var KEY_STATE_0a         = wmsx.DOMKeys.VK_BACKQUOTE.c;

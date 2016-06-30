@@ -635,15 +635,15 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateVRAMInterleaving() {
-        if (modeData.vramInter && !vramInterleaving) vramEnterInterleaving();
+        if (modeData.vramInter === true && !vramInterleaving) vramEnterInterleaving();
         else if (modeData.vramInter === false && vramInterleaving) vramExitInterleaving();
     }
 
     function vramEnterInterleaving() {
         var aux = vram.slice();                     // TODO Optimize
         var e = 0;
-        var o = 0x10000;
-        for (var i = 0; i < 0x20000; i += 2) {
+        var o = VRAM_SIZE >> 1;
+        for (var i = 0; i < VRAM_SIZE; i += 2) {
             vram[i] = aux[e++];
             vram[i + 1] = aux[o++];
         }
@@ -655,8 +655,8 @@ wmsx.VDP = function(machine, cpu) {
     function vramExitInterleaving() {
         var aux = vram.slice();                     // TODO Optimize
         var e = 0;
-        var o = 0x10000;
-        for (var i = 0; i < 0x20000; i += 2) {
+        var o = VRAM_SIZE >> 1;
+        for (var i = 0; i < VRAM_SIZE; i += 2) {
             vram[e++] = aux[i];
             vram[o++] = aux[i + 1];
         }

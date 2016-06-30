@@ -9,7 +9,7 @@ wmsx.Machine = function() {
         socketsCreate();
         mainComponentsCreate();
         self.setMachineType(WMSX.MACHINE, WMSX.MACHINE_TYPE);
-        setDefaults();
+        self.setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
 
@@ -32,7 +32,7 @@ wmsx.Machine = function() {
         cpu.powerOn();
         this.reset();
         this.powerIsOn = true;
-        machineControlsSocket.fireRedefinitionUpdate();
+        machineControlsSocket.firePowerStateUpdate();
         if (!paused) mainVideoClock.go();
     };
 
@@ -46,7 +46,7 @@ wmsx.Machine = function() {
         if (syf) syf.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
-        machineControlsSocket.fireRedefinitionUpdate();
+        machineControlsSocket.firePowerStateUpdate();
     };
 
     this.reset = function() {
@@ -177,6 +177,14 @@ wmsx.Machine = function() {
         setVideoStandardAuto();
     };
 
+    this.setDefaults = function() {
+        setVideoStandardAuto();
+        vdp.setDefaults();
+        speedControl = 1;
+        alternateSpeed = null;
+        mainVideoClockUpdateSpeed();
+    };
+
     function getSlot(slotPos) {
         if (typeof slotPos === "number") slotPos = [slotPos];
         var pri = slotPos[0], sec = slotPos[1];
@@ -298,7 +306,7 @@ wmsx.Machine = function() {
         cassetteSocket.getDeck().loadState(state.ct);
         machineTypeSocket.fireMachineTypeStateUpdate();
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
-        machineControlsSocket.fireRedefinitionUpdate();
+        machineControlsSocket.firePowerStateUpdate();
     }
 
     function mainVideoClockUpdateSpeed() {
@@ -341,15 +349,6 @@ wmsx.Machine = function() {
         audioSocket = new AudioSocket();
         diskDriveSocket = new DiskDriveSocket();
         machineControlsSocket = new MachineControlsSocket();
-        machineControlsSocket.addForwardedInput(self);
-    }
-
-    function setDefaults() {
-        setVideoStandardAuto();
-        vdp.setDefaults();
-        speedControl = 1;
-        alternateSpeed = null;
-        mainVideoClockUpdateSpeed();
     }
 
 
@@ -405,11 +404,12 @@ wmsx.Machine = function() {
     var SPEEDS = [ 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 5, 10 ];
     var SPEED_FAST = 10, SPEED_SLOW = 0.3;
 
+
     // MachineControls interface  --------------------------------------------
 
     var controls = wmsx.MachineControls;
 
-    this.controlStateChanged = function (control, state) {
+    function controlStateChanged(control, state) {
         // Normal state controls
         if (control === controls.FAST_SPEED) {
             if (state) {
@@ -450,12 +450,12 @@ wmsx.Machine = function() {
                 powerFry();
                 break;
             case controls.PAUSE:
-                this.userPause(!userPaused, false);
-                this.getVideoOutput().showOSD(userPaused ? "PAUSE" : "RESUME", true);
+                self.userPause(!userPaused, false);
+                self.getVideoOutput().showOSD(userPaused ? "PAUSE" : "RESUME", true);
                 return;
             case controls.PAUSE_AUDIO_ON:
-                this.userPause(!userPaused, true);
-                this.getVideoOutput().showOSD(userPaused ? "PAUSE with AUDIO ON" : "RESUME", true);
+                self.userPause(!userPaused, true);
+                self.getVideoOutput().showOSD(userPaused ? "PAUSE with AUDIO ON" : "RESUME", true);
                 return;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;
@@ -511,16 +511,8 @@ wmsx.Machine = function() {
             case controls.SPRITE_MODE:
                 vdp.toggleSpriteDebugModes();
                 break;
-            case controls.DEFAULTS:
-                setDefaults();
-                break;
         }
-    };
-
-    this.controlsStateReport = function (report) {
-        //  Only Power Control is visible from outside
-        report[controls.POWER] = self.powerIsOn;
-    };
+    }
 
 
     // BIOS Socket  -----------------------------------------
@@ -675,7 +667,6 @@ wmsx.Machine = function() {
         this.unpauseAudio = function() {
             if (monitor) monitor.unpause();
         };
-
         var signals = [];
         var monitor;
         var fps;
@@ -703,9 +694,7 @@ wmsx.Machine = function() {
             if (!self.powerIsOn && !altPower) self.userPowerOn(true);
         };
         this.typeAutoRunCommandAfterPowerOn = function () {
-            if (driver && driver.currentAutoRunCommand())
-                // Give some time for reboot and then enter command
-                setTimeout(driver.typeCurrentAutoRunCommand, 1700);      // TODO Arbitrary time...
+            if (driver) driver.typeCurrentAutoRunCommand();
         };
         var deck;
         var driver;
@@ -774,53 +763,32 @@ wmsx.Machine = function() {
     // MachineControls Socket  -----------------------------------------
 
     function MachineControlsSocket() {
-
+        this.setDefaults = function() {
+            self.setDefaults();
+        };
         this.controlStateChanged = function(control, state) {
-            for (var i = 0; i < forwardedInputsCount; i++)
-                forwardedInputs[i].controlStateChanged(control, state);
+            controlStateChanged(control, state);
         };
-
-        this.controlsStateReport = function(report) {
-            for (var i = 0; i < forwardedInputsCount; i++)
-                forwardedInputs[i].controlsStateReport(report);
-        };
-
-        this.addForwardedInput = function(input) {
-            forwardedInputs.push(input);
-            forwardedInputsCount = forwardedInputs.length;
-        };
-
-        this.removeForwardedInput = function(input) {
-            wmsx.Util.arrayRemoveAllElement(forwardedInputs, input);
-            forwardedInputsCount = forwardedInputs.length;
-        };
-
-        this.addRedefinitionListener = function(listener) {
-            if (redefinitionListeners.indexOf(listener) < 0) {
-                redefinitionListeners.push(listener);
-                listener.controlsStatesRedefined();		// Fire a redefinition event
+        this.addPowerStateListener = function(listener) {
+            if (powerStateListeners.indexOf(listener) < 0) {
+                powerStateListeners.push(listener);
+                listener.powerStateUpdate();		// Fire a redefinition event
             }
         };
-
-        this.fireRedefinitionUpdate = function() {
-            for (var i = 0; i < redefinitionListeners.length; i++)
-                redefinitionListeners[i].controlsStatesRedefined();
+        this.firePowerStateUpdate = function() {
+            for (var i = 0; i < powerStateListeners.length; i++)
+                powerStateListeners[i].powerStateUpdate(self.powerIsOn);
         };
-
-        var forwardedInputs = [];
-        var forwardedInputsCount = 0;
-        var redefinitionListeners = [];
+        var powerStateListeners = [];
     }
 
 
     // SavestateSocket  -----------------------------------------
 
     function SaveStateSocket() {
-
         this.connectMedia = function(pMedia) {
             media = pMedia;
         };
-
         this.saveState = function(slot) {
             if (!self.powerIsOn || !media) return;
             var state = saveState();
@@ -830,7 +798,6 @@ wmsx.Machine = function() {
             else
                 self.showOSD("State " + slot + " save FAILED!", true, true);
         };
-
         this.loadState = function(slot) {
             if (!media) return;
             var state = media.loadState(slot);
@@ -844,14 +811,12 @@ wmsx.Machine = function() {
                 self.showOSD("State " + slot + " loaded", true);
             }
         };
-
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
             var state = saveState();
             state.v = VERSION;
             media.saveStateFile(state);
         };
-
         this.loadStateFile = function(data) {       // Returns true if data was indeed a SaveState
             if (!media) return false;
             var state = media.loadStateFile(data);
@@ -866,7 +831,6 @@ wmsx.Machine = function() {
             }
             return true;
         };
-
         var media;
         var VERSION = 9;
     }

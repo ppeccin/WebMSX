@@ -30,11 +30,6 @@ wmsx.Room = function(screenElement) {
         this.screen.loading(boo);
     };
 
-    this.exit = function() {
-        self.machine.getMachineControlsSocket().controlStateChanged(wmsx.MachineControls.POWER_OFF, true);
-        self.peripheralControls.controlActivated(wmsx.PeripheralControls.SCREEN_DEFAULTS);
-    };
-
     var setPageVisibilityHandling = function() {
         var wasPaused;
         function visibilityChange() {

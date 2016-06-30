@@ -174,6 +174,7 @@ wmsx.DOMPeripheralControls = function() {
             case controls.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
             case controls.SCREEN_DEFAULTS:
+                machineControlsSocket.setDefaults();
                 monitor.setDefaults();
                 monitor.showOSD("Default Settings", true);
                 break;

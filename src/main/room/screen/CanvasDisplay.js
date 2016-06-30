@@ -130,7 +130,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         var text = monitor.getScreenText();
 
-        if (!text) return this.showOSD("Sreen Text Copy not available in this Screen!", true, true);
+        if (!text) return this.showOSD("Screen Text Copy not available in this Screen!", true, true);
 
         if (!copyTextArea) setupCopyTextArea();
         copyTextArea.innerHTML = text;
@@ -351,16 +351,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         refreshSettingsMenuForMachineType();
     };
 
-    this.controlsStatesRedefined = function () {
-        machineControlsSocket.controlsStateReport(machineControlsStateReport);
-        this.powerStateUpdate(machineControlsStateReport[wmsx.MachineControls.POWER]);
-    };
-
     this.loading = function(state) {
         isLoading = state;
         updateLogo();
         if (!state) {
-            machineControlsSocket.addRedefinitionListener(this);
+            machineControlsSocket.addPowerStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
         }
