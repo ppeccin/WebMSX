@@ -118,7 +118,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     this.openLoadFileDialog = function() {
-        peripheralControls.controlActivated(wmsx.PeripheralControls.ALL_LOAD_FILE);
+        peripheralControls.controlActivated(wmsx.PeripheralControls.AUTO_LOAD_FILE);
         return false;
     };
 

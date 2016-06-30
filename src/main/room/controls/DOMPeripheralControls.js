@@ -160,12 +160,12 @@ wmsx.DOMPeripheralControls = function() {
             case controls.TAPE_AUTO_RUN:
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
-            case controls.ALL_LOAD_FILE:
-                if (secPort) return this.controlActivated(controls.ALL_LOAD_URL, altPower, false);
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ALL, altPower, secPort, false);
+            case controls.AUTO_LOAD_FILE:
+                if (secPort) return this.controlActivated(controls.AUTO_LOAD_URL, altPower, false);
+                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
-            case controls.ALL_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ALL, altPower, secPort);
+            case controls.AUTO_LOAD_URL:
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort);
                 break;
             case controls.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
@@ -224,9 +224,9 @@ wmsx.DOMPeripheralControls = function() {
     };
 
     var initKeys = function() {
-        keyControlCodeMap[KEY_ALL] = controls.ALL_LOAD_FILE;
+        keyControlCodeMap[KEY_AUTO] = controls.AUTO_LOAD_FILE;
 
-        keyControlAltCodeMap[KEY_ALL] = controls.MACHINE_SELECT;
+        keyControlAltCodeMap[KEY_AUTO] = controls.MACHINE_SELECT;
 
         keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILES;
         keyControlCodeMap[KEY_DISK] = controls.DISK_EMPTY;
@@ -325,7 +325,7 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
     var KEY_CART  = wmsx.DOMKeys.VK_F7.c;
     var KEY_TAPE  = wmsx.DOMKeys.VK_F8.c;
-    var KEY_ALL   = wmsx.DOMKeys.VK_F12.c;
+    var KEY_AUTO  = wmsx.DOMKeys.VK_F12.c;
 
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;

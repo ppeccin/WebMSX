@@ -31,8 +31,8 @@ wmsx.FileLoader = function() {
 
     this.openFileChooserDialog = function (openType, altPower, inSecondaryPort, asExpansion) {
         if (!fileInputElement) createFileInputElement();
-        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.ALL];
-        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.ALL];
+        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
+        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
 
         chooserOpenType = openType;
         chooserPort = inSecondaryPort ? 1 : 0;
@@ -188,7 +188,7 @@ wmsx.FileLoader = function() {
 
     function tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, filesFromZIP) {
         // Try as a Disk Stack (all images found)
-        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.ALL)
+        if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO)
             if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, asExpansion, filesFromZIP)) return true;
         // Try as other Single media (first found)
         if (openType !== OPEN_TYPE.DISK)
@@ -218,18 +218,18 @@ wmsx.FileLoader = function() {
     }
 
     this.loadContentAsMedia = function (name, content, openType, port, altPower, asExpansion) {
-        openType = openType || OPEN_TYPE.ALL;
+        openType = openType || OPEN_TYPE.AUTO;
         // Try as Cassette file
-        if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.ALL)
+        if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.AUTO)
             if (cassetteDeck.loadTapeFile(name, content, altPower)) return true;
         // Try as a SaveState file
-        if (openType === OPEN_TYPE.STATE || openType === OPEN_TYPE.ALL)
+        if (openType === OPEN_TYPE.STATE || openType === OPEN_TYPE.AUTO)
             if (saveStateSocket.loadStateFile(content)) return true;
         // Try as Cartridge Data (SRAM, etc)
-        if (openType === OPEN_TYPE.CART_DATA || openType === OPEN_TYPE.ALL)
+        if (openType === OPEN_TYPE.CART_DATA || openType === OPEN_TYPE.AUTO)
             if (cartridgeSocket.loadCartridgeData(port, name, content)) return true;
         // Try to load as ROM (BIOS or Cartridge)
-        if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.ALL) {
+        if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.AUTO) {
             var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content), cartridgeSocket.inserted(port));
             if (slot) {
                 if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
@@ -384,7 +384,7 @@ wmsx.FileLoader = function() {
         var asExpansion = e.ctrlKey;
         var asDisk = e.altKey;
 
-        var openType = asDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.ALL;
+        var openType = asDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.AUTO;
 
         // Try to get local file/files if present
         var files = e.dataTransfer && e.dataTransfer.files;
@@ -415,7 +415,7 @@ wmsx.FileLoader = function() {
         fileInputElement.id = "wmsx-file-loader-input";
         fileInputElement.type = "file";
         fileInputElement.multiple = true;
-        fileInputElement.accept = INPUT_ACCEPT.ALL;
+        fileInputElement.accept = INPUT_ACCEPT.AUTO;
         fileInputElement.style.display = "none";
         fileInputElement.addEventListener("change", onFileInputChange);
         fileInputElementParent.appendChild(fileInputElement);
@@ -446,6 +446,7 @@ wmsx.FileLoader = function() {
 
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
+    this.OPEN_TYPE = OPEN_TYPE;                         // For the programatic interface
 
     var INPUT_ACCEPT = {
         ROM:   ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP",
@@ -456,7 +457,7 @@ wmsx.FileLoader = function() {
         FILES_AS_DISK: "",
         ZIP_AS_DISK:   ".zip,.ZIP",
         AUTO_AS_DISK:  "",
-        ALL:   ".bin,.BIN,.dsk,.DSK,.rom,.ROM,.bios,.BIOS,.cas,.CAS,.tape,.TAPE,.wst,.WST,.zip,.ZIP"
+        AUTO:   ".bin,.BIN,.dsk,.DSK,.rom,.ROM,.bios,.BIOS,.cas,.CAS,.tape,.TAPE,.wst,.WST,.zip,.ZIP"
     };
 
     var INPUT_MULTI = {
@@ -468,7 +469,7 @@ wmsx.FileLoader = function() {
         FILES_AS_DISK: true,
         ZIP_AS_DISK:   false,
         AUTO_AS_DISK:  true,
-        ALL:   false
+        AUTO:   false
     };
 
     var TYPE_DESC = {
@@ -480,7 +481,7 @@ wmsx.FileLoader = function() {
         FILES_AS_DISK: "Files as Disk",
         ZIP_AS_DISK:   "ZIP as Disk",
         AUTO_AS_DISK:  "as Disk",
-        ALL:   "ROM, Cassette or Disk"
+        AUTO:   "ROM, Cassette or Disk"
     };
 
     var LOCAL_STORAGE_LAST_URL_KEY = "wmsxlasturl";
@@ -491,4 +492,4 @@ wmsx.FileLoader = function() {
 
 };
 
-wmsx.FileLoader.OPEN_TYPE = { ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK", ALL: "ALL" };
+wmsx.FileLoader.OPEN_TYPE = {  AUTO: "AUTO", ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK" };
