@@ -19,7 +19,7 @@ wmsx.CartridgeFMPAC = function(rom) {
     }
 
     this.getDataDesc = function() {
-        return "FM-PAC Data";
+        return "PAC Data";
     };
 
     this.loadData = function(name, arrContent) {

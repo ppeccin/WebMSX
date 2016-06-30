@@ -325,13 +325,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         cartridge2Button.style.backgroundPosition = "" + cartridge2Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart2 ? 1 : 0)]) + "px";
         var dataDesc = cart1 && cart1.getDataDesc();
         cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
-        cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Memory");
-        cartridge1Button.wmsxMenu[2].label = "Save " + (dataDesc || "Memory");
+        cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data");
+        cartridge1Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data");
         cartridge1Button.wmsxMenu[3].disabled = !cart1;
         dataDesc = cart2 && cart2.getDataDesc();
         cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = !dataDesc;
-        cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Memory");
-        cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Memory");
+        cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data");
+        cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data");
         cartridge2Button.wmsxMenu[3].disabled = !cart2;
         refreshSettingsMenuForExtensions();
     };
@@ -618,8 +618,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
-            { label: "Load Memory",        clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true },
-            { label: "Save Memory",        clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true },
+            { label: "Load Data",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true },
+            { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cartridge 1";
@@ -627,8 +627,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
-            { label: "Load Memory",        clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true },
-            { label: "Save Memory",        clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true },
+            { label: "Load Data",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true },
+            { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
         menu.menuTitle = "Cartridge 2";

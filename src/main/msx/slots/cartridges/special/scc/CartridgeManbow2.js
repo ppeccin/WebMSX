@@ -15,8 +15,24 @@ wmsx.CartridgeManbow2 = function(rom) {
         bytes = new Array(512 * 1024);
         self.bytes = bytes;
         for(var i = 0, len = content.length; i < len; i++) bytes[i] = content[i];
-        bankSelMask = (512 / 8) - 1;       // Fixed
     }
+
+    this.getDataDesc = function() {
+        return "SRAM Data";
+    };
+
+    this.loadData = function(name, arrContent) {
+        if (arrContent.length !== 65536) return null;
+
+        for (var i = 0; i < 65536; ++i) bytes[458752 + i] = arrContent[i];
+        sramContentName = name;
+        return arrContent;
+    };
+
+    this.getDataToSave = function() {
+        var content = new Uint8Array(bytes.slice(458752));      // Last 64K
+        return { fileName: sramContentName || "Manbow2.dat", content: content };
+    };
 
     this.connect = function(machine) {
         scc.setAudioSocket(machine.getAudioSocket());
@@ -88,7 +104,7 @@ wmsx.CartridgeManbow2 = function(rom) {
     };
 
     function writeMem(address, value) {
-        if (address >= 458752) bytes[address] = value;      // only last 64K writable
+        if (address >= 458752 && address < 524288) bytes[address] = value;      // only last 64K writable
     }
 
     function connectSCC() {
@@ -101,11 +117,13 @@ wmsx.CartridgeManbow2 = function(rom) {
     this.bytes = null;
 
     var bank1Offset, bank2Offset, bank3Offset, bank4Offset;
-    var bankSelMask;
+
+    var bankSelMask = (512 / 8) - 1;       // Fixed, 64 banks
 
     var scc = new wmsx.SCCIAudio();
     var sccSelected = false;
     var sccConnected = false;
+    var sramContentName;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.Manbow2;
@@ -124,7 +142,8 @@ wmsx.CartridgeManbow2 = function(rom) {
             b4: bank4Offset,
             scc: scc.saveState(),
             scs: sccSelected,
-            scn: sccConnected
+            scn: sccConnected,
+            sn: sramContentName
         };
     };
 
@@ -139,6 +158,7 @@ wmsx.CartridgeManbow2 = function(rom) {
         scc.loadState(s.scc);
         sccSelected = s.scs;
         sccConnected = s.scn;
+        sramContentName = s.sn;
 
         if (sccConnected) connectSCC();
     };

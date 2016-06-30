@@ -125,7 +125,7 @@ wmsx.SCCIAudio = function() {
 
     function readSCC(address) {
         address &= 0xff;
-        if (address < 0x80)                                // Wavetable access
+        if (address < 0x80)                                 // Wavetable access
             return channelSamples[address >>> 5][address & 0x1f];
         // All other registers always return 0xff
         return 0xff;
