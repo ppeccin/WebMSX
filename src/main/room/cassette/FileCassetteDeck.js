@@ -18,7 +18,7 @@ wmsx.FileCassetteDeck = function() {
             return null;
 
         tapeFileName = name;
-        tapeContent = arrContent.slice(0);
+        tapeContent = Array.prototype.slice.call(arrContent);    // Growable
         toTapeStart();
         screen.showOSD("Cassette: " + name + ". " + positionMessage(), true);
         fireStateUpdate();
@@ -147,7 +147,7 @@ wmsx.FileCassetteDeck = function() {
 
     this.writeByte = function(val) {
         if (!tapeContent) this.loadEmptyTape();
-        tapeContent[tapePosition++] = val;
+        tapeContent[tapePosition++] = val;              // Grow
         return true;
     };
 
@@ -246,7 +246,7 @@ wmsx.FileCassetteDeck = function() {
 
     this.loadState = function(state) {
         tapeFileName = state.f;
-        tapeContent = state.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c, tapeContent);
+        tapeContent = state.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c, tapeContent || []);    // Make sure type is Array
         tapePosition = state.p;
         motor = state.m;
         fireStateUpdate();
@@ -256,7 +256,7 @@ wmsx.FileCassetteDeck = function() {
     var cassetteSocket;
 
     var tapeFileName = null;
-    var tapeContent = null;
+    var tapeContent = null;     // Normal Growable Array
     var tapePosition = -1;
     var motor = false;
 

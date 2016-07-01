@@ -68,7 +68,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
-        var ints = (dest && dest.length === len) ? dest : new Uint8Array(len);    // TODO Preserve type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Uint8Array)(len);      // Preserve dest type
         for(var i = 0; i < len; i = i + 1)
             ints[i] = (str.charCodeAt(i) & 0xff);
         return ints;
@@ -78,7 +78,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
-        var ints = (dest && dest.length === len) ? dest : new Int8Array(len);       // TODO Preserve type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Int8Array)(len);       //  Preserve dest type
         for(var i = 0; i < len; i = i + 1) {
             var val = str.charCodeAt(i) & 0xff;
             ints[i] = val < 128 ? val : val - 256;
