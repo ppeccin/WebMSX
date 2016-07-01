@@ -2,7 +2,7 @@
 
 TestRam64K = function(rom, init) {
 
-    var data = wmsx.Util.arrayFill(new Array(65536), 256);     // pSTOP instruction
+    var data = wmsx.Util.arrayFill(new Uint8Array(65536), 256);     // pSTOP instruction
     this.bytes = data;
 
     if (!rom) {

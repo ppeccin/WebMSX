@@ -195,9 +195,9 @@ wmsx.RTC = function() {
     var mode = 0;
     var clockRunning = true;
 
-    var regClock = wmsx.Util.arrayFill(new Array(13), 0);
-    var regAlarm = wmsx.Util.arrayFill(new Array(13), 0);
-    var ram = [ new Array(13), new Array(13) ];
+    var regClock = new Uint8Array(13);
+    var regAlarm = new Uint8Array(13);
+    var ram = [ new Uint8Array(13), new Uint8Array(13) ];
 
     var regAddress = 0;
     var clockOffset = 0;

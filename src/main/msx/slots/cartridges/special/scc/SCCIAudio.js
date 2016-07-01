@@ -213,7 +213,7 @@ wmsx.SCCIAudio = function() {
     var scciMode;
 
     var channel1 = 0;
-    var channel1Samples = wmsx.Util.arrayFill(new Array(32), 0);
+    var channel1Samples = new Int8Array(32);
     var period1 = 0;
     var period1Count = 0;
     var sample1Count = 0;
@@ -221,7 +221,7 @@ wmsx.SCCIAudio = function() {
     var amplitude1 = 0;
 
     var channel2 = 0;
-    var channel2Samples = wmsx.Util.arrayFill(new Array(32), 0);
+    var channel2Samples = new Int8Array(32);
     var period2 = 0;
     var period2Count = 0;
     var sample2Count = 0;
@@ -229,7 +229,7 @@ wmsx.SCCIAudio = function() {
     var amplitude2 = 0;
 
     var channel3 = 0;
-    var channel3Samples = wmsx.Util.arrayFill(new Array(32), 0);
+    var channel3Samples = new Int8Array(32);
     var period3 = 0;
     var period3Count = 0;
     var sample3Count = 0;
@@ -237,7 +237,7 @@ wmsx.SCCIAudio = function() {
     var amplitude3 = 0;
 
     var channel4 = 0;
-    var channel4Samples = wmsx.Util.arrayFill(new Array(32), 0);
+    var channel4Samples = new Int8Array(32);
     var period4 = 0;
     var period4Count = 0;
     var sample4Count = 0;
@@ -245,7 +245,7 @@ wmsx.SCCIAudio = function() {
     var amplitude4 = 0;
 
     var channel5 = false;
-    var channel5Samples = wmsx.Util.arrayFill(new Array(32), 0);
+    var channel5Samples = new Int8Array(32);
     var period5 = 0;
     var period5Count = 0;
     var sample5Count = 0;
@@ -254,7 +254,7 @@ wmsx.SCCIAudio = function() {
 
     var channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
 
-    var volumeCurve = new Array(16);
+    var volumeCurve = new Array(16);    // Double values
 
     var audioSignal;
     var audioSocket;
@@ -268,21 +268,8 @@ wmsx.SCCIAudio = function() {
 
     // Savestate  -------------------------------------------
 
-    function unsignSamples() {
-        for (var i = 0; i < 5; i = i + 1)
-            for (var s = 0; s < 32; s = s + 1)
-                if (channelSamples[i][s] < 0) channelSamples[i][s] = 256 + channelSamples[i][s];
-    }
-
-    function signSamples() {
-        for (var i = 0; i < 5; i = i + 1)
-            for (var s = 0; s < 32; s = s + 1)
-                if (channelSamples[i][s] > 127) channelSamples[i][s] = -256 + channelSamples[i][s];
-    }
-
     this.saveState = function() {
-        unsignSamples();
-        var res = {
+        return {
             m: scciMode,
             c1: channel1, p1: period1, pc1: period1Count, sc1: sample1Count, cs1: currentSample1, a1: amplitude1,
             c2: channel2, p2: period2, pc2: period2Count, sc2: sample2Count, cs2: currentSample2, a2: amplitude2,
@@ -295,8 +282,6 @@ wmsx.SCCIAudio = function() {
             s4: wmsx.Util.storeInt8BitArrayToStringBase64(channel4Samples),
             s5: wmsx.Util.storeInt8BitArrayToStringBase64(channel5Samples)
         };
-        signSamples();
-        return res;
     };
 
     this.loadState = function(s) {
@@ -305,17 +290,16 @@ wmsx.SCCIAudio = function() {
         channel3 = s.c3; period3 = s.p3; period3Count = s.pc3; sample3Count = s.sc3; currentSample3 = s.cs3; amplitude3 = s.a3;
         channel4 = s.c4; period4 = s.p4; period4Count = s.pc4; sample4Count = s.sc4; currentSample4 = s.cs4; amplitude4 = s.a4;
         channel5 = s.c5; period5 = s.p5; period5Count = s.pc5; sample5Count = s.sc5; currentSample5 = s.cs5; amplitude5 = s.a5;
-        channel1Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s1, channel1Samples);
-        channel2Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s2, channel2Samples);
-        channel3Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s3, channel3Samples);
-        channel4Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s4, channel4Samples);
-        channel5Samples = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s5 || s.s4, channel5Samples);
+        channel1Samples = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.s1, channel1Samples);
+        channel2Samples = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.s2, channel2Samples);
+        channel3Samples = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.s3, channel3Samples);
+        channel4Samples = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.s4, channel4Samples);
+        channel5Samples = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.s5 || s.s4, channel5Samples);
         if (channelSamples[0] !== channel1Samples) channelSamples[0] = channel1Samples;
         if (channelSamples[1] !== channel2Samples) channelSamples[1] = channel2Samples;
         if (channelSamples[2] !== channel3Samples) channelSamples[2] = channel3Samples;
         if (channelSamples[3] !== channel4Samples) channelSamples[3] = channel4Samples;
         if (channelSamples[4] !== channel5Samples) channelSamples[4] = channel5Samples;
-        signSamples();
         this.setSCCIMode(s.m === true);
     };
 

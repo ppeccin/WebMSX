@@ -8,12 +8,9 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        var content = self.rom.content;
-        size = content.length;
-        bytes = new Array(size);
+        bytes = new Uint8Array(rom.content);
         self.bytes = bytes;
-        for(var i = 0; i < size; ++i)
-            bytes[i] = content[i];
+        size = bytes.length;
     }
 
     this.read = function(address) {

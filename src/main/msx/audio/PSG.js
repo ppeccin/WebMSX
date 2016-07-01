@@ -79,7 +79,7 @@ wmsx.PSG = function(audioSocket, controllersSocket) {
 
 
     var registerAddress = 0;
-    var register = wmsx.Util.arrayFill(new Array(16), 0);
+    var register = new Uint8Array(16);
 
     var audioChannel = new wmsx.PSGAudio(audioSocket);
 

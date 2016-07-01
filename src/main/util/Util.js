@@ -44,7 +44,7 @@ wmsx.Util = new function() {
     this.arraysConcatAll = function(arrs) {
         var len = 0;
         for (var i = 0; i < arrs.length; ++i) len += arrs[i].length;
-        var res = new Array(len);
+        var res = new (arrs[0].constructor)(len);   // Same type as the first array
         var pos = 0;
         for (i = 0; i < arrs.length; ++i) {
             this.arrayCopy(arrs[i], 0, res, pos);
@@ -68,9 +68,21 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
-        var ints = (dest && dest.length === len) ? dest : new Array(len);
+        var ints = (dest && dest.length === len) ? dest : new Uint8Array(len);    // TODO Preserve type
         for(var i = 0; i < len; i = i + 1)
             ints[i] = (str.charCodeAt(i) & 0xff);
+        return ints;
+    };
+
+    this.byteStringToSignedInt8BitArray = function(str, dest) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        var len = str.length;
+        var ints = (dest && dest.length === len) ? dest : new Int8Array(len);       // TODO Preserve type
+        for(var i = 0; i < len; i = i + 1) {
+            var val = str.charCodeAt(i) & 0xff;
+            ints[i] = val < 128 ? val : val - 256;
+        }
         return ints;
     };
 
@@ -89,7 +101,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = (str.length / 4) | 0;
-        var ints = (dest && dest.length === len) ? dest : new Array(len);
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Uint32Array)(len);      // Preserve dest type
         for(var i = 0, s = 0; i < len; i = i + 1, s = s + 4)
             ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8) | ((str.charCodeAt(s + 2) & 0xff) << 16) | ((str.charCodeAt(s + 3) & 0xff) << 24);
         return ints;
@@ -108,6 +120,13 @@ wmsx.Util = new function() {
         return this.byteStringToInt8BitArray(atob(str), dest);
     };
 
+    this.restoreStringBase64ToSignedInt8BitArray = function(str, dest) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return this.byteStringToSignedInt8BitArray(atob(str), dest);
+    };
+
     this.compressInt8BitArrayToStringBase64 = function(arr, length) {
         if (arr === null || arr === undefined) return arr;
         if (arr.length === 0) return "";
@@ -123,9 +142,9 @@ wmsx.Util = new function() {
         if (str == "") return [];
         var res = JSZip.compressions.DEFLATE.uncompress(atob(str));
         if (dest && (diffSize || dest.length === res.length))
-            return this.arrayCopy(res, 0, dest);                       // Preserve dest
+            return this.arrayCopy(res, 0, dest);                                                        // Preserve dest
         else
-            return this.arrayCopy(res, 0, new Array(res.length));      // Convert Uint8Array to normal Array
+            return this.arrayCopy(res, 0, new (dest ? dest.constructor : Uint8Array)(res.length));      // Preserve dest type
     };
 
     this.storeInt32BitArrayToStringBase64 = function(arr) {
@@ -298,36 +317,3 @@ wmsx.Util = new function() {
     };
 
 };
-
-//// Only add setZeroTimeout to the window object, and hide everything
-//// else in a closure.
-//(function() {
-//    var timeouts = [];
-//    var messageName = "zero-timeout-message";
-//
-//    // Like setTimeout, but only takes a function argument.  There's
-//    // no time argument (always zero) and no arguments (you have to
-//    // use a closure).
-//    function setZeroTimeout(fn) {
-//        timeouts.push(fn);
-//        window.postMessage(messageName, "*");
-//    }
-//
-//    function handleMessage(event) {
-//        if (event.source == window && event.data == messageName) {
-//            event.stopPropagation();
-//            if (timeouts.length > 0) {
-//                var fn = timeouts.shift();
-//                fn();
-//            }
-//        }
-//    }
-//
-//    window.addEventListener("message", handleMessage, true);
-//
-//    // Add the one thing we want added to the window object.
-//    window.setZeroTimeout = setZeroTimeout;
-//})();
-
-
-

@@ -9,12 +9,9 @@ wmsx.CartridgeFMPAC = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        var content = self.rom.content;
-        bytes = new Array(content.length);
+        bytes = new Uint8Array(rom.content);
         self.bytes = bytes;
-        for(var i = 0, len = content.length; i < len; i++)
-            bytes[i] = content[i];
-        sram = wmsx.Util.arrayFill(new Array(0x2000), 0);
+        sram = new Uint8Array(0x2000);
         self.sram = sram;
     }
 

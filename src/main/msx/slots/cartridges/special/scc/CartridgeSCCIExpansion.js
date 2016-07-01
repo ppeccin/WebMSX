@@ -11,8 +11,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        var content = self.rom.content;
-        bytes = new Array(128 * 1024);
+        var content = rom.content;
+        bytes = new Uint8Array(128 * 1024);
         self.bytes = bytes;
         if (content.length === 0)
             wmsx.Util.arrayFill(bytes, 0xff);

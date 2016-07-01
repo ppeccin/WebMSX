@@ -8,12 +8,9 @@ wmsx.CartridgeKonami = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        var content = self.rom.content;
-        bytes = new Array(content.length);
+        bytes = new Uint8Array(rom.content);
         self.bytes = bytes;
-        for(var i = 0, len = content.length; i < len; i++)
-            bytes[i] = content[i];
-        numBanks = (content.length / 8192) | 0;
+        numBanks = (bytes.length / 8192) | 0;
     }
 
     this.powerOn = function() {

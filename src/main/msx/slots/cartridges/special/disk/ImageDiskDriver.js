@@ -227,7 +227,7 @@ wmsx.ImageDiskDriver = function() {
     function readFromMemory(address, quant) {
         // wmsx.Util.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
         var slot = getSlotForMemoryAccess(address);
-        var res = new Array(quant);
+        var res = new Uint8Array(quant);                // TODO Read in place?
         for (var i = 0; i < quant; i++)
             res[i] = slot.read(address + i);
 

@@ -96,7 +96,7 @@ wmsx.FileDiskDrive = function() {
         if (noDiskInsertedMessage(drive)) return;
 
         try {
-            fileDownloader.startDownloadBinary(makeFileNameToSave(getCurrentDisk(drive).name), new Uint8Array(getCurrentDisk(drive).content), "Disk " + driveName[drive] + " file");
+            fileDownloader.startDownloadBinary(makeFileNameToSave(getCurrentDisk(drive).name), getCurrentDisk(drive).content, "Disk " + driveName[drive] + " file");
         } catch(ex) {
             // give up
         }
@@ -161,7 +161,7 @@ wmsx.FileDiskDrive = function() {
         if (!checkContentIsValidImage(file.content)) return null;
 
         var fileName = file.name.split("/").pop();
-        return { name: fileName, content: file.content };
+        return { name: fileName, content: file.content instanceof Uint8Array ? file.content : new Uint8Array(file.content) };
     }
 
     function checkContentIsValidImage(content) {

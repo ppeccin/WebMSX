@@ -8,10 +8,9 @@ wmsx.CartridgePAC = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        sram = wmsx.Util.arrayFill(new Array(0x2000), 0);
+        sram = new Uint8Array(0x2000);
         self.sram = sram;
-        var content = self.rom.content;
-        if (content.length !== 0) loadSRAM(rom.source, content);
+        if (rom.content.length !== 0) loadSRAM(rom.source, rom.content);
     }
 
     this.getDataDesc = function() {

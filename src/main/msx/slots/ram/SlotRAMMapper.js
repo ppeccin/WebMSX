@@ -10,8 +10,8 @@ wmsx.SlotRAMMapper = function(rom) {
         self.rom = rom;
         var i = 0;
         while (VALID_SIZES[i] < WMSX.RAMMAPPER_SIZE && i < VALID_SIZES.length - 1) i++;
-        var newSize = VALID_SIZES[i];
-        bytes = new Array(newSize * 1024);
+        var size = VALID_SIZES[i];
+        bytes = new Uint8Array(size * 1024);
         self.bytes = bytes;
         pageMask = (bytes.length >> 14) - 1;
     }

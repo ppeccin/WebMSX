@@ -11,10 +11,8 @@ wmsx.CartridgeManbow2 = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        var content = self.rom.content;
-        bytes = new Array(512 * 1024);
+        bytes = new Uint8Array(rom.content);
         self.bytes = bytes;
-        for(var i = 0, len = content.length; i < len; i++) bytes[i] = content[i];
     }
 
     this.getDataDesc = function() {
@@ -30,7 +28,7 @@ wmsx.CartridgeManbow2 = function(rom) {
     };
 
     this.getDataToSave = function() {
-        var content = new Uint8Array(bytes.slice(458752));      // Last 64K
+        var content = bytes.slice(458752);      // Last 64K
         return { fileName: sramContentName || "Manbow2.dat", content: content };
     };
 

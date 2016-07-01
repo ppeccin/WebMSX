@@ -8,11 +8,9 @@ wmsx.SlotBIOS = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(0x8000), 0xff);
+        bytes = wmsx.Util.arrayFill(new Uint8Array(0x8000), 0xff);
+        bytes.set(self.rom.content);
         self.bytes = bytes;
-        var content = self.rom.content;
-        for(var i = 0, len = content.length; i < len; i++)
-            bytes[i] = content[i];
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
     }
 
