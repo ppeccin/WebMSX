@@ -15,9 +15,9 @@ wmsx.Z80 = function() {
     }
 
     this.powerOn = function() {
-        rr[rAF] = 0xfffd; rr[rBC] = 0xffff; rr[rDE] = 0xffff; rr[rHL] = 0xffff;
-        rr[rAF2] = 0xfffd; rr[rBC2] = 0xffff; rr[rDE2] = 0xffff; rr[rHL2] = 0xffff;
-        rr[rIX] = 0xffff; rr[rIY] = 0xffff; rr[rSP] = 0xffff;
+        rr[AF] = 0xfffd; rr[BC] = 0xffff; rr[DE] = 0xffff; rr[HL] = 0xffff;
+        rr[AF2] = 0xfffd; rr[BC2] = 0xffff; rr[DE2] = 0xffff; rr[HL2] = 0xffff;
+        rr[IX] = 0xffff; rr[IY] = 0xffff; rr[SP] = 0xffff;
         this.setINT(1);
         this.reset();
     };
@@ -31,7 +31,7 @@ wmsx.Z80 = function() {
             if (T > 0) {
                 instruction.operation();
             } else {
-                ++r[rR];                             // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
+                ++r[R];                             // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
                 if (ackINT) acknowledgeINT();
                 else fetchNextInstruction();
             }
@@ -52,7 +52,7 @@ wmsx.Z80 = function() {
         cycles = 0;
         T = 0; opcode = null; ackINT = false;
         instruction = null; prefix = 0;
-        rr[rPC] = 0; rr[rIR] = 0; IFF1 = 0; IM = 0;
+        rr[PC] = 0; rr[IR] = 0; IFF1 = 0; IM = 0;
         extensionCurrentlyRunning = null; extensionExtraIterations = 0;
     };
 
@@ -76,47 +76,27 @@ wmsx.Z80 = function() {
     var bus;
     var INT = 1;
 
-    // Registers
-    var r =  new Uint8Array(26);
-    var rr = new Uint16Array(r.buffer);
-
-    //var PC = 0;     // 16 bits
-    //var SP = 0;     // 16 bits
-
-    //var A = 0;
-    //var F = 0;
-    //var B = 0;
-    //var C = 0;
-    //var DE = 0;     // 16 bits
-    //var HL = 0;     // 16 bits
-    //var IX = 0;     // 16 bits
-    //var IY = 0;     // 16 bits
-
-    //var AF2 = 0;    // 16 bits
-    //var BC2 = 0;    // 16 bits
-    //var DE2 = 0;    // 16 bits
-    //var HL2 = 0;    // 16 bits
-
-    //var I = 0;
-    //var R = 0;
-
     // Interrupt flags and mode
     var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Always the same as IFF1
     var IM = 0;
 
+    // Registers
+    var r =  new Uint8Array(26);
+    var rr = new Uint16Array(r.buffer);
+
     // Register indexes
-    var rA = 1,  rF = 0,  rAF = 0;
-    var rB = 3,  rC = 2,  rBC = 1;
-    var rD = 5,  rE = 4,  rDE = 2;
-    var rH = 7,  rL = 6,  rHL = 3;
-    var rI = 9,  rR = 8,  rIR = 4;
+    var A = 1,  F = 0,  AF = 0;
+    var B = 3,  C = 2,  BC = 1;
+    var D = 5,  E = 4,  DE = 2;
+    var H = 7,  L = 6,  HL = 3;
+    var I = 9,  R = 8,  IR = 4;
 
-    var rIXh = 11, rIXl = 10, rIX = 5;
-    var rIYh = 13, rIYl = 12, rIY = 6;
-    var rPCh = 15, rPCl = 14, rPC = 7;
-    var rSPh = 17, rSPl = 16, rSP = 8;
+    var IXh = 11, IXl = 10, IX = 5;
+    var IYh = 13, IYl = 12, IY = 6;
+    var PCh = 15, PCl = 14, PC = 7;
+    var SPh = 17, SPl = 16, SP = 8;
 
-    var rAF2 = 9, rBC2 = 10, rDE2 = 11, rHL2 = 12;
+    var AF2 = 9, BC2 = 10, DE2 = 11, HL2 = 12;
 
     // Status Bits references
     var bS =  0x80,  nS =  7;
@@ -187,204 +167,204 @@ wmsx.Z80 = function() {
     }
 
     function fromA() {
-        return r[rA];
+        return r[A];
     }
     function fromB() {
-        return r[rB];
+        return r[B];
     }
     function fromC() {
-        return r[rC];
+        return r[C];
     }
     function fromD() {
-        return r[rD];
+        return r[D];
     }
     function fromE() {
-        return r[rE];
+        return r[E];
     }
     function fromH() {
-        return r[rH];
+        return r[H];
     }
     function fromL() {
-        return r[rL];
+        return r[L];
     }
     function fromIXh() {
-        return r[rIXh];
+        return r[IXh];
     }
     function fromIXl() {
-        return r[rIXl];
+        return r[IXl];
     }
     function fromIYh() {
-        return r[rIYh];
+        return r[IYh];
     }
     function fromIYl() {
-        return r[rIYl];
+        return r[IYl];
     }
 
     function toA(val) {
-        r[rA] = val;
+        r[A] = val;
     }
     function toB(val) {
-        r[rB] = val;
+        r[B] = val;
     }
     function toC(val) {
-        r[rC] = val;
+        r[C] = val;
     }
     function toD(val) {
-        r[rD] = val;
+        r[D] = val;
     }
     function toE(val) {
-        r[rE] = val;
+        r[E] = val;
     }
     function toH(val) {
-        r[rH] = val;
+        r[H] = val;
     }
     function toL(val) {
-        r[rL] = val;
+        r[L] = val;
     }
     function toIXh(val) {
-        r[rIXh] = val;
+        r[IXh] = val;
     }
     function toIXl(val) {
-        r[rIXl] = val;
+        r[IXl] = val;
     }
     function toIYh(val) {
-        r[rIYh] = val;
+        r[IYh] = val;
     }
     function toIYl(val) {
-        r[rIYl] = val;
+        r[IYl] = val;
     }
 
     function fromAF() {
-        return rr[rAF];
+        return rr[AF];
     }
     function fromBC() {
-        return (r[rB] << 8) | r[rC];
+        return (r[B] << 8) | r[C];
     }
     function fromDE() {
-        return rr[rDE];
+        return rr[DE];
     }
     function fromHL() {
-        return rr[rHL];
+        return rr[HL];
     }
     function fromSP() {
-        return rr[rSP];
+        return rr[SP];
     }
     function fromIX () {
-        return rr[rIX];
+        return rr[IX];
     }
     function fromIY () {
-        return rr[rIY];
+        return rr[IY];
     }
 
     function toAF(val) {
-        rr[rAF] = val;
+        rr[AF] = val;
     }
     function toBC(val) {
-        r[rB] = val >>> 8; r[rC] = val;
+        r[B] = val >>> 8; r[C] = val;
     }
     function toDE(val) {
-        rr[rDE] = val;
+        rr[DE] = val;
     }
     function toHL(val) {
-        rr[rHL] = val;
+        rr[HL] = val;
     }
     function toSP(val) {
-        rr[rSP] = val;
+        rr[SP] = val;
     }
     function toIX(val) {
-        rr[rIX] = val;
+        rr[IX] = val;
     }
     function toIY(val) {
-        rr[rIY] = val;
+        rr[IY] = val;
     }
 
     function from_BC_8() {
         return bus.read(fromBC());
     }
     function from_DE_8() {
-        return bus.read(rr[rDE]);
+        return bus.read(rr[DE]);
     }
     function from_HL_8() {
-        return bus.read(rr[rHL]);
+        return bus.read(rr[HL]);
     }
     function from_SP_16() {
-        var aux = rr[rSP] + 1; if (aux > 0xffff) aux = 0;
-        return bus.read(rr[rSP]) | (bus.read(aux) << 8);
+        var aux = rr[SP] + 1; if (aux > 0xffff) aux = 0;
+        return bus.read(rr[SP]) | (bus.read(aux) << 8);
     }
 
     function to_BC_8(val) {
         bus.write(fromBC(), val);
     }
     function to_DE_8(val) {
-        bus.write(rr[rDE], val);
+        bus.write(rr[DE], val);
     }
     function to_HL_8(val) {
-        bus.write(rr[rHL], val);
+        bus.write(rr[HL], val);
     }
     function to_SP_16(val) {
-        bus.write(rr[rSP], val & 255);
-        var aux = rr[rSP] + 1; if (aux > 0xffff) aux = 0;
+        bus.write(rr[SP], val & 255);
+        var aux = rr[SP] + 1; if (aux > 0xffff) aux = 0;
         bus.write(aux, val >>> 8);
     }
 
     var preReadIXYdOffset = 0;
     function preReadIXYd() {
-        preReadIXYdOffset = bus.read(rr[rPC]++);
+        preReadIXYdOffset = bus.read(rr[PC]++);
     }
 
     function from_IXd_8() {
-        return bus.read(sum16Signed(rr[rIX], bus.read(rr[rPC]++)));
+        return bus.read(sum16Signed(rr[IX], bus.read(rr[PC]++)));
     }
     from_IXd_8.fromPreReadAddr = function() {
-        return bus.read(sum16Signed(rr[rIX], preReadIXYdOffset));
+        return bus.read(sum16Signed(rr[IX], preReadIXYdOffset));
     };
 
     function from_IYd_8() {
-        return bus.read(sum16Signed(rr[rIY], bus.read(rr[rPC]++)));
+        return bus.read(sum16Signed(rr[IY], bus.read(rr[PC]++)));
     }
     from_IYd_8.fromPreReadAddr = function() {
-        return bus.read(sum16Signed(rr[rIY], preReadIXYdOffset));
+        return bus.read(sum16Signed(rr[IY], preReadIXYdOffset));
     };
 
     function to_IXd_8(val) {
-        bus.write(sum16Signed(rr[rIX], bus.read(rr[rPC]++)), val);
+        bus.write(sum16Signed(rr[IX], bus.read(rr[PC]++)), val);
     }
     to_IXd_8.toPreReadAddr = function(val) {
-        bus.write(sum16Signed(rr[rIX], preReadIXYdOffset), val);
+        bus.write(sum16Signed(rr[IX], preReadIXYdOffset), val);
     };
 
     function to_IYd_8(val) {
-        bus.write(sum16Signed(rr[rIY], bus.read(rr[rPC]++)), val);
+        bus.write(sum16Signed(rr[IY], bus.read(rr[PC]++)), val);
     }
     to_IYd_8.toPreReadAddr = function(val) {
-        bus.write(sum16Signed(rr[rIY], preReadIXYdOffset), val);
+        bus.write(sum16Signed(rr[IY], preReadIXYdOffset), val);
     };
 
     function fromN() {
-        return bus.read(rr[rPC]++);
+        return bus.read(rr[PC]++);
     }
     function fromNN() {
-        return bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
+        return bus.read(rr[PC]++) | (bus.read(rr[PC]++) << 8);
     }
 
     function from_NN_8() {
-        return bus.read(bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8));
+        return bus.read(bus.read(rr[PC]++) | (bus.read(rr[PC]++) << 8));
     }
 
     function to_NN_8(val) {
-        var addr = bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
+        var addr = bus.read(rr[PC]++) | (bus.read(rr[PC]++) << 8);
         bus.write(addr, val);
     }
 
     function from_NN_16() {
-        var addr = bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
+        var addr = bus.read(rr[PC]++) | (bus.read(rr[PC]++) << 8);
         var low = bus.read(addr);
         addr = addr +  1; if (addr > 0xffff) addr = 0;
         return (bus.read(addr) << 8) | low;
     }
 
     function to_NN_16(val) {
-        var addr = bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
+        var addr = bus.read(rr[PC]++) | (bus.read(rr[PC]++) << 8);
         bus.write(addr, val & 255);
         addr = addr + 1; if (addr > 0xffff) addr = 0;
         bus.write(addr, val >>> 8);
@@ -395,12 +375,12 @@ wmsx.Z80 = function() {
     }
 
     function push16(val) {
-        bus.write(--rr[rSP], val >>> 8);
-        bus.write(--rr[rSP], val & 255);
+        bus.write(--rr[SP], val >>> 8);
+        bus.write(--rr[SP], val & 255);
     }
 
     function pop16() {
-        return bus.read(rr[rSP]++) | (bus.read(rr[rSP]++) << 8);
+        return bus.read(rr[SP]++) | (bus.read(rr[SP]++) << 8);
     }
 
     var parities = new Uint8Array([    // 0b00000100 ready for P flag
@@ -421,7 +401,7 @@ wmsx.Z80 = function() {
     function HALT() {
         //Util.log("HALT!");
         //self.breakpoint("HALT");
-        --rr[rPC];    // Keep repeating HALT instruction until an INT or RESET
+        --rr[PC];    // Keep repeating HALT instruction until an INT or RESET
     }
 
     function newLD(to, from) {
@@ -430,30 +410,36 @@ wmsx.Z80 = function() {
         };
     }
 
+    function newLDr(t, f) {
+        return function LDr() {
+            r[t] = r[f];
+        };
+    }
+
     function LDAI() {
-        r[rA] = r[rI];
+        r[A] = r[I];
         // Flags
-        r[rF] = (r[rF] & 0x01)                      // H = 0; N = 0; C = C
-            | (r[rA] & 0xA8)                    // S = A is negative; f5, f3 copied from A
-            | ((r[rA] === 0) << nZ)             // Z = A is 0
+        r[F] = (r[F] & 0x01)                      // H = 0; N = 0; C = C
+            | (r[A] & 0xA8)                    // S = A is negative; f5, f3 copied from A
+            | ((r[A] === 0) << nZ)             // Z = A is 0
             | (IFF1 << nPV);                // PV = IFF2 (same as IFF1)
     }
 
     function LDAR() {
-        r[rA] = r[rR] & 0x7f;
+        r[A] = r[R] & 0x7f;
         // Flags
-        r[rF] = (r[rF] & 0x01)                      // H = 0; N = 0; C = C
-            | (r[rA] & 0xA8)                    // S = A is negative; f5, f3 copied from A
-            | ((r[rA] === 0) << nZ)             // Z = A is 0
+        r[F] = (r[F] & 0x01)                      // H = 0; N = 0; C = C
+            | (r[A] & 0xA8)                    // S = A is negative; f5, f3 copied from A
+            | ((r[A] === 0) << nZ)             // Z = A is 0
             | (IFF1 << nPV);                // PV = IFF2 (same as IFF1)
     }
 
     function LDIA() {
-        r[rI] = r[rA];
+        r[I] = r[A];
     }
 
     function LDRA() {
-        r[rR] = r[rA];                              // R can have bit 7 = 1 if set manually
+        r[R] = r[A];                              // R can have bit 7 = 1 if set manually
     }
 
     function newPUSH(from) {
@@ -469,45 +455,45 @@ wmsx.Z80 = function() {
     }
 
     function EXDEHL() {
-        var temp = rr[rDE];
-        rr[rDE] = rr[rHL];
-        rr[rHL] = temp;
+        var temp = rr[DE];
+        rr[DE] = rr[HL];
+        rr[HL] = temp;
     }
 
     function EXX() {
-        var temp = rr[rBC];
-        rr[rBC] = rr[rBC2];
-        rr[rBC2] = temp;
-        temp = rr[rDE];
-        rr[rDE] = rr[rDE2];
-        rr[rDE2] = temp;
-        temp = rr[rHL];
-        rr[rHL] = rr[rHL2];
-        rr[rHL2] = temp;
+        var temp = rr[BC];
+        rr[BC] = rr[BC2];
+        rr[BC2] = temp;
+        temp = rr[DE];
+        rr[DE] = rr[DE2];
+        rr[DE2] = temp;
+        temp = rr[HL];
+        rr[HL] = rr[HL2];
+        rr[HL2] = temp;
     }
 
     function EXAFAF2() {
-        var temp = rr[rAF];
-        rr[rAF] = rr[rAF2];
-        rr[rAF2] = temp;
+        var temp = rr[AF];
+        rr[AF] = rr[AF2];
+        rr[AF2] = temp;
     }
 
     function LDI() {
         to_DE_8(from_HL_8());
-        ++rr[rDE];
-        ++rr[rHL];
-        --rr[rBC];
+        ++rr[DE];
+        ++rr[HL];
+        --rr[BC];
         // Flags
-        r[rF] = (r[rF] & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
-            | ((rr[rBC] !== 0) << nPV);         // PV = BC != 0
+        r[F] = (r[F] & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
+            | ((rr[BC] !== 0) << nPV);         // PV = BC != 0
         // Verify: Undocumented f5/f3 behavior for all LD block instructions, not implemented. Left 0
     }
 
     function LDIR() {
         LDI();
-        if (r[rF] & bPV) {
+        if (r[F] & bPV) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -516,19 +502,19 @@ wmsx.Z80 = function() {
 
     function LDD() {
         to_DE_8(from_HL_8());
-        --rr[rDE];
-        --rr[rHL];
-        --rr[rBC];
+        --rr[DE];
+        --rr[HL];
+        --rr[BC];
         // Flags
-        r[rF] = (r[rF] & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
-            | ((rr[rBC] !== 0) << nPV);       // PV = BC != 0
+        r[F] = (r[F] & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
+            | ((rr[BC] !== 0) << nPV);       // PV = BC != 0
     }
 
     function LDDR() {
         LDD();
-        if (r[rF] & bPV) {
+        if (r[F] & bPV) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -537,23 +523,23 @@ wmsx.Z80 = function() {
 
     function CPI() {
         var val = from_HL_8();
-        --rr[rBC];
-        ++rr[rHL];
+        --rr[BC];
+        ++rr[HL];
         // Flags
-        var res = r[rA] - val;
-        var compare = r[rA] ^ val ^ res;
-        r[rF] = (r[rF] & bC) | bN                   // N = 1; C = C
+        var res = r[A] - val;
+        var compare = r[A] ^ val ^ res;
+        r[F] = (r[F] & bC) | bN                   // N = 1; C = C
             | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
             | ((res === 0) << nZ)           // Z = res is 0
             | (compare & bH)                // H = borrow from bit 4
-            | ((rr[rBC] !== 0) << nPV);       // PV = BC != 0
+            | ((rr[BC] !== 0) << nPV);       // PV = BC != 0
     }
 
     function CPIR() {
         CPI();
-        if ((r[rF] & bPV) && !(r[rF] & bZ)) {
+        if ((r[F] & bPV) && !(r[F] & bZ)) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -562,23 +548,23 @@ wmsx.Z80 = function() {
 
     function CPD() {
         var val = from_HL_8();
-        --rr[rBC];
-        --rr[rHL];
+        --rr[BC];
+        --rr[HL];
         // Flags
-        var res = r[rA] - val;
-        var compare = r[rA] ^ val ^ res;
-        r[rF] = (r[rF] & bC) | bN                   // N = 1; C = C
+        var res = r[A] - val;
+        var compare = r[A] ^ val ^ res;
+        r[F] = (r[F] & bC) | bN                   // N = 1; C = C
             | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
             | ((res === 0) << nZ)           // Z = res is 0
             | (compare & bH)                // H = borrow from bit 4
-            | ((rr[rBC] !== 0) << nPV);       // PV = BC != 0
+            | ((rr[BC] !== 0) << nPV);       // PV = BC != 0
     }
 
     function CPDR() {
         CPD();
-        if ((r[rF] & bPV) && !(r[rF] & bZ)) {
+        if ((r[F] & bPV) && !(r[F] & bZ)) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -586,41 +572,41 @@ wmsx.Z80 = function() {
     }
 
     function DAA() {
-        var res = r[rA];
-        if (r[rF] & bN) {
+        var res = r[A];
+        if (r[F] & bN) {
             // Coming from a subtraction
-            if ((r[rF] & bH) || ((r[rA] & 0x0f) > 9)) res -= 0x06;
-            if ((r[rF] & bC) || (r[rA] > 0x99)) res -= 0x60;
+            if ((r[F] & bH) || ((r[A] & 0x0f) > 9)) res -= 0x06;
+            if ((r[F] & bC) || (r[A] > 0x99)) res -= 0x60;
         } else {
             // Coming from an addition
-            if ((r[rF] & bH) || ((r[rA] & 0x0f) > 9)) res += 0x06;
-            if ((r[rF] & bC) || (r[rA] > 0x99)) res += 0x60;
+            if ((r[F] & bH) || ((r[A] & 0x0f) > 9)) res += 0x06;
+            if ((r[F] & bC) || (r[A] > 0x99)) res += 0x60;
         }
         res &= 255;
         // Flags
-        r[rF] = (r[rF] & 0x03)                            // N = N; C = C
+        r[F] = (r[F] & 0x03)                            // N = N; C = C
             | (res & 0xa8)                        // S = res has bit 7 set; f5, f3 copied from res
             | ((res === 0) << nZ)                 // Z = res (as will be set to A) is 0
-            | ((r[rA] ^ res) & bH)                    // H = bit 4 changed after adjust
+            | ((r[A] ^ res) & bH)                    // H = bit 4 changed after adjust
             | parities[res]                       // P = parity of A
-            | (r[rA] > 0x99);                         // C = carry from decimal range
-        r[rA] = res;
+            | (r[A] > 0x99);                         // C = carry from decimal range
+        r[A] = res;
     }
 
     function CPL() {
-        r[rA] = ~r[rA];
+        r[A] = ~r[A];
         // Flags
-        r[rF] = (r[rF] & 0xc5) | 0x12        // S = S; Z = Z; H = 1; PV = PV; N = 1; C = C
-            | (r[rA] & 0x28);            // f5, f3 copied from A
+        r[F] = (r[F] & 0xc5) | 0x12        // S = S; Z = Z; H = 1; PV = PV; N = 1; C = C
+            | (r[A] & 0x28);            // f5, f3 copied from A
     }
 
     function NEG() {
-        var before = r[rA];
-        r[rA] = -r[rA] & 255;
+        var before = r[A];
+        r[A] = -r[A] & 255;
         // Flags
-        r[rF] = bN                                        // N = 1
-            | (r[rA] & 0xa8)                              // S = A is negative; f5, f3 copied from A
-            | ((r[rA] === 0) << nZ)                       // Z = A is 0
+        r[F] = bN                                        // N = 1
+            | (r[A] & 0xa8)                              // S = A is negative; f5, f3 copied from A
+            | ((r[A] === 0) << nZ)                       // Z = A is 0
             | (((before & 0x0f) !== 0) << nH)         // H = borrow from bit 4
             | ((before === 0x80) << nPV)              // PV = A was 0x80 before
             | (before !== 0);                         // C = A was not 0 before
@@ -628,15 +614,15 @@ wmsx.Z80 = function() {
 
     function CCF() {
         // Flags
-        r[rF] = (r[rF] & 0xc4)                  // S = S; Z = Z; PV = PV; N = 0
-            | (r[rA] & 0x28)                // f5, f3 copied from A
-            | ((r[rF] & bC) << nH)          // H = previous C
-            | (~r[rF] & bC);                // C = ~C
+        r[F] = (r[F] & 0xc4)                  // S = S; Z = Z; PV = PV; N = 0
+            | (r[A] & 0x28)                // f5, f3 copied from A
+            | ((r[F] & bC) << nH)          // H = previous C
+            | (~r[F] & bC);                // C = ~C
     }
 
     function SCF() {
         // Flags
-        r[rF] = (r[rF] & 0xc4) | bC;            // S = S; Z = Z; H = 0; PV = PV; N = 0; C = 1;
+        r[F] = (r[F] & 0xc4) | bC;            // S = S; Z = Z; H = 0; PV = PV; N = 0; C = 1;
     }
 
     function DI() {
@@ -651,71 +637,71 @@ wmsx.Z80 = function() {
     }
 
     function RLCA() {
-        r[rA] = (r[rA] << 1) | (r[rA] >>> 7);
+        r[A] = (r[A] << 1) | (r[A] >>> 7);
         // Flags
-        r[rF] = (r[rF] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (r[rA] & 0x28)                     // f5, f3 copied from A
-            | (r[rA] & bC);                      // C = bit 7 of A before
+        r[F] = (r[F] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (r[A] & 0x28)                     // f5, f3 copied from A
+            | (r[A] & bC);                      // C = bit 7 of A before
     }
 
     function RLA() {
-        var oldA = r[rA];
-        r[rA] = (r[rA] << 1) | (r[rF] & bC);
+        var oldA = r[A];
+        r[A] = (r[A] << 1) | (r[F] & bC);
         // Flags
-        r[rF] = (r[rF] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (r[rA] & 0x28)                     // f5, f3 copied from A
+        r[F] = (r[F] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (r[A] & 0x28)                     // f5, f3 copied from A
             | ((oldA >>> 7) & bC);           // C = bit 7 of A before
     }
 
     function RRCA() {
-        r[rA] = (r[rA] >>> 1) | (r[rA] << 7);
+        r[A] = (r[A] >>> 1) | (r[A] << 7);
         // Flags
-        r[rF] = (r[rF] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (r[rA] & 0x28)                     // f5, f3 copied from A
-            | (r[rA] >>> 7);                     // C = bit 0 of A before
+        r[F] = (r[F] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (r[A] & 0x28)                     // f5, f3 copied from A
+            | (r[A] >>> 7);                     // C = bit 0 of A before
     }
 
     function RRA() {
-        var oldA = r[rA];
-        r[rA] = (r[rA] >>> 1) | ((r[rF] & bC) << 7);
+        var oldA = r[A];
+        r[A] = (r[A] >>> 1) | ((r[F] & bC) << 7);
         // Flags
-        r[rF] = (r[rF] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
-            | (r[rA] & 0x28)                     // f5, f3 copied from A
+        r[F] = (r[F] & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
+            | (r[A] & 0x28)                     // f5, f3 copied from A
             | (oldA & bC);                   // C = bit 0 of A before
     }
 
     function RLD() {
         var val = from_HL_8();
-        to_HL_8(((val << 4) | (r[rA] & 0x0f)) & 255);
-        r[rA] = (r[rA] & 0xf0) | (val >>> 4);
+        to_HL_8(((val << 4) | (r[A] & 0x0f)) & 255);
+        r[A] = (r[A] & 0xf0) | (val >>> 4);
         // Flags
-        r[rF] = (r[rF] & bC)                               // H = 0; N = 0; C = C
-            | (r[rA] & 0xa8)                           // S = A is negative; f5, f3 copied from A
-            | ((r[rA] === 0) << nZ)                    // Z = A is 0
-            | parities[r[rA]];                         // P = parity of A
+        r[F] = (r[F] & bC)                               // H = 0; N = 0; C = C
+            | (r[A] & 0xa8)                           // S = A is negative; f5, f3 copied from A
+            | ((r[A] === 0) << nZ)                    // Z = A is 0
+            | parities[r[A]];                         // P = parity of A
     }
 
     function RRD() {
         var val = from_HL_8();
-        to_HL_8(((r[rA] << 4) | (val >>> 4)) & 255);
-        r[rA] = (r[rA] & 0xf0) | (val & 0x0f);
+        to_HL_8(((r[A] << 4) | (val >>> 4)) & 255);
+        r[A] = (r[A] & 0xf0) | (val & 0x0f);
         // Flags
-        r[rF] = (r[rF] & bC)                               // H = 0; N = 0; C = C
-            | (r[rA] & 0xa8)                           // S = A is negative; f5, f3 copied from A
-            | ((r[rA] === 0) << nZ)                    // Z = A is 0
-            | parities[r[rA]];                         // P = parity of A
+        r[F] = (r[F] & bC)                               // H = 0; N = 0; C = C
+            | (r[A] & 0xa8)                           // S = A is negative; f5, f3 copied from A
+            | ((r[A] === 0) << nZ)                    // Z = A is 0
+            | parities[r[A]];                         // P = parity of A
     }
 
     function JR() {
         var addr = fromN();
-        rr[rPC] = sum16Signed(rr[rPC], addr);
+        rr[PC] = sum16Signed(rr[PC], addr);
     }
 
     function DJNZ() {
         var relat = fromN();
-        --r[rB];
-        if (r[rB] !== 0) {
-            rr[rPC] = sum16Signed(rr[rPC], relat);
+        --r[B];
+        if (r[B] !== 0) {
+            rr[PC] = sum16Signed(rr[PC], relat);
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -723,12 +709,12 @@ wmsx.Z80 = function() {
 
     function CALL() {
         var addr = fromNN();
-        push16(rr[rPC]);
-        rr[rPC] = addr;
+        push16(rr[PC]);
+        rr[PC] = addr;
     }
 
     function RET() {
-        rr[rPC] = pop16();
+        rr[PC] = pop16();
     }
 
     function RETI() {
@@ -743,24 +729,24 @@ wmsx.Z80 = function() {
 
     function INAn() {
         var port = fromN();
-        r[rA] = bus.input((r[rA] << 8) | port);
+        r[A] = bus.input((r[A] << 8) | port);
     }
 
     function INI() {
         to_HL_8(bus.input(fromBC()));
-        ++rr[rHL];
-        --r[rB];
+        ++rr[HL];
+        --r[B];
         // Flags
-        r[rF] = (r[rF] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((r[rB] === 0) << nZ);                   // Z = B is 0
+        r[F] = (r[F] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((r[B] === 0) << nZ);                   // Z = B is 0
         // Verify: Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
     }
 
     function INIR() {
         INI();
-        if (r[rB] !== 0) {
+        if (r[B] !== 0) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -769,18 +755,18 @@ wmsx.Z80 = function() {
 
     function IND() {
         to_HL_8(bus.input(fromBC()));
-        --rr[rHL];
-        --r[rB];
+        --rr[HL];
+        --r[B];
         // Flags
-        r[rF] = (r[rF] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((r[rB] === 0) << nZ);                   // Z = B is 0
+        r[F] = (r[F] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((r[B] === 0) << nZ);                   // Z = B is 0
     }
 
     function INDR() {
         IND();
-        if (r[rB] !== 0) {
+        if (r[B] !== 0) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -789,23 +775,23 @@ wmsx.Z80 = function() {
 
     function OUTnA() {
         var val = fromN();
-        bus.output((r[rA] << 8) | val, r[rA]);
+        bus.output((r[A] << 8) | val, r[A]);
     }
 
     function OUTI() {
-        --r[rB];
+        --r[B];
         bus.output(fromBC(), from_HL_8());
-        ++rr[rHL];
+        ++rr[HL];
         // Flags
-        r[rF] = (r[rF] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((r[rB] === 0) << nZ);                   // Z = B is 0
+        r[F] = (r[F] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((r[B] === 0) << nZ);                   // Z = B is 0
     }
 
     function OTIR() {
         OUTI();
-        if (r[rB] !== 0) {
+        if (r[B] !== 0) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -813,19 +799,19 @@ wmsx.Z80 = function() {
     }
 
     function OUTD() {
-        --r[rB];
+        --r[B];
         bus.output(fromBC(), from_HL_8());
-        --rr[rHL];
+        --rr[HL];
         // Flags
-        r[rF] = (r[rF] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((r[rB] === 0) << nZ);                   // Z = B is 0
+        r[F] = (r[F] & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+            | ((r[B] === 0) << nZ);                   // Z = B is 0
     }
 
     function OTDR() {
         OUTD();
-        if (r[rB] !== 0) {
+        if (r[B] !== 0) {
             // Will repeat this instruction
-            rr[rPC] -= 2;
+            rr[PC] -= 2;
             // Uses more cycles
             T += 5;
             instruction = instructionADT_CYCLES;
@@ -851,13 +837,13 @@ wmsx.Z80 = function() {
     function newADD(from) {
         return function ADD() {
             var val = from();
-            var res = r[rA] + val;
-            var compare = r[rA] ^ val ^ res;
-            r[rA] = res;
+            var res = r[A] + val;
+            var compare = r[A] ^ val ^ res;
+            r[A] = res;
             // Flags
-            r[rF] =                                                 // N = 0
-                (r[rA] & 0xa8)                                      // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)                             // Z = A is 0
+            r[F] =                                                 // N = 0
+                (r[A] & 0xa8)                                      // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)                             // Z = A is 0
                 | (compare & bH)                                // H = carry from bit 3
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)   // V = overflow
                 | ((res >>> 8) & bC);                           // C = carry from bit 7
@@ -867,13 +853,13 @@ wmsx.Z80 = function() {
     function newADC(from) {
         return function ADC() {
             var val = from();
-            var res = r[rA] + val + (r[rF] & bC);
-            var compare = r[rA] ^ val ^ res;
-            r[rA] = res;
+            var res = r[A] + val + (r[F] & bC);
+            var compare = r[A] ^ val ^ res;
+            r[A] = res;
             // Flags
-            r[rF] =                                                 // N = 0
-                (r[rA] & 0xa8)                                      // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)                             // Z = A is 0
+            r[F] =                                                 // N = 0
+                (r[A] & 0xa8)                                      // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)                             // Z = A is 0
                 | (compare & bH)                                // H = carry from bit 3
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)   // V = overflow
                 | ((res >>> 8) & bC);                           // C = carry from bit 7
@@ -883,13 +869,13 @@ wmsx.Z80 = function() {
     function newSUB(from) {
         return function SUB() {
             var val = from();
-            var res = r[rA] - val;
-            var compare = r[rA] ^ val ^ res;
-            r[rA] = res;
+            var res = r[A] - val;
+            var compare = r[A] ^ val ^ res;
+            r[A] = res;
             // Flags
-            r[rF] = (bN)                                             // N = 1
-                | (r[rA] & 0xa8)                                     // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)                              // Z = A is 0
+            r[F] = (bN)                                             // N = 1
+                | (r[A] & 0xa8)                                     // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)                              // Z = A is 0
                 | (compare & bH)                                 // H = borrow from bit 4
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)    // V = overflow
                 | ((res >>> 8) & bC);                            // C = borrow
@@ -899,13 +885,13 @@ wmsx.Z80 = function() {
     function newSBC(from) {
         return function SBC() {
             var val = from();
-            var res = r[rA] - val - (r[rF] & bC);
-            var compare = r[rA] ^ val ^ res;
-            r[rA] = res;
+            var res = r[A] - val - (r[F] & bC);
+            var compare = r[A] ^ val ^ res;
+            r[A] = res;
             // Flags
-            r[rF] = (bN)                                             // N = 1
-                | (r[rA] & 0xa8)                                     // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)                              // Z = A is 0
+            r[F] = (bN)                                             // N = 1
+                | (r[A] & 0xa8)                                     // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)                              // Z = A is 0
                 | (compare & bH)                                 // H = borrow from bit 4
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)    // V = overflow
                 | ((res >>> 8) & bC);                            // C = borrow
@@ -914,44 +900,44 @@ wmsx.Z80 = function() {
 
     function newAND(from) {
         return function AND() {
-            r[rA] &= from();
+            r[A] &= from();
             // Flags
-            r[rF] = bH                          // H = 1; N = 0; C = 0;
-                | (r[rA] & 0xa8)                // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)         // Z = A is 0
-                | parities[r[rA]];              // P = parity of A
+            r[F] = bH                          // H = 1; N = 0; C = 0;
+                | (r[A] & 0xa8)                // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)         // Z = A is 0
+                | parities[r[A]];              // P = parity of A
         };
     }
 
     function newOR(from) {
         return function OR() {
-            r[rA] |= from();
+            r[A] |= from();
             // Flags
-            r[rF] =                             // H = 0; N = 0; C = 0;
-                (r[rA] & 0xa8)                  // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)         // Z = A is 0
-                | parities[r[rA]];              // P = parity of A
+            r[F] =                             // H = 0; N = 0; C = 0;
+                (r[A] & 0xa8)                  // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)         // Z = A is 0
+                | parities[r[A]];              // P = parity of A
         };
     }
 
     function newXOR(from) {
         return function XOR() {
-            r[rA] ^= from();
+            r[A] ^= from();
             // Flags
-            r[rF] =                             // H = 0; N = 0; C = 0;
-                (r[rA] & 0xa8)                  // S = A is negative; f5, f3 copied from A
-                | ((r[rA] === 0) << nZ)         // Z = A is 0
-                | parities[r[rA]];              // P = parity of A
+            r[F] =                             // H = 0; N = 0; C = 0;
+                (r[A] & 0xa8)                  // S = A is negative; f5, f3 copied from A
+                | ((r[A] === 0) << nZ)         // Z = A is 0
+                | parities[r[A]];              // P = parity of A
         };
     }
 
     function newCP(from) {
         return function CP() {
             var val = from();
-            var res = r[rA] - val;
+            var res = r[A] - val;
             // Flags
-            var compare = r[rA] ^ val ^ res;
-            r[rF] = (bN)                                             // N = 1
+            var compare = r[A] ^ val ^ res;
+            r[F] = (bN)                                             // N = 1
                 | (res & bS)                                     // S = res is negative
                 | (val & 0x28)                                   // f5, f3 copied from val (operand)
                 | ((res === 0) << nZ)                            // Z = res (as would be set to A) is 0
@@ -966,7 +952,7 @@ wmsx.Z80 = function() {
             var res = (from() + 1) & 255;
             to(res);
             // Flags
-            r[rF] = (r[rF] & bC)                              // N = 0; C = C
+            r[F] = (r[F] & bC)                              // N = 0; C = C
                 | (res & 0xa8)                        // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                 // Z = res is 0
                 | (((res & 0x0f) === 0) << nH)        // H = carry from bit 3
@@ -980,7 +966,7 @@ wmsx.Z80 = function() {
             var res = (from() + 1) & 255;
             to(res);
             // Flags
-            r[rF] = (r[rF] & bC)                              // N = 0; C = C
+            r[F] = (r[F] & bC)                              // N = 0; C = C
                 | (res & 0xa8)                        // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                 // Z = res is 0
                 | (((res & 0x0f) === 0) << nH)        // H = carry from bit 3
@@ -993,7 +979,7 @@ wmsx.Z80 = function() {
             var res = (from() - 1) & 255;
             to(res);
             // Flags
-            r[rF] = (r[rF] & bC) | bN                             // N = 1; C = C
+            r[F] = (r[F] & bC) | bN                             // N = 1; C = C
                 | (res & 0xa8)                            // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                     // Z = res is 0
                 | (((res & 0x0f) === 0x0f) << nH)         // H = borrow from bit 4
@@ -1007,7 +993,7 @@ wmsx.Z80 = function() {
             var res = (from() - 1) & 255;
             to(res);
             // Flags
-            r[rF] = (r[rF] & bC) | bN                             // N = 1; C = C
+            r[F] = (r[F] & bC) | bN                             // N = 1; C = C
                 | (res & 0xa8)                            // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                     // Z = res is 0
                 | (((res & 0x0f) === 0x0f) << nH)         // H = borrow from bit 4
@@ -1033,7 +1019,7 @@ wmsx.Z80 = function() {
             to(res & 0xffff);
             // Flags
             var compare = (valA ^ valB ^ res) >>> 8;
-            r[rF] = (r[rF] & 0xc4)                                    // S = S; Z = Z; PV = PV; N = 0
+            r[F] = (r[F] & 0xc4)                                    // S = S; Z = Z; PV = PV; N = 0
                 | ((res >>> 8) & 0x28)                        // f5, f3 copied from high byte of res
                 | (compare & bH)                              // H = carry from bit 11
                 | ((res >>> 16) & bC);                        // C = carry from bit 15
@@ -1044,11 +1030,11 @@ wmsx.Z80 = function() {
         return function ADC16() {
             var valA = a();
             var valB = b();
-            var res = valA + valB + (r[rF] & bC);
+            var res = valA + valB + (r[F] & bC);
             to(res & 0xffff);
             // Flags
             var compare = (valA ^ valB ^ res) >>> 8;
-            r[rF] =                                                 // N = 0
+            r[F] =                                                 // N = 0
                 ((res >>> 8) & 0xa8)                            // S = res is negative; f5, f3 copied from high byte of res
                 | (((res & 0xffff) === 0) << nZ)                // Z = res (as set to destination) is 0
                 | (compare & bH)                                // H = carry from bit 11
@@ -1061,11 +1047,11 @@ wmsx.Z80 = function() {
         return function SBC16() {
             var valA = a();
             var valB = b();
-            var res = valA - valB - (r[rF] & bC);
+            var res = valA - valB - (r[F] & bC);
             to(res & 0xffff);
             // Flags
             var compare = (valA ^ valB ^ res) >>> 8;
-            r[rF] = bN                                              // N = 1
+            r[F] = bN                                              // N = 1
                 | ((res >>> 8) & 0xa8)                          // S = res is negative; f5, f3 copied from high byte of res
                 | (((res & 0xffff) === 0) << nZ)                // Z = res (as set to destination) is 0
                 | (compare & bH)                                // H = borrow from bit 12
@@ -1093,7 +1079,7 @@ wmsx.Z80 = function() {
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1104,11 +1090,11 @@ wmsx.Z80 = function() {
     function newRL(to, from, toExt) {
         return function RL() {
             var val = from();
-            var res = ((val << 1) | (r[rF] & bC)) & 255;
+            var res = ((val << 1) | (r[F] & bC)) & 255;
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1123,7 +1109,7 @@ wmsx.Z80 = function() {
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1134,11 +1120,11 @@ wmsx.Z80 = function() {
     function newRR(to, from, toExt) {
         return function RR() {
             var val = from();
-            var res = ((val >>> 1) | ((r[rF] & bC) << 7)) & 255;
+            var res = ((val >>> 1) | ((r[F] & bC) << 7)) & 255;
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1153,7 +1139,7 @@ wmsx.Z80 = function() {
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1168,7 +1154,7 @@ wmsx.Z80 = function() {
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1183,7 +1169,7 @@ wmsx.Z80 = function() {
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1198,7 +1184,7 @@ wmsx.Z80 = function() {
             to(res);
             if (toExt) toExt(res);
             // Flags
-            r[rF] =                                        // H = 0; N = 0
+            r[F] =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
                 | ((res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
@@ -1211,11 +1197,11 @@ wmsx.Z80 = function() {
             // Flags
             var res = from() & (1 << bit);
             if (res) {
-                r[rF] = (r[rF] & bC) | bH                      // Z = 0; H = 1; P = 0; N = 0; C = C
+                r[F] = (r[F] & bC) | bH                      // Z = 0; H = 1; P = 0; N = 0; C = C
                     | (res & bS);                      // S copied from res
-                if (setF53) r[rF] = r[rF] | (res & 0x28);      // f5, f3 copied from res or left 0 if not to be set
+                if (setF53) r[F] = r[F] | (res & 0x28);      // f5, f3 copied from res or left 0 if not to be set
             } else {
-                r[rF] = (r[rF] & bC) | 0x54;                   // S = 0, Z = 1; f5 = 0; H = 1; f3 = 0; P = 1; N = 0; C = C
+                r[F] = (r[F] & bC) | 0x54;                   // S = 0, Z = 1; f5 = 0; H = 1; f3 = 0; P = 1; N = 0; C = C
             }
             // Verify: Undocumented f5/f3 behavior when (HL/IX/IY) used, not implemented. Left 0
         }
@@ -1239,23 +1225,23 @@ wmsx.Z80 = function() {
 
     function newJP(from) {
         return function JP() {
-            rr[rPC] = from();
+            rr[PC] = from();
         }
     }
 
     function newJPcc(flag, val) {
         return function JPcc() {
             var addr = fromNN();
-            if ((r[rF] & flag) === val)
-                rr[rPC] = addr;
+            if ((r[F] & flag) === val)
+                rr[PC] = addr;
         }
     }
 
     function newJRcc(flag, val) {
         return function JRcc() {
             var relat = fromN();
-            if ((r[rF] & flag) === val) {
-                rr[rPC] = sum16Signed(rr[rPC], relat);
+            if ((r[F] & flag) === val) {
+                rr[PC] = sum16Signed(rr[PC], relat);
                 T += 5;
                 instruction = instructionADT_CYCLES;
             }
@@ -1265,9 +1251,9 @@ wmsx.Z80 = function() {
     function newCALLcc(flag, val) {
         return function CALLcc() {
             var addr = fromNN();
-            if ((r[rF] & flag) === val) {
-                push16(rr[rPC]);
-                rr[rPC] = addr;
+            if ((r[F] & flag) === val) {
+                push16(rr[PC]);
+                rr[PC] = addr;
                 T += 7;
                 instruction = instructionADT_CYCLES;
             }
@@ -1276,7 +1262,7 @@ wmsx.Z80 = function() {
 
     function newRETcc(flag, val) {
         return function RETcc() {
-            if ((r[rF] & flag) === val) {
+            if ((r[F] & flag) === val) {
                 RET();
                 T += 6;
                 instruction = instructionADT_CYCLES;
@@ -1286,8 +1272,8 @@ wmsx.Z80 = function() {
 
     function newRST(addr) {
         return function RST() {
-            push16(rr[rPC]);
-            rr[rPC] = addr;
+            push16(rr[PC]);
+            rr[PC] = addr;
         }
     }
 
@@ -1296,7 +1282,7 @@ wmsx.Z80 = function() {
             var val = bus.input(fromBC());
             to(val);
             // Flags
-            r[rF] = (r[rF] & bC)                               // H = 0; N = 0; C = C
+            r[F] = (r[F] & bC)                               // H = 0; N = 0; C = C
                 | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
                 | ((val === 0) << nZ)                  // Z = res is 0
                 | parities[val];                       // P = parity of res
@@ -1319,7 +1305,7 @@ wmsx.Z80 = function() {
     function uIN_C() {                       // Like the normal IN r, (C) but does not store the data
         var val = bus.input(fromBC());
         // Flags
-        r[rF] = (r[rF] & bC)                               // H = 0; N = 0; C = C
+        r[F] = (r[F] & bC)                               // H = 0; N = 0; C = C
             | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
             | ((val === 0) << nZ)                  // Z = res is 0
             | parities[val];                       // P = parity of res
@@ -1334,24 +1320,24 @@ wmsx.Z80 = function() {
     function pINT() {
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionHALT) rr[rPC]++;      // To "escape" from the HALT, and continue in the next instruction after RET
-        push16(rr[rPC]);
+        if (instruction === instructionHALT) rr[PC]++;      // To "escape" from the HALT, and continue in the next instruction after RET
+        push16(rr[PC]);
         instruction = instructionADT_CYCLES;
         if (IM === 1) {
             // Same as a RST 38h
-            rr[rPC] = 0x0038;
+            rr[PC] = 0x0038;
             T = 13;
         } else if (IM === 2) {
             // Read Jump Table address low from Bus (always FFh in this implementation)
             // Read Jump Table address high from I
-            var jumpTableEntry = (r[rI] << 8) | 0xff;
+            var jumpTableEntry = (r[I] << 8) | 0xff;
             // Call address read from Jump Table
-            rr[rPC] = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
+            rr[PC] = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
             T = 19;
         } else {
             // IM 0. Read instruction to execute from Bus (always FFh in this implementation)
             // Since its always FF, its the same as a RST 38h
-            rr[rPC] = 0x0038;
+            rr[PC] = 0x0038;
             T = 13;
         }
     }
@@ -1380,14 +1366,14 @@ wmsx.Z80 = function() {
         prefix = 5;
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        --r[rR];           // Special case. R should not be incremented next opcode fetch so adjust here
+        --r[R];           // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pSET_FDCB() {
         prefix = 6;
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        --r[rR];           // Special case. R should not be incremented next opcode fetch so adjust here
+        --r[R];           // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pADT_CYCLES() {
@@ -1404,7 +1390,7 @@ wmsx.Z80 = function() {
             if (extensionCurrentlyRunning !== null) {
                 if (extensionExtraIterations > 0) {         // Need more iterations?
                     extensionExtraIterations--;
-                    rr[rPC] -= 2;
+                    rr[PC] -= 2;
                 } else {                                    // End of iterations, perform finish operation
                     var finish = extensionHandlers[num].cpuExtensionFinish(extractCPUState(num));
                     reinsertCPUState(finish);
@@ -1423,30 +1409,30 @@ wmsx.Z80 = function() {
         function extractCPUState(extNum) {
             return {
                 // extPC points to Extended Instruction being executed
-                extNum: extNum, extPC: rr[rPC] - 2, PC: rr[rPC], SP: rr[rSP], A: r[rA], F: r[rF], B: r[rB], C: r[rC], DE: rr[rDE], HL: rr[rHL], IX: rr[rIX], IY: rr[rIY],
-                AF2: rr[rAF2], BC2: rr[rBC2], DE2: rr[rDE2], HL2: rr[rHL2], I: r[rI], R: r[rR], IM: IM
+                extNum: extNum, extPC: rr[PC] - 2, PC: rr[PC], SP: rr[SP], A: r[A], F: r[F], B: r[B], C: r[C], DE: rr[DE], HL: rr[HL], IX: rr[IX], IY: rr[IY],
+                AF2: rr[AF2], BC2: rr[BC2], DE2: rr[DE2], HL2: rr[HL2], I: r[I], R: r[R], IM: IM
                 // No IFF1
             }
         }
 
         function reinsertCPUState(state) {
             if (!state) return;
-            if (state.PC !== undefined)    rr[rPC] = state.PC;
-            if (state.SP !== undefined)    rr[rSP] = state.SP;
-            if (state.A !== undefined)     r[rA] = state.A;
-            if (state.F !== undefined)     r[rF] = state.F;
-            if (state.B !== undefined)     r[rB] = state.B;
-            if (state.C !== undefined)     r[rC] = state.C;
-            if (state.DE !== undefined)    rr[rDE] = state.DE;
-            if (state.HL !== undefined)    rr[rHL] = state.HL;
-            if (state.I !== undefined)     r[rI] = state.I;
-            if (state.R !== undefined)     r[rR] = state.R;
-            if (state.IX !== undefined)    rr[rIX] = state.IX;
-            if (state.IY !== undefined)    rr[rIY] = state.IY;
-            if (state.AF2 !== undefined)   rr[rAF2] = state.AF2;
-            if (state.BC2 !== undefined)   rr[rBC2] = state.BC2;
-            if (state.DE2 !== undefined)   rr[rDE2] = state.DE2;
-            if (state.HL2 !== undefined)   rr[rHL2] = state.HL2;
+            if (state.PC !== undefined)    rr[PC] = state.PC;
+            if (state.SP !== undefined)    rr[SP] = state.SP;
+            if (state.A !== undefined)     r[A] = state.A;
+            if (state.F !== undefined)     r[F] = state.F;
+            if (state.B !== undefined)     r[B] = state.B;
+            if (state.C !== undefined)     r[C] = state.C;
+            if (state.DE !== undefined)    rr[DE] = state.DE;
+            if (state.HL !== undefined)    rr[HL] = state.HL;
+            if (state.I !== undefined)     r[I] = state.I;
+            if (state.R !== undefined)     r[R] = state.R;
+            if (state.IX !== undefined)    rr[IX] = state.IX;
+            if (state.IY !== undefined)    rr[IY] = state.IY;
+            if (state.AF2 !== undefined)   rr[AF2] = state.AF2;
+            if (state.BC2 !== undefined)   rr[BC2] = state.BC2;
+            if (state.DE2 !== undefined)   rr[DE2] = state.DE2;
+            if (state.HL2 !== undefined)   rr[HL2] = state.HL2;
             // No IFF1
             if (state.IM !== undefined)    IM = state.IM;
             if (state.extraIterations > 0) extensionExtraIterations = state.extraIterations;
@@ -2597,16 +2583,16 @@ wmsx.Z80 = function() {
 
     this.saveState = function() {
         return {
-            PC: rr[rPC], SP: rr[rSP], A: r[rA], F: r[rF], B: r[rB], C: r[rC], DE: rr[rDE], HL: rr[rHL], IX: rr[rIX], IY: rr[rIY],
-            AF2: rr[rAF2], BC2: rr[rBC2], DE2: rr[rDE2], HL2: rr[rHL2], I: r[rI], R: r[rR], IM: IM, IFF1: IFF1, INT: INT,
+            PC: rr[PC], SP: rr[SP], A: r[A], F: r[F], B: r[B], C: r[C], DE: rr[DE], HL: rr[HL], IX: rr[IX], IY: rr[IY],
+            AF2: rr[AF2], BC2: rr[BC2], DE2: rr[DE2], HL2: rr[HL2], I: r[I], R: r[R], IM: IM, IFF1: IFF1, INT: INT,
             c: cycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
     };
 
     this.loadState = function(s) {
-        rr[rPC] = s.PC; rr[rSP] = s.SP; r[rA] = s.A; r[rF] = s.F; r[rB] = s.B; r[rC] = s.C; rr[rDE] = s.DE; rr[rHL] = s.HL; rr[rIX] = s.IX; rr[rIY] = s.IY;
-        rr[rAF2] = s.AF2; rr[rBC2] = s.BC2; rr[rDE2] = s.DE2; rr[rHL2] = s.HL2; r[rI] = s.I; r[rR] = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
+        rr[PC] = s.PC; rr[SP] = s.SP; r[A] = s.A; r[F] = s.F; r[B] = s.B; r[C] = s.C; rr[DE] = s.DE; rr[HL] = s.HL; rr[IX] = s.IX; rr[IY] = s.IY;
+        rr[AF2] = s.AF2; rr[BC2] = s.BC2; rr[DE2] = s.DE2; rr[HL2] = s.HL2; r[I] = s.I; r[R] = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
         cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
     };
@@ -2616,13 +2602,13 @@ wmsx.Z80 = function() {
 
     this.toString = function() {
         return "CPU " +
-            " PC: " + wmsx.Util.toHex2(rr[rPC]) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
-            "A: " + wmsx.Util.toHex2(r[rA]) + "     B: " + wmsx.Util.toHex2(r[rB]) + "     C: " + wmsx.Util.toHex2(r[rC]) + "     D: " + wmsx.Util.toHex2(r[rD]) +
-            "     E: " + wmsx.Util.toHex2(r[rE]) + "     H: " + wmsx.Util.toHex2(r[rH]) + "     L: " + wmsx.Util.toHex2(r[rL]) + "\n" +
-            "BC: " + wmsx.Util.toHex2(fromBC()) + "  DE: " + wmsx.Util.toHex2(rr[rDE]) + "  HL: " + wmsx.Util.toHex2(rr[rHL]) +
-            "  IX: " + wmsx.Util.toHex2(rr[rIX]) + "  IY: " + wmsx.Util.toHex2(rr[rIY]) + "       SP: " + wmsx.Util.toHex2(rr[rSP]) +  "\n\n" +
-            "Flags: " + (r[rF] & bS ? "S " : "- ") + (r[rF] & bZ ? "Z " : "- ") + (r[rF] & bF5 ? "5 " : "- ") + (r[rF] & bH ? "H " : "- ") +
-            (r[rF] & bF3 ? "3 " : "- ") + (r[rF] & bPV ? "P " : "- ") + (r[rF] & bN ? "N " : "- ") + (r[rF] & bC ? "C" : "-") +
+            " PC: " + wmsx.Util.toHex2(rr[PC]) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
+            "A: " + wmsx.Util.toHex2(r[A]) + "     B: " + wmsx.Util.toHex2(r[B]) + "     C: " + wmsx.Util.toHex2(r[C]) + "     D: " + wmsx.Util.toHex2(r[D]) +
+            "     E: " + wmsx.Util.toHex2(r[E]) + "     H: " + wmsx.Util.toHex2(r[H]) + "     L: " + wmsx.Util.toHex2(r[L]) + "\n" +
+            "BC: " + wmsx.Util.toHex2(fromBC()) + "  DE: " + wmsx.Util.toHex2(rr[DE]) + "  HL: " + wmsx.Util.toHex2(rr[HL]) +
+            "  IX: " + wmsx.Util.toHex2(rr[IX]) + "  IY: " + wmsx.Util.toHex2(rr[IY]) + "       SP: " + wmsx.Util.toHex2(rr[SP]) +  "\n\n" +
+            "Flags: " + (r[F] & bS ? "S " : "- ") + (r[F] & bZ ? "Z " : "- ") + (r[F] & bF5 ? "5 " : "- ") + (r[F] & bH ? "H " : "- ") +
+            (r[F] & bF3 ? "3 " : "- ") + (r[F] & bPV ? "P " : "- ") + (r[F] & bN ? "N " : "- ") + (r[F] & bC ? "C" : "-") +
             "            IFF: " + IFF1 + "     INT: " + INT + "     prefix: " + prefix;
     };
 
