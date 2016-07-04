@@ -1093,7 +1093,8 @@ wmsx.Z80 = function() {
 
     function newINCr(e) {
         return function INCr() {
-            var res = ++r[e];
+            ++r[e];
+            var res = r[e];
             // Flags
             r[F] = (r[F] & bC)                              // N = 0; C = C
                 | (res & 0xa8)                        // S = res is negative; f5, f3 copied from res
@@ -1132,7 +1133,8 @@ wmsx.Z80 = function() {
 
     function newDECr(e) {
         return function DECr() {
-            var res = --r[e];
+            --r[e];
+            var res = r[e];
             // Flags
             r[F] = (r[F] & bC) | bN                             // N = 1; C = C
                 | (res & 0xa8)                            // S = res is negative; f5, f3 copied from res
@@ -1746,49 +1748,49 @@ wmsx.Z80 = function() {
 
         // 1 byte, 2M, 7T: - LD A, (BC)
         opcode = 0x0a;
-        instr = newLD(
-            toA,
+        instr = newLDr_Func(
+            A,
             from_BC_8
         );
         defineInstruction(null, null, opcode, 7, instr, "LD A, (BC)", false);
 
         // 1 byte, 2M, 7T: - LD A, (DE)
         opcode = 0x1a;
-        instr = newLD(
-            toA,
+        instr = newLDr_Func(
+            A,
             from_DE_8
         );
         defineInstruction(null, null, opcode, 7, instr, "LD A, (DE)", false);
 
         // 3 bytes, 4M, 13T: - LD A, (nn)
         opcode = 0x3a;
-        instr = newLD(
-            toA,
+        instr = newLDr_Func(
+            A,
             from_NN_8
         );
         defineInstruction(null, null, opcode, 13, instr, "LD A, (nn)", false);
 
         // 1 byte, 2M, 7T: - LD (BC), A
         opcode = 0x02;
-        instr = newLD(
+        instr = newLDFunc_r(
             to_BC_8,
-            fromA
+            A
         );
         defineInstruction(null, null, opcode, 7, instr, "LD (BC), A", false);
 
         // 1 byte, 2M, 7T: - LD (DE), A
         opcode = 0x12;
-        instr = newLD(
+        instr = newLDFunc_r(
             to_DE_8,
-            fromA
+            A
         );
         defineInstruction(null, null, opcode, 7, instr, "LD (DE), A", false);
 
-        // 3 bytes, 4M, 13T: - LD A, (nn)
+        // 3 bytes, 4M, 13T: - LD (nn), A
         opcode = 0x32;
-        instr = newLD(
+        instr = newLDFunc_r(
             to_NN_8,
-            fromA
+            A
         );
         defineInstruction(null, null, opcode, 13, instr, "LD (nn), A", false);
 
