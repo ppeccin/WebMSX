@@ -16,7 +16,7 @@ wmsx.YM2413Audio = function(pName) {
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
-        expTable =  tabs.getExpTable();
+        expTable = tabs.getExpTable();
         instrumentsParameters = tabs.getInstrumentsROM();
         multiFactors = tabs.getMultiFactorsDoubled();
         vibValues = tabs.getVIBValues();
@@ -92,7 +92,7 @@ wmsx.YM2413Audio = function(pName) {
         wmsx.Util.arrayFill(envStepLevelDur, 0);
         wmsx.Util.arrayFill(envStepLevelIncClock, 0);
         wmsx.Util.arrayFill(envStepLevelInc, 0);
-        wmsx.Util.arrayFill(envStepNext, 0);
+        wmsx.Util.arrayFill(envStepNext, DAMP);
         wmsx.Util.arrayFill(envStepNextAtLevel, 0);
         wmsx.Util.arrayFill(envLevel, 0);
         wmsx.Util.arrayFill(ksrOffset, 0);
@@ -234,7 +234,6 @@ wmsx.YM2413Audio = function(pName) {
     }
 
     function registerWrite(reg, val) {
-
         //console.log("Register: " + reg.toString(16) + " write: " + val);
 
         var chan = reg & 0xf;
@@ -252,9 +251,6 @@ wmsx.YM2413Audio = function(pName) {
                 }
                 break;
             case 0x0e:
-
-                //if (mod) console.log("RY: " + val.toString(2));
-
                 if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
                 if (rhythmMode) {
                     if (mod & 0x30) {                                            // Bass Drum    (2 ops, like a melody channel)
@@ -330,7 +326,7 @@ wmsx.YM2413Audio = function(pName) {
         if (envLevel[op] === envStepNextAtLevel[op]) {
             setEnvStepOp(op, envStepNext[op]);
         } else {
-            if (clock >= envStepLevelIncClock[op]) {
+            if (clock === envStepLevelIncClock[op]) {
                 envStepLevelIncClock[op] += envStepLevelDur[op];
                 envLevel[op] += envStepLevelInc[op];
                 updateEnvAttenuationOp(op);
@@ -400,10 +396,10 @@ wmsx.YM2413Audio = function(pName) {
             case SUSTAIN:
                 if (envType[op]) {
                     // Sustained tone
-                    envStepLevelIncClock[op] = envStepLevelDur[op] = -1;
+                    envStepLevelIncClock[op] = envStepLevelDur[op] = 0;     // Never
                     envStepLevelInc[op] = 0;
-                    envStepNextAtLevel[op] = null;
-                    envStepNext[op] = null;
+                    envStepNextAtLevel[op] = 255;   // Never
+                    envStepNext[op] = SUSTAIN;
                 } else {
                     // Percussive tone
                     envStepLevelDur[op] = rateDecayDurTable[(rr[op] << 2) + ksrOffset[op]];
@@ -426,10 +422,10 @@ wmsx.YM2413Audio = function(pName) {
             case IDLE:
             default:
                 envLevel[op] = 128;
-                envStepLevelIncClock[op] = envStepLevelDur[op] = -1;
+                envStepLevelIncClock[op] = envStepLevelDur[op] = 0;     // Never
                 envStepLevelInc[op] = 0;
-                envStepNextAtLevel[op] = null;
-                envStepNext[op] = null;
+                envStepNextAtLevel[op] = 255;   // Never
+                envStepNext[op] = IDLE;
                 break;
         }
     }
@@ -598,54 +594,54 @@ wmsx.YM2413Audio = function(pName) {
 
     // Global settings
     var registerAddress;
-    var register = new Array(0x38);
+    var register = new Uint8Array(0x38);
     var rhythmMode;
 
     // Settings per channel(9) / operator(18)
-    var sustain =  new Array(9);
-    var instr =    new Array(9);
-    var keyOn =    new Array(18);
-    var am =       new Array(18);
-    var vib =      new Array(18);
-    var envType =  new Array(18);
-    var ksr =      new Array(18);
-    var multi =    new Array(18);
-    var ksl =      new Array(18);
-    var halfWave = new Array(18);
-    var ar =       new Array(18);
-    var dr =       new Array(18);
-    var sl =       new Array(18);
-    var rr =       new Array(18);
-    var fNum  =    new Array(18);
-    var block =    new Array(18);
-    var volume =   new Array(18);
-    var modTL =    new Array(18);
+    var sustain =  new Uint8Array(9);
+    var instr =    new Uint8Array(9);
+    var keyOn =    new Uint8Array(18);
+    var am =       new Uint8Array(18);
+    var vib =      new Uint8Array(18);
+    var envType =  new Uint8Array(18);
+    var ksr =      new Uint8Array(18);
+    var multi =    new Uint8Array(18);
+    var ksl =      new Uint8Array(18);
+    var halfWave = new Uint8Array(18);
+    var ar =       new Uint8Array(18);
+    var dr =       new Uint8Array(18);
+    var sl =       new Uint8Array(18);
+    var rr =       new Uint8Array(18);
+    var fNum  =    new Uint16Array(18);
+    var block =    new Uint8Array(18);
+    var volume =   new Uint8Array(18);
+    var modTL =    new Uint8Array(18);
 
     // Computed settings per channel(9) / operator(18)
-    var fbShift =   new Array(9);
-    var volModAtt = new Array(18);       // For Volume or ModTL
+    var fbShift =   new Uint8Array(9);
+    var volModAtt = new Uint16Array(18);       // For Volume or ModTL
 
     // Dynamic values per channel(9) / operator(18). May change as time passes without being set by software
-    var amAtt =    new Array(18);
-    var envAtt =   new Array(18);
-    var kslAtt =   new Array(18);
-    var totalAtt = new Array(18);
+    var amAtt =    new Uint16Array(18);
+    var envAtt =   new Uint16Array(18);
+    var kslAtt =   new Uint16Array(18);
+    var totalAtt = new Uint16Array(18);
 
-    var envStep =              new Array(18);
-    var envStepLevelDur =      new Array(18);
-    var envStepLevelIncClock = new Array(18);
-    var envStepLevelInc =      new Array(18);
-    var envStepNext =          new Array(18);
-    var envStepNextAtLevel =   new Array(18);
-    var envLevel =             new Array(18);
+    var envStep =              new Uint8Array(18);
+    var envStepLevelDur =      new Uint32Array(18);
+    var envStepLevelIncClock = new Uint32Array(18);
+    var envStepLevelInc =      new Int8Array(18);
+    var envStepNext =          new Uint8Array(18);
+    var envStepNextAtLevel =   new Uint8Array(18);
+    var envLevel =             new Uint8Array(18);
 
-    var ksrOffset =  new Array(18);
+    var ksrOffset =  new Uint8Array(18);
 
-    var fbLastMod1 = new Array(9);
-    var fbLastMod2 = new Array(9);
+    var fbLastMod1 = new Int16Array(9);
+    var fbLastMod2 = new Int16Array(9);
 
-    var phaseInc =     new Array(18);
-    var phaseCounter = new Array(18);
+    var phaseInc =     new Int32Array(18);
+    var phaseCounter = new Uint32Array(18);
 
 
     // Debug vars
@@ -718,25 +714,23 @@ wmsx.YM2413Audio = function(pName) {
             nr: noiseRegister, no: noiseOutput,
             al: amLevel, ai: amLevelInc, vp: vibPhase,
 
-            amt: wmsx.Util.storeInt32BitArrayToStringBase64(amAtt),
-            evt: wmsx.Util.storeInt32BitArrayToStringBase64(envAtt),
-            kst: wmsx.Util.storeInt32BitArrayToStringBase64(kslAtt),
-            tot: wmsx.Util.storeInt32BitArrayToStringBase64(totalAtt),
+            amt: wmsx.Util.storeInt16BitArrayToStringBase64(amAtt),
+            evt: wmsx.Util.storeInt16BitArrayToStringBase64(envAtt),
+            kst: wmsx.Util.storeInt16BitArrayToStringBase64(kslAtt),
+            tot: wmsx.Util.storeInt16BitArrayToStringBase64(totalAtt),
 
             evs: wmsx.Util.storeInt8BitArrayToStringBase64(envStep),
-            evd: envStepLevelDur,
-            evc: envStepLevelIncClock,
-            evi: envStepLevelInc,
+            evd: wmsx.Util.storeInt32BitArrayToStringBase64(envStepLevelDur),
+            evc: wmsx.Util.storeInt32BitArrayToStringBase64(envStepLevelIncClock),
+            evi: wmsx.Util.storeInt8BitArrayToStringBase64(envStepLevelInc),
             evn: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNext),
             evl: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNextAtLevel),
             eve: wmsx.Util.storeInt8BitArrayToStringBase64(envLevel),
+
             kso: wmsx.Util.storeInt8BitArrayToStringBase64(ksrOffset),
 
-            fb1: wmsx.Util.storeInt32BitArrayToStringBase64(fbLastMod1),
-            fb2: wmsx.Util.storeInt32BitArrayToStringBase64(fbLastMod2),
-
-            phi: phaseInc,
-            phc: phaseCounter
+            fb1: wmsx.Util.storeInt16BitArrayToStringBase64(fbLastMod1),
+            fb2: wmsx.Util.storeInt16BitArrayToStringBase64(fbLastMod2)
         };
     };
 
@@ -754,25 +748,22 @@ wmsx.YM2413Audio = function(pName) {
         noiseRegister = s.nr; noiseOutput = s.no;
         amLevel = s.al; amLevelInc = s.ai; vibPhase = s.vp;
 
-        amAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.amt, amAtt);
-        envAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evt, envAtt);
-        kslAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.kst, kslAtt);
-        totalAtt = wmsx.Util.restoreStringBase64ToInt32BitArray(s.tot, totalAtt);
+        amAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.amt, amAtt);
+        envAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.evt, envAtt);
+        kslAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.kst, kslAtt);
+        totalAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.tot, totalAtt);
 
         envStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evs, envStep);
-        envStepLevelDur = s.evd;
-        envStepLevelIncClock = s.evc;
-        envStepLevelInc = s.evi;
+        envStepLevelDur = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evd);
+        envStepLevelIncClock = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evc);
+        envStepLevelInc = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.evi, envStepLevelInc);
         envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
         envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evl, envStepNextAtLevel);
         envLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.eve, envLevel);
         ksrOffset = wmsx.Util.restoreStringBase64ToInt8BitArray(s.kso, ksrOffset);
 
-        fbLastMod1 = wmsx.Util.restoreStringBase64ToInt32BitArray(s.fb1, fbLastMod1);
-        fbLastMod2 = wmsx.Util.restoreStringBase64ToInt32BitArray(s.fb2, fbLastMod2);
-
-        //this.phaseInc = phaseInc = s.phi;
-        //this.phaseCounter = phaseCounter = s.phc;
+        fbLastMod1 = wmsx.Util.restoreStringBase64ToSignedInt16BitArray(s.fb1, fbLastMod1);
+        fbLastMod2 = wmsx.Util.restoreStringBase64ToSignedInt16BitArray(s.fb2, fbLastMod2);
 
         if (audioConnected) connectAudio();
     };

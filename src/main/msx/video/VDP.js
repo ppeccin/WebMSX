@@ -2382,7 +2382,7 @@ wmsx.VDP = function(machine, cpu) {
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
-            p: wmsx.Util.storeInt32BitArrayToStringBase64(paletteRegister),
+            p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteRegister),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
             vrint: vramInterleaving,
             cp: commandProcessor.saveState()
@@ -2404,7 +2404,7 @@ wmsx.VDP = function(machine, cpu) {
         verticalIntReached = s.vi;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
-        paletteRegister = wmsx.Util.restoreStringBase64ToInt32BitArray(s.p, paletteRegister);
+        paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);

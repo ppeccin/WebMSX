@@ -86,6 +86,39 @@ wmsx.Util = new function() {
         return ints;
     };
 
+    // Only 16 bit values
+    this.int16BitArrayToByteString = function(ints, start, length) {
+        if (ints === null || ints == undefined) return ints;
+        if (start === undefined) start = 0;
+        if (length === undefined) length = ints.length - start;
+        var str = "";
+        for(var i = start, finish = start + length; i < finish; i = i + 1)
+            str += String.fromCharCode(ints[i] & 0xff) + String.fromCharCode((ints[i] >> 8) & 0xff);
+        return str;
+    };
+
+    this.byteStringToInt16BitArray = function(str, dest) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        var len = (str.length / 2) | 0;
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Uint16Array)(len);      // Preserve dest type
+        for(var i = 0, s = 0; i < len; i = i + 1, s = s + 2)
+            ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8);
+        return ints;
+    };
+
+    this.byteStringToSignedInt16BitArray = function(str, dest) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        var len = (str.length / 2) | 0;
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Int16Array)(len);      // Preserve dest type
+        for(var i = 0, s = 0; i < len; i = i + 1, s = s + 2) {
+            var val = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8);
+            ints[i] = val < 32768 ? val : val - 65536;
+        }
+        return ints;
+    };
+
     // Only 32 bit values
     this.int32BitArrayToByteString = function(ints, start, length) {
         if (ints === null || ints == undefined) return ints;
@@ -145,6 +178,26 @@ wmsx.Util = new function() {
             return this.arrayCopy(res, 0, dest);                                                        // Preserve dest
         else
             return this.arrayCopy(res, 0, new (dest ? dest.constructor : Uint8Array)(res.length));      // Preserve dest type
+    };
+
+    this.storeInt16BitArrayToStringBase64 = function(arr) {
+        if (arr === null || arr === undefined) return arr;
+        if (arr.length === 0) return "";
+        return btoa(this.int16BitArrayToByteString(arr));
+    };
+
+    this.restoreStringBase64ToInt16BitArray = function(str, dest) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return this.byteStringToInt16BitArray(atob(str), dest);
+    };
+
+    this.restoreStringBase64ToSignedInt16BitArray = function(str, dest) {
+        if (str === null || str === undefined) return str;
+        if (str == "null") return null; if (str == "undefined") return undefined;
+        if (str == "") return [];
+        return this.byteStringToSignedInt16BitArray(atob(str), dest);
     };
 
     this.storeInt32BitArrayToStringBase64 = function(arr) {
