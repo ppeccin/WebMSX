@@ -15,9 +15,9 @@ wmsx.Z80 = function() {
     }
 
     this.powerOn = function() {
-        toAF(0xfffd); toBC(0xffff); rr[rDE] = 0xffff; rr[rHL] = 0xffff;
+        rr[rAF] = 0xfffd; rr[rBC] = 0xffff; rr[rDE] = 0xffff; rr[rHL] = 0xffff;
         rr[rAF2] = 0xfffd; rr[rBC2] = 0xffff; rr[rDE2] = 0xffff; rr[rHL2] = 0xffff;
-        toIX(0xffff); toIY(0xffff); rr[rSP] = 0xffff;
+        rr[rIX] = 0xffff; rr[rIY] = 0xffff; rr[rSP] = 0xffff;
         this.setINT(1);
         this.reset();
     };
@@ -28,10 +28,10 @@ wmsx.Z80 = function() {
     this.clockPulses = function(quant) {
         for (var i = quant; i > 0; i = i - 1) {
             if (--T > 1) continue;                   // Still counting cycles of current instruction
-            if (T === 1) {
+            if (T > 0) {
                 instruction.operation();
             } else {
-                R = R + 1;                           // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+                ++r[rR];                             // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
                 if (ackINT) acknowledgeINT();
                 else fetchNextInstruction();
             }
@@ -50,9 +50,9 @@ wmsx.Z80 = function() {
 
     this.reset = function() {
         cycles = 0;
-        T = -1; opcode = null; ackINT = false;
+        T = 0; opcode = null; ackINT = false;
         instruction = null; prefix = 0;
-        rr[rPC] = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
+        rr[rPC] = 0; rr[rIR] = 0; IFF1 = 0; IM = 0;
         extensionCurrentlyRunning = null; extensionExtraIterations = 0;
     };
 
@@ -77,7 +77,7 @@ wmsx.Z80 = function() {
     var INT = 1;
 
     // Registers
-    var r = new Uint8Array(26);
+    var r =  new Uint8Array(26);
     var rr = new Uint16Array(r.buffer);
 
     //var PC = 0;     // 16 bits
@@ -97,8 +97,8 @@ wmsx.Z80 = function() {
     //var DE2 = 0;    // 16 bits
     //var HL2 = 0;    // 16 bits
 
-    var I = 0;
-    var R = 0;
+    //var I = 0;
+    //var R = 0;
 
     // Interrupt flags and mode
     var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Always the same as IFF1
@@ -131,7 +131,7 @@ wmsx.Z80 = function() {
     // Fetch and Instruction control
 
     var cycles = 0;
-    var T = -1;                         // Clocks remaining in the current instruction
+    var T = 0;                         // Clocks remaining in the current instruction
 
     var opcode;
     var prefix;
@@ -184,18 +184,6 @@ wmsx.Z80 = function() {
             if (INT === 0 && IFF1) ackINT = true;
             prefix = 0;
         }
-    }
-
-    function pcInc() {
-        return rr[rPC]++;
-    }
-
-    function spInc() {
-        return rr[rSP]++;
-    }
-
-    function decSP() {
-        return --rr[rSP];
     }
 
     function fromA() {
@@ -341,62 +329,62 @@ wmsx.Z80 = function() {
 
     var preReadIXYdOffset = 0;
     function preReadIXYd() {
-        preReadIXYdOffset = bus.read(pcInc());
+        preReadIXYdOffset = bus.read(rr[rPC]++);
     }
 
     function from_IXd_8() {
-        return bus.read(sum16Signed(rr[rIX], bus.read(pcInc())));
+        return bus.read(sum16Signed(rr[rIX], bus.read(rr[rPC]++)));
     }
     from_IXd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(rr[rIX], preReadIXYdOffset));
     };
 
     function from_IYd_8() {
-        return bus.read(sum16Signed(rr[rIY], bus.read(pcInc())));
+        return bus.read(sum16Signed(rr[rIY], bus.read(rr[rPC]++)));
     }
     from_IYd_8.fromPreReadAddr = function() {
         return bus.read(sum16Signed(rr[rIY], preReadIXYdOffset));
     };
 
     function to_IXd_8(val) {
-        bus.write(sum16Signed(rr[rIX], bus.read(pcInc())), val);
+        bus.write(sum16Signed(rr[rIX], bus.read(rr[rPC]++)), val);
     }
     to_IXd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(rr[rIX], preReadIXYdOffset), val);
     };
 
     function to_IYd_8(val) {
-        bus.write(sum16Signed(rr[rIY], bus.read(pcInc())), val);
+        bus.write(sum16Signed(rr[rIY], bus.read(rr[rPC]++)), val);
     }
     to_IYd_8.toPreReadAddr = function(val) {
         bus.write(sum16Signed(rr[rIY], preReadIXYdOffset), val);
     };
 
     function fromN() {
-        return bus.read(pcInc());
+        return bus.read(rr[rPC]++);
     }
     function fromNN() {
-        return bus.read(pcInc()) | (bus.read(pcInc()) << 8);
+        return bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
     }
 
     function from_NN_8() {
-        return bus.read(bus.read(pcInc()) | (bus.read(pcInc()) << 8));
+        return bus.read(bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8));
     }
 
     function to_NN_8(val) {
-        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
+        var addr = bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
         bus.write(addr, val);
     }
 
     function from_NN_16() {
-        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
+        var addr = bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
         var low = bus.read(addr);
         addr = addr +  1; if (addr > 0xffff) addr = 0;
         return (bus.read(addr) << 8) | low;
     }
 
     function to_NN_16(val) {
-        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
+        var addr = bus.read(rr[rPC]++) | (bus.read(rr[rPC]++) << 8);
         bus.write(addr, val & 255);
         addr = addr + 1; if (addr > 0xffff) addr = 0;
         bus.write(addr, val >>> 8);
@@ -407,22 +395,22 @@ wmsx.Z80 = function() {
     }
 
     function push16(val) {
-        bus.write(decSP(), val >>> 8);
-        bus.write(decSP(), val & 255);
+        bus.write(--rr[rSP], val >>> 8);
+        bus.write(--rr[rSP], val & 255);
     }
 
     function pop16() {
-        return bus.read(spInc()) | (bus.read(spInc()) << 8);
+        return bus.read(rr[rSP]++) | (bus.read(rr[rSP]++) << 8);
     }
 
-    var parities = [    // 0b00000100 ready for P flag
+    var parities = new Uint8Array([    // 0b00000100 ready for P flag
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4
-    ];
+    ]);
 
 
     // Instruction Cores  ---------------------------------------------------------------
@@ -443,7 +431,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAI() {
-        r[rA] = I;
+        r[rA] = r[rI];
         // Flags
         r[rF] = (r[rF] & 0x01)                      // H = 0; N = 0; C = C
             | (r[rA] & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -452,7 +440,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAR() {
-        r[rA] = R & 0x7f;
+        r[rA] = r[rR] & 0x7f;
         // Flags
         r[rF] = (r[rF] & 0x01)                      // H = 0; N = 0; C = C
             | (r[rA] & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -461,11 +449,11 @@ wmsx.Z80 = function() {
     }
 
     function LDIA() {
-        I = r[rA];
+        r[rI] = r[rA];
     }
 
     function LDRA() {
-        R = r[rA];                              // R can have bit 7 = 1 if set manually
+        r[rR] = r[rA];                              // R can have bit 7 = 1 if set manually
     }
 
     function newPUSH(from) {
@@ -487,8 +475,8 @@ wmsx.Z80 = function() {
     }
 
     function EXX() {
-        var temp = fromBC();
-        toBC(rr[rBC2]);
+        var temp = rr[rBC];
+        rr[rBC] = rr[rBC2];
         rr[rBC2] = temp;
         temp = rr[rDE];
         rr[rDE] = rr[rDE2];
@@ -499,8 +487,8 @@ wmsx.Z80 = function() {
     }
 
     function EXAFAF2() {
-        var temp = fromAF();
-        toAF(rr[rAF2]);
+        var temp = rr[rAF];
+        rr[rAF] = rr[rAF2];
         rr[rAF2] = temp;
     }
 
@@ -1346,7 +1334,7 @@ wmsx.Z80 = function() {
     function pINT() {
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionHALT) pcInc();     // To "escape" from the HALT, and continue in the next instruction after RET
+        if (instruction === instructionHALT) rr[rPC]++;      // To "escape" from the HALT, and continue in the next instruction after RET
         push16(rr[rPC]);
         instruction = instructionADT_CYCLES;
         if (IM === 1) {
@@ -1356,7 +1344,7 @@ wmsx.Z80 = function() {
         } else if (IM === 2) {
             // Read Jump Table address low from Bus (always FFh in this implementation)
             // Read Jump Table address high from I
-            var jumpTableEntry = (I << 8) | 0xff;
+            var jumpTableEntry = (r[rI] << 8) | 0xff;
             // Call address read from Jump Table
             rr[rPC] = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
             T = 19;
@@ -1392,14 +1380,14 @@ wmsx.Z80 = function() {
         prefix = 5;
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        R = R - 1;         // Special case. R should not be incremented next opcode fetch so adjust here
+        --r[rR];           // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pSET_FDCB() {
         prefix = 6;
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        R = R - 1;         // Special case. R should not be incremented next opcode fetch so adjust here
+        --r[rR];           // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pADT_CYCLES() {
@@ -1436,7 +1424,7 @@ wmsx.Z80 = function() {
             return {
                 // extPC points to Extended Instruction being executed
                 extNum: extNum, extPC: rr[rPC] - 2, PC: rr[rPC], SP: rr[rSP], A: r[rA], F: r[rF], B: r[rB], C: r[rC], DE: rr[rDE], HL: rr[rHL], IX: rr[rIX], IY: rr[rIY],
-                AF2: rr[rAF2], BC2: rr[rBC2], DE2: rr[rDE2], HL2: rr[rHL2], I: I, R: R, IM: IM
+                AF2: rr[rAF2], BC2: rr[rBC2], DE2: rr[rDE2], HL2: rr[rHL2], I: r[rI], R: r[rR], IM: IM
                 // No IFF1
             }
         }
@@ -1451,8 +1439,8 @@ wmsx.Z80 = function() {
             if (state.C !== undefined)     r[rC] = state.C;
             if (state.DE !== undefined)    rr[rDE] = state.DE;
             if (state.HL !== undefined)    rr[rHL] = state.HL;
-            if (state.I !== undefined)     I = state.I;
-            if (state.R !== undefined)     R = state.R;
+            if (state.I !== undefined)     r[rI] = state.I;
+            if (state.R !== undefined)     r[rR] = state.R;
             if (state.IX !== undefined)    rr[rIX] = state.IX;
             if (state.IY !== undefined)    rr[rIY] = state.IY;
             if (state.AF2 !== undefined)   rr[rAF2] = state.AF2;
@@ -2610,7 +2598,7 @@ wmsx.Z80 = function() {
     this.saveState = function() {
         return {
             PC: rr[rPC], SP: rr[rSP], A: r[rA], F: r[rF], B: r[rB], C: r[rC], DE: rr[rDE], HL: rr[rHL], IX: rr[rIX], IY: rr[rIY],
-            AF2: rr[rAF2], BC2: rr[rBC2], DE2: rr[rDE2], HL2: rr[rHL2], I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
+            AF2: rr[rAF2], BC2: rr[rBC2], DE2: rr[rDE2], HL2: rr[rHL2], I: r[rI], R: r[rR], IM: IM, IFF1: IFF1, INT: INT,
             c: cycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
         };
@@ -2618,7 +2606,7 @@ wmsx.Z80 = function() {
 
     this.loadState = function(s) {
         rr[rPC] = s.PC; rr[rSP] = s.SP; r[rA] = s.A; r[rF] = s.F; r[rB] = s.B; r[rC] = s.C; rr[rDE] = s.DE; rr[rHL] = s.HL; rr[rIX] = s.IX; rr[rIY] = s.IY;
-        rr[rAF2] = s.AF2; rr[rBC2] = s.BC2; rr[rDE2] = s.DE2; rr[rHL2] = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
+        rr[rAF2] = s.AF2; rr[rBC2] = s.BC2; rr[rDE2] = s.DE2; rr[rHL2] = s.HL2; r[rI] = s.I; r[rR] = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
         cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
     };
