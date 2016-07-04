@@ -410,11 +410,18 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newLDr(t, f) {
-        return function LDr() {
+    function newLDr_r(t, f) {
+        return function LDr_r() {
             r[t] = r[f];
         };
     }
+
+    function newLDr_N(t) {
+        return function LDr_N() {
+            r[t] = fromN();
+        };
+    }
+
 
     function LDAI() {
         r[A] = r[I];
@@ -1498,6 +1505,20 @@ wmsx.Z80 = function() {
             IYl: { bits: 5, to: toIYl, from: fromIYl, desc: "IYl", pref: 0xfd }
         };
 
+        var operRpr = {
+            A:   { bits: 7, reg: A,   desc: "A" },
+            B:   { bits: 0, reg: B,   desc: "B" },
+            C:   { bits: 1, reg: C,   desc: "C" },
+            D:   { bits: 2, reg: D,   desc: "D" },
+            E:   { bits: 3, reg: E,   desc: "E" },
+            H:   { bits: 4, reg: H,   desc: "H",   nopref: true },
+            L:   { bits: 5, reg: L,   desc: "L",   nopref: true },
+            IXh: { bits: 4, reg: IXh, desc: "IXh", pref: 0xdd },
+            IXl: { bits: 5, reg: IXl, desc: "IXl", pref: 0xdd },
+            IYh: { bits: 4, reg: IYh, desc: "IYh", pref: 0xfd },
+            IYl: { bits: 5, reg: IYl, desc: "IYl", pref: 0xfd }
+        };
+
         var oper_HLp_ = {
             _HL_ :  { to: to_HL_8,  from: from_HL_8,  desc: "(HL)" },
             _IXd_ : { to: to_IXd_8, from: from_IXd_8, desc: "(IX+d)", pref: 0xdd },
@@ -1506,18 +1527,18 @@ wmsx.Z80 = function() {
 
         // 1byte *+1, 1M *+1, 4T *+4: - LD rp, rp'          * Includes DD and FD prefixed variations for r
         var opcodeBase = 0x40;
-        for (var to in operRp) {
-            var operTo = operRp[to];
-            for (var from in operRp) {
-                var operFrom = operRp[from];
+        for (var to in operRpr) {
+            var operTo = operRpr[to];
+            for (var from in operRpr) {
+                var operFrom = operRpr[from];
                 // can't mix prefixes in the wrong combinations
                 if ((operTo.pref && (operFrom.nopref || (operFrom.pref && (operFrom.pref != operTo.pref))))
                     || (operFrom.pref && (operTo.nopref || (operTo.pref && (operTo.pref != operFrom.pref)))))
                     continue;
                 var opcode = opcodeBase | (operTo.bits << 3) | operFrom.bits;
-                var instr = newLD(
-                    operTo.to,
-                    operFrom.from
+                var instr = newLDr_r(
+                    operTo.reg,
+                    operFrom.reg
                 );
                 var prefix = operTo.pref | operFrom.pref;
                 defineInstruction(prefix, null, opcode, 4, instr, "LD " + operTo.desc + ", " + operFrom.desc, prefix);
@@ -1526,12 +1547,11 @@ wmsx.Z80 = function() {
 
         // 2 bytes *+1, 2M *+1, 7T *+4: - LD rp, n          * Includes DD and FD prefixed variations for r
         opcodeBase = 0x06;
-        for (to in operRp) {
-            operTo = operRp[to];
+        for (to in operRpr) {
+            operTo = operRpr[to];
             opcode = opcodeBase | (operTo.bits << 3);
-            instr = newLD(
-                operTo.to,
-                fromN
+            instr = newLDr_N(
+                operTo.reg
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 7, instr, "LD " + operTo.desc + ", n", prefix);
