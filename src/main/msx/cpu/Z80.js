@@ -31,7 +31,7 @@ wmsx.Z80 = function() {
             if (T > 0) {
                 instruction.operation();
             } else {
-                ++r[R];                             // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
+                ++r[R];                              // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now
                 if (ackINT) acknowledgeINT();
                 else fetchNextInstruction();
             }
@@ -159,8 +159,7 @@ wmsx.Z80 = function() {
         if (prefix === 0) {
             instruction = instructions[opcode];                           // always found
         } else {
-            instruction = instructionsByPrefix[prefix][opcode];
-            if (!instruction) instruction = instructions[opcode];         // if nothing found, ignore prefix
+            instruction = instructionsByPrefix[prefix][opcode] || instructions[opcode];         // if nothing found, ignore prefix
             if (INT === 0 && IFF1) ackINT = true;
             prefix = 0;
         }
@@ -434,6 +433,24 @@ wmsx.Z80 = function() {
         };
     }
 
+    function newLDrr_rr(t, f) {
+        return function LDrr_rr() {
+            rr[t] = rr[f];
+        };
+    }
+
+    function newLDrr_Func(t, f) {
+        return function LDrr_Func() {
+            rr[t] = f();
+        };
+    }
+
+    function newLDFunc_rr(t, f) {
+        return function LDFunc_rr() {
+            t(rr[f]);
+        };
+    }
+
     function LDAI() {
         r[A] = r[I];
         // Flags
@@ -460,15 +477,15 @@ wmsx.Z80 = function() {
         r[R] = r[A];                              // R can have bit 7 = 1 if set manually
     }
 
-    function newPUSH(from) {
-        return function PUSH() {
-            push16(from());
+    function newPUSHrr(f) {
+        return function PUSHrr() {
+            push16(rr[f]);
         };
     }
 
-    function newPOP(to) {
-        return function POP() {
-            to(pop16());
+    function newPOPrr(t) {
+        return function POPrr() {
+            rr[t] = pop16();
         };
     }
 
@@ -844,11 +861,11 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newEXr_SP_16(to, from) {
-        return function EXr_SP_16() {
+    function newEXrr_SP_16(e) {
+        return function EXrr_SP_16() {
             var temp = from_SP_16();
-            to_SP_16(from());
-            to(temp);
+            to_SP_16(rr[e]);
+            rr[e] = temp;
         }
     }
 
@@ -1168,12 +1185,12 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newADD16(to, a, b) {
-        return function ADD16() {
-            var valA = a();
-            var valB = b();
+    function newADD16rr_rr(t, f) {
+        return function ADD16rr_rr() {
+            var valA = rr[t];
+            var valB = rr[f];
             var res = valA + valB;
-            to(res & 0xffff);
+            rr[t] = res;
             // Flags
             var compare = (valA ^ valB ^ res) >>> 8;
             r[F] = (r[F] & 0xc4)                                    // S = S; Z = Z; PV = PV; N = 0
@@ -1183,12 +1200,12 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newADC16(to, a, b) {
-        return function ADC16() {
-            var valA = a();
-            var valB = b();
+    function newADC16rr(f) {
+        return function ADC16rr() {
+            var valA = rr[HL];
+            var valB = rr[f];
             var res = valA + valB + (r[F] & bC);
-            to(res & 0xffff);
+            rr[HL] = res;
             // Flags
             var compare = (valA ^ valB ^ res) >>> 8;
             r[F] =                                                 // N = 0
@@ -1200,12 +1217,12 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newSBC16(to, a, b) {
-        return function SBC16() {
-            var valA = a();
-            var valB = b();
+    function newSBC16rr(f) {
+        return function SBC16rr() {
+            var valA = rr[HL];
+            var valB = rr[f];
             var res = valA - valB - (r[F] & bC);
-            to(res & 0xffff);
+            rr[HL] = res;
             // Flags
             var compare = (valA ^ valB ^ res) >>> 8;
             r[F] = bN                                              // N = 1
@@ -1217,15 +1234,15 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newINC16(to, from) {
-        return function INC16() {
-            to((from() + 1) & 0xffff);
+    function newINC16rr(e) {
+        return function INC16rr() {
+            ++rr[e];
         };
     }
 
-    function newDEC16(to, from) {
-        return function DEC16() {
-            to((from() - 1) & 0xffff);
+    function newDEC16rr(e) {
+        return function DEC16rr() {
+            --rr[e];
         };
     }
 
@@ -1817,44 +1834,44 @@ wmsx.Z80 = function() {
 
         // LD 16-bit Group  -----------------------------------------------------
 
-        var operDD = {
-            BC: { bits: 0, to: toBC, from: fromBC, desc: "BC" },
-            DE: { bits: 1, to: toDE, from: fromDE, desc: "DE" },
-            HL: { bits: 2, to: toHL, from: fromHL, desc: "HL" },
-            SP: { bits: 3, to: toSP, from: fromSP, desc: "SP" }
+        var operDDr = {
+            BC: { bits: 0, reg: BC, desc: "BC" },
+            DE: { bits: 1, reg: DE, desc: "DE" },
+            HL: { bits: 2, reg: HL, desc: "HL" },
+            SP: { bits: 3, reg: SP, desc: "SP" }
         };
 
-        var operDDp = {
-            BC: { bits: 0, to: toBC, from: fromBC, desc: "BC" },
-            DE: { bits: 1, to: toDE, from: fromDE, desc: "DE" },
-            HL: { bits: 2, to: toHL, from: fromHL, desc: "HL", nopref: true },
-            SP: { bits: 3, to: toSP, from: fromSP, desc: "SP" },
-            IX: { bits: 2, to: toIX, from: fromIX, desc: "IX", pref: 0xdd },
-            IY: { bits: 2, to: toIY, from: fromIY, desc: "IY", pref: 0xfd }
+        var operDDpr = {
+            BC: { bits: 0, reg: BC, desc: "BC" },
+            DE: { bits: 1, reg: DE, desc: "DE" },
+            HL: { bits: 2, reg: HL, desc: "HL", nopref: true },
+            SP: { bits: 3, reg: SP, desc: "SP" },
+            IX: { bits: 2, reg: IX, desc: "IX", pref: 0xdd },
+            IY: { bits: 2, reg: IY, desc: "IY", pref: 0xfd }
         };
 
-        var operQQp = {
-            BC: { bits: 0, to: toBC, from: fromBC, desc: "BC" },
-            DE: { bits: 1, to: toDE, from: fromDE, desc: "DE" },
-            HL: { bits: 2, to: toHL, from: fromHL, desc: "HL" },
-            AF: { bits: 3, to: toAF, from: fromAF, desc: "AF" },
-            IX: { bits: 2, to: toIX, from: fromIX, desc: "IX", pref: 0xdd },
-            IY: { bits: 2, to: toIY, from: fromIY, desc: "IY", pref: 0xfd }
+        var operQQpr = {
+            BC: { bits: 0, reg: BC, desc: "BC" },
+            DE: { bits: 1, reg: DE, desc: "DE" },
+            HL: { bits: 2, reg: HL, desc: "HL" },
+            AF: { bits: 3, reg: AF, desc: "AF" },
+            IX: { bits: 2, reg: IX, desc: "IX", pref: 0xdd },
+            IY: { bits: 2, reg: IY, desc: "IY", pref: 0xfd }
         };
 
-        var operHLp = {
-            HL :  { to: toHL, from: fromHL, desc: "HL", nopref: true },
-            IXd : { to: toIX, from: fromIX, desc: "IX", pref: 0xdd },
-            IYd : { to: toIY, from: fromIY, desc: "IY", pref: 0xfd }
+        var operHLpr = {
+            HL :  { reg: HL, desc: "HL", nopref: true },
+            IXd : { reg: IX, desc: "IX", pref: 0xdd },
+            IYd : { reg: IY, desc: "IY", pref: 0xfd }
         };
 
         // 3 bytes *+1, 2M *+4, 10T *+4: - LD ddp, nn           * Includes DD and FD prefixed variations for dd
         opcodeBase = 0x01;
-        for (to in operDDp) {
-            operTo = operDDp[to];
+        for (to in operDDpr) {
+            operTo = operDDpr[to];
             opcode = opcodeBase | (operTo.bits << 4);
-            instr = newLD(
-                operTo.to,
+            instr = newLDrr_Func(
+                operTo.reg,
                 fromNN
             );
             prefix = operTo.pref;
@@ -1863,10 +1880,10 @@ wmsx.Z80 = function() {
 
         // 3 bytes *+1, 5M *+1, 16T *+4: - LD HLp, (nn)         * Includes DD and FD prefixed variations for HL
         opcode = 0x2a;
-        for (to in operHLp) {
-            operTo = operHLp[to];
-            instr = newLD(
-                operTo.to,
+        for (to in operHLpr) {
+            operTo = operHLpr[to];
+            instr = newLDrr_Func(
+                operTo.reg,
                 from_NN_16
             );
             prefix = operTo.pref;
@@ -1875,11 +1892,11 @@ wmsx.Z80 = function() {
 
         // 4 bytes, 6M, 20T: - LD dd, (nn)          Extended with ED prefix so no DD and FD prefix variations
         opcodeBase = 0x4b;
-        for (to in operDD) {
-            operTo = operDD[to];
+        for (to in operDDr) {
+            operTo = operDDr[to];
             opcode = opcodeBase | (operTo.bits << 4);
-            instr = newLD(
-                operTo.to,
+            instr = newLDrr_Func(
+                operTo.reg,
                 from_NN_16
             );
             defineInstruction(null, 0xed, opcode, 16, instr, "LD " + operTo.desc + ", (nn)", false);
@@ -1887,11 +1904,11 @@ wmsx.Z80 = function() {
 
         // 3 bytes *+1, 5M *+1, 16T *+4: - LD (nn), HLp         * Includes DD and FD prefixed variations for HL
         opcode = 0x22;
-        for (from in operHLp) {
-            operFrom = operHLp[from];
-            instr = newLD(
+        for (from in operHLpr) {
+            operFrom = operHLpr[from];
+            instr = newLDFunc_rr(
                 to_NN_16,
-                operFrom.from
+                operFrom.reg
             );
             prefix = operFrom.pref;
             defineInstruction(prefix, null, opcode, 16, instr, "LD (nn), " + operFrom.desc, false);
@@ -1899,23 +1916,23 @@ wmsx.Z80 = function() {
 
         // 4 bytes, 6M, 20T: - LD (nn), dd              Extended with ED prefix so no DD and FD prefix variations
         opcodeBase = 0x43;
-        for (from in operDD) {
-            operFrom = operDD[from];
+        for (from in operDDr) {
+            operFrom = operDDr[from];
             opcode = opcodeBase | (operFrom.bits << 4);
-            instr = newLD(
+            instr = newLDFunc_rr(
                 to_NN_16,
-                operFrom.from
+                operFrom.reg
             );
             defineInstruction(null, 0xed, opcode, 16, instr, "LD (nn), " + operFrom.desc, false);
         }
 
         // 1 bytes *+1, 1M *+1, 6T *+4: - LD SP, HLp        * Includes DD and FD prefixed variations for HL
         opcode = 0xf9;
-        for (from in operHLp) {
-            operFrom = operHLp[from];
-            instr = newLD(
-                toSP,
-                operFrom.from
+        for (from in operHLpr) {
+            operFrom = operHLpr[from];
+            instr = newLDrr_rr(
+                SP,
+                operFrom.reg
             );
             prefix = operFrom.pref;
             defineInstruction(prefix, null, opcode, 6, instr, "LD SP, " + operFrom.desc, false);
@@ -1923,11 +1940,11 @@ wmsx.Z80 = function() {
 
         // 1 byte *+1, 3M *+1, 11T *+4: - PUSH qqp          * Includes DD and FD prefixed variations for qq
         opcodeBase = 0xc5;
-        for (from in operQQp) {
-            operFrom = operQQp[from];
+        for (from in operQQpr) {
+            operFrom = operQQpr[from];
             opcode = opcodeBase | (operFrom.bits << 4);
-            instr = newPUSH(
-                operFrom.from
+            instr = newPUSHrr(
+                operFrom.reg
             );
             prefix = operFrom.pref;
             defineInstruction(prefix, null, opcode, 11, instr, "PUSH " + operFrom.desc, false);
@@ -1935,11 +1952,11 @@ wmsx.Z80 = function() {
 
         // 1 byte *+1, 3M *+1, 10T *+4: - POP qqp           * Includes DD and FD prefixed variations for qq
         opcodeBase = 0xc1;
-        for (to in operQQp) {
-            operTo = operQQp[to];
+        for (to in operQQpr) {
+            operTo = operQQpr[to];
             opcode = opcodeBase | (operTo.bits << 4);
-            instr = newPOP(
-                operTo.to
+            instr = newPOPrr(
+                operTo.reg
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 10, instr, "POP " + operTo.desc, false);
@@ -1964,9 +1981,11 @@ wmsx.Z80 = function() {
 
         // 1 byte *+1, 5M *+1, 19T *+4: - EX (SP), HLp
         opcode = 0xe3;
-        for (var op in operHLp) {
-            var oper = operHLp[op];
-            instr = newEXr_SP_16(oper.to, oper.from);
+        for (var op in operHLpr) {
+            var oper = operHLpr[op];
+            instr = newEXrr_SP_16(
+                oper.reg
+            );
             prefix = oper.pref;
             defineInstruction(prefix, null, opcode, 19, instr, "EX (SP), " + oper.desc, false);
         }
@@ -2174,28 +2193,28 @@ wmsx.Z80 = function() {
         // 16-bit Arithmetic Group  ----------------------------------------------------
 
         var arith16ExtendedInstructions = {
-            ADC: {desc: "ADC HL, ", instr: newADC16, opcode: 0x4a },
-            SBC: {desc: "SBC HL, ", instr: newSBC16, opcode: 0x42 }
+            ADC: {desc: "ADC HL, ", instr: newADC16rr, opcode: 0x4a },
+            SBC: {desc: "SBC HL, ", instr: newSBC16rr, opcode: 0x42 }
         };
 
         var arith16SelfModifyInstructions = {
-            INC: { desc: "INC ", instr: newINC16, opcode: 0x03 },
-            DEC: { desc: "DEC ", instr: newDEC16, opcode: 0x0b }
+            INC: { desc: "INC ", instr: newINC16rr, opcode: 0x03 },
+            DEC: { desc: "DEC ", instr: newDEC16rr, opcode: 0x0b }
         };
 
         // Define ADD HLp, ddp     1 byte *+1, 3M *+1, 11T *+4       * Includes DD and FD prefixed variations for HL and dd
         opcodeBase = 0x09;
-        for (to in operHLp) {
-            operTo = operHLp[to];
-            for (from in operDDp) {
-                operFrom = operDDp[from];
+        for (to in operHLpr) {
+            operTo = operHLpr[to];
+            for (from in operDDpr) {
+                operFrom = operDDpr[from];
                 // can't mix prefixes in the wrong combinations
                 if ((operTo.pref && (operFrom.nopref || (operFrom.pref && (operFrom.pref != operTo.pref))))
                     || (operFrom.pref && (operTo.nopref || (operTo.pref && (operTo.pref != operFrom.pref)))))
                     continue;
                 opcode = opcodeBase | (operFrom.bits << 4);
-                instr = newADD16(
-                    operTo.to, operTo.from, operFrom.from
+                instr = newADD16rr_rr(
+                    operTo.reg, operFrom.reg
                 );
                 prefix = operTo.pref;
                 defineInstruction(prefix, null, opcode, 11, instr, "ADD " + operTo.desc + ", " + operFrom.desc, false);
@@ -2206,11 +2225,11 @@ wmsx.Z80 = function() {
         for (i in arith16ExtendedInstructions) {
             ins = arith16ExtendedInstructions[i];
             opcodeBase = ins.opcode;
-            for (op in operDD) {
-                oper = operDD[op];
+            for (op in operDDr) {
+                oper = operDDr[op];
                 opcode = opcodeBase | (oper.bits << 4);
                 instr = ins.instr(
-                    toHL, fromHL, oper.from
+                    oper.reg
                 );
                 defineInstruction(null, 0xed, opcode, 11, instr, ins.desc + oper.desc, false);
             }
@@ -2220,11 +2239,11 @@ wmsx.Z80 = function() {
         for (i in arith16SelfModifyInstructions) {
             ins = arith16SelfModifyInstructions[i];
             opcodeBase = ins.opcode;
-            for (op in operDDp) {
-                oper = operDDp[op];
+            for (op in operDDpr) {
+                oper = operDDpr[op];
                 opcode = opcodeBase | (oper.bits << 4);
                 instr = ins.instr(
-                    oper.to, oper.from
+                    oper.reg
                 );
                 prefix = oper.pref;
                 defineInstruction(prefix, null, opcode, 6, instr, ins.desc + oper.desc, false);
@@ -2276,7 +2295,7 @@ wmsx.Z80 = function() {
             RR:  { desc: "RR ",   instr: newRR,   opcode: 0x18 },
             SLA: { desc: "SLA ",  instr: newSLA,  opcode: 0x20 },
             SRA: { desc: "SRA ",  instr: newSRA,  opcode: 0x28 },
-            SLL: { desc: "SLL ",  instr: newSLL, opcode: 0x30, undoc: true },
+            SLL: { desc: "SLL ",  instr: newSLL,  opcode: 0x30, undoc: true },
             SRL: { desc: "SRL ",  instr: newSRL,  opcode: 0x38 }
         };
 
