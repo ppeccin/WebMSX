@@ -222,32 +222,41 @@ wmsx.FileDiskDrive = function() {
         return false;
     };
 
-    this.readSectors = function(drive, logicalSector, quantSectors) {
+    this.readByte = function(drive, position) {
         if (!this.isDiskInserted(drive)) return null;
         var dContent = getCurrentDisk(drive).content;
-        var startByte = logicalSector * BYTES_PER_SECTOR;
-        var finishByte = startByte + quantSectors * BYTES_PER_SECTOR;
         // Disk boundary check
-        if ((startByte >= dContent.length) || (finishByte > dContent.length)) return null;
-
-        return dContent.slice(startByte, finishByte);
+        return position >= dContent.length ? null : dContent[position];
     };
 
-    this.writeSectors = function(drive, logicalSector, quantSectors, bytes) {
-        return this.writeBytes(drive, bytes, logicalSector * BYTES_PER_SECTOR, quantSectors * BYTES_PER_SECTOR);
-    };
-
-    this.writeBytes = function (drive, bytes, startByte, quantBytes) {
+    this.readSectorsToSlot = function(drive, logicalSector, quantSectors, slot, address) {
         if (!this.isDiskInserted(drive)) return false;
-
         var dContent = getCurrentDisk(drive).content;
-        if (!quantBytes) quantBytes = bytes.length;
+        var startByte = logicalSector * BYTES_PER_SECTOR;
+        var quantBytes = quantSectors * BYTES_PER_SECTOR;
 
         // Disk boundary check
         if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
 
+        // Transfer
         for (var i = 0; i < quantBytes; i++)
-            dContent[startByte + i] = bytes[i];
+           slot.write(address + i, dContent[startByte + i]);
+
+        return true;
+    };
+
+    this.writeSectorsFromSlot = function(drive, logicalSector, quantSectors, slot, address) {
+        if (!this.isDiskInserted(drive)) return false;
+        var dContent = getCurrentDisk(drive).content;
+        var startByte =  logicalSector * BYTES_PER_SECTOR;
+        var quantBytes = quantSectors * BYTES_PER_SECTOR;
+
+        // Disk boundary check
+        if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
+
+        // Transfer
+        for (var i = 0; i < quantBytes; i++)
+            dContent[startByte + i] = slot.read(address + i);
 
         return true;
     };

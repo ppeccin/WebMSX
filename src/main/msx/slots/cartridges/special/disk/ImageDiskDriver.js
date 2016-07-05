@@ -117,14 +117,11 @@ wmsx.ImageDiskDriver = function() {
         //WMSX.room.machine.bus.slots[3].subSlots[0].dumpRead(0xf341, 4);
 
         var spinTime = drive.motorOn(A);
-        var bytes = drive.readSectors(A, DE, B);
+        var suc = drive.readSectorsToSlot(A, DE, B, getSlotForMemoryAccess(HL), HL);
 
         // Not Ready error if can't read
-        if (!bytes)
+        if (!suc)
             return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
-
-        // Transfer bytes read
-        writeToMemory(bytes, HL);
 
         // Success
         return { F: F & ~1, B: 0, extraIterations: spinTime + B * EXTRA_ITERATIONS_PER_SECTOR};
@@ -143,10 +140,10 @@ wmsx.ImageDiskDriver = function() {
         if (drive.diskWriteProtected(A))
             return { F: F | 1, A: 0, B: B, extraIterations: spinTime };
 
-        var res = drive.writeSectors(A, DE, B, readFromMemory(HL, B * BYTES_PER_SECTOR));
+        var suc = drive.writeSectorsFromSlot(A, DE, B, getSlotForMemoryAccess(HL), HL);
 
         // Not Ready error if can't write
-        if (!res)
+        if (!suc)
             return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Success
@@ -164,14 +161,12 @@ wmsx.ImageDiskDriver = function() {
 
         // Disk changed or unknown, read disk to determine media type
         var spinTime = drive.motorOn(A);
-        var bytes = drive.readSectors(A, 0, 2);
+        var mediaDeskFromDisk = drive.readByte(A, BYTES_PER_SECTOR);      // Get just the fist byte from FAT (first byte from sector 1)
 
         // Not Ready error if can't read
-        if (!bytes)
+        if (mediaDeskFromDisk === null)
             return { F: F | 1, A: 2, B: 0, extraIterations: spinTime };
 
-        // Get just the fist byte from FAT for now
-        var mediaDeskFromDisk = bytes[512];
         GETDPB(A, mediaDeskFromDisk, C, HL);
 
         // Success, Disk changed or unknown and new DPB transferred. B = -1 (FFh) if disk changed
@@ -222,16 +217,6 @@ wmsx.ImageDiskDriver = function() {
          //wmsx.Util.log("MTOFF");
 
         drive.allMotorsOffNow();
-    }
-
-    function readFromMemory(address, quant) {
-        // wmsx.Util.log("Read memory: " + wmsx.Util.toHex4(address) + ", " + quant);
-        var slot = getSlotForMemoryAccess(address);
-        var res = new Uint8Array(quant);                // TODO Read in place?
-        for (var i = 0; i < quant; i++)
-            res[i] = slot.read(address + i);
-
-        return res;
     }
 
     function writeToMemory(bytes, address) {
