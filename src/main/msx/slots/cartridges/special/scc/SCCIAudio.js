@@ -254,7 +254,7 @@ wmsx.SCCIAudio = function() {
 
     var channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
 
-    var volumeCurve = new Array(16);    // Double values
+    var volumeCurve = new Float64Array(16);     // Double values
 
     var audioSignal;
     var audioSocket;

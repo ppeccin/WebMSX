@@ -60,11 +60,10 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         var end = nextSampleToRetrieve + quant;
         if (end >= MAX_SAMPLES) end -= MAX_SAMPLES;
 
-        var result = retrieveResult;
-        result.start = nextSampleToRetrieve;
+        retrieveResult.start = nextSampleToRetrieve;
         nextSampleToRetrieve = end;
 
-        return result;
+        return retrieveResult;
     };
 
     this.getSampleRate = function() {
@@ -76,7 +75,6 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     };
 
     function audioClockPulse32x() {
-
         //if (frameSamples === 600) console.log("AudioClock: " + name);
 
         if (frameSamples < samplesPerFrame) {
@@ -127,7 +125,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
     var SAMPLES_PER_FRRAME_ADJUST = -1;             // Helps avoid buffer over-filling
 
-    var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
+    var samples = new Float64Array(MAX_SAMPLES);
 
     var retrieveResult = {
         buffer: samples,

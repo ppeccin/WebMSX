@@ -12,13 +12,17 @@ wmsx.WebAudioSpeaker = function() {
 
     this.connectAudioSignal = function(pAudioSignal) {
         if (audioSignal.indexOf(pAudioSignal) >= 0) return;        // Add only once
-        wmsx.Util.arrayAdd(audioSignal, pAudioSignal);
+        if (audioSignalNum >= MAX_SIGNALS) return;                 // Doesn't fit
+        audioSignal[audioSignalNum++] = pAudioSignal;
         updateResamplingFactors();
     };
 
     this.disconnectAudioSignal = function(pAudioSignal) {
-        if (audioSignal.indexOf(pAudioSignal) < 0) return;         // Not present
-        wmsx.Util.arrayRemoveAllElement(audioSignal, pAudioSignal);
+        var i = audioSignal.indexOf(pAudioSignal);
+        if (i < 0) return;         // Not present
+        audioSignal[i] = null;
+        audioSignalNum = 0;
+        for (i = 0; i < MAX_SIGNALS; ++i) if (audioSignal[i]) audioSignalNum = i + 1;   // Minimal resulting audioSignalNum
         updateResamplingFactors();
     };
 
@@ -53,7 +57,6 @@ wmsx.WebAudioSpeaker = function() {
         if (processor) processor.connect(audioContext.destination);
     };
 
-
     var createAudioContext = function() {
         if (WMSX.AUDIO_BUFFER_SIZE === 0) {
             wmsx.Util.log("Audio disabled in config file.");
@@ -64,14 +67,6 @@ wmsx.WebAudioSpeaker = function() {
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
-
-            //lowPassFilter = audioContext.createBiquadFilter();
-            //lowPassFilter.type = "lowpass";
-            //lowPassFilter.frequency.value = 20000;
-            //lowPassFilter.Q.value = 1;
-            //lowPassFilter.connect(audioContext.destination);
-            //self.lowPassFilter = lowPassFilter;
-
             updateResamplingFactors();
         } catch(ex) {
             console.log(ex.stack);
@@ -81,9 +76,8 @@ wmsx.WebAudioSpeaker = function() {
 
     function updateResamplingFactors() {
         if (!audioContext) return;
-        resamplingFactor.length = audioSignal.length;
-        resamplingLeftOver.length = audioSignal.length;
-        for (var i = 0; i < audioSignal.length; i++) {
+        for (var i = 0; i < audioSignalNum; ++i) {
+            if (!audioSignal[i]) continue;
             resamplingFactor[i] = audioSignal[i].getSampleRate() / audioContext.sampleRate;
             resamplingLeftOver[i] = 0;
         }
@@ -97,10 +91,12 @@ wmsx.WebAudioSpeaker = function() {
         // Clear output buffer
         for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer[j] = 0;
 
-        if (audioSignal.length === 0) return;
+        if (audioSignalNum === 0) return;
 
         // Mix all signals, performing resampling on-the-fly
-        for (var i = audioSignal.length - 1; i >= 0; i = i - 1) {
+        for (var i = audioSignalNum - 1; i >= 0; --i) {
+            if (!audioSignal[i]) continue;
+
             var resampFactor = resamplingFactor[i];
             var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
             var inputBuffer = input.buffer;
@@ -124,14 +120,17 @@ wmsx.WebAudioSpeaker = function() {
     }
 
 
-    var audioSignal = [];
+    var MAX_SIGNALS = 5;
+
+    var audioSignalNum = 0;
+    var audioSignal =        new Array(MAX_SIGNALS);
+    var resamplingFactor =   new Float64Array(MAX_SIGNALS);
+    var resamplingLeftOver = new Float64Array(MAX_SIGNALS);
     this.signals = audioSignal;
-    var resamplingFactor = [];
-    var resamplingLeftOver = [];
 
     var audioContext;
-    //var lowPassFilter;
     var processor;
 
     var mute = false;
+
 };

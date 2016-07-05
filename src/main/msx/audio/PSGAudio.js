@@ -234,9 +234,9 @@ wmsx.PSGAudio = function(audioSocket) {
 
     var pulseSignal = false;
 
-    var lfsr = 0x1fffe;             // Noise generator. 17-bit Linear Feedback Shift Register
+    var lfsr = 0x1fffe;                        // Noise generator. 17-bit Linear Feedback Shift Register
 
-    var volumeCurve = new Array(16);    // Double values
+    var volumeCurve = new Float64Array(16);    // Double values
 
     var audioSignal;
 

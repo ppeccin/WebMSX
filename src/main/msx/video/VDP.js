@@ -642,7 +642,7 @@ wmsx.VDP = function(machine, cpu) {
     function vramEnterInterleaving() {
         var e = 0;
         var o = VRAM_SIZE >> 1;
-        var aux = vram.slice(0, o);                 // Only first halt needs to be saved
+        var aux = vram.slice(0, o);                 // Only first halt needs to be saved. Verify: Optimize slice?
         for (var i = 0; i < VRAM_SIZE; i += 2) {
             vram[i] = aux[e++];
             vram[i + 1] = vram[o++];
@@ -656,7 +656,7 @@ wmsx.VDP = function(machine, cpu) {
         var h = VRAM_SIZE >> 1;
         var e = 0;
         var o = h;
-        var aux = vram.slice(h);                    // Only last half needs to be saved
+        var aux = vram.slice(h);                    // Only last half needs to be saved. Verify: Optimize slice?
         for (var i = 0; i < h; i += 2) {
             vram[e++] = vram[i];
             vram[o++] = vram[i + 1];
@@ -2279,8 +2279,8 @@ wmsx.VDP = function(machine, cpu) {
 
     var spritesEnabled, spritesSize, spritesMag;
     var spritesCollided, spritesInvalid, spritesMaxComputed, spritesCollisionX, spritesCollisionY;
-    var spritesLinePriorities = new Array(256);
-    var spritesLineColors = new Uint8Array(256);
+    var spritesLinePriorities = new Float64Array(256);         // Need big numbers!
+    var spritesLineColors =     new Uint8Array(256);
     var spritesGlobalPriority;
 
     var vramPointer = 0;
