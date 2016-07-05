@@ -15,7 +15,7 @@ wmsx.Z80 = function() {
     }
 
     this.powerOn = function() {
-        toAF(0xfffd); toBC(0xffff); DE = 0xffff; HL = 0xffff;
+        toAF(0xfffd); toBC(0xffff); toDE(0xffff); toHL(0xffff);
         AF2 = 0xfffd; BC2 = 0xffff; DE2 = 0xffff; HL2 = 0xffff;
         toIX(0xffff); toIY(0xffff); SP = 0xffff;
         this.setINT(1);
@@ -50,7 +50,7 @@ wmsx.Z80 = function() {
 
     this.reset = function() {
         cycles = 0;
-        T = -1; opcode = null; ackINT = false;
+        T = 0; opcode = null; ackINT = false;
         instruction = null; prefix = 0;
         PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
         extensionCurrentlyRunning = null; extensionExtraIterations = 0;
@@ -98,7 +98,7 @@ wmsx.Z80 = function() {
     var R = 0;
 
     // Interrupt flags and mode
-    var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Alwaus the same as IFF1
+    var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Always the same as IFF1
     var IM = 0;
 
     // Status Bits references
@@ -115,7 +115,7 @@ wmsx.Z80 = function() {
     // Fetch and Instruction control
 
     var cycles = 0;
-    var T = -1;                         // Clocks remaining in the current instruction
+    var T = 0;                         // Clocks remaining in the current instruction
 
     var opcode;
     var prefix;
@@ -220,37 +220,37 @@ wmsx.Z80 = function() {
     }
 
     function toA(val) {
-        A = val;
+        A = val & 0xff;
     }
     function toB(val) {
-        B = val;
+        B = val & 0xff;
     }
     function toC(val) {
-        C = val;
+        C = val & 0xff;
     }
     function toD(val) {
-        DE = (DE & 0xff) | (val << 8);
+        toDE((DE & 0xff) | (val << 8));
     }
     function toE(val) {
-        DE = (DE & 0xff00) | val;
+        toDE((DE & 0xff00) | val);
     }
     function toH(val) {
-        HL = (HL & 0xff) | (val << 8);
+        toHL((HL & 0xff) | (val << 8));
     }
     function toL(val) {
-        HL = (HL & 0xff00) | val;
+        toHL((HL & 0xff00) | val);
     }
     function toIXh(val) {
-        IX = (IX & 0xff) | (val << 8);
+        IX = ((IX & 0xff) | (val << 8)) & 0xffff;
     }
     function toIXl(val) {
-        IX = (IX & 0xff00) | val;
+        IX = ((IX & 0xff00) | val) & 0xffff;
     }
     function toIYh(val) {
-        IY = (IY & 0xff) | (val << 8);
+        IY = ((IY & 0xff) | (val << 8)) & 0xffff;
     }
     function toIYl(val) {
-        IY = (IY & 0xff00) | val;
+        IY = ((IY & 0xff00) | val) & 0xffff;
     }
 
     function fromAF() {
@@ -276,25 +276,25 @@ wmsx.Z80 = function() {
     }
 
     function toAF(val) {
-        A = val >>> 8; F = val & 0xff;
+        toA(val >>> 8); F = val & 0xff;
     }
     function toBC(val) {
-        B = val >>> 8; C = val & 0xff;
+        toB(val >>> 8); toC(val);
     }
     function toDE(val) {
-        DE = val;
+        DE = val & 0xffff;
     }
     function toHL(val) {
-        HL = val;
+        HL = val & 0xffff;
     }
     function toSP(val) {
-        SP = val;
+        SP = val & 0xffff;
     }
     function toIX(val) {
-        IX = val;
+        IX = val & 0xffff;
     }
     function toIY(val) {
-        IY = val;
+        IY = val & 0xffff;
     }
 
     function from_BC_8() {
@@ -430,7 +430,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAI() {
-        A = I;
+        toA(I);
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -439,7 +439,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAR() {
-        A = R & 0x7f;
+        toA(R & 0x7f);
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -469,8 +469,8 @@ wmsx.Z80 = function() {
 
     function EXDEHL() {
         var temp = DE;
-        DE = HL;
-        HL = temp;
+        toDE(HL);
+        toHL(temp);
     }
 
     function EXX() {
@@ -478,10 +478,10 @@ wmsx.Z80 = function() {
         toBC(BC2);
         BC2 = temp;
         temp = DE;
-        DE = DE2;
+        toDE(DE2);
         DE2 = temp;
         temp = HL;
-        HL = HL2;
+        toHL(HL2);
         HL2 = temp;
     }
 
@@ -493,9 +493,9 @@ wmsx.Z80 = function() {
 
     function LDI() {
         to_DE_8(from_HL_8());
-        DE = (DE + 1) & 0xffff;
-        HL = (HL + 1) & 0xffff;
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+        toDE(DE + 1);
+        toHL(HL + 1);
+        toC(C -1); if (C === 0xff) toB(B - 1);     // BC--
         // Flags
         F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);         // PV = BC != 0
@@ -515,9 +515,9 @@ wmsx.Z80 = function() {
 
     function LDD() {
         to_DE_8(from_HL_8());
-        DE = (DE - 1) & 0xffff;
-        HL = (HL - 1) & 0xffff;
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+        toDE(DE - 1);
+        toHL(HL - 1);
+        toC(C -1); if (C === 0xff) toB(B - 1);     // BC--
         // Flags
         F = (F & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);       // PV = BC != 0
@@ -536,8 +536,8 @@ wmsx.Z80 = function() {
 
     function CPI() {
         var val = from_HL_8();
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
-        HL = (HL + 1) & 0xffff;
+        toC(C -1); if (C === 0xff) toB(B - 1);     // BC--
+        toHL(HL + 1);
         // Flags
         var res = A - val;
         var compare = A ^ val ^ res;
@@ -561,8 +561,8 @@ wmsx.Z80 = function() {
 
     function CPD() {
         var val = from_HL_8();
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
-        HL = (HL - 1) & 0xffff;
+        toC(C -1); if (C === 0xff) toB(B - 1);     // BC--
+        toHL(HL - 1);
         // Flags
         var res = A - val;
         var compare = A ^ val ^ res;
@@ -603,11 +603,11 @@ wmsx.Z80 = function() {
             | ((A ^ res) & bH)                    // H = bit 4 changed after adjust
             | parities[res]                       // P = parity of A
             | (A > 0x99);                         // C = carry from decimal range
-        A = res;
+        toA(res);
     }
 
     function CPL() {
-        A = ~A & 255;
+        toA(~A);
         // Flags
         F = (F & 0xc5) | 0x12        // S = S; Z = Z; H = 1; PV = PV; N = 1; C = C
             | (A & 0x28);            // f5, f3 copied from A
@@ -615,7 +615,7 @@ wmsx.Z80 = function() {
 
     function NEG() {
         var before = A;
-        A = -A & 255;
+        toA(-A);
         // Flags
         F = bN                                        // N = 1
             | (A & 0xa8)                              // S = A is negative; f5, f3 copied from A
@@ -650,7 +650,7 @@ wmsx.Z80 = function() {
     }
 
     function RLCA() {
-        A = ((A << 1) | (A >>> 7)) & 255;
+        toA((A << 1) | (A >>> 7));
         // Flags
         F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
             | (A & 0x28)                     // f5, f3 copied from A
@@ -659,7 +659,7 @@ wmsx.Z80 = function() {
 
     function RLA() {
         var oldA = A;
-        A = ((A << 1) | (F & bC)) & 255;
+        toA((A << 1) | (F & bC));
         // Flags
         F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
             | (A & 0x28)                     // f5, f3 copied from A
@@ -667,7 +667,7 @@ wmsx.Z80 = function() {
     }
 
     function RRCA() {
-        A = ((A >>> 1) | (A << 7)) & 255;
+        toA((A >>> 1) | (A << 7));
         // Flags
         F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
             | (A & 0x28)                     // f5, f3 copied from A
@@ -676,7 +676,7 @@ wmsx.Z80 = function() {
 
     function RRA() {
         var oldA = A;
-        A = ((A >>> 1) | ((F & bC) << 7));
+        toA(((A >>> 1) | ((F & bC) << 7)));
         // Flags
         F = (F & 0xc4)                       // S = S; Z = Z; H = 0; PV = PV; N = 0
             | (A & 0x28)                     // f5, f3 copied from A
@@ -686,7 +686,7 @@ wmsx.Z80 = function() {
     function RLD() {
         var val = from_HL_8();
         to_HL_8(((val << 4) | (A & 0x0f)) & 255);
-        A = (A & 0xf0) | (val >>> 4);
+        toA((A & 0xf0) | (val >>> 4));
         // Flags
         F = (F & bC)                               // H = 0; N = 0; C = C
             | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
@@ -697,7 +697,7 @@ wmsx.Z80 = function() {
     function RRD() {
         var val = from_HL_8();
         to_HL_8(((A << 4) | (val >>> 4)) & 255);
-        A = (A & 0xf0) | (val & 0x0f);
+        toA((A & 0xf0) | (val & 0x0f));
         // Flags
         F = (F & bC)                               // H = 0; N = 0; C = C
             | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
@@ -712,7 +712,7 @@ wmsx.Z80 = function() {
 
     function DJNZ() {
         var relat = fromN();
-        B = (B - 1) & 0xff;
+        toB(B - 1);
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
             T += 5;
@@ -742,13 +742,13 @@ wmsx.Z80 = function() {
 
     function INAn() {
         var port = fromN();
-        A = bus.input((A << 8) | port);
+        toA(bus.input((A << 8) | port));
     }
 
     function INI() {
         to_HL_8(bus.input(fromBC()));
-        HL = (HL + 1) & 0xffff;
-        B = (B - 1) & 0xff;
+        toHL(HL + 1);
+        toB(B - 1);
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -768,8 +768,8 @@ wmsx.Z80 = function() {
 
     function IND() {
         to_HL_8(bus.input(fromBC()));
-        HL = (HL - 1) & 0xffff;
-        B = (B - 1) & 0xff;
+        toHL(HL - 1);
+        toB(B - 1);
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -792,9 +792,9 @@ wmsx.Z80 = function() {
     }
 
     function OUTI() {
-        B = (B - 1) & 0xff;
+        toB(B - 1);
         bus.output(fromBC(), from_HL_8());
-        HL = (HL + 1) & 0xffff;
+        toHL(HL + 1);
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -812,9 +812,9 @@ wmsx.Z80 = function() {
     }
 
     function OUTD() {
-        B = (B - 1) & 0xff;
+        toB(B - 1);
         bus.output(fromBC(), from_HL_8());
-        HL = (HL - 1) & 0xffff;
+        toHL(HL - 1);
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -852,7 +852,7 @@ wmsx.Z80 = function() {
             var val = from();
             var res = A + val;
             var compare = A ^ val ^ res;
-            A = res & 255;
+            toA(res);
             // Flags
             F =                                                 // N = 0
                 (A & 0xa8)                                      // S = A is negative; f5, f3 copied from A
@@ -868,7 +868,7 @@ wmsx.Z80 = function() {
             var val = from();
             var res = A + val + (F & bC);
             var compare = A ^ val ^ res;
-            A = res & 255;
+            toA(res);
             // Flags
             F =                                                 // N = 0
                 (A & 0xa8)                                      // S = A is negative; f5, f3 copied from A
@@ -884,7 +884,7 @@ wmsx.Z80 = function() {
             var val = from();
             var res = A - val;
             var compare = A ^ val ^ res;
-            A = res & 255;
+            toA(res);
             // Flags
             F = (bN)                                             // N = 1
                 | (A & 0xa8)                                     // S = A is negative; f5, f3 copied from A
@@ -900,7 +900,7 @@ wmsx.Z80 = function() {
             var val = from();
             var res = A - val - (F & bC);
             var compare = A ^ val ^ res;
-            A = res & 255;
+            toA(res);
             // Flags
             F = (bN)                                             // N = 1
                 | (A & 0xa8)                                     // S = A is negative; f5, f3 copied from A
@@ -913,7 +913,7 @@ wmsx.Z80 = function() {
 
     function newAND(from) {
         return function AND() {
-            A &= from();
+            toA(A & from());
             // Flags
             F = bH                          // H = 1; N = 0; C = 0;
                 | (A & 0xa8)                // S = A is negative; f5, f3 copied from A
@@ -924,7 +924,7 @@ wmsx.Z80 = function() {
 
     function newOR(from) {
         return function OR() {
-            A |= from();
+            toA(A | from());
             // Flags
             F =                             // H = 0; N = 0; C = 0;
                 (A & 0xa8)                  // S = A is negative; f5, f3 copied from A
@@ -935,7 +935,7 @@ wmsx.Z80 = function() {
 
     function newXOR(from) {
         return function XOR() {
-            A ^= from();
+            toA(A ^ from());
             // Flags
             F =                             // H = 0; N = 0; C = 0;
                 (A & 0xa8)                  // S = A is negative; f5, f3 copied from A
@@ -1432,12 +1432,12 @@ wmsx.Z80 = function() {
             if (!state) return;
             if (state.PC !== undefined)    PC = state.PC;
             if (state.SP !== undefined)    SP = state.SP;
-            if (state.A !== undefined)     A = state.A;
+            if (state.A !== undefined)     toA(state.A);
             if (state.F !== undefined)     F = state.F;
-            if (state.B !== undefined)     B = state.B;
-            if (state.C !== undefined)     C = state.C;
-            if (state.DE !== undefined)    DE = state.DE;
-            if (state.HL !== undefined)    HL = state.HL;
+            if (state.B !== undefined)     toB(state.B);
+            if (state.C !== undefined)     toC(state.C);
+            if (state.DE !== undefined)    toDE(state.DE);
+            if (state.HL !== undefined)    toHL(state.HL);
             if (state.I !== undefined)     I = state.I;
             if (state.R !== undefined)     R = state.R;
             if (state.IX !== undefined)    IX = state.IX;
@@ -2604,7 +2604,7 @@ wmsx.Z80 = function() {
     };
 
     this.loadState = function(s) {
-        PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
+        PC = s.PC; SP = s.SP; toA(s.A); F = s.F; toB(s.B); toC(s.C); toDE(s.DE); toHL(s.HL); IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
         cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
