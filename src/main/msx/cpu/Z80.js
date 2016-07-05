@@ -36,7 +36,7 @@ wmsx.Z80 = function() {
                 else fetchNextInstruction();
             }
         }
-        cycles += quant;                             // Quantized cycle counting. Lower precision, better performance
+        cycles += quant;                             // Quantized cycle reporting. Lower precision, better performance
     };
 
     this.connectBus = function(aBus) {
@@ -402,14 +402,14 @@ wmsx.Z80 = function() {
         return bus.read(spInc()) | (bus.read(spInc()) << 8);
     }
 
-    var parities = [    // 0b00000100 ready for P flag
+    var parities = new Uint8Array([    // 0b00000100 ready for P flag
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4
-    ];
+    ]);
 
 
     // Instruction Cores  ---------------------------------------------------------------
@@ -493,9 +493,9 @@ wmsx.Z80 = function() {
 
     function LDI() {
         to_DE_8(from_HL_8());
-        DE = DE + 1; if (DE > 0xffff) DE = 0;
-        HL = HL + 1; if (HL > 0xffff) HL = 0;
-        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
+        DE = (DE + 1) & 0xffff;
+        HL = (HL + 1) & 0xffff;
+        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
         // Flags
         F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);         // PV = BC != 0
@@ -515,9 +515,9 @@ wmsx.Z80 = function() {
 
     function LDD() {
         to_DE_8(from_HL_8());
-        DE = DE - 1; if (DE < 0) DE = 0xffff;
-        HL = HL -1; if (HL < 0) HL = 0xffff;
-        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
+        DE = (DE - 1) & 0xffff;
+        HL = (HL - 1) & 0xffff;
+        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
         // Flags
         F = (F & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
             | ((B + C !== 0) << nPV);       // PV = BC != 0
@@ -536,8 +536,8 @@ wmsx.Z80 = function() {
 
     function CPI() {
         var val = from_HL_8();
-        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
-        HL = HL + 1; if (HL > 0xffff) HL = 0;
+        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+        HL = (HL + 1) & 0xffff;
         // Flags
         var res = A - val;
         var compare = A ^ val ^ res;
@@ -561,8 +561,8 @@ wmsx.Z80 = function() {
 
     function CPD() {
         var val = from_HL_8();
-        C = C - 1; if (C < 0) { C = 0xff; B = B - 1; if (B < 0) B = 0xff; }     // BC--
-        HL = HL - 1; if (HL < 0) HL = 0xffff;
+        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+        HL = (HL - 1) & 0xffff;
         // Flags
         var res = A - val;
         var compare = A ^ val ^ res;
@@ -712,7 +712,7 @@ wmsx.Z80 = function() {
 
     function DJNZ() {
         var relat = fromN();
-        if (B === 0) B = 255; else B = B - 1;
+        B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
             T += 5;
@@ -747,8 +747,8 @@ wmsx.Z80 = function() {
 
     function INI() {
         to_HL_8(bus.input(fromBC()));
-        HL = HL + 1; if (HL > 0xffff) HL = 0;
-        B = B - 1;  if (B < 0) B = 0xff;
+        HL = (HL + 1) & 0xffff;
+        B = (B - 1) & 0xff;
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -768,8 +768,8 @@ wmsx.Z80 = function() {
 
     function IND() {
         to_HL_8(bus.input(fromBC()));
-        HL = HL - 1; if (HL < 0) HL = 0xffff;
-        B = B - 1;  if (B < 0) B = 0xff;
+        HL = (HL - 1) & 0xffff;
+        B = (B - 1) & 0xff;
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -792,9 +792,9 @@ wmsx.Z80 = function() {
     }
 
     function OUTI() {
-        B = B - 1; if (B < 0) B = 0xff;
+        B = (B - 1) & 0xff;
         bus.output(fromBC(), from_HL_8());
-        HL = HL + 1; if (HL > 0xffff) HL = 0;
+        HL = (HL + 1) & 0xffff;
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
@@ -812,9 +812,9 @@ wmsx.Z80 = function() {
     }
 
     function OUTD() {
-        B = B - 1; if (B < 0) B = 0xff;
+        B = (B - 1) & 0xff;
         bus.output(fromBC(), from_HL_8());
-        HL = HL - 1; if (HL < 0) HL = 0xffff;
+        HL = (HL - 1) & 0xffff;
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
