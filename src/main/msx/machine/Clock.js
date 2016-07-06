@@ -109,7 +109,7 @@ wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
     }
 
     // Bypass if already detected or forced
-    if (WMSX.SCREEN_VSYNCH_MODE === 0|| (wmsx.Clock.HOST_NATIVE_FPS !== -1)) {
+    if (wmsx.Clock.HOST_NATIVE_FPS !== -1) {
         if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         return;
     }
@@ -133,7 +133,7 @@ wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
         }
 
         tries++;
-        if (tries <= 30) {
+        if (tries <= 50) {
             var currentTime = performance.now();
             var sample = currentTime - lastTime;
             samples[samples.length] = sample;
