@@ -8,7 +8,7 @@ wmsx.CartridgeKanjiFont = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = new Uint8Array(rom.content);
+        bytes = Array.prototype.slice.call(rom.content);
         self.bytes = bytes;
         jis2 = bytes.length === 262144;
     }

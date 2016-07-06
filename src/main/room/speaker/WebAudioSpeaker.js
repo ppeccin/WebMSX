@@ -12,17 +12,13 @@ wmsx.WebAudioSpeaker = function() {
 
     this.connectAudioSignal = function(pAudioSignal) {
         if (audioSignal.indexOf(pAudioSignal) >= 0) return;        // Add only once
-        if (audioSignalNum >= MAX_SIGNALS) return;                 // Doesn't fit
-        audioSignal[audioSignalNum++] = pAudioSignal;
+        wmsx.Util.arrayAdd(audioSignal, pAudioSignal);
         updateResamplingFactors();
     };
 
     this.disconnectAudioSignal = function(pAudioSignal) {
-        var i = audioSignal.indexOf(pAudioSignal);
-        if (i < 0) return;         // Not present
-        audioSignal[i] = null;
-        audioSignalNum = 0;
-        for (i = 0; i < MAX_SIGNALS; ++i) if (audioSignal[i]) audioSignalNum = i + 1;   // Minimal resulting audioSignalNum
+        if (audioSignal.indexOf(pAudioSignal) < 0) return;         // Not present
+        wmsx.Util.arrayRemoveAllElement(audioSignal, pAudioSignal);
         updateResamplingFactors();
     };
 
@@ -76,8 +72,9 @@ wmsx.WebAudioSpeaker = function() {
 
     function updateResamplingFactors() {
         if (!audioContext) return;
-        for (var i = 0; i < audioSignalNum; ++i) {
-            if (!audioSignal[i]) continue;
+        resamplingFactor.length = audioSignal.length;
+        resamplingLeftOver.length = audioSignal.length;
+        for (var i = 0; i < audioSignal.length; i++) {
             resamplingFactor[i] = audioSignal[i].getSampleRate() / audioContext.sampleRate;
             resamplingLeftOver[i] = 0;
         }
@@ -91,12 +88,10 @@ wmsx.WebAudioSpeaker = function() {
         // Clear output buffer
         for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer[j] = 0;
 
-        if (audioSignalNum === 0) return;
+        if (audioSignal.length === 0) return;
 
         // Mix all signals, performing resampling on-the-fly
-        for (var i = audioSignalNum - 1; i >= 0; --i) {
-            if (!audioSignal[i]) continue;
-
+        for (var i = audioSignal.length - 1; i >= 0; i = i - 1) {
             var resampFactor = resamplingFactor[i];
             var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
             var inputBuffer = input.buffer;
@@ -120,13 +115,10 @@ wmsx.WebAudioSpeaker = function() {
     }
 
 
-    var MAX_SIGNALS = 5;
-
-    var audioSignalNum = 0;
-    var audioSignal =        new Array(MAX_SIGNALS);
-    var resamplingFactor =   new Float64Array(MAX_SIGNALS);
-    var resamplingLeftOver = new Float64Array(MAX_SIGNALS);
+    var audioSignal = [];
     this.signals = audioSignal;
+    var resamplingFactor = [];
+    var resamplingLeftOver = [];
 
     var audioContext;
     var processor;

@@ -8,7 +8,7 @@ wmsx.CartridgePAC = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        sram = new Uint8Array(0x2000);
+        sram = wmsx.Util.arrayFill(new Array(0x2000), 0);
         self.sram = sram;
         if (rom.content.length !== 0) loadSRAM(rom.source, rom.content);
     }

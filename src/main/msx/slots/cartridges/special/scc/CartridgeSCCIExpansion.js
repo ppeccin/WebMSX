@@ -12,20 +12,14 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     function init(self) {
         self.rom = rom;
         var content = rom.content;
-        bytes = new Uint8Array(128 * 1024);
+        bytes = new Array(128 * 1024);
         self.bytes = bytes;
         if (content.length === 0)
             wmsx.Util.arrayFill(bytes, 0xff);
         else {
             self.preLoadedContentSize = content.length;
-            if (content.length === 65536)
-                for(var i = 0, len = content.length; i < len; i++) {
-                    bytes[i] = content[i];
-                    bytes[i + 65536] = content[i];
-                }
-            else // 128K
-                for(i = 0, len = content.length; i < len; i++)
-                    bytes[i] = content[i];
+            wmsx.Util.arrayCopy(content, 0, bytes);
+            if (content.length === 65536) wmsx.Util.arrayCopy(content, 0, bytes, 65536);    // Mirror
         }
     }
 

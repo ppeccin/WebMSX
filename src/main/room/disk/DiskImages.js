@@ -112,7 +112,7 @@ wmsx.DiskImages = function() {
                 if (subDirClusters > availClusters()) continue;
 
                 var subDirCluster = freeCluster;
-                subDir.content = new Uint8Array(subDirClusters * bytesPerCluster);
+                subDir.content = wmsx.Util.arrayFill(new Array(subDirClusters * bytesPerCluster), 0);
 
                 writeDirEntry(thisDirContentPosition, dirEntry, subDirCluster, subDir, usedNames);
                 writeFatChain(subDirCluster, subDirClusters);
@@ -240,7 +240,7 @@ wmsx.DiskImages = function() {
     };
 
     this.createNewBlankDisk = function (mediaType) {
-        return new Uint8Array(this.MEDIA_TYPE_INFO[mediaType].size);
+        return wmsx.Util.arrayFill(new Array(this.MEDIA_TYPE_INFO[mediaType].size), 0);
     };
 
     this.createNewFormattedDisk = function (mediaType) {

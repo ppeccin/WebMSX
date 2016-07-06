@@ -8,7 +8,7 @@ wmsx.SlotRAM64K = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = new Uint8Array(65536);
+        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
         self.bytes = bytes;
     }
 

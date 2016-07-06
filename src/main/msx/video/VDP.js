@@ -2237,7 +2237,7 @@ wmsx.VDP = function(machine, cpu) {
 
     var machineType, isV9918, isV9938, isV9958;
 
-    var vram = new Uint8Array(VRAM_TOTAL_SIZE);
+    var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
     var vramInterleaving;
 
@@ -2265,9 +2265,9 @@ wmsx.VDP = function(machine, cpu) {
     var verticalIntReached = false;
     var horizontalIntLine = 0;
 
-    var status = new Uint8Array(10);
-    var register = new Uint8Array(47);
-    var paletteRegister = new Uint16Array(16);
+    var status = new Array(10);
+    var register = new Array(47);
+    var paletteRegister = new Array(16);
 
     var modeData;
 
@@ -2279,8 +2279,8 @@ wmsx.VDP = function(machine, cpu) {
 
     var spritesEnabled, spritesSize, spritesMag;
     var spritesCollided, spritesInvalid, spritesMaxComputed, spritesCollisionX, spritesCollisionY;
-    var spritesLinePriorities = new Float64Array(256);         // Need big numbers!
-    var spritesLineColors =     new Uint8Array(256);
+    var spritesLinePriorities = new Array(256);
+    var spritesLineColors = new Array(256);
     var spritesGlobalPriority;
 
     var vramPointer = 0;
@@ -2330,9 +2330,9 @@ wmsx.VDP = function(machine, cpu) {
 
     var colors256 = new Uint32Array(256);       // 32 bit ABGR values for 8 bit GRB colors
     var colors512 = new Uint32Array(512);       // 32 bit ABGR values for 9 bit GRB colors
-    var color2to8bits = new Uint8Array([ 0, 73, 146, 255 ]);
-    var color3to8bits = new Uint8Array([ 0, 36, 73, 109, 146, 182, 219, 255 ]);
-    var color5to8bits = new Uint8Array([ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ]);
+    var color2to8bits = [ 0, 73, 146, 255 ];
+    var color3to8bits = [ 0, 36, 73, 109, 146, 182, 219, 255 ];
+    var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];
 
     var color0Solid = false;
     var colorPalette =      new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug

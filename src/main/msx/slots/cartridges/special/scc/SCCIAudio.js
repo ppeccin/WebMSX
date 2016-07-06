@@ -213,7 +213,7 @@ wmsx.SCCIAudio = function() {
     var scciMode;
 
     var channel1 = 0;
-    var channel1Samples = new Int8Array(32);
+    var channel1Samples = wmsx.Util.arrayFill(new Array(32), 0);
     var period1 = 0;
     var period1Count = 0;
     var sample1Count = 0;
@@ -221,7 +221,7 @@ wmsx.SCCIAudio = function() {
     var amplitude1 = 0;
 
     var channel2 = 0;
-    var channel2Samples = new Int8Array(32);
+    var channel2Samples = wmsx.Util.arrayFill(new Array(32), 0);
     var period2 = 0;
     var period2Count = 0;
     var sample2Count = 0;
@@ -229,7 +229,7 @@ wmsx.SCCIAudio = function() {
     var amplitude2 = 0;
 
     var channel3 = 0;
-    var channel3Samples = new Int8Array(32);
+    var channel3Samples = wmsx.Util.arrayFill(new Array(32), 0);
     var period3 = 0;
     var period3Count = 0;
     var sample3Count = 0;
@@ -237,7 +237,7 @@ wmsx.SCCIAudio = function() {
     var amplitude3 = 0;
 
     var channel4 = 0;
-    var channel4Samples = new Int8Array(32);
+    var channel4Samples = wmsx.Util.arrayFill(new Array(32), 0);
     var period4 = 0;
     var period4Count = 0;
     var sample4Count = 0;
@@ -245,7 +245,7 @@ wmsx.SCCIAudio = function() {
     var amplitude4 = 0;
 
     var channel5 = false;
-    var channel5Samples = new Int8Array(32);
+    var channel5Samples = wmsx.Util.arrayFill(new Array(32), 0);
     var period5 = 0;
     var period5Count = 0;
     var sample5Count = 0;
@@ -254,7 +254,7 @@ wmsx.SCCIAudio = function() {
 
     var channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
 
-    var volumeCurve = new Float64Array(16);     // Double values
+    var volumeCurve = new Array(16);
 
     var audioSignal;
     var audioSocket;

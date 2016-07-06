@@ -594,54 +594,54 @@ wmsx.YM2413Audio = function(pName) {
 
     // Global settings
     var registerAddress;
-    var register = new Uint8Array(0x38);
+    var register = new Array(0x38);
     var rhythmMode;
 
     // Settings per channel(9) / operator(18)
-    var sustain =  new Uint8Array(9);
-    var instr =    new Uint8Array(9);
-    var keyOn =    new Uint8Array(18);
-    var am =       new Uint8Array(18);
-    var vib =      new Uint8Array(18);
-    var envType =  new Uint8Array(18);
-    var ksr =      new Uint8Array(18);
-    var multi =    new Uint8Array(18);
-    var ksl =      new Uint8Array(18);
-    var halfWave = new Uint8Array(18);
-    var ar =       new Uint8Array(18);
-    var dr =       new Uint8Array(18);
-    var sl =       new Uint8Array(18);
-    var rr =       new Uint8Array(18);
-    var fNum  =    new Uint16Array(18);
-    var block =    new Uint8Array(18);
-    var volume =   new Uint8Array(18);
-    var modTL =    new Uint8Array(18);
+    var sustain =  new Array(9);
+    var instr =    new Array(9);
+    var keyOn =    new Array(18);
+    var am =       new Array(18);
+    var vib =      new Array(18);
+    var envType =  new Array(18);
+    var ksr =      new Array(18);
+    var multi =    new Array(18);
+    var ksl =      new Array(18);
+    var halfWave = new Array(18);
+    var ar =       new Array(18);
+    var dr =       new Array(18);
+    var sl =       new Array(18);
+    var rr =       new Array(18);
+    var fNum  =    new Array(18);
+    var block =    new Array(18);
+    var volume =   new Array(18);
+    var modTL =    new Array(18);
 
     // Computed settings per channel(9) / operator(18)
-    var fbShift =   new Uint8Array(9);
-    var volModAtt = new Uint16Array(18);       // For Volume or ModTL
+    var fbShift =   new Array(9);
+    var volModAtt = new Array(18);       // For Volume or ModTL
 
     // Dynamic values per channel(9) / operator(18). May change as time passes without being set by software
-    var amAtt =    new Uint16Array(18);
-    var envAtt =   new Uint16Array(18);
-    var kslAtt =   new Uint16Array(18);
-    var totalAtt = new Uint16Array(18);
+    var amAtt =    new Array(18);
+    var envAtt =   new Array(18);
+    var kslAtt =   new Array(18);
+    var totalAtt = new Array(18);
 
-    var envStep =              new Uint8Array(18);
-    var envStepLevelDur =      new Uint32Array(18);
-    var envStepLevelIncClock = new Uint32Array(18);
-    var envStepLevelInc =      new Int8Array(18);
-    var envStepNext =          new Uint8Array(18);
-    var envStepNextAtLevel =   new Uint8Array(18);
-    var envLevel =             new Uint8Array(18);
+    var envStep =              new Array(18);
+    var envStepLevelDur =      new Array(18);
+    var envStepLevelIncClock = new Array(18);
+    var envStepLevelInc =      new Array(18);
+    var envStepNext =          new Array(18);
+    var envStepNextAtLevel =   new Array(18);
+    var envLevel =             new Array(18);
 
-    var ksrOffset =  new Uint8Array(18);
+    var ksrOffset =  new Array(18);
 
-    var fbLastMod1 = new Int16Array(9);
-    var fbLastMod2 = new Int16Array(9);
+    var fbLastMod1 = new Array(9);
+    var fbLastMod2 = new Array(9);
 
-    var phaseInc =     new Int32Array(18);
-    var phaseCounter = new Uint32Array(18);
+    var phaseInc =     new Array(18);
+    var phaseCounter = new Array(18);
 
 
     // Debug vars
@@ -721,7 +721,7 @@ wmsx.YM2413Audio = function(pName) {
 
             evs: wmsx.Util.storeInt8BitArrayToStringBase64(envStep),
             evd: wmsx.Util.storeInt32BitArrayToStringBase64(envStepLevelDur),
-            evc: wmsx.Util.storeInt32BitArrayToStringBase64(envStepLevelIncClock),
+            evc: envStepLevelIncClock,
             evi: wmsx.Util.storeInt8BitArrayToStringBase64(envStepLevelInc),
             evn: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNext),
             evl: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNextAtLevel),
@@ -755,7 +755,7 @@ wmsx.YM2413Audio = function(pName) {
 
         envStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evs, envStep);
         envStepLevelDur = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evd);
-        envStepLevelIncClock = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evc);
+        envStepLevelIncClock = s.evc;
         envStepLevelInc = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.evi, envStepLevelInc);
         envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
         envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evl, envStepNextAtLevel);

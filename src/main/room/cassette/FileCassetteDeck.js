@@ -18,7 +18,7 @@ wmsx.FileCassetteDeck = function() {
             return null;
 
         tapeFileName = name;
-        tapeContent = Array.prototype.slice.call(arrContent);    // Growable
+        tapeContent = Array.prototype.slice.call(arrContent);    // Ensure normal growable Array
         toTapeStart();
         screen.showOSD("Cassette: " + name + ". " + positionMessage(), true);
         fireStateUpdate();
@@ -256,7 +256,7 @@ wmsx.FileCassetteDeck = function() {
     var cassetteSocket;
 
     var tapeFileName = null;
-    var tapeContent = null;     // Normal Growable Array
+    var tapeContent = null;     // Must be normal growable Array
     var tapePosition = -1;
     var motor = false;
 

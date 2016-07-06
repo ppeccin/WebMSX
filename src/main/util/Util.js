@@ -68,7 +68,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
-        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Uint8Array)(len);      // Preserve dest type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Array)(len);      // Preserve dest type
         for(var i = 0; i < len; i = i + 1)
             ints[i] = (str.charCodeAt(i) & 0xff);
         return ints;
@@ -78,7 +78,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = str.length;
-        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Int8Array)(len);       //  Preserve dest type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Array)(len);       //  Preserve dest type
         for(var i = 0; i < len; i = i + 1) {
             var val = str.charCodeAt(i) & 0xff;
             ints[i] = val < 128 ? val : val - 256;
@@ -101,7 +101,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = (str.length / 2) | 0;
-        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Uint16Array)(len);      // Preserve dest type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Array)(len);      // Preserve dest type
         for(var i = 0, s = 0; i < len; i = i + 1, s = s + 2)
             ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8);
         return ints;
@@ -111,7 +111,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = (str.length / 2) | 0;
-        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Int16Array)(len);      // Preserve dest type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Array)(len);      // Preserve dest type
         for(var i = 0, s = 0; i < len; i = i + 1, s = s + 2) {
             var val = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8);
             ints[i] = val < 32768 ? val : val - 65536;
@@ -134,7 +134,7 @@ wmsx.Util = new function() {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         var len = (str.length / 4) | 0;
-        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Uint32Array)(len);      // Preserve dest type
+        var ints = (dest && dest.length === len) ? dest : new (dest ? dest.constructor : Array)(len);      // Preserve dest type
         for(var i = 0, s = 0; i < len; i = i + 1, s = s + 4)
             ints[i] = (str.charCodeAt(s) & 0xff) | ((str.charCodeAt(s + 1) & 0xff) << 8) | ((str.charCodeAt(s + 2) & 0xff) << 16) | ((str.charCodeAt(s + 3) & 0xff) << 24);
         return ints;
@@ -177,7 +177,7 @@ wmsx.Util = new function() {
         if (dest && (diffSize || dest.length === res.length))
             return this.arrayCopy(res, 0, dest);                                                        // Preserve dest
         else
-            return this.arrayCopy(res, 0, new (dest ? dest.constructor : Uint8Array)(res.length));      // Preserve dest type
+            return this.arrayCopy(res, 0, new (dest ? dest.constructor : Array)(res.length));      // Preserve dest type
     };
 
     this.storeInt16BitArrayToStringBase64 = function(arr) {

@@ -8,7 +8,7 @@ wmsx.CartridgeASCII8K = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = new Uint8Array(rom.content);
+        bytes = Array.prototype.slice.call(rom.content);
         self.bytes = bytes;
         numBanks = (bytes.length / 8192) | 0;
     }

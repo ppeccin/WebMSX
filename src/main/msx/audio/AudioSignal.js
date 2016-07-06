@@ -126,7 +126,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
     var SAMPLES_PER_FRRAME_ADJUST = -1;             // Helps avoid buffer over-filling
 
-    var samples = new Float64Array(MAX_SAMPLES);
+    var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
     var retrieveResult = {
         buffer: samples,

@@ -9,9 +9,9 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
     function init(self) {
         self.rom = rom;
         self.format = format;
-        bytes = new Uint8Array(0x4100);
+        bytes = new Array(0x4100);
+        wmsx.Util.arrayCopy(rom.content, 0, bytes);
         wmsx.Util.arrayFill(bytes, 0xff, 0x4000);
-        bytes.set(rom.content);
         self.bytes = bytes;
     }
 

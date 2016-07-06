@@ -434,7 +434,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     var keyStateMap = {};
     var extraModifiersActive = new Set();
-    var keyboardRowValues = wmsx.Util.arrayFill(new Uint8Array(16), 0xff);            // only 11 rows used
+    var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 11 rows used
 
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 

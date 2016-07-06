@@ -10,7 +10,7 @@ wmsx.SlotNormal = function(rom) {
         self.rom = rom;
         var content = self.rom.content;
         var size = content.length < 0x4000 ? 0x4000 : content.length;
-        bytes = new Uint8Array(size);
+        bytes = new Array(size);
         self.bytes = bytes;
         for(var i = 0; i < size; ++i) bytes[i] = content[i % size];
 
