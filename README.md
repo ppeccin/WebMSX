@@ -19,7 +19,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Play Cartridge ROMs, Disk and Tape images
 - Powerful Drag & Drop system for loading media files
 - Load several disks at once and easily switch disks
-- "Files as Disk" or "ZIP as Disk" emulation
+- "Files as Disk" and "ZIP as Disk" emulation
 - Savestates support. Export and share Savestate files
 - Keyboard, Gamepad and Mouse controllers with auto-detection
 - Easily toggle extensions like SCC, PAC, DOS2, etc.
