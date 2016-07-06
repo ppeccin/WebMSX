@@ -142,9 +142,12 @@ wmsx.FileLoader = function() {
             zip = wmsx.Util.checkContentIsZIP(file.content);
             if (zip) {
                 try {
-                    var files = wmsx.Util.getZIPFilesSorted(zip);
                     // Try normal loading from files
+                    var files = wmsx.Util.getZIPFilesSorted(zip);
                     if (tryLoadFilesAsMedia(file.name, files, openType, port, altPower, asExpansion, true)) return;
+                    // Try Zip-as-Disk if allowed
+                    if (openType === OPEN_TYPE.AUTO)
+                        if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
                 } catch(ez) {
                     console.log(ez.stack);      // Error decompressing files. Abort
                 }

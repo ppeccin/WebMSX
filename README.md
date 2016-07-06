@@ -2,7 +2,7 @@
 
 **WebMSX**, or simply **WMSX**, is a new cross platform MSX emulator designed for the Web.
 
-Its goal is not to emulate every single machine combination and piece of hardware in existence. 
+Its goal is not to emulate every single machine combination and piece of hardware in existence.
 Instead, deliver a simple and straight forward experience, ease of use and deployment in webpages.
 
 Please go to **http://webmsx.org** to enjoy it online!
