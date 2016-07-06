@@ -7,7 +7,7 @@ wmsx.CartridgeCrossBlaim = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = Array.prototype.slice.call(rom.content);
+        bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
     }
 

@@ -18,7 +18,7 @@ wmsx.FileCassetteDeck = function() {
             return null;
 
         tapeFileName = name;
-        tapeContent = Array.prototype.slice.call(arrContent);    // Ensure normal growable Array
+        tapeContent = wmsx.Util.asNormalArray(arrContent);    // Ensure normal growable Array
         toTapeStart();
         screen.showOSD("Cassette: " + name + ". " + positionMessage(), true);
         fireStateUpdate();

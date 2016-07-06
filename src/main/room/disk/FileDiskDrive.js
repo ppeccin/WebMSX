@@ -161,7 +161,7 @@ wmsx.FileDiskDrive = function() {
         if (!checkContentIsValidImage(file.content)) return null;
 
         var fileName = file.name.split("/").pop();
-        return { name: fileName, content: file.content instanceof Array ? file.content : Array.prototype.slice.call(file.content) };
+        return { name: fileName, content: wmsx.Util.asNormalArray(file.content) };
     }
 
     function checkContentIsValidImage(content) {

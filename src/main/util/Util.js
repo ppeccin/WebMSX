@@ -12,6 +12,11 @@ wmsx.Util = new function() {
         alert(str);
     };
 
+    this.asNormalArray = function(arr) {
+        if (arr instanceof Array) return arr;
+        return this.arrayCopy(arr, 0, new Array(arr.length));
+    };
+
     this.arrayFill = function(arr, val, from, to) {
         if (arr.fill) return arr.fill(val, from, to);       // polyfill for TypedArrays or Arrays with native fill
         if (from === undefined) from = 0;

@@ -161,7 +161,7 @@ wmsx.FileLoader = function() {
 
     function loadFromFiles(files, openType, port, altPower, asExpansion) {
         // Sort files by name
-        files = Array.prototype.slice.call(files);
+        files = wmsx.Util.asNormalArray(files).slice(0);
         files.sort(function sortFiles(a, b) {
             return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
         });
@@ -330,7 +330,7 @@ wmsx.FileLoader = function() {
         e.target.focus();
         if (!this.files || this.files.length === 0) return;           // this will have a property "files"!
 
-        var files = Array.prototype.slice.call(this.files);
+        var files = wmsx.Util.asNormalArray(this.files);
 
         // Tries to clear the last selected file so the same file can be chosen
         try {
