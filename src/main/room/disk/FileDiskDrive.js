@@ -184,7 +184,7 @@ wmsx.FileDiskDrive = function() {
             setCurrentDiskNum(drive, 0);
         }
         fireMediaStateUpdate(drive);
-        if (driveStack[drive].length > 1) self.openDiskSelectDialog(drive, 0, altPower);
+        if (driveStack[drive].length > 1 && !altPower) self.openDiskSelectDialog(drive, 0, altPower);
         else self.autoPowerCycle(altPower);
     }
 

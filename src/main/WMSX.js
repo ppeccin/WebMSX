@@ -18,6 +18,7 @@ WMSX = {
     DISKB_URL:                      "",
     TAPE_URL:                       "",
     STATE_LOAD_URL:                 "",
+    AUTODETECT_URL:                 "",
 
     // Extensions
     EXTENSIONS:                     { },

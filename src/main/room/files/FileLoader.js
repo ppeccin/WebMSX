@@ -75,7 +75,7 @@ wmsx.FileLoader = function() {
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
             var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModifiedDate };
-            loadFromFile(aFile, openType, port, altPower, asExpansion);
+            self.loadFromFile(aFile, openType, port, altPower, asExpansion);
             if (then) then(true);
         };
         reader.onerror = function (event) {
@@ -91,7 +91,7 @@ wmsx.FileLoader = function() {
             url: url,
             onSuccess: function (res) {
                 var aFile = { name: url, content: res.content, lastModifiedDate: null };
-                loadFromFile(aFile, openType, port, altPower, asExpansion);
+                self.loadFromFile(aFile, openType, port, altPower, asExpansion);
                 if (then) then(true);
             },
             onError: function (res) {
@@ -101,10 +101,10 @@ wmsx.FileLoader = function() {
         }]).start();
     };
 
-    this.readFromFiles = function (files, openType, port, altPower, asExpansion, then) {   // Files as Disk only
+    this.readFromFiles = function (files, openType, port, altPower, asExpansion, then) {
         var reader = new wmsx.MultiFileReader(files,
             function onSuccessAll(files) {
-                loadFromFiles(files, openType, port, altPower, asExpansion);
+                self.loadFromFiles(files, openType, port, altPower, asExpansion);
                 if (then) then(true);
             },
             function onFirstError(files, error, known) {
@@ -116,7 +116,11 @@ wmsx.FileLoader = function() {
         reader.start();
     };
 
-    function loadFromFile(file, openType, port, altPower, asExpansion) {
+    this.loadFromContent = function(name, content, openType, port, altPower, asExpansion) {
+        return this.loadFromFile({ name: name, content: content }, openType, port, altPower, asExpansion);
+    };
+
+    this.loadFromFile = function(file, openType, port, altPower, asExpansion) {
         var zip, mes;
         // If As-Disk forced
         if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
@@ -157,9 +161,9 @@ wmsx.FileLoader = function() {
             }
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
-    }
+    };
 
-    function loadFromFiles(files, openType, port, altPower, asExpansion) {
+    this.loadFromFiles = function(files, openType, port, altPower, asExpansion) {
         // Sort files by name
         files = wmsx.Util.asNormalArray(files).slice(0);
         files.sort(function sortFiles(a, b) {
@@ -179,7 +183,23 @@ wmsx.FileLoader = function() {
             if (tryLoadFilesAsMedia(files[0].name, files, openType, port, altPower, asExpansion, false)) return;
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
-    }
+    };
+
+    this.loadFromContentAsSlot = function (name, content, slotPos, altPower) {
+        var zip = wmsx.Util.checkContentIsZIP(content);
+        if (zip) {
+            try {
+                var files = wmsx.Util.getZIPFilesSorted(zip);
+                for (var i = 0; i < files.length; i++)
+                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower)) return;
+            } catch (ez) {
+                // Error decompressing files. Abort
+            }
+        } else {
+            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower)) return;
+        }
+        showError("Unsupported ROM file!");
+    };
 
     function tryLoadZipAsDisk(name, zip, port, altPower, asExpansion) {     // throws
         return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, asExpansion, "ZIP as Disk");    // throws
@@ -217,10 +237,10 @@ wmsx.FileLoader = function() {
             return false;
         }
 
-        return self.loadContentAsMedia(file.name, content, openType, port, altPower, asExpansion);
+        return tryLoadContentAsSingleMedia(file.name, content, openType, port, altPower, asExpansion);
     }
 
-    this.loadContentAsMedia = function (name, content, openType, port, altPower, asExpansion) {
+    function tryLoadContentAsSingleMedia(name, content, openType, port, altPower, asExpansion) {
         openType = openType || OPEN_TYPE.AUTO;
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.AUTO)
@@ -243,23 +263,7 @@ wmsx.FileLoader = function() {
         }
         // Not a valid content
         return false;
-    };
-
-    this.loadContentAsSlot = function (name, content, slotPos, altPower) {
-        var zip = wmsx.Util.checkContentIsZIP(content);
-        if (zip) {
-            try {
-                var files = wmsx.Util.getZIPFilesSorted(zip);
-                for (var i = 0; i < files.length; i++)
-                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower)) return;
-            } catch (ez) {
-                // Error decompressing files. Abort
-            }
-        } else {
-            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower)) return;
-        }
-        showError("Unsupported ROM file!");
-    };
+    }
 
     function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower) {
         var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content));

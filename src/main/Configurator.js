@@ -105,7 +105,7 @@ wmsx.Configurator = {
             return {
                 url: WMSX[key],
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsSlot(res.url, res.content, pos, true);
+                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true);
                 }
             }
 
@@ -116,34 +116,40 @@ wmsx.Configurator = {
         // URLs specified by fixed media loading parameters
         var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
         return [
+            WMSX.AUTODETECT_URL && {
+                url: WMSX.AUTODETECT_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO, 0, true);
+                }
+            },
             WMSX.CARTRIDGE1_URL && {
                 url: WMSX.CARTRIDGE1_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.ROM, 0, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.ROM, 0, true);
                 }
             },
             WMSX.CARTRIDGE2_URL && {
                 url: WMSX.CARTRIDGE2_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.ROM, 1, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.ROM, 1, true);
                 }
             },
             WMSX.DISKA_URL && {
                 url: WMSX.DISKA_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.DISK, 0, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 0, true);
                 }
             },
             WMSX.DISKB_URL && {
                 url: WMSX.DISKB_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.DISK, 1, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 1, true);
                 }
             },
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, OPEN_TYPE.TAPE, 0, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.TAPE, 0, true);
                 }
             }
         ];
@@ -166,6 +172,7 @@ wmsx.Configurator = {
         DISKA: "DISKA_URL",
         DISKB: "DISKB_URL",
         TAPE: "TAPE_URL",
+        AUTODETECT: "AUTODETECT_URL",
         STATE: "STATE_LOAD_URL",
         SAVESTATE: "STATE_LOAD_URL",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)

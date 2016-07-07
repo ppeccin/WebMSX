@@ -136,7 +136,7 @@ wmsx.ExtensionsSocket = function(machine) {
         return {
             url: wmsx.SlotFormats[config[ext].format].embeddedURL || "",
             onSuccess: function (res) {
-                fileLoader.loadContentAsSlot(res.url, res.content, secSlot ? config[ext].SLOT2 : config[ext].SLOT, true);
+                fileLoader.loadFromContentAsSlot(res.url, res.content, secSlot ? config[ext].SLOT2 : config[ext].SLOT, true);
             }
         };
     }

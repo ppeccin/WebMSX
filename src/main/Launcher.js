@@ -40,7 +40,7 @@ WMSX.start = function () {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.loading(false);
-                        WMSX.room.fileLoader.loadContentAsMedia(res.url, res.content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
+                        WMSX.room.fileLoader.loadFromContent(res.url, res.content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                     });
                 });
             }
