@@ -1104,7 +1104,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupBarMenuCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
-        style.innerHTML = '' +'' +
+        style.innerHTML = '' +
             '.wmsx-bar-menu-item {' +
             '   position: relative;' +
             '   width: ' + BAR_MENU_WIDTH + 'px;' +
@@ -1112,6 +1112,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '   color: rgb(205, 205, 205);' +
             '   border: none;' +
             '   padding: 0;' +
+            '   font: inherit;' +
             '   text-shadow: 1px 1px 1px black;' +
             '   background: transparent;' +
             '   outline: none;' +
