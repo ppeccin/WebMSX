@@ -225,13 +225,18 @@ wmsx.FileLoader = function() {
             if (fileFromZIP && !file.content) file.content = file.asUint8Array();
             var content = file.content;
 
-            var zip = wmsx.Util.checkContentIsZIP(content);
-            if (zip && !stopRecursion) {
-                var files = wmsx.Util.getZIPFilesSorted(zip);
-                for (var i = 0; i < files.length; i++)
-                    if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, true, true)) return true;
-                return false;
+            if (!stopRecursion) {
+                var zip = wmsx.Util.checkContentIsZIP(content);
+                if (zip) {
+                    var files = wmsx.Util.getZIPFilesSorted(zip);
+                    for (var i = 0; i < files.length; i++)
+                        if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, true, true)) return true;
+                    return false;
+                }
             }
+
+            var gzip = wmsx.Util.checkContentIsGZIP(content);
+            if (gzip) return tryLoadFileAsSingleMedia({ name: file.name, content: gzip }, openType, port, altPower, asExpansion, false, true);
         } catch (ez) {
             console.log(ez.stack);      // Error decompressing files. Abort
             return false;

@@ -143,25 +143,30 @@ wmsx.FileDiskDrive = function() {
     };
 
     function checkFileIsValidImage(file, stopRecursion) {
-        var zip = wmsx.Util.checkContentIsZIP(file.content);
-        if (zip && !stopRecursion) {
-            try {
-                var files = wmsx.Util.getZIPFilesSorted(zip);
-                for (var f in files) {
-                    files[f].content = files[f].asUint8Array();
-                    var res = checkFileIsValidImage(files[f], true);
-                    if (res) return res;
+        if (checkContentIsValidImage(file.content))
+            return { name: file.name.split("/").pop(), content: wmsx.Util.asNormalArray(file.content) };
+
+        if (!stopRecursion) {
+            var zip = wmsx.Util.checkContentIsZIP(file.content);
+            if (zip) {
+                try {
+                    var files = wmsx.Util.getZIPFilesSorted(zip);
+                    for (var f in files) {
+                        files[f].content = files[f].asUint8Array();
+                        var res = checkFileIsValidImage(files[f], true);
+                        if (res) return res;
+                    }
+                } catch (ez) {
+                    console.log(ez.stack);      // Error decompressing files. Abort
                 }
-            } catch (ez) {
-                console.log(ez.stack);      // Error decompressing files. Abort
+                return null;
             }
-            return null;
         }
 
-        if (!checkContentIsValidImage(file.content)) return null;
+        var gzip = wmsx.Util.checkContentIsGZIP(file.content);
+        if (gzip) return checkFileIsValidImage({ name: file.name, content: gzip }, true);
 
-        var fileName = file.name.split("/").pop();
-        return { name: fileName, content: wmsx.Util.asNormalArray(file.content) };
+        return null;
     }
 
     function checkContentIsValidImage(content) {

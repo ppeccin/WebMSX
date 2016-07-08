@@ -320,6 +320,35 @@ wmsx.Util = new function() {
         return files;
     };
 
+    this.checkContentIsGZIP = function(content) {
+        if (!content || content[0] !== 0x1f || content[1] !== 0x8b || content[2] !== 0x08) return null;      // GZ Deflate signature
+
+        try {
+            var flags = content[3];
+            var fHCRC =    flags & 0x02;
+            var fEXTRA =   flags & 0x04;
+            var fNAME =    flags & 0x08;
+            var fCOMMENT = flags & 0x10;
+
+            // Skip MTIME, XFL and OS fields, no use...
+            var pos = 10;
+
+            // Skip bytes of optional content
+            if (fEXTRA) {
+                var xLEN = content[pos++] | (content[pos++] << 8);
+                pos += xLEN;
+            }
+            if (fNAME) while (content[pos++] !== 0);
+            if (fCOMMENT) while (content[pos++] !== 0);
+            if (fHCRC) pos += 2;
+
+            return JSZip.compressions.DEFLATE.uncompress(content.slice(pos, content.length - 8));
+        } catch (ez) {
+            console.log(ez);      // Error decompressing files. Abort
+            return null;
+        }
+    };
+
     function sortByName(a, b) {
         return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
     }
