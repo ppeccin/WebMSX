@@ -461,15 +461,15 @@ wmsx.FileLoader = function() {
     this.OPEN_TYPE = OPEN_TYPE;                         // For the programatic interface
 
     var INPUT_ACCEPT = {
-        ROM:   ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP",
-        DISK:  ".bin,.BIN,.dsk,.DSK,.zip,.ZIP",
-        TAPE:  ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP",
+        ROM:   ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        DISK:  ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        TAPE:  ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
         STATE: ".wst,.WST",
         CART_DATA: ".pac,.PAC,.dat,.DAT,.sram,.SRAM",
         FILES_AS_DISK: "",
         ZIP_AS_DISK:   ".zip,.ZIP",
         AUTO_AS_DISK:  "",
-        AUTO:   ".bin,.BIN,.dsk,.DSK,.rom,.ROM,.bios,.BIOS,.cas,.CAS,.tape,.TAPE,.wst,.WST,.zip,.ZIP"
+        AUTO:   ".bin,.BIN,.dsk,.DSK,.rom,.ROM,.bios,.BIOS,.cas,.CAS,.tape,.TAPE,.wst,.WST,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP"
     };
 
     var INPUT_MULTI = {
