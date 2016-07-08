@@ -12,7 +12,7 @@ wmsx.YM2413Audio = function(pName) {
     var self = this;
 
     function init() {
-        name = pName || "YM2431";
+        name = pName || "YM2413";
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
