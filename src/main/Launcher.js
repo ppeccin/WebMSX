@@ -108,7 +108,7 @@ WMSX.preLoadImagesAndStart = function() {
     });
 };
 
-WMSX.VERSION = "version 2.0";
+WMSX.VERSION = "version 2.0g";
 
 // Start pre-loading images right away
 WMSX.preLoadImagesAndStart();
