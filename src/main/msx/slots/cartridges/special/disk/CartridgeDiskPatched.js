@@ -3,12 +3,11 @@
 // Patched 16K Disk ROM. Multiple format, used for all Disk ROM manufacturers. Accesses and commands the Disk Drive
 // 0x4000 - 0x80ff
 
-wmsx.CartridgeDiskPatched = function(rom, format) {
+wmsx.CartridgeDiskPatched = function(rom) {
 "use strict";
 
     function init(self) {
         self.rom = rom;
-        self.format = format;
         bytes = new Array(0x4100);
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         wmsx.Util.arrayFill(bytes, 0xff, 0x4000);
@@ -65,13 +64,12 @@ wmsx.CartridgeDiskPatched = function(rom, format) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        this.format = wmsx.SlotFormats[s.f];
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
     };
 
 
-    if (rom && format) init(this);
+    if (rom) init(this);
 
 };
 

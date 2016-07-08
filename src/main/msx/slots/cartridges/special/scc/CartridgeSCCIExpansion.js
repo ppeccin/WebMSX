@@ -2,25 +2,24 @@
 
 // Behaves like the "Snatcher/SD Snatcher Sound Cartridge" upgraded to 128KB RAM
 // 128KB RAM, mapped in 4 8K banks starting at 0x4000
-// Also Accepts ROMs of 128KB or 64KB (mirrored)
+// Accepts ROMs of 128KB max. Mirrored twice if ROM is <= 64KB
 // Controls an internal SCC-I sound chip (in SCC or SCC-I mode)
 // 0x4000 - 0xbfff
 
-wmsx.CartridgeSCCIExpansion = function(rom) {
+wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
 "use strict";
 
     function init(self) {
         self.rom = rom;
         var content = rom.content;
-        bytes = new Array(128 * 1024);
+        bytes = wmsx.Util.arrayFill(new Array(128 * 1024), 0xff);
         self.bytes = bytes;
-        if (content.length === 0)
-            wmsx.Util.arrayFill(bytes, 0xff);
-        else {
+        if (content.length > 0) {
             self.preLoadedContentSize = content.length;
             wmsx.Util.arrayCopy(content, 0, bytes);
-            if (content.length === 65536) wmsx.Util.arrayCopy(content, 0, bytes, 65536);    // Mirror
+            if (content.length <= 65536) wmsx.Util.arrayCopy(content, 0, bytes, 65536);    // Mirror
         }
+        startingMode = startInSCCI ? 0x20 : 0x00;      // Start in SCC-I mode for special format KonamiSCCI. Start in SCC compatibility mode for format SCCIExpansion
     }
 
     this.connect = function(machine) {
@@ -45,8 +44,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     this.reset = function() {
         bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
         sccSelected = scciSelected = sccConnected = false;
-        setMode(0);
         scc.reset();
+        setMode(startingMode);
     };
 
     this.read = function(address) {
@@ -112,7 +111,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
     };
 
     function setMode(pMode) {
-       // wmsx.Util.log(wmsx.Util.toHex2(pMode) + ": " + ((bank1Offset + 0x4000)/0x2000) + ", " + ((bank2Offset + 0x6000)/0x2000) + ", " + ((bank3Offset + 0x8000)/0x2000) + ", " + ((bank4Offset + 0xa000)/0x2000));
+        //wmsx.Util.log("SCCI Expansion mode: " + wmsx.Util.toHex2(pMode) + ": " + ((bank1Offset + 0x4000)/0x2000) + ", " + ((bank2Offset + 0x6000)/0x2000) + ", " + ((bank3Offset + 0x8000)/0x2000) + ", " + ((bank4Offset + 0xa000)/0x2000));
 
         mode = pMode;
         scciMode = (pMode & 0x20) !== 0;
@@ -132,6 +131,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
 
     var bytes;
     this.bytes = null;
+
+    var startingMode = 0;      // Star in SCC compatibility mode (default for SCC-I cartridges)
 
     var mode;
     var scciMode;
@@ -156,6 +157,7 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
             r: this.rom.saveState(),
             pcs: this.preLoadedContentSize,
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            sm: startingMode,
             m: mode,
             b1: bank1Offset,
             b2: bank2Offset,
@@ -177,7 +179,8 @@ wmsx.CartridgeSCCIExpansion = function(rom) {
         bank2Offset = s.b2;
         bank3Offset = s.b3;
         bank4Offset = s.b4;
-        setMode(s.m || 0);
+        startingMode = s.sm || 0;
+        setMode(s.m !== undefined ? s.m : startingMode);
         scc.loadState(s.scc);
         sccSelected = s.scs;
         scciSelected = s.sis;

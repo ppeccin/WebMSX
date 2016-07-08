@@ -128,7 +128,7 @@ wmsx.SlotFormats = {
             return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeDiskPatched(rom, this);
+            return new wmsx.CartridgeDiskPatched(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeDiskPatched.recreateFromSaveState(state, previousSlot);
@@ -158,11 +158,27 @@ wmsx.SlotFormats = {
         priority: 1502,
         embeddedURL: "@[SCCIExpansion].rom",
         priorityForRom: function (rom) {
-            // 0K, 64K or 128K content. Must be selected via info format hint
-            return (rom.content.length === 0 || rom.content.length === 65536 || rom.content.length === 131072) ? this.priority : null;
+            // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
+            return (rom.content.length <= 131072 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeSCCIExpansion(rom);
+            return new wmsx.CartridgeSCCIExpansion(rom, false);      // Star in SCC compatibility mode (default for SCC-I cartridges)
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "KonamiSCCI": {
+        name: "KonamiSCCI",
+        desc: "SCC-I (SCC+) Sound Cartridge (in SCC-I mode)",
+        priority: 1503,
+        priorityForRom: function (rom) {
+            // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
+            return (rom.content.length <= 131072 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSCCIExpansion(rom, true);     // Star in SCC-I mode. Special format!
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
@@ -172,7 +188,7 @@ wmsx.SlotFormats = {
     "MSXMUSIC": {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Extension",
-        priority: 1503,
+        priority: 1504,
         embeddedURL: "@[MSXMUSIC].rom",
         priorityForRom: function (rom) {
             // Only 16K content. Must be selected via info format hint
@@ -189,7 +205,7 @@ wmsx.SlotFormats = {
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC Sound Cartridge",
-        priority: 1504,
+        priority: 1505,
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
@@ -205,7 +221,7 @@ wmsx.SlotFormats = {
     "MSXDOS2": {
         name: "MSXDOS2",
         desc: "MSX-DOS 2 ROM Mapper",
-        priority: 1505,
+        priority: 1506,
         embeddedURL: "@[MSXDOS2]v22.rom",
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
@@ -222,7 +238,7 @@ wmsx.SlotFormats = {
     "PACExpansion": {
         name: "PACExpansion",
         desc: "PAC SRAM Cartridge",
-        priority: 1506,
+        priority: 1507,
         embeddedURL: "@[PACExpansion].rom",
         priorityForRom: function (rom, insertedCartridge) {
             // Only 0K content selected via info format hint
@@ -244,7 +260,7 @@ wmsx.SlotFormats = {
     "Kanji1": {
         name: "Kanji1",
         desc: "Kanji Font",
-        priority: 1507,
+        priority: 1508,
         embeddedURL: "@[Kanji1].rom",
         priorityForRom: function (rom) {
             // 128K or 256K content. Must be selected via info format hint
@@ -292,7 +308,7 @@ wmsx.SlotFormats = {
         priority: 911,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length % 8192) === 0
+            return (rom.content.length > 32768 && (rom.content.length & 0x1fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -309,7 +325,7 @@ wmsx.SlotFormats = {
         priority: 912,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 16K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length % 16384) === 0
+            return (rom.content.length > 32768 && (rom.content.length & 0x3fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -326,7 +342,7 @@ wmsx.SlotFormats = {
         priority: 913,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length % 8192) === 0
+            return (rom.content.length > 32768 && (rom.content.length & 0x1fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -343,7 +359,7 @@ wmsx.SlotFormats = {
         priority: 914,
         priorityForRom: function (rom) {
             // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length % 8192) === 0
+            return (rom.content.length > 32768 && (rom.content.length & 0x1fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {

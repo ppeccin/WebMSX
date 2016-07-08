@@ -36,6 +36,8 @@ wmsx.SCCIAudio = function() {
     };
 
     this.setSCCIMode = function(mode) {
+        //console.log("SCCI Audio mode: " + mode);
+
         if (scciMode === mode) return;
         scciMode = !!mode;
         if (scciMode) {
