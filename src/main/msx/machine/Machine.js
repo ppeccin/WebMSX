@@ -61,14 +61,14 @@ wmsx.Machine = function() {
         bus.reset();
     };
 
-    this.userPowerOn = function(autoRunCassette) {
+    this.userPowerOn = function(basicAutoRun) {
         if (isLoading) return;
         if (!bios) {
             this.getVideoOutput().showOSD("Insert BIOS!", true, true);
             return;
         }
         this.powerOn();
-        if (autoRunCassette) cassetteSocket.typeAutoRunCommandAfterPowerOn();
+        if (basicAutoRun) typeBasicAutoRunCommand();
      };
 
     this.videoClockPulse = function() {
@@ -349,6 +349,18 @@ wmsx.Machine = function() {
         audioSocket = new AudioSocket();
         diskDriveSocket = new DiskDriveSocket();
         machineControlsSocket = new MachineControlsSocket();
+    }
+
+    function typeBasicAutoRunCommand() {
+        var type = WMSX.BASIC_ENTER ? WMSX.BASIC_ENTER + "\n" : "";
+            type += WMSX.BASIC_TYPE || "";
+
+        if (WMSX.BASIC_RUN) {
+            bios.getKeyboardExtension().typeString('RUN "' + WMSX.BASIC_RUN + '"\n' + type);
+        } else if (WMSX.BASIC_LOAD) {
+            bios.getKeyboardExtension().typeString('LOAD "' + WMSX.BASIC_LOAD + '"\n' + type);
+        } else
+            cassetteSocket.typeAutoRunCommand();
     }
 
 
@@ -693,7 +705,7 @@ wmsx.Machine = function() {
             if (!driver || !driver.currentAutoRunCommand()) return;     // Only do power-on if there is an executable at position
             if (!self.powerIsOn && !altPower) self.userPowerOn(true);
         };
-        this.typeAutoRunCommandAfterPowerOn = function () {
+        this.typeAutoRunCommand = function () {
             if (driver) driver.typeCurrentAutoRunCommand();
         };
         var deck;

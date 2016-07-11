@@ -140,12 +140,24 @@ wmsx.Configurator = {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 0, true);
                 }
             },
+            (!WMSX.DISKA_URL && WMSX.DISKA_FILES_URL) ? {
+                url: WMSX.DISKA_FILES_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 0, true);
+                }
+            } : null,
             WMSX.DISKB_URL && {
                 url: WMSX.DISKB_URL,
                 onSuccess: function (res) {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 1, true);
                 }
             },
+            (!WMSX.DISKB_URL && WMSX.DISKB_FILES_URL) ? {
+                url: WMSX.DISKB_FILES_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 1, true);
+                }
+            } : null,
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {
@@ -169,8 +181,11 @@ wmsx.Configurator = {
         CART1: "CARTRIDGE1_URL",
         CART2: "CARTRIDGE2_URL",
         DISK: "DISKA_URL",
+        DISK_FILES: "DISKA_FILES_URL",
         DISKA: "DISKA_URL",
         DISKB: "DISKB_URL",
+        DISKA_FILES: "DISKA_FILES_URL",
+        DISKB_FILES: "DISKB_FILES_URL",
         TAPE: "TAPE_URL",
         AUTODETECT: "AUTODETECT_URL",
         STATE: "STATE_LOAD_URL",

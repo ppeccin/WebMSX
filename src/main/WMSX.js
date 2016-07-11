@@ -14,11 +14,19 @@ WMSX = {
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
     CARTRIDGE2_URL:                 "",
-    DISKA_URL:                      "",
+    DISKA_URL:                      "",                         // Image files
     DISKB_URL:                      "",
     TAPE_URL:                       "",
     STATE_LOAD_URL:                 "",
+    DISKA_FILES_URL:                "",                         // Files to load "as Disk". For several files, use a ZIP file
+    DISKB_FILES_URL:                "",
     AUTODETECT_URL:                 "",
+
+    // Basic loading/typing commands. Not needed for AUTOEXEC.BAS
+    BASIC_RUN:                      "",
+    BASIC_LOAD:                     "",
+    BASIC_ENTER:                    "",
+    BASIC_TYPE:                     "",
 
     // Extensions
     EXTENSIONS:                     { },
