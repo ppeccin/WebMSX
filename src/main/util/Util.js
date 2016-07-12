@@ -6,9 +6,15 @@ wmsx.Util = new function() {
     this.log = function(str) {
         console.log(">> wmsx: " + str);
     };
+    this.warning = function(str) {
+        console.warn(">> wmsx Warning: " + str);
+    };
+    this.error = function(str) {
+        console.error(">> wmsx Error: " + str);
+    };
 
     this.message = function(str) {
-        console.log(str);
+        console.info(str);
         alert(str);
     };
 
@@ -344,8 +350,7 @@ wmsx.Util = new function() {
 
             return JSZip.compressions.DEFLATE.uncompress(content.slice(pos, content.length - 8));
         } catch (ez) {
-            console.log(ez);      // Error decompressing files. Abort
-            return null;
+            return null;      // Error decompressing file. Abort
         }
     };
 

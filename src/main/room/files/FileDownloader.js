@@ -25,7 +25,7 @@ wmsx.FileDownloader = function() {
             screen.showOSD(desc + " saved", true);
         } catch(ex) {
             screen.showOSD(desc + " save FAILED!", true, true);
-            console.log(ex.stack);
+            wmsx.Util.error(ex);
         }
     };
 
@@ -42,7 +42,7 @@ wmsx.FileDownloader = function() {
             screen.showOSD(desc + " saved", true);
         } catch(ex) {
             screen.showOSD(desc + " save FAILED!", true, true);
-            console.log(ex.stack);
+            wmsx.Util.error(ex);
         }
     };
 

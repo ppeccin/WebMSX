@@ -75,7 +75,7 @@ wmsx.Configurator = {
                 else if (parName === "_INCLUDE") this.applyPresets(presetPars[par]);    // Preset to include
             }
         } else
-            wmsx.Util.log("Preset \"" + presetName + "\" not found, skipping...");
+            wmsx.Util.warning("Preset \"" + presetName + "\" not found, skipping...");
     },
 
     applyParam: function(name, value) {

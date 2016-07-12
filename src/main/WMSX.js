@@ -16,10 +16,10 @@ WMSX = {
     CARTRIDGE2_URL:                 "",
     DISKA_URL:                      "",                         // Image files
     DISKB_URL:                      "",
-    TAPE_URL:                       "",
-    STATE_LOAD_URL:                 "",
     DISKA_FILES_URL:                "",                         // Files to load "as Disk". For several files, use a ZIP file
     DISKB_FILES_URL:                "",
+    TAPE_URL:                       "",
+    STATE_LOAD_URL:                 "",
     AUTODETECT_URL:                 "",
 
     // Basic loading/typing commands. Not needed for AUTOEXEC.BAS

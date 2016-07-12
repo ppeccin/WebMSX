@@ -55,7 +55,7 @@ wmsx.WebAudioSpeaker = function() {
 
     var createAudioContext = function() {
         if (WMSX.AUDIO_BUFFER_SIZE === 0) {
-            wmsx.Util.log("Audio disabled in config file.");
+            wmsx.Util.warning("Audio disabled in configuration");
             return;
         }
         try {
@@ -65,8 +65,7 @@ wmsx.WebAudioSpeaker = function() {
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
             updateResamplingFactors();
         } catch(ex) {
-            console.log(ex.stack);
-            wmsx.Util.log("Could not create AudioContext. Audio disabled.");
+            wmsx.Util.error("Could not create AudioContext. Audio DISABLED!\n" + ex);
         }
     };
 

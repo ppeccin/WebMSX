@@ -153,7 +153,7 @@ wmsx.FileLoader = function() {
                     if (openType === OPEN_TYPE.AUTO)
                         if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
                 } catch(ez) {
-                    console.log(ez.stack);      // Error decompressing files. Abort
+                    wmsx.Util.error(ez);      // Error decompressing files. Abort
                 }
             } else {
                 // Try normal loading from files
@@ -238,7 +238,7 @@ wmsx.FileLoader = function() {
             var gzip = wmsx.Util.checkContentIsGZIP(content);
             if (gzip) return tryLoadFileAsSingleMedia({ name: file.name, content: gzip }, openType, port, altPower, asExpansion, false, true);
         } catch (ez) {
-            console.log(ez.stack);      // Error decompressing files. Abort
+            wmsx.Util.error(ez);      // Error decompressing files. Abort
             return false;
         }
 

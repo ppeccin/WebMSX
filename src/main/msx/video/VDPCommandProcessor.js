@@ -47,8 +47,8 @@ wmsx.VDPCommandProcessor = function() {
                 POINT(); break;
             case 0x00:
                 STOP(); break;
-            default:
-                wmsx.Util.log("Unsupported V9938 Command: " + val.toString(16));
+            //default:
+            //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
         }
     };
 

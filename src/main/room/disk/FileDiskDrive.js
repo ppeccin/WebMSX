@@ -41,7 +41,7 @@ wmsx.FileDiskDrive = function() {
                 return stack;
             }
         } catch(ez) {
-            console.log(ez.stack);      // Error decompressing files. Abort
+            wmsx.Util.error(ez);      // Error decompressing files. Abort
         }
         return null;
     };
@@ -157,7 +157,7 @@ wmsx.FileDiskDrive = function() {
                         if (res) return res;
                     }
                 } catch (ez) {
-                    console.log(ez.stack);      // Error decompressing files. Abort
+                    wmsx.Util.error(ez);      // Error decompressing files. Abort
                 }
                 return null;
             }

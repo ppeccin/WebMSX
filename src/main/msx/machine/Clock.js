@@ -103,7 +103,7 @@ wmsx.Clock.HOST_NATIVE_FPS = WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;         // -1 = 
 wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
 
     if (WMSX.SCREEN_VSYNCH_MODE === 0) {
-        wmsx.Util.log("Video native V-Synch disabled");
+        wmsx.Util.warning("Video native V-Synch disabled in configuration");
         if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         return;
     }
@@ -119,14 +119,14 @@ wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
     var tries = 0;
     var samples = [];
     var lastTime = 0;
-    var good60 = 0, good50 = 0;
+    var good60 = 0, good50 = 0, good120 = 0, good100 = 0;
     var tolerance = 0.06;
 
     var sampler = function() {
 
         // Detected?
-        if (good60 >= 8 || good50 >= 8) {
-            wmsx.Clock.HOST_NATIVE_FPS = good60 >= 8 ? 60 : 50;
+        if (good60 >= 10 || good50 >= 10 || good120 >= 10 || good100 >= 10) {
+            wmsx.Clock.HOST_NATIVE_FPS = good60 >= 10 ? 60 : good50 >= 10 ? 50 : good120 >= 10 ? 120 : 100;
             wmsx.Util.log("Video native frequency detected: " + wmsx.Clock.HOST_NATIVE_FPS + "Hz");
             if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
             return;
@@ -139,13 +139,15 @@ wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
             samples[samples.length] = sample;
             lastTime = currentTime;
 
-            if ((sample >= (1000 / 60) * (1 - tolerance)) && (sample <= (1000 / 60) * (1 + tolerance))) good60++;
-            if ((sample >= (1000 / 50) * (1 - tolerance)) && (sample <= (1000 / 50) * (1 + tolerance))) good50++;
+            if ((sample >= (1000 / 60) *  (1 - tolerance)) && (sample <= (1000 / 60) *  (1 + tolerance))) good60++;
+            if ((sample >= (1000 / 50) *  (1 - tolerance)) && (sample <= (1000 / 50) *  (1 + tolerance))) good50++;
+            if ((sample >= (1000 / 120) * (1 - tolerance)) && (sample <= (1000 / 120) * (1 + tolerance))) good120++;
+            if ((sample >= (1000 / 100) * (1 - tolerance)) && (sample <= (1000 / 100) * (1 + tolerance))) good100++;
 
             requestAnimationFrame(sampler);
         } else {
             wmsx.Clock.HOST_NATIVE_FPS = -1;
-            wmsx.Util.log("Video native frequency detected: unsupported. V-Synch disabled");
+            wmsx.Util.error("Could not detect video native frequency. V-Synch DISABLED!");
             if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         }
     };

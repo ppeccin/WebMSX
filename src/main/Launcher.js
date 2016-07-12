@@ -56,7 +56,7 @@ WMSX.start = function () {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.loading(false);
-                        WMSX.room.machine.userPowerOn(true);        // Auto-run cassette if any
+                        WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
                     });
                 });
             }
