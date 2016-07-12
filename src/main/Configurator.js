@@ -10,14 +10,11 @@ wmsx.Configurator = {
             for (var param in params) this.applyParam(param, params[param]);
         }
 
-        // Apply main Machine Type presets
+        // Apply main Machine configuration
         WMSX.MACHINE = (WMSX.MACHINE || "").trim().toUpperCase();
-        var machineConfig = WMSX.MACHINES_CONFIG[WMSX.MACHINE];
-        if (!machineConfig) {
-            wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
-            return;
-        }
-        this.applyPresets(machineConfig.presets);
+        if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
+        if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
+        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
 
         // Apply additional presets
         this.applyPresets(WMSX.PRESETS);
@@ -39,7 +36,6 @@ wmsx.Configurator = {
         }
 
         function normalizeParameterTypes() {
-            WMSX.MACHINE_TYPE = WMSX.MACHINE_TYPE | 0;
             WMSX.RAMMAPPER_SIZE = WMSX.RAMMAPPER_SIZE | 0;
             WMSX.AUTO_START_DELAY = WMSX.AUTO_START_DELAY | 0;
             WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
@@ -171,11 +167,30 @@ wmsx.Configurator = {
         return WMSX.room.machine.getExtensionsSocket().getInitialLoaderURLSpecs();
     },
 
+    detectDefaultMachine: function() {
+        var type = (WMSX.MACHINES_CONFIG[WMSX.MACHINE] && WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) || 3;
+
+        var lang = wmsx.Util.userLanguage();
+        var langSuffix = "A";                                 // Default American machine
+        if (lang.indexOf("ja") === 0) langSuffix = "J";       // Japanese machine
+                                                              // TODO Detect other countries/locations?
+        var typePreffix;
+        switch (type) {
+            case 3: typePreffix = "MSX2P"; break;
+            case 2: typePreffix = "MSX2"; break;
+            case 1: typePreffix = "MSX1"; break;
+        }
+
+        var machine = typePreffix + langSuffix;
+
+        wmsx.Util.log("Machine auto-detection: " + machine);
+        return machine;
+    },
+
     abbreviations: {
         P: "PRESETS",
         M: "MACHINE",
         PRESET: "PRESETS",
-        TYPE: "MACHINE_TYPE",
         ROM: "CARTRIDGE1_URL",
         CART: "CARTRIDGE1_URL",
         CART1: "CARTRIDGE1_URL",

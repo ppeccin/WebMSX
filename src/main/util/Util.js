@@ -408,4 +408,8 @@ wmsx.Util = new function() {
         };
     };
 
+    this.userLanguage = function() {
+        return ((navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage || "en-US").trim();
+    }
+
 };

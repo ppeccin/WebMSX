@@ -30,7 +30,7 @@ wmsx.MachineTypeSocket = function(machine) {
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
-                    machine.setMachineType(WMSX.MACHINE, WMSX.MACHINE_TYPE);
+                    machine.setMachine(name);
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
                     machine.showOSD(machineConfig.desc + " machine activated", true);

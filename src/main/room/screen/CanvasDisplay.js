@@ -1296,7 +1296,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var mousePointerLocked = false;
 
     var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
-    var targetHeight = WMSX.MACHINE_TYPE === 1
+    var targetHeight = WMSX.MACHINES_CONFIG[WMSX.MACHINE].type === 1
         ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 

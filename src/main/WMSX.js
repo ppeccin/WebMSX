@@ -7,7 +7,7 @@
 
 WMSX = {
 
-    MACHINE:                        "MSX2PA",                   // Machine Type. See Machine Configuration
+    MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
 
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
 
@@ -60,16 +60,19 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    EMPTY:  { desc: "MSX2+ Barebone (NTSC)", presets: "EMPTY"},
-    MSX2PA: { desc: "MSX2+ America (NTSC)",  presets: "MSX2PA"},
-    MSX2PE: { desc: "MSX2+ Europe (PAL)",    presets: "MSX2PE"},
-    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",    presets: "MSX2PJ"},
-    MSX2A:  { desc: "MSX2 America (NTSC)",   presets: "MSX2A"},
-    MSX2E:  { desc: "MSX2 Europe (PAL)",     presets: "MSX2E"},
-    MSX2J:  { desc: "MSX2 Japan (NTSC)",     presets: "MSX2J"},
-    MSX1A:  { desc: "MSX America (NTSC)",    presets: "MSX1A"},
-    MSX1E:  { desc: "MSX Europe (PAL)",      presets: "MSX1E"},
-    MSX1J:  { desc: "MSX Japan (NTSC)",      presets: "MSX1J"}
+    EMPTY:  { desc: "MSX2+ Barebone (NTSC)" },
+    MSX2P:  { desc: "MSX2+ Auto Detect",    autoType: 3 },
+    MSX2:   { desc: "MSX2 Auto Detect",     autoType: 2 },
+    MSX1:   { desc: "MSX Auto Detect",      autoType: 1 },
+    MSX2PA: { desc: "MSX2+ America (NTSC)", type: 3, presets: "_MSX2PA"},
+    MSX2PE: { desc: "MSX2+ Europe (PAL)",   type: 3, presets: "_MSX2PE"},
+    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",   type: 3, presets: "_MSX2PJ"},
+    MSX2A:  { desc: "MSX2 America (NTSC)",  type: 2, presets: "_MSX2A"},
+    MSX2E:  { desc: "MSX2 Europe (PAL)",    type: 2, presets: "_MSX2E"},
+    MSX2J:  { desc: "MSX2 Japan (NTSC)",    type: 2, presets: "_MSX2J"},
+    MSX1A:  { desc: "MSX America (NTSC)",   type: 1, presets: "_MSX1A"},
+    MSX1E:  { desc: "MSX Europe (PAL)",     type: 1, presets: "_MSX1E"},
+    MSX1J:  { desc: "MSX Japan (NTSC)",     type: 1, presets: "_MSX1J"}
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -85,106 +88,6 @@ WMSX.EXTENSIONS_CONFIG = {
 };
 
 WMSX.PRESETS_CONFIG = {
-
-    // MSX2+ Machine Presets
-
-    MSX2P: {
-        _INCLUDE:           "MSX2PA"
-    },
-    MSX2PA: {
-        _INCLUDE:           "MSX2PBASE",
-        MACHINE:            "MSX2PA",
-        SLOT_0_URL:         "@MSX2P_NTSC.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios, @[KanjiBasic].bios"
-    },
-    MSX2PE: {
-        _INCLUDE:           "MSX2PBASE",
-        MACHINE:            "MSX2PE",
-        SLOT_0_URL:         "@MSX2P_PAL.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios, @KanjiBasic_PAL.bios"
-    },
-    MSX2PJ: {
-        _INCLUDE:           "MSX2PBASE, KANJI",
-        MACHINE:            "MSX2PJ",
-        SLOT_0_URL:         "@MSX2P_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios, @[KanjiBasic].bios"
-    },
-
-    MSX2PBASE: {
-        _INCLUDE:           "MSX2BASE",
-        MACHINE_TYPE:       3,
-        KANJIBASIC:         true
-    },
-
-    // MSX2 Machine Presets
-
-    MSX2: {
-        _INCLUDE:           "MSX2A"
-    },
-    MSX2A: {
-        _INCLUDE:           "MSX2BASE",
-        MACHINE:            "MSX2A",
-        SLOT_0_URL:         "@MSX2_NTSC.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_NTSC.bios"
-    },
-    MSX2E: {
-        _INCLUDE:           "MSX2BASE",
-        MACHINE:            "MSX2E",
-        SLOT_0_URL:         "@MSX2_PAL.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_PAL.bios"
-    },
-    MSX2J: {
-        _INCLUDE:           "MSX2BASE, KANJI",
-        MACHINE:            "MSX2J",
-        SLOT_0_URL:         "@MSX2_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios, @[KanjiBasic].bios",
-        KANJIBASIC:         true
-    },
-
-    MSX2BASE: {
-        _INCLUDE:           "BASE, RAM512, MSXMUSIC",
-        MACHINE_TYPE:       2,
-        MSX2:               true
-    },
-
-    // MSX1 Machine Presets
-
-    MSX1: {
-        _INCLUDE:           "MSX1A"
-    },
-    MSX1A: {
-        _INCLUDE:           "MSX1BASE",
-        MACHINE:            "MSX1A",
-        SLOT_0_URL:         "@MSX1_NTSC.bios"
-    },
-    MSX1E: {
-        _INCLUDE:           "MSX1BASE",
-        MACHINE:            "MSX1E",
-        SLOT_0_URL:         "@MSX1_PAL.bios"
-    },
-    MSX1J: {
-        _INCLUDE:           "MSX1BASE",
-        MACHINE:            "MSX1J",
-        SLOT_0_URL:         "@MSX1_JAP.bios"
-    },
-
-    MSX1BASE: {
-        _INCLUDE:           "BASE, NOMSXMUSIC, NODOS2",
-        MACHINE_TYPE:       1,
-        SLOT_2_1_URL:       "@[Empty].rom"
-    },
-
-    // Base Machines Presets
-
-    BASE: {
-        _INCLUDE:           "RAMNormal, DISK, NOKANJI",
-        MSX2:               false,
-        KANJIBASIC:         false
-    },
-
-    EMPTY: {
-        MACHINE_TYPE:       3
-    },
 
     // Extensions Options Presets
 
@@ -224,7 +127,83 @@ WMSX.PRESETS_CONFIG = {
 
     NOVSYNCH:     { SCREEN_VSYNCH_MODE: 0},
     VSYNCHAUTO:   { SCREEN_VSYNCH_MODE: 1},
-    VSYNCHFORCED: { SCREEN_VSYNCH_MODE: 2}
+    VSYNCHFORCED: { SCREEN_VSYNCH_MODE: 2},
+
+
+    // MSX2+ Machine Presets. Do not use directly
+
+    _MSX2PA: {
+        _INCLUDE:           "_MSX2PBASE",
+        SLOT_0_URL:         "@MSX2P_NTSC.bios",
+        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios, @[KanjiBasic].bios"
+    },
+    _MSX2PE: {
+        _INCLUDE:           "_MSX2PBASE",
+        SLOT_0_URL:         "@MSX2P_PAL.bios",
+        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios, @KanjiBasic_PAL.bios"
+    },
+    _MSX2PJ: {
+        _INCLUDE:           "_MSX2PBASE, KANJI",
+        SLOT_0_URL:         "@MSX2P_JAP.bios",
+        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios, @[KanjiBasic].bios"
+    },
+
+    _MSX2PBASE: {
+        _INCLUDE:           "_MSX2BASE",
+        KANJIBASIC:         true
+    },
+
+    // MSX2 Machine Presets. Do not use directly
+
+    _MSX2A: {
+        _INCLUDE:           "_MSX2BASE",
+        SLOT_0_URL:         "@MSX2_NTSC.bios",
+        SLOT_2_1_URL:       "@MSX2EXT_NTSC.bios"
+    },
+    _MSX2E: {
+        _INCLUDE:           "_MSX2BASE",
+        SLOT_0_URL:         "@MSX2_PAL.bios",
+        SLOT_2_1_URL:       "@MSX2EXT_PAL.bios"
+    },
+    _MSX2J: {
+        _INCLUDE:           "_MSX2BASE, KANJI",
+        SLOT_0_URL:         "@MSX2_JAP.bios",
+        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios, @[KanjiBasic].bios",
+        KANJIBASIC:         true
+    },
+
+    _MSX2BASE: {
+        _INCLUDE:           "_BASE, RAM512, MSXMUSIC",
+        MSX2:               true
+    },
+
+    // MSX1 Machine Presets. Do not use directly
+
+    _MSX1A: {
+        _INCLUDE:           "_MSX1BASE",
+        SLOT_0_URL:         "@MSX1_NTSC.bios"
+    },
+    _MSX1E: {
+        _INCLUDE:           "_MSX1BASE",
+        SLOT_0_URL:         "@MSX1_PAL.bios"
+    },
+    _MSX1J: {
+        _INCLUDE:           "_MSX1BASE",
+        SLOT_0_URL:         "@MSX1_JAP.bios"
+    },
+
+    _MSX1BASE: {
+        _INCLUDE:           "_BASE, NOMSXMUSIC, NODOS2",
+        SLOT_2_1_URL:       "@[Empty].rom"
+    },
+
+    // Base Machines Presets. Do not use directly
+
+    _BASE: {
+        _INCLUDE:           "RAMNormal, DISK, NOKANJI",
+        MSX2:               false,
+        KANJIBASIC:         false
+    }
 
 };
 

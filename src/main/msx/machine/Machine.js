@@ -8,17 +8,17 @@ wmsx.Machine = function() {
     function init() {
         socketsCreate();
         mainComponentsCreate();
-        self.setMachineType(WMSX.MACHINE, WMSX.MACHINE_TYPE);
+        self.setMachine(WMSX.MACHINE);
         self.setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     }
 
-    this.setMachineType = function(name, type) {
+    this.setMachine = function(name) {
         this.machineName = name;
-        this.machineType = type;
-        vdp.setMachineType(type);
-        rtc.setMachineType(type);
-        syf.setMachineType(type);
+        this.machineType = WMSX.MACHINES_CONFIG[name].type || 3;
+        vdp.setMachineType(this.machineType);
+        rtc.setMachineType(this.machineType);
+        syf.setMachineType(this.machineType);
     };
 
     this.powerOn = function(paused) {

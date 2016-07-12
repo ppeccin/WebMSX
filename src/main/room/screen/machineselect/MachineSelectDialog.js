@@ -54,7 +54,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         list.style.width = "80%";
 
         for (var i = 0; i < machines.length; ++i) {
-            if (machines[i] == "EMPTY") continue;       // Exclude EMPTY Machine from list
+            if (!WMSX.MACHINES_CONFIG[machines[i]].type) continue;       // Exclude EMPTY and AUTO options from list
             var li = document.createElement("li");
             li.classList.add("wmsx-visible");
             li.style.textAlign = "center";
@@ -87,7 +87,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
             else if (SELECT_KEYS[e.keyCode]) {
                 var idx = machines.indexOf(machineSelected) + SELECT_KEYS[e.keyCode];
                 var newMachine = machines[idx];
-                if (newMachine && newMachine != "EMPTY") {
+                if (newMachine && WMSX.MACHINES_CONFIG[newMachine].type) {      // Exclude EMPTY and AUTO options
                     machineSelected = newMachine;
                     refreshList();
                 }

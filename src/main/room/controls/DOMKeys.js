@@ -170,10 +170,10 @@ wmsx.DOMKeysImpl = function() {
 
     var setDefaultLocalKeyboard = function () {
         // Try to guess a matching keyboard from the navigator language. Defaults to en-US
-        var lang = (navigator.language || "").trim() || "en-US";
+        var lang = wmsx.Util.userLanguage();
         var code = 0;
         for (var i = 0; i < keyboards.length; i++)
-            if (lang.indexOf(keyboards[i].name) >= 0) {
+            if (lang.indexOf(keyboards[i].name) === 0) {
                 code = i; break;
             }
         self.setKeyboard(code);
