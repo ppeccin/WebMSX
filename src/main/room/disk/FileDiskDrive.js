@@ -23,7 +23,7 @@ wmsx.FileDiskDrive = function() {
         fileDownloader = pDownloader;
     };
 
-    this.loadDiskStackFromFiles = function (drive, name, files, altPower, addToStack, filesFromZip) {
+    this.loadDiskStackFromFiles = function (drive, files, altPower, addToStack, filesFromZip) {
         if (addToStack && maxStackReachedMessage(drive)) return [];
 
         var stack = [];
@@ -204,9 +204,7 @@ wmsx.FileDiskDrive = function() {
     function makeFileNameToSave(fileName) {
         if (!fileName) return "New Disk.dsk";
 
-        var period = fileName.lastIndexOf(".");
-        fileName = period < 0 ? fileName : fileName.substr(0, period);
-        return fileName + ".dsk";
+        return wmsx.Util.leafFilenameNoExtension(fileName) + ".dsk";
     }
 
     // DiskDriver interface methods

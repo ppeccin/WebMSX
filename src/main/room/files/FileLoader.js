@@ -148,7 +148,7 @@ wmsx.FileLoader = function() {
                 try {
                     // Try normal loading from files
                     var files = wmsx.Util.getZIPFilesSorted(zip);
-                    if (tryLoadFilesAsMedia(file.name, files, openType, port, altPower, asExpansion, true)) return;
+                    if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, true)) return;
                     // Try Zip-as-Disk if allowed
                     if (openType === OPEN_TYPE.AUTO)
                         if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
@@ -157,7 +157,7 @@ wmsx.FileLoader = function() {
                 }
             } else {
                 // Try normal loading from files
-                if (tryLoadFilesAsMedia(file.name, [file], openType, port, altPower, asExpansion, false)) return;
+                if (tryLoadFilesAsMedia([file], openType, port, altPower, asExpansion, false)) return;
             }
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
@@ -180,7 +180,7 @@ wmsx.FileLoader = function() {
             }
             showError("Error loading " + TYPE_DESC[openType] + (mes ?  ": " + mes : ""));
         } else {
-            if (tryLoadFilesAsMedia(files[0].name, files, openType, port, altPower, asExpansion, false)) return;
+            if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, false)) return;
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
     };
@@ -206,13 +206,14 @@ wmsx.FileLoader = function() {
     }
 
     function tryLoadFilesAsDisk (files, port, altPower, asExpansion) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, asExpansion, "Files as Disk");     // throws
+        var name = files.length !== 1 ? null : wmsx.Util.leafFilename(files[0].name);
+        return diskDrive.loadAsDiskFromFiles(port, name, files, altPower, asExpansion, "Files as Disk");     // throws
     }
 
-    function tryLoadFilesAsMedia(name, files, openType, port, altPower, asExpansion, filesFromZIP) {
+    function tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, filesFromZIP) {
         // Try as a Disk Stack (all images found)
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO)
-            if (diskDrive.loadDiskStackFromFiles(port, name, files, altPower, asExpansion, filesFromZIP)) return true;
+            if (diskDrive.loadDiskStackFromFiles(port, files, altPower, asExpansion, filesFromZIP)) return true;
         // Try as other Single media (first found)
         if (openType !== OPEN_TYPE.DISK)
             for (var i = 0; i < files.length; i++)

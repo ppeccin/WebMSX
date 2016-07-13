@@ -17,7 +17,7 @@ wmsx.FileCassetteDeck = function() {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
 
-        tapeFileName = name;
+        tapeFileName = wmsx.Util.leafFilename(name);
         tapeContent = wmsx.Util.asNormalArray(arrContent);    // Ensure normal growable Array
         toTapeStart();
         screen.showOSD("Cassette: " + name + ". " + positionMessage(), true);
@@ -117,9 +117,7 @@ wmsx.FileCassetteDeck = function() {
     function makeFileNameToSave(fileName) {
         if (!fileName) return "New Tape.cas";
 
-        var period = fileName.lastIndexOf(".");
-        fileName = period < 0 ? fileName : fileName.substr(0, period);
-        return fileName + ".cas";
+        return wmsx.Util.leafFilenameNoExtension(fileName) + ".cas";
     }
 
     // Access interface methods

@@ -593,7 +593,7 @@ wmsx.Machine = function() {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             var cart = slotSocket.inserted(slotPos);
             if (!cart) return null;
-            if (!cart.loadData(name, arrContent)) return;
+            if (!cart.loadData(wmsx.Util.leafFilename(name), arrContent)) return;
             self.showOSD(cart.getDataDesc() + " loaded in Cartridge " + (port === 1 ? "2" : "1"), true);
             return arrContent;
         };

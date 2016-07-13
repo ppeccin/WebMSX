@@ -194,8 +194,8 @@ wmsx.DiskImages = function() {
 
             var finalName;
 
-            var name = sanitizeName(item.name.split(".")[0]);
-            var ext = sanitizeName(item.name.indexOf(".") >= 1 ? item.name.split(".").pop() : "");
+            var name = sanitizeName(wmsx.Util.leafFilenameNoExtension(item.name));
+            var ext = sanitizeName(wmsx.Util.leafFilenameOnlyExtension(item.name));
             ext = (ext + "   ").substr(0,3);
 
             finalName = (name + "        ").substr(0,8) + ext;

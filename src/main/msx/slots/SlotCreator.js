@@ -60,21 +60,10 @@ wmsx.SlotCreator = function () {
 
     var buildInfo = function(romSource) {
         var info = { n: "Unknown" };
-        if (!romSource || !romSource.trim()) return info;
+        if (!romSource) return info;
 
-        var name = romSource;
-
-        // Get the last part of the URL (file name)
-        var slash = name.lastIndexOf("/");
-        var bslash = name.lastIndexOf("\\");
-        var question = name.lastIndexOf("?");
-        var i = Math.max(slash, Math.max(bslash, question));
-        if (i >= 0 && i < name.length - 1) name = name.substring(i + 1);
         // Get only the file name without the extension
-        var dot = name.lastIndexOf(".");
-        if (dot >= 0) name = name.substring(0, dot);
-
-        info.n = name.trim() || "Unknown";
+        info.n = wmsx.Util.leafFilenameNoExtension(romSource) || "Unknown";
         return info;
     };
 

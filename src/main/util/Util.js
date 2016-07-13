@@ -354,6 +354,22 @@ wmsx.Util = new function() {
         }
     };
 
+    this.leafFilename = function(fileName) {
+        return (((fileName && fileName.indexOf("/") >= 0) ? fileName.split("/").pop() : fileName) || "").trim();
+    };
+
+    this.leafFilenameNoExtension = function(fileName) {
+        var name = this.leafFilename(fileName);
+        var period = name.lastIndexOf(".");
+        return period <= 0 ? name : name.substr(0, period).trim();
+    };
+
+    this.leafFilenameOnlyExtension = function(fileName) {
+        var name = this.leafFilename(fileName);
+        var period = name.lastIndexOf(".");
+        return period <= 0 ? "" : name.substr(period + 1).trim();
+    };
+
     function sortByName(a, b) {
         return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
     }

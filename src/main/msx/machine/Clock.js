@@ -2,6 +2,8 @@
 
 // Clock Pulse generator. Intended to be synchronized with Host machine Video Frequency whenever possible
 
+// TODO Use better strategy for setInterval to avoid non-integer values?
+
 wmsx.Clock = function(clockPulse) {
 "use strict";
 
@@ -84,7 +86,6 @@ wmsx.Clock = function(clockPulse) {
 
 
     var running = false;
-
 
     var cyclesPerSecond = 1;
     var cycleTimeMs = 1000;

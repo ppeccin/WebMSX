@@ -32,6 +32,12 @@ wmsx.VideoStandard = {
                 linesPerCycle: 157,             // 0:1:0:1:1:0:1:0:1:1 pulldown. 6 frames generated each 10 frames shown
                 firstStepCycleLinesAdjust: +2,
                 steps: 10
+            },
+            0: { // Hz (host frequency not detected)
+                frequency: 50,
+                linesPerCycle: 314,             // 1:1:1:1:2 pulldown. 6 frames generated each 5 frames shown
+                firstStepCycleLinesAdjust: +2,
+                steps: 5
             }
         }
     },
@@ -66,6 +72,12 @@ wmsx.VideoStandard = {
                 linesPerCycle: 130,             // 0:0:1:0:1:0:0:1:0:1:0:1 pulldown. 5 frames generated each 12 frames shown
                 firstStepCycleLinesAdjust: +5,
                 steps: 12
+            },
+            0: { // Hz (host frequency not detected)
+                frequency: 50,
+                linesPerCycle: 313,             // Normal 1:1 cadence
+                firstStepCycleLinesAdjust: 0,
+                steps: 1
             }
         }
     }

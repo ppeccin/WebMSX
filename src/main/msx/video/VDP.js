@@ -519,7 +519,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateSynchronization() {
-        // Use the native frequency (60Hz or 50Hz) if detected and VSynch matches or is forced, otherwise use the Video Standard target FPS
+        // According to the native video frequency detected and the target Video Standard, use the specific pulldown configuration
         var hostFreq = wmsx.Clock.HOST_NATIVE_FPS;
         var desiredBaseFrequency = videoStandard.targetFPS;
         if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;

@@ -62,7 +62,7 @@ wmsx.WebAudioSpeaker = function() {
             var constr = (window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext);
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
-            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
+            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);     // TODO Adapt buffer size to sample rate
             updateResamplingFactors();
         } catch(ex) {
             wmsx.Util.error("Could not create AudioContext. Audio DISABLED!\n" + ex);

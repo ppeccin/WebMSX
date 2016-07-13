@@ -3,7 +3,7 @@
 wmsx.ROM = function(source, content, info) {
 "use strict";
 
-    this.source = source;
+    this.source = wmsx.Util.leafFilename(source);
     this.content = content;
     this.info = info || wmsx.SlotCreator.produceInfo(this);
 
