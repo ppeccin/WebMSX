@@ -62,6 +62,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
         style.textAlign = "center";
         style.color = "transparent";
         style.border = "2px dashed rgba(240, 240, 240, 0.70)";
+        style.boxSizing = "initial";
         style.borderRadius = "10px";
         style.textShadow = "0 0 0 rgb(240, 240, 240)";
         style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix

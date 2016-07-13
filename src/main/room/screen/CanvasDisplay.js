@@ -501,10 +501,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.left = style.right = 0;
         style.top = 0;
         style.margin = "auto";
+        style.padding = 0;
         style.overflow = "hidden";
         style.background = "black";
         style.border = "0 solid black";
         style.borderWidth = "" + BORDER_TOP + "px " + BORDER_LATERAL + "px " + BORDER_BOTTOM + "px";
+        style.boxSizing = "initial";
 
         fsElement = document.createElement('div');
         fsElement.id = "wmsx-fs";
@@ -512,8 +514,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.position = "absolute";
         style.left = style.right = 0;
         style.top = style.bottom = 0;
+        style.padding = 0;
         style.overflow = "hidden";
         style.background = "black";
+        style.boxSizing = "initial";
         suppressContextMenu(fsElement);
 
         fsElement.addEventListener("mousemove", function() {
@@ -549,6 +553,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.margin = "auto";
         style.outline = "none";
         style.border = "none";
+        style.padding = 0;
+        style.boxSizing = "initial";
         canvas.tabIndex = "-1";               // Make it focusable
         fsElement.appendChild(canvas);
         mainElement.appendChild(borderElement);
@@ -568,6 +574,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         style.background = "rgb(40, 40, 40)";
         style.border = "1px solid black";
         style.bottom = "0";
+        style.padding = 0;
+        style.boxSizing = "initial";
         if (BAR_AUTO_HIDE) {
             hideBar();
             style.transition = "bottom 0.3s ease-in-out";
@@ -1181,9 +1189,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             '    color: white;' +
             '    font: normal 19px sans-serif;' +
             '    background: rgb(40, 40, 40);' +
-            '    padding-top: 20px;' +
+            '    padding: 20px 0 0;' +
             '    text-align: center;' +
             '    border: 1px solid black;' +
+            '    box-sizing: initial;' +
             '    text-shadow: 1px 1px 1px black;' +
             '    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
             '    -webkit-font-smoothing: antialiased;' +
