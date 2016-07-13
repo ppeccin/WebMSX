@@ -613,7 +613,7 @@ wmsx.SettingsGUI.css = function() {
            '-webkit-user-select: none;' +
            '-moz-user-select: none;' +
            '-ms-user-select: none;' +
-           'z-index: 100;' +
+           'z-index: 999999;' +
        '}' +
 
        '#wmsx-cover.wmsx-show {' +
