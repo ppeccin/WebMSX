@@ -38,7 +38,7 @@ WMSX = {
     EXPANSION_SLOTS:                [[3, 2], [3, 3]],
     RAMMAPPER_SIZE:                 512,
 
-    AUTO_START_DELAY:               1200,                       // Negative = No Auto-Start, Positive = Start then wait milliseconds before Power-on
+    AUTO_START_DELAY:               1200,                       // -1 = no Auto-Start, >= 0 = start then wait specified milliseconds before Power-on
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_FULLSCREEN_DISABLED:     false,
@@ -50,7 +50,7 @@ WMSX = {
     SCREEN_CONTROL_BAR:             0,                          // 0 = always, 1 = hover
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1 = auto. Don't change! :-)
-    SCREEN_VSYNCH_MODE:             2,                          // 0 = disabled, 1 = auto (when matches), 2 = forced
+    SCREEN_VSYNCH_MODE:             1,                          // -1 = disabled, 0 = off, 1 = on
     AUDIO_SIGNAL_BUFFER_FRAMES:     3,                          // Enough room to generate 3 frames of audio
     AUDIO_BUFFER_BASE:              256,                        // 256, 512, 1024. Don't change! :-)
     AUDIO_BUFFER_SIZE:              -1,                         // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. -1 = auto. More buffer = more delay
@@ -127,9 +127,9 @@ WMSX.PRESETS_CONFIG = {
     RAM2048: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
     RAM4096: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
 
-    NOVSYNCH:     { SCREEN_VSYNCH_MODE: 0},
-    VSYNCHAUTO:   { SCREEN_VSYNCH_MODE: 1},
-    VSYNCHFORCED: { SCREEN_VSYNCH_MODE: 2},
+    VSYNCHDISABLED: { SCREEN_VSYNCH_MODE: -1 },
+    VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },
+    VSYNCHON:       { SCREEN_VSYNCH_MODE: 1 },
 
 
     // MSX2+ Machine Presets. Do not use directly
@@ -149,7 +149,6 @@ WMSX.PRESETS_CONFIG = {
         SLOT_0_URL:         "@MSX2P_JAP.bios",
         SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios, @[KanjiBasic].bios"
     },
-
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE",
         KANJIBASIC:         true
@@ -173,7 +172,6 @@ WMSX.PRESETS_CONFIG = {
         SLOT_2_1_URL:       "@MSX2EXT_JAP.bios, @[KanjiBasic].bios",
         KANJIBASIC:         true
     },
-
     _MSX2BASE: {
         _INCLUDE:           "_BASE, RAM512, MSXMUSIC",
         MSX2:               true
@@ -193,7 +191,6 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "_MSX1BASE",
         SLOT_0_URL:         "@MSX1_JAP.bios"
     },
-
     _MSX1BASE: {
         _INCLUDE:           "_BASE, NOMSXMUSIC, NODOS2",
         SLOT_2_1_URL:       "@[Empty].rom"

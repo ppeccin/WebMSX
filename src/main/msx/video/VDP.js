@@ -519,14 +519,16 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateSynchronization() {
-        // According to the native video frequency detected and the target Video Standard, use the specific pulldown configuration
-        var hostFreq = wmsx.Clock.HOST_NATIVE_FPS;
-        var desiredBaseFrequency = videoStandard.targetFPS;
-        if ((vSynchMode === 2) && (hostFreq > 0)) desiredBaseFrequency = hostFreq;
+        // According to the native video frequency detected, target Video Standard and vSinchMode, use a specific pulldown configuration
+        if (vSynchMode === 1) {    // ON
+            // Will V-synch to host freq if detected and supported, or use optimal timer configuration)
+            pulldown = videoStandard.pulldowns[wmsx.Clock.HOST_NATIVE_FPS] || videoStandard.pulldowns.TIMER;
+        } else {                  // OFF, DISABLED
+            // No V-synch. Always use the optimal timer configuration)
+            pulldown = videoStandard.pulldowns.TIMER;
+        }
 
-        pulldown = videoStandard.pulldowns[desiredBaseFrequency];
-
-        //logInfo("Update Synchronization: " + pulldown.frequency);
+        //console.log("Update Synchronization: " + pulldown.frequency);
     }
 
     // Total frame lines: 262 for NTSC, 313 for PAL

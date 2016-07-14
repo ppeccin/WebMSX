@@ -103,14 +103,14 @@ wmsx.Clock.HOST_NATIVE_FPS = WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;         // -1 = 
 
 wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
 
-    if (WMSX.SCREEN_VSYNCH_MODE === 0) {
+    if (WMSX.SCREEN_VSYNCH_MODE === -1) {
         wmsx.Util.warning("Video native V-Synch disabled in configuration");
         if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         return;
     }
 
-    // Bypass if already detected or forced
     if (wmsx.Clock.HOST_NATIVE_FPS !== -1) {
+        wmsx.Util.warning("Host video frequency forced in configuration: " + wmsx.Clock.HOST_NATIVE_FPS);
         if (callback) callback(wmsx.Clock.HOST_NATIVE_FPS);
         return;
     }

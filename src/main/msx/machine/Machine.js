@@ -256,10 +256,8 @@ wmsx.Machine = function() {
     }
 
     function setVSynchMode(mode) {
-        mode %= 3;
         if (vSynchMode === mode) return;
-
-        vSynchMode = mode;
+        if (vSynchMode !== -1) vSynchMode = mode %= 2;
         vdp.setVSynchMode(vSynchMode);
         mainVideoClockUpdateSpeed();
     }
@@ -514,11 +512,11 @@ wmsx.Machine = function() {
                 else setVideoStandardAuto();
                 break;
             case controls.VSYNCH:
-                if (wmsx.Clock.HOST_NATIVE_FPS === -1) {
+                if (vSynchMode === -1 || wmsx.Clock.HOST_NATIVE_FPS === -1) {
                     self.showOSD("V-Synch is disabled / unsupported", true, true);
                 } else {
                     setVSynchMode(vSynchMode + 1);
-                    self.showOSD("V-Synch: " + (vSynchMode === 1 ? "AUTO" : vSynchMode === 0 ? "DISABLED" : "FORCED"), true);
+                    self.showOSD("V-Synch: " + (vSynchMode === 1 ? "ON" : vSynchMode === 0 ? "OFF" : "DISABLED"), true);
                 }
                 break;
             case controls.PALETTE:
