@@ -31,9 +31,9 @@ wmsx.ImageCassetteDriver = function() {
         if (!info) return null;
 
         switch (info.type) {
-            case "Binary": return '\r\rbload "cas:' + info.name + '", r\r';
-            case "Basic": return '\r\rcload "' + info.name + '"\rrun\r';
-            case "ASCII": return '\r\rrun "cas:' + info.name + '"\r';
+            case "Binary": return '\r\r\rbload "cas:' + info.name + '", r\r';
+            case "Basic": return '\r\r\rcload "' + info.name + '"\rrun\r';
+            case "ASCII": return '\r\r\rrun "cas:' + info.name + '"\r';
         }
         return null;
     };
