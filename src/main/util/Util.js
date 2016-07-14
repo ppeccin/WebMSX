@@ -426,6 +426,14 @@ wmsx.Util = new function() {
 
     this.userLanguage = function() {
         return ((navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage || "en-US").trim();
-    }
+    };
+
+    this.log2 = function(x) {
+        return Math.log(x) / Math.log(2);
+    };
+
+    this.exp2 = function(x) {
+        return Math.pow(2, x);
+    };
 
 };

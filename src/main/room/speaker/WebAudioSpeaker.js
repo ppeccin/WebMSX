@@ -26,7 +26,7 @@ wmsx.WebAudioSpeaker = function() {
         createAudioContext();
         if (!audioContext) return;
 
-        processor = audioContext.createScriptProcessor(WMSX.AUDIO_BUFFER_SIZE, 1, 1);
+        processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
         wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         processor.onaudioprocess = onAudioProcess;
         this.unpause();
@@ -62,8 +62,10 @@ wmsx.WebAudioSpeaker = function() {
             var constr = (window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext);
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
-            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);     // TODO Adapt buffer size to sample rate
+            // If not specified, calculate buffer size according to host audio sampling rate. 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
+            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
             updateResamplingFactors();
+            bufferSize = WMSX.AUDIO_BUFFER_SIZE !== -1 ? WMSX.AUDIO_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * WMSX.AUDIO_BUFFER_BASE;
         } catch(ex) {
             wmsx.Util.error("Could not create AudioContext. Audio DISABLED!\n" + ex);
         }
@@ -120,6 +122,7 @@ wmsx.WebAudioSpeaker = function() {
     var resamplingLeftOver = [];
 
     var audioContext;
+    var bufferSize;
     var processor;
 
     var mute = false;

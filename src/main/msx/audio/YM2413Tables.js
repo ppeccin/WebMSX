@@ -7,7 +7,7 @@ wmsx.YM2413Tables = function() {
         // Complete table for all possible values (1024 entries). -255 .. 255 values, sign in bit 14
         var tab = new Array(1024);
         for (var i = 0; i < 1024; ++i)
-            tab[i] = (i > 511 ? 0x4000 : 0) | Math.round(-log2(Math.abs(Math.sin((i + 0.5) * 2 * Math.PI / 1024))) * 256);
+            tab[i] = (i > 511 ? 0x4000 : 0) | Math.round(-wmsx.Util.log2(Math.abs(Math.sin((i + 0.5) * 2 * Math.PI / 1024))) * 256);
         return tab;
     };
 
@@ -15,7 +15,7 @@ wmsx.YM2413Tables = function() {
         // Complete table for all possible values (1024 entries). Only positive values for first half, zero for second half
         var tab = new Array(1024);
         for (var i = 0; i < 1024; ++i)
-            tab[i] = Math.round(-log2(Math.abs(Math.sin((i < 512 ? i + 0.5 : 0.5) * 2 * Math.PI / 1024))) * 256);
+            tab[i] = Math.round(-wmsx.Util.log2(Math.abs(Math.sin((i < 512 ? i + 0.5 : 0.5) * 2 * Math.PI / 1024))) * 256);
         return tab;
     };
 
@@ -23,7 +23,7 @@ wmsx.YM2413Tables = function() {
         // Complete table for all possible values (32768 entries). Input sign in bit 14
         var tab = new Array(32768);
         for (var i = 0; i < 32768; ++i) {
-            var v = (Math.round(exp2(((i & 255) ^ 255) / 256) * 1024) << 1) >> Math.min((i & 0x3F00) >> 8, 31);
+            var v = (Math.round(wmsx.Util.exp2(((i & 255) ^ 255) / 256) * 1024) << 1) >> Math.min((i & 0x3F00) >> 8, 31);
             if (i & 0x4000) v = -v;
             tab[i] = v;
         }
@@ -71,15 +71,6 @@ wmsx.YM2413Tables = function() {
 
         return tab;
     };
-
-
-    function log2(x) {
-        return Math.log(x) / Math.log(2);
-    }
-
-    function exp2(x) {
-        return Math.pow(2, x);
-    }
 
 
     this.INSTRUMENT_ROM = [

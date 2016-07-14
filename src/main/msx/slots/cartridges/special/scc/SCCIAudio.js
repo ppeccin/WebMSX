@@ -287,6 +287,8 @@ wmsx.SCCIAudio = function() {
     };
 
     this.loadState = function(s) {
+        this.reset();
+
         channel1 = s.c1; period1 = s.p1; period1Count = s.pc1; sample1Count = s.sc1; currentSample1 = s.cs1; amplitude1 = s.a1;
         channel2 = s.c2; period2 = s.p2; period2Count = s.pc2; sample2Count = s.sc2; currentSample2 = s.cs2; amplitude2 = s.a2;
         channel3 = s.c3; period3 = s.p3; period3Count = s.pc3; sample3Count = s.sc3; currentSample3 = s.cs3; amplitude3 = s.a3;

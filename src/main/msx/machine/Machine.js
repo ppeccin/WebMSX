@@ -59,6 +59,7 @@ wmsx.Machine = function() {
         vdp.reset();
         cpu.reset();
         bus.reset();
+        audioSocket.flushAllSignals();
     };
 
     this.userPowerOn = function(basicAutoRun) {
@@ -307,6 +308,7 @@ wmsx.Machine = function() {
         machineTypeSocket.fireMachineTypeStateUpdate();
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.firePowerStateUpdate();
+        audioSocket.flushAllSignals();
     }
 
     function mainVideoClockUpdateSpeed() {
@@ -646,10 +648,9 @@ wmsx.Machine = function() {
             for (var i = signals.length - 1; i >= 0; i--) monitor.connectAudioSignal(signals[i]);
         };
         this.connectAudioSignal = function(signal) {
-            signal.flush();
-
             if (signals.indexOf(signal) >= 0) return;
             wmsx.Util.arrayAdd(signals, signal);
+            this.flushAllSignals();                            // To always keep signals in synch
             signal.setFps(fps);
             if (monitor) monitor.connectAudioSignal(signal);
         };
@@ -678,6 +679,9 @@ wmsx.Machine = function() {
         };
         this.unpauseAudio = function() {
             if (monitor) monitor.unpause();
+        };
+        this.flushAllSignals = function() {
+            for (var i = signals.length - 1; i >= 0; --i) signals[i].flush();
         };
         var signals = [];
         var monitor;

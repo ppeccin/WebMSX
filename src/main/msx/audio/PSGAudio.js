@@ -269,7 +269,6 @@ wmsx.PSGAudio = function(audioSocket) {
         periodE = s.pe; periodECountdown = s.pec; currentValueE = s.ce; directionE = s.de; continueE = s.cne; attackE = s.ate; alternateE = s.ale; holdE = s.he;
         pulseSignal = s.ps;
         lfsr = s.lf;
-        if (audioSignal) audioSignal.flush();
     };
 
 

@@ -47,15 +47,17 @@ WMSX = {
     SCREEN_CRT_MODE:                1,                          // 0..1
     SCREEN_DEFAULT_SCALE:           1.1,                        // 0.5 .. N, 0.1 steps
     SCREEN_DEFAULT_ASPECT:          1.1,                        // 0.1 steps
-    SCREEN_CONTROL_BAR:             0,                          // 0 = Always, 1 = Hover
+    SCREEN_CONTROL_BAR:             0,                          // 0 = always, 1 = hover
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
-    SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // Set 60 or 50 to force value. -1 = Autodetect. Don't change! :-)
-    SCREEN_VSYNCH_MODE:             2,                          // 0 = disabled, 1 = auto (when matches), 2 = forced (only for 60/50Hz)
-    AUDIO_BUFFER_SIZE:              512,                        // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. More buffer = more delay
+    SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1 = auto. Don't change! :-)
+    SCREEN_VSYNCH_MODE:             2,                          // 0 = disabled, 1 = auto (when matches), 2 = forced
+    AUDIO_SIGNAL_BUFFER_FRAMES:     3,                          // Enough room to generate 3 frames of audio
+    AUDIO_BUFFER_BASE:              256,                        // 256, 512, 1024. Don't change! :-)
+    AUDIO_BUFFER_SIZE:              -1,                         // 256, 512, 1024, 2048, 4096, 8192. 0 = disable. -1 = auto. More buffer = more delay
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0 = ANSI, 1 = JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
-    ALLOW_URL_PARAMETERS:           false                       // Allows user to override any of these parameters via URL query parameters
+    ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
 
 };
 

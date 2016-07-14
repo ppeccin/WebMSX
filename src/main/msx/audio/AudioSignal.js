@@ -20,6 +20,8 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     this.audioClockPulse = null;    // Defined at initialization
 
     this.flush = function() {
+        //console.log("Flush: " + name);
+
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
     };
@@ -123,8 +125,8 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     var samplesPerFrame;
     var frameSamples = 0;
 
-    var MAX_SAMPLES = 10 * WMSX.AUDIO_BUFFER_SIZE;
-    var SAMPLES_PER_FRRAME_ADJUST = -1;             // Helps avoid buffer over-filling
+    var MAX_SAMPLES = (sampleRate / 60 * WMSX.AUDIO_SIGNAL_BUFFER_FRAMES) | 0;      // Enough frames of samples
+    var SAMPLES_PER_FRRAME_ADJUST = -1;                                             // Helps avoid buffer over-filling
 
     var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
 
