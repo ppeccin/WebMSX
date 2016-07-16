@@ -53,8 +53,8 @@ wmsx.SCCIAudio = function() {
         var sample = 0;
 
         // Update values only if needed
-        if (channel1 && (period1 > 0)) {
-            sample += currentSample1 * amplitude1;
+        if (period1 > 0) {
+            if (channel1) sample += currentSample1 * amplitude1;
             period1Count += 32;
             while (period1Count >= period1) {
                 period1Count -= period1;
@@ -62,8 +62,8 @@ wmsx.SCCIAudio = function() {
                 currentSample1 = channel1Samples[sample1Count];
             }
         }
-        if (channel2 && (period2 > 0)) {
-            sample += currentSample2 * amplitude2;
+        if (period2 > 0) {
+            if (channel2) sample += currentSample2 * amplitude2;
             period2Count += 32;
             while (period2Count >= period2) {
                 period2Count -= period2;
@@ -71,8 +71,8 @@ wmsx.SCCIAudio = function() {
                 currentSample2 = channel2Samples[sample2Count];
             }
         }
-        if (channel3 && (period3 > 0)) {
-            sample += currentSample3 * amplitude3;
+        if (period3 > 0) {
+            if (channel3) sample += currentSample3 * amplitude3;
             period3Count += 32;
             while (period3Count >= period3) {
                 period3Count -= period3;
@@ -80,8 +80,8 @@ wmsx.SCCIAudio = function() {
                 currentSample3 = channel3Samples[sample3Count];
             }
         }
-        if (channel4 && (period4 > 0)) {
-            sample += currentSample4 * amplitude4;
+        if (period4 > 0) {
+            if (channel4) sample += currentSample4 * amplitude4;
             period4Count += 32;
             while (period4Count >= period4) {
                 period4Count -= period4;
@@ -89,8 +89,8 @@ wmsx.SCCIAudio = function() {
                 currentSample4 = channel4Samples[sample4Count];
             }
         }
-        if (channel5 && (period5 > 0)) {
-            sample += currentSample5 * amplitude5;
+        if (period5 > 0) {
+            if (channel5) sample += currentSample5 * amplitude5;
             period5Count += 32;
             while (period5Count >= period5) {
                 period5Count -= period5;
@@ -262,7 +262,7 @@ wmsx.SCCIAudio = function() {
     var audioSocket;
 
     var CHANNEL_MAX_VOLUME = 0.25 / 128;        // Sample values in the range -128..127
-    var CHANNEL_VOLUME_CURVE_POWER = 4;         // Sounds more linear than the normal PSG channels
+    var CHANNEL_VOLUME_CURVE_POWER = 3;         // Sounds more linear than the normal PSG channels
 
     var VOLUME = 0.46;
     var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // main cpu clock / 32 = 112005hz

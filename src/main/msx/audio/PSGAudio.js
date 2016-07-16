@@ -30,21 +30,21 @@ wmsx.PSGAudio = function(audioSocket) {
 
     this.nextSample = function() {
         // Update values
-        if (amplitudeA > 0 && periodA > 0) {
+        if (periodA > 0) {
             periodACount += 2;
             if (periodACount >= periodA) {
                 periodACount = (periodACount - periodA) & 1;     // Preserve the remainder (0 or 1) for odd dividers, as the step is 2
                 currentSampleA = currentSampleA ? 0 : 1;
             }
         }
-        if (amplitudeB > 0 && periodB > 0) {
+        if (periodB > 0) {
             periodBCount += 2;
             if (periodBCount >= periodB) {
                 periodBCount = (periodBCount - periodB) & 1;
                 currentSampleB = currentSampleB ? 0 : 1;
             }
         }
-        if (amplitudeC > 0 && periodC > 0) {
+        if (periodC > 0) {
             periodCCount += 2;
             if (periodCCount >= periodC) {
                 periodCCount = (periodCCount - periodC) & 1;
@@ -75,10 +75,10 @@ wmsx.PSGAudio = function(audioSocket) {
             }
         }
 
-        // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
-        return (amplitudeA > 0 ? ((toneA ? currentSampleA : 1) & (noiseA ? currentSampleN : 1)) * amplitudeA : 0)
-             + (amplitudeB > 0 ? ((toneB ? currentSampleB : 1) & (noiseB ? currentSampleN : 1)) * amplitudeB : 0)
-             + (amplitudeC > 0 ? ((toneC ? currentSampleC : 1) & (noiseC ? currentSampleN : 1)) * amplitudeC : 0)
+        //// Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
+        return (amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA)
+             + (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB)
+             + (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC)
              + (pulseSignal ? CHANNEL_MAX_VOLUME : 0);
     };
 
@@ -185,7 +185,7 @@ wmsx.PSGAudio = function(audioSocket) {
 
     function nextLFSR() {
         // bit 16 = bit 2 XOR bit 0
-        lfsr =  (lfsr >>> 1) | ((((lfsr >> 2) ^ (lfsr & 0x01)) & 0x01) << 16);    // shift right, push to left
+        lfsr =  (lfsr >> 1) | ((((lfsr >> 2) ^ (lfsr & 0x01)) & 0x01) << 16);    // shift right, push to left
         return lfsr & 0x01;
     }
 
