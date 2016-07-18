@@ -1,25 +1,20 @@
 var express = require('express');
+var request = require('request');
 var app = express();
 
 app.set('port', (process.env.PORT || 5000));
 
-//app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/static'));
 
-// views is directory for all template files
-//app.set('views', __dirname + '/views');
-//app.set('view engine', 'ejs');
+app.get('/proxy-remote-download/:remoteurl', function(req, res) {
 
-//app.get('/', function(request, response) {
-//    response.render('pages/index');
-//});
+    var url = req.params.remoteurl;
+    console.log(">>> Serving proxy download from: " + url);
 
-app.get('/', function(req, res) {
-    console.log("JACACACACA");
-    res.send('<p>WebMSX!</p>');
+    request(url).pipe(res);
+
 });
 
 app.listen(app.get('port'), function() {
     console.log('Node app is running on port', app.get('port'));
 });
-
-
