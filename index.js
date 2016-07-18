@@ -6,7 +6,7 @@ app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/static'));
 
-app.get('/proxy-remote-download/:remoteurl', function(req, res) {
+app.get('/proxy-remote-download?url=:remoteurl', function(req, res) {
 
     var url = req.params.remoteurl;
     console.log(">>> Serving proxy download from: " + url);
