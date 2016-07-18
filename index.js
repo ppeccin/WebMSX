@@ -15,9 +15,7 @@ app.set('port', (process.env.PORT || 5000));
 //});
 
 app.get('/', function(req, res) {
-    res.writeHead(200);
-    res.write('<p>WebMSX!</p>');
-    res.end();
+    res.send('<p>WebMSX!</p>');
 });
 
 app.listen(app.get('port'), function() {
