@@ -14,8 +14,10 @@ app.set('port', (process.env.PORT || 5000));
 //    response.render('pages/index');
 //});
 
-app.get('/', function(request, response) {
-    response.send("TEST WebMSX");
+app.get('/', function(req, res) {
+    res.writeHead(200);
+    res.write('<p>WebMSX!</p>');
+    res.end();
 });
 
 app.listen(app.get('port'), function() {
