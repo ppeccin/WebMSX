@@ -21,7 +21,10 @@ function processGet(req, res) {
     var cors = process.env.CORS_FROM;
     if (cors) {
         console.log(">>> CORS: " + cors);
-        res.header("Access-Control-Allow-Origin", cors);
+
+        console.log(res.headers);
+
+        res.headers["Access-Control-Allow-Origin"] = cors;
     }
 
     // Fire
