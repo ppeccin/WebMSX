@@ -7,9 +7,16 @@ Instead, deliver a simple and straight forward experience, ease of use and deplo
 
 Please go to **http://webmsx.org** to enjoy it online!
 
+Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-#### Version 2.0
+#### New in Version 2.1
+
+- The WebMSX website can now load files from any source in the web
+- Just open or drag & drop files and links directly from any website
+- Display your games/software running with a single link to the WebMSX page
+
+#### Features
 
 - 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
 - PSG, SCC, SCC-I, FM-PAC and MSX-MUSIC sound
