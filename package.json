@@ -1,22 +1,30 @@
 {
+
   "name": "WebMSX",
   "version": "2.1.0",
   "description": "WebMSX - The online MSX Emulator",
+
   "engines": {
     "node": "5.9.1"
   },
+
   "main": "index.js",
+
   "scripts": {
     "start": "node index.js"
   },
+
   "dependencies": {
     "express": "4.13.3",
     "request": "^2.73.0"
   },
+
   "repository": {
     "type": "git",
     "url": "https://github.com/ppeccin/WebMSX.git"
   },
+
   "keywords": [],
   "license": "MIT"
+
 }
