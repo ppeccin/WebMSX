@@ -23,7 +23,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         for (var f = 0; f < urls.length; ++f) {
             var url = urls[f];
             if (url[0] === "@") getEmbedded(urlSpec, f, url);         // Embedded file?
-            else getHTTP(urlSpec, f, url);                             // No, HTTP...
+            else getHTTP(urlSpec, f, url);                            // No, HTTP
         }
     }
 
@@ -34,9 +34,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         else loadError(urlSpec, "Embedded file not found!");
     }
 
-    function getHTTP(urlSpec, f, url) {
+    function getHTTP(urlSpec, f, url, remote) {
+        if (isRemote(url)) url = proxyze(url);      // May use a proxy downloader if configured
+
         var req = new XMLHttpRequest();
-        req.withCredentials = true;
         req.open("GET", url, true);
         req.responseType = "arraybuffer";
         req.timeout = timeout !== undefined ? timeout : DEFAULT_TIMEOUT;
@@ -89,6 +90,15 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         // If no errors, then success
         if (onAllSuccess) onAllSuccess(urlSpecs);
     }
+
+    function isRemote(url) {
+        return url && (url.indexOf("http:") === 0 || url.indexOf("https:") === 0);
+    }
+
+    function proxyze(url) {
+        return (WMSX.PROXY_DOWNLOADER || "") + url;
+    }
+
 
     var finished = false;
 
