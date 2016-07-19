@@ -10,25 +10,26 @@ var request = require('request');
 
 function processGet(req, res) {
 
+    // Log
     var url = req.query.url;
-    console.log(">>> Serving proxy download from: " + url);
+    console.log(">>> Serving proxy download request: " + url + " from: " + (req.headers["Origin"] || req.headers["origin"]));
 
     // Return a good filename
     res.attachment(url);
 
-    // Restrict use
-
+    // Restrict use?
     var cors = process.env.CORS_FROM;
-    if (cors) {
-        console.log(">>> CORS: " + cors);
-
-        console.log(res.headers);
-
-        res.headers["Access-Control-Allow-Origin"] = cors;
-    }
 
     // Fire
-    request(url).pipe(res);
+    request
+        .get(url)
+        .on('response', function(response) {
+            if (cors) {
+                var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
+                response.headers[allowOriginHeader] = cors;
+            }
+        })
+        .pipe(res);
 
 }
 
