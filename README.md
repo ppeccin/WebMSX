@@ -8,6 +8,7 @@ Instead, deliver a simple and straight forward experience, ease of use and deplo
 Please go to **http://webmsx.org** to enjoy it online!
 
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
+
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
 #### New in Version 2.1
