@@ -63,7 +63,6 @@ wmsx.Machine = function() {
     };
 
     this.userPowerOn = function(basicAutoRun) {
-        if (isLoading) return;
         if (!bios) {
             this.getVideoOutput().showOSD("Insert BIOS!", true, true);
             return;
@@ -148,7 +147,7 @@ wmsx.Machine = function() {
                 self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true, true);
     };
 
-    this.loading = function(state) {
+    this.setLoading = function(state) {
         isLoading = state;
     };
 
@@ -428,6 +427,8 @@ wmsx.Machine = function() {
     var controls = wmsx.MachineControls;
 
     function controlStateChanged(control, state) {
+        if (isLoading || systemPaused) return;
+
         // Normal state controls
         if (control === controls.FAST_SPEED) {
             if (state) {

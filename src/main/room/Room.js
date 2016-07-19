@@ -25,9 +25,11 @@ wmsx.Room = function(screenElement) {
         self.screen.powerOff();
     };
 
-    this.loading = function(boo) {
-        this.machine.loading(boo);
-        this.screen.loading(boo);
+    this.setLoading = function(boo) {
+        if (this.isLoading === boo) return;
+        this.isLoading = boo;
+        this.machine.setLoading(this.isLoading);
+        this.screen.setLoading(this.isLoading);
     };
 
     var setPageVisibilityHandling = function() {
@@ -90,6 +92,8 @@ wmsx.Room = function(screenElement) {
     this.stateMedia = null;
     this.fileLoader = null;
     this.peripheralControls = null;
+
+    this.isLoading = false;
 
 
     init();

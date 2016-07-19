@@ -87,18 +87,18 @@ wmsx.FileLoader = function() {
     };
 
     this.readFromURL = function (url, openType, port, altPower, asExpansion, then) {
-        new wmsx.MultiDownloader([{
-            url: url,
-            onSuccess: function (res) {
-                var aFile = { name: url, content: res.content, lastModifiedDate: null };
+        new wmsx.MultiDownloader(
+            [{ url: url }],
+            function onAllSuccess(urls) {
+                var aFile = { name: url, content: urls[0].content, lastModifiedDate: null };
                 self.loadFromFile(aFile, openType, port, altPower, asExpansion);
                 if (then) then(true);
             },
-            onError: function (res) {
-                showError("URL reading error: " + res.error);
+            function onAnyError(urls) {
+                showError("URL reading error: " + urls[0].error);
                 if (then) then(false);
             }
-        }]).start();
+        ).start();
     };
 
     this.readFromFiles = function (files, openType, port, altPower, asExpansion, then) {

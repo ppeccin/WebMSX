@@ -97,8 +97,9 @@ wmsx.ExtensionsSocket = function(machine) {
         for (var i = 0; i < toRemoveSlots.length; ++i) slotSocket.insert(null, toRemoveSlots[i], true);
 
         // Insert
-        new wmsx.MultiDownloader(toLoadUrlSpecs,
-            function done() {
+        new wmsx.MultiDownloader(
+            toLoadUrlSpecs,
+            function onAllSuccess() {
                 self.fireExtensionsAndCartridgesStateUpdate();
                 then(true);
             }

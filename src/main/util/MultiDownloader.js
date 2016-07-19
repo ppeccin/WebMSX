@@ -4,12 +4,11 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
 "use strict";
 
     this.start = function() {
-        if (!urlSpecs || urlSpecs.length === 0)
-            onAllSuccess(urlSpecs);
-        else {
+        if (urlSpecs && urlSpecs.length !== 0) {
+            scheduleLoadingIcon();
             for (var i = 0; i < urlSpecs.length; i++) load(urlSpecs[i]);
-            checkFinish();
         }
+        checkFinish();
     };
 
     function load(urlSpec) {
@@ -69,7 +68,8 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         if (urlSpec.onError) {
             wmsx.Util.error(mes);
             urlSpec.onError(urlSpec);
-        } else wmsx.Util.message(mes);
+        } else if (!onAnyError)
+            wmsx.Util.message(mes);
         checkFinish();
     }
 
@@ -79,8 +79,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         for (var i = 0; i < urlSpecs.length; i++)
             if (urlSpecs[i] && (urlSpecs[i].success === undefined)) return;
 
-        // All urls have a definition, check for errors
         finished = true;
+        cancelLoadingIcon();
+
+        // All urls have a definition, check for errors
         for (i = 0; i < urlSpecs.length; i++)
             if (urlSpecs[i] && !urlSpecs[i].success) {
                 if (onAnyError) onAnyError(urlSpecs);
@@ -99,9 +101,33 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         return (WMSX.PROXY_DOWNLOADER || "") + url;
     }
 
+    function scheduleLoadingIcon() {
+        if (WMSX.room.isLoading) return;
 
+        loadingTimer = window.setTimeout(function setLoadingOnDelay() {
+            loadingTimer = null;
+            loadingSet = true;
+            WMSX.room.setLoading(true);
+        }, LOADING_ICON_TIMEOUT);
+    }
+
+    function cancelLoadingIcon() {
+        if (loadingTimer) {
+            window.clearTimeout(loadingTimer);
+            loadingTimer = null;
+        }
+        if (loadingSet) {
+            loadingSet = false;
+            WMSX.room.setLoading(false);
+        }
+    }
+
+
+    var loadingSet = false;
+    var loadingTimer = null;
     var finished = false;
 
+    var LOADING_ICON_TIMEOUT = 1000;
     var DEFAULT_TIMEOUT = 8000;
 
 };

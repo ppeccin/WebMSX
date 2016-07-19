@@ -351,9 +351,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         refreshSettingsMenuForMachineType();
     };
 
-    this.loading = function(state) {
+    this.setLoading = function(state) {
         isLoading = state;
-        updateLogo();
+        updateLoading();
         if (!state) {
             machineControlsSocket.addPowerStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
@@ -439,16 +439,18 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateLogo() {
         if (signalIsOn) {
             logoImage.style.display = "none";
-            loadingImage.style.display = "none";
         } else {
             if (pasteDialog) pasteDialog.hide();
             showBar();
             showCursor(true);
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
             /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
-            if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";
-            else loadingImage.style.display = "none";
         }
+    }
+
+    function updateLoading() {
+        if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";
+        else loadingImage.style.display = "none";
     }
 
     function updateImageComposition() {
@@ -830,18 +832,26 @@ wmsx.CanvasDisplay = function(mainElement) {
         loadingImage = new Image();
         loadingImage.isLoaded = false;
         loadingImage.draggable = false;
-        loadingImage.style.position = "absolute";
-        loadingImage.style.display = "none";
-        loadingImage.style.top = "67%";
-        loadingImage.style.left = 0;
-        loadingImage.style.right = 0;
-        loadingImage.style.maxWidth = "12%";
-        loadingImage.style.margin = "auto auto";
+        var style = loadingImage.style;
 
-        loadingImage.style.userSelect = "none";
-        loadingImage.style.webkitUserSelect = "none";
-        loadingImage.style.MozUserSelect = "none";
-        loadingImage.style.msUserSelect = "none";
+        style.position = "absolute";
+        style.display = "none";
+        style.top = "60%";
+        style.left = 0;
+        style.right = 0;
+        style.height = "3%";
+        style.width = "16%";
+        style.margin = "auto auto";
+        style.backgroundColor = "rgba(0, 0, 0, .8)";
+        style.border = "solid transparent";
+        style.borderWidth = "12px 30px";
+        style.borderRadius = "3px";
+        style.boxSizing = "content-box";
+
+        style.userSelect = "none";
+        style.webkitUserSelect = "none";
+        style.MozUserSelect = "none";
+        style.msUserSelect = "none";
 
         loadingImage.ondragstart = function(e) {
             e.preventDefault();
@@ -852,7 +862,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         loadingImage.onload = function() {
             loadingImage.isLoaded = true;
-            updateLogo();
+            updateLoading();
         };
         loadingImage.src = wmsx.Images.urls.loading;
     }

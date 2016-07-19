@@ -24,7 +24,7 @@ WMSX.start = function () {
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
-    WMSX.room.loading(true);
+    WMSX.room.setLoading(true);
     var roomPowerOnTime = Date.now();
     wmsx.Util.log(WMSX.VERSION + " started");
 
@@ -34,17 +34,17 @@ WMSX.start = function () {
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
     if (WMSX.STATE_LOAD_URL) {
         // Machine State loading, Machine will Auto Power on
-        new wmsx.MultiDownloader([{
-            url: WMSX.STATE_LOAD_URL,
-            onSuccess: function (res) {
+        new wmsx.MultiDownloader(
+            [{ url: WMSX.STATE_LOAD_URL }],
+            function onAllSuccess(urls) {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
-                        WMSX.room.loading(false);
-                        WMSX.room.fileLoader.loadFromContent(res.url, res.content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
+                        WMSX.room.setLoading(false);
+                        WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                     });
                 });
             }
-        }]).start();
+        ).start();
     } else {
         // Normal parameters loading. Power Machine on only after all files are loaded and inserted
         var slotURLs = wmsx.Configurator.slotURLSpecs();
@@ -52,10 +52,10 @@ WMSX.start = function () {
         var extensionsURLs = wmsx.Configurator.extensionsInitialURLSpecs();
         new wmsx.MultiDownloader(
             slotURLs.concat(mediaURLs).concat(extensionsURLs),
-            function onSuccessAll() {
+            function onAllSuccess() {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
-                        WMSX.room.loading(false);
+                        WMSX.room.setLoading(false);
                         WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
                     });
                 });
