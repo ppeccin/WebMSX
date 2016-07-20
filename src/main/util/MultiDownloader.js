@@ -34,10 +34,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     }
 
     function getHTTP(urlSpec, f, url, remote) {
-        if (isRemote(url)) url = proxyze(url);      // May use a proxy downloader if configured
+        var finalUrl = isRemote(url) ? proxyze(url) : url;      // May use a proxy downloader if configured
 
         var req = new XMLHttpRequest();
-        req.open("GET", url, true);
+        req.open("GET", finalUrl, true);
         req.responseType = "arraybuffer";
         req.timeout = timeout !== undefined ? timeout : DEFAULT_TIMEOUT;
         req.onload = function () {
