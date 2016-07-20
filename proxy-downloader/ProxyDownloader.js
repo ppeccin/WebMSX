@@ -10,15 +10,23 @@ var request = require('request');
 
 function processGet(req, res) {
 
-    // Log
     var url = req.query.url;
-    console.log(">>> Serving proxy download request: " + url + " from: " + (req.headers["Origin"] || req.headers["origin"]));
+    var origin = (req.headers["Origin"] || req.headers["origin"]);
 
-    // Return a good filename
-    res.attachment(url);
+    console.log(">>> Serving proxy download request: " + url + " from: " + origin);
 
     // Restrict use?
     var cors = process.env.CORS_FROM;
+
+    // Error if not from allowed origins
+    if (cors && cors.indexOf(origin) < 0) {
+        console.log(">>> Not allowed!");
+        res.sendStatus(401);
+        return;
+    }
+
+    // Return a good filename
+    res.attachment(url);
 
     // Fire
     request
@@ -30,6 +38,6 @@ function processGet(req, res) {
             }
         })
         .pipe(res);
+    console.log(">>> OK!");
 
 }
-
