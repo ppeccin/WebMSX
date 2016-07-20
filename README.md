@@ -11,7 +11,7 @@ Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for param
 
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-#### New in Version 2.1
+#### New in Version 2.01
 
 - The WebMSX website can now load files from any source in the web
 - Just open or drag & drop files and links directly from any website

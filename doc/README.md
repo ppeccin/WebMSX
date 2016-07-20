@@ -1,3 +1,3 @@
-# WebMSX
+# WebMSX Docs
 
 Docs under construction!
