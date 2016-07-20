@@ -19,7 +19,7 @@ function processGet(req, res) {
     var cors = process.env.CORS_FROM;
 
     // Error if not from allowed origins
-    if (cors && cors.indexOf(origin) < 0) {
+    if (cors && (!origin || cors.indexOf(origin) < 0)) {
         console.log(">>> Not allowed!");
         res.sendStatus(401);
         return;
@@ -32,9 +32,9 @@ function processGet(req, res) {
     request
         .get(url)
         .on('response', function(response) {
-            if (cors) {
+            if (cors && origin) {
                 var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
-                response.headers[allowOriginHeader] = cors;
+                response.headers[allowOriginHeader] = origin;
             }
         })
         .pipe(res);
