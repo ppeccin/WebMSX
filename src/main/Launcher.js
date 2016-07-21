@@ -32,10 +32,10 @@ WMSX.start = function () {
     wmsx.ROMDatabase.create();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
-    if (WMSX.STATE_LOAD_URL) {
+    if (WMSX.STATE_URL) {
         // Machine State loading, Machine will Auto Power on
         new wmsx.MultiDownloader(
-            [{ url: WMSX.STATE_LOAD_URL }],
+            [{ url: WMSX.STATE_URL }],
             function onAllSuccess(urls) {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {

@@ -205,8 +205,8 @@ wmsx.Configurator = {
         DISKB_FILES: "DISKB_FILES_URL",
         TAPE: "TAPE_URL",
         AUTODETECT: "AUTODETECT_URL",
-        STATE: "STATE_LOAD_URL",
-        SAVESTATE: "STATE_LOAD_URL",
+        STATE: "STATE_URL",
+        SAVESTATE: "STATE_URL",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
     }
 

@@ -19,10 +19,10 @@ WMSX = {
     DISKA_FILES_URL:                "",                         // Files to load "as Disk". For several files, use a ZIP file
     DISKB_FILES_URL:                "",
     TAPE_URL:                       "",
-    STATE_LOAD_URL:                 "",
+    STATE_URL:                      "",
     AUTODETECT_URL:                 "",
 
-    // Basic loading/typing commands. Not needed for AUTOEXEC.BAS
+    // Basic loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
     BASIC_RUN:                      "",
     BASIC_LOAD:                     "",
     BASIC_ENTER:                    "",
@@ -108,24 +108,24 @@ WMSX.PRESETS_CONFIG = {
     DOS2:   { "EXTENSIONS.DOS2":  1 },
     NODOS2: { "EXTENSIONS.DOS2":  0 },
 
-    SCC:  { "EXTENSIONS.SCC": 1 },
-    SCC2: { "EXTENSIONS.SCC": 2 },
-
     SCCI:  { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
+
+    SCC:  { "EXTENSIONS.SCC": 1 },
+    SCC2: { "EXTENSIONS.SCC": 2 },
 
     PAC:  { "EXTENSIONS.PAC": 1 },
     PAC2: { "EXTENSIONS.PAC": 2 },
 
     // Configuration Helper Presets
 
-    RAM64:   { _INCLUDE: "RAMNORMAL"},
-    RAM128:  { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 128 },
-    RAM256:  { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 256 },
-    RAM512:  { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 512 },
-    RAM1024: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 1024 },
-    RAM2048: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
-    RAM4096: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
+    RAM128:      { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 128 },
+    RAM256:      { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 256 },
+    RAM512:      { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 512 },
+    RAM1024:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 1024 },
+    RAM2048:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
+    RAM4096:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
+    NORAMMAPPER: { _INCLUDE: "RAMNORMAL"},
 
     VSYNCHDISABLED: { SCREEN_VSYNCH_MODE: -1 },
     VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },
@@ -199,7 +199,7 @@ WMSX.PRESETS_CONFIG = {
     // Base Machines Presets. Do not use directly
 
     _BASE: {
-        _INCLUDE:           "RAMNormal, DISK, NOKANJI",
+        _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
         MSX2:               false,
         KANJIBASIC:         false
     }
