@@ -8,6 +8,8 @@ All parameters are in the form of properties in the global object `WMSX`. Just s
 WMSX.ROM = "files/Game.rom";      is the same as      http://webmsx.org?ROM=files/Game.rom
 ```
 
+**IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
+
 Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` parameter, with a comma separated list of the Preset names to apply. For example:
 
 ```
@@ -24,8 +26,8 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 | `CARTRIDGE2_URL`  | URL of ROM image file to load in Slot 2              | `CART2`
 | `DISKA_URL`       | URL of Disk image file to load in Drive A:           | `DISK`, `DISKA`
 | `DISKB_URL`       | URL of Disk image file to load in Drive B:           | `DISKB`   
-| `DISKA_FILES_URL` | URL of "loose" file or ZIP file to load in Drive A:  | `DISK_FILES`, `DISKA_FILES`
-| `DISKB_FILES_URL` | URL of "loose" file or ZIP file to load in Drive B:  | `DISKB_FILES`
+| `DISKA_FILES_URL` | URL of "loose" file or ZIP file to load "as Disk" in Drive A:  | `DISK_FILES`, `DISKA_FILES`
+| `DISKB_FILES_URL` | URL of "loose" file or ZIP file to load "as Disk" in Drive B:  | `DISKB_FILES`
 | `TAPE_URL`        | URL of Tape image file to load                       | `TAPE`
 | `STATE_URL`       | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
 | `AUTODETECT_URL`  | URL of file to load with media auto-detection        | `AUTODETECT`
@@ -88,3 +90,43 @@ http://webmsx.org?DISK=http://gamesarchive.org/SDSnatcher.zip&PRESETS=SCCI
 ```
 http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=Bubbles.bas
 ```
+
+## Parameters Reference
+
+| Parameter | Default | Description
+| --- | :---: | ---
+| `MACHINE`                       |  --                 |  Machine Type. Leave blank for auto-detection
+| `PRESETS`                       |  --                 |  Configuration Presets names to apply, comma separated
+| `CARTRIDGE1_URL`                |  --                 |  URL of ROM image file to load in Slot 1 
+| `CARTRIDGE2_URL`                |  --                 |  URL of ROM image file to load in Slot 2            
+| `DISKA_URL`                     |  --                 |  URL of Disk image file to load in Drive A:         
+| `DISKB_URL`                     |  --                 |  URL of Disk image file to load in Drive B:
+| `DISKA_FILES_URL`               |  --                 |  URL of "loose" file or ZIP file to load "as Disk" in Drive A:
+| `DISKB_FILES_URL`               |  --                 |  URL of "loose" file or ZIP file to load "as Disk" in Drive B: 
+| `TAPE_URL`                      |  --                 |  URL of Tape image file to load
+| `STATE_URL`                     |  --                 |  URL of SaveState file to load
+| `AUTODETECT_URL`                |  --                 |  URL of file to load with media auto-detection
+| `BASIC_RUN`                     |  --                 |  Run the specified file name
+| `BASIC_LOAD`                    |  --                 |  Load the specified file name
+| `BASIC_ENTER`                   |  --                 |  Type the specified text then hit ENTER
+| `BASIC_TYPE`                    |  --                 |  Type the specified text                
+| `SCREEN_ELEMENT_ID`             |  "wmsx-screen"      |  HTML Element ID to place the Emulator Screen
+| `ALLOW_URL_PARAMETERS`          |  true               |  Allows overriding any parameters via URL query parameters
+| `AUTO_START_DELAY`              |  1200               |  Auto-Start delay. -1: no Auto-Start, >= 0: start then Power ON after N msecs.
+| `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size. 128, 256, 512 .. 4096, if enabled
+| `CARTRIDGE1_SLOT`               |  [1]                |  Slot specification for Cartridge Slot 1
+| `CARTRIDGE2_SLOT`               |  [2, 0]             |  Slot specification for Cartridge Slot 2
+| `MEDIA_CHANGE_DISABLED`         |  false              |  Block user from changing Media (Cartridges, Disks, etc)
+| `SCREEN_RESIZE_DISABLED`        |  false              |  Block user from changing Sreen size
+| `SCREEN_FULLSCREEN_DISABLED`    |  false              |  Block user from entering FullScreen mode
+| `SCREEN_FILTER_MODE`            |  1                  |  Screen CRT Filter level. 0 .. 3
+| `SCREEN_CRT_MODE`               |  1                  |  Screen CRT Phosphor Effect. 0: off, 1: on
+| `SCREEN_DEFAULT_SCALE`          |  1.1                |  Screen size. 0.5 .. N, in 0.1 steps
+| `SCREEN_DEFAULT_ASPECT`         |  1.1                |  Screen aspect ratio (width) in 0.1 steps
+| `SCREEN_CONTROL_BAR`            |  0                  |  Screen Bottom Bar controls. 0: always, 1: on hover
+| `SCREEN_FORCE_HOST_NATIVE_FPS`  |  -1                 |  Force host native video frequency. -1: auto-detect. Don't change! :-)
+| `SCREEN_VSYNCH_MODE`            |  1                  |  V-Synch mode. -1: disabled, 0: off, 1: on
+| `AUDIO_SIGNAL_BUFFER_FRAMES`    |  3                  |  Internal audio buffer in frames.  Don't change! :-)
+| `AUDIO_BUFFER_BASE`             |  256                |  Audio base buffer size. 256, 512 .. 2048. Don't change! :-)
+| `AUDIO_BUFFER_SIZE`             |  -1                 |  Audio buffer size. 256, 512 .. 8192. 0: no sound. -1: auto. More buffer = more delay
+| `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
