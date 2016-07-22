@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-WMSX.start = function () {
+WMSX.start = function (powerOn) {
 "use strict";
 
     // Emulator can only be started once
@@ -56,7 +56,7 @@ WMSX.start = function () {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterAutoStartWait(function () {
                         WMSX.room.setLoading(false);
-                        WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
+                        if (powerOn !== false) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
                     });
                 });
             }
@@ -64,9 +64,8 @@ WMSX.start = function () {
     }
 
     function afterAutoStartWait(func) {
-        if (WMSX.AUTO_START_DELAY < 0) return;
         var wait = WMSX.AUTO_START_DELAY - (Date.now() - roomPowerOnTime);
-        if (wait < 0) wait = 0;
+        if (wait < 1) wait = 1;
         setTimeout(func, wait);
     }
 
