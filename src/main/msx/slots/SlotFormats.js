@@ -72,7 +72,7 @@ wmsx.SlotFormats = {
         priority: 202,
         priorityForRom: function (rom) {
             // Any multiple of 16K content starting with the BIOS Extension identifier "CD"
-            return (rom.content.length ^ 16384 === 0 && rom.content[0] === 67 && rom.content[1] === 68) ? this.priority : null;
+            return ((rom.content.length & 0x3fff) === 0 && rom.content[0] === 67 && rom.content[1] === 68) ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.SlotMSX2BIOSExt(rom);
@@ -159,7 +159,7 @@ wmsx.SlotFormats = {
         embeddedURL: "@[SCCIExpansion].rom",
         priorityForRom: function (rom) {
             // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
-            return (rom.content.length <= 131072 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+            return rom.content.length <= 131072 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeSCCIExpansion(rom, false);      // Start in SCC compatibility mode (default for SCC-I cartridges)
@@ -291,8 +291,8 @@ wmsx.SlotFormats = {
         desc: "ASCII 8K Mapper Cartridge",
         priority: 911,
         priorityForRom: function (rom) {
-            // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length & 0x1fff) === 0
+            // Any >= 8K content, multiple of 8K, starting with the Cartridge identifier "AB"
+            return (rom.content.length >= 8192 && (rom.content.length & 0x1fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -308,8 +308,8 @@ wmsx.SlotFormats = {
         desc: "ASCII 16K Mapper Cartridge",
         priority: 912,
         priorityForRom: function (rom) {
-            // Any >32K content, multiple of 16K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length & 0x3fff) === 0
+            // Any >= 16K content, multiple of 16K, starting with the Cartridge identifier "AB"
+            return (rom.content.length >= 16384 && (rom.content.length & 0x3fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -325,8 +325,8 @@ wmsx.SlotFormats = {
         desc: "Konami Mapper Cartridge",
         priority: 913,
         priorityForRom: function (rom) {
-            // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length & 0x1fff) === 0
+            // Any >= 8K content, multiple of 8K, starting with the Cartridge identifier "AB"
+            return (rom.content.length >= 8192 && (rom.content.length & 0x1fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -359,8 +359,8 @@ wmsx.SlotFormats = {
         desc: "SCC-I (SCC+) Sound Cartridge (in SCC-I mode)",
         priority: 1503,
         priorityForRom: function (rom) {
-            // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
-            return (rom.content.length <= 131072 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+            // 0K, or any <= 128K content. Must be selected via info format hint
+            return rom.content.length <= 131072 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeSCCIExpansion(rom, true);     // Start in SCC-I mode. Special format!

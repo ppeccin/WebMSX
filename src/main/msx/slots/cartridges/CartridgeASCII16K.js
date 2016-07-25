@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// ROMs with (n >= 2) * 16K banks, mapped in 2 16K banks starting at 0x4000
+// ROMs with n * 16K banks, mapped in 2 16K banks starting at 0x4000
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeASCII16K = function(rom) {
