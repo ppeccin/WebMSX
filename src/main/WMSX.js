@@ -137,17 +137,17 @@ WMSX.PRESETS_CONFIG = {
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
         SLOT_0_URL:         "@MSX2P_NTSC.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios : @[KanjiBasic].bios"
+        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios"
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
         SLOT_0_URL:         "@MSX2P_PAL.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios : @KanjiBasic_PAL.bios"
+        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios"
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
         SLOT_0_URL:         "@MSX2P_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios : @[KanjiBasic].bios"
+        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios"
     },
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE",
@@ -169,7 +169,7 @@ WMSX.PRESETS_CONFIG = {
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
         SLOT_0_URL:         "@MSX2_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios : @[KanjiBasic].bios",
+        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
         KANJIBASIC:         true
     },
     _MSX2BASE: {

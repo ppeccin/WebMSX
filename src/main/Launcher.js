@@ -24,7 +24,7 @@ WMSX.start = function (powerOn) {
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
-    WMSX.room.setLoading(true);
+    WMSX.room.setLoading(true);         // TODO Loading state stuck if any files are not found
     var roomPowerOnTime = Date.now();
     wmsx.Util.log(WMSX.VERSION + " started");
 
