@@ -169,22 +169,6 @@ wmsx.SlotFormats = {
         }
     },
 
-    "KonamiSCCI": {
-        name: "KonamiSCCI",
-        desc: "SCC-I (SCC+) Sound Cartridge (in SCC-I mode)",
-        priority: 1503,
-        priorityForRom: function (rom) {
-            // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
-            return (rom.content.length <= 131072 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeSCCIExpansion(rom, true);     // Start in SCC-I mode. Special format!
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
     "MSXMUSIC": {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Extension",
@@ -358,8 +342,8 @@ wmsx.SlotFormats = {
         desc: "KonamiSCC Mapper Cartridge",
         priority: 914,
         priorityForRom: function (rom) {
-            // Any >32K content, multiple of 8K, starting with the Cartridge identifier "AB"
-            return (rom.content.length > 32768 && (rom.content.length & 0x1fff) === 0
+            // Any >= 8K content, multiple of 8K, starting with the Cartridge identifier "AB"
+            return (rom.content.length >= 8192 && (rom.content.length & 0x1fff) === 0
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -367,6 +351,22 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeKonamiSCC.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "KonamiSCCI": {
+        name: "KonamiSCCI",
+        desc: "SCC-I (SCC+) Sound Cartridge (in SCC-I mode)",
+        priority: 1503,
+        priorityForRom: function (rom) {
+            // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
+            return (rom.content.length <= 131072 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSCCIExpansion(rom, true);     // Start in SCC-I mode. Special format!
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -417,7 +417,6 @@ wmsx.SlotFormats = {
             return wmsx.CartridgeManbow2.recreateFromSaveState(state, previousSlot);
         }
     }
-
 
 };
 
