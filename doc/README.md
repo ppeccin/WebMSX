@@ -22,19 +22,24 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 
 | Parameter | Function | Shortcut for URL form
 | --- | --- | ---
-| `CARTRIDGE1_URL`  | URL of ROM image file to load in Slot 1              | `ROM`, `CART`, `CART1`
-| `CARTRIDGE2_URL`  | URL of ROM image file to load in Slot 2              | `CART2`
-| `DISKA_URL`       | URL of Disk image file to load in Drive A:           | `DISK`, `DISKA`
-| `DISKB_URL`       | URL of Disk image file to load in Drive B:           | `DISKB`   
-| `DISKA_FILES_URL` | URL of "loose" file or ZIP file to load "as Disk" in Drive A:  | `DISK_FILES`, `DISKA_FILES`
-| `DISKB_FILES_URL` | URL of "loose" file or ZIP file to load "as Disk" in Drive B:  | `DISKB_FILES`
-| `TAPE_URL`        | URL of Tape image file to load                       | `TAPE`
-| `STATE_URL`       | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
-| `AUTODETECT_URL`  | URL of file to load with media auto-detection        | `AUTODETECT`
+| `CARTRIDGE1_URL`    | URL of ROM image file to load in Slot 1              | `ROM`, `CART`, `CART1`
+| `CARTRIDGE2_URL`    | URL of ROM image file to load in Slot 2              | `CART2`
+| `CARTRIDGE1_FORMAT` | Force ROM Format for Cartridge in Slot 1             | `ROM_FORMAT`, `CART_FORMAT`, `CART1_FORMAT`
+| `CARTRIDGE2_FORMAT` | Force ROM Format for Cartridge in Slot 2             | `CART2_FORMAT`
+| `DISKA_URL`         | URL of Disk image file to load in Drive A:           | `DISK`, `DISKA`
+| `DISKB_URL`         | URL of Disk image file to load in Drive B:           | `DISKB`   
+| `DISKA_FILES_URL`   | URL of "loose" file or ZIP file to load "as Disk" in Drive A:  | `DISK_FILES`, `DISKA_FILES`
+| `DISKB_FILES_URL`   | URL of "loose" file or ZIP file to load "as Disk" in Drive B:  | `DISKB_FILES`
+| `TAPE_URL`          | URL of Tape image file to load                       | `TAPE`
+| `STATE_URL`         | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
+| `AUTODETECT_URL`    | URL of file to load with media auto-detection        | `AUTODETECT`
+
+**ROM Format** is auto-detected. If you need to force a format, use the `CARTRIDGE1_FORMAT` and `CARTRIDGE2_FORMAT` parameters. Valid formats:
+`Normal`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `FMPAC`, `MSXDOS2`, `RType`, `CrossBlaim`, `Manbow2`.
 
 ## Enabling Extensions
 
-The emulator supports several Extensions, or optional components that can be turnef on/off. Some are in the form of expansion cartridges that can be inserted in either Slot 1 or 2. We use Presets to make configuring Extensions easier:
+The emulator supports several Extensions, or optional components that can be turned on/off. Some are in the form of expansion cartridges that can be inserted in either Slot 1 or 2. We use Presets to make configuring Extensions easier:
 
 | Extension | Default in Machine | Presets
 | --- | :---: | ---
@@ -99,6 +104,8 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `PRESETS`                       |  --                 |  Configuration Presets names to apply, comma separated
 | `CARTRIDGE1_URL`                |  --                 |  URL of ROM image file to load in Slot 1 
 | `CARTRIDGE2_URL`                |  --                 |  URL of ROM image file to load in Slot 2            
+| `CARTRIDGE1_FORMAT`             |  --                 |  ROM Format for Cartridge in Slot 1 
+| `CARTRIDGE2_FORMAT`             |  --                 |  ROM Format for Cartridge in Slot 2 
 | `DISKA_URL`                     |  --                 |  URL of Disk image file to load in Drive A:         
 | `DISKB_URL`                     |  --                 |  URL of Disk image file to load in Drive B:
 | `DISKA_FILES_URL`               |  --                 |  URL of "loose" file or ZIP file to load "as Disk" in Drive A:
@@ -112,7 +119,8 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `BASIC_TYPE`                    |  --                 |  Type the specified text                
 | `SCREEN_ELEMENT_ID`             |  "wmsx-screen"      |  HTML Element ID to place the Emulator Screen
 | `ALLOW_URL_PARAMETERS`          |  true               |  Allows overriding any parameters via URL query parameters
-| `AUTO_START_DELAY`              |  1200               |  Auto-Start delay. -1: no Auto-Start, >= 0: start then Power ON after N msecs.
+| `AUTO_START`                    |  true               |  Auto-Start the emulator as soon as ready
+| `AUTO_POWER_ON_DELAY`           |  1000               |  Auto-Power-ON after specified msecs. -1: no Auto-Power-ON
 | `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size. 128, 256, 512 .. 4096, if enabled
 | `CARTRIDGE1_SLOT`               |  [1]                |  Slot specification for Cartridge Slot 1
 | `CARTRIDGE2_SLOT`               |  [2, 0]             |  Slot specification for Cartridge Slot 2

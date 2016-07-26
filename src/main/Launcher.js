@@ -38,7 +38,7 @@ WMSX.start = function (powerOn) {
             [{ url: WMSX.STATE_URL }],
             function onAllSuccess(urls) {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
-                    afterAutoStartWait(function () {
+                    afterPowerONDelay(function () {
                         WMSX.room.setLoading(false);
                         WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                     });
@@ -54,7 +54,7 @@ WMSX.start = function (powerOn) {
             slotURLs.concat(mediaURLs).concat(extensionsURLs),
             function onAllSuccess() {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
-                    afterAutoStartWait(function () {
+                    afterPowerONDelay(function () {
                         WMSX.room.setLoading(false);
                         if (powerOn !== false) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
                     });
@@ -63,8 +63,8 @@ WMSX.start = function (powerOn) {
         ).start();
     }
 
-    function afterAutoStartWait(func) {
-        var wait = WMSX.AUTO_START_DELAY - (Date.now() - roomPowerOnTime);
+    function afterPowerONDelay(func) {
+        var wait = WMSX.AUTO_POWER_ON_DELAY - (Date.now() - roomPowerOnTime);
         if (wait < 1) wait = 1;
         setTimeout(func, wait);
     }
@@ -82,8 +82,8 @@ WMSX.preLoadImagesAndStart = function() {
     var imagesToLoad = wmsx.Images.embedded ? 0 : wmsx.Images.urls.length;
 
     function tryLaunch(bypass) {
-        if (WMSX.start && WMSX.AUTO_START_DELAY >= 0 && (bypass || (domReady && imagesToLoad === 0)))
-            WMSX.start();
+        if (WMSX.start && WMSX.AUTO_START && (bypass || (domReady && imagesToLoad === 0)))
+            WMSX.start(WMSX.AUTO_POWER_ON_DELAY >= 0);
     }
 
     document.addEventListener("DOMContentLoaded", function() {

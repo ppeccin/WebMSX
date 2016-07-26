@@ -44,7 +44,7 @@ wmsx.Configurator = {
 
         function normalizeParameterTypes() {
             WMSX.RAMMAPPER_SIZE |= 0;
-            WMSX.AUTO_START_DELAY |= 0;
+            WMSX.AUTO_POWER_ON_DELAY |= 0;
             WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
             WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
             WMSX.SCREEN_FULLSCREEN_DISABLED = WMSX.SCREEN_FULLSCREEN_DISABLED === true || WMSX.SCREEN_FULLSCREEN_DISABLED == "true";
