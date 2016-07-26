@@ -59,9 +59,9 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 
 | Parameter | Function | Shortcut for URL form
 | --- | --- | ---
-| `CARTRIDGE1_URL`    | URL of ROM image file to load in Slot 1              | `ROM`, `CART`, `CART1`
+| `CARTRIDGE1_URL`    | URL of ROM image file to load in Slot 1              | `ROM`, `CART1`
 | `CARTRIDGE2_URL`    | URL of ROM image file to load in Slot 2              | `CART2`
-| `CARTRIDGE1_FORMAT` | Force ROM Format for Cartridge in Slot 1             | `ROM_FORMAT`, `CART_FORMAT`, `CART1_FORMAT`
+| `CARTRIDGE1_FORMAT` | Force ROM Format for Cartridge in Slot 1             | `ROM_FORMAT`, `CART1_FORMAT`
 | `CARTRIDGE2_FORMAT` | Force ROM Format for Cartridge in Slot 2             | `CART2_FORMAT`
 | `DISKA_URL`         | URL of Disk image file to load in Drive A:           | `DISK`, `DISKA`
 | `DISKB_URL`         | URL of Disk image file to load in Drive B:           | `DISKB`   

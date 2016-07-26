@@ -22,14 +22,14 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 
 | Parameter | Function | Shortcut for URL form
 | --- | --- | ---
-| `CARTRIDGE1_URL`    | URL of ROM image file to load in Slot 1              | `ROM`, `CART`, `CART1`
+| `CARTRIDGE1_URL`    | URL of ROM image file to load in Slot 1              | `ROM`, `CART1`
 | `CARTRIDGE2_URL`    | URL of ROM image file to load in Slot 2              | `CART2`
-| `CARTRIDGE1_FORMAT` | Force ROM Format for Cartridge in Slot 1             | `ROM_FORMAT`, `CART_FORMAT`, `CART1_FORMAT`
+| `CARTRIDGE1_FORMAT` | Force ROM Format for Cartridge in Slot 1             | `ROM_FORMAT`, `CART1_FORMAT`
 | `CARTRIDGE2_FORMAT` | Force ROM Format for Cartridge in Slot 2             | `CART2_FORMAT`
 | `DISKA_URL`         | URL of Disk image file to load in Drive A:           | `DISK`, `DISKA`
 | `DISKB_URL`         | URL of Disk image file to load in Drive B:           | `DISKB`   
-| `DISKA_FILES_URL`   | URL of "loose" file / ZIP file to load "as Disk" in Drive A:  | `DISK_FILES`, `DISKA_FILES`
-| `DISKB_FILES_URL`   | URL of "loose" file / ZIP file to load "as Disk" in Drive B:  | `DISKB_FILES`
+| `DISKA_FILES_URL`   | URL of "loose" file or ZIP file to load "as Disk" in Drive A:  | `DISK_FILES`, `DISKA_FILES`
+| `DISKB_FILES_URL`   | URL of "loose" file or ZIP file to load "as Disk" in Drive B:  | `DISKB_FILES`
 | `TAPE_URL`          | URL of Tape image file to load                       | `TAPE`
 | `STATE_URL`         | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
 | `AUTODETECT_URL`    | URL of file to load with media auto-detection        | `AUTODETECT`
