@@ -63,6 +63,7 @@ wmsx.Machine = function() {
     };
 
     this.userPowerOn = function(basicAutoRun) {
+        if (isLoading) return;
         if (!bios) {
             this.getVideoOutput().showOSD("Insert BIOS!", true, true);
             return;

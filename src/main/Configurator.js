@@ -4,10 +4,14 @@ wmsx.Configurator = {
 
     applyConfig: function() {
 
+        var urlParams = {};
+
         // Override parameters with values set in URL, if allowed
         if (WMSX.ALLOW_URL_PARAMETERS) {
-            var params = parseURLParams();
-            for (var param in params) this.applyParam(param, params[param]);
+            urlParams = parseURLParams();
+            // First override base MACHINE and PRESETS parameters
+            if (urlParams.MACHINE) this.applyParam("MACHINE", urlParams.MACHINE);
+            if (urlParams.PRESETS) this.applyParam("PRESETS", urlParams.PRESETS);
         }
 
         // Apply main Machine configuration
@@ -18,6 +22,9 @@ wmsx.Configurator = {
 
         // Apply additional presets
         this.applyPresets(WMSX.PRESETS);
+
+        // Apply additional single parameter overrides
+        for (var param in urlParams) this.applyParam(param, urlParams[param]);
 
         // Ensures the correct types of the parameters
         normalizeParameterTypes();
@@ -123,13 +130,13 @@ wmsx.Configurator = {
             WMSX.CARTRIDGE1_URL && {
                 url: WMSX.CARTRIDGE1_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.ROM, 0, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.ROM, 0, true, false, WMSX.CARTRIDGE1_FORMAT);
                 }
             },
             WMSX.CARTRIDGE2_URL && {
                 url: WMSX.CARTRIDGE2_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.ROM, 1, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.ROM, 1, true, false, WMSX.CARTRIDGE2_FORMAT);
                 }
             },
             WMSX.DISKA_URL && {
@@ -197,6 +204,10 @@ wmsx.Configurator = {
         CART: "CARTRIDGE1_URL",
         CART1: "CARTRIDGE1_URL",
         CART2: "CARTRIDGE2_URL",
+        ROM_FORMAT: "CARTRIDGE1_FORMAT",
+        CART_FORMAT: "CARTRIDGE1_FORMAT",
+        CART1_FORMAT: "CARTRIDGE1_FORMAT",
+        CART2_FORMAT: "CARTRIDGE2_FORMAT",
         DISK: "DISKA_URL",
         DISK_FILES: "DISKA_FILES_URL",
         DISKA: "DISKA_URL",

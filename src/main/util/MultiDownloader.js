@@ -14,7 +14,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     function load(urlSpec) {
         if (!urlSpec) return;
 
-        var urls = urlSpec.url.trim().split(/\s*\|\s*/);             // Special "|" divider. TODO Find a better way since "|" is allowed in Linux file names
+        var urls = urlSpec.url.trim().split(/\s*\|\s*/);              // Special "|" divider. TODO Find a better way since "|" is allowed in Linux file names
         urlSpec.filesToLoad = urls.length;
         urlSpec.filesContent = new Array(urlSpec.filesToLoad);
 

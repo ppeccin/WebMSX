@@ -116,11 +116,11 @@ wmsx.FileLoader = function() {
         reader.start();
     };
 
-    this.loadFromContent = function(name, content, openType, port, altPower, asExpansion) {
-        return this.loadFromFile({ name: name, content: content }, openType, port, altPower, asExpansion);
+    this.loadFromContent = function(name, content, openType, port, altPower, asExpansion, format) {
+        return this.loadFromFile({ name: name, content: content }, openType, port, altPower, asExpansion, format);
     };
 
-    this.loadFromFile = function(file, openType, port, altPower, asExpansion) {
+    this.loadFromFile = function(file, openType, port, altPower, asExpansion, format) {
         var zip, mes;
         // If As-Disk forced
         if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
@@ -148,7 +148,7 @@ wmsx.FileLoader = function() {
                 try {
                     // Try normal loading from files
                     var files = wmsx.Util.getZIPFilesSorted(zip);
-                    if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, true)) return;
+                    if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, true)) return;
                     // Try Zip-as-Disk if allowed
                     if (openType === OPEN_TYPE.AUTO)
                         if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
@@ -157,7 +157,7 @@ wmsx.FileLoader = function() {
                 }
             } else {
                 // Try normal loading from files
-                if (tryLoadFilesAsMedia([file], openType, port, altPower, asExpansion, false)) return;
+                if (tryLoadFilesAsMedia([file], openType, port, altPower, asExpansion, format, false)) return;
             }
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
@@ -180,7 +180,7 @@ wmsx.FileLoader = function() {
             }
             showError("Error loading " + TYPE_DESC[openType] + (mes ?  ": " + mes : ""));
         } else {
-            if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, false)) return;
+            if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, null, false)) return;
             showError("No valid " + TYPE_DESC[openType] + " found.")
         }
     };
@@ -210,18 +210,18 @@ wmsx.FileLoader = function() {
         return diskDrive.loadAsDiskFromFiles(port, name, files, altPower, asExpansion, "Files as Disk");     // throws
     }
 
-    function tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, filesFromZIP) {
+    function tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, filesFromZIP) {
         // Try as a Disk Stack (all images found)
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO)
             if (diskDrive.loadDiskStackFromFiles(port, files, altPower, asExpansion, filesFromZIP)) return true;
         // Try as other Single media (first found)
         if (openType !== OPEN_TYPE.DISK)
             for (var i = 0; i < files.length; i++)
-                if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, filesFromZIP)) return true;
+                if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, format, filesFromZIP)) return true;
         return false;
     }
 
-    function tryLoadFileAsSingleMedia(file, openType, port, altPower, asExpansion, fileFromZIP, stopRecursion) {
+    function tryLoadFileAsSingleMedia(file, openType, port, altPower, asExpansion, format, fileFromZIP, stopRecursion) {
         try {
             if (fileFromZIP && !file.content) file.content = file.asUint8Array();
             var content = file.content;
@@ -231,22 +231,22 @@ wmsx.FileLoader = function() {
                 if (zip) {
                     var files = wmsx.Util.getZIPFilesSorted(zip);
                     for (var i = 0; i < files.length; i++)
-                        if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, true, true)) return true;
+                        if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, format, true, true)) return true;
                     return false;
                 }
             }
 
             var gzip = wmsx.Util.checkContentIsGZIP(content);
-            if (gzip) return tryLoadFileAsSingleMedia({ name: file.name, content: gzip }, openType, port, altPower, asExpansion, false, true);
+            if (gzip) return tryLoadFileAsSingleMedia({ name: file.name, content: gzip }, openType, port, altPower, asExpansion, format, false, true);
         } catch (ez) {
             wmsx.Util.error(ez);      // Error decompressing files. Abort
             return false;
         }
 
-        return tryLoadContentAsSingleMedia(file.name, content, openType, port, altPower, asExpansion);
+        return tryLoadContentAsSingleMedia(file.name, content, openType, port, altPower, asExpansion, format);
     }
 
-    function tryLoadContentAsSingleMedia(name, content, openType, port, altPower, asExpansion) {
+    function tryLoadContentAsSingleMedia(name, content, openType, port, altPower, asExpansion, format) {
         openType = openType || OPEN_TYPE.AUTO;
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.AUTO)
@@ -259,7 +259,7 @@ wmsx.FileLoader = function() {
             if (cartridgeSocket.loadCartridgeData(port, name, content)) return true;
         // Try to load as ROM (BIOS or Cartridge)
         if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.AUTO) {
-            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content), cartridgeSocket.inserted(port));
+            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format), cartridgeSocket.inserted(port));
             if (slot) {
                 if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
                 else if (asExpansion) expansionSocket.insert(slot, port, altPower);

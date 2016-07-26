@@ -18,13 +18,13 @@ WMSX.start = function (powerOn) {
             'HTML document is missing screen element with id "' + WMSX.SCREEN_ELEMENT_ID + '"');
     }
 
-    // Apply Configuration, including Machine Typye and URL Parameters if allowed
+    // Apply Configuration, including Machine Type and URL Parameters if allowed
     wmsx.Configurator.applyConfig();
 
     // Build and start emulator
     WMSX.room = new wmsx.Room(WMSX.screenElement);
     WMSX.room.powerOn();
-    WMSX.room.setLoading(true);         // TODO Loading state stuck if any files are not found
+    WMSX.room.setLoading(true);
     var roomPowerOnTime = Date.now();
     wmsx.Util.log(WMSX.VERSION + " started");
 

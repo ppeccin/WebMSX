@@ -22,6 +22,10 @@ WMSX = {
     STATE_URL:                      "",
     AUTODETECT_URL:                 "",
 
+    // Forcing ROM formats
+    CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, MSXDOS2, RType, CrossBlaim, Manbow2
+    CARTRIDGE2_FORMAT:              "",
+
     // Basic loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
     BASIC_RUN:                      "",
     BASIC_LOAD:                     "",
@@ -78,15 +82,15 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    DISK:                       { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
-    RAMMAPPER:                  { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAMNORMAL" },
-    RAMNORMAL:                  {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
-    MSXMUSIC:                   { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
-    DOS2:                       { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "MSXDOS2",       require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
-    KANJI:                      { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1",        requireFlag: "KANJIBASIC" },
-    SCCI:                       { desc: "Konami SCC+",   SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
-    SCC:                        { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
-    PAC:                        { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2, 0], format: "PACExpansion",  remove: "SCC, SCCI" }
+    DISK:      { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
+    RAMMAPPER: { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAMNORMAL" },
+    RAMNORMAL: {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
+    MSXMUSIC:  { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
+    DOS2:      { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "MSXDOS2",       require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
+    KANJI:     { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1",        requireFlag: "KANJIBASIC" },
+    SCCI:      { desc: "Konami SCC+",   SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
+    SCC:       { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
+    PAC:       { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2, 0], format: "PACExpansion",  remove: "SCC, SCCI" }
 };
 
 WMSX.PRESETS_CONFIG = {

@@ -21,22 +21,23 @@ wmsx.SlotCreator = function () {
         return format.recreateFromSaveState(saveState, previousSlot);
     };
 
-    this.produceInfo = function(rom) {
+    this.produceInfo = function(rom, formatHint) {
         // Preserve original length as MD5 computation may increase it
         var origLen = rom.content.length;
         var hash = wmsx.Util.sha1Generator.calcSHA1FromByteArray(rom.content).toUpperCase();
-        if (rom.content.length > origLen) rom.content.splice(origLen);
+        if (rom.content.length > origLen) rom.content.length = origLen;
 
         // Get info from the library
         var info = wmsx.ROMDatabase[hash];
         if (info) {
+            info = cloneInfo(info);
             wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : "") + " (" + hash + ")");
         } else {
             info = buildInfo(rom.source);
             wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : ""));
         }
 
-        finishInfo(info, rom.source, hash);
+        finishInfo(info, rom.source, hash, formatHint);
         return info;
     };
 
@@ -68,20 +69,42 @@ wmsx.SlotCreator = function () {
     };
 
     // Fill absent information based on ROM name
-    var finishInfo = function(info, romSource, hash) {
+    var finishInfo = function(info, romSource, hash, formatHint) {
         // Saves the hash on the info
         info.h = hash;
-        // Adjust Format information if hint is present
-        var romURL = romSource.toUpperCase();
-        for (var formatName in wmsx.SlotFormats)
-            if (formatMatchesByHint(formatName.toUpperCase(), romURL)) {
-                info.f = wmsx.SlotFormats[formatName].name;          // Translation from Synonym to Base Name
-                info.t = true;
-                break;
-            }
+        // Adjust Format information if hint passed
+        if (formatHint) {
+            formatHint = formatHint.trim().toUpperCase();
+            for (var formatName in wmsx.SlotFormats)
+                if (formatName.toUpperCase() === formatHint) {
+                    info.f = wmsx.SlotFormats[formatName].name;          // Translation from Synonym to Base Name
+                    info.t = true;
+                    break;
+                }
+        }
+        // Adjust Format information, of not yet defined (forced), and hint is present in source name
+        if (!info.t) {
+            var romURL = romSource.toUpperCase();
+            for (formatName in wmsx.SlotFormats)
+                if (formatMatchesByHint(formatName.toUpperCase(), romURL)) {
+                    info.f = wmsx.SlotFormats[formatName].name;          // Translation from Synonym to Base Name
+                    info.t = true;
+                    break;
+                }
+        }
         // Compute label based on other info
         if (!info.l) info.l = produceCartridgeLabel(info);
     };
+
+    function cloneInfo(info) {
+        var i = {};
+        if (info.n) i.n = info.n;
+        if (info.h) i.h = info.h;
+        if (info.f) i.f = info.f;
+        if (info.t) i.t = info.t;
+        if (info.l) i.l = info.l;
+        return i;
+    }
 
     var boostPriority = function(formatOption, info) {
         if (info.f && (formatOption.name === info.f))
@@ -102,7 +125,7 @@ wmsx.SlotCreator = function () {
 
     var FORMAT_PRIORITY_LIMIT = 1000;
     var FORMAT_PRIORITY_BOOST = 1000;
-    var FORMAT_FORCE_PRIORITY_BOOST = 2000;
+    var FORMAT_FORCE_PRIORITY_BOOST = 5000;
 
     this.FORMAT_PRIORITY_BOOST = FORMAT_PRIORITY_BOOST;
 

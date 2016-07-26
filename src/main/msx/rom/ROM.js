@@ -1,11 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.ROM = function(source, content, info) {
+wmsx.ROM = function(source, content, info, formatHint) {
 "use strict";
 
     this.source = wmsx.Util.leafFilename(source);
     this.content = content;
-    this.info = info || wmsx.SlotCreator.produceInfo(this);
+    this.info = info || wmsx.SlotCreator.produceInfo(this, formatHint);
 
     // Savestate  -------------------------------------------
 
