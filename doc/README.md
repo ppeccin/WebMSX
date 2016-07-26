@@ -38,8 +38,8 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 The ROM Format is auto-detected. To force a format, use the `CARTRIDGE1_FORMAT` and `CARTRIDGE2_FORMAT` parameters.
 You can also put the format specification in the ROM file name, between brackets. Example: `Game [KonamiSCC].rom`
 
-#### Valid formats
-`Normal`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `FMPAC`, `MSXDOS2`, `RType`, `CrossBlaim`, `Manbow2`.
+#### Valid Formats
+`Normal`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `FMPAC`, `MSXDOS2`, `RType`, `CrossBlaim`, `Manbow2`
 
 ## Enabling Extensions
 
