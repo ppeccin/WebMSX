@@ -413,7 +413,7 @@ wmsx.FileLoader = function() {
             // If not, try to get URL
             var url = e.dataTransfer.getData("text");
             if (url && url.length > 0)
-                self.readFromURL(url, null, port, altPower, asExpansion, resume);
+                self.readFromURL(url, openType, port, altPower, asExpansion, resume);
             else
                 resume();
         }
