@@ -519,7 +519,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateSynchronization() {
-        // According to the native video frequency detected, target Video Standard and vSinchMode, use a specific pulldown configuration
+        // According to the native video frequency detected, target Video Standard and vSynchMode, use a specific pulldown configuration
         if (vSynchMode === 1) {    // ON
             // Will V-synch to host freq if detected and supported, or use optimal timer configuration)
             pulldown = videoStandard.pulldowns[wmsx.Clock.HOST_NATIVE_FPS] || videoStandard.pulldowns.TIMER;
@@ -544,7 +544,7 @@ wmsx.VDP = function(machine, cpu) {
             lineEvents();
             currentScanline = currentScanline + 1;
 
-            if (currentScanline === finishingScanline) finishFrame();
+            if (currentScanline >= finishingScanline) finishFrame();
         }
     }
 
@@ -2411,6 +2411,7 @@ wmsx.VDP = function(machine, cpu) {
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
+        frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics();
         updateIRQ();
         updateMode();

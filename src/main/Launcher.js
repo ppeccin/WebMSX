@@ -26,6 +26,7 @@ WMSX.start = function (powerOn) {
     WMSX.room.powerOn();
     WMSX.room.setLoading(true);
     var roomPowerOnTime = Date.now();
+    if (powerOn === undefined) powerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;
     wmsx.Util.log(WMSX.VERSION + " started");
 
     // Prepare ROM Database
@@ -56,7 +57,7 @@ WMSX.start = function (powerOn) {
                 wmsx.Clock.detectHostNativeFPSAndCallback(function() {
                     afterPowerONDelay(function () {
                         WMSX.room.setLoading(false);
-                        if (powerOn !== false) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
+                        if (powerOn) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
                     });
                 });
             }
@@ -83,7 +84,7 @@ WMSX.preLoadImagesAndStart = function() {
 
     function tryLaunch(bypass) {
         if (WMSX.start && WMSX.AUTO_START && (bypass || (domReady && imagesToLoad === 0)))
-            WMSX.start(WMSX.AUTO_POWER_ON_DELAY >= 0);
+            WMSX.start();
     }
 
     document.addEventListener("DOMContentLoaded", function() {
