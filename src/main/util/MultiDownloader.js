@@ -128,6 +128,6 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     var finished = false;
 
     var LOADING_ICON_TIMEOUT = 1000;
-    var DEFAULT_TIMEOUT = 8000;
+    var DEFAULT_TIMEOUT = 15000;
 
 };

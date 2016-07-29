@@ -16,6 +16,7 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.powerOn = function() {
+        updateMode();
     };
 
     this.powerOff = function() {
@@ -33,12 +34,15 @@ wmsx.DOMMouseControls = function(hub) {
 
     this.toggleMode = function() {
         ++mode; if (mode > 1) mode = -2;
-        port = mode < 0 ? -1 : mode;
-        if (port < 0) mouseState.reset();
-
-        updateConnectionsToHub();
+        updateMode();
         showStatusMessage(mode === -2 ? "Mouse DISABLED" : mode == -1 ? "Mouse AUTO" : mode === 0 ? "Mouse ENABLED" : "Mouse ENABLED (swapped)");
     };
+
+    function updateMode() {
+        port = mode < 0 ? -1 : mode;
+        if (port < 0) mouseState.reset();
+        updateConnectionsToHub();
+    }
 
     this.readMousePort = function(atPort) {
         if (atPort === port) return mouseState.portValue;
@@ -191,7 +195,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     var mouseState = new MouseState();
 
-    var mode = -1;                               // -1: auto, 0: enabled at port 0, 1: enabled at port 1, -2: disabled
+    var mode = WMSX.MOUSE_MODE - 1;              // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;                               // -1: disconnected, 0: connected at port 0, 1: connected at port 1
     var pixelScaleX = 1, pixelScaleY = 1;
 
