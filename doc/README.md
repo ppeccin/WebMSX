@@ -141,4 +141,5 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `AUDIO_SIGNAL_BUFFER_FRAMES`    |  3                  |  Internal audio buffer in frames.  Don't change! :-)
 | `AUDIO_BUFFER_BASE`             |  256                |  Audio base buffer size. 256, 512 .. 2048. Don't change! :-)
 | `AUDIO_BUFFER_SIZE`             |  -1                 |  Audio buffer size. 256, 512 .. 8192. 0: no sound. -1: auto. More buffer = more delay
+| `MOUSE_MODE`                    |  0                  |  Mouse control. -1: disabled, 0: auto, 1: enabled at port 1, 2: enabled at port 2
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
