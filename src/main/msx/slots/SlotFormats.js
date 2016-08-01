@@ -419,8 +419,3 @@ wmsx.SlotFormats = {
     }
 
 };
-
-// Synonyms
-
-wmsx.SlotFormats.Snatcher = wmsx.SlotFormats.SCCIExpansion;
-wmsx.SlotFormats.SDSnatcher = wmsx.SlotFormats.SCCIExpansion;
