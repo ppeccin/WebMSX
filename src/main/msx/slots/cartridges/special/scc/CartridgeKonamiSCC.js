@@ -38,6 +38,8 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.write = function(address, value) {
+        //wmsx.Util.log("Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
+
         if (address >= 0x5000 && address <= 0x57ff) {
             bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
             return;
@@ -64,6 +66,8 @@ wmsx.CartridgeKonamiSCC = function(rom) {
     };
 
     this.read = function(address) {
+        //wmsx.Util.log("Read: " + wmsx.Util.toHex4(address)); //  + ", value: " + wmsx.Util.toHex2(value));
+
         switch (address & 0xe000) {
             case 0x4000:
                 return bytes[bank1Offset + address];

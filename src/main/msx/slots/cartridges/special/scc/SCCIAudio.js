@@ -106,9 +106,9 @@ wmsx.SCCIAudio = function() {
         //wmsx.Util.log("SCC Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
         address &= 0xff;
         if (address < 0x80) {                               // Wavetable access
-            channelSamples[(address >>> 5)][address & 0x1f] = value < 128 ? value : -256 + value;
+            channelSamples[(address >>> 5)][address & 0x1f] = value < 128 ? value : -256 + value;               // Signed 8 bits
             // If writing to channel 4, also put the same sample to channel 5
-            if ((address >>> 5) === 3) channel5Samples[address & 0x1f] = value < 128 ? value : -256 + value;
+            if ((address >>> 5) === 3) channel5Samples[address & 0x1f] = value < 128 ? value : -256 + value;    // Signed 8 bits
             return;
         }
         if (address < 0xa0) {
@@ -126,18 +126,25 @@ wmsx.SCCIAudio = function() {
     }                                                       // Test register not implemented
 
     function readSCC(address) {
+        var res;
+
         address &= 0xff;
         if (address < 0x80)                                 // Wavetable access
-            return channelSamples[address >>> 5][address & 0x1f];
+            res = channelSamples[address >>> 5][address & 0x1f] & 0xff;     // Unsigned 8 bits
         // All other registers always return 0xff
-        return 0xff;
+        else
+            res = 0xff;
+
+        //wmsx.Util.log("SCC Read: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(res));
+
+        return res;
     }
 
     function writeSCCI(address, value) {
         //wmsx.Util.log("SCCI Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
         address &= 0xff;
         if (address < 0xa0) {                               // Wavetable access
-            channelSamples[address >>> 5][address & 0x1f] = value < 128 ? value : -256 + value;
+            channelSamples[address >>> 5][address & 0x1f] = value < 128 ? value : -256 + value;     // Signed 8 bits
             return;
         }
         if (address < 0xc0) {
@@ -157,7 +164,7 @@ wmsx.SCCIAudio = function() {
     function readSCCI(address) {
         address &= 0xff;
         if (address < 0xa0)                                // Wavetable access
-            return channelSamples[address >>> 5][address & 0x1f];
+            return channelSamples[address >>> 5][address & 0x1f] & 0xff;     // Unsigned 8 bits
         // All other registers always return 0xff
         return 0xff;
     }
