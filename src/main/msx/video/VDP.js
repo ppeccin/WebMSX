@@ -83,26 +83,26 @@ wmsx.VDP = function(machine, cpu) {
 
     // VRAM Read
     this.input98 = function() {
-        dataToWrite = null;
-        var res = vram[vramPointer++];
+        dataFirstWrite = null;
+        var res = dataPreRead;
+        dataPreRead = vram[vramPointer++];
         checkVRAMPointerWrap();
         return res;
     };
 
     // VRAM Write
     this.output98 = function(val) {
-
         //if ((vramPointer >= spriteAttrTableAddress + 512) /* && (vramPointer <= spriteAttrTableAddress + 512 + 32 * 4) */)
         //    logInfo("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
-        dataToWrite = null;
-        vram[vramPointer++] = val;
+        dataFirstWrite = null;
+        vram[vramPointer++] = dataPreRead = val;
         checkVRAMPointerWrap();
     };
 
     // Status Register Read
     this.input99 = function() {
-        dataToWrite = null;
+        dataFirstWrite = null;
         var reg = register[15];
 
         var res;
@@ -151,27 +151,33 @@ wmsx.VDP = function(machine, cpu) {
 
     // Register/VRAM Address write
     this.output99 = function(val) {
-        if (dataToWrite === null) {
+        if (dataFirstWrite === null) {
             // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
-            dataToWrite = val;
+            dataFirstWrite = val;
             // On V9918, the VRAM pointer low gets written right away
             if (isV9918) vramPointer = (vramPointer & ~0xff) | val;
         } else {
             // Second write
             if (val & 0x80) {
+                // Register write
                 if (isV9918) {
-                    registerWrite(val & 0x07, dataToWrite);
+                    registerWrite(val & 0x07, dataFirstWrite);
                     // On V9918, the VRAM pointer high gets also written when writing to registers
                     vramPointer = (vramPointer & 0x1c0ff) | ((val & 0x3f) << 8);
                 } else {
                     // On V9938 register write only if "WriteMode = 0"
-                    if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataToWrite);
+                    if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataFirstWrite);
                 }
             } else {
-                // VRAM Address Pointer middle (A13-A8) and low (A7-A0) and mode (r/w)
-                vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataToWrite;
+                // VRAM Address Pointer middle (A13-A8). Finish VRAM Address Pointer setting
+                vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataFirstWrite;
+                // Pre-read VRAM if "WriteMode = 0"
+                if ((val & 0x40) === 0) {
+                    dataPreRead = vram[vramPointer++];
+                    checkVRAMPointerWrap();
+                }
             }
-            dataToWrite = null;
+            dataFirstWrite = null;
         }
     };
 
@@ -222,7 +228,7 @@ wmsx.VDP = function(machine, cpu) {
 
     this.reset = function() {
         frame = cycles = lastCPUCyclesComputed = 0;
-        dataToWrite = null; vramPointer = 0; paletteFirstWrite = null;
+        dataFirstWrite = null; dataPreRead = 0; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
@@ -2286,8 +2292,8 @@ wmsx.VDP = function(machine, cpu) {
     var spritesGlobalPriority;
 
     var vramPointer = 0;
-    var dataToWrite;
     var paletteFirstWrite;
+    var dataFirstWrite = null, dataPreRead = 0;
 
     var backdropColor;
     var backdropValue;
@@ -2377,7 +2383,7 @@ wmsx.VDP = function(machine, cpu) {
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             f: frame, c: cycles, cc: lastCPUCyclesComputed,
-            vp: vramPointer, d: dataToWrite, pw: paletteFirstWrite,
+            vp: vramPointer, d: dataFirstWrite, dr: dataPreRead, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
             bp: blinkEvenPage, bpd: blinkPageDuration,
@@ -2397,7 +2403,7 @@ wmsx.VDP = function(machine, cpu) {
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastCPUCyclesComputed = s.cc;
-        vramPointer = s.vp; dataToWrite = s.d; paletteFirstWrite = s.pw;
+        vramPointer = s.vp; dataFirstWrite = s.d; dataPreRead = s.dr || 0; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
         leftScrollCharsInPage = leftScrollChars & 31;
