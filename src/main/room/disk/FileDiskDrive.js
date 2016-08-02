@@ -431,4 +431,4 @@ wmsx.FileDiskDrive = function() {
 
 };
 
-wmsx.FileDiskDrive.MAX_STACK = 5;
+wmsx.FileDiskDrive.MAX_STACK = 10;

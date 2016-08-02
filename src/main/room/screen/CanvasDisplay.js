@@ -1234,6 +1234,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '.wmsx-select-dialog li {' +
             '    display: none;' +
             '    overflow: hidden;' +
+            '    height: 23px;' +
             '    background: rgb(70, 70, 70);' +
             '    margin: 7px 0;' +
             '    padding: 2px 10px;' +
@@ -1243,6 +1244,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '    border: 2px dashed transparent;' +
             '    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);' +
             '    white-space: nowrap;' +
+            '    box-sizing: border-box;' +
             '    cursor: pointer;' +
             '}' +
             '.wmsx-select-dialog li.wmsx-visible {' +

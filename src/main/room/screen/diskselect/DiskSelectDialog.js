@@ -41,11 +41,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
     function refreshList() {
         header.textContent = "Select Disk in Drive " + (drive === 1 ? "B:" : "A:") + " " + diskDrive.getCurrentDiskNumDesc(drive);
+        var height = 82 + Math.max(diskStack.length, 4) * 30;
+        dialog.style.height = "" + height + "px";
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
             if (i < diskStack.length) {
                 li.classList.add("wmsx-visible");
-                li.innerHTML = diskStack[i].name;
+                li.innerHTML = "" + (i + 1) + ":&nbsp;&nbsp;" + diskStack[i].name;
                 if (i === diskSelectedNum) li.classList.add("wmsx-selected");
                 else li.classList.remove("wmsx-selected");
             } else {
@@ -71,6 +73,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog = document.createElement("div");
         dialog.id = "wmsx-diskselect";
         dialog.classList.add("wmsx-select-dialog");
+        dialog.style.height = "270px";
         dialog.tabIndex = -1;
 
         header = document.createTextNode("Select Disk");
