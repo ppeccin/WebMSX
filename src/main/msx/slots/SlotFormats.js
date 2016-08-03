@@ -37,7 +37,7 @@ wmsx.SlotFormats = {
 
     "ExpandedS": {
         name: "ExpandedS",
-        desc: "System Expanded Slot",
+        desc: "Special System Expanded Slot",
         priority: 1003,
         priorityForRom: function (rom) {
             // Not Possible to load Expanded Slots
@@ -255,6 +255,22 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "GameMaster2": {
+        name: "GameMaster2",
+        desc: "Konami Game Master 2",
+        priority: 1509,
+        priorityForRom: function (rom) {
+            // 128K content. Must be selected via info format hint
+            return (rom.content.length === 131072) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeGameMaster2(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeGameMaster2.recreateFromSaveState(state, previousSlot);
         }
     },
 

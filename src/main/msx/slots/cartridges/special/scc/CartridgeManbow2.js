@@ -16,7 +16,7 @@ wmsx.CartridgeManbow2 = function(rom) {
     }
 
     this.getDataDesc = function() {
-        return "SRAM Data";
+        return "SRAM";
     };
 
     this.loadData = function(name, arrContent) {

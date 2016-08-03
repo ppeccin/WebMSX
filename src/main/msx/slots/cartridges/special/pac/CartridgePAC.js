@@ -14,7 +14,7 @@ wmsx.CartridgePAC = function(rom) {
     }
 
     this.getDataDesc = function() {
-        return "PAC Data";
+        return "SRAM";
     };
 
     this.loadData = function(name, arrContent) {
@@ -26,11 +26,7 @@ wmsx.CartridgePAC = function(rom) {
 
     this.getDataToSave = function() {
         var content = wmsx.CartridgePAC.buildPACFileContentToSave(sram);
-        return { fileName: sramContentName || (this.getDataDesc() + ".pac"), content: content };
-    };
-
-    this.connect = function(pMachine) {
-        machine = pMachine;
+        return { fileName: sramContentName || "PAC SRAM.pac", content: content };
     };
 
     this.powerOn = function() {
@@ -72,8 +68,6 @@ wmsx.CartridgePAC = function(rom) {
     var sramActive;
     this.sram = null;
     var sramContentName;
-
-    var machine;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.PACExpansion;
