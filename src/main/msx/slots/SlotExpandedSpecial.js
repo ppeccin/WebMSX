@@ -44,9 +44,9 @@ wmsx.SlotExpandedSpecial = function() {
         subSlot = subSlot || wmsx.SlotEmpty.singleton;
         if (subSlots[subSlotNumber] === subSlot) return;
 
-        subSlots[subSlotNumber].disconnect(machine);
+        if (machine) subSlots[subSlotNumber].disconnect(machine);
         subSlots[subSlotNumber] = subSlot;
-        subSlots[subSlotNumber].connect(machine);
+        if (machine) subSlots[subSlotNumber].connect(machine);
 
         switch (subSlotNumber) {
             case 0: subSlot0 = subSlot; return;

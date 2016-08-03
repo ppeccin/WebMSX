@@ -37,8 +37,9 @@ WMSX = {
 
     // General configuration
     BIOS_SLOT:                      [0],
+    BIOSEXT_SLOT:                   [2, 1],
     CARTRIDGE1_SLOT:                [1],
-    CARTRIDGE2_SLOT:                [2, 0],
+    CARTRIDGE2_SLOT:                [2],
     EXPANSION_SLOTS:                [[3, 2], [3, 3]],
     RAMMAPPER_SIZE:                 512,
 
@@ -137,23 +138,31 @@ WMSX.PRESETS_CONFIG = {
     VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },
     VSYNCHON:       { SCREEN_VSYNCH_MODE: 1 },
 
+    ALTSLOTCONFIG: {
+        BIOSEXT_SLOT:                      [3, 1],
+        EXPANSION_SLOTS:                   [[2, 2], [2, 3]],
+        "EXTENSIONS_CONFIG.DISK.SLOT":     [3, 2],
+        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3],
+        "EXTENSIONS_CONFIG.DOS2.SLOT":     [2, 3],
+        "EXTENSIONS_CONFIG.KANJI.SLOT":    [2, 1]
+    },
 
     // MSX2+ Machine Presets. Do not use directly
 
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
-        SLOT_0_URL:         "@MSX2P_NTSC.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios"
+        BIOS_URL:           "@MSX2P_NTSC.bios",
+        BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios"
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
-        SLOT_0_URL:         "@MSX2P_PAL.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios"
+        BIOS_URL:           "@MSX2P_PAL.bios",
+        BIOSEXT_URL:        "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios"
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
-        SLOT_0_URL:         "@MSX2P_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios"
+        BIOS_URL:           "@MSX2P_JAP.bios",
+        BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios"
     },
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE",
@@ -164,18 +173,18 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
-        SLOT_0_URL:         "@MSX2_NTSC.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_NTSC.bios"
+        BIOS_URL:           "@MSX2_NTSC.bios",
+        BIOSEXT_URL:        "@MSX2EXT_NTSC.bios"
     },
     _MSX2E: {
         _INCLUDE:           "_MSX2BASE",
-        SLOT_0_URL:         "@MSX2_PAL.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_PAL.bios"
+        BIOS_URL:           "@MSX2_PAL.bios",
+        BIOSEXT_URL:        "@MSX2EXT_PAL.bios"
     },
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
-        SLOT_0_URL:         "@MSX2_JAP.bios",
-        SLOT_2_1_URL:       "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
+        BIOS_URL:           "@MSX2_JAP.bios",
+        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
         KANJIBASIC:         true
     },
     _MSX2BASE: {
@@ -187,19 +196,19 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
-        SLOT_0_URL:         "@MSX1_NTSC.bios"
+        BIOS_URL:           "@MSX1_NTSC.bios"
     },
     _MSX1E: {
         _INCLUDE:           "_MSX1BASE",
-        SLOT_0_URL:         "@MSX1_PAL.bios"
+        BIOS_URL:           "@MSX1_PAL.bios"
     },
     _MSX1J: {
         _INCLUDE:           "_MSX1BASE",
-        SLOT_0_URL:         "@MSX1_JAP.bios"
+        BIOS_URL:           "@MSX1_JAP.bios"
     },
     _MSX1BASE: {
         _INCLUDE:           "_BASE, NOMSXMUSIC, NODOS2",
-        SLOT_2_1_URL:       "@[Empty].rom"
+        BIOSEXT_URL:        "@[Empty].rom"
     },
 
     // Base Machines Presets. Do not use directly

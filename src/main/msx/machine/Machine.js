@@ -207,13 +207,17 @@ wmsx.Machine = function() {
 
     function insertSlot(slot, slotPos) {
         if (typeof slotPos === "number") slotPos = [slotPos];
+
+        if ((!slot || slot === EMPTY_SLOT) && (getSlot(slotPos) || EMPTY_SLOT) === EMPTY_SLOT) return;
+
         var pri = slotPos[0], sec = slotPos[1];
 
         var curPriSlot = bus.getSlot(pri);
         if (sec >= 0) {
             if (!curPriSlot.isExpanded()) {
                 var oldPriSlot = curPriSlot;
-                curPriSlot = new wmsx.SlotExpanded();       // Automatically insert an ExpandedSlot if not present
+                // Automatically insert an ExpandedSlot if not present. SpecialExpandedSlot for primary slot 2
+                curPriSlot = pri === 2 ? new wmsx.SlotExpandedSpecial() : new wmsx.SlotExpanded();
                 bus.insertSlot(curPriSlot, pri);
                 if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
             }

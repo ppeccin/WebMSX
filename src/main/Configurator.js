@@ -97,24 +97,33 @@ wmsx.Configurator = {
     },
 
     slotURLSpecs: function() {
-        // Any URL specified in the format SLOT_N_N_URL
-        var slotsPars = Object.keys(WMSX).filter(function(key) {
-            return wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "URL")
-                && key.match(/[0-9]+/g);
-        });
+        var urlSpecs = [];
 
-        return slotsPars.map(function(key) {
-            var pos = key.match(/[0-9]+/g).map(function(strNum) {
-                return strNum | 0;
-            });
-            return {
-                url: WMSX[key],
+        // BIOS AND BIOS Extension URLs
+        if (WMSX.BIOS_URL) addSpec(WMSX.BIOS_URL, WMSX.BIOS_SLOT);
+        if (WMSX.BIOSEXT_URL) addSpec(WMSX.BIOSEXT_URL, WMSX.BIOSEXT_SLOT);
+
+        // Any URL specified in the format SLOT_N_N_URL
+        for (var key in WMSX) {
+            if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "URL")) {
+                var nums = key.match(/[0-9]+/g);
+                if (nums) {
+                    var pos = nums.map(function(strNum) { return strNum | 0; });
+                    addSpec(WMSX[key], pos);
+                }
+            }
+        }
+
+        function addSpec(url, pos) {
+            urlSpecs[urlSpecs.length] = {
+                url: url,
                 onSuccess: function (res) {
                     WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true);
                 }
-            }
+            };
+        }
 
-        });
+        return urlSpecs;
     },
 
     mediaURLSpecs: function() {
