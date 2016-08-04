@@ -1,10 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.ROMDatabase = {
+wmsx.ROMDatabase2 = {
 
 uncompress: function() {},
 
-version: 20160903,
+version: 20160804,
 
 // Entries from Vampier's file. Thanks to Vampier and the BlueMSX/OpenMSX teams! :-)
 
