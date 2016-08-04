@@ -1,4 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
+// Thanks to Vampier and the BlueMSX/OpenMSX teams for sharing their data! :-)
 
 // Version 20160804
 
