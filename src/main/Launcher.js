@@ -30,7 +30,7 @@ WMSX.start = function (powerOn) {
     wmsx.Util.log(WMSX.VERSION + " started");
 
     // Prepare ROM Database
-    wmsx.ROMDatabase.create();
+    wmsx.ROMDatabase.uncompress();
 
     // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
     if (WMSX.STATE_URL) {

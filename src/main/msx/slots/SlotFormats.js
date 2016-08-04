@@ -137,7 +137,7 @@ wmsx.SlotFormats = {
 
     "SCCExpansion": {
         name: "SCCExpansion",
-        desc: "SCC Sound Cartridge",
+        desc: "Konami SCC Sound Cartridge",
         priority: 1501,
         embeddedURL: "@[SCCExpansion].rom",
         priorityForRom: function (rom) {
@@ -154,7 +154,7 @@ wmsx.SlotFormats = {
 
     "SCCIExpansion": {
         name: "SCCIExpansion",
-        desc: "SCC-I (SCC+) Sound Cartridge",
+        desc: "Konami SCC-I (SCC+) Sound Mapper Cartridge",
         priority: 1502,
         embeddedURL: "@[SCCIExpansion].rom",
         priorityForRom: function (rom) {
@@ -171,7 +171,7 @@ wmsx.SlotFormats = {
 
     "MSXMUSIC": {
         name: "MSXMUSIC",
-        desc: "MSX-MUSIC Extension",
+        desc: "MSX-MUSIC Sound Extension",
         priority: 1504,
         embeddedURL: "@[MSXMUSIC].rom",
         priorityForRom: function (rom) {
@@ -188,7 +188,7 @@ wmsx.SlotFormats = {
 
     "FMPAC": {
         name: "FMPAC",
-        desc: "FM-PAC Sound Cartridge",
+        desc: "FM-PAC Sound Mapper Cartridge",
         priority: 1505,
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
@@ -204,7 +204,7 @@ wmsx.SlotFormats = {
 
     "MSXDOS2": {
         name: "MSXDOS2",
-        desc: "MSX-DOS 2 ROM Mapper",
+        desc: "MSX-DOS 2 Mapper Cartridge",
         priority: 1506,
         embeddedURL: "@[MSXDOS2]v22.rom",
         priorityForRom: function (rom) {
@@ -260,7 +260,7 @@ wmsx.SlotFormats = {
 
     "GameMaster2": {
         name: "GameMaster2",
-        desc: "Konami Game Master 2",
+        desc: "Konami Game Master 2 Mapper Cartridge",
         priority: 1509,
         priorityForRom: function (rom) {
             // 128K content. Must be selected via info format hint
@@ -355,7 +355,7 @@ wmsx.SlotFormats = {
 
     "KonamiSCC": {
         name: "KonamiSCC",
-        desc: "KonamiSCC Mapper Cartridge",
+        desc: "KonamiSCC Sound Mapper Cartridge",
         priority: 914,
         priorityForRom: function (rom) {
             // Any >= 8K content, multiple of 8K, starting with the Cartridge identifier "AB"
@@ -372,7 +372,7 @@ wmsx.SlotFormats = {
 
     "KonamiSCCI": {
         name: "KonamiSCCI",
-        desc: "SCC-I (SCC+) Sound Cartridge (in SCC-I mode)",
+        desc: "Konami SCC-I (SCC+) Sound Mapper Cartridge (in SCC-I mode)",
         priority: 1503,
         priorityForRom: function (rom) {
             // 0K, or any <= 128K content. Must be selected via info format hint
@@ -420,7 +420,7 @@ wmsx.SlotFormats = {
 
     "Manbow2": {
         name: "Manbow2",
-        desc: "Space Manbow 2 SCC Mapper Cartridge",
+        desc: "Space Manbow 2 SCC Sound Mapper Cartridge",
         priority: 1103,
         priorityForRom: function (rom) {
             // Only Manbow2 512K content. Must be selected via info format hint
@@ -435,3 +435,16 @@ wmsx.SlotFormats = {
     }
 
 };
+
+// Temporary approximations for formats not yet supported
+
+wmsx.SlotFormats.GenericKonami = wmsx.SlotFormats.Normal;
+wmsx.SlotFormats.ASCII8SRAM2 =   wmsx.SlotFormats.ASCII8;
+wmsx.SlotFormats.ASCII8SRAM8 =   wmsx.SlotFormats.ASCII8;
+wmsx.SlotFormats.KoeiSRAM32 =    wmsx.SlotFormats.ASCII8;
+wmsx.SlotFormats.ASCII16SRAM2 =  wmsx.SlotFormats.ASCII16;
+wmsx.SlotFormats.ASCII16SRAM8 =  wmsx.SlotFormats.ASCII16;
+wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;
+wmsx.SlotFormats.Kanji12 =       wmsx.SlotFormats.Kanji1;
+
+wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;     // Maybe actually the same
