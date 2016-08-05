@@ -587,7 +587,7 @@ wmsx.SettingsGUI.html = function() {
                     '<div class="wmsx-info">' +
                         atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") +
                         '<br>' +
-                        atob("PGEgaHJlZj0iaHR0cDovL3dlYm1zeC5vcmciPmh0dHA6Ly93ZWJtc3gub3JnPC9hPg==") +
+                        atob("PGEgdGFyZ2V0PSJfYmxhbmsiIGhyZWY9Imh0dHA6Ly93ZWJtc3gub3JnIj5odHRwOi8vd2VibXN4Lm9yZzwvYT4=") +
                     '</div>' +
                     '<div id="wmsx-browserinfo">' +
                     '</div>' +

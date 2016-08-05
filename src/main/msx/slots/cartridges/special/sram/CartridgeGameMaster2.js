@@ -37,41 +37,40 @@ wmsx.CartridgeGameMaster2 = function(rom) {
 
     this.reset = function() {
         bank2 = 1; bank3 = 2; bank4 = 3;
-        sramBbakOffset = 0;
-        sramActive = false;
     };
 
     this.write = function(address, value) {
         if (address < 0x6000 || address >= 0xc000)
             return;
+        // Bank select
         if (address < 0x7000) {
-            bank2 = (value & 0x3f);
+            bank2 = value;
             return;
         }
         if (address >= 0x8000 && address < 0x9000) {
-            bank3 = (value & 0x3f);
+            bank3 = value;
             return;
         }
         if (address >= 0xa000 && address < 0xb000) {
-            bank4 = (value & 0x3f);
+            bank4 = value;
             return;
         }
-        // SRAM write?
+        // SRAM write
         if (address >= 0xb000 && (bank4 & 0x10))
-            sram[((bank4 >> 5) << 12) + address - 0xb000] = value;
+            sram[((bank4 & 0x20) << 7) + address - 0xb000] = value;             // Only 4KB of SRAM visible, in 2 banks (bank in bit 5)
     };
 
     this.read = function(address) {
         switch (address & 0xe000) {
             case 0x4000: return bytes[address - 0x4000];                        // bank 1 fixed at 0
             case 0x6000: return bank2 & 0x10
-                ? sram[((bank2 >> 5) << 12) + ((address - 0x6000) & 0xfff)]     // SRAM access if bit 4 = 1. Only 4KB of SRAM visible, in 2 banks (bank in bit 5)
+                ? sram[((bank2 & 0x20) << 7) + ((address - 0x6000) & 0xfff)]    // SRAM access if bit 4 = 1. Only 4KB of SRAM visible, in 2 banks (bank in bit 5)
                 : bytes[((bank2 & 0x0f) << 13) + address - 0x6000];             // ROM  access if bit 4 = 0. 8K bank in bits 3-0
             case 0x8000: return bank3 & 0x10
-                ? sram[((bank3 >> 5) << 12) + ((address - 0x8000) & 0xfff)]
+                ? sram[((bank3 & 0x20) << 7) + ((address - 0x8000) & 0xfff)]
                 : bytes[((bank3 & 0x0f) << 13) + address - 0x8000];
             case 0xa000: return bank4 & 0x10
-                ? sram[((bank4 >> 5) << 12) + ((address - 0xa000) & 0xfff)]
+                ? sram[((bank4 & 0x20) << 7) + ((address - 0xa000) & 0xfff)]
                 : bytes[((bank4 & 0x0f) << 13) + address - 0xa000];
             default:     return 0xff;
         }
@@ -86,8 +85,6 @@ wmsx.CartridgeGameMaster2 = function(rom) {
     var bank4;
 
     var sram;
-    var sramBbakOffset;
-    var sramActive;
     this.sram = null;
     var sramContentName;
 
@@ -118,6 +115,7 @@ wmsx.CartridgeGameMaster2 = function(rom) {
         bank3 = s.b3;
         bank4 = s.b4;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
+        this.sram = sram;
         sramContentName = s.sn;
     };
 

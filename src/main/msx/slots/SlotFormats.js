@@ -158,7 +158,7 @@ wmsx.SlotFormats = {
         priority: 1502,
         embeddedURL: "@[SCCIExpansion].rom",
         priorityForRom: function (rom) {
-            // 0K, or any <= 128K content, multiple of 8K. Must be selected via info format hint
+            // 0K, or any <= 128K content. Must be selected via info format hint
             return rom.content.length <= 131072 ? this.priority : null;
         },
         createFromROM: function (rom) {
@@ -172,7 +172,7 @@ wmsx.SlotFormats = {
     "MSXMUSIC": {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Sound Extension",
-        priority: 1504,
+        priority: 1503,
         embeddedURL: "@[MSXMUSIC].rom",
         priorityForRom: function (rom) {
             // Only 16K content. Must be selected via info format hint
@@ -186,26 +186,10 @@ wmsx.SlotFormats = {
         }
     },
 
-    "FMPAC": {
-        name: "FMPAC",
-        desc: "FM-PAC Sound Mapper Cartridge",
-        priority: 1505,
-        priorityForRom: function (rom) {
-            // Only 64K content. Must be selected via info format hint
-            return (rom.content.length === 65536) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeFMPAC(rom);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeFMPAC.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
     "MSXDOS2": {
         name: "MSXDOS2",
         desc: "MSX-DOS 2 Mapper Cartridge",
-        priority: 1506,
+        priority: 1504,
         embeddedURL: "@[MSXDOS2]v22.rom",
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
@@ -222,7 +206,7 @@ wmsx.SlotFormats = {
     "PACExpansion": {
         name: "PACExpansion",
         desc: "PAC SRAM Cartridge",
-        priority: 1507,
+        priority: 1505,
         embeddedURL: "@[PACExpansion].rom",
         priorityForRom: function (rom, insertedCartridge) {
             // Only 0K content selected via info format hint
@@ -244,7 +228,7 @@ wmsx.SlotFormats = {
     "Kanji1": {
         name: "Kanji1",
         desc: "Kanji Font",
-        priority: 1508,
+        priority: 1506,
         embeddedURL: "@[Kanji1].rom",
         priorityForRom: function (rom) {
             // 128K or 256K content. Must be selected via info format hint
@@ -255,22 +239,6 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
-    "GameMaster2": {
-        name: "GameMaster2",
-        desc: "Konami Game Master 2 Mapper Cartridge",
-        priority: 1509,
-        priorityForRom: function (rom) {
-            // 128K content. Must be selected via info format hint
-            return (rom.content.length === 131072) ? this.priority : null;
-        },
-        createFromROM: function (rom) {
-            return new wmsx.CartridgeGameMaster2(rom);
-        },
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeGameMaster2.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -373,7 +341,7 @@ wmsx.SlotFormats = {
     "KonamiSCCI": {
         name: "KonamiSCCI",
         desc: "Konami SCC-I (SCC+) Sound Mapper Cartridge (in SCC-I mode)",
-        priority: 1503,
+        priority: 1101,
         priorityForRom: function (rom) {
             // 0K, or any <= 128K content. Must be selected via info format hint
             return rom.content.length <= 131072 ? this.priority : null;
@@ -386,10 +354,122 @@ wmsx.SlotFormats = {
         }
     },
 
+    "ASCII8SRAM2": {
+        name: "ASCII8SRAM2",
+        desc: "ASCII 8K SRAM 2K Mapper Cartridge",
+        priority: 1102,
+        priorityForRom: function (rom) {
+            // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
+            return (rom.content.length >= 8192 && rom.content.length <= 1048576 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII8KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII8KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "ASCII8SRAM8": {
+        name: "ASCII8SRAM8",
+        desc: "ASCII 8K SRAM 8K Mapper Cartridge",
+        priority: 1103,
+        priorityForRom: function (rom) {
+            // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
+            return (rom.content.length >= 8192 && rom.content.length <= 1048576 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII8KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII8KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "KoeiSRAM8": {
+        name: "KoeiSRAM8",
+        desc: "Koei 8K SRAM 8K Mapper Cartridge",
+        priority: 1104,
+        priorityForRom: function (rom) {
+            // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
+            return (rom.content.length >= 8192 && rom.content.length <= 1048576 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII8KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII8KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "KoeiSRAM32": {
+        name: "KoeiSRAM32",
+        desc: "Koei 8K SRAM 32K Mapper Cartridge",
+        priority: 1105,
+        priorityForRom: function (rom) {
+            // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
+            return (rom.content.length >= 8192 && rom.content.length <= 1048576 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII8KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII8KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Wizardry": {
+        name: "Wizardry",
+        desc: "Wizardry 8K SRAM 8K Mapper Cartridge",
+        priority: 1106,
+        priorityForRom: function (rom) {
+            // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
+            return (rom.content.length >= 8192 && rom.content.length <= 1048576 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII8KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII8KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "ASCII16SRAM2": {
+        name: "ASCII16SRAM2",
+        desc: "ASCII 16K SRAM 2K Mapper Cartridge",
+        priority: 1107,
+        priorityForRom: function (rom) {
+            // Any >= 16K and <= 2048K content, multiple of 16K. Must be selected via info format hint
+            return (rom.content.length >= 16384 && rom.content.length <= 2097152 && (rom.content.length & 0x3fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII16KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII16KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "ASCII16SRAM8": {
+        name: "ASCII16SRAM8",
+        desc: "ASCII 16K SRAM 8K Mapper Cartridge",
+        priority: 1108,
+        priorityForRom: function (rom) {
+            // Any >= 16K and <= 2048K content, multiple of 16K. Must be selected via info format hint
+            return (rom.content.length >= 16384 && rom.content.length <= 2097152 && (rom.content.length & 0x3fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII16KSRAM(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII16KSRAM.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "RType": {
         name: "RType",
         desc: "R-Type Mapper Cartridge",
-        priority: 1101,
+        priority: 1111,
         priorityForRom: function (rom) {
             // Only R-Type 384K content. Must be selected via info format hint
             return (rom.content.length === 393216) ? this.priority : null;
@@ -405,7 +485,7 @@ wmsx.SlotFormats = {
     "CrossBlaim": {
         name: "CrossBlaim",
         desc: "CrossBlaim Mapper Cartridge",
-        priority: 1102,
+        priority: 1112,
         priorityForRom: function (rom) {
             // Only CrossBlaim 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
@@ -421,7 +501,7 @@ wmsx.SlotFormats = {
     "Manbow2": {
         name: "Manbow2",
         desc: "Space Manbow 2 SCC Sound Mapper Cartridge",
-        priority: 1103,
+        priority: 1113,
         priorityForRom: function (rom) {
             // Only Manbow2 512K content. Must be selected via info format hint
             return (rom.content.length === 524288) ? this.priority : null;
@@ -432,6 +512,38 @@ wmsx.SlotFormats = {
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeManbow2.recreateFromSaveState(state, previousSlot);
         }
+    },
+
+    "GameMaster2": {
+        name: "GameMaster2",
+        desc: "Konami Game Master 2 Mapper Cartridge",
+        priority: 1114,
+        priorityForRom: function (rom) {
+            // Only Game Master 2 128K content. Must be selected via info format hint
+            return (rom.content.length === 131072) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeGameMaster2(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeGameMaster2.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "FMPAC": {
+        name: "FMPAC",
+        desc: "FM-PAC Sound Mapper Cartridge",
+        priority: 1115,
+        priorityForRom: function (rom) {
+            // Only FMPAC 64K content. Must be selected via info format hint
+            return (rom.content.length === 65536) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeFMPAC(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeFMPAC.recreateFromSaveState(state, previousSlot);
+        }
     }
 
 };
@@ -439,12 +551,6 @@ wmsx.SlotFormats = {
 // Temporary approximations for formats not yet supported
 
 wmsx.SlotFormats.GenericKonami = wmsx.SlotFormats.Normal;
-wmsx.SlotFormats.ASCII8SRAM2 =   wmsx.SlotFormats.ASCII8;
-wmsx.SlotFormats.ASCII8SRAM8 =   wmsx.SlotFormats.ASCII8;
-wmsx.SlotFormats.KoeiSRAM32 =    wmsx.SlotFormats.ASCII8;
-wmsx.SlotFormats.ASCII16SRAM2 =  wmsx.SlotFormats.ASCII16;
-wmsx.SlotFormats.ASCII16SRAM8 =  wmsx.SlotFormats.ASCII16;
 wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;
 wmsx.SlotFormats.Kanji12 =       wmsx.SlotFormats.Kanji1;
-
 wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;     // Maybe actually the same

@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 // Thanks to Vampier and the BlueMSX/OpenMSX teams for sharing their data! :-)
 
-wmsx.ROMDatabase = {
+wmsx.ROMDatabase2 = {
 
 uncompress: function() {},
 
@@ -1198,7 +1198,7 @@ version: 20160804,
 "B188980C998D1DFB5DFBC21837FFBBB5AFFDBB3C":{n:"Waves",f:"ASCII8"},
 "BADCB43E490E3713BF291E83CFF204E1C57ECDFE":{n:"Waves",f:"ASCII8"},
 "818D91505AD39BBA2EAF7F4857C7D41E95FCB233":{n:"Wing Man 2",f:"ASCII8"},
-"34635BF3518C7B33164F3D96DA769C7A01102D28":{n:"Wizardry",f:"ASCII8SRAM8"},
+"34635BF3518C7B33164F3D96DA769C7A01102D28":{n:"Wizardry",f:"Wizardry"},
 "F98F9C0FD32B2392B57B14105A9B730C8957D9B9":{n:"Won-Si-In",f:"Konami"},
 "C7035F1E915D29EB6E3E44456570911881430D89":{n:"Won-Si-In",f:"ASCII16"},
 "EBE20C85C5314957FAFC223C26BF393847E3BB03":{n:"Woody Poco",f:"ASCII16"},
