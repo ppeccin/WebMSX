@@ -723,6 +723,7 @@ wmsx.SettingsGUI.css = function() {
            'font-size: 35px;' +
            'color: white;' +
            'cursor: pointer;' +
+           'box-sizing: content-box;' +
            '-webkit-font-smoothing: antialiased;' +
            '-moz-osx-font-smoothing: grayscale;' +
        '}' +
@@ -746,6 +747,7 @@ wmsx.SettingsGUI.css = function() {
            'background: rgb(235, 40, 35);' +
            'box-shadow: 0 1px 4px rgba(0, 0, 0, .80);' +
            'vertical-align: middle;' +
+           'box-sizing: content-box;' +
            '-webkit-font-smoothing: antialiased;' +
            '-moz-osx-font-smoothing: grayscale;' +
        '}' +

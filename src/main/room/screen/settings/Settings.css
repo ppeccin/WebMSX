@@ -122,6 +122,7 @@
     padding: 0 11px;
     font-size: 35px;
     color: white;
+    box-sizing: content-box;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: pointer;
@@ -148,6 +149,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     vertical-align: middle;
+    box-sizing: content-box;
 }
 
 #wmsx-menu .wmsx-items {
