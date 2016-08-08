@@ -264,10 +264,10 @@ wmsx.SCCIAudio = function() {
     var audioSignal;
     var audioSocket;
 
-    var CHANNEL_MAX_VOLUME = 0.25 / 128;        // Sample values in the range -128..127
+    var CHANNEL_MAX_VOLUME = 0.23 / 128;        // Sample values in the range -128..+127
     var CHANNEL_VOLUME_CURVE_POWER = 3;         // Sounds more linear than the normal PSG channels
 
-    var VOLUME = 0.46;
+    var VOLUME = 0.50;
     var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // main cpu clock / 32 = 112005hz
 
 

@@ -514,10 +514,42 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Majutsushi": {
+        name: "Majutsushi",
+        desc: "Konami Hai no Majutsushi PCM Mapper Cartridge",
+        priority: 1114,
+        priorityForRom: function (rom) {
+            // Hai no Majutsushi or similar content, multiple of 8K. Must be selected via info format hint
+            return (rom.content.length > 0 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeMajutsushi(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeMajutsushi.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Synthesizer": {
+        name: "Synthesizer",
+        desc: "Konami Synthesizer PCM Cartridge",
+        priority: 1115,
+        priorityForRom: function (rom) {
+            // "Konami Synthesizer or similar content, content <= 32K multiple of 8K. Must be selected via info format hint
+            return (rom.content.length > 0 && rom.content.length <= 32768 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSynthesizer(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSynthesizer.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "GameMaster2": {
         name: "GameMaster2",
         desc: "Konami Game Master 2 Mapper Cartridge",
-        priority: 1114,
+        priority: 1121,
         priorityForRom: function (rom) {
             // Only Game Master 2 128K content. Must be selected via info format hint
             return (rom.content.length === 131072) ? this.priority : null;
@@ -533,7 +565,7 @@ wmsx.SlotFormats = {
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC Sound Mapper Cartridge",
-        priority: 1115,
+        priority: 1122,
         priorityForRom: function (rom) {
             // Only FMPAC 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;

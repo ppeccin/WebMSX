@@ -75,7 +75,7 @@ wmsx.PSGAudio = function(audioSocket) {
             }
         }
 
-        //// Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
+        // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
         return (amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA)
              + (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB)
              + (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC)

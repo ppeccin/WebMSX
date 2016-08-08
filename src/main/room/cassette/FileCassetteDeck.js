@@ -162,9 +162,12 @@ wmsx.FileCassetteDeck = function() {
     };
 
     function seekHeader(dir, from) {
-        do {
-            tapePosition = wmsx.Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition + (from || 0), dir);
-        } while ((tapePosition !== -1) && ((tapePosition % 8) !== 0));
+        from = from || 0;
+        // Verify: Removed the restriction for Headers to be at multiples of 8 bytes position. CAS files found for Konami Synthesizer does not honor this.
+        //do {
+            tapePosition = wmsx.Util.arrayIndexOfSubArray(tapeContent, HEADER, tapePosition + from, dir);
+            //from = from || dir;
+        //} while (tapePosition !== -1 && (tapePosition % 8) !== 0);
         if (tapePosition === -1) dir === -1 ? toTapeStart() : toTapeEnd();
     }
 
