@@ -7,8 +7,6 @@ wmsx.SlotFormatsNotSupported = {
     "Zemina80in1": 0,           // Make Support                                 3 games, 1 has alts
     "Zemina90in1": 0,           // Make Support                                 1 game, no alts
     "Halnote": 0,               // Make Support                                 1 game, no alts. Has 16K SRAM
-    "AlQuran": 0,               // Make Support                                 1 game, encrypted
-    "AlQuranDecoded": 0,        // Make Support                                 1 game, decrypted
     "MatraInk": 0,              // Make Support                                 1 game, no alts. Crazy flash ship. Not so great game
     "MSXWrite": 0,              // Make Support                                 1 game, no alts. Almost like ASCII16
     "keyboardmaster": 0,        // Make Support                                 1 game, has alts. Special sound chip
