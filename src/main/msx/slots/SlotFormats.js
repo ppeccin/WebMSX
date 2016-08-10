@@ -610,6 +610,38 @@ wmsx.SlotFormats = {
         }
     },
 
+    "AlQuran": {
+        name: "AlQuran",
+        desc: "The Holy Quran Mapper Cartridge (Encoded)",
+        priority: 1118,
+        priorityForRom: function (rom) {
+            // Only Holy Quran 1024K content. Must be selected via info format hint
+            return (rom.content.length === 1048576) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeAlQuran(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeAlQuran.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "AlQuranDecoded": {
+        name: "AlQuranDecoded",
+        desc: "The Holy Quran Mapper Cartridge (Decoded)",
+        priority: 1119,
+        priorityForRom: function (rom) {
+            // Only Holy Quran 1024K content. Must be selected via info format hint
+            return (rom.content.length === 1048576) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeAlQuran(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeAlQuran.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC Sound Mapper Cartridge",
