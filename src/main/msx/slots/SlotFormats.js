@@ -581,7 +581,7 @@ wmsx.SlotFormats = {
     "GameMaster2": {
         name: "GameMaster2",
         desc: "Konami Game Master 2 Mapper Cartridge",
-        priority: 1121,
+        priority: 1116,
         priorityForRom: function (rom) {
             // Only Game Master 2 128K content. Must be selected via info format hint
             return (rom.content.length === 131072) ? this.priority : null;
@@ -594,10 +594,26 @@ wmsx.SlotFormats = {
         }
     },
 
+    "HarryFox": {
+        name: "HarryFox",
+        desc: "HarryFox Mapper Cartridge",
+        priority: 1117,
+        priorityForRom: function (rom) {
+            // Only Harry Fox 64K content. Must be selected via info format hint
+            return (rom.content.length === 65536) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeHarryFox(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeHarryFox.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC Sound Mapper Cartridge",
-        priority: 1122,
+        priority: 1121,
         priorityForRom: function (rom) {
             // Only FMPAC 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
@@ -612,9 +628,10 @@ wmsx.SlotFormats = {
 
 };
 
-// Temporary approximations for formats not yet supported
+// Temporary approximations for formats not yet supported/verified
 
 wmsx.SlotFormats.GenericKonami = wmsx.SlotFormats.Normal;
-wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;
-wmsx.SlotFormats.Kanji12 =       wmsx.SlotFormats.Kanji1;
-wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;     // Maybe actually the same
+wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFLash SCC)
+wmsx.SlotFormats.HamarajaNight = wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFLash SCC)
+wmsx.SlotFormats.Kanji12 =       wmsx.SlotFormats.Kanji1;      // Kanji1 supports both formats
+wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;       // Maybe actually the same

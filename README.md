@@ -76,7 +76,7 @@ The ROM Format is auto-detected. To force a format, use the `CARTRIDGE1_FORMAT` 
 You can also put the format specification in the ROM file name, between brackets. Example: `Game [KonamiSCC].rom`
 
 #### Valid Formats
-`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `RType`, `CrossBlaim`, `Manbow2`
+`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`
 
 ## Enabling Extensions
 
