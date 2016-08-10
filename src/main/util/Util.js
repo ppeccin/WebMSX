@@ -238,12 +238,14 @@ wmsx.Util = new function() {
     };
 
     this.toHex2 = function(num) {
+        if (num === null || num === undefined) return num;
         var res = num.toString(16).toUpperCase();
         if (num >= 0 && (res.length % 2)) return "0" + res;
         else return res;
     };
 
     this.toHex4 = function(num) {
+        if (num === null || num === undefined) return num;
         var res = num.toString(16).toUpperCase();
         if (num < 0) return res;
         switch (res.length) {

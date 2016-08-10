@@ -246,7 +246,7 @@ wmsx.SlotFormats = {
 
     "Normal": {
         name: "Normal",
-        desc: "Normal ROM",
+        desc: "Normal ROM, Mirroring Auto",     // Will choose either Mirrored or NotMirrored
         priority: 901,
         priorityForRom: function (rom) {
             // Any 8K or 16K content starting with the Cartridge identifier "AB"
@@ -263,7 +263,39 @@ wmsx.SlotFormats = {
             return null;
         },
         createFromROM: function (rom) {
-            return new wmsx.SlotNormal(rom);
+            return new wmsx.SlotNormal(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotNormal.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Mirrored": {
+        name: "Mirrored",
+        desc: "Normal ROM, Mirrored",
+        priority: 902,
+        priorityForRom: function (rom) {
+            // Same rules of Normal. Can be selected by hint or automatically selected by ROM analysis
+            return wmsx.SlotFormats.Normal.priorityForRom(rom);
+        },
+        createFromROM: function (rom) {
+            return new wmsx.SlotNormal(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotNormal.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "NotMirrored": {
+        name: "NotMirrored",
+        desc: "Normal ROM, Not Mirrored",
+        priority: 903,
+        priorityForRom: function (rom) {
+            // Same rules of Normal. Can be selected by hint or automatically selected by ROM analysis
+            return wmsx.SlotFormats.Normal.priorityForRom(rom);
+        },
+        createFromROM: function (rom) {
+            return new wmsx.SlotNormal(rom, this);
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.SlotNormal.recreateFromSaveState(state, previousSlot);
