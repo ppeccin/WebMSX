@@ -45,7 +45,7 @@ wmsx.CartridgeASCII16KSRAM = function(rom, format) {
     };
 
     this.reset = function() {
-        bank1 = 0; bank2 = 1;
+        bank1 = bank2 = 0;
     };
 
     this.write = function(address, value) {

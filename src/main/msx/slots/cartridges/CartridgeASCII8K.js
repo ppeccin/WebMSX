@@ -18,7 +18,7 @@ wmsx.CartridgeASCII8K = function(rom) {
     };
 
     this.reset = function() {
-        bank1Offset = bank2Offset = bank3Offset = bank4Offset = -0x4000;
+        bank1Offset = -0x4000; bank2Offset = -0x6000; bank3Offset = -0x8000; bank4Offset = -0xc000;
     };
 
     this.write = function(address, value) {
