@@ -90,7 +90,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMNORMAL: {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
     MSXMUSIC:  { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
     DOS2:      { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "MSXDOS2",       require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
-    KANJI:     { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1",        requireFlag: "KANJIBASIC" },
+    KANJI:     { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1" },
     SCCI:      { desc: "Konami SCC+",   SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
     SCC:       { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
     PAC:       { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2, 0], format: "PACExpansion",  remove: "SCC, SCCI" }
@@ -165,8 +165,7 @@ WMSX.PRESETS_CONFIG = {
         BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios"
     },
     _MSX2PBASE: {
-        _INCLUDE:           "_MSX2BASE",
-        KANJIBASIC:         true
+        _INCLUDE:           "_MSX2BASE"
     },
 
     // MSX2 Machine Presets. Do not use directly
@@ -184,8 +183,7 @@ WMSX.PRESETS_CONFIG = {
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
         BIOS_URL:           "@MSX2_JAP.bios",
-        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
-        KANJIBASIC:         true
+        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios"
     },
     _MSX2BASE: {
         _INCLUDE:           "_BASE, RAM512, MSXMUSIC",
@@ -215,8 +213,7 @@ WMSX.PRESETS_CONFIG = {
 
     _BASE: {
         _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
-        MSX2:               false,
-        KANJIBASIC:         false
+        MSX2:               false
     }
 
 };

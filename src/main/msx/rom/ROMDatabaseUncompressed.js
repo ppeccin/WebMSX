@@ -1,11 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
-// Thanks to Vampier and the BlueMSX/OpenMSX teams for sharing their data! :-)
+// Thanks to Vampier and the BlueMSX/OpenMSX teams for sharing the data! :-)
 
 wmsx.ROMDatabase2 = {
 
 uncompress: function() {},
 
-version: 20160804,
+version: 20160811,
 
 // Entries from Vampier's file
 
@@ -1543,7 +1543,7 @@ version: 20160804,
 "126015F4020E09D20610FB6637596EE9A52B24FF":{"n":"F1 Douchuuki","f":"KonamiSCC"},
 "DCDA317D75096E1871D37C3F49756F701F7AC756":{"n":"F1 Douchuuki","f":"KonamiSCC"},
 "293C297CDAC4B255E82453F45301EEBF9EED9229":{"n":"Family Stadium Professional Baseball Homerun Contest","f":"KonamiSCC"},
-"F4DBA5BA267B5DD1A35EB74A6EC4FD4D5CA9A1B4":{"n":"Kanji ROM - JIS 1st+2nd Class","f":"ASCII16"},
+"F4DBA5BA267B5DD1A35EB74A6EC4FD4D5CA9A1B4":{"n":"Kanji ROM - JIS 1st+2nd Class","f":"Kanji1"},
 "7A3450BC0ECC9D34389D907DB8D787E2F07DF5CB":{"n":"Kempelen Chess","f":"ASCII16"},
 "00000000206B2A47F437BA9DFC85F6D01C9E2C18":{"n":"King Kong 2","f":"Konami"},
 "93252640813143ED6B4E6183A6FBC7FCC28C09C7":{"n":"Konami Game Collection Extra","f":"KonamiSCC"},
