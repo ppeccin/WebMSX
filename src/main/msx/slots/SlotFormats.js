@@ -329,7 +329,7 @@ wmsx.SlotFormats = {
                 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeASCII16K(rom);
+            return new wmsx.CartridgeASCII16K(rom, this);
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeASCII16K.recreateFromSaveState(state, previousSlot);
@@ -642,10 +642,26 @@ wmsx.SlotFormats = {
         }
     },
 
+    "MSXWrite": {
+        name: "MSXWrite",
+        desc: "MSX Write Mapper Cartridge",
+        priority: 1120,
+        priorityForRom: function (rom) {
+            // Only MSX Write 512K content. Must be selected via info format hint
+            return (rom.content.length === 524288) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII16K(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII16K.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC Sound Mapper Cartridge",
-        priority: 1121,
+        priority: 1151,
         priorityForRom: function (rom) {
             // Only FMPAC 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;

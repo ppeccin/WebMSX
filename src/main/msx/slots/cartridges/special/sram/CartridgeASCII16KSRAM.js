@@ -49,10 +49,8 @@ wmsx.CartridgeASCII16KSRAM = function(rom, format) {
     };
 
     this.write = function(address, value) {
-        if (address < 0x6000 || address >= 0xc000)
-            return;
         // Bank select
-        if (address < 0x6800) {
+        if (address >= 0x6000 && address < 0x6800) {
             bank1 = value;
             return;
         }
@@ -61,9 +59,8 @@ wmsx.CartridgeASCII16KSRAM = function(rom, format) {
             return;
         }
         // SRAM write bank 2
-        if (address >= 0x8000 && (bank2 & sramSelectMask)) {
+        if (address >= 0x8000 && address < 0xc000 && (bank2 & sramSelectMask))
             sram[(address - 0x8000) & sramSizeMask] = value;
-        }
     };
 
     this.read = function(address) {
