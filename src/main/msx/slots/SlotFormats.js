@@ -658,10 +658,26 @@ wmsx.SlotFormats = {
         }
     },
 
+    "SuperSwangi": {
+        name: "SuperSwangi",
+        desc: "Super Swangi Mapper Cartridge",
+        priority: 1121,
+        priorityForRom: function (rom) {
+            // Only Super Swangi content, multiple of 16K. Must be selected via info format hint
+            return (rom.content.length >= 16384 && (rom.content.length & 0x3fff) === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSuperSwangi(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSuperSwangi.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "MSXWrite": {
         name: "MSXWrite",
         desc: "MSX Write Mapper Cartridge",
-        priority: 1121,
+        priority: 1122,
         priorityForRom: function (rom) {
             // Only MSX Write 512K content. Must be selected via info format hint
             return (rom.content.length === 524288) ? this.priority : null;
@@ -689,7 +705,6 @@ wmsx.SlotFormats = {
             return wmsx.CartridgeFMPAC.recreateFromSaveState(state, previousSlot);
         }
     }
-
 };
 
 // Temporary approximations for formats not yet supported/verified

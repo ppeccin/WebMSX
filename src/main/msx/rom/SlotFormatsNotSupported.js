@@ -11,10 +11,9 @@ wmsx.SlotFormatsNotSupported = {
     "NettouYakyuu": 0,          // Make Support                                 1 game, no alts. Special sound chip
     "Playball": 0,              // Make Support                                 2 games, no alts. Special sound chip
     "SuperLodeRunner": 0,       // Make Support                                 1 game, has alts. Ignores slot select?
-    "SuperSwangi": 0,           // Make Support                                 1 game, no alts. Almost like ASCII16. Not so great game
 
-    "Manbow2_2": 0,             // Points to Manbow2                            1 game, has alt.      Can't find ROM. Same as Manbow2? (MegaFlash SCC)
-    "HamarajaNight": 0,         // Points to Manbow2                            1 game, has disk alt. Can't find ROM. Same as Manbow2? (MegaFlash SCC)
+    "Manbow2_2": 0,             // Points to Manbow2                            1 game, has alt.      Can't find ROM. Same mapper as Manbow2? (MegaFlash SCC)
+    "HamarajaNight": 0,         // Points to Manbow2                            1 game, has disk alt. Can't find ROM. Same mapper as Manbow2? (MegaFlash SCC)
 
     "MSXAUDIO": 0,              // Make Support                                 System ROM
     "Kanji12": 0                // Points to Kanji1, which supports both        System ROM
