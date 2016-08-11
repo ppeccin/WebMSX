@@ -29,7 +29,7 @@ wmsx.CartridgeManbow2 = function(rom) {
 
     this.getDataToSave = function() {
         var content = new Uint8Array(bytes.slice(458752));      // Last 64K
-        return { fileName: sramContentName || "Manbow2.dat", content: content };
+        return { fileName: sramContentName || "Manbow2.sram", content: content };
     };
 
     this.connect = function(machine) {
@@ -78,18 +78,18 @@ wmsx.CartridgeManbow2 = function(rom) {
             case 0x4000:
                 writeMem(bank1Offset + address, value);
                 if (address >= 0x5000 && address <= 0x57ff)
-                    bank1Offset = (value & bankSelMask) * 0x2000 - 0x4000;
+                    bank1Offset = ((value & bankSelMask) << 13) - 0x4000;
                 return;
             case 0x6000:
                 writeMem(bank2Offset + address, value);
                 if (address >= 0x7000 && address <= 0x77ff)
-                    bank2Offset = (value & bankSelMask) * 0x2000 - 0x6000;
+                    bank2Offset = ((value & bankSelMask) << 13) - 0x6000;
                 return;
             case 0x8000:
                 if (sccSelected && address >= 0x9800) scc.write(address, value);
                 writeMem(bank3Offset + address, value);
                 if (address >= 0x9000 && address <= 0x97ff) {
-                    bank3Offset = (value & bankSelMask) * 0x2000 - 0x8000;
+                    bank3Offset = ((value & bankSelMask) << 13) - 0x8000;
                     sccSelected = (value & 0x3f) === 0x3f;               // Special value to activate the SCC
                     if (sccSelected && !sccConnected) connectSCC();
                 }

@@ -23,7 +23,7 @@ wmsx.CartridgeRType = function(rom) {
     this.write = function(address, value) {
         // bank1 fixed at page 0x0f
         if (address >= 0x7000 && address < 0x8000)
-            bank2Offset = (value % 24) * 0x4000 - 0x8000;
+            bank2Offset = ((value % 24) << 14) - 0x8000;
     };
 
     this.read = function(address) {

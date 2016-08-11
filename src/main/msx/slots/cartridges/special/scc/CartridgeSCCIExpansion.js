@@ -80,19 +80,19 @@ wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
                 if (bank1RamMode)
                     bytes[bank1Offset + address] = value;
                 else if (address >= 0x5000 && address <= 0x57ff)
-                    bank1Offset = (value & 0x0f) * 0x2000 - 0x4000;
+                    bank1Offset = ((value & 0x0f) << 13) - 0x4000;
                 return;
             case 0x6000:
                 if (bank2RamMode)
                     bytes[bank2Offset + address] = value;
                 else if (address >= 0x7000 && address <= 0x77ff)
-                    bank2Offset = (value & 0x0f) * 0x2000 - 0x6000;
+                    bank2Offset = ((value & 0x0f) << 13) - 0x6000;
                 return;
             case 0x8000:
                 if (bank3RamMode)
                     bytes[bank3Offset + address] = value;
                 else if (address >= 0x9000 && address <= 0x97ff) {
-                    bank3Offset = (value & 0x0f) * 0x2000 - 0x8000;
+                    bank3Offset = ((value & 0x0f) << 13) - 0x8000;
                     sccSelected = (value & 0x3f) === 0x3f;               // Special value to activate the SCC
                     if (sccSelected && !sccConnected) connectSCC();
                 } else if ((address >= 0x9800) && sccSelected && !scciMode)
@@ -102,7 +102,7 @@ wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
                 if (bank4RamMode)
                     bytes[bank4Offset + address] = value;
                 else if (address >= 0xb000 && address <= 0xb7ff) {
-                    bank4Offset = (value & 0x0f) * 0x2000 - 0xa000;
+                    bank4Offset = ((value & 0x0f) << 13) - 0xa000;
                     scciSelected = (value & 0x80) === 0x80;              // Special value to activate the SCC-I
                     if (scciSelected && !sccConnected) connectSCC();
                 } else if ((address >= 0xb800) && scciSelected && scciMode)

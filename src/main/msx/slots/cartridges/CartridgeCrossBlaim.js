@@ -21,7 +21,7 @@ wmsx.CartridgeCrossBlaim = function(rom) {
 
     this.write = function(address, value) {
         if (address === 0x4045)
-            bank2Offset = (value % 4) * 0x4000 - 0x8000;
+            bank2Offset = ((value & 0x03) << 14) - 0x8000;
     };
 
     this.read = function(address) {

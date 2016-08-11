@@ -41,15 +41,15 @@ wmsx.CartridgeKonamiSCC = function(rom) {
         //wmsx.Util.log("Write: " + wmsx.Util.toHex4(address) + ", value: " + wmsx.Util.toHex2(value));
 
         if (address >= 0x5000 && address <= 0x57ff) {
-            bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
+            bank1Offset = ((value % numBanks) << 13) - 0x4000;
             return;
         }
         if (address >= 0x7000 && address <= 0x77ff) {
-            bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
+            bank2Offset = ((value % numBanks) << 13) - 0x6000;
             return;
         }
         if (address >= 0x9000 && address <= 0x97ff) {
-            bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
+            bank3Offset = ((value % numBanks) << 13) - 0x8000;
             if ((value & 0x3f) === 0x3f) {                           // Special value to activate the SCC
                 sccSelected = true;
                 if (!sccConnected) connectSCC();
@@ -62,7 +62,7 @@ wmsx.CartridgeKonamiSCC = function(rom) {
             return;
         }
         if (address >= 0xb000 && address <= 0xb7ff)
-            bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
+            bank4Offset = ((value % numBanks) << 13) - 0xa000;
     };
 
     this.read = function(address) {

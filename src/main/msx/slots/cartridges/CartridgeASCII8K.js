@@ -18,26 +18,26 @@ wmsx.CartridgeASCII8K = function(rom) {
     };
 
     this.reset = function() {
-        bank1Offset = -0x4000; bank2Offset = -0x6000; bank3Offset = -0x8000; bank4Offset = -0xc000;
+        bank1Offset = -0x4000; bank2Offset = -0x6000; bank3Offset = -0x8000; bank4Offset = -0xa000;
     };
 
     this.write = function(address, value) {
         if (address < 0x6000)
             return;
         if (address < 0x6800) {
-            bank1Offset = (value % numBanks) * 0x2000 - 0x4000;
+            bank1Offset = ((value % numBanks) << 13) - 0x4000;
             return;
         }
         if (address < 0x7000) {
-            bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
+            bank2Offset = ((value % numBanks) << 13) - 0x6000;
             return;
         }
         if (address < 0x7800) {
-            bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
+            bank3Offset = ((value % numBanks) << 13) - 0x8000;
             return;
         }
         if (address < 0x8000)
-            bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
+            bank4Offset = ((value % numBanks) << 13) - 0xa000;
     };
 
     this.read = function(address) {

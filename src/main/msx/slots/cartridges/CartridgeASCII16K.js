@@ -25,11 +25,11 @@ wmsx.CartridgeASCII16K = function(rom, format) {
 
     this.write = function(address, value) {
         if ((address >= 0x6000 && address < 0x6800) || address === extraBank1Switch) {
-            bank1Offset = (value % numBanks) * 0x4000 - 0x4000;
+            bank1Offset = ((value % numBanks) << 14) - 0x4000;
             return;
         }
         if ((address >= 0x7000 && address < 0x7800) || address === extraBank2Switch)
-            bank2Offset = (value % numBanks) * 0x4000 - 0x8000;
+            bank2Offset = ((value % numBanks) << 14) - 0x8000;
     };
 
     this.read = function(address) {

@@ -420,7 +420,7 @@ wmsx.SlotFormats = {
 
     "KoeiSRAM8": {
         name: "KoeiSRAM8",
-        desc: "Koei 8K SRAM 8K Mapper Cartridge",
+        desc: "Koei SRAM 8K Mapper Cartridge",
         priority: 1104,
         priorityForRom: function (rom) {
             // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
@@ -436,7 +436,7 @@ wmsx.SlotFormats = {
 
     "KoeiSRAM32": {
         name: "KoeiSRAM32",
-        desc: "Koei 8K SRAM 32K Mapper Cartridge",
+        desc: "Koei SRAM 32K Mapper Cartridge",
         priority: 1105,
         priorityForRom: function (rom) {
             // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
@@ -452,7 +452,7 @@ wmsx.SlotFormats = {
 
     "Wizardry": {
         name: "Wizardry",
-        desc: "Wizardry 8K SRAM 8K Mapper Cartridge",
+        desc: "Wizardry SRAM Mapper Cartridge",
         priority: 1106,
         priorityForRom: function (rom) {
             // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
@@ -580,7 +580,7 @@ wmsx.SlotFormats = {
 
     "GameMaster2": {
         name: "GameMaster2",
-        desc: "Konami Game Master 2 Mapper Cartridge",
+        desc: "Konami Game Master 2 SRAM Mapper Cartridge",
         priority: 1116,
         priorityForRom: function (rom) {
             // Only Game Master 2 128K content. Must be selected via info format hint
@@ -610,10 +610,26 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Halnote": {
+        name: "Halnote",
+        desc: "Halnote SRAM Mapper Cartridge",
+        priority: 1118,
+        priorityForRom: function (rom) {
+            // Only Halnote 1024K content. Must be selected via info format hint
+            return (rom.content.length === 1048576) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeHalnote(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeHalnote.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "AlQuran": {
         name: "AlQuran",
         desc: "The Holy Quran Mapper Cartridge (Encoded)",
-        priority: 1118,
+        priority: 1119,
         priorityForRom: function (rom) {
             // Only Holy Quran 1024K content. Must be selected via info format hint
             return (rom.content.length === 1048576) ? this.priority : null;
@@ -629,7 +645,7 @@ wmsx.SlotFormats = {
     "AlQuranDecoded": {
         name: "AlQuranDecoded",
         desc: "The Holy Quran Mapper Cartridge (Decoded)",
-        priority: 1119,
+        priority: 1120,
         priorityForRom: function (rom) {
             // Only Holy Quran 1024K content. Must be selected via info format hint
             return (rom.content.length === 1048576) ? this.priority : null;
@@ -645,7 +661,7 @@ wmsx.SlotFormats = {
     "MSXWrite": {
         name: "MSXWrite",
         desc: "MSX Write Mapper Cartridge",
-        priority: 1120,
+        priority: 1121,
         priorityForRom: function (rom) {
             // Only MSX Write 512K content. Must be selected via info format hint
             return (rom.content.length === 524288) ? this.priority : null;
@@ -660,7 +676,7 @@ wmsx.SlotFormats = {
 
     "FMPAC": {
         name: "FMPAC",
-        desc: "FM-PAC Sound Mapper Cartridge",
+        desc: "FM-PAC SRAM Sound Mapper Cartridge",
         priority: 1151,
         priorityForRom: function (rom) {
             // Only FMPAC 64K content. Must be selected via info format hint
@@ -679,7 +695,7 @@ wmsx.SlotFormats = {
 // Temporary approximations for formats not yet supported/verified
 
 wmsx.SlotFormats.GenericKonami = wmsx.SlotFormats.Normal;
-wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFLash SCC)
-wmsx.SlotFormats.HamarajaNight = wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFLash SCC)
+wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFlash SCC)
+wmsx.SlotFormats.HamarajaNight = wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFlash SCC)
 wmsx.SlotFormats.Kanji12 =       wmsx.SlotFormats.Kanji1;      // Kanji1 supports both formats
 wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;       // Maybe actually the same

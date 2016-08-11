@@ -68,6 +68,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeASCII8KSRAM.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeASCII16KSRAM.js",
+                    "src/main/msx/slots/cartridges/special/sram/CartridgeHalnote.js",
                     "src/main/msx/slots/cartridges/special/pcm/CartridgeMajutsushi.js",
                     "src/main/msx/slots/cartridges/special/pcm/CartridgeSynthesizer.js",
                     "src/main/msx/machine/MachineTypeSocket.js",

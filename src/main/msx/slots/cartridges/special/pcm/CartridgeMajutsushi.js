@@ -43,11 +43,11 @@ wmsx.CartridgeMajutsushi = function(rom) {
         if (address >= 0x5000 && address < 0x5fff)
             pcm.setSampleValue(value);
         else if (address >= 0x6000 && address < 0x7fff)
-            bank2Offset = (value % numBanks) * 0x2000 - 0x6000;
+            bank2Offset = ((value % numBanks) << 13) - 0x6000;
         else if (address >= 0x8000 && address < 0x9fff)
-            bank3Offset = (value % numBanks) * 0x2000 - 0x8000;
+            bank3Offset = ((value % numBanks) << 13) - 0x8000;
         else if (address >= 0xa000 && address < 0xbfff)
-            bank4Offset = (value % numBanks) * 0x2000 - 0xa000;
+            bank4Offset = ((value % numBanks) << 13) - 0xa000;
     };
 
     this.read = function(address) {
