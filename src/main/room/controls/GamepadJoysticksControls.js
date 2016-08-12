@@ -31,7 +31,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
     };
 
     this.readJoystickPort = function(port) {
-        return port === 1 || swappedMode ? joy2State.portValue : joy1State.portValue;
+        return (port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue;
     };
 
     this.toggleMode = function() {
