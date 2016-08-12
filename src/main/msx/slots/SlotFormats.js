@@ -690,6 +690,54 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Zemina80in1": {
+        name: "Zemina80in1",
+        desc: "Zemina 80 in 1 Mapper Cartridge",
+        priority: 1123,
+        priorityForRom: function (rom) {
+            // Only Zemina 80 in 1 content, multiple of 8K. Must be selected via info format hint
+            return (rom.content.length & 0x1fff) === 0 ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeZemina80(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeZemina80.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Zemina90in1": {
+        name: "Zemina90in1",
+        desc: "Zemina 90 in 1 Mapper Cartridge",
+        priority: 1124,
+        priorityForRom: function (rom) {
+            // Only Zemina 90 in 1 content, multiple of 16K. Must be selected via info format hint
+            return (rom.content.length & 0x3fff) === 0 ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeZemina90(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeZemina90.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Zemina126in1": {
+        name: "Zemina126in1",
+        desc: "Zemina 126 in 1 Mapper Cartridge",
+        priority: 1125,
+        priorityForRom: function (rom) {
+            // Only Zemina 126 in 1 content, multiple of 16K. Must be selected via info format hint
+            return (rom.content.length & 0x3fff) === 0 ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeZemina126(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeZemina126.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC SRAM Sound Mapper Cartridge",
