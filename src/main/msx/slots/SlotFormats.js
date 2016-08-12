@@ -738,6 +738,22 @@ wmsx.SlotFormats = {
         }
     },
 
+    "SuperLodeRunner": {
+        name: "SuperLodeRunner",
+        desc: "Super Lode Runner Mapper Cartridge",
+        priority: 1126,
+        priorityForRom: function (rom) {
+            // Only Super Lode Runner content, multiple of 16K. Must be selected via info format hint
+            return (rom.content.length & 0x3fff) === 0 ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeSuperLodeRunner(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeSuperLodeRunner.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC SRAM Sound Mapper Cartridge",

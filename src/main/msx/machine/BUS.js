@@ -66,6 +66,8 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.write = function(address, val) {
+        // BUS Write Monitoring active?
+        if (writeMonitor) writeMonitor(address, val);
         // Get correct slot
         switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
             case 0: slot0.write(address, val); return;
@@ -129,6 +131,10 @@ wmsx.BUS = function(machine, cpu) {
         return devicesInputPorts[port];
     };
 
+    this.setWriteMonitor = function(monitor) {      // Only 1 monitor can be active
+        writeMonitor = monitor;
+    };
+
     function create() {
         // Slots
         slot0 = slot1 = slot2 = slot3 = slotEmpty;
@@ -158,6 +164,7 @@ wmsx.BUS = function(machine, cpu) {
     var devicesInputPorts;
     var devicesOutputPorts;
 
+    var writeMonitor;
 
     // Savestate  -------------------------------------------
 
