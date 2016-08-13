@@ -10,13 +10,21 @@ Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for param
 
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
+#### New in Version 2.2
+
+- Support for Cartridges with PCM Sound: Konami Majutsushi, Synthesizer
+- Support for several Cartridges with onboard SRAM, Game Master 2
+- Support for several specific Mappers, Zemina muti-game ROMs
+- Better ROM Mirroring auto detection
+- Lots of improvements and fixes 
+    
 #### New in Version 2.1
 
 - The WebMSX website can now load files from any source in the web
 - Just open or drag & drop files and links directly from any website
 - Display your games/software running with a single link to the WebMSX page
 
-#### Features
+### Features
 
 - 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
 - PSG, SCC, SCC-I, FM-PAC and MSX-MUSIC sound
@@ -55,7 +63,7 @@ WMSX.PRESETS = "RAM128, NODISK";         or           http://webmsx.org?PRESETS=
 
 ## Media Loading
 
-The emulator can be set to automatically load files like ROMs, DSK and CAS images. Additionally, normal "loose" files can be loaded and automatically put in a Disk image. Image files may be compressed in ZIP or GZIP formats. If several Disk images are found in a ZIP file, all of them (up to 5) will be loaded in the Drive Stack. Available parameters:
+The emulator can be set to automatically load files like ROMs, DSK and CAS images. Additionally, normal "loose" files can be loaded and automatically put in a Disk image. Image files may be compressed in ZIP or GZIP formats. If several Disk images are found in a ZIP file, all of them (up to 10) will be loaded in the Drive Stack. Available parameters:
 
 | Parameter | Function | Shortcut for URL form
 | --- | --- | ---

@@ -18,7 +18,7 @@ WMSX.PRESETS = "RAM128, NODISK";         or           http://webmsx.org?PRESETS=
 
 ## Media Loading
 
-The emulator can be set to automatically load files like ROMs, DSK and CAS images. Additionally, normal "loose" files can be loaded and automatically put in a Disk image. Image files may be compressed in ZIP or GZIP formats. If several Disk images are found in a ZIP file, all of them (up to 5) will be loaded in the Drive Stack. Available parameters:
+The emulator can be set to automatically load files like ROMs, DSK and CAS images. Additionally, normal "loose" files can be loaded and automatically put in a Disk image. Image files may be compressed in ZIP or GZIP formats. If several Disk images are found in a ZIP file, all of them (up to 10) will be loaded in the Drive Stack. Available parameters:
 
 | Parameter | Function | Shortcut for URL form
 | --- | --- | ---
