@@ -30,7 +30,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - PSG, SCC, SCC-I, FM-PAC and MSX-MUSIC sound
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox
 - Put games or any MSX software in webpages easily
-- Run it locally with a single HTML file, no install needed
+- Runs locally with a single HTML file, no install needed
 - Play Cartridge ROMs, Disk and Tape images
 - Powerful Drag & Drop system for loading media files
 - Load several disks at once and easily switch disks
@@ -41,7 +41,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Adjustable speed, Pause and Frame-by-frame advance
 - Copy & Paste text, Screen Capture, Debug modes
 - Resizable Screen, Full Screen mode
-
+- Javascript API for loading media and machine control
 
 ## WebMSX Configuration and Launch Options
 
