@@ -174,6 +174,9 @@ wmsx.DOMMouseControls = function(hub) {
     }
 
     function tryAutoEnable(atPort, pin8Val) {
+        // Auto enable only for port 1
+        if (atPort !== 0) return;
+
         port = atPort;
 
         self.writeMousePin8Port(port, pin8Val);
