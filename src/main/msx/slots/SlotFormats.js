@@ -754,6 +754,22 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Dooly": {
+        name: "Dooly",
+        desc: "Agigongnyong Dooly Mapper Cartridge",
+        priority: 1127,
+        priorityForRom: function (rom) {
+            // Only 32K Agigongnyong Dooly content. Must be selected via info format hint
+            return rom.content.length === 32768 ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDooly(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDooly.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "FMPAC": {
         name: "FMPAC",
         desc: "FM-PAC SRAM Sound Mapper Cartridge",
