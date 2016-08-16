@@ -478,6 +478,11 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +
+                    '<div class="wmsx-full-divider"></div>' +
+                    '<div id="wmsx-keyboard-outer">' +
+                        '<div id="wmsx-keyboard">' +
+                        '</div>' +
+                    '</div>' +
                     '<div class="wmsx-bottom">' +
                         '<div class="wmsx-hotkey wmsx-heading">' +
                             'Special / Alternative MSX Key bindings:' +
@@ -895,6 +900,7 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-inputs .wmsx-bottom {' +
            'margin-left: 95px;' +
+           'margin-top: 1000px;' +
        '}' +
 
        '#wmsx-inputs .wmsx-bottom .wmsx-command {' +

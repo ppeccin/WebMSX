@@ -64,12 +64,16 @@ wmsx.SettingsDialog = function() {
         self.cover.tabIndex = -1;
         document.body.appendChild(self.cover);
 
-        // Supress context menu
-        self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        });
+        // Create keyboard section
+        var k = new wmsx.KeyboardConfigurator();
+        k.createKeyboard(document.getElementById("wmsx-keyboard"));
+
+        // Supress context menu   // TODO Return
+        //self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
+        //    e.preventDefault();
+        //    e.stopPropagation();
+        //    return false;
+        //});
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
