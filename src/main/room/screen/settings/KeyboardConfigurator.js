@@ -61,7 +61,7 @@ wmsx.KeyboardConfigurator = function() {
 
 
     var popup, popupKey;
-    var POPUP_WIDTH = 118, POPUP_HEIGHT = 73, POPUP_DIST = 20;
+    var POPUP_WIDTH = 138, POPUP_HEIGHT = 93, POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
 
 
     var sections = {
@@ -116,8 +116,7 @@ wmsx.KeyboardConfigurator = function() {
             'width: 522px;' +
             'height: 162px;' +
             'padding: 12px 0 0 14px;' +
-            'background: rgb(200, 200, 200);' +
-            'background: rgb(72, 72, 72);' +
+            'background: rgb(74, 74, 74);' +
             'overflow: hidden;' +
             'border-radius: 1px 1px 0px 0px;' +
             'box-shadow: 0px 1px 0 1px rgb(10, 10, 10);' +
@@ -130,11 +129,13 @@ wmsx.KeyboardConfigurator = function() {
             'left: 1000px;' +
             'width: ' + POPUP_WIDTH + 'px;' +
             'height: ' + POPUP_HEIGHT + 'px;' +
-            'padding-top: 6px;' +
+            'padding-top: 5px;' +
             'text-align: center;' +
             'border-radius: 6px;' +
-            'background: white;' +
+            'border: ' + POPUP_BORDER_WIDTH + 'px white solid;' +
+            'background: rgb(220, 220, 220);' +
             'box-shadow: 0px 3px 3px 2px rgba(0, 0, 0, .55);' +
+            'box-sizing: border-box;' +
         '}' +
         '#wmsx-inputs #wmsx-keyboard-popup .wmsx-key {' +
             'margin: 8px 0 7px;' +
@@ -144,8 +145,8 @@ wmsx.KeyboardConfigurator = function() {
             'content: "";' +
             'position: absolute;' +
             'transform: rotate(45deg);' +
-            'bottom: -10px;' +
-            'left: ' + ((POPUP_WIDTH / 2 - 9) | 0) + 'px;' +
+            'bottom: ' + (-POPUP_BORDER_WIDTH * 2) + 'px;' +
+            'left: ' + ((POPUP_WIDTH / 2 - + POPUP_BORDER_WIDTH - 9) | 0) + 'px;' +
             'border-width: 10px;' +
             'border-style: solid;' +
             'border-color: transparent white white transparent;' +
@@ -182,7 +183,7 @@ wmsx.KeyboardConfigurator = function() {
             'cursor: pointer;' +
         '}' +
         '.wmsx-keyboard-key.wmsx-keyboard-key-dark {' +
-            'background: rgb(130, 130, 130);' +
+            'background: rgb(127, 127, 127);' +
         '}' +
 
         '#wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {' +
@@ -202,6 +203,7 @@ wmsx.KeyboardConfigurator = function() {
             'height: 18px;' +
             'padding: 2px 0px;' +
             'font-size: 9px;' +
+            'line-height: 9px;' +
             'border-width: 1px 2px 4px;' +
             'margin-bottom: 12px;' +
         '}' +
@@ -264,7 +266,8 @@ wmsx.KeyboardConfigurator = function() {
         '}' +
 
         '#wmsx-keyboard-arrows .wmsx-keyboard-key {' +
-            'font-size: 9px;' +
+            'font-size: 8px;' +
+            'line-height: 8px;' +
             'background: rgb(70, 85, 180);' +
             'border-width: 1px 2px 4px;' +
             'border-radius: 2px 2px 0px 0px;' +
@@ -272,11 +275,12 @@ wmsx.KeyboardConfigurator = function() {
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-left, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-right {' +
             'width: 26px;' +
             'height: 44px;' +
-            'padding-top: 15px;' +
+            'padding-top: 16px;' +
         '}' +
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-up, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
             'width: 41px;' +
             'height: 22px;' +
+            'padding-top: 5px;' +
         '}' +
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
             'position: absolute;' +
