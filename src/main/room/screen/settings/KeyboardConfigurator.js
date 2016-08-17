@@ -2,7 +2,12 @@
 
 wmsx.KeyboardConfigurator = function() {
 
-    this.createKeyboard = function (mainElement) {
+    this.setupKeyboard = function (mainElement) {
+        popup = document.getElementById("wmsx-keyboard-popup");
+        popup.innerHTML = popupHTML;
+        popupKey = document.getElementById("wmsx-keyboard-popup-key");
+        popupKey.innerHTML = "H";
+
         var styles = document.createElement('style');
         styles.type = 'text/css';
         styles.innerHTML = css;
@@ -25,10 +30,38 @@ wmsx.KeyboardConfigurator = function() {
                     if (dark.indexOf(key.id) >= 0) key.classList.add("wmsx-keyboard-key-dark");
                     key.innerHTML = (empty.indexOf(key.id) >= 0) ? "" : labels[name] || name;
                     rowDiv.appendChild(key);
+                    setupKeyEvents(key);
                 }
             }
         }
     };
+
+    function setupKeyEvents(key) {
+        key.addEventListener("mouseenter", function mouseEnter() {
+            showPopup(key);
+        });
+        key.addEventListener("mouseleave", function mouseLeave() {
+            hidePopup();
+        });
+    }
+
+    function showPopup(key) {
+        var rec = key.getBoundingClientRect();
+        var x = (rec.left + rec.width / 2 - POPUP_WIDTH / 2) | 0;
+        var y = (rec.top - POPUP_HEIGHT - POPUP_DIST) | 0;
+
+        popup.style.top = "" + y + "px";
+        popup.style.left = "" + x + "px";
+        popup.style.display = "block";
+    }
+
+    function hidePopup() {
+        popup.style.display = "none";
+    }
+
+
+    var popup, popupKey;
+    var POPUP_WIDTH = 118, POPUP_HEIGHT = 73, POPUP_DIST = 20;
 
 
     var sections = {
@@ -69,7 +102,61 @@ wmsx.KeyboardConfigurator = function() {
         "wmsx-keyboard-retx1", "wmsx-keyboard-retx2", "wmsx-keyboard-arrows-<", "wmsx-keyboard-arrows->", "wmsx-keyboard-arrows-^", "wmsx-keyboard-arrows-v"
     ];
 
+
+    var popupHTML =
+        'Key mapped to:' +
+        '<br>' +
+        '<div id="wmsx-keyboard-popup-key" class="wmsx-key">' +
+        '</div>' +
+        '<div>(press new key)</div>';
+
     var css =
+        '#wmsx-inputs #wmsx-keyboard-outer {' +
+            'margin-left: -8px;' +
+            'width: 522px;' +
+            'height: 162px;' +
+            'padding: 12px 0 0 14px;' +
+            'background: rgb(200, 200, 200);' +
+            'background: rgb(72, 72, 72);' +
+            'overflow: hidden;' +
+            'border-radius: 1px 1px 0px 0px;' +
+            'box-shadow: 0px 1px 0 1px rgb(10, 10, 10);' +
+        '}' +
+
+        '#wmsx-inputs #wmsx-keyboard-popup {' +
+            'display: none;' +
+            'position: fixed;' +
+            'top: 1000px;' +
+            'left: 1000px;' +
+            'width: ' + POPUP_WIDTH + 'px;' +
+            'height: ' + POPUP_HEIGHT + 'px;' +
+            'padding-top: 6px;' +
+            'text-align: center;' +
+            'border-radius: 6px;' +
+            'background: white;' +
+            'box-shadow: 0px 3px 3px 2px rgba(0, 0, 0, .55);' +
+        '}' +
+        '#wmsx-inputs #wmsx-keyboard-popup .wmsx-key {' +
+            'margin: 8px 0 7px;' +
+        '}' +
+
+        '#wmsx-inputs #wmsx-keyboard-popup:after {' +
+            'content: "";' +
+            'position: absolute;' +
+            'transform: rotate(45deg);' +
+            'bottom: -10px;' +
+            'left: ' + ((POPUP_WIDTH / 2 - 9) | 0) + 'px;' +
+            'border-width: 10px;' +
+            'border-style: solid;' +
+            'border-color: transparent white white transparent;' +
+            'box-shadow: 4px 4px 2px 0 rgba(0, 0, 0, .55);' +
+        '}' +
+
+        '#wmsx-inputs #wmsx-keyboard {' +
+            'position: relative;' +
+            'width: 1000px;' +
+        '}' +
+
         '.wmsx-keyboard-key {' +
             'position: relative;' +
             'display: inline-block;' +
@@ -98,32 +185,12 @@ wmsx.KeyboardConfigurator = function() {
             'background: rgb(130, 130, 130);' +
         '}' +
 
-        '#wmsx-inputs #wmsx-keyboard-outer {' +
-            'margin-left: -6px;' +
-            'width: 521px;' +
-            'height: 162px;' +
-            'padding: 12px 0 0 14px;' +
-            'background: rgb(200, 200, 200);' +
-            'background: rgb(72, 72, 72);' +
-            'overflow: hidden;' +
-            'border-radius: 1px 1px 0px 0px;' +
-            'box-shadow: 0px 1px 0 1px rgb(10, 10, 10);' +
-        //, 0px 1px 1px 2px rgb(140, 140, 140);' +
-        '}' +
-
-        '#wmsx-inputs #wmsx-keyboard {' +
-            'position: relative;' +
-            'width: 1000px;' +
-        '}' +
-
         '#wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {' +
             'position: absolute;' +
         '}' +
-
         '#wmsx-keyboard-num {' +
             'left: 413px;' +
         '}' +
-
         '#wmsx-keyboard-arrows {' +
             'top: 106px;' +
             'left: 413px;' +
@@ -202,18 +269,15 @@ wmsx.KeyboardConfigurator = function() {
             'border-width: 1px 2px 4px;' +
             'border-radius: 2px 2px 0px 0px;' +
         '}' +
-
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-left, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-right {' +
             'width: 26px;' +
             'height: 44px;' +
             'padding-top: 15px;' +
         '}' +
-
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-up, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
             'width: 41px;' +
             'height: 22px;' +
         '}' +
-
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
             'position: absolute;' +
             'top: 22px;' +

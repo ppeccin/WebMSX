@@ -483,6 +483,8 @@ wmsx.SettingsGUI.html = function() {
                         '<div id="wmsx-keyboard">' +
                         '</div>' +
                     '</div>' +
+                    '<div id="wmsx-keyboard-popup">' +
+                    '</div>' +
                     '<div class="wmsx-bottom">' +
                         '<div class="wmsx-hotkey wmsx-heading">' +
                             'Special / Alternative MSX Key bindings:' +

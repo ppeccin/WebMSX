@@ -66,7 +66,7 @@ wmsx.SettingsDialog = function() {
 
         // Create keyboard section
         var k = new wmsx.KeyboardConfigurator();
-        k.createKeyboard(document.getElementById("wmsx-keyboard"));
+        k.setupKeyboard(document.getElementById("wmsx-keyboard"));
 
         // Supress context menu   // TODO Return
         //self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
