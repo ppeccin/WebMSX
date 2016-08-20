@@ -1,12 +1,15 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.KeyboardConfigurator = function() {
+wmsx.KeyboardConfigurator = function(controllersHub) {
 
     this.setupKeyboard = function (mainElement) {
         popup = document.getElementById("wmsx-keyboard-popup");
         popup.innerHTML = popupHTML;
-        popupKey = document.getElementById("wmsx-keyboard-popup-key");
-        popupKey.innerHTML = "H";
+        popupKeyNone = document.getElementById("wmsx-keyboard-popup-keyNone");
+        for (var i = 0; i < 3; ++i) {
+            popupKeys[i] = document.getElementById("wmsx-keyboard-popup-key" + (i + 1));
+            popupKeysLabel[i] = document.getElementById("wmsx-keyboard-popup-key" + (i + 1) + "-label");
+        }
 
         var styles = document.createElement('style');
         styles.type = 'text/css';
@@ -23,36 +26,51 @@ wmsx.KeyboardConfigurator = function() {
                 section.appendChild(rowDiv);
                 var row = rows[r];
                 for (var c = 0; c < row.length; ++c) {
-                    var name = row[c];
-                    var key = document.createElement("div");
-                    key.id = "wmsx-keyboard-" + (s !== "alpha" ? s + "-" : "") + name.toLocaleLowerCase();
-                    key.classList.add("wmsx-keyboard-key");
-                    if (dark.indexOf(key.id) >= 0) key.classList.add("wmsx-keyboard-key-dark");
-                    key.innerHTML = (empty.indexOf(key.id) >= 0) ? "" : labels[name] || name;
-                    rowDiv.appendChild(key);
-                    setupKeyEvents(key);
+                    var key = row[c];
+                    var keyElement = document.createElement("div");
+                    keyElement.id = "wmsx-keyboard-" + (s !== "alpha" ? s + "-" : "") + key.toLocaleLowerCase();
+                    keyElement.classList.add("wmsx-keyboard-key");
+                    if (dark.indexOf(keyElement.id) >= 0) keyElement.classList.add("wmsx-keyboard-key-dark");
+                    keyElement.innerHTML = labels[key] || key;
+                    keyElement.msxKey = key;
+                    rowDiv.appendChild(keyElement);
+                    setupKeyEvents(keyElement);
                 }
             }
         }
     };
 
-    function setupKeyEvents(key) {
-        key.addEventListener("mouseenter", function mouseEnter() {
-            showPopup(key);
+    function setupKeyEvents(keyElement) {
+        if (ignored.indexOf(keyElement.msxKey) >= 0) return;
+
+        keyElement.addEventListener("mouseenter", function mouseEnter() {
+            showPopup(keyElement);
         });
-        key.addEventListener("mouseleave", function mouseLeave() {
+        keyElement.addEventListener("mouseleave", function mouseLeave() {
             hidePopup();
         });
     }
 
-    function showPopup(key) {
-        var rec = key.getBoundingClientRect();
-        var x = (rec.left + rec.width / 2 - POPUP_WIDTH / 2) | 0;
-        var y = (rec.top - POPUP_HEIGHT - POPUP_DIST) | 0;
+    function showPopup(keyElement) {
+        // Define contents
+        var mapped = domKeyboard.getKeyMapping(keyElement.msxKey) || [];
+        for (var i = 0; i < 3; i++) {
+            popupKeys[i].style.display = mapped[i] ? "inline" : "none";
+            popupKeysLabel[i].innerHTML = mapped[i] && mapped[i].n;
+        }
+        popupKeyNone.style.display = mapped.length === 0 ? "inline" : "none";
 
+        // Position
+        popup.style.display = "block";
+        var keyRec = keyElement.getBoundingClientRect();
+        var popRec = popup.getBoundingClientRect();
+        var x = (keyRec.left + keyRec.width / 2 - popRec.width / 2) | 0;
+        var y = (keyRec.top - popRec.height - POPUP_DIST) | 0;
         popup.style.top = "" + y + "px";
         popup.style.left = "" + x + "px";
-        popup.style.display = "block";
+        //
+        //'left: ' + ((POPUP_WIDTH / 2 - + POPUP_BORDER_WIDTH - 9) | 0) + 'px;' +
+
     }
 
     function hidePopup() {
@@ -60,24 +78,26 @@ wmsx.KeyboardConfigurator = function() {
     }
 
 
-    var popup, popupKey;
-    var POPUP_WIDTH = 138, POPUP_HEIGHT = 93, POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
+    var domKeyboard = controllersHub.getKeyboard();
+
+    var popup, popupKeyNone, popupKeys = [], popupKeysLabel = [];
+    var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
 
 
-    var sections = {
+    var sections = {    // MSX key names
         alpha: [
-            ["F1", "F2", "F3", "F4", "F5", "STOP", "SEL", "HOME", "INS", "DEL"],
-            ["ESC", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "MINUS", "EQUAL", "BSLASH", "BS"],
-            ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "OBRACKET", "CBRACKET", "RETX1", "RETX2"],
-            ["CTRL", "A", "S", "D", "F", "G", "H", "J", "K", "L", "SEMICOLLON", "QUOTE", "GRAVE", "RET"],
+            ["F1", "F2", "F3", "F4", "F5", "STOP", "SELECT", "HOME", "INSERT", "DELETE"],
+            ["ESCAPE", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D0", "MINUS", "EQUAL", "BACKSLASH", "BACKSPACE"],
+            ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "OPEN_BRACKET", "CLOSE_BRACKET", "ENTER_X1", "ENTER_X2"],
+            ["CONTROL", "A", "S", "D", "F", "G", "H", "J", "K", "L", "SEMICOLON", "QUOTE", "BACKQUOTE", "ENTER"],
             ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH", "SHIFT"],
-            ["CAPS", "GRAPH", "SPACE", "CODE", "DEAD"]
+            ["CAPSLOCK", "GRAPH", "SPACE", "CODE", "DEAD"]
         ],
         num: [
-            ["7", "8", "9", "SLASH"],
-            ["4", "5", "6", "MULTIPLY"],
-            ["1", "2", "3", "MINUS"],
-            ["0", "PERIOD", "COMMA", "PLUS"]
+            ["NUM_7", "NUM_8", "NUM_9", "NUM_DIVIDE"],
+            ["NUM_4", "NUM_5", "NUM_6", "NUM_MULTIPLY"],
+            ["NUM_1", "NUM_2", "NUM_3", "NUM_MINUS"],
+            ["NUM_0", "NUM_PERIOD", "NUM_COMMA", "NUM_PLUS"]
         ],
         arrows: [
             ["LEFT", "UP", "RIGHT", "DOWN" ]
@@ -85,28 +105,35 @@ wmsx.KeyboardConfigurator = function() {
     };
 
     var labels = {
-        MINUS: "-", EQUAL: "=", BSLASH: "\\",
-        SEMICOLLON: ";", QUOTE: "'", GRAVE: "`",
-        OBRACKET: "[", CBRACKET: "]", COMMA: ",", PERIOD: ".", SLASH: "/",
-        MULTIPLY: "*", PLUS: "+",
+        SELECT: "SEL", INSERT: "INS", DELETE: "DEL",
+        ESCAPE: "ESC", D1: "1", D2: "2", D3: "3", D4: "4", D5: "5", D6: "6", D7: "7", D8: "8", D9: "9", D0: "0", MINUS: "-", EQUAL: "=", BACKSLASH: "\\", BACKSPACE: "BS",
+        SEMICOLON: ";", QUOTE: "'", BACKQUOTE: "`",
+        CONTROL: "CTRL", OPEN_BRACKET: "[", CLOSE_BRACKET: "]", ENTER: "RET", ENTER_X1: " ", ENTER_X2: " ",
+        COMMA: ",", PERIOD: ".", SLASH: "/", CAPSLOCK: "CAPS",
+        NUM_DIVIDE: "/", NUM_MULTIPLY: "*", NUM_MINUS: "-", NUM_PLUS: "+", NUM_PERIOD: ".", NUM_COMMA: ",",
+        NUM_1: "1", NUM_2: "2", NUM_3: "3", NUM_4: "4", NUM_5: "5", NUM_6: "6", NUM_7: "7", NUM_8: "8", NUM_9: "9", NUM_0: "0",
         LEFT: "&#9668;", UP: "&#9650;", DOWN: "&#9660;", RIGHT: "&#9658;"
     };
 
     var dark = [
-        "wmsx-keyboard-esc", "wmsx-keyboard-tab", "wmsx-keyboard-ctrl", "wmsx-keyboard-shift", "wmsx-keyboard-caps", "wmsx-keyboard-graph",
-        "wmsx-keyboard-bs", "wmsx-keyboard-ret", "wmsx-keyboard-retx1", "wmsx-keyboard-retx2", "wmsx-keyboard-shift", "wmsx-keyboard-code", "wmsx-keyboard-dead",
-        "wmsx-keyboard-num-slash", "wmsx-keyboard-num-multiply", "wmsx-keyboard-num-minus", "wmsx-keyboard-num-plus"
+        "wmsx-keyboard-escape", "wmsx-keyboard-tab", "wmsx-keyboard-control", "wmsx-keyboard-shift", "wmsx-keyboard-capslock", "wmsx-keyboard-graph",
+        "wmsx-keyboard-backspace", "wmsx-keyboard-enter", "wmsx-keyboard-enter_x1", "wmsx-keyboard-enter_x2", "wmsx-keyboard-shift", "wmsx-keyboard-code", "wmsx-keyboard-dead",
+        "wmsx-keyboard-num_divide", "wmsx-keyboard-num_multiply", "wmsx-keyboard-num_minus", "wmsx-keyboard-num_plus"
     ];
 
-    var empty = [
-        "wmsx-keyboard-retx1", "wmsx-keyboard-retx2", "wmsx-keyboard-arrows-<", "wmsx-keyboard-arrows->", "wmsx-keyboard-arrows-^", "wmsx-keyboard-arrows-v"
+    var ignored = [
+        "ENTER_X1", "ENTER_X2"
     ];
 
 
     var popupHTML =
         'Key mapped to:' +
         '<br>' +
-        '<div id="wmsx-keyboard-popup-key" class="wmsx-key">' +
+        '<div class="wmsx-command">' +
+            '<span id="wmsx-keyboard-popup-keyNone">none</span>' +
+            '<span id="wmsx-keyboard-popup-key1"><div id="wmsx-keyboard-popup-key1-label" class="wmsx-key"></div></span>' +
+            '<span id="wmsx-keyboard-popup-key2">&nbsp;,&nbsp<div id="wmsx-keyboard-popup-key2-label" class="wmsx-key"></div></span>' +
+            '<span id="wmsx-keyboard-popup-key3">&nbsp;,&nbsp<div id="wmsx-keyboard-popup-key3-label" class="wmsx-key"></div></span>' +
         '</div>' +
         '<div>(press new key)</div>';
 
@@ -127,30 +154,34 @@ wmsx.KeyboardConfigurator = function() {
             'position: fixed;' +
             'top: 1000px;' +
             'left: 1000px;' +
-            'width: ' + POPUP_WIDTH + 'px;' +
-            'height: ' + POPUP_HEIGHT + 'px;' +
-            'padding-top: 5px;' +
+            'padding: 5px 8px;' +
             'text-align: center;' +
+            'vertical-align: top;' +
             'border-radius: 6px;' +
             'border: ' + POPUP_BORDER_WIDTH + 'px white solid;' +
             'background: rgb(220, 220, 220);' +
             'box-shadow: 0px 3px 3px 2px rgba(0, 0, 0, .55);' +
             'box-sizing: border-box;' +
         '}' +
-        '#wmsx-inputs #wmsx-keyboard-popup .wmsx-key {' +
+        '#wmsx-inputs #wmsx-keyboard-popup .wmsx-command {' +
             'margin: 8px 0 7px;' +
+            'font-weight: 600;' +
         '}' +
 
         '#wmsx-inputs #wmsx-keyboard-popup:after {' +
             'content: "";' +
             'position: absolute;' +
-            'transform: rotate(45deg);' +
-            'bottom: ' + (-POPUP_BORDER_WIDTH * 2) + 'px;' +
-            'left: ' + ((POPUP_WIDTH / 2 - + POPUP_BORDER_WIDTH - 9) | 0) + 'px;' +
+            'bottom: 0;' +
+            'left: 0;' +
+            'right: 0;' +
+            'width: 0;' +
+            'margin: 0 auto;' +
             'border-width: 10px;' +
             'border-style: solid;' +
             'border-color: transparent white white transparent;' +
             'box-shadow: 4px 4px 2px 0 rgba(0, 0, 0, .55);' +
+            'transform: translateY(' + (POPUP_BORDER_WIDTH * 2) + 'px) rotate(45deg) ;' +
+            '-webkit-transform: translateY(' + (POPUP_BORDER_WIDTH * 2) + 'px) rotate(45deg) ;' +
         '}' +
 
         '#wmsx-inputs #wmsx-keyboard {' +
@@ -198,7 +229,7 @@ wmsx.KeyboardConfigurator = function() {
         '}' +
 
         '#wmsx-keyboard-f1, #wmsx-keyboard-f2, #wmsx-keyboard-f3, #wmsx-keyboard-f4, #wmsx-keyboard-f5, ' +
-        '#wmsx-keyboard-stop, #wmsx-keyboard-sel, #wmsx-keyboard-home, #wmsx-keyboard-ins, #wmsx-keyboard-del {' +
+        '#wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {' +
             'width: 37px;' +
             'height: 18px;' +
             'padding: 2px 0px;' +
@@ -207,31 +238,31 @@ wmsx.KeyboardConfigurator = function() {
             'border-width: 1px 2px 4px;' +
             'margin-bottom: 12px;' +
         '}' +
-        '#wmsx-keyboard-stop, #wmsx-keyboard-sel, #wmsx-keyboard-home, #wmsx-keyboard-ins, #wmsx-keyboard-del {' +
+        '#wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {' +
             'width: 37px;' +
         '}' +
         '#wmsx-keyboard-stop {' +
             'background: rgb(240, 80, 60);' +
             'margin-left: 18px;' +
         '}' +
-        '#wmsx-keyboard-esc, #wmsx-keyboard-bs {' +
+        '#wmsx-keyboard-escape, #wmsx-keyboard-backspace {' +
             'width: 29px;' +
         '}' +
         '#wmsx-keyboard-tab {' +
             'width: 41px;' +
         '}' +
-        '#wmsx-keyboard-ctrl {' +
+        '#wmsx-keyboard-control {' +
             'width: 48px;' +
         '}' +
         '#wmsx-keyboard-shift {' +
-            'width: 60px;' +
+            'width: 61px;' +
         '}' +
-        '#wmsx-keyboard-ret {' +
+        '#wmsx-keyboard-enter {' +
             'width: 36px;' +
             'border-radius: 2px 0px 0px 0px;' +
             'border-top-width: 0px;' +
         '}' +
-        '#wmsx-keyboard-retx1 {' +
+        '#wmsx-keyboard-enter_x1 {' +
             'width: 13px;' +
             'min-width: 0px;' +
             'margin-right: 0px;' +
@@ -240,17 +271,17 @@ wmsx.KeyboardConfigurator = function() {
             'border-right: none;' +
             'box-shadow: -1px 1px 0 0 rgb(0, 0, 0)' +
         '}' +
-        '#wmsx-keyboard-retx2 {' +
+        '#wmsx-keyboard-enter_x2 {' +
             'width: 30px;' +
             'border-bottom: none;' +
             'border-radius: 0px 3px 0px 0px;' +
             'box-shadow: 1px 1px 0 0 rgb(0, 0, 0)' +
         '}' +
         '#wmsx-keyboard-space {' +
-            'width: 179px;' +
+            'width: 181px;' +
         '}' +
-        '#wmsx-keyboard-caps {' +
-            'margin-left: 16px;' +
+        '#wmsx-keyboard-capslock {' +
+            'margin-left: 15px;' +
             'width: 38px;' +
         '}' +
         '#wmsx-keyboard-dead {' +
@@ -273,9 +304,10 @@ wmsx.KeyboardConfigurator = function() {
             'border-radius: 2px 2px 0px 0px;' +
         '}' +
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-left, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-right {' +
+            'top: 5px;' +
             'width: 26px;' +
-            'height: 44px;' +
-            'padding-top: 16px;' +
+            'height: 34px;' +
+            'padding-top: 11px;' +
         '}' +
         '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-up, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
             'width: 41px;' +

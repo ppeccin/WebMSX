@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SettingsDialog = function() {
+wmsx.SettingsDialog = function(controllersHub) {
 "use strict";
 
     var self = this;
@@ -65,7 +65,7 @@ wmsx.SettingsDialog = function() {
         document.body.appendChild(self.cover);
 
         // Create keyboard section
-        var k = new wmsx.KeyboardConfigurator();
+        var k = new wmsx.KeyboardConfigurator(controllersHub);
         k.setupKeyboard(document.getElementById("wmsx-keyboard"));
 
         // Supress context menu   // TODO Return

@@ -73,8 +73,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     };
 
     var initKeys = function() {
-        self.applyPreferences();
-
         normalCodeMap[KEY_POWER]               = controls.POWER;
         withShiftCodeMap[KEY_POWER]            = controls.RESET;
         normalCodeMap[KEY_ALTERNATE_SPEED]     = controls.FAST_SPEED;
@@ -138,9 +136,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         withCtrlAltCodeMap[KEY_POWER] = controls.SAVE_STATE_FILE;
     };
 
-    this.applyPreferences = function() {
-    };
-
 
     var controls = wmsx.MachineControls;
 
@@ -193,9 +188,9 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_STATE_9          = wmsx.DOMKeys.VK_9.c;
     var KEY_STATE_10         = wmsx.DOMKeys.VK_0.c;
     var KEY_STATE_11         = wmsx.DOMKeys.VK_MINUS.c;
-    var KEY_STATE_11a        = wmsx.DOMKeys.VK_MINUS_FF.c;
+    var KEY_STATE_11a        = wmsx.DOMKeys.FF_VK_MINUS.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
-    var KEY_STATE_12a        = wmsx.DOMKeys.VK_EQUALS_FF.c;
+    var KEY_STATE_12a        = wmsx.DOMKeys.FF_VK_EQUAL.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;
