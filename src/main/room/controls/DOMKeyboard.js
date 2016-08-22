@@ -62,7 +62,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         var next = (wmsx.BuiltInKeyboards.all.indexOf(currentKeyboard) + 1) || 0;
         if (next >= wmsx.BuiltInKeyboards.all.length) next = 0;
         currentKeyboard = wmsx.BuiltInKeyboards.all[next];
-        updateMappings();
+        updateMapping();
         monitor.showOSD("Host Keyboard: " + currentKeyboard, true);
     };
 
@@ -83,6 +83,15 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     this.getKeyMapping = function(key) {
         return mapping[key];
+    };
+
+    this.customizeKey = function (key, vk) {
+        // Add Custom keyboard?
+        if (wmsx.BuiltInKeyboards.all.indexOf(currentKeyboard) >= 0)
+            addCustomKeyboard();
+
+        mapping[key] = [ vk ];
+        updateCodeMaps();
     };
 
     this.keyPress = function(e) {
@@ -146,22 +155,24 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             : normalCodeMap[keyCode];
     };
 
-    var updateMappings = function() {
+    var updateMapping = function() {
         mapping = {};
+        var map = wmsx.BuiltInKeyboards[currentKeyboard];
+        for (var k in wmsx.KeyboardKeys)
+            mapping[k] = !map[k] ? null : map[k].constructor === Array ? map[k] : [ map[k] ];
+        updateCodeMaps();
+    };
+
+    var updateCodeMaps = function() {
         normalCodeMap = {};
         altCodeMap = {};
         ctrlAltCodeMap = {};
-
-        var map = wmsx.BuiltInKeyboards[currentKeyboard];
-        for (var k in wmsx.KeyboardKeys) {
-            if (!map[k]) {
-                mapping[k] = null;
-            } else if(map[k].constructor === Array) {
-                mapping[k] = map[k];
-                for (var i = 0; i < map[k].length; ++i) normalCodeMap[map[k][i].c] = k;
+        for (var k in mapping) {
+            if (!mapping[k]) continue;
+            if(mapping[k].constructor === Array) {
+                for (var i = 0; i < mapping[k].length; ++i) normalCodeMap[mapping[k][i].c] = k;
             } else {
-                mapping[k] = [map[k]];
-                normalCodeMap[map[k].c] = k;
+                normalCodeMap[mapping[k].c] = k;
             }
         }
     };
@@ -174,7 +185,11 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
                 currentKeyboard = availableKeyboards[k];
                 break;
             }
-        updateMappings();
+        updateMapping();
+    }
+
+    function addCustomKeyboard() {
+
     }
 
     this.applyPreferences = function() {

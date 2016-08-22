@@ -479,12 +479,8 @@ wmsx.SettingsGUI.html = function() {
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +
                     '<div class="wmsx-full-divider"></div>' +
-                    '<div id="wmsx-keyboard-outer">' +
-                        '<div id="wmsx-keyboard">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div id="wmsx-keyboard-popup">' +
-                    '</div>' +
+                    '<div id="wmsx-keyboard"></div>' +
+                    '<div id="wmsx-keyboard-popup"></div>' +
                     '<div class="wmsx-bottom">' +
                         '<div class="wmsx-hotkey wmsx-heading">' +
                             'Special / Alternative MSX Key bindings:' +
