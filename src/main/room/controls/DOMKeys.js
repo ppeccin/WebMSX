@@ -70,7 +70,7 @@ wmsx.DOMKeys = {
     VK_PRINT_SCREEN: {c: 44, n: "PrtScr"},
     VK_SCROLL_LOCK: {c: 145, n: "ScrLck"},
     VK_PAUSE: {c: 19, n: "Pause"},
-    VK_CTRL_PAUSE: {c: 3, n: "Pause"},
+    VK_BREAK: {c: 3, n: "Break"},
 
     VK_INSERT: {c: 45, n: "Ins"},
     VK_DELETE: {c: 46, n: "Del"},

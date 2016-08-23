@@ -65,7 +65,7 @@
         F5             : d.VK_F5,
         ESCAPE         : d.VK_ESCAPE,
         TAB            : d.VK_TAB,
-        STOP           : [ d.VK_PAUSE, d.VK_F9 ],
+        STOP           : [ d.VK_PAUSE, d.VK_BREAK, d.VK_F9 ],
         BACKSPACE      : d.VK_BACKSPACE,
         SELECT         : [ d.VK_SCROLL_LOCK, d.VK_F10 ],
         ENTER          : d.VK_ENTER,

@@ -100,7 +100,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     this.customizeKey = function (key, vk) {
         // Ignore if key is already mapped
-        if (normalCodeMap[vk.c] === key) return;
+        if (codeMap[vk.c] === key) return;
 
         if (!customKeyboards[currentKeyboard]) setCustomKeyboard();
 
@@ -138,7 +138,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!processKeyEvent(e.keyCode, true, e.altKey, e.ctrlKey)) keyForwardControls.keyDown(e);
+        if (!processKeyEvent(e.keyCode, true, e.altKey)) keyForwardControls.keyDown(e);
 
         return false;
     };
@@ -155,8 +155,8 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             return keyForwardControls.keyUp(e);
     };
 
-    var processKeyEvent = function(keyCode, press, alt, ctrl) {
-        var key = keyForEvent(keyCode, alt, ctrl);
+    var processKeyEvent = function(keyCode, press, alt) {
+        var key = keyForEvent(keyCode, alt);
         if (!key) return false;
         //if (press) console.log("DOMKey: " + key + ", fromCharCode: " + String.fromCharCode(keyCode));
 
@@ -174,12 +174,8 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     // TODO Shift+CODE+DEAD not being detected
-    var keyForEvent = function(keyCode, alt, ctrl) {
-        return alt
-            ? ctrl
-                ? ctrlAltCodeMap[keyCode] || altCodeMap[keyCode]
-                : altCodeMap[keyCode]
-            : normalCodeMap[keyCode];
+    var keyForEvent = function(keyCode, alt) {
+        return alt ? null : codeMap[keyCode];
     };
 
     var updateMapping = function() {
@@ -190,12 +186,10 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     var updateCodeMaps = function() {
-        normalCodeMap = {};
-        altCodeMap = {};
-        ctrlAltCodeMap = {};
+        codeMap = {};
         for (var k in mapping) {
             if (mapping[k].length === 0) continue;
-            for (var i = 0; i < mapping[k].length; ++i) normalCodeMap[mapping[k][i].c] = k;
+            for (var i = 0; i < mapping[k].length; ++i) codeMap[mapping[k][i].c] = k;
         }
     };
 
@@ -249,9 +243,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
     var mapping = {};
-    var normalCodeMap;
-    var altCodeMap;
-    var ctrlAltCodeMap;
+    var codeMap;
 
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 

@@ -116,11 +116,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     function keyDown(e) {
         if (!msxKeyEditing) return;
 
-        var newMapping = mappingForKeyboardEvent(e);
-
-        console.log(newMapping);
-
-        domKeyboard.customizeKey(msxKeyEditing, newMapping);
+        domKeyboard.customizeKey(msxKeyEditing, mappingForKeyboardEvent(e));
         updatePopup();
         self.refresh();
 
@@ -130,6 +126,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     }
 
     function mappingForKeyboardEvent(e) {
+        console.log("Key: " + e.key + ", keyCode: " + e.keyCode + ", alt: " + e.altKey + ", control: " + e.ctrlKey + ", shift: " + e.shiftKey + ", loc: " + e.location);
+
         var key = e.key;
 
         var name;
