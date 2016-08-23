@@ -1,10 +1,21 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
 wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
+    var self = this;
 
-    function init(self) {
+    function init() {
         setupKeyboard();
+        domKeyboard.addKeyboardChangeListener(self);
     }
+
+    this.keyboardChanged = function() {
+        this.refresh();
+    };
+
+    this.refresh = function() {
+        keyboardNameElement.innerHTML = "Current Keyboard:&nbsp;&nbsp;" + domKeyboard.getKeyboard();
+        refreshUnmappedIndicator();
+    };
 
     function setupKeyboard() {
         keyboardElement.tabIndex = "-1";
@@ -37,11 +48,15 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
                 for (var c = 0; c < row.length; ++c) {
                     var key = row[c];
                     var keyElement = document.createElement("div");
-                    keyElement.id = "wmsx-keyboard-" + (s !== "alpha" ? s + "-" : "") + key.toLocaleLowerCase();
+                    keyElement.id = "wmsx-keyboard-" + key.toLocaleLowerCase();
                     keyElement.classList.add("wmsx-keyboard-key");
                     if (dark.indexOf(keyElement.id) >= 0) keyElement.classList.add("wmsx-keyboard-key-dark");
                     keyElement.innerHTML = labels[key] || key;
-                    if (ignored.lastIndexOf(key) < 0) keyElement.msxKey = key;
+                    var msxKey = translations[key] || key;
+                    if (wmsx.KeyboardKeys[msxKey]) {
+                        keyElement.msxKey = msxKey;
+                        keyElements.push(keyElement);
+                    }
                     rowDiv.appendChild(keyElement);
                     setupMouseEnterLeaveEvents(keyElement);
                 }
@@ -49,6 +64,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         }
         setupMouseEnterLeaveEvents(keyboardElement);
         keyboardElement.addEventListener("keydown", keyDown);        // New key pressed to be assigned to MSX key
+
+        keyboardNameElement = document.getElementById("wmms-inputs-keyboard-name");
     }
 
     function setupMouseEnterLeaveEvents(keyElement) {
@@ -103,8 +120,13 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
 
         console.log(newMapping);
 
-        controllersHub.getKeyboard().customizeKey(msxKeyEditing, newMapping);
+        domKeyboard.customizeKey(msxKeyEditing, newMapping);
         updatePopup();
+        self.refresh();
+
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
     }
 
     function mappingForKeyboardEvent(e) {
@@ -118,9 +140,20 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         return { c: e.keyCode, n: name};
     }
 
+    function refreshUnmappedIndicator() {
+        for (var k = 0; k < keyElements.length; ++k) {
+            var map = domKeyboard.getKeyMapping(keyElements[k].msxKey);
+            if (!map || map.length === 0) keyElements[k].classList.add("wmsx-keyboard-key-unmapped");
+            else keyElements[k].classList.remove("wmsx-keyboard-key-unmapped");
+        }
+    }
+
 
     var domKeyboard = controllersHub.getKeyboard();
 
+    var keyboardNameElement;
+
+    var keyElements = [];
     var keyElementEditing = null, msxKeyEditing = null;
 
     var popup, popupKeyNone, popupKeys = [], popupKeysLabel = [];
@@ -133,7 +166,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             ["ESCAPE", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D0", "MINUS", "EQUAL", "BACKSLASH", "BACKSPACE"],
             ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "OPEN_BRACKET", "CLOSE_BRACKET", "ENTER_X1", "ENTER_X2"],
             ["CONTROL", "A", "S", "D", "F", "G", "H", "J", "K", "L", "SEMICOLON", "QUOTE", "BACKQUOTE", "ENTER"],
-            ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH", "SHIFT"],
+            ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH", "SHIFT2"],
             ["CAPSLOCK", "GRAPH", "SPACE", "CODE", "DEAD"]
         ],
         num: [
@@ -152,7 +185,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         ESCAPE: "ESC", D1: "1", D2: "2", D3: "3", D4: "4", D5: "5", D6: "6", D7: "7", D8: "8", D9: "9", D0: "0", MINUS: "-", EQUAL: "=", BACKSLASH: "\\", BACKSPACE: "BS",
         SEMICOLON: ";", QUOTE: "'", BACKQUOTE: "`",
         CONTROL: "CTRL", OPEN_BRACKET: "[", CLOSE_BRACKET: "]", ENTER: "RET", ENTER_X1: " ", ENTER_X2: " ",
-        COMMA: ",", PERIOD: ".", SLASH: "/", CAPSLOCK: "CAPS",
+        SHIFT2: "SHIFT", COMMA: ",", PERIOD: ".", SLASH: "/", CAPSLOCK: "CAPS",
         NUM_DIVIDE: "/", NUM_MULTIPLY: "*", NUM_MINUS: "-", NUM_PLUS: "+", NUM_PERIOD: ".", NUM_COMMA: ",",
         NUM_1: "1", NUM_2: "2", NUM_3: "3", NUM_4: "4", NUM_5: "5", NUM_6: "6", NUM_7: "7", NUM_8: "8", NUM_9: "9", NUM_0: "0",
         LEFT: "&#9668;", UP: "&#9650;", DOWN: "&#9660;", RIGHT: "&#9658;"
@@ -160,14 +193,13 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
 
     var dark = [
         "wmsx-keyboard-escape", "wmsx-keyboard-tab", "wmsx-keyboard-control", "wmsx-keyboard-shift", "wmsx-keyboard-capslock", "wmsx-keyboard-graph",
-        "wmsx-keyboard-backspace", "wmsx-keyboard-enter", "wmsx-keyboard-enter_x1", "wmsx-keyboard-enter_x2", "wmsx-keyboard-shift", "wmsx-keyboard-code", "wmsx-keyboard-dead",
+        "wmsx-keyboard-backspace", "wmsx-keyboard-enter", "wmsx-keyboard-enter_x1", "wmsx-keyboard-enter_x2", "wmsx-keyboard-shift2", "wmsx-keyboard-code", "wmsx-keyboard-dead",
         "wmsx-keyboard-num_divide", "wmsx-keyboard-num_multiply", "wmsx-keyboard-num_minus", "wmsx-keyboard-num_plus"
     ];
 
-    var ignored = [
-        "ENTER_X1", "ENTER_X2"
-    ];
-
+    var translations = {
+        "ENTER_X1": "#NONE#", "ENTER_X2": "#NONE#", "SHIFT2": "SHIFT"
+    };
 
     var popupHTML =
         'Key mapped to:' +
@@ -183,10 +215,10 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     var css =
         '#wmsx-inputs #wmsx-keyboard {' +
             'position: relative;' +
-            'left: -8px;' +
-            'width: 538px;' +
+            'left: -1px;' +
+            'width: 536px;' +
             'height: 178px;' +
-            'background: rgb(74, 74, 74);' +
+            'background: rgb(76, 76, 76);' +
             'border-radius: 1px 1px 0px 0px;' +
             'box-shadow: 0px 1px 0 1px rgb(10, 10, 10);' +
             'outline: none;' +
@@ -218,6 +250,10 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         '}' +
         '.wmsx-keyboard-key.wmsx-keyboard-key-dark {' +
             'background: rgb(127, 127, 127);' +
+        '}' +
+        '.wmsx-keyboard-key.wmsx-keyboard-key-unmapped {' +
+            'color: rgb(40, 40, 40);' +
+            'font-weight: 600;' +
         '}' +
 
         '#wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {' +
@@ -261,7 +297,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         '#wmsx-keyboard-control {' +
             'width: 48px;' +
         '}' +
-        '#wmsx-keyboard-shift {' +
+        '#wmsx-keyboard-shift, #wmsx-keyboard-shift2 {' +
             'width: 61px;' +
         '}' +
         '#wmsx-keyboard-enter {' +
@@ -310,18 +346,18 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             'border-width: 1px 2px 4px;' +
             'border-radius: 2px 2px 0px 0px;' +
         '}' +
-        '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-left, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-right {' +
+        '#wmsx-keyboard-arrows #wmsx-keyboard-left, #wmsx-keyboard-arrows #wmsx-keyboard-right {' +
             'top: 5px;' +
             'width: 26px;' +
             'height: 34px;' +
             'padding-top: 11px;' +
         '}' +
-        '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-up, #wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
+        '#wmsx-keyboard-arrows #wmsx-keyboard-up, #wmsx-keyboard-arrows #wmsx-keyboard-down {' +
             'width: 41px;' +
             'height: 22px;' +
             'padding-top: 5px;' +
         '}' +
-        '#wmsx-keyboard-arrows #wmsx-keyboard-arrows-down {' +
+        '#wmsx-keyboard-arrows #wmsx-keyboard-down {' +
             'position: absolute;' +
             'top: 22px;' +
             'left: 27px;' +
@@ -340,6 +376,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             'box-sizing: border-box;' +
         '}' +
         '#wmsx-inputs #wmsx-keyboard-popup .wmsx-command {' +
+            'width: auto;' +
             'margin: 8px 0 7px;' +
             'font-weight: 600;' +
         '}' +
@@ -363,6 +400,6 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         '';
 
 
-    init(this);
+    init();
 
 };

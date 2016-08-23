@@ -14,8 +14,6 @@ wmsx.SettingsDialog = function(controllersHub) {
             return;
         }
         preferencesChanged = false;
-        controlRedefining = null;
-        refreshData();
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
@@ -50,6 +48,13 @@ wmsx.SettingsDialog = function(controllersHub) {
         self["wmsx-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("wmsx-selected");
         self["wmsx-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("wmsx-selected");
         self["wmsx-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("wmsx-selected");
+
+        switch(page) {
+            case "ABOUT":
+                refreshAboutPage(); break;
+            case "INPUTS":
+                refreshInputsPage();
+        }
     };
 
     var create = function () {
@@ -65,7 +70,7 @@ wmsx.SettingsDialog = function(controllersHub) {
         document.body.appendChild(self.cover);
 
         // Create keyboard section
-        var k = new wmsx.KeyboardConfigurator(controllersHub, document.getElementById("wmsx-keyboard"));
+        keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, document.getElementById("wmsx-keyboard"));
 
         // Supress context menu   // TODO Return
         //self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
@@ -107,7 +112,6 @@ wmsx.SettingsDialog = function(controllersHub) {
         // But do not close the modal with a click inside
         self["wmsx-modal"].addEventListener("mousedown", function (e) {
             e.stopPropagation();
-            keyRedefinitonStop();
         });
         // Close with the back button
         self["wmsx-back"].addEventListener("mousedown", function (e) {
@@ -120,7 +124,12 @@ wmsx.SettingsDialog = function(controllersHub) {
         self.cover.addEventListener("keydown", function (e) {
             e.preventDefault();
             e.stopPropagation();
-            processKeyEvent(e);
+            processKeyDown(e);
+        });
+        self.cover.addEventListener("keyup", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            processKeyUp(e);
         });
 
         // Tabs
@@ -153,61 +162,23 @@ wmsx.SettingsDialog = function(controllersHub) {
         //}
     };
 
-    var refreshData = function () {
+    var refreshAboutPage = function () {
         self["wmsx-browserinfo"].innerHTML = navigator.userAgent;
     };
 
-    var processKeyEvent = function (e) {
+    var refreshInputsPage = function() {
+        keyboardConfigurator.refresh();
+    };
+
+    var processKeyDown = function (e) {
         if (e.keyCode === KEY_ESC)
-            closeOrKeyRedefinitionStop();
-        else if(controlRedefining) keyRedefinitionTry(e.keyCode);
-        else {
-            if (e.altKey && controlsCommandKeys[e.keyCode]) {
-                WMSX.room.controls.keyDown(e);
-                refreshData();
-            }
-        }
+            self.hide();
+        else
+            WMSX.room.machineControls.keyDown(e);
     };
 
-    var reyRedefinitionStart = function(control) {
-        controlRedefining = control;
-        refreshData();
-    };
-
-    var keyRedefinitonStop = function() {
-        controlRedefining = null;
-        refreshData();
-    };
-
-    var keyRedefinitionTry = function (keyCode) {
-        if (!controlRedefining) return;
-        if (!wmsx.DOMKeys.byCode[keyCode]) return;
-        if (WMSX.userPreferences[controlKeys[controlRedefining]] !== keyCode) {
-            for (var con in controlKeys)
-                if (WMSX.userPreferences[controlKeys[con]] === keyCode)
-                    WMSX.userPreferences[controlKeys[con]] = -1;
-
-            WMSX.userPreferences[controlKeys[controlRedefining]] = keyCode;
-            preferencesChanged = true;
-        }
-        keyRedefinitonStop();
-    };
-
-    var closeOrKeyRedefinitionStop = function() {
-        if (controlRedefining) keyRedefinitonStop();
-        else self.hide()
-    };
-
-    var controlsDefaults = function () {
-        WMSX.userPreferences.loadDefaults();
-        preferencesChanged = true;
-        keyRedefinitonStop();   // will refresh
-    };
-
-    var controlsRevert = function () {
-        WMSX.userPreferences.load();
-        preferencesChanged = false;
-        keyRedefinitonStop();   // will refresh
+    var processKeyUp = function (e) {
+        WMSX.room.machineControls.keyUp(e);
     };
 
     var finishPreferences = function () {
@@ -216,16 +187,10 @@ wmsx.SettingsDialog = function(controllersHub) {
         preferencesChanged = false;
     };
 
-    var controlKeys = {
-    };
-
 
     this.cover = null;
 
-    var controlRedefining = null;
-    var controlsCommandKeys = {};
-        //controlsCommandKeys[wmsx.DOMMachineControls.KEY_TOGGLE_JOYSTICK] = "wmsx-general-swap-joysticks";
-
+    var keyboardConfigurator;
     var preferencesChanged = false;
 
     var KEY_ESC = 27;        // VK_ESC

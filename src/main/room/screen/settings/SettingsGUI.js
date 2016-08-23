@@ -426,16 +426,6 @@ wmsx.SettingsGUI.html = function() {
                                 '<div class="wmsx-key wmsx-key-fixed">' +
                                     'Alt' +
                                 '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                    'K' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="wmsx-desc">Toggle Keyboards</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-fixed">' +
-                                    'Alt' +
-                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
                                     'M' +
                                 '</div>' +
                             '</div>' +
@@ -478,109 +468,22 @@ wmsx.SettingsGUI.html = function() {
                         '</div>' +
                     '</div>' +
                     '<div class="wmsx-full-divider"></div>' +
-                    '<div class="wmsx-full-divider"></div>' +
-                    '<div id="wmsx-keyboard"></div>' +
-                    '<div id="wmsx-keyboard-popup"></div>' +
                     '<div class="wmsx-bottom">' +
-                        '<div class="wmsx-hotkey wmsx-heading">' +
-                            'Special / Alternative MSX Key bindings:' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
+                        '<div class="wmsx-hotkey">' +
                             '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx wmsx-key-msx-stop">' +
-                                    'STOP' +
-                                '</div> :' +
+                                '<div class="wmsx-key wmsx-key-fixed">' +
+                                    'Alt' +
+                                '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
+                                    'K' +
+                                '</div>' +
                             '</div>' +
-                            '<div class="wmsx-key">' +
-                                'Pause' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">' +
-                                'F9' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                '[' +
-                            '</div>' +
+                            '<div class="wmsx-desc">Toggle Keyboards</div>' +
                         '</div>' +
-                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx">' +
-                                    'SELECT' +
-                               '</div> :' +
-                            '</div>' +
-                            '<div class="wmsx-key">' +
-                                'ScrLck' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">' +
-                                'F10' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                ']' +
-                            '</div>' +
+                        '<div id="wmms-inputs-keyboard-name" class="wmsx-hotkey wmsx-heading">' +
+                            'Keyboard:' +
                         '</div>' +
-                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx">' +
-                                    'GRAPH' +
-                                '</div> :' +
-                            '</div>' +
-                            '<div class="wmsx-key">' +
-                                'PgUp' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                'F9' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                ',' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx">' +
-                                    'CODE' +
-                                '</div> :' +
-                            '</div>' +
-                            '<div class="wmsx-key">' +
-                                'PgDn' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                'F10' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                '.' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx">' +
-                                    'DEAD' +
-                                '</div> :' +
-                            '</div>' +
-                            '<div class="wmsx-key">' +
-                                'End' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                '/' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="wmsx-hotkey wmsx-hotkey-msx">' +
-                            '<div class="wmsx-command">' +
-                                '<div class="wmsx-key wmsx-key-msx">' +
-                                    'ESC' +
-                                '</div> :' +
-                            '</div>' +
-                            '<div class="wmsx-key">' +
-                                'Escape' +
-                            '</div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">' +
-                                'Alt' +
-                            '</div>&nbsp;+&nbsp;<div class="wmsx-key">' +
-                                'F1' +
-                            '</div>' +
-                        '</div>' +
+                        '<div id="wmsx-keyboard"></div>' +
+                        '<div id="wmsx-keyboard-popup"></div>' +
                     '</div>' +
                 '</div>' +
                 '<div id="wmsx-about">' +
@@ -649,19 +552,19 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-modal .wmsx-heading {' +
            'font-weight: 700;' +
-           'color: rgba(0, 0, 0, .60);' +
+           'color: rgba(0, 0, 0, .72);' +
        '}' +
 
        '#wmsx-modal .wmsx-hotkey .wmsx-command {' +
            'position: relative;' +
-           'float: left;' +
+           'display: inline-block;' +
            'font-weight: 600;' +
            'color: rgba(0, 0, 0, .54);' +
        '}' +
 
        '#wmsx-modal .wmsx-hotkey .wmsx-desc {' +
-           'float: left;' +
-           'padding-top: 3px;' +
+           'display: inline-block;' +
+           'line-height: 21px;' +
        '}' +
 
        '#wmsx-modal .wmsx-hotkey-msx {' +
@@ -686,23 +589,6 @@ wmsx.SettingsGUI.css = function() {
            'border: 1px solid rgb(210, 210, 210);' +
            'box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);' +
            'text-align: center;' +
-       '}' +
-
-       '#wmsx-modal .wmsx-key-msx {' +
-           'width: 65px;' +
-           'color: rgb(255, 255, 255);' +
-           'background: rgb(90, 90, 90);' +
-           'font-weight: normal;' +
-           'border-radius: 0px;' +
-           'border: 1px solid rgb(140, 140, 140);' +
-           'box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);' +
-           '-webkit-font-smoothing: antialiased;' +
-           '-moz-osx-font-smoothing: grayscale;' +
-       '}' +
-
-       '#wmsx-modal .wmsx-key-msx-stop {' +
-           'background: rgb(235, 50, 50);' +
-           'border: 1px solid rgb(250, 110, 110);' +
        '}' +
 
        '#wmsx-modal .wmsx-key-fixed {' +
@@ -880,29 +766,31 @@ wmsx.SettingsGUI.css = function() {
 
        '#wmsx-inputs {' +
            'padding-top: 23px;' +
-           'padding-left: 40px;' +
+           'padding-left: 33px;' +
        '}' +
 
        '#wmsx-inputs .wmsx-left {' +
            'float: left;' +
-           'width: 275px;' +
+           'width: 297px;' +
        '}' +
 
-       '#wmsx-inputs .wmsx-left .wmsx-command {' +
-           'width: 95px;' +
-       '}' +
-
-       '#wmsx-inputs .wmsx-right .wmsx-command {' +
-           'width: 95px;' +
+       '#wmsx-inputs .wmsx-command {' +
+           'width: 91px;' +
        '}' +
 
        '#wmsx-inputs .wmsx-bottom {' +
-           'margin-left: 95px;' +
-           'margin-top: 1000px;' +
+           'margin-top: 12px;' +
        '}' +
 
-       '#wmsx-inputs .wmsx-bottom .wmsx-command {' +
-           'width: 100px;' +
+       '#wmsx-inputs .wmsx-bottom .wmsx-hotkey {' +
+           'display: inline-block;' +
+           'width: 230px;' +
+           'margin-bottom: 3px;' +
+       '}' +
+
+       '#wmsx-inputs .wmsx-bottom .wmsx-heading {' +
+           'width: 297px;' +
+           'text-align: right;' +
        '}' +
 
        '#wmsx-about {' +

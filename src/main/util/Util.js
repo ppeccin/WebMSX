@@ -281,6 +281,13 @@ wmsx.Util = new function() {
             if (pred(arr[i], i, arr)) return arr[i];
     };
 
+    this.arrayFindIndex = function(arr, pred) {
+        if (arr.findIndex) return arr.findIndex(pred);
+        for (var i = 0, len = arr.length; i < len; ++i)
+            if (pred(arr[i], i, arr)) return i;
+        return -1;
+    };
+
     this.arrayIndexOfSubArray = function(arr, subarr, fromIndex, step) {
         var subLen = subarr.length;
         var len = arr.length;
