@@ -188,9 +188,9 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_STATE_9          = wmsx.DOMKeys.VK_9.c;
     var KEY_STATE_10         = wmsx.DOMKeys.VK_0.c;
     var KEY_STATE_11         = wmsx.DOMKeys.VK_MINUS.c;
-    var KEY_STATE_11a        = wmsx.DOMKeys.FF_VK_MINUS.c;
+    var KEY_STATE_11a        = wmsx.DOMKeys.VK_FF_MINUS.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
-    var KEY_STATE_12a        = wmsx.DOMKeys.FF_VK_EQUAL.c;
+    var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUAL.c;
 
     var KEY_CTRL_MASK  = 1;
     var KEY_ALT_MASK   = 2;

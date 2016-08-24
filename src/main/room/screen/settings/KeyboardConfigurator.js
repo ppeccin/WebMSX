@@ -128,14 +128,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     function mappingForKeyboardEvent(e) {
         console.log("Key: " + e.key + ", keyCode: " + e.keyCode + ", alt: " + e.altKey + ", control: " + e.ctrlKey + ", shift: " + e.shiftKey + ", loc: " + e.location);
 
-        var key = e.key;
-
-        var name;
-        if (key === " ") name = "Space";
-        else if (key.length === 1) name = key.toUpperCase();
-        else name = key;
-
-        return { c: e.keyCode, n: name};
+        return { c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
     }
 
     function refreshUnmappedIndicator() {

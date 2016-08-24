@@ -1,143 +1,216 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // General, immutable info about host keys on different browsers and keyboard languages/layouts
-wmsx.DOMKeys = {
+
+wmsx.DOMKeys = {};
+
+wmsx.DOMKeys.MOD_SHIFT = 16;
+wmsx.DOMKeys.LOC_SHIFT = 24;
+
+wmsx.DOMKeys.SHIFT =   0x10000;
+wmsx.DOMKeys.CONTROL = 0x20000;
+wmsx.DOMKeys.ALT =     0x40000;
+wmsx.DOMKeys.META =    0x80000;
+
+wmsx.DOMKeys.LOCNONE =  0x0000000;
+wmsx.DOMKeys.LOCLEFT =  0x1000000;
+wmsx.DOMKeys.LOCRIGHT = 0x2000000;
+wmsx.DOMKeys.LOCNUM =   0x3000000;
+
+(function(k, left, right, num) {
 
     // Common keys (US)
 
-    VK_F1: {c: 112, n: "F1"},
-    VK_F2: {c: 113, n: "F2"},
-    VK_F3: {c: 114, n: "F3"},
-    VK_F4: {c: 115, n: "F4"},
-    VK_F5: {c: 116, n: "F5"},
-    VK_F6: {c: 117, n: "F6"},
-    VK_F7: {c: 118, n: "F7"},
-    VK_F8: {c: 119, n: "F8"},
-    VK_F9: {c: 120, n: "F9"},
-    VK_F10: {c: 121, n: "F10"},
-    VK_F11: {c: 122, n: "F11"},
-    VK_F12: {c: 123, n: "F12"},
+    k.VK_F1 = {c: 112, n: "F1" };
+    k.VK_F2 = {c: 113, n: "F2" };
+    k.VK_F3 = {c: 114, n: "F3" };
+    k.VK_F4 = {c: 115, n: "F4" };
+    k.VK_F5 = {c: 116, n: "F5" };
+    k.VK_F6 = {c: 117, n: "F6" };
+    k.VK_F7 = {c: 118, n: "F7" };
+    k.VK_F8 = {c: 119, n: "F8" };
+    k.VK_F9 = {c: 120, n: "F9" };
+    k.VK_F10 = {c: 121, n: "F10" };
+    k.VK_F11 = {c: 122, n: "F11" };
+    k.VK_F12 = {c: 123, n: "F12" };
 
-    VK_1: {c: 49, n: "1"},
-    VK_2: {c: 50, n: "2"},
-    VK_3: {c: 51, n: "3"},
-    VK_4: {c: 52, n: "4"},
-    VK_5: {c: 53, n: "5"},
-    VK_6: {c: 54, n: "6"},
-    VK_7: {c: 55, n: "7"},
-    VK_8: {c: 56, n: "8"},
-    VK_9: {c: 57, n: "9"},
-    VK_0: {c: 48, n: "0"},
+    k.VK_1 = {c: 49, n: "1" };
+    k.VK_2 = {c: 50, n: "2" };
+    k.VK_3 = {c: 51, n: "3" };
+    k.VK_4 = {c: 52, n: "4" };
+    k.VK_5 = {c: 53, n: "5" };
+    k.VK_6 = {c: 54, n: "6" };
+    k.VK_7 = {c: 55, n: "7" };
+    k.VK_8 = {c: 56, n: "8" };
+    k.VK_9 = {c: 57, n: "9" };
+    k.VK_0 = {c: 48, n: "0" };
 
-    VK_Q: {c: 81, n: "Q"},
-    VK_W: {c: 87, n: "W"},
-    VK_E: {c: 69, n: "E"},
-    VK_R: {c: 82, n: "R"},
-    VK_T: {c: 84, n: "T"},
-    VK_Y: {c: 89, n: "Y"},
-    VK_U: {c: 85, n: "U"},
-    VK_I: {c: 73, n: "I"},
-    VK_O: {c: 79, n: "O"},
-    VK_P: {c: 80, n: "P"},
-    VK_A: {c: 65, n: "A"},
-    VK_S: {c: 83, n: "S"},
-    VK_D: {c: 68, n: "D"},
-    VK_F: {c: 70, n: "F"},
-    VK_G: {c: 71, n: "G"},
-    VK_H: {c: 72, n: "H"},
-    VK_J: {c: 74, n: "J"},
-    VK_K: {c: 75, n: "K"},
-    VK_L: {c: 76, n: "L"},
-    VK_Z: {c: 90, n: "Z"},
-    VK_X: {c: 88, n: "X"},
-    VK_C: {c: 67, n: "C"},
-    VK_V: {c: 86, n: "V"},
-    VK_B: {c: 66, n: "B"},
-    VK_N: {c: 78, n: "N"},
-    VK_M: {c: 77, n: "M"},
+    k.VK_Q = {c: 81, n: "Q" };
+    k.VK_W = {c: 87, n: "W" };
+    k.VK_E = {c: 69, n: "E" };
+    k.VK_R = {c: 82, n: "R" };
+    k.VK_T = {c: 84, n: "T" };
+    k.VK_Y = {c: 89, n: "Y" };
+    k.VK_U = {c: 85, n: "U" };
+    k.VK_I = {c: 73, n: "I" };
+    k.VK_O = {c: 79, n: "O" };
+    k.VK_P = {c: 80, n: "P" };
+    k.VK_A = {c: 65, n: "A" };
+    k.VK_S = {c: 83, n: "S" };
+    k.VK_D = {c: 68, n: "D" };
+    k.VK_F = {c: 70, n: "F" };
+    k.VK_G = {c: 71, n: "G" };
+    k.VK_H = {c: 72, n: "H" };
+    k.VK_J = {c: 74, n: "J" };
+    k.VK_K = {c: 75, n: "K" };
+    k.VK_L = {c: 76, n: "L" };
+    k.VK_Z = {c: 90, n: "Z" };
+    k.VK_X = {c: 88, n: "X" };
+    k.VK_C = {c: 67, n: "C" };
+    k.VK_V = {c: 86, n: "V" };
+    k.VK_B = {c: 66, n: "B" };
+    k.VK_N = {c: 78, n: "N" };
+    k.VK_M = {c: 77, n: "M" };
 
-    VK_ESCAPE: {c: 27, n: "ESC"},
-    VK_ENTER: {c: 13, n: "Enter"},
-    VK_SPACE: {c: 32, n: "Space"},
-    VK_TAB: {c: 9, n: "Tab"},
-    VK_BACKSPACE: {c: 8, n: "BkSpc"},
+    k.VK_ESCAPE = {c: 27, n: "Esc" };
+    k.VK_ENTER = {c: 13, n: "Enter" };
+    k.VK_SPACE = {c: 32, n: "Space" };
+    k.VK_TAB = {c: 9, n: "Tab" };
+    k.VK_BACKSPACE = {c: 8, n: "BackSpc" };
 
-    VK_SHIFT: {c: 16, n: "Shift"},
-    VK_CONTROL: {c: 17, n: "Ctrl"},
-    VK_ALT: {c: 18, n: "Alt"},
+    k.VK_CONTEXT = {c: 93, n: "Context" };
 
-    VK_CAPS_LOCK: {c: 20, n: "CpsLck"},
-    VK_PRINT_SCREEN: {c: 44, n: "PrtScr"},
-    VK_SCROLL_LOCK: {c: 145, n: "ScrLck"},
-    VK_PAUSE: {c: 19, n: "Pause"},
-    VK_BREAK: {c: 3, n: "Break"},
+    k.VK_LSHIFT = {c: 16 | left, n: "LShift" };
+    k.VK_LCONTROL = {c: 17 | left, n: "LControl" };
+    k.VK_LALT = {c: 18 | left, n: "LAlt" };
+    k.VK_LMETA = {c: 91 | left, n: "LMeta" };
 
-    VK_INSERT: {c: 45, n: "Ins"},
-    VK_DELETE: {c: 46, n: "Del"},
-    VK_HOME: {c: 36, n: "Home"},
-    VK_END: {c: 35, n: "End"},
-    VK_PAGE_UP: {c: 33, n: "PgUp"},
-    VK_PAGE_DOWN: {c: 34, n: "PgDown"},
+    k.VK_RSHIFT = {c: 16 | right, n: "RShift" };
+    k.VK_RCONTROL = {c: 17 | right, n: "RControl" };
+    k.VK_RALT = {c: 18 | right, n: "RAlt" };
+    k.VK_RMETA = {c: 91 | right, n: "RMeta" };
 
-    VK_UP: {c: 38, n: "Up"},
-    VK_DOWN: {c: 40, n: "Down"},
-    VK_LEFT: {c: 37, n: "Left"},
-    VK_RIGHT: {c: 39, n: "Right"},
+    k.VK_CAPS_LOCK = {c: 20, n: "CapsLock" };
+    k.VK_PRINT_SCREEN = {c: 44, n: "PrtScr" };
+    k.VK_SCROLL_LOCK = {c: 145, n: "ScrLck" };
+    k.VK_PAUSE = {c: 19, n: "Pause" };
+    k.VK_BREAK = {c: 3, n: "Break" };
 
-    VK_NUM_LOCK: {c: 144, n: "Num"},
-    VK_NUM_COMMA: {c: 110, n: "Num ,"},
-    VK_NUM_DIVIDE: {c: 111, n: "Num /"},
-    VK_NUM_MULTIPLY: {c: 106, n: "Num *"},
-    VK_NUM_MINUS: {c: 109, n: "Num -"},
-    VK_NUM_PLUS: {c: 107, n: "Num +"},
-    VK_NUM_PERIOD: {c: 194, n: "Num ."},
-    VK_NUM_0: {c: 96, n: "Num 0"},
-    VK_NUM_1: {c: 97, n: "Num 1"},
-    VK_NUM_2: {c: 98, n: "Num 2"},
-    VK_NUM_3: {c: 99, n: "Num 3"},
-    VK_NUM_4: {c: 100, n: "Num 4"},
-    VK_NUM_5: {c: 101, n: "Num 5"},
-    VK_NUM_6: {c: 102, n: "Num 6"},
-    VK_NUM_7: {c: 103, n: "Num 7"},
-    VK_NUM_8: {c: 104, n: "Num 8"},
-    VK_NUM_9: {c: 105, n: "Num 9"},
-    VK_NUM_CENTER: {c: 12, n: "Num Cntr"},
+    k.VK_INSERT = {c: 45, n: "Ins" };
+    k.VK_DELETE = {c: 46, n: "Del" };
+    k.VK_HOME = {c: 36, n: "Home" };
+    k.VK_END = {c: 35, n: "End" };
+    k.VK_PAGE_UP = {c: 33, n: "PgUp" };
+    k.VK_PAGE_DOWN = {c: 34, n: "PgDown" };
 
-    VK_QUOTE: {c: 222, n: "'"},
-    VK_BACKQUOTE: {c: 192, n: "`"},
-    VK_MINUS: {c: 189, n: "-"},
-    VK_EQUALS: {c: 187, n: "="},
-    VK_OPEN_BRACKET: {c: 219, n: "["},
-    VK_CLOSE_BRACKET: {c: 221, n: "]"},
-    VK_COMMA: {c: 188, n: ","},
-    VK_PERIOD: {c: 190, n: "."},
-    VK_SEMICOLON: {c: 186, n: ";"},
-    VK_SLASH: {c: 191, n: "/"},
-    VK_BACKSLASH: {c: 220, n: "\\"},
+    k.VK_UP = {c: 38, n: "Up" };
+    k.VK_DOWN = {c: 40, n: "Down" };
+    k.VK_LEFT = {c: 37, n: "Left" };
+    k.VK_RIGHT = {c: 39, n: "Right" };
+
+    k.VK_NUM_LOCK = {c: 144, n: "NumLock" };
+    k.VK_NUM_COMMA = {c: 110 | num, n: "Num ," };
+    k.VK_NUM_DIVIDE = {c: 111 | num, n: "Num /" };
+    k.VK_NUM_MULTIPLY = {c: 106 | num, n: "Num *" };
+    k.VK_NUM_MINUS = {c: 109 | num, n: "Num -" };
+    k.VK_NUM_PLUS = {c: 107 | num, n: "Num +" };
+    k.VK_NUM_PERIOD = {c: 194 | num, n: "Num ." };
+    k.VK_NUM_0 = {c: 96 | num, n: "Num 0" };
+    k.VK_NUM_1 = {c: 97 | num, n: "Num 1" };
+    k.VK_NUM_2 = {c: 98 | num, n: "Num 2" };
+    k.VK_NUM_3 = {c: 99 | num, n: "Num 3" };
+    k.VK_NUM_4 = {c: 100 | num, n: "Num 4" };
+    k.VK_NUM_5 = {c: 101 | num, n: "Num 5" };
+    k.VK_NUM_6 = {c: 102 | num, n: "Num 6" };
+    k.VK_NUM_7 = {c: 103 | num, n: "Num 7" };
+    k.VK_NUM_8 = {c: 104 | num, n: "Num 8" };
+    k.VK_NUM_9 = {c: 105 | num, n: "Num 9" };
+    k.VK_NUM_CLEAR = {c: 12 | num, n: "Num Clear" };
+    k.VK_NUM_ENTER = {c: 13 | num, n: "Num Enter" };
+
+    k.VK_QUOTE = {c: 222, n: "'" };
+    k.VK_BACKQUOTE = {c: 192, n: "`" };
+    k.VK_MINUS = {c: 189, n: "-" };
+    k.VK_EQUALS = {c: 187, n: "=" };
+    k.VK_OPEN_BRACKET = {c: 219, n: "[" };
+    k.VK_CLOSE_BRACKET = {c: 221, n: "]" };
+    k.VK_COMMA = {c: 188, n: "," };
+    k.VK_PERIOD = {c: 190, n: "." };
+    k.VK_SEMICOLON = {c: 186, n: ";" };
+    k.VK_SLASH = {c: 191, n: "/" };
+    k.VK_BACKSLASH = {c: 220, n: "\\" };
 
     // Alternate codes for FF
-    FF_VK_MINUS: {c: 173, n: "-"},
-    FF_VK_EQUAL: {c: 61, n: "="},
-    FF_VK_SEMICOLON: {c: 59, n: ";"},
+    k.VK_FF_MINUS = {c: 173, n: "-" };
+    k.VK_FF_EQUAL = {c: 61, n: "=" };
+    k.VK_FF_SEMICOLON = {c: 59, n: ";" };
 
     // BR alternate codes
-    BR_VK_QUOTE: {c: 192, n: "'"},
-    BR_VK_OPEN_BRACKET: {c: 221, n: "["},
-    BR_VK_CLOSE_BRACKET: {c: 220, n: "]"},
-    BR_VK_SEMICOLON: {c: 191, n: ";"},
-    BR_VK_SLASH: {c: 193, n: "/"},
-    BR_VK_BACKSLASH: {c: 226, n: "\\"},
+    k.VK_BR_QUOTE = {c: 192, n: "'" };
+    k.VK_BR_OPEN_BRACKET = {c: 221, n: "[" };
+    k.VK_BR_CLOSE_BRACKET = {c: 220, n: "]" };
+    k.VK_BR_SEMICOLON = {c: 191, n: ";" };
+    k.VK_BR_SLASH = {c: 193, n: "/" };
+    k.VK_BR_BACKSLASH = {c: 226, n: "\\" };
 
     // BR additional keys
-    BR_VK_CEDILLA: {c: 186, n: "Ç"},
-    BR_VK_TILDE: {c: 222, n: "~"},
-    BR_VK_ACUTE: {c: 219, n: "´"},
+    k.VK_BR_CEDILLA = {c: 186, n: "Ç" };
+    k.VK_BR_TILDE = {c: 222, n: "~" };
+    k.VK_BR_ACUTE = {c: 219, n: "´" };
 
-    BR_FF_VK_TILDE: {c: 176, n: "~"},
-    BR_FF_VK_CEDILLA: {c: 0, n: "Ç"},
+    k.VK_FF_BR_TILDE = {c: 176, n: "~" };
+    //k.VK_FF_BR_CEDILLA = {c: 0, n: "Ç" };
 
-    VK_VOID: {c: -1, n: "Unbound"}
+    k.VK_VOID = {c: -1, n: "Unbound"}
 
+})(wmsx.DOMKeys, wmsx.DOMKeys.LOCLEFT, wmsx.DOMKeys.LOCRIGHT, wmsx.DOMKeys.LOCNUM);
+
+wmsx.DOMKeys.forcedNames = {
+    27:  "Esc",
+    13:  "Enter",
+    32:  "Space",
+    9:   "Tab",
+    8:   "BackSpc",
+    16:  "Shift",
+    17:  "Control",
+    18:  "Alt",
+    91:  "Meta",
+    93:  "Context",
+    20:  "CapsLock",
+    44:  "PrtScr",
+    145: "ScrLck",
+    19:  "Pause",
+    3:   "Break",
+    45:  "Ins",
+    46:  "Del",
+    36:  "Home",
+    35:  "End",
+    33:  "PgUp",
+    34:  "PgDown",
+    38:  "Up",
+    40:  "Down",
+    37:  "Left",
+    39:  "Right"
 };
 
+wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
+    // Ignore the own modifier for modifier keys SHIFT, CONTROL, ALT, META
+    var code = e.keyCode;
+    return code
+        | (e.location << this.LOC_SHIFT)
+        | (e.shiftKey && code !== 16 ? this.SHIFT : 0)
+        | (e.ctrlKey && code !== 17 ? this.CONTROL : 0)
+        | (e.altKey && code !== 18 ? this.ALT : 0)
+        | (e.metaKey && code !== 91 ? this.META : 0);
+};
 
+wmsx.DOMKeys.nameForKeyboardEvent = function(e) {
+    var name = this.forcedNames[e.keyCode] || e.key || ("#" + e.keyCode);
+    if (name.length === 1) name = name.toUpperCase();                           // For normal letters
+    switch(e.location) {
+        case 1: name = "L" + name; break;
+        case 2: name = "R" + name; break;
+        case 3: name = "Num " + name; break;
+    }
+    return name;
+};

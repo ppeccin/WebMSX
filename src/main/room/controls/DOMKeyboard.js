@@ -132,33 +132,34 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     this.keyDown = function(e) {
         //console.log("Keyboard KeyDown keyCode: " + e.keyCode + ", key: " + e.key);
-        //window.D = e;
 
         e.returnValue = false;  // IE
         e.preventDefault();
         e.stopPropagation();
 
-        if (!processKeyEvent(e.keyCode, true, e.altKey)) keyForwardControls.keyDown(e);
+        if (!processKeyEvent(e, true)) keyForwardControls.keyDown(e);
 
         return false;
     };
 
     this.keyUp = function(e) {
-        //console.log("Keyboard KeyUp: " + e.keyCode);
+        //console.log("Keyboard KeyUp keyCode: " + e.keyCode + ", key: " + e.key);
 
-        if (processKeyEvent(e.keyCode, false, e.altKey, e.ctrlKey)) {
-            e.returnValue = false;  // IE
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        } else
-            return keyForwardControls.keyUp(e);
+        if (!processKeyEvent(e, false)) return keyForwardControls.keyUp(e);
+
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
     };
 
-    var processKeyEvent = function(keyCode, press, alt) {
-        var key = keyForEvent(keyCode, alt);
+    var processKeyEvent = function(e, press) {
+        var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        var key = msxKeyForCode(code);
+
+        console.log("KeyboardKey " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + key);
+
         if (!key) return false;
-        //if (press) console.log("DOMKey: " + key + ", fromCharCode: " + String.fromCharCode(keyCode));
 
         var state = keyStateMap[key];
         if (state === undefined || (state !== press)) {
@@ -174,8 +175,8 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     // TODO Shift+CODE+DEAD not being detected
-    var keyForEvent = function(keyCode, alt) {
-        return alt ? null : codeMap[keyCode];
+    var msxKeyForCode = function(keyCode) {
+        return codeMap[keyCode] || codeMap[keyCode & IGNORE_MODIFIERS_MASK];
     };
 
     var updateMapping = function() {
@@ -248,6 +249,8 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
     var CUSTOM_KEYBOARD_SUFFIX = "-CUSTOM";
+
+    var IGNORE_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CONTROL | wmsx.DOMKeys.META);
 
     init();
 

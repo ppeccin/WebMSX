@@ -26,7 +26,7 @@
         COMMA          : d.VK_COMMA,
         PERIOD         : d.VK_PERIOD,
         SLASH          : d.VK_SLASH,
-        DEAD           : d.VK_END,
+        DEAD           : [ d.VK_CONTEXT, d.VK_END ],
         A              : d.VK_A,
         B              : d.VK_B,
         C              : d.VK_C,
@@ -53,11 +53,11 @@
         X              : d.VK_X,
         Y              : d.VK_Y,
         Z              : d.VK_Z,
-        SHIFT          : d.VK_SHIFT,
-        CONTROL        : d.VK_CONTROL,
+        SHIFT          : [ d.VK_LSHIFT, d.VK_RSHIFT ],
+        CONTROL        : d.VK_LCONTROL,
         CAPSLOCK       : d.VK_CAPS_LOCK,
-        GRAPH          : d.VK_PAGE_UP,
-        CODE           : d.VK_PAGE_DOWN,
+        GRAPH          : [ d.VK_LALT, d.VK_PAGE_UP ],
+        CODE           : [ d.VK_RALT, d.VK_PAGE_DOWN ],
         F1             : d.VK_F1,
         F2             : d.VK_F2,
         F3             : d.VK_F3,
@@ -68,7 +68,7 @@
         STOP           : [ d.VK_PAUSE, d.VK_BREAK, d.VK_F9 ],
         BACKSPACE      : d.VK_BACKSPACE,
         SELECT         : [ d.VK_SCROLL_LOCK, d.VK_F10 ],
-        ENTER          : d.VK_ENTER,
+        ENTER          : [ d.VK_ENTER, d.VK_NUM_ENTER ],
         SPACE          : d.VK_SPACE,
         HOME           : d.VK_HOME,
         INSERT         : d.VK_INSERT,
@@ -100,9 +100,9 @@
     // Apply browser differences to BASE
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
-            base.MINUS =     d.FF_VK_MINUS;
-            base.EQUAL =     d.FF_VK_EQUAL;
-            base.SEMICOLON = d.FF_VK_SEMICOLON;
+            base.MINUS =     d.VK_FF_MINUS;
+            base.EQUAL =     d.VK_FF_EQUAL;
+            base.SEMICOLON = d.VK_FF_SEMICOLON;
     }
 
     // Define built-in keyboards
@@ -117,17 +117,17 @@
     // BR specific browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
-            br.DEAD =          [ d.VK_END, d.BR_FF_VK_TILDE ];
+            br.DEAD =          [ d.VK_END, d.VK_FF_BR_TILDE ];
             break;
         default:
-            br.QUOTE =         d.BR_VK_QUOTE;
-            br.OPEN_BRACKET =  d.BR_VK_OPEN_BRACKET;
-            br.CLOSE_BRACKET = d.BR_VK_CLOSE_BRACKET;
-            br.BACKQUOTE =     d.BR_VK_ACUTE;
-            br.SEMICOLON =     d.BR_VK_SEMICOLON;
-            br.SLASH =         d.BR_VK_SLASH;
-            br.BACKSLASH =     d.BR_VK_BACKSLASH;
-            br.DEAD =          [ d.VK_END, d.BR_VK_TILDE, d.BR_VK_CEDILLA ];
+            br.QUOTE =         d.VK_BR_QUOTE;
+            br.OPEN_BRACKET =  d.VK_BR_OPEN_BRACKET;
+            br.CLOSE_BRACKET = d.VK_BR_CLOSE_BRACKET;
+            br.BACKQUOTE =     d.VK_BR_ACUTE;
+            br.SEMICOLON =     d.VK_BR_SEMICOLON;
+            br.SLASH =         d.VK_BR_SLASH;
+            br.BACKSLASH =     d.VK_BR_BACKSLASH;
+            br.DEAD =          [ d.VK_END, d.VK_BR_TILDE, d.VK_BR_CEDILLA ];
     }
 
     wmsx.BuiltInKeyboards = {
