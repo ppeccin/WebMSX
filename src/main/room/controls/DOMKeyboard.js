@@ -53,7 +53,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.setKeyInputElement = function(element) {
-        //element.addEventListener("keypress", this.keyPress);
         element.addEventListener("keydown", this.keyDown);
         element.addEventListener("keyup", this.keyUp);
     };
@@ -98,14 +97,24 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         return mapping[key];
     };
 
+    this.clearKey = function (key) {
+        // Ignore if key is already clear
+        if (mapping[key].length === 0) return;
+
+        if (!customKeyboards[currentKeyboard]) setCustomKeyboard();
+
+        mapping[key].length = 0;
+        updateCodeMap();
+    };
+
     this.customizeKey = function (key, vk) {
         // Ignore if key is already mapped
-        if (codeMap[vk.c] === key) return;
+        if (keyCodeMap[vk.c] === key) return;
 
         if (!customKeyboards[currentKeyboard]) setCustomKeyboard();
 
         // Search for keys mapped to this vk, to remove the mapping
-        for (var k in wmsx.KeyboardKeys) {
+        for (var k in mapping) {
             var map = mapping[k];
             if (map.length === 0) continue;
             var i;
@@ -118,79 +127,64 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         if (map.length > 2) map.splice(0, map.length - 2);
         map.push(vk);
 
-        updateCodeMaps();
-    };
-
-    this.keyPress = function(e) {
-        console.log("Keyboard KeyPress: " + e.keyCode + " : " + String.fromCharCode(e.charCode));
-        window.P = e;
-        e.returnValue = false;  // IE
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
+        updateCodeMap();
     };
 
     this.keyDown = function(e) {
-        //console.log("Keyboard KeyDown keyCode: " + e.keyCode + ", key: " + e.key);
-
-        e.returnValue = false;  // IE
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!processKeyEvent(e, true)) keyForwardControls.keyDown(e);
-
-        return false;
+        return processKeyEvent(e, true);
     };
 
     this.keyUp = function(e) {
-        //console.log("Keyboard KeyUp keyCode: " + e.keyCode + ", key: " + e.key);
-
-        if (!processKeyEvent(e, false)) return keyForwardControls.keyUp(e);
-
-        e.returnValue = false;  // IE
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
+        return processKeyEvent(e, false);
     };
 
     var processKeyEvent = function(e, press) {
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
+
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
-        var key = msxKeyForCode(code);
+        var msxKey = keyCodeMap[code];                                      // First try, before giving a chance to other controls in the chain
 
-        console.log("KeyboardKey " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + key);
+        console.log("Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
 
-        if (!key) return false;
+        // Try other controls if
+        if (!msxKey) {
+            if (!keyForwardControls.processKey(code, press)) {
+                msxKey = keyCodeMap[code & IGNORE_ALL_MODIFIERS_MASK];      // Second try, ignore modifiers, only if no other controls were found
 
-        var state = keyStateMap[key];
-        if (state === undefined || (state !== press)) {
-            keyStateMap[key] = press;
-            if (press) {
-                keyboardRowValues[msxKeys[key][0]] &= ~(1 << msxKeys[key][1]);
-                if (turboFireSpeed && key === "SPACE") turboFireFlipClockCount = 3;
-            } else {
-                keyboardRowValues[msxKeys[key][0]] |= (1 << msxKeys[key][1]);
+                console.log("2 Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
             }
         }
-        return true;
-    };
 
-    // TODO Shift+CODE+DEAD not being detected
-    var msxKeyForCode = function(keyCode) {
-        return codeMap[keyCode] || codeMap[keyCode & IGNORE_MODIFIERS_MASK];
+        if (msxKey) {
+            var state = keyStateMap[msxKey];
+            if (state === undefined || (state !== press)) {
+                keyStateMap[msxKey] = press;
+                if (press) {
+                    keyboardRowValues[msxKeys[msxKey][0]] &= ~(1 << msxKeys[msxKey][1]);
+                    if (turboFireSpeed && msxKey === "SPACE") turboFireFlipClockCount = 3;
+                } else {
+                    keyboardRowValues[msxKeys[msxKey][0]] |= (1 << msxKeys[msxKey][1]);
+                }
+            }
+        }
+
+        return false;
     };
 
     var updateMapping = function() {
         var map = customKeyboards[currentKeyboard] || wmsx.BuiltInKeyboards[currentKeyboard];
         for (var k in wmsx.KeyboardKeys)
             mapping[k] = !map[k] ? [] : map[k].constructor === Array ? map[k] : [ map[k] ];
-        updateCodeMaps();
+        updateCodeMap();
     };
 
-    var updateCodeMaps = function() {
-        codeMap = {};
+    var updateCodeMap = function() {
+        keyCodeMap = {};
         for (var k in mapping) {
             if (mapping[k].length === 0) continue;
-            for (var i = 0; i < mapping[k].length; ++i) codeMap[mapping[k][i].c] = k;
+            for (var i = 0; i < mapping[k].length; ++i) keyCodeMap[mapping[k][i].c] = k;
         }
     };
 
@@ -244,13 +238,13 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
     var mapping = {};
-    var codeMap;
+    var keyCodeMap;
 
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
     var CUSTOM_KEYBOARD_SUFFIX = "-CUSTOM";
 
-    var IGNORE_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CONTROL | wmsx.DOMKeys.META);
+    var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
 
     init();
 

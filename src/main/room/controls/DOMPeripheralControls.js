@@ -28,31 +28,14 @@ wmsx.DOMPeripheralControls = function() {
         groupRestriction = pGroup || null;
     };
 
-    this.keyDown = function(e) {
-        //console.log("Peripheral KeyDown: " + e.keyCode + " " + e.altKey);
-
-        processKeyPress(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey);
-    };
-
-    this.keyUp = function(event) {
-    };
-
-    var processKeyPress = function(keyCode, shiftKey, ctrlKey, altKey) {
-        var control = controlForEvent(keyCode, ctrlKey, altKey);
+    this.processKey = function(code, press) {
+        if (!press) return false;
+        var control = keyCodeMap[code & EXCLUDE_SHIFT_MASK];
         if (!control) return false;
-        if (groupRestriction && !groups[groupRestriction].has(control)) return false;
-        self.controlActivated(control, false, shiftKey);      // Never altPower
-        return true;
-    };
 
-    var controlForEvent = function(keyCode, ctrlKey, altKey) {
-        if (ctrlKey && altKey)
-            return keyControlAltCodeMap[keyCode];
-        if (ctrlKey)
-            return keyControlCodeMap[keyCode];
-        if (altKey)
-            return keyAltCodeMap[keyCode];
-        return keyCodeMap[keyCode];
+        if (groupRestriction && !groups[groupRestriction].has(control)) return false;
+        self.controlActivated(control, false, !!(code & INCLUDE_SHIFT_MASK));                     // Never altPower
+        return true;
     };
 
     this.controlActivated = function(control, altPower, secPort) {
@@ -225,58 +208,60 @@ wmsx.DOMPeripheralControls = function() {
     };
 
     var initKeys = function() {
-        keyControlCodeMap[KEY_AUTO] = controls.AUTO_LOAD_FILE;
+        var k = wmsx.DOMKeys;
 
-        keyControlAltCodeMap[KEY_AUTO] = controls.MACHINE_SELECT;
+        keyCodeMap[KEY_AUTO | k.CONTROL] = controls.AUTO_LOAD_FILE;
+
+        keyCodeMap[KEY_AUTO | k.CONTROL | k.ALT] = controls.MACHINE_SELECT;
 
         keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILES;
-        keyControlCodeMap[KEY_DISK] = controls.DISK_EMPTY;
-        keyAltCodeMap[KEY_DISK] = controls.DISK_REMOVE;
-        keyControlAltCodeMap[KEY_DISK] = controls.DISK_SAVE_FILE;
+        keyCodeMap[KEY_DISK | k.CONTROL] = controls.DISK_EMPTY;
+        keyCodeMap[KEY_DISK | k.ALT] = controls.DISK_REMOVE;
+        keyCodeMap[KEY_DISK | k.CONTROL | k.ALT] = controls.DISK_SAVE_FILE;
 
-        keyAltCodeMap[KEY_DISK_SELECT]  = controls.DISK_SELECT;
-        keyAltCodeMap[KEY_DISK_SELECT2] = controls.DISK_SELECT;
-        keyAltCodeMap[KEY_DISK_PREV]    = controls.DISK_PREVIOUS;
-        keyAltCodeMap[KEY_DISK_NEXT]    = controls.DISK_NEXT;
+        keyCodeMap[KEY_DISK_SELECT | k.ALT]  = controls.DISK_SELECT;
+        keyCodeMap[KEY_DISK_SELECT2 | k.ALT] = controls.DISK_SELECT;
+        keyCodeMap[KEY_DISK_PREV | k.ALT]    = controls.DISK_PREVIOUS;
+        keyCodeMap[KEY_DISK_NEXT | k.ALT]    = controls.DISK_NEXT;
 
         keyCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_FILE;
-        keyAltCodeMap[KEY_CART] = controls.CARTRIDGE_REMOVE;
-        keyControlCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_DATA_FILE;
-        keyControlAltCodeMap[KEY_CART] = controls.CARTRIDGE_SAVE_DATA_FILE;
+        keyCodeMap[KEY_CART | k.ALT] = controls.CARTRIDGE_REMOVE;
+        keyCodeMap[KEY_CART | k.CONTROL] = controls.CARTRIDGE_LOAD_DATA_FILE;
+        keyCodeMap[KEY_CART | k.CONTROL | k.ALT] = controls.CARTRIDGE_SAVE_DATA_FILE;
 
         keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
-        keyControlCodeMap[KEY_TAPE]  = controls.TAPE_EMPTY;
-        keyAltCodeMap[KEY_TAPE]  = controls.TAPE_REMOVE;
-        keyControlAltCodeMap[KEY_TAPE]  = controls.TAPE_SAVE_FILE;
+        keyCodeMap[KEY_TAPE | k.CONTROL]  = controls.TAPE_EMPTY;
+        keyCodeMap[KEY_TAPE | k.ALT]  = controls.TAPE_REMOVE;
+        keyCodeMap[KEY_TAPE | k.CONTROL | k.ALT]  = controls.TAPE_SAVE_FILE;
 
-        keyControlAltCodeMap[KEY_TAPE_REW]  = controls.TAPE_REWIND;
-        keyControlAltCodeMap[KEY_TAPE_END]  = controls.TAPE_TO_END;
-        keyControlAltCodeMap[KEY_TAPE_BCK]  = controls.TAPE_SEEK_BACK;
-        keyControlAltCodeMap[KEY_TAPE_FWD]  = controls.TAPE_SEEK_FWD;
+        keyCodeMap[KEY_TAPE_REW | k.CONTROL | k.ALT]  = controls.TAPE_REWIND;
+        keyCodeMap[KEY_TAPE_END | k.CONTROL | k.ALT]  = controls.TAPE_TO_END;
+        keyCodeMap[KEY_TAPE_BCK | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_BACK;
+        keyCodeMap[KEY_TAPE_FWD | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_FWD;
 
-        keyAltCodeMap[KEY_KEYBOARD_TOGGLE_HOST]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
-        keyAltCodeMap[KEY_JOYSTICKS_TOGGLE]      = controls.JOYSTICKS_TOGGLE_MODE;
-        keyAltCodeMap[KEY_MOUSE_TOGGLE]          = controls.MOUSE_TOGGLE_MODE;
-        keyAltCodeMap[KEY_TURBO_FIRE_TOGGLE]     = controls.TURBO_FIRE_TOGGLE;
+        keyCodeMap[KEY_KEYBOARD_TOGGLE_HOST | k.ALT]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
+        keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = controls.JOYSTICKS_TOGGLE_MODE;
+        keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = controls.MOUSE_TOGGLE_MODE;
+        keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = controls.TURBO_FIRE_TOGGLE;
 
-        keyAltCodeMap[KEY_CRT_FILTER]   = controls.SCREEN_CRT_FILTER;
-        keyAltCodeMap[KEY_CRT_MODE] 	= controls.SCREEN_CRT_MODE;
-        keyAltCodeMap[KEY_FULLSCREEN]  	= controls.SCREEN_FULLSCREEN;
+        keyCodeMap[KEY_CRT_FILTER | k.ALT]   = controls.SCREEN_CRT_FILTER;
+        keyCodeMap[KEY_CRT_MODE | k.ALT] 	= controls.SCREEN_CRT_MODE;
+        keyCodeMap[KEY_FULLSCREEN | k.ALT]  	= controls.SCREEN_FULLSCREEN;
 
-        keyControlAltCodeMap[KEY_UP]     = controls.SCREEN_SCALE_MINUS;
-        keyControlAltCodeMap[KEY_DOWN]   = controls.SCREEN_SCALE_PLUS;
+        keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = controls.SCREEN_SCALE_MINUS;
+        keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = controls.SCREEN_SCALE_PLUS;
 
-        keyControlAltCodeMap[KEY_LEFT]   = controls.SCREEN_ASPECT_MINUS;
-        keyControlAltCodeMap[KEY_RIGHT]  = controls.SCREEN_ASPECT_PLUS;
+        keyCodeMap[KEY_LEFT | k.CONTROL | k.ALT]   = controls.SCREEN_ASPECT_MINUS;
+        keyCodeMap[KEY_RIGHT | k.CONTROL | k.ALT]  = controls.SCREEN_ASPECT_PLUS;
 
-        keyAltCodeMap[KEY_DEFAULTS]  = controls.SCREEN_DEFAULTS;
+        keyCodeMap[KEY_DEFAULTS | k.ALT]  = controls.SCREEN_DEFAULTS;
 
-        keyAltCodeMap[KEY_COPY]    = controls.COPY_STRING;
-        keyAltCodeMap[KEY_PASTE]   = controls.PASTE_STRING;
-        keyAltCodeMap[KEY_PASTE2]  = controls.PASTE_STRING;
-        keyAltCodeMap[KEY_CAPTURE_SCREEN]   = controls.CAPTURE_SCREEN;
+        keyCodeMap[KEY_COPY | k.ALT]    = controls.COPY_STRING;
+        keyCodeMap[KEY_PASTE | k.ALT]   = controls.PASTE_STRING;
+        keyCodeMap[KEY_PASTE2 | k.ALT]  = controls.PASTE_STRING;
+        keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT]   = controls.CAPTURE_SCREEN;
 
-        keyControlCodeMap[KEY_MACHINE_POWER] = controls.MACHINE_LOAD_STATE_FILE;
+        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = controls.MACHINE_LOAD_STATE_FILE;
     };
 
     function initGroups() {
@@ -300,13 +285,13 @@ wmsx.DOMPeripheralControls = function() {
     var cassetteDeck;
     var diskDrive;
 
-    var keyCodeMap = {};                // Shift is a different matter
-    var keyAltCodeMap = {};
-    var keyControlCodeMap = {};
-    var keyControlAltCodeMap = {};
+    var keyCodeMap = {};                // SHIFT is considered differently
 
     var groups = {};
     var groupRestriction = null;
+
+    var EXCLUDE_SHIFT_MASK = ~wmsx.DOMKeys.SHIFT;
+    var INCLUDE_SHIFT_MASK = wmsx.DOMKeys.SHIFT;
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 

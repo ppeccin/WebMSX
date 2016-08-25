@@ -63,6 +63,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             }
         }
         setupMouseEnterLeaveEvents(keyboardElement);
+        keyboardElement.addEventListener("mousedown",  mouseDownKeyboard);
         keyboardElement.addEventListener("keydown", keyDown);        // New key pressed to be assigned to MSX key
 
         keyboardNameElement = document.getElementById("wmms-inputs-keyboard-name");
@@ -86,6 +87,12 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     function mouseLeaveKey() {
         keyElementEditing = msxKeyEditing = null;
         updatePopup()
+    }
+
+    function mouseDownKeyboard(e) {
+        if (msxKeyEditing && e.which === 3) domKeyboard.clearKey(msxKeyEditing);
+        updatePopup();
+        self.refresh();
     }
 
     function updatePopup() {
@@ -201,7 +208,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             '<span id="wmsx-keyboard-popup-key2">&nbsp;,&nbsp<div id="wmsx-keyboard-popup-key2-label" class="wmsx-key">.</div></span>' +
             '<span id="wmsx-keyboard-popup-key3">&nbsp;,&nbsp<div id="wmsx-keyboard-popup-key3-label" class="wmsx-key">.</div></span>' +
         '</div>' +
-        '<div>(press new key)</div>';
+        '<div>Press new key.</div>' +
+        '<div>(right-click to clear)</div>';
 
     var css =
         '#wmsx-inputs #wmsx-keyboard {' +
@@ -211,6 +219,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             'height: 178px;' +
             'background: rgb(76, 76, 76);' +
             'border-radius: 1px 1px 0px 0px;' +
+            'box-sizing: border-box;' +
             'box-shadow: 0px 1px 0 1px rgb(10, 10, 10);' +
             'outline: none;' +
         '}' +
@@ -223,7 +232,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             'padding: 4px 0px;' +
             'margin-right: 1px;' +
             'box-sizing: border-box;' +
-            'font-weight: 500;' +
+            'font-weight: normal;' +
             'font-size: 10px;' +
             'line-height: 10px;' +
             'text-align: center;' +
@@ -244,7 +253,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         '}' +
         '.wmsx-keyboard-key.wmsx-keyboard-key-unmapped {' +
             'color: rgb(40, 40, 40);' +
-            'font-weight: 600;' +
+            'font-weight: bold;' +
         '}' +
 
         '#wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {' +
@@ -357,7 +366,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         '#wmsx-inputs #wmsx-keyboard-popup {' +
             'display: none;' +
             'position: fixed;' +
-            'padding: 5px 8px;' +
+            'padding: 4px 9px;' +
+            'line-height: 16px;' +
             'text-align: center;' +
             'vertical-align: top;' +
             'border-radius: 6px;' +
@@ -368,8 +378,9 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         '}' +
         '#wmsx-inputs #wmsx-keyboard-popup .wmsx-command {' +
             'width: auto;' +
-            'margin: 8px 0 7px;' +
-            'font-weight: 600;' +
+            'line-height: 21px;' +
+            'margin: 9px 0 8px;' +
+            'font-weight: bold;' +
         '}' +
 
         '#wmsx-inputs #wmsx-keyboard-popup:after {' +
@@ -384,6 +395,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
             'border-style: solid;' +
             'border-color: transparent white white transparent;' +
             'box-shadow: 4px 4px 2px 0 rgba(0, 0, 0, .55);' +
+            'box-sizing: border-box;' +
             'transform: translateY(' + (POPUP_BORDER_WIDTH * 2) + 'px) rotate(45deg) ;' +
             '-webkit-transform: translateY(' + (POPUP_BORDER_WIDTH * 2) + 'px) rotate(45deg) ;' +
         '}' +

@@ -112,17 +112,21 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog.addEventListener("keydown", function(e) {
             e.preventDefault();
             e.stopPropagation();
+            var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
             // Abort
-            if (e.keyCode === ESC_KEY) hideAbort();
+            if (code === ESC_KEY) hideAbort();
             // Confirm
-            else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
-            // Control to Forward
-            else if (e.keyCode === DISK_CONTROL_KEY) peripheralControls.keyDown(e);
-            // Select
-            else if (SELECT_KEYS[e.keyCode]) {
-                incDiskSelected(SELECT_KEYS[e.keyCode]);
-                refreshList();
+            else if (CONFIRM_KEYS.indexOf(code) >= 0) hideConfirm();
+            else {
+                var codeNoMod = code & IGNORE_ALL_MODIFIERS_MASK;
+                // Disk Control to Forward
+                if (codeNoMod === DISK_CONTROL_KEY) peripheralControls.processKey(code, true);
+                // Select
+                else if (SELECT_KEYS[codeNoMod]) {
+                    incDiskSelected(SELECT_KEYS[codeNoMod]);
+                    refreshList();
+                }
             }
 
             return false;
@@ -210,5 +214,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         SELECT_KEYS[k.VK_PAGE_UP.c] = -1;
         SELECT_KEYS[k.VK_DOWN.c] = 1;
         SELECT_KEYS[k.VK_PAGE_DOWN.c] = 1;
+
+    var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
 
 };

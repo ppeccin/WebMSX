@@ -69,15 +69,15 @@ wmsx.SettingsDialog = function(controllersHub) {
         self.cover.tabIndex = -1;
         document.body.appendChild(self.cover);
 
+         //Supress context menu   // TODO Return
+        self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        });
+
         // Create keyboard section
         keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, document.getElementById("wmsx-keyboard"));
-
-        // Supress context menu   // TODO Return
-        //self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
-        //    e.preventDefault();
-        //    e.stopPropagation();
-        //    return false;
-        //});
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
@@ -122,14 +122,10 @@ wmsx.SettingsDialog = function(controllersHub) {
 
         // Several key events
         self.cover.addEventListener("keydown", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            processKeyDown(e);
+            processKeyEvent(e, true);
         });
         self.cover.addEventListener("keyup", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            processKeyUp(e);
+            processKeyEvent(e, false);
         });
 
         // Tabs
@@ -170,15 +166,16 @@ wmsx.SettingsDialog = function(controllersHub) {
         keyboardConfigurator.refresh();
     };
 
-    var processKeyDown = function (e) {
-        if (e.keyCode === KEY_ESC)
-            self.hide();
-        else
-            WMSX.room.machineControls.keyDown(e);
-    };
+    var processKeyEvent = function(e, press) {
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
+        var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
-    var processKeyUp = function (e) {
-        WMSX.room.machineControls.keyUp(e);
+        if (press && code === KEY_ESC) self.hide();
+        else return WMSX.room.machineControls.processKey(code, press);
+
+        return false;
     };
 
     var finishPreferences = function () {
@@ -193,7 +190,7 @@ wmsx.SettingsDialog = function(controllersHub) {
     var keyboardConfigurator;
     var preferencesChanged = false;
 
-    var KEY_ESC = 27;        // VK_ESC
+    var KEY_ESC = wmsx.DOMKeys.VK_ESCAPE.c;
 
 };
 

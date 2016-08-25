@@ -24,21 +24,9 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     this.powerOff = function() {
     };
 
-    this.keyDown = function(e) {
-        //console.log("Machine KeyDown: " + e.keyCode + " " + e.altKey);
-
-        var modifiers = 0 | (e.ctrlKey && KEY_CTRL_MASK) | (e.altKey && KEY_ALT_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
-        if (!processKeyEvent(e.keyCode, true, modifiers)) keyForwardControls.keyDown(e);
-    };
-
-    this.keyUp = function(e) {
-        var modifiers = 0 | (e.ctrlKey && KEY_CTRL_MASK) | (e.altKey && KEY_ALT_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
-        if (!processKeyEvent(e.keyCode, false, modifiers)) keyForwardControls.keyUp(e);
-    };
-
-    var processKeyEvent = function(keyCode, press, modifiers) {
-        var control = controlForEvent(keyCode, modifiers);
-        if (control == null) return false;
+    this.processKey = function(code, press) {
+        var control = keyCodeMap[code];
+        if (!control) return keyForwardControls.processKey(code, press);        // Next in chain
 
         var state = controlStateMap[control];
         if (!state || (state !== press)) {
@@ -48,24 +36,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         return true;
     };
 
-    var controlForEvent = function(keyCode, modif) {
-        switch (modif) {
-            case 0:
-                return normalCodeMap[keyCode];
-            case KEY_SHIFT_MASK:
-                return withShiftCodeMap[keyCode];
-            case KEY_CTRL_MASK:
-                return withCtrlCodeMap[keyCode];
-            case KEY_ALT_MASK:
-                return withAltCodeMap[keyCode];
-            case KEY_SHIFT_MASK | KEY_ALT_MASK:
-                return withShiftAltCodeMap[keyCode];
-            case KEY_CTRL_MASK | KEY_ALT_MASK:
-                return withCtrlAltCodeMap[keyCode];
-        }
-        return null;
-    };
-
     var preventIEHelp = function() {
         window.onhelp = function () {
             return false;
@@ -73,67 +43,70 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     };
 
     var initKeys = function() {
-        normalCodeMap[KEY_POWER]               = controls.POWER;
-        withShiftCodeMap[KEY_POWER]            = controls.RESET;
-        normalCodeMap[KEY_ALTERNATE_SPEED]     = controls.FAST_SPEED;
-        withShiftCodeMap[KEY_ALTERNATE_SPEED]  = controls.SLOW_SPEED;
+        var k = wmsx.DOMKeys;
 
-        withAltCodeMap[KEY_POWER]                 = controls.POWER;
-        withShiftAltCodeMap[KEY_POWER]            = controls.RESET;
-        withAltCodeMap[KEY_ALTERNATE_SPEED]       = controls.FAST_SPEED;
-        withShiftAltCodeMap[KEY_ALTERNATE_SPEED]  = controls.SLOW_SPEED;
+        keyCodeMap[KEY_POWER]                   = controls.POWER;
+        keyCodeMap[KEY_POWER | k.ALT]           = controls.POWER;
 
-        withAltCodeMap[KEY_INC_SPEED]     = controls.INC_SPEED;
-        withAltCodeMap[KEY_DEC_SPEED]     = controls.DEC_SPEED;
-        withAltCodeMap[KEY_NORMAL_SPEED]  = controls.NORMAL_SPEED;
-        withAltCodeMap[KEY_MIN_SPEED]     = controls.MIN_SPEED;
+        keyCodeMap[KEY_POWER | k.SHIFT]         = controls.RESET;
+        keyCodeMap[KEY_POWER | k.SHIFT | k.ALT] = controls.RESET;
 
-        withAltCodeMap[KEY_PAUSE]            = controls.PAUSE;
-        withCtrlAltCodeMap[KEY_PAUSE]        = controls.PAUSE_AUDIO_ON;
-        withAltCodeMap[KEY_FRAME]            = controls.FRAME;
-        withAltCodeMap[KEY_FRAMEa]           = controls.FRAME;
-        withAltCodeMap[KEY_TRACE]            = controls.TRACE;
-        withAltCodeMap[KEY_DEBUG]            = controls.DEBUG;
-        withAltCodeMap[KEY_SPRITE_MODE]      = controls.SPRITE_MODE;
-        withAltCodeMap[KEY_PALETTE]          = controls.PALETTE;
-        withAltCodeMap[KEY_VIDEO_STANDARD]   = controls.VIDEO_STANDARD;
-        withAltCodeMap[KEY_VSYNCH]           = controls.VSYNCH;
+        keyCodeMap[KEY_SPEED]                   = controls.FAST_SPEED;
+        keyCodeMap[KEY_SPEED | k.ALT]           = controls.FAST_SPEED;
+        keyCodeMap[KEY_SPEED | k.SHIFT]         = controls.SLOW_SPEED;
+        keyCodeMap[KEY_SPEED | k.SHIFT | k.ALT] = controls.SLOW_SPEED;
 
-        withCtrlAltCodeMap[KEY_STATE_0] = controls.SAVE_STATE_0;
-        withCtrlAltCodeMap[KEY_STATE_0a] = controls.SAVE_STATE_0;
-        withCtrlAltCodeMap[KEY_STATE_1] = controls.SAVE_STATE_1;
-        withCtrlAltCodeMap[KEY_STATE_2] = controls.SAVE_STATE_2;
-        withCtrlAltCodeMap[KEY_STATE_3] = controls.SAVE_STATE_3;
-        withCtrlAltCodeMap[KEY_STATE_4] = controls.SAVE_STATE_4;
-        withCtrlAltCodeMap[KEY_STATE_5] = controls.SAVE_STATE_5;
-        withCtrlAltCodeMap[KEY_STATE_6] = controls.SAVE_STATE_6;
-        withCtrlAltCodeMap[KEY_STATE_7] = controls.SAVE_STATE_7;
-        withCtrlAltCodeMap[KEY_STATE_8] = controls.SAVE_STATE_8;
-        withCtrlAltCodeMap[KEY_STATE_9] = controls.SAVE_STATE_9;
-        withCtrlAltCodeMap[KEY_STATE_10] = controls.SAVE_STATE_10;
-        withCtrlAltCodeMap[KEY_STATE_11] = controls.SAVE_STATE_11;
-        withCtrlAltCodeMap[KEY_STATE_11a] = controls.SAVE_STATE_11;
-        withCtrlAltCodeMap[KEY_STATE_12] = controls.SAVE_STATE_12;
-        withCtrlAltCodeMap[KEY_STATE_12a] = controls.SAVE_STATE_12;
+        keyCodeMap[KEY_INC_SPEED | k.ALT]       = controls.INC_SPEED;
+        keyCodeMap[KEY_DEC_SPEED | k.ALT]       = controls.DEC_SPEED;
+        keyCodeMap[KEY_NORMAL_SPEED | k.ALT]    = controls.NORMAL_SPEED;
+        keyCodeMap[KEY_MIN_SPEED | k.ALT]       = controls.MIN_SPEED;
 
-        withAltCodeMap[KEY_STATE_0] = controls.LOAD_STATE_0;
-        withAltCodeMap[KEY_STATE_0a] = controls.LOAD_STATE_0;
-        withAltCodeMap[KEY_STATE_1] = controls.LOAD_STATE_1;
-        withAltCodeMap[KEY_STATE_2] = controls.LOAD_STATE_2;
-        withAltCodeMap[KEY_STATE_3] = controls.LOAD_STATE_3;
-        withAltCodeMap[KEY_STATE_4] = controls.LOAD_STATE_4;
-        withAltCodeMap[KEY_STATE_5] = controls.LOAD_STATE_5;
-        withAltCodeMap[KEY_STATE_6] = controls.LOAD_STATE_6;
-        withAltCodeMap[KEY_STATE_7] = controls.LOAD_STATE_7;
-        withAltCodeMap[KEY_STATE_8] = controls.LOAD_STATE_8;
-        withAltCodeMap[KEY_STATE_9] = controls.LOAD_STATE_9;
-        withAltCodeMap[KEY_STATE_10] = controls.LOAD_STATE_10;
-        withAltCodeMap[KEY_STATE_11] = controls.LOAD_STATE_11;
-        withAltCodeMap[KEY_STATE_11a] = controls.LOAD_STATE_11;
-        withAltCodeMap[KEY_STATE_12] = controls.LOAD_STATE_12;
-        withAltCodeMap[KEY_STATE_12a] = controls.LOAD_STATE_12;
+        keyCodeMap[KEY_PAUSE | k.ALT]           = controls.PAUSE;
+        keyCodeMap[KEY_PAUSE | k.SHIFT | k.ALT] = controls.PAUSE_AUDIO_ON;
+        keyCodeMap[KEY_FRAME | k.ALT]           = controls.FRAME;
+        keyCodeMap[KEY_FRAMEa | k.ALT]          = controls.FRAME;
+        keyCodeMap[KEY_TRACE | k.ALT]           = controls.TRACE;
+        keyCodeMap[KEY_DEBUG | k.ALT]           = controls.DEBUG;
+        keyCodeMap[KEY_SPRITE_MODE | k.ALT]     = controls.SPRITE_MODE;
+        keyCodeMap[KEY_PALETTE | k.ALT]         = controls.PALETTE;
+        keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]  = controls.VIDEO_STANDARD;
+        keyCodeMap[KEY_VSYNCH | k.ALT]          = controls.VSYNCH;
 
-        withCtrlAltCodeMap[KEY_POWER] = controls.SAVE_STATE_FILE;
+        keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_0;
+        keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = controls.SAVE_STATE_0;
+        keyCodeMap[KEY_STATE_1 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_1;
+        keyCodeMap[KEY_STATE_2 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_2;
+        keyCodeMap[KEY_STATE_3 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_3;
+        keyCodeMap[KEY_STATE_4 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_4;
+        keyCodeMap[KEY_STATE_5 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_5;
+        keyCodeMap[KEY_STATE_6 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_6;
+        keyCodeMap[KEY_STATE_7 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_7;
+        keyCodeMap[KEY_STATE_8 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_8;
+        keyCodeMap[KEY_STATE_9 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_9;
+        keyCodeMap[KEY_STATE_10 | k.CONTROL | k.ALT]  = controls.SAVE_STATE_10;
+        keyCodeMap[KEY_STATE_11 | k.CONTROL | k.ALT]  = controls.SAVE_STATE_11;
+        keyCodeMap[KEY_STATE_11a | k.CONTROL | k.ALT] = controls.SAVE_STATE_11;
+        keyCodeMap[KEY_STATE_12 | k.CONTROL | k.ALT]  = controls.SAVE_STATE_12;
+        keyCodeMap[KEY_STATE_12a | k.CONTROL | k.ALT] = controls.SAVE_STATE_12;
+
+        keyCodeMap[KEY_STATE_0 | k.ALT]   = controls.LOAD_STATE_0;
+        keyCodeMap[KEY_STATE_0a | k.ALT]  = controls.LOAD_STATE_0;
+        keyCodeMap[KEY_STATE_1 | k.ALT]   = controls.LOAD_STATE_1;
+        keyCodeMap[KEY_STATE_2 | k.ALT]   = controls.LOAD_STATE_2;
+        keyCodeMap[KEY_STATE_3 | k.ALT]   = controls.LOAD_STATE_3;
+        keyCodeMap[KEY_STATE_4 | k.ALT]   = controls.LOAD_STATE_4;
+        keyCodeMap[KEY_STATE_5 | k.ALT]   = controls.LOAD_STATE_5;
+        keyCodeMap[KEY_STATE_6 | k.ALT]   = controls.LOAD_STATE_6;
+        keyCodeMap[KEY_STATE_7 | k.ALT]   = controls.LOAD_STATE_7;
+        keyCodeMap[KEY_STATE_8 | k.ALT]   = controls.LOAD_STATE_8;
+        keyCodeMap[KEY_STATE_9 | k.ALT]   = controls.LOAD_STATE_9;
+        keyCodeMap[KEY_STATE_10 | k.ALT]  = controls.LOAD_STATE_10;
+        keyCodeMap[KEY_STATE_11 | k.ALT]  = controls.LOAD_STATE_11;
+        keyCodeMap[KEY_STATE_11a | k.ALT] = controls.LOAD_STATE_11;
+        keyCodeMap[KEY_STATE_12 | k.ALT]  = controls.LOAD_STATE_12;
+        keyCodeMap[KEY_STATE_12a | k.ALT] = controls.LOAD_STATE_12;
+
+        keyCodeMap[KEY_POWER | k.CONTROL | k.ALT] = controls.SAVE_STATE_FILE;
     };
 
 
@@ -142,12 +115,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var machineControlsSocket;
     var monitor;
 
-    var normalCodeMap = {};
-    var withShiftCodeMap = {};
-    var withCtrlCodeMap = {};
-    var withAltCodeMap = {};
-    var withShiftAltCodeMap = {};
-    var withCtrlAltCodeMap = {};
+    var keyCodeMap = {};
 
     var controlStateMap =  {};
 
@@ -157,7 +125,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
 
     var KEY_POWER            = wmsx.DOMKeys.VK_F11.c;
 
-    var KEY_ALTERNATE_SPEED  = wmsx.DOMKeys.VK_F12.c;
+    var KEY_SPEED            = wmsx.DOMKeys.VK_F12.c;
 
     var KEY_INC_SPEED        = wmsx.DOMKeys.VK_UP.c;
     var KEY_DEC_SPEED        = wmsx.DOMKeys.VK_DOWN.c;

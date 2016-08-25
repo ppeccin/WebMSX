@@ -54,7 +54,7 @@
         Y              : d.VK_Y,
         Z              : d.VK_Z,
         SHIFT          : [ d.VK_LSHIFT, d.VK_RSHIFT ],
-        CONTROL        : d.VK_LCONTROL,
+        CONTROL        : [ d.VK_LCONTROL, d.VK_RCONTROL ],
         CAPSLOCK       : d.VK_CAPS_LOCK,
         GRAPH          : [ d.VK_LALT, d.VK_PAGE_UP ],
         CODE           : [ d.VK_RALT, d.VK_PAGE_DOWN ],
@@ -70,13 +70,13 @@
         SELECT         : [ d.VK_SCROLL_LOCK, d.VK_F10 ],
         ENTER          : [ d.VK_ENTER, d.VK_NUM_ENTER ],
         SPACE          : d.VK_SPACE,
-        HOME           : d.VK_HOME,
-        INSERT         : d.VK_INSERT,
-        DELETE         : d.VK_DELETE,
-        LEFT           : d.VK_LEFT,
-        UP             : d.VK_UP,
-        DOWN           : d.VK_DOWN,
-        RIGHT          : d.VK_RIGHT,
+        HOME           : [ d.VK_HOME, d.VK_NUM_HOME ],
+        INSERT         : [ d.VK_INSERT, d.VK_NUM_INSERT ],
+        DELETE         : [ d.VK_DELETE, d.VK_NUM_DELETE ],
+        LEFT           : [ d.VK_LEFT, d.VK_NUM_LEFT ],
+        UP             : [ d.VK_UP, d.VK_NUM_UP ],
+        DOWN           : [ d.VK_DOWN, d.VK_NUM_DOWN ],
+        RIGHT          : [ d.VK_RIGHT, d.VK_NUM_RIGHT ],
         NUM_MULTIPLY   : d.VK_NUM_MULTIPLY,
         NUM_PLUS       : d.VK_NUM_PLUS,
         NUM_DIVIDE     : d.VK_NUM_DIVIDE,
@@ -117,7 +117,7 @@
     // BR specific browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
-            br.DEAD =          [ d.VK_END, d.VK_FF_BR_TILDE ];
+            br.DEAD =          [ d.VK_FF_BR_TILDE, d.VK_CONTEXT, d.VK_END ];
             break;
         default:
             br.QUOTE =         d.VK_BR_QUOTE;
@@ -127,7 +127,7 @@
             br.SEMICOLON =     d.VK_BR_SEMICOLON;
             br.SLASH =         d.VK_BR_SLASH;
             br.BACKSLASH =     d.VK_BR_BACKSLASH;
-            br.DEAD =          [ d.VK_END, d.VK_BR_TILDE, d.VK_BR_CEDILLA ];
+            br.DEAD =          [ d.VK_BR_TILDE, d.VK_CONTEXT, d.VK_END ];
     }
 
     wmsx.BuiltInKeyboards = {

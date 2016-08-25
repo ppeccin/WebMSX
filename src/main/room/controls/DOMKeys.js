@@ -17,6 +17,9 @@ wmsx.DOMKeys.LOCLEFT =  0x1000000;
 wmsx.DOMKeys.LOCRIGHT = 0x2000000;
 wmsx.DOMKeys.LOCNUM =   0x3000000;
 
+wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CONTROL | wmsx.DOMKeys.ALT | wmsx.DOMKeys.META);
+
+
 (function(k, left, right, num) {
 
     // Common keys (US)
@@ -80,15 +83,15 @@ wmsx.DOMKeys.LOCNUM =   0x3000000;
 
     k.VK_CONTEXT = {c: 93, n: "Context" };
 
-    k.VK_LSHIFT = {c: 16 | left, n: "LShift" };
-    k.VK_LCONTROL = {c: 17 | left, n: "LControl" };
-    k.VK_LALT = {c: 18 | left, n: "LAlt" };
-    k.VK_LMETA = {c: 91 | left, n: "LMeta" };
+    k.VK_LSHIFT = {c: 16 | left, n: "L-Shift" };
+    k.VK_LCONTROL = {c: 17 | left, n: "L-Control" };
+    k.VK_LALT = {c: 18 | left, n: "L-Alt" };
+    k.VK_LMETA = {c: 91 | left, n: "L-Meta" };
 
-    k.VK_RSHIFT = {c: 16 | right, n: "RShift" };
-    k.VK_RCONTROL = {c: 17 | right, n: "RControl" };
-    k.VK_RALT = {c: 18 | right, n: "RAlt" };
-    k.VK_RMETA = {c: 91 | right, n: "RMeta" };
+    k.VK_RSHIFT = {c: 16 | right, n: "R-Shift" };
+    k.VK_RCONTROL = {c: 17 | right, n: "R-Control" };
+    k.VK_RALT = {c: 18 | right, n: "R-Alt" };
+    k.VK_RMETA = {c: 91 | right, n: "R-Meta" };
 
     k.VK_CAPS_LOCK = {c: 20, n: "CapsLock" };
     k.VK_PRINT_SCREEN = {c: 44, n: "PrtScr" };
@@ -103,10 +106,22 @@ wmsx.DOMKeys.LOCNUM =   0x3000000;
     k.VK_PAGE_UP = {c: 33, n: "PgUp" };
     k.VK_PAGE_DOWN = {c: 34, n: "PgDown" };
 
+    k.VK_NUM_INSERT = {c: 45 | num, n: "Num Ins" };
+    k.VK_NUM_DELETE = {c: 46 | num, n: "Num Del" };
+    k.VK_NUM_HOME = {c: 36 | num, n: "Num Home" };
+    k.VK_NUM_END = {c: 35 | num, n: "Num End" };
+    k.VK_NUM_PAGE_UP = {c: 33 | num, n: "Num PgUp" };
+    k.VK_NUM_PAGE_DOWN = {c: 34 | num, n: "Num PgDown" };
+
     k.VK_UP = {c: 38, n: "Up" };
     k.VK_DOWN = {c: 40, n: "Down" };
     k.VK_LEFT = {c: 37, n: "Left" };
     k.VK_RIGHT = {c: 39, n: "Right" };
+
+    k.VK_NUM_UP = {c: 38 | num, n: "Num Up" };
+    k.VK_NUM_DOWN = {c: 40 | num, n: "Num Down" };
+    k.VK_NUM_LEFT = {c: 37 | num, n: "Num Left" };
+    k.VK_NUM_RIGHT = {c: 39 | num, n: "Num Right" };
 
     k.VK_NUM_LOCK = {c: 144, n: "NumLock" };
     k.VK_NUM_COMMA = {c: 110 | num, n: "Num ," };
@@ -194,22 +209,26 @@ wmsx.DOMKeys.forcedNames = {
 };
 
 wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
-    // Ignore the own modifier for modifier keys SHIFT, CONTROL, ALT, META
     var code = e.keyCode;
+
+    // Ignore modifiers for modifier keys SHIFT, CONTROL, ALT, META
+    if (code === 16 || code === 17 || code === 18 || code === 91)
+        return (code & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_SHIFT);
+
     return code
         | (e.location << this.LOC_SHIFT)
-        | (e.shiftKey && code !== 16 ? this.SHIFT : 0)
-        | (e.ctrlKey && code !== 17 ? this.CONTROL : 0)
-        | (e.altKey && code !== 18 ? this.ALT : 0)
-        | (e.metaKey && code !== 91 ? this.META : 0);
+        | (e.shiftKey ? this.SHIFT : 0)
+        | (e.ctrlKey ? this.CONTROL : 0)
+        | (e.altKey  ? this.ALT : 0)
+        | (e.metaKey ? this.META : 0);
 };
 
 wmsx.DOMKeys.nameForKeyboardEvent = function(e) {
     var name = this.forcedNames[e.keyCode] || e.key || ("#" + e.keyCode);
     if (name.length === 1) name = name.toUpperCase();                           // For normal letters
     switch(e.location) {
-        case 1: name = "L" + name; break;
-        case 2: name = "R" + name; break;
+        case 1: name = "L-" + name; break;
+        case 2: name = "R-" + name; break;
         case 3: name = "Num " + name; break;
     }
     return name;
