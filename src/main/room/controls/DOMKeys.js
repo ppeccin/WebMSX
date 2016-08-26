@@ -155,6 +155,8 @@ wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CON
     k.VK_SLASH = {c: 191, n: "/" };
     k.VK_BACKSLASH = {c: 220, n: "\\" };
 
+    k.VK_ALTERNATE_ESC = { c: k.VK_F1.c | wmsx.DOMKeys.ALT, n: [ "Alt", "F1" ] };
+
     // Alternate codes for FF
     k.VK_FF_MINUS = {c: 173, n: "-" };
     k.VK_FF_EQUAL = {c: 61, n: "=" };
@@ -228,18 +230,30 @@ wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
 };
 
 wmsx.DOMKeys.nameForKeyboardEvent = function(e) {
-    var name = this.forcedNames[e.keyCode] || e.key;
+    var keyCode = e.keyCode;
+    var name = this.forcedNames[keyCode] || e.key;
     var nameUp = name && name.toUpperCase();
-    if (!nameUp || nameUp === "UNIDENTIFIED" || nameUp === "UNDEFINED" || nameUp === "UNKNOWN") name = "#" + e.keyCode;
-    else if (nameUp === "DEAD") name = "Dead#" + e.keyCode;
+    if (!nameUp || nameUp === "UNIDENTIFIED" || nameUp === "UNDEFINED" || nameUp === "UNKNOWN") name = "#" + keyCode;
+    else if (nameUp === "DEAD") name = "Dead#" + keyCode;
 
     if (name.length === 1) name = name.toUpperCase();                           // For normal letters
     else if (name.length > 12) name = name.substr(0, 12);                       // Limit size
 
+    // Add locaiton info
     switch(e.location) {
-        case 1: return "L-" + name;
-        case 2: return "R-" + name;
-        case 3: return "Num " + name;
-        default: return name;
+        case 1: name = "L-" + name; break;
+        case 2: name = "R-" + name; break;
+        case 3: name = "Num " + name;
     }
+
+    if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+        name = [ name ];
+        // Add modifiers info
+        if (e.metaKey) name.unshift("Meta");
+        if (e.altKey) name.unshift("Alt");
+        if (e.ctrlKey) name.unshift("Ctrl");
+        if (e.shiftKey) name.unshift("Shift");
+    }
+
+    return name;
 };

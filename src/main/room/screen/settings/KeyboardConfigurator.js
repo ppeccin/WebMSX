@@ -23,11 +23,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         // Create Popup
         popup = document.getElementById("wmsx-keyboard-popup");
         popup.innerHTML = popupHTML;
-        popupKeyNone = document.getElementById("wmsx-keyboard-popup-keyNone");
-        for (var i = 0; i < 3; ++i) {
-            popupKeys[i] = document.getElementById("wmsx-keyboard-popup-key" + (i + 1));
-            popupKeysLabel[i] = document.getElementById("wmsx-keyboard-popup-key" + (i + 1) + "-label");
-        }
+        popupKeys = document.getElementById("wmsx-keyboard-popup-keys");
 
         // Define CSS
         var styles = document.createElement('style');
@@ -98,31 +94,6 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         self.refresh();
     }
 
-    function updatePopup() {
-        if (!msxKeyEditing) {
-            // Hide
-            popup.style.display = "none";
-            return;
-        }
-
-        // Show. Define contents
-        popup.style.display = "block";
-        var mapped = domKeyboard.getKeyMapping(msxKeyEditing) || [];
-        for (var i = 0; i < 3; i++) {
-            popupKeys[i].style.display = mapped[i] ? "initial" : "none";
-            popupKeysLabel[i].innerHTML = mapped[i] && mapped[i].n;
-        }
-        popupKeyNone.style.display = mapped.length === 0 ? "initial" : "none";
-
-        // Position
-        var keyRec = keyElementEditing.getBoundingClientRect();
-        var popRec = popup.getBoundingClientRect();
-        var x = (keyRec.left + keyRec.width / 2 - popRec.width / 2) | 0;
-        var y = (keyRec.top - popRec.height - POPUP_DIST) | 0;
-        popup.style.top = "" + y + "px";
-        popup.style.left = "" + x + "px";
-    }
-
     function keyDown(e) {
         if (!msxKeyEditing) return;
 
@@ -149,12 +120,47 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     }
 
     function customizeKey(e) {
-        // Get the base key ignoring any modifiers, but preserve location
-        var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e) & wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK, n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
+        var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
         domKeyboard.customizeKey(msxKeyEditing, mapping);
         updatePopup();
         self.refresh();
         modifPending = null;
+    }
+
+    function updatePopup() {
+        if (!msxKeyEditing) {
+            // Hide
+            popup.style.display = "none";
+            return;
+        }
+
+        // Show. Define contents
+        popup.style.display = "block";
+        var mapped = domKeyboard.getKeyMapping(msxKeyEditing) || [];
+        if (mapped.length === 0) popupKeys.innerHTML = "- none -";
+        else {
+            var inner = "";
+            for (var i = 0; i < mapped.length; i++) inner += (i > 0 ? "&nbsp;,&nbsp;" : "") + keyHTMLForMapping(mapped[i]);
+            popupKeys.innerHTML = inner;
+        }
+
+        // Position
+        var keyRec = keyElementEditing.getBoundingClientRect();
+        var popRec = popup.getBoundingClientRect();
+        var x = (keyRec.left + keyRec.width / 2 - popRec.width / 2) | 0;
+        var y = (keyRec.top - popRec.height - POPUP_DIST) | 0;
+        popup.style.top = "" + y + "px";
+        popup.style.left = "" + x + "px";
+    }
+
+    function keyHTMLForMapping(mapping) {
+        var names = !mapping.n || mapping.n.constructor !== Array ? [ mapping.n ] : mapping.n;
+        var res = "";
+        for (var i = 0, len = names.length; i < len; ++i) {
+            if (i > 0) res += (len > 1 && i === (len-1)) ? "&nbsp;+&nbsp;" : "&nbsp;";
+            res += '<DIV class = "wmsx-key">' + names[i] + '</DIV>';
+        }
+        return res;
     }
 
     function refreshUnmappedIndicator() {
@@ -173,7 +179,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     var keyElements = [];
     var keyElementEditing = null, msxKeyEditing = null, modifPending = null;
 
-    var popup, popupKeyNone, popupKeys = [], popupKeysLabel = [];
+    var popup, popupKeys;
     var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
 
 
@@ -221,11 +227,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     var popupHTML =
         'Key mapped to:' +
         '<br>' +
-        '<div class="wmsx-command">' +
-            '<span id="wmsx-keyboard-popup-keyNone">none</span>' +
-            '<span id="wmsx-keyboard-popup-key1"><div id="wmsx-keyboard-popup-key1-label" class="wmsx-key">.</div></span>' +
-            '<span id="wmsx-keyboard-popup-key2">&nbsp;,&nbsp<div id="wmsx-keyboard-popup-key2-label" class="wmsx-key">.</div></span>' +
-            '<span id="wmsx-keyboard-popup-key3">&nbsp;,&nbsp<div id="wmsx-keyboard-popup-key3-label" class="wmsx-key">.</div></span>' +
+        '<div id="wmsx-keyboard-popup-keys" class="wmsx-command">' +
         '</div>' +
         '<div>Press new key.</div>' +
         '<div>(right-click to clear)</div>';

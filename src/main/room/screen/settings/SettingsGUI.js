@@ -555,7 +555,7 @@ wmsx.SettingsGUI.css = function() {
            'color: rgba(0, 0, 0, .72);' +
        '}' +
 
-       '#wmsx-modal .wmsx-hotkey .wmsx-command {' +
+       '#wmsx-modal .wmsx-command {' +
            'position: relative;' +
            'display: inline-block;' +
            'font-weight: 600;' +

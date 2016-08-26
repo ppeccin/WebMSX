@@ -63,7 +63,7 @@
         F3             : d.VK_F3,
         F4             : d.VK_F4,
         F5             : d.VK_F5,
-        ESCAPE         : d.VK_ESCAPE,
+        ESCAPE         : [ d.VK_ESCAPE, d.VK_ALTERNATE_ESC ],
         TAB            : d.VK_TAB,
         STOP           : [ d.VK_PAUSE, d.VK_BREAK, d.VK_F9 ],
         BACKSPACE      : d.VK_BACKSPACE,
