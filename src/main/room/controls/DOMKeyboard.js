@@ -158,6 +158,13 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         }
 
         if (msxKey) {
+            // Special case for Portuguese "Alt Gr" key, which is LControl+RAlt. Release MSX CONTROL key if pressed, so AltGr can be used as normal RAlt
+            if (code === RAltKeyCode && keyStateMap["CONTROL"]) {
+                keyboardRowValues[msxKeys["CONTROL"][0]] |= (1 << msxKeys["CONTROL"][1]);
+                keyStateMap["CONTROL"] = false;
+            }
+
+            // Update key matrix bits
             var state = keyStateMap[msxKey];
             if (state === undefined || (state !== press)) {
                 keyStateMap[msxKey] = press;
@@ -200,7 +207,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     }
 
     function setCustomKeyboard() {
-        var customName = currentKeyboard + CUSTOM_KEYBOARD_SUFFIX;
+        var customName = currentKeyboard === "Default" ? "CUSTOM" : currentKeyboard + CUSTOM_KEYBOARD_SUFFIX;
         // Copy current mapping to new Custom Keyboard if not yet available
         if (!customKeyboards[customName]) {
             customKeyboards[customName] = {};
@@ -242,8 +249,9 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
-    var CUSTOM_KEYBOARD_SUFFIX = "-CUSTOM";
+    var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
 
+    var CUSTOM_KEYBOARD_SUFFIX = "-CUSTOM";
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
 
     init();

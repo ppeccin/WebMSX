@@ -64,7 +64,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         }
         setupMouseEnterLeaveEvents(keyboardElement);
         keyboardElement.addEventListener("mousedown",  mouseDownKeyboard);
-        keyboardElement.addEventListener("keydown", keyDown);        // New key pressed to be assigned to MSX key
+        keyboardElement.addEventListener("keydown", keyDown);        // New key pressed to be assigned to MSX key (non-modifiers only)
+        keyboardElement.addEventListener("keyup", keyUp);          // New key released to be assigned to MSX key (modifiers only)
 
         keyboardNameElement = document.getElementById("wmms-inputs-keyboard-name");
     }
@@ -79,18 +80,20 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         if (e.target.msxKey) {
             keyElementEditing = e.target;
             msxKeyEditing = keyElementEditing.msxKey;
+            modifPending = null;
             updatePopup()
         } else
             mouseLeaveKey();
     }
 
     function mouseLeaveKey() {
-        keyElementEditing = msxKeyEditing = null;
+        keyElementEditing = msxKeyEditing = modifPending = null;
         updatePopup()
     }
 
     function mouseDownKeyboard(e) {
         if (msxKeyEditing && e.which === 3) domKeyboard.clearKey(msxKeyEditing);
+        modifPending = null;
         updatePopup();
         self.refresh();
     }
@@ -123,19 +126,35 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     function keyDown(e) {
         if (!msxKeyEditing) return;
 
-        domKeyboard.customizeKey(msxKeyEditing, mappingForKeyboardEvent(e));
-        updatePopup();
-        self.refresh();
+        // Modifier keys are accepted only on release
+        if (wmsx.DOMKeys.isModifierKeyCode(e.keyCode))
+            modifPending = e.keyCode;
+        else
+            customizeKey(e);
 
         e.stopPropagation();
         e.preventDefault();
         return false;
     }
 
-    function mappingForKeyboardEvent(e) {
-        console.log("Key: " + e.key + ", keyCode: " + e.keyCode + ", alt: " + e.altKey + ", control: " + e.ctrlKey + ", shift: " + e.shiftKey + ", loc: " + e.location);
+    function keyUp(e) {
+        if (!msxKeyEditing) return;
 
-        return { c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
+        // Modifier keys are accepted only on release, and oly the last one depressed
+        if (modifPending === e.keyCode) customizeKey(e);
+
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+    }
+
+    function customizeKey(e) {
+        // Get the base key ignoring any modifiers, but preserve location
+        var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e) & wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK, n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
+        domKeyboard.customizeKey(msxKeyEditing, mapping);
+        updatePopup();
+        self.refresh();
+        modifPending = null;
     }
 
     function refreshUnmappedIndicator() {
@@ -152,7 +171,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     var keyboardNameElement;
 
     var keyElements = [];
-    var keyElementEditing = null, msxKeyEditing = null;
+    var keyElementEditing = null, msxKeyEditing = null, modifPending = null;
 
     var popup, popupKeyNone, popupKeys = [], popupKeysLabel = [];
     var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;

@@ -123,7 +123,7 @@ wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CON
     k.VK_NUM_LEFT = {c: 37 | num, n: "Num Left" };
     k.VK_NUM_RIGHT = {c: 39 | num, n: "Num Right" };
 
-    k.VK_NUM_LOCK = {c: 144, n: "NumLock" };
+    k.VK_NUMLOCK = {c: 144, n: "NumLock" };
     k.VK_NUM_COMMA = {c: 110 | num, n: "Num ," };
     k.VK_NUM_DIVIDE = {c: 111 | num, n: "Num /" };
     k.VK_NUM_MULTIPLY = {c: 106 | num, n: "Num *" };
@@ -208,11 +208,15 @@ wmsx.DOMKeys.forcedNames = {
     39:  "Right"
 };
 
+wmsx.DOMKeys.isModifierKeyCode = function(keyCode) {
+    return keyCode === 16 || keyCode === 17 || keyCode === 18 || keyCode === 91;
+};
+
 wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
     var code = e.keyCode;
 
     // Ignore modifiers for modifier keys SHIFT, CONTROL, ALT, META
-    if (code === 16 || code === 17 || code === 18 || code === 91)
+    if (this.isModifierKeyCode(code))
         return (code & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_SHIFT);
 
     return code
@@ -224,12 +228,18 @@ wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
 };
 
 wmsx.DOMKeys.nameForKeyboardEvent = function(e) {
-    var name = this.forcedNames[e.keyCode] || e.key || ("#" + e.keyCode);
+    var name = this.forcedNames[e.keyCode] || e.key;
+    var nameUp = name && name.toUpperCase();
+    if (!nameUp || nameUp === "UNIDENTIFIED" || nameUp === "UNDEFINED" || nameUp === "UNKNOWN") name = "#" + e.keyCode;
+    else if (nameUp === "DEAD") name = "Dead#" + e.keyCode;
+
     if (name.length === 1) name = name.toUpperCase();                           // For normal letters
+    else if (name.length > 12) name = name.substr(0, 12);                       // Limit size
+
     switch(e.location) {
-        case 1: name = "L-" + name; break;
-        case 2: name = "R-" + name; break;
-        case 3: name = "Num " + name; break;
+        case 1: return "L-" + name;
+        case 2: return "R-" + name;
+        case 3: return "Num " + name;
+        default: return name;
     }
-    return name;
 };

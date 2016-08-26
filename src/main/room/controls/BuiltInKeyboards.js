@@ -54,10 +54,10 @@
         Y              : d.VK_Y,
         Z              : d.VK_Z,
         SHIFT          : [ d.VK_LSHIFT, d.VK_RSHIFT ],
-        CONTROL        : [ d.VK_LCONTROL, d.VK_RCONTROL ],
+        CONTROL        : [ d.VK_LCONTROL ],
         CAPSLOCK       : d.VK_CAPS_LOCK,
         GRAPH          : [ d.VK_LALT, d.VK_PAGE_UP ],
-        CODE           : [ d.VK_RALT, d.VK_PAGE_DOWN ],
+        CODE           : [ d.VK_RALT, d.VK_RCONTROL, d.VK_PAGE_DOWN ],
         F1             : d.VK_F1,
         F2             : d.VK_F2,
         F3             : d.VK_F3,
@@ -107,9 +107,9 @@
 
     // Define built-in keyboards
 
-    // US
-    var us = {};
-    for (var k in base) us[k] = base[k];
+    // Default (US)
+    var def = {};
+    for (var k in base) def[k] = base[k];
 
     // BR
     var br = {};
@@ -131,8 +131,8 @@
     }
 
     wmsx.BuiltInKeyboards = {
-        all: [ "en-US", "pt-BR" ],
-        "en-US": us,
+        all: [ "Default", "pt-BR" ],
+        "Default": def,
         "pt-BR": br
     };
 
