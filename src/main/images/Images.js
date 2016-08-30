@@ -8,7 +8,8 @@ wmsx.Images = {
         logo: WMSX.IMAGES_PATH + "logo.png",
         sprites: WMSX.IMAGES_PATH + "sprites.png",
         loading: WMSX.IMAGES_PATH + "loading.gif",
-        mouseCursor: WMSX.IMAGES_PATH + "mouse-cursor.png"
+        mouseCursor: WMSX.IMAGES_PATH + "mouse-cursor.png",
+        logoMiniBrightBack: WMSX.IMAGES_PATH + "logo-mini-bright-back.png"
     }
 
 };

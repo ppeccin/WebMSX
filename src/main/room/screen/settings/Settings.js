@@ -30,15 +30,17 @@ wmsx.SettingsDialog = function(controllersHub) {
     this.setPage = function (page) {
         var contentPosition = {
             "GENERAL": "0",
-            "MEDIA": "-600px",
+            "MEDIA":  "-600px",
             "INPUTS": "-1200px",
-            "ABOUT": "-1800px"
+            "PORTS":  "-1800px",
+            "ABOUT":  "-2400px"
         }[page];
         var selectionPosition = {
             "GENERAL": "0",
-            "MEDIA": "25%",
-            "INPUTS": "50%",
-            "ABOUT": "75%"
+            "MEDIA":   "20%",
+            "INPUTS":  "40%",
+            "PORTS":   "60%",
+            "ABOUT":   "80%"
         }[page];
 
         if (contentPosition) self["wmsx-content"].style.left = contentPosition;
@@ -47,6 +49,7 @@ wmsx.SettingsDialog = function(controllersHub) {
         self["wmsx-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("wmsx-selected");
         self["wmsx-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("wmsx-selected");
         self["wmsx-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("wmsx-selected");
+        self["wmsx-menu-ports"].classList[page === "PORTS" ? "add" : "remove"]("wmsx-selected");
         self["wmsx-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("wmsx-selected");
 
         switch(page) {
@@ -136,6 +139,10 @@ wmsx.SettingsDialog = function(controllersHub) {
         self["wmsx-menu-inputs"].addEventListener("mousedown", function (e) {
             e.preventDefault();
             self.setPage("INPUTS");
+        });
+        self["wmsx-menu-ports"].addEventListener("mousedown", function (e) {
+            e.preventDefault();
+            self.setPage("PORTS");
         });
         self["wmsx-menu-media"].addEventListener("mousedown", function (e) {
             e.preventDefault();

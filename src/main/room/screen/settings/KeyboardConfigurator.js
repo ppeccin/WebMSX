@@ -20,16 +20,9 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     function setupKeyboard() {
         keyboardElement.tabIndex = "-1";
 
-        // Create Popup
+        // Set Popup
         popup = document.getElementById("wmsx-keyboard-popup");
-        popup.innerHTML = popupHTML;
         popupKeys = document.getElementById("wmsx-keyboard-popup-keys");
-
-        // Define CSS
-        var styles = document.createElement('style');
-        styles.type = 'text/css';
-        styles.innerHTML = css;
-        document.head.appendChild(styles);
 
         // Create Keyboard
         for (var s in sections) {
@@ -174,10 +167,9 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
 
     var domKeyboard = controllersHub.getKeyboard();
 
-    var keyboardNameElement;
-
     var keyElements = [];
     var keyElementEditing = null, msxKeyEditing = null, modifPending = null;
+    var keyboardNameElement;
 
     var popup, popupKeys;
     var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
@@ -223,205 +215,6 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     var translations = {
         "ENTER_X1": "#NONE#", "ENTER_X2": "#NONE#", "SHIFT2": "SHIFT"
     };
-
-    var popupHTML =
-        'Key mapped to:' +
-        '<br>' +
-        '<div id="wmsx-keyboard-popup-keys" class="wmsx-command">' +
-        '</div>' +
-        '<div>Press new key.</div>' +
-        '<div>(right-click to clear)</div>';
-
-    var css =
-        '#wmsx-inputs #wmsx-keyboard {' +
-            'position: relative;' +
-            'left: -1px;' +
-            'width: 536px;' +
-            'height: 178px;' +
-            'background: rgb(76, 76, 76);' +
-            'border-radius: 1px 1px 0px 0px;' +
-            'box-sizing: border-box;' +
-            'box-shadow: 0px 1px 0 1px rgb(10, 10, 10);' +
-            'outline: none;' +
-        '}' +
-
-        '.wmsx-keyboard-key {' +
-            'position: relative;' +
-            'display: inline-block;' +
-            'width: 25px;' +
-            'height: 24px;' +
-            'padding: 4px 0px;' +
-            'margin-right: 1px;' +
-            'box-sizing: border-box;' +
-            'font-weight: normal;' +
-            'font-size: 10px;' +
-            'line-height: 10px;' +
-            'text-align: center;' +
-            'vertical-align: top;' +
-            'color: white;' +
-            'background: rgb(172, 172, 172);' +
-            'border-style: solid;' +
-            'border-width: 1px 3px 5px;' +
-            'border-color: rgba(0, 0, 0, .25);' +
-            'border-top-color: rgba(0, 0, 0, .10);' +
-            'border-bottom-color: rgba(0, 0, 0, .5);' +
-            'border-radius: 3px 3px 0px 0px;' +
-            'box-shadow: 0 1px 0 1px rgb(0, 0, 0);' +
-            'cursor: pointer;' +
-        '}' +
-        '.wmsx-keyboard-key.wmsx-keyboard-key-dark {' +
-            'background: rgb(127, 127, 127);' +
-        '}' +
-        '.wmsx-keyboard-key.wmsx-keyboard-key-unmapped {' +
-            'color: rgb(40, 40, 40);' +
-            'font-weight: bold;' +
-        '}' +
-
-        '#wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {' +
-            'position: absolute;' +
-            'top: 12px;' +
-        '}' +
-        '#wmsx-keyboard-alpha {' +
-            'left: 14px;' +
-        '}' +
-        '#wmsx-keyboard-num {' +
-            'left: 427px;' +
-        '}' +
-        '#wmsx-keyboard-arrows {' +
-            'top: 118px;' +
-            'left: 427px;' +
-        '}' +
-
-        '#wmsx-keyboard-f1, #wmsx-keyboard-f2, #wmsx-keyboard-f3, #wmsx-keyboard-f4, #wmsx-keyboard-f5, ' +
-        '#wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {' +
-            'width: 37px;' +
-            'height: 18px;' +
-            'padding: 2px 0px;' +
-            'font-size: 9px;' +
-            'line-height: 9px;' +
-            'border-width: 1px 2px 4px;' +
-            'margin-bottom: 12px;' +
-        '}' +
-        '#wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {' +
-            'width: 37px;' +
-        '}' +
-        '#wmsx-keyboard-stop {' +
-            'background: rgb(240, 80, 60);' +
-            'margin-left: 18px;' +
-        '}' +
-        '#wmsx-keyboard-escape, #wmsx-keyboard-backspace {' +
-            'width: 29px;' +
-        '}' +
-        '#wmsx-keyboard-tab {' +
-            'width: 41px;' +
-        '}' +
-        '#wmsx-keyboard-control {' +
-            'width: 48px;' +
-        '}' +
-        '#wmsx-keyboard-shift, #wmsx-keyboard-shift2 {' +
-            'width: 61px;' +
-        '}' +
-        '#wmsx-keyboard-enter {' +
-            'width: 36px;' +
-            'border-radius: 2px 0px 0px 0px;' +
-            'border-top-width: 0px;' +
-        '}' +
-        '#wmsx-keyboard-enter_x1 {' +
-            'width: 13px;' +
-            'min-width: 0px;' +
-            'margin-right: 0px;' +
-            'border-radius: 2px 0px 0px 0px;' +
-            'border-width: 1px;' +
-            'border-right: none;' +
-            'box-shadow: -1px 1px 0 0 rgb(0, 0, 0)' +
-        '}' +
-        '#wmsx-keyboard-enter_x2 {' +
-            'width: 30px;' +
-            'border-bottom: none;' +
-            'border-radius: 0px 3px 0px 0px;' +
-            'box-shadow: 1px 1px 0 0 rgb(0, 0, 0)' +
-        '}' +
-        '#wmsx-keyboard-space {' +
-            'width: 181px;' +
-        '}' +
-        '#wmsx-keyboard-capslock {' +
-            'margin-left: 15px;' +
-            'width: 38px;' +
-        '}' +
-        '#wmsx-keyboard-dead {' +
-            'width: 38px;' +
-        '}' +
-        '#wmsx-keyboard-graph, #wmsx-keyboard-code {' +
-            'width: 46px;' +
-        '}' +
-
-        '#wmsx-keyboard-num .wmsx-keyboard-key {' +
-            'width: 23px;' +
-            'height: 23px;' +
-        '}' +
-
-        '#wmsx-keyboard-arrows .wmsx-keyboard-key {' +
-            'font-size: 8px;' +
-            'line-height: 8px;' +
-            'background: rgb(70, 85, 180);' +
-            'border-width: 1px 2px 4px;' +
-            'border-radius: 2px 2px 0px 0px;' +
-        '}' +
-        '#wmsx-keyboard-arrows #wmsx-keyboard-left, #wmsx-keyboard-arrows #wmsx-keyboard-right {' +
-            'top: 5px;' +
-            'width: 26px;' +
-            'height: 34px;' +
-            'padding-top: 11px;' +
-        '}' +
-        '#wmsx-keyboard-arrows #wmsx-keyboard-up, #wmsx-keyboard-arrows #wmsx-keyboard-down {' +
-            'width: 41px;' +
-            'height: 22px;' +
-            'padding-top: 5px;' +
-        '}' +
-        '#wmsx-keyboard-arrows #wmsx-keyboard-down {' +
-            'position: absolute;' +
-            'top: 22px;' +
-            'left: 27px;' +
-        '}' +
-
-        '#wmsx-inputs #wmsx-keyboard-popup {' +
-            'display: none;' +
-            'position: fixed;' +
-            'padding: 4px 9px;' +
-            'line-height: 16px;' +
-            'text-align: center;' +
-            'vertical-align: top;' +
-            'border-radius: 6px;' +
-            'border: ' + POPUP_BORDER_WIDTH + 'px white solid;' +
-            'background: rgb(220, 220, 220);' +
-            'box-shadow: 0px 3px 3px 2px rgba(0, 0, 0, .55);' +
-            'box-sizing: border-box;' +
-        '}' +
-        '#wmsx-inputs #wmsx-keyboard-popup .wmsx-command {' +
-            'width: auto;' +
-            'line-height: 21px;' +
-            'margin: 9px 0 8px;' +
-            'font-weight: bold;' +
-        '}' +
-
-        '#wmsx-inputs #wmsx-keyboard-popup:after {' +
-            'content: "";' +
-            'position: absolute;' +
-            'bottom: 0;' +
-            'left: 0;' +
-            'right: 0;' +
-            'width: 0;' +
-            'margin: 0 auto;' +
-            'border-width: 10px;' +
-            'border-style: solid;' +
-            'border-color: transparent white white transparent;' +
-            'box-shadow: 4px 4px 2px 0 rgba(0, 0, 0, .55);' +
-            'box-sizing: border-box;' +
-            'transform: translateY(' + (POPUP_BORDER_WIDTH * 2) + 'px) rotate(45deg) ;' +
-            '-webkit-transform: translateY(' + (POPUP_BORDER_WIDTH * 2) + 'px) rotate(45deg) ;' +
-        '}' +
-
-        '';
 
 
     init();

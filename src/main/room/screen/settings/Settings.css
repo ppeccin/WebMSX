@@ -46,19 +46,19 @@
 
 #wmsx-modal .wmsx-heading {
     font-weight: 700;
-    color: rgba(0, 0, 0, .60);
+    color: rgba(0, 0, 0, .72);
 }
 
-#wmsx-modal .wmsx-hotkey .wmsx-command {
+#wmsx-modal .wmsx-command {
     position: relative;
-    float: left;
+    display: inline-block;
     font-weight: 600;
     color: rgba(0, 0, 0, .54);
 }
 
 #wmsx-modal .wmsx-hotkey .wmsx-desc {
-    float: left;
-    padding-top: 3px;
+    display: inline-block;
+    line-height: 21px;
 }
 
 #wmsx-modal .wmsx-hotkey-msx {
@@ -85,23 +85,6 @@
     text-align: center;
 }
 
-#wmsx-modal .wmsx-key-msx {
-    width: 65px;
-    color: rgb(255, 255, 255);
-    background: rgb(90, 90, 90);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-weight: normal;
-    border-radius: 0;
-    border: 1px solid rgb(140, 140, 140);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, .3);
-}
-
-#wmsx-modal .wmsx-key-msx-stop {
-    background: rgb(235, 50, 50);
-    border: 1px solid rgb(250, 110, 110);
-}
-
 #wmsx-modal .wmsx-key-fixed {
     width: 31px;
     padding-left: 0;
@@ -122,10 +105,10 @@
     padding: 0 11px;
     font-size: 35px;
     color: white;
+    cursor: pointer;
     box-sizing: content-box;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    cursor: pointer;
 }
 
 #wmsx-menu #wmsx-back:hover {
@@ -146,15 +129,15 @@
     color: white;
     background: rgb(235, 40, 35);
     box-shadow: 0 1px 4px rgba(0, 0, 0, .80);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     vertical-align: middle;
     box-sizing: content-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 #wmsx-menu .wmsx-items {
     position: relative;
-    width: 75%;
+    width: 80%;
     height: 39px;
     margin: 0 auto;
     font-weight: 600;
@@ -162,7 +145,7 @@
 
 #wmsx-menu .wmsx-item {
     float: left;
-    width: 25%;
+    width: 20%;
     height: 100%;
     padding-top: 13px;
     font-size: 14px;
@@ -179,12 +162,11 @@
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 25%;
+    width: 20%;
     height: 3px;
     background: rgb(235, 40, 35);
     transition: left 0.3s ease-in-out;
 }
-
 
 #wmsx-content {
     position: relative;
@@ -195,7 +177,7 @@
     transition: left 0.3s ease-in-out
 }
 
-#wmsx-general, #wmsx-inputs, #wmsx-media, #wmsx-controls, #wmsx-about {
+#wmsx-general, #wmsx-inputs, #wmsx-media, #wmsx-ports, #wmsx-about {
     position: absolute;
     width: 600px;
     height: 100%;
@@ -273,36 +255,462 @@
 
 #wmsx-inputs {
     left: 1200px;
-}
-
-#wmsx-inputs {
     padding-top: 23px;
-    padding-left: 40px;
+    padding-left: 33px;
 }
 
 #wmsx-inputs .wmsx-left {
     float: left;
-    width: 275px;
+    width: 297px;
 }
 
-#wmsx-inputs .wmsx-left .wmsx-command {
-    width: 95px;
-}
-
-#wmsx-inputs .wmsx-right .wmsx-command {
-    width: 95px;
+#wmsx-inputs .wmsx-command {
+    width: 91px;
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-left: 95px;
+    margin-top: 12px;
 }
 
-#wmsx-inputs .wmsx-bottom .wmsx-command {
+#wmsx-inputs .wmsx-bottom .wmsx-hotkey {
+    display: inline-block;
+    width: 230px;
+    margin-bottom: 3px;
+}
+
+#wmsx-inputs .wmsx-bottom .wmsx-heading {
+    width: 297px;
+    text-align: right;
+}
+
+
+#wmsx-keyboard {
+    position: relative;
+    left: -1px;
+    width: 536px;
+    height: 178px;
+    background: rgb(76, 76, 76);
+    border-radius: 1px 1px 0 0;
+    box-sizing: border-box;
+    box-shadow: 0 1px 0 1px rgb(10, 10, 10);
+    outline: none;
+}
+.wmsx-keyboard-key {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 24px;
+    padding: 4px 0;
+    margin-right: 1px;
+    box-sizing: border-box;
+    font-weight: normal;
+    font-size: 10px;
+    line-height: 10px;
+    text-align: center;
+    vertical-align: top;
+    color: white;
+    background: rgb(172, 172, 172);
+    border: 3px solid rgba(0, 0, 0, .25);
+    border-top: 1px solid rgba(0, 0, 0, .10);
+    border-bottom: 5px solid rgba(0, 0, 0, .5);
+    border-radius: 3px 3px 0 0;
+    box-shadow: 0 1px 0 1px rgb(0, 0, 0);
+    cursor: pointer;
+}
+.wmsx-keyboard-key.wmsx-keyboard-key-dark {
+    background: rgb(127, 127, 127);
+}
+.wmsx-keyboard-key.wmsx-keyboard-key-unmapped {
+    color: rgb(40, 40, 40);
+    font-weight: bold;
+}
+#wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {
+    position: absolute;
+    top: 12px;
+}
+#wmsx-keyboard-alpha {
+    left: 14px;
+}
+#wmsx-keyboard-num {
+    left: 427px;
+}
+#wmsx-keyboard-arrows {
+    top: 118px;
+    left: 427px;
+}
+#wmsx-keyboard-f1, #wmsx-keyboard-f2, #wmsx-keyboard-f3, #wmsx-keyboard-f4, #wmsx-keyboard-f5,
+#wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {
+    width: 37px;
+    height: 18px;
+    padding: 2px 0;
+    font-size: 9px;
+    line-height: 9px;
+    border-width: 1px 2px 4px;
+    margin-bottom: 12px;
+}
+#wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {
+    width: 37px;
+}
+#wmsx-keyboard-stop {
+    background: rgb(240, 80, 60);
+    margin-left: 18px;
+}
+#wmsx-keyboard-escape, #wmsx-keyboard-backspace {
+    width: 29px;
+}
+#wmsx-keyboard-tab {
+    width: 41px;
+}
+#wmsx-keyboard-control {
+    width: 48px;
+}
+#wmsx-keyboard-shift, #wmsx-keyboard-shift2 {
+    width: 61px;
+}
+#wmsx-keyboard-enter {
+    width: 36px;
+    border-radius: 2px 0 0 0;
+    border-top-width: 0;
+}
+#wmsx-keyboard-enter_x1 {
+    width: 13px;
+    min-width: 0;
+    margin-right: 0;
+    border-radius: 2px 0 0 0;
+    border-width: 1px;
+    border-right: none;
+    box-shadow: -1px 1px 0 0 rgb(0, 0, 0)
+}
+#wmsx-keyboard-enter_x2 {
+    width: 30px;
+    border-bottom: none;
+    border-radius: 0 3px 0 0;
+    box-shadow: 1px 1px 0 0 rgb(0, 0, 0)
+}
+#wmsx-keyboard-space {
+    width: 181px;
+}
+#wmsx-keyboard-capslock {
+    margin-left: 15px;
+    width: 38px;
+}
+#wmsx-keyboard-dead {
+    width: 38px;
+}
+#wmsx-keyboard-graph, #wmsx-keyboard-code {
+    width: 46px;
+}
+#wmsx-keyboard-num .wmsx-keyboard-key {
+    width: 23px;
+    height: 23px;
+}
+#wmsx-keyboard-arrows .wmsx-keyboard-key {
+    font-size: 8px;
+    line-height: 8px;
+    background: rgb(70, 85, 180);
+    border-width: 1px 2px 4px;
+    border-radius: 2px 2px 0 0;
+}
+#wmsx-keyboard-arrows #wmsx-keyboard-left, #wmsx-keyboard-arrows #wmsx-keyboard-right {
+    top: 5px;
+    width: 26px;
+    height: 34px;
+    padding-top: 11px;
+}
+#wmsx-keyboard-arrows #wmsx-keyboard-up, #wmsx-keyboard-arrows #wmsx-keyboard-down {
+    width: 41px;
+    height: 22px;
+    padding-top: 5px;
+}
+#wmsx-keyboard-arrows #wmsx-keyboard-down {
+    position: absolute;
+    top: 22px;
+    left: 27px;
+}
+
+#wmsx-ports {
+    left: 1800px;
+}
+
+#wmsx-joy1 {
+    margin: 150px 0 0 34px;
+}
+
+#wmsx-joy2{
+    margin: 150px 0 0 26px;
+}
+
+#wmsx-ports .wmsx-joy {
+    display: inline-block;
+    position: relative;
+    width: 250px;
+    font-weight: bold;
+    text-align: center;
+    background: white;
+    box-sizing: border-box;
+}
+
+.wmsx-joy .wmsx-joy-trig {
+    position: absolute;
+    top: -6px;
+    width: 45px;
+    height: 40px;
+    background: hsl(0, 0%, 71%);
+    border-radius: 5px;
+    box-shadow: inset 1px 1px 1px hsl(0, 0%, 95%), 0 2px 2px 2px hsl(0, 0%, 47%);
+}
+.wmsx-joy .wmsx-joy-trig1 {
+    left: 25px;
+    border-top-left-radius: 16px;
+}
+.wmsx-joy .wmsx-joy-trig2 {
+    right: 25px;
+    border-top-right-radius: 16px;
+}
+
+.wmsx-joy .wmsx-joy-middle {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    height: 88px;
+    background: white;
+    background: linear-gradient( hsl(0, 0%, 92%), white, white, hsl(0, 0%, 95%), hsl(0, 0%, 89%));
+    border-radius: 50px 50px 40px 40px;
+    box-shadow: 0 1px 2px 1px hsl(0, 0%, 62%);
+}
+
+.wmsx-joy-logo {
+    position: absolute;
+    top: 17px;
+    left: 101px;
+    width: 46px;
+    height: 14px;
+    background: url('data:image/png;base64,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');
+}
+
+.wmsx-joy .wmsx-joy-outleft, .wmsx-joy .wmsx-joy-outright {
+    position: absolute;
     width: 100px;
+    height: 100px;
+    background: inherit;
+    border-radius: 1000px;
+    transform-origin: 50px 50px;
+    transform: rotate(30deg);
+    box-shadow:  0 3px 1px hsl(0, 0%, 60%);
+}
+.wmsx-joy .wmsx-joy-outright {
+    right: 0;
+    transform: rotate(-30deg);
+}
+
+.wmsx-joy .wmsx-joy-left, .wmsx-joy .wmsx-joy-right {
+    position: absolute;
+    top: 10px;
+    width: 80px;
+    height: 80px;
+    background: hsl(0, 0%, 85%);
+    border: 1px solid rgba(0, 0, 0, .11);
+    border-right: none;
+    border-bottom: none;
+    border-radius: 1000px;
+    box-sizing: border-box;
+}
+.wmsx-joy .wmsx-joy-left {
+    left: 10px;
+}
+.wmsx-joy .wmsx-joy-right {
+    right: 10px;
+}
+
+.wmsx-joy .wmsx-joy-dir {
+    position: absolute;
+    color: hsl(0, 0%, 95%);
+    font-size: 10px;
+    line-height: 12px;
+    background: hsl(0, 0%, 49%);
+    border: 1px solid hsl(0, 0%, 64%);
+    border-right-color: hsl(0, 0%, 42%);
+    border-bottom-color: hsl(0, 0%, 35%);
+    border-radius: 2px 2px 0 0;
+    box-shadow:  0 3px 1px hsl(0, 0%, 40%), 0 3px 0 1px hsl(0, 0%, 15%);
+    box-sizing: border-box;
+}
+.wmsx-joy .wmsx-joy-dirh {
+    top: 29px;
+    left: 15px;
+    width: 46px;
+    height: 14px;
+}
+.wmsx-joy .wmsx-joy-dirv {
+    top: 13px;
+    left: 31px;
+    width: 14px;
+    height: 45px;
+}
+.wmsx-joy .wmsx-joy-dir-center {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 16px;
+    height: 12px;
+    background: hsl(0, 0%, 53%);
+}
+.wmsx-joy .wmsx-joy-dir-center:after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    height: 8px;
+    width: 8px;
+    border-radius: 1000px;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25), inset 1px 1px 2px -1px rgba(0, 0, 0, 0.25), 1px 1px 0 rgba(255, 255, 255, 0.27);
+}
+
+.wmsx-joy .wmsx-joy-right .wmsx-joy-button {
+    position: absolute;
+    width: 19px;
+    height: 19px;
+    color: hsl(0, 0%, 97%);
+    border-radius: 1000px;
+}
+
+.wmsx-joy .wmsx-joy-button1 {
+    top: 47px;
+    left: 30px;
+    background: hsl(132, 90%, 41%);
+    box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(127, 90%, 30%), 0 3px 0 1px hsl(0, 0%, 15%);
+}
+.wmsx-joy .wmsx-joy-button2 {
+    top: 27px;
+    left: 50px;
+    background: hsl(0, 94%, 63%);
+    box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(0, 90%, 43%), 0 3px 0 1px hsl(0, 0%, 15%);
+}
+.wmsx-joy .wmsx-joy-button3 {
+    top: 27px;
+    left: 10px;
+    background: hsl(234, 80%, 66%);
+    box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(234, 80%, 47%), 0 3px 0 1px hsl(0, 0%, 15%);
+}
+.wmsx-joy .wmsx-joy-button4 {
+    top: 07px;
+    left: 30px;
+    background: hsl(58, 100%, 44%);
+    box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.06), 0 3px 0 0 hsl(56, 100%, 33%), 0 3px 0 1px hsl(0, 0%, 15%);
+}
+
+.wmsx-joy .wmsx-joy-center .wmsx-joy-button {
+    position: absolute;
+    top: 43px;
+    width: 18px;
+    height: 09px;
+    color: hsl(0, 0%, 58%);
+    border-radius: 1000px;
+    background: hsl(0, 0%, 85%);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1), 0 2px 0 0 hsl(0, 0%, 65%), 0 2px 0 1px hsl(0, 0%, 33%);
+}
+
+.wmsx-joy .wmsx-joy-center .wmsx-joy-buttona {
+    left: 103px;
+    border-top-right-radius: 1px;
+    border-bottom-right-radius: 1px;
+}
+.wmsx-joy .wmsx-joy-center .wmsx-joy-buttonb {
+    right: 103px;
+    border-top-left-radius: 1px;
+    border-bottom-left-radius: 1px;
+}
+
+.wmsx-joy-hs {
+    position: absolute;
+    border: 1px solid transparent;
+    border-radius: 1000px;
+    box-sizing: border-box;
+}
+.wmsx-joy-hs-up, .wmsx-joy-hs-down, .wmsx-joy-hs-left, .wmsx-joy-hs-right {
+    width: 26px;
+    height: 25px;
+    padding-top: 6px;
+    font-size: 10px;
+    line-height: 10px;
+    color: hsl(0, 0%, 95%);
+}
+.wmsx-joy-hs-up {
+    top: 19px;
+    left: 36px;
+    padding-top: 7px;
+}
+.wmsx-joy-hs-down {
+    top: 52px;
+    left: 36px;
+    padding-top: 4px;
+}
+.wmsx-joy-hs-left {
+    top: 35px;
+    left: 20px;
+}
+.wmsx-joy-hs-right {
+    top: 35px;
+    left: 52px;
+}
+.wmsx-joy-hs-button1, .wmsx-joy-hs-button2, .wmsx-joy-hs-button3, .wmsx-joy-hs-button4 {
+    width: 21px;
+    height: 23px;
+    font-size: 12px;
+    line-height: 19px;
+    color: hsl(0, 0%, 99%);
+}
+.wmsx-joy-hs-button1 {
+    top: 58px;
+    right: 39px;
+}
+.wmsx-joy-hs-button2 {
+    top: 38px;
+    right: 19px;
+}
+.wmsx-joy-hs-button3 {
+    top: 38px;
+    right: 59px;
+}
+.wmsx-joy-hs-button4 {
+    top: 18px;
+    right: 39px;
+}
+.wmsx-joy-hs-button5, .wmsx-joy-hs-button6 {
+    width: 60px;
+    height: 26px;
+    top: -21px;
+    padding-right: 2px;
+    color: hsl(0, 0%, 52%);
+    font-size: 12px;
+    line-height: 13px;
+    border-radius: 0;
+}
+.wmsx-joy-hs-button5 {
+    left: 20px;
+}
+.wmsx-joy-hs-button6 {
+    right: 20px;
+}
+.wmsx-joy-hs-button7, .wmsx-joy-hs-button8 {
+    width: 26px;
+    height: 34px;
+    top: 38px;
+    padding-top: 18px;
+    font-size: 11px;
+    line-height: 11px;
+    color: hsl(0, 0%, 56%);
+    border-radius: 0;
+}
+.wmsx-joy-hs-button7 {
+    left: 98px;
+}
+.wmsx-joy-hs-button8 {
+    right: 98px;
 }
 
 #wmsx-about {
-    left: 1800px;
+    left: 2400px;
     font-size: 18px;
 }
 
@@ -338,6 +746,41 @@
     font-size: 10px;
     text-align: center;
     color: transparent;
+}
+
+#wmsx-inputs #wmsx-keyboard-popup {
+    display: none;
+    position: fixed;
+    padding: 4px 9px;
+    line-height: 16px;
+    text-align: center;
+    vertical-align: top;
+    border-radius: 6px;
+    border: 8px white solid;
+    background: rgb(220, 220, 220);
+    box-shadow: 0 3px 3px 2px rgba(0, 0, 0, .55);
+    box-sizing: border-box;
+}
+#wmsx-inputs #wmsx-keyboard-popup .wmsx-command {
+    width: auto;
+    line-height: 21px;
+    margin: 9px 0 8px;
+    font-weight: bold;
+}
+#wmsx-inputs #wmsx-keyboard-popup:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 0;
+    margin: 0 auto;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent white white transparent;
+    box-shadow: 4px 4px 2px 0 rgba(0, 0, 0, .55);
+    box-sizing: border-box;
+    transform: translateY(16px) rotate(45deg);
 }
 
 .wmsx-clear {

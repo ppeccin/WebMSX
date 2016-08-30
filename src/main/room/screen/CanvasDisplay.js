@@ -90,7 +90,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.openSettings = function(page) {
         if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(controllersHub);
         if (pasteDialog) pasteDialog.hide();
-        settingsDialog.show("INPUTS");          // TODO Return to page
+        settingsDialog.show("PORTS");          // TODO Return to page
     };
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
