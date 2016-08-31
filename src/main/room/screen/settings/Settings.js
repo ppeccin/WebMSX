@@ -72,7 +72,7 @@ wmsx.SettingsDialog = function(controllersHub) {
         self.cover.tabIndex = -1;
         document.body.appendChild(self.cover);
 
-         //Supress context menu   // TODO Return
+         // Supress context menu   // TODO Return
         self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -90,7 +90,7 @@ wmsx.SettingsDialog = function(controllersHub) {
         setEvents();
     };
 
-    // Automatic set fields for each child element that has the "id" attribute
+    // Automatically set fields for each child element that has the "id" attribute
     var setFields = function () {
         traverseDOM(self.cover, function (element) {
             if (element.id) self[element.id] = element;

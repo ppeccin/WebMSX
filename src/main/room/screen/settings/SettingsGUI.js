@@ -1113,7 +1113,7 @@ wmsx.SettingsGUI.css = function() {
     top: 10px;
     width: 80px;
     height: 80px;
-    background: hsl(0, 0%, 85%);
+    background: hsl(0, 0%, 87%);
     border: 1px solid rgba(0, 0, 0, .11);
     border-right: none;
     border-bottom: none;
@@ -1123,8 +1123,31 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-left {
     left: 10px;
 }
+.wmsx-joy .wmsx-joy-left:before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 58px;
+    height: 58px;
+    background: hsl(0, 0%, 77%);
+    border-radius: 1000px;
+    box-sizing: border-box;
+}
 .wmsx-joy .wmsx-joy-right {
     right: 10px;
+}
+.wmsx-joy .wmsx-joy-right:before {
+    content: "";
+    position: absolute;
+    top: 21px;
+    right: 16px;
+    width: 27px;
+    height: 57px;
+    background: hsl(0, 0%, 77%);
+    border-radius: 1000px;
+    box-sizing: border-box;
+    transform: rotate(45deg);
 }
 
 .wmsx-joy .wmsx-joy-dir {
@@ -1142,23 +1165,23 @@ wmsx.SettingsGUI.css = function() {
 }
 .wmsx-joy .wmsx-joy-dirh {
     top: 29px;
-    left: 15px;
+    left: 16px;
     width: 46px;
     height: 14px;
 }
 .wmsx-joy .wmsx-joy-dirv {
     top: 13px;
-    left: 31px;
+    left: 32px;
     width: 14px;
     height: 45px;
 }
 .wmsx-joy .wmsx-joy-dir-center {
     position: absolute;
     top: 30px;
-    left: 30px;
+    left: 31px;
     width: 16px;
     height: 12px;
-    background: hsl(0, 0%, 53%);
+    background: hsl(0, 0%, 49%);
 }
 .wmsx-joy .wmsx-joy-dir-center:after {
     content: '';
@@ -1171,7 +1194,7 @@ wmsx.SettingsGUI.css = function() {
     box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25), inset 1px 1px 2px -1px rgba(0, 0, 0, 0.25), 1px 1px 0 rgba(255, 255, 255, 0.27);
 }
 
-.wmsx-joy .wmsx-joy-right .wmsx-joy-button {
+.wmsx-joy .wmsx-joy-button {
     position: absolute;
     width: 19px;
     height: 19px;
@@ -1242,21 +1265,21 @@ wmsx.SettingsGUI.css = function() {
 }
 .wmsx-joy-hs-up {
     top: 19px;
-    left: 36px;
+    left: 37px;
     padding-top: 7px;
 }
 .wmsx-joy-hs-down {
     top: 52px;
-    left: 36px;
+    left: 37px;
     padding-top: 4px;
 }
 .wmsx-joy-hs-left {
     top: 35px;
-    left: 20px;
+    left: 21px;
 }
 .wmsx-joy-hs-right {
     top: 35px;
-    left: 52px;
+    left: 53px;
 }
 .wmsx-joy-hs-button1, .wmsx-joy-hs-button2, .wmsx-joy-hs-button3, .wmsx-joy-hs-button4 {
     width: 21px;
