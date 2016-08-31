@@ -255,13 +255,13 @@
 
 #wmsx-inputs {
     left: 1200px;
-    padding-top: 23px;
+    padding-top: 26px;
     padding-left: 33px;
 }
 
 #wmsx-inputs .wmsx-left {
     float: left;
-    width: 297px;
+    width: 290px;
 }
 
 #wmsx-inputs .wmsx-command {
@@ -269,7 +269,7 @@
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 12px;
+    margin-top: 15px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
@@ -283,6 +283,11 @@
     text-align: right;
 }
 
+#wmsx-inputs .wmsx-bottom .wmsx-footer {
+    margin-top: 12px;
+    width: 536px;
+    text-align: center;
+}
 
 #wmsx-keyboard {
     position: relative;
@@ -430,14 +435,35 @@
 
 #wmsx-ports {
     left: 1800px;
+    padding-top: 26px;
+    padding-left: 33px;
 }
 
-#wmsx-joy1 {
-    margin: 150px 0 0 34px;
+#wmsx-ports .wmsx-left {
+    float: left;
+    width: 288px;
 }
 
-#wmsx-joy2{
-    margin: 150px 0 0 26px;
+#wmsx-ports .wmsx-right {
+    float: left;
+}
+
+#wmsx-ports .wmsx-command {
+    width: 91px;
+}
+
+#wmsx-ports .wmsx-bottom {
+    margin-top: 70px;
+}
+
+#wmsx-ports .wmsx-bottom .wmsx-footer {
+    margin-top: 12px;
+    width: 536px;
+    text-align: center;
+}
+
+#wmsx-joy2 {
+    margin-left: 26px;
 }
 
 #wmsx-ports .wmsx-joy {

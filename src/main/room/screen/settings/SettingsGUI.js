@@ -423,33 +423,8 @@ wmsx.SettingsGUI.html = function() {
                                 <div class="wmsx-key wmsx-key-fixed">
                                     Alt
                                 </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                    J
-                                </div>
+                                C
                             </div>
-                            <div class="wmsx-desc">Toggle Joysticks</div>
-                        </div>
-                        <div class="wmsx-hotkey">
-                            <div class="wmsx-command">
-                                <div class="wmsx-key wmsx-key-fixed">
-                                    Alt
-                                </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                    M
-                                </div>
-                            </div>
-                            <div class="wmsx-desc">Toggle Mouse</div>
-                        </div>
-                        <div class="wmsx-hotkey">
-                            <div class="wmsx-desc">Middle Mouse Button: Lock/unlock pointer</div>
-                        </div>
-                    </div>
-                    <div class="wmsx-right">
-                        <div class="wmsx-hotkey">
-                            <div class="wmsx-command">
-                                <div class="wmsx-key wmsx-key-fixed">
-                                    Alt
-                                </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                    C
-                                </div>
                             </div>
                             <div class="wmsx-desc">Copy Screen Text</div>
                         </div>
@@ -458,11 +433,13 @@ wmsx.SettingsGUI.html = function() {
                                 <div class="wmsx-key wmsx-key-fixed">
                                     Alt
                                 </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                    V
-                                </div>
+                                V
+                            </div>
                             </div>
                             <div class="wmsx-desc">Open Text Paste box</div>
                         </div>
+                    </div>
+                    <div class="wmsx-right">
                         <div class="wmsx-hotkey">
                             <div class="wmsx-command">
                                 <div class="wmsx-key wmsx-key-fixed">
@@ -490,90 +467,143 @@ wmsx.SettingsGUI.html = function() {
                             Keyboard:
                         </div>
                         <div id="wmsx-keyboard"></div>
+                        <div class="wmsx-footer">
+                            (hover mouse pointer over MSK Keyboard keys to display/modify mappings)
+                        </div>
                     </div>
                 </div>
                 <div id="wmsx-ports">
-                    <div id="wmsx-joy1" class="wmsx-joy">
-                        <div class="wmsx-joy-trig wmsx-joy-trig1">
+                    <div class="wmsx-left">
+                        <div class="wmsx-hotkey">
+                            <div class="wmsx-command">
+                                <div class="wmsx-key wmsx-key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                    M
+                                </div>
+                            </div>
+                            <div class="wmsx-desc">Toggle Mouse</div>
                         </div>
-                        <div class="wmsx-joy-trig wmsx-joy-trig2">
+                        <div class="wmsx-hotkey">
+                            <div class="wmsx-desc">Middle Mouse Button: Lock/unlock pointer</div>
                         </div>
-                        <div class="wmsx-joy-middle">
-                        </div>
-                        <div class="wmsx-joy-logo">
-                        </div>
-                        <div class="wmsx-joy-outleft">
-                        </div>
-                        <div class="wmsx-joy-outright">
-                        </div>
-                        <div class="wmsx-joy-left">
-                            <div class="wmsx-joy-dir wmsx-joy-dirh"></div>
-                            <div class="wmsx-joy-dir wmsx-joy-dirv"></div>
-                            <div class="wmsx-joy-dir-center"></div>
-                        </div>
-                        <div class="wmsx-joy-right">
-                            <div class="wmsx-joy-button wmsx-joy-button1"></div>
-                            <div class="wmsx-joy-button wmsx-joy-button2"></div>
-                            <div class="wmsx-joy-button wmsx-joy-button3"></div>
-                            <div class="wmsx-joy-button wmsx-joy-button4"></div>
-                        </div>
-                        <div class="wmsx-joy-center">
-                            <div class="wmsx-joy-button wmsx-joy-buttona"></div>
-                            <div class="wmsx-joy-button wmsx-joy-buttonb"></div>
-                        </div>
-                        <div id="wmsx-joy1-up" class="wmsx-joy-hs wmsx-joy-hs-up">&#9650;</div>
-                        <div id="wmsx-joy1-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
-                        <div id="wmsx-joy1-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
-                        <div id="wmsx-joy1-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
-                        <div id="wmsx-joy1-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">1</div>
-                        <div id="wmsx-joy1-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">2</div>
-                        <div id="wmsx-joy1-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
-                        <div id="wmsx-joy1-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
-                        <div id="wmsx-joy1-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
-                        <div id="wmsx-joy1-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
-                        <div id="wmsx-joy1-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
-                        <div id="wmsx-joy1-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
                     </div>
-                    <div id="wmsx-joy2" class="wmsx-joy">
-                        <div class="wmsx-joy-trig wmsx-joy-trig1">
+                    <div class="wmsx-right">
+                        <div class="wmsx-hotkey">
+                            <div class="wmsx-command">
+                                <div class="wmsx-key wmsx-key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                    J
+                                </div>
+                            </div>
+                            <div class="wmsx-desc">Toggle Joysticks</div>
                         </div>
-                        <div class="wmsx-joy-trig wmsx-joy-trig2">
+                        <div class="wmsx-hotkey">
+                            <div class="wmsx-command">
+                                <div class="wmsx-key wmsx-key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                    L
+                                </div>
+                            </div>
+                            <div class="wmsx-desc">Toggle Key Joysticks</div>
                         </div>
-                        <div class="wmsx-joy-middle">
+                        <div class="wmsx-hotkey">
+                            <div class="wmsx-command">
+                                <div class="wmsx-key wmsx-key-fixed">
+                                    Alt
+                                </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                    H
+                                </div>
+                            </div>
+                            <div class="wmsx-desc">Adjust Turbo-Fire speed</div>
                         </div>
-                        <div class="wmsx-joy-logo">
+                    </div>
+                    <div class="wmsx-full-divider"></div>
+                    <div class="wmsx-bottom">
+                        <div id="wmsx-joy1" class="wmsx-joy">
+                            <div class="wmsx-joy-trig wmsx-joy-trig1">
+                            </div>
+                            <div class="wmsx-joy-trig wmsx-joy-trig2">
+                            </div>
+                            <div class="wmsx-joy-middle">
+                            </div>
+                            <div class="wmsx-joy-logo">
+                            </div>
+                            <div class="wmsx-joy-outleft">
+                            </div>
+                            <div class="wmsx-joy-outright">
+                            </div>
+                            <div class="wmsx-joy-left">
+                                <div class="wmsx-joy-dir wmsx-joy-dirh"></div>
+                                <div class="wmsx-joy-dir wmsx-joy-dirv"></div>
+                                <div class="wmsx-joy-dir-center"></div>
+                            </div>
+                            <div class="wmsx-joy-right">
+                                <div class="wmsx-joy-button wmsx-joy-button1"></div>
+                                <div class="wmsx-joy-button wmsx-joy-button2"></div>
+                                <div class="wmsx-joy-button wmsx-joy-button3"></div>
+                                <div class="wmsx-joy-button wmsx-joy-button4"></div>
+                            </div>
+                            <div class="wmsx-joy-center">
+                                <div class="wmsx-joy-button wmsx-joy-buttona"></div>
+                                <div class="wmsx-joy-button wmsx-joy-buttonb"></div>
+                            </div>
+                            <div id="wmsx-joy1-up" class="wmsx-joy-hs wmsx-joy-hs-up">&#9650;</div>
+                            <div id="wmsx-joy1-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
+                            <div id="wmsx-joy1-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
+                            <div id="wmsx-joy1-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
+                            <div id="wmsx-joy1-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">1</div>
+                            <div id="wmsx-joy1-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">2</div>
+                            <div id="wmsx-joy1-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
+                            <div id="wmsx-joy1-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
+                            <div id="wmsx-joy1-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
+                            <div id="wmsx-joy1-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
+                            <div id="wmsx-joy1-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
+                            <div id="wmsx-joy1-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
                         </div>
-                        <div class="wmsx-joy-outleft">
+                        <div id="wmsx-joy2" class="wmsx-joy">
+                            <div class="wmsx-joy-trig wmsx-joy-trig1">
+                            </div>
+                            <div class="wmsx-joy-trig wmsx-joy-trig2">
+                            </div>
+                            <div class="wmsx-joy-middle">
+                            </div>
+                            <div class="wmsx-joy-logo">
+                            </div>
+                            <div class="wmsx-joy-outleft">
+                            </div>
+                            <div class="wmsx-joy-outright">
+                            </div>
+                            <div class="wmsx-joy-left">
+                                <div class="wmsx-joy-dir wmsx-joy-dirh"></div>
+                                <div class="wmsx-joy-dir wmsx-joy-dirv"></div>
+                                <div class="wmsx-joy-dir-center"></div>
+                            </div>
+                            <div class="wmsx-joy-right">
+                                <div class="wmsx-joy-button wmsx-joy-button1"></div>
+                                <div class="wmsx-joy-button wmsx-joy-button2"></div>
+                                <div class="wmsx-joy-button wmsx-joy-button3"></div>
+                                <div class="wmsx-joy-button wmsx-joy-button4"></div>
+                            </div>
+                            <div class="wmsx-joy-center">
+                                <div class="wmsx-joy-button wmsx-joy-buttona"></div>
+                                <div class="wmsx-joy-button wmsx-joy-buttonb"></div>
+                            </div>
+                            <div id="wmsx-joy2-up" class="wmsx-joy-hs wmsx-joy-hs-up">&#9650;</div>
+                            <div id="wmsx-joy2-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
+                            <div id="wmsx-joy2-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
+                            <div id="wmsx-joy2-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
+                            <div id="wmsx-joy2-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">1</div>
+                            <div id="wmsx-joy2-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">2</div>
+                            <div id="wmsx-joy2-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
+                            <div id="wmsx-joy2-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
+                            <div id="wmsx-joy2-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
+                            <div id="wmsx-joy2-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
+                            <div id="wmsx-joy2-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
+                            <div id="wmsx-joy2-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
                         </div>
-                        <div class="wmsx-joy-outright">
-                        </div>
-                        <div class="wmsx-joy-left">
-                            <div class="wmsx-joy-dir wmsx-joy-dirh"></div>
-                            <div class="wmsx-joy-dir wmsx-joy-dirv"></div>
-                            <div class="wmsx-joy-dir-center"></div>
-                        </div>
-                        <div class="wmsx-joy-right">
-                            <div class="wmsx-joy-button wmsx-joy-button1"></div>
-                            <div class="wmsx-joy-button wmsx-joy-button2"></div>
-                            <div class="wmsx-joy-button wmsx-joy-button3"></div>
-                            <div class="wmsx-joy-button wmsx-joy-button4"></div>
-                        </div>
-                        <div class="wmsx-joy-center">
-                            <div class="wmsx-joy-button wmsx-joy-buttona"></div>
-                            <div class="wmsx-joy-button wmsx-joy-buttonb"></div>
-                        </div>
-                        <div id="wmsx-joy2-up" class="wmsx-joy-hs wmsx-joy-hs-up">&#9650;</div>
-                        <div id="wmsx-joy2-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
-                        <div id="wmsx-joy2-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
-                        <div id="wmsx-joy2-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
-                        <div id="wmsx-joy2-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">1</div>
-                        <div id="wmsx-joy2-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">2</div>
-                        <div id="wmsx-joy2-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
-                        <div id="wmsx-joy2-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
-                        <div id="wmsx-joy2-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
-                        <div id="wmsx-joy2-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
-                        <div id="wmsx-joy2-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
-                        <div id="wmsx-joy2-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
                     </div>
                 </div>
                 <div id="wmsx-about">
@@ -862,13 +892,13 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-inputs {
     left: 1200px;
-    padding-top: 23px;
+    padding-top: 26px;
     padding-left: 33px;
 }
 
 #wmsx-inputs .wmsx-left {
     float: left;
-    width: 297px;
+    width: 290px;
 }
 
 #wmsx-inputs .wmsx-command {
@@ -876,7 +906,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 12px;
+    margin-top: 15px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
@@ -890,6 +920,11 @@ wmsx.SettingsGUI.css = function() {
     text-align: right;
 }
 
+#wmsx-inputs .wmsx-bottom .wmsx-footer {
+    margin-top: 12px;
+    width: 536px;
+    text-align: center;
+}
 
 #wmsx-keyboard {
     position: relative;
@@ -1037,14 +1072,35 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports {
     left: 1800px;
+    padding-top: 26px;
+    padding-left: 33px;
 }
 
-#wmsx-joy1 {
-    margin: 150px 0 0 34px;
+#wmsx-ports .wmsx-left {
+    float: left;
+    width: 288px;
 }
 
-#wmsx-joy2{
-    margin: 150px 0 0 26px;
+#wmsx-ports .wmsx-right {
+    float: left;
+}
+
+#wmsx-ports .wmsx-command {
+    width: 91px;
+}
+
+#wmsx-ports .wmsx-bottom {
+    margin-top: 70px;
+}
+
+#wmsx-ports .wmsx-bottom .wmsx-footer {
+    margin-top: 12px;
+    width: 536px;
+    text-align: center;
+}
+
+#wmsx-joy2 {
+    margin-left: 26px;
 }
 
 #wmsx-ports .wmsx-joy {
