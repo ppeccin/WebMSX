@@ -56,10 +56,10 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         keyCodeMap[KEY_SPEED | k.SHIFT]         = controls.SLOW_SPEED;
         keyCodeMap[KEY_SPEED | k.SHIFT | k.ALT] = controls.SLOW_SPEED;
 
-        keyCodeMap[KEY_INC_SPEED | k.ALT]       = controls.INC_SPEED;
-        keyCodeMap[KEY_DEC_SPEED | k.ALT]       = controls.DEC_SPEED;
-        keyCodeMap[KEY_NORMAL_SPEED | k.ALT]    = controls.NORMAL_SPEED;
-        keyCodeMap[KEY_MIN_SPEED | k.ALT]       = controls.MIN_SPEED;
+        keyCodeMap[KEY_INC_SPEED | k.SHIFT | k.ALT]    = controls.INC_SPEED;
+        keyCodeMap[KEY_DEC_SPEED | k.SHIFT | k.ALT]    = controls.DEC_SPEED;
+        keyCodeMap[KEY_NORMAL_SPEED | k.SHIFT | k.ALT] = controls.NORMAL_SPEED;
+        keyCodeMap[KEY_MIN_SPEED | k.SHIFT | k.ALT]    = controls.MIN_SPEED;
 
         keyCodeMap[KEY_PAUSE | k.ALT]           = controls.PAUSE;
         keyCodeMap[KEY_PAUSE | k.SHIFT | k.ALT] = controls.PAUSE_AUDIO_ON;

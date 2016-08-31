@@ -188,7 +188,9 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-hotkey">
                             <div class="wmsx-command">
-                                <div class="wmsx-key wmsx-key-fixed">
+                                <div class="wmsx-key">
+                                    Shift
+                                </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
                                     Alt
                                 </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                     Arrows
