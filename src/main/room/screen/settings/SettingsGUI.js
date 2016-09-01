@@ -463,12 +463,12 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                             <div class="wmsx-desc">Toggle Keyboards</div>
                         </div>
-                        <div id="wmms-inputs-keyboard-name" class="wmsx-hotkey wmsx-heading">
+                        <div id="wmms-inputs-keyboard-name" class="wmsx-hotkey wmsx-link">
                             Keyboard:
                         </div>
                         <div id="wmsx-keyboard"></div>
                         <div class="wmsx-footer">
-                            (hover mouse pointer over MSK Keyboard keys to display/modify mappings)
+                            (hover mouse pointer over MSX Keyboard keys to display/modify mappings)
                         </div>
                     </div>
                 </div>
@@ -484,11 +484,6 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                             <div class="wmsx-desc">Toggle Mouse</div>
                         </div>
-                        <div class="wmsx-hotkey">
-                            <div class="wmsx-desc">Middle Mouse Button: Lock/unlock pointer</div>
-                        </div>
-                    </div>
-                    <div class="wmsx-right">
                         <div class="wmsx-hotkey">
                             <div class="wmsx-command">
                                 <div class="wmsx-key wmsx-key-fixed">
@@ -507,7 +502,7 @@ wmsx.SettingsGUI.html = function() {
                                     L
                                 </div>
                             </div>
-                            <div class="wmsx-desc">Toggle Key Joysticks</div>
+                            <div class="wmsx-desc">Toggle Joykeys</div>
                         </div>
                         <div class="wmsx-hotkey">
                             <div class="wmsx-command">
@@ -519,10 +514,26 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                             <div class="wmsx-desc">Adjust Turbo-Fire speed</div>
                         </div>
+                        <div class="wmsx-hotkey">
+                            <div class="wmsx-desc">Middle Mouse Button: Lock/unlock pointer</div>
+                        </div>
+                    </div>
+                    <div class="wmsx-right">
+                        <div id="wmms-ports-mouse-mode" class="wmsx-hotkey wmsx-link">
+                            Mouse Mode: AUTO
+                        </div>
+                        <div id="wmms-ports-joystick-mode" class="wmsx-hotkey wmsx-link">
+                            Joysticks Mode: AUTO
+                        </div>
+                        <div id="wmms-ports-keystick-mode" class="wmsx-hotkey wmsx-link">
+                            Joykeys Mode: DISABLED
+                        </div>
                     </div>
                     <div class="wmsx-full-divider"></div>
-                    <div class="wmsx-bottom">
+                    <div class="wmsx-bottom-left">
+                        PORT 1
                         <div id="wmsx-joy1" class="wmsx-joy">
+                            <div id="wmsx-joy1-title" class="wmsx-joy-title">JOYSTICK 1</div>
                             <div class="wmsx-joy-trig wmsx-joy-trig1">
                             </div>
                             <div class="wmsx-joy-trig wmsx-joy-trig2">
@@ -563,7 +574,11 @@ wmsx.SettingsGUI.html = function() {
                             <div id="wmsx-joy1-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
                             <div id="wmsx-joy1-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
                         </div>
+                    </div>
+                    <div class="wmsx-bottom-right">
+                        PORT 2
                         <div id="wmsx-joy2" class="wmsx-joy">
+                            <div id="wmsx-joy2-title" class="wmsx-joy-title">JOYSTICK 2</div>
                             <div class="wmsx-joy-trig wmsx-joy-trig1">
                             </div>
                             <div class="wmsx-joy-trig wmsx-joy-trig2">
@@ -604,6 +619,9 @@ wmsx.SettingsGUI.html = function() {
                             <div id="wmsx-joy2-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
                             <div id="wmsx-joy2-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
                         </div>
+                    </div>
+                    <div class="wmsx-footer">
+                        (hover mouse pointer over Controller buttons to display/modify mappings)
                     </div>
                 </div>
                 <div id="wmsx-about">
@@ -686,6 +704,12 @@ wmsx.SettingsGUI.css = function() {
     color: rgba(0, 0, 0, .72);
 }
 
+#wmsx-modal .wmsx-link {
+    font-weight: 700;
+    color: rgb(0, 40, 200);
+    cursor: pointer;
+}
+
 #wmsx-modal .wmsx-command {
     position: relative;
     display: inline-block;
@@ -696,11 +720,6 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-modal .wmsx-hotkey .wmsx-desc {
     display: inline-block;
     line-height: 21px;
-}
-
-#wmsx-modal .wmsx-hotkey-msx {
-    font-weight: 600;
-    color: rgba(0, 0, 0, .54);
 }
 
 #wmsx-modal .wmsx-key {
@@ -726,6 +745,12 @@ wmsx.SettingsGUI.css = function() {
     width: 31px;
     padding-left: 0;
     padding-right: 2px;
+}
+
+.wmsx-footer {
+    margin-top: 16px;
+    width: 536px;
+    text-align: center;
 }
 
 #wmsx-menu {
@@ -906,24 +931,17 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 15px;
+    margin-top: 11px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
     display: inline-block;
     width: 230px;
-    margin-bottom: 3px;
 }
 
-#wmsx-inputs .wmsx-bottom .wmsx-heading {
+#wmsx-inputs .wmsx-bottom .wmsx-link {
     width: 297px;
     text-align: right;
-}
-
-#wmsx-inputs .wmsx-bottom .wmsx-footer {
-    margin-top: 12px;
-    width: 536px;
-    text-align: center;
 }
 
 #wmsx-keyboard {
@@ -931,6 +949,7 @@ wmsx.SettingsGUI.css = function() {
     left: -1px;
     width: 536px;
     height: 178px;
+    margin-top: 5px;
     background: rgb(76, 76, 76);
     border-radius: 1px 1px 0 0;
     box-sizing: border-box;
@@ -1072,13 +1091,14 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports {
     left: 1800px;
-    padding-top: 26px;
-    padding-left: 33px;
+    padding-top: 22px;
+    padding-left: 27px;
 }
 
 #wmsx-ports .wmsx-left {
     float: left;
-    width: 288px;
+    width: 285px;
+    padding-left: 26px;
 }
 
 #wmsx-ports .wmsx-right {
@@ -1089,8 +1109,15 @@ wmsx.SettingsGUI.css = function() {
     width: 91px;
 }
 
-#wmsx-ports .wmsx-bottom {
-    margin-top: 70px;
+#wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
+    display: inline-block;
+    height: 145px;
+    width: 271px;
+    text-align: center;
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: bold;
+    color: hsl(0, 0%, 35%);
 }
 
 #wmsx-ports .wmsx-bottom .wmsx-footer {
@@ -1099,18 +1126,27 @@ wmsx.SettingsGUI.css = function() {
     text-align: center;
 }
 
-#wmsx-joy2 {
-    margin-left: 26px;
-}
-
 #wmsx-ports .wmsx-joy {
-    display: inline-block;
     position: relative;
+    top: 27px;
     width: 250px;
+    height: 100px;
+    margin: 0 auto;
     font-weight: bold;
     text-align: center;
-    background: white;
+    vertical-align: top;
     box-sizing: border-box;
+}
+
+#wmsx-ports .wmsx-joy-title {
+    position: absolute;
+    top: -19px;
+    left: 77px;
+    width: 96px;
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: bold;
+    color: hsl(0, 0%, 35%);
 }
 
 .wmsx-joy .wmsx-joy-trig {
@@ -1118,9 +1154,9 @@ wmsx.SettingsGUI.css = function() {
     top: -6px;
     width: 45px;
     height: 40px;
-    background: hsl(0, 0%, 71%);
+    background: hsl(0, 0%, 68%);
     border-radius: 5px;
-    box-shadow: inset 1px 1px 1px hsl(0, 0%, 95%), 0 2px 2px 2px hsl(0, 0%, 47%);
+    box-shadow: inset 1px 1px 1px hsl(0, 0%, 98%), 0 2px 2px 2px hsl(0, 0%, 47%);
 }
 .wmsx-joy .wmsx-joy-trig1 {
     left: 25px;
@@ -1139,7 +1175,7 @@ wmsx.SettingsGUI.css = function() {
     background: white;
     background: linear-gradient( hsl(0, 0%, 92%), white, white, hsl(0, 0%, 95%), hsl(0, 0%, 89%));
     border-radius: 50px 50px 40px 40px;
-    box-shadow: 0 1px 2px 1px hsl(0, 0%, 62%);
+    box-shadow: 0 1px 2px 1px hsl(0, 0%, 52%);
 }
 
 .wmsx-joy-logo {
@@ -1155,11 +1191,11 @@ wmsx.SettingsGUI.css = function() {
     position: absolute;
     width: 100px;
     height: 100px;
-    background: inherit;
+    background: white;
     border-radius: 1000px;
     transform-origin: 50px 50px;
     transform: rotate(30deg);
-    box-shadow:  0 3px 1px hsl(0, 0%, 60%);
+    box-shadow: 0 3px 1px hsl(0, 0%, 52%);
 }
 .wmsx-joy .wmsx-joy-outright {
     right: 0;
@@ -1363,20 +1399,19 @@ wmsx.SettingsGUI.css = function() {
     right: 39px;
 }
 .wmsx-joy-hs-button5, .wmsx-joy-hs-button6 {
-    width: 60px;
-    height: 26px;
-    top: -21px;
-    padding-right: 2px;
+    width: 54px;
+    height: 28px;
+    top: -20px;
     color: hsl(0, 0%, 52%);
     font-size: 12px;
     line-height: 13px;
     border-radius: 0;
 }
 .wmsx-joy-hs-button5 {
-    left: 20px;
+    left: 21px;
 }
 .wmsx-joy-hs-button6 {
-    right: 20px;
+    right: 22px;
 }
 .wmsx-joy-hs-button7, .wmsx-joy-hs-button8 {
     width: 26px;
@@ -1420,7 +1455,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-about a {
-    color: rgb(0, 80, 230);
+    color: rgb(0, 40, 200);
     text-decoration: none;
 }
 

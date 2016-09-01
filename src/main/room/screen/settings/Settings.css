@@ -49,6 +49,12 @@
     color: rgba(0, 0, 0, .72);
 }
 
+#wmsx-modal .wmsx-link {
+    font-weight: 700;
+    color: rgb(0, 40, 200);
+    cursor: pointer;
+}
+
 #wmsx-modal .wmsx-command {
     position: relative;
     display: inline-block;
@@ -89,6 +95,12 @@
     width: 31px;
     padding-left: 0;
     padding-right: 2px;
+}
+
+.wmsx-footer {
+    margin-top: 16px;
+    width: 536px;
+    text-align: center;
 }
 
 #wmsx-menu {
@@ -269,24 +281,17 @@
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 15px;
+    margin-top: 11px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
     display: inline-block;
     width: 230px;
-    margin-bottom: 3px;
 }
 
-#wmsx-inputs .wmsx-bottom .wmsx-heading {
+#wmsx-inputs .wmsx-bottom .wmsx-link {
     width: 297px;
     text-align: right;
-}
-
-#wmsx-inputs .wmsx-bottom .wmsx-footer {
-    margin-top: 12px;
-    width: 536px;
-    text-align: center;
 }
 
 #wmsx-keyboard {
@@ -294,6 +299,7 @@
     left: -1px;
     width: 536px;
     height: 178px;
+    margin-top: 5px;
     background: rgb(76, 76, 76);
     border-radius: 1px 1px 0 0;
     box-sizing: border-box;
@@ -435,13 +441,14 @@
 
 #wmsx-ports {
     left: 1800px;
-    padding-top: 26px;
-    padding-left: 33px;
+    padding-top: 22px;
+    padding-left: 27px;
 }
 
 #wmsx-ports .wmsx-left {
     float: left;
-    width: 288px;
+    width: 285px;
+    padding-left: 26px;
 }
 
 #wmsx-ports .wmsx-right {
@@ -452,8 +459,15 @@
     width: 91px;
 }
 
-#wmsx-ports .wmsx-bottom {
-    margin-top: 70px;
+#wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
+    display: inline-block;
+    height: 145px;
+    width: 271px;
+    text-align: center;
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: bold;
+    color: hsl(0, 0%, 35%);
 }
 
 #wmsx-ports .wmsx-bottom .wmsx-footer {
@@ -462,18 +476,27 @@
     text-align: center;
 }
 
-#wmsx-joy2 {
-    margin-left: 26px;
-}
-
 #wmsx-ports .wmsx-joy {
-    display: inline-block;
     position: relative;
+    top: 27px;
     width: 250px;
+    height: 100px;
+    margin: 0 auto;
     font-weight: bold;
     text-align: center;
-    background: white;
+    vertical-align: top;
     box-sizing: border-box;
+}
+
+#wmsx-ports .wmsx-joy-title {
+    position: absolute;
+    top: -19px;
+    left: 77px;
+    width: 96px;
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: bold;
+    color: hsl(0, 0%, 35%);
 }
 
 .wmsx-joy .wmsx-joy-trig {
@@ -481,9 +504,9 @@
     top: -6px;
     width: 45px;
     height: 40px;
-    background: hsl(0, 0%, 71%);
+    background: hsl(0, 0%, 68%);
     border-radius: 5px;
-    box-shadow: inset 1px 1px 1px hsl(0, 0%, 95%), 0 2px 2px 2px hsl(0, 0%, 47%);
+    box-shadow: inset 1px 1px 1px hsl(0, 0%, 98%), 0 2px 2px 2px hsl(0, 0%, 47%);
 }
 .wmsx-joy .wmsx-joy-trig1 {
     left: 25px;
@@ -502,7 +525,7 @@
     background: white;
     background: linear-gradient( hsl(0, 0%, 92%), white, white, hsl(0, 0%, 95%), hsl(0, 0%, 89%));
     border-radius: 50px 50px 40px 40px;
-    box-shadow: 0 1px 2px 1px hsl(0, 0%, 62%);
+    box-shadow: 0 1px 2px 1px hsl(0, 0%, 52%);
 }
 
 .wmsx-joy-logo {
@@ -518,11 +541,11 @@
     position: absolute;
     width: 100px;
     height: 100px;
-    background: inherit;
+    background: white;
     border-radius: 1000px;
     transform-origin: 50px 50px;
     transform: rotate(30deg);
-    box-shadow:  0 3px 1px hsl(0, 0%, 60%);
+    box-shadow: 0 3px 1px hsl(0, 0%, 52%);
 }
 .wmsx-joy .wmsx-joy-outright {
     right: 0;
@@ -726,20 +749,19 @@
     right: 39px;
 }
 .wmsx-joy-hs-button5, .wmsx-joy-hs-button6 {
-    width: 60px;
-    height: 26px;
-    top: -21px;
-    padding-right: 2px;
+    width: 54px;
+    height: 28px;
+    top: -20px;
     color: hsl(0, 0%, 52%);
     font-size: 12px;
     line-height: 13px;
     border-radius: 0;
 }
 .wmsx-joy-hs-button5 {
-    left: 20px;
+    left: 21px;
 }
 .wmsx-joy-hs-button6 {
-    right: 20px;
+    right: 22px;
 }
 .wmsx-joy-hs-button7, .wmsx-joy-hs-button8 {
     width: 26px;
@@ -783,7 +805,7 @@
 }
 
 #wmsx-about a {
-    color: rgb(0, 80, 230);
+    color: rgb(0, 40, 200);
     text-decoration: none;
 }
 
