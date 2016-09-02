@@ -467,9 +467,9 @@ wmsx.SettingsGUI.html = function() {
                             Keyboard:
                         </div>
                         <div id="wmsx-keyboard"></div>
-                        <div class="wmsx-footer">
-                            (hover mouse pointer over MSX Keyboard keys to display/modify mappings)
-                        </div>
+                    </div>
+                    <div class="wmsx-footer">
+                        (hover mouse pointer over MSX Keyboard keys to display/modify mappings)
                     </div>
                 </div>
                 <div id="wmsx-ports">
@@ -514,26 +514,17 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                             <div class="wmsx-desc">Adjust Turbo-Fire speed</div>
                         </div>
-                        <div class="wmsx-hotkey">
-                            <div class="wmsx-desc">Middle Mouse Button: Lock/unlock pointer</div>
-                        </div>
                     </div>
                     <div class="wmsx-right">
-                        <div id="wmms-ports-mouse-mode" class="wmsx-hotkey wmsx-link">
-                            Mouse Mode: AUTO
-                        </div>
-                        <div id="wmms-ports-joystick-mode" class="wmsx-hotkey wmsx-link">
-                            Joysticks Mode: AUTO
-                        </div>
-                        <div id="wmms-ports-keystick-mode" class="wmsx-hotkey wmsx-link">
-                            Joykeys Mode: DISABLED
-                        </div>
+                        <div id="wmsx-ports-mouse-mode" class="wmsx-hotkey wmsx-link wmsx-mouse-device">AUTO</div>
+                        <div id="wmsx-ports-joysticks-mode" class="wmsx-hotkey wmsx-link wmsx-joystick-device">AUTO</div>
+                        <div id="wmsx-ports-joykeys-mode" class="wmsx-hotkey wmsx-link wmsx-joykeys-device">AUTO</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-bottom-left">
                         PORT 1
-                        <div id="wmsx-joy1" class="wmsx-joy">
-                            <div id="wmsx-joy1-title" class="wmsx-joy-title">JOYSTICK 1</div>
+                        <div id="wmsx-ports-joy1" class="wmsx-joy wmsx-joystick-device wmsx-device1">
+                            <div class="wmsx-joy-title"></div>
                             <div class="wmsx-joy-trig wmsx-joy-trig1">
                             </div>
                             <div class="wmsx-joy-trig wmsx-joy-trig2">
@@ -577,8 +568,8 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                     <div class="wmsx-bottom-right">
                         PORT 2
-                        <div id="wmsx-joy2" class="wmsx-joy">
-                            <div id="wmsx-joy2-title" class="wmsx-joy-title">JOYSTICK 2</div>
+                        <div id="wmsx-ports-joy2" class="wmsx-joy wmsx-joystick-device wmsx-device2">
+                            <div class="wmsx-joy-title"></div>
                             <div class="wmsx-joy-trig wmsx-joy-trig1">
                             </div>
                             <div class="wmsx-joy-trig wmsx-joy-trig2">
@@ -706,7 +697,8 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-modal .wmsx-link {
     font-weight: 700;
-    color: rgb(0, 40, 200);
+    line-height: 21px;
+    color: hsl(228, 90%, 40%);
     cursor: pointer;
 }
 
@@ -748,8 +740,8 @@ wmsx.SettingsGUI.css = function() {
 }
 
 .wmsx-footer {
+    width: 543px;
     margin-top: 16px;
-    width: 536px;
     text-align: center;
 }
 
@@ -917,8 +909,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-inputs {
     left: 1200px;
-    padding-top: 26px;
-    padding-left: 33px;
+    padding: 26px 0 0 33px;
 }
 
 #wmsx-inputs .wmsx-left {
@@ -1091,8 +1082,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports {
     left: 1800px;
-    padding-top: 22px;
-    padding-left: 27px;
+    padding: 26px 0 0 27px;
 }
 
 #wmsx-ports .wmsx-left {
@@ -1111,26 +1101,20 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
     display: inline-block;
-    height: 145px;
+    height: 162px;
     width: 271px;
+    margin-top: 5px;
     text-align: center;
-    font-size: 12px;
-    line-height: 12px;
+    font-size: 14px;
+    line-height: 14px;
     font-weight: bold;
-    color: hsl(0, 0%, 35%);
-}
-
-#wmsx-ports .wmsx-bottom .wmsx-footer {
-    margin-top: 12px;
-    width: 536px;
-    text-align: center;
+    color: hsl(0, 0%, 32%);
 }
 
 #wmsx-ports .wmsx-joy {
     position: relative;
-    top: 27px;
+    top: 37px;
     width: 250px;
-    height: 100px;
     margin: 0 auto;
     font-weight: bold;
     text-align: center;
@@ -1147,6 +1131,29 @@ wmsx.SettingsGUI.css = function() {
     line-height: 12px;
     font-weight: bold;
     color: hsl(0, 0%, 35%);
+}
+
+#wmsx-ports .wmsx-mouse-device {
+    color: hsl(228, 90%, 40%)
+}
+#wmsx-ports .wmsx-joystick-device, #wmsx-ports .wmsx-joystick-device .wmsx-joy-title {
+    color: hsl(120, 100%, 28%);
+}
+#wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-joy-title {
+    color: hsl(0, 90%, 43%);
+}
+
+#wmsx-ports .wmsx-joystick-device.wmsx-device1 .wmsx-joy-title:after {
+    content: "JOYSTICK 1";
+}
+#wmsx-ports .wmsx-joystick-device.wmsx-device2 .wmsx-joy-title:after {
+    content: "JOYSTICK 2";
+}
+#wmsx-ports .wmsx-joykeys-device.wmsx-device1 .wmsx-joy-title:after {
+    content: "JOYKEYS 1";
+}
+#wmsx-ports .wmsx-joykeys-device.wmsx-device2 .wmsx-joy-title:after {
+    content: "JOYKEYS 2";
 }
 
 .wmsx-joy .wmsx-joy-trig {

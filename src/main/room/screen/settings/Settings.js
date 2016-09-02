@@ -56,8 +56,18 @@ wmsx.SettingsDialog = function(controllersHub) {
             case "ABOUT":
                 refreshAboutPage(); break;
             case "INPUTS":
-                refreshInputsPage();
+                refreshInputsPage(); break;
+            case "PORTS":
+                refreshPortsPage();
         }
+    };
+
+    this.keyboardSettingsStateUpdate = function() {
+        keyboardConfigurator.keyboardSettingsStateUpdate();
+    };
+
+    this.controllersSettingsStateUpdate = function () {
+        portsConfigurator.controllersSettingsStateUpdate();
     };
 
     var create = function () {
@@ -79,8 +89,11 @@ wmsx.SettingsDialog = function(controllersHub) {
             return false;
         });
 
-        // Create keyboard section
-        keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, document.getElementById("wmsx-keyboard"));
+        // Create keyboard config section
+        keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub);
+
+        // Create ports config section
+        portsConfigurator = new wmsx.PortsConfigurator(controllersHub);
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
@@ -173,6 +186,10 @@ wmsx.SettingsDialog = function(controllersHub) {
         keyboardConfigurator.refresh();
     };
 
+    var refreshPortsPage = function() {
+        portsConfigurator.refresh();
+    };
+
     var processKeyEvent = function(e, press) {
         e.returnValue = false;  // IE
         e.preventDefault();
@@ -194,7 +211,7 @@ wmsx.SettingsDialog = function(controllersHub) {
 
     this.cover = null;
 
-    var keyboardConfigurator;
+    var keyboardConfigurator, portsConfigurator;
     var preferencesChanged = false;
 
     var KEY_ESC = wmsx.DOMKeys.VK_ESCAPE.c;

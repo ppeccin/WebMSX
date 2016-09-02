@@ -35,7 +35,11 @@ wmsx.DOMMouseControls = function(hub) {
     this.toggleMode = function() {
         ++mode; if (mode > 1) mode = -2;
         updateMode();
-        showStatusMessage(mode === -2 ? "Mouse DISABLED" : mode == -1 ? "Mouse AUTO" : mode === 0 ? "Mouse ENABLED" : "Mouse ENABLED (swapped)");
+        showStatusMessage("Mouse " + this.getModeDesc());
+    };
+
+    this.getModeDesc = function() {
+        return mode === -2 ? "DISABLED" : mode == -1 ? "AUTO" : mode === 0 ? "ENABLED" : "ENABLED (swapped)";
     };
 
     function updateMode() {
@@ -187,7 +191,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     function updateConnectionsToHub() {
         if (pointerLocked && port < 0) unlockPointer();
-        hub.updateMouseConnections(port === 0 ? "MOUSE" : null, port === 1 ? "MOUSE" : null);
+        hub.updateMouseConnections(port === 0 ? wmsx.ControllersHub.MOUSE : null, port === 1 ? wmsx.ControllersHub.MOUSE : null);
         screen.setMouseActiveCursor(port >= 0);
     }
 

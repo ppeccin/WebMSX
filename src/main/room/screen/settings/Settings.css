@@ -51,7 +51,8 @@
 
 #wmsx-modal .wmsx-link {
     font-weight: 700;
-    color: rgb(0, 40, 200);
+    line-height: 21px;
+    color: hsl(228, 90%, 40%);
     cursor: pointer;
 }
 
@@ -98,8 +99,8 @@
 }
 
 .wmsx-footer {
+    width: 543px;
     margin-top: 16px;
-    width: 536px;
     text-align: center;
 }
 
@@ -267,8 +268,7 @@
 
 #wmsx-inputs {
     left: 1200px;
-    padding-top: 26px;
-    padding-left: 33px;
+    padding: 26px 0 0 33px;
 }
 
 #wmsx-inputs .wmsx-left {
@@ -441,8 +441,7 @@
 
 #wmsx-ports {
     left: 1800px;
-    padding-top: 22px;
-    padding-left: 27px;
+    padding: 26px 0 0 27px;
 }
 
 #wmsx-ports .wmsx-left {
@@ -461,26 +460,20 @@
 
 #wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
     display: inline-block;
-    height: 145px;
+    height: 162px;
     width: 271px;
+    margin-top: 5px;
     text-align: center;
-    font-size: 12px;
-    line-height: 12px;
+    font-size: 14px;
+    line-height: 14px;
     font-weight: bold;
-    color: hsl(0, 0%, 35%);
-}
-
-#wmsx-ports .wmsx-bottom .wmsx-footer {
-    margin-top: 12px;
-    width: 536px;
-    text-align: center;
+    color: hsl(0, 0%, 32%);
 }
 
 #wmsx-ports .wmsx-joy {
     position: relative;
-    top: 27px;
+    top: 37px;
     width: 250px;
-    height: 100px;
     margin: 0 auto;
     font-weight: bold;
     text-align: center;
@@ -497,6 +490,29 @@
     line-height: 12px;
     font-weight: bold;
     color: hsl(0, 0%, 35%);
+}
+
+#wmsx-ports .wmsx-mouse-device {
+    color: hsl(228, 90%, 40%)
+}
+#wmsx-ports .wmsx-joystick-device, #wmsx-ports .wmsx-joystick-device .wmsx-joy-title {
+    color: hsl(120, 100%, 28%);
+}
+#wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-joy-title {
+    color: hsl(0, 90%, 43%);
+}
+
+#wmsx-ports .wmsx-joystick-device.wmsx-device1 .wmsx-joy-title:after {
+    content: "JOYSTICK 1";
+}
+#wmsx-ports .wmsx-joystick-device.wmsx-device2 .wmsx-joy-title:after {
+    content: "JOYSTICK 2";
+}
+#wmsx-ports .wmsx-joykeys-device.wmsx-device1 .wmsx-joy-title:after {
+    content: "JOYKEYS 1";
+}
+#wmsx-ports .wmsx-joykeys-device.wmsx-device2 .wmsx-joy-title:after {
+    content: "JOYKEYS 2";
 }
 
 .wmsx-joy .wmsx-joy-trig {

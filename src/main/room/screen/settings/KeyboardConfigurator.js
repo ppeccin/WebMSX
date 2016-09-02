@@ -1,14 +1,15 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
 wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
+"use strict";
+
     var self = this;
 
     function init() {
         setupKeyboard();
-        domKeyboard.addKeyboardChangeListener(self);
     }
 
-    this.keyboardChanged = function() {
+    this.keyboardSettingsStateUpdate = function() {
         this.refresh();
     };
 
@@ -18,6 +19,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
     };
 
     function setupKeyboard() {
+        keyboardElement = document.getElementById("wmsx-keyboard");
         keyboardElement.tabIndex = "-1";
 
         // Set Popup
@@ -164,6 +166,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         }
     }
 
+
+    var keyboardElement;
 
     var domKeyboard = controllersHub.getKeyboard();
 

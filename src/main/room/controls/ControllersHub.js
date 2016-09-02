@@ -8,6 +8,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
         keyboard.connect(controllersSocket, biosSocket);
         mouseControls.connect(controllersSocket);
         joystickControls.connect(machineControlsSocket);
+        joykeysControls.connect(machineControlsSocket);
     };
 
     this.connectPeripherals = function(pScreen) {
@@ -15,18 +16,21 @@ wmsx.ControllersHub = function(keyForwardControls) {
         keyboard.connectPeripherals(screen);
         mouseControls.connectPeripherals(screen);
         joystickControls.connectPeripherals(screen);
+        joykeysControls.connectPeripherals(screen);
     };
 
     this.powerOn = function() {
         keyboard.powerOn();
         mouseControls.powerOn();
         joystickControls.powerOn();
+        joykeysControls.powerOn();
     };
 
     this.powerOff = function() {
         keyboard.powerOff();
         mouseControls.powerOff();
         joystickControls.powerOff();
+        joykeysControls.powerOff();
     };
 
     this.getKeyboard = function() {
@@ -36,11 +40,13 @@ wmsx.ControllersHub = function(keyForwardControls) {
     this.releaseControllers = function() {
         keyboard.releaseControllers();
         joystickControls.releaseControllers();
+        joykeysControls.releaseControllers();
         mouseControls.releaseControllers();
     };
 
     this.resetControllers = function() {
         keyboard.resetControllers();
+        joystickControls.resetControllers();
         joystickControls.resetControllers();
         mouseControls.resetControllers();
     };
@@ -70,6 +76,10 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.toggleMode();
     };
 
+    this.toggleJoykeysMode = function() {
+        joykeysControls.toggleMode();
+    };
+
     this.toggleMouseMode = function() {
         mouseControls.toggleMode();
     };
@@ -79,6 +89,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
         screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (7 - turboFireSpeed) : ": OFF"), true);
         keyboard.setTurboFireSpeed(turboFireSpeed);
         joystickControls.setTurboFireSpeed(turboFireSpeed);
+        joykeysControls.setTurboFireSpeed(turboFireSpeed);
     };
 
     this.setKeyInputElement = function(element) {
@@ -103,26 +114,42 @@ wmsx.ControllersHub = function(keyForwardControls) {
         updateConnections();
     };
 
+    this.updateJoykeysConnections = function(onPort0, onPort1) {
+        joykeysPresent[0] = onPort0; joykeysPresent[1] = onPort1;
+        updateConnections();
+    };
+
     this.showStatusMessage = function(prefix) {
-        var p1 = mousePresent[0] || joystickPresent[0] || "&nbsp-&nbsp-&nbsp&nbsp";
-        var p2 = mousePresent[1] || joystickPresent[1] || "&nbsp-&nbsp-&nbsp&nbsp";
+        var p1 = mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || "&nbsp-&nbsp-&nbsp&nbsp";
+        var p2 = mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || "&nbsp-&nbsp-&nbsp&nbsp";
         screen.showOSD((prefix ? prefix + ".&nbsp&nbsp" : "" ) + "Port 1:&nbsp&nbsp" +p1 + ",&nbsp&nbspPort 2:&nbsp&nbsp" + p2, true);
     };
 
+    this.getSettingsState = function() {
+        return {
+            mouseMode: mouseControls.getModeDesc(), joysticksMode: joystickControls.getModeDesc(), joykeysMode: joykeysControls.getModeDesc(),
+            ports: [ mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || null, mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || null ]
+        };
+    };
+
     function updateConnections() {
-        // Mouse takes precedence
+        // Mouse takes precedence, then Joysticks, then Joykeys
         for (var p = 0; p <= 1; ++p) {
             if (mousePresent[p]) {
                 readFromControllerPort[p] = mouseControls.readMousePort;
                 writePin8ToControllerPort[p] =  mouseControls.writeMousePin8Port;
             } else if (joystickPresent[p]) {
                 readFromControllerPort[p] = joystickControls.readJoystickPort;
-                writePin8ToControllerPort[p] =  writePin8PortDisconnected;        // Mouse does not take writes
+                writePin8ToControllerPort[p] =  writePin8PortDisconnected;        // Does not take writes
+            } else if (joykeysPresent[p]) {
+                readFromControllerPort[p] = joykeysControls.readJoystickPort;
+                writePin8ToControllerPort[p] =  writePin8PortDisconnected;        // Does not take writes
             } else {
                 readFromControllerPort[p] = readPortDisconnected;
                 writePin8ToControllerPort[p] =  writePin8PortDisconnected;
             }
         }
+        screen.controllersSettingsStateUpdate();
     }
 
     function readPortDisconnected(port) {
@@ -140,10 +167,12 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     var mousePresent =    [ null, null ];
     var joystickPresent = [ null, null ];
+    var joykeysPresent =  [ null, null ];
 
     var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this);
+    var joykeysControls =  new wmsx.DOMJoykeysControls(this);
 
     var turboFireSpeed = 0;
 
@@ -152,3 +181,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
 };
 
 
+wmsx.ControllersHub.MOUSE =    "MOUSE";
+wmsx.ControllersHub.JOYSTICK = "JOYSTICK";
+wmsx.ControllersHub.JOYKEYS =  "JOYKEYS";
+wmsx.ControllersHub.NONES =    "NONE";

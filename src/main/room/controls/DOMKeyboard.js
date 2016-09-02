@@ -15,7 +15,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.connectPeripherals = function(pScreen) {
-        monitor = pScreen.getMonitor();
+        screen = pScreen;
     };
 
     this.powerOn = function() {
@@ -61,7 +61,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         var next = (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
         if (next >= availableKeyboards.length) next = 0;
         this.setKeyboard(availableKeyboards[next]);
-        monitor.showOSD("Host Keyboard: " + currentKeyboard, true);
+        screen.showOSD("Host Keyboard: " + currentKeyboard, true);
     };
 
     this.getKeyboard = function() {
@@ -71,11 +71,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     this.setKeyboard = function(keyboard) {
         currentKeyboard = keyboard;
         updateMapping();
-        for (var i = 0; i < keyboardChangeListeners.length; ++i) keyboardChangeListeners[i].keyboardChanged();
-    };
-
-    this.addKeyboardChangeListener = function(listener) {
-        if (keyboardChangeListeners.indexOf(listener) < 0) keyboardChangeListeners.push(listener);
+        if (screen) screen.keyboardSettingsStateUpdate();
     };
 
     this.setTurboFireSpeed = function(speed) {
@@ -146,14 +142,14 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
         var msxKey = keyCodeMap[code];                                      // First try, before giving a chance to other controls in the chain
 
-        console.log("Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
+        //console.log("Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
 
         // Try other controls if
         if (!msxKey) {
             if (!keyForwardControls.processKey(code, press)) {
                 msxKey = keyCodeMap[code & IGNORE_ALL_MODIFIERS_MASK];      // Second try, ignore modifiers, only if no other controls were found
 
-                console.log("2 Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
+                //console.log("2 Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
             }
         }
 
@@ -232,11 +228,10 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var availableKeyboards = wmsx.BuiltInKeyboards.all.slice(0);
     var customKeyboards = {};
     var currentKeyboard;
-    var keyboardChangeListeners = [];
 
     var controllersSocket;
     var biosSocket;
-    var monitor;
+    var screen;
 
     var keyStateMap = {};
     var extraModifiersActive = new Set();

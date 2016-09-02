@@ -36,7 +36,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     this.toggleMode = function() {
         if (!supported) {
-            showStatusMessage("Joysticks DISABLED (not supported by browser)");
+            hub.showStatusMessage("Joysticks DISABLED (not supported by browser)");
             return;
         }
         ++mode; if (mode > 0) mode = -2;
@@ -53,7 +53,11 @@ wmsx.GamepadJoysticksControls = function(hub) {
         resetStates();
         updateConnectionsToHub();
 
-        showStatusMessage(mode === -2 ? "Joysticks DISABLED" : "Joysticks AUTO" + (swappedMode ? " (swapped)" : ""));
+        hub.showStatusMessage("Joysticks " + this.getModeDesc());
+    };
+
+    this.getModeDesc = function() {
+        return mode === -2 ? "DISABLED" : "AUTO" + (swappedMode ? " (swapped)" : "");
     };
 
     this.setTurboFireSpeed = function(speed) {
@@ -114,20 +118,16 @@ wmsx.GamepadJoysticksControls = function(hub) {
     };
 
     function updateConnectionsToHub() {
-        var j1 = joystick1 ? "JOY1" : null;
-        var j2 = joystick2 ? "JOY2" : null;
+        var j1 = joystick1 ? wmsx.ControllersHub.JOYSTICK + "1" : null;
+        var j2 = joystick2 ? wmsx.ControllersHub.JOYSTICK + "2" : null;
 
         hub.updateJoystickConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
     }
 
     var showDeviceConnectionMessage = function (joy1, conn) {
         updateConnectionsToHub();
-        showStatusMessage("Joystick " + (joy1 ? "1" : "2") + (conn ? " connected" : " disconnected"));
+        hub.showStatusMessage("Joystick " + (joy1 ? "1" : "2") + (conn ? " connected" : " disconnected"));
     };
-
-    function showStatusMessage(mes) {
-        hub.showStatusMessage(mes);
-    }
 
     var detectNewJoystick = function(prefs, notPrefs, gamepads) {       // must have at least 1 button to be accepted
         if (!gamepads || gamepads.length === 0) return;

@@ -175,6 +175,8 @@ wmsx.DOMPeripheralControls = function() {
                 controllersHub.toggleKeyboardHostLayout(); break;
             case controls.JOYSTICKS_TOGGLE_MODE:
                 controllersHub.toggleJoystickMode(); break;
+            case controls.JOYKEYS_TOGGLE_MODE:
+                controllersHub.toggleJoykeysMode(); break;
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
             case controls.TURBO_FIRE_TOGGLE:
@@ -241,6 +243,7 @@ wmsx.DOMPeripheralControls = function() {
 
         keyCodeMap[KEY_KEYBOARD_TOGGLE_HOST | k.ALT]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
         keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = controls.JOYSTICKS_TOGGLE_MODE;
+        keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = controls.JOYKEYS_TOGGLE_MODE;
         keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = controls.MOUSE_TOGGLE_MODE;
         keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = controls.TURBO_FIRE_TOGGLE;
 
@@ -325,6 +328,7 @@ wmsx.DOMPeripheralControls = function() {
 
     var KEY_KEYBOARD_TOGGLE_HOST  = wmsx.DOMKeys.VK_K.c;
     var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;
+    var KEY_JOYKEYS_TOGGLE        = wmsx.DOMKeys.VK_L.c;
     var KEY_MOUSE_TOGGLE          = wmsx.DOMKeys.VK_M.c;
     var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
 

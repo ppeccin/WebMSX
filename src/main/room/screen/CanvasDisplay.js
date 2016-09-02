@@ -351,6 +351,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         refreshSettingsMenuForMachineType();
     };
 
+    this.keyboardSettingsStateUpdate = function() {
+        if(settingsDialog) settingsDialog.keyboardSettingsStateUpdate();
+    };
+
+    this.controllersSettingsStateUpdate = function () {
+        if(settingsDialog) settingsDialog.controllersSettingsStateUpdate();
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
         updateLoading();
