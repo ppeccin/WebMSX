@@ -128,7 +128,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     this.getSettingsState = function() {
         return {
             mouseMode: mouseControls.getModeDesc(), joysticksMode: joystickControls.getModeDesc(), joykeysMode: joykeysControls.getModeDesc(),
-            ports: [ mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || null, mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || null ]
+            ports: [ mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || wmsx.ControllersHub.NONE, mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || wmsx.ControllersHub.NONE ]
         };
     };
 
@@ -184,4 +184,5 @@ wmsx.ControllersHub = function(keyForwardControls) {
 wmsx.ControllersHub.MOUSE =    "MOUSE";
 wmsx.ControllersHub.JOYSTICK = "JOYSTICK";
 wmsx.ControllersHub.JOYKEYS =  "JOYKEYS";
-wmsx.ControllersHub.NONES =    "NONE";
+wmsx.ControllersHub.JOY_ANY =  "JOY";
+wmsx.ControllersHub.NONE =     "NO DEVICE";

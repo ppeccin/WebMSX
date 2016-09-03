@@ -460,7 +460,8 @@
 
 #wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
     display: inline-block;
-    height: 162px;
+    overflow: hidden;
+    height: 159px;
     width: 271px;
     margin-top: 5px;
     text-align: center;
@@ -470,9 +471,20 @@
     color: hsl(0, 0%, 32%);
 }
 
+#wmsx-ports .wmsx-device-title {
+    margin-top: 18px;
+    height: 12px;
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: bold;
+    color: hsl(0, 0%, 35%);
+    text-align: center;
+}
+
 #wmsx-ports .wmsx-joy {
+    display: none;
     position: relative;
-    top: 37px;
+    top: 7px;
     width: 250px;
     margin: 0 auto;
     font-weight: bold;
@@ -481,38 +493,18 @@
     box-sizing: border-box;
 }
 
-#wmsx-ports .wmsx-joy-title {
-    position: absolute;
-    top: -19px;
-    left: 77px;
-    width: 96px;
-    font-size: 12px;
-    line-height: 12px;
-    font-weight: bold;
-    color: hsl(0, 0%, 35%);
+#wmsx-ports .wmsx-joystick-device .wmsx-joy, #wmsx-ports .wmsx-joykeys-device .wmsx-joy {
+    display: block;
 }
 
 #wmsx-ports .wmsx-mouse-device {
     color: hsl(228, 90%, 40%)
 }
-#wmsx-ports .wmsx-joystick-device, #wmsx-ports .wmsx-joystick-device .wmsx-joy-title {
+#wmsx-ports .wmsx-joystick-device, #wmsx-ports .wmsx-joystick-device .wmsx-device-title {
     color: hsl(120, 100%, 28%);
 }
-#wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-joy-title {
+#wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-device-title {
     color: hsl(0, 90%, 43%);
-}
-
-#wmsx-ports .wmsx-joystick-device.wmsx-device1 .wmsx-joy-title:after {
-    content: "JOYSTICK 1";
-}
-#wmsx-ports .wmsx-joystick-device.wmsx-device2 .wmsx-joy-title:after {
-    content: "JOYSTICK 2";
-}
-#wmsx-ports .wmsx-joykeys-device.wmsx-device1 .wmsx-joy-title:after {
-    content: "JOYKEYS 1";
-}
-#wmsx-ports .wmsx-joykeys-device.wmsx-device2 .wmsx-joy-title:after {
-    content: "JOYKEYS 2";
 }
 
 .wmsx-joy .wmsx-joy-trig {
@@ -794,6 +786,18 @@
 }
 .wmsx-joy-hs-button8 {
     right: 98px;
+}
+
+#wmsx-ports .wmsx-none {
+    display: none;
+    margin-top: 6px;
+    font-size: 106px;
+    line-height: 106px;
+    font-weight: bold;
+    color: rgba(50, 50, 50, .2);
+}
+#wmsx-ports .wmsx-no-device .wmsx-none {
+    display: block;
 }
 
 #wmsx-about {
