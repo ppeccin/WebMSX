@@ -186,7 +186,7 @@
     left: 0;
     width: 3000px;
     height: 378px;
-    background: rgb(220, 220, 220);
+    background: rgb(218, 218, 218);
     transition: left 0.3s ease-in-out
 }
 
@@ -320,7 +320,7 @@
     text-align: center;
     vertical-align: top;
     color: white;
-    background: rgb(172, 172, 172);
+    background: linear-gradient(90deg, rgb(166, 166, 166), rgb(172, 172, 172), rgb(172, 172, 172), rgb(182, 182, 182));
     border: 3px solid rgba(0, 0, 0, .25);
     border-top: 1px solid rgba(0, 0, 0, .10);
     border-bottom: 5px solid rgba(0, 0, 0, .5);
@@ -358,6 +358,7 @@
     line-height: 9px;
     border-width: 1px 2px 4px;
     margin-bottom: 12px;
+    background: rgb(172, 172, 172);
 }
 #wmsx-keyboard-stop, #wmsx-keyboard-select, #wmsx-keyboard-home, #wmsx-keyboard-insert, #wmsx-keyboard-delete {
     width: 37px;
@@ -400,6 +401,7 @@
 }
 #wmsx-keyboard-space {
     width: 181px;
+    background: rgb(172, 172, 172);
 }
 #wmsx-keyboard-capslock {
     margin-left: 15px;
@@ -465,7 +467,7 @@
 
 #wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
     display: inline-block;
-    height: 159px;
+    height: 162px;
     margin-top: 5px;
     vertical-align: top;
     text-align: center;
@@ -539,14 +541,14 @@
     position: absolute;
     left: 2px;
     right: 2px;
-    height: 85px;
+    height: 86px;
     background: white;
-    background: linear-gradient( hsl(0, 0%, 94%), white, white, hsl(0, 0%, 93%));
+    background: linear-gradient(hsl(0, 0%, 94%), white, white, hsl(0, 0%, 93%));
     border-radius: 50px 50px 40px 40px;
     box-shadow:
-    0 6px 0 0     hsl(0, 0%, 78%),
+    0 5px 0 0     hsl(0, 0%, 78%),
     0 1px 2px 1px hsl(0, 0%, 62%),
-    0 7px 3px 1px hsl(0, 0%, 46%);
+    0 6px 3px 1px hsl(0, 0%, 46%);
 }
 
 .wmsx-joy-logo {
@@ -567,19 +569,19 @@
     transform-origin: 50px 50px;
     transform: rotate(6deg);
     box-shadow:
-    0 4px 0 -1px      hsl(0, 0%, 78%),
     0 5px 0 -1px      hsl(0, 0%, 78%),
-    -1px 7px 2px -2px hsl(0, 0%, 48%),
-    0 8px 4px -2px    hsl(0, 0%, 38%);
+    0 6px 0 -1px      hsl(0, 0%, 78%),
+    -1px 8px 2px -2px hsl(0, 0%, 48%),
+    0 9px 4px -2px    hsl(0, 0%, 38%);
 }
 .wmsx-joy .wmsx-joy-outright {
     right: 0;
     transform: rotate(-6deg);
     box-shadow:
-    0 4px 0 -1px     hsl(0, 0%, 78%),
     0 5px 0 -1px     hsl(0, 0%, 78%),
-    1px 7px 2px -2px hsl(0, 0%, 48%),
-    0 8px 4px -2px   hsl(0, 0%, 38%);
+    0 6px 0 -1px     hsl(0, 0%, 78%),
+    1px 8px 2px -2px hsl(0, 0%, 48%),
+    0 9px 4px -2px   hsl(0, 0%, 38%);
 }
 
 .wmsx-joy .wmsx-joy-left, .wmsx-joy .wmsx-joy-right {
@@ -825,19 +827,18 @@
     width: 61px;
     height: 73px;
     margin: 14px auto;
-    background: linear-gradient(166deg, white, white, white,  hsl(0, 0%, 98%), hsl(0, 0%, 90%));
+    background: linear-gradient(166deg, white, white, white, white, hsl(0, 0%, 97%), hsl(0, 0%, 90%));
     border: 1px solid hsl(0, 0%, 79%);
-    /*border-right-color: hsl(0, 0%, 70%);*/
     border-radius: 10px 7px 23px 30px;
     box-sizing: border-box;
     transform: skew(-48deg, 29deg) rotateZ(2deg);
     box-shadow:
-    /*inset 0px 0px 1px 0      hsl(0, 0%, 45%)      /!* top shadow *!/*/
-    3px 2px 0   -1px hsl(0, 0%, 70%)
-    ,4px 3px 0   -1px hsl(0, 0%, 60%)      /* line */
-    ,6px 4px 0   -2px hsl(0, 0%, 82%)      /* line */
-    ,5px 0px 0   -4px hsl(0, 0%, 70%)
-    ,6px 0px 0   -4px hsl(0, 0%, 70%)
+    /* inset 0px 0px 1px 0      hsl(0, 0%, 45% */
+     3px 2px 0   -1px hsl(0, 0%, 70%)
+    ,4px 3px 0   -1px hsl(0, 0%, 60%)       /* line */
+    ,6px 4px 0   -2px hsl(0, 0%, 82%)       /* line */
+    ,5px 0   0   -4px hsl(0, 0%, 70%)
+    ,6px 0   0   -4px hsl(0, 0%, 70%)
     ,7px 1px 0   -4px hsl(0, 0%, 70%)
     ,8px 2px 0   -4px hsl(0, 0%, 70%)
     ,9px 3px 0   -4px hsl(0, 0%, 70%)
