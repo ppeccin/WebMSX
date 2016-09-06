@@ -30,7 +30,7 @@ wmsx.PortsConfigurator = function(controllersHub) {
             else if (device.startsWith(wmsx.ControllersHub.JOY_ANY))
                 classList.add(device.startsWith(wmsx.ControllersHub.JOYSTICK) ? "wmsx-joystick-device" : "wmsx-joykeys-device");
             else
-                classList.add("wmsx-no-device");
+                classList.add("wmsx-none-device");
             joyTitleElements[p].innerHTML = device;
         }
     };
@@ -57,7 +57,7 @@ wmsx.PortsConfigurator = function(controllersHub) {
     var popup, popupKeys;
     var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
 
-    var DEVICE_CLASSES = [ "wmsx-no-device", "wmsx-mouse-device", "wmsx-joystick-device", "wmsx-joykeys-device" ];
+    var DEVICE_CLASSES = [ "wmsx-none-device", "wmsx-mouse-device", "wmsx-joystick-device", "wmsx-joykeys-device" ];
 
 
     init();
