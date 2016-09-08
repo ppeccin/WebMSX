@@ -7,8 +7,8 @@ wmsx.SettingsGUI = {};
 wmsx.SettingsGUI.html = function() {
     return `
 
-    <div id="wmsx-cover" class="wmsx-show">
-        <div id="wmsx-modal" class="wmsx-show">
+    <div id="wmsx-cover">
+        <div id="wmsx-modal">
             <div id="wmsx-menu">
                 <div id="wmsx-back">
                     <div id="wmsx-back-arrow">
@@ -527,18 +527,12 @@ wmsx.SettingsGUI.html = function() {
                             <div id="wmsx-ports-device1" class="wmsx-none-device">
                                 <div id="wmsx-ports-device1-title" class="wmsx-device-title">NO DEVICE</div>
                                 <div class="wmsx-joy">
-                                    <div class="wmsx-joy-trig wmsx-joy-trig1">
-                                    </div>
-                                    <div class="wmsx-joy-trig wmsx-joy-trig2">
-                                    </div>
-                                    <div class="wmsx-joy-middle">
-                                    </div>
-                                    <div class="wmsx-joy-logo">
-                                    </div>
-                                    <div class="wmsx-joy-outleft">
-                                    </div>
-                                    <div class="wmsx-joy-outright">
-                                    </div>
+                                    <div class="wmsx-joy-trig wmsx-joy-trig1"></div>
+                                    <div class="wmsx-joy-trig wmsx-joy-trig2"></div>
+                                    <div class="wmsx-joy-middle"></div>
+                                    <div class="wmsx-joy-logo"></div>
+                                    <div class="wmsx-joy-outleft"></div>
+                                    <div class="wmsx-joy-outright"></div>
                                     <div class="wmsx-joy-left">
                                         <div class="wmsx-joy-dir wmsx-joy-dirh"></div>
                                         <div class="wmsx-joy-dir wmsx-joy-dirv"></div>
@@ -558,18 +552,19 @@ wmsx.SettingsGUI.html = function() {
                                     <div id="wmsx-joy1-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
                                     <div id="wmsx-joy1-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
                                     <div id="wmsx-joy1-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
-                                    <div id="wmsx-joy1-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">1</div>
-                                    <div id="wmsx-joy1-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">2</div>
+                                    <div id="wmsx-joy1-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">A</div>
+                                    <div id="wmsx-joy1-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">B</div>
                                     <div id="wmsx-joy1-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
                                     <div id="wmsx-joy1-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
                                     <div id="wmsx-joy1-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
                                     <div id="wmsx-joy1-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
-                                    <div id="wmsx-joy1-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
-                                    <div id="wmsx-joy1-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
+                                    <div id="wmsx-joy1-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">BACK</div>
+                                    <div id="wmsx-joy1-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">PAUSE</div>
                                 </div>
                                 <div class="wmsx-mouse">
                                     <div class="wmsx-mouse-body">
                                         <div class="wmsx-mouse-button1"></div><div class="wmsx-mouse-button2"></div>
+                                        <div class="wmsx-mouse-logo"></div>
                                     </div>
                                 </div>
                                 <div class="wmsx-none">&#8416;</div>
@@ -580,18 +575,12 @@ wmsx.SettingsGUI.html = function() {
                             <div id="wmsx-ports-device2" class="wmsx-none-device">
                                 <div id="wmsx-ports-device2-title" class="wmsx-device-title">NO DEVICE</div>
                                 <div class="wmsx-joy">
-                                    <div class="wmsx-joy-trig wmsx-joy-trig1">
-                                    </div>
-                                    <div class="wmsx-joy-trig wmsx-joy-trig2">
-                                    </div>
-                                    <div class="wmsx-joy-middle">
-                                    </div>
-                                    <div class="wmsx-joy-logo">
-                                    </div>
-                                    <div class="wmsx-joy-outleft">
-                                    </div>
-                                    <div class="wmsx-joy-outright">
-                                    </div>
+                                    <div class="wmsx-joy-trig wmsx-joy-trig1"> </div>
+                                    <div class="wmsx-joy-trig wmsx-joy-trig2"> </div>
+                                    <div class="wmsx-joy-middle"> </div>
+                                    <div class="wmsx-joy-logo"> </div>
+                                    <div class="wmsx-joy-outleft"> </div>
+                                    <div class="wmsx-joy-outright"> </div>
                                     <div class="wmsx-joy-left">
                                         <div class="wmsx-joy-dir wmsx-joy-dirh"></div>
                                         <div class="wmsx-joy-dir wmsx-joy-dirv"></div>
@@ -611,18 +600,19 @@ wmsx.SettingsGUI.html = function() {
                                     <div id="wmsx-joy2-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
                                     <div id="wmsx-joy2-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
                                     <div id="wmsx-joy2-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
-                                    <div id="wmsx-joy2-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">1</div>
-                                    <div id="wmsx-joy2-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">2</div>
+                                    <div id="wmsx-joy2-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">A</div>
+                                    <div id="wmsx-joy2-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">B</div>
                                     <div id="wmsx-joy2-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
                                     <div id="wmsx-joy2-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
                                     <div id="wmsx-joy2-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
                                     <div id="wmsx-joy2-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
-                                    <div id="wmsx-joy2-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">A</div>
-                                    <div id="wmsx-joy2-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">B</div>
+                                    <div id="wmsx-joy2-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">BACK</div>
+                                    <div id="wmsx-joy2-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">PAUSE</div>
                                 </div>
                                 <div class="wmsx-mouse">
                                     <div class="wmsx-mouse-body">
                                         <div class="wmsx-mouse-button1"></div><div class="wmsx-mouse-button2"></div>
+                                        <div class="wmsx-mouse-logo"></div>
                                     </div>
                                 </div>
                                 <div class="wmsx-none">&#8416;</div>
@@ -1170,12 +1160,22 @@ wmsx.SettingsGUI.css = function() {
     display: none;
     position: relative;
     top: 14px;
-    width: 250px;
-    margin: 0 10px;
+    width: 252px;
     font-weight: bold;
     text-align: center;
     vertical-align: top;
     box-sizing: border-box;
+}
+#wmsx-ports-device1 .wmsx-joy {
+    margin-right: 8px;
+}
+#wmsx-ports-device2 .wmsx-joy {
+    margin-left: 8px;
+}
+
+.wmsx-joy-logo, .wmsx-mouse-logo {
+    position: absolute;
+    background: url('data:image/png;base64,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');
 }
 
 .wmsx-joy .wmsx-joy-trig {
@@ -1211,12 +1211,10 @@ wmsx.SettingsGUI.css = function() {
 }
 
 .wmsx-joy-logo {
-    position: absolute;
     top: 17px;
-    left: 101px;
+    left: 103px;
     width: 46px;
     height: 14px;
-    background: url('data:image/png;base64,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');
 }
 
 .wmsx-joy .wmsx-joy-outleft, .wmsx-joy .wmsx-joy-outright {
@@ -1288,8 +1286,6 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-dir {
     position: absolute;
     color: hsl(0, 0%, 95%);
-    font-size: 10px;
-    line-height: 12px;
     background: hsl(0, 0%, 49%);
     border: 1px solid hsl(0, 0%, 64%);
     border-right-color: hsl(0, 0%, 42%);
@@ -1420,7 +1416,7 @@ wmsx.SettingsGUI.css = function() {
     width: 21px;
     height: 23px;
     font-size: 12px;
-    line-height: 19px;
+    line-height: 18px;
     color: hsl(0, 0%, 99%);
 }
 .wmsx-joy-hs-button1 {
@@ -1445,7 +1441,7 @@ wmsx.SettingsGUI.css = function() {
     top: -20px;
     color: hsl(0, 0%, 52%);
     font-size: 12px;
-    line-height: 13px;
+    line-height: 12px;
     border-radius: 0;
 }
 .wmsx-joy-hs-button5 {
@@ -1459,16 +1455,17 @@ wmsx.SettingsGUI.css = function() {
     height: 34px;
     top: 38px;
     padding-top: 18px;
-    font-size: 11px;
+    font-size: 7px;
+    font-weight: normal;
     line-height: 11px;
-    color: hsl(0, 0%, 56%);
+    color: hsl(0, 0%, 54%);
     border-radius: 0;
 }
 .wmsx-joy-hs-button7 {
-    left: 98px;
+    left: 99px;
 }
 .wmsx-joy-hs-button8 {
-    right: 98px;
+    right: 99px;
 }
 
 #wmsx-ports .wmsx-mouse {
@@ -1480,17 +1477,17 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-ports .wmsx-mouse-body {
     position: relative;
     top: 6px;
-    left: -6px;
+    left: -8px;
     overflow: visible;
     white-space: nowrap;
     width: 61px;
-    height: 73px;
+    height: 74px;
     margin: 14px auto;
     background: linear-gradient(166deg, white, white, white, white, hsl(0, 0%, 97%), hsl(0, 0%, 90%));
     border: 1px solid hsl(0, 0%, 79%);
-    border-radius: 10px 7px 23px 30px;
+    border-radius: 10px 8px 23px 30px;
     box-sizing: border-box;
-    transform: skew(-48deg, 29deg) rotateZ(2deg);
+    transform: skew(-47deg, 30deg);
     box-shadow:
      /* inset 0px 0px 1px 0      hsl(0, 0%, 45% */
      3px 2px 0   -1px hsl(0, 0%, 70%)
@@ -1533,6 +1530,14 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-ports .wmsx-mouse-button2 {
     width: 101%;
     border-bottom-width: 1px;
+}
+
+.wmsx-mouse-logo {
+    top: 29px;
+    left: 15px;
+    width: 24px;
+    height: 7px;
+    background-size: 100%;
 }
 
 #wmsx-ports .wmsx-none {
