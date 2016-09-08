@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
+wmsx.KeyboardConfigurator = function(controllersHub) {
 "use strict";
 
     var self = this;
@@ -18,13 +18,19 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         refreshUnmappedIndicator();
     };
 
+    this.getMappingForControl = function(key) {
+        return domKeyboard.getKeyMapping(msxKeyEditing) || [];
+    };
+
+    this.customizeControl = function(key, mapping) {
+        domKeyboard.customizeKey(key, mapping);
+        self.refresh();
+        updatePopup();
+    };
+
     function setupKeyboard() {
         keyboardElement = document.getElementById("wmsx-keyboard");
         keyboardElement.tabIndex = "-1";
-
-        // Set Popup
-        popup = document.getElementById("wmsx-keyboard-popup");
-        popupKeys = document.getElementById("wmsx-keyboard-popup-keys");
 
         // Create Keyboard
         for (var s in sections) {
@@ -49,113 +55,54 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
                         keyElements.push(keyElement);
                     }
                     rowDiv.appendChild(keyElement);
-                    setupMouseEnterLeaveEvents(keyElement);
+                    setupKeyMouseEvents(keyElement);
                 }
             }
         }
-        setupMouseEnterLeaveEvents(keyboardElement);
-        keyboardElement.addEventListener("mousedown",  mouseDownKeyboard);
-        keyboardElement.addEventListener("keydown", keyDown);        // New key pressed to be assigned to MSX key (non-modifiers only)
-        keyboardElement.addEventListener("keyup", keyUp);          // New key released to be assigned to MSX key (modifiers only)
+        setupKeyMouseEvents(keyboardElement);
+        keyboardElement.addEventListener("mousedown", mouseDownKeyboard);
 
         keyboardNameElement = document.getElementById("wmms-inputs-keyboard-name");
     }
 
-    function setupMouseEnterLeaveEvents(keyElement) {
+    function setupKeyMouseEvents(keyElement) {
         keyElement.addEventListener("mouseenter", mouseEnterKey);
         keyElement.addEventListener("mouseleave", mouseLeaveKey);
     }
 
     function mouseEnterKey(e) {
-        keyboardElement.focus();
         if (e.target.msxKey) {
             keyElementEditing = e.target;
             msxKeyEditing = keyElementEditing.msxKey;
-            modifPending = null;
             updatePopup()
         } else
             mouseLeaveKey();
     }
 
     function mouseLeaveKey() {
-        keyElementEditing = msxKeyEditing = modifPending = null;
-        updatePopup()
+        keyElementEditing = msxKeyEditing = null;
+        updatePopup();
     }
 
     function mouseDownKeyboard(e) {
         if (msxKeyEditing && e.which === 3) domKeyboard.clearKey(msxKeyEditing);
-        modifPending = null;
-        updatePopup();
         self.refresh();
-    }
-
-    function keyDown(e) {
-        if (!msxKeyEditing) return;
-
-        // Modifier keys are accepted only on release
-        if (wmsx.DOMKeys.isModifierKeyCode(e.keyCode))
-            modifPending = e.keyCode;
-        else
-            customizeKey(e);
-
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
-    }
-
-    function keyUp(e) {
-        if (!msxKeyEditing) return;
-
-        // Modifier keys are accepted only on release, and oly the last one depressed
-        if (modifPending === e.keyCode) customizeKey(e);
-
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
-    }
-
-    function customizeKey(e) {
-        var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
-        domKeyboard.customizeKey(msxKeyEditing, mapping);
         updatePopup();
-        self.refresh();
-        modifPending = null;
     }
 
     function updatePopup() {
         if (!msxKeyEditing) {
-            // Hide
-            popup.style.display = "none";
+            popup.hide();
+            keyboardElement.focus();
             return;
-        }
-
-        // Show. Define contents
-        popup.style.display = "block";
-        var mapped = domKeyboard.getKeyMapping(msxKeyEditing) || [];
-        if (mapped.length === 0) popupKeys.innerHTML = "- none -";
-        else {
-            var inner = "";
-            for (var i = 0; i < mapped.length; i++) inner += (i > 0 ? "&nbsp;,&nbsp;" : "") + keyHTMLForMapping(mapped[i]);
-            popupKeys.innerHTML = inner;
         }
 
         // Position
         var keyRec = keyElementEditing.getBoundingClientRect();
-        var popRec = popup.getBoundingClientRect();
-        var x = (keyRec.left + keyRec.width / 2 - popRec.width / 2) | 0;
-        var y = (keyRec.top - popRec.height - POPUP_DIST) | 0;
-        popup.style.top = "" + y + "px";
-        popup.style.left = "" + x + "px";
-    }
+        var x = keyRec.left + keyRec.width / 2;
+        var y = keyRec.top;
 
-    function keyHTMLForMapping(mapping) {
-        var names = !mapping.n || mapping.n.constructor !== Array ? [ mapping.n ] : mapping.n;
-        var res = "";
-        for (var i = 0, len = names.length; i < len; ++i) {
-            if (i > 0) res += (len > 1 && i === (len-1)) ? "&nbsp;+&nbsp;" : "&nbsp;";
-            res += '<DIV class = "wmsx-key">' + names[i] + '</DIV>';
-        }
-        return res;
+        popup.show(self, msxKeyEditing, x, y);
     }
 
     function refreshUnmappedIndicator() {
@@ -166,17 +113,14 @@ wmsx.KeyboardConfigurator = function(controllersHub, keyboardElement) {
         }
     }
 
-
     var keyboardElement;
-
     var domKeyboard = controllersHub.getKeyboard();
 
     var keyElements = [];
-    var keyElementEditing = null, msxKeyEditing = null, modifPending = null;
+    var keyElementEditing = null, msxKeyEditing = null;
     var keyboardNameElement;
 
-    var popup, popupKeys;
-    var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
+    var popup = wmsx.ControlMappingPopup.get();
 
 
     var sections = {    // MSX key names

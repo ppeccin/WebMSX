@@ -645,10 +645,10 @@ wmsx.SettingsGUI.html = function() {
                         <div id="wmsx-browserinfo">
                     </div>
                 </div>
-                <div id="wmsx-keyboard-popup">
+                <div id="wmsx-control-mapping-popup">
                     Key mapped to:
                     <br>
-                    <div id="wmsx-keyboard-popup-keys" class="wmsx-command"></div>
+                    <div id="wmsx-control-mapping-popup-keys" class="wmsx-command"></div>
                     <div>Press new key.</div>
                     <div>(right-click to clear)</div>
                 </div>
@@ -1185,7 +1185,7 @@ wmsx.SettingsGUI.css = function() {
     height: 40px;
     background: hsl(0, 0%, 68%);
     border-radius: 5px;
-    box-shadow: inset 1px 1px 1px hsl(0, 0%, 98%), 0 2px 2px 2px hsl(0, 0%, 47%);
+    box-shadow: inset 1px 1px hsl(0, 0%, 90%), 0 2px 2px 2px hsl(0, 0%, 47%);
 }
 .wmsx-joy .wmsx-joy-trig1 {
     left: 25px;
@@ -1538,7 +1538,7 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-ports .wmsx-none {
     display: none;
     width: 230px;
-    margin-top: 9px;
+    margin-top: 14px;
     font-size: 106px;
     line-height: 106px;
     font-weight: bold;
@@ -1584,7 +1584,7 @@ wmsx.SettingsGUI.css = function() {
     color: transparent;
 }
 
-#wmsx-keyboard-popup {
+#wmsx-modal #wmsx-control-mapping-popup {
     display: none;
     position: fixed;
     padding: 4px 9px;
@@ -1596,15 +1596,15 @@ wmsx.SettingsGUI.css = function() {
     background: rgb(220, 220, 220);
     box-shadow: 0 3px 3px 2px rgba(0, 0, 0, .55);
     box-sizing: border-box;
-    z-index: 999999;
+    outline: none;
 }
-#wmsx-keyboard-popup .wmsx-command {
+#wmsx-modal #wmsx-control-mapping-popup .wmsx-command {
     width: auto;
     line-height: 21px;
     margin: 9px 0 8px;
     font-weight: bold;
 }
-#wmsx-keyboard-popup:after {
+#wmsx-modal #wmsx-control-mapping-popup:after {
     content: "";
     position: absolute;
     bottom: 0;
