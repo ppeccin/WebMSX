@@ -686,6 +686,7 @@ wmsx.SettingsGUI.css = function() {
     font: normal 13px sans-serif;
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
     transition: all .2s ease-out;
+    outline: none;
 }
 
 #wmsx-modal.wmsx-show {
@@ -1480,8 +1481,8 @@ wmsx.SettingsGUI.css = function() {
     left: -8px;
     overflow: visible;
     white-space: nowrap;
-    width: 61px;
-    height: 74px;
+    width: 59px;
+    height: 75px;
     margin: 14px auto;
     background: linear-gradient(166deg, white, white, white, white, hsl(0, 0%, 97%), hsl(0, 0%, 90%));
     border: 1px solid hsl(0, 0%, 79%);
@@ -1534,7 +1535,7 @@ wmsx.SettingsGUI.css = function() {
 
 .wmsx-mouse-logo {
     top: 29px;
-    left: 15px;
+    left: 14px;
     width: 24px;
     height: 7px;
     background-size: 100%;

@@ -23,7 +23,7 @@ wmsx.PortsConfigurator = function(controllersHub) {
 
         for (var p = 0; p < 2; ++p) {
             var device = state.ports[p];
-            var classList = joyElements[p].classList;
+            var classList = deviceElements[p].classList;
             classList.remove.apply(classList, DEVICE_CLASSES);
             if (device.startsWith(wmsx.ControllersHub.MOUSE))
                 classList.add("wmsx-mouse-device");
@@ -31,7 +31,7 @@ wmsx.PortsConfigurator = function(controllersHub) {
                 classList.add(device.startsWith(wmsx.ControllersHub.JOYSTICK) ? "wmsx-joystick-device" : "wmsx-joykeys-device");
             else
                 classList.add("wmsx-none-device");
-            joyTitleElements[p].innerHTML = device;
+            deviceTitleElements[p].innerHTML = device;
         }
     };
 
@@ -42,20 +42,15 @@ wmsx.PortsConfigurator = function(controllersHub) {
         joykeysModeElement = document.getElementById("wmsx-ports-joykeys-mode");
 
         // Set device elements
-        joyElements = [ document.getElementById("wmsx-ports-device1"), document.getElementById("wmsx-ports-device2") ];
-        joyTitleElements = [ document.getElementById("wmsx-ports-device1-title"), document.getElementById("wmsx-ports-device2-title") ];
-
-        // Set Popup
-        popup = document.getElementById("wmsx-keyboard-popup");
-        popupKeys = document.getElementById("wmsx-keyboard-popup-keys");
+        deviceElements = [ document.getElementById("wmsx-ports-device1"), document.getElementById("wmsx-ports-device2") ];
+        deviceTitleElements = [ document.getElementById("wmsx-ports-device1-title"), document.getElementById("wmsx-ports-device2-title") ];
     }
 
 
     var mouseModeElement, joysticksModeElement, joykeysModeElement;
-    var joyElements, joyTitleElements;
+    var deviceElements, deviceTitleElements;
 
-    var popup, popupKeys;
-    var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
+    var popup = wmsx.ControlMappingPopup.get();
 
     var DEVICE_CLASSES = [ "wmsx-none-device", "wmsx-mouse-device", "wmsx-joystick-device", "wmsx-joykeys-device" ];
 

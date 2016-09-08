@@ -101,6 +101,8 @@ wmsx.SettingsDialog = function(controllersHub) {
 
         setFields();
         setEvents();
+
+        self["wmsx-modal"].tabIndex = -1;
     };
 
     // Automatically set fields for each child element that has the "id" attribute

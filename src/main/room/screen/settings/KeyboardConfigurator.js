@@ -30,7 +30,7 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
 
     function setupKeyboard() {
         keyboardElement = document.getElementById("wmsx-keyboard");
-        keyboardElement.tabIndex = "-1";
+        keyboardElement.tabIndex = "-1";        // To return focus to after closing the popup
 
         // Create Keyboard
         for (var s in sections) {
