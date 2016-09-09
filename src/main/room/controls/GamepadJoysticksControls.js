@@ -1,11 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.GamepadJoysticksControls = function(hub) {
+wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 "use strict";
-
-    this.connect = function(pMachineControlsSocket) {
-        machineControlsSocket = pMachineControlsSocket;
-    };
 
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
@@ -57,19 +53,13 @@ wmsx.GamepadJoysticksControls = function(hub) {
     };
 
     this.getModeDesc = function() {
-        return mode === -2 ? "DISABLED" : "AUTO" + (swappedMode ? " (swapped)" : "");
+        return mode === -2 ? !supported ? "NOT SUPPORTED" : "DISABLED" : "AUTO" + (swappedMode ? " (swapped)" : "");
     };
 
     this.setTurboFireSpeed = function(speed) {
         turboFireSpeed = speed ? speed * speed + 3 : 0;
         turboFireFlipClockCount = 0;
     };
-
-    //this.setPaddleMode = function(state) {
-    //    if (!supported) return;
-    //    paddleMode = state;
-    //    joy1State.xPosition = joy2State.xPosition = -1;
-    //};
 
     this.controllersClockPulse = function(noMessage) {
         if (!supported || mode === -2) return;
@@ -86,8 +76,8 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
         if (joystick1) {
             if (joystick1.update(gamepads)) {
-                if (joystick1.hasMoved() || (turboFireSpeed && joy1State.button1Real))
-                    update(joystick1, joy1State, joy1Prefs);
+                if (joystick1.hasMoved()) update(joystick1, joy1State, joy1Prefs);
+                else if (turboFireSpeed) updateForTurboFire(joy1State);
             } else {
                 joystick1 = null;
                 joy1State.reset();
@@ -102,8 +92,8 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
         if (joystick2) {
             if (joystick2.update(gamepads)) {
-                if (joystick2.hasMoved() || (turboFireSpeed && joy2State.button1Real))
-                    update(joystick2, joy2State, joy2Prefs);
+                if (joystick2.hasMoved()) update(joystick2, joy2State, joy2Prefs);
+                else if (turboFireSpeed) updateForTurboFire(joy2State);
             } else {
                 joystick2 = null;
                 joy2State.reset();
@@ -131,15 +121,15 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     var detectNewJoystick = function(prefs, notPrefs, gamepads) {       // must have at least 1 button to be accepted
         if (!gamepads || gamepads.length === 0) return;
-        // Fixed index detection. Also allow the same gamepad to control both  players
+        // Fixed index detection. Also allow the same gamepad to control both players
         if (prefs.device >= 0)   // pref.device == -1 means "auto"
-            return gamepads[prefs.device] && gamepads[prefs.device].buttons.length > 0 ? new Joystick(prefs.device, prefs) : null;
+            return gamepads[prefs.device] && gamepads[prefs.device].buttons.length > 0 ? new Gamepad(prefs.device, prefs) : null;
         // Auto detection
         for (var i = 0, len = gamepads.length; i < len; i++)
             if (gamepads[i] && gamepads[i].buttons.length > 0)
                 if (i !== notPrefs.device && (!joystick1 || joystick1.index !== i) && (!joystick2 || joystick2.index !== i))
                     // New Joystick found!
-                    return new Joystick(i, prefs);
+                    return new Gamepad(i, prefs);
     };
 
     var resetStates = function() {
@@ -147,100 +137,89 @@ wmsx.GamepadJoysticksControls = function(hub) {
         joy2State.reset();
     };
 
-    var update = function(joystick, joyState, joyPrefs) {
-        // Paddle Analog
-        //if (paddleMode && joyPrefs.paddleSens !== 0) {
-        //    joyState.xPosition = joystick.getPaddlePosition();
-        //}
+    var update = function(gamepad, joyState, prefs) {
+        var buttonsState = joyState.buttonsState;
 
-        // Joystick direction (Analog or POV) and Paddle Digital (Analog or POV)
-        var direction = joystick.getDPadDirection();
-        if (direction === -1 /* && (!paddleMode || joyPrefs.paddleSens === 0) */)
-            direction = joystick.getStickDirection();
-        if (direction !== joyState.direction) {
-            joyState.direction = direction;
-            joyState.portValue = (joyState.portValue & ~0xf) | DIRECTION_TO_PORT_VALUE[direction + 1];
+        // Turbo-fire
+        var prevTriggerAState = buttonsState["A"];
+
+        // Update buttons states
+        for (var b in wmsx.JoystickButtons) {
+            var buttonMappings = prefs.buttons[b];
+            if (buttonMappings.length > 0) {
+                var state = false;
+                for (var i = 0; !state && i < buttonMappings.length; ++i)
+                    if (gamepad.getButtonDigital(buttonMappings[i].c)) state = true;
+                if (buttonsState[b] !== state) {
+                    buttonsState[b] = state;
+                    var bit = joystickButtons[b];
+
+                    // Real MSX button
+                    if (bit >= 0) {
+                        if (state) joyState.portValue &= ~(1 << bit);
+                        else       joyState.portValue |= (1 << bit);
+                    } else {
+                        // Virtual button
+                        var key = prefs.virtButKeys[b];
+                        if (key) keyForwardControls.processKey(key.c, state);
+                    }
+                }
+            }
         }
 
-        // Joystick buttons
-        //if (joyButtonDetection === joystick) {
-        //    detectButton();
-        //    return;
-        //} else {
-            var button;
-            var buttonS = joystick.getButtonDigital(joyPrefs.buttonS);
-            button = buttonS || joystick.getButtonDigital(joyPrefs.button1);
-            if (turboFireSpeed && button && !joyState.button1Real) turboFireFlipClockCount = 2;
-            joyState.button1Real = button;
-            joyState.button1 = button && (turboFireFlipClockCount <= 2);
-            if (joyState.button1) joyState.portValue &= ~0x10; else joyState.portValue |= 0x10;
-            button = buttonS || joystick.getButtonDigital(joyPrefs.button2);
-            joyState.button2 = button;
-            if (button) joyState.portValue &= ~0x20; else joyState.portValue |= 0x20;
-        //}
+        // Turbo-fire
+        if (turboFireSpeed) updateForTurboFire(joyState, prevTriggerAState === true);
 
-        // Other Machine controls, not related to the controller port
-        button = joystick.getButtonDigital(joyPrefs.pause);
-        if (button !== joyState.pause) {
-            if (button) machineControlsSocket.controlStateChanged(wmsx.MachineControls.PAUSE, true);
-            joyState.pause = button;
-        }
-        button = joystick.getButtonDigital(joyPrefs.fastSpeed);
-        if (button !== joyState.fastSpeed) {
-            machineControlsSocket.controlStateChanged(wmsx.MachineControls.FAST_SPEED, button);
-            joyState.fastSpeed = button;
-        }
-        button = joystick.getButtonDigital(joyPrefs.slowSpeed);
-        if (button !== joyState.slowSpeed) {
-            machineControlsSocket.controlStateChanged(wmsx.MachineControls.SLOW_SPEED, button);
-            joyState.slowSpeed = button;
+        // Use Analog direction if no directional buttons pressed
+        if (!(buttonsState["UP"] || buttonsState["DOWN"] || buttonsState["LEFT"] || buttonsState["RIGHT"])) {
+            var dir = gamepad.getStickDirection();
+            if (dir !== joyState.analogDirection) {
+                joyState.analogDirection = dir;
+                joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[dir + 1];
+            }
         }
     };
+
+    function updateForTurboFire(joyState, prevTriggerAState) {
+        if (joyState.buttonsState["A"]) {
+            if (prevTriggerAState === false) turboFireFlipClockCount = 2;
+            else {
+                if (turboFireFlipClockCount > 2 ) joyState.portValue |= 0x10;
+                else joyState.portValue &= ~0x10;
+            }
+        }
+    }
 
     this.applyPreferences = function() {
         joy1Prefs = {
-            device         : WMSX.userPreferences.JP1DEVICE,
-            xAxis          : WMSX.userPreferences.JP1XAXIS,
-            xAxisSig       : WMSX.userPreferences.JP1XAXISSIG,
-            yAxis          : WMSX.userPreferences.JP1YAXIS,
-            yAxisSig       : WMSX.userPreferences.JP1YAXISSIG,
-            paddleAxis     : WMSX.userPreferences.JP1PAXIS,
-            paddleAxisSig  : WMSX.userPreferences.JP1PAXISSIG,
-            button1        : WMSX.userPreferences.JP1BUT1,
-            button2        : WMSX.userPreferences.JP1BUT2,
-            buttonS        : WMSX.userPreferences.JP1BUTS,
-            pause          : WMSX.userPreferences.JP1PAUSE,
-            fastSpeed      : WMSX.userPreferences.JP1FAST,
-            slowSpeed      : WMSX.userPreferences.JP1SLOW,
-            paddleCenter   : WMSX.userPreferences.JP1PCENTER * -190 + 190 - 5,
-            paddleSens     : WMSX.userPreferences.JP1PSENS * -190,
-            deadzone       : WMSX.userPreferences.JP1DEADZONE
+            buttons        : WMSX.userPreferences.joysticks[0].buttons,
+            virtButKeys    : WMSX.userPreferences.joysticks[0].virtualButtonsKeys,
+            device         : WMSX.userPreferences.joysticks[0].prefs.device,
+            xAxis          : WMSX.userPreferences.joysticks[0].prefs.xAxis,
+            xAxisSig       : WMSX.userPreferences.joysticks[0].prefs.xAxisSig,
+            yAxis          : WMSX.userPreferences.joysticks[0].prefs.yAxis,
+            yAxisSig       : WMSX.userPreferences.joysticks[0].prefs.yAxisSig,
+            deadzone       : WMSX.userPreferences.joysticks[0].prefs.deadzone
         };
         joy2Prefs = {
-            device         : WMSX.userPreferences.JP2DEVICE,
-            xAxis          : WMSX.userPreferences.JP2XAXIS,
-            xAxisSig       : WMSX.userPreferences.JP2XAXISSIG,
-            yAxis          : WMSX.userPreferences.JP2YAXIS,
-            yAxisSig       : WMSX.userPreferences.JP2YAXISSIG,
-            paddleAxis     : WMSX.userPreferences.JP2PAXIS,
-            paddleAxisSig  : WMSX.userPreferences.JP2PAXISSIG,
-            button1        : WMSX.userPreferences.JP2BUT1,
-            button2        : WMSX.userPreferences.JP2BUT2,
-            buttonS        : WMSX.userPreferences.JP2BUTS,
-            pause          : WMSX.userPreferences.JP2PAUSE,
-            fastSpeed      : WMSX.userPreferences.JP2FAST,
-            slowSpeed      : WMSX.userPreferences.JP2SLOW,
-            paddleCenter   : WMSX.userPreferences.JP2PCENTER * -190 + 190 - 5,
-            paddleSens     : WMSX.userPreferences.JP2PSENS * -190,
-            deadzone       : WMSX.userPreferences.JP2DEADZONE
+            buttons        : WMSX.userPreferences.joysticks[1].buttons,
+            virtButKeys    : WMSX.userPreferences.joysticks[0].virtualButtonsKeys,
+            device         : WMSX.userPreferences.joysticks[1].prefs.device,
+            xAxis          : WMSX.userPreferences.joysticks[1].prefs.xAxis,
+            xAxisSig       : WMSX.userPreferences.joysticks[1].prefs.xAxisSig,
+            yAxis          : WMSX.userPreferences.joysticks[1].prefs.yAxis,
+            yAxisSig       : WMSX.userPreferences.joysticks[1].prefs.yAxisSig,
+            deadzone       : WMSX.userPreferences.joysticks[1].prefs.deadzone
         };
     };
 
+
+    var joystickButtons = wmsx.JoystickButtons;
 
     var supported = false;
     var detectionDelayCount = 1;
 
-    var machineControlsSocket;
+    var machineControls;
     var screen;
 
     var mode = -1;
@@ -262,20 +241,15 @@ wmsx.GamepadJoysticksControls = function(hub) {
 
     function JoystickState() {
         this.reset = function() {
-            this.direction = -1;         // CENTER
-            this.xPosition = -1;         // CENTER
-            this.portValue = 0x3f;       // All switches off
-            this.button1 = this.button1Real = false;
-            this.button2 = false;
-            this.pause = false;
-            this.fastSpeed = false;
-            this.slowSpeed = false;
+            this.analogDirection = -1;      // CENTER
+            this.buttonsState = {};         // All buttons released
+            this.portValue = 0x3f;          // All switches off
         };
         this.reset();
     }
 
 
-    function Joystick(index, prefs) {
+    function Gamepad(index, prefs) {
 
         this.index = index;
 
@@ -302,21 +276,7 @@ wmsx.GamepadJoysticksControls = function(hub) {
             else return b > 0.5;
         };
 
-        this.getDPadDirection = function() {
-            if (this.getButtonDigital(12)) {
-                if (this.getButtonDigital(15)) return 1;                // NORTHEAST
-                else if (this.getButtonDigital(14)) return 7;           // NORTHWEST
-                else return 0;                                          // NORTH
-            } else if (this.getButtonDigital(13)) {
-                if (this.getButtonDigital(15)) return 3;                // SOUTHEAST
-                else if (this.getButtonDigital(14)) return 5;           // SOUTHWEST
-                else return 4;                                          // SOUTH
-            } else if (this.getButtonDigital(14)) return 6;             // WEST
-            else if (this.getButtonDigital(15)) return 2;               // EAST
-            else return -1;                                             // CENTER
-        };
-
-        this.getStickDirection = function() {
+        this.getStickDirection = function() {           // CENTER: -1, NORTH: 0, NORTHEAST: 1, EAST: 2, SOUTHEAST: 3, SOUTH: 4, SOUTHWEST: 5, WEST: 6, NORTHWEST: 7
             var x = gamepad.axes[xAxis];
             var y = gamepad.axes[yAxis];
             if ((x < 0 ? -x : x) < deadzone) x = 0; else x *= xAxisSig;
@@ -327,12 +287,6 @@ wmsx.GamepadJoysticksControls = function(hub) {
             return (dir * 8) | 0;
         };
 
-        this.getPaddlePosition = function() {
-            var pos = (gamepad.axes[paddleAxis] * paddleAxisSig * paddleSens + paddleCenter) | 0;
-            if (pos < 0) pos = 0;
-            else if (pos > 380) pos = 380;
-            return pos;
-        };
 
         var gamepad;
 
@@ -341,10 +295,6 @@ wmsx.GamepadJoysticksControls = function(hub) {
         var xAxisSig = prefs.xAxisSig;
         var yAxisSig = prefs.yAxisSig;
         var deadzone = prefs.deadzone;
-        var paddleAxis = prefs.paddleAxis;
-        var paddleAxisSig = prefs.paddleAxisSig;
-        var paddleSens = prefs.paddleSens;
-        var paddleCenter = prefs.paddleCenter;
 
         var lastTimestamp = Number.MIN_VALUE;
 

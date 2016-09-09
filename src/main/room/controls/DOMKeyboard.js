@@ -10,7 +10,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     }
 
     this.connect = function(pControllersSocket, pBIOSSocket) {
-        controllersSocket = pControllersSocket;
         biosSocket = pBIOSSocket;
     };
 
@@ -229,7 +228,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var customKeyboards = {};
     var currentKeyboard;
 
-    var controllersSocket;
     var biosSocket;
     var screen;
 

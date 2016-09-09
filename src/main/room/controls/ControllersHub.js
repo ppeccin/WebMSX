@@ -3,12 +3,10 @@
 wmsx.ControllersHub = function(keyForwardControls) {
 "use strict";
 
-    this.connect = function(controllersSocket, machineControlsSocket, biosSocket) {
+    this.connect = function(controllersSocket, biosSocket) {
         controllersSocket.connectControls(this);
-        keyboard.connect(controllersSocket, biosSocket);
+        keyboard.connect(biosSocket);
         mouseControls.connect(controllersSocket);
-        joystickControls.connect(machineControlsSocket);
-        joykeysControls.connect(machineControlsSocket);
     };
 
     this.connectPeripherals = function(pScreen) {
@@ -171,8 +169,8 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
-    var joystickControls = new wmsx.GamepadJoysticksControls(this);
-    var joykeysControls =  new wmsx.DOMJoykeysControls(this);
+    var joystickControls = new wmsx.GamepadJoysticksControls(this, keyForwardControls);
+    var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyForwardControls);
 
     var turboFireSpeed = 0;
 

@@ -1,11 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMJoykeysControls = function(hub) {
+wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
 "use strict";
-
-    this.connect = function(pMachineControlsSocket) {
-        machineControlsSocket = pMachineControlsSocket;
-    };
 
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
@@ -63,40 +59,8 @@ wmsx.DOMJoykeysControls = function(hub) {
 
     this.applyPreferences = function() {
         joy1Prefs = {
-            device         : WMSX.userPreferences.JP1DEVICE,
-            xAxis          : WMSX.userPreferences.JP1XAXIS,
-            xAxisSig       : WMSX.userPreferences.JP1XAXISSIG,
-            yAxis          : WMSX.userPreferences.JP1YAXIS,
-            yAxisSig       : WMSX.userPreferences.JP1YAXISSIG,
-            paddleAxis     : WMSX.userPreferences.JP1PAXIS,
-            paddleAxisSig  : WMSX.userPreferences.JP1PAXISSIG,
-            button1        : WMSX.userPreferences.JP1BUT1,
-            button2        : WMSX.userPreferences.JP1BUT2,
-            buttonS        : WMSX.userPreferences.JP1BUTS,
-            pause          : WMSX.userPreferences.JP1PAUSE,
-            fastSpeed      : WMSX.userPreferences.JP1FAST,
-            slowSpeed      : WMSX.userPreferences.JP1SLOW,
-            paddleCenter   : WMSX.userPreferences.JP1PCENTER * -190 + 190 - 5,
-            paddleSens     : WMSX.userPreferences.JP1PSENS * -190,
-            deadzone       : WMSX.userPreferences.JP1DEADZONE
         };
         joy2Prefs = {
-            device         : WMSX.userPreferences.JP2DEVICE,
-            xAxis          : WMSX.userPreferences.JP2XAXIS,
-            xAxisSig       : WMSX.userPreferences.JP2XAXISSIG,
-            yAxis          : WMSX.userPreferences.JP2YAXIS,
-            yAxisSig       : WMSX.userPreferences.JP2YAXISSIG,
-            paddleAxis     : WMSX.userPreferences.JP2PAXIS,
-            paddleAxisSig  : WMSX.userPreferences.JP2PAXISSIG,
-            button1        : WMSX.userPreferences.JP2BUT1,
-            button2        : WMSX.userPreferences.JP2BUT2,
-            buttonS        : WMSX.userPreferences.JP2BUTS,
-            pause          : WMSX.userPreferences.JP2PAUSE,
-            fastSpeed      : WMSX.userPreferences.JP2FAST,
-            slowSpeed      : WMSX.userPreferences.JP2SLOW,
-            paddleCenter   : WMSX.userPreferences.JP2PCENTER * -190 + 190 - 5,
-            paddleSens     : WMSX.userPreferences.JP2PSENS * -190,
-            deadzone       : WMSX.userPreferences.JP2DEADZONE
         };
     };
 

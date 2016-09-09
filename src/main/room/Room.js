@@ -72,7 +72,7 @@ wmsx.Room = function(screenElement) {
         self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getMachineTypeSocket(), self.machine.getExtensionsSocket(), self.machine.getCartridgeSocket(), self.machine.getControllersSocket());
         self.speaker.connect(self.machine.getAudioSocket());
         self.machineControls.connect(self.machine.getMachineControlsSocket());
-        self.controllersHub.connect(self.machine.getControllersSocket(), self.machine.getMachineControlsSocket(), self.machine.getBIOSSocket());
+        self.controllersHub.connect(self.machine.getControllersSocket(), self.machine.getBIOSSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
         self.peripheralControls.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
