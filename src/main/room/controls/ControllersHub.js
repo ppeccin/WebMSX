@@ -91,7 +91,16 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.setKeyInputElement = function(element) {
-        keyboard.setKeyInputElement(element);
+        element.addEventListener("keydown", this.keyDown);
+        element.addEventListener("keyup", this.keyUp);
+    };
+
+    this.keyDown = function(e) {
+        return processKeyEvent(e, true);
+    };
+
+    this.keyUp = function(e) {
+        return processKeyEvent(e, false);
     };
 
     this.setMouseInputElement = function(element) {
@@ -128,6 +137,17 @@ wmsx.ControllersHub = function(keyForwardControls) {
             mouseMode: mouseControls.getModeDesc(), joysticksMode: joystickControls.getModeDesc(), joykeysMode: joykeysControls.getModeDesc(),
             ports: [ mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || wmsx.ControllersHub.NONE, mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || wmsx.ControllersHub.NONE ]
         };
+    };
+
+    var processKeyEvent = function(e, press) {
+        e.returnValue = false;  // IE
+        e.preventDefault();
+        e.stopPropagation();
+
+        var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        joykeysControls.processKey(code, press);
+
+        return false;
     };
 
     function updateConnections() {
@@ -170,7 +190,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this, keyForwardControls);
-    var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyForwardControls);
+    var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyboard);
 
     var turboFireSpeed = 0;
 

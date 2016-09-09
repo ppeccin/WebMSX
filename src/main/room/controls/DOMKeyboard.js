@@ -51,11 +51,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         return japanaseKeyboardLayoutPortValue;
     };
 
-    this.setKeyInputElement = function(element) {
-        element.addEventListener("keydown", this.keyDown);
-        element.addEventListener("keyup", this.keyUp);
-    };
-
     this.toggleHostKeyboards = function() {
         var next = (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
         if (next >= availableKeyboards.length) next = 0;
@@ -125,31 +120,18 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         updateCodeMap();
     };
 
-    this.keyDown = function(e) {
-        return processKeyEvent(e, true);
-    };
-
-    this.keyUp = function(e) {
-        return processKeyEvent(e, false);
-    };
-
-    var processKeyEvent = function(e, press) {
-        e.returnValue = false;  // IE
-        e.preventDefault();
-        e.stopPropagation();
-
-        var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
+    this.processKey = function(code, press) {
         var msxKey = keyCodeMap[code];                                      // First try, before giving a chance to other controls in the chain
 
         //console.log("Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
 
         // Try other controls if
         if (!msxKey) {
-            if (!keyForwardControls.processKey(code, press)) {
-                msxKey = keyCodeMap[code & IGNORE_ALL_MODIFIERS_MASK];      // Second try, ignore modifiers, only if no other controls were found
+            if (keyForwardControls.processKey(code, press)) return;
 
-                //console.log("2 Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
-            }
+            msxKey = keyCodeMap[code & IGNORE_ALL_MODIFIERS_MASK];          // Second try, ignore modifiers, only if no other controls were found
+
+            //console.log("2 Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
         }
 
         if (msxKey) {
@@ -171,8 +153,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
                 }
             }
         }
-
-        return false;
     };
 
     var updateMapping = function() {

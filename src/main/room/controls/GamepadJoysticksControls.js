@@ -10,7 +10,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     this.powerOn = function() {
         supported = !!navigator.getGamepads;
         if (!supported) return;
-        this.applyPreferences();
+        applyPreferences();
     };
 
     this.powerOff = function() {
@@ -114,30 +114,31 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         hub.updateJoystickConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
     }
 
-    var showDeviceConnectionMessage = function (joy1, conn) {
+    function showDeviceConnectionMessage(joy1, conn) {
         updateConnectionsToHub();
         hub.showStatusMessage("Joystick " + (joy1 ? "1" : "2") + (conn ? " connected" : " disconnected"));
-    };
+    }
 
-    var detectNewJoystick = function(prefs, notPrefs, gamepads) {       // must have at least 1 button to be accepted
+    function detectNewJoystick(prefs, notPrefs, gamepads) {       // must have at least 1 button to be accepted
         if (!gamepads || gamepads.length === 0) return;
         // Fixed index detection. Also allow the same gamepad to control both players
-        if (prefs.device >= 0)   // pref.device == -1 means "auto"
-            return gamepads[prefs.device] && gamepads[prefs.device].buttons.length > 0 ? new Gamepad(prefs.device, prefs) : null;
+        var device = prefs.settings.device;
+        if (device >= 0)   // pref.device == -1 means "auto"
+            return gamepads[device] && gamepads[device].buttons.length > 0 ? new Gamepad(device, prefs) : null;
         // Auto detection
         for (var i = 0, len = gamepads.length; i < len; i++)
             if (gamepads[i] && gamepads[i].buttons.length > 0)
                 if (i !== notPrefs.device && (!joystick1 || joystick1.index !== i) && (!joystick2 || joystick2.index !== i))
                     // New Joystick found!
                     return new Gamepad(i, prefs);
-    };
+    }
 
-    var resetStates = function() {
+    function resetStates() {
         joy1State.reset();
         joy2State.reset();
-    };
+    }
 
-    var update = function(gamepad, joyState, prefs) {
+    function update(gamepad, joyState, prefs) {
         var buttonsState = joyState.buttonsState;
 
         // Turbo-fire
@@ -160,7 +161,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
                         else       joyState.portValue |= (1 << bit);
                     } else {
                         // Virtual button
-                        var key = prefs.virtButKeys[b];
+                        var key = prefs.virtualButtonsKeys[b];
                         if (key) keyForwardControls.processKey(key.c, state);
                     }
                 }
@@ -178,7 +179,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
                 joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[dir + 1];
             }
         }
-    };
+    }
 
     function updateForTurboFire(joyState, prevTriggerAState) {
         if (joyState.buttonsState["A"]) {
@@ -190,28 +191,10 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         }
     }
 
-    this.applyPreferences = function() {
-        joy1Prefs = {
-            buttons        : WMSX.userPreferences.joysticks[0].buttons,
-            virtButKeys    : WMSX.userPreferences.joysticks[0].virtualButtonsKeys,
-            device         : WMSX.userPreferences.joysticks[0].prefs.device,
-            xAxis          : WMSX.userPreferences.joysticks[0].prefs.xAxis,
-            xAxisSig       : WMSX.userPreferences.joysticks[0].prefs.xAxisSig,
-            yAxis          : WMSX.userPreferences.joysticks[0].prefs.yAxis,
-            yAxisSig       : WMSX.userPreferences.joysticks[0].prefs.yAxisSig,
-            deadzone       : WMSX.userPreferences.joysticks[0].prefs.deadzone
-        };
-        joy2Prefs = {
-            buttons        : WMSX.userPreferences.joysticks[1].buttons,
-            virtButKeys    : WMSX.userPreferences.joysticks[0].virtualButtonsKeys,
-            device         : WMSX.userPreferences.joysticks[1].prefs.device,
-            xAxis          : WMSX.userPreferences.joysticks[1].prefs.xAxis,
-            xAxisSig       : WMSX.userPreferences.joysticks[1].prefs.xAxisSig,
-            yAxis          : WMSX.userPreferences.joysticks[1].prefs.yAxis,
-            yAxisSig       : WMSX.userPreferences.joysticks[1].prefs.yAxisSig,
-            deadzone       : WMSX.userPreferences.joysticks[1].prefs.deadzone
-        };
-    };
+    function applyPreferences() {
+        joy1Prefs = WMSX.userPreferences.joysticks[0];
+        joy2Prefs = WMSX.userPreferences.joysticks[1];
+    }
 
 
     var joystickButtons = wmsx.JoystickButtons;
@@ -287,14 +270,13 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
             return (dir * 8) | 0;
         };
 
-
         var gamepad;
 
-        var xAxis = prefs.xAxis;
-        var yAxis = prefs.yAxis;
-        var xAxisSig = prefs.xAxisSig;
-        var yAxisSig = prefs.yAxisSig;
-        var deadzone = prefs.deadzone;
+        var xAxis = prefs.settings.xAxis;
+        var yAxis = prefs.settings.yAxis;
+        var xAxisSig = prefs.settings.xAxisSig;
+        var yAxisSig = prefs.settings.yAxisSig;
+        var deadzone = prefs.settings.deadzone;
 
         var lastTimestamp = Number.MIN_VALUE;
 

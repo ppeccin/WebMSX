@@ -32,7 +32,7 @@ WMSX.userPreferences = {};
                 BACK:      k.VK_ESCAPE,
                 START:     { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] }
             },
-            prefs: {
+            settings: {
                 device:    -1,  // -1 = auto
                 xAxis:     0,
                 xAxisSig:  1,
@@ -64,7 +64,7 @@ WMSX.userPreferences = {};
                 BACK:      k.VK_ESCAPE,
                 START:     { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] }
             },
-            prefs: {
+            settings: {
                 device:    -1,  // -1 = auto
                 xAxis:     0,
                 xAxisSig:  1,
@@ -80,10 +80,10 @@ WMSX.userPreferences = {};
             buttons: {
                 UP:        [ k.VK_UP, k.VK_NUM_UP ],
                 DOWN:      [ k.VK_DOWN, k.VK_NUM_DOWN ],
-                LEFT:      [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
-                RIGHT:     [ k.VK_LEFT, k.VK_NUM_LEFT ],
-                A:         [ k.VK_SPACE, k.VK_OPEN_BRACKET ],
-                B:         [ k.VK_LALT, k.VK_M, k.VK_CLOSE_BRACKET ]
+                LEFT:      [ k.VK_LEFT, k.VK_NUM_LEFT ],
+                RIGHT:     [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
+                A:         [ k.VK_SPACE, k.VK_INSERT ],
+                B:         [ k.VK_LALT, k.VK_DELETE, k.VK_M ]
             }
         },
         {
