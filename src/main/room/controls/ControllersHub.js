@@ -120,7 +120,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     this.showStatusMessage = function(prefix) {
         var p1 = mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || "&nbsp-&nbsp-&nbsp&nbsp";
         var p2 = mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || "&nbsp-&nbsp-&nbsp&nbsp";
-        screen.showOSD((prefix ? prefix + ".&nbsp&nbsp" : "" ) + "Port 1:&nbsp&nbsp" +p1 + ",&nbsp&nbspPort 2:&nbsp&nbsp" + p2, true);
+        screen.showOSD((prefix ? prefix + ".&nbsp&nbsp" : "" ) + "Port 1:&nbsp&nbsp" + p1 + ",&nbsp&nbspPort 2:&nbsp&nbsp" + p2, true);
     };
 
     this.getSettingsState = function() {

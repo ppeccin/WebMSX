@@ -75,6 +75,29 @@ WMSX.userPreferences = {};
         }
     ];
 
+    p.joykeys = [
+        {
+            buttons: {
+                UP:        [ k.VK_UP, k.VK_NUM_UP ],
+                DOWN:      [ k.VK_DOWN, k.VK_NUM_DOWN ],
+                LEFT:      [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
+                RIGHT:     [ k.VK_LEFT, k.VK_NUM_LEFT ],
+                A:         [ k.VK_SPACE, k.VK_OPEN_BRACKET ],
+                B:         [ k.VK_LALT, k.VK_M, k.VK_CLOSE_BRACKET ]
+            }
+        },
+        {
+            buttons: {
+                UP:        [ k.VK_T ],
+                DOWN:      [ k.VK_G ],
+                LEFT:      [ k.VK_F ],
+                RIGHT:     [ k.VK_H ],
+                A:         [ k.VK_A ],
+                B:         [ k.VK_Z ]
+            }
+        }
+    ];
+
 })(WMSX.userPreferences);
 
 WMSX.userPreferences.loadDefaults = function() {

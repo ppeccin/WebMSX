@@ -108,8 +108,8 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     };
 
     function updateConnectionsToHub() {
-        var j1 = joystick1 ? wmsx.ControllersHub.JOYSTICK + "1" : null;
-        var j2 = joystick2 ? wmsx.ControllersHub.JOYSTICK + "2" : null;
+        var j1 = joystick1 ? wmsx.ControllersHub.JOYSTICK + " 1" : null;
+        var j2 = joystick2 ? wmsx.ControllersHub.JOYSTICK + " 2" : null;
 
         hub.updateJoystickConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
     }

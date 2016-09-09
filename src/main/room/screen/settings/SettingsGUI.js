@@ -527,8 +527,8 @@ wmsx.SettingsGUI.html = function() {
                             <div id="wmsx-ports-device1" class="wmsx-none-device">
                                 <div id="wmsx-ports-device1-title" class="wmsx-device-title">NO DEVICE</div>
                                 <div class="wmsx-joy">
-                                    <div class="wmsx-joy-trig wmsx-joy-trig1"></div>
-                                    <div class="wmsx-joy-trig wmsx-joy-trig2"></div>
+                                    <div class="wmsx-virtual wmsx-joy-trig wmsx-joy-L"></div>
+                                    <div class="wmsx-virtual wmsx-joy-trig wmsx-joy-R"></div>
                                     <div class="wmsx-joy-middle"></div>
                                     <div class="wmsx-joy-logo"></div>
                                     <div class="wmsx-joy-outleft"></div>
@@ -539,27 +539,27 @@ wmsx.SettingsGUI.html = function() {
                                         <div class="wmsx-joy-dir-center"></div>
                                     </div>
                                     <div class="wmsx-joy-right">
-                                        <div class="wmsx-joy-button wmsx-joy-button1"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-button2"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-button3"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-button4"></div>
+                                        <div class="wmsx-joy-button wmsx-joy-A"></div>
+                                        <div class="wmsx-joy-button wmsx-joy-B"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-X"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-Y"></div>
                                     </div>
                                     <div class="wmsx-joy-center">
-                                        <div class="wmsx-joy-button wmsx-joy-buttona"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-buttonb"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-BACK"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-START"></div>
                                     </div>
-                                    <div id="wmsx-joy1-up" class="wmsx-joy-hs wmsx-joy-hs-up">&#9650;</div>
-                                    <div id="wmsx-joy1-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
-                                    <div id="wmsx-joy1-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
-                                    <div id="wmsx-joy1-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
-                                    <div id="wmsx-joy1-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">A</div>
-                                    <div id="wmsx-joy1-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">B</div>
-                                    <div id="wmsx-joy1-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
-                                    <div id="wmsx-joy1-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
-                                    <div id="wmsx-joy1-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
-                                    <div id="wmsx-joy1-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
-                                    <div id="wmsx-joy1-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">BACK</div>
-                                    <div id="wmsx-joy1-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">PAUSE</div>
+                                    <div id="wmsx-joy1-UP" class="wmsx-joy-hs wmsx-joy-hs-UP">&#9650;</div>
+                                    <div id="wmsx-joy1-DOWN" class="wmsx-joy-hs wmsx-joy-hs-DOWN">&#9660;</div>
+                                    <div id="wmsx-joy1-LEFT" class="wmsx-joy-hs wmsx-joy-hs-LEFT">&#9668;</div>
+                                    <div id="wmsx-joy1-RIGHT" class="wmsx-joy-hs wmsx-joy-hs-RIGHT">&#9658;</div>
+                                    <div id="wmsx-joy1-A" class="wmsx-joy-hs wmsx-joy-hs-A">A</div>
+                                    <div id="wmsx-joy1-B" class="wmsx-joy-hs wmsx-joy-hs-B">B</div>
+                                    <div id="wmsx-joy1-X" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-X">X</div>
+                                    <div id="wmsx-joy1-Y" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-Y">Y</div>
+                                    <div id="wmsx-joy1-L" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-L">L</div>
+                                    <div id="wmsx-joy1-R" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-R">R</div>
+                                    <div id="wmsx-joy1-BACK" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-BACK">BACK</div>
+                                    <div id="wmsx-joy1-START" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-START">START</div>
                                 </div>
                                 <div class="wmsx-mouse">
                                     <div class="wmsx-mouse-body">
@@ -575,8 +575,8 @@ wmsx.SettingsGUI.html = function() {
                             <div id="wmsx-ports-device2" class="wmsx-none-device">
                                 <div id="wmsx-ports-device2-title" class="wmsx-device-title">NO DEVICE</div>
                                 <div class="wmsx-joy">
-                                    <div class="wmsx-joy-trig wmsx-joy-trig1"> </div>
-                                    <div class="wmsx-joy-trig wmsx-joy-trig2"> </div>
+                                    <div class="wmsx-virtual wmsx-joy-trig wmsx-joy-L"> </div>
+                                    <div class="wmsx-virtual wmsx-joy-trig wmsx-joy-R"> </div>
                                     <div class="wmsx-joy-middle"> </div>
                                     <div class="wmsx-joy-logo"> </div>
                                     <div class="wmsx-joy-outleft"> </div>
@@ -587,27 +587,27 @@ wmsx.SettingsGUI.html = function() {
                                         <div class="wmsx-joy-dir-center"></div>
                                     </div>
                                     <div class="wmsx-joy-right">
-                                        <div class="wmsx-joy-button wmsx-joy-button1"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-button2"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-button3"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-button4"></div>
+                                        <div class="wmsx-joy-button wmsx-joy-A"></div>
+                                        <div class="wmsx-joy-button wmsx-joy-B"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-X"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-Y"></div>
                                     </div>
                                     <div class="wmsx-joy-center">
-                                        <div class="wmsx-joy-button wmsx-joy-buttona"></div>
-                                        <div class="wmsx-joy-button wmsx-joy-buttonb"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-BACK"></div>
+                                        <div class="wmsx-virtual wmsx-joy-button wmsx-joy-START"></div>
                                     </div>
-                                    <div id="wmsx-joy2-up" class="wmsx-joy-hs wmsx-joy-hs-up">&#9650;</div>
-                                    <div id="wmsx-joy2-down" class="wmsx-joy-hs wmsx-joy-hs-down">&#9660;</div>
-                                    <div id="wmsx-joy2-left" class="wmsx-joy-hs wmsx-joy-hs-left">&#9668;</div>
-                                    <div id="wmsx-joy2-right" class="wmsx-joy-hs wmsx-joy-hs-right">&#9658;</div>
-                                    <div id="wmsx-joy2-button1" class="wmsx-joy-hs wmsx-joy-hs-button1">A</div>
-                                    <div id="wmsx-joy2-button2" class="wmsx-joy-hs wmsx-joy-hs-button2">B</div>
-                                    <div id="wmsx-joy2-button3" class="wmsx-joy-hs wmsx-joy-hs-button3">X</div>
-                                    <div id="wmsx-joy2-button4" class="wmsx-joy-hs wmsx-joy-hs-button4">Y</div>
-                                    <div id="wmsx-joy2-button5" class="wmsx-joy-hs wmsx-joy-hs-button5">L</div>
-                                    <div id="wmsx-joy2-button6" class="wmsx-joy-hs wmsx-joy-hs-button6">R</div>
-                                    <div id="wmsx-joy2-button7" class="wmsx-joy-hs wmsx-joy-hs-button7">BACK</div>
-                                    <div id="wmsx-joy2-button8" class="wmsx-joy-hs wmsx-joy-hs-button8">PAUSE</div>
+                                    <div id="wmsx-joy2-UP" class="wmsx-joy-hs wmsx-joy-hs-UP">&#9650;</div>
+                                    <div id="wmsx-joy2-DOWN" class="wmsx-joy-hs wmsx-joy-hs-DOWN">&#9660;</div>
+                                    <div id="wmsx-joy2-LEFT" class="wmsx-joy-hs wmsx-joy-hs-LEFT">&#9668;</div>
+                                    <div id="wmsx-joy2-RIGHT" class="wmsx-joy-hs wmsx-joy-hs-RIGHT">&#9658;</div>
+                                    <div id="wmsx-joy2-A" class="wmsx-joy-hs wmsx-joy-hs-A">A</div>
+                                    <div id="wmsx-joy2-B" class="wmsx-joy-hs wmsx-joy-hs-B">B</div>
+                                    <div id="wmsx-joy2-X" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-X">X</div>
+                                    <div id="wmsx-joy2-Y" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-Y">Y</div>
+                                    <div id="wmsx-joy2-L" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-L">L</div>
+                                    <div id="wmsx-joy2-R" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-R">R</div>
+                                    <div id="wmsx-joy2-BACK" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-BACK">BACK</div>
+                                    <div id="wmsx-joy2-START" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-START">START</div>
                                 </div>
                                 <div class="wmsx-mouse">
                                     <div class="wmsx-mouse-body">
@@ -1156,6 +1156,16 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-device-title {
     color: hsl(0, 90%, 43%);
 }
+#wmsx-ports .wmsx-joykeys-device .wmsx-virtual {
+    opacity: 0.33;
+}
+#wmsx-ports .wmsx-joykeys-device .wmsx-joy-button.wmsx-virtual {
+    background: hsl(0, 0%, 75%);
+    box-shadow: 0 3px 0 0 hsl(0, 0%, 60%), 0 3px 0 1px hsl(0, 0%, 40%);
+}
+#wmsx-ports .wmsx-joykeys-device .wmsx-joy-hs.wmsx-virtual {
+    display: none;
+}
 
 #wmsx-ports .wmsx-joy {
     display: none;
@@ -1188,11 +1198,11 @@ wmsx.SettingsGUI.css = function() {
     border-radius: 5px;
     box-shadow: inset 1px 1px hsl(0, 0%, 90%), 0 2px 2px 2px hsl(0, 0%, 47%);
 }
-.wmsx-joy .wmsx-joy-trig1 {
+.wmsx-joy .wmsx-joy-L {
     left: 25px;
     border-top-left-radius: 16px;
 }
-.wmsx-joy .wmsx-joy-trig2 {
+.wmsx-joy .wmsx-joy-R {
     right: 25px;
     border-top-right-radius: 16px;
 }
@@ -1201,7 +1211,7 @@ wmsx.SettingsGUI.css = function() {
     position: absolute;
     left: 2px;
     right: 2px;
-    height: 86px;
+    height: 85px;
     background: white;
     background: linear-gradient(hsl(0, 0%, 94%), white, white, hsl(0, 0%, 93%));
     border-radius: 50px 50px 40px 40px;
@@ -1221,9 +1231,9 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-outleft, .wmsx-joy .wmsx-joy-outright {
     position: absolute;
     width: 100px;
-    height: 100px;
+    height: 97px;
     background: white;
-    border-radius: 1000px;
+    border-radius: 100%;
     transform-origin: 50px 50px;
     transform: rotate(6deg);
     box-shadow:
@@ -1246,12 +1256,12 @@ wmsx.SettingsGUI.css = function() {
     position: absolute;
     top: 10px;
     width: 80px;
-    height: 80px;
+    height: 78px;
     background: hsl(0, 0%, 87%);
     border: 1px solid rgba(0, 0, 0, .11);
     border-right: none;
     border-bottom: none;
-    border-radius: 1000px;
+    border-radius: 100%;
     box-sizing: border-box;
 }
 .wmsx-joy .wmsx-joy-left {
@@ -1260,7 +1270,7 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-left:before {
     content: "";
     position: absolute;
-    top: 10px;
+    top: 9px;
     left: 10px;
     width: 58px;
     height: 58px;
@@ -1274,7 +1284,7 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-right:before {
     content: "";
     position: absolute;
-    top: 21px;
+    top: 20px;
     right: 16px;
     width: 27px;
     height: 57px;
@@ -1296,20 +1306,20 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
 }
 .wmsx-joy .wmsx-joy-dirh {
-    top: 29px;
+    top: 28px;
     left: 16px;
     width: 46px;
     height: 14px;
 }
 .wmsx-joy .wmsx-joy-dirv {
-    top: 13px;
+    top: 12px;
     left: 32px;
     width: 14px;
     height: 45px;
 }
 .wmsx-joy .wmsx-joy-dir-center {
     position: absolute;
-    top: 30px;
+    top: 29px;
     left: 31px;
     width: 16px;
     height: 12px;
@@ -1331,29 +1341,29 @@ wmsx.SettingsGUI.css = function() {
     width: 19px;
     height: 19px;
     color: hsl(0, 0%, 97%);
-    border-radius: 1000px;
+    border-radius: 100%;
 }
 
-.wmsx-joy .wmsx-joy-button1 {
-    top: 47px;
+.wmsx-joy .wmsx-joy-A {
+    top: 46px;
     left: 30px;
     background: hsl(132, 90%, 41%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(127, 90%, 30%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
-.wmsx-joy .wmsx-joy-button2 {
-    top: 27px;
+.wmsx-joy .wmsx-joy-B {
+    top: 26px;
     left: 50px;
     background: hsl(0, 94%, 63%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(0, 90%, 43%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
-.wmsx-joy .wmsx-joy-button3 {
-    top: 27px;
+.wmsx-joy .wmsx-joy-X {
+    top: 26px;
     left: 10px;
     background: hsl(234, 80%, 66%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(234, 80%, 47%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
-.wmsx-joy .wmsx-joy-button4 {
-    top: 07px;
+.wmsx-joy .wmsx-joy-Y {
+    top: 6px;
     left: 30px;
     background: hsl(58, 100%, 44%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.06), 0 3px 0 0 hsl(56, 100%, 33%), 0 3px 0 1px hsl(0, 0%, 15%);
@@ -1366,16 +1376,16 @@ wmsx.SettingsGUI.css = function() {
     height: 09px;
     color: hsl(0, 0%, 58%);
     border-radius: 1000px;
-    background: hsl(0, 0%, 85%);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1), 0 2px 0 0 hsl(0, 0%, 65%), 0 2px 0 1px hsl(0, 0%, 33%);
+    background: hsl(0, 0%, 82%);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1), 0 2px 0 0 hsl(0, 0%, 62%), 0 2px 0 1px hsl(0, 0%, 30%);
 }
 
-.wmsx-joy .wmsx-joy-center .wmsx-joy-buttona {
+.wmsx-joy .wmsx-joy-center .wmsx-joy-BACK {
     left: 103px;
     border-top-right-radius: 1px;
     border-bottom-right-radius: 1px;
 }
-.wmsx-joy .wmsx-joy-center .wmsx-joy-buttonb {
+.wmsx-joy .wmsx-joy-center .wmsx-joy-START {
     right: 103px;
     border-top-left-radius: 1px;
     border-bottom-left-radius: 1px;
@@ -1387,7 +1397,7 @@ wmsx.SettingsGUI.css = function() {
     border-radius: 1000px;
     box-sizing: border-box;
 }
-.wmsx-joy-hs-up, .wmsx-joy-hs-down, .wmsx-joy-hs-left, .wmsx-joy-hs-right {
+.wmsx-joy-hs-UP, .wmsx-joy-hs-DOWN, .wmsx-joy-hs-LEFT, .wmsx-joy-hs-RIGHT {
     width: 26px;
     height: 25px;
     padding-top: 6px;
@@ -1395,48 +1405,48 @@ wmsx.SettingsGUI.css = function() {
     line-height: 10px;
     color: hsl(0, 0%, 95%);
 }
-.wmsx-joy-hs-up {
-    top: 19px;
+.wmsx-joy-hs-UP {
+    top: 18px;
     left: 37px;
     padding-top: 7px;
 }
-.wmsx-joy-hs-down {
-    top: 52px;
+.wmsx-joy-hs-DOWN {
+    top: 51px;
     left: 37px;
     padding-top: 4px;
 }
-.wmsx-joy-hs-left {
-    top: 35px;
+.wmsx-joy-hs-LEFT {
+    top: 34px;
     left: 21px;
 }
-.wmsx-joy-hs-right {
-    top: 35px;
+.wmsx-joy-hs-RIGHT {
+    top: 34px;
     left: 53px;
 }
-.wmsx-joy-hs-button1, .wmsx-joy-hs-button2, .wmsx-joy-hs-button3, .wmsx-joy-hs-button4 {
+.wmsx-joy-hs-A, .wmsx-joy-hs-B, .wmsx-joy-hs-X, .wmsx-joy-hs-Y {
     width: 21px;
     height: 23px;
     font-size: 12px;
     line-height: 18px;
     color: hsl(0, 0%, 99%);
 }
-.wmsx-joy-hs-button1 {
-    top: 58px;
+.wmsx-joy-hs-A {
+    top: 57px;
     right: 39px;
 }
-.wmsx-joy-hs-button2 {
-    top: 38px;
+.wmsx-joy-hs-B {
+    top: 37px;
     right: 19px;
 }
-.wmsx-joy-hs-button3 {
-    top: 38px;
+.wmsx-joy-hs-X {
+    top: 37px;
     right: 59px;
 }
-.wmsx-joy-hs-button4 {
-    top: 18px;
+.wmsx-joy-hs-Y {
+    top: 17px;
     right: 39px;
 }
-.wmsx-joy-hs-button5, .wmsx-joy-hs-button6 {
+.wmsx-joy-hs-L, .wmsx-joy-hs-R {
     width: 54px;
     height: 28px;
     top: -20px;
@@ -1445,13 +1455,13 @@ wmsx.SettingsGUI.css = function() {
     line-height: 12px;
     border-radius: 0;
 }
-.wmsx-joy-hs-button5 {
+.wmsx-joy-hs-L {
     left: 21px;
 }
-.wmsx-joy-hs-button6 {
+.wmsx-joy-hs-R {
     right: 22px;
 }
-.wmsx-joy-hs-button7, .wmsx-joy-hs-button8 {
+.wmsx-joy-hs-BACK, .wmsx-joy-hs-START {
     width: 26px;
     height: 34px;
     top: 38px;
@@ -1462,10 +1472,10 @@ wmsx.SettingsGUI.css = function() {
     color: hsl(0, 0%, 54%);
     border-radius: 0;
 }
-.wmsx-joy-hs-button7 {
+.wmsx-joy-hs-BACK {
     left: 99px;
 }
-.wmsx-joy-hs-button8 {
+.wmsx-joy-hs-START {
     right: 99px;
 }
 
@@ -1490,8 +1500,8 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
     transform: skew(-47deg, 30deg);
     box-shadow:
-     /* inset 0px 0px 1px 0      hsl(0, 0%, 45% */
-     3px 2px 0   -1px hsl(0, 0%, 70%)
+        /* inset 0px 0px 1px 0      hsl(0, 0%, 45% */
+    3px 2px 0   -1px hsl(0, 0%, 70%)
     ,4px 3px 0   -1px hsl(0, 0%, 60%)       /* line */
     ,6px 4px 0   -2px hsl(0, 0%, 82%)       /* line */
     ,5px 0   0   -4px hsl(0, 0%, 70%)
@@ -1514,7 +1524,7 @@ wmsx.SettingsGUI.css = function() {
     ,14px 10px 0 -4px hsl(0, 0%, 70%)       /* bottom correction */
     ,19px 11px 4px -6px hsl(0, 0%, 3%)      /* shadow */
     ,13px 12px 4px -6px hsl(0, 0%, 3%)      /* shadow */
-    ;
+;
 }
 
 #wmsx-ports .wmsx-mouse-button1, #wmsx-ports .wmsx-mouse-button2 {

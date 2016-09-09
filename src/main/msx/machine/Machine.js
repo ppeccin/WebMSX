@@ -436,25 +436,27 @@ wmsx.Machine = function() {
 
         // Normal state controls
         if (control === controls.FAST_SPEED) {
-            if (state) {
-                self.showOSD("FAST FORWARD", true);
+            if (state && alternateSpeed !== SPEED_FAST) {
                 alternateSpeed = SPEED_FAST;
-            } else {
-                self.showOSD(null, true);
+                mainVideoClockUpdateSpeed();
+                self.showOSD("FAST FORWARD", true);
+            } else if (!state && alternateSpeed === SPEED_FAST) {
                 alternateSpeed = null;
+                mainVideoClockUpdateSpeed();
+                self.showOSD(null, true);
             }
-            mainVideoClockUpdateSpeed();
             return;
         }
         if (control === controls.SLOW_SPEED) {
-            if (state) {
-                self.showOSD("SLOW MOTION", true);
+            if (state && alternateSpeed !== SPEED_SLOW) {
                 alternateSpeed = SPEED_SLOW;
-            } else {
-                self.showOSD(null, true);
+                mainVideoClockUpdateSpeed();
+                self.showOSD("SLOW MOTION", true);
+            } else if (!state && alternateSpeed === SPEED_SLOW) {
                 alternateSpeed = null;
+                mainVideoClockUpdateSpeed();
+                self.showOSD(null, true);
             }
-            mainVideoClockUpdateSpeed();
             return;
         }
         // Toggles
