@@ -35,6 +35,13 @@ wmsx.PortsConfigurator = function(controllersHub) {
         }
     };
 
+    this.getMappingForControl = function(button) {
+        return [ ];
+    };
+
+    this.customizeControl = function(key, mapping) {
+    };
+
     function setup() {
         // Set mode fields
         mouseModeElement = document.getElementById("wmsx-ports-mouse-mode");
@@ -44,11 +51,57 @@ wmsx.PortsConfigurator = function(controllersHub) {
         // Set device elements
         deviceElements = [ document.getElementById("wmsx-ports-device1"), document.getElementById("wmsx-ports-device2") ];
         deviceTitleElements = [ document.getElementById("wmsx-ports-device1-title"), document.getElementById("wmsx-ports-device2-title") ];
+
+        // Set buttons
+        for (var j = 1; j <= 2; ++j) {
+            for (var b in wmsx.JoystickButtons) {
+                var buttonElement = document.getElementById("wmsx-joy" + j + "-" + b);
+                buttonElement.wmsxButton = b;
+                setupButtonMouseEvents(buttonElement);
+            }
+        }
+
+    }
+
+    function setupButtonMouseEvents(buttonElement) {
+        buttonElement.addEventListener("mouseenter", mouseEnterButton);
+        buttonElement.addEventListener("mouseleave", mouseLeaveButton);
+    }
+
+    function mouseEnterButton(e) {
+        if (e.target.wmsxButton) {
+            buttonElementEditing = e.target;
+            joyButtonEditing = buttonElementEditing.wmsxButton;
+            updatePopup()
+        } else
+            mouseLeaveButton();
+    }
+
+    function mouseLeaveButton() {
+        buttonElementEditing = joyButtonEditing = null;
+        updatePopup();
+    }
+
+    function updatePopup() {
+        if (!joyButtonEditing) {
+            popup.hide();
+            //keyboardElement.focus();
+            return;
+        }
+
+        // Position
+        var keyRec = buttonElementEditing.getBoundingClientRect();
+        var x = keyRec.left + keyRec.width / 2;
+        var y = keyRec.top;
+
+        popup.show(self, joyButtonEditing, x, y);
     }
 
 
     var mouseModeElement, joysticksModeElement, joykeysModeElement;
     var deviceElements, deviceTitleElements;
+
+    var buttonElementEditing = null, joyButtonEditing = null;
 
     var popup = wmsx.ControlMappingPopup.get();
 

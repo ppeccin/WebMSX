@@ -51,7 +51,7 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
                     keyElement.innerHTML = labels[key] || key;
                     var msxKey = translations[key] || key;
                     if (wmsx.KeyboardKeys[msxKey]) {
-                        keyElement.msxKey = msxKey;
+                        keyElement.wmsxKey = msxKey;
                         keyElements.push(keyElement);
                     }
                     rowDiv.appendChild(keyElement);
@@ -71,9 +71,9 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
     }
 
     function mouseEnterKey(e) {
-        if (e.target.msxKey) {
+        if (e.target.wmsxKey) {
             keyElementEditing = e.target;
-            msxKeyEditing = keyElementEditing.msxKey;
+            msxKeyEditing = keyElementEditing.wmsxKey;
             updatePopup()
         } else
             mouseLeaveKey();
@@ -107,7 +107,7 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
 
     function refreshUnmappedIndicator() {
         for (var k = 0; k < keyElements.length; ++k) {
-            var map = domKeyboard.getKeyMapping(keyElements[k].msxKey);
+            var map = domKeyboard.getKeyMapping(keyElements[k].wmsxKey);
             if (!map || map.length === 0) keyElements[k].classList.add("wmsx-keyboard-key-unmapped");
             else keyElements[k].classList.remove("wmsx-keyboard-key-unmapped");
         }

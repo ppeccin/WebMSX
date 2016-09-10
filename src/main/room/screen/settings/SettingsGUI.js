@@ -1396,6 +1396,7 @@ wmsx.SettingsGUI.css = function() {
     border: 1px solid transparent;
     border-radius: 1000px;
     box-sizing: border-box;
+    cursor: pointer;
 }
 .wmsx-joy-hs-UP, .wmsx-joy-hs-DOWN, .wmsx-joy-hs-LEFT, .wmsx-joy-hs-RIGHT {
     width: 26px;
@@ -1448,7 +1449,7 @@ wmsx.SettingsGUI.css = function() {
 }
 .wmsx-joy-hs-L, .wmsx-joy-hs-R {
     width: 54px;
-    height: 28px;
+    height: 25px;
     top: -20px;
     color: hsl(0, 0%, 52%);
     font-size: 12px;
@@ -1463,8 +1464,8 @@ wmsx.SettingsGUI.css = function() {
 }
 .wmsx-joy-hs-BACK, .wmsx-joy-hs-START {
     width: 26px;
-    height: 34px;
-    top: 38px;
+    height: 29px;
+    top: 39px;
     padding-top: 18px;
     font-size: 7px;
     font-weight: normal;

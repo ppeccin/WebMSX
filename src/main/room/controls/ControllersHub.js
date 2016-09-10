@@ -189,7 +189,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
-    var joystickControls = new wmsx.GamepadJoysticksControls(this, keyForwardControls);
+    var joystickControls = new wmsx.GamepadJoysticksControls(this, keyboard);
     var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyboard);
 
     var turboFireSpeed = 0;
