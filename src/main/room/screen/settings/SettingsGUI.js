@@ -562,7 +562,7 @@ wmsx.SettingsGUI.html = function() {
                                     <div id="wmsx-joy1-START" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-START">START</div>
                                 </div>
                                 <div class="wmsx-mouse">
-                                    <div class="wmsx-mouse-body">
+                                    <div id="wmsx-mouse1" class="wmsx-mouse-body">
                                         <div class="wmsx-mouse-button1"></div><div class="wmsx-mouse-button2"></div>
                                         <div class="wmsx-mouse-logo"></div>
                                     </div>
@@ -610,7 +610,7 @@ wmsx.SettingsGUI.html = function() {
                                     <div id="wmsx-joy2-START" wmsx-virtual="true" class="wmsx-virtual wmsx-joy-hs wmsx-joy-hs-START">START</div>
                                 </div>
                                 <div class="wmsx-mouse">
-                                    <div class="wmsx-mouse-body">
+                                    <div id="wmsx-mouse2" class="wmsx-mouse-body">
                                         <div class="wmsx-mouse-button1"></div><div class="wmsx-mouse-button2"></div>
                                         <div class="wmsx-mouse-logo"></div>
                                     </div>
@@ -636,11 +636,15 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                 </div>
                 <div id="wmsx-control-mapping-popup">
-                    Key mapped to:
-                    <br>
-                    <div id="wmsx-control-mapping-popup-keys" class="wmsx-command"></div>
-                    <div>Press new key.</div>
-                    <div>(right-click to clear)</div>
+                    <div id="wmsx-control-mapping-popup-heading">
+                        Control mapped to:
+                    </div>
+                    <div id="wmsx-control-mapping-popup-mapping" class="wmsx-command"></div>
+                    <div id="wmsx-control-mapping-popup-footer">
+                        Press new key.
+                        <br>
+                        (right-click to clear)
+                    <div>
                 </div>
             </div>
         </div>
@@ -1536,7 +1540,7 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
 }
 #wmsx-ports .wmsx-mouse-button1 {
-    width: 47%;
+    width: 48%;
     border-right-width: 1px;
 }
 #wmsx-ports .wmsx-mouse-button2 {

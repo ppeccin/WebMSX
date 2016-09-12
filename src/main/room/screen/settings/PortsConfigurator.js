@@ -35,11 +35,11 @@ wmsx.PortsConfigurator = function(controllersHub) {
         }
     };
 
-    this.getMappingForControl = function(button) {
-        return [ ];
+    this.getMappingForControl = function(button, port) {
+        return controllersHub.getMappingForControl(button, port - 1);
     };
 
-    this.customizeControl = function(key, mapping) {
+    this.customizeControl = function(button, port, mapping) {
     };
 
     function setup() {
@@ -53,14 +53,19 @@ wmsx.PortsConfigurator = function(controllersHub) {
         deviceTitleElements = [ document.getElementById("wmsx-ports-device1-title"), document.getElementById("wmsx-ports-device2-title") ];
 
         // Set buttons
-        for (var j = 1; j <= 2; ++j) {
+        for (var p = 1; p <= 2; ++p) {
+            var buttonElement;
             for (var b in wmsx.JoystickButtons) {
-                var buttonElement = document.getElementById("wmsx-joy" + j + "-" + b);
+                buttonElement = document.getElementById("wmsx-joy" + p + "-" + b);
                 buttonElement.wmsxButton = b;
+                buttonElement.wmsxPort = p;
                 setupButtonMouseEvents(buttonElement);
             }
+            buttonElement = document.getElementById("wmsx-mouse" + p);
+            buttonElement.wmsxButton = "MOUSE";
+            buttonElement.wmsxPort = p;
+            setupButtonMouseEvents(buttonElement);
         }
-
     }
 
     function setupButtonMouseEvents(buttonElement) {
@@ -72,13 +77,14 @@ wmsx.PortsConfigurator = function(controllersHub) {
         if (e.target.wmsxButton) {
             buttonElementEditing = e.target;
             joyButtonEditing = buttonElementEditing.wmsxButton;
+            portEditing = buttonElementEditing.wmsxPort;
             updatePopup()
         } else
             mouseLeaveButton();
     }
 
     function mouseLeaveButton() {
-        buttonElementEditing = joyButtonEditing = null;
+        buttonElementEditing = joyButtonEditing = portEditing = null;
         updatePopup();
     }
 
@@ -94,14 +100,16 @@ wmsx.PortsConfigurator = function(controllersHub) {
         var x = keyRec.left + keyRec.width / 2;
         var y = keyRec.top;
 
-        popup.show(self, joyButtonEditing, x, y);
+        var text = controllersHub.getPopupText(joyButtonEditing, portEditing - 1);
+
+        popup.show(self, joyButtonEditing, portEditing, x, y, text.heading, text.footer);
     }
 
 
     var mouseModeElement, joysticksModeElement, joykeysModeElement;
     var deviceElements, deviceTitleElements;
 
-    var buttonElementEditing = null, joyButtonEditing = null;
+    var buttonElementEditing = null, joyButtonEditing = null, portEditing = null;
 
     var popup = wmsx.ControlMappingPopup.get();
 

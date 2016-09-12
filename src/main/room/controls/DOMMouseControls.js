@@ -48,12 +48,12 @@ wmsx.DOMMouseControls = function(hub) {
         updateConnectionsToHub();
     }
 
-    this.readMousePort = function(atPort) {
+    this.readControllerPort = function(atPort) {
         if (atPort === port) return mouseState.portValue;
         else return 0x3f;
     };
 
-    this.writeMousePin8Port = function(atPort, val) {
+    this.writeControllerPin8Port = function(atPort, val) {
         if (atPort !== port) return;
 
         var flipped = mouseState.pin8Value ^ val;
@@ -98,9 +98,17 @@ wmsx.DOMMouseControls = function(hub) {
         pixelScaleX = scaleX; pixelScaleY = scaleY;
     };
 
+    this.getMappingForControl = function(button, port) {
+        return "Lock / Unlock pointer";
+    };
+
+    this.getPopupText = function(button, port) {
+        return { heading: "Middle Button:", footer: "" };
+    };
+
     function lockPointer() {
         if (port < 0)
-            return screen.showOSD("Mouse Pointer Locking only when MOUSE is ENALBED!", true, true);
+            return screen.showOSD("Mouse Pointer Locking only when MOUSE is ENABLED!", true, true);
         var func = inputElement.requestPointerLock || inputElement.mozRequestPointerLock || inputElement.webkitRequestPointerLock;
         if (func) func.apply(inputElement);
     }
@@ -183,7 +191,7 @@ wmsx.DOMMouseControls = function(hub) {
 
         port = atPort;
 
-        self.writeMousePin8Port(port, pin8Val);
+        self.writeControllerPin8Port(port, pin8Val);
         updateConnectionsToHub();
 
         showStatusMessage("Mouse AUTO-ENABLED");

@@ -54,11 +54,14 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.readControllerPort = function(port) {
-        return readFromControllerPort[port](port) | keyboard.readJapaneseKeyboardLayoutPort();
+        var forward = controllerAtPort[port];
+        return (forward ? forward.readControllerPort(port) : 0x3f) | keyboard.readJapaneseKeyboardLayoutPort();
     };
 
-    this.writePin8ControllerPort = function(port, value) {
-        writePin8ToControllerPort[port](port, value);
+    this.writeControllerPin8Port = function(port, value) {
+        mouseControls.portPin8Announced(port, value);       // Give Mouse a chance to Auto Enable
+        var forward = controllerAtPort[port];
+        if (forward) forward.writeControllerPin8Port(port, value);
     };
 
     this.controllersClockPulse = function() {
@@ -139,6 +142,14 @@ wmsx.ControllersHub = function(keyForwardControls) {
         };
     };
 
+    this.getMappingForControl = function(button, port) {
+        return controllerAtPort[port].getMappingForControl(button, port);
+    };
+
+    this.getPopupText = function(button, port) {
+        return controllerAtPort[port].getPopupText(button, port);
+    };
+
     var processKeyEvent = function(e, press) {
         e.returnValue = false;  // IE
         e.preventDefault();
@@ -153,35 +164,20 @@ wmsx.ControllersHub = function(keyForwardControls) {
     function updateConnections() {
         // Mouse takes precedence, then Joysticks, then Joykeys
         for (var p = 0; p <= 1; ++p) {
-            if (mousePresent[p]) {
-                readFromControllerPort[p] = mouseControls.readMousePort;
-                writePin8ToControllerPort[p] =  mouseControls.writeMousePin8Port;
-            } else if (joystickPresent[p]) {
-                readFromControllerPort[p] = joystickControls.readJoystickPort;
-                writePin8ToControllerPort[p] =  writePin8PortDisconnected;        // Does not take writes
-            } else if (joykeysPresent[p]) {
-                readFromControllerPort[p] = joykeysControls.readJoystickPort;
-                writePin8ToControllerPort[p] =  writePin8PortDisconnected;        // Does not take writes
-            } else {
-                readFromControllerPort[p] = readPortDisconnected;
-                writePin8ToControllerPort[p] =  writePin8PortDisconnected;
-            }
+            if (mousePresent[p])
+                controllerAtPort[p] = mouseControls;
+            else if (joystickPresent[p])
+                controllerAtPort[p] = joystickControls;
+            else if (joykeysPresent[p])
+                controllerAtPort[p] = joykeysControls;
+            else
+                controllerAtPort[p] = null;
         }
         screen.controllersSettingsStateUpdate();
     }
 
-    function readPortDisconnected(port) {
-        return 0x3f;
-    }
 
-    function writePin8PortDisconnected(port, val) {
-        // Give Mouse a chance to Auto Enable
-        mouseControls.portPin8Announced(port, val);
-    }
-
-
-    var readFromControllerPort = [ readPortDisconnected, readPortDisconnected ];
-    var writePin8ToControllerPort =  [ writePin8PortDisconnected, writePin8PortDisconnected ];
+    var controllerAtPort = [ null, null ];
 
     var mousePresent =    [ null, null ];
     var joystickPresent = [ null, null ];

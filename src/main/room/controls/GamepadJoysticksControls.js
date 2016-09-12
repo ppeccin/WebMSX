@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
+// TODO No Joysticks detection when Machine is OFF
+
+ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 "use strict";
 
     this.connectPeripherals = function(pScreen) {
@@ -26,9 +28,13 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         updateConnectionsToHub();
     };
 
-    this.readJoystickPort = function(port) {
+    this.readControllerPort = function(port) {
         return (port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue;
     };
+
+     this.writeControllerPin8Port = function(atPort, val) {
+         // Do nothing
+     };
 
     this.toggleMode = function() {
         if (!supported) {
@@ -107,7 +113,19 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         }
     };
 
-    function updateConnectionsToHub() {
+     this.getMappingForControl = function(button, port) {
+         return joyPrefs[port ^ swappedMode].virtualButtonsKeys[button];
+     };
+
+     this.getPopupText = function(button, port) {
+         var virtual = joystickButtons[button] < 0;
+         return {
+             heading: virtual ? "Virtual Button mapped to:" : "Button mapped to:",
+             footer: virtual ? "Press new button and key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
+         };
+     };
+
+     function updateConnectionsToHub() {
         var j1 = joystick1 ? wmsx.ControllersHub.JOYSTICK + " 1" : null;
         var j2 = joystick2 ? wmsx.ControllersHub.JOYSTICK + " 2" : null;
 
@@ -192,8 +210,8 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     }
 
     function applyPreferences() {
-        joy1Prefs = WMSX.userPreferences.joysticks[0];
-        joy2Prefs = WMSX.userPreferences.joysticks[1];
+        joyPrefs[0] = joy1Prefs = WMSX.userPreferences.joysticks[0];
+        joyPrefs[1] = joy2Prefs = WMSX.userPreferences.joysticks[1];
     }
 
 
@@ -217,6 +235,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     var joystick2;
     var joy1Prefs;
     var joy2Prefs;
+    var joyPrefs = [];
 
     var DETECTION_DELAY = 60;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off

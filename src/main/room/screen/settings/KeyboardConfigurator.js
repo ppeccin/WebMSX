@@ -22,7 +22,7 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
         return domKeyboard.getKeyMapping(msxKeyEditing) || [];
     };
 
-    this.customizeControl = function(key, mapping) {
+    this.customizeControl = function(key, port, mapping) {
         domKeyboard.customizeKey(key, mapping);
         self.refresh();
         updatePopup();
@@ -102,7 +102,7 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
         var x = keyRec.left + keyRec.width / 2;
         var y = keyRec.top;
 
-        popup.show(self, msxKeyEditing, x, y);
+        popup.show(self, msxKeyEditing, 0, x, y, POPUP_HEADING, POPUP_FOOTER);
     }
 
     function refreshUnmappedIndicator() {
@@ -163,6 +163,9 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
     var translations = {
         "ENTER_X1": "#NONE#", "ENTER_X2": "#NONE#", "SHIFT2": "SHIFT"
     };
+
+    var POPUP_HEADING = "Key mapped to:";
+    var POPUP_FOOTER = "Press new key.<br>(right-click to clear)";
 
 
     init();

@@ -27,10 +27,10 @@ WMSX.userPreferences = {};
             virtualButtonsKeys: {
                 X:         null,
                 Y:         null,
-                L:         { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] },
-                R:         k.VK_F12,
-                BACK:      k.VK_ESCAPE,
-                START:     { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] }
+                L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
+                R:         [ k.VK_F12 ],
+                BACK:      [ k.VK_ESCAPE ],
+                START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
             },
             settings: {
                 device:    -1,  // -1 = auto
@@ -59,10 +59,10 @@ WMSX.userPreferences = {};
             virtualButtonsKeys: {
                 X:         null,
                 Y:         null,
-                L:         { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] },
-                R:         k.VK_F12,
-                BACK:      k.VK_ESCAPE,
-                START:     { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] }
+                L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
+                R:         [ k.VK_F12 ],
+                BACK:      [ k.VK_ESCAPE ],
+                START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
             },
             settings: {
                 device:    -1,  // -1 = auto

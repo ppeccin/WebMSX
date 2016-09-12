@@ -9,23 +9,28 @@ wmsx.ControlMappingPopup = function() {
         setup();
     }
 
-    this.show = function(pController, pControlEditing, x, y) {
+    this.show = function(pController, pControlEditing, pPortEditing, x, y, heading, footer) {
         posX = x; posY = y;
         controller = pController;
         controlEditing = pControlEditing;
+        portEditing = pPortEditing;
         modifPending = null;
+        popupHeading.innerHTML = heading;
+        popupFooter.innerHTML = footer;
         update();
     };
 
     this.hide = function() {
         posX = posY = 0;
-        controller = controlEditing = null;
+        controller = controlEditing = portEditing = null;
         update();
     };
 
     function setup() {
         popup = document.getElementById("wmsx-control-mapping-popup");
-        popupKeys = document.getElementById("wmsx-control-mapping-popup-keys");
+        popupHeading = document.getElementById("wmsx-control-mapping-popup-heading");
+        popupMapping = document.getElementById("wmsx-control-mapping-popup-mapping");
+        popupFooter = document.getElementById("wmsx-control-mapping-popup-footer");
         popup.tabIndex = -1;
 
         popup.addEventListener("keydown", keyDown);
@@ -68,8 +73,8 @@ wmsx.ControlMappingPopup = function() {
         popup.style.display = "block";
         window.setTimeout(function() { popup.focus(); }, 0);
 
-        var mappings = controller.getMappingForControl(controlEditing) || [];
-        popupKeys.innerHTML = mappings.length === 0 ? "- none -" : htmlForMappings(mappings);
+        var mappings = controller.getMappingForControl(controlEditing, portEditing) || [];
+        popupMapping.innerHTML = mappings.constructor === String ? mappings : mappings.length === 0 ? "- none -" : htmlForMappings(mappings);
 
         // Position
         var popRec = popup.getBoundingClientRect();
@@ -81,7 +86,7 @@ wmsx.ControlMappingPopup = function() {
 
     function customizeControl(e) {
         var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
-        controller.customizeControl(controlEditing, mapping);
+        controller.customizeControl(controlEditing, portEditing, mapping);
         modifPending = null;
         update();
     }
@@ -106,9 +111,9 @@ wmsx.ControlMappingPopup = function() {
 
 
     var posX = 0, posY = 0;
-    var controller = null, controlEditing = null, modifPending = null;
+    var controller = null, controlEditing = null, portEditing, modifPending = null;
 
-    var popup, popupKeys;
+    var popup, popupHeading, popupMapping, popupFooter;
     var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
 
 

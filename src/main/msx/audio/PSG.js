@@ -62,8 +62,8 @@ wmsx.PSG = function(audioSocket, controllersSocket) {
                 // register 14 is read-only
             case 15:
                 // Bits 4 and 5 mapped to external ports
-                controllersSocket.writePin8ControllerPort(0, (val & 0x10) >> 4);
-                controllersSocket.writePin8ControllerPort(1, (val & 0x20) >> 5);
+                controllersSocket.writeControllerPin8Port(0, (val & 0x10) >> 4);
+                controllersSocket.writeControllerPin8Port(1, (val & 0x20) >> 5);
                 break;
         }
     };

@@ -23,8 +23,12 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
         updateConnectionsToHub();
     };
 
-    this.readJoystickPort = function(port) {
-        return (port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue;
+    this.readControllerPort = function(port) {
+        return joyStates[port ^ swappedMode].portValue;
+    };
+
+    this.writeControllerPin8Port = function(atPort, val) {
+        // Do nothing
     };
 
     this.toggleMode = function() {
@@ -57,6 +61,14 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
         else       joyStates[mapping.p].portValue |=  (1 << joystickButtons[mapping.b]);
     };
 
+    this.getMappingForControl = function(button, port) {
+        return joyPrefs[port ^ swappedMode].buttons[button];
+    };
+
+    this.getPopupText = function(button, port) {
+        return { heading: "Button mapped to:", footer: "Press new key.<br>(right-click to clear)" };
+    };
+
     function updateCodeMap() {
         keyCodeMap = {};
         if (mode >= 0) updateCodeMapJoykeys(joy1Prefs.buttons, 0);
@@ -83,8 +95,8 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     }
 
     function applyPreferences() {
-        joy1Prefs = WMSX.userPreferences.joykeys[0];
-        joy2Prefs = WMSX.userPreferences.joykeys[1];
+        joyPrefs[0] = joy1Prefs = WMSX.userPreferences.joykeys[0];
+        joyPrefs[1] = joy2Prefs = WMSX.userPreferences.joykeys[1];
     }
 
 
@@ -106,6 +118,7 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
 
     var joy1Prefs;
     var joy2Prefs;
+    var joyPrefs = [];
 
 
     function JoystickState() {
