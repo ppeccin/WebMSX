@@ -113,22 +113,27 @@
         }
     };
 
-     this.getMappingForControl = function(button, port) {
-         return joyPrefs[port ^ swappedMode].virtualButtonsKeys[button];
-     };
+    this.getMappingForControl = function(button, port) {
+        var prefs = joyPrefs[port ^ swappedMode];
+        if (joystickButtons[button] < 0)
+            return prefs.buttons[button].length !== 0 || prefs.virtualButtonsKeys[button].length !== 0
+                ? { from: prefs.buttons[button], to: prefs.virtualButtonsKeys[button] }
+                : [];
+        else
+            return prefs.buttons[button];
+    };
 
-     this.getPopupText = function(button, port) {
-         var virtual = joystickButtons[button] < 0;
-         return {
-             heading: virtual ? "Virtual Button mapped to:" : "Button mapped to:",
-             footer: virtual ? "Press new button and key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
-         };
-     };
+    this.getPopupText = function(button, port) {
+        var virtual = joystickButtons[button] < 0;
+        return {
+            heading: virtual ? "Virtual Button mapping:" : "Button mapped to:",
+            footer: virtual ? "Press new button / new key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
+        };
+    };
 
-     function updateConnectionsToHub() {
+    function updateConnectionsToHub() {
         var j1 = joystick1 ? wmsx.ControllersHub.JOYSTICK + " 1" : null;
         var j2 = joystick2 ? wmsx.ControllersHub.JOYSTICK + " 2" : null;
-
         hub.updateJoystickConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
     }
 

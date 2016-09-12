@@ -687,33 +687,54 @@
     box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25), inset 1px 1px 2px -1px rgba(0, 0, 0, 0.25), 1px 1px 0 rgba(255, 255, 255, 0.27);
 }
 
-.wmsx-joy .wmsx-joy-button {
-    position: absolute;
-    width: 19px;
+.wmsx-joy-button {
+    position: relative;
+    display: inline-block;
+    top: -1px;
+    min-width: 19px;
     height: 19px;
+    font-size: 12px;
+    line-height: 14px;
+    padding-top: 3px;
     color: hsl(0, 0%, 97%);
+    background: hsl(0, 00%, 54%);
     border-radius: 100%;
+    box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(0, 0%, 40%), 0 3px 0 1px hsl(0, 0%, 15%);
+    box-sizing: border-box;
+}
+.wmsx-joy-button.wmsx-square {
+    top: -2px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+    border-radius: 1px 1px 0 0;
+    padding: 2px 5px 0;
+    box-shadow: inset 1px 1px hsl(0, 0%, 64%), inset -1px -1px hsl(0, 0%, 35%), 0 3px 0 0 hsl(0, 0%, 40%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 
 .wmsx-joy .wmsx-joy-A {
+    position: absolute;
     top: 46px;
     left: 30px;
     background: hsl(132, 90%, 41%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(127, 90%, 30%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 .wmsx-joy .wmsx-joy-B {
+    position: absolute;
     top: 26px;
     left: 50px;
     background: hsl(0, 94%, 63%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(0, 90%, 43%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 .wmsx-joy .wmsx-joy-X {
+    position: absolute;
     top: 26px;
     left: 10px;
     background: hsl(234, 80%, 66%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(234, 80%, 47%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 .wmsx-joy .wmsx-joy-Y {
+    position: absolute;
     top: 6px;
     left: 30px;
     background: hsl(58, 100%, 44%);
@@ -956,7 +977,7 @@
     display: none;
     position: fixed;
     padding: 4px 9px;
-    line-height: 16px;
+    line-height: 19px;
     text-align: center;
     vertical-align: top;
     border-radius: 6px;
@@ -969,7 +990,7 @@
 #wmsx-modal #wmsx-control-mapping-popup .wmsx-command {
     width: auto;
     line-height: 21px;
-    margin: 9px 0 8px;
+    margin: 10px 0;
     font-weight: bold;
 }
 #wmsx-modal #wmsx-control-mapping-popup:after {

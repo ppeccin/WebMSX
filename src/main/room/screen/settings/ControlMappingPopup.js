@@ -74,7 +74,7 @@ wmsx.ControlMappingPopup = function() {
         window.setTimeout(function() { popup.focus(); }, 0);
 
         var mappings = controller.getMappingForControl(controlEditing, portEditing) || [];
-        popupMapping.innerHTML = mappings.constructor === String ? mappings : mappings.length === 0 ? "- none -" : htmlForMappings(mappings);
+        popupMapping.innerHTML = htmlForMappings(mappings);
 
         // Position
         var popRec = popup.getBoundingClientRect();
@@ -92,17 +92,25 @@ wmsx.ControlMappingPopup = function() {
     }
 
     function htmlForMappings(mappings) {
-        if (mappings.length === 0) return "- none -";
+        if (mappings.constructor === String) return mappings;
+        if (mappings.constructor === Object) return htmlForMappings(mappings.from) + "&nbsp;&nbsp;=>&nbsp;&nbsp;" + htmlForMappings(mappings.to);
+        if (!mappings || mappings.length === 0) return "- none -";
 
         var res = "";
         for (var i = 0; i < mappings.length; i++) {
+            var str;
             var mapping = mappings[i];
-            if (i > 0) res += "&nbsp;,&nbsp;";
-            var names = !mapping.n || mapping.n.constructor !== Array ? [ mapping.n ] : mapping.n;
-            var str = "";
-            for (var k = 0, len = names.length; k < len; ++k) {
-                if (k > 0) str += (k === (len-1)) ? "&nbsp;+&nbsp;" : "&nbsp;";
-                str += '<DIV class = "wmsx-key">' + names[k] + '</DIV>';
+            if (mapping.constructor === String) {
+                str = mapping;
+            } else {
+                if (i > 0) res += "&nbsp;,&nbsp;";
+                var names = !mapping.n || mapping.n.constructor !== Array ? [mapping.n] : mapping.n;
+                str = "";
+                for (var k = 0, len = names.length; k < len; ++k) {
+                    var cla = mapping.t === "JOYSQUARE" ? "wmsx-joy-button wmsx-square" : mapping.t === "JOY" ? "wmsx-joy-button" : "wmsx-key";
+                    if (k > 0) str += (k === (len - 1)) ? "&nbsp;+&nbsp;" : "&nbsp;";
+                    str += '<DIV class = "' + cla + '">' + names[k] + '</DIV>';
+                }
             }
             res += str;
         }

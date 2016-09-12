@@ -25,8 +25,8 @@ WMSX.userPreferences = {};
                 START:     [ g.JB_START ]
             },
             virtualButtonsKeys: {
-                X:         null,
-                Y:         null,
+                X:         [ ],
+                Y:         [ ],
                 L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
                 R:         [ k.VK_F12 ],
                 BACK:      [ k.VK_ESCAPE ],
@@ -57,8 +57,8 @@ WMSX.userPreferences = {};
                 START:     [ g.JB_START ]
             },
             virtualButtonsKeys: {
-                X:         null,
-                Y:         null,
+                X:         [ ],
+                Y:         [ ],
                 L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
                 R:         [ k.VK_F12 ],
                 BACK:      [ k.VK_ESCAPE ],
@@ -82,8 +82,8 @@ WMSX.userPreferences = {};
                 DOWN:      [ k.VK_DOWN, k.VK_NUM_DOWN ],
                 LEFT:      [ k.VK_LEFT, k.VK_NUM_LEFT ],
                 RIGHT:     [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
-                A:         [ k.VK_SPACE, k.VK_INSERT ],
-                B:         [ k.VK_LALT, k.VK_DELETE, k.VK_M ]
+                A:         [ k.VK_SPACE, k.VK_LSHIFT, k.VK_INSERT ],
+                B:         [ k.VK_LALT, k.VK_LCONTROL, k.VK_DELETE, k.VK_M ]
             }
         },
         {
