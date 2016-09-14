@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.KeyboardConfigurator = function(controllersHub) {
+wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
 "use strict";
 
     var self = this;
@@ -29,8 +29,9 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
     };
 
     function setupKeyboard() {
+        keyboardNameElement = document.getElementById("wmms-inputs-keyboard-name");
         keyboardElement = document.getElementById("wmsx-keyboard");
-        keyboardElement.tabIndex = "-1";        // To return focus to after closing the popup
+        keyboardElement.addEventListener("mousedown", mouseDownKeyboard);
 
         // Create Keyboard
         for (var s in sections) {
@@ -59,10 +60,6 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
                 }
             }
         }
-        setupKeyMouseEvents(keyboardElement);
-        keyboardElement.addEventListener("mousedown", mouseDownKeyboard);
-
-        keyboardNameElement = document.getElementById("wmms-inputs-keyboard-name");
     }
 
     function setupKeyMouseEvents(keyElement) {
@@ -93,7 +90,7 @@ wmsx.KeyboardConfigurator = function(controllersHub) {
     function updatePopup() {
         if (!msxKeyEditing) {
             popup.hide();
-            keyboardElement.focus();
+            returnFocusElement.focus();
             return;
         }
 

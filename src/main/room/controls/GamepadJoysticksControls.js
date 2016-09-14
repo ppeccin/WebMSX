@@ -2,7 +2,7 @@
 
 // TODO No Joysticks detection when Machine is OFF
 
- wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
+wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 "use strict";
 
     this.connectPeripherals = function(pScreen) {
@@ -123,12 +123,52 @@
             return prefs.buttons[button];
     };
 
-    this.getPopupText = function(button, port) {
+    this.getMappingPopupText = function(button, port) {
         var virtual = joystickButtons[button] < 0;
         return {
             heading: virtual ? "Virtual Button mapping:" : "Button mapped to:",
             footer: virtual ? "Press new button / new key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
         };
+    };
+
+    this.customizeControl = function (button, port, mapping) {
+        var mappings;
+        // Key or Button
+        if (mapping.c) {
+            // Ignore if mapping a key to non-virtual button
+            if (mapping.c && joystickButtons[button] >= 0) return;
+            mappings = joyPrefs[port ^ swappedMode].virtualButtonsKeys[button];
+            // Ignore if key already mapped
+            if (wmsx.Util.arrayFind(mappings, function(map) {
+                    return map.c === mapping.c;
+                })) return;
+        } else {
+            mappings = joyPrefs[port ^ swappedMode].buttons[button];
+            // Ignore if button already mapped
+            if (wmsx.Util.arrayFind(mappings, function(map) {
+                    return map.b === mapping.b;
+                })) return;
+
+        }
+        // Add new mapping, max of X items
+        if (mappings.length >= MAX_MAPPED) mappings.splice(0, mappings.length - (MAX_MAPPED - 1));
+        mappings.push(mapping);
+        resetStates();
+    };
+
+    this.clearControl = function(button, port) {
+        joyPrefs[port ^ swappedMode].buttons[button].length = 0;
+        if (joystickButtons[button] < 0) joyPrefs[port ^ swappedMode].virtualButtonsKeys[button].length = 0;
+        resetStates();
+    };
+
+    this.startButtonDetection = function(port, listener) {
+        buttonDetectionPrefs = joyPrefs[port ^ swappedMode];
+        buttonDetectionListener = listener;
+    };
+
+    this.stopButtonDetection = function() {
+        buttonDetectionPrefs = buttonDetectionListener = null;
     };
 
     function updateConnectionsToHub() {
@@ -162,18 +202,21 @@
     }
 
     function update(gamepad, joyState, prefs) {
+        if (prefs === buttonDetectionPrefs) return detectButton(gamepad);
+
         var buttonsState = joyState.buttonsState;
 
         // Turbo-fire
         var prevTriggerAState = buttonsState["A"];
 
         // Update buttons states
-        for (var b in wmsx.JoystickButtons) {
+        for (var b in joystickButtons) {
             var buttonMappings = prefs.buttons[b];
             if (buttonMappings.length > 0) {
                 var state = false;
                 for (var i = 0; !state && i < buttonMappings.length; ++i)
-                    if (gamepad.getButtonDigital(buttonMappings[i].c)) state = true;
+                    if (gamepad.getButtonDigital(buttonMappings[i].b)) state = true;
+
                 if (buttonsState[b] !== state) {
                     buttonsState[b] = state;
                     var bit = joystickButtons[b];
@@ -184,8 +227,9 @@
                         else       joyState.portValue |= (1 << bit);
                     } else {
                         // Virtual button
-                        var key = prefs.virtualButtonsKeys[b];
-                        if (key) keyForwardControls.processKey(key.c, state);
+                        var keys = prefs.virtualButtonsKeys[b];
+                        if (keys) for (var k = 0; k < keys.length; ++k)
+                            keyForwardControls.processKey(keys[k].c, state);
                     }
                 }
             }
@@ -211,6 +255,14 @@
                 if (turboFireFlipClockCount > 2 ) joyState.portValue |= 0x10;
                 else joyState.portValue &= ~0x10;
             }
+        }
+    }
+
+    function detectButton(gamepad) {
+        for (var b in wmsx.GamepadButtons) {
+            var index = wmsx.GamepadButtons[b].b;
+            if (index >= 0 && gamepad.getButtonDigital(index))
+                return buttonDetectionListener.joystickButtonDetected(wmsx.GamepadButtons[b], (buttonDetectionPrefs === joy2Prefs ? 1 : 0) ^ swappedMode);
         }
     }
 
@@ -242,8 +294,11 @@
     var joy2Prefs;
     var joyPrefs = [];
 
+    var buttonDetectionPrefs = null, buttonDetectionListener = null;
+
     var DETECTION_DELAY = 60;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
+    var MAX_MAPPED = 4;
 
 
     function JoystickState() {

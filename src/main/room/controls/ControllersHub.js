@@ -146,8 +146,24 @@ wmsx.ControllersHub = function(keyForwardControls) {
         return controllerAtPort[port].getMappingForControl(button, port);
     };
 
-    this.getPopupText = function(button, port) {
-        return controllerAtPort[port].getPopupText(button, port);
+    this.getMappingPopupText = function(button, port) {
+        return controllerAtPort[port].getMappingPopupText(button, port);
+    };
+
+    this.mappingPopupVisibility = function(popup, port, visible) {
+        // Start listening for joystick button presses if needed
+        if (visible && controllerAtPort[port] === joystickControls)
+            joystickControls.startButtonDetection(port, popup);
+        else
+            joystickControls.stopButtonDetection();
+    };
+
+    this.customizeControl = function(button, port, mapping) {
+        controllerAtPort[port].customizeControl(button, port, mapping);
+    };
+
+    this.clearControl = function(button, port) {
+        return controllerAtPort[port].clearControl(button, port);
     };
 
     var processKeyEvent = function(e, press) {

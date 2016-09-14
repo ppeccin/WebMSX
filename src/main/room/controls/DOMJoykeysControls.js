@@ -54,19 +54,42 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     this.processKey = function(code, press) {
         if (mode < 0) return keyForwardControls.processKey(code, press);
 
-        var mapping = keyCodeMap[code];
-        if (!mapping) return keyForwardControls.processKey(code, press);
+        var mappings = keyCodeMap[code];
+        if (!mappings) return keyForwardControls.processKey(code, press);
 
-        if (press) joyStates[mapping.p].portValue &= ~(1 << joystickButtons[mapping.b]);
-        else       joyStates[mapping.p].portValue |=  (1 << joystickButtons[mapping.b]);
+        for (var i = 0; i < mappings.length; ++i) {
+            if (press) joyStates[mappings[i].p].portValue &= ~(1 << joystickButtons[mappings[i].b]);
+            else       joyStates[mappings[i].p].portValue |= (1 << joystickButtons[mappings[i].b]);
+        }
     };
 
     this.getMappingForControl = function(button, port) {
         return joyPrefs[port ^ swappedMode].buttons[button];
     };
 
-    this.getPopupText = function(button, port) {
+    this.getMappingPopupText = function(button, port) {
         return { heading: "Button mapped to:", footer: "Press new key.<br>(right-click to clear)" };
+    };
+
+    this.customizeControl = function (button, port, mapping) {
+        // Ignore if key is already mapped
+        if (keyCodeMap[mapping.c] && wmsx.Util.arrayFind(keyCodeMap[mapping.c], function(map) {
+                return map.b === button && map.p === port;
+            })) return;
+
+        // Add new mapping, max of X keys
+        var mappings = joyPrefs[port ^ swappedMode].buttons[button];
+        if (mappings.length >= MAX_KEYS_MAPPED) mappings.splice(0, mappings.length - (MAX_KEYS_MAPPED - 1));
+        mappings.push(mapping);
+
+        resetStates();
+        updateCodeMap();
+    };
+
+    this.clearControl = function(button, port) {
+        joyPrefs[port ^ swappedMode].buttons[button].length = 0;
+        resetStates();
+        updateCodeMap();
     };
 
     function updateCodeMap() {
@@ -75,10 +98,12 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
         if (mode >= 2) updateCodeMapJoykeys(joy2Prefs.buttons, 1);
     }
 
-    function updateCodeMapJoykeys(mapping, port) {
-        for (var b in mapping) {
-            for (var i = 0; i < mapping[b].length; ++i)
-                keyCodeMap[mapping[b][i].c] = { b: b, p: port };
+    function updateCodeMapJoykeys(mappings, port) {
+        for (var b in mappings) {
+            for (var i = 0; i < mappings[b].length; ++i) {
+                if (!keyCodeMap[mappings[b][i].c]) keyCodeMap[mappings[b][i].c] = [];
+                keyCodeMap[mappings[b][i].c].push({ b: b, p: port });
+            }
         }
     }
 
@@ -120,6 +145,7 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     var joy2Prefs;
     var joyPrefs = [];
 
+    var MAX_KEYS_MAPPED = 4;
 
     function JoystickState() {
         this.reset = function() {

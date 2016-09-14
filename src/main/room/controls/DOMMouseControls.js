@@ -102,8 +102,16 @@ wmsx.DOMMouseControls = function(hub) {
         return "Lock / Unlock pointer";
     };
 
-    this.getPopupText = function(button, port) {
+    this.getMappingPopupText = function(button, port) {
         return { heading: "Middle Button:", footer: "" };
+    };
+
+    this.customizeControl = function (button, port, mapping) {
+        // Nothing to customize
+    };
+
+    this.clearControl = function(button, port) {
+        // Nothing to clear
     };
 
     function lockPointer() {

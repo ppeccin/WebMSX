@@ -26,6 +26,10 @@ wmsx.ControlMappingPopup = function() {
         update();
     };
 
+    this.joystickButtonDetected = function (button, port) {
+        if (port === portEditing) customizeControlGamepadButton(button);
+    };
+
     function setup() {
         popup = document.getElementById("wmsx-control-mapping-popup");
         popupHeading = document.getElementById("wmsx-control-mapping-popup-heading");
@@ -44,7 +48,7 @@ wmsx.ControlMappingPopup = function() {
         if (wmsx.DOMKeys.isModifierKeyCode(e.keyCode))
             modifPending = e.keyCode;
         else
-            customizeControl(e);
+            customizeControlKeyEvent(e);
 
         e.stopPropagation();
         e.preventDefault();
@@ -55,7 +59,7 @@ wmsx.ControlMappingPopup = function() {
         if (!controlEditing) return;
 
         // Modifier keys are accepted only on release, and oly the last one depressed
-        if (modifPending === e.keyCode) customizeControl(e);
+        if (modifPending === e.keyCode) customizeControlKeyEvent(e);
 
         e.stopPropagation();
         e.preventDefault();
@@ -84,10 +88,15 @@ wmsx.ControlMappingPopup = function() {
         popup.style.left = "" + x + "px";
     }
 
-    function customizeControl(e) {
+    function customizeControlKeyEvent(e) {
         var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
         controller.customizeControl(controlEditing, portEditing, mapping);
         modifPending = null;
+        update();
+    }
+
+    function customizeControlGamepadButton(button) {
+        controller.customizeControl(controlEditing, portEditing, button);
         update();
     }
 

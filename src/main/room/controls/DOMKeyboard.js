@@ -114,7 +114,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
         // Add new mapping, max of X keys
         map = mapping[key];
-        if (map.length >= MAX_KEY_MAPPED) map.splice(0, map.length - (MAX_KEY_MAPPED - 1));
+        if (map.length >= MAX_KEYS_MAPPED) map.splice(0, map.length - (MAX_KEYS_MAPPED - 1));
         map.push(vk);
 
         updateCodeMap();
@@ -226,7 +226,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     var CUSTOM_KEYBOARD_SUFFIX = "-CUSTOM";
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
-    var MAX_KEY_MAPPED = 4;
+    var MAX_KEYS_MAPPED = 4;
 
     init();
 

@@ -464,7 +464,7 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-desc">Toggle Keyboards</div>
                         </div>
                         <div id="wmms-inputs-keyboard-name" class="wmsx-hotkey wmsx-link">
-                            Keyboard:
+                            Keyboard: Default
                         </div>
                         <div id="wmsx-keyboard"></div>
                     </div>
@@ -518,7 +518,7 @@ wmsx.SettingsGUI.html = function() {
                     <div class="wmsx-right">
                         <div id="wmsx-ports-mouse-mode" class="wmsx-hotkey wmsx-link wmsx-mouse-device">Mouse Mode: AUTO</div>
                         <div id="wmsx-ports-joysticks-mode" class="wmsx-hotkey wmsx-link wmsx-joystick-device">Joysticks Mode: AUTO</div>
-                        <div id="wmsx-ports-joykeys-mode" class="wmsx-hotkey wmsx-link wmsx-joykeys-device">Joykeys Mode: AUTO</div>
+                        <div id="wmsx-ports-joykeys-mode" class="wmsx-hotkey wmsx-link wmsx-joykeys-device">Joykeys Mode: DISABLED</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-bottom">
@@ -1221,7 +1221,7 @@ wmsx.SettingsGUI.css = function() {
     border-radius: 50px 50px 40px 40px;
     box-shadow:
     0 5px 0 0     hsl(0, 0%, 78%),
-    0 1px 2px 1px hsl(0, 0%, 62%),
+    0 1px 2px 1px hsl(0, 0%, 73%),
     0 6px 3px 1px hsl(0, 0%, 46%);
 }
 
@@ -1521,8 +1521,9 @@ wmsx.SettingsGUI.css = function() {
     height: 75px;
     margin: 14px auto;
     background: linear-gradient(166deg, white, white, white, white, hsl(0, 0%, 97%), hsl(0, 0%, 90%));
-    border: 1px solid hsl(0, 0%, 79%);
-    border-radius: 10px 8px 23px 30px;
+    border: 1px solid hsl(0, 0%, 81%);
+    border-right-color: hsl(0, 0%, 76%);
+    border-radius: 10px 8px 25px 32px;
     box-sizing: border-box;
     transform: skew(-47deg, 30deg);
     box-shadow:

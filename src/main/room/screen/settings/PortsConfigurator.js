@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.PortsConfigurator = function(controllersHub) {
+wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 "use strict";
 
     var self = this;
@@ -14,8 +14,6 @@ wmsx.PortsConfigurator = function(controllersHub) {
     };
 
     this.refresh = function() {
-        console.log("PORT CONFIGURATOR REFRESH");
-
         var state = controllersHub.getSettingsState();
         mouseModeElement.innerHTML = "Mouse Mode: " + state.mouseMode;
         joysticksModeElement.innerHTML = "Joysticks Mode: " + state.joysticksMode;
@@ -36,10 +34,11 @@ wmsx.PortsConfigurator = function(controllersHub) {
     };
 
     this.getMappingForControl = function(button, port) {
-        return controllersHub.getMappingForControl(button, port - 1);
+        return controllersHub.getMappingForControl(button, port);
     };
 
     this.customizeControl = function(button, port, mapping) {
+        controllersHub.customizeControl(button, port, mapping);
     };
 
     function setup() {
@@ -48,23 +47,22 @@ wmsx.PortsConfigurator = function(controllersHub) {
         joysticksModeElement = document.getElementById("wmsx-ports-joysticks-mode");
         joykeysModeElement = document.getElementById("wmsx-ports-joykeys-mode");
 
-        // Set device elements
-        deviceElements = [ document.getElementById("wmsx-ports-device1"), document.getElementById("wmsx-ports-device2") ];
-        deviceTitleElements = [ document.getElementById("wmsx-ports-device1-title"), document.getElementById("wmsx-ports-device2-title") ];
-
-        // Set buttons
+        // Set device and buttons elements
         for (var p = 1; p <= 2; ++p) {
-            var buttonElement;
+            var hubPort = p - 1;
+            deviceElements[hubPort] = document.getElementById("wmsx-ports-device" + p);
+            deviceTitleElements[hubPort] = document.getElementById("wmsx-ports-device" + p + "-title");
             for (var b in wmsx.JoystickButtons) {
-                buttonElement = document.getElementById("wmsx-joy" + p + "-" + b);
+                var buttonElement = document.getElementById("wmsx-joy" + p + "-" + b);
                 buttonElement.wmsxButton = b;
-                buttonElement.wmsxPort = p;
+                buttonElement.wmsxPort = hubPort;
                 setupButtonMouseEvents(buttonElement);
             }
-            buttonElement = document.getElementById("wmsx-mouse" + p);
-            buttonElement.wmsxButton = "MOUSE";
-            buttonElement.wmsxPort = p;
-            setupButtonMouseEvents(buttonElement);
+            deviceElements[hubPort].addEventListener("mousedown", mouseDown);
+            var mouseElement = document.getElementById("wmsx-mouse" + p);
+            mouseElement.wmsxButton = "MOUSE";
+            mouseElement.wmsxPort = hubPort;
+            setupButtonMouseEvents(mouseElement);
         }
     }
 
@@ -88,10 +86,17 @@ wmsx.PortsConfigurator = function(controllersHub) {
         updatePopup();
     }
 
+    function mouseDown(e) {
+        if (joyButtonEditing && e.which === 3) controllersHub.clearControl(joyButtonEditing, portEditing);
+        //self.refresh();
+        updatePopup();
+    }
+
     function updatePopup() {
         if (!joyButtonEditing) {
             popup.hide();
-            //keyboardElement.focus();
+            controllersHub.mappingPopupVisibility(popup, portEditing, false);
+            returnFocusElement.focus();
             return;
         }
 
@@ -100,14 +105,15 @@ wmsx.PortsConfigurator = function(controllersHub) {
         var x = keyRec.left + keyRec.width / 2;
         var y = keyRec.top;
 
-        var text = controllersHub.getPopupText(joyButtonEditing, portEditing - 1);
-
+        var text = controllersHub.getMappingPopupText(joyButtonEditing, portEditing);
         popup.show(self, joyButtonEditing, portEditing, x, y, text.heading, text.footer);
+        controllersHub.mappingPopupVisibility(popup, portEditing, true);
     }
 
 
+
     var mouseModeElement, joysticksModeElement, joykeysModeElement;
-    var deviceElements, deviceTitleElements;
+    var deviceElements = [], deviceTitleElements = [];
 
     var buttonElementEditing = null, joyButtonEditing = null, portEditing = null;
 

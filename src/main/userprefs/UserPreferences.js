@@ -19,8 +19,8 @@ WMSX.userPreferences = {};
                 B:         [ g.JB_2, g.JB_3 ],
                 X:         [ ],
                 Y:         [ ],
-                L:         [ g.JB_L2 ],
-                R:         [ g.JB_R2 ],
+                L:         [ g.JB_L1, g.JB_L2 ],
+                R:         [ g.JB_R1, g.JB_R2 ],
                 BACK:      [ g.JB_BACK ],
                 START:     [ g.JB_START ]
             },
@@ -51,8 +51,8 @@ WMSX.userPreferences = {};
                 B:         [ g.JB_2, g.JB_3 ],
                 X:         [ ],
                 Y:         [ ],
-                L:         [ g.JB_L2 ],
-                R:         [ g.JB_R2 ],
+                L:         [ g.JB_L1, g.JB_L2 ],
+                R:         [ g.JB_R1, g.JB_R2 ],
                 BACK:      [ g.JB_BACK ],
                 START:     [ g.JB_START ]
             },

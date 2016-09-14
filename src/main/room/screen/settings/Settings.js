@@ -63,11 +63,11 @@ wmsx.SettingsDialog = function(controllersHub) {
     };
 
     this.keyboardSettingsStateUpdate = function() {
-        keyboardConfigurator.keyboardSettingsStateUpdate();
+        if (keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
     };
 
     this.controllersSettingsStateUpdate = function () {
-        portsConfigurator.controllersSettingsStateUpdate();
+        if (portsConfigurator) portsConfigurator.controllersSettingsStateUpdate();
     };
 
     var create = function () {
@@ -82,18 +82,12 @@ wmsx.SettingsDialog = function(controllersHub) {
         self.cover.tabIndex = -1;
         document.body.appendChild(self.cover);
 
-         // Supress context menu   // TODO Return
+         // Supress context menu
         self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
             e.preventDefault();
             e.stopPropagation();
             return false;
         });
-
-        // Create keyboard config section
-        keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub);
-
-        // Create ports config section
-        portsConfigurator = new wmsx.PortsConfigurator(controllersHub);
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
@@ -185,10 +179,12 @@ wmsx.SettingsDialog = function(controllersHub) {
     };
 
     var refreshInputsPage = function() {
+        if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, self.cover);
         keyboardConfigurator.refresh();
     };
 
     var refreshPortsPage = function() {
+        if (!portsConfigurator) portsConfigurator = new wmsx.PortsConfigurator(controllersHub, self.cover);
         portsConfigurator.refresh();
     };
 
