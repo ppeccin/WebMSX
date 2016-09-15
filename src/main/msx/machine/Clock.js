@@ -32,6 +32,10 @@ wmsx.Clock = function(clockPulse) {
         }
     };
 
+    this.isRunning = function() {
+        return running;
+    };
+
     this.getFrequency = function() {
         return cyclesPerSecond;
     };

@@ -699,7 +699,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "",            divider: true });
 
         menu.push({ label: "Select Machine",                control: wmsx.PeripheralControls.MACHINE_SELECT });
-        menu.push({ label: "Help Screen",    clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
+        menu.push({ label: "Help & Settings",    clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
         menu.push({ label: "Defaults",                      control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
         return menu;
     }

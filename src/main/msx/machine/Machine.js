@@ -33,11 +33,10 @@ wmsx.Machine = function() {
         this.reset();
         this.powerIsOn = true;
         machineControlsSocket.firePowerStateUpdate();
-        if (!paused) mainVideoClock.go();
+        if (!mainVideoClock.isRunning()) mainVideoClock.go();
     };
 
     this.powerOff = function() {
-        mainVideoClock.pause();
         cpu.powerOff();
         vdp.powerOff();
         psg.powerOff();
@@ -74,10 +73,13 @@ wmsx.Machine = function() {
 
     this.videoClockPulse = function() {
         if (systemPaused) return;
+
         if (bios) bios.getKeyboardExtension().keyboardExtensionClockPulse();
         controllersSocket.controllersClockPulse();
-        if (userPaused)
-            if (userPauseMoreFrames-- <= 0) return;
+
+        if (!self.powerIsOn) return;
+
+        if (userPaused && userPauseMoreFrames-- <= 0) return;
 
         vdp.videoClockPulse();
 

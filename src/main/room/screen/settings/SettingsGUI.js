@@ -16,7 +16,7 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                 </div>
                 <div class="wmsx-caption">
-                    WebMSX Help
+                    Help & Settings
                 </div>
                 <div class="wmsx-items">
                     <div id="wmsx-menu-general" class="wmsx-item wmsx-selected">
@@ -458,12 +458,12 @@ wmsx.SettingsGUI.html = function() {
                                 <div class="wmsx-key wmsx-key-fixed">
                                     Alt
                                 </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                    K
+                                    L
                                 </div>
                             </div>
-                            <div class="wmsx-desc">Toggle Keyboards</div>
+                            <div class="wmsx-desc">Toggle Keyboard Layout</div>
                         </div>
-                        <div id="wmms-inputs-keyboard-name" class="wmsx-hotkey wmsx-link">
+                        <div id="wmsx-inputs-keyboard-name" class="wmsx-hotkey wmsx-link">
                             Keyboard: Default
                         </div>
                         <div id="wmsx-keyboard"></div>
@@ -499,7 +499,7 @@ wmsx.SettingsGUI.html = function() {
                                 <div class="wmsx-key wmsx-key-fixed">
                                     Alt
                                 </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                    L
+                                    K
                                 </div>
                             </div>
                             <div class="wmsx-desc">Toggle Joykeys</div>
@@ -644,7 +644,7 @@ wmsx.SettingsGUI.html = function() {
                         Press new key.
                         <br>
                         (right-click to clear)
-                    <div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -940,11 +940,11 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
     display: inline-block;
-    width: 230px;
+    width: 255px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-link {
-    width: 297px;
+    width: 274px;
     text-align: right;
 }
 

@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO No Joysticks detection when Machine is OFF
-
 wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 "use strict";
 

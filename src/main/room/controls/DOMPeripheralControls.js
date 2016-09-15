@@ -241,7 +241,7 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_TAPE_BCK | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_BACK;
         keyCodeMap[KEY_TAPE_FWD | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_FWD;
 
-        keyCodeMap[KEY_KEYBOARD_TOGGLE_HOST | k.ALT]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
+        keyCodeMap[KEY_KEYBOARD_TOGGLE | k.ALT]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
         keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = controls.JOYSTICKS_TOGGLE_MODE;
         keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = controls.JOYKEYS_TOGGLE_MODE;
         keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = controls.MOUSE_TOGGLE_MODE;
@@ -326,9 +326,9 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_DISK_PREV    = wmsx.DOMKeys.VK_PAGE_UP.c;
     var KEY_DISK_NEXT    = wmsx.DOMKeys.VK_PAGE_DOWN.c;
 
-    var KEY_KEYBOARD_TOGGLE_HOST  = wmsx.DOMKeys.VK_K.c;
+    var KEY_KEYBOARD_TOGGLE       = wmsx.DOMKeys.VK_L.c;
     var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;
-    var KEY_JOYKEYS_TOGGLE        = wmsx.DOMKeys.VK_L.c;
+    var KEY_JOYKEYS_TOGGLE        = wmsx.DOMKeys.VK_K.c;
     var KEY_MOUSE_TOGGLE          = wmsx.DOMKeys.VK_M.c;
     var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
 
