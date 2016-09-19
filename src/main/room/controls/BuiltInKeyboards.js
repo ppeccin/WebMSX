@@ -108,8 +108,8 @@
     // Define built-in keyboards
 
     // Default (US)
-    var def = {};
-    for (var k in base) def[k] = base[k];
+    var us = {};
+    for (var k in base) us[k] = base[k];
 
     // BR
     var br = {};
@@ -131,8 +131,8 @@
     }
 
     wmsx.BuiltInKeyboards = {
-        all: [ "Default", "pt-BR" ],
-        "Default": def,
+        all: [ "en-US", "pt-BR" ],
+        "en-US": us,
         "pt-BR": br
     };
 

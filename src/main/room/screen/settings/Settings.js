@@ -13,7 +13,6 @@ wmsx.SettingsDialog = function(controllersHub) {
             }, 0);
             return;
         }
-        preferencesChanged = false;
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
@@ -21,7 +20,7 @@ wmsx.SettingsDialog = function(controllersHub) {
     };
 
     this.hide = function () {
-        if (preferencesChanged) finishPreferences();
+        WMSX.userPreferences.save();
         this["wmsx-modal"].classList.remove("wmsx-show");
         this["wmsx-cover"].classList.remove("wmsx-show");
         WMSX.room.screen.focus();
@@ -200,17 +199,10 @@ wmsx.SettingsDialog = function(controllersHub) {
         return false;
     };
 
-    var finishPreferences = function () {
-        WMSX.room.controls.applyPreferences();
-        WMSX.userPreferences.save();
-        preferencesChanged = false;
-    };
-
 
     this.cover = null;
 
     var keyboardConfigurator, portsConfigurator;
-    var preferencesChanged = false;
 
     var KEY_ESC = wmsx.DOMKeys.VK_ESCAPE.c;
 

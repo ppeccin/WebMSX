@@ -6,7 +6,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var self = this;
 
     function init() {
-        setDefaultKeyboard();
+        self.applyPreferences();
     }
 
     this.connect = function(pControllersSocket, pBIOSSocket) {
@@ -52,20 +52,28 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.toggleHostKeyboards = function() {
-        var next = (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
-        if (next >= availableKeyboards.length) next = 0;
-        this.setKeyboard(availableKeyboards[next]);
-        screen.showOSD("Host Keyboard: " + currentKeyboard, true);
+        var next = currentIsAuto ? 0 : (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
+        if (next >= availableKeyboards.length) setDefaultKeyboard();
+        else this.setKeyboard(availableKeyboards[next], false);
+        screen.showOSD("Host Keyboard: " + this.getCurrentKeyboardDesc(), true);
     };
 
-    this.getKeyboard = function() {
-        return currentKeyboard;
+    this.getCurrentKeyboardDesc = function() {
+        return (currentIsAuto ? "AUTO: " : "") + currentKeyboard;
     };
 
-    this.setKeyboard = function(keyboard) {
+    this.setKeyboard = function (keyboard, auto) {
         currentKeyboard = keyboard;
+        currentIsAuto = auto;
         updateMapping();
         if (screen) screen.keyboardSettingsStateUpdate();
+
+        var prefValue = auto ? undefined : keyboard;
+        if (WMSX.userPreferences.current.keyboard !== prefValue) {
+            WMSX.userPreferences.current.keyboard = prefValue;
+            WMSX.userPreferences.setDirty();
+            WMSX.userPreferences.save();
+        }
     };
 
     this.setTurboFireSpeed = function(speed) {
@@ -91,17 +99,18 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         // Ignore if key is already clear
         if (mapping[key].length === 0) return;
 
-        if (!customKeyboards[currentKeyboard]) setCustomKeyboard();
+        if (!customKeyboards[currentKeyboard]) makeCustomKeyboard();
 
         mapping[key].length = 0;
         updateCodeMap();
+        WMSX.userPreferences.setDirty();
     };
 
     this.customizeKey = function (key, vk) {
         // Ignore if key is already mapped
         if (keyCodeMap[vk.c] === key) return;
 
-        if (!customKeyboards[currentKeyboard]) setCustomKeyboard();
+        if (!customKeyboards[currentKeyboard]) makeCustomKeyboard();
 
         // Search for keys mapped to this vk, to remove the mapping
         for (var k in mapping) {
@@ -118,6 +127,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         map.push(vk);
 
         updateCodeMap();
+        WMSX.userPreferences.setDirty();
     };
 
     this.processKey = function(code, press) {
@@ -178,11 +188,11 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
                 keyboard = availableKeyboards[k];
                 break;
             }
-        self.setKeyboard(keyboard);
+        self.setKeyboard(keyboard, true);        // auto
     }
 
-    function setCustomKeyboard() {
-        var customName = currentKeyboard === "Default" ? "CUSTOM" : currentKeyboard + CUSTOM_KEYBOARD_SUFFIX;
+    function makeCustomKeyboard() {
+        var customName = currentKeyboard + "-CUSTOM";
         // Copy current mapping to new Custom Keyboard if not yet available
         if (!customKeyboards[customName]) {
             customKeyboards[customName] = {};
@@ -195,18 +205,25 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             custom[k] = mapping[k].slice(0);
         }
 
-        self.setKeyboard(customName);
+        self.setKeyboard(customName, false);
     }
 
     this.applyPreferences = function() {
+        customKeyboards = WMSX.userPreferences.current.customKeyboards || {};
+        availableKeyboards = wmsx.BuiltInKeyboards.all.slice(0);
+        availableKeyboards = availableKeyboards.concat(Object.keys(customKeyboards));
+
+        var keyboard = WMSX.userPreferences.current.keyboard;                   // undefined = auto
+        if (keyboard) this.setKeyboard(keyboard, false);
+        else setDefaultKeyboard();
     };
 
 
     var msxKeys = wmsx.KeyboardKeys;
 
-    var availableKeyboards = wmsx.BuiltInKeyboards.all.slice(0);
-    var customKeyboards = {};
-    var currentKeyboard;
+    var availableKeyboards;
+    var customKeyboards;
+    var currentKeyboard, currentIsAuto;
 
     var biosSocket;
     var screen;
@@ -224,7 +241,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
     var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
 
-    var CUSTOM_KEYBOARD_SUFFIX = "-CUSTOM";
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
 

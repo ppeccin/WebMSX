@@ -84,12 +84,14 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
 
         resetStates();
         updateCodeMap();
+        WMSX.userPreferences.setDirty();
     };
 
     this.clearControl = function(button, port) {
         joyPrefs[port ^ swappedMode].buttons[button].length = 0;
         resetStates();
         updateCodeMap();
+        WMSX.userPreferences.setDirty();
     };
 
     function updateCodeMap() {
@@ -120,8 +122,8 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     }
 
     function applyPreferences() {
-        joyPrefs[0] = joy1Prefs = WMSX.userPreferences.joykeys[0];
-        joyPrefs[1] = joy2Prefs = WMSX.userPreferences.joykeys[1];
+        joyPrefs[0] = joy1Prefs = WMSX.userPreferences.current.joykeys[0];
+        joyPrefs[1] = joy2Prefs = WMSX.userPreferences.current.joykeys[1];
     }
 
 

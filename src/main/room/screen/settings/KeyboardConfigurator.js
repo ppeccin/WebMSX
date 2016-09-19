@@ -14,7 +14,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
     };
 
     this.refresh = function() {
-        keyboardNameElement.innerHTML = "Current Keyboard:&nbsp;&nbsp;" + domKeyboard.getKeyboard();
+        keyboardNameElement.innerHTML = "Current Keyboard:&nbsp;&nbsp;" + domKeyboard.getCurrentKeyboardDesc();
         refreshUnmappedIndicator();
     };
 
