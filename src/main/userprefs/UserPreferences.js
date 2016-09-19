@@ -119,6 +119,7 @@ WMSX.userPreferences.save = function() {
     if (!WMSX.userPreferences.isDirty) return;
 
     try {
+        WMSX.userPreferences.current.version = WMSX.VERSION;
         localStorage.wmsxprefs = JSON.stringify(WMSX.userPreferences.current);
         delete WMSX.userPreferences.isDirty;
 

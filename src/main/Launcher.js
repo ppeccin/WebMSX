@@ -27,7 +27,7 @@ WMSX.start = function (powerOn) {
     WMSX.room.setLoading(true);
     var roomPowerOnTime = Date.now();
     if (powerOn === undefined) powerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;
-    wmsx.Util.log(WMSX.VERSION + " started");
+    wmsx.Util.log("version " + WMSX.VERSION + " started");
 
     // Prepare ROM Database
     wmsx.ROMDatabase.uncompress();
@@ -108,7 +108,7 @@ WMSX.preLoadImagesAndStart = function() {
     });
 };
 
-WMSX.VERSION = "version 2.2";
+WMSX.VERSION = "2.2";
 
 // Start pre-loading images right away
 WMSX.preLoadImagesAndStart();

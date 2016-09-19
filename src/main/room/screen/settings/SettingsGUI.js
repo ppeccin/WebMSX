@@ -625,7 +625,7 @@ wmsx.SettingsGUI.html = function() {
                 </div>
                 <div id="wmsx-about">
                     <div id="wmsx-logo-version">
-                        WebMSX&nbsp;&nbsp;-&nbsp;&nbsp;${ WMSX.VERSION }
+                        WebMSX&nbsp;&nbsp;-&nbsp;&nbsp;version&nbsp;${ WMSX.VERSION }
                     </div>
                     <div class="wmsx-info">
                         ${ atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") }
@@ -713,6 +713,9 @@ wmsx.SettingsGUI.css = function() {
     line-height: 21px;
     color: hsl(228, 90%, 40%);
     cursor: pointer;
+}
+#wmsx-modal .wmsx-link:hover {
+    text-decoration: underline;
 }
 
 #wmsx-modal .wmsx-command {
@@ -1617,6 +1620,9 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-about a {
     color: rgb(0, 40, 200);
     text-decoration: none;
+}
+#wmsx-about a:hover {
+    text-decoration: underline;
 }
 
 #wmsx-about #wmsx-browserinfo {

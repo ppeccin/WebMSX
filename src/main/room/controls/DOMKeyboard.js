@@ -51,7 +51,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         return japanaseKeyboardLayoutPortValue;
     };
 
-    this.toggleHostKeyboards = function() {
+    this.toggleKeyboardLayout = function() {
         var next = currentIsAuto ? 0 : (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
         if (next >= availableKeyboards.length) setDefaultKeyboard();
         else this.setKeyboard(availableKeyboards[next], false);

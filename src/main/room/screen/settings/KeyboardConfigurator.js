@@ -30,6 +30,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
 
     function setupKeyboard() {
         keyboardNameElement = document.getElementById("wmsx-inputs-keyboard-name");
+        keyboardNameElement.addEventListener("click", function() { controllersHub.toggleKeyboardLayout(); });
+
         keyboardElement = document.getElementById("wmsx-keyboard");
         keyboardElement.addEventListener("mousedown", mouseDownKeyboard);
 

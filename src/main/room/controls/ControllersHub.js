@@ -69,8 +69,8 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.controllersClockPulse();
     };
 
-    this.toggleKeyboardHostLayout = function() {
-        keyboard.toggleHostKeyboards();
+    this.toggleKeyboardLayout = function() {
+        keyboard.toggleKeyboardLayout();
     };
 
     this.toggleJoystickMode = function() {

@@ -172,7 +172,7 @@ wmsx.DOMPeripheralControls = function() {
                 screen.openSettings();
                 break;
             case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
-                controllersHub.toggleKeyboardHostLayout(); break;
+                controllersHub.toggleKeyboardLayout(); break;
             case controls.JOYSTICKS_TOGGLE_MODE:
                 controllersHub.toggleJoystickMode(); break;
             case controls.JOYKEYS_TOGGLE_MODE:

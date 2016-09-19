@@ -56,6 +56,9 @@
     color: hsl(228, 90%, 40%);
     cursor: pointer;
 }
+#wmsx-modal .wmsx-link:hover {
+    text-decoration: underline;
+}
 
 #wmsx-modal .wmsx-command {
     position: relative;
@@ -964,6 +967,9 @@
 #wmsx-about a {
     color: rgb(0, 40, 200);
     text-decoration: none;
+}
+#wmsx-about a:hover {
+    text-decoration: underline;
 }
 
 #wmsx-about #wmsx-browserinfo {

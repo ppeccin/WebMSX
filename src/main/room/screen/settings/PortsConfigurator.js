@@ -44,8 +44,11 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
     function setup() {
         // Set mode fields
         mouseModeElement = document.getElementById("wmsx-ports-mouse-mode");
+        mouseModeElement.addEventListener("click", function() { controllersHub.toggleMouseMode(); });
         joysticksModeElement = document.getElementById("wmsx-ports-joysticks-mode");
+        joysticksModeElement.addEventListener("click", function() { controllersHub.toggleJoystickMode(); });
         joykeysModeElement = document.getElementById("wmsx-ports-joykeys-mode");
+        joykeysModeElement.addEventListener("click", function() { controllersHub.toggleJoykeysMode(); });
 
         // Set device and buttons elements
         for (var p = 1; p <= 2; ++p) {
