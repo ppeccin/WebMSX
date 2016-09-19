@@ -143,11 +143,11 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.getMappingForControl = function(button, port) {
-        return controllerAtPort[port].getMappingForControl(button, port);
+        return controllerAtPort[port] && controllerAtPort[port].getMappingForControl(button, port);
     };
 
     this.getMappingPopupText = function(button, port) {
-        return controllerAtPort[port].getMappingPopupText(button, port);
+        return controllerAtPort[port] && controllerAtPort[port].getMappingPopupText(button, port);
     };
 
     this.mappingPopupVisibility = function(popup, port, visible) {

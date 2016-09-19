@@ -463,8 +463,10 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                             <div class="wmsx-desc">Toggle Keyboard Layout</div>
                         </div>
-                        <div id="wmsx-inputs-keyboard-name" class="wmsx-hotkey wmsx-link">
-                            Keyboard: Default
+                        <div class="wmsx-right" >
+                            <div id="wmsx-inputs-keyboard-name" class="wmsx-hotkey wmsx-link" >
+                                Keyboard: Default
+                            </div>
                         </div>
                         <div id="wmsx-keyboard"></div>
                     </div>
@@ -656,6 +658,10 @@ wmsx.SettingsGUI.html = function() {
 wmsx.SettingsGUI.css = function() {
     return `
 
+#wmsx-cover * {
+    box-sizing: border-box;     /* Fix for Bootstrap :-( */
+}
+
 #wmsx-cover {
     position: fixed;
     top: 0;
@@ -715,7 +721,7 @@ wmsx.SettingsGUI.css = function() {
     cursor: pointer;
 }
 #wmsx-modal .wmsx-link:hover {
-    text-decoration: underline;
+    outline: 1px solid;
 }
 
 #wmsx-modal .wmsx-command {
@@ -948,9 +954,14 @@ wmsx.SettingsGUI.css = function() {
     width: 255px;
 }
 
-#wmsx-inputs .wmsx-bottom .wmsx-link {
-    width: 274px;
+#wmsx-inputs .wmsx-bottom .wmsx-right {
+    display: inline-block;
+    width: 276px;
     text-align: right;
+}
+
+#wmsx-inputs #wmsx-inputs-keyboard-name {
+    width: initial;
 }
 
 #wmsx-keyboard {
@@ -986,13 +997,17 @@ wmsx.SettingsGUI.css = function() {
     border-radius: 3px 3px 0 0;
     box-shadow: 0 1px 0 1px rgb(0, 0, 0);
     cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 .wmsx-keyboard-key.wmsx-keyboard-key-dark {
     background: rgb(127, 127, 127);
 }
 .wmsx-keyboard-key.wmsx-keyboard-key-unmapped {
-    color: rgb(40, 40, 40);
+    color: rgb(30, 30, 30);
     font-weight: bold;
+    -webkit-font-smoothing: initial;
+    -moz-osx-font-smoothing: initial;
 }
 #wmsx-keyboard-alpha, #wmsx-keyboard-num, #wmsx-keyboard-arrows {
     position: absolute;
@@ -1107,7 +1122,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports .wmsx-left {
     float: left;
-    width: 285px;
+    width: 295px;
     padding-left: 26px;
 }
 
@@ -1351,6 +1366,7 @@ wmsx.SettingsGUI.css = function() {
     top: -1px;
     min-width: 19px;
     height: 19px;
+    margin: 0 1px;
     font-size: 12px;
     line-height: 14px;
     padding-top: 3px;
@@ -1359,6 +1375,8 @@ wmsx.SettingsGUI.css = function() {
     border-radius: 100%;
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(0, 0%, 40%), 0 3px 0 1px hsl(0, 0%, 15%);
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 .wmsx-joy-button.wmsx-square {
     top: -2px;
@@ -1373,28 +1391,28 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-A {
     position: absolute;
     top: 46px;
-    left: 30px;
+    left: 29px;
     background: hsl(132, 90%, 41%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(127, 90%, 30%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 .wmsx-joy .wmsx-joy-B {
     position: absolute;
     top: 26px;
-    left: 50px;
+    left: 49px;
     background: hsl(0, 94%, 63%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(0, 90%, 43%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 .wmsx-joy .wmsx-joy-X {
     position: absolute;
     top: 26px;
-    left: 10px;
+    left: 9px;
     background: hsl(234, 80%, 66%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.1), 0 3px 0 0 hsl(234, 80%, 47%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
 .wmsx-joy .wmsx-joy-Y {
     position: absolute;
     top: 6px;
-    left: 30px;
+    left: 29px;
     background: hsl(58, 100%, 44%);
     box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.06), 0 3px 0 0 hsl(56, 100%, 33%), 0 3px 0 1px hsl(0, 0%, 15%);
 }
@@ -1428,6 +1446,12 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
     cursor: pointer;
 }
+.wmsx-joy-hs.wmsx-joy-hs-unmapped {
+    color: rgb(30, 30, 30);
+    -webkit-font-smoothing: initial;
+    -moz-osx-font-smoothing: initial;
+}
+
 .wmsx-joy-hs-UP, .wmsx-joy-hs-DOWN, .wmsx-joy-hs-LEFT, .wmsx-joy-hs-RIGHT {
     width: 26px;
     height: 25px;
@@ -1435,6 +1459,8 @@ wmsx.SettingsGUI.css = function() {
     font-size: 10px;
     line-height: 10px;
     color: hsl(0, 0%, 95%);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 .wmsx-joy-hs-UP {
     top: 18px;
@@ -1460,6 +1486,8 @@ wmsx.SettingsGUI.css = function() {
     font-size: 12px;
     line-height: 18px;
     color: hsl(0, 0%, 99%);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 .wmsx-joy-hs-A {
     top: 57px;

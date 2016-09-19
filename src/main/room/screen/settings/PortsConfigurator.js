@@ -31,6 +31,16 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
                 classList.add("wmsx-none-device");
             deviceTitleElements[p].innerHTML = device;
         }
+
+        for (var i = 0; i < buttonElements.length; ++i) {
+            var but = buttonElements[i];
+            var mapping = this.getMappingForControl(but.wmsxButton, but.wmsxPort);
+            var unmapped = !mapping
+                || (mapping.constructor === Array && mapping.length === 0)
+                || (mapping.constructor === Object && (mapping.from.length === 0 || mapping.to.length === 0));       // Virtual button
+            if (unmapped) but.classList.add("wmsx-joy-hs-unmapped");
+            else but.classList.remove("wmsx-joy-hs-unmapped");
+        }
     };
 
     this.getMappingForControl = function(button, port) {
@@ -39,6 +49,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 
     this.customizeControl = function(button, port, mapping) {
         controllersHub.customizeControl(button, port, mapping);
+        this.refresh();
     };
 
     function setup() {
@@ -60,6 +71,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
                 buttonElement.wmsxButton = b;
                 buttonElement.wmsxPort = hubPort;
                 setupButtonMouseEvents(buttonElement);
+                buttonElements.push(buttonElement);
             }
             deviceElements[hubPort].addEventListener("mousedown", mouseDown);
             var mouseElement = document.getElementById("wmsx-mouse" + p);
@@ -91,7 +103,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 
     function mouseDown(e) {
         if (joyButtonEditing && e.which === 3) controllersHub.clearControl(joyButtonEditing, portEditing);
-        //self.refresh();
+        self.refresh();
         updatePopup();
     }
 
@@ -116,7 +128,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 
 
     var mouseModeElement, joysticksModeElement, joykeysModeElement;
-    var deviceElements = [], deviceTitleElements = [];
+    var deviceElements = [], deviceTitleElements = [], buttonElements = [];
 
     var buttonElementEditing = null, joyButtonEditing = null, portEditing = null;
 
