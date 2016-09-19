@@ -131,8 +131,8 @@
     }
 
     wmsx.BuiltInKeyboards = {
-        all: [ "en-US", "pt-BR" ],
-        "en-US": us,
+        all: [ "Default", "pt-BR" ],
+        "Default": us,
         "pt-BR": br
     };
 

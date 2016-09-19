@@ -753,6 +753,8 @@ wmsx.SettingsGUI.css = function() {
 }
 
 .wmsx-footer {
+    position: absolute;
+    bottom: 21px;
     width: 543px;
     margin-top: 16px;
     text-align: center;
@@ -957,7 +959,7 @@ wmsx.SettingsGUI.css = function() {
     background: rgb(76, 76, 76);
     border-radius: 1px 1px 0 0;
     box-sizing: border-box;
-    box-shadow: 0 1px 0 1px rgb(10, 10, 10);
+    box-shadow: 0 1px 0 1px hsl(0, 0%, 20%), 0 3px 4px 1px hsl(0, 0%, 40%);
     outline: none;
 }
 .wmsx-keyboard-key {
@@ -1122,7 +1124,7 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
     display: inline-block;
     height: 162px;
-    margin-top: 5px;
+    margin-top: 2px;
     vertical-align: top;
     text-align: center;
     font-size: 14px;
@@ -1222,7 +1224,7 @@ wmsx.SettingsGUI.css = function() {
     box-shadow:
     0 5px 0 0     hsl(0, 0%, 78%),
     0 1px 2px 1px hsl(0, 0%, 73%),
-    0 6px 3px 1px hsl(0, 0%, 46%);
+    0 6px 4px 1px hsl(0, 0%, 40%);
 }
 
 .wmsx-joy-logo {
@@ -1244,7 +1246,7 @@ wmsx.SettingsGUI.css = function() {
     0 5px 0 -1px      hsl(0, 0%, 78%),
     0 6px 0 -1px      hsl(0, 0%, 78%),
     -1px 8px 2px -2px hsl(0, 0%, 48%),
-    0 9px 4px -2px    hsl(0, 0%, 38%);
+    0 9px 4px -2px    hsl(0, 0%, 36%);
 }
 .wmsx-joy .wmsx-joy-outright {
     right: 0;
@@ -1253,7 +1255,7 @@ wmsx.SettingsGUI.css = function() {
     0 5px 0 -1px     hsl(0, 0%, 78%),
     0 6px 0 -1px     hsl(0, 0%, 78%),
     1px 8px 2px -2px hsl(0, 0%, 48%),
-    0 9px 4px -2px   hsl(0, 0%, 38%);
+    0 9px 4px -2px   hsl(0, 0%, 36%);
 }
 
 .wmsx-joy .wmsx-joy-left, .wmsx-joy .wmsx-joy-right {

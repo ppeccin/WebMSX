@@ -192,7 +192,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     }
 
     function makeCustomKeyboard() {
-        var customName = currentKeyboard + "-CUSTOM";
+        var customName = currentKeyboard === availableKeyboards[0] ? "CUSTOM" : currentKeyboard + "-CUSTOM";
         // Copy current mapping to new Custom Keyboard if not yet available
         if (!customKeyboards[customName]) {
             customKeyboards[customName] = {};
