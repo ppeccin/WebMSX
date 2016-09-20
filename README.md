@@ -10,33 +10,29 @@ Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for param
 
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-#### New in Version 2.2
+#### New in Version 3.0
 
-- Support for Cartridges with PCM Sound: Konami Majutsushi, Synthesizer
-- Support for several Cartridges with onboard SRAM, Game Master 2
-- Support for several specific Mappers, Zemina muti-game ROMs
-- Better ROM Mirroring auto detection
-- Lots of improvements and fixes 
-    
-#### New in Version 2.1
-
-- The WebMSX website can now load files from any source in the web
-- Just open or drag & drop files and links directly from any website
-- Display your games/software running with a single link to the WebMSX page
+- Fully customizable Keyboard, Joysticks, Joykeys and Mouse
+- Joykeys support. Emulate MSX Joysticks using Host Keyboard
+- Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys
+- New mappers added. Several improvements and fixes
 
 ### Features
 
 - 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
-- PSG, SCC, SCC-I, FM-PAC and MSX-MUSIC sound
+- PSG, SCC, SCC-I, FM-PAC, PCM and MSX-MUSIC sound
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox
 - Put games or any MSX software in webpages easily
-- Runs locally with a single HTML file, no install needed
+- Show MSX software running with a single link to the WebMSX page
+- Run it locally with a single HTML file, no install needed
 - Play Cartridge ROMs, Disk and Tape images
 - Powerful Drag & Drop system for loading media files
 - Load several disks at once and easily switch disks
 - "Files as Disk" and "ZIP as Disk" emulation
 - Savestates support. Export and share Savestate files
-- Keyboard, Gamepad and Mouse controllers with auto-detection
+- Fully customizable Keyboard, Joysticks, Joykeys and Mouse controllers
+- Joykeys support. Emulate MSX Joysticks using Host Keyboard
+- Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys
 - Easily toggle extensions like SCC, PAC, DOS2, etc.
 - Adjustable speed, Pause and Frame-by-frame advance
 - Copy & Paste text, Screen Capture, Debug modes
