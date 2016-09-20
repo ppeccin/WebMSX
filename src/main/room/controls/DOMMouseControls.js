@@ -39,7 +39,12 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.getModeDesc = function() {
-        return mode === -2 ? "DISABLED" : mode == -1 ? "AUTO" : mode === 0 ? "ENABLED" : "ENABLED (swapped)";
+        switch (mode) {
+            case -1: return "AUTO";
+            case 0:  return "ENABLED";
+            case 1:  return "ENABLED (port 2)";
+            default: return "DISABLED";
+        }
     };
 
     function updateMode() {

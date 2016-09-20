@@ -43,7 +43,13 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     };
 
     this.getModeDesc = function() {
-        return mode === -1 ? "DISABLED" : (mode < 2 ? "ONE" : "BOTH") + (swappedMode ? " (swapped)" : "");
+        switch (mode) {
+            case 0:  return "SINGLE";
+            case 1:  return "SINGLE (port 2)";
+            case 2:  return "DUAL";
+            case 3:  return "DUAL (swapped)";
+            default: return "DISABLED";
+        }
     };
 
     this.setTurboFireSpeed = function(speed) {

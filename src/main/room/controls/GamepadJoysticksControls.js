@@ -57,7 +57,11 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     };
 
     this.getModeDesc = function() {
-        return mode === -2 ? !supported ? "NOT SUPPORTED" : "DISABLED" : "AUTO" + (swappedMode ? " (swapped)" : "");
+        switch (mode) {
+            case -1: return "AUTO";
+            case 0:  return "AUTO (swapped)";
+            default: return !supported ? "NOT SUPPORTED" : "DISABLED";
+        }
     };
 
     this.setTurboFireSpeed = function(speed) {
