@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         clean: {
-            init: ["temp", "release/stable/2.2"],
+            init: ["temp", "release/stable/3.0"],
             finish: ["temp"]
         },
 
@@ -101,7 +101,7 @@ module.exports = function (grunt) {
                     "src/main/room/controls/DOMMachineControls.js",
                     "src/main/room/screen/Monitor.js",
                     "src/main/room/screen/CanvasDisplay.js",
-                    "src/main/room/screen/settings/SettingsGUI.js",
+                    "src/main/room/screen/settings/SettingsGUI.es5.js",
                     "src/main/room/screen/settings/ControlMappingPopup.js",
                     "src/main/room/screen/settings/KeyboardConfigurator.js",
                     "src/main/room/screen/settings/PortsConfigurator.js",
@@ -184,14 +184,14 @@ module.exports = function (grunt) {
         copy: {
             standalone: {
                 files: [
-                    {src: ["temp/wmsx.html"], dest: "release/stable/2.2/standalone", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["temp/wmsx.html"], dest: "release/stable/3.0/standalone", expand: true, flatten: true, filter: "isFile"}
                 ]
             },
             deployable: {
                 files: [
-                    {src: ["temp/example.html"], dest: "release/stable/2.2/deployable", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["temp/wmsx.js"], dest: "release/stable/2.2/deployable", expand: true, flatten: true, filter: "isFile"}
-                    // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/stable/2.2/deployable/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["temp/example.html"], dest: "release/stable/3.0/deployable", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["temp/wmsx.js"], dest: "release/stable/3.0/deployable", expand: true, flatten: true, filter: "isFile"}
+                    // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/stable/3.0/deployable/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         }

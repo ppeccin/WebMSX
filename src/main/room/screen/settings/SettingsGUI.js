@@ -627,12 +627,12 @@ wmsx.SettingsGUI.html = function() {
                 </div>
                 <div id="wmsx-about">
                     <div id="wmsx-logo-version">
-                        WebMSX&nbsp;&nbsp;-&nbsp;&nbsp;version&nbsp;${ WMSX.VERSION }
+                        WebMSX&nbsp;&nbsp;-&nbsp;&nbsp;version&nbsp` + WMSX.VERSION + `
                     </div>
                     <div class="wmsx-info">
-                        ${ atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") }
+                        ` + atob("Q3JlYXRlZCBieSBQYXVsbyBBdWd1c3RvIFBlY2Npbg==") + `
                         <br>
-                        ${ atob("PGEgdGFyZ2V0PSJfYmxhbmsiIGhyZWY9Imh0dHA6Ly93ZWJtc3gub3JnIj5odHRwOi8vd2VibXN4Lm9yZzwvYT4=") }
+                        ` + atob("PGEgdGFyZ2V0PSJfYmxhbmsiIGhyZWY9Imh0dHA6Ly93ZWJtc3gub3JnIj5odHRwOi8vd2VibXN4Lm9yZzwvYT4=") + `
                     </div>
                         <div id="wmsx-browserinfo">
                     </div>
@@ -651,6 +651,7 @@ wmsx.SettingsGUI.html = function() {
             </div>
         </div>
     </div>
+
 `;
 };
 
@@ -1210,7 +1211,7 @@ wmsx.SettingsGUI.css = function() {
 
 .wmsx-joy-logo, .wmsx-mouse-logo {
     position: absolute;
-    background: url('data:image/png;base64,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');
+    background: url("data:image/png;base64,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");
 }
 
 .wmsx-joy .wmsx-joy-trig {
@@ -1350,7 +1351,7 @@ wmsx.SettingsGUI.css = function() {
     background: hsl(0, 0%, 49%);
 }
 .wmsx-joy .wmsx-joy-dir-center:after {
-    content: '';
+    content: "";
     position: absolute;
     top: 2px;
     left: 4px;
@@ -1634,7 +1635,7 @@ wmsx.SettingsGUI.css = function() {
     padding-top: 170px;
     box-sizing: border-box;
     text-align: center;
-    background: black url("${ wmsx.Images.urls.logo }") center 50px no-repeat;
+    background: black url("` + wmsx.Images.urls.logo + `") center 50px no-repeat;
     box-shadow: 3px 3px 14px rgb(75, 75, 75);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
