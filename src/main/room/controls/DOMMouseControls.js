@@ -213,7 +213,7 @@ wmsx.DOMMouseControls = function(hub) {
     function updateConnectionsToHub() {
         if (pointerLocked && port < 0) unlockPointer();
         hub.updateMouseConnections(port === 0 ? wmsx.ControllersHub.MOUSE : null, port === 1 ? wmsx.ControllersHub.MOUSE : null);
-        screen.setMouseActiveCursor(port >= 0);
+        screen.mouseActiveCursorStateUpdate(port >= 0);
     }
 
     function showStatusMessage(mes) {

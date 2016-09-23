@@ -32,6 +32,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controllersHub = pControllersHub;
         controllersHub.setKeyInputElement(mainElement);
         controllersHub.setMouseInputElement(fsElement);
+        controllersHub.setTouchControlElements(getTouchControlElements());
         diskDrive = pDiskDrive;
     };
 
@@ -104,18 +105,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (pasteDialog) pasteDialog.hide();
         machineSelectDialog.show();
     };
-
-    function createDiskSelectDialog() {
-        if (diskSelectDialog) return;
-        setupSelectDialogCSS();
-        diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
-    }
-
-    function createMachineSelectDialog() {
-        if (machineSelectDialog) return;
-        setupSelectDialogCSS();
-        machineSelectDialog = new wmsx.MachineSelectDialog(fsElement, machineTypeSocket);
-    }
 
     this.openLoadFileDialog = function() {
         peripheralControls.controlActivated(wmsx.PeripheralControls.AUTO_LOAD_FILE);
@@ -359,6 +348,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         if(settingsDialog) settingsDialog.controllersSettingsStateUpdate();
     };
 
+    this.mouseActiveCursorStateUpdate = function(boo) {
+        cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '") -10 -10, auto' : "auto";
+        showCursor(true);
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
         updateLoading();
@@ -367,11 +361,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
         }
-    };
-
-    this.setMouseActiveCursor = function(boo) {
-        cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '") -10 -10, auto' : "auto";
-        showCursor(true);
     };
 
     function lostFocus(e) {
@@ -492,6 +481,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
     }
 
+    function createDiskSelectDialog() {
+        if (diskSelectDialog) return;
+        setupSelectDialogCSS();
+        diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
+    }
+
+    function createMachineSelectDialog() {
+        if (machineSelectDialog) return;
+        setupSelectDialogCSS();
+        machineSelectDialog = new wmsx.MachineSelectDialog(fsElement, machineTypeSocket);
+    }
+
     function setupMain() {
         var style = mainElement.style;
         if (!style.position || style.position === "static" || style.position === "initial") style.position = "relative";
@@ -569,7 +570,45 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.appendChild(canvas);
         mainElement.appendChild(borderElement);
 
+        setupTouchControls();
+
         updateCanvasContentSize();
+    }
+
+    function setupTouchControls() {
+        return;
+
+        touchDir = createButton();
+        touchDir.style.right = "initial";
+        touchDir.style.left = "4.5%";
+        touchDir.style.bottom = "25%";
+
+        touchBut1 = createButton();
+        touchBut1.style.bottom = "25%";
+
+        touchBut2 = createButton();
+        touchBut2.style.bottom = "50%";
+
+        touchBut3 = createButton();
+        touchBut3.style.bottom = "75%";
+
+        function createButton() {
+            var but = document.createElement('div');
+            var style = but.style;
+            style.position = "absolute";
+            style.right = "4.5%";
+            style.width = style.height = "70px";
+            style.border = "2px solid hsl(0, 0%, 90%)";
+            style.borderRadius = "100%";
+            style.transform = "translateY(50%)";
+            style.zIndex = -5;
+            fsElement.appendChild(but);
+            return but;
+        }
+    }
+
+    function getTouchControlElements() {
+        return { TDIR: touchDir, TB_1: touchBut1, TB_2: touchBut2, TB_3: touchBut3 };
     }
 
     function setupBar() {
@@ -1299,6 +1338,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasContext;
     var canvasImageRenderingValue;
 
+    var touchDir, touchBut1, touchBut2, touchBut3;
+
     var buttonsBar;
 
     var barMenu;
@@ -1364,7 +1405,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var BORDER_TOP = 1;
     var BORDER_LATERAL = 1;
-    var BORDER_BOTTOM = BAR_AUTO_HIDE ? 1 : BAR_HEIGHT + 2;
+    var BORDER_BOTTOM = BAR_AUTO_HIDE ? 1 : BAR_HEIGHT + 1 + 1;
 
 
     init();

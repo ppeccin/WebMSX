@@ -157,7 +157,6 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
 
     function JoystickState() {
         this.reset = function() {
-            this.buttonsState = {};         // All buttons released
             this.portValue = 0x3f;          // All switches off
         };
         this.reset();

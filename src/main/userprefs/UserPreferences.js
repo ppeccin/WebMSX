@@ -100,7 +100,17 @@ WMSX.userPreferences.defaults = function() {
                     B:         [ k.VK_Z ]
                 }
             }
-        ]
+        ],
+
+        touch: {
+            buttons: {
+                TB_1:      [ "A" ],
+                TB_2:      [ "B" ],
+                TB_3:      [ "A", "B" ],
+                TB_4:      [ ]
+            },
+            directional:   "JOYSTICK"       // JOYSTICK, KEYBOARD
+        }
     };
 };
 
