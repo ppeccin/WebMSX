@@ -576,7 +576,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupTouchControls() {
-        return;
+        if (WMSX.TOUCH_MODE === -1) return;
 
         touchDir = createButton();
         touchDir.style.right = "initial";

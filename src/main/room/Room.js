@@ -52,7 +52,7 @@ wmsx.Room = function(screenElement) {
         self.diskDrive = new wmsx.FileDiskDrive();
         self.fileLoader = new wmsx.FileLoader();
         self.screen = new wmsx.CanvasDisplay(screenElement);
-        self.speaker = new wmsx.WebAudioSpeaker();
+        self.speaker = new wmsx.WebAudioSpeaker(screenElement);
 
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
         self.fileDownloader.connectPeripherals(self.screen);

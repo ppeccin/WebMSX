@@ -3,8 +3,10 @@
 // Accepts multiple AudioSignals with different sampling rates
 // Mixes all signals performing per-signal resampling as needed
 
-wmsx.WebAudioSpeaker = function() {
+wmsx.WebAudioSpeaker = function(mainElement) {
 "use strict";
+
+    var self = this;
 
     this.connect = function(audioSocket) {
         audioSocket.connectMonitor(this);
@@ -26,7 +28,7 @@ wmsx.WebAudioSpeaker = function() {
         createAudioContextAndProcessor();
         if (!processor) return;
 
-        processor.onaudioprocess = onAudioProcess;
+        registerUnpauseOnTap();
         this.unpause();
     };
 
@@ -49,8 +51,12 @@ wmsx.WebAudioSpeaker = function() {
     };
 
     this.unpause = function () {
-        if (processor) processor.connect(audioContext.destination);
-        if (audioContext.state === "suspended") audioContext.resume();
+        if (processor) {
+            if ((!audioContext.state || audioContext.state === "suspended") && audioContext.resume) audioContext.resume().then(function() {
+                processor.connect(audioContext.destination)
+            });
+            else processor.connect(audioContext.destination);
+        }
     };
 
     var createAudioContextAndProcessor = function() {
@@ -67,11 +73,21 @@ wmsx.WebAudioSpeaker = function() {
             // If not specified, calculate buffer size according to host audio sampling rate. 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
             bufferSize = WMSX.AUDIO_BUFFER_SIZE !== -1 ? WMSX.AUDIO_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * WMSX.AUDIO_BUFFER_BASE;
             processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+            processor.onaudioprocess = onAudioProcess;
             wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         } catch(ex) {
             wmsx.Util.error("Could not create AudioContext. Audio DISABLED!\n" + ex);
         }
     };
+
+    function registerUnpauseOnTap() {
+        // iOS needs to resume AudioContext on user interaction!
+        if (processor && (!audioContext.state || audioContext.state === "suspended"))
+            mainElement.addEventListener("touchstart", function unpauseSpeakerOnTouch() {
+                mainElement.removeEventListener("touchstart", unpauseSpeakerOnTouch);
+                self.unpause();
+            });
+    }
 
     function updateResamplingFactors() {
         if (!processor) return;
