@@ -28,6 +28,11 @@
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
             ga('create', 'UA-67920324-1', 'auto');
             ga('send', 'pageview');
+
+            function donate() {
+                alert("To help support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
+            }
+
         </script>
 
         <style>
@@ -99,6 +104,26 @@
                 color: #0050ba;
                 text-shadow: #00aaf0 0 0 2px;
             }
+            #donate {
+                position: relative;
+                top: -1px;
+                font-size: 15px;
+                font-weight: bold;
+                color: white;
+                background-color: #d04020;
+                text-shadow: 1px 1px #444;
+                border: none;
+                border-radius: 100px;
+                padding: 4px 10px;
+                box-shadow: 1px 1px 2px #111;
+                outline: none;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+            #donate:hover {
+                /*background-color: #e06030;*/
+                box-shadow: 1px 1px 4px 1px #222;
+            }
             .noshow {
                 display: none;
             }
@@ -150,12 +175,8 @@
             </h1>
 
             <div style="text-align: center;">
-                <span>Check the <b><a onclick="WMSX.room.screen.openSettings('GENERAL');" href="javascript:void(0);">Settings Dialog</a></b> for more options. Liked WebMSX?</span>
-                <form style="padding: 0; margin: 0 7px; display: inline-block; vertical-align: middle; min-height: 30px; min-width: 93px;" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                    <input type="hidden" name="cmd" value="_s-xclick">
-                    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----">
-                    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-                </form>
+                <span>Check the <b><a onclick="WMSX.room.screen.openSettings('GENERAL');" href="javascript:void(0);">Settings Dialog</a></b> for more options. Liked WebMSX?&nbsp;&nbsp;</span>
+                <button id="donate" onclick="donate();">Donate!</button>
             </div>
 
             <div style="padding-left: 45px;">
