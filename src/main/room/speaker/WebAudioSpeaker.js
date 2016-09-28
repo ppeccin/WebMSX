@@ -28,7 +28,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         createAudioContextAndProcessor();
         if (!processor) return;
 
-        registerUnpauseOnTap();
+        registerUnlockOnTouchIfNeeded();
         this.unpause();
     };
 
@@ -51,12 +51,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     this.unpause = function () {
-        if (processor) {
-            if ((!audioContext.state || audioContext.state === "suspended") && audioContext.resume) audioContext.resume().then(function() {
-                processor.connect(audioContext.destination)
-            });
-            else processor.connect(audioContext.destination);
-        }
+        if (processor) processor.connect(audioContext.destination);
     };
 
     var createAudioContextAndProcessor = function() {
@@ -68,7 +63,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             var constr = (window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext);
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
-            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate);
+            wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate + (audioContext.state ? ", " + audioContext.state : ""));
             updateResamplingFactors();
             // If not specified, calculate buffer size according to host audio sampling rate. 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
             bufferSize = WMSX.AUDIO_BUFFER_SIZE !== -1 ? WMSX.AUDIO_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * WMSX.AUDIO_BUFFER_BASE;
@@ -80,13 +75,20 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         }
     };
 
-    function registerUnpauseOnTap() {
-        // iOS needs to resume AudioContext on user interaction!
-        if (processor && (!audioContext.state || audioContext.state === "suspended"))
-            mainElement.addEventListener("touchstart", function unpauseSpeakerOnTouch() {
-                mainElement.removeEventListener("touchstart", unpauseSpeakerOnTouch);
-                self.unpause();
+    function registerUnlockOnTouchIfNeeded() {
+        // iOS needs to unlock AudioContext on user interaction!
+        if (processor && (!audioContext.state || audioContext.state === "suspended")) {
+            mainElement.addEventListener("touchstart", function unlockAudioContextOnTouch() {
+                wmsx.Util.log("Unlocking Audio Context...");
+                mainElement.removeEventListener("touchstart", unlockAudioContextOnTouch);
+
+                var source = audioContext.createBufferSource();
+                source.buffer = audioContext.createBuffer(1, 1, 22050);
+                source.connect(audioContext.destination);
+                source.start(0);
             });
+            wmsx.Util.log("Audio Context unlock on Touch registered");
+        }
     }
 
     function updateResamplingFactors() {

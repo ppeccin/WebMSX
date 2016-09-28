@@ -445,4 +445,10 @@ wmsx.Util = new function() {
         return Math.pow(2, x);
     };
 
+    this.performanceNow = function() {
+        return this.performanceNow.startOffset ? Date.now() - this.performanceNow.startOffset : window.performance.now();
+    }
+
 };
+
+if (!window.performance || !window.performance.now) wmsx.Util.performanceNow.startOffset = Date.now();

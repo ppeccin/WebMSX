@@ -7,7 +7,7 @@ wmsx.Clock = function(clockPulse) {
 
     this.go = function() {
         if (!running) {
-            //lastPulseTime = performance.now();
+            //lastPulseTime = wmsx.Util.performanceNow();
             //timeMeasures = [];
 
             useRequestAnimationFrame = vSynch && (cyclesPerSecond === wmsx.Clock.HOST_NATIVE_FPS);
@@ -66,7 +66,7 @@ wmsx.Clock = function(clockPulse) {
     };
 
     var pulse = function() {
-        //var pulseTime = performance.now();
+        //var pulseTime = wmsx.Util.performanceNow();
         //timeMeasures[timeMeasures.length] = pulseTime - lastPulseTime;
         //lastPulseTime = pulseTime;
 
@@ -75,7 +75,7 @@ wmsx.Clock = function(clockPulse) {
         if (useRequestAnimationFrame && !animationFrame)
             animationFrame = requestAnimationFrame(pulse);
 
-        //console.log(performance.now() - pulseTime);
+        //console.log(wmsx.Util.performanceNow() - pulseTime);
     };
 
     //this.getMeasures = function() {
@@ -137,7 +137,7 @@ wmsx.Clock.detectHostNativeFPSAndCallback = function(callback) {
 
         tries++;
         if (tries <= 50) {
-            var currentTime = performance.now();
+            var currentTime = wmsx.Util.performanceNow();
             var sample = currentTime - lastTime;
             samples[samples.length] = sample;
             lastTime = currentTime;

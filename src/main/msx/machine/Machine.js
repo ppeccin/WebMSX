@@ -870,13 +870,13 @@ wmsx.Machine = function() {
 
     this.runFramesAtTopSpeed = function(frames) {
         mainVideoClock.pause();
-        var start = performance.now();
+        var start = wmsx.Util.performanceNow();
         for (var i = 0; i < frames; i++) {
-            //var pulseTime = performance.now();
+            //var pulseTime = wmsx.Util.performanceNow();
             self.videoClockPulse();
-            //console.log(performance.now() - pulseTime);
+            //console.log(wmsx.Util.performanceNow() - pulseTime);
         }
-        var duration = performance.now() - start;
+        var duration = wmsx.Util.performanceNow() - start;
         wmsx.Util.log("Done running " + frames + " frames in " + duration + " ms");
         wmsx.Util.log(frames / (duration/1000) + "  frames/sec");
         mainVideoClock.go();
