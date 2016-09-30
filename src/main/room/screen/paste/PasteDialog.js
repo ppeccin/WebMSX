@@ -18,31 +18,20 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
             return;
         }
         setTimeout(function() {
-            self.cover.style.visibility = "visible";
-            self.cover.style.opacity = "1";
+            self.cover.classList.add("wmsx-show");
             self.box.focus();
         }, 0);
     };
 
     this.hide = function () {
         if (!this.cover) return;
-        this.cover.style.visibility = "hidden";
-        this.cover.style.opacity = "0";
+        self.cover.classList.remove("wmsx-show");
         screen.focus();
     };
 
     var create = function () {
-        var style;
-
         self.cover = document.createElement("div");
         self.cover.id = "wmsx-paste-cover";
-        style = self.cover.style;
-        style.position = "absolute";
-        style.top = style.bottom = 0;
-        style.left = style.right = 0;
-        style.background = "rgba(0, 0, 0, 0.6)";
-        style.transition = "opacity .1s ease-out";
-        style.zIndex = 10;
         mainElement.appendChild(self.cover);
 
         self.box = document.createElement("input");
@@ -50,25 +39,6 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
         self.box.value = "\uD83D\uDCCB   PASTE NOW";
         self.box.readOnly = "readonly";
         self.box.innerHTML = "PASTE NOW!";
-        style = self.box.style;
-        style.position = "absolute";
-        style.top = style.bottom = 0;
-        style.left = style.right = 0;
-        style.width = "270px";
-        style.height = "66px";
-        style.margin = "auto";
-        style.background = "rgba(255, 40, 40, 0.75)";
-        style.font = "bold 26px sans-serif";
-        style.textAlign = "center";
-        style.color = "transparent";
-        style.border = "2px dashed rgba(240, 240, 240, 0.70)";
-        style.boxSizing = "initial";
-        style.borderRadius = "10px";
-        style.textShadow = "0 0 0 rgb(240, 240, 240)";
-        style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
-        style.MozOsxFontSmoothing = "grayscale";
-        style.padding = "0";
-        style.outline = "none";
         self.cover.appendChild(self.box);
 
         setEvents();

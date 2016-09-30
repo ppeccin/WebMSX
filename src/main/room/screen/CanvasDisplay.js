@@ -6,6 +6,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var self = this;
 
     function init() {
+        setupCSS();
         setupMain();
         setupOSD();
         setupBar();
@@ -276,16 +277,30 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setFullscreenByHack(mode) {
-        var style = fsElement.style;
-        style.position = "fixed";
-        style.top = 0;
-        style.bottom = 0;
-        style.left = 0;
-        style.right = 0;
+        if (mode) {
+            if (!viewportTag) {
+                viewportTag = document.querySelector("meta[name=viewport]");
+                if (!viewportTag) {
+                    viewportTag = document.createElement('meta');
+                    viewportTag.name = "viewport";
+                    document.head.appendChild(viewportTag);
+                }
+            }
+            if (viewportOriginalContent === null) viewportOriginalContent = viewportTag.content;
+            viewportTag.content = "width = device-width, initial-scale = 1.0, minimum-scale = 1.0, maximum-scale = 1.0, user-scalable = 0";
 
-        isFullscreen = true;
-        fsElement.classList.add("wmsx-full-screen");
+            fsElement.classList.add("wmsx-full-screen");
+            fsElement.classList.add("wmsx-full-screen-hack");
+        } else {
+            if (viewportOriginalContent !== null) {
+                viewportTag.content = viewportOriginalContent;
+                viewportOriginalContent = null;
+            }
 
+            fsElement.classList.remove("wmsx-full-screen");
+            fsElement.classList.remove("wmsx-full-screen-hack");
+        }
+        isFullscreen = mode;
         monitor.setDisplayOptimalScale();
     }
 
@@ -404,6 +419,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         var height = Math.round(targetHeight * scaleY);
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
+        buttonsBar.style.width = "" + width + "px";
+
+        if (width < NARROW_WIDTH) buttonsBar.classList.add("wmsx-narrow");
+        else buttonsBar.classList.remove("wmsx-narrow");
     }
 
     function updateCanvasContentSize() {
@@ -477,19 +496,15 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function createDiskSelectDialog() {
         if (diskSelectDialog) return;
-        setupSelectDialogCSS();
         diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
     }
 
     function createMachineSelectDialog() {
         if (machineSelectDialog) return;
-        setupSelectDialogCSS();
         machineSelectDialog = new wmsx.MachineSelectDialog(fsElement, machineTypeSocket);
     }
 
     function setupMain() {
-        setupMainCSS();
-
         var style = mainElement.style;
         if (!style.position || style.position === "static" || style.position === "initial") style.position = "relative";
         mainElement.tabIndex = "0";               // Make it focusable
@@ -570,17 +585,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupBar() {
-        setupBarCSS();
-
         buttonsBar = document.createElement('div');
         buttonsBar.id = "wmsx-bar";
+        fsElement.appendChild(buttonsBar);
+        buttonsBarInner = document.createElement('div');
+        buttonsBarInner.id = "wmsx-bar-inner";
+        buttonsBar.appendChild(buttonsBarInner);
 
         if (BAR_AUTO_HIDE) {
+            buttonsBar.classList.add("wmsx-auto-hide");
+            mainElement.addEventListener("mouseleave", hideBar);
             hideBar();
-            buttonsBar.style.transition = "bottom 0.3s ease-in-out";
-            mainElement.addEventListener("mouseleave", function() {
-                hideBar();
-            });
         }
 
         var menu = [
@@ -591,7 +606,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Save State File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE, disabled: true }
         ];
         menu.menuTitle = "System";
-        powerButton = addPeripheralControlButton(6, -26, 24, 23, -120, -29, "System Power", null, menu);
+        powerButton = addPeripheralControlButton(6, 3, 24, 23, -120, -29, "System Power", null, menu);
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
@@ -606,7 +621,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
         ];
         menu.menuTitle = "Drive A:";
-        diskAButton = addPeripheralControlButton(44, -26, 24, 23, -237, -54, "Disk A:", null, menu);
+        diskAButton = addPeripheralControlButton(44, 3, 24, 23, -237, -54, "Disk A:", null, menu);
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
@@ -621,7 +636,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
         menu.menuTitle = "Drive B:";
-        diskBButton = addPeripheralControlButton(43 + 26, -26, 24, 23, -266, -54, "Disk B:", null, menu);
+        diskBButton = addPeripheralControlButton(43 + 26, 3, 24, 23, -266, -54, "Disk B:", null, menu);
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
@@ -630,7 +645,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cartridge 1";
-        cartridge1Button = addPeripheralControlButton(43 + 26 * 2, -26, 24, 23, -150, -54, "Cartridge 1", null, menu);
+        cartridge1Button = addPeripheralControlButton(43 + 26 * 2, 3, 24, 23, -150, -54, "Cartridge 1", null, menu);
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
@@ -639,7 +654,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
         menu.menuTitle = "Cartridge 2";
-        cartridge2Button = addPeripheralControlButton(44 + 26 * 3, -26, 24, 23, -179, -54, "Cartridge 2", null, menu);
+        cartridge2Button = addPeripheralControlButton(44 + 26 * 3, 3, 24, 23, -179, -54, "Cartridge 2", null, menu);
 
         menu = [
             { label: "Load form File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
@@ -650,28 +665,27 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Tape",    clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cassette Tape";
-        tapeButton = addPeripheralControlButton(45 + 26 * 4, -26, 24, 23, -208, -54, "Cassette Tape", null, menu);
+        tapeButton = addPeripheralControlButton(45 + 26 * 4, 3, 24, 23, -208, -54, "Cassette Tape", null, menu);
 
         var fsGap = 23;
         if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
-            fullscreenButton = addPeripheralControlButton(-53, -26, 24, 22, -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
+            fullscreenButton = addPeripheralControlButton(-53, 3, 24, 22, -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fsGap = 0;
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
-            scaleDownButton = addPeripheralControlButton(-92 + fsGap, -26, 18, 22, -26, -4, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
-            scaleUpButton = addPeripheralControlButton(-74 + fsGap, -26, 21, 22, -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
+            scaleDownButton = addPeripheralControlButton(-92 + fsGap, 3, 18, 22, -26, -4, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
+            scaleUpButton = addPeripheralControlButton(-74 + fsGap, 3, 21, 22, -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
         }
 
-        logoButton = addPeripheralControlButton("CENTER", -23, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        logoButton = addPeripheralControlButton("CENTER", 6, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        logoButton.classList.add("wmsx-narrow-hidden");
 
         menu = createSettingsMenuOptions();
         menu.menuTitle = "Settings";
-        settingsButton = addPeripheralControlButton(-29, -26, 24, 22, -96, -4, "Settings", null, menu);
+        settingsButton = addPeripheralControlButton(-29, 3, 24, 22, -96, -4, "Settings", null, menu);
 
         // Mouse buttons perform the various actions
         buttonsBar.addEventListener("mousedown", peripheralControlButtonMouseDown);
-
-        fsElement.appendChild(buttonsBar);
     }
 
     function createSettingsMenuOptions() {
@@ -751,7 +765,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (tooltip) but.title = tooltip;
 
-        buttonsBar.appendChild(but);
+        buttonsBarInner.appendChild(but);
 
         //but.style.boxSizing = "border-box";
         //but.style.backgroundOrigin = "border-box";
@@ -797,26 +811,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoImage.id = "wmsx-logo";
         logoImage.isLoaded = false;
         logoImage.draggable = false;
-        logoImage.style.position = "absolute";
-        logoImage.style.display = "none";
-        logoImage.style.top = 0;
-        logoImage.style.bottom = 0;
-        logoImage.style.left = 0;
-        logoImage.style.right = 0;
-        logoImage.style.maxWidth = "60%";
-        logoImage.style.margin = "auto auto";
-
-        logoImage.style.userSelect = "none";
-        logoImage.style.webkitUserSelect = "none";
-        logoImage.style.MozUserSelect = "none";
-        logoImage.style.msUserSelect = "none";
+        fsElement.appendChild(logoImage);
 
         logoImage.ondragstart = function(e) {
             e.preventDefault();
             return false;
         };
-
-        fsElement.appendChild(logoImage);
 
         logoImage.onload = function() {
             logoImage.isLoaded = true;
@@ -827,35 +827,15 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function setupLoadingIcon() {
         loadingImage = new Image();
+        loadingImage.id = "wmsx-loading-icon";
         loadingImage.isLoaded = false;
         loadingImage.draggable = false;
-        var style = loadingImage.style;
-
-        style.position = "absolute";
-        style.display = "none";
-        style.top = "60%";
-        style.left = 0;
-        style.right = 0;
-        style.height = "3%";
-        style.width = "16%";
-        style.margin = "auto auto";
-        style.backgroundColor = "rgba(0, 0, 0, .8)";
-        style.border = "solid transparent";
-        style.borderWidth = "12px 30px";
-        style.borderRadius = "3px";
-        style.boxSizing = "content-box";
-
-        style.userSelect = "none";
-        style.webkitUserSelect = "none";
-        style.MozUserSelect = "none";
-        style.msUserSelect = "none";
+        fsElement.appendChild(loadingImage);
 
         loadingImage.ondragstart = function(e) {
             e.preventDefault();
             return false;
         };
-
-        fsElement.appendChild(loadingImage);
 
         loadingImage.onload = function() {
             loadingImage.isLoaded = true;
@@ -867,36 +847,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupOSD() {
         osd = document.createElement('div');
         osd.id = "wmsx-osd";
-        var style = osd.style;
-        style.position = "absolute";
-        style.overflow = "hidden";
-        style.textOverflow = "ellipsis";
-        style.whiteSpace = "nowrap";
-        style.top = "-29px";
-        style.right = "18px";
-        style.height = "29px";
-        style.maxWidth = "92%";
-        style.padding = "0 12px";
-        style.margin = "0";
-        style.font = 'bold 15px/29px sans-serif';
-        style.color = "rgb(0, 255, 0)";
-        style.background = "rgba(0, 0, 0, 0.7)";
-        style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
-        style.MozOsxFontSmoothing = "grayscale";
-        style.opacity = 0;
-        osd.innerHTML = "";
         fsElement.appendChild(osd);
     }
 
     function setupCopyTextArea() {
         copyTextArea = document.createElement("textarea");
         copyTextArea.id = "wmsx-copy-texarea";
-        copyTextArea.style.position = "absolute";
-        copyTextArea.style.width = "50px";
-        copyTextArea.style.height = "0px";
-        copyTextArea.style.bottom = "0px";
-        copyTextArea.style.zIndex = -10;
-        copyTextArea.style.opacity = 0;
         mainElement.appendChild(copyTextArea);
     }
 
@@ -910,13 +866,13 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function showBar() {
-        if (BAR_AUTO_HIDE && !mousePointerLocked) buttonsBar.style.bottom = "0px";
+        if (!mousePointerLocked) buttonsBar.classList.remove("wmsx-hidden");
     }
 
     function hideBar() {
-        if (BAR_AUTO_HIDE && !barMenuActive) {
+        if ((BAR_AUTO_HIDE || isFullscreen) && !barMenuActive) {
             hideBarMenu();
-            buttonsBar.style.bottom = "-" + (BAR_HEIGHT + 2) + "px";
+            buttonsBar.classList.add("wmsx-hidden");
         }
     }
 
@@ -939,12 +895,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (refElement && (refElement.wmsxMidLeft || refElement.wmsxMidRight)) {
             var p;
             if (refElement.wmsxMidLeft) {
-                p = (refElement.wmsxMidLeft - BAR_MENU_WIDTH / 2) | 0;
+                p = (refElement.wmsxMidLeft - wmsx.ScreenGUI.BAR_MENU_WIDTH / 2) | 0;
                 if (p < 0) p = 0;
                 barMenu.style.left = "" + p + "px";
                 barMenu.style.right = "auto";
             } else {
-                p = (refElement.wmsxMidRight - BAR_MENU_WIDTH / 2) | 0;
+                p = (refElement.wmsxMidRight - wmsx.ScreenGUI.BAR_MENU_WIDTH / 2) | 0;
                 if (p < 0) p = 0;
                 barMenu.style.right = "" + p + "px";
                 barMenu.style.left = "auto";
@@ -963,7 +919,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenu.wmsxTitle.innerHTML = menu.menuTitle;
 
         var it = 0;
-        var height = BAR_MENU_ITEM_HEIGHT + 6;      // Title height + borders + padding
+        var height = wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + 6;      // Title height + borders + padding
         var item;
         var maxShown = Math.min(menu.length, BAR_MENU_MAX_ITEMS);
         for (var op = 0; op < maxShown; ++op) {
@@ -994,7 +950,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                         item.classList.remove("wmsx-bar-menu-item-toggle");
                     }
 
-                    height += menu[op].divider ? 3 : BAR_MENU_ITEM_HEIGHT;
+                    height += menu[op].divider ? 3 : wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT;
                 }
 
                 ++it;
@@ -1102,221 +1058,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.appendChild(barMenu);
     }
 
-
-    function setupMainCSS() {
-        var css = `
-            #wmsx-screen, #wmsx-screen div, #wmsx-screen canvas {
-                outline: none;
-            }
-
-            #wmsx-screen {
-                display: inline-block;
-                border: 1px solid black;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                background: black;
-            }
-            #wmsx-screen-fs {
-                position: relative;
-                background: black;
-                overflow: hidden;
-            }
-            #wmsx-screen-fs.wmsx-full-screen {
-                width: 100%;
-                height: 100%;
-            }
-
-            #wmsx-screen-canvas {
-                display: block;
-                margin: auto;
-            }
-        `;
-
+    function setupCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
-        style.innerHTML = css;
+        style.innerHTML = wmsx.ScreenGUI.css;
         document.head.appendChild(style);
+        delete wmsx.ScreenGUI.css;
     }
 
-    function setupBarCSS() {
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        style.innerHTML = '' +
-            '#wmsx-bar {' +
-            '    position: relative;' +
-            '    height: ' + BAR_HEIGHT + 'px;' +
-            '    margin-top: 1px;' +
-            '    background: rgb(40, 40, 40);' +
-            '    overflow: visible;' +                   // for the Menu to show through
-            '    z-index: 30;' +
-            '}' +
-            '#wmsx-screen-fs.wmsx-full-screen #wmsx-bar {' +
-            '    display: none' +
-            '}' +
-            '#wmsx-bar-menu {' +
-            '    position: absolute;' +
-            '    height: 0;' +
-            '    bottom: ' + BAR_HEIGHT + 'px;' +
-            '    overflow: hidden;' +
-            '    -webkit-font-smoothing: antialiased;' +
-            '    -moz-osx-font-smoothing: grayscale;' +
-            '}' +
-            '#wmsx-bar-menu-inner {' +
-            '    padding-bottom: 3px;' +
-            '    border: 1px solid black;' +
-            '    background: rgb(40, 40, 40);' +
-            '    font: normal 13px sans-serif;' +
-            '}' +
-            '.wmsx-bar-menu-item, #wmsx-bar-menu-title {' +
-            '    position: relative;' +
-            '    width: ' + BAR_MENU_WIDTH + 'px;' +
-            '    height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
-            '    color: rgb(205, 205, 205);' +
-            '    border: none;' +
-            '    padding: 0;' +
-            '    font: inherit;' +
-            '    text-shadow: 1px 1px 1px black;' +
-            '    background: transparent;' +
-            '    outline: none;' +
-            '    backface-visibility: hidden;' +
-            '    -webkit-backface-visibility: hidden;' +
-            '    cursor: pointer; ' +
-            '}' +
-            '#wmsx-bar-menu-title {' +
-            '    display: block;' +
-            '    color: white;' +
-            '    font-weight: bold;' +
-            '    border-bottom: 1px solid black;' +
-            '    margin-bottom: 1px;' +
-            '    text-align: center;' +
-            '    background: rgb(70, 70, 70);' +
-            '    cursor: auto;' +
-            '}' +
-            '.wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-disabled):not(.wmsx-bar-menu-item-divider) { ' +
-            '    color: white;' +
-            '    background: rgb(220, 32, 26);' +
-            '}' +
-            '.wmsx-bar-menu-item-disabled { ' +
-            '    color: rgb(110, 110, 110);' +
-            '}' +
-            '.wmsx-bar-menu-item-divider { ' +
-            '    height: 1px;' +
-            '    margin: 1px 0;' +
-            '    background: black;' +
-            '}' +
-            '.wmsx-bar-menu-item-check { ' +
-            '    display: none;' +
-            '    position: absolute;' +
-            '    width: 6px;' +
-            '    height: 19px;' +
-            '    top: 4px;' +
-            '    left: 9px;' +
-            '    box-shadow: black 1px 1px 1px;' +
-            '}' +
-            '.wmsx-bar-menu-item-toggle { ' +
-            '    text-align: left;' +
-            '    padding: 0 0 0 28px;' +
-            '}' +
-            '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
-            '    display: block;' +
-            '    background: rgb(70, 70, 70);' +
-            '}' +
-            '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked { ' +
-            '    color: white;' +
-            '}' +
-            '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check { ' +
-            '    background: rgb(248, 33, 28);' +
-            '}'
-        ;
-        document.head.appendChild(style);
-    }
-
-    function setupSelectDialogCSS() {                       // Used by various simple Select Dialogs
-        if (selectDialogCSSReady) return;
-
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        style.innerHTML = '' +
-            '#wmsx-screen .wmsx-select-dialog {' +
-            '    position: absolute;' +
-            '    overflow: hidden;' +
-            '    display: none;' +
-            '    top: 0;' +
-            '    bottom: 0;' +
-            '    left: 0;' +
-            '    right: 0;' +
-            '    width: 540px;' +
-            '    max-width: 92%;' +
-            '    height: 270px;' +
-            '    max-height: 98%;' +
-            '    margin: auto;' +
-            '    color: white;' +
-            '    font: normal 19px sans-serif;' +
-            '    background: rgb(40, 40, 40);' +
-            '    padding: 20px 0 0;' +
-            '    text-align: center;' +
-            '    border: 1px solid black;' +
-            '    box-sizing: initial;' +
-            '    text-shadow: 1px 1px 1px black;' +
-            '    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
-            '    -webkit-font-smoothing: antialiased;' +
-            '    -moz-osx-font-smoothing: grayscale;' +
-            '    cursor: auto;' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog.wmsx-show {' +
-            '    display: block;' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog .wmsx-footer {' +
-            '    position: absolute;' +
-            '    width: 100%;' +
-            '    bottom: 6px;' +
-            '    font-size: 13px;' +
-            '    text-align: center;' +
-            '    color: rgb(170, 170, 170);' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog ul {' +
-            '    position: relative;' +
-            '    width: 88%;' +
-            '    top: 15px;' +
-            '    margin: auto;' +
-            '    padding: 0;' +
-            '    list-style: none;' +
-            '    font-size: 14px;' +
-            '    color: rgb(225, 225, 225);' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog li {' +
-            '    display: none;' +
-            '    overflow: hidden;' +
-            '    height: 23px;' +
-            '    background: rgb(70, 70, 70);' +
-            '    margin: 7px 0;' +
-            '    padding: 2px 10px;' +
-            '    line-height: 15px;' +
-            '    text-align: left;' +
-            '    text-overflow: ellipsis;' +
-            '    border: 2px dashed transparent;' +
-            '    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);' +
-            '    white-space: nowrap;' +
-            '    box-sizing: border-box;' +
-            '    cursor: pointer;' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog li.wmsx-visible {' +
-            '    display: block;' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog li.wmsx-selected {' +
-            '    color: white;' +
-            '    background: rgb(220, 32, 26);' +
-            '}' +
-            '#wmsx-screen .wmsx-select-dialog li.wmsx-droptarget {' +
-            '    color: white;' +
-            '    border-color: lightgray;' +
-            '}';
-        document.head.appendChild(style);
-
-        selectDialogCSSReady = true;
-    }
 
     var monitor;
     var peripheralControls;
@@ -1330,6 +1079,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var isFullscreen = false;
     var fullscreenAPIEnterMethod, fullScreenAPIExitMethod;
+    var viewportTag, viewportOriginalContent = null;
 
     var machineControlsSocket;
     var machineControlsStateReport = {};
@@ -1340,9 +1090,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var pasteDialog;
     var copyTextArea;
 
-    var selectDialogCSSReady = false;
-
-    var borderElement;
     var fsElement;
 
     var canvas;
@@ -1351,7 +1098,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var touchDir, touchBut1, touchBut2, touchBut3;
 
-    var buttonsBar;
+    var buttonsBar, buttonsBarInner;
 
     var barMenu;
     var barMenuActive = null;
@@ -1398,20 +1145,18 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var mediaButtonBackYOffsets = [ -54, -29, -4 ];
 
-    var KEY_CTRL_MASK  =  32;
-    var KEY_ALT_MASK   =  64;
-    var KEY_SHIFT_MASK =  128;
+    var OSD_TIME = 3000;
+    var CURSOR_HIDE_FRAMES = 150;
 
-    var BAR_HEIGHT = 29;
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 1;
-
-    var BAR_MENU_WIDTH = 136;
-    var BAR_MENU_ITEM_HEIGHT = 28;
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
-    var OSD_TIME = 3000;
-    var CURSOR_HIDE_FRAMES = 150;
+    var NARROW_WIDTH = 450;
+
+    var KEY_CTRL_MASK  =  32;
+    var KEY_ALT_MASK   =  64;
+    var KEY_SHIFT_MASK =  128;
 
 
     init();
