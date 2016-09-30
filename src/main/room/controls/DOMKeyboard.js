@@ -9,7 +9,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         self.applyPreferences();
     }
 
-    this.connect = function(pControllersSocket, pBIOSSocket) {
+    this.connect = function(pBIOSSocket) {
         biosSocket = pBIOSSocket;
     };
 

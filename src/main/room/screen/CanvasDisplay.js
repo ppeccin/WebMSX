@@ -11,6 +11,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupBar();
         setupLogo();
         setupLoadingIcon();
+        setupFullscreenMethod();
         monitor = new wmsx.Monitor(self);
     }
 
@@ -259,32 +260,34 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.displayToggleFullscreen = function() {
         if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
-
-        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
-            if (fsElement.requestFullscreen)
-                fsElement.requestFullscreen();
-            else if (fsElement.webkitRequestFullscreen)
-                fsElement.webkitRequestFullscreen();
-            else if (fsElement.webkitRequestFullScreen)
-                fsElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-            else if (fsElement.mozRequestFullScreen)
-                fsElement.mozRequestFullScreen();
-            else if (fsElement.msRequestFullscreen)
-                fsElement.msRequestFullscreen();
-            else
-                this.showOSD("Fullscreen is not supported by your browser!", true, true);
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-        }
+        this.setFullscreen(!isFullscreen);
     };
+
+    this.setFullscreen = function(mode) {
+        if (fullscreenAPIEnterMethod) setFullscreenByAPI(mode);
+        else setFullscreenByHack(mode);
+    };
+
+    function setFullscreenByAPI(mode) {
+        if (isFullscreen === mode) return;
+        if (mode) fullscreenAPIEnterMethod.call(fsElement);
+        else fullScreenAPIExitMethod.call(document);
+        // callback fullscreenChanged() will adjust everything
+    }
+
+    function setFullscreenByHack(mode) {
+        var style = fsElement.style;
+        style.position = "fixed";
+        style.top = 0;
+        style.bottom = 0;
+        style.left = 0;
+        style.right = 0;
+
+        isFullscreen = true;
+        fsElement.classList.add("wmsx-full-screen");
+
+        monitor.setDisplayOptimalScale();
+    }
 
     this.focus = function() {
         canvas.focus();
@@ -385,10 +388,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.style.cursor = cursorShowing ? cursorType : "none";
     }
 
-    function fullScreenChanged() {
+    function fullscreenChanged() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
+        if (isFullscreen) fsElement.classList.add("wmsx-full-screen");
+        else fsElement.classList.remove("wmsx-full-screen");
         monitor.setDisplayOptimalScale();
+
         // Schedule another one to give the browser some time to set full screen properly
         if (isFullscreen) setTimeout(monitor.setDisplayOptimalScale, 120);
     }
@@ -396,20 +402,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateScale() {
         var width = Math.round(targetWidth * scaleY * aspectX);
         var height = Math.round(targetHeight * scaleY);
-        setElementsSizes(width, height);
-    }
-
-    function setElementsSizes(width, height) {
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
-        // Do not change containers sizes while in fullscreen
-        if (isFullscreen) return;
-        borderElement.style.width = "" + width + "px";
-        borderElement.style.height = "" + height + "px";
-        width += BORDER_LATERAL * 2;
-        height += BORDER_TOP + BORDER_BOTTOM;
-        mainElement.style.width = "" + width + "px";
-        mainElement.style.height = "" + height + "px";
     }
 
     function updateCanvasContentSize() {
@@ -494,41 +488,20 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMain() {
+        setupMainCSS();
+
         var style = mainElement.style;
         if (!style.position || style.position === "static" || style.position === "initial") style.position = "relative";
-        style.userSelect = style.webkitUserSelect = style.MozUserSelect = style.msUserSelect = "none";
-        style.overflow = "hidden";
-        style.outline = "none";
         mainElement.tabIndex = "0";               // Make it focusable
         suppressContextMenu(mainElement);
 
         mainElement.addEventListener("focusout", lostFocus, true);
         mainElement.addEventListener("blur", lostFocus, true);
 
-        borderElement = document.createElement('div');
-        borderElement.id = "wmsx-border";
-        style = borderElement.style;
-        style.position = "absolute";
-        style.left = style.right = 0;
-        style.top = 0;
-        style.margin = "auto";
-        style.padding = 0;
-        style.overflow = "hidden";
-        style.background = "black";
-        style.border = "0 solid black";
-        style.borderWidth = "" + BORDER_TOP + "px " + BORDER_LATERAL + "px " + BORDER_BOTTOM + "px";
-        style.boxSizing = "initial";
-
         fsElement = document.createElement('div');
-        fsElement.id = "wmsx-fs";
-        style = fsElement.style;
-        style.position = "absolute";
-        style.left = style.right = 0;
-        style.top = style.bottom = 0;
-        style.padding = 0;
-        style.overflow = "hidden";
-        style.background = "black";
-        style.boxSizing = "initial";
+        fsElement.id = "wmsx-screen-fs";
+        mainElement.appendChild(fsElement);
+
         suppressContextMenu(fsElement);
 
         fsElement.addEventListener("mousemove", function() {
@@ -536,12 +509,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             showBar();
         });
 
-        document.addEventListener("fullscreenchange", fullScreenChanged);
-        document.addEventListener("webkitfullscreenchange", fullScreenChanged);
-        document.addEventListener("mozfullscreenchange", fullScreenChanged);
-        document.addEventListener("msfullscreenchange", fullScreenChanged);
-
-        borderElement.appendChild(fsElement);
+        document.addEventListener("fullscreenchange", fullscreenChanged);
+        document.addEventListener("webkitfullscreenchange", fullscreenChanged);
+        document.addEventListener("mozfullscreenchange", fullscreenChanged);
+        document.addEventListener("msfullscreenchange", fullscreenChanged);
 
         // Try to determine correct value for image-rendering for the canvas filter modes
         switch (wmsx.Util.browserInfo().name) {
@@ -554,24 +525,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         canvas = document.createElement('canvas');
-        canvas.id = "wmsx-canvas";
-        style = canvas.style;
-        style.position = "absolute";
-        style.display = "block";
-        style.left = style.right = 0;
-        style.top = style.bottom = 0;
-        style.background = "black";
-        style.margin = "auto";
-        style.outline = "none";
-        style.border = "none";
-        style.padding = 0;
-        style.boxSizing = "initial";
+        canvas.id = "wmsx-screen-canvas";
         canvas.tabIndex = "-1";               // Make it focusable
         fsElement.appendChild(canvas);
-        mainElement.appendChild(borderElement);
 
         setupTouchControls();
-
         updateCanvasContentSize();
     }
 
@@ -612,22 +570,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupBar() {
+        setupBarCSS();
+
         buttonsBar = document.createElement('div');
         buttonsBar.id = "wmsx-bar";
-        var style = buttonsBar.style;
-        style.position = "absolute";
-        style.left = 0;
-        style.right = 0;
-        style.zIndex = 30;
-        style.height = "" + BAR_HEIGHT + "px";
-        style.background = "rgb(40, 40, 40)";
-        style.border = "1px solid black";
-        style.bottom = "0";
-        style.padding = 0;
-        style.boxSizing = "initial";
+
         if (BAR_AUTO_HIDE) {
             hideBar();
-            style.transition = "bottom 0.3s ease-in-out";
+            buttonsBar.style.transition = "bottom 0.3s ease-in-out";
             mainElement.addEventListener("mouseleave", function() {
                 hideBar();
             });
@@ -721,7 +671,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Mouse buttons perform the various actions
         buttonsBar.addEventListener("mousedown", peripheralControlButtonMouseDown);
 
-        mainElement.appendChild(buttonsBar);
+        fsElement.appendChild(buttonsBar);
     }
 
     function createSettingsMenuOptions() {
@@ -790,12 +740,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (y > 0) but.style.top = "" + y + "px"; else but.style.bottom = "" + (-h - y) + "px";
         but.style.width = "" + w + "px";
         but.style.height = "" + h + "px";
-        but.style.outline = "none";
 
         if ((typeof bx) === "number") {
             but.style.backgroundImage = 'url("' + wmsx.Images.urls.sprites + '")';
             but.style.backgroundPosition = "" + bx + "px " + by + "px";
             but.style.backgroundRepeat = "no-repeat";
+            but.style.backgroundSize = "296px 81px";
             but.wmsxBX = bx; but.wmsxBY = by;
         }
 
@@ -950,6 +900,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.appendChild(copyTextArea);
     }
 
+    function setupFullscreenMethod() {
+        //return;
+
+        if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
+
+        fullscreenAPIEnterMethod = fsElement.requestFullscreen || fsElement.webkitRequestFullscreen || fsElement.webkitRequestFullScreen || fsElement.mozRequestFullScreen || fsElement.msRequestFullscreen;
+        fullScreenAPIExitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    }
+
     function showBar() {
         if (BAR_AUTO_HIDE && !mousePointerLocked) buttonsBar.style.bottom = "0px";
     }
@@ -1004,7 +963,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenu.wmsxTitle.innerHTML = menu.menuTitle;
 
         var it = 0;
-        var height = BAR_MENU_ITEM_HEIGHT + 4;
+        var height = BAR_MENU_ITEM_HEIGHT + 6;      // Title height + borders + padding
         var item;
         var maxShown = Math.min(menu.length, BAR_MENU_MAX_ITEMS);
         for (var op = 0; op < maxShown; ++op) {
@@ -1061,40 +1020,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupBarMenu() {
-        setupBarMenuCSS();
-        var style;
-
         barMenu = document.createElement('div');
         barMenu.id = "wmsx-bar-menu";
-        style = barMenu.style;
-        style.position = "absolute";
-        style.overflow = "hidden";
-        style.height = 0;
-        style.bottom = "" + BAR_HEIGHT + "px";
-        style.border = "0 solid black";
-        style.borderWidth = "0 1px";
-        style.background = "rgb(40, 40, 40)";
-        style.font = "normal 13px sans-serif";
-        style.outline = "none";
-        style.webkitFontSmoothing = "antialiased";      // Light Text on Dark Background fix
-        style.MozOsxFontSmoothing = "grayscale";
-        style.cursor = "auto";
-        style.zIndex = 20;
+
+        var inner = document.createElement('div');
+        inner.id = "wmsx-bar-menu-inner";
+        barMenu.appendChild(inner);
 
         var title = document.createElement('button');
         title.id = "wmsx-bar-menu-title";
-        title.classList.add("wmsx-bar-menu-item");
-        style = title.style;
-        style.display = "block";
-        style.color = "white";
-        style.fontWeight = "bold";
-        style.border = "0px solid black";
-        style.borderWidth = "1px 0";
-        style.margin = "0 0 1px";
-        style.textAlign = "center";
-        style.background = "rgb(70, 70, 70)";
         title.innerHTML = "Menu Title";
-        barMenu.appendChild(title);
+        inner.appendChild(title);
         barMenu.wmsxTitle = title;
 
         var itemMouseEntered = function (e) {
@@ -1115,7 +1051,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             var check = document.createElement('div');
             check.classList.add("wmsx-bar-menu-item-check");
             item.appendChild(check);
-            barMenu.appendChild(item);
+            inner.appendChild(item);
             barMenu.wmsxItems[i] = item;
         }
 
@@ -1163,62 +1099,135 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenu.addEventListener("blur", hideBarMenu, true);
         barMenu.addEventListener("focusout", hideBarMenu, true);
 
-        mainElement.appendChild(barMenu);
+        buttonsBar.appendChild(barMenu);
     }
 
-    function setupBarMenuCSS() {
+
+    function setupMainCSS() {
+        var css = `
+            #wmsx-screen, #wmsx-screen div, #wmsx-screen canvas {
+                outline: none;
+            }
+
+            #wmsx-screen {
+                display: inline-block;
+                border: 1px solid black;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                background: black;
+            }
+            #wmsx-screen-fs {
+                position: relative;
+                background: black;
+                overflow: hidden;
+            }
+            #wmsx-screen-fs.wmsx-full-screen {
+                width: 100%;
+                height: 100%;
+            }
+
+            #wmsx-screen-canvas {
+                display: block;
+                margin: auto;
+            }
+        `;
+
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = css;
+        document.head.appendChild(style);
+    }
+
+    function setupBarCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = '' +
-            '.wmsx-bar-menu-item {' +
-            '   position: relative;' +
-            '   width: ' + BAR_MENU_WIDTH + 'px;' +
-            '   height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
-            '   color: rgb(205, 205, 205);' +
-            '   border: none;' +
-            '   padding: 0;' +
-            '   font: inherit;' +
-            '   text-shadow: 1px 1px 1px black;' +
-            '   background: transparent;' +
-            '   outline: none;' +
-            '   backface-visibility: hidden;' +
-            '   -webkit-backface-visibility: hidden;' +
-            '   cursor: pointer; ' +
-            '}\n' +
+            '#wmsx-bar {' +
+            '    position: relative;' +
+            '    height: ' + BAR_HEIGHT + 'px;' +
+            '    margin-top: 1px;' +
+            '    background: rgb(40, 40, 40);' +
+            '    overflow: visible;' +                   // for the Menu to show through
+            '    z-index: 30;' +
+            '}' +
+            '#wmsx-screen-fs.wmsx-full-screen #wmsx-bar {' +
+            '    display: none' +
+            '}' +
+            '#wmsx-bar-menu {' +
+            '    position: absolute;' +
+            '    height: 0;' +
+            '    bottom: ' + BAR_HEIGHT + 'px;' +
+            '    overflow: hidden;' +
+            '    -webkit-font-smoothing: antialiased;' +
+            '    -moz-osx-font-smoothing: grayscale;' +
+            '}' +
+            '#wmsx-bar-menu-inner {' +
+            '    padding-bottom: 3px;' +
+            '    border: 1px solid black;' +
+            '    background: rgb(40, 40, 40);' +
+            '    font: normal 13px sans-serif;' +
+            '}' +
+            '.wmsx-bar-menu-item, #wmsx-bar-menu-title {' +
+            '    position: relative;' +
+            '    width: ' + BAR_MENU_WIDTH + 'px;' +
+            '    height: ' + BAR_MENU_ITEM_HEIGHT + 'px;' +
+            '    color: rgb(205, 205, 205);' +
+            '    border: none;' +
+            '    padding: 0;' +
+            '    font: inherit;' +
+            '    text-shadow: 1px 1px 1px black;' +
+            '    background: transparent;' +
+            '    outline: none;' +
+            '    backface-visibility: hidden;' +
+            '    -webkit-backface-visibility: hidden;' +
+            '    cursor: pointer; ' +
+            '}' +
+            '#wmsx-bar-menu-title {' +
+            '    display: block;' +
+            '    color: white;' +
+            '    font-weight: bold;' +
+            '    border-bottom: 1px solid black;' +
+            '    margin-bottom: 1px;' +
+            '    text-align: center;' +
+            '    background: rgb(70, 70, 70);' +
+            '    cursor: auto;' +
+            '}' +
             '.wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-disabled):not(.wmsx-bar-menu-item-divider) { ' +
-            '   color: white;' +
-            '   background: rgb(220, 32, 26);' +
-            '}\n' +
+            '    color: white;' +
+            '    background: rgb(220, 32, 26);' +
+            '}' +
             '.wmsx-bar-menu-item-disabled { ' +
-            '   color: rgb(110, 110, 110);' +
-            '}\n' +
+            '    color: rgb(110, 110, 110);' +
+            '}' +
             '.wmsx-bar-menu-item-divider { ' +
-            '   height: 1px;' +
-            '   margin: 1px 0;' +
-            '   background: black;' +
-            '}\n' +
+            '    height: 1px;' +
+            '    margin: 1px 0;' +
+            '    background: black;' +
+            '}' +
             '.wmsx-bar-menu-item-check { ' +
-            '   display: none;' +
-            '   position: absolute;' +
-            '   width: 6px;' +
-            '   height: 19px;' +
-            '   top: 4px;' +
-            '   left: 9px;' +
-            '   box-shadow: black 1px 1px 1px;' +
-            '}\n' +
+            '    display: none;' +
+            '    position: absolute;' +
+            '    width: 6px;' +
+            '    height: 19px;' +
+            '    top: 4px;' +
+            '    left: 9px;' +
+            '    box-shadow: black 1px 1px 1px;' +
+            '}' +
             '.wmsx-bar-menu-item-toggle { ' +
-            '   text-align: left;' +
-            '   padding: 0 0 0 28px;' +
-            '}\n' +
+            '    text-align: left;' +
+            '    padding: 0 0 0 28px;' +
+            '}' +
             '.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check { ' +
-            '   display: block;' +
-            '   background: rgb(70, 70, 70);' +
-            '}\n' +
+            '    display: block;' +
+            '    background: rgb(70, 70, 70);' +
+            '}' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked { ' +
-            '   color: white;' +
-            '}\n' +
+            '    color: white;' +
+            '}' +
             '.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check { ' +
-            '   background: rgb(248, 33, 28);' +
+            '    background: rgb(248, 33, 28);' +
             '}'
         ;
         document.head.appendChild(style);
@@ -1230,7 +1239,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         var style = document.createElement('style');
         style.type = 'text/css';
         style.innerHTML = '' +
-            '.wmsx-select-dialog {' +
+            '#wmsx-screen .wmsx-select-dialog {' +
             '    position: absolute;' +
             '    overflow: hidden;' +
             '    display: none;' +
@@ -1255,12 +1264,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             '    -webkit-font-smoothing: antialiased;' +
             '    -moz-osx-font-smoothing: grayscale;' +
             '    cursor: auto;' +
-            '    outline: none;' +
             '}' +
-            '.wmsx-select-dialog.wmsx-show {' +
+            '#wmsx-screen .wmsx-select-dialog.wmsx-show {' +
             '    display: block;' +
             '}' +
-            '.wmsx-select-dialog .wmsx-footer {' +
+            '#wmsx-screen .wmsx-select-dialog .wmsx-footer {' +
             '    position: absolute;' +
             '    width: 100%;' +
             '    bottom: 6px;' +
@@ -1268,7 +1276,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '    text-align: center;' +
             '    color: rgb(170, 170, 170);' +
             '}' +
-            '.wmsx-select-dialog ul {' +
+            '#wmsx-screen .wmsx-select-dialog ul {' +
             '    position: relative;' +
             '    width: 88%;' +
             '    top: 15px;' +
@@ -1278,7 +1286,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             '    font-size: 14px;' +
             '    color: rgb(225, 225, 225);' +
             '}' +
-            '.wmsx-select-dialog li {' +
+            '#wmsx-screen .wmsx-select-dialog li {' +
             '    display: none;' +
             '    overflow: hidden;' +
             '    height: 23px;' +
@@ -1294,14 +1302,14 @@ wmsx.CanvasDisplay = function(mainElement) {
             '    box-sizing: border-box;' +
             '    cursor: pointer;' +
             '}' +
-            '.wmsx-select-dialog li.wmsx-visible {' +
+            '#wmsx-screen .wmsx-select-dialog li.wmsx-visible {' +
             '    display: block;' +
             '}' +
-            '.wmsx-select-dialog li.wmsx-selected {' +
+            '#wmsx-screen .wmsx-select-dialog li.wmsx-selected {' +
             '    color: white;' +
             '    background: rgb(220, 32, 26);' +
             '}' +
-            '.wmsx-select-dialog li.wmsx-droptarget {' +
+            '#wmsx-screen .wmsx-select-dialog li.wmsx-droptarget {' +
             '    color: white;' +
             '    border-color: lightgray;' +
             '}';
@@ -1319,6 +1327,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     var controllersSocket;
     var cartridgeSocket;
     var diskDrive;
+
+    var isFullscreen = false;
+    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod;
 
     var machineControlsSocket;
     var machineControlsStateReport = {};
@@ -1353,7 +1364,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     var cursorShowing = true;
     var cursorHideFrameCountdown = -1;
     var signalIsOn = false;
-    var isFullscreen = false;
     var crtFilter = 1;
     var crtMode = 1;
     var debugMode = false;
@@ -1402,10 +1412,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var OSD_TIME = 3000;
     var CURSOR_HIDE_FRAMES = 150;
-
-    var BORDER_TOP = 1;
-    var BORDER_LATERAL = 1;
-    var BORDER_BOTTOM = BAR_AUTO_HIDE ? 1 : BAR_HEIGHT + 1 + 1;
 
 
     init();

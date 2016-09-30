@@ -660,6 +660,7 @@ wmsx.SettingsGUI.css = function() {
     return '' +
 
     '#wmsx-cover * {' +
+        'outline: none;' +
         'box-sizing: border-box;     /* Fix for Bootstrap :-( */' +
     '}' +
 
@@ -670,7 +671,6 @@ wmsx.SettingsGUI.css = function() {
         'bottom: 0;' +
         'left: 0;' +
         'visibility: hidden;' +
-        'outline: none;' +
         'opacity: 0;' +
         'background: rgba(0, 0, 0, 0.6);' +
         'transition: all .2s ease-out;' +
@@ -697,7 +697,6 @@ wmsx.SettingsGUI.css = function() {
         'font: normal 13px sans-serif;' +
         'box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);' +
         'transition: all .2s ease-out;' +
-        'outline: none;' +
     '}' +
 
     '#wmsx-modal.wmsx-show {' +
@@ -975,7 +974,6 @@ wmsx.SettingsGUI.css = function() {
         'border-radius: 1px 1px 0 0;' +
         'box-sizing: border-box;' +
         'box-shadow: 0 1px 0 1px hsl(0, 0%, 20%), 0 3px 4px 1px hsl(0, 0%, 40%);' +
-        'outline: none;' +
     '}' +
     '.wmsx-keyboard-key {' +
         'position: relative;' +
@@ -1676,7 +1674,6 @@ wmsx.SettingsGUI.css = function() {
         'background: rgb(220, 220, 220);' +
         'box-shadow: 0 3px 3px 2px rgba(0, 0, 0, .55);' +
         'box-sizing: border-box;' +
-        'outline: none;' +
     '}' +
     '#wmsx-modal #wmsx-control-mapping-popup .wmsx-command {' +
         'width: auto;' +
