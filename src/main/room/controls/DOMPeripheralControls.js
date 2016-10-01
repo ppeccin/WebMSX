@@ -179,6 +179,8 @@ wmsx.DOMPeripheralControls = function() {
                 controllersHub.toggleJoykeysMode(); break;
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
+            case controls.TOUCH_TOGGLE_MODE:
+                controllersHub.toggleTouchControlsMode(); break;
             case controls.TURBO_FIRE_TOGGLE:
                 controllersHub.toggleTurboFireSpeed(); break;
             case controls.COPY_STRING:
@@ -245,6 +247,7 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = controls.JOYSTICKS_TOGGLE_MODE;
         keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = controls.JOYKEYS_TOGGLE_MODE;
         keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = controls.MOUSE_TOGGLE_MODE;
+        keyCodeMap[KEY_TOUCH_TOGGLE | k.ALT]          = controls.TOUCH_TOGGLE_MODE;
         keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = controls.TURBO_FIRE_TOGGLE;
 
         keyCodeMap[KEY_CRT_FILTER | k.ALT]   = controls.SCREEN_CRT_FILTER;
@@ -330,6 +333,7 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;
     var KEY_JOYKEYS_TOGGLE        = wmsx.DOMKeys.VK_K.c;
     var KEY_MOUSE_TOGGLE          = wmsx.DOMKeys.VK_M.c;
+    var KEY_TOUCH_TOGGLE          = wmsx.DOMKeys.VK_N.c;
     var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
 
     var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;

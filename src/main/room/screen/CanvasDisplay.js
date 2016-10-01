@@ -13,6 +13,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupLogo();
         setupLoadingIcon();
         setupFullscreenMethod();
+        setupTouchControls();
         monitor = new wmsx.Monitor(self);
     }
 
@@ -544,12 +545,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.tabIndex = "-1";               // Make it focusable
         fsElement.appendChild(canvas);
 
-        setupTouchControls();
         updateCanvasContentSize();
     }
 
     function setupTouchControls() {
-        if (WMSX.TOUCH_MODE === -1) return;
+        if (!wmsx.Util.isTouchDevice()) return;
 
         touchDir = createButton();
         touchDir.style.right = "initial";

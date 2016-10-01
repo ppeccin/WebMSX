@@ -24,8 +24,9 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         updateConnectionsToHub();
     };
 
-    this.readControllerPort = function(port) {
-        return port ^ swappedMode ? 0x3f : joyState.portValue;
+    this.readControllerPort = function(aPort) {
+        if (aPort === port) return joyState.portValue;
+        else return 0x3f;
     };
 
     this.writeControllerPin8Port = function(atPort, val) {
@@ -54,16 +55,22 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.toggleMode = function() {
-        ++mode; if (mode > 1) mode = -1;
+        if (!supported) {
+            hub.showStatusMessage("Touch Controls DISABLED (not a touch device)");
+            return;
+        }
+
+        ++mode; if (mode > 1) mode = -2;
         updateMode();
         hub.showStatusMessage("Touch Controls " + this.getModeDesc());
     };
 
     this.getModeDesc = function() {
         switch (mode) {
-            case 0:  return "ENABLED";
-            case 1:  return "ENABLED (port 2)";
-            default: return "DISABLED";
+            case -1:  return "AUTO";
+            case 0:   return "ENABLED";
+            case 1:   return "ENABLED (port 2)";
+            default:  return !supported ? "NOT SUPPORTED" : "DISABLED";
         }
     };
 
@@ -77,7 +84,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     function updateMode() {
-        swappedMode = mode === 1;
+        port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : 1) : mode;
         resetStates();
         updateConnectionsToHub();
     }
@@ -148,9 +155,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function updateConnectionsToHub() {
-        var enabled = mode >= 0 ? wmsx.ControllersHub.TOUCH : null;
-
-        hub.updateTouchControlsConnections(swappedMode ? null : enabled, swappedMode ? enabled : null);
+        hub.updateTouchControlsConnections(port === 0 ? wmsx.ControllersHub.TOUCH : null, port === 1 ? wmsx.ControllersHub.TOUCH : null);
     }
 
     function resetStates() {
@@ -167,8 +172,9 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     var machineControlsSocket;
     var screen;
 
-    var mode = WMSX.TOUCH_MODE;              // -1: disabled, 0: enabled at port 0, 1: enabled at port 1
-    var swappedMode = false;
+    var supported = wmsx.Util.isTouchDevice();
+    var mode = supported ? WMSX.TOUCH_MODE - 1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
+    var port = -1;
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
     var dirElement = null, dirTouchID = null, dirTouchStartX, dirTouchStartY;

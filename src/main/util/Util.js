@@ -437,6 +437,10 @@ wmsx.Util = new function() {
         return ((navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage || "en-US").trim();
     };
 
+    this.isTouchDevice = function() {
+        return ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+    };
+
     this.log2 = function(x) {
         return Math.log(x) / Math.log(2);
     };
