@@ -27,6 +27,8 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
                 classList.add("wmsx-mouse-device");
             else if (device.startsWith(wmsx.ControllersHub.JOY_ANY))
                 classList.add(device.startsWith(wmsx.ControllersHub.JOYSTICK) ? "wmsx-joystick-device" : "wmsx-joykeys-device");
+            else if (device.startsWith(wmsx.ControllersHub.TOUCH))
+                classList.add("wmsx-touch-device");
             else
                 classList.add("wmsx-none-device");
             deviceTitleElements[p].innerHTML = device;
@@ -134,7 +136,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 
     var popup = wmsx.ControlMappingPopup.get();
 
-    var DEVICE_CLASSES = [ "wmsx-none-device", "wmsx-mouse-device", "wmsx-joystick-device", "wmsx-joykeys-device" ];
+    var DEVICE_CLASSES = [ "wmsx-none-device", "wmsx-mouse-device", "wmsx-joystick-device", "wmsx-joykeys-device", "wmsx-touch-device"];
 
 
     init();

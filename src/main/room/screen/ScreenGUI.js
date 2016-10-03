@@ -49,7 +49,7 @@ wmsx.ScreenGUI.css = `
         right: 0;
         height: 29px;
         margin: 1px auto 0;
-        background: rgba(40, 40, 40, .75);
+        background: rgba(45, 45, 45, .80);
         overflow: visible;                    /* for the Menu to show through */
         z-index: 30;
     }

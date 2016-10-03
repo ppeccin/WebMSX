@@ -11,8 +11,7 @@ wmsx.SettingsGUI.html = function() {
         <div id="wmsx-modal">
             <div id="wmsx-menu">
                 <div id="wmsx-back">
-                    <div id="wmsx-back-arrow">
-                        &larr;
+                    <div class="wmsx-back-arrow">
                     </div>
                 </div>
                 <div class="wmsx-caption">
@@ -569,7 +568,8 @@ wmsx.SettingsGUI.html = function() {
                                         <div class="wmsx-mouse-logo"></div>
                                     </div>
                                 </div>
-                                <div class="wmsx-none">&#8416;</div>
+                                <div class="wmsx-touch"></div>
+                                <div class="wmsx-none"></div>
                             </div>
                         </div>
                         <div class="wmsx-bottom-right">
@@ -617,7 +617,8 @@ wmsx.SettingsGUI.html = function() {
                                         <div class="wmsx-mouse-logo"></div>
                                     </div>
                                 </div>
-                                <div class="wmsx-none">&#8416;</div>
+                                <div class="wmsx-touch"></div>
+                                <div class="wmsx-none"></div>
                             </div>
                         </div>
                     </div>
@@ -777,27 +778,46 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-menu #wmsx-back {
     position: absolute;
-    width: 18px;
-    height: 32px;
+    width: 40px;
+    height: 34px;
     margin: 3px;
-    padding: 0 11px;
-    font-size: 35px;
-    color: white;
+    padding: 16px 12px;
     cursor: pointer;
-    box-sizing: content-box;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
-
 #wmsx-menu #wmsx-back:hover {
     background: rgba(0, 0, 0, .12);
 }
 
-#wmsx-menu #wmsx-back-arrow {
-    position: relative;
-    overflow: hidden;
-    top: -7px;
+.wmsx-back-arrow {
+    display: block;
+    width: 16px;
+    height: 2px;
+    border-radius: 1000px;
+    background: hsl(0, 0%, 98%);
 }
+.wmsx-back-arrow:before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 10px;
+    height: 2px;
+    border-radius: inherit;
+    background: inherit;
+    transform: rotate(-45deg);
+    transform-origin: 1px 1px;
+}
+.wmsx-back-arrow:after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 10px;
+    height: 2px;
+    border-radius: inherit;
+    background: inherit;
+    transform: rotate(45deg);
+    transform-origin: 1px 1px;
+}
+
 
 #wmsx-menu .wmsx-caption {
     height: 29px;
@@ -1166,6 +1186,9 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-ports .wmsx-mouse-device .wmsx-mouse {
     display: block;
 }
+#wmsx-ports .wmsx-touch-device .wmsx-touch {
+    display: block;
+}
 #wmsx-ports .wmsx-none-device .wmsx-none {
     display: block;
 }
@@ -1178,6 +1201,9 @@ wmsx.SettingsGUI.css = function() {
 }
 #wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-device-title {
     color: hsl(0, 90%, 43%);
+}
+#wmsx-ports .wmsx-touch-device, #wmsx-ports .wmsx-touch-device .wmsx-device-title {
+    color: hsl(167, 100%, 31%);
 }
 #wmsx-ports .wmsx-joykeys-device .wmsx-virtual {
     opacity: 0.33;
@@ -1612,12 +1638,54 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports .wmsx-none {
     display: none;
-    width: 230px;
-    margin-top: 14px;
-    font-size: 106px;
-    line-height: 106px;
-    font-weight: bold;
-    color: rgba(50, 50, 50, .17);
+    width: 104px;
+    height: 106px;
+    margin: 12px 63px 0;
+    border: 12px solid hsl(0, 0%, 72%);
+    border-radius: 100%;
+    box-sizing: border-box;
+}
+#wmsx-ports .wmsx-none:after {
+    content: "";
+    display: block;
+    position: relative;
+    top: 50%;
+    left: -6px;
+    width: 92px;
+    height: 12px;
+    background: hsl(0, 0%, 72%);
+    transform: translateY(-50%) rotate(-45deg);
+}
+
+#wmsx-ports .wmsx-touch {
+    display: none;
+    width: 68px;
+    height: 107px;
+    margin: 8px 81px 0;
+    background: white;
+    border: 1px solid hsl(0, 0%, 90%);
+    border-radius: 8px;
+    box-sizing: border-box;
+    box-shadow: 0 0 0 1px hsl(0, 0%, 70%), 1px 1px 0 1px hsl(0, 0%, 40%), 2px 3px 4px hsl(0, 0%, 26%);
+}
+#wmsx-ports .wmsx-touch:before {
+    content: "";
+    display: block;
+    position: relative;
+    width: 58px;
+    height: 77px;
+    margin: 13px auto 4px;
+    background: hsl(0, 0%, 35%);
+}
+#wmsx-ports .wmsx-touch:after {
+    content: "";
+    display: block;
+    width: 6px;
+    height: 6px;
+    margin: 0 auto;
+    border: 1px solid hsl(0, 0%, 60%);
+    background: hsl(0, 0%, 95%);
+    border-radius: 100%;
 }
 
 #wmsx-about {
