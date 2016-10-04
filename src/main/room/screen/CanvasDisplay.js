@@ -288,7 +288,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 }
             }
             if (viewportOriginalContent === null) viewportOriginalContent = viewportTag.content;
-            viewportTag.content = "width = device-width, initial-scale = 1.0, minimum-scale = 1.0, maximum-scale = 1.0, user-scalable = 0";
+            viewportTag.content = "minimal-ui, width = device-width, height = device-height, initial-scale = 1.0, minimum-scale = 1.0, maximum-scale = 1.0, user-scalable = no";
 
             fsElement.classList.add("wmsx-full-screen");
             fsElement.classList.add("wmsx-full-screen-hack");
@@ -677,7 +677,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             scaleUpButton = addPeripheralControlButton(-74 + fsGap, 3, 21, 22, -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
         }
 
-        logoButton = addPeripheralControlButton("CENTER", 6, 51, 19, -38, -35, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        logoButton = addPeripheralControlButton("CENTER", 5, 51, 19, -10, -28, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
         logoButton.classList.add("wmsx-narrow-hidden");
 
         menu = createSettingsMenuOptions();

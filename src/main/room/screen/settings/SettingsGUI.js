@@ -1,4 +1,4 @@
-// Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
+// Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // HTML and CSS data for Settings
 
@@ -1702,6 +1702,7 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
     text-align: center;
     background: black url("` + wmsx.Images.urls.logo + `") center 50px no-repeat;
+    background-size: 334px 100px;
     box-shadow: 3px 3px 14px rgb(75, 75, 75);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
