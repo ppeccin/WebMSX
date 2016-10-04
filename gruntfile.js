@@ -99,7 +99,7 @@ module.exports = function (grunt) {
                     "src/main/room/controls/DOMMouseControls.js",
                     "src/main/room/controls/ControllersHub.js",
                     "src/main/room/controls/DOMMachineControls.js",
-                    "src/main/room/screen/ScreenGUI.js",
+                    "src/main/room/screen/ScreenGUI.es5.js",
                     "src/main/room/screen/Monitor.js",
                     "src/main/room/screen/CanvasDisplay.js",
                     "src/main/room/screen/settings/SettingsGUI.es5.js",
