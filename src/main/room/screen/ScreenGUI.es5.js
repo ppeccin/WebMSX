@@ -9,6 +9,20 @@ wmsx.ScreenGUI = {
 
 wmsx.ScreenGUI.css =
 
+'html.wmsx-full-screen, html.wmsx-full-screen body {' +
+'    position: absolute;' +
+'    overflow: hidden;' +
+'    width: 100vw;' +
+'    height: 100vh;' +
+'    margin: 0;' +
+'    padding: 0;' +
+'    border: none;' +
+'}' +
+
+'html.wmsx-full-screen body {' +
+'    height: calc(100vh + 200px);' +
+'}' +
+
 '#wmsx-screen, #wmsx-screen div, #wmsx-screen canvas {' +
 '    outline: none;' +
 '}' +
@@ -22,20 +36,27 @@ wmsx.ScreenGUI.css =
 '    -ms-user-select: none;' +
 '    background: black;' +
 '}' +
+'html.wmsx-full-screen #wmsx-screen {' +
+'    width: 0;' +
+'    height: 0;' +
+'    border: none;' +
+'    box-shadow: none;' +
+'    box-sizing: border-box;' +
+'}' +
+
 '#wmsx-screen-fs {' +
 '    position: relative;' +
 '    background: black;' +
 '    overflow: hidden;' +
 '}' +
-'#wmsx-screen-fs.wmsx-full-screen {' +
+'html.wmsx-full-screen #wmsx-screen-fs {' +
 '    position: absolute;' +
-'    top: 0;' +
-'    bottom: 0;' +
+'    width: 100vw;' +
+'    height: 100vh;' +
 '    left: 0;' +
+'    bottom: 0;' +
 '    right: 0;' +
-'}' +
-'#wmsx-screen-fs.wmsx-full-screen-hack {' +
-'    position: fixed;' +
+'    z-index: 2147483647;' +
 '}' +
 
 '#wmsx-screen-canvas {' +
@@ -61,12 +82,12 @@ wmsx.ScreenGUI.css =
 '    left: 0;' +
 '    right: 0;' +
 '}' +
-'#wmsx-bar.wmsx-auto-hide, #wmsx-screen-fs.wmsx-full-screen #wmsx-bar {' +
+'#wmsx-bar.wmsx-auto-hide, html.wmsx-full-screen #wmsx-bar {' +
 '    position: absolute;' +
 '    bottom: 0;' +
 '    transition: height 0.3s ease-in-out;' +
 '}' +
-'#wmsx-bar.wmsx-auto-hide.wmsx-hidden, #wmsx-screen-fs.wmsx-full-screen #wmsx-bar.wmsx-hidden {' +
+'#wmsx-bar.wmsx-auto-hide.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.wmsx-hidden {' +
 '    height: 0;' +
 '}' +
 '#wmsx-bar-menu {' +
@@ -85,8 +106,8 @@ wmsx.ScreenGUI.css =
 '}' +
 '.wmsx-bar-menu-item, #wmsx-bar-menu-title {' +
 '    position: relative;' +
-'    width: ` + wmsx.ScreenGUI.BAR_MENU_WIDTH + `px;' +
-'    height: ` + wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + `px;' +
+'    width: ' + wmsx.ScreenGUI.BAR_MENU_WIDTH + 'px;' +
+'    height: ' + wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + 'px;' +
 '    color: rgb(205, 205, 205);' +
 '    border: none;' +
 '    padding: 0;' +
@@ -144,6 +165,10 @@ wmsx.ScreenGUI.css =
 '    background: rgb(248, 33, 28);' +
 '}' +
 '#wmsx-bar.wmsx-narrow .wmsx-narrow-hidden {' +
+'    display: none;' +
+'}' +
+
+'html.wmsx-full-screen .wmsx-full-screen-hidden {' +
 '    display: none;' +
 '}' +
 

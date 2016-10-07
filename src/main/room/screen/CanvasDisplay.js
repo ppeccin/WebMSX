@@ -176,8 +176,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.displayOptimalScaleY = function(aspectX) {
         if (isFullscreen) {
             // Maximum size
-            var winW = fsElement.clientWidth;
-            var winH = fsElement.clientHeight;
+            var winW, winH;
+            winW = fsElement.clientWidth;
+            winH = fsElement.clientHeight;
+            //console.log("fsElement: " + winW + " x " + winH);
+
             var scY = (winH - 10) / targetHeight;	         	// 10 is a little safety tolerance
             scY -= (scY % wmsx.Monitor.SCALE_STEP);		        // Round to multiple of the step
             var w = aspectX * scY * targetWidth;
@@ -288,21 +291,26 @@ wmsx.CanvasDisplay = function(mainElement) {
                 }
             }
             if (viewportOriginalContent === null) viewportOriginalContent = viewportTag.content;
-            viewportTag.content = "minimal-ui, width = device-width, height = device-height, initial-scale = 1.0, minimum-scale = 1.0, maximum-scale = 1.0, user-scalable = no";
+            viewportTag.content = "width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui";
 
-            fsElement.classList.add("wmsx-full-screen");
-            fsElement.classList.add("wmsx-full-screen-hack");
+            document.documentElement.classList.add("wmsx-full-screen");
+
+            setTimeout(function() {
+                isFullscreen = true;
+                monitor.setDisplayOptimalScale();
+                window.scrollTo(0, 1000);
+            }, 30);
         } else {
             if (viewportOriginalContent !== null) {
                 viewportTag.content = viewportOriginalContent;
                 viewportOriginalContent = null;
             }
 
-            fsElement.classList.remove("wmsx-full-screen");
-            fsElement.classList.remove("wmsx-full-screen-hack");
+            document.documentElement.classList.remove("wmsx-full-screen");
+
+            isFullscreen = false;
+            monitor.setDisplayOptimalScale();
         }
-        isFullscreen = mode;
-        monitor.setDisplayOptimalScale();
     }
 
     this.focus = function() {
@@ -407,12 +415,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     function fullscreenChanged() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
-        if (isFullscreen) fsElement.classList.add("wmsx-full-screen");
-        else fsElement.classList.remove("wmsx-full-screen");
+        if (isFullscreen) document.documentElement.classList.add("wmsx-full-screen");
+        else document.documentElement.classList.remove("wmsx-full-screen");
         monitor.setDisplayOptimalScale();
 
         // Schedule another one to give the browser some time to set full screen properly
-        if (isFullscreen) setTimeout(monitor.setDisplayOptimalScale, 120);
+        if (isFullscreen) setTimeout(monitor.setDisplayOptimalScale, 30);
     }
 
     function updateScale() {
@@ -507,7 +515,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function setupMain() {
         var style = mainElement.style;
-        if (!style.position || style.position === "static" || style.position === "initial") style.position = "relative";
         mainElement.tabIndex = "0";               // Make it focusable
         suppressContextMenu(mainElement);
 
@@ -674,7 +681,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
             scaleDownButton = addPeripheralControlButton(-92 + fsGap, 3, 18, 22, -26, -4, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
+            scaleDownButton.classList.add("wmsx-full-screen-hidden");
             scaleUpButton = addPeripheralControlButton(-74 + fsGap, 3, 21, 22, -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
+            scaleUpButton.classList.add("wmsx-full-screen-hidden");
         }
 
         logoButton = addPeripheralControlButton("CENTER", 5, 51, 19, -10, -28, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
@@ -857,12 +866,19 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupFullscreenMethod() {
-        //return;
-
         if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
 
         fullscreenAPIEnterMethod = fsElement.requestFullscreen || fsElement.webkitRequestFullscreen || fsElement.webkitRequestFullScreen || fsElement.mozRequestFullScreen || fsElement.msRequestFullscreen;
         fullScreenAPIExitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+
+        // Prevent gestures, scroll, zoom in fullscreen
+        //if (!fullscreenAPIEnterMethod) {
+        //    fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreen(e) {
+        //        if (!isFullscreen) return;
+        //        e.preventDefault();
+        //        return false;
+        //    });
+        //}
     }
 
     function showBar() {

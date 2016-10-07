@@ -104,8 +104,6 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     function dirTouchStart(e) {
         if (dirTouchID !== null) return;
 
-        e.preventDefault();
-
         var touch = e.changedTouches[0];
         dirTouchID = touch.identifier;
         dirTouchStartX = touch.screenX; dirTouchStartY = touch.screenY;
@@ -113,8 +111,6 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     function dirTouchEnd(e) {
         if (dirTouchID === null) return;
-
-        e.preventDefault();
 
         var changed = e.changedTouches;
         for (var i = 0; i < changed.length; ++i)
@@ -127,8 +123,6 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     function dirTouchMove(e) {
         if (dirTouchID === null) return;
-
-        e.preventDefault();
 
         var changed = e.changedTouches;
         for (var i = 0; i < changed.length; ++i) {
@@ -153,12 +147,10 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function buttonTouchStart(e) {
-        e.preventDefault();
         processTap(e.target.wmsxControl, true);
     }
 
     function buttonTouchEnd(e) {
-        e.preventDefault();
         processTap(e.target.wmsxControl, false);
     }
 
