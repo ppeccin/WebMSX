@@ -3,6 +3,7 @@
 // CSS data for Screen
 
 wmsx.ScreenGUI = {
+    BAR_HEIGHT: 29,
     BAR_MENU_WIDTH: 136,
     BAR_MENU_ITEM_HEIGHT: 28
 };
@@ -68,7 +69,7 @@ html.wmsx-full-screen #wmsx-screen-fs {
     position: relative;
     left: 0;
     right: 0;
-    height: 29px;
+    height: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
     margin: 1px auto 0;
     background: rgba(45, 45, 45, .80);
     overflow: visible;                    /* for the Menu to show through */
@@ -93,7 +94,7 @@ html.wmsx-full-screen #wmsx-screen-fs {
 #wmsx-bar-menu {
     position: absolute;
     height: 0;
-    bottom: 29px;
+    bottom: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

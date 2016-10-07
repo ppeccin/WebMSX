@@ -5,6 +5,8 @@
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160Hz
 
+// TODO Turbo mode! :-)
+
 wmsx.Z80 = function() {
 "use strict";
 
