@@ -370,8 +370,8 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
 }
 
 #wmsx-touch-dir {
-    width: 108px;
-    height: 108px;
+    width: 130px;
+    height: 130px;
     border-radius: 100%;
 }
 #wmsx-touch-dir::before {
@@ -380,8 +380,8 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     position: absolute;
     width: 80px;
     height: 80px;
-    top: 14px;
-    left: 14px;
+    top: 25px;
+    left: 25px;
     border: 2px solid rgba(255, 255, 255, .5);
     border-radius: 100%;
     box-sizing: border-box;
@@ -390,10 +390,10 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     content: "";
     display: block;
     position: absolute;
-    width: 50px;
-    height: 50px;
-    top: 29px;
-    left: 29px;
+    width: 46px;
+    height: 46px;
+    top: 42px;
+    left: 42px;
     background: rgba(255, 255, 255, .3);
     border-radius: 100%;
     box-sizing: border-box;
@@ -435,7 +435,7 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
 /* All Landscape */
 @media only screen and (orientation: landscape) {
     #wmsx-touch-left {
-        left: 0;
+        left: -11px;
         bottom: 50%;
         transform: translateY(50%);
     }

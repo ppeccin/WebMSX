@@ -219,6 +219,6 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
 };
 
-wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN = 14 + 80 + 12;
+wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN = 14 + 80 + 14;
 wmsx.DOMTouchControls.LANDSCAPE_RIGHT_MARGIN = 14 + 76 + 12;
 wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN = wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN + wmsx.DOMTouchControls.LANDSCAPE_RIGHT_MARGIN;
