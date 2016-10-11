@@ -106,6 +106,10 @@ wmsx.ControllersHub = function(keyForwardControls) {
         touchControls.setTouchControlElements(elements);
     };
 
+    this.screenReadjustedUpdate = function() {
+        touchControls.screenReadjustedUpdate();
+    };
+
     this.setKeyInputElement = function(element) {
         element.addEventListener("keydown", this.keyDown);
         element.addEventListener("keyup", this.keyUp);

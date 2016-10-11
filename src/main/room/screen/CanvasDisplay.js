@@ -1082,6 +1082,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function readjustAll() {
         monitor.setDisplayOptimalScale();
+        controllersHub.screenReadjustedUpdate();
     }
 
 

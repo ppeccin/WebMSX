@@ -84,6 +84,10 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         return null;
     };
 
+    this.screenReadjustedUpdate = function() {
+        dirTouchCenterX = dirTouchCenterY = undefined;      // Reset center position, will be set again for the new element position
+    };
+
     function updateMode() {
         port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : 1) : mode;
         resetStates();
@@ -91,14 +95,17 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function dirTouchStart(e) {
+        blockEvent(e);
         if (dirTouchID !== null) return;
+        if (dirTouchCenterX === undefined) setDirTouchCenter();
 
         var touch = e.changedTouches[0];
         dirTouchID = touch.identifier;
-        dirTouchStartX = touch.screenX; dirTouchStartY = touch.screenY;
+        updateDirMovement(touch.pageX, touch.pageY);
     }
 
     function dirTouchEnd(e) {
+        blockEvent(e);
         if (dirTouchID === null) return;
 
         var changed = e.changedTouches;
@@ -111,12 +118,13 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function dirTouchMove(e) {
+        blockEvent(e);
         if (dirTouchID === null) return;
 
         var changed = e.changedTouches;
         for (var i = 0; i < changed.length; ++i) {
             if (changed[i].identifier === dirTouchID) {
-                updateDirMovement(changed[i].screenX, changed[i].screenY);
+                updateDirMovement(changed[i].pageX, changed[i].pageY);
                 return;
             }
         }
@@ -124,7 +132,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     function updateDirMovement(newX, newY) {
         var dir = -1;
-        var x = newX - dirTouchStartX, y = newY - dirTouchStartY;
+        var x = newX - dirTouchCenterX, y = newY - dirTouchCenterY;
         var dist = Math.sqrt(x*x + y*y);
         if (dist > DIR_DEADZONE) {
             dir = (1 - Math.atan2(x, y) / Math.PI) / 2;
@@ -135,11 +143,19 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[dir + 1];
     }
 
+    function setDirTouchCenter() {
+        var rec = dirElement.getBoundingClientRect();
+        dirTouchCenterX = (((rec.left + rec.right) / 2) | 0) + window.pageXOffset;
+        dirTouchCenterY = (((rec.top + rec.bottom) / 2) | 0) + window.pageYOffset;
+    }
+
     function buttonTouchStart(e) {
+        blockEvent(e);
         processButtonTouch(e.target.wmsxControl, true);
     }
 
     function buttonTouchEnd(e) {
+        blockEvent(e);
         processButtonTouch(e.target.wmsxControl, false);
     }
 
@@ -167,6 +183,11 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         prefs = WMSX.userPreferences.current.touch;
     }
 
+    function blockEvent(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
 
     var joystickButtons = wmsx.JoystickButtons;
 
@@ -178,14 +199,14 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     var port = -1;
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
-    var dirElement = null, dirTouchID = null, dirTouchStartX, dirTouchStartY;
+    var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY;
     var buttonElements = [ null, null ], buttonTouchIDs = [ null, null ];
 
     var joyState = new JoystickState();
 
     var prefs;
 
-    var DIR_DEADZONE = 20;
+    var DIR_DEADZONE = 18;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
 
 

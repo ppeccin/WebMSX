@@ -370,8 +370,18 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
 }
 
 #wmsx-touch-dir {
+    width: 108px;
+    height: 108px;
+    border-radius: 100%;
+}
+#wmsx-touch-dir::before {
+    content: "";
+    display: block;
+    position: absolute;
     width: 80px;
     height: 80px;
+    top: 14px;
+    left: 14px;
     border: 2px solid rgba(255, 255, 255, .5);
     border-radius: 100%;
     box-sizing: border-box;
@@ -382,8 +392,8 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     position: absolute;
     width: 50px;
     height: 50px;
-    top: 15px;
-    left: 15px;
+    top: 29px;
+    left: 29px;
     background: rgba(255, 255, 255, .3);
     border-radius: 100%;
     box-sizing: border-box;
@@ -425,7 +435,7 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
 /* All Landscape */
 @media only screen and (orientation: landscape) {
     #wmsx-touch-left {
-        left: 14px;
+        left: 0;
         bottom: 50%;
         transform: translateY(50%);
     }
@@ -477,7 +487,7 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
 /* Big Portrait */
 @media only screen and (orientation: portrait) and (min-device-width: 426px) {
     #wmsx-touch-left {
-        left: 120px;
+        left: 106px;
         bottom: 185px;
     }
     #wmsx-touch-right {
@@ -489,7 +499,7 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
 /* Small Portrait */
 @media only screen and (orientation: portrait) and (max-device-width: 425px) {
     #wmsx-touch-left {
-        left: 80px;
+        left: 66px;
         bottom: 100px;
     }
     #wmsx-touch-right {
