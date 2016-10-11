@@ -175,12 +175,13 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.displayOptimalScaleY = function(aspectX) {
         if (isFullscreen) {
-            // Maximum size
             var winW, winH;
             winW = fsElement.clientWidth;
             winH = fsElement.clientHeight;
-            //console.log("fsElement: " + winW + " x " + winH);
-
+            if (winH < winW) {
+                // Landscape, ensure lateral margins for the touch controls
+                winW -= wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN;
+            }
             var scY = (winH - 4 - wmsx.ScreenGUI.BAR_HEIGHT) / targetHeight;	   	// 4 is a little safety tolerance
             scY -= (scY % wmsx.Monitor.SCALE_STEP);		                            // Round to multiple of the step
             var w = aspectX * scY * targetWidth;
@@ -557,37 +558,35 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupTouchControls() {
         if (!wmsx.Util.isTouchDevice()) return;
 
-        touchDir = createButton();
-        touchDir.style.right = "initial";
-        touchDir.style.left = "4.5%";
-        touchDir.style.bottom = "25%";
+        document.documentElement.classList.add("wmsx-portrait");
 
-        touchBut1 = createButton();
-        touchBut1.style.bottom = "25%";
+        var group = document.createElement('div');
+        group.id = "wmsx-touch-left";
+        fsElement.appendChild(group);
 
-        touchBut2 = createButton();
-        touchBut2.style.bottom = "50%";
+        touchDir =  createControl(group, "wmsx-touch-dir");
 
-        touchBut3 = createButton();
-        touchBut3.style.bottom = "75%";
+        group = document.createElement('div');
+        group.id = "wmsx-touch-right";
+        fsElement.appendChild(group);
 
-        function createButton() {
+        touchButY = createControl(group, "wmsx-touch-y", "wmsx-touch-button");
+        touchButB = createControl(group, "wmsx-touch-b", "wmsx-touch-button");
+        touchButA = createControl(group, "wmsx-touch-a", "wmsx-touch-button");
+        touchButX = createControl(group, "wmsx-touch-x", "wmsx-touch-button");
+
+        function createControl(group, id, cla) {
             var but = document.createElement('div');
-            var style = but.style;
-            style.position = "absolute";
-            style.right = "4.5%";
-            style.width = style.height = "70px";
-            style.border = "2px solid hsl(0, 0%, 90%)";
-            style.borderRadius = "100%";
-            style.transform = "translateY(50%)";
-            style.zIndex = -5;
-            fsElement.appendChild(but);
+            but.id = id;
+            but.classList.add("wmsx-touch-control");
+            if (cla) but.classList.add(cla);
+            group.appendChild(but);
             return but;
         }
     }
 
     function getTouchControlElements() {
-        return { TDIR: touchDir, TB_1: touchBut1, TB_2: touchBut2, TB_3: touchBut3 };
+        return { TDIR: touchDir, TB_A: touchButA, TB_B: touchButB, TB_X: touchButX, TB_Y: touchButY };
     }
 
     function setupBar() {
@@ -1115,7 +1114,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasContext;
     var canvasImageRenderingValue;
 
-    var touchDir, touchBut1, touchBut2, touchBut3;
+    var touchDir, touchButA, touchButB, touchButX, touchButY;
 
     var buttonsBar, buttonsBarInner;
 

@@ -4,11 +4,11 @@
 
 wmsx.TouchControls = {
 
-    TDIR:     { c: 0, n: "TDIR", t: "TOUCH" },
+    TDIR:     { c: 0, n: "DIR", t: "TOUCH" },
 
-    TB_1:     { c: 1, n: "T1", t: "TOUCH" },
-    TB_2:     { c: 2, n: "T2", t: "TOUCH" },
-    TB_3:     { c: 3, n: "T3", t: "TOUCH" },
-    TB_4:     { c: 4, n: "T4", t: "TOUCH" }
+    TB_A:     { c: 1, n: "A", t: "TOUCH" },
+    TB_B:     { c: 2, n: "B", t: "TOUCH" },
+    TB_X:     { c: 3, n: "X", t: "TOUCH" },
+    TB_Y:     { c: 4, n: "Y", t: "TOUCH" }
 
 };

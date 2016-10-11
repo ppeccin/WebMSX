@@ -104,10 +104,10 @@ WMSX.userPreferences.defaults = function() {
 
         touch: {
             buttons: {
-                TB_1:      [ "A" ],
-                TB_2:      [ "B" ],
-                TB_3:      [ "A", "B" ],
-                TB_4:      [ ]
+                TB_A:      [ "A" ],
+                TB_B:      [ "B" ],
+                TB_X:      [ "A", "B" ],
+                TB_Y:      [ ]
             },
             directional:   "JOYSTICK"       // JOYSTICK, KEYBOARD
         }

@@ -68,22 +68,22 @@ wmsx.Monitor = function(display) {
 
     this.displayAspectDecrease = function() {
         setDisplayScale(displayAspectX - wmsx.Monitor.SCALE_STEP, displayScaleY);
-        this.showOSD("Display Aspect: " + displayAspectX.toFixed(1) + "x", true);
+        this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayAspectIncrease = function() {
         setDisplayScale(displayAspectX + wmsx.Monitor.SCALE_STEP, displayScaleY);
-        this.showOSD("Display Aspect: " + displayAspectX.toFixed(1) + "x", true);
+        this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayScaleDecrease = function() {
         setDisplayScale(displayAspectX, displayScaleY - wmsx.Monitor.SCALE_STEP);
-        this.showOSD("Display Size: " + displayScaleY.toFixed(1) + "x", true);
+        this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.displayScaleIncrease = function() {
         setDisplayScale(displayAspectX, displayScaleY + wmsx.Monitor.SCALE_STEP);
-        this.showOSD("Display Size: " + displayScaleY.toFixed(1) + "x", true);
+        this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.getScreenText = function() {
@@ -119,6 +119,6 @@ wmsx.Monitor = function(display) {
 
 };
 
-wmsx.Monitor.SCALE_STEP = 0.1;
+wmsx.Monitor.SCALE_STEP = 0.05;
 
 

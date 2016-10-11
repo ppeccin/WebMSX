@@ -42,8 +42,9 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
             dirElement.addEventListener("touchcancel", dirTouchEnd);
         }
 
-        for (var b = 1; b <= 4; ++b) {
-            var butName = "TB_" + b;
+        var buts = [ "A", "B", "X", "Y" ];
+        for (var b = 0; b < 4; ++b) {
+            var butName = "TB_" + buts[b];
             var butElement = elements[butName];
             if (butElement) {
                 butElement.wmsxControl = butName;
@@ -87,18 +88,6 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : 1) : mode;
         resetStates();
         updateConnectionsToHub();
-    }
-
-    function processTap(control, press) {
-        var mappings = prefs.buttons[control];
-        if (!mappings.length) return;
-
-        if (press)
-            for (var i = 0; i < mappings.length; ++i)
-                joyState.portValue &= ~(1 << joystickButtons[mappings[i]]);
-        else
-            for (i = 0; i < mappings.length; ++i)
-                joyState.portValue |=  (1 << joystickButtons[mappings[i]]);
     }
 
     function dirTouchStart(e) {
@@ -147,11 +136,23 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function buttonTouchStart(e) {
-        processTap(e.target.wmsxControl, true);
+        processButtonTouch(e.target.wmsxControl, true);
     }
 
     function buttonTouchEnd(e) {
-        processTap(e.target.wmsxControl, false);
+        processButtonTouch(e.target.wmsxControl, false);
+    }
+
+    function processButtonTouch(control, press) {
+        var mappings = prefs.buttons[control];
+        if (!mappings.length) return;
+
+        if (press)
+            for (var i = 0; i < mappings.length; ++i)
+                joyState.portValue &= ~(1 << joystickButtons[mappings[i]]);
+        else
+            for (i = 0; i < mappings.length; ++i)
+                joyState.portValue |=  (1 << joystickButtons[mappings[i]]);
     }
 
     function updateConnectionsToHub() {
@@ -196,3 +197,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
 };
+
+wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN = 14 + 80 + 12;
+wmsx.DOMTouchControls.LANDSCAPE_RIGHT_MARGIN = 14 + 76 + 12;
+wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN = wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN + wmsx.DOMTouchControls.LANDSCAPE_RIGHT_MARGIN;
