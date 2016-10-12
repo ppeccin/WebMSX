@@ -135,7 +135,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
         //console.log("Key " + (press ? "Press" : "Release") + ", code: " + code.toString(16) + ", msxKey: " + msxKey);
 
-        // Try other controls if
+        // Try other controls if not found
         if (!msxKey) {
             if (keyForwardControls.processKey(code, press)) return;
 
@@ -150,17 +150,20 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
                 keyboardRowValues[msxKeys["CONTROL"][0]] |= (1 << msxKeys["CONTROL"][1]);
                 keyStateMap["CONTROL"] = false;
             }
+            this.processMSXKey(msxKey, press);
+        }
+    };
 
-            // Update key matrix bits
-            var state = keyStateMap[msxKey];
-            if (state === undefined || (state !== press)) {
-                keyStateMap[msxKey] = press;
-                if (press) {
-                    keyboardRowValues[msxKeys[msxKey][0]] &= ~(1 << msxKeys[msxKey][1]);
-                    if (turboFireSpeed && msxKey === "SPACE") turboFireFlipClockCount = 3;
-                } else {
-                    keyboardRowValues[msxKeys[msxKey][0]] |= (1 << msxKeys[msxKey][1]);
-                }
+    this.processMSXKey = function(msxKey, press) {
+        // Update key matrix bits
+        var state = keyStateMap[msxKey];
+        if (state === undefined || (state !== press)) {
+            keyStateMap[msxKey] = press;
+            if (press) {
+                keyboardRowValues[msxKeys[msxKey][0]] &= ~(1 << msxKeys[msxKey][1]);
+                if (turboFireSpeed && msxKey === "SPACE") turboFireFlipClockCount = 3;
+            } else {
+                keyboardRowValues[msxKeys[msxKey][0]] |= (1 << msxKeys[msxKey][1]);
             }
         }
     };

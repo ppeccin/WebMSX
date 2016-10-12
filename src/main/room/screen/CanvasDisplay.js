@@ -565,10 +565,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         window.addEventListener("orientationchange", function() {
             setTimeout(readjustAll, 300);
         });
-
-        var keyboard = document.createElement('div');
-        keyboard.id = "wmsx-virtual-keyboard";
-        fsElement.appendChild(keyboard);
     }
 
     function setupTouchControls() {
@@ -604,8 +600,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupVirtualKeyboard() {
-        virtualKeyboardElement = document.getElementById("wmsx-virtual-keyboard");
-        wmsx.VirtualKeyboard.create(virtualKeyboardElement);
+        virtualKeyboardElement = document.createElement('div');
+        virtualKeyboardElement.id = "wmsx-virtual-keyboard";
+        fsElement.appendChild(virtualKeyboardElement);
+        virtualKeyboard = new wmsx.DOMVirtualKeyboard(virtualKeyboardElement, controllersHub.getKeyboard());
     }
 
     function setupBar() {
@@ -1167,7 +1165,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var touchDir, touchButA, touchButB, touchButX, touchButY;
 
     var virtualKeyboardActive = false;
-    var virtualKeyboardElement;
+    var virtualKeyboardElement, virtualKeyboard;
 
     var buttonsBar, buttonsBarInner;
 
