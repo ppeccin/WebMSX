@@ -10,6 +10,11 @@ wmsx.ScreenGUI = {
 
 wmsx.ScreenGUI.css = `
 
+html.wmsx-full-screen .wmsx-full-screen-hidden {
+    display: none;
+}
+
+/* Full Screen by hack */
 html.wmsx-full-screen, html.wmsx-full-screen body {
     position: absolute;
     overflow: hidden;
@@ -19,7 +24,6 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
     padding: 0;
     border: none;
 }
-
 html.wmsx-full-screen body {
     height: calc(100vh + 200px);
 }
@@ -172,10 +176,6 @@ html.wmsx-full-screen #wmsx-screen-fs {
 }
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check {
     background: rgb(248, 33, 28);
-}
-
-html.wmsx-full-screen .wmsx-full-screen-hidden {
-    display: none;
 }
 
 #wmsx-screen .wmsx-select-dialog {
@@ -358,15 +358,175 @@ html.wmsx-full-screen .wmsx-full-screen-hidden {
     outline: none;
 }
 
-html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right {
+
+.wmsx-keyboard-key {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 24px;
+    padding: 4px 0;
+    margin-right: 1px;
+    box-sizing: border-box;
+    font-weight: normal;
+    font-size: 10px;
+    line-height: 10px;
+    text-align: center;
+    vertical-align: top;
+    color: white;
+    background: linear-gradient(90deg, rgb(166, 166, 166), rgb(172, 172, 172), rgb(172, 172, 172), rgb(182, 182, 182));
+    border: 3px solid rgba(0, 0, 0, .25);
+    border-top: 1px solid rgba(0, 0, 0, .10);
+    border-bottom: 5px solid rgba(0, 0, 0, .5);
+    border-radius: 3px 3px 0 0;
+    box-shadow: 0 1px 0 1px rgb(0, 0, 0);
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.wmsx-keyboard-key.wmsx-keyboard-key-dark {
+    background: rgb(127, 127, 127);
+}
+.wmsx-keyboard-key.wmsx-keyboard-key-unmapped {
+    color: rgb(30, 30, 30);
+    font-weight: bold;
+    -webkit-font-smoothing: initial;
+    -moz-osx-font-smoothing: initial;
+}
+.wmsx-keyboard-alpha, .wmsx-keyboard-num, .wmsx-keyboard-arrows {
+    position: absolute;
+}
+.wmsx-keyboard-num {
+    left: 413px;
+}
+.wmsx-keyboard-arrows {
+    top: 106px;
+    left: 413px;
+}
+.wmsx-keyboard-f1, .wmsx-keyboard-f2, .wmsx-keyboard-f3, .wmsx-keyboard-f4, .wmsx-keyboard-f5,
+.wmsx-keyboard-stop, .wmsx-keyboard-select, .wmsx-keyboard-home, .wmsx-keyboard-insert, .wmsx-keyboard-delete {
+    width: 37px;
+    height: 18px;
+    padding: 2px 0;
+    font-size: 9px;
+    line-height: 9px;
+    border-width: 1px 2px 4px;
+    margin-bottom: 12px;
+    background: rgb(172, 172, 172);
+}
+.wmsx-keyboard-stop {
+    background: rgb(240, 80, 60);
+    margin-left: 18px;
+}
+.wmsx-keyboard-escape, .wmsx-keyboard-backspace {
+    width: 29px;
+}
+.wmsx-keyboard-tab {
+    width: 41px;
+}
+.wmsx-keyboard-control {
+    width: 48px;
+}
+.wmsx-keyboard-shift, .wmsx-keyboard-shift2 {
+    width: 61px;
+}
+.wmsx-keyboard-enter {
+    width: 36px;
+    border-radius: 2px 0 0 0;
+    border-top-width: 0;
+}
+.wmsx-keyboard-enter_x1 {
+    width: 13px;
+    min-width: 0;
+    margin-right: 0;
+    border-radius: 2px 0 0 0;
+    border-width: 1px;
+    border-right: none;
+    box-shadow: -1px 1px 0 0 rgb(0, 0, 0)
+}
+.wmsx-keyboard-enter_x2 {
+    width: 30px;
+    border-bottom: none;
+    border-radius: 0 3px 0 0;
+    box-shadow: 1px 1px 0 0 rgb(0, 0, 0)
+}
+.wmsx-keyboard-space {
+    width: 181px;
+    background: rgb(172, 172, 172);
+}
+.wmsx-keyboard-capslock {
+    margin-left: 15px;
+    width: 38px;
+}
+.wmsx-keyboard-dead {
+    width: 38px;
+}
+.wmsx-keyboard-graph, .wmsx-keyboard-code {
+    width: 46px;
+}
+.wmsx-keyboard-num .wmsx-keyboard-key {
+    width: 23px;
+    height: 23px;
+}
+.wmsx-keyboard-arrows .wmsx-keyboard-key {
+    font-size: 8px;
+    line-height: 8px;
+    background: rgb(70, 85, 180);
+    border-width: 1px 2px 4px;
+    border-radius: 2px 2px 0 0;
+}
+.wmsx-keyboard-left, .wmsx-keyboard-right {
+    top: 5px;
+    width: 26px;
+    height: 34px;
+    padding-top: 11px;
+}
+.wmsx-keyboard-up, .wmsx-keyboard-down {
+    width: 41px;
+    height: 22px;
+    padding-top: 5px;
+}
+.wmsx-keyboard-down {
+    position: absolute;
+    top: 22px;
+    left: 27px;
+}
+
+
+#wmsx-virtual-keyboard {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 4) + `px;
+    margin: 0 auto;
+    padding: 6px 0 0 6px;
+    width: 520px;
+    height: 163px;
+    background: rgb(60, 60, 60);
+    box-sizing: border-box;
+    transform: translateX(-50%);
+    transform-origin: center bottom;
+    transition: height 0.3s ease-in-out;
+}
+html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
     display: block;
-    z-index: -5;
 }
 
 
 #wmsx-touch-left, #wmsx-touch-right {
     display: none;
     position: absolute;
+    z-index: -5;
+}
+
+@media only screen and (orientation: landscape) {
+    html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right {
+        display: block;
+    }
+}
+@media only screen and (orientation: portrait) {
+    html.wmsx-full-screen:not(.wmsx-virtual-keyboard-showing) #wmsx-touch-left, html.wmsx-full-screen:not(.wmsx-virtual-keyboard-showing) #wmsx-touch-right {
+        display: block;
+    }
 }
 
 #wmsx-touch-dir {
@@ -432,7 +592,6 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     content: "Y";
 }
 
-/* All Landscape */
 @media only screen and (orientation: landscape) {
     #wmsx-touch-left {
         left: -11px;
@@ -446,7 +605,6 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     }
 }
 
-/* All Portrait */
 @media only screen and (orientation: portrait) {
 
     #wmsx-touch-left {
@@ -483,9 +641,7 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     }
 }
 
-
-/* Big Portrait */
-@media only screen and (orientation: portrait) and (min-device-width: 426px) {
+@media only screen and (orientation: portrait) and (min-device-width: 426px) {   /* Big Portrait */
     #wmsx-touch-left {
         left: 106px;
         bottom: 185px;
@@ -496,8 +652,7 @@ html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right 
     }
 }
 
-/* Small Portrait */
-@media only screen and (orientation: portrait) and (max-device-width: 425px) {
+@media only screen and (orientation: portrait) and (max-device-width: 425px) {   /* Small Portrait */
     #wmsx-touch-left {
         left: 66px;
         bottom: 100px;

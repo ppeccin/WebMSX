@@ -171,6 +171,9 @@ wmsx.DOMPeripheralControls = function() {
                 if (altPower) return this.controlActivated(controls.SCREEN_DEFAULTS);
                 screen.openSettings();
                 break;
+            case controls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD:
+                screen.toggleVirtualKeyboard();
+                break;
             case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardLayout(); break;
             case controls.JOYSTICKS_TOGGLE_MODE:

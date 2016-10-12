@@ -3,10 +3,6 @@
 wmsx.Monitor = function(display) {
 "use strict";
 
-    function init(self) {
-        self.setDefaults();
-    }
-
     this.connect = function(pVideoSignal) {
         videoSignal = pVideoSignal;
         videoSignal.connectMonitor(this);
@@ -32,22 +28,10 @@ wmsx.Monitor = function(display) {
         display.displayPixelMetrics(pixelWidth, pixelHeight);
     };
 
-    this.setDisplayOptimalScale = function() {
-        if (display != null) {
-            var scY = display.displayOptimalScaleY(displayAspectX);
-            setDisplayScale(displayAspectX, scY);
-        } else {
-            // Default window size
-            setDisplayScale(WMSX.SCREEN_DEFAULT_ASPECT, WMSX.SCREEN_DEFAULT_SCALE);
-        }
-        displayCenter();
-    };
-
     this.setDefaults = function() {
-        displayAspectX = WMSX.SCREEN_DEFAULT_ASPECT;
-        this.setDisplayOptimalScale();
         display.crtModeSetDefault();
         display.crtFilterSetDefault();
+        display.readjustAll(WMSX.SCREEN_DEFAULT_ASPECT);
     };
 
     this.setDebugMode = function(boo) {
@@ -67,22 +51,22 @@ wmsx.Monitor = function(display) {
     };
 
     this.displayAspectDecrease = function() {
-        setDisplayScale(displayAspectX - wmsx.Monitor.SCALE_STEP, displayScaleY);
+        this.displayScale(limitAspectX(displayAspectX - wmsx.Monitor.SCALE_STEP), displayScaleY);
         this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayAspectIncrease = function() {
-        setDisplayScale(displayAspectX + wmsx.Monitor.SCALE_STEP, displayScaleY);
+        this.displayScale(limitAspectX(displayAspectX + wmsx.Monitor.SCALE_STEP), displayScaleY);
         this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayScaleDecrease = function() {
-        setDisplayScale(displayAspectX, displayScaleY - wmsx.Monitor.SCALE_STEP);
+        this.displayScale(displayAspectX, limitScaleY(displayScaleY - wmsx.Monitor.SCALE_STEP));
         this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.displayScaleIncrease = function() {
-        setDisplayScale(displayAspectX, displayScaleY + wmsx.Monitor.SCALE_STEP);
+        this.displayScale(displayAspectX, limitScaleY(displayScaleY + wmsx.Monitor.SCALE_STEP));
         this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
@@ -90,32 +74,25 @@ wmsx.Monitor = function(display) {
         return videoSignal.getScreenText();
     };
 
-    var setDisplayScale = function(aspectX, scaleY) {
+    this.displayScale = function(aspectX, scaleY) {
         displayAspectX = aspectX;
-        if (displayAspectX < 0.5) displayAspectX = 0.5;
-        if (displayAspectX > 2.5) displayAspectX = 2.5;
         displayScaleY = scaleY;
-        if (displayScaleY < 0.5) displayScaleY = 0.5;
-        if (!display) return;
         display.displayScale(displayAspectX, displayScaleY);
-        //display.displayMinimumSize((wmsx.Monitor.BASE_WIDTH * wmsx.Monitor.DEFAULT_SCALE_X / wmsx.Monitor.DEFAULT_SCALE_Y) | 0, wmsx.Monitor.BASE_HEIGHT);
     };
 
-    var crtSetModeForCartridges = function() {
-        // Nothing yet available to set in ROMDatabase
-    };
+    function limitAspectX(aspectX) {
+        return aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
+    }
 
-    var displayCenter = function() {
-        if (display) display.displayCenter();
-    };
+    function limitScaleY(scaleY) {
+        return scaleY < 0.5 ? 0.5 : scaleY;
+    }
 
 
     var videoSignal;
 
     var displayAspectX;
     var displayScaleY;
-
-    init(this);
 
 };
 
