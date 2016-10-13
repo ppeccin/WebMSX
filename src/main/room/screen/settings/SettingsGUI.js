@@ -752,7 +752,7 @@ wmsx.SettingsGUI.css = function() {
     background: white;
     border-radius: 3px;
     border: 1px solid rgb(210, 210, 210);
-    box-shadow: 0 1px 0 1px rgba(0, 0, 0, .5);
+    box-shadow: 0 1px 0 1px hsl(0, 0%, 47%);
     text-align: center;
 }
 
@@ -991,7 +991,7 @@ wmsx.SettingsGUI.css = function() {
     height: 178px;
     padding: 12px 0 0 14px;
     margin-top: 5px;
-    background: rgb(63, 63, 63);
+    background: hsl(0, 0%, 28%);
     border-radius: 1px 1px 0 0;
     box-sizing: border-box;
     box-shadow: 0 1px 0 1px hsl(0, 0%, 20%), 0 3px 4px 1px hsl(0, 0%, 40%);
@@ -1245,7 +1245,7 @@ wmsx.SettingsGUI.css = function() {
     height: 8px;
     width: 8px;
     border-radius: 1000px;
-    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25), inset 1px 1px 2px -1px rgba(0, 0, 0, 0.25), 1px 1px 0 rgba(255, 255, 255, 0.27);
+    box-shadow: inset 0 0 6px hsl(0, 0%, 36%), inset 1px 1px 2px -1px hsl(0, 0%, 36%), 1px 1px 0 hsl(0, 0%, 65%);
 }
 
 .wmsx-joy-button {
@@ -1313,7 +1313,7 @@ wmsx.SettingsGUI.css = function() {
     color: hsl(0, 0%, 58%);
     border-radius: 1000px;
     background: hsl(0, 0%, 82%);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1), 0 2px 0 0 hsl(0, 0%, 62%), 0 2px 0 1px hsl(0, 0%, 30%);
+    box-shadow: inset 0 1px 1px hsl(0, 0%, 70%), 0 2px 0 0 hsl(0, 0%, 62%), 0 2px 0 1px hsl(0, 0%, 30%);
 }
 
 .wmsx-joy .wmsx-joy-center .wmsx-joy-BACK {
