@@ -157,6 +157,10 @@ wmsx.ControllersHub = function(keyForwardControls) {
         screen.showOSD((prefix ? prefix + ".&nbsp&nbsp" : "" ) + "Port 1:&nbsp&nbsp" + p1 + ",&nbsp&nbspPort 2:&nbsp&nbsp" + p2, true);
     };
 
+    this.showErrorMessage = function(message) {
+        screen.showOSD(message, true, true);
+    };
+
     this.getSettingsState = function() {
         return {
             mouseMode: mouseControls.getModeDesc(), joysticksMode: joystickControls.getModeDesc(), joykeysMode: joykeysControls.getModeDesc(),

@@ -2,6 +2,7 @@
 
 // CSS data for Screen
 
+// TODO Remove unnecessary alphas and gradients
 wmsx.ScreenGUI = {
     BAR_HEIGHT: 29,
     BAR_MENU_WIDTH: 136,

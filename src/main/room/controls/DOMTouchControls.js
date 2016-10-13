@@ -57,7 +57,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     this.toggleMode = function() {
         if (!supported) {
-            hub.showStatusMessage("Touch Controls DISABLED (not a touch device)");
+            hub.showErrorMessage("Touch Controls unavailable. Not a touch device!");
             return;
         }
 

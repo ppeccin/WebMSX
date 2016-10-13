@@ -36,7 +36,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 
     this.toggleMode = function() {
         if (!supported) {
-            hub.showStatusMessage("Joysticks DISABLED (not supported by browser)");
+            hub.showErrorMessage("Joysticks unavailable (not supported by browser)");
             return;
         }
         ++mode; if (mode > 0) mode = -2;

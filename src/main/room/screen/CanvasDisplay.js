@@ -13,7 +13,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupLogo();
         setupLoadingIcon();
         setupFullscreenMethod();
-        setupTouchControls();
         monitor = new wmsx.Monitor(self);
     }
 
@@ -253,6 +252,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setFullscreen = function(mode) {
+        if (mode && !touchDir) setupTouchControls();
+
         if (fullscreenAPIEnterMethod) setFullscreenByAPI(mode);
         else setFullscreenByHack(mode);
     };
@@ -371,13 +372,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setVirtualKeyboard(active) {
         if (virtualKeyboardActive === active) return;
 
-        virtualKeyboardActive = active;
-        if (virtualKeyboardActive) {
+        if (active) {
+            if (!wmsx.Util.isTouchDevice()) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
             if (!virtualKeyboardElement) setupVirtualKeyboard();
             document.documentElement.classList.add("wmsx-virtual-keyboard-showing");
         } else
             document.documentElement.classList.remove("wmsx-virtual-keyboard-showing");
 
+        virtualKeyboardActive = active;
         readjustAll();
     }
 
