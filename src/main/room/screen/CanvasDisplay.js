@@ -91,7 +91,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openSettings = function(page) {
-        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(controllersHub);
+        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElement, controllersHub);
         if (pasteDialog) pasteDialog.hide();
         settingsDialog.show(page);
     };

@@ -638,17 +638,17 @@ wmsx.SettingsGUI.html = function() {
                         <div id="wmsx-browserinfo">
                     </div>
                 </div>
-                <div id="wmsx-control-mapping-popup">
-                    <div id="wmsx-control-mapping-popup-heading">
-                        Control mapped to:
-                    </div>
-                    <div id="wmsx-control-mapping-popup-mapping" class="wmsx-command"></div>
-                    <div id="wmsx-control-mapping-popup-footer">
-                        Press new key.
-                        <br>
-                        (right-click to clear)
-                    </div>
-                </div>
+            </div>
+        </div>
+        <div id="wmsx-control-mapping-popup">
+            <div id="wmsx-control-mapping-popup-heading">
+                Control mapped to:
+            </div>
+            <div id="wmsx-control-mapping-popup-mapping" class="wmsx-command"></div>
+            <div id="wmsx-control-mapping-popup-footer">
+                Press new key.
+                <br>
+                (right-click to clear)
             </div>
         </div>
     </div>
@@ -666,14 +666,16 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-cover {
-    position: fixed;
+    position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
     visibility: hidden;
     opacity: 0;
-    background: rgba(0, 0, 0, 0.6);
+    font: normal 13px sans-serif;
+    white-space: nowrap;
+    text-align: initial;
     transition: all .2s ease-out;
     user-select: none;
     -webkit-user-select: none;
@@ -688,56 +690,56 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-modal {
-    position: relative;
+    position: absolute;
     overflow: hidden;
     width: 600px;
-    top: 50px;
-    left: -120px;
-    margin: 0 auto;
+    height: 456px;
+    top: calc(50% - 15px);
+    left: 50%;
     color: hsl(0, 0%, 10%);
-    font: normal 13px sans-serif;
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    transform: translate(-50%, -50%) scale(0.9);
     transition: all .2s ease-out;
 }
 
 #wmsx-modal.wmsx-show {
-    left: -0px;
+    transform: translate(-50%, -50%) scale(1);
 }
 
-#wmsx-modal .wmsx-hotkey {
+#wmsx-cover .wmsx-hotkey {
     height: 27px;
     padding: 3px 5px;
     box-sizing: border-box;
 }
 
-#wmsx-modal .wmsx-heading {
+#wmsx-cover .wmsx-heading {
     font-weight: 700;
     color: hsl(0, 0%, 30%);
 }
 
-#wmsx-modal .wmsx-link {
+#wmsx-cover .wmsx-link {
     font-weight: 700;
     line-height: 21px;
     color: hsl(228, 90%, 40%);
     cursor: pointer;
 }
-#wmsx-modal .wmsx-link:hover {
+#wmsx-cover .wmsx-link:hover {
     outline: 1px solid;
 }
 
-#wmsx-modal .wmsx-command {
+#wmsx-cover .wmsx-command {
     position: relative;
     display: inline-block;
     font-weight: 600;
     color: hsl(0, 0%, 48%);
 }
 
-#wmsx-modal .wmsx-hotkey .wmsx-desc {
+#wmsx-cover .wmsx-hotkey .wmsx-desc {
     display: inline-block;
     line-height: 21px;
 }
 
-#wmsx-modal .wmsx-key {
+#wmsx-cover .wmsx-key {
     position: relative;
     display: inline-block;
     top: -1px;
@@ -756,7 +758,7 @@ wmsx.SettingsGUI.css = function() {
     text-align: center;
 }
 
-#wmsx-modal .wmsx-key-fixed {
+#wmsx-cover .wmsx-key-fixed {
     width: 31px;
     padding-left: 0;
     padding-right: 2px;
@@ -1594,7 +1596,7 @@ wmsx.SettingsGUI.css = function() {
     color: transparent;
 }
 
-#wmsx-modal #wmsx-control-mapping-popup {
+#wmsx-cover #wmsx-control-mapping-popup {
     display: none;
     position: fixed;
     padding: 4px 9px;
@@ -1606,14 +1608,15 @@ wmsx.SettingsGUI.css = function() {
     background: rgb(220, 220, 220);
     box-shadow: 0 3px 3px 2px rgba(0, 0, 0, .55);
     box-sizing: border-box;
+    z-index: 10;
 }
-#wmsx-modal #wmsx-control-mapping-popup .wmsx-command {
+#wmsx-cover #wmsx-control-mapping-popup .wmsx-command {
     width: auto;
     line-height: 21px;
     margin: 10px 0;
     font-weight: bold;
 }
-#wmsx-modal #wmsx-control-mapping-popup:after {
+#wmsx-cover #wmsx-control-mapping-popup:after {
     content: "";
     position: absolute;
     bottom: 0;

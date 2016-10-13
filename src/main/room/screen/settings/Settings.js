@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SettingsDialog = function(controllersHub) {
+wmsx.SettingsDialog = function(mainElement, controllersHub) {
 "use strict";
 
     var self = this;
@@ -79,7 +79,7 @@ wmsx.SettingsDialog = function(controllersHub) {
         self.cover.innerHTML = wmsx.SettingsGUI.html();
         self.cover.style.outline = "none";
         self.cover.tabIndex = -1;
-        document.body.appendChild(self.cover);
+        mainElement.appendChild(self.cover);
 
          // Supress context menu
         self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
