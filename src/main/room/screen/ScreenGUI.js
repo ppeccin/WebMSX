@@ -374,10 +374,10 @@ html.wmsx-full-screen #wmsx-screen-fs {
     text-align: center;
     vertical-align: top;
     color: white;
-    background: linear-gradient(90deg, rgb(166, 166, 166), rgb(172, 172, 172), rgb(172, 172, 172), rgb(182, 182, 182));
-    border: 3px solid rgba(0, 0, 0, .25);
-    border-top: 1px solid rgba(0, 0, 0, .10);
-    border-bottom: 5px solid rgba(0, 0, 0, .5);
+    background: hsl(0, 0%, 67%);
+    border: 3px solid hsl(0, 0%, 50%);
+    border-top: 1px solid hsl(0, 0%, 54%);
+    border-bottom: 5px solid hsl(0, 0%, 33%);
     border-radius: 3px 3px 0 0;
     box-shadow: 0 1px 0 1px rgb(0, 0, 0);
     cursor: pointer;
@@ -386,6 +386,9 @@ html.wmsx-full-screen #wmsx-screen-fs {
 }
 .wmsx-keyboard-key.wmsx-keyboard-key-dark {
     background: rgb(127, 127, 127);
+    border-color: hsl(0, 0%, 36%);
+    border-top-color: hsl(0, 0%, 40%);
+    border-bottom-color: hsl(0, 0%, 24%);
 }
 .wmsx-keyboard-key.wmsx-keyboard-key-unmapped {
     color: rgb(30, 30, 30);
@@ -415,8 +418,11 @@ html.wmsx-full-screen #wmsx-screen-fs {
     background: rgb(172, 172, 172);
 }
 .wmsx-keyboard-stop {
-    background: rgb(240, 80, 60);
     margin-left: 18px;
+    background: rgb(240, 80, 60);
+    border-color: hsl(7, 85%, 40%);
+    border-top-color: hsl(7, 85%, 48%);
+    border-bottom-color: hsl(7, 85%, 30%);
 }
 .wmsx-keyboard-escape, .wmsx-keyboard-backspace {
     width: 29px;
@@ -474,6 +480,9 @@ html.wmsx-full-screen #wmsx-screen-fs {
     background: rgb(70, 85, 180);
     border-width: 1px 2px 4px;
     border-radius: 2px 2px 0 0;
+    border-color: hsl(232, 44%, 37%);
+    border-top-color: hsl(232, 44%, 40%);
+    border-bottom-color: hsl(232, 44%, 24%);
 }
 .wmsx-keyboard-left, .wmsx-keyboard-right {
     top: 5px;
@@ -502,7 +511,7 @@ html.wmsx-full-screen #wmsx-screen-fs {
     padding: 6px 0 0 6px;
     width: 520px;
     height: 163px;
-    background: rgb(60, 60, 60);
+    background: rgb(55, 55, 55);
     box-sizing: border-box;
     transform: translateX(-50%);
     transform-origin: center bottom;

@@ -694,7 +694,7 @@ wmsx.SettingsGUI.css = function() {
     top: 50px;
     left: -120px;
     margin: 0 auto;
-    color: rgba(0, 0, 0, 0.90);
+    color: hsl(0, 0%, 10%);
     font: normal 13px sans-serif;
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
     transition: all .2s ease-out;
@@ -712,7 +712,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-modal .wmsx-heading {
     font-weight: 700;
-    color: rgba(0, 0, 0, .72);
+    color: hsl(0, 0%, 30%);
 }
 
 #wmsx-modal .wmsx-link {
@@ -729,7 +729,7 @@ wmsx.SettingsGUI.css = function() {
     position: relative;
     display: inline-block;
     font-weight: 600;
-    color: rgba(0, 0, 0, .54);
+    color: hsl(0, 0%, 48%);
 }
 
 #wmsx-modal .wmsx-hotkey .wmsx-desc {
@@ -748,7 +748,7 @@ wmsx.SettingsGUI.css = function() {
     font-weight: 600;
     font-size: 12px;
     line-height: 12px;
-    color: rgba(0, 0, 0, .71);
+    color: hsl(0, 0%, 42%);
     background: white;
     border-radius: 3px;
     border: 1px solid rgb(210, 210, 210);
@@ -991,7 +991,7 @@ wmsx.SettingsGUI.css = function() {
     height: 178px;
     padding: 12px 0 0 14px;
     margin-top: 5px;
-    background: rgb(76, 76, 76);
+    background: rgb(63, 63, 63);
     border-radius: 1px 1px 0 0;
     box-sizing: border-box;
     box-shadow: 0 1px 0 1px hsl(0, 0%, 20%), 0 3px 4px 1px hsl(0, 0%, 40%);
@@ -1170,7 +1170,7 @@ wmsx.SettingsGUI.css = function() {
     width: 80px;
     height: 78px;
     background: hsl(0, 0%, 87%);
-    border: 1px solid rgba(0, 0, 0, .11);
+    border: 1px solid hsl(0, 0%, 76%);
     border-right: none;
     border-bottom: none;
     border-radius: 100%;
@@ -1560,7 +1560,7 @@ wmsx.SettingsGUI.css = function() {
     width: 380px;
     height: 212px;
     margin: 36px auto 24px;
-    color: rgba(255, 255, 255, 0.97);
+    color: hsl(0, 0%, 98%);
     padding-top: 170px;
     box-sizing: border-box;
     text-align: center;

@@ -1111,7 +1111,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             updateBarAndKeyboardWidth(winH > winW, winW);
         } else {
             monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
-            updateBarAndKeyboardWidth(false, 0);
+            updateBarAndKeyboardWidth(true, 0);
         }
 
         self.displayCenter();
