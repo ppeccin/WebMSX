@@ -437,8 +437,9 @@ html.wmsx-full-screen #wmsx-screen-fs {
 }
 .wmsx-keyboard-enter {
     width: 36px;
-    border-radius: 2px 0 0 0;
-    border-top-width: 0;
+    border-radius: 2px 3px 0 0;
+    border-top: none;
+    box-shadow: none;
 }
 .wmsx-keyboard-enter_x1 {
     width: 13px;
@@ -447,13 +448,30 @@ html.wmsx-full-screen #wmsx-screen-fs {
     border-radius: 2px 0 0 0;
     border-width: 1px;
     border-right: none;
-    box-shadow: -1px 1px 0 0 rgb(0, 0, 0)
+    box-shadow: -1px 1px 0 0 black;
 }
 .wmsx-keyboard-enter_x2 {
+    position: relative;
     width: 30px;
-    border-bottom: none;
+    padding: 0;
+    border: none;
     border-radius: 0 3px 0 0;
-    box-shadow: 1px 1px 0 0 rgb(0, 0, 0)
+    box-shadow: none;
+    box-shadow: 1px 1px 0 0 black;
+}
+.wmsx-keyboard-enter_x2::after {
+    content: "";
+    display: block;
+    position: relative;
+    width: 30px;
+    height: 48px;
+    background: rgb(127, 127, 127);
+    border: 3px solid hsl(0, 0%, 36%);
+    border-top: 1px solid hsl(0, 0%, 40%);
+    border-bottom: 5px solid hsl(0, 0%, 24%);
+    border-radius: 0 3px 0 0;
+    box-shadow: 1px 2px 0 0 black, 1px 0 0 0 black;
+    box-sizing: border-box;
 }
 .wmsx-keyboard-space {
     width: 181px;

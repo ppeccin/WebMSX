@@ -1232,8 +1232,8 @@ wmsx.SettingsGUI.css = function() {
 .wmsx-joy .wmsx-joy-dir-center {
     position: absolute;
     top: 29px;
-    left: 31px;
-    width: 16px;
+    left: 30px;
+    width: 18px;
     height: 12px;
     background: hsl(0, 0%, 49%);
 }

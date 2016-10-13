@@ -1102,16 +1102,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     function readjustAll(newAspectX) {
         if (newAspectX) aspectX = newAspectX;
 
+        var winW = fsElement.clientWidth;
         if (isFullscreen) {
-            var winW, winH;
-            winW = fsElement.clientWidth;
-            winH = fsElement.clientHeight;
-
+            var winH = fsElement.clientHeight;
             monitor.displayScale(aspectX, displayOptimalScaleY(winW, winH));
             updateBarAndKeyboardWidth(winH > winW, winW);
         } else {
             monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
-            updateBarAndKeyboardWidth(true, 0);
+            updateBarAndKeyboardWidth(true, winW);
         }
 
         self.displayCenter();
