@@ -85,13 +85,15 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.screenReadjustedUpdate = function() {
-        dirTouchCenterX = dirTouchCenterY = undefined;      // Reset center position, will be set again for the new element position
+        this.releaseControllers();
     };
 
     function updateMode() {
-        port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : 1) : mode;
+        port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : -1) : mode;
         resetStates();
         updateConnectionsToHub();
+        if (port < 0) document.documentElement.classList.add("wmsx-touch-disabled");
+        else document.documentElement.classList.remove("wmsx-touch-disabled");
     }
 
     function dirTouchStart(e) {
@@ -177,6 +179,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     function resetStates() {
         joyState.reset();
+        dirTouchCenterX = dirTouchCenterY = undefined;
+        dirTouchID = null;
     }
 
     function applyPreferences() {

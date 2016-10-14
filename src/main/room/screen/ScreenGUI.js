@@ -68,6 +68,13 @@ html.wmsx-full-screen #wmsx-screen-fs {
     z-index: 2147483647;
 }
 
+#wmsx-screen-canvas-outer {
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+    line-height: 1px;
+}
+
 #wmsx-screen-canvas {
     display: block;
     margin: auto;
@@ -547,6 +554,9 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
 
 html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right {
     display: block;
+}
+html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-right {
+    display: none;
 }
 @media only screen and (orientation: portrait) {
     html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-touch-right {

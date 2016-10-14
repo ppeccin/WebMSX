@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Fix OSD and Logo position in fullscreen. Hide Touch Controls if disabled
+// TODO Remove unstable UNICODE chars (Paste, Arrows)
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
 
@@ -33,9 +33,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         fileDownloader.registerForDownloadElement(mainElement);
         peripheralControls = pPeripheralControls;
         controllersHub = pControllersHub;
-        controllersHub.setKeyInputElement(mainElement);
+        controllersHub.setKeyInputElement(fsElement);
         controllersHub.setMouseInputElement(fsElement);
-        controllersHub.setTouchControlElements(getTouchControlElements());
         diskDrive = pDiskDrive;
     };
 
@@ -139,7 +138,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.toggleTextPasteDialog = function() {
         if (!signalIsOn) return this.showOSD("Text Paste only available when Power is ON!", true, true);
 
-        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(fsElement, this, controllersHub.getKeyboard());
+        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(canvasOuter, this, controllersHub.getKeyboard());
         pasteDialog.toggle();
         return false;
     };
@@ -384,7 +383,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         readjustAll();
     }
 
-    function lostFocus(e) {
+    function releaseControllersOnLostFocus(e) {
         controllersSocket.releaseControllers();
     }
 
@@ -529,11 +528,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.tabIndex = "0";               // Make it focusable
         suppressContextMenu(mainElement);
 
-        mainElement.addEventListener("focusout", lostFocus, true);
-        mainElement.addEventListener("blur", lostFocus, true);
-
         fsElement = document.createElement('div');
         fsElement.id = "wmsx-screen-fs";
+        fsElement.tabIndex = "-1";               // Make it focusable
         mainElement.appendChild(fsElement);
 
         suppressContextMenu(fsElement);
@@ -558,12 +555,19 @@ wmsx.CanvasDisplay = function(mainElement) {
             default:        canvasImageRenderingValue = "pixelated";
         }
 
+        canvasOuter = document.createElement('div');
+        canvasOuter.id = "wmsx-screen-canvas-outer";
+        fsElement.appendChild(canvasOuter);
+
         canvas = document.createElement('canvas');
         canvas.id = "wmsx-screen-canvas";
         canvas.tabIndex = "-1";               // Make it focusable
-        fsElement.appendChild(canvas);
+        canvasOuter.appendChild(canvas);
 
         updateCanvasContentSize();
+
+        if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
+        else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
         window.addEventListener("orientationchange", function() {
             setTimeout(readjustAll, 300);
@@ -588,6 +592,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         touchButA = createControl(group, "wmsx-touch-a", "wmsx-touch-button");
         touchButX = createControl(group, "wmsx-touch-x", "wmsx-touch-button");
 
+        controllersHub.setTouchControlElements({ TDIR: touchDir, TB_A: touchButA, TB_B: touchButB, TB_X: touchButX, TB_Y: touchButY });
+
         function createControl(group, id, cla) {
             var but = document.createElement('div');
             but.id = id;
@@ -596,10 +602,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             group.appendChild(but);
             return but;
         }
-    }
-
-    function getTouchControlElements() {
-        return { TDIR: touchDir, TB_A: touchButA, TB_B: touchButB, TB_X: touchButX, TB_Y: touchButY };
     }
 
     function setupVirtualKeyboard() {
@@ -838,7 +840,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoImage.id = "wmsx-logo";
         logoImage.isLoaded = false;
         logoImage.draggable = false;
-        fsElement.appendChild(logoImage);
+        canvasOuter.appendChild(logoImage);
 
         logoImage.ondragstart = function(e) {
             e.preventDefault();
@@ -857,7 +859,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         loadingImage.id = "wmsx-loading-icon";
         loadingImage.isLoaded = false;
         loadingImage.draggable = false;
-        fsElement.appendChild(loadingImage);
+        canvasOuter.appendChild(loadingImage);
 
         loadingImage.ondragstart = function(e) {
             e.preventDefault();
@@ -874,7 +876,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupOSD() {
         osd = document.createElement('div');
         osd.id = "wmsx-osd";
-        fsElement.appendChild(osd);
+        canvasOuter.appendChild(osd);
     }
 
     function setupCopyTextArea() {
@@ -1159,7 +1161,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var fsElement;
 
-    var canvas;
+    var canvas, canvasOuter;
     var canvasContext;
     var canvasImageRenderingValue;
 
