@@ -20,10 +20,14 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     };
 
     this.hide = function () {
-        WMSX.userPreferences.save();
-        this["wmsx-modal"].classList.remove("wmsx-show");
-        this["wmsx-cover"].classList.remove("wmsx-show");
+        self.hideLesser();
         WMSX.room.screen.focus();
+    };
+
+    this.hideLesser = function () {
+        WMSX.userPreferences.save();
+        self["wmsx-modal"].classList.remove("wmsx-show");
+        self["wmsx-cover"].classList.remove("wmsx-show");
     };
 
     this.setPage = function (page) {
@@ -76,8 +80,8 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         document.head.appendChild(styles);
 
         self.cover = document.createElement("div");
+        self.cover.id = "wmsx-cover";
         self.cover.innerHTML = wmsx.SettingsGUI.html();
-        self.cover.style.outline = "none";
         self.cover.tabIndex = -1;
         mainElement.appendChild(self.cover);
 
@@ -119,6 +123,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
             e.preventDefault();
             e.stopPropagation();
             self.hide();
+        });
+        document.body.addEventListener("mousedown", function (e) {
+            self.hideLesser();
         });
         // But do not close the modal with a click inside
         self["wmsx-modal"].addEventListener("mousedown", function (e) {

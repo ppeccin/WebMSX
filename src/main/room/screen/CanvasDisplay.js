@@ -617,7 +617,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.appendChild(buttonsBarInner);
 
         if (BAR_AUTO_HIDE) {
-            buttonsBar.classList.add("wmsx-auto-hide");
+            document.documentElement.classList.add("wmsx-bar-auto-hide");
             mainElement.addEventListener("mouseleave", hideBar);
             hideBar();
         }
@@ -903,7 +903,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function hideBar() {
-        if ((BAR_AUTO_HIDE || isFullscreen) && !barMenuActive) {
+        if ((BAR_AUTO_HIDE || isFullscreen) && !barMenuActive && !virtualKeyboardActive) {
             hideBarMenu();
             buttonsBar.classList.add("wmsx-hidden");
         }

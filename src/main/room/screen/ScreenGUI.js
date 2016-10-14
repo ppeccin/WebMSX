@@ -91,12 +91,12 @@ html.wmsx-full-screen #wmsx-screen-fs {
     left: 0;
     right: 0;
 }
-#wmsx-bar.wmsx-auto-hide, html.wmsx-full-screen #wmsx-bar {
+html.wmsx-bar-auto-hide #wmsx-bar, html.wmsx-full-screen #wmsx-bar {
     position: absolute;
     bottom: 0;
     transition: height 0.3s ease-in-out;
 }
-#wmsx-bar.wmsx-auto-hide.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
+html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
     height: 0;
 }
 #wmsx-bar.wmsx-narrow .wmsx-narrow-hidden {
