@@ -545,14 +545,12 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
     z-index: -5;
 }
 
-@media only screen and (orientation: landscape) {
-    html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right {
-        display: block;
-    }
+html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right {
+    display: block;
 }
 @media only screen and (orientation: portrait) {
-    html.wmsx-full-screen:not(.wmsx-virtual-keyboard-showing) #wmsx-touch-left, html.wmsx-full-screen:not(.wmsx-virtual-keyboard-showing) #wmsx-touch-right {
-        display: block;
+    html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-touch-right {
+        display: none;
     }
 }
 
@@ -632,12 +630,16 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
     }
 }
 
-@media only screen and (orientation: portrait) {
+@media only screen and (orientation: portrait) {    /* Wide Portrait */
 
     #wmsx-touch-left {
+        left: 106px;
+        bottom: 185px;
         transform: translate(-50%, 50%);
     }
     #wmsx-touch-right {
+        right: 140px;
+        bottom: 185px;
         width: 190px;
         height: 190px;
         transform: translate(50%, 50%);
@@ -668,24 +670,24 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
     }
 }
 
-@media only screen and (orientation: portrait) and (min-device-width: 426px) {   /* Big Portrait */
+@media only screen and (orientation: portrait) and (max-device-width: 511px) {   /* Medium Wide Portrait */
     #wmsx-touch-left {
-        left: 106px;
-        bottom: 185px;
+        left: 80px;
+        bottom: 150px;
     }
     #wmsx-touch-right {
-        right: 140px;
-        bottom: 185px;
+        right: 120px;
+        bottom: 150px;
     }
 }
 
-@media only screen and (orientation: portrait) and (max-device-width: 425px) {   /* Small Portrait */
+@media only screen and (orientation: portrait) and (max-device-width: 399px) {   /* Narrow Portrait */
     #wmsx-touch-left {
         left: 66px;
         bottom: 100px;
     }
     #wmsx-touch-right {
-        right: 100px;
+        right: 110px;
         bottom: 180px;
     }
 }
