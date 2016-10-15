@@ -164,7 +164,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         targetWidth = pTargetWidth;
         targetHeight = pTargetHeight;
         updateCanvasContentSize();
-        updateScale();
+        if (isFullscreen) readjustAll();
+        else updateScale();
     };
 
     this.displayPixelMetrics = function (pPixelWidth, pPixelHeight) {
@@ -172,7 +173,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         pixelWidth = pPixelWidth;
         pixelHeight = pPixelHeight;
-
         if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
     };
 
@@ -180,7 +180,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         aspectX = pAspectX;
         scaleY = pScaleY;
         updateScale();
-
         if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
     };
 
@@ -252,11 +251,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setFullscreen = function(mode) {
-        if (mode && !touchDir) setupTouchControls();
-
         if (fullscreenAPIEnterMethod) setFullscreenByAPI(mode);
         else setFullscreenByHack(mode);
-    };
+};
 
     function setFullscreenByAPI(mode) {
         if (isFullscreen === mode) return;
@@ -288,6 +285,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         setTimeout(function() {
             isFullscreen = mode;
+            setupTouchControlsIfNeeded();
             readjustAll();
         }, 30);
     }
@@ -369,6 +367,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
+    this.touchControlsModeUpdate = function(active) {
+        if (touchControlsActive === active) return;
+
+        touchControlsActive = active;
+        if (active) document.documentElement.classList.remove("wmsx-touch-disabled");
+        else document.documentElement.classList.add("wmsx-touch-disabled");
+        setupTouchControlsIfNeeded();
+        if (isFullscreen) readjustAll();
+    };
+
     function setVirtualKeyboard(active) {
         if (virtualKeyboardActive === active) return;
 
@@ -411,37 +419,35 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (isFullscreen) document.documentElement.classList.add("wmsx-full-screen");
         else document.documentElement.classList.remove("wmsx-full-screen");
 
-        // Give the browser some time to set full screen properly
-        setTimeout(readjustAll, 30);
+        setupTouchControlsIfNeeded();
+        setTimeout(readjustAll, 30);            // Give the browser some time to set full screen properly
     }
 
     function updateScale() {
-        var width = Math.round(targetWidth * scaleY * aspectX);
-        var height = Math.round(targetHeight * scaleY);
-        canvas.style.width = "" + width + "px";
-        canvas.style.height = "" + height + "px";
+        var canvasWidth = Math.round(targetWidth * scaleY * aspectX);
+        var canvasHeight = Math.round(targetHeight * scaleY);
+        canvas.style.width = "" + canvasWidth + "px";
+        canvas.style.height = "" + canvasHeight + "px";
+        updateBarWidth(canvasWidth);
     }
 
-    function updateBarAndKeyboardWidth(isPortrait, viewportWidth) {
-        var barWidth, keyboardWidth;
+    function updateBarWidth(canvasWidth) {
+        var finalWidth = buttonsBarDesiredWidth > 0 ? buttonsBarDesiredWidth : canvasWidth;
 
-        if (isPortrait) {
-            barWidth = viewportWidth;
-            buttonsBar.style.width = "100%";
-            keyboardWidth = viewportWidth;
-        } else {
-            barWidth = Math.round(targetWidth * scaleY * aspectX);     // Same as display barWidth
-            buttonsBar.style.width = "" + barWidth + "px";
-            keyboardWidth = barWidth;
-        }
+        buttonsBar.style.width = buttonsBarDesiredWidth === -1 ? "100%" : "" + finalWidth + "px";
 
-        if (barWidth < NARROW_WIDTH) buttonsBar.classList.add("wmsx-narrow");
+        if (finalWidth < NARROW_WIDTH) buttonsBar.classList.add("wmsx-narrow");
         else buttonsBar.classList.remove("wmsx-narrow");
+    }
 
-        if (virtualKeyboardActive) {
-            var keyboardScale = keyboardWidth / VIRT_KEYBOARD_WIDTH;
-            virtualKeyboardElement.style.transform = "translateX(-50%) scale(" + keyboardScale.toFixed(6) + ")";
-        }
+    function updateKeyboardWidth(viewportWidth) {
+        var width = Math.min(800, viewportWidth);
+        var scale = width / VIRTUAL_KEYBOARD_WIDTH;
+
+        if (virtualKeyboardActive)
+            virtualKeyboardElement.style.transform = "translateX(-50%) scale(" + scale.toFixed(8) + ")";
+
+        return { w: width, h: Math.ceil(VIRTUAL_KEYBOARD_HEIGHT * scale) };
     }
 
     function updateCanvasContentSize() {
@@ -574,8 +580,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
     }
 
-    function setupTouchControls() {
-        if (!wmsx.Util.isTouchDevice()) return;
+    function setupTouchControlsIfNeeded() {
+        if (touchDir || !isFullscreen || !touchControlsActive) return;
 
         var group = document.createElement('div');
         group.id = "wmsx-touch-left";
@@ -1108,11 +1114,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         var winW = fsElement.clientWidth;
         if (isFullscreen) {
             var winH = fsElement.clientHeight;
-            monitor.displayScale(aspectX, displayOptimalScaleY(winW, winH));
-            updateBarAndKeyboardWidth(winH > winW, winW);
+            var isLandscape = winW > winH;
+            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(winW);
+            winH -= wmsx.ScreenGUI.BAR_HEIGHT + (virtualKeyboardActive ? keyboardRect.h : 0);
+            buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
+            monitor.displayScale(aspectX, displayOptimalScaleY(isLandscape, winW, winH));
         } else {
+            buttonsBarDesiredWidth = -1;
             monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
-            updateBarAndKeyboardWidth(true, winW);
         }
 
         self.displayCenter();
@@ -1120,17 +1129,15 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
     this.readjustAll = readjustAll;
 
-    function displayOptimalScaleY(winW, winH) {
-        if (winH < winW) {
-            // Landscape, ensure lateral margins for the touch controls
-            winW -= wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN;
-        }
-        var scY = (winH - 4 - wmsx.ScreenGUI.BAR_HEIGHT) / targetHeight;	   	// 4 is a little safety tolerance
-        scY -= (scY % wmsx.Monitor.SCALE_STEP);		                            // Round to multiple of the step
-        var w = aspectX * scY * targetWidth;
-        while (w > winW) {
-            scY -= wmsx.Monitor.SCALE_STEP;				                        // Decrease one step
-            w = aspectX * scY * targetWidth;
+    function displayOptimalScaleY(isLandscape, maxWidth, maxHeight) {
+        if (isLandscape && touchControlsActive)
+            maxWidth -= wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN;         // Landscape, ensure lateral margins for the touch controls if active
+        var scY = (maxHeight - 4) / targetHeight;                             // 4 is a little safety tolerance
+        scY -= (scY % wmsx.Monitor.SCALE_STEP);		                          // Round to multiple of the step
+        var width = aspectX * scY * targetWidth;
+        while (width > maxWidth) {
+            scY -= wmsx.Monitor.SCALE_STEP;				                      // Decrease one step
+            width = aspectX * scY * targetWidth;
         }
         return scY;
     }
@@ -1166,11 +1173,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasImageRenderingValue;
 
     var touchDir, touchButA, touchButB, touchButX, touchButY;
+    var touchControlsActive = false;
 
     var virtualKeyboardActive = false;
     var virtualKeyboardElement, virtualKeyboard;
 
-    var buttonsBar, buttonsBarInner;
+    var buttonsBar, buttonsBarInner, buttonsBarDesiredWidth = -1;       // 0 = same as canvas. -1 means full width mode (100%)
 
     var barMenu;
     var barMenuActive = null;
@@ -1224,7 +1232,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
-    var VIRT_KEYBOARD_WIDTH = 520;
+    var VIRTUAL_KEYBOARD_WIDTH = 520, VIRTUAL_KEYBOARD_HEIGHT = 163;
 
     var NARROW_WIDTH = 450;
 

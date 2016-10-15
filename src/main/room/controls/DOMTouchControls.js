@@ -92,8 +92,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : -1) : mode;
         resetStates();
         updateConnectionsToHub();
-        if (port < 0) document.documentElement.classList.add("wmsx-touch-disabled");
-        else document.documentElement.classList.remove("wmsx-touch-disabled");
+        screen.touchControlsModeUpdate(port >= 0);
     }
 
     function dirTouchStart(e) {
