@@ -97,6 +97,7 @@ html.wmsx-full-screen #wmsx-screen-fs {
     bottom: 0;
     left: 0;
     right: 0;
+    text-align: left;
 }
 html.wmsx-bar-auto-hide #wmsx-bar, html.wmsx-full-screen #wmsx-bar {
     position: absolute;
@@ -110,8 +111,51 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     display: none;
 }
 
+.wmsx-bar-button {
+    display: inline-block;
+    width: 24px;
+    height: 23px;
+    margin: 3px 1px 0;
+    background-image: url("` + wmsx.Images.urls.sprites + `");
+    background-repeat: no-repeat;
+    background-size: 296px 81px;
+    cursor: pointer;
+}
+/*
+.wmsx-bar-button {
+    border: 1px solid yellow;
+    background-origin: border-box;
+    box-sizing: border-box;
+}
+*/
+
+#wmsx-bar-power {
+    margin: 3px 12px 0 6px;
+}
+#wmsx-bar-settings, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
+    float: right;
+    margin: 3px 0;
+}
+#wmsx-bar-settings {
+    margin-right: 5px;
+}
+#wmsx-bar-scale-plus {
+    width: 21px;
+}
+#wmsx-bar-scale-minus {
+    width: 18px;
+}
+#wmsx-bar-logo {
+    position: absolute;
+    left: 0; right: 0;
+    width: 52px;
+    margin: 3px auto 0;
+}
+
+
 #wmsx-bar-menu {
     position: absolute;
+    display: inline-block;
     height: 0;
     bottom: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
     font-size: 13px;
@@ -120,6 +164,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     -moz-osx-font-smoothing: grayscale;
 }
 #wmsx-bar-menu-inner {
+    display: inline-block;
     padding-bottom: 3px;
     border: 1px solid black;
     background: rgb(40, 40, 40);
