@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
+// TODO Focus not correct when Settings open (ESC does not work without clicking first)
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
 
@@ -251,18 +252,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setFullscreen = function(mode) {
-        if (fullscreenAPIEnterMethod) setFullscreenByAPI(mode);
-        else setFullscreenByHack(mode);
-};
-
-    function setFullscreenByAPI(mode) {
         if (isFullscreen === mode) return;
-        if (mode) fullscreenAPIEnterMethod.call(fsElement);
-        else fullScreenAPIExitMethod.call(document);
-        // callback fullscreenByAPIChanged() will adjust everything
-    }
 
-    function setFullscreenByHack(mode) {
         if (mode) {
             if (!viewportTag) {
                 viewportTag = document.querySelector("meta[name=viewport]");
@@ -283,6 +274,17 @@ wmsx.CanvasDisplay = function(mainElement) {
             document.documentElement.classList.remove("wmsx-full-screen");
         }
 
+        if (fullscreenAPIEnterMethod) setFullscreenByAPI(mode);
+        else setFullscreenByHack(mode);
+    };
+
+    function setFullscreenByAPI(mode) {
+        if (mode) fullscreenAPIEnterMethod.call(fsElement);
+        else fullScreenAPIExitMethod.call(document);
+        // callback fullscreenByAPIChanged() will adjust everything
+    }
+
+    function setFullscreenByHack(mode) {
         setTimeout(function() {
             isFullscreen = mode;
             setupTouchControlsIfNeeded();
@@ -440,8 +442,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         else buttonsBar.classList.remove("wmsx-narrow");
     }
 
-    function updateKeyboardWidth(viewportWidth) {
-        var width = Math.min(800, viewportWidth);
+    function updateKeyboardWidth(isLandscape, viewportWidth) {
+        if (isLandscape && touchControlsActive)
+            viewportWidth -= wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN;         // Landscape, ensure lateral margins for the touch controls if active
+
+        var width = Math.min(1024, viewportWidth);
         var scale = width / VIRTUAL_KEYBOARD_WIDTH;
 
         if (virtualKeyboardActive)
@@ -714,7 +719,11 @@ wmsx.CanvasDisplay = function(mainElement) {
             scaleDownButton.classList.add("wmsx-full-screen-hidden");
         }
 
-        logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -26, "About WebMSX", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);  // TODO Restore wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -68, -27, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
+        keyboardButton.classList.add("wmsx-full-screen-only");
+
+        logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -26, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
         // Mouse buttons perform the various actions
@@ -735,8 +744,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "",            divider: true });
 
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
-        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
-        menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS });
+        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS, fullScreenHidden: true });
+        menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,      fullScreenHidden: true });
         return menu;
     }
 
@@ -925,7 +934,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenu.wmsxTitle.innerHTML = menu.menuTitle;
 
         var it = 0;
-        var height = wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + 6;      // Title height + borders + padding
         var item;
         var maxShown = Math.min(menu.length, BAR_MENU_MAX_ITEMS);
         for (var op = 0; op < maxShown; ++op) {
@@ -934,7 +942,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 item.firstChild.textContent = menu[op].label;
                 item.wmsxMenuOption = menu[op];
 
-                if (menu[op].hidden) {
+                if (menu[op].hidden || (isFullscreen && menu[op].fullScreenHidden)) {
                     item.style.display = "none";
                 } else {
                     item.style.display = "block";
@@ -955,8 +963,6 @@ wmsx.CanvasDisplay = function(mainElement) {
                     } else {
                         item.classList.remove("wmsx-bar-menu-item-toggle");
                     }
-
-                    height += menu[op].divider ? 3 : wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT;
                 }
 
                 ++it;
@@ -969,7 +975,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             item.wmsxMenuOption = null;
         }
 
-        barMenu.style.height = "" + height + "px";
+        barMenu.style.height = "auto";
     }
 
     function hideBarMenu() {
@@ -1079,7 +1085,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (isFullscreen) {
             var winH = fsElement.clientHeight;
             var isLandscape = winW > winH;
-            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(winW);
+            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(isLandscape, winW);
             winH -= wmsx.ScreenGUI.BAR_HEIGHT + (virtualKeyboardActive ? keyboardRect.h : 0);
             buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
             monitor.displayScale(aspectX, displayOptimalScaleY(isLandscape, winW, winH));

@@ -13,6 +13,9 @@ wmsx.ScreenGUI.css = `
 html.wmsx-full-screen .wmsx-full-screen-hidden {
     display: none;
 }
+html:not(.wmsx-full-screen) .wmsx-full-screen-only {
+    display: none;
+}
 
 /* Full Screen by hack */
 html.wmsx-full-screen, html.wmsx-full-screen body {
@@ -145,6 +148,17 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
 #wmsx-bar-scale-minus {
     width: 18px;
 }
+#wmsx-bar-keyboard {
+    position: absolute;
+    left: 0; right: 0;
+    width: 37px;
+    margin: 4px auto 0;
+}
+#wmsx-bar.wmsx-narrow #wmsx-bar-keyboard {
+    position: static;
+    float: right;
+    margin: 4px 8px 0 0;
+}
 #wmsx-bar-logo {
     position: absolute;
     left: 0; right: 0;
@@ -171,6 +185,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
 }
 .wmsx-bar-menu-item, #wmsx-bar-menu-title {
     position: relative;
+    display: none;
     width: ` + wmsx.ScreenGUI.BAR_MENU_WIDTH + `px;
     height: ` + wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + `px;
     color: rgb(205, 205, 205);
