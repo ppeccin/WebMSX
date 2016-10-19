@@ -147,7 +147,8 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         if (msxKey) {
             // Special case for Portuguese "Alt Gr" key, which is LControl+RAlt. Release MSX CONTROL key if pressed, so AltGr can be used as normal RAlt
             if (code === RAltKeyCode && keyStateMap["CONTROL"]) {
-                keyboardRowValues[msxKeys["CONTROL"][0]] |= (1 << msxKeys["CONTROL"][1]);
+                var mattrix = msxKeys["CONTROL"].m;
+                keyboardRowValues[mattrix[0]] |= (1 << mattrix[1]);
                 keyStateMap["CONTROL"] = false;
             }
             this.processMSXKey(msxKey, press);
@@ -159,19 +160,20 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         var state = keyStateMap[msxKey];
         if (state === undefined || (state !== press)) {
             keyStateMap[msxKey] = press;
+            var mattrix = msxKeys[msxKey].m;
             if (press) {
-                keyboardRowValues[msxKeys[msxKey][0]] &= ~(1 << msxKeys[msxKey][1]);
+                keyboardRowValues[mattrix[0]] &= ~(1 << mattrix[1]);
                 if (turboFireSpeed && msxKey === "SPACE") turboFireFlipClockCount = 3;
             } else {
-                keyboardRowValues[msxKeys[msxKey][0]] |= (1 << msxKeys[msxKey][1]);
+                keyboardRowValues[mattrix[0]] |= (1 << mattrix[1]);
             }
         }
     };
 
     var updateMapping = function() {
         var map = customKeyboards[currentKeyboard] || wmsx.BuiltInKeyboards[currentKeyboard];
-        for (var k in wmsx.KeyboardKeys)
-            mapping[k] = !map[k] ? [] : map[k].constructor === Array ? map[k] : [ map[k] ];
+        for (var msxKey in msxKeys)
+            mapping[msxKey] = !map[msxKey] ? [] : map[msxKey].constructor === Array ? map[msxKey] : [ map[msxKey] ];
         updateCodeMap();
     };
 

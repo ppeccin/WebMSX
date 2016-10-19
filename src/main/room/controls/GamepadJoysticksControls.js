@@ -117,7 +117,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 
     this.getMappingForControl = function(button, port) {
         var prefs = joyPrefs[port ^ swappedMode];
-        if (joystickButtons[button] < 0)
+        if (!joystickButtons[button].mask)
             return prefs.buttons[button].length !== 0 || prefs.virtualButtonsKeys[button].length !== 0
                 ? { from: prefs.buttons[button], to: prefs.virtualButtonsKeys[button] }
                 : [];
@@ -126,7 +126,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     };
 
     this.getMappingPopupText = function(button, port) {
-        var virtual = joystickButtons[button] < 0;
+        var virtual = !joystickButtons[button].mask;
         return {
             heading: virtual ? "Virtual Button mapping:" : "Button mapped to:",
             footer: virtual ? "Press new button / new key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
@@ -138,7 +138,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         // Key or Button
         if (mapping.c) {
             // Ignore if mapping a key to non-virtual button
-            if (mapping.c && joystickButtons[button] >= 0) return;
+            if (mapping.c && joystickButtons[button].mask) return;
             mappings = joyPrefs[port ^ swappedMode].virtualButtonsKeys[button];
             // Ignore if key already mapped
             if (wmsx.Util.arrayFind(mappings, function(map) {
@@ -161,7 +161,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 
     this.clearControl = function(button, port) {
         joyPrefs[port ^ swappedMode].buttons[button].length = 0;
-        if (joystickButtons[button] < 0) joyPrefs[port ^ swappedMode].virtualButtonsKeys[button].length = 0;
+        if (!joystickButtons[button].mask) joyPrefs[port ^ swappedMode].virtualButtonsKeys[button].length = 0;
         resetStates();
         WMSX.userPreferences.setDirty();
     };
@@ -216,24 +216,22 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         // Update buttons states
         for (var b in joystickButtons) {
             var buttonMappings = prefs.buttons[b];
-            if (buttonMappings.length > 0) {
+            if (buttonMappings && buttonMappings.length > 0) {
                 var state = false;
                 for (var i = 0; !state && i < buttonMappings.length; ++i)
                     if (gamepad.getButtonDigital(buttonMappings[i].b)) state = true;
 
                 if (buttonsState[b] !== state) {
                     buttonsState[b] = state;
-                    var bit = joystickButtons[b];
-
-                    // Real MSX button
-                    if (bit >= 0) {
-                        if (state) joyState.portValue &= ~(1 << bit);
-                        else       joyState.portValue |= (1 << bit);
-                    } else {
+                    if (!joystickButtons[b].mask) {
                         // Virtual button
                         var keys = prefs.virtualButtonsKeys[b];
                         if (keys) for (var k = 0; k < keys.length; ++k)
                             keyForwardControls.processKey(keys[k].c, state);
+                    } else {
+                        // Real MSX button
+                        if (state) joyState.portValue &= ~joystickButtons[b].mask;
+                        else       joyState.portValue |=  joystickButtons[b].mask;
                     }
                 }
             }

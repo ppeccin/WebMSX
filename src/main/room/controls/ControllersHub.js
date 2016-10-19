@@ -102,17 +102,17 @@ wmsx.ControllersHub = function(keyForwardControls) {
         touchControls.setTurboFireSpeed(turboFireSpeed);
     };
 
-    this.setTouchControlElements = function(elements) {
-        touchControls.setTouchControlElements(elements);
-    };
-
-    this.screenReadjustedUpdate = function() {
-        touchControls.screenReadjustedUpdate();
+    this.setupTouchControlsIfNeeded = function(mainElement) {
+        touchControls.setupTouchControlsIfNeeded(mainElement)
     };
 
     this.setKeyInputElement = function(element) {
         element.addEventListener("keydown", this.keyDown);
         element.addEventListener("keyup", this.keyUp);
+    };
+
+    this.screenReadjustedUpdate = function() {
+        touchControls.screenReadjustedUpdate();
     };
 
     this.keyDown = function(e) {

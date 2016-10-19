@@ -2,31 +2,39 @@
 
 WMSX.userPreferences = { };
 
+WMSX.userPreferences.compatibleVersions = new Set([ 0, 1 ]);
+
 WMSX.userPreferences.defaults = function() {
 "use strict";
 
-    var g = wmsx.GamepadButtons;
+    var m = wmsx.KeyboardKeys;
+    var j = wmsx.JoystickButtons;
+
     var k = wmsx.DOMKeys;
+    var g = wmsx.GamepadButtons;
 
     return {
+
+        prefsVersion: 1,
+
         keyboard: undefined,        // auto
         customKeyboards: { },
 
         joysticks: [
             {
                 buttons: {
-                    UP:        [ g.JB_UP ],
-                    DOWN:      [ g.JB_DOWN ],
-                    LEFT:      [ g.JB_LEFT ],
-                    RIGHT:     [ g.JB_RIGHT ],
-                    A:         [ g.JB_1, g.JB_3 ],
-                    B:         [ g.JB_2, g.JB_3 ],
+                    UP:        [ g.GB_UP ],
+                    DOWN:      [ g.GB_DOWN ],
+                    LEFT:      [ g.GB_LEFT ],
+                    RIGHT:     [ g.GB_RIGHT ],
+                    A:         [ g.GB_1, g.GB_3 ],
+                    B:         [ g.GB_2, g.GB_3 ],
                     X:         [ ],
                     Y:         [ ],
-                    L:         [ g.JB_L1, g.JB_L2 ],
-                    R:         [ g.JB_R1, g.JB_R2 ],
-                    BACK:      [ g.JB_BACK ],
-                    START:     [ g.JB_START ]
+                    L:         [ g.GB_L1, g.GB_L2 ],
+                    R:         [ g.GB_R1, g.GB_R2 ],
+                    BACK:      [ g.GB_BACK ],
+                    START:     [ g.GB_START ]
                 },
                 virtualButtonsKeys: {
                     X:         [ ],
@@ -47,18 +55,18 @@ WMSX.userPreferences.defaults = function() {
             },
             {
                 buttons: {
-                    UP:        [ g.JB_UP ],
-                    DOWN:      [ g.JB_DOWN ],
-                    LEFT:      [ g.JB_LEFT ],
-                    RIGHT:     [ g.JB_RIGHT ],
-                    A:         [ g.JB_1, g.JB_3 ],
-                    B:         [ g.JB_2, g.JB_3 ],
+                    UP:        [ g.GB_UP ],
+                    DOWN:      [ g.GB_DOWN ],
+                    LEFT:      [ g.GB_LEFT ],
+                    RIGHT:     [ g.GB_RIGHT ],
+                    A:         [ g.GB_1, g.GB_3 ],
+                    B:         [ g.GB_2, g.GB_3 ],
                     X:         [ ],
                     Y:         [ ],
-                    L:         [ g.JB_L1, g.JB_L2 ],
-                    R:         [ g.JB_R1, g.JB_R2 ],
-                    BACK:      [ g.JB_BACK ],
-                    START:     [ g.JB_START ]
+                    L:         [ g.GB_L1, g.GB_L2 ],
+                    R:         [ g.GB_R1, g.GB_R2 ],
+                    BACK:      [ g.GB_BACK ],
+                    START:     [ g.GB_START ]
                 },
                 virtualButtonsKeys: {
                     X:         [ ],
@@ -103,23 +111,35 @@ WMSX.userPreferences.defaults = function() {
         ],
 
         touch: {
+            directional: "JOYSTICK",       // JOYSTICK, KEYBOARD
             buttons: {
-                TB_A:      [ "A" ],
-                TB_B:      [ "B" ],
-                TB_X:      [ "A", "B" ],
-                TB_Y:      [ ]
-            },
-            directional:   "JOYSTICK"       // JOYSTICK, KEYBOARD
+                T_A: j.A,
+                T_B: j.B,
+                T_C: j.AB,
+                T_D: m.F1,
+                T_E: m.ENTER,
+                T_F: m.ESCAPE
+            }
         }
     };
 };
 
 WMSX.userPreferences.load = function() {
+    // Load from Local Storage
     try {
         WMSX.userPreferences.current = JSON.parse(localStorage.wmsxprefs || "{}");
+        // Migrations
+        if (WMSX.userPreferences.current.version) delete WMSX.userPreferences.current.version;
+        if (!WMSX.userPreferences.current.prefsVersion) WMSX.userPreferences.current.prefsVersion = 0;
     } catch(e) {
-        WMSX.userPreferences.current = {};
+        // Give up
     }
+
+    // Absent or incompatible version
+    if (!WMSX.userPreferences.current || !WMSX.userPreferences.compatibleVersions.has(WMSX.userPreferences.current.prefsVersion))
+        WMSX.userPreferences.current = {};
+
+    // Fill missing properties
     var defs = WMSX.userPreferences.defaults();
     for (var pref in defs)
         if (!WMSX.userPreferences.current[pref]) WMSX.userPreferences.current[pref] = defs[pref];
@@ -129,7 +149,7 @@ WMSX.userPreferences.save = function() {
     if (!WMSX.userPreferences.isDirty) return;
 
     try {
-        WMSX.userPreferences.current.version = WMSX.VERSION;
+        WMSX.userPreferences.current.wmsxVersion = WMSX.VERSION;
         localStorage.wmsxprefs = JSON.stringify(WMSX.userPreferences.current);
         delete WMSX.userPreferences.isDirty;
 

@@ -2,6 +2,8 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
+// TODO Settings not closing when clicking outside (BODY vs HTML?)
+
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
 
@@ -287,7 +289,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setFullscreenByHack(mode) {
         setTimeout(function() {
             isFullscreen = mode;
-            setupTouchControlsIfNeeded();
+            if (isFullscreen) controllersHub.setupTouchControlsIfNeeded(fsElement);
             readjustAll();
         }, 30);
     }
@@ -373,10 +375,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (touchControlsActive === active) return;
 
         touchControlsActive = active;
-        if (active) document.documentElement.classList.remove("wmsx-touch-disabled");
-        else document.documentElement.classList.add("wmsx-touch-disabled");
-        setupTouchControlsIfNeeded();
-        if (isFullscreen) readjustAll();
+        if (isFullscreen) {
+            if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElement);
+            readjustAll();
+        }
     };
 
     function setVirtualKeyboard(active) {
@@ -418,10 +420,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     function fullscreenByAPIChanged() {
         var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         isFullscreen = !!fse;
-        if (isFullscreen) document.documentElement.classList.add("wmsx-full-screen");
-        else document.documentElement.classList.remove("wmsx-full-screen");
+        if (isFullscreen) {
+            document.documentElement.classList.add("wmsx-full-screen");
+            controllersHub.setupTouchControlsIfNeeded(fsElement);
+        } else
+            document.documentElement.classList.remove("wmsx-full-screen");
 
-        setupTouchControlsIfNeeded();
         setTimeout(readjustAll, 30);            // Give the browser some time to set full screen properly
     }
 
@@ -583,36 +587,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         window.addEventListener("orientationchange", function() {
             setTimeout(readjustAll, 300);
         });
-    }
-
-    function setupTouchControlsIfNeeded() {
-        if (touchDir || !isFullscreen || !touchControlsActive) return;
-
-        var group = document.createElement('div');
-        group.id = "wmsx-touch-left";
-        fsElement.appendChild(group);
-
-        touchDir =  createControl(group, "wmsx-touch-dir");
-
-        group = document.createElement('div');
-        group.id = "wmsx-touch-right";
-        fsElement.appendChild(group);
-
-        touchButY = createControl(group, "wmsx-touch-y", "wmsx-touch-button");
-        touchButB = createControl(group, "wmsx-touch-b", "wmsx-touch-button");
-        touchButA = createControl(group, "wmsx-touch-a", "wmsx-touch-button");
-        touchButX = createControl(group, "wmsx-touch-x", "wmsx-touch-button");
-
-        controllersHub.setTouchControlElements({ TDIR: touchDir, TB_A: touchButA, TB_B: touchButB, TB_X: touchButX, TB_Y: touchButY });
-
-        function createControl(group, id, cla) {
-            var but = document.createElement('div');
-            but.id = id;
-            but.classList.add("wmsx-touch-control");
-            if (cla) but.classList.add(cla);
-            group.appendChild(but);
-            return but;
-        }
     }
 
     function setupVirtualKeyboard() {
@@ -1142,9 +1116,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasContext;
     var canvasImageRenderingValue;
 
-    var touchDir, touchButA, touchButB, touchButX, touchButY;
     var touchControlsActive = false;
-
     var virtualKeyboardActive = false;
     var virtualKeyboardElement, virtualKeyboard;
 

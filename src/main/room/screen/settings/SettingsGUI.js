@@ -994,7 +994,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
     height: 178px;
     padding: 12px 0 0 14px;
     margin-top: 5px;
-    background: hsl(0, 0%, 28%);
+    background: hsl(0, 0%, 25%);
     border-radius: 1px 1px 0 0;
     box-sizing: border-box;
     box-shadow: 0 1px 0 1px hsl(0, 0%, 20%), 0 3px 4px 1px hsl(0, 0%, 40%);

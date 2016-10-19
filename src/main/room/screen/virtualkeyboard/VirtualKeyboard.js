@@ -26,9 +26,11 @@ wmsx.VirtualKeyboard = {
                     keyElement.classList.add("wmsx-keyboard-key");
                     keyElement.classList.add(keyName);
                     if (this.dark.indexOf(keyName) >= 0) keyElement.classList.add("wmsx-keyboard-key-dark");
-                    keyElement.innerHTML = this.labels[key] || key;
                     var msxKey = this.translations[key] || key;
-                    if (wmsx.KeyboardKeys[msxKey]) keyElement.wmsxKey = msxKey;
+                    if (wmsx.KeyboardKeys[msxKey]) {
+                        keyElement.wmsxKey = msxKey;
+                        keyElement.innerHTML = this.labels[msxKey] || wmsx.KeyboardKeys[msxKey].sn;
+                    }
                     rowDiv.appendChild(keyElement);
                     if (keysCallback) keysCallback(keyElement);
                 }
@@ -56,14 +58,8 @@ wmsx.VirtualKeyboard = {
         ]
     },
 
-    labels: {
-        SELECT: "SEL", INSERT: "INS", DELETE: "DEL",
-        ESCAPE: "ESC", D1: "1", D2: "2", D3: "3", D4: "4", D5: "5", D6: "6", D7: "7", D8: "8", D9: "9", D0: "0", MINUS: "-", EQUAL: "=", BACKSLASH: "\\", BACKSPACE: "BS",
-        SEMICOLON: ";", QUOTE: "'", BACKQUOTE: "`",
-        CONTROL: "CTRL", OPEN_BRACKET: "[", CLOSE_BRACKET: "]", ENTER: "RET", ENTER_X1: " ", ENTER_X2: " ",
-        SHIFT2: "SHIFT", COMMA: ",", PERIOD: ".", SLASH: "/", CAPSLOCK: "CAPS",
-        NUM_DIVIDE: "/", NUM_MULTIPLY: "*", NUM_MINUS: "-", NUM_PLUS: "+", NUM_PERIOD: ".", NUM_COMMA: ",",
-        NUM_1: "1", NUM_2: "2", NUM_3: "3", NUM_4: "4", NUM_5: "5", NUM_6: "6", NUM_7: "7", NUM_8: "8", NUM_9: "9", NUM_0: "0",
+    labels: {   // Instead of the 3-char shot names
+        STOP: "STOP", HOME: "HOME", CONTROL: "CTRL", SHIFT: "SHIFT", SPACE: "SPACE", GRAPH: "GRAPH", CODE: "CODE", DEAD: "DEAD",
         LEFT: "&#9668;", UP: "&#9650;", DOWN: "&#9660;", RIGHT: "&#9658;"
     },
 

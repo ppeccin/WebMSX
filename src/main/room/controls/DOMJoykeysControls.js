@@ -64,8 +64,8 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
         if (!mappings) return keyForwardControls.processKey(code, press);
 
         for (var i = 0; i < mappings.length; ++i) {
-            if (press) joyStates[mappings[i].p].portValue &= ~(1 << joystickButtons[mappings[i].b]);
-            else       joyStates[mappings[i].p].portValue |= (1 << joystickButtons[mappings[i].b]);
+            if (press) joyStates[mappings[i].p].portValue &= ~joystickButtons[mappings[i].b].mask;
+            else       joyStates[mappings[i].p].portValue |=  joystickButtons[mappings[i].b].mask;
         }
     };
 

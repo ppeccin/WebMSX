@@ -33,30 +33,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         // Do nothing
     };
 
-    this.setTouchControlElements = function(elements) {
-        if (elements.TDIR) {
-            dirElement = elements.TDIR;
-            dirElement.addEventListener("touchstart", dirTouchStart);
-            dirElement.addEventListener("touchmove", dirTouchMove);
-            dirElement.addEventListener("touchend", dirTouchEnd);
-            dirElement.addEventListener("touchcancel", dirTouchEnd);
-        }
-
-        var buts = [ "A", "B", "X", "Y" ];
-        for (var b = 0; b < 4; ++b) {
-            var butName = "TB_" + buts[b];
-            var butElement = elements[butName];
-            if (butElement) {
-                butElement.wmsxControl = butName;
-                butElement.addEventListener("touchstart", buttonTouchStart);
-                butElement.addEventListener("touchend", buttonTouchEnd);
-                butElement.addEventListener("touchcancel", buttonTouchEnd);
-            }
-        }
-    };
-
     this.toggleMode = function() {
-        if (!supported) {
+        if (!isTouch) {
             hub.showErrorMessage("Touch Controls unavailable. Not a touch device!");
             return;
         }
@@ -71,7 +49,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
             case -1:  return "AUTO";
             case 0:   return "ENABLED";
             case 1:   return "ENABLED (port 2)";
-            default:  return !supported ? "NOT SUPPORTED" : "DISABLED";
+            default:  return !isTouch ? "NOT SUPPORTED" : "DISABLED";
         }
     };
 
@@ -88,11 +66,64 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         this.releaseControllers();
     };
 
+    this.setupTouchControlsIfNeeded = function(mainElement) {
+        if (dirElement || port < 0) return;
+
+        var group = document.createElement('div');
+        group.id = "wmsx-touch-left";
+        mainElement.appendChild(group);
+
+        dirElement = document.createElement('div');
+        dirElement.id = "wmsx-touch-dir";
+        dirElement.addEventListener("touchstart",  dirTouchStart);
+        dirElement.addEventListener("touchmove",   dirTouchMove);
+        dirElement.addEventListener("touchend",    dirTouchEnd);
+        dirElement.addEventListener("touchcancel", dirTouchEnd);
+        createArrowKey(dirElement, "left");
+        createArrowKey(dirElement, "right");
+        createArrowKey(dirElement, "up");
+        createArrowKey(dirElement, "down");
+        group.appendChild(dirElement);
+
+        group = document.createElement('div');
+        group.id = "wmsx-touch-right";
+        mainElement.appendChild(group);
+
+        var buts = wmsx.TouchControls.buttons;
+        for (var b in buts) createButton(group, buts[b]);
+
+        updateMappings();
+
+        function createButton(group, name) {
+            var but = document.createElement('div');
+            but.id = "wmsx-touch-" + name;
+            but.classList.add("wmsx-touch-button");
+            but.addEventListener("touchstart", buttonTouchStart);
+            but.addEventListener("touchend", buttonTouchEnd);
+            but.addEventListener("touchcancel", buttonTouchEnd);
+            group.appendChild(but);
+            buttonElements[name] = but;
+        }
+
+        function createArrowKey(parent, dir) {
+            var key = document.createElement('div');
+            key.id = "wmsx-touch-dir-" + dir;
+            parent.appendChild(key);
+            var arr = document.createElement('div');
+            arr.classList.add("wmsx-arrow-" + dir);
+            parent.appendChild(arr);
+        }
+    };
+
     function updateMode() {
-        port = mode === -2 ? -1 : mode === -1 ? (supported ? 0 : -1) : mode;
+        port = mode === -2 ? -1 : mode === -1 ? (isTouch && isMobile ? 0 : -1) : mode;
+        var active = port >= 0;
         resetStates();
         updateConnectionsToHub();
-        screen.touchControlsModeUpdate(port >= 0);
+
+        if (active) document.documentElement.classList.remove("wmsx-touch-disabled");
+        else document.documentElement.classList.add("wmsx-touch-disabled");
+        screen.touchControlsModeUpdate(active);
     }
 
     function dirTouchStart(e) {
@@ -113,7 +144,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         for (var i = 0; i < changed.length; ++i)
             if (changed[i].identifier === dirTouchID) {
                 dirTouchID = null;
-                joyState.portValue = joyState.portValue | 0xf;
+                setCurrentDirection(-1);
                 return;
             }
     }
@@ -141,7 +172,23 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
             if (dir >= 1) dir -= 1;
             dir = (dir * 8) | 0;
         }
-        joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[dir + 1];
+        setCurrentDirection(dir);
+    }
+
+    function setCurrentDirection(newDir) {
+        if (dirCurrentDir === newDir) return;
+
+        if (dirKeysMode) {
+            var release = DIRECTION_TO_KEYS[dirCurrentDir + 1];
+            if (release[0]) keyForwardControls.processMSXKey(release[0], false);
+            if (release[1]) keyForwardControls.processMSXKey(release[1], false);
+            var press = DIRECTION_TO_KEYS[newDir + 1];
+            if (press[0]) keyForwardControls.processMSXKey(press[0], true);
+            if (press[1]) keyForwardControls.processMSXKey(press[1], true);
+        } else
+            joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[newDir + 1];
+
+        dirCurrentDir = newDir;
     }
 
     function setDirTouchCenter() {
@@ -160,16 +207,48 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         processButtonTouch(e.target.wmsxControl, false);
     }
 
-    function processButtonTouch(control, press) {
-        var mappings = prefs.buttons[control];
-        if (!mappings.length) return;
+    function processButtonTouch(mapping, press) {
+        if (!mapping) return;
 
-        if (press)
-            for (var i = 0; i < mappings.length; ++i)
-                joyState.portValue &= ~(1 << joystickButtons[mappings[i]]);
-        else
-            for (i = 0; i < mappings.length; ++i)
-                joyState.portValue |=  (1 << joystickButtons[mappings[i]]);
+        if (mapping.mask) {
+            // Joystick button
+            if (press) joyState.portValue &= ~mapping.mask;
+            else       joyState.portValue |=  mapping.mask;
+        } else if (mapping.key) {
+            // Keyboard key
+            keyForwardControls.processMSXKey(mapping.key, press);
+        }
+    }
+
+    function updateMappings() {
+        if (prefs.directional === "KEYBOARD") {
+            dirKeysMode = true;
+            dirElement.classList.add("wmsx-touch-dir-key");
+            dirElement.classList.remove("wmsx-touch-dir-joy");
+        } else {
+            dirKeysMode = false;
+            dirElement.classList.add("wmsx-touch-dir-joy");
+            dirElement.classList.remove("wmsx-touch-dir-key");
+        }
+
+        for (var but in buttonElements) {
+            var butElement = buttonElements[but];
+            var mapping = prefs.buttons[but];
+            butElement.innerHTML = mapping ? mapping.n || mapping.sn : "";
+            butElement.wmsxControl = mapping;
+            if (!mapping || mapping.mask) {
+                butElement.classList.add("wmsx-touch-button-joy");
+                butElement.classList.remove("wmsx-touch-button-key");
+                for (var b = 0; b < BUTTONS_SPECIAL_CLASSES.length; ++b) {
+                    var but = BUTTONS_SPECIAL_CLASSES[b];
+                    if (mapping && mapping.n === but) butElement.classList.add("wmsx-touch-button-joy-" + but);
+                    else butElement.classList.remove("wmsx-touch-button-joy-" + but);
+                }
+            } else if (mapping.key) {
+                butElement.classList.add("wmsx-touch-button-key");
+                butElement.classList.remove("wmsx-touch-button-joy");
+            }
+        }
     }
 
     function updateConnectionsToHub() {
@@ -180,6 +259,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         joyState.reset();
         dirTouchCenterX = dirTouchCenterY = undefined;
         dirTouchID = null;
+        setCurrentDirection(-1);
     }
 
     function applyPreferences() {
@@ -197,13 +277,15 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     var machineControlsSocket;
     var screen;
 
-    var supported = wmsx.Util.isTouchDevice();
-    var mode = supported ? WMSX.TOUCH_MODE - 1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
+    var isTouch = wmsx.Util.isTouchDevice();
+    var isMobile = wmsx.Util.isMobileDevice();
+    var mode = WMSX.TOUCH_MODE >= 1 ? WMSX.TOUCH_MODE - 1 : isTouch ? -1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
-    var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY;
-    var buttonElements = [ null, null ], buttonTouchIDs = [ null, null ];
+    var dirKeysMode = false;
+    var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY, dirCurrentDir = -1;
+    var buttonElements = { };
 
     var joyState = new JoystickState();
 
@@ -211,6 +293,9 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     var DIR_DEADZONE = 18;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
+    var DIRECTION_TO_KEYS = [ [ ], [ "UP" ], [ "RIGHT", "UP" ], [ "RIGHT" ], [ "RIGHT", "DOWN" ], [ "DOWN" ], [ "LEFT", "DOWN" ], [ "LEFT" ], [ "LEFT", "UP" ] ];
+
+    var BUTTONS_SPECIAL_CLASSES = [ "A", "B", "AB" ];
 
 
     function JoystickState() {

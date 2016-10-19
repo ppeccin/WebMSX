@@ -70,6 +70,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
             deviceTitleElements[hubPort] = document.getElementById("wmsx-ports-device" + p + "-title");
             for (var b in wmsx.JoystickButtons) {
                 var buttonElement = document.getElementById("wmsx-joy" + p + "-" + b);
+                if (!buttonElement) continue;
                 buttonElement.wmsxButton = b;
                 buttonElement.wmsxPort = hubPort;
                 setupButtonMouseEvents(buttonElement);

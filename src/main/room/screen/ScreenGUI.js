@@ -440,7 +440,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     text-align: center;
     vertical-align: top;
     color: white;
-    background: hsl(0, 0%, 67%);
+    background: hsl(0, 0%, 68%);
     border: 3px solid hsl(0, 0%, 50%);
     border-top: 1px solid hsl(0, 0%, 54%);
     border-bottom: 5px solid hsl(0, 0%, 33%);
@@ -451,7 +451,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     -moz-osx-font-smoothing: grayscale;
 }
 .wmsx-keyboard-key.wmsx-keyboard-key-dark {
-    background: rgb(127, 127, 127);
+    background: hsl(0, 0%, 46%);
     border-color: hsl(0, 0%, 36%);
     border-top-color: hsl(0, 0%, 40%);
     border-bottom-color: hsl(0, 0%, 24%);
@@ -481,7 +481,6 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     line-height: 9px;
     border-width: 1px 2px 4px;
     margin-bottom: 12px;
-    background: rgb(172, 172, 172);
 }
 .wmsx-keyboard-stop {
     margin-left: 18px;
@@ -532,7 +531,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     position: relative;
     width: 30px;
     height: 48px;
-    background: rgb(127, 127, 127);
+    background: inherit;
     border: 3px solid hsl(0, 0%, 36%);
     border-top: 1px solid hsl(0, 0%, 40%);
     border-bottom: 5px solid hsl(0, 0%, 24%);
@@ -595,7 +594,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     padding: 6px 0 0 6px;
     width: 520px;
     height: 163px;
-    background: rgb(55, 55, 55);
+    background: hsl(0, 0%, 19%);
     box-sizing: border-box;
     transform: translateX(-50%);
     transform-origin: center bottom;
@@ -624,67 +623,204 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
     }
 }
 
+
+.wmsx-arrow-up, .wmsx-arrow-down, .wmsx-arrow-left, .wmsx-arrow-right {
+    border: 0px solid transparent;
+    box-sizing: border-box;
+}
+.wmsx-arrow-up    { border-bottom-color: inherit; }
+.wmsx-arrow-down  { border-top-color: inherit; }
+.wmsx-arrow-left  { border-right-color: inherit; }
+.wmsx-arrow-right { border-left-color: inherit; }
+
+
 #wmsx-touch-dir {
     width: 130px;
     height: 130px;
+    color: hsl(0, 0%, 72%);
     border-radius: 100%;
-}
-#wmsx-touch-dir::before {
-    content: "";
-    display: block;
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    top: 25px;
-    left: 25px;
-    border: 2px solid rgba(255, 255, 255, .5);
-    border-radius: 100%;
-    box-sizing: border-box;
 }
 #wmsx-touch-dir::after {
     content: "";
-    display: block;
     position: absolute;
-    width: 46px;
-    height: 46px;
-    top: 42px;
-    left: 42px;
-    background: rgba(255, 255, 255, .3);
+    top: 14px; left: 14px;
+    right: 14px; bottom: 14px;
+    border: 1px solid hsl(0, 0%, 26%);
     border-radius: 100%;
+}
+
+.wmsx-touch-dir-joy #wmsx-touch-dir-up, .wmsx-touch-dir-joy #wmsx-touch-dir-left {
+    position: absolute;
+    background: hsl(0, 0%, 31%);
+    border-radius: 2px 2px 0 0;
+    box-shadow: inset 1px 2px 0px hsl(0, 0%, 43%), inset -1px -1px hsl(0, 0%, 19%), 0 3px 0 1px hsl(0, 0%, 21%);
+}
+.wmsx-touch-dir-joy #wmsx-touch-dir-up {
+    width: 26px;
+    height: 78px;
+    top: 24px;
+    left: 52px;
+}
+.wmsx-touch-dir-joy #wmsx-touch-dir-left {
+    width: 78px;
+    height: 25px;
+    top: 51px;
+    left: 26px;
+}
+.wmsx-touch-dir-joy #wmsx-touch-dir-left::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 23px;
+    width: 33px;
+    height: 22px;
+    background: inherit;
+    z-index: 1;
+}
+.wmsx-touch-dir-joy #wmsx-touch-dir-left::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 30px;
+    height: 17px;
+    width: 17px;
+    border-radius: 100%;
+    box-shadow:  inset 0 0 2px hsl(0, 0%, 22%), inset 1px 2px 3px 1px hsl(0, 0%, 26%), inset -1px -2px 1px hsl(0, 0%, 64%);
+    z-index: 2;
+}
+
+
+.wmsx-touch-dir-key #wmsx-touch-dir-up, .wmsx-touch-dir-key #wmsx-touch-dir-left, .wmsx-touch-dir-key #wmsx-touch-dir-down, .wmsx-touch-dir-key #wmsx-touch-dir-right {
+    position: absolute;
+    background: rgb(70, 85, 180);
+    border: 0 solid hsl(232, 44%, 37%);
+    border-width: 1px 2px 4px;
+    border-top-color: hsl(232, 44%, 40%);
+    border-bottom-color: hsl(232, 44%, 24%);
+    border-radius: 2px 2px 0 0;
     box-sizing: border-box;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-up, .wmsx-touch-dir-key #wmsx-touch-dir-down {
+    left: 50px;
+    width: 30px;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-up {
+    top: 26px;
+    height: 26px;
+    border-bottom-width: 2px;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-down {
+    bottom: 26px;
+    height: 28px;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-left, .wmsx-touch-dir-key #wmsx-touch-dir-right {
+    top: 47px;
+    width: 25px;
+    height: 36px;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-left {
+    left: 24px;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-right {
+    right: 24px;
+}
+.wmsx-touch-dir-key #wmsx-touch-dir-up::after {
+    content: "";
+    position: absolute;
+    top: 28px;
+    left: 0px;
+    width: 26px;
+    height: 18px;
+    background: hsl(0, 0%, 20%);
+}
+
+#wmsx-touch-dir .wmsx-arrow-up, #wmsx-touch-dir .wmsx-arrow-down, #wmsx-touch-dir .wmsx-arrow-left, #wmsx-touch-dir .wmsx-arrow-right {
+    position: absolute;
+    border-width: 5px;
+    z-index: 2;
+}
+#wmsx-touch-dir .wmsx-arrow-up {
+    top: 26px;
+    left: 60px;
+    border-bottom-width: 11px;
+}
+#wmsx-touch-dir .wmsx-arrow-down {
+    bottom: 29px;
+    left: 60px;
+    border-top-width: 11px;
+}
+#wmsx-touch-dir .wmsx-arrow-left {
+    top: 58px;
+    left: 26px;
+    border-right-width: 11px;
+}
+#wmsx-touch-dir .wmsx-arrow-right {
+    top: 58px;
+    right: 26px;
+    border-left-width: 11px;
 }
 
 .wmsx-touch-button {
+    position: relative;
+    display: block;
     width: 76px;
     height: 76px;
-    border-radius: 100%;
-}
-.wmsx-touch-button::after {
-    content: "";
-    display: block;
-    position: relative;
-    width: 60px;
-    height: 60px;
-    top: 8px;
-    left: 8px;
     font-size: 20px;
-    line-height: 56px;
-    color: rgba(255, 255, 255, .65);
-    border: 2px solid rgba(255, 255, 255, .5);
+    line-height: 70px;
+    color: hsl(0, 0%, 77%);
     border-radius: 100%;
+    cursor: default;
+}
+
+.wmsx-touch-button::before {
+    content: "";
+    position: absolute;
     box-sizing: border-box;
+    z-index: -1;
 }
-#wmsx-touch-a:after {
-    content: "A";
+
+.wmsx-touch-button-joy::before {
+    width: 54px;
+    height: 52px;
+    top: 9px;
+    left: 11px;
+    border: 2px solid hsl(0, 0%, 47%);
+    border-radius: 100%;
 }
-#wmsx-touch-b:after {
-    content: "B";
+.wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
+    border: none;
+    background: hsl(120, 76%, 32%);
+    box-shadow: inset 0 2px hsl(120, 76%, 41%), 0 4px 0 1px hsl(120, 76%, 22%);
 }
-#wmsx-touch-x:after {
-    content: "X";
+.wmsx-touch-button-joy.wmsx-touch-button-joy-B::before {
+    border: none;
+    background: hsl(0, 60%, 37%);
+    box-shadow: inset 0 2px hsl(0, 60%, 48%), 0 4px 0 1px hsl(0, 60%, 27%);
 }
-#wmsx-touch-y:after {
-    content: "Y";
+.wmsx-touch-button-joy.wmsx-touch-button-joy-AB::before {
+    border: none;
+    background: hsl(240, 50%, 48%);
+    box-shadow: inset 0 2px hsl(240, 50%, 60%), 0 4px 0 1px hsl(240, 50%, 33%);
+}
+
+.wmsx-touch-button-key {
+    font-size: 17px;
+    line-height: 66px;
+}
+.wmsx-touch-button-key::before {
+    width: 52px;
+    height: 50px;
+    top: 11px;
+    left: 12px;
+    background: hsl(0, 0%, 47%);
+    border: 5px solid hsl(0, 0%, 33%);
+    border-top: 3px solid hsl(0, 0%, 55%);
+    border-bottom: 8px solid hsl(0, 0%, 22%);
+    border-radius: 4px 4px 0 0;
+}
+
+html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_E, html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_F {
+    display: none;
 }
 
 @media only screen and (orientation: landscape) {
@@ -718,25 +854,35 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
     .wmsx-touch-button {
         position: absolute;
     }
-    #wmsx-touch-a {
+    #wmsx-touch-T_A {
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
     }
-    #wmsx-touch-b {
+    #wmsx-touch-T_B {
         top: 50%;
         right: 0;
         transform: translateY(-50%);
     }
-    #wmsx-touch-x {
+    #wmsx-touch-T_C {
         top: 50%;
         left: 0;
         transform: translateY(-50%);
     }
-    #wmsx-touch-y {
+    #wmsx-touch-T_D {
         top: 0;
         left: 50%;
         transform: translateX(-50%);
+    }
+    #wmsx-touch-T_E {
+        top: -50%;
+        left: 0;
+        transform: translateY(50%);
+    }
+    #wmsx-touch-T_F {
+        top: -50%;
+        right: 0;
+        transform: translateY(50%);
     }
 }
 

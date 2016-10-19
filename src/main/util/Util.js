@@ -441,6 +441,10 @@ wmsx.Util = new function() {
         return ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
     };
 
+    this.isMobileDevice = function() {
+        return this.isTouchDevice() && (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
+    };
+
     this.log2 = function(x) {
         return Math.log(x) / Math.log(2);
     };

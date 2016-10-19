@@ -3,131 +3,131 @@
 (function() {
 
     // Base mapping
-    var d = wmsx.DOMKeys;
+    var k = wmsx.DOMKeys;
     var base = {
-        D0             : d.VK_0,
-        D1             : d.VK_1,
-        D2             : d.VK_2,
-        D3             : d.VK_3,
-        D4             : d.VK_4,
-        D5             : d.VK_5,
-        D6             : d.VK_6,
-        D7             : d.VK_7,
-        D8             : d.VK_8,
-        D9             : d.VK_9,
-        MINUS          : d.VK_MINUS,
-        EQUAL          : d.VK_EQUALS,
-        BACKSLASH      : d.VK_BACKSLASH,
-        OPEN_BRACKET   : d.VK_OPEN_BRACKET,
-        CLOSE_BRACKET  : d.VK_CLOSE_BRACKET,
-        SEMICOLON      : d.VK_SEMICOLON,
-        QUOTE          : d.VK_QUOTE,
-        BACKQUOTE      : d.VK_BACKQUOTE,
-        COMMA          : d.VK_COMMA,
-        PERIOD         : d.VK_PERIOD,
-        SLASH          : d.VK_SLASH,
-        DEAD           : [ d.VK_CONTEXT, d.VK_END ],
-        A              : d.VK_A,
-        B              : d.VK_B,
-        C              : d.VK_C,
-        D              : d.VK_D,
-        E              : d.VK_E,
-        F              : d.VK_F,
-        G              : d.VK_G,
-        H              : d.VK_H,
-        I              : d.VK_I,
-        J              : d.VK_J,
-        K              : d.VK_K,
-        L              : d.VK_L,
-        M              : d.VK_M,
-        N              : d.VK_N,
-        O              : d.VK_O,
-        P              : d.VK_P,
-        Q              : d.VK_Q,
-        R              : d.VK_R,
-        S              : d.VK_S,
-        T              : d.VK_T,
-        U              : d.VK_U,
-        V              : d.VK_V,
-        W              : d.VK_W,
-        X              : d.VK_X,
-        Y              : d.VK_Y,
-        Z              : d.VK_Z,
-        SHIFT          : [ d.VK_LSHIFT, d.VK_RSHIFT ],
-        CONTROL        : [ d.VK_LCONTROL ],
-        CAPSLOCK       : d.VK_CAPS_LOCK,
-        GRAPH          : [ d.VK_LALT, d.VK_PAGE_UP ],
-        CODE           : [ d.VK_RALT, d.VK_RCONTROL, d.VK_PAGE_DOWN ],
-        F1             : d.VK_F1,
-        F2             : d.VK_F2,
-        F3             : d.VK_F3,
-        F4             : d.VK_F4,
-        F5             : d.VK_F5,
-        ESCAPE         : [ d.VK_ESCAPE, d.VK_ALTERNATE_ESC ],
-        TAB            : d.VK_TAB,
-        STOP           : [ d.VK_PAUSE, d.VK_BREAK, d.VK_F9 ],
-        BACKSPACE      : d.VK_BACKSPACE,
-        SELECT         : [ d.VK_SCROLL_LOCK, d.VK_F10 ],
-        ENTER          : [ d.VK_ENTER, d.VK_NUM_ENTER ],
-        SPACE          : d.VK_SPACE,
-        HOME           : [ d.VK_HOME, d.VK_NUM_HOME ],
-        INSERT         : [ d.VK_INSERT, d.VK_NUM_INSERT ],
-        DELETE         : [ d.VK_DELETE, d.VK_NUM_DELETE ],
-        UP             : [ d.VK_UP, d.VK_NUM_UP ],
-        DOWN           : [ d.VK_DOWN, d.VK_NUM_DOWN ],
-        RIGHT          : [ d.VK_RIGHT, d.VK_NUM_RIGHT ],
-        LEFT           : [ d.VK_LEFT, d.VK_NUM_LEFT ],
-        NUM_MULTIPLY   : d.VK_NUM_MULTIPLY,
-        NUM_PLUS       : d.VK_NUM_PLUS,
-        NUM_DIVIDE     : d.VK_NUM_DIVIDE,
-        NUM_0          : d.VK_NUM_0,
-        NUM_1          : d.VK_NUM_1,
-        NUM_2          : d.VK_NUM_2,
-        NUM_3          : d.VK_NUM_3,
-        NUM_4          : d.VK_NUM_4,
-        NUM_5          : d.VK_NUM_5,
-        NUM_6          : d.VK_NUM_6,
-        NUM_7          : d.VK_NUM_7,
-        NUM_8          : d.VK_NUM_8,
-        NUM_9          : d.VK_NUM_9,
-        NUM_MINUS      : d.VK_NUM_MINUS,
-        NUM_COMMA      : d.VK_NUM_COMMA,
-        NUM_PERIOD     : d.VK_NUM_PERIOD,
-        YES            : d.VK_VOID,
-        NO             : d.VK_VOID
+        D0             : k.VK_0,
+        D1             : k.VK_1,
+        D2             : k.VK_2,
+        D3             : k.VK_3,
+        D4             : k.VK_4,
+        D5             : k.VK_5,
+        D6             : k.VK_6,
+        D7             : k.VK_7,
+        D8             : k.VK_8,
+        D9             : k.VK_9,
+        MINUS          : k.VK_MINUS,
+        EQUAL          : k.VK_EQUALS,
+        BACKSLASH      : k.VK_BACKSLASH,
+        OPEN_BRACKET   : k.VK_OPEN_BRACKET,
+        CLOSE_BRACKET  : k.VK_CLOSE_BRACKET,
+        SEMICOLON      : k.VK_SEMICOLON,
+        QUOTE          : k.VK_QUOTE,
+        BACKQUOTE      : k.VK_BACKQUOTE,
+        COMMA          : k.VK_COMMA,
+        PERIOD         : k.VK_PERIOD,
+        SLASH          : k.VK_SLASH,
+        DEAD           : [ k.VK_CONTEXT, k.VK_END ],
+        A              : k.VK_A,
+        B              : k.VK_B,
+        C              : k.VK_C,
+        D              : k.VK_D,
+        E              : k.VK_E,
+        F              : k.VK_F,
+        G              : k.VK_G,
+        H              : k.VK_H,
+        I              : k.VK_I,
+        J              : k.VK_J,
+        K              : k.VK_K,
+        L              : k.VK_L,
+        M              : k.VK_M,
+        N              : k.VK_N,
+        O              : k.VK_O,
+        P              : k.VK_P,
+        Q              : k.VK_Q,
+        R              : k.VK_R,
+        S              : k.VK_S,
+        T              : k.VK_T,
+        U              : k.VK_U,
+        V              : k.VK_V,
+        W              : k.VK_W,
+        X              : k.VK_X,
+        Y              : k.VK_Y,
+        Z              : k.VK_Z,
+        SHIFT          : [ k.VK_LSHIFT, k.VK_RSHIFT ],
+        CONTROL        : [ k.VK_LCONTROL ],
+        CAPSLOCK       : k.VK_CAPS_LOCK,
+        GRAPH          : [ k.VK_LALT, k.VK_PAGE_UP ],
+        CODE           : [ k.VK_RALT, k.VK_RCONTROL, k.VK_PAGE_DOWN ],
+        F1             : k.VK_F1,
+        F2             : k.VK_F2,
+        F3             : k.VK_F3,
+        F4             : k.VK_F4,
+        F5             : k.VK_F5,
+        ESCAPE         : [ k.VK_ESCAPE, k.VK_ALTERNATE_ESC ],
+        TAB            : k.VK_TAB,
+        STOP           : [ k.VK_PAUSE, k.VK_BREAK, k.VK_F9 ],
+        BACKSPACE      : k.VK_BACKSPACE,
+        SELECT         : [ k.VK_SCROLL_LOCK, k.VK_F10 ],
+        ENTER          : [ k.VK_ENTER, k.VK_NUM_ENTER ],
+        SPACE          : k.VK_SPACE,
+        HOME           : [ k.VK_HOME, k.VK_NUM_HOME ],
+        INSERT         : [ k.VK_INSERT, k.VK_NUM_INSERT ],
+        DELETE         : [ k.VK_DELETE, k.VK_NUM_DELETE ],
+        UP             : [ k.VK_UP, k.VK_NUM_UP ],
+        DOWN           : [ k.VK_DOWN, k.VK_NUM_DOWN ],
+        RIGHT          : [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
+        LEFT           : [ k.VK_LEFT, k.VK_NUM_LEFT ],
+        NUM_MULTIPLY   : k.VK_NUM_MULTIPLY,
+        NUM_PLUS       : k.VK_NUM_PLUS,
+        NUM_DIVIDE     : k.VK_NUM_DIVIDE,
+        NUM_0          : k.VK_NUM_0,
+        NUM_1          : k.VK_NUM_1,
+        NUM_2          : k.VK_NUM_2,
+        NUM_3          : k.VK_NUM_3,
+        NUM_4          : k.VK_NUM_4,
+        NUM_5          : k.VK_NUM_5,
+        NUM_6          : k.VK_NUM_6,
+        NUM_7          : k.VK_NUM_7,
+        NUM_8          : k.VK_NUM_8,
+        NUM_9          : k.VK_NUM_9,
+        NUM_MINUS      : k.VK_NUM_MINUS,
+        NUM_COMMA      : k.VK_NUM_COMMA,
+        NUM_PERIOD     : k.VK_NUM_PERIOD,
+        YES            : k.VK_VOID,
+        NO             : k.VK_VOID
     };
 
     // Apply browser differences to BASE
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
-            base.MINUS =     d.VK_FF_MINUS;
-            base.EQUAL =     d.VK_FF_EQUAL;
-            base.SEMICOLON = d.VK_FF_SEMICOLON;
+            base.MINUS =     k.VK_FF_MINUS;
+            base.EQUAL =     k.VK_FF_EQUAL;
+            base.SEMICOLON = k.VK_FF_SEMICOLON;
     }
 
     // Define built-in keyboards
 
     // Default (US)
     var us = {};
-    for (var k in base) us[k] = base[k];
+    for (var key in base) us[key] = base[key];
 
     // BR
     var br = {};
-    for (k in base) br[k] = base[k];
+    for (key in base) br[key] = base[key];
     // BR specific browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
-            br.DEAD =          [ d.VK_FF_BR_TILDE, d.VK_CONTEXT, d.VK_END ];
+            br.DEAD =          [ k.VK_FF_BR_TILDE, k.VK_CONTEXT, k.VK_END ];
             break;
         default:
-            br.QUOTE =         d.VK_BR_QUOTE;
-            br.OPEN_BRACKET =  d.VK_BR_OPEN_BRACKET;
-            br.CLOSE_BRACKET = d.VK_BR_CLOSE_BRACKET;
-            br.BACKQUOTE =     d.VK_BR_ACUTE;
-            br.SEMICOLON =     d.VK_BR_SEMICOLON;
-            br.SLASH =         d.VK_BR_SLASH;
-            br.BACKSLASH =     d.VK_BR_BACKSLASH;
-            br.DEAD =          [ d.VK_BR_TILDE, d.VK_CONTEXT, d.VK_END ];
+            br.QUOTE =         k.VK_BR_QUOTE;
+            br.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
+            br.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
+            br.BACKQUOTE =     k.VK_BR_ACUTE;
+            br.SEMICOLON =     k.VK_BR_SEMICOLON;
+            br.SLASH =         k.VK_BR_SLASH;
+            br.BACKSLASH =     k.VK_BR_BACKSLASH;
+            br.DEAD =          [ k.VK_BR_TILDE, k.VK_CONTEXT, k.VK_END ];
     }
 
     wmsx.BuiltInKeyboards = {
