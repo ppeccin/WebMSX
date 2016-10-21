@@ -969,7 +969,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 11px;
+    margin-top: 13px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
@@ -979,7 +979,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 
 #wmsx-inputs .wmsx-bottom .wmsx-right {
     display: inline-block;
-    width: 276px;
+    width: 275px;
     text-align: right;
 }
 
@@ -989,9 +989,9 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 
 #wmsx-keyboard {
     position: relative;
-    left: -1px;
-    width: 536px;
-    height: 178px;
+    top: 2px;
+    width: 535px;
+    height: 174px;
     padding: 12px 0 0 14px;
     margin-top: 5px;
     background: hsl(0, 0%, 25%);

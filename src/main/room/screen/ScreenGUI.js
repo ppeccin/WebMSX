@@ -438,18 +438,18 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
 .wmsx-keyboard-key {
     position: relative;
     display: inline-block;
-    width: 25px;
-    height: 24px;
+    width: 26px;
+    height: 25px;
     padding: 4px 0;
     margin-right: 1px;
     box-sizing: border-box;
     font-weight: normal;
     font-size: 10px;
-    line-height: 10px;
+    line-height: 11px;
     text-align: center;
     vertical-align: top;
     color: white;
-    background: hsl(0, 0%, 68%);
+    background: hsl(0, 0%, 66%);
     border: 3px solid hsl(0, 0%, 50%);
     border-top: 1px solid hsl(0, 0%, 54%);
     border-bottom: 5px solid hsl(0, 0%, 33%);
@@ -475,31 +475,34 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     position: absolute;
 }
 .wmsx-keyboard-num {
-    left: 413px;
+    left: 417px;
 }
 .wmsx-keyboard-arrows {
-    top: 106px;
-    left: 413px;
+    top: 104px;
+    left: 417px;
 }
 .wmsx-keyboard-f1, .wmsx-keyboard-f2, .wmsx-keyboard-f3, .wmsx-keyboard-f4, .wmsx-keyboard-f5,
 .wmsx-keyboard-stop, .wmsx-keyboard-select, .wmsx-keyboard-home, .wmsx-keyboard-insert, .wmsx-keyboard-delete {
-    width: 37px;
+    width: 39px;
     height: 18px;
     padding: 2px 0;
     font-size: 9px;
     line-height: 9px;
     border-width: 1px 2px 4px;
-    margin-bottom: 12px;
+    margin-bottom: 7px;
 }
 .wmsx-keyboard-stop {
-    margin-left: 18px;
+    margin-left: 10px;
     background: rgb(240, 80, 60);
     border-color: hsl(7, 85%, 40%);
     border-top-color: hsl(7, 85%, 48%);
     border-bottom-color: hsl(7, 85%, 30%);
 }
-.wmsx-keyboard-escape, .wmsx-keyboard-backspace {
+.wmsx-keyboard-escape {
     width: 29px;
+}
+.wmsx-keyboard-backspace {
+    width: 28px;
 }
 .wmsx-keyboard-tab {
     width: 41px;
@@ -539,7 +542,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     display: block;
     position: relative;
     width: 30px;
-    height: 48px;
+    height: 50px;
     background: inherit;
     border: 3px solid hsl(0, 0%, 36%);
     border-top: 1px solid hsl(0, 0%, 40%);
@@ -549,11 +552,11 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     box-sizing: border-box;
 }
 .wmsx-keyboard-space {
-    width: 181px;
+    width: 189px;
     background: rgb(172, 172, 172);
 }
 .wmsx-keyboard-capslock {
-    margin-left: 15px;
+    margin-left: 16px;
     width: 38px;
 }
 .wmsx-keyboard-dead {
@@ -563,12 +566,13 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     width: 46px;
 }
 .wmsx-keyboard-num .wmsx-keyboard-key {
-    width: 23px;
+    width: 22px;
     height: 23px;
+    line-height: 9px;
 }
 .wmsx-keyboard-arrows .wmsx-keyboard-key {
     font-size: 8px;
-    line-height: 8px;
+    line-height: 9px;
     background: rgb(70, 85, 180);
     border-width: 1px 2px 4px;
     border-radius: 2px 2px 0 0;
@@ -578,19 +582,19 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
 }
 .wmsx-keyboard-left, .wmsx-keyboard-right {
     top: 5px;
-    width: 26px;
-    height: 34px;
+    width: 25px;
+    height: 35px;
     padding-top: 11px;
 }
 .wmsx-keyboard-up, .wmsx-keyboard-down {
-    width: 41px;
-    height: 22px;
+    width: 39px;
+    height: 23px;
     padding-top: 5px;
 }
 .wmsx-keyboard-down {
     position: absolute;
-    top: 22px;
-    left: 27px;
+    top: 23px;
+    left: 26px;
 }
 
 
@@ -600,14 +604,15 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     left: 50%;
     bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 4) + `px;
     margin: 0 auto;
-    padding: 6px 0 0 6px;
-    width: 520px;
-    height: 163px;
+    padding: 5px 0 0 5px;
+    width: 518px;
+    height: 161px;
     background: hsl(0, 0%, 19%);
     box-sizing: border-box;
     transform: translateX(-50%);
     transform-origin: center bottom;
     transition: height 0.3s ease-in-out;
+    text-align: left;
 }
 html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;

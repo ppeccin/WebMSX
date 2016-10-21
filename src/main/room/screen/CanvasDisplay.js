@@ -1176,7 +1176,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
-    var VIRTUAL_KEYBOARD_WIDTH = 520, VIRTUAL_KEYBOARD_HEIGHT = 163;
+    var VIRTUAL_KEYBOARD_WIDTH = 518, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
     var NARROW_WIDTH = 450;
 

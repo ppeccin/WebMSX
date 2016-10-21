@@ -59,7 +59,7 @@ wmsx.VirtualKeyboard = {
     },
 
     labels: {   // Instead of the 3-char shot names
-        STOP: "STOP", HOME: "HOME", CONTROL: "CTRL", SHIFT: "SHIFT", SPACE: "SPACE", GRAPH: "GRAPH", CODE: "CODE", DEAD: "DEAD",
+        STOP: "STOP", HOME: "HOME", CONTROL: "CTRL", SHIFT: "SHIFT", CAPSLOCK: "CAPS", SPACE: "SPACE", GRAPH: "GRAPH", CODE: "CODE", DEAD: "DEAD",
         LEFT: "&#9668;", UP: "&#9650;", DOWN: "&#9660;", RIGHT: "&#9658;"
     },
 
