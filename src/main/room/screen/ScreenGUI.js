@@ -780,10 +780,10 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
 }
 
 .wmsx-touch-button-joy::before {
-    width: 54px;
-    height: 52px;
-    top: 9px;
-    left: 11px;
+    width: 52px;
+    height: 50px;
+    top: 10px;
+    left: 12px;
     border: 2px solid hsl(0, 0%, 47%);
     border-radius: 100%;
 }
@@ -804,22 +804,22 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
 }
 
 .wmsx-touch-button-key {
-    font-size: 17px;
-    line-height: 66px;
+    font-size: 16px;
+    line-height: 68px;
 }
 .wmsx-touch-button-key::before {
-    width: 52px;
-    height: 50px;
-    top: 11px;
-    left: 12px;
+    width: 50px;
+    height: 49px;
+    top: 12px;
+    left: 13px;
     background: hsl(0, 0%, 47%);
     border: 5px solid hsl(0, 0%, 33%);
     border-top: 3px solid hsl(0, 0%, 55%);
     border-bottom: 8px solid hsl(0, 0%, 22%);
-    border-radius: 4px 4px 0 0;
+    border-radius: 4px 4px 1px 1px;
 }
 
-html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_E, html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_F {
+html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_G {
     display: none;
 }
 
@@ -839,7 +839,85 @@ html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_E, html:not(.wmsx-touch-more-bu
 @media only screen and (orientation: portrait) {    /* Wide Portrait */
 
     #wmsx-touch-left {
-        left: 106px;
+        left: 110px;
+        bottom: 185px;
+        transform: translate(-50%, 50%);
+    }
+    #wmsx-touch-right {
+        right: 45px;
+        bottom: 90px;
+        width: 114px;
+        height: 228px;
+    }
+
+    .wmsx-touch-button {
+        position: absolute;
+    }
+    #wmsx-touch-T_A {
+        bottom: 25%;
+        right: 50%;
+    }
+    #wmsx-touch-T_B {
+        bottom: 50%;
+        right: 0%;
+    }
+    #wmsx-touch-T_C {
+        bottom: 0%;
+        right: 100%;
+    }
+    #wmsx-touch-T_D {
+        bottom: 75%;
+        right: 50%;
+    }
+    #wmsx-touch-T_E {
+        bottom: 100%;
+        right: 0%;
+    }
+    #wmsx-touch-T_F {
+        bottom: 50%;
+        right: 100%;
+    }
+    #wmsx-touch-T_G {
+        bottom: 100%;
+        right: 100%;
+    }
+}
+
+@media only screen and (orientation: portrait) and (max-device-width: 599px) {   /* Narrow Portrait */
+    #wmsx-touch-left {
+        left: 68px;
+        bottom: 136px;
+    }
+    #wmsx-touch-right {
+        right: 12px;
+        bottom: 40px;
+    }
+}
+
+`;
+
+
+
+
+/*
+
+@media only screen and (orientation: landscape) {
+    #wmsx-touch-left {
+        left: -11px;
+        bottom: 50%;
+        transform: translateY(50%);
+    }
+    #wmsx-touch-right {
+        right: 14px;
+        bottom: 50%;
+        transform: translateY(50%);
+    }
+}
+
+@media only screen and (orientation: portrait) {
+
+    #wmsx-touch-left {
+        left: 110px;
         bottom: 185px;
         transform: translate(-50%, 50%);
     }
@@ -876,36 +954,32 @@ html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_E, html:not(.wmsx-touch-more-bu
     }
     #wmsx-touch-T_E {
         top: -50%;
-        left: 0;
+        right: 0;
         transform: translateY(50%);
     }
     #wmsx-touch-T_F {
         top: -50%;
-        right: 0;
+        left: 0;
         transform: translateY(50%);
     }
-}
-
-@media only screen and (orientation: portrait) and (max-device-width: 511px) {   /* Medium Wide Portrait */
-    #wmsx-touch-left {
-        left: 80px;
-        bottom: 150px;
-    }
-    #wmsx-touch-right {
-        right: 120px;
-        bottom: 150px;
+    #wmsx-touch-T_G {
+        top: -62%;
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 
-@media only screen and (orientation: portrait) and (max-device-width: 399px) {   /* Narrow Portrait */
+
+@media only screen and (orientation: portrait) and (max-device-width: 599px) {
     #wmsx-touch-left {
-        left: 66px;
+        left: 68px;
         bottom: 100px;
     }
     #wmsx-touch-right {
         right: 110px;
-        bottom: 180px;
+        bottom: 170px;
     }
 }
 
-`;
+
+ */

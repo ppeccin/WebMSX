@@ -3,6 +3,7 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Settings not closing when clicking outside (BODY vs HTML?)
+// TODO Touch Controls More Buttons never showing
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
