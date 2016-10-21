@@ -246,16 +246,16 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_TAPE_BCK | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_BACK;
         keyCodeMap[KEY_TAPE_FWD | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_FWD;
 
-        keyCodeMap[KEY_KEYBOARD_TOGGLE | k.ALT]  = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
+        keyCodeMap[KEY_KEYBOARD_TOGGLE | k.ALT]       = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
         keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = controls.JOYSTICKS_TOGGLE_MODE;
         keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = controls.JOYKEYS_TOGGLE_MODE;
         keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = controls.MOUSE_TOGGLE_MODE;
         keyCodeMap[KEY_TOUCH_TOGGLE | k.ALT]          = controls.TOUCH_TOGGLE_MODE;
         keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = controls.TURBO_FIRE_TOGGLE;
 
-        keyCodeMap[KEY_CRT_FILTER | k.ALT]   = controls.SCREEN_CRT_FILTER;
+        keyCodeMap[KEY_CRT_FILTER | k.ALT]  = controls.SCREEN_CRT_FILTER;
         keyCodeMap[KEY_CRT_MODE | k.ALT] 	= controls.SCREEN_CRT_MODE;
-        keyCodeMap[KEY_FULLSCREEN | k.ALT]  	= controls.SCREEN_FULLSCREEN;
+        keyCodeMap[KEY_FULLSCREEN | k.ALT]  = controls.SCREEN_FULLSCREEN;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = controls.SCREEN_SCALE_MINUS;
         keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = controls.SCREEN_SCALE_PLUS;

@@ -121,8 +121,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         resetStates();
         updateConnectionsToHub();
 
-        if (active) document.documentElement.classList.remove("wmsx-touch-disabled");
-        else document.documentElement.classList.add("wmsx-touch-disabled");
+        if (active) document.documentElement.classList.add("wmsx-touch-active");
+        else document.documentElement.classList.remove("wmsx-touch-active");
         screen.touchControlsModeUpdate(active);
     }
 
@@ -306,7 +306,3 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
 };
-
-wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN = 14 + 80 + 14;
-wmsx.DOMTouchControls.LANDSCAPE_RIGHT_MARGIN = 14 + 76 + 12;
-wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN = wmsx.DOMTouchControls.LANDSCAPE_LEFT_MARGIN + wmsx.DOMTouchControls.LANDSCAPE_RIGHT_MARGIN;

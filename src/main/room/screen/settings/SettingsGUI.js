@@ -679,7 +679,7 @@ wmsx.SettingsGUI.css = function() {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    z-index: 999998;
+    z-index: 50;
 }
 
 #wmsx-cover.wmsx-show {

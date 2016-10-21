@@ -71,6 +71,14 @@ html.wmsx-full-screen #wmsx-screen-fs {
     z-index: 2147483647;
 }
 
+html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move things horizontally in Landscape Full Screen */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
 #wmsx-screen-canvas-outer {
     display: inline-block;
     position: relative;
@@ -270,6 +278,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
+    z-index: 20;
 }
 #wmsx-screen .wmsx-select-dialog.wmsx-show {
     display: block;
@@ -600,7 +609,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.w
     transform-origin: center bottom;
     transition: height 0.3s ease-in-out;
 }
-html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
+html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
@@ -608,17 +617,14 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-virtual-keyboard {
 #wmsx-touch-left, #wmsx-touch-right {
     display: none;
     position: absolute;
-    z-index: -5;
 }
 
-html.wmsx-full-screen #wmsx-touch-left, html.wmsx-full-screen #wmsx-touch-right {
+html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-right {
     display: block;
 }
-html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-right {
-    display: none;
-}
+
 @media only screen and (orientation: portrait) {
-    html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-showing #wmsx-touch-right {
+    html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
         display: none;
     }
 }
@@ -763,10 +769,10 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
 .wmsx-touch-button {
     position: relative;
     display: block;
-    width: 76px;
-    height: 76px;
+    width: 72px;
+    height: 72px;
     font-size: 20px;
-    line-height: 70px;
+    line-height: 68px;
     color: hsl(0, 0%, 77%);
     border-radius: 100%;
     cursor: default;
@@ -780,10 +786,10 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
 }
 
 .wmsx-touch-button-joy::before {
-    width: 52px;
-    height: 50px;
-    top: 10px;
-    left: 12px;
+    width: 50px;
+    height: 48px;
+    top: 09px;
+    left: 11px;
     border: 2px solid hsl(0, 0%, 47%);
     border-radius: 100%;
 }
@@ -810,8 +816,8 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
 .wmsx-touch-button-key::before {
     width: 50px;
     height: 49px;
-    top: 12px;
-    left: 13px;
+    top: 11px;
+    left: 12px;
     background: hsl(0, 0%, 47%);
     border: 5px solid hsl(0, 0%, 33%);
     border-top: 3px solid hsl(0, 0%, 55%);
@@ -819,167 +825,128 @@ html.wmsx-touch-disabled #wmsx-touch-left, html.wmsx-touch-disabled #wmsx-touch-
     border-radius: 4px 4px 1px 1px;
 }
 
-html:not(.wmsx-touch-more-buttons) #wmsx-touch-T_G {
-    display: none;
-}
-
-@media only screen and (orientation: landscape) {
+@media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
-        left: -11px;
+        left: -6px;
         bottom: 50%;
         transform: translateY(50%);
     }
     #wmsx-touch-right {
-        right: 14px;
+        right: 7px;
         bottom: 50%;
         transform: translateY(50%);
     }
+
+    /* Adjust centered elements leaving space to the touch controls on both sides */
+    html.wmsx-full-screen.wmsx-touch-active #wmsx-screen-fs-center {
+        left: 117px;
+        right: 85px;
+    }
 }
 
-@media only screen and (orientation: portrait) {    /* Wide Portrait */
+@media only screen and (orientation: landscape) and (max-height: 511px) {    /* Medium Landscape */
+    #wmsx-touch-T_F, #wmsx-touch-T_G {
+        display: none;
+    }
+}
+
+@media only screen and (orientation: landscape) and (max-height: 359px) {    /* Short Landscape */
+    #wmsx-touch-T_E, #wmsx-touch-T_F, #wmsx-touch-T_G {
+        display: none;
+    }
+}
+
+@media only screen and (orientation: portrait) {    /* Portrait */
 
     #wmsx-touch-left {
-        left: 110px;
-        bottom: 185px;
-        transform: translate(-50%, 50%);
+        left: 3px;
+        bottom: 183px;
     }
     #wmsx-touch-right {
-        right: 45px;
-        bottom: 90px;
-        width: 114px;
-        height: 228px;
+        right: 9px;
+        bottom: 38px;
+        width: 112px;
+        height: 224px;
+    }
+
+    #wmsx-touch-T_G {
+        display: none;
     }
 
     .wmsx-touch-button {
         position: absolute;
     }
-    #wmsx-touch-T_A {
+    #wmsx-touch-T_D {
         bottom: 25%;
         right: 50%;
     }
-    #wmsx-touch-T_B {
+    #wmsx-touch-T_E {
         bottom: 50%;
         right: 0%;
     }
-    #wmsx-touch-T_C {
+    #wmsx-touch-T_F {
         bottom: 0%;
         right: 100%;
     }
-    #wmsx-touch-T_D {
+    #wmsx-touch-T_A {
         bottom: 75%;
         right: 50%;
     }
-    #wmsx-touch-T_E {
+    #wmsx-touch-T_B {
         bottom: 100%;
         right: 0%;
     }
-    #wmsx-touch-T_F {
+    #wmsx-touch-T_C {
         bottom: 50%;
         right: 100%;
     }
     #wmsx-touch-T_G {
-        bottom: 100%;
-        right: 100%;
+        bottom: 0%;
+        right: 0%;
     }
 }
 
-@media only screen and (orientation: portrait) and (max-device-width: 599px) {   /* Narrow Portrait */
-    #wmsx-touch-left {
-        left: 68px;
-        bottom: 136px;
+@media only screen and (orientation: portrait) and (max-width: 320px) {    /* Thin Portrait. Like iPhone 5 */
+
+    #wmsx-touch-T_E, #wmsx-touch-T_F, #wmsx-touch-T_G {
+        display: none;
     }
-    #wmsx-touch-right {
-        right: 12px;
-        bottom: 40px;
-    }
-}
-
-`;
-
-
-
-
-/*
-
-@media only screen and (orientation: landscape) {
-    #wmsx-touch-left {
-        left: -11px;
-        bottom: 50%;
-        transform: translateY(50%);
-    }
-    #wmsx-touch-right {
-        right: 14px;
-        bottom: 50%;
-        transform: translateY(50%);
-    }
-}
-
-@media only screen and (orientation: portrait) {
 
     #wmsx-touch-left {
-        left: 110px;
-        bottom: 185px;
-        transform: translate(-50%, 50%);
-    }
-    #wmsx-touch-right {
-        right: 140px;
-        bottom: 185px;
-        width: 190px;
-        height: 190px;
-        transform: translate(50%, 50%);
+        bottom: 158px;
     }
 
     .wmsx-touch-button {
         position: absolute;
     }
+    #wmsx-touch-T_D {
+        bottom: 50%;
+        right: 50%;
+    }
     #wmsx-touch-T_A {
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
+        bottom: 0%;
+        right: 50%;
     }
     #wmsx-touch-T_B {
-        top: 50%;
-        right: 0;
-        transform: translateY(-50%);
+        bottom: 25%;
+        right: 0%;
     }
     #wmsx-touch-T_C {
-        top: 50%;
-        left: 0;
-        transform: translateY(-50%);
+        bottom: 25%;
+        right: 100%;
     }
-    #wmsx-touch-T_D {
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    #wmsx-touch-T_E {
-        top: -50%;
-        right: 0;
-        transform: translateY(50%);
-    }
-    #wmsx-touch-T_F {
-        top: -50%;
-        left: 0;
-        transform: translateY(50%);
-    }
-    #wmsx-touch-T_G {
-        top: -62%;
-        left: 50%;
-        transform: translateX(-50%);
-    }
+
 }
 
+@media only screen and (orientation: portrait) and (max-width: 320px) and (max-height: 519px) {    /* Thin and Short Portrait. Like iPhone 4 */
 
-@media only screen and (orientation: portrait) and (max-device-width: 599px) {
     #wmsx-touch-left {
-        left: 68px;
-        bottom: 100px;
+        bottom: 110px;
     }
     #wmsx-touch-right {
-        right: 110px;
-        bottom: 170px;
+        bottom: 24px;
     }
+
 }
 
-
- */
+`;

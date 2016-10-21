@@ -4,6 +4,7 @@
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Settings not closing when clicking outside (BODY vs HTML?)
 // TODO Touch Controls More Buttons never showing
+// TODO Remove "Center" rounding problems as possible
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -95,7 +96,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openSettings = function(page) {
-        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElement, controllersHub);
+        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub);
         if (pasteDialog) pasteDialog.hide();
         settingsDialog.show(page);
     };
@@ -388,9 +389,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (active) {
             if (!wmsx.Util.isTouchDevice()) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
             if (!virtualKeyboardElement) setupVirtualKeyboard();
-            document.documentElement.classList.add("wmsx-virtual-keyboard-showing");
+            document.documentElement.classList.add("wmsx-virtual-keyboard-active");
         } else
-            document.documentElement.classList.remove("wmsx-virtual-keyboard-showing");
+            document.documentElement.classList.remove("wmsx-virtual-keyboard-active");
 
         virtualKeyboardActive = active;
         readjustAll();
@@ -447,10 +448,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         else buttonsBar.classList.remove("wmsx-narrow");
     }
 
-    function updateKeyboardWidth(isLandscape, viewportWidth) {
-        if (isLandscape && touchControlsActive)
-            viewportWidth -= wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN;         // Landscape, ensure lateral margins for the touch controls if active
-
+    function updateKeyboardWidth(viewportWidth) {
         var width = Math.min(1024, viewportWidth);
         var scale = width / VIRTUAL_KEYBOARD_WIDTH;
 
@@ -531,12 +529,12 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function createDiskSelectDialog() {
         if (diskSelectDialog) return;
-        diskSelectDialog = new wmsx.DiskSelectDialog(fsElement, diskDrive, peripheralControls);
+        diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
     }
 
     function createMachineSelectDialog() {
         if (machineSelectDialog) return;
-        machineSelectDialog = new wmsx.MachineSelectDialog(fsElement, machineTypeSocket);
+        machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
     }
 
     function setupMain() {
@@ -548,6 +546,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElement.id = "wmsx-screen-fs";
         fsElement.tabIndex = "-1";               // Make it focusable
         mainElement.appendChild(fsElement);
+
+        fsElementCenter = document.createElement('div');
+        fsElementCenter.id = "wmsx-screen-fs-center";
+        fsElementCenter.tabIndex = "-1";               // Make it focusable
+        fsElement.appendChild(fsElementCenter);
 
         suppressContextMenu(fsElement);
 
@@ -573,7 +576,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         canvasOuter = document.createElement('div');
         canvasOuter.id = "wmsx-screen-canvas-outer";
-        fsElement.appendChild(canvasOuter);
+        fsElementCenter.appendChild(canvasOuter);
 
         canvas = document.createElement('canvas');
         canvas.id = "wmsx-screen-canvas";
@@ -593,14 +596,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupVirtualKeyboard() {
         virtualKeyboardElement = document.createElement('div');
         virtualKeyboardElement.id = "wmsx-virtual-keyboard";
-        fsElement.appendChild(virtualKeyboardElement);
+        fsElementCenter.appendChild(virtualKeyboardElement);
         virtualKeyboard = new wmsx.DOMVirtualKeyboard(virtualKeyboardElement, controllersHub.getKeyboard());
     }
 
     function setupBar() {
         buttonsBar = document.createElement('div');
         buttonsBar.id = "wmsx-bar";
-        fsElement.appendChild(buttonsBar);
+        fsElementCenter.appendChild(buttonsBar);
         buttonsBarInner = document.createElement('div');
         buttonsBarInner.id = "wmsx-bar-inner";
         buttonsBar.appendChild(buttonsBarInner);
@@ -1056,14 +1059,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     function readjustAll(newAspectX) {
         if (newAspectX) aspectX = newAspectX;
 
-        var winW = fsElement.clientWidth;
+        var winW = fsElementCenter.clientWidth;
         if (isFullscreen) {
-            var winH = fsElement.clientHeight;
+            var winH = fsElementCenter.clientHeight;
             var isLandscape = winW > winH;
-            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(isLandscape, winW);
-            winH -= wmsx.ScreenGUI.BAR_HEIGHT + (virtualKeyboardActive ? keyboardRect.h : 0);
+            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(winW);
+            winH -= wmsx.ScreenGUI.BAR_HEIGHT + (virtualKeyboardActive ? keyboardRect.h : 0) + 2;       // 2 = space between screen and bar
             buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
-            monitor.displayScale(aspectX, displayOptimalScaleY(isLandscape, winW, winH));
+            monitor.displayScale(aspectX, displayOptimalScaleY(winW, winH));
         } else {
             buttonsBarDesiredWidth = -1;
             monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
@@ -1074,10 +1077,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
     this.readjustAll = readjustAll;
 
-    function displayOptimalScaleY(isLandscape, maxWidth, maxHeight) {
-        if (isLandscape && touchControlsActive)
-            maxWidth -= wmsx.DOMTouchControls.LANDSCAPE_TOTAL_MARGIN;         // Landscape, ensure lateral margins for the touch controls if active
-        var scY = (maxHeight - 4) / targetHeight;                             // 4 is a little safety tolerance
+    function displayOptimalScaleY(maxWidth, maxHeight) {
+        var scY = maxHeight / targetHeight;
         scY -= (scY % wmsx.Monitor.SCALE_STEP);		                          // Round to multiple of the step
         var width = aspectX * scY * targetWidth;
         while (width > maxWidth) {
@@ -1111,7 +1112,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var pasteDialog;
     var copyTextArea;
 
-    var fsElement;
+    var fsElement, fsElementCenter;
 
     var canvas, canvasOuter;
     var canvasContext;
