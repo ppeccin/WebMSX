@@ -110,14 +110,21 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     right: 0;
     text-align: left;
 }
+
 html.wmsx-bar-auto-hide #wmsx-bar, html.wmsx-full-screen #wmsx-bar {
     position: absolute;
     bottom: 0;
     transition: height 0.3s ease-in-out;
 }
-html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden, html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
+html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     height: 0;
 }
+@media only screen and (orientation: landscape) {
+    html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
+        height: 0;
+    }
+}
+
 #wmsx-bar.wmsx-narrow .wmsx-narrow-hidden {
     display: none;
 }
@@ -830,6 +837,14 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 4px 4px 1px 1px;
 }
 
+#wmsx-touch-T_A { z-index: 9 }
+#wmsx-touch-T_B { z-index: 8 }
+#wmsx-touch-T_C { z-index: 7 }
+#wmsx-touch-T_D { z-index: 6 }
+#wmsx-touch-T_E { z-index: 5 }
+#wmsx-touch-T_F { z-index: 4 }
+#wmsx-touch-T_G { z-index: 3 }
+
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
         left: -6px;
@@ -913,26 +928,33 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 
 @media only screen and (orientation: portrait) and (max-width: 320px) {    /* Thin Portrait. Like iPhone 5 */
 
-    #wmsx-touch-T_E, #wmsx-touch-T_F, #wmsx-touch-T_G {
+    #wmsx-touch-T_F, #wmsx-touch-T_G {
         display: none;
     }
 
     #wmsx-touch-left {
-        bottom: 158px;
+        bottom: 162px;
+    }
+    #wmsx-touch-right {
+        bottom: 42px;
     }
 
     .wmsx-touch-button {
         position: absolute;
     }
-    #wmsx-touch-T_D {
+    #wmsx-touch-T_B {
+        bottom: 75%;
+        right: 0%;
+    }
+    #wmsx-touch-T_A {
         bottom: 50%;
         right: 50%;
     }
-    #wmsx-touch-T_A {
+    #wmsx-touch-T_D {
         bottom: 0%;
         right: 50%;
     }
-    #wmsx-touch-T_B {
+    #wmsx-touch-T_E {
         bottom: 25%;
         right: 0%;
     }
@@ -945,11 +967,24 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 
 @media only screen and (orientation: portrait) and (max-width: 320px) and (max-height: 519px) {    /* Thin and Short Portrait. Like iPhone 4 */
 
+    #wmsx-touch-T_E {
+        display: none;
+    }
+
     #wmsx-touch-left {
         bottom: 110px;
     }
     #wmsx-touch-right {
         bottom: 24px;
+    }
+
+    #wmsx-touch-T_B {
+        bottom: 25%;
+        right: 0%;
+    }
+
+    html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
+        height: 0;
     }
 
 }
