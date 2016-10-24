@@ -26,9 +26,7 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
     margin: 0;
     padding: 0;
     border: none;
-}
-html.wmsx-full-screen body {
-    height: calc(100vh + 200px);
+    background: black;
 }
 
 #wmsx-screen {
@@ -63,8 +61,8 @@ html.wmsx-full-screen #wmsx-screen {
 }
 html.wmsx-full-screen #wmsx-screen-fs {
     position: absolute;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     left: 0;
     bottom: 0;
     right: 0;
