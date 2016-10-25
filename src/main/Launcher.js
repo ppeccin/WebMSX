@@ -80,16 +80,16 @@ WMSX.start = function (powerOn) {
 // Pre-load images if needed and start emulator as soon as all are loaded and DOM is ready
 WMSX.preLoadImagesAndStart = function() {
     var domReady = false;
-    var imagesToLoad = wmsx.Images.embedded ? 0 : wmsx.Images.urls.length;
+    var imagesToLoad = wmsx.Images.embedded ? 0 : wmsx.Images.count;
 
-    function tryLaunch(bypass) {
+    function tryStart(bypass) {
         if (WMSX.start && WMSX.AUTO_START && (bypass || (domReady && imagesToLoad === 0)))
             WMSX.start();
     }
 
     document.addEventListener("DOMContentLoaded", function() {
         domReady = true;
-        tryLaunch(false);
+        tryStart(false);
     });
 
     if (imagesToLoad > 0) {
@@ -98,14 +98,18 @@ WMSX.preLoadImagesAndStart = function() {
             img.src = wmsx.Images.urls[i];
             img.onload = function () {
                 imagesToLoad--;
-                tryLaunch(false);
+                tryStart(false);
             };
         }
     }
 
     window.addEventListener("load", function() {
-        tryLaunch(true);
+        tryStart(true);
     });
+};
+
+WMSX.standaloneAutoStart = function() {
+    if (wmsx.Util.isBrowserStandaloneMode() && WMSX.start) WMSX.start();
 };
 
 WMSX.VERSION = "3.0";

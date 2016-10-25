@@ -42,7 +42,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerOn = function() {
-        if (isBrowserStandalone) this.setFullscreen(true);
+        if (FULLSCREEN_MODE === 1 || (isBrowserStandalone && FULLSCREEN_MODE === -1)) this.setFullscreen(true);
         else monitor.setDefaults();
         readjustAll(true);
         updateLogo();
@@ -248,7 +248,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
-        if (FULLSCREEN_MODE < 0) return;
+        if (FULLSCREEN_MODE === -2) return;
 
         // If in Browser Standalone mode, change only the Full Screen by API state
         if (isBrowserStandalone) {
@@ -683,7 +683,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.menuTitle = "Settings";
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -4, "Settings", null, menu);
 
-        if (FULLSCREEN_MODE >= 0)
+        if (FULLSCREEN_MODE !== -2)
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
 
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
@@ -1052,7 +1052,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
-        style.innerHTML = wmsx.ScreenGUI.css;
+        style.innerHTML = wmsx.ScreenGUI.css();
         document.head.appendChild(style);
         delete wmsx.ScreenGUI.css;
     }

@@ -8,7 +8,8 @@ wmsx.ScreenGUI = {
     BAR_MENU_ITEM_HEIGHT: 28
 };
 
-wmsx.ScreenGUI.css = `
+wmsx.ScreenGUI.css = function() {
+    return `
 
 html.wmsx-started #wmsx-screen, html.wmsx-started #wmsx-screen-fs {
     visibility: visible;
@@ -779,6 +780,8 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     color: hsl(0, 0%, 77%);
     border-radius: 100%;
     cursor: default;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .wmsx-touch-button::before {
@@ -981,3 +984,5 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 
 `;
+
+};

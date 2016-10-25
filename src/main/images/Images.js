@@ -3,6 +3,7 @@
 wmsx.Images = {
 
     embedded: false,
+    count: 5,
 
     urls: {
         logo: WMSX.IMAGES_PATH + "logo.png",

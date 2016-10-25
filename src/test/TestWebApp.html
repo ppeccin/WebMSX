@@ -26,15 +26,12 @@
                 overflow: hidden;
             }
         </style>
+
     </head>
 
     <body>
 
         <div id="wmsx-screen"></div>
-
-        <script>
-            WMSX_IMAGES_PATH = "../runtime/images/files/";
-        </script>
 
         <script src="../main/WMSX.js"></script>
         <script src="../main/util/Util.js"></script>
@@ -149,22 +146,21 @@
         <script src="../main/room/controls/DOMPeripheralControls.js"></script>
         <script src="../main/room/Room.js"></script>
         <script src="../main/userprefs/UserPreferences.js"></script>
-        <script src="../main/Configurator.js"></script>
-        <script src="../main/Launcher.js"></script>
         <script src="../runtime/images/EmbeddedImages.js"></script>
         <script src="../runtime/sysroms/CompressedSystemROMs.js"></script>
         <script src="../runtime/sysroms/EmbeddedSystemROMs.js"></script>
+        <script src="../main/Configurator.js"></script>
+        <script src="../main/Launcher.js"></script>
 
         <script>
-            WMSX.AUTO_POWER_ON_DELAY = 0;
+            WMSX.AUTO_START = false;
+            WMSX.SCREEN_FULLSCREEN_MODE = -1;
 
             // TODO Remove
-            // WMSX.AUTO_START = false;
             // WMSX.CARTRIDGE1_URL = "Goonies.rom";
-            // WMSX.SCREEN_CONTROL_BAR = 1;
-            WMSX.TOUCH_MODE = 1;
             WMSX.AUDIO_BUFFER_BASE = 512;
 
+            WMSX.standaloneAutoStart();
         </script>
 
     </body>
