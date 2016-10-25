@@ -19,6 +19,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
         }
         setTimeout(function() {
             self.cover.classList.add("wmsx-show");
+            self.cover.wmsxOpen = true;
             self.box.focus();
         }, 0);
     };
@@ -26,6 +27,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
     this.hide = function () {
         if (!this.cover) return;
         self.cover.classList.remove("wmsx-show");
+        self.cover.wmsxOpen = false;
         screen.focus();
     };
 
@@ -73,7 +75,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
 
         // Capture the paste event
         self.box.addEventListener("paste", function(e) {
-            if (self.cover.style.visibility !== "visible") return;
+            if (!self.cover.wmsxOpen) return;
 
             if (e.clipboardData && e.clipboardData.getData) {
                 var str = e.clipboardData.getData("text/plain");

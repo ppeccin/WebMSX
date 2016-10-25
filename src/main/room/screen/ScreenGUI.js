@@ -252,7 +252,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     background: rgb(248, 33, 28);
 }
 
-#wmsx-screen .wmsx-select-dialog {
+#wmsx-screen-fs .wmsx-select-dialog {
     position: absolute;
     overflow: hidden;
     display: none;
@@ -279,10 +279,10 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     cursor: auto;
     z-index: 20;
 }
-#wmsx-screen .wmsx-select-dialog.wmsx-show {
+#wmsx-screen-fs .wmsx-select-dialog.wmsx-show {
     display: block;
 }
-#wmsx-screen .wmsx-select-dialog .wmsx-footer {
+#wmsx-screen-fs .wmsx-select-dialog .wmsx-footer {
     position: absolute;
     width: 100%;
     bottom: 6px;
@@ -290,7 +290,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     text-align: center;
     color: rgb(170, 170, 170);
 }
-#wmsx-screen .wmsx-select-dialog ul {
+#wmsx-screen-fs .wmsx-select-dialog ul {
     position: relative;
     width: 88%;
     top: 15px;
@@ -300,7 +300,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     font-size: 14px;
     color: rgb(225, 225, 225);
 }
-#wmsx-screen .wmsx-select-dialog li {
+#wmsx-screen-fs .wmsx-select-dialog li {
     display: none;
     overflow: hidden;
     height: 23px;
@@ -316,14 +316,14 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
     cursor: pointer;
 }
-#wmsx-screen .wmsx-select-dialog li.wmsx-visible {
+#wmsx-screen-fs .wmsx-select-dialog li.wmsx-visible {
     display: block;
 }
-#wmsx-screen .wmsx-select-dialog li.wmsx-selected {
+#wmsx-screen-fs .wmsx-select-dialog li.wmsx-selected {
     color: white;
     background: rgb(220, 32, 26);
 }
-#wmsx-screen .wmsx-select-dialog li.wmsx-droptarget {
+#wmsx-screen-fs .wmsx-select-dialog li.wmsx-droptarget {
     color: white;
     border-color: lightgray;
 }

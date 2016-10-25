@@ -124,7 +124,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
             e.stopPropagation();
             self.hide();
         });
-        document.body.addEventListener("mousedown", function (e) {
+        document.documentElement.addEventListener("mousedown", function (e) {
             self.hideLesser();
         });
         // But do not close the modal with a click inside

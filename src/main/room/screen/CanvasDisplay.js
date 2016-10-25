@@ -2,7 +2,6 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
-// TODO Settings not closing when clicking outside (BODY vs HTML?)
 // TODO Remove "Center" rounding problems as possible
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -31,10 +30,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive) {
-        fileLoader.registerForDnD(mainElement);
-        fileLoader.registerForFileInputElement(mainElement);
+        fileLoader.registerForDnD(fsElement);
+        fileLoader.registerForFileInputElement(fsElement);
         fileDownloader = pFileDownloader;
-        fileDownloader.registerForDownloadElement(mainElement);
+        fileDownloader.registerForDownloadElement(fsElement);
         peripheralControls = pPeripheralControls;
         controllersHub = pControllersHub;
         controllersHub.setKeyInputElement(fsElement);
@@ -249,7 +248,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
-        if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
+        if (FULLSCREEN_MODE < 0) return;
 
         // If in Browser Standalone mode, change only the Full Screen by API state
         if (isBrowserStandalone) {
@@ -544,20 +543,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMain() {
-        mainElement.tabIndex = "0";                      // Make it focusable
         suppressContextMenu(mainElement);
 
         fsElement = document.createElement('div');
         fsElement.id = "wmsx-screen-fs";
-        fsElement.tabIndex = "-1";                       // Make it focusable
-        mainElement.appendChild(fsElement);
+        fsElement.tabIndex = 0;                           // Make it focusable, traversable
+        suppressContextMenu(fsElement);
 
         fsElementCenter = document.createElement('div');
         fsElementCenter.id = "wmsx-screen-fs-center";
-        fsElementCenter.tabIndex = "-1";                 // Make it focusable
+        fsElementCenter.tabIndex = "-1";                  // Make it focusable
         fsElement.appendChild(fsElementCenter);
-
-        suppressContextMenu(fsElement);
 
         fsElement.addEventListener("mousemove", function() {
             showCursor();
@@ -589,6 +585,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
         window.addEventListener("orientationchange", self.requestReadjust);
+
+        mainElement.appendChild(fsElement);
     }
 
     function setupVirtualKeyboard() {
@@ -608,7 +606,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (BAR_AUTO_HIDE) {
             document.documentElement.classList.add("wmsx-bar-auto-hide");
-            mainElement.addEventListener("mouseleave", hideBar);
+            fsElement.addEventListener("mouseleave", hideBar);
             hideBar();
         }
 
@@ -685,9 +683,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.menuTitle = "Settings";
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -4, "Settings", null, menu);
 
-        if (!WMSX.SCREEN_FULLSCREEN_DISABLED) {
+        if (FULLSCREEN_MODE >= 0)
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
-        }
+
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
             scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
             scaleUpButton.classList.add("wmsx-full-screen-hidden");
@@ -839,7 +837,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupCopyTextArea() {
         copyTextArea = document.createElement("textarea");
         copyTextArea.id = "wmsx-copy-texarea";
-        mainElement.appendChild(copyTextArea);
+        fsElement.appendChild(copyTextArea);
     }
 
     function setupFullscreen() {
@@ -1213,6 +1211,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var OSD_TIME = 3000;
     var CURSOR_HIDE_FRAMES = 150;
+
+    var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;
 
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 1;
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
