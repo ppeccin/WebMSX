@@ -6,25 +6,37 @@
         <!-- DEBUG -->
         <!--<script src="http://10.42.10.128:9090/target/target-script-min.js#WebMSX"></script>-->
 
+        <title>WebMSX</title>
+
         <meta charset="UTF-8">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <title></title>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+        <style>
+            html, body {
+                position: relative;
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+                border: none;
+                background: black;
+                overflow: hidden;
+            }
+        </style>
     </head>
 
-    <body style="background: #eeeeee;">
+    <body>
 
-        <div id="wmsx" style="text-align: center; margin-top: 20px;">
-            <div id="wmsx-screen" style="box-shadow: 2px 2px 10px rgba(0, 0, 0, .7);"></div>
-        </div>
+        <div id="wmsx-screen"></div>
 
         <script>
             WMSX_IMAGES_PATH = "../runtime/images/files/";
         </script>
 
         <script src="../main/WMSX.js"></script>
-
         <script src="../main/util/Util.js"></script>
         <script src="../main/util/SHA1.js"></script>
         <script src="../main/util/ZIP.js"></script>
@@ -145,6 +157,14 @@
 
         <script>
             WMSX.AUTO_POWER_ON_DELAY = 0;
+
+            // TODO Remove
+            // WMSX.AUTO_START = false;
+            // WMSX.CARTRIDGE1_URL = "Goonies.rom";
+            // WMSX.SCREEN_CONTROL_BAR = 1;
+            WMSX.TOUCH_MODE = 1;
+            WMSX.AUDIO_BUFFER_BASE = 512;
+
         </script>
 
     </body>

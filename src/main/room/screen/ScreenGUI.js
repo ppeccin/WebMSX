@@ -10,6 +10,9 @@ wmsx.ScreenGUI = {
 
 wmsx.ScreenGUI.css = `
 
+html.wmsx-started #wmsx-screen, html.wmsx-started #wmsx-screen-fs {
+    visibility: visible;
+}
 html.wmsx-full-screen .wmsx-full-screen-hidden {
     display: none;
 }
@@ -17,7 +20,6 @@ html:not(.wmsx-full-screen) .wmsx-full-screen-only {
     display: none;
 }
 
-/* Full Screen by hack */
 html.wmsx-full-screen, html.wmsx-full-screen body {
     position: absolute;
     overflow: hidden;
@@ -26,19 +28,17 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
     margin: 0;
     padding: 0;
     border: none;
-    background: black;
 }
 
-#wmsx-screen {
-    font-family: sans-serif;
-    font-weight: normal;
-}
 #wmsx-screen, #wmsx-screen div, #wmsx-screen canvas {
     outline: none;
 }
 
 #wmsx-screen {
     display: inline-block;
+    visibility: hidden;
+    font-family: sans-serif;
+    font-weight: normal;
     border: 1px solid black;
     user-select: none;
     -webkit-user-select: none;
@@ -46,23 +46,18 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
     -ms-user-select: none;
     background: black;
 }
-html.wmsx-full-screen #wmsx-screen {
-    width: 0;
-    height: 0;
-    border: none;
-    box-shadow: none;
-    box-sizing: border-box;
-}
 
 #wmsx-screen-fs {
+    visibility: hidden;
     position: relative;
     background: black;
+    text-align: center;
     overflow: hidden;
 }
 html.wmsx-full-screen #wmsx-screen-fs {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     left: 0;
     bottom: 0;
     right: 0;
@@ -86,7 +81,6 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
 
 #wmsx-screen-canvas {
     display: block;
-    margin: auto;
 }
 
 #wmsx-bar {
@@ -440,6 +434,16 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 
 
+.wmsx-arrow-up, .wmsx-arrow-down, .wmsx-arrow-left, .wmsx-arrow-right {
+    border: 0px solid transparent;
+    box-sizing: border-box;
+}
+.wmsx-arrow-up    { border-bottom-color: inherit; }
+.wmsx-arrow-down  { border-top-color: inherit; }
+.wmsx-arrow-left  { border-right-color: inherit; }
+.wmsx-arrow-right { border-left-color: inherit; }
+
+
 .wmsx-keyboard-key {
     position: relative;
     display: inline-block;
@@ -638,17 +642,6 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         display: none;
     }
 }
-
-
-.wmsx-arrow-up, .wmsx-arrow-down, .wmsx-arrow-left, .wmsx-arrow-right {
-    border: 0px solid transparent;
-    box-sizing: border-box;
-}
-.wmsx-arrow-up    { border-bottom-color: inherit; }
-.wmsx-arrow-down  { border-top-color: inherit; }
-.wmsx-arrow-left  { border-right-color: inherit; }
-.wmsx-arrow-right { border-left-color: inherit; }
-
 
 #wmsx-touch-dir {
     width: 130px;

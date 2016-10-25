@@ -26,7 +26,7 @@ wmsx.Configurator = {
         // Apply additional single parameter overrides
         for (var param in urlParams) this.applyParam(param, urlParams[param]);
 
-        // Ensures the correct types of the parameters
+        // Ensure the correct types of the parameters
         normalizeParameterTypes();
 
         function parseURLParams() {

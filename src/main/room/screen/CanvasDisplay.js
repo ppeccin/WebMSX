@@ -3,7 +3,6 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Settings not closing when clicking outside (BODY vs HTML?)
-// TODO Touch Controls More Buttons never showing
 // TODO Remove "Center" rounding problems as possible
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -18,7 +17,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupBar();
         setupLogo();
         setupLoadingIcon();
-        setupFullscreenMethod();
+        setupFullscreen();
         monitor = new wmsx.Monitor(self);
     }
 
@@ -44,15 +43,16 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerOn = function() {
-        monitor.setDefaults();
+        if (isBrowserStandalone) this.setFullscreen(true);
+        else monitor.setDefaults();
+        readjustAll(true);
         updateLogo();
-        mainElement.style.visibility = "visible";
+        document.documentElement.classList.add("wmsx-started");
         this.focus();
     };
 
     this.powerOff = function() {
-        mainElement.style.visibility = "hidden";
-        mainElement.style.display = "none";
+        document.documentElement.remove("wmsx-started");
     };
 
     this.refresh = function(image, sourceWidth, sourceHeight) {
@@ -169,7 +169,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         targetWidth = pTargetWidth;
         targetHeight = pTargetHeight;
         updateCanvasContentSize();
-        if (isFullscreen) readjustAll();
+        if (isFullscreen) this.requestReadjust();
         else updateScale();
     };
 
@@ -189,8 +189,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.displayCenter = function() {
-        // If we are in Full Screen Hack, fully scroll window to the bottom
-        if (isFullscreen && !fullscreenAPIEnterMethod) window.scrollTo(0, 1000);
         this.focus();
     };
 
@@ -250,51 +248,37 @@ wmsx.CanvasDisplay = function(mainElement) {
         setCRTMode(WMSX.SCREEN_CRT_MODE);
     };
 
-    this.displayToggleFullscreen = function() {
+    this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
+
+        // If in Browser Standalone mode, change only the Full Screen by API state
+        if (isBrowserStandalone) {
+            if (isFullScreenByAPI()) exitFullScreenByAPI();
+            else enterFullScreenByAPI();
+            return;
+        }
+
+        // If not, toggle complete full screen state
         this.setFullscreen(!isFullscreen);
     };
 
     this.setFullscreen = function(mode) {
         if (isFullscreen === mode) return;
+        isFullscreen = mode;
 
         if (mode) {
-            if (!viewportTag) {
-                viewportTag = document.querySelector("meta[name=viewport]");
-                if (!viewportTag) {
-                    viewportTag = document.createElement('meta');
-                    viewportTag.name = "viewport";
-                    document.head.appendChild(viewportTag);
-                }
-            }
-            if (viewportOriginalContent === null) viewportOriginalContent = viewportTag.content;
-            viewportTag.content = "width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui";
+            setViewport();
             document.documentElement.classList.add("wmsx-full-screen");
+            controllersHub.setupTouchControlsIfNeeded(fsElement);
+            enterFullScreenByAPI();
         } else {
-            if (viewportOriginalContent !== null) {
-                viewportTag.content = viewportOriginalContent;
-                viewportOriginalContent = null;
-            }
+            restoreViewport();
             document.documentElement.classList.remove("wmsx-full-screen");
+            exitFullScreenByAPI();
         }
 
-        if (fullscreenAPIEnterMethod) setFullscreenByAPI(mode);
-        else setFullscreenByHack(mode);
+        self.requestReadjust();
     };
-
-    function setFullscreenByAPI(mode) {
-        if (mode) fullscreenAPIEnterMethod.call(fsElement);
-        else fullScreenAPIExitMethod.call(document);
-        // callback fullscreenByAPIChanged() will adjust everything
-    }
-
-    function setFullscreenByHack(mode) {
-        setTimeout(function() {
-            isFullscreen = mode;
-            if (isFullscreen) controllersHub.setupTouchControlsIfNeeded(fsElement);
-            readjustAll();
-        }, 30);
-    }
 
     this.focus = function() {
         canvas.focus();
@@ -379,9 +363,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         touchControlsActive = active;
         if (isFullscreen) {
             if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElement);
-            readjustAll();
+            this.requestReadjust();
         }
     };
+
+    this.requestReadjust = function() {
+        if (readjustTimeout) return;
+        readjustTimeout = window.setTimeout(readjustAll, 10);
+        readjustRequestTime = wmsx.Util.performanceNow();
+    };
+
 
     function setVirtualKeyboard(active) {
         if (virtualKeyboardActive === active) return;
@@ -394,7 +385,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             document.documentElement.classList.remove("wmsx-virtual-keyboard-active");
 
         virtualKeyboardActive = active;
-        readjustAll();
+        readjustAll(true);
     }
 
     function releaseControllersOnLostFocus(e) {
@@ -420,15 +411,30 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function fullscreenByAPIChanged() {
-        var fse = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-        isFullscreen = !!fse;
-        if (isFullscreen) {
-            document.documentElement.classList.add("wmsx-full-screen");
-            controllersHub.setupTouchControlsIfNeeded(fsElement);
-        } else
-            document.documentElement.classList.remove("wmsx-full-screen");
+        if (isBrowserStandalone)
+            self.requestReadjust();
+        else
+            self.setFullscreen(isFullScreenByAPI());
+    }
 
-        setTimeout(readjustAll, 30);            // Give the browser some time to set full screen properly
+    function isFullScreenByAPI() {
+        return document[fullScreenAPIQueryProtp];
+    }
+
+    function enterFullScreenByAPI() {
+        if (fullscreenAPIEnterMethod) try {
+            fullscreenAPIEnterMethod.call(fsElement);
+        } catch (e) {
+            /* give up */
+        }
+    }
+
+    function exitFullScreenByAPI() {
+        if (fullScreenAPIExitMethod) try {
+            fullScreenAPIExitMethod.call(document);
+        } catch (e) {
+            /* give up */
+        }
     }
 
     function updateScale() {
@@ -538,18 +544,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMain() {
-        var style = mainElement.style;
-        mainElement.tabIndex = "0";               // Make it focusable
+        mainElement.tabIndex = "0";                      // Make it focusable
         suppressContextMenu(mainElement);
 
         fsElement = document.createElement('div');
         fsElement.id = "wmsx-screen-fs";
-        fsElement.tabIndex = "-1";               // Make it focusable
+        fsElement.tabIndex = "-1";                       // Make it focusable
         mainElement.appendChild(fsElement);
 
         fsElementCenter = document.createElement('div');
         fsElementCenter.id = "wmsx-screen-fs-center";
-        fsElementCenter.tabIndex = "-1";               // Make it focusable
+        fsElementCenter.tabIndex = "-1";                 // Make it focusable
         fsElement.appendChild(fsElementCenter);
 
         suppressContextMenu(fsElement);
@@ -558,11 +563,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             showCursor();
             showBar();
         });
-
-        document.addEventListener("fullscreenchange", fullscreenByAPIChanged);
-        document.addEventListener("webkitfullscreenchange", fullscreenByAPIChanged);
-        document.addEventListener("mozfullscreenchange", fullscreenByAPIChanged);
-        document.addEventListener("msfullscreenchange", fullscreenByAPIChanged);
 
         // Try to determine correct value for image-rendering for the canvas filter modes
         switch (wmsx.Util.browserInfo().name) {
@@ -588,9 +588,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
-        window.addEventListener("orientationchange", function() {
-            setTimeout(readjustAll, 300);
-        });
+        window.addEventListener("orientationchange", self.requestReadjust);
     }
 
     function setupVirtualKeyboard() {
@@ -844,20 +842,25 @@ wmsx.CanvasDisplay = function(mainElement) {
         mainElement.appendChild(copyTextArea);
     }
 
-    function setupFullscreenMethod() {
-        if (WMSX.SCREEN_FULLSCREEN_DISABLED) return;
+    function setupFullscreen() {
+        fullscreenAPIEnterMethod = fsElement.requestFullscreen || fsElement.webkitRequestFullscreen || fsElement.webkitRequestFullScreen || fsElement.mozRequestFullScreen;
+        fullScreenAPIExitMethod =  document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+        if ("fullscreenElement" in document) fullScreenAPIQueryProtp = "fullscreenElement";
+        else if ("webkitFullscreenElement" in document) fullScreenAPIQueryProtp = "webkitFullscreenElement";
+        else if ("mozFullScreenElement" in document) fullScreenAPIQueryProtp = "mozFullScreenElement";
 
-        fullscreenAPIEnterMethod = fsElement.requestFullscreen || fsElement.webkitRequestFullscreen || fsElement.webkitRequestFullScreen || fsElement.mozRequestFullScreen || fsElement.msRequestFullscreen;
-        fullScreenAPIExitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if ("onfullscreenchange" in document)            document.addEventListener("fullscreenchange", fullscreenByAPIChanged);
+        else if ("onwebkitfullscreenchange" in document) document.addEventListener("webkitfullscreenchange", fullscreenByAPIChanged);
+        else if ("onmozfullscreenchange" in document)    document.addEventListener("mozfullscreenchange", fullscreenByAPIChanged);
+
+        isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
 
         // Prevent gestures, scroll, zoom in fullscreen
-        if (!fullscreenAPIEnterMethod) {
-            fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreen(e) {
-                if (!isFullscreen) return;
-                e.preventDefault();
-                return false;
-            });
-        }
+        fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreen(e) {
+            if (!isFullscreen) return;
+            e.preventDefault();
+            return false;
+        });
     }
 
     function showBar() {
@@ -1056,17 +1059,24 @@ wmsx.CanvasDisplay = function(mainElement) {
         delete wmsx.ScreenGUI.css;
     }
 
-    function readjustAll(newAspectX) {
-        if (newAspectX) aspectX = newAspectX;
+    function readjustAll(now) {
+        var newScreenSize = readjustNewScreeSize(now);
+        if (!now && !newScreenSize) {
+            readjustTimeout = setTimeout(readjustAll, 10);
+            return;
+        }
 
-        var winW = fsElementCenter.clientWidth;
+        clearTimeout(readjustTimeout);
+        readjustTimeout = readjustRequestTime = 0;
+        readjustScreenSize = newScreenSize;
+        console.log("READJUST");
+
         if (isFullscreen) {
-            var winH = fsElementCenter.clientHeight;
-            var isLandscape = winW > winH;
-            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(winW);
-            winH -= wmsx.ScreenGUI.BAR_HEIGHT + (virtualKeyboardActive ? keyboardRect.h : 0) + 2;       // 2 = space between screen and bar
+            var isLandscape = newScreenSize.w > newScreenSize.h;
+            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(newScreenSize.w);
             buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
-            monitor.displayScale(aspectX, displayOptimalScaleY(winW, winH));
+            var winH = newScreenSize.h - wmsx.ScreenGUI.BAR_HEIGHT - (virtualKeyboardActive ? keyboardRect.h : 0) - 2;       // 2 = space between screen and bar
+            monitor.displayScale(aspectX, displayOptimalScaleY(newScreenSize.w, winH));
         } else {
             buttonsBarDesiredWidth = -1;
             monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
@@ -1075,7 +1085,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         self.displayCenter();
         controllersHub.screenReadjustedUpdate();
     }
-    this.readjustAll = readjustAll;
+
+    function readjustNewScreeSize(force) {
+        var winW = fsElementCenter.clientWidth;
+        var winH = fsElementCenter.clientHeight;
+        if (force || readjustScreenSize.w !== winW || readjustScreenSize.h !== winH || (wmsx.Util.performanceNow() - readjustRequestTime >= 200))
+            return { w: winW, h: winH };
+        else
+            return null;
+    }
 
     function displayOptimalScaleY(maxWidth, maxHeight) {
         var scY = maxHeight / targetHeight;
@@ -1086,6 +1104,26 @@ wmsx.CanvasDisplay = function(mainElement) {
             width = aspectX * scY * targetWidth;
         }
         return scY;
+    }
+
+    function setViewport() {
+        if (!viewportTag) {
+            viewportTag = document.querySelector("meta[name=viewport]");
+            if (!viewportTag) {
+                viewportTag = document.createElement('meta');
+                viewportTag.name = "viewport";
+                document.head.appendChild(viewportTag);
+            }
+        }
+        if (viewportOriginalContent === null) viewportOriginalContent = viewportTag.content;
+        viewportTag.content = "width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui";
+    }
+
+    function restoreViewport() {
+        if (viewportOriginalContent !== null) {
+            viewportTag.content = viewportOriginalContent;
+            viewportOriginalContent = null;
+        }
     }
 
 
@@ -1099,8 +1137,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     var cartridgeSocket;
     var diskDrive;
 
+    var readjustTimeout = 0, readjustRequestTime = 0, readjustScreenSize = { w: 0, h: 0 };
+
     var isFullscreen = false;
-    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod;
+
+    var isBrowserStandalone = false;
+    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProtp;
     var viewportTag, viewportOriginalContent = null;
 
     var machineControlsSocket;
@@ -1140,8 +1182,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var debugMode = false;
     var isLoading = false;
 
-    var aspectX = 1;
-    var scaleY = 1;
+    var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
+    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;
     var pixelWidth = 1, pixelHeight = 1;
 
     var mousePointerLocked = false;
@@ -1192,5 +1234,3 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
 };
-
-

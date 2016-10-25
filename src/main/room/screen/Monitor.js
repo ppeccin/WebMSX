@@ -31,7 +31,8 @@ wmsx.Monitor = function(display) {
     this.setDefaults = function() {
         display.crtModeSetDefault();
         display.crtFilterSetDefault();
-        display.readjustAll(WMSX.SCREEN_DEFAULT_ASPECT);
+        this.displayScale(WMSX.SCREEN_DEFAULT_ASPECT, displayScaleY);
+        display.requestReadjust();
     };
 
     this.setDebugMode = function(boo) {
