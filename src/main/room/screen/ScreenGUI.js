@@ -42,7 +42,7 @@ wmsx.ScreenGUI.html = function() {
 wmsx.ScreenGUI.css = function() {
     return `
 
-html.wmsx-started #wmsx-screen, html.wmsx-started #wmsx-screen-fs {
+html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + `, html.wmsx-started #wmsx-screen-fs {
     visibility: visible;
 }
 html.wmsx-full-screen .wmsx-full-screen-hidden {
@@ -62,11 +62,11 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
     border: none;
 }
 
-#wmsx-screen, #wmsx-screen div, #wmsx-screen canvas {
+#wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {
     outline: none;
 }
 
-#wmsx-screen {
+#` + WMSX.SCREEN_ELEMENT_ID + ` {
     display: inline-block;
     visibility: hidden;
     font-family: sans-serif;
@@ -88,8 +88,8 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
 }
 html.wmsx-full-screen #wmsx-screen-fs {
     position: absolute;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     left: 0;
     bottom: 0;
     right: 0;
@@ -369,13 +369,13 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     right: 0;
 }
 
-#wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-image, #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-image {
+html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-image, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-image {
     bottom: 36%;
 }
-#wmsx-screen-fs.wmsx-logo-message-fs #wmsx-loading-icon, #wmsx-screen-fs.wmsx-logo-message-add #wmsx-loading-icon {
+html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-loading-icon, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-loading-icon {
     top: 41%;
 }
-#wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-message-fs, #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-message-add {
+html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-message-fs, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-message-add {
     display: block;
 }
 

@@ -4,7 +4,7 @@
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Remove "Center" rounding problems as possible
 // TODO Wrong Bar Menu position in FF
-// TODO Readjust failing sometimes on device orientation change
+// TODO Explicit user action required on touchstart warning in Chrome
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -44,7 +44,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.powerOn = function() {
         if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
         else monitor.setDefaults();
-        readjustAll(true);
         updateLogo();
         document.documentElement.classList.add("wmsx-started");
         this.focus();
@@ -179,7 +178,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         targetWidth = pTargetWidth;
         targetHeight = pTargetHeight;
         updateCanvasContentSize();
-        if (isFullscreen) this.requestReadjust();
+        if (isFullscreen) this.requestReadjust(true);
         else updateScale();
     };
 
@@ -260,6 +259,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -1) return;
+
+        setLogoMessage(0);
 
         // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
         if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
@@ -375,10 +376,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-    this.requestReadjust = function() {
-        if (readjustTimeout) return;
-        readjustTimeout = window.setTimeout(readjustAll, 10);
-        readjustRequestTime = wmsx.Util.performanceNow();
+    this.requestReadjust = function(now) {
+        if (now)
+            readjustAll(true);
+        else {
+            readjustRequestTime = wmsx.Util.performanceNow();
+            if (!readjustInterval) readjustInterval = setInterval(readjustAll, 50);
+        }
     };
 
 
@@ -393,7 +397,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             document.documentElement.classList.remove("wmsx-virtual-keyboard-active");
 
         virtualKeyboardActive = active;
-        readjustAll(true);
+        self.requestReadjust(true);
     }
 
     function releaseControllersOnLostFocus(e) {
@@ -596,7 +600,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
-        window.addEventListener("orientationchange", self.requestReadjust);
+        window.addEventListener("orientationchange", function() {
+            if (isFullscreen) self.requestReadjust();
+        });
 
         logoMessageYes.addEventListener("click", logoMessageYesClicked);
         logoMessageYes.addEventListener("touchstart", logoMessageYesClicked);
@@ -1050,40 +1056,39 @@ wmsx.CanvasDisplay = function(mainElement) {
         delete wmsx.ScreenGUI.css;
     }
 
-    function readjustAll(now) {
-        var newScreenSize = readjustNewScreeSize(now);
-        if (!now && !newScreenSize) {
-            readjustTimeout = setTimeout(readjustAll, 10);
-            return;
+    function readjustAll(force) {
+        if (readjustScreeSizeChanged() || force) {
+            if (isFullscreen) {
+                var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
+                var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(readjustScreenSize.w);
+                buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
+                var winH = readjustScreenSize.h - wmsx.ScreenGUI.BAR_HEIGHT - (virtualKeyboardActive ? keyboardRect.h : 0) - 2;       // 2 = space between screen and bar
+                monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
+            } else {
+                buttonsBarDesiredWidth = -1;
+                monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
+            }
+            self.displayCenter();
+            controllersHub.screenReadjustedUpdate();
+
+            console.log("READJUST");
         }
 
-        clearTimeout(readjustTimeout);
-        readjustTimeout = readjustRequestTime = 0;
-        readjustScreenSize = newScreenSize;
-        console.log("READJUST");
-
-        if (isFullscreen) {
-            var isLandscape = newScreenSize.w > newScreenSize.h;
-            var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(newScreenSize.w);
-            buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
-            var winH = newScreenSize.h - wmsx.ScreenGUI.BAR_HEIGHT - (virtualKeyboardActive ? keyboardRect.h : 0) - 2;       // 2 = space between screen and bar
-            monitor.displayScale(aspectX, displayOptimalScaleY(newScreenSize.w, winH));
-        } else {
-            buttonsBarDesiredWidth = -1;
-            monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
+        if (readjustInterval && (wmsx.Util.performanceNow() - readjustRequestTime >= 1000)) {
+            clearInterval(readjustInterval);
+            readjustInterval = null;
         }
-
-        self.displayCenter();
-        controllersHub.screenReadjustedUpdate();
     }
 
-    function readjustNewScreeSize(force) {
+    function readjustScreeSizeChanged() {
         var winW = fsElementCenter.clientWidth;
         var winH = fsElementCenter.clientHeight;
-        if (force || readjustScreenSize.w !== winW || readjustScreenSize.h !== winH || (wmsx.Util.performanceNow() - readjustRequestTime >= 200))
-            return { w: winW, h: winH };
-        else
-            return null;
+        if (readjustScreenSize.w !== winW || readjustScreenSize.h !== winH) {
+            readjustScreenSize.w = winW;
+            readjustScreenSize.h = winH;
+            return true;
+        } else
+            return false;
     }
 
     function displayOptimalScaleY(maxWidth, maxHeight) {
@@ -1129,7 +1134,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var cartridgeSocket;
     var diskDrive;
 
-    var readjustTimeout = 0, readjustRequestTime = 0, readjustScreenSize = { w: 0, h: 0 };
+    var readjustInterval = 0, readjustRequestTime = 0;
+    var readjustScreenSize = { w: 0, h: 0 };
 
     var isFullscreen = false;
 
