@@ -445,10 +445,6 @@ wmsx.Util = new function() {
         return this.isTouchDevice() && (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
     };
 
-    this.isIOSDevice = function() {
-        return this.isTouchDevice() && (/ipad|iphone|ipod|ios/i).test(navigator.userAgent);
-    };
-
     this.isBrowserStandaloneMode = function() {
         return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
     };

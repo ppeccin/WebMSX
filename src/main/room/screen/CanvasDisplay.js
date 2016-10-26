@@ -42,7 +42,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerOn = function() {
-        if (FULLSCREEN_MODE === 1 || (isBrowserStandalone && FULLSCREEN_MODE === -1)) this.setFullscreen(true);
+        if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
         else monitor.setDefaults();
         readjustAll(true);
         updateLogo();
@@ -58,9 +58,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Show the logo messages or start automatically
         startAction = aStartAction;
 
-        if (wmsx.Util.isIOSDevice() && !isBrowserStandalone && !isFullscreen) setLogoMessage(1);
-        else if (wmsx.Util.isMobileDevice() && !isFullscreen) setLogoMessage(2);
-        else startAction();
+        if (wmsx.Util.isMobileDevice() && !isFullscreen) {
+            if (!fullscreenAPIEnterMethod && !isBrowserStandalone) setLogoMessage(1);
+            else setLogoMessage(2);
+        } else
+            startAction();
     };
 
     this.refresh = function(image, sourceWidth, sourceHeight) {
@@ -257,12 +259,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
-        if (FULLSCREEN_MODE === -2) return;
+        if (FULLSCREEN_MODE === -1) return;
 
-        // If in Browser Standalone mode and already in soft-fullscreen, change only the Full Screen by API state
-        if (isFullscreen && isBrowserStandalone) {
-            if (isFullScreenByAPI()) exitFullScreenByAPI();
-            else enterFullScreenByAPI();
+        // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
+        if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
+            enterFullScreenByAPI();
             return;
         }
 
@@ -271,7 +272,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setFullscreen = function(mode) {
-        if (isFullscreen === mode) return;
         isFullscreen = mode;
 
         if (mode) {
@@ -419,10 +419,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function fullscreenByAPIChanged() {
-        if (isBrowserStandalone)
-            self.requestReadjust();
-        else
-            self.setFullscreen(isFullScreenByAPI());
+        self.setFullscreen(isFullScreenByAPI());
     }
 
     function isFullScreenByAPI() {
@@ -699,7 +696,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.menuTitle = "Settings";
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -4, "Settings", null, menu);
 
-        if (FULLSCREEN_MODE !== -2)
+        if (FULLSCREEN_MODE !== -1)
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
 
         if (!WMSX.SCREEN_RESIZE_DISABLED) {
@@ -1041,7 +1038,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function logoMessageOkClicked(e) {
         e.preventDefault();
-        setLogoMessage(2);
+        if (!isFullscreen) setLogoMessage(2);
+        else startAction();
     }
 
     function setupCSS() {
