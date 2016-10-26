@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-WMSX.start = function (powerOn) {
+WMSX.start = function (machinePowerOn) {
 "use strict";
 
     // Emulator can only be started once
@@ -22,11 +22,9 @@ WMSX.start = function (powerOn) {
     wmsx.Configurator.applyConfig();
 
     // Build and start emulator
-    WMSX.room = new wmsx.Room(WMSX.screenElement);
+    if (machinePowerOn === undefined) machinePowerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;
+    WMSX.room = new wmsx.Room(WMSX.screenElement, machinePowerOn);
     WMSX.room.powerOn();
-    WMSX.room.setLoading(true);
-    var roomPowerOnTime = Date.now();
-    if (powerOn === undefined) powerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;
     wmsx.Util.log("version " + WMSX.VERSION + " started");
 
     // Prepare ROM Database
@@ -38,11 +36,8 @@ WMSX.start = function (powerOn) {
         new wmsx.MultiDownloader(
             [{ url: WMSX.STATE_URL }],
             function onAllSuccess(urls) {
-                wmsx.Clock.detectHostNativeFPSAndCallback(function() {
-                    afterPowerONDelay(function () {
-                        WMSX.room.setLoading(false);
-                        WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
-                    });
+                WMSX.room.start(function() {
+                    WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                 });
             }
         ).start();
@@ -54,20 +49,9 @@ WMSX.start = function (powerOn) {
         new wmsx.MultiDownloader(
             slotURLs.concat(mediaURLs).concat(extensionsURLs),
             function onAllSuccess() {
-                wmsx.Clock.detectHostNativeFPSAndCallback(function() {
-                    afterPowerONDelay(function () {
-                        WMSX.room.setLoading(false);
-                        if (powerOn) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
-                    });
-                });
+                WMSX.room.start();
             }
         ).start();
-    }
-
-    function afterPowerONDelay(func) {
-        var wait = WMSX.AUTO_POWER_ON_DELAY - (Date.now() - roomPowerOnTime);
-        if (wait < 1) wait = 1;
-        setTimeout(func, wait);
     }
 
     WMSX.shutdown = function () {
@@ -106,10 +90,6 @@ WMSX.preLoadImagesAndStart = function() {
     window.addEventListener("load", function() {
         tryStart(true);
     });
-};
-
-WMSX.standaloneAutoStart = function() {
-    if (wmsx.Util.isBrowserStandaloneMode() && WMSX.start) WMSX.start();
 };
 
 WMSX.VERSION = "3.0";

@@ -856,7 +856,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 }
 
 #wmsx-menu .wmsx-selected {
-    color: rgb(235, 40, 35);
+    color: hsl(0, 70%, 50%);
 }
 
 #wmsx-menu #wmsx-menu-selection {
@@ -865,7 +865,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
     bottom: 0;
     width: 20%;
     height: 3px;
-    background: rgb(235, 40, 35);
+    background: hsl(0, 70%, 50%);
     transition: left 0.3s ease-in-out;
 }
 

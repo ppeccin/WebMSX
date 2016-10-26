@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Room = function(screenElement) {
+wmsx.Room = function(screenElement, machinePowerOn) {
 "use strict";
 
     var self = this;
@@ -15,7 +15,8 @@ wmsx.Room = function(screenElement) {
         self.screen.powerOn();
         self.speaker.powerOn();
         self.controllersHub.powerOn();
-        if (self.machine.getBIOSSocket().inserted() && !self.machine.powerIsOn) self.machine.powerOn(paused);
+        self.setLoading(true);
+        roomPowerOnTime = Date.now();
     };
 
     this.powerOff = function() {
@@ -32,16 +33,35 @@ wmsx.Room = function(screenElement) {
         this.screen.setLoading(this.isLoading);
     };
 
-    var setPageVisibilityHandling = function() {
+    this.start = function(startAction) {
+        wmsx.Clock.detectHostNativeFPSAndCallback(function() {
+            afterPowerONDelay(function () {
+                self.setLoading(false);
+                self.screen.start(startAction || machinePowerOnStartAction);
+            });
+        });
+    };
+
+    function afterPowerONDelay(func) {
+        var wait = WMSX.AUTO_POWER_ON_DELAY - (Date.now() - roomPowerOnTime);
+        if (wait < 1) wait = 1;
+        setTimeout(func, wait);
+    }
+
+    function machinePowerOnStartAction() {
+        if (machinePowerOn) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
+    }
+
+    function setPageVisibilityHandling() {
         var wasPaused;
         function visibilityChange() {
             if (document.hidden) wasPaused = self.machine.systemPause(true);
             else if (!wasPaused) self.machine.systemPause(false);
         }
         document.addEventListener("visibilitychange", visibilityChange);
-    };
+    }
 
-    var buildPeripherals = function() {
+    function buildPeripherals() {
         self.peripheralControls = new wmsx.DOMPeripheralControls();
         self.machineControls = new wmsx.DOMMachineControls(self.peripheralControls);
         self.controllersHub = new wmsx.ControllersHub(self.machineControls);
@@ -63,9 +83,9 @@ wmsx.Room = function(screenElement) {
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
         self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);
         self.peripheralControls.connectPeripherals(self.screen, self.controllersHub, self.fileLoader, self.cassetteDeck, self.diskDrive);
-    };
+    }
 
-    var buildAndPlugMachine = function() {
+    function buildAndPlugMachine() {
         self.machine = new wmsx.Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
         self.fileLoader.connect(self.machine);
@@ -77,7 +97,7 @@ wmsx.Room = function(screenElement) {
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
         self.peripheralControls.connect(self.machine.getMachineControlsSocket(), self.machine.getCartridgeSocket());
         self.machine.getCartridgeSocket().connectFileDownloader(self.fileDownloader);
-    };
+    }
 
 
     this.machine = null;
@@ -94,6 +114,8 @@ wmsx.Room = function(screenElement) {
     this.peripheralControls = null;
 
     this.isLoading = false;
+
+    var roomPowerOnTime;
 
 
     init();

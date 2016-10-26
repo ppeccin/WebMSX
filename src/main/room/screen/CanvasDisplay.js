@@ -4,6 +4,7 @@
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Remove "Center" rounding problems as possible
 // TODO Wrong Bar Menu position in FF
+// TODO Readjust failing sometimes on device orientation change
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -16,6 +17,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupBar();
         setupFullscreen();
         monitor = new wmsx.Monitor(self);
+        isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
     }
 
     this.connect = function(pVideoSignal, pMachineControlsSocket, pMachineTypeSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
@@ -50,6 +52,15 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.powerOff = function() {
         document.documentElement.remove("wmsx-started");
+    };
+
+    this.start = function(aStartAction) {
+        // Show the logo messages or start automatically
+        startAction = aStartAction;
+
+        if (wmsx.Util.isIOSDevice() && !isBrowserStandalone && !isFullscreen) setLogoMessage(1);
+        else if (wmsx.Util.isMobileDevice() && !isFullscreen) setLogoMessage(2);
+        else startAction();
     };
 
     this.refresh = function(image, sourceWidth, sourceHeight) {
@@ -558,6 +569,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         osd = document.getElementById("wmsx-osd");
         logo = document.getElementById("wmsx-logo");
         logoImage = document.getElementById("wmsx-logo-image");
+        logoMessageYes = document.getElementById("wmsx-logo-message-yes");
+        logoMessageNo =  document.getElementById("wmsx-logo-message-no");
+        logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
         loadingImage = document.getElementById("wmsx-loading-icon");
 
         suppressContextMenu(mainElement);
@@ -566,11 +580,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         preventDrag(loadingImage);
 
         updateCanvasContentSize();
-
-        fsElement.addEventListener("mousemove", function() {
-            showCursor();
-            showBar();
-        });
 
         // Try to determine correct value for image-rendering for the canvas filter modes
         switch (wmsx.Util.browserInfo().name) {
@@ -582,10 +591,22 @@ wmsx.CanvasDisplay = function(mainElement) {
             default:        canvasImageRenderingValue = "pixelated";
         }
 
+        fsElement.addEventListener("mousemove", function() {
+            showCursor();
+            showBar();
+        });
+
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
         window.addEventListener("orientationchange", self.requestReadjust);
+
+        logoMessageYes.addEventListener("click", logoMessageYesClicked);
+        logoMessageYes.addEventListener("touchstart", logoMessageYesClicked);
+        logoMessageNo.addEventListener("click", logoMessageNoClicked);
+        logoMessageNo.addEventListener("touchstart", logoMessageNoClicked);
+        logoMessageOk.addEventListener("click", logoMessageOkClicked);
+        logoMessageOk.addEventListener("touchstart", logoMessageOkClicked);
     }
 
     function setupVirtualKeyboard() {
@@ -802,8 +823,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         else if ("onwebkitfullscreenchange" in document) document.addEventListener("webkitfullscreenchange", fullscreenByAPIChanged);
         else if ("onmozfullscreenchange" in document)    document.addEventListener("mozfullscreenchange", fullscreenByAPIChanged);
 
-        isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
-
         // Prevent gestures, scroll, zoom in fullscreen
         fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreen(e) {
             if (!isFullscreen) return;
@@ -1000,6 +1019,31 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.appendChild(barMenu);
     }
 
+    function setLogoMessage(mes) {
+        fsElement.classList.remove("wmsx-logo-message-fs");
+        fsElement.classList.remove("wmsx-logo-message-add");
+        if (mes === 1) fsElement.classList.add("wmsx-logo-message-add");
+        else if (mes === 2) fsElement.classList.add("wmsx-logo-message-fs");
+    }
+
+    function logoMessageYesClicked(e) {
+        e.preventDefault();
+        setLogoMessage(0);
+        self.setFullscreen(true);
+        startAction();
+    }
+
+    function logoMessageNoClicked(e) {
+        e.preventDefault();
+        setLogoMessage(0);
+        startAction();
+    }
+
+    function logoMessageOkClicked(e) {
+        e.preventDefault();
+        setLogoMessage(2);
+    }
+
     function setupCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
@@ -1075,6 +1119,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
+    var startAction;
 
     var monitor;
     var peripheralControls;
@@ -1143,7 +1188,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logo, logoImage;
+    var logo, logoImage, logoMessageYes, logoMessageNo, logoMessageOk;
     var loadingImage;
 
     var powerButton;

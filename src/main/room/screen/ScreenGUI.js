@@ -11,17 +11,21 @@ wmsx.ScreenGUI = {
 wmsx.ScreenGUI.html = function() {
     return `
 
-        <div id="wmsx-screen-fs"  class="_wmsx-logo-message-active" tabindex="0">
+        <div id="wmsx-screen-fs" tabindex="0">
             <div id="wmsx-screen-fs-center" tabindex="-1">
                 <div id="wmsx-screen-canvas-outer">
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
                     <div id="wmsx-osd"></div>
                     <div id="wmsx-logo">
                         <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
-                        <div id="wmsx-logo-message">
+                        <div id="wmsx-logo-message-fs">
                             For the best experience on<br>mobile devices, go full-screen
                             <div id="wmsx-logo-message-yes"></div>
                             <div id="wmsx-logo-message-no"></div>
+                        </div>
+                        <div id="wmsx-logo-message-add">
+                            For the best experience, use<br>the "Add to Home Screen" option<br>then reopen from the new Icon
+                            <div id="wmsx-logo-message-ok"></div>
                         </div>
                     </div>
                     <img id="wmsx-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
@@ -246,7 +250,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-disabled):not(.wmsx-bar-menu-item-divider) {
     color: white;
-    background: rgb(220, 32, 26);
+    background: hsl(0, 70%, 50%);
 }
 .wmsx-bar-menu-item-disabled {
     color: rgb(110, 110, 110);
@@ -365,14 +369,14 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     right: 0;
 }
 
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
+#wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-image, #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-image {
     bottom: 36%;
 }
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
-    display: block;
-}
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-loading-icon {
+#wmsx-screen-fs.wmsx-logo-message-fs #wmsx-loading-icon, #wmsx-screen-fs.wmsx-logo-message-add #wmsx-loading-icon {
     top: 41%;
+}
+#wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-message-fs, #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-message-add {
+    display: block;
 }
 
 #wmsx-logo-image {
@@ -390,7 +394,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     user-select: none;
 }
 
-#wmsx-logo-message {
+#wmsx-logo-message-fs, #wmsx-logo-message-add {
     display: none;
     position: absolute;
     left: 0; right: 0;
@@ -401,7 +405,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     line-height: 37px;
 }
 
-#wmsx-logo-message-yes, #wmsx-logo-message-no {
+#wmsx-logo-message-yes, #wmsx-logo-message-no, #wmsx-logo-message-ok {
     position: absolute;
     top: 62%;
     width: 34%;
@@ -410,22 +414,24 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 #wmsx-logo-message-yes { left: 33%; }
 #wmsx-logo-message-no  { left: 67%; }
+#wmsx-logo-message-ok  { top: 68%; left: 50%; }
 
-#wmsx-logo-message-yes::after, #wmsx-logo-message-no::after {
-    content: "";
+#wmsx-logo-message-yes::after, #wmsx-logo-message-no::after, #wmsx-logo-message-ok::after {
     position: absolute;
     top: 49%;
     left: 50%;
     width: 100px;
     height: 50px;
+    font-size: 30px;
     line-height: 50px;
-    background: hsl(0, 68%, 46%);
+    background: hsl(0, 70%, 50%);
     border-radius: 6px;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, .65);
     transform: translate(-50%, -50%);
 }
 #wmsx-logo-message-yes::after { content: "YES"; }
 #wmsx-logo-message-no::after  { content: "NO"; }
+#wmsx-logo-message-ok::after  { content: "OK"; }
 
 #wmsx-osd {
     position: absolute;
