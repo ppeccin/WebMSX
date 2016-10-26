@@ -3,6 +3,7 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Remove "Center" rounding problems as possible
+// TODO Wrong Bar Menu position in FF
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -12,10 +13,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function init() {
         setupCSS();
         setupMain();
-        setupOSD();
         setupBar();
-        setupLogo();
-        setupLoadingIcon();
         setupFullscreen();
         monitor = new wmsx.Monitor(self);
     }
@@ -250,8 +248,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -2) return;
 
-        // If in Browser Standalone mode, change only the Full Screen by API state
-        if (isBrowserStandalone) {
+        // If in Browser Standalone mode and already in soft-fullscreen, change only the Full Screen by API state
+        if (isFullscreen && isBrowserStandalone) {
             if (isFullScreenByAPI()) exitFullScreenByAPI();
             else enterFullScreenByAPI();
             return;
@@ -486,13 +484,13 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function updateLogo() {
         if (signalIsOn) {
-            logoImage.style.display = "none";
+            logo.style.display = "none";
         } else {
             if (pasteDialog) pasteDialog.hide();
             showBar();
             showCursor(true);
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-            /* if (logoImage.isLoaded) */ logoImage.style.display = "block";
+            logo.style.display = "block";
         }
     }
 
@@ -532,6 +530,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
     }
 
+    function preventDrag(element) {
+        element.ondragstart = function(e) {
+            e.preventDefault();
+            return false;
+        };
+    }
+
     function createDiskSelectDialog() {
         if (diskSelectDialog) return;
         diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
@@ -543,17 +548,24 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMain() {
+        mainElement.innerHTML = wmsx.ScreenGUI.html();
+        delete wmsx.ScreenGUI.html;
+
+        fsElement = document.getElementById("wmsx-screen-fs");
+        fsElementCenter = document.getElementById("wmsx-screen-fs-center");
+        canvasOuter = document.getElementById("wmsx-screen-canvas-outer");
+        canvas = document.getElementById("wmsx-screen-canvas");
+        osd = document.getElementById("wmsx-osd");
+        logo = document.getElementById("wmsx-logo");
+        logoImage = document.getElementById("wmsx-logo-image");
+        loadingImage = document.getElementById("wmsx-loading-icon");
+
         suppressContextMenu(mainElement);
-
-        fsElement = document.createElement('div');
-        fsElement.id = "wmsx-screen-fs";
-        fsElement.tabIndex = 0;                           // Make it focusable, traversable
         suppressContextMenu(fsElement);
+        preventDrag(logoImage);
+        preventDrag(loadingImage);
 
-        fsElementCenter = document.createElement('div');
-        fsElementCenter.id = "wmsx-screen-fs-center";
-        fsElementCenter.tabIndex = "-1";                  // Make it focusable
-        fsElement.appendChild(fsElementCenter);
+        updateCanvasContentSize();
 
         fsElement.addEventListener("mousemove", function() {
             showCursor();
@@ -570,23 +582,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             default:        canvasImageRenderingValue = "pixelated";
         }
 
-        canvasOuter = document.createElement('div');
-        canvasOuter.id = "wmsx-screen-canvas-outer";
-        fsElementCenter.appendChild(canvasOuter);
-
-        canvas = document.createElement('canvas');
-        canvas.id = "wmsx-screen-canvas";
-        canvas.tabIndex = "-1";               // Make it focusable
-        canvasOuter.appendChild(canvas);
-
-        updateCanvasContentSize();
-
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
         window.addEventListener("orientationchange", self.requestReadjust);
-
-        mainElement.appendChild(fsElement);
     }
 
     function setupVirtualKeyboard() {
@@ -597,12 +596,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupBar() {
-        buttonsBar = document.createElement('div');
-        buttonsBar.id = "wmsx-bar";
-        fsElementCenter.appendChild(buttonsBar);
-        buttonsBarInner = document.createElement('div');
-        buttonsBarInner.id = "wmsx-bar-inner";
-        buttonsBar.appendChild(buttonsBarInner);
+        buttonsBar = document.getElementById("wmsx-bar");
+        buttonsBarInner = document.getElementById("wmsx-bar-inner");
 
         if (BAR_AUTO_HIDE) {
             document.documentElement.classList.add("wmsx-bar-auto-hide");
@@ -788,50 +783,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function peripheralControlButtonMouseEnter(e) {
         if (barMenuActive && e.target.wmsxMenu) showBarMenu(e.target.wmsxMenu, e.target, true);
-    }
-
-    function setupLogo() {
-        logoImage = new Image();
-        logoImage.id = "wmsx-logo";
-        logoImage.isLoaded = false;
-        logoImage.draggable = false;
-        canvasOuter.appendChild(logoImage);
-
-        logoImage.ondragstart = function(e) {
-            e.preventDefault();
-            return false;
-        };
-
-        logoImage.onload = function() {
-            logoImage.isLoaded = true;
-            updateLogo();
-        };
-        logoImage.src = wmsx.Images.urls.logo;
-    }
-
-    function setupLoadingIcon() {
-        loadingImage = new Image();
-        loadingImage.id = "wmsx-loading-icon";
-        loadingImage.isLoaded = false;
-        loadingImage.draggable = false;
-        canvasOuter.appendChild(loadingImage);
-
-        loadingImage.ondragstart = function(e) {
-            e.preventDefault();
-            return false;
-        };
-
-        loadingImage.onload = function() {
-            loadingImage.isLoaded = true;
-            updateLoading();
-        };
-        loadingImage.src = wmsx.Images.urls.loading;
-    }
-
-    function setupOSD() {
-        osd = document.createElement('div');
-        osd.id = "wmsx-osd";
-        canvasOuter.appendChild(osd);
     }
 
     function setupCopyTextArea() {
@@ -1192,7 +1143,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logoImage;
+    var logo, logoImage;
     var loadingImage;
 
     var powerButton;
