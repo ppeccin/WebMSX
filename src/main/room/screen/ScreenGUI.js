@@ -101,7 +101,7 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 23%;
+    bottom: -50%;
     width: 0;
     height: 0;
     padding: 0;
@@ -115,13 +115,15 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     box-shadow: 2px 2px 9px rgba(0, 0, 0, 0.7);
     transition: all 1.1s step-end, opacity 1s linear;
     opacity: 0;
-    z-index: 10;
+    z-index: -1;
 }
 html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
     opacity: 1;
+    bottom: 23%;
     width: 200px;
     height: 56px;
     padding: 13px 20px;
+    z-index: 40;
     transition: none;
 }
 
@@ -152,6 +154,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 20;
 }
 
 #wmsx-screen-canvas-outer {
@@ -1003,7 +1006,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 
 @media only screen and (orientation: landscape) and (max-height: 359px) {    /* Short Landscape */
-    #wmsx-touch-T_E, #wmsx-touch-T_F, #wmsx-touch-T_G {
+    #wmsx-touch-T_E {
         display: none;
     }
 }
@@ -1015,30 +1018,14 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         bottom: 183px;
     }
     #wmsx-touch-right {
-        right: 9px;
+        right: 7px;
         bottom: 38px;
         width: 112px;
         height: 224px;
     }
 
-    #wmsx-touch-T_G {
-        display: none;
-    }
-
     .wmsx-touch-button {
         position: absolute;
-    }
-    #wmsx-touch-T_D {
-        bottom: 25%;
-        right: 50%;
-    }
-    #wmsx-touch-T_E {
-        bottom: 50%;
-        right: 0%;
-    }
-    #wmsx-touch-T_F {
-        bottom: 0%;
-        right: 100%;
     }
     #wmsx-touch-T_A {
         bottom: 75%;
@@ -1052,71 +1039,55 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         bottom: 50%;
         right: 100%;
     }
+    #wmsx-touch-T_D {
+        bottom: 25%;
+        right: 50%;
+    }
+    #wmsx-touch-T_E {
+        bottom: 50%;
+        right: 0%;
+    }
+    #wmsx-touch-T_F {
+        bottom: 0%;
+        right: 100%;
+    }
     #wmsx-touch-T_G {
         bottom: 0%;
         right: 0%;
     }
 }
 
-@media only screen and (orientation: portrait) and (max-width: 320px) {    /* Thin Portrait. Like iPhone 5 */
+@media only screen and (orientation: portrait) and (max-device-height: 638px) {    /* Medium Portrait. Like iPhone 5 */
 
     #wmsx-touch-T_F, #wmsx-touch-T_G {
         display: none;
     }
 
     #wmsx-touch-left {
-        bottom: 162px;
+        bottom: 154px;
     }
     #wmsx-touch-right {
-        bottom: 42px;
-    }
-
-    .wmsx-touch-button {
-        position: absolute;
-    }
-    #wmsx-touch-T_B {
-        bottom: 75%;
-        right: 0%;
-    }
-    #wmsx-touch-T_A {
-        bottom: 50%;
-        right: 50%;
-    }
-    #wmsx-touch-T_D {
-        bottom: 0%;
-        right: 50%;
-    }
-    #wmsx-touch-T_E {
-        bottom: 25%;
-        right: 0%;
-    }
-    #wmsx-touch-T_C {
-        bottom: 25%;
-        right: 100%;
+        bottom: -18px;
     }
 
 }
 
-@media only screen and (orientation: portrait) and (max-width: 320px) and (max-height: 519px) {    /* Thin and Short Portrait. Like iPhone 4 */
+@media only screen and (orientation: portrait) and (max-device-height: 518px) {    /* Short Portrait. Like iPhone 4 */
 
     #wmsx-touch-T_E {
         display: none;
     }
 
     #wmsx-touch-left {
-        bottom: 110px;
+        bottom: 98px;
     }
     #wmsx-touch-right {
-        bottom: 24px;
+        bottom: -74px;
     }
 
-    #wmsx-touch-T_B {
-        bottom: 25%;
+    #wmsx-touch-T_D {
+        bottom: 50%;
         right: 0%;
-    }
-
-    html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
-        height: 0;
     }
 
 }
