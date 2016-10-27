@@ -5,6 +5,7 @@
 // TODO Remove "Center" rounding problems as possible
 // TODO Wrong Bar Menu position in FF
 // TODO Explicit user action required on touchstart warning in Chrome
+// TODO Fullscreen on FF mobile
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -280,6 +281,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (fullScreenByHack) document.documentElement.classList.add("wmsx-full-screen-hack");
             controllersHub.setupTouchControlsIfNeeded(fsElement);
             enterFullScreenByAPI();
+            if (fullScreenByHack) setScrollMessage(true);
         } else {
             restoreViewport();
             document.documentElement.classList.remove("wmsx-full-screen");
@@ -575,6 +577,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoMessageNo =  document.getElementById("wmsx-logo-message-no");
         logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
         loadingImage = document.getElementById("wmsx-loading-icon");
+        scrollMessage = document.getElementById("wmsx-screen-scroll-message");
 
         suppressContextMenu(mainElement);
         suppressContextMenu(fsElement);
@@ -831,11 +834,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         else if ("onwebkitfullscreenchange" in document) document.addEventListener("webkitfullscreenchange", fullscreenByAPIChanged);
         else if ("onmozfullscreenchange" in document)    document.addEventListener("mozfullscreenchange", fullscreenByAPIChanged);
 
-        // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas)
-        fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreen(e) {
-            if (isFullscreen && (!fullScreenByHack || e.target !== canvas)) {
-                e.preventDefault();
-                return false;
+        // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas) or scroll message in hack mode
+        if (!fullscreenAPIEnterMethod) fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
+            if (isFullscreen) {
+                if (!fullScreenByHack || (e.target !== canvas && e.target !== scrollMessage)) {
+                    e.preventDefault();
+                    return false;
+                } else if (scrollMessageActive) setScrollMessage(false);
             }
         });
     }
@@ -1054,6 +1059,19 @@ wmsx.CanvasDisplay = function(mainElement) {
         else startAction();
     }
 
+    function setScrollMessage(state) {
+        if (state) {
+            fsElement.classList.add("wmsx-scroll-message");
+            scrollMessageActive = true;
+            setTimeout(function() {
+                setScrollMessage(false);
+            }, 5000);
+        } else {
+            fsElement.classList.remove("wmsx-scroll-message");
+            scrollMessageActive = false;
+        }
+    }
+
     function setupCSS() {
         var style = document.createElement('style');
         style.type = 'text/css';
@@ -1200,6 +1218,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var logo, logoImage, logoMessageYes, logoMessageNo, logoMessageOk;
     var loadingImage;
+    var scrollMessage, scrollMessageActive = false;
 
     var powerButton;
     var diskAButton;

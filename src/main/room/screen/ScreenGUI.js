@@ -34,6 +34,9 @@ wmsx.ScreenGUI.html = function() {
                     <div id="wmsx-bar-inner"></div>
                 </div>
             </div>
+            <div id="wmsx-screen-scroll-message">
+                Drag the Screen up/down<br>to hide the browser bars!
+            </div>
         </div>
 
         `;
@@ -55,7 +58,7 @@ html:not(.wmsx-full-screen) .wmsx-full-screen-only {
 html.wmsx-full-screen-hack body {
     position: absolute;
     width: 100%;
-    height: calc(100vh + 100px);
+    height: ` + Math.max(1280, (Math.max(screen.width, screen.height) * 1.4) | 0) + `px;
     top: 0;
     left: 0;
     margin: 0;
@@ -93,18 +96,33 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     border: none;
     box-shadow: none;
 }
-_html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + `::before {
-    content: "scroll up";
-    display: block;
+
+#wmsx-screen-scroll-message {
     position: absolute;
-    top: 60px;
     left: 0;
     right: 0;
-    height: 40px;
-    color: white;
-    font-size: 26px;
-    line-height: 40px;
-    vertical-align: top;
+    bottom: 23%;
+    width: 0;
+    height: 0;
+    padding: 0;
+    margin: 0 auto;
+    font-size: 16px;
+    line-height: 28px;
+    color: hsl(0, 0%, 4%);
+    white-space: nowrap;
+    background: hsl(0, 0%, 92%);
+    border-radius: 15px;
+    box-shadow: 2px 2px 9px rgba(0, 0, 0, 0.7);
+    transition: all 1.1s step-end, opacity 1s linear;
+    opacity: 0;
+    z-index: 10;
+}
+html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
+    opacity: 1;
+    width: 200px;
+    height: 56px;
+    padding: 13px 20px;
+    transition: none;
 }
 
 #wmsx-screen-fs {
@@ -123,7 +141,9 @@ html.wmsx-full-screen #wmsx-screen-fs {
     z-index: 2147483647;
 }
 html.wmsx-full-screen-hack #wmsx-screen-fs {
-    height: calc(100% - 100px);
+    position: fixed;
+    bottom: 0;
+    height: 100vh;
 }
 
 html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move things horizontally in Landscape Full Screen */
@@ -431,7 +451,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     top: 50%;
     bottom: 0px;
     color: hsl(0, 0%, 97%);
-    font-size: 34px;
+    font-size: 32px;
     line-height: 37px;
 }
 
@@ -452,7 +472,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     left: 50%;
     width: 100px;
     height: 50px;
-    font-size: 30px;
+    font-size: 27px;
     line-height: 50px;
     background: hsl(0, 70%, 50%);
     border-radius: 6px;
