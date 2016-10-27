@@ -42,7 +42,7 @@ wmsx.ScreenGUI.html = function() {
 wmsx.ScreenGUI.css = function() {
     return `
 
-html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + `, html.wmsx-started #wmsx-screen-fs {
+html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + ` {
     visibility: visible;
 }
 html.wmsx-full-screen .wmsx-full-screen-hidden {
@@ -52,14 +52,17 @@ html:not(.wmsx-full-screen) .wmsx-full-screen-only {
     display: none;
 }
 
-html.wmsx-full-screen, html.wmsx-full-screen body {
+html.wmsx-full-screen-hack body {
     position: absolute;
-    overflow: hidden;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: calc(100vh + 100px);
+    top: 0;
+    left: 0;
     margin: 0;
     padding: 0;
     border: none;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 #wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {
@@ -71,16 +74,40 @@ html.wmsx-full-screen, html.wmsx-full-screen body {
     visibility: hidden;
     font-family: sans-serif;
     font-weight: normal;
+    margin: 0;
+    padding: 0;
     border: 1px solid black;
+    background: black;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    background: black;
+}
+html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    box-shadow: none;
+}
+_html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + `::before {
+    content: "scroll up";
+    display: block;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    color: white;
+    font-size: 26px;
+    line-height: 40px;
+    vertical-align: top;
 }
 
 #wmsx-screen-fs {
-    visibility: hidden;
     position: relative;
     background: black;
     text-align: center;
@@ -94,6 +121,9 @@ html.wmsx-full-screen #wmsx-screen-fs {
     bottom: 0;
     right: 0;
     z-index: 2147483647;
+}
+html.wmsx-full-screen-hack #wmsx-screen-fs {
+    height: calc(100% - 100px);
 }
 
 html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move things horizontally in Landscape Full Screen */

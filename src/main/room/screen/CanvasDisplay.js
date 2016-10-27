@@ -17,7 +17,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         setupBar();
         setupFullscreen();
         monitor = new wmsx.Monitor(self);
-        isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
     }
 
     this.connect = function(pVideoSignal, pMachineControlsSocket, pMachineTypeSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
@@ -278,11 +277,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (mode) {
             setViewport();
             document.documentElement.classList.add("wmsx-full-screen");
+            if (fullScreenByHack) document.documentElement.classList.add("wmsx-full-screen-hack");
             controllersHub.setupTouchControlsIfNeeded(fsElement);
             enterFullScreenByAPI();
         } else {
             restoreViewport();
             document.documentElement.classList.remove("wmsx-full-screen");
+            document.documentElement.classList.remove("wmsx-full-screen-hack");
             exitFullScreenByAPI();
         }
 
@@ -427,7 +428,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function isFullScreenByAPI() {
-        return document[fullScreenAPIQueryProtp];
+        return document[fullScreenAPIQueryProp];
     }
 
     function enterFullScreenByAPI() {
@@ -816,21 +817,26 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupFullscreen() {
+        isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
+
         fullscreenAPIEnterMethod = fsElement.requestFullscreen || fsElement.webkitRequestFullscreen || fsElement.webkitRequestFullScreen || fsElement.mozRequestFullScreen;
         fullScreenAPIExitMethod =  document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
-        if ("fullscreenElement" in document) fullScreenAPIQueryProtp = "fullscreenElement";
-        else if ("webkitFullscreenElement" in document) fullScreenAPIQueryProtp = "webkitFullscreenElement";
-        else if ("mozFullScreenElement" in document) fullScreenAPIQueryProtp = "mozFullScreenElement";
+        if ("fullscreenElement" in document) fullScreenAPIQueryProp = "fullscreenElement";
+        else if ("webkitFullscreenElement" in document) fullScreenAPIQueryProp = "webkitFullscreenElement";
+        else if ("mozFullScreenElement" in document) fullScreenAPIQueryProp = "mozFullScreenElement";
+
+        if (!fullscreenAPIEnterMethod && wmsx.Util.isMobileDevice() && !isBrowserStandalone) fullScreenByHack = true;
 
         if ("onfullscreenchange" in document)            document.addEventListener("fullscreenchange", fullscreenByAPIChanged);
         else if ("onwebkitfullscreenchange" in document) document.addEventListener("webkitfullscreenchange", fullscreenByAPIChanged);
         else if ("onmozfullscreenchange" in document)    document.addEventListener("mozfullscreenchange", fullscreenByAPIChanged);
 
-        // Prevent gestures, scroll, zoom in fullscreen
+        // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas)
         fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreen(e) {
-            if (!isFullscreen) return;
-            e.preventDefault();
-            return false;
+            if (isFullscreen && (!fullScreenByHack || e.target !== canvas)) {
+                e.preventDefault();
+                return false;
+            }
         });
     }
 
@@ -1140,7 +1146,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var isFullscreen = false;
 
     var isBrowserStandalone = false;
-    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProtp;
+    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenByHack = false;
     var viewportTag, viewportOriginalContent = null;
 
     var machineControlsSocket;
