@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
-// TODO Focus not correct when Settings open (ESC does not work without clicking first)
 // TODO Remove "Center" rounding problems as possible
 // TODO Wrong Bar Menu position in FF
 // TODO Explicit user action required on touchstart warning in Chrome

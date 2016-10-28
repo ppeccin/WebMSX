@@ -7,7 +7,7 @@ wmsx.SettingsGUI = {};
 wmsx.SettingsGUI.html = function() {
     return `
 
-    <div id="wmsx-modal">
+    <div id="wmsx-modal" tabindex="-1">
         <div id="wmsx-menu">
             <div id="wmsx-back">
                 <div class="wmsx-back-arrow">
@@ -669,13 +669,15 @@ wmsx.SettingsGUI.css = function() {
     right: 0;
     bottom: 0;
     left: 0;
+    height: 0;
+    overflow: hidden;
     visibility: hidden;
     opacity: 0;
     font: normal 13px sans-serif;
     white-space: nowrap;
     text-align: initial;
-    transition: all .2s ease-out;
     user-select: none;
+    transition: all .2s ease-out, height .3s step-end;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -683,6 +685,8 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-cover.wmsx-show {
+    transition: visibility .2s ease-out, opacity .2s ease-out;
+    height: 100%;
     visibility: visible;
     opacity: 1;
 }

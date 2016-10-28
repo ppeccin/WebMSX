@@ -123,7 +123,7 @@ html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scro
     width: 200px;
     height: 56px;
     padding: 13px 20px;
-    z-index: 40;
+    z-index: 20;
     transition: none;
 }
 
@@ -154,7 +154,6 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 20;
 }
 
 #wmsx-screen-canvas-outer {
@@ -176,7 +175,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     margin: 1px auto 0;
     background: rgba(45, 45, 45, .80);
     overflow: visible;                    /* for the Menu to show through */
-    z-index: 30;
+    z-index: 10;
 }
 #wmsx-bar-inner {
     position: absolute;
@@ -362,7 +361,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
-    z-index: 20;
+    z-index: 1;
 }
 #wmsx-screen-fs .wmsx-select-dialog.wmsx-show {
     display: block;
@@ -546,7 +545,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     transition: opacity .1s ease-out;
     visibility: hidden;
     opacity: 0;
-    z-index: 10;
+    z-index: 1;
 }
 #wmsx-paste-cover.wmsx-show {
     visibility: visible;
@@ -943,7 +942,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 .wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
     border: none;
     background: hsl(120, 76%, 32%);
-    box-shadow: inset 0 2px hsl(120, 76%, 41%), 0 4px 0 1px hsl(120, 76%, 22%);
+    box-shadow: inset 0 2px hsl(120, 76%, 41%), 0 4px 0 1px hsl(120, 76%, 20%);
 }
 .wmsx-touch-button-joy.wmsx-touch-button-joy-B::before {
     border: none;
@@ -953,23 +952,23 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 .wmsx-touch-button-joy.wmsx-touch-button-joy-AB::before {
     border: none;
     background: hsl(240, 50%, 48%);
-    box-shadow: inset 0 2px hsl(240, 50%, 60%), 0 4px 0 1px hsl(240, 50%, 33%);
+    box-shadow: inset 0 2px hsl(240, 50%, 60%), 0 4px 0 1px hsl(240, 50%, 31%);
 }
 
 .wmsx-touch-button-key {
     font-size: 16px;
-    line-height: 68px;
+    line-height: 70px;
 }
 .wmsx-touch-button-key::before {
-    width: 50px;
-    height: 49px;
-    top: 11px;
+    width: 48px;
+    height: 46px;
+    top: 13px;
     left: 12px;
-    background: hsl(0, 0%, 47%);
-    border: 5px solid hsl(0, 0%, 33%);
-    border-top: 3px solid hsl(0, 0%, 55%);
-    border-bottom: 8px solid hsl(0, 0%, 22%);
-    border-radius: 4px 4px 1px 1px;
+    background: hsl(0, 0%, 44%);
+    border: 4px solid hsl(0, 0%, 31%);
+    border-top: 2px solid hsl(0, 0%, 54%);
+    border-bottom: 6px solid hsl(0, 0%, 22%);
+    border-radius: 3px 3px 1px 1px;
 }
 
 #wmsx-touch-T_A { z-index: 9 }

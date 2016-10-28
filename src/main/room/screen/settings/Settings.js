@@ -16,7 +16,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
-        this.cover.focus();
+        setTimeout(function() {
+            self["wmsx-modal"].focus();
+        }, 50);
     };
 
     this.hide = function () {
@@ -98,8 +100,6 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
 
         setFields();
         setEvents();
-
-        self["wmsx-modal"].tabIndex = -1;
     };
 
     // Automatically set fields for each child element that has the "id" attribute
