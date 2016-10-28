@@ -8,7 +8,7 @@ var initGame = function (isChaves) {
     chavesMode = !!isChaves;
     var hash = window.location.hash;
 
-    console.log(hash);
+    console.log(window.location);
 
     if (hash.length > 1 && hash[0] === "#") {
         var num = Number.parseInt(hash.substr(1));
