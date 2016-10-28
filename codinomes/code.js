@@ -10,10 +10,13 @@ var initGame = function (isChaves) {
     if (num.length > 1 && num[0] === "?") {
         num = Number.parseInt(num.substr(1));
         if (num >= 0) gameNumber = num | 0;
+        console.log(window.top.location);
+        console.log(window.location);
+        console.log("Game: " + num);
     }
     if (gameNumber === undefined) {
         gameNumber = (Math.random() * 1000000) | 0;
-        window.location.href = window.location.origin +  window.location.pathname + "?" + gameNumber;
+        window.top.location.href = window.location.origin +  window.location.pathname + "?" + gameNumber;
     }
 
     random = randomGenerator(gameNumber);
