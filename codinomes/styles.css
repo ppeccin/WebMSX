@@ -52,17 +52,17 @@ html, body {
 }
 .celula.azul {
     color: hsl(0, 0%, 96%);
-    background: blue;
+    background: hsl(240, 70%, 53%);
     text-shadow: 1px 1px 1px rgba(0, 0, 0, .70);
 }
 .celula.vermelha {
     color: hsl(0, 0%, 96%);
-    background: red;
+    background: hsl(0, 70%, 53%);
     text-shadow: 1px 1px 1px rgba(0, 0, 0, .70);
 }
 .celula.amarela {
     color: hsl(0, 0%, 10%);
-    background: yellow;
+    background: hsl(55, 85%, 75%);
 }
 .celula.preta {
     color: hsl(0, 0%, 96%);
