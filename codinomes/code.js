@@ -1,6 +1,7 @@
 
 var chavesMode;
 var gameNumber;
+var corInicio;
 var random;
 var celulas;
 
@@ -8,18 +9,22 @@ var initGame = function (isChaves) {
     chavesMode = !!isChaves;
     var num = window.location.search;
     if (num.length > 1 && num[0] === "?") {
-        num = Number.parseInt(num.substr(1));
-        if (num >= 0) gameNumber = num | 0;
-        console.log(window.top.location);
-        console.log(window.location);
-        console.log("Game: " + num);
+        num = Number.parseFloat(num.substr(1));
+        if (num >= 0) gameNumber = Number.parseFloat(num.toFixed(1));
     }
     if (gameNumber === undefined) {
-        gameNumber = (Math.random() * 1000000) | 0;
-        window.top.location.href = window.location.origin +  window.location.pathname + "?" + gameNumber;
+        gameNumber = ((Math.random() * 1000000) | 0) + (Math.random() >= 0.5 ? 0.1 : 0.2);
+        window.top.location.href = window.location.origin +  window.location.pathname + "?" + gameNumber.toFixed(1);
     }
 
-    random = randomGenerator(gameNumber);
+    corInicio = Math.round(((gameNumber - (gameNumber | 0)) * 10));
+    if (corInicio !== 1 && corInicio !== 2) {
+        gameNumber = (gameNumber | 0) + 0.1;
+        window.top.location.href = window.location.origin +  window.location.pathname + "?" + gameNumber.toFixed(1);
+    }
+
+    console.log("Game: " + gameNumber);
+    random = randomGenerator(gameNumber | 0);
     cria();
 };
 
@@ -95,7 +100,7 @@ function setaPalavras() {
 }
 
 function setaCores() {
-    CHAVES.push(random(2) + 1);
+    CHAVES.push(corInicio);
     sorteia(celulas, CHAVES, function(celula, cor) {
         celula.cor = cor;
         if (chavesMode) mostraCorCelula(celula, true);
