@@ -7,6 +7,9 @@ var celulas;
 var initGame = function (isChaves) {
     chavesMode = !!isChaves;
     var hash = window.location.hash;
+
+    console.log(hash);
+
     if (hash.length > 1 && hash[0] === "#") {
         var num = Number.parseInt(hash.substr(1));
         if (num > 0) gameNumber = num | 0;
