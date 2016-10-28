@@ -88,11 +88,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         mainElement.appendChild(self.cover);
 
          // Supress context menu
-        self.cover.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        });
+        self.cover.addEventListener("contextmenu", blockEvent);
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
@@ -117,12 +113,17 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         }
     };
 
+    function blockEvent(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+
     var setEvents = function () {
         // Close the modal with a click outside
         self.cover.addEventListener("mousedown", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
             self.hide();
+            return blockEvent(e);
         });
         document.documentElement.addEventListener("mousedown", function (e) {
             self.hideLesser();
@@ -133,9 +134,8 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         });
         // Close with the back button
         self["wmsx-back"].addEventListener("mousedown", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
             self.hide();
+            return blockEvent(e);
         });
 
         // Several key events
@@ -148,36 +148,25 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
 
         // Tabs
         self["wmsx-menu-general"].addEventListener("mousedown", function (e) {
-            e.preventDefault();
             self.setPage("GENERAL");
+            return blockEvent(e);
         });
         self["wmsx-menu-inputs"].addEventListener("mousedown", function (e) {
-            e.preventDefault();
             self.setPage("INPUTS");
+            return blockEvent(e);
         });
         self["wmsx-menu-ports"].addEventListener("mousedown", function (e) {
-            e.preventDefault();
             self.setPage("PORTS");
+            return blockEvent(e);
         });
         self["wmsx-menu-media"].addEventListener("mousedown", function (e) {
-            e.preventDefault();
             self.setPage("MEDIA");
+            return blockEvent(e);
         });
         self["wmsx-menu-about"].addEventListener("mousedown", function (e) {
-            e.preventDefault();
             self.setPage("ABOUT");
+            return blockEvent(e);
         });
-
-        //// Generic Controls Commands
-        //for (var key in controlsCommandKeys) {
-        //    (function(keyLocal) {
-        //        self[controlsCommandKeys[key]].addEventListener("mousedown", function (e) {
-        //            e.preventDefault();
-        //            WMSX.room.machineControls.processKeyEvent(keyLocal, true, wmsx.DOMConsoleControls.KEY_ALT_MASK);
-        //            keyRedefinitonStop();   // will refresh
-        //        });
-        //    })(key | 0);    // must be a number to simulate a keyCode
-        //}
     };
 
     var refreshAboutPage = function () {
@@ -196,14 +185,12 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
 
     var processKeyEvent = function(e, press) {
         e.returnValue = false;  // IE
-        e.preventDefault();
-        e.stopPropagation();
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
         if (press && code === KEY_ESC) self.hide();
         else return WMSX.room.machineControls.processKey(code, press);
 
-        return false;
+        return blockEvent(e);
     };
 
 

@@ -536,19 +536,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
+    function blockEvent(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+
     function suppressContextMenu(element) {
-        element.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        });
+        element.addEventListener("contextmenu", blockEvent);
     }
 
     function preventDrag(element) {
-        element.ondragstart = function(e) {
-            e.preventDefault();
-            return false;
-        };
+        element.ondragstart = blockEvent;
     }
 
     function createDiskSelectDialog() {
@@ -781,8 +780,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function peripheralControlButtonMouseDown(e) {
-        e.stopPropagation();
-        e.preventDefault();
+        blockEvent(e);
         var prevActiveMenu = barMenuActive;
         hideBarMenu();
 
@@ -836,10 +834,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas) or scroll message in hack mode
         if (!fullscreenAPIEnterMethod) fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
             if (isFullscreen) {
-                if (!fullScreenByHack || (e.target !== canvas && e.target !== scrollMessage)) {
-                    e.preventDefault();
-                    return false;
-                } else if (scrollMessageActive) setScrollMessage(false);
+                if (!fullScreenByHack || (e.target !== canvas && e.target !== scrollMessage))
+                    return blockEvent(e);
+                else
+                    if (scrollMessageActive) setScrollMessage(false);
             }
         });
     }
@@ -987,12 +985,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Block keys and hide with ESC
         barMenu.addEventListener("keydown", function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) {
-                hideBarMenu();
-                return false;
-            }
+            if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) hideBarMenu();
+            return blockEvent(e);
         });
 
         var fireItem = function(e) {
@@ -1013,17 +1007,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         };
         // Fire menu item with a left or middle mouse up
         barMenu.addEventListener("mouseup", function (e) {
-            e.stopPropagation();
-            e.preventDefault();
             if (e.button === 0 || e.button === 1) fireItem(e);
-            return false;
+            return blockEvent(e);
+
         });
         // Block mousedown
-        barMenu.addEventListener("mousedown", function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            return false;
-        });
+        barMenu.addEventListener("mousedown", blockEvent);
 
         // Hide on lost focus
         barMenu.addEventListener("blur", hideBarMenu, true);
@@ -1040,22 +1029,22 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function logoMessageYesClicked(e) {
-        e.preventDefault();
         setLogoMessage(0);
         self.setFullscreen(true);
         startAction();
+        return blockEvent(e);
     }
 
     function logoMessageNoClicked(e) {
-        e.preventDefault();
         setLogoMessage(0);
         startAction();
+        return blockEvent(e);
     }
 
     function logoMessageOkClicked(e) {
-        e.preventDefault();
         if (!isFullscreen) setLogoMessage(2);
         else startAction();
+        return blockEvent(e);
     }
 
     function setScrollMessage(state) {
