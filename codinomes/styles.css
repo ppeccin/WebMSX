@@ -1,0 +1,78 @@
+
+html, body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: hsl(0, 0%, 80%);
+}
+
+.tabela {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.linha {
+    position: relative;
+    width: 100%;
+    height: 20%;
+    line-height: 1px;
+}
+
+.celula-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 20%;
+    height: 100%;
+}
+
+.celula {
+    position: absolute;
+    display: block;
+    top: 6%;
+    bottom: 6%;
+    left: 5%;
+    right: 5%;
+    width: 90%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 2.2vw;
+    line-height: 100%;
+    color: hsl(0, 0%, 10%);
+    background: white;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .10);
+    border-radius: 1vw;
+    box-shadow: 1px 1px 6px rgba(0, 0, 0, .40);
+    text-align: center;
+    outline: none;
+}
+.celula.azul {
+    color: hsl(0, 0%, 96%);
+    background: blue;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .70);
+}
+.celula.vermelha {
+    color: hsl(0, 0%, 96%);
+    background: red;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .70);
+}
+.celula.amarela {
+    color: hsl(0, 0%, 10%);
+    background: yellow;
+}
+.celula.preta {
+    color: hsl(0, 0%, 96%);
+    background: black;
+}
+.celula.escondida {
+    top: 12%;
+    bottom: 12%;
+    left: 10%;
+    right: 10%;
+    width: 80%;
+    opacity: 0.25;
+}
