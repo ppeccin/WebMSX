@@ -95,6 +95,7 @@ function setaPalavras() {
 }
 
 function setaCores() {
+    CHAVES.push(rng(2) + 1);
     sorteia(celulas, CHAVES, function(celula, cor) {
         celula.cor = cor;
         if (chavesMode) mostraCorCelula(celula, true);
@@ -138,6 +139,7 @@ var CORES = [ "original", "azul", "vermelha", "amarela", "preta" ];
 var CHAVES = [
     1, 1, 1, 1, 1, 1, 1, 1,
     2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3,
     4
+    // Adicionar 1 ou 2 ao final para completar as 25 entradas
 ];
