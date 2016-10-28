@@ -6,17 +6,16 @@ var celulas;
 
 var initGame = function (isChaves) {
     chavesMode = !!isChaves;
-    var hash = window.location.hash;
-
-    console.log(window.location);
-
-    if (hash.length > 1 && hash[0] === "#") {
-        var num = Number.parseInt(hash.substr(1));
-        if (num > 0) gameNumber = num | 0;
+    var num = window.location.search;
+    if (num.length > 1 && num[0] === "?") {
+        num = Number.parseInt(num.substr(1));
+        if (num >= 0) gameNumber = num | 0;
     }
-    if (gameNumber === undefined) gameNumber = (Math.random() * 1000000) | 0;
+    if (gameNumber === undefined) {
+        gameNumber = (Math.random() * 1000000) | 0;
+        window.location.search = "" + gameNumber;
+    }
 
-    window.location.hash = "#" + gameNumber;
     random = randomGenerator(gameNumber);
     cria();
 };
