@@ -95,7 +95,7 @@ function setaPalavras() {
 }
 
 function setaCores() {
-    CHAVES.push(rng(2) + 1);
+    CHAVES.push(random(2) + 1);
     sorteia(celulas, CHAVES, function(celula, cor) {
         celula.cor = cor;
         if (chavesMode) mostraCorCelula(celula, true);
