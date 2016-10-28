@@ -13,7 +13,7 @@ var initGame = function (isChaves) {
     }
     if (gameNumber === undefined) {
         gameNumber = (Math.random() * 1000000) | 0;
-        window.location.search = "" + gameNumber;
+        window.location.href = window.location.origin +  window.location.pathname + "?" + gameNumber;
     }
 
     random = randomGenerator(gameNumber);
