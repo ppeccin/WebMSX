@@ -3,8 +3,8 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
 // TODO Wrong Bar Menu position in FF
-// TODO Explicit user action required on touchstart warning in Chrome
 // TODO Fullscreen on FF mobile
+// TODO Menu is closing if other menu tries to open via touch
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -536,6 +536,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
+    function onMouseDown(element, handler) {
+        element.addEventListener("mousedown", handler);
+    }
+
+    function onMouseUp(element, handler) {
+        element.addEventListener("mouseup", handler);
+    }
+
+
     function blockEvent(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -606,12 +615,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (isFullscreen) self.requestReadjust();
         });
 
-        logoMessageYes.addEventListener("click", logoMessageYesClicked);
-        logoMessageYes.addEventListener("touchstart", logoMessageYesClicked);
-        logoMessageNo.addEventListener("click", logoMessageNoClicked);
-        logoMessageNo.addEventListener("touchstart", logoMessageNoClicked);
-        logoMessageOk.addEventListener("click", logoMessageOkClicked);
-        logoMessageOk.addEventListener("touchstart", logoMessageOkClicked);
+        onMouseDown(logoMessageYes,logoMessageYesClicked);    // User Initiated Gesture required
+        onMouseDown(logoMessageNo,logoMessageNoClicked);
+        onMouseDown(logoMessageOk,logoMessageOkClicked);
     }
 
     function setupVirtualKeyboard() {
@@ -722,7 +728,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoButton.classList.add("wmsx-narrow-hidden");
 
         // Mouse buttons perform the various actions
-        buttonsBar.addEventListener("mousedown", peripheralControlButtonMouseDown);
+        onMouseDown(buttonsBar, peripheralControlButtonMouseDown);
     }
 
     function createSettingsMenuOptions() {
@@ -781,29 +787,32 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function peripheralControlButtonMouseDown(e) {
         blockEvent(e);
-        var prevActiveMenu = barMenuActive;
-        hideBarMenu();
 
         // Single option, only left click
         if (e.target.wmsxControl) {
-            if (e.button === 0) peripheralControls.controlActivated(e.target.wmsxControl);
+            hideBarMenu();
+            if (!e.button) peripheralControls.controlActivated(e.target.wmsxControl);
             return;
         }
 
         var menu = e.target.wmsxMenu;
-        if (!menu) return;
+        if (!menu) {
+            hideBarMenu();
+            return;
+        }
 
         var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
 
         // Open/close menu with left-click if no modifiers
-        if (modifs === 0 && e.button === 0) {
-            if (prevActiveMenu !== menu) showBarMenu(menu, e.target, false);
+        if (modifs === 0 && !e.button) {
+            if (barMenuActive !== menu) showBarMenu(menu, e.target, true);
+            else hideBarMenu();
             return;
         }
 
         // Modifier options for left, middle or right click
         for (var i = 0; i < menu.length; ++i)
-            if (menu[i].clickModif === modifs) peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);  // altPower for middleClick
+            if (menu[i].clickModif === modifs) peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot); // altPower for middleClick
     }
 
     function peripheralControlButtonMouseEnter(e) {
@@ -817,8 +826,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupFullscreen() {
-        isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
-
         fullscreenAPIEnterMethod = fsElement.requestFullscreen || fsElement.webkitRequestFullscreen || fsElement.webkitRequestFullScreen || fsElement.mozRequestFullScreen;
         fullScreenAPIExitMethod =  document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
         if ("fullscreenElement" in document) fullScreenAPIQueryProp = "fullscreenElement";
@@ -1005,14 +1012,13 @@ wmsx.CanvasDisplay = function(mainElement) {
                 }
             }
         };
-        // Fire menu item with a left or middle mouse up
-        barMenu.addEventListener("mouseup", function (e) {
-            if (e.button === 0 || e.button === 1) fireItem(e);
+        // Fire menu item with a left or middle mouse up or a touchEnd
+        onMouseUp(barMenu, function (e) {
+            if (!e.button || e.button === 1) fireItem(e);
             return blockEvent(e);
-
         });
         // Block mousedown
-        barMenu.addEventListener("mousedown", blockEvent);
+        onMouseDown(barMenu, blockEvent);
 
         // Hide on lost focus
         barMenu.addEventListener("blur", hideBarMenu, true);
@@ -1151,7 +1157,9 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var isFullscreen = false;
 
-    var isBrowserStandalone = false;
+    var isTouchDevice = wmsx.Util.isTouchDevice();
+    var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
+
     var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenByHack = false;
     var viewportTag, viewportOriginalContent = null;
 

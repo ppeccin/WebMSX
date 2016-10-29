@@ -35,7 +35,7 @@ wmsx.ScreenGUI.html = function() {
                 </div>
             </div>
             <div id="wmsx-screen-scroll-message">
-                Drag the Screen up/down<br>to hide the browser bars!
+                Swipe up/down on the Screen <br>to hide the browser bars!
             </div>
         </div>
 
@@ -120,7 +120,7 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
 html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
     opacity: 1;
     bottom: 23%;
-    width: 200px;
+    width: 215px;
     height: 56px;
     padding: 13px 20px;
     z-index: 20;
@@ -132,6 +132,8 @@ html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scro
     background: black;
     text-align: center;
     overflow: hidden;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    tap-highlight-color: rgba(0,0,0,0)
 }
 html.wmsx-full-screen #wmsx-screen-fs {
     position: absolute;
