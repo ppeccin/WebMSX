@@ -1,0 +1,37 @@
+
+MSX1_JAP:       Original
+
+MSX1_PAL:       Original
+
+MSX1_NTSC:      Based on MSX1_PAL (to NTSC). Changed 0x2b, 0x7754 (PLAY NTSC timing)
+
+===================================================================================
+
+MSX2_JAP:       Original
+MSX2EXT_JAP:    Original + Kanji
+
+MSX2_PAL:       Original
+MSX2EXT_PAL:    Based on Original. Changed 0x0502 (mode & color)
+
+MSX2_NTSC:      Based on MSX2_PAL (to NTSC). Changed 0x2b, 0x7bd7 (reg9 init), 0x7754 (PLAY NTSC timing)
+MSX2EXT_NTSC:   Based on MSX2EXT_PAL (to NTSC). Changed 0x29ff & 0x2b56 (reg9 init)
+
+====================================================================================
+
+MSX2P_JAP:      Original
+MSX2PEXT_JAP:   Original + Kanji
+
+MSX2P_PAL:      Based on Original (to PAL). Changed 0x13ec & 0x7f92 (color), 0x7f55 (cols), 0x3499 & 0x3549 (char $), 0x7754 (PLAY PAL timing)
+MSX2PEXT_PAL:   Based on MSX2PEXT_JAP (to PAL). Changed 0x57e (mode & color), 0x2c63 (reg9 init), 0x7c9b (Kanji reg9 init)
+
+MSX2P_NTSC:     Based on MSX2P_PAL (to NTSC). Changed 0x2b, 0x7754 (PLAY NTSC timing)
+MSX2PEXT_NTSC:  Based on MSX2PEXT_PAL (to NTSC). Changed 0x2c63 (reg9 init), 0x7c9b (Kanji reg9 init)
+
+
+
+
+
+
+
+
+

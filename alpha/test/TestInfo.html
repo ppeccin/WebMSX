@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+
+    <body>
+
+        <div id="message" style="font-size: 20px;"></div>
+
+        <script>
+
+            function show(msg) {
+                var d = document.getElementById("message");
+                d.innerHTML = msg;
+            }
+
+            function showInfo() {
+                var str = "";
+                for (var prop in document.documentElement) {
+                    if (prop.toUpperCase().indexOf("FULLSCREEN") >= 0)
+                        str += prop + "<br>";
+                }
+
+                str += "<br>";
+                var props = Object.getOwnPropertyNames(window);
+                for (var i = 0; i < props.length; ++i) {
+                    prop = props[i];
+                    if (prop.toUpperCase().indexOf("AUDIOCONTEXT") >= 0)
+                        str += prop + "<br>";
+                }
+
+                str += "<br>";
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                str += ctx.constructor + "<br>";
+                if (ctx) {
+                    str += ctx.state + "<br>";
+
+                    var oscillator = ctx.createOscillator();
+
+                    oscillator.type = 'square';
+                    oscillator.frequency.value = 3000; // value in hertz
+                    oscillator.start();
+                    oscillator.connect(ctx.destination);
+                }
+
+                document.documentElement.addEventListener("touchstart", function() {
+                    (ctx.state === "running" ? ctx.suspend() : ctx.resume()).then(function () {
+                        show(ctx.state);
+                    });
+                });
+
+                show(str);
+            }
+
+            window.addEventListener("load", function() {
+                try {
+                    showInfo();
+                } catch (e) {
+                    console.error(e);
+                    show(e.message);
+                }
+            });
+
+        </script>
+
+    </body>
+
+</html>

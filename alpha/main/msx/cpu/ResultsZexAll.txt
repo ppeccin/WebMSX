@@ -1,0 +1,137 @@
+Z80 instruction exerciser
+
+<adc,sbc> hl,<bc,de,hl,sp>....  OK
+
+add hl,<bc,de,hl,sp>..........  OK
+
+add ix,<bc,de,ix,sp>..........  OK
+
+add iy,<bc,de,iy,sp>..........  OK
+
+aluop a,nn....................  OK
+
+aluop a,<b,c,d,e,h,l,(hl),a>..  OK
+
+aluop a,<ixh,ixl,iyh,iyl>.....  OK
+
+aluop a,(<ix,iy>+1)...........  OK
+
+bit n,(<ix,iy>+1).............  OK
+
+bit n,<b,c,d,e,h,l,(hl),a>....  ERROR **** crc expected:5e020e98 found:d1c30f4c
+
+cpd<r>........................  ERROR **** crc expected:134b622d found:5b23bf78
+
+cpi<r>........................  ERROR **** crc expected:2da42d19 found:d9b9f4b2
+
+<daa,cpl,scf,ccf>.............  ERROR **** crc expected:6d2dd213 found:3bad3496
+
+<inc,dec> a...................  OK
+
+<inc,dec> b...................  OK
+
+<inc,dec> bc..................  OK
+
+<inc,dec> c...................  OK
+
+<inc,dec> d...................  OK
+
+<inc,dec> de..................  OK
+
+<inc,dec> e...................  OK
+
+<inc,dec> h...................  OK
+
+<inc,dec> hl..................  OK
+
+<inc,dec> ix..................  OK
+
+<inc,dec> iy..................  OK
+
+<inc,dec> l...................  OK
+
+<inc,dec> (hl)................  OK
+
+<inc,dec> sp..................  OK
+
+<inc,dec> (<ix,iy>+1).........  OK
+
+<inc,dec> ixh.................  OK
+
+<inc,dec> ixl.................  OK
+
+<inc,dec> iyh.................  OK
+
+<inc,dec> iyl.................  OK
+
+ld <bc,de>,(nnnn).............  OK
+
+ld hl,(nnnn)..................  OK
+
+ld sp,(nnnn)..................  OK
+
+ld <ix,iy>,(nnnn).............  OK
+
+ld (nnnn),<bc,de>.............  OK
+
+ld (nnnn),hl..................  OK
+
+ld (nnnn),sp..................  OK
+
+ld (nnnn),<ix,iy>.............  OK
+
+ld <bc,de,hl,sp>,nnnn.........  OK
+
+ld <ix,iy>,nnnn...............  OK
+
+ld a,<(bc),(de)>..............  OK
+
+ld <b,c,d,e,h,l,(hl),a>,nn....  OK
+
+ld (<ix,iy>+1),nn.............  OK
+
+ld <b,c,d,e>,(<ix,iy>+1)......  OK
+
+ld <h,l>,(<ix,iy>+1)..........  OK
+
+ld a,(<ix,iy>+1)..............  OK
+
+ld <ixh,ixl,iyh,iyl>,nn.......  OK
+
+ld <bcdehla>,<bcdehla>........  OK
+
+ld <bcdexya>,<bcdexya>........  OK
+
+ld a,(nnnn) / ld (nnnn),a.....  OK
+
+ldd<r> (1)....................  OK
+
+ldd<r> (2)....................  ERROR **** crc expected:39dd3de1 found:5a907ed4
+
+ldi<r> (1)....................  ERROR **** crc expected:f782b0d1 found:9abdf6b5
+
+ldi<r> (2)....................  ERROR **** crc expected:e9ead0ae found:eb59891b
+
+neg...........................  OK
+
+<rrd,rld>.....................  OK
+
+<rlca,rrca,rla,rra>...........  OK
+
+shf/rot (<ix,iy>+1)...........  OK
+
+shf/rot <b,c,d,e,h,l,(hl),a>..  OK
+
+<set,res> n,<bcdehl(hl)a>.....  OK
+
+<set,res> n,(<ix,iy>+1).......  OK
+
+ld (<ix,iy>+1),<b,c,d,e>......  OK
+
+ld (<ix,iy>+1),<h,l>..........  OK
+
+ld (<ix,iy>+1),a..............  OK
+
+ld (<bc,de>),a................  OK
+
+Tests complete"
