@@ -114,6 +114,7 @@ module.exports = function (grunt) {
                     "src/main/room/screen/paste/PasteDialog.js",
                     "src/main/room/screen/diskselect/DiskSelectDialog.js",
                     "src/main/room/screen/machineselect/MachineSelectDialog.js",
+                    "src/main/room/screen/touchconfig/TouchConfigDialog.js",
                     "src/main/room/speaker/WebAudioSpeaker.js",
                     "src/main/room/savestate/LocalStorageSaveStateMedia.js",
                     "src/main/room/cassette/FileCassetteDeck.js",

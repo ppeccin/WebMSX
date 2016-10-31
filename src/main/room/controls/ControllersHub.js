@@ -38,6 +38,10 @@ wmsx.ControllersHub = function(keyForwardControls) {
         return keyboard;
     };
 
+    this.getTouchControls = function() {
+        return touchControls;
+    };
+
     this.releaseControllers = function() {
         keyboard.releaseControllers();
         joystickControls.releaseControllers();

@@ -2,7 +2,7 @@
 
 wmsx.JoystickButtons = {
 
-    // Real MSX buttons, register bit number
+    // Real MSX buttons, register mask
     UP:     { mask: 0x01, n: "UP" },
     DOWN:   { mask: 0x02, n: "DOWN" },
     LEFT:   { mask: 0x04, n: "LEFT" },

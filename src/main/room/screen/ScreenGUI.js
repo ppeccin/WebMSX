@@ -772,6 +772,95 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
+#wmsx-touch-config {
+    display: none;
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    width: 220px;
+    height: 170px;
+    max-width: 92%;
+    max-height: 98%;
+    margin: auto;
+    padding: 16px 0 0;
+    color: white;
+    font-size: 19px;
+    line-height: 23px;
+    background: rgb(40, 40, 40);
+    text-align: center;
+    border: 1px solid black;
+    box-sizing: initial;
+    text-shadow: 1px 1px 1px black;
+    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: auto;
+    z-index: 3;
+}
+#wmsx-touch-config.wmsx-show {
+    display: block;
+}
+#wmsx-touch-config::before {
+    content: "";
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    width: 196px;
+    height: 100px;
+    background: black;
+}
+
+#wmsx-touch-config-minus, #wmsx-touch-config-plus {
+    position: absolute;
+    bottom: 12px;
+    width: 60px;
+    height: 100px;
+}
+#wmsx-touch-config-minus {
+    left: 12px;
+}
+#wmsx-touch-config-plus {
+    right: 12px;
+}
+
+#wmsx-touch-config-minus::after, #wmsx-touch-config-plus::after {
+    content: "";
+    position: absolute;
+    top: 38px;
+    border: 12px solid transparent;
+}
+#wmsx-touch-config-minus::after {
+    left: 0;
+    border-right: 23px solid hsl(0, 0%, 85%);
+}
+#wmsx-touch-config-plus::after {
+    right: 0;
+    border-left: 23px solid hsl(0, 0%, 85%);
+}
+
+#wmsx-touch-config-dir {
+    display: none;
+    position: absolute;
+    top: 59px;
+    left: 45px;
+}
+#wmsx-touch-config-dir.wmsx-show {
+    display: block;
+}
+#wmsx-touch-config-dir::before {
+    display: none;
+}
+
+#wmsx-touch-config-button {
+    display: none;
+    position: absolute;
+    top: 90px;
+    left: 74px;
+    text-shadow: none;
+}
+#wmsx-touch-config-button.wmsx-show {
+    display: block;
+}
 
 #wmsx-touch-left, #wmsx-touch-right {
     display: none;
@@ -783,19 +872,13 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     display: block;
 }
 
-@media only screen and (orientation: portrait) {
-    html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
-        display: none;
-    }
-}
-
-#wmsx-touch-dir {
+.wmsx-touch-dir {
     width: 130px;
     height: 130px;
-    color: hsl(0, 0%, 72%);
+    color: hsl(0, 0%, 75%);
     border-radius: 100%;
 }
-#wmsx-touch-dir::after {
+.wmsx-touch-dir::before {
     content: "";
     position: absolute;
     top: 14px; left: 14px;
@@ -804,25 +887,25 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 100%;
 }
 
-.wmsx-touch-dir-joy #wmsx-touch-dir-up, .wmsx-touch-dir-joy #wmsx-touch-dir-left {
+.wmsx-touch-dir-joy .wmsx-touch-dir-up, .wmsx-touch-dir-joy .wmsx-touch-dir-left {
     position: absolute;
     background: hsl(0, 0%, 31%);
     border-radius: 2px 2px 0 0;
     box-shadow: inset 1px 2px 0px hsl(0, 0%, 43%), inset -1px -1px hsl(0, 0%, 19%), 0 3px 0 1px hsl(0, 0%, 21%);
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-up {
+.wmsx-touch-dir-joy .wmsx-touch-dir-up {
     width: 26px;
     height: 78px;
     top: 24px;
     left: 52px;
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-left {
+.wmsx-touch-dir-joy .wmsx-touch-dir-left {
     width: 78px;
     height: 25px;
     top: 51px;
     left: 26px;
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-left::before {
+.wmsx-touch-dir-joy .wmsx-touch-dir-left::before {
     content: "";
     position: absolute;
     top: 2px;
@@ -832,7 +915,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background: inherit;
     z-index: 1;
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-left::after {
+.wmsx-touch-dir-joy .wmsx-touch-dir-left::after {
     content: "";
     position: absolute;
     top: 4px;
@@ -845,7 +928,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 
 
-.wmsx-touch-dir-key #wmsx-touch-dir-up, .wmsx-touch-dir-key #wmsx-touch-dir-left, .wmsx-touch-dir-key #wmsx-touch-dir-down, .wmsx-touch-dir-key #wmsx-touch-dir-right {
+.wmsx-touch-dir-key .wmsx-touch-dir-up, .wmsx-touch-dir-key .wmsx-touch-dir-left, .wmsx-touch-dir-key .wmsx-touch-dir-down, .wmsx-touch-dir-key .wmsx-touch-dir-right {
     position: absolute;
     background: rgb(70, 85, 180);
     border: 0 solid hsl(232, 44%, 37%);
@@ -855,31 +938,31 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 2px 2px 0 0;
     box-sizing: border-box;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-up, .wmsx-touch-dir-key #wmsx-touch-dir-down {
+.wmsx-touch-dir-key .wmsx-touch-dir-up, .wmsx-touch-dir-key .wmsx-touch-dir-down {
     left: 50px;
     width: 30px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-up {
+.wmsx-touch-dir-key .wmsx-touch-dir-up {
     top: 26px;
     height: 26px;
     border-bottom-width: 2px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-down {
+.wmsx-touch-dir-key .wmsx-touch-dir-down {
     bottom: 26px;
     height: 28px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-left, .wmsx-touch-dir-key #wmsx-touch-dir-right {
+.wmsx-touch-dir-key .wmsx-touch-dir-left, .wmsx-touch-dir-key .wmsx-touch-dir-right {
     top: 47px;
     width: 25px;
     height: 36px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-left {
+.wmsx-touch-dir-key .wmsx-touch-dir-left {
     left: 24px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-right {
+.wmsx-touch-dir-key .wmsx-touch-dir-right {
     right: 24px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-up::after {
+.wmsx-touch-dir-key .wmsx-touch-dir-up::after {
     content: "";
     position: absolute;
     top: 28px;
@@ -889,27 +972,27 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background: hsl(0, 0%, 20%);
 }
 
-#wmsx-touch-dir .wmsx-arrow-up, #wmsx-touch-dir .wmsx-arrow-down, #wmsx-touch-dir .wmsx-arrow-left, #wmsx-touch-dir .wmsx-arrow-right {
+.wmsx-touch-dir .wmsx-arrow-up, .wmsx-touch-dir .wmsx-arrow-down, .wmsx-touch-dir .wmsx-arrow-left, .wmsx-touch-dir .wmsx-arrow-right {
     position: absolute;
     border-width: 5px;
     z-index: 2;
 }
-#wmsx-touch-dir .wmsx-arrow-up {
+.wmsx-touch-dir .wmsx-arrow-up {
     top: 26px;
     left: 60px;
     border-bottom-width: 11px;
 }
-#wmsx-touch-dir .wmsx-arrow-down {
+.wmsx-touch-dir .wmsx-arrow-down {
     bottom: 29px;
     left: 60px;
     border-top-width: 11px;
 }
-#wmsx-touch-dir .wmsx-arrow-left {
+.wmsx-touch-dir .wmsx-arrow-left {
     top: 58px;
     left: 26px;
     border-right-width: 11px;
 }
-#wmsx-touch-dir .wmsx-arrow-right {
+.wmsx-touch-dir .wmsx-arrow-right {
     top: 58px;
     right: 26px;
     border-left-width: 11px;
@@ -922,11 +1005,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     height: 72px;
     font-size: 20px;
     line-height: 68px;
-    color: hsl(0, 0%, 77%);
+    color: hsl(0, 0%, 79%);
     border-radius: 100%;
     cursor: default;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    z-index: 0;
 }
 
 .wmsx-touch-button::before {
@@ -941,7 +1025,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     height: 48px;
     top: 09px;
     left: 11px;
-    border: 2px solid hsl(0, 0%, 47%);
+    border: 2px solid hsl(0, 0%, 38%);
     border-radius: 100%;
 }
 .wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
@@ -1059,6 +1143,11 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         bottom: 0%;
         right: 0%;
     }
+
+    html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
+        display: none;
+    }
+
 }
 
 @media only screen and (orientation: portrait) and (max-device-height: 638px) {    /* Medium Portrait. Like iPhone 5 */

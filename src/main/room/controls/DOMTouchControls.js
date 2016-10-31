@@ -72,17 +72,11 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         var group = document.createElement('div');
         group.id = "wmsx-touch-left";
         mainElement.appendChild(group);
-
-        dirElement = document.createElement('div');
-        dirElement.id = "wmsx-touch-dir";
-        dirElement.addEventListener("touchstart",  dirTouchStart);
-        dirElement.addEventListener("touchmove",   dirTouchMove);
-        dirElement.addEventListener("touchend",    dirTouchEnd);
+        dirElement = wmsx.DOMTouchControls.createDirectional();
+        dirElement.addEventListener("touchstart", dirTouchStart);
+        dirElement.addEventListener("touchmove", dirTouchMove);
+        dirElement.addEventListener("touchend", dirTouchEnd);
         dirElement.addEventListener("touchcancel", dirTouchEnd);
-        createArrowKey(dirElement, "left");
-        createArrowKey(dirElement, "right");
-        createArrowKey(dirElement, "up");
-        createArrowKey(dirElement, "down");
         group.appendChild(dirElement);
 
         group = document.createElement('div');
@@ -95,24 +89,22 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         updateMappings();
 
         function createButton(group, name) {
-            var but = document.createElement('div');
-            but.id = "wmsx-touch-" + name;
-            but.classList.add("wmsx-touch-button");
+            var but = wmsx.DOMTouchControls.createButton("wmsx-touch-" + name);
+            but.wmsxControl = name;
             but.addEventListener("touchstart", buttonTouchStart);
             but.addEventListener("touchend", buttonTouchEnd);
             but.addEventListener("touchcancel", buttonTouchEnd);
-            group.appendChild(but);
             buttonElements[name] = but;
+            group.appendChild(but);
         }
+    };
 
-        function createArrowKey(parent, dir) {
-            var key = document.createElement('div');
-            key.id = "wmsx-touch-dir-" + dir;
-            parent.appendChild(key);
-            var arr = document.createElement('div');
-            arr.classList.add("wmsx-arrow-" + dir);
-            parent.appendChild(arr);
-        }
+    this.startTouchDetection = function(listener) {
+        touchDetectionListener = listener;
+    };
+
+    this.stopTouchDetection = function() {
+        touchDetectionListener = null;
     };
 
     function updateMode() {
@@ -128,6 +120,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     function dirTouchStart(e) {
         blockEvent(e);
+
+        if (touchDetectionListener) return touchDetectionListener.touchControlDetected("T_DIR");
         if (dirTouchID !== null) return;
         if (dirTouchCenterX === undefined) setDirTouchCenter();
 
@@ -199,12 +193,13 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     function buttonTouchStart(e) {
         blockEvent(e);
-        processButtonTouch(e.target.wmsxControl, true);
+        if (touchDetectionListener) return touchDetectionListener.touchControlDetected(e.target.wmsxControl);
+        processButtonTouch(e.target.wmsxMapping, true);
     }
 
     function buttonTouchEnd(e) {
         blockEvent(e);
-        processButtonTouch(e.target.wmsxControl, false);
+        processButtonTouch(e.target.wmsxMapping, false);
     }
 
     function processButtonTouch(mapping, press) {
@@ -221,34 +216,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function updateMappings() {
-        if (prefs.directional === "KEYBOARD") {
-            dirKeysMode = true;
-            dirElement.classList.add("wmsx-touch-dir-key");
-            dirElement.classList.remove("wmsx-touch-dir-joy");
-        } else {
-            dirKeysMode = false;
-            dirElement.classList.add("wmsx-touch-dir-joy");
-            dirElement.classList.remove("wmsx-touch-dir-key");
-        }
-
-        for (var but in buttonElements) {
-            var butElement = buttonElements[but];
-            var mapping = prefs.buttons[but];
-            butElement.innerHTML = mapping ? mapping.n || mapping.sn : "";
-            butElement.wmsxControl = mapping;
-            if (!mapping || mapping.mask) {
-                butElement.classList.add("wmsx-touch-button-joy");
-                butElement.classList.remove("wmsx-touch-button-key");
-                for (var b = 0; b < BUTTONS_SPECIAL_CLASSES.length; ++b) {
-                    var but = BUTTONS_SPECIAL_CLASSES[b];
-                    if (mapping && mapping.n === but) butElement.classList.add("wmsx-touch-button-joy-" + but);
-                    else butElement.classList.remove("wmsx-touch-button-joy-" + but);
-                }
-            } else if (mapping.key) {
-                butElement.classList.add("wmsx-touch-button-key");
-                butElement.classList.remove("wmsx-touch-button-joy");
-            }
-        }
+        wmsx.DOMTouchControls.styleDirectionalMapping( dirElement, prefs.directional);
+        for (var but in buttonElements) wmsx.DOMTouchControls.styleButtonMapping(buttonElements[but], prefs.buttons[but]);
     }
 
     function updateConnectionsToHub() {
@@ -272,8 +241,6 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
 
-    var joystickButtons = wmsx.JoystickButtons;
-
     var machineControlsSocket;
     var screen;
 
@@ -291,11 +258,11 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     var prefs;
 
+    var touchDetectionListener;
+
     var DIR_DEADZONE = 18;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
     var DIRECTION_TO_KEYS = [ [ ], [ "UP" ], [ "RIGHT", "UP" ], [ "RIGHT" ], [ "RIGHT", "DOWN" ], [ "DOWN" ], [ "LEFT", "DOWN" ], [ "LEFT" ], [ "LEFT", "UP" ] ];
-
-    var BUTTONS_SPECIAL_CLASSES = [ "A", "B", "AB" ];
 
 
     function JoystickState() {
@@ -306,3 +273,65 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
 };
+
+wmsx.DOMTouchControls.BUTTONS_SPECIAL_CLASSES = [ "A", "B", "AB" ];
+
+wmsx.DOMTouchControls.createDirectional = function(id) {
+    var elem = document.createElement('div');
+    if (id) elem.id = id;
+    elem.classList.add("wmsx-touch-dir");
+    createArrowKey("left");
+    createArrowKey("right");
+    createArrowKey("up");
+    createArrowKey("down");
+
+    return elem;
+
+    function createArrowKey(dir) {
+        var key = document.createElement('div');
+        key.classList.add("wmsx-touch-dir-" + dir);
+        elem.appendChild(key);
+        var arr = document.createElement('div');
+        arr.classList.add("wmsx-arrow-" + dir);
+        elem.appendChild(arr);
+    }
+};
+
+wmsx.DOMTouchControls.createButton = function(id) {
+    var but = document.createElement('div');
+    if (id) but.id = id;
+    but.classList.add("wmsx-touch-button");
+    return but;
+};
+
+wmsx.DOMTouchControls.styleDirectionalMapping = function(elem, mapping) {
+    if (mapping === "KEYBOARD") {
+        dirKeysMode = true;
+        elem.classList.add("wmsx-touch-dir-key");
+        elem.classList.remove("wmsx-touch-dir-joy");
+    } else {
+        dirKeysMode = false;
+        elem.classList.add("wmsx-touch-dir-joy");
+        elem.classList.remove("wmsx-touch-dir-key");
+    }
+};
+
+wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
+    elem.innerHTML = mapping ? mapping.n || mapping.sn : "";
+    elem.wmsxMapping = mapping;
+    if (!mapping || mapping.mask) {
+        elem.classList.add("wmsx-touch-button-joy");
+        elem.classList.remove("wmsx-touch-button-key");
+        var espClas = wmsx.DOMTouchControls.BUTTONS_SPECIAL_CLASSES;
+        for (var b = 0; b < espClas.length; ++b) {
+            var esp = espClas[b];
+            if (mapping && mapping.n === esp) elem.classList.add("wmsx-touch-button-joy-" + esp);
+            else elem.classList.remove("wmsx-touch-button-joy-" + esp);
+        }
+    } else if (mapping.key) {
+        elem.classList.add("wmsx-touch-button-key");
+        elem.classList.remove("wmsx-touch-button-joy");
+    }
+    return {b: b, esp: esp};
+};
+

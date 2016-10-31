@@ -25,11 +25,6 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         if (confirm) machineTypeSocket.changeMachine(machineSelected);
     };
 
-    this.toggle = function(drive) {
-        if (visible) this.hide(false);
-        else this.show(drive);
-    };
-
     function refreshList() {
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];

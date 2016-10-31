@@ -110,15 +110,21 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
-        createDiskSelectDialog();
+        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
         if (pasteDialog) pasteDialog.hide();
         diskSelectDialog.show(drive, inc, altPower);
     };
 
     this.openMachineSelectDialog = function() {
-        createMachineSelectDialog();
+        if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
         if (pasteDialog) pasteDialog.hide();
         machineSelectDialog.show();
+    };
+
+    this.openTouchConfigDialog = function() {
+        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(canvasOuter, controllersHub.getTouchControls());
+        if (pasteDialog) pasteDialog.hide();
+        touchConfigDialog.show();
     };
 
     this.openLoadFileDialog = function() {
@@ -559,16 +565,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         element.ondragstart = blockEvent;
     }
 
-    function createDiskSelectDialog() {
-        if (diskSelectDialog) return;
-        diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
-    }
-
-    function createMachineSelectDialog() {
-        if (machineSelectDialog) return;
-        machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
-    }
-
     function setupMain() {
         mainElement.innerHTML = wmsx.ScreenGUI.html();
         delete wmsx.ScreenGUI.html;
@@ -745,8 +741,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "",            divider: true });
 
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
-        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS, fullScreenHidden: true });
-        menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,      fullScreenHidden: true });
+        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS,     fullScreenHidden: true });
+        menu.push({ label: "Touch Config.",                  control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG });
+        menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
         return menu;
     }
 
@@ -1169,6 +1166,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var settingsDialog;
     var diskSelectDialog;
     var machineSelectDialog;
+    var touchConfigDialog;
     var pasteDialog;
     var copyTextArea;
 
