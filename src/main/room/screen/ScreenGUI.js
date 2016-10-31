@@ -123,7 +123,7 @@ html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scro
     width: 215px;
     height: 56px;
     padding: 13px 20px;
-    z-index: 20;
+    z-index: 10;
     transition: none;
 }
 
@@ -163,6 +163,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     position: relative;
     vertical-align: top;
     line-height: 1px;
+    z-index: 2;
 }
 
 #wmsx-screen-canvas {
@@ -177,7 +178,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     margin: 1px auto 0;
     background: rgba(45, 45, 45, .80);
     overflow: visible;                    /* for the Menu to show through */
-    z-index: 10;
+    z-index: 2;
 }
 #wmsx-bar-inner {
     position: absolute;
@@ -363,7 +364,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
-    z-index: 1;
+    z-index: 3;
 }
 #wmsx-screen-fs .wmsx-select-dialog.wmsx-show {
     display: block;
@@ -765,6 +766,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     transform-origin: center bottom;
     transition: height 0.3s ease-in-out;
     text-align: left;
+    z-index: 2;
 }
 html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
@@ -774,6 +776,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-left, #wmsx-touch-right {
     display: none;
     position: absolute;
+    z-index: 1;
 }
 
 html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-right {
@@ -973,22 +976,22 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 3px 3px 1px 1px;
 }
 
-#wmsx-touch-T_A { z-index: 9 }
-#wmsx-touch-T_B { z-index: 8 }
-#wmsx-touch-T_C { z-index: 7 }
-#wmsx-touch-T_D { z-index: 6 }
-#wmsx-touch-T_E { z-index: 5 }
-#wmsx-touch-T_F { z-index: 4 }
-#wmsx-touch-T_G { z-index: 3 }
+#wmsx-touch-T_A { z-index: 7 }
+#wmsx-touch-T_B { z-index: 6 }
+#wmsx-touch-T_C { z-index: 5 }
+#wmsx-touch-T_D { z-index: 4 }
+#wmsx-touch-T_E { z-index: 3 }
+#wmsx-touch-T_F { z-index: 2 }
+#wmsx-touch-T_G { z-index: 1 }
 
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
-        left: -6px;
+        left: calc(-6px - 117px);
         bottom: 50%;
         transform: translateY(50%);
     }
     #wmsx-touch-right {
-        right: 7px;
+        right: calc(7px - 85px);
         bottom: 50%;
         transform: translateY(50%);
     }

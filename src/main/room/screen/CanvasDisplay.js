@@ -278,7 +278,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             setViewport();
             document.documentElement.classList.add("wmsx-full-screen");
             if (fullScreenByHack) document.documentElement.classList.add("wmsx-full-screen-hack");
-            controllersHub.setupTouchControlsIfNeeded(fsElement);
+            controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
             enterFullScreenByAPI();
             if (fullScreenByHack) setScrollMessage(true);
         } else {
@@ -373,7 +373,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         touchControlsActive = active;
         if (isFullscreen) {
-            if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElement);
+            if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
             this.requestReadjust();
         }
     };
