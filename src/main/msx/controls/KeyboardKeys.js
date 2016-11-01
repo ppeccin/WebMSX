@@ -17,7 +17,7 @@ wmsx.KeyboardKeys = {
     EQUAL          : { m:  [ 1, 3 ], key: "EQUAL",        sn: "=" },
     BACKSLASH      : { m:  [ 1, 4 ], key: "BACKSLASH",    sn: "\\" },
     OPEN_BRACKET   : { m:  [ 1, 5 ], key: "OPEN_BRACKET", sn: "[" },
-    CLOSE_BRACKET  : { m:  [ 1, 6 ], key: "CLOSE_BRACKE", sn: "]" },
+    CLOSE_BRACKET  : { m:  [ 1, 6 ], key: "CLOSE_BRACKET", sn: "]" },
     SEMICOLON      : { m:  [ 1, 7 ], key: "SEMICOLON",    sn: ";" },
     QUOTE          : { m:  [ 2, 0 ], key: "QUOTE",        sn: "'" },
     BACKQUOTE      : { m:  [ 2, 1 ], key: "BACKQUOTE",    sn: "`" },

@@ -3,6 +3,8 @@
 wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 "use strict";
 
+    var self = this;
+
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
     };
@@ -105,6 +107,11 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     this.stopTouchDetection = function() {
         touchDetectionListener = null;
+    };
+
+    this.updateMappingFor = function (control, mapping) {
+        if (control === "T_DIR") wmsx.DOMTouchControls.styleDirectionalMapping(dirElement, mapping);
+        else wmsx.DOMTouchControls.styleButtonMapping(buttonElements[control], mapping);
     };
 
     function updateMode() {
@@ -216,8 +223,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
     function updateMappings() {
-        wmsx.DOMTouchControls.styleDirectionalMapping( dirElement, prefs.directional);
-        for (var but in buttonElements) wmsx.DOMTouchControls.styleButtonMapping(buttonElements[but], prefs.buttons[but]);
+        self.updateMappingFor("T_DIR", prefs.directional);
+        for (var but in buttonElements) self.updateMappingFor(but, prefs.buttons[but]);
     }
 
     function updateConnectionsToHub() {

@@ -123,7 +123,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
     var visible = false;
 
     var k = wmsx.DOMKeys;
-    var ESC_KEY = k.VK_ESCAPE.c, UP_KEY = k.VK_UP.c, DOWN_KEY = k.VK_DOWN.c;
+    var ESC_KEY = k.VK_ESCAPE.c;
     var CONFIRM_KEYS = [ k.VK_ENTER.c, k.VK_SPACE.c ];
     var SELECT_KEYS = {};
         SELECT_KEYS[k.VK_UP.c] = -1;

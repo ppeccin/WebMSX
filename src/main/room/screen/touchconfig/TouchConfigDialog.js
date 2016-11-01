@@ -23,6 +23,7 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
+        if (confirm);   // TODO Save
     };
 
     this.touchControlDetected = function(control) {
@@ -31,9 +32,6 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
     };
 
     function refresh() {
-
-        console.log(editing);
-
         if (editing === "T_DIR") {
             directional.classList.add("wmsx-show");
             button.classList.remove("wmsx-show");
@@ -76,12 +74,11 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
 
         dirSequence = [ "JOYSTICK", "KEYBOARD"];
 
-        var keys = Object.keys(wmsx.KeyboardKeys);
         buttonSequence = [ null ];
-        buttonSequence.push(wmsx.JoystickButtons.A);
-        buttonSequence.push(wmsx.JoystickButtons.B);
-        buttonSequence.push(wmsx.JoystickButtons.AB);
-        for (var k in keys) buttonSequence.push(wmsx.KeyboardKeys[k]);
+        buttonSequence.push(wmsx.JoystickButtons.J_A.button);
+        buttonSequence.push(wmsx.JoystickButtons.J_B.button);
+        buttonSequence.push(wmsx.JoystickButtons.J_AB.button);
+        for (var k in wmsx.KeyboardKeys) buttonSequence.push(k);
     }
 
     function setupEvents() {
@@ -99,12 +96,24 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
             else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
             // Select
             else if (SELECT_KEYS[e.keyCode]) {
-                var idx = machines.indexOf(machineSelected) + SELECT_KEYS[e.keyCode];
-                var newMachine = machines[idx];
-                if (newMachine && WMSX.MACHINES_CONFIG[newMachine].type) {      // Exclude EMPTY and AUTO options
-                    //machineSelected = newMachine;
-                    refresh();
+                var isDirectional = editing === "T_DIR";
+                var sequence =  isDirectional ? dirSequence : buttonSequence;
+                var mapping =   isDirectional ? prefs.directional : prefs.buttons[editing];
+                var curButton = isDirectional ? mapping : mapping && (mapping.button || mapping.key);
+                var curIdx = wmsx.Util.arrayFindIndex(sequence, function(x) {
+                    return x === curButton
+                });
+                var newIdx = curIdx + SELECT_KEYS[e.keyCode];
+                if (newIdx < 0) newIdx = 0; else if (newIdx >= sequence.length) newIdx = sequence.length - 1;
+                var newMapping = sequence[newIdx];
+                if (isDirectional) {
+                    prefs.directional = newMapping;
+                    touchControls.updateMappingFor(editing, newMapping);
+                } else {
+                    prefs.buttons[editing] = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
+                    touchControls.updateMappingFor(editing, prefs.buttons[editing]);
                 }
+                refresh();
             }
 
             return false;
@@ -131,5 +140,12 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
 
     var editing = null;
     var prefs;
+
+    var k = wmsx.DOMKeys;
+    var ESC_KEY = k.VK_ESCAPE.c;
+    var CONFIRM_KEYS = [ k.VK_ENTER.c, k.VK_SPACE.c ];
+    var SELECT_KEYS = {};
+    SELECT_KEYS[k.VK_LEFT.c] = -1;
+    SELECT_KEYS[k.VK_RIGHT.c] = 1;
 
 };

@@ -116,7 +116,7 @@ wmsx.ControlMappingPopup = function() {
                 var names = !mapping.n || mapping.n.constructor !== Array ? [mapping.n] : mapping.n;
                 str = "";
                 for (var k = 0, len = names.length; k < len; ++k) {
-                    var cla = mapping.t === "JOYSQUARE" ? "wmsx-joy-button wmsx-square" : mapping.t === "JOY" ? "wmsx-joy-button" : "wmsx-key";
+                    var cla = mapping.c ? "wmsx-key" : mapping.n.length > 1 ? "wmsx-joy-button wmsx-square" : "wmsx-joy-button";
                     if (k > 0) str += (k === (len - 1)) ? "&nbsp;+&nbsp;" : "&nbsp;";
                     str += '<DIV class = "' + cla + '">' + names[k] + '</DIV>';
                 }

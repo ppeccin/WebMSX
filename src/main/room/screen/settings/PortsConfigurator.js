@@ -69,7 +69,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
             deviceElements[hubPort] = document.getElementById("wmsx-ports-device" + p);
             deviceTitleElements[hubPort] = document.getElementById("wmsx-ports-device" + p + "-title");
             for (var b in wmsx.JoystickButtons) {
-                var buttonElement = document.getElementById("wmsx-joy" + p + "-" + b);
+                var buttonElement = document.getElementById("wmsx-joy" + p + "-" + wmsx.JoystickButtons[b].n);
                 if (!buttonElement) continue;
                 buttonElement.wmsxButton = b;
                 buttonElement.wmsxPort = hubPort;
