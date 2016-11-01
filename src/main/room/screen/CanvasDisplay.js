@@ -122,7 +122,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openTouchConfigDialog = function() {
-        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(canvasOuter, controllersHub);
+        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub);
         if (pasteDialog) pasteDialog.hide();
         touchConfigDialog.show();
     };

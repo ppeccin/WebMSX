@@ -797,7 +797,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     cursor: auto;
     z-index: 3;
 }
-#wmsx-touch-config.wmsx-show {
+#wmsx-screen-fs.wmsx-touch-config-active #wmsx-touch-config {
     display: block;
 }
 #wmsx-touch-config::before {
@@ -834,9 +834,15 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     left: 0;
     border-right: 23px solid hsl(0, 0%, 80%);
 }
+#wmsx-touch-config-minus.wmsx-disabled::after {
+    border-right-color: hsl(0, 0%, 40%);
+}
 #wmsx-touch-config-plus::after {
     right: 0;
     border-left: 23px solid hsl(0, 0%, 80%);
+}
+#wmsx-touch-config-plus.wmsx-disabled::after {
+    border-left-color: hsl(0, 0%, 40%);
 }
 
 #wmsx-touch-config-p1, #wmsx-touch-config-p2, #wmsx-touch-config-off {
@@ -1057,14 +1063,17 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     z-index: -1;
 }
 
-.wmsx-touch-button-joy::before {
+.wmsx-touch-button-joy::before, .wmsx-touch-button-none::before {
     width: 50px;
     height: 48px;
-    top: 09px;
+    top: 9px;
     left: 11px;
-    border: 2px solid hsl(0, 0%, 38%);
     border-radius: 100%;
 }
+#wmsx-screen-fs.wmsx-touch-config-active .wmsx-touch-button-none::before {
+    border: 2px dashed hsl(0, 0%, 40%);
+}
+
 .wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
     border: none;
     background: hsl(120, 76%, 32%);

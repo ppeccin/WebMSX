@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
+wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
     "use strict";
 
     var self = this;
@@ -12,9 +12,9 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
         }
 
         visible = true;
-        dialog.classList.add("wmsx-show");
+        fsElement.classList.add("wmsx-touch-config-active");
         dialog.focus();
-        editing = null;
+        editing = editingSequence = null; editingSeqIndex = -1;
         touchControls.startTouchDetection(self);
         refresh();
         refreshMode();
@@ -23,13 +23,21 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
     this.hide = function() {
         touchControls.stopTouchDetection(self);
         WMSX.userPreferences.save();
-        dialog.classList.remove("wmsx-show");
+        fsElement.classList.remove("wmsx-touch-config-active");
         visible = false;
         WMSX.room.screen.focus();
     };
 
     this.touchControlDetected = function(control) {
         editing = control;
+        var isDirectional = editing === "T_DIR";
+        editingSequence = isDirectional ? dirSequence : buttonSequence;
+        var mapping = isDirectional ? prefs.directional : prefs.buttons[editing];
+        var curMapping = isDirectional ? mapping : mapping && (mapping.button || mapping.key);
+        editingSeqIndex = wmsx.Util.arrayFindIndex(editingSequence, function (x) {
+            return x === curMapping
+        });
+
         refresh();
     };
 
@@ -47,6 +55,8 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
             directional.classList.remove("wmsx-show");
             wmsx.DOMTouchControls.styleButtonMapping(button, prefs.buttons[editing]);
         }
+        minus.classList.toggle("wmsx-disabled", editingSeqIndex <= 0);
+        plus.classList.toggle("wmsx-disabled", !editingSequence || editingSeqIndex >= editingSequence.length - 1);
     }
 
     function refreshMode() {
@@ -120,17 +130,10 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
 
     function modifyControl(inc) {
         if (!editing) return;
-        var isDirectional = editing === "T_DIR";
-        var sequence = isDirectional ? dirSequence : buttonSequence;
-        var mapping = isDirectional ? prefs.directional : prefs.buttons[editing];
-        var curButton = isDirectional ? mapping : mapping && (mapping.button || mapping.key);
-        var curIdx = wmsx.Util.arrayFindIndex(sequence, function (x) {
-            return x === curButton
-        });
-        var newIdx = curIdx + inc;
-        if (newIdx < 0) newIdx = 0; else if (newIdx >= sequence.length) newIdx = sequence.length - 1;
-        var newMapping = sequence[newIdx];
-        if (!isDirectional) newMapping = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
+        editingSeqIndex += inc;
+        if (editingSeqIndex < 0) editingSeqIndex = 0; else if (editingSeqIndex >= editingSequence.length) editingSeqIndex = editingSequence.length - 1;
+        var newMapping = editingSequence[editingSeqIndex];
+        if (!(editing === "T_DIR")) newMapping = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
         touchControls.customizeControl(editing, newMapping);
         refresh();
     }
@@ -178,8 +181,8 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
         modifyControl(inc);
         modifyKeyTimeout = setTimeout(function repeat() {
             modifyControl(inc);
-            modifyKeyTimeout = setTimeout(repeat, 50);
-        }, 500);
+            modifyKeyTimeout = setTimeout(repeat, 35);
+        }, 400);
     }
 
     function modifyButtonReleased(e) {
@@ -190,7 +193,7 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
 
     function modeButtonClicked(e) {
         var mode = e.target.wmsxMode;
-        var modeNum = mode === "p1" ? 0 : mode === "p2" ? 1 : -1;
+        var modeNum = mode === "p1" ? 0 : mode === "p2" ? 1 : -2;
         touchControls.setMode(modeNum);
     }
 
@@ -198,7 +201,7 @@ wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
     var visible = false;
     var dialog, header, directional, button, minus, plus, p1, p2, off;
 
-    var editing = null;
+    var editing, editingSequence, editingSeqIndex;
     var modifyKeyTimeout;
     var dirSequence, buttonSequence;
 

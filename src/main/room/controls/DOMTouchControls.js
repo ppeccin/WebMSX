@@ -358,9 +358,14 @@ wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
     var BUTTONS_SPECIAL_CLASSES = [ "A", "B", "AB" ];
 
     elem.innerHTML = mapping ? mapping.n || mapping.sn : "";
-    if (!mapping || mapping.mask) {
+    if (!mapping) {
+        elem.classList.add("wmsx-touch-button-none");
+        elem.classList.remove("wmsx-touch-button-joy");
+        elem.classList.remove("wmsx-touch-button-key");
+    } else if (mapping.mask) {
         elem.classList.add("wmsx-touch-button-joy");
         elem.classList.remove("wmsx-touch-button-key");
+        elem.classList.remove("wmsx-touch-button-none");
         for (var b = 0; b < BUTTONS_SPECIAL_CLASSES.length; ++b) {
             var esp = BUTTONS_SPECIAL_CLASSES[b];
             if (mapping && mapping.n === esp) elem.classList.add("wmsx-touch-button-joy-" + esp);
@@ -369,6 +374,7 @@ wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
     } else if (mapping.key) {
         elem.classList.add("wmsx-touch-button-key");
         elem.classList.remove("wmsx-touch-button-joy");
+        elem.classList.remove("wmsx-touch-button-none");
     }
 };
 
