@@ -16,6 +16,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
+        visible = true;
         setTimeout(function() {
             self["wmsx-modal"].focus();
         }, 50);
@@ -30,6 +31,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         WMSX.userPreferences.save();
         self["wmsx-modal"].classList.remove("wmsx-show");
         self["wmsx-cover"].classList.remove("wmsx-show");
+        visible = false;
     };
 
     this.setPage = function (page) {
@@ -68,11 +70,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     };
 
     this.keyboardSettingsStateUpdate = function() {
-        if (keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
+        if (visible && keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
     };
 
     this.controllersSettingsStateUpdate = function () {
-        if (portsConfigurator) portsConfigurator.controllersSettingsStateUpdate();
+        if (visible && portsConfigurator) portsConfigurator.controllersSettingsStateUpdate();
     };
 
     var create = function () {
@@ -187,13 +189,14 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         e.returnValue = false;  // IE
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
-        if (press && code === KEY_ESC) self.hide();
-        else return WMSX.room.machineControls.processKey(code, press);
-
-        return blockEvent(e);
+        if (press && code === KEY_ESC) {
+            blockEvent(e);
+            self.hide();
+        }
     };
 
 
+    var visible = false;
     this.cover = null;
 
     var keyboardConfigurator, portsConfigurator;

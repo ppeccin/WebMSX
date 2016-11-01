@@ -116,8 +116,8 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     }
 
     function updateConnectionsToHub() {
-        var j1 = mode >= 0 ? wmsx.ControllersHub.JOYKEYS + " 1" : null;
-        var j2 = mode >= 2 ? wmsx.ControllersHub.JOYKEYS + " 2" : null;
+        var j1 = mode >= 0 ? TYPE + " 1" : null;
+        var j2 = mode >= 2 ? TYPE + " 2" : null;
 
         hub.updateJoykeysConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
     }
@@ -152,6 +152,8 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     var joy1Prefs;
     var joy2Prefs;
     var joyPrefs = [];
+
+    var TYPE = wmsx.ControllersHub.JOYKEYS;
 
     var MAX_KEYS_MAPPED = 4;
 

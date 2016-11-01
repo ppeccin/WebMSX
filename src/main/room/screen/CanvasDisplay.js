@@ -122,7 +122,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openTouchConfigDialog = function() {
-        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(canvasOuter, controllersHub.getTouchControls());
+        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(canvasOuter, controllersHub);
         if (pasteDialog) pasteDialog.hide();
         touchConfigDialog.show();
     };
@@ -357,11 +357,22 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.controllersSettingsStateUpdate = function () {
         if(settingsDialog) settingsDialog.controllersSettingsStateUpdate();
+        if(touchConfigDialog) touchConfigDialog.controllersSettingsStateUpdate();
     };
 
     this.mouseActiveCursorStateUpdate = function(boo) {
         cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '") -10 -10, auto' : "auto";
         showCursor(true);
+    };
+
+    this.touchControlsActiveUpdate = function(active) {
+        if (touchControlsActive === active) return;
+
+        touchControlsActive = active;
+        if (isFullscreen) {
+            if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
+            this.requestReadjust();
+        }
     };
 
     this.setLoading = function(state) {
@@ -371,16 +382,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             machineControlsSocket.addPowerStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
-        }
-    };
-
-    this.touchControlsModeUpdate = function(active) {
-        if (touchControlsActive === active) return;
-
-        touchControlsActive = active;
-        if (isFullscreen) {
-            if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
-            this.requestReadjust();
         }
     };
 
@@ -742,7 +743,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
         menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS,     fullScreenHidden: true });
-        menu.push({ label: "Touch Config.",                  control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG });
+        if (isTouchDevice)
+        menu.push({ label: "Touch Controls",                 control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG });
         menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
         return menu;
     }
@@ -1086,7 +1088,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             self.displayCenter();
             controllersHub.screenReadjustedUpdate();
 
-            console.log("READJUST");
+            //console.log("READJUST");
         }
 
         if (readjustInterval && (wmsx.Util.performanceNow() - readjustRequestTime >= 1000)) {

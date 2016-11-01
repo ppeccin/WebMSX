@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.TouchConfigDialog = function(mainElement, touchControls) {
+wmsx.TouchConfigDialog = function(mainElement, controllersHub) {
     "use strict";
 
     var self = this;
@@ -14,21 +14,27 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
         visible = true;
         dialog.classList.add("wmsx-show");
         dialog.focus();
+        editing = null;
         touchControls.startTouchDetection(self);
         refresh();
+        refreshMode();
     };
 
-    this.hide = function (confirm) {
+    this.hide = function() {
         touchControls.stopTouchDetection(self);
+        WMSX.userPreferences.save();
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
-        if (confirm);   // TODO Save
     };
 
     this.touchControlDetected = function(control) {
         editing = control;
         refresh();
+    };
+
+    this.controllersSettingsStateUpdate = function() {
+        if (visible) refreshMode();
     };
 
     function refresh() {
@@ -41,6 +47,24 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
             directional.classList.remove("wmsx-show");
             wmsx.DOMTouchControls.styleButtonMapping(button, prefs.buttons[editing]);
         }
+    }
+
+    function refreshMode() {
+        p1.classList.remove("wmsx-selected");
+        p2.classList.remove("wmsx-selected");
+        off.classList.remove("wmsx-selected");
+
+        var state = controllersHub.getSettingsState();
+        var port = state.touchPortSet;
+
+        if (port >= 0) {
+            var butPort = port === 1 ? p2 : p1;
+            butPort.classList.add("wmsx-selected");
+            var active = state.touchActive;   // Really active at port
+            butPort.classList.toggle("wmsx-selected-inactive", !active);
+            off.classList.toggle("wmsx-selected", !active);
+        } else
+            off.classList.add("wmsx-selected");
     }
 
     function create() {
@@ -66,11 +90,13 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
         button = wmsx.DOMTouchControls.createButton("wmsx-touch-config-button");
         dialog.appendChild(button);
 
+        p1 =  createModeButton("p1");
+        p2 =  createModeButton("p2");
+        off = createModeButton("off");
+
         setupEvents();
 
         mainElement.appendChild(dialog);
-
-        prefs = WMSX.userPreferences.current.touch;
 
         dirSequence = [ "JOYSTICK", "KEYBOARD"];
 
@@ -79,49 +105,55 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
         buttonSequence.push(wmsx.JoystickButtons.J_B.button);
         buttonSequence.push(wmsx.JoystickButtons.J_AB.button);
         for (var k in wmsx.KeyboardKeys) buttonSequence.push(k);
+
+        function createModeButton(mode) {
+            var but = document.createElement('div');
+            but.id = "wmsx-touch-config-" + mode;
+            but.innerHTML = mode.toUpperCase();
+            but.wmsxMode = mode;
+            but.addEventListener("touchstart", modeButtonClicked);
+            but.addEventListener("mousedown", modeButtonClicked);
+            dialog.appendChild(but);
+            return but;
+        }
+    }
+
+    function modifyControl(inc) {
+        if (!editing) return;
+        var isDirectional = editing === "T_DIR";
+        var sequence = isDirectional ? dirSequence : buttonSequence;
+        var mapping = isDirectional ? prefs.directional : prefs.buttons[editing];
+        var curButton = isDirectional ? mapping : mapping && (mapping.button || mapping.key);
+        var curIdx = wmsx.Util.arrayFindIndex(sequence, function (x) {
+            return x === curButton
+        });
+        var newIdx = curIdx + inc;
+        if (newIdx < 0) newIdx = 0; else if (newIdx >= sequence.length) newIdx = sequence.length - 1;
+        var newMapping = sequence[newIdx];
+        if (!isDirectional) newMapping = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
+        touchControls.customizeControl(editing, newMapping);
+        refresh();
     }
 
     function setupEvents() {
-        function hideAbort()   { self.hide(false); }
-        function hideConfirm() { self.hide(true); }
-
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             // Abort
-            if (e.keyCode === ESC_KEY) hideAbort();
+            if (e.keyCode === ESC_KEY) self.hide();
             // Confirm
-            else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
+            else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) self.hide();
             // Select
-            else if (SELECT_KEYS[e.keyCode]) {
-                var isDirectional = editing === "T_DIR";
-                var sequence =  isDirectional ? dirSequence : buttonSequence;
-                var mapping =   isDirectional ? prefs.directional : prefs.buttons[editing];
-                var curButton = isDirectional ? mapping : mapping && (mapping.button || mapping.key);
-                var curIdx = wmsx.Util.arrayFindIndex(sequence, function(x) {
-                    return x === curButton
-                });
-                var newIdx = curIdx + SELECT_KEYS[e.keyCode];
-                if (newIdx < 0) newIdx = 0; else if (newIdx >= sequence.length) newIdx = sequence.length - 1;
-                var newMapping = sequence[newIdx];
-                if (isDirectional) {
-                    prefs.directional = newMapping;
-                    touchControls.updateMappingFor(editing, newMapping);
-                } else {
-                    prefs.buttons[editing] = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
-                    touchControls.updateMappingFor(editing, prefs.buttons[editing]);
-                }
-                refresh();
-            }
+            else if (SELECT_KEYS[e.keyCode]) modifyControl(SELECT_KEYS[e.keyCode]);
 
             return false;
         });
 
         // Hide on lost focus
-        //dialog.addEventListener("blur", hideAbort, true);
-        //dialog.addEventListener("focusout", hideAbort, true);
+        if ("onblur" in document) dialog.addEventListener("blur", self.hide, true);
+        else dialog.addEventListener("focusout", self.hide, true);
 
         // Supress context menu
         dialog.addEventListener("contextmenu", function stopContextMenu(e) {
@@ -129,17 +161,49 @@ wmsx.TouchConfigDialog = function(mainElement, touchControls) {
             e.stopPropagation();
             return false;
         });
+
+        // Clicking arrow buttons modify control
+        minus.addEventListener("touchstart", function(e) { modifyButtonPressed(e, -1); });
+        minus.addEventListener("mousedown",  function(e) { modifyButtonPressed(e, -1); });
+        plus. addEventListener("touchstart", function(e) { modifyButtonPressed(e, +1); });
+        plus. addEventListener("mousedown",  function(e) { modifyButtonPressed(e, +1); });
+        minus.addEventListener("touchend", modifyButtonReleased);
+        minus.addEventListener("mouseup",  modifyButtonReleased);
+        plus. addEventListener("touchend", modifyButtonReleased);
+        plus. addEventListener("mouseup",  modifyButtonReleased);
+    }
+
+    function modifyButtonPressed(e, inc) {
+        modifyButtonReleased(e);
+        modifyControl(inc);
+        modifyKeyTimeout = setTimeout(function repeat() {
+            modifyControl(inc);
+            modifyKeyTimeout = setTimeout(repeat, 50);
+        }, 500);
+    }
+
+    function modifyButtonReleased(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (modifyKeyTimeout) clearTimeout(modifyKeyTimeout);
+    }
+
+    function modeButtonClicked(e) {
+        var mode = e.target.wmsxMode;
+        var modeNum = mode === "p1" ? 0 : mode === "p2" ? 1 : -1;
+        touchControls.setMode(modeNum);
     }
 
 
     var visible = false;
-
-    var dialog, header, directional, button, minus, plus;
-
-    var dirSequence, buttonSequence;
+    var dialog, header, directional, button, minus, plus, p1, p2, off;
 
     var editing = null;
-    var prefs;
+    var modifyKeyTimeout;
+    var dirSequence, buttonSequence;
+
+    var prefs = WMSX.userPreferences.current.touch;
+    var touchControls = controllersHub.getTouchControls();
 
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;

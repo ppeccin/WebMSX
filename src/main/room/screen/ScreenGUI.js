@@ -778,7 +778,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 220px;
-    height: 170px;
+    height: 189px;
     max-width: 92%;
     max-height: 98%;
     margin: auto;
@@ -803,18 +803,19 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config::before {
     content: "";
     position: absolute;
-    bottom: 12px;
+    top: 74px;
     left: 12px;
     width: 196px;
-    height: 100px;
+    height: 80px;
     background: black;
 }
 
 #wmsx-touch-config-minus, #wmsx-touch-config-plus {
     position: absolute;
-    bottom: 12px;
+    top: 74px;
     width: 60px;
-    height: 100px;
+    height: 80px;
+    cursor: pointer;
 }
 #wmsx-touch-config-minus {
     left: 12px;
@@ -826,23 +827,59 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config-minus::after, #wmsx-touch-config-plus::after {
     content: "";
     position: absolute;
-    top: 38px;
+    top: 27px;
     border: 12px solid transparent;
 }
 #wmsx-touch-config-minus::after {
     left: 0;
-    border-right: 23px solid hsl(0, 0%, 85%);
+    border-right: 23px solid hsl(0, 0%, 80%);
 }
 #wmsx-touch-config-plus::after {
     right: 0;
-    border-left: 23px solid hsl(0, 0%, 85%);
+    border-left: 23px solid hsl(0, 0%, 80%);
+}
+
+#wmsx-touch-config-p1, #wmsx-touch-config-p2, #wmsx-touch-config-off {
+    position: absolute;
+    bottom: 12px;
+    width: 57px;
+    height: 26px;
+    font-size: 15px;
+    line-height: 22px;
+    color: hsl(0, 0%, 70%);
+    background: black;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+#wmsx-touch-config-p1 {
+    left: 12px;
+}
+#wmsx-touch-config-p2 {
+    left: 81px;
+}
+#wmsx-touch-config-off {
+    right: 12px;
+    width: 58px;
+}
+#wmsx-touch-config-p1.wmsx-selected, #wmsx-touch-config-p2.wmsx-selected, #wmsx-touch-config-off.wmsx-selected {
+    color: white;
+    text-shadow: 1px 1px 1px black;
+    background: hsl(0, 70%, 50%);
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+}
+#wmsx-touch-config-p1.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-p2.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-off.wmsx-selected.wmsx-selected-inactive {
+    border: 2px dashed hsl(0, 70%, 50%);
+    background: black;
+    box-shadow: none;
 }
 
 #wmsx-touch-config-dir {
     display: none;
     position: absolute;
-    top: 59px;
+    top: 49px;
     left: 45px;
+    transform: scale(.75);
 }
 #wmsx-touch-config-dir.wmsx-show {
     display: block;
@@ -854,7 +891,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config-button {
     display: none;
     position: absolute;
-    top: 90px;
+    top: 79px;
     left: 74px;
     text-shadow: none;
 }

@@ -133,8 +133,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         });
 
         // Hide on lost focus
-        dialog.addEventListener("blur", hideAbort, true);
-        dialog.addEventListener("focusout", hideAbort, true);
+        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
+        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select Disk with click
         list.addEventListener("click", function mouseClickDiskSelect(e) {

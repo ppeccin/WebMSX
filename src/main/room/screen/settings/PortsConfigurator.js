@@ -15,9 +15,9 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 
     this.refresh = function() {
         var state = controllersHub.getSettingsState();
-        mouseModeElement.innerHTML = "Mouse Mode: " + state.mouseMode;
-        joysticksModeElement.innerHTML = "Joysticks Mode: " + state.joysticksMode;
-        joykeysModeElement.innerHTML = "Joykeys Mode: " + state.joykeysMode;
+        mouseModeElement.innerHTML = "Mouse Mode: " + state.mouseModeDesc;
+        joysticksModeElement.innerHTML = "Joysticks Mode: " + state.joysticksModeDesc;
+        joykeysModeElement.innerHTML = "Joykeys Mode: " + state.joykeysModeDesc;
 
         for (var p = 0; p < 2; ++p) {
             var device = state.ports[p];

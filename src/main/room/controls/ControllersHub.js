@@ -166,10 +166,14 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.getSettingsState = function() {
-        return {
-            mouseMode: mouseControls.getModeDesc(), joysticksMode: joystickControls.getModeDesc(), joykeysMode: joykeysControls.getModeDesc(),
-            ports: [ mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || touchPresent[0] || wmsx.ControllersHub.NONE, mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || touchPresent[1] || wmsx.ControllersHub.NONE ]
-        };
+        settingsStateRet.mouseModeDesc = mouseControls.getModeDesc();
+        settingsStateRet.joysticksModeDesc = joystickControls.getModeDesc();
+        settingsStateRet.joykeysModeDesc = joykeysControls.getModeDesc();
+        settingsStateRet.touchPortSet = touchControls.getPortActive();
+        settingsStateRet.touchActive = controllerAtPort[0] === touchControls || controllerAtPort[1] === touchControls;
+        settingsStateRet.ports[0] = mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || touchPresent[0] || wmsx.ControllersHub.NONE;
+        settingsStateRet.ports[1] = mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || touchPresent[1] || wmsx.ControllersHub.NONE;
+        return settingsStateRet;
     };
 
     this.getMappingForControl = function(button, port) {
@@ -221,16 +225,18 @@ wmsx.ControllersHub = function(keyForwardControls) {
             else
                 controllerAtPort[p] = null;
         }
+        touchControls.controllersSettingsStateUpdate();
         screen.controllersSettingsStateUpdate();
     }
 
 
     var controllerAtPort = [ null, null ];
 
-    var mousePresent =    [ null, null ];
-    var joystickPresent = [ null, null ];
-    var joykeysPresent =  [ null, null ];
-    var touchPresent =    [ null, null ];
+    var mousePresent =     [ null, null ];
+    var joystickPresent =  [ null, null ];
+    var joykeysPresent =   [ null, null ];
+    var touchPresent =     [ null, null ];
+    var settingsStateRet = { ports: [ null, null ]};
 
     var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);

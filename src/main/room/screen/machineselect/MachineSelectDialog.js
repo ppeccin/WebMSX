@@ -92,8 +92,8 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         });
 
         // Hide on lost focus
-        dialog.addEventListener("blur", hideAbort, true);
-        dialog.addEventListener("focusout", hideAbort, true);
+        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
+        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select with mousedown
         list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
