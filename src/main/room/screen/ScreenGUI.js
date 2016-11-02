@@ -163,7 +163,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     position: relative;
     vertical-align: top;
     line-height: 1px;
-    z-index: 2;
+    z-index: 3;
 }
 
 #wmsx-screen-canvas {
@@ -178,7 +178,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     margin: 1px auto 0;
     background: rgba(45, 45, 45, .80);
     overflow: visible;                    /* for the Menu to show through */
-    z-index: 2;
+    z-index: 5;
 }
 #wmsx-bar-inner {
     position: absolute;
@@ -364,7 +364,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
-    z-index: 3;
+    z-index: 4;
 }
 #wmsx-screen-fs .wmsx-select-dialog.wmsx-show {
     display: block;
@@ -755,7 +755,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     display: none;
     position: absolute;
     left: 50%;
-    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 4) + `px;
+    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 3) + `px;
     margin: 0 auto;
     padding: 5px 0 0 5px;
     width: 518px;
@@ -779,8 +779,6 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     left: 0; right: 0;
     width: 220px;
     height: 189px;
-    max-width: 92%;
-    max-height: 98%;
     margin: auto;
     padding: 16px 0 0;
     color: white;
@@ -1071,7 +1069,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 100%;
 }
 #wmsx-screen-fs.wmsx-touch-config-active .wmsx-touch-button-none::before {
-    border: 2px dashed hsl(0, 0%, 40%);
+    border: 2px solid hsl(0, 0%, 30%);
 }
 
 .wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
@@ -1128,8 +1126,8 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
     html.wmsx-full-screen.wmsx-touch-active #wmsx-screen-fs-center {
-        left: 117px;
-        right: 85px;
+        left: ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px;
+        right: ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px;
     }
 }
 

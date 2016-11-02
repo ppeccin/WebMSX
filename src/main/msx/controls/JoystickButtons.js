@@ -10,7 +10,7 @@ wmsx.JoystickButtons = {
     J_A:      { button: "J_A",     mask: 0x10, n: "A" },
     J_B:      { button: "J_B",     mask: 0x20, n: "B" },
 
-    J_AB:     { button: "J_AB", mask: 0x30, n: "AB" },        // Special case, both A and B buttons
+    J_AB:     { button: "J_AB",    mask: 0x30, n: "AB" },        // Special case, both A and B buttons
 
     // Virtual buttons, no valid mask
     J_X:      { button: "J_X",     n: "X" },

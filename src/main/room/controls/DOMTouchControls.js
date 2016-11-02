@@ -246,7 +246,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     function processButtonTouch(mapping, press) {
         if (!mapping) return;
 
-        if (mapping.mask) {
+        if (mapping.button) {
             // Joystick button
             if (press) joyState.portValue &= ~mapping.mask;
             else       joyState.portValue |=  mapping.mask;
@@ -355,21 +355,19 @@ wmsx.DOMTouchControls.styleDirectionalMapping = function(elem, mapping) {
 };
 
 wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
-    var BUTTONS_SPECIAL_CLASSES = [ "A", "B", "AB" ];
-
     elem.innerHTML = mapping ? mapping.n || mapping.sn : "";
     if (!mapping) {
         elem.classList.add("wmsx-touch-button-none");
         elem.classList.remove("wmsx-touch-button-joy");
         elem.classList.remove("wmsx-touch-button-key");
-    } else if (mapping.mask) {
+    } else if (mapping.button) {
         elem.classList.add("wmsx-touch-button-joy");
         elem.classList.remove("wmsx-touch-button-key");
         elem.classList.remove("wmsx-touch-button-none");
-        for (var b = 0; b < BUTTONS_SPECIAL_CLASSES.length; ++b) {
-            var esp = BUTTONS_SPECIAL_CLASSES[b];
-            if (mapping && mapping.n === esp) elem.classList.add("wmsx-touch-button-joy-" + esp);
-            else elem.classList.remove("wmsx-touch-button-joy-" + esp);
+        var specialClasses = [ "A", "B", "AB" ];
+        for (var b = 0; b < specialClasses.length; ++b) {
+            if (mapping && mapping.n === specialClasses[b]) elem.classList.add("wmsx-touch-button-joy-" + specialClasses[b]);
+            else elem.classList.remove("wmsx-touch-button-joy-" + specialClasses[b]);
         }
     } else if (mapping.key) {
         elem.classList.add("wmsx-touch-button-key");
@@ -378,3 +376,6 @@ wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
     }
 };
 
+wmsx.DOMTouchControls.LEFT_WIDTH = 117;
+wmsx.DOMTouchControls.RIGHT_WIDTH = 85;
+wmsx.DOMTouchControls.TOTAL_WIDTH = wmsx.DOMTouchControls.LEFT_WIDTH + wmsx.DOMTouchControls.RIGHT_WIDTH;

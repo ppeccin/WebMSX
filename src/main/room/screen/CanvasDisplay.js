@@ -5,6 +5,8 @@
 // TODO Wrong Bar Menu position in FF
 // TODO Fullscreen on FF mobile
 // TODO Menu is closing if other menu tries to open via touch
+// TODO Revisit Bar Hide
+// TODO TouchConfig closing with lostFocus on mobile
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -202,10 +204,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
     };
 
-    this.displayCenter = function() {
-        this.focus();
-    };
-
     this.getMonitor = function() {
         return monitor;
     };
@@ -371,7 +369,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         touchControlsActive = active;
         if (isFullscreen) {
             if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
-            this.requestReadjust();
+            this.requestReadjust(true, true);
         }
     };
 
@@ -385,9 +383,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-    this.requestReadjust = function(now) {
+    this.requestReadjust = function(now, skipFocus) {
         if (now)
-            readjustAll(true);
+            readjustAll(true, skipFocus);
         else {
             readjustRequestTime = wmsx.Util.performanceNow();
             if (!readjustInterval) readjustInterval = setInterval(readjustAll, 50);
@@ -472,13 +470,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         else buttonsBar.classList.remove("wmsx-narrow");
     }
 
-    function updateKeyboardWidth(viewportWidth) {
-        var width = Math.min(1024, viewportWidth);
+    function updateKeyboardWidth(maxWidth) {
+        var width = Math.min(1024, maxWidth);       // Limit to 1024px
         var scale = width / VIRTUAL_KEYBOARD_WIDTH;
-
-        if (virtualKeyboardActive)
-            virtualKeyboardElement.style.transform = "translateX(-50%) scale(" + scale.toFixed(8) + ")";
-
+        virtualKeyboardElement.style.transform = "translateX(-50%) scale(" + scale.toFixed(8) + ")";
         return { w: width, h: Math.ceil(VIRTUAL_KEYBOARD_HEIGHT * scale) };
     }
 
@@ -1073,19 +1068,21 @@ wmsx.CanvasDisplay = function(mainElement) {
         delete wmsx.ScreenGUI.css;
     }
 
-    function readjustAll(force) {
+    function readjustAll(force, skipFocus) {
         if (readjustScreeSizeChanged() || force) {
             if (isFullscreen) {
-                var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
-                var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(readjustScreenSize.w);
+                var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(readjustScreenSize.wk);
                 buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
+                var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
                 var winH = readjustScreenSize.h - wmsx.ScreenGUI.BAR_HEIGHT - (virtualKeyboardActive ? keyboardRect.h : 0) - 2;       // 2 = space between screen and bar
                 monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
                 monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
             }
-            self.displayCenter();
+
+            if (!skipFocus) self.focus();
+
             controllersHub.screenReadjustedUpdate();
 
             //console.log("READJUST");
@@ -1098,10 +1095,17 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function readjustScreeSizeChanged() {
-        var winW = fsElementCenter.clientWidth;
-        var winH = fsElementCenter.clientHeight;
-        if (readjustScreenSize.w !== winW || readjustScreenSize.h !== winH) {
+        var winW = fsElement.clientWidth;
+        var winH = fsElement.clientHeight;
+        var winWK = winW;
+        if (winW > winH) {
+            // For Keyboard in Landscape, always treat as if TouchControls are enabled
+            winWK -= wmsx.DOMTouchControls.TOTAL_WIDTH;
+            if (touchControlsActive) winW = winWK;      // The same for everytinhg if TouchControls indeed enabled
+        }
+        if (readjustScreenSize.w !== winW || readjustScreenSize.h !== winH || readjustScreenSize.wk !== winWK) {
             readjustScreenSize.w = winW;
+            readjustScreenSize.wk = winWK;
             readjustScreenSize.h = winH;
             return true;
         } else
@@ -1152,7 +1156,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var diskDrive;
 
     var readjustInterval = 0, readjustRequestTime = 0;
-    var readjustScreenSize = { w: 0, h: 0 };
+    var readjustScreenSize = { w: 0, wk: 0, h: 0 };
 
     var isFullscreen = false;
 
