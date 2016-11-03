@@ -175,10 +175,13 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     left: 0;
     right: 0;
     height: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
-    margin: 1px auto 0;
-    background: rgba(45, 45, 45, .80);
+    margin: 0 auto;
+    border-top: 1px solid black;
+    background: hsl(0, 0%, 16%);
     overflow: visible;                    /* for the Menu to show through */
+    box-sizing: content-box;
     z-index: 5;
+
 }
 #wmsx-bar-inner {
     position: absolute;
@@ -275,7 +278,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     display: inline-block;
     padding-bottom: 3px;
     border: 1px solid black;
-    background: rgb(40, 40, 40);
+    background: hsl(0, 0%, 16%);
 }
 .wmsx-bar-menu-item, #wmsx-bar-menu-title {
     position: relative;
@@ -354,7 +357,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     margin: auto;
     color: white;
     font-size: 19px;
-    background: rgb(40, 40, 40);
+    background: hsl(0, 0%, 16%);
     padding: 20px 0 0;
     text-align: center;
     border: 1px solid black;
@@ -755,12 +758,12 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     display: none;
     position: absolute;
     left: 50%;
-    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 3) + `px;
+    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 2) + `px;
     margin: 0 auto;
     padding: 5px 0 0 5px;
     width: 518px;
     height: 161px;
-    background: hsl(0, 0%, 19%);
+    background: hsl(0, 0%, 16%);
     box-sizing: border-box;
     transform: translateX(-50%);
     transform-origin: center bottom;
@@ -778,13 +781,13 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 220px;
-    height: 189px;
+    height: 164px;
     margin: auto;
     padding: 16px 0 0;
     color: white;
     font-size: 19px;
     line-height: 23px;
-    background: rgb(40, 40, 40);
+    background: hsl(0, 0%, 16%);
     text-align: center;
     border: 1px solid black;
     box-sizing: initial;
@@ -801,7 +804,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config::before {
     content: "";
     position: absolute;
-    top: 74px;
+    top: 50px;
     left: 12px;
     width: 196px;
     height: 80px;
@@ -810,7 +813,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 
 #wmsx-touch-config-minus, #wmsx-touch-config-plus {
     position: absolute;
-    top: 74px;
+    top: 50px;
     width: 60px;
     height: 80px;
     cursor: pointer;
@@ -881,7 +884,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config-dir {
     display: none;
     position: absolute;
-    top: 49px;
+    top: 25px;
     left: 45px;
     transform: scale(.75);
 }
@@ -895,7 +898,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config-button {
     display: none;
     position: absolute;
-    top: 79px;
+    top: 55px;
     left: 74px;
     text-shadow: none;
 }
@@ -1114,12 +1117,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
-        left: calc(-6px - 117px);
+        left: calc(-6px - ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
     #wmsx-touch-right {
-        right: calc(7px - 85px);
+        right: calc(5px - ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
@@ -1146,12 +1149,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 @media only screen and (orientation: portrait) {    /* Portrait */
 
     #wmsx-touch-left {
-        left: 3px;
-        bottom: 183px;
+        left: 4px;
+        bottom: 182px;
     }
     #wmsx-touch-right {
-        right: 7px;
-        bottom: 38px;
+        right: 5px;
+        bottom: 36px;
         width: 112px;
         height: 224px;
     }

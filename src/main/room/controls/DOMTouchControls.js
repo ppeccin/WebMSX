@@ -376,6 +376,6 @@ wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
     }
 };
 
-wmsx.DOMTouchControls.LEFT_WIDTH = 117;
-wmsx.DOMTouchControls.RIGHT_WIDTH = 85;
+wmsx.DOMTouchControls.LEFT_WIDTH = 119;
+wmsx.DOMTouchControls.RIGHT_WIDTH = 80;
 wmsx.DOMTouchControls.TOTAL_WIDTH = wmsx.DOMTouchControls.LEFT_WIDTH + wmsx.DOMTouchControls.RIGHT_WIDTH;

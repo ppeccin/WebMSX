@@ -5,8 +5,6 @@
 // TODO Wrong Bar Menu position in FF
 // TODO Fullscreen on FF mobile
 // TODO Menu is closing if other menu tries to open via touch
-// TODO Revisit Bar Hide
-// TODO TouchConfig closing with lostFocus on mobile
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -290,6 +288,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             document.documentElement.classList.remove("wmsx-full-screen");
             document.documentElement.classList.remove("wmsx-full-screen-hack");
             exitFullScreenByAPI();
+            monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
         }
 
         self.requestReadjust();
@@ -462,11 +461,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateBarWidth(canvasWidth) {
-        var finalWidth = buttonsBarDesiredWidth > 0 ? buttonsBarDesiredWidth : canvasWidth;
-
-        buttonsBar.style.width = buttonsBarDesiredWidth === -1 ? "100%" : "" + finalWidth + "px";
-
-        if (finalWidth < NARROW_WIDTH) buttonsBar.classList.add("wmsx-narrow");
+        var fixedWidth = buttonsBarDesiredWidth > 0 ? buttonsBarDesiredWidth : canvasWidth;
+        buttonsBar.style.width = buttonsBarDesiredWidth === -1 ? "100%" : "" + fixedWidth + "px";
+        if (fixedWidth < NARROW_WIDTH) buttonsBar.classList.add("wmsx-narrow");
         else buttonsBar.classList.remove("wmsx-narrow");
     }
 
@@ -1071,18 +1068,19 @@ wmsx.CanvasDisplay = function(mainElement) {
     function readjustAll(force, skipFocus) {
         if (readjustScreeSizeChanged() || force) {
             if (isFullscreen) {
+                var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
                 var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(readjustScreenSize.wk);
                 buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
-                var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
-                var winH = readjustScreenSize.h - wmsx.ScreenGUI.BAR_HEIGHT - (virtualKeyboardActive ? keyboardRect.h : 0) - 2;       // 2 = space between screen and bar
+                var winH = readjustScreenSize.h;
+                if (!isLandscape || virtualKeyboardActive) winH -= wmsx.ScreenGUI.BAR_HEIGHT + 2;
+                if (virtualKeyboardActive) winH -= keyboardRect.h + 2;
                 monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
-                monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
+                updateScale();
             }
 
             if (!skipFocus) self.focus();
-
             controllersHub.screenReadjustedUpdate();
 
             //console.log("READJUST");
@@ -1114,12 +1112,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function displayOptimalScaleY(maxWidth, maxHeight) {
         var scY = maxHeight / targetHeight;
-        scY -= (scY % wmsx.Monitor.SCALE_STEP);		                          // Round to multiple of the step
-        var width = aspectX * scY * targetWidth;
-        while (width > maxWidth) {
-            scY -= wmsx.Monitor.SCALE_STEP;				                      // Decrease one step
-            width = aspectX * scY * targetWidth;
-        }
+        if (targetWidth * aspectX * scY > maxWidth)
+            scY = maxWidth / (targetWidth * aspectX);
         return scY;
     }
 

@@ -83,7 +83,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         dialog.tabIndex = -1;
 
         header = document.createElement("div");
-        header.innerHTML = "Tap Control<br>to modify mapping";
+        header.innerHTML = "Tap Control to set";
         dialog.appendChild(header);
 
         minus = document.createElement("div");
@@ -121,7 +121,6 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
             but.id = "wmsx-touch-config-" + mode;
             but.innerHTML = mode.toUpperCase();
             but.wmsxMode = mode;
-            but.addEventListener("touchstart", modeButtonClicked);
             but.addEventListener("mousedown", modeButtonClicked);
             dialog.appendChild(but);
             return but;
