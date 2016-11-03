@@ -1549,10 +1549,11 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 }
 #wmsx-ports .wmsx-touch:after {
     content: "";
+    position: relative;
     display: block;
     width: 6px;
     height: 6px;
-    margin: 0 auto;
+    left: 29px;
     border: 1px solid hsl(0, 0%, 60%);
     background: hsl(0, 0%, 95%);
     border-radius: 100%;
