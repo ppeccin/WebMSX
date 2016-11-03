@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Room = function(screenElement, machinePowerOn) {
+wmsx.Room = function(screenElement, machineStartPowerOn) {
 "use strict";
 
     var self = this;
@@ -11,7 +11,6 @@ wmsx.Room = function(screenElement, machinePowerOn) {
     }
 
     this.powerOn = function(paused) {
-        setPageVisibilityHandling();
         self.screen.powerOn();
         self.speaker.powerOn();
         self.controllersHub.powerOn();
@@ -49,16 +48,7 @@ wmsx.Room = function(screenElement, machinePowerOn) {
     }
 
     function machinePowerOnStartAction() {
-        if (machinePowerOn) WMSX.room.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
-    }
-
-    function setPageVisibilityHandling() {
-        var wasPaused;
-        function visibilityChange() {
-            if (document.hidden) wasPaused = self.machine.systemPause(true);
-            else if (!wasPaused) self.machine.systemPause(false);
-        }
-        document.addEventListener("visibilitychange", visibilityChange);
+        if (machineStartPowerOn) self.machine.userPowerOn(true);        // Auto-run cassette, or type basic commands if any
     }
 
     function buildPeripherals() {
@@ -89,7 +79,7 @@ wmsx.Room = function(screenElement, machinePowerOn) {
         self.machine = new wmsx.Machine();
         self.stateMedia.connect(self.machine.getSavestateSocket());
         self.fileLoader.connect(self.machine);
-        self.screen.connect(self.machine.getVideoOutput(), self.machine.getMachineControlsSocket(), self.machine.getMachineTypeSocket(), self.machine.getExtensionsSocket(), self.machine.getCartridgeSocket(), self.machine.getControllersSocket());
+        self.screen.connect(self.machine);
         self.speaker.connect(self.machine.getAudioSocket());
         self.machineControls.connect(self.machine.getMachineControlsSocket());
         self.controllersHub.connect(self.machine.getControllersSocket(), self.machine.getBIOSSocket());

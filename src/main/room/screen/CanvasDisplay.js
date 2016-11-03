@@ -4,7 +4,6 @@
 // TODO Remove "Center" rounding problems as possible
 // TODO Wrong Bar Menu position in FF
 // TODO Fullscreen on FF mobile
-// TODO Menu is closing if other menu tries to open via touch
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -19,13 +18,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         monitor = new wmsx.Monitor(self);
     }
 
-    this.connect = function(pVideoSignal, pMachineControlsSocket, pMachineTypeSocket, pExtensionsSocket, pCartridgeSocket, pControllersSocket) {
-        monitor.connect(pVideoSignal);
-        machineControlsSocket = pMachineControlsSocket;
-        controllersSocket = pControllersSocket;
-        cartridgeSocket = pCartridgeSocket;
-        extensionsSocket = pExtensionsSocket;
-        machineTypeSocket = pMachineTypeSocket;
+    this.connect = function(pMachine) {
+        machine = pMachine;
+        monitor.connect(machine.getVideoOutput());
+        machineControlsSocket = machine.getMachineControlsSocket();
+        controllersSocket = machine.getControllersSocket();
+        cartridgeSocket = machine.getCartridgeSocket();
+        extensionsSocket = machine.getExtensionsSocket();
+        machineTypeSocket = machine.getMachineTypeSocket();
     };
 
     this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive) {
@@ -45,6 +45,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         else monitor.setDefaults();
         updateLogo();
         document.documentElement.classList.add("wmsx-started");
+        setPageVisibilityHandling();
         this.focus();
     };
 
@@ -52,13 +53,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         document.documentElement.remove("wmsx-started");
     };
 
-    this.start = function(aStartAction) {
+    this.start = function(startAction) {
         // Show the logo messages or start automatically
-        startAction = aStartAction;
-
         if (wmsx.Util.isMobileDevice() && !isFullscreen) {
-            if (!fullscreenAPIEnterMethod && !isBrowserStandalone) setLogoMessage(1);
-            else setLogoMessage(2);
+            if (!fullscreenAPIEnterMethod && !isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then reopen from the new Icon', startAction);
+            else showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen", startAction);
         } else
             startAction();
     };
@@ -261,7 +260,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -1) return;
 
-        setLogoMessage(0);
+        closeLogoMessage();
 
         // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
         if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
@@ -433,7 +432,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function isFullScreenByAPI() {
-        return document[fullScreenAPIQueryProp];
+        return !!document[fullScreenAPIQueryProp];
     }
 
     function enterFullScreenByAPI() {
@@ -496,14 +495,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateLogo() {
-        if (signalIsOn) {
-            logo.style.display = "none";
-        } else {
+        logo.classList.toggle("wmsx-show", !signalIsOn);
+        if (!signalIsOn) {
             if (pasteDialog) pasteDialog.hide();
             showBar();
             showCursor(true);
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-            logo.style.display = "block";
         }
     }
 
@@ -569,6 +566,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         osd = document.getElementById("wmsx-osd");
         logo = document.getElementById("wmsx-logo");
         logoImage = document.getElementById("wmsx-logo-image");
+        logoMessage = document.getElementById("wmsx-logo-message");
         logoMessageYes = document.getElementById("wmsx-logo-message-yes");
         logoMessageNo =  document.getElementById("wmsx-logo-message-no");
         logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
@@ -797,7 +795,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Open/close menu with left-click if no modifiers
         if (modifs === 0 && !e.button) {
             if (barMenuActive !== menu) showBarMenu(menu, e.target, true);
-            else hideBarMenu();
             return;
         }
 
@@ -1018,29 +1015,43 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.appendChild(barMenu);
     }
 
-    function setLogoMessage(mes) {
-        fsElement.classList.remove("wmsx-logo-message-fs");
-        fsElement.classList.remove("wmsx-logo-message-add");
-        if (mes === 1) fsElement.classList.add("wmsx-logo-message-add");
-        else if (mes === 2) fsElement.classList.add("wmsx-logo-message-fs");
+    function showLogoMessage(yesNo, mes, afterAction) {
+        if (afterAction) afterMessageAction = afterAction;
+        logoMessage.innerHTML = mes;
+        logoMessageOk.classList.toggle("wmsx-show", !yesNo);
+        logoMessageYes.classList.toggle("wmsx-show", yesNo);
+        logoMessageNo .classList.toggle("wmsx-show", yesNo);
+        fsElement.classList.add("wmsx-logo-message-active");
+
+        signalIsOn = false;
+        updateLogo();
+    }
+
+    function closeLogoMessage() {
+        if (afterMessageAction) {
+            afterMessageAction();
+            afterMessageAction = null;
+        }
+        logoMessageOk.classList.remove("wmsx-show");
+        logoMessageYes.classList.remove("wmsx-show");
+        logoMessageNo .classList.remove("wmsx-show");
+        fsElement.classList.remove("wmsx-logo-message-active");
     }
 
     function logoMessageYesClicked(e) {
-        setLogoMessage(0);
         self.setFullscreen(true);
-        startAction();
+        closeLogoMessage();
         return blockEvent(e);
     }
 
     function logoMessageNoClicked(e) {
-        setLogoMessage(0);
-        startAction();
+        closeLogoMessage();
         return blockEvent(e);
     }
 
     function logoMessageOkClicked(e) {
-        if (!isFullscreen) setLogoMessage(2);
-        else startAction();
+        if (!isFullscreen) showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen");  // Keep same action
+        else closeLogoMessage();
         return blockEvent(e);
     }
 
@@ -1137,8 +1148,32 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    var startAction;
+    function setPageVisibilityHandling() {
+        var wasUnpaused, wasFullscreenByAPI;
+        function visibilityChange() {
+            if (document.hidden) {
+                wasFullscreenByAPI = isFullScreenByAPI();
+                wasUnpaused = !machine.systemPause(true);
+            } else {
+                if (wasUnpaused) {
+                    if (wasFullscreenByAPI && !isFullScreenByAPI())
+                        showLogoMessage(true, "Emulation paused.<br>Resume in full-screen?", machineSystemUnpauseAction);
+                    else
+                        machineSystemUnpauseAction();
+                }
+            }
+        }
+        document.addEventListener("visibilitychange", visibilityChange);
 
+        function machineSystemUnpauseAction() {
+            machine.systemPause(false);
+        }
+    }
+
+
+    var afterMessageAction;
+
+    var machine;
     var monitor;
     var peripheralControls;
     var fileDownloader;
@@ -1210,7 +1245,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logo, logoImage, logoMessageYes, logoMessageNo, logoMessageOk;
+    var logo, logoImage, logoMessage, logoMessageYes, logoMessageNo, logoMessageOk;
     var loadingImage;
     var scrollMessage, scrollMessageActive = false;
 

@@ -18,15 +18,10 @@ wmsx.ScreenGUI.html = function() {
                     <div id="wmsx-osd"></div>
                     <div id="wmsx-logo">
                         <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
-                        <div id="wmsx-logo-message-fs">
-                            For the best experience on<br>mobile devices, go full-screen
-                            <div id="wmsx-logo-message-yes"></div>
-                            <div id="wmsx-logo-message-no"></div>
-                        </div>
-                        <div id="wmsx-logo-message-add">
-                            For the best experience, use<br>the "Add to Home Screen" option<br>then reopen from the new Icon
-                            <div id="wmsx-logo-message-ok"></div>
-                        </div>
+                        <div id="wmsx-logo-message"></div>
+                        <div id="wmsx-logo-message-yes"></div>
+                        <div id="wmsx-logo-message-no"></div>
+                        <div id="wmsx-logo-message-ok"></div>
                     </div>
                     <img id="wmsx-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                 </div>
@@ -426,14 +421,21 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     left: 0;
     right: 0;
 }
+#wmsx-logo.wmsx-show {
+    display: block;
+}
 
-html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-image, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-image {
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
     bottom: 36%;
 }
-html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-loading-icon, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-loading-icon {
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-loading-icon {
     top: 41%;
 }
-html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-message-fs, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-message-add {
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
+    display: block;
+}
+
+#wmsx-logo-message-yes.wmsx-show, #wmsx-logo-message-no.wmsx-show, #wmsx-logo-message-ok.wmsx-show {
     display: block;
 }
 
@@ -452,7 +454,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     user-select: none;
 }
 
-#wmsx-logo-message-fs, #wmsx-logo-message-add {
+#wmsx-logo-message {
     display: none;
     position: absolute;
     left: 0; right: 0;
@@ -464,15 +466,16 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
 }
 
 #wmsx-logo-message-yes, #wmsx-logo-message-no, #wmsx-logo-message-ok {
+    display: none;
     position: absolute;
-    top: 62%;
+    top: 82%;
     width: 34%;
     height: 64%;
     transform: translate(-50%, -50%);
 }
 #wmsx-logo-message-yes { left: 33%; }
 #wmsx-logo-message-no  { left: 67%; }
-#wmsx-logo-message-ok  { top: 68%; left: 50%; }
+#wmsx-logo-message-ok  { top: 85%; left: 50%; }
 
 #wmsx-logo-message-yes::after, #wmsx-logo-message-no::after, #wmsx-logo-message-ok::after {
     position: absolute;
@@ -484,6 +487,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     line-height: 50px;
     background: hsl(0, 70%, 50%);
     border-radius: 6px;
+    color: white;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, .65);
     transform: translate(-50%, -50%);
 }
