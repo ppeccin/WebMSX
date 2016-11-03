@@ -2,7 +2,6 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Wrong Bar Menu position in FF
 // TODO Fullscreen on FF mobile
 
 wmsx.CanvasDisplay = function(mainElement) {

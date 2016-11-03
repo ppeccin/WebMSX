@@ -265,6 +265,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     height: 0;
     bottom: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
     font-size: 13px;
+    line-height: 1px;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
