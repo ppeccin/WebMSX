@@ -48,8 +48,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             if (i < diskStack.length) {
                 li.classList.add("wmsx-visible");
                 li.innerHTML = "" + (i + 1) + ":&nbsp;&nbsp;" + diskStack[i].name;
-                if (i === diskSelectedNum) li.classList.add("wmsx-selected");
-                else li.classList.remove("wmsx-selected");
+                li.classList.toggle("wmsx-selected", i === diskSelectedNum);
             } else {
                 li.classList.remove("wmsx-visible");
             }

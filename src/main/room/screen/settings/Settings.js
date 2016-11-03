@@ -53,11 +53,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         if (contentPosition) self["wmsx-content"].style.left = contentPosition;
         if (selectionPosition) self["wmsx-menu-selection"].style.left = selectionPosition;
 
-        self["wmsx-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-ports"].classList[page === "PORTS" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("wmsx-selected");
+        self["wmsx-menu-general"].classList.toggle("wmsx-selected", page === "GENERAL");
+        self["wmsx-menu-media"].classList.toggle("wmsx-selected", page === "MEDIA");
+        self["wmsx-menu-inputs"].classList.toggle("wmsx-selected", page === "INPUTS" );
+        self["wmsx-menu-ports"].classList.toggle("wmsx-selected", page === "PORTS");
+        self["wmsx-menu-about"].classList.toggle("wmsx-selected", page === "ABOUT");
 
         switch(page) {
             case "ABOUT":

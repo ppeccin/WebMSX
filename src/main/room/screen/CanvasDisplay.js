@@ -397,9 +397,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (active) {
             if (!wmsx.Util.isTouchDevice()) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
             if (!virtualKeyboardElement) setupVirtualKeyboard();
-            document.documentElement.classList.add("wmsx-virtual-keyboard-active");
-        } else
-            document.documentElement.classList.remove("wmsx-virtual-keyboard-active");
+        }
+        document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", active);
 
         virtualKeyboardActive = active;
         self.requestReadjust(true);
@@ -462,8 +461,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateBarWidth(canvasWidth) {
         var fixedWidth = buttonsBarDesiredWidth > 0 ? buttonsBarDesiredWidth : canvasWidth;
         buttonsBar.style.width = buttonsBarDesiredWidth === -1 ? "100%" : "" + fixedWidth + "px";
-        if (fixedWidth < NARROW_WIDTH) buttonsBar.classList.add("wmsx-narrow");
-        else buttonsBar.classList.remove("wmsx-narrow");
+        buttonsBar.classList.toggle("wmsx-narrow", fixedWidth < NARROW_WIDTH);
     }
 
     function updateKeyboardWidth(maxWidth) {
@@ -827,14 +825,19 @@ wmsx.CanvasDisplay = function(mainElement) {
         else if ("onmozfullscreenchange" in document)    document.addEventListener("mozfullscreenchange", fullscreenByAPIChanged);
 
         // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas) or scroll message in hack mode
-        if (!fullscreenAPIEnterMethod) fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
-            if (isFullscreen) {
-                if (!fullScreenByHack || (e.target !== canvas && e.target !== scrollMessage))
-                    return blockEvent(e);
-                else
+        if (!fullscreenAPIEnterMethod) {
+            scrollMessage.wmsxScroll = canvas.wmsxScroll = logo.wmsxScroll = logoImage.wmsxScroll =
+                logoMessage.wmsxScroll = logoMessageYes.wmsxScroll = logoMessageNo.wmsxScroll = logoMessageOk.wmsxScroll = true;
+
+            fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
+                if (isFullscreen) {
+                    if (!fullScreenByHack || !e.target.wmsxScroll)
+                        return blockEvent(e);
+                    else
                     if (scrollMessageActive) setScrollMessage(false);
-            }
-        });
+                }
+            });
+        }
     }
 
     function showBar() {
@@ -903,18 +906,15 @@ wmsx.CanvasDisplay = function(mainElement) {
                     item.style.display = "block";
 
                     // Disabled ?
-                    if (menu[op].disabled) item.classList.add("wmsx-bar-menu-item-disabled");
-                    else item.classList.remove("wmsx-bar-menu-item-disabled");
+                    item.classList.toggle("wmsx-bar-menu-item-disabled", !!menu[op].disabled);
 
                     // Divider?
-                    if (menu[op].divider) item.classList.add("wmsx-bar-menu-item-divider");
-                    else item.classList.remove("wmsx-bar-menu-item-divider");
+                    item.classList.toggle("wmsx-bar-menu-item-divider", !!menu[op].divider);
 
                     // Toggle option?
                     if (menu[op].toggle !== undefined) {
                         item.classList.add("wmsx-bar-menu-item-toggle");
-                        if (menu[op].checked) item.classList.add("wmsx-bar-menu-item-toggle-checked");
-                        else item.classList.remove("wmsx-bar-menu-item-toggle-checked");
+                        item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!menu[op].checked);
                     } else {
                         item.classList.remove("wmsx-bar-menu-item-toggle");
                     }
@@ -1056,15 +1056,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setScrollMessage(state) {
+        fsElement.classList.toggle("wmsx-scroll-message", state);
+        scrollMessageActive = state;
         if (state) {
-            fsElement.classList.add("wmsx-scroll-message");
-            scrollMessageActive = true;
             setTimeout(function() {
                 setScrollMessage(false);
             }, 5000);
-        } else {
-            fsElement.classList.remove("wmsx-scroll-message");
-            scrollMessageActive = false;
         }
     }
 

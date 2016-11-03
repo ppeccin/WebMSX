@@ -145,11 +145,8 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.controllersSettingsStateUpdate = function () {
-        var active = hub.getSettingsState().touchActive;
-
-        if (active) document.documentElement.classList.add("wmsx-touch-active");
-        else document.documentElement.classList.remove("wmsx-touch-active");
-
+        var active = !!hub.getSettingsState().touchActive;
+        document.documentElement.classList.toggle("wmsx-touch-active", active);
         screen.touchControlsActiveUpdate(active);
     };
 
@@ -345,25 +342,18 @@ wmsx.DOMTouchControls.createButton = function(id) {
 };
 
 wmsx.DOMTouchControls.styleDirectionalMapping = function(elem, mapping) {
-    if (mapping === "KEYBOARD") {
-        elem.classList.add("wmsx-touch-dir-key");
-        elem.classList.remove("wmsx-touch-dir-joy");
-    } else {
-        elem.classList.add("wmsx-touch-dir-joy");
-        elem.classList.remove("wmsx-touch-dir-key");
-    }
+    elem.classList.toggle("wmsx-touch-dir-key", mapping === "KEYBOARD");
+    elem.classList.toggle("wmsx-touch-dir-joy", mapping !== "KEYBOARD");
 };
 
 wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
     elem.innerHTML = mapping ? mapping.n || mapping.sn : "";
     if (!mapping) {
         elem.classList.add("wmsx-touch-button-none");
-        elem.classList.remove("wmsx-touch-button-joy");
-        elem.classList.remove("wmsx-touch-button-key");
+        elem.classList.remove("wmsx-touch-button-joy", "wmsx-touch-button-key");
     } else if (mapping.button) {
         elem.classList.add("wmsx-touch-button-joy");
-        elem.classList.remove("wmsx-touch-button-key");
-        elem.classList.remove("wmsx-touch-button-none");
+        elem.classList.remove("wmsx-touch-button-key", "wmsx-touch-button-none");
         var specialClasses = [ "A", "B", "AB" ];
         for (var b = 0; b < specialClasses.length; ++b) {
             if (mapping && mapping.n === specialClasses[b]) elem.classList.add("wmsx-touch-button-joy-" + specialClasses[b]);
@@ -371,8 +361,7 @@ wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
         }
     } else if (mapping.key) {
         elem.classList.add("wmsx-touch-button-key");
-        elem.classList.remove("wmsx-touch-button-joy");
-        elem.classList.remove("wmsx-touch-button-none");
+        elem.classList.remove("wmsx-touch-button-joy", "wmsx-touch-button-none");
     }
 };
 

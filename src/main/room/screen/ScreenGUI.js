@@ -108,7 +108,7 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     background: hsl(0, 0%, 92%);
     border-radius: 15px;
     box-shadow: 2px 2px 9px rgba(0, 0, 0, 0.7);
-    transition: all 1.1s step-end, opacity 1s linear;
+    transition: all 1.7s step-end, opacity 1.6s linear;
     opacity: 0;
     z-index: -1;
 }
@@ -452,6 +452,9 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+html.wmsx-full-screen #wmsx-logo-image {
+    max-width: 70%;
 }
 
 #wmsx-logo-message {

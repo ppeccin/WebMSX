@@ -28,8 +28,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
     function refreshList() {
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
-            if (li.wmsxMachine == machineSelected) li.classList.add("wmsx-selected");
-            else li.classList.remove("wmsx-selected");
+            li.classList.toggle("wmsx-selected", li.wmsxMachine === machineSelected);
         }
     }
 
