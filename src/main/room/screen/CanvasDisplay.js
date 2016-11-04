@@ -2,7 +2,7 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Fullscreen on FF mobile
+// TODO Screnn flter in FF mobile
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -1125,23 +1125,37 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setViewport() {
-        if (!viewportTag) {
-            viewportTag = document.querySelector("meta[name=viewport]");
-            if (!viewportTag) {
-                viewportTag = document.createElement('meta');
-                viewportTag.name = "viewport";
-                document.head.appendChild(viewportTag);
-            }
+        if (!isMobileDevice) return;
+
+        if (viewPortOriginalContent === undefined) {    // store only once!
+            viewPortOriginalTag = document.querySelector("meta[name=viewport]");
+            viewPortOriginalContent = (viewPortOriginalTag && viewPortOriginalTag.content) || null;
         }
-        if (viewportOriginalContent === null) viewportOriginalContent = viewportTag.content;
-        viewportTag.content = "width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui";
+
+        if (!viewportTag) {
+            viewportTag = document.createElement('meta');
+            viewportTag.name = "viewport";
+            // Android Firefox bug (as of 11/2016). Going back and forth from full-screen makes scale all wrong. Set user-scalable = yes to let user correct it in full-screen :-(
+            viewportTag.content = "width = device-width, height = device-height, initial-scale = 1.0, minimum-scale = 1.0, maximum-scale = 1.0, user-scalable = yes";
+            document.head.appendChild(viewportTag);
+        }
+
+        if (viewPortOriginalTag) try { document.head.removeChild(viewPortOriginalTag); } catch (e) { /* ignore */ }
+        viewPortOriginalTag = null;
     }
 
     function restoreViewport() {
-        if (viewportOriginalContent !== null) {
-            viewportTag.content = viewportOriginalContent;
-            viewportOriginalContent = null;
+        if (!isMobileDevice) return;
+
+        if (!viewPortOriginalTag && viewPortOriginalContent) {
+            viewPortOriginalTag = document.createElement('meta');
+            viewPortOriginalTag.name = "viewport";
+            viewPortOriginalTag.content = viewPortOriginalContent;
+            document.head.appendChild(viewPortOriginalTag);
         }
+
+        if (viewportTag) try { document.head.removeChild(viewportTag); } catch (e) { /* ignore */ }
+        viewportTag = null;
     }
 
     function setPageVisibilityHandling() {
@@ -1186,10 +1200,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     var isFullscreen = false;
 
     var isTouchDevice = wmsx.Util.isTouchDevice();
+    var isMobileDevice = wmsx.Util.isMobileDevice();
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
 
     var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenByHack = false;
-    var viewportTag, viewportOriginalContent = null;
+    var viewportTag, viewPortOriginalTag, viewPortOriginalContent;
 
     var machineControlsSocket;
     var machineControlsStateReport = {};

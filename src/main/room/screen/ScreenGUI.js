@@ -40,6 +40,12 @@ wmsx.ScreenGUI.html = function() {
 wmsx.ScreenGUI.css = function() {
     return `
 
+html {
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    text-size-adjust: none;
+}
+
 html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + ` {
     visibility: visible;
 }
