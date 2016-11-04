@@ -414,20 +414,22 @@ wmsx.Util = new function() {
     };
 
     this.browserInfo = function() {
+        if (this.browserInfoAvailable) return this.browserInfoAvailable;
+
         var ua = navigator.userAgent;
         var temp;
         var m = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
         if (/trident/i.test(m[1])) {
             temp = /\brv[ :]+(\d+)/g.exec(ua) || [];
-            return { name:'IE', version: (temp[1] || '') };
+            return this.browserInfoAvailable = { name:'IE', version: (temp[1] || '') };
         }
         if (m[1] === 'Chrome') {
             temp = ua.match(/\bOPR\/(\d+)/);
-            if (temp != null) return { name:'Opera', version: temp[1] };
+            if (temp != null) return this.browserInfoAvailable = { name:'Opera', version: temp[1] };
         }
         m = m[2] ? [m[1], m[2]]: [ navigator.appName, navigator.appVersion, '-?' ];
         if ((temp = ua.match(/version\/(\d+)/i)) != null) m.splice(1, 1, temp[1]);
-        return {
+        return this.browserInfoAvailable = {
             name: m[0].toUpperCase(),
             version: m[1]
         };
@@ -443,6 +445,10 @@ wmsx.Util = new function() {
 
     this.isMobileDevice = function() {
         return this.isTouchDevice() && (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
+    };
+
+    this.isIOSDevice = function() {
+        return (/ipad|iphone|ipod/i).test(navigator.userAgent);
     };
 
     this.isBrowserStandaloneMode = function() {

@@ -36,7 +36,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.toggleMode = function() {
-        if (!isTouch) {
+        if (!isTouchDevice) {
             hub.showErrorMessage("Touch Controls unavailable. Not a touch device!");
             return;
         }
@@ -59,7 +59,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
             case -1:  return "AUTO";
             case 0:   return "ENABLED";
             case 1:   return "ENABLED (port 2)";
-            default:  return !isTouch ? "NOT SUPPORTED" : "DISABLED";
+            default:  return !isTouchDevice ? "NOT SUPPORTED" : "DISABLED";
         }
     };
 
@@ -151,7 +151,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     function updateMode() {
-        port = mode === -2 ? -1 : mode === -1 ? (isTouch && isMobile ? 0 : -1) : mode;
+        port = mode === -2 ? -1 : mode === -1 ? (isTouchDevice && isMobileDevice ? 0 : -1) : mode;
         resetStates();
         updateConnectionsToHub();
     }
@@ -282,9 +282,9 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     var machineControlsSocket;
     var screen;
 
-    var isTouch = wmsx.Util.isTouchDevice();
-    var isMobile = wmsx.Util.isMobileDevice();
-    var mode = WMSX.TOUCH_MODE >= 1 ? WMSX.TOUCH_MODE - 1 : isTouch ? -1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
+    var isTouchDevice = wmsx.Util.isTouchDevice();
+    var isMobileDevice = wmsx.Util.isMobileDevice();
+    var mode = WMSX.TOUCH_MODE >= 1 ? WMSX.TOUCH_MODE - 1 : isTouchDevice ? -1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;
     var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 

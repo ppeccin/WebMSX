@@ -15,7 +15,6 @@ wmsx.ScreenGUI.html = function() {
             <div id="wmsx-screen-fs-center" tabindex="-1">
                 <div id="wmsx-screen-canvas-outer">
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
-                    <div id="wmsx-osd"></div>
                     <div id="wmsx-logo">
                         <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
                         <div id="wmsx-logo-message"></div>
@@ -23,6 +22,7 @@ wmsx.ScreenGUI.html = function() {
                         <div id="wmsx-logo-message-no"></div>
                         <div id="wmsx-logo-message-ok"></div>
                     </div>
+                    <div id="wmsx-osd"></div>
                     <img id="wmsx-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                 </div>
                 <div id="wmsx-bar">
@@ -56,7 +56,7 @@ html:not(.wmsx-full-screen) .wmsx-full-screen-only {
     display: none;
 }
 
-html.wmsx-full-screen-hack body {
+html.wmsx-full-screen-scroll-hack body {
     position: absolute;
     width: 100%;
     height: ` + Math.max(1280, (Math.max(screen.width, screen.height) * 1.4) | 0) + `px;
@@ -87,7 +87,7 @@ html.wmsx-full-screen-hack body {
     -moz-user-select: none;
     -ms-user-select: none;
 }
-html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
+html.wmsx-full-screen-scroll-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     display: block;
     position: absolute;
     top: 0;
@@ -118,7 +118,7 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     opacity: 0;
     z-index: -1;
 }
-html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
+html.wmsx-full-screen-scroll-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
     opacity: 1;
     bottom: 23%;
     width: 215px;
@@ -145,7 +145,7 @@ html.wmsx-full-screen #wmsx-screen-fs {
     right: 0;
     z-index: 2147483647;
 }
-html.wmsx-full-screen-hack #wmsx-screen-fs {
+html.wmsx-full-screen-scroll-hack #wmsx-screen-fs {
     position: fixed;
     bottom: 0;
     height: 100vh;
@@ -427,6 +427,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     bottom: 0;
     left: 0;
     right: 0;
+    background: black;
 }
 #wmsx-logo.wmsx-show {
     display: block;

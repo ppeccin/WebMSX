@@ -2,7 +2,7 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Screnn flter in FF mobile
+// TODO Auto-Fullscreen mode?  (for mobile standalone)
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -40,12 +40,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.powerOn = function() {
-        if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
-        else monitor.setDefaults();
+        monitor.setDefaults();
         updateLogo();
         document.documentElement.classList.add("wmsx-started");
         setPageVisibilityHandling();
         this.focus();
+        if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
     };
 
     this.powerOff = function() {
@@ -54,7 +54,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.start = function(startAction) {
         // Show the logo messages or start automatically
-        if (wmsx.Util.isMobileDevice() && !isFullscreen) {
+        if (isMobileDevice && !isFullscreen) {
             if (!fullscreenAPIEnterMethod && !isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then reopen from the new Icon', startAction);
             else showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen", startAction);
         } else
@@ -73,6 +73,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         // Update frame
+        if (!canvasContext) createCanvasContext();
         canvasContext.drawImage(
             image,
             0, 0, sourceWidth, sourceHeight,
@@ -233,13 +234,14 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
-        updateImageComposition();
+        canvasContext = null;
     };
 
     this.crtFilterToggle = function() {
-        var newLevel = (crtFilter + 1) % 4;
+        var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = -2;
         setCRTFilter(newLevel);
-        this.showOSD(newLevel === 0 ? "CRT filter: OFF" : "CRT filter level: " + newLevel, true);
+        var levelDesc = crtFilterEffective === null ? "browser default" : crtFilterEffective < 1 ? "OFF" : "level " + crtFilterEffective;
+        this.showOSD("CRT filter: " + (crtFilter === -1 ? "AUTO (" + levelDesc + ")" : levelDesc), true);
     };
 
     this.crtFilterSetDefault = function() {
@@ -247,9 +249,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.crtModeToggle = function() {
-        var newMode = (crtMode + 1) % 2;
+        var newMode = crtMode + 1; if (newMode > 1) newMode = -1;
         setCRTMode(newMode);
-        this.showOSD("CRT mode: " + (crtMode === 1 ? "Phosphor" : "OFF"), true);
+        var effectDesc = crtModeEffective === 1 ? "Phosphor" : "OFF";
+        this.showOSD("CRT mode: " + (crtMode === -1 ? "AUTO (" + effectDesc + ")" : effectDesc), true);
     };
 
     this.crtModeSetDefault = function() {
@@ -277,14 +280,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (mode) {
             setViewport();
             document.documentElement.classList.add("wmsx-full-screen");
-            if (fullScreenByHack) document.documentElement.classList.add("wmsx-full-screen-hack");
+            if (fullScreenScrollHack) document.documentElement.classList.add("wmsx-full-screen-scroll-hack");
             controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
             enterFullScreenByAPI();
-            if (fullScreenByHack) setScrollMessage(true);
+            if (fullScreenScrollHack) setScrollMessage(true);
         } else {
             restoreViewport();
             document.documentElement.classList.remove("wmsx-full-screen");
-            document.documentElement.classList.remove("wmsx-full-screen-hack");
+            document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
             exitFullScreenByAPI();
             monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
         }
@@ -394,7 +397,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (virtualKeyboardActive === active) return;
 
         if (active) {
-            if (!wmsx.Util.isTouchDevice()) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
+            if (!isTouchDevice) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
             if (!virtualKeyboardElement) setupVirtualKeyboard();
         }
         document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", active);
@@ -473,22 +476,30 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateCanvasContentSize() {
         canvas.width = targetWidth;
         canvas.height = targetHeight;
-
-        // Prepare Context used to draw frame
-        canvasContext = canvas.getContext("2d");
-
-        updateImageComposition();
-        updateImageSmoothing();
+        canvasContext = null;
     }
 
     function setCRTFilter(level) {
         crtFilter = level;
-        updateImageSmoothing();
+        crtFilterEffective = crtFilter === -2 ? null : crtFilter === -1 ? crtFilterAutoValue() : level;
+        canvasContext = null;
+    }
+
+    function crtFilterAutoValue() {
+        // Use mode 1 by default (canvas imageSmoothing OFF and CSS image-rendering set to smooth)
+        // iOS browser bug: freezes after some time if imageSmoothing = true. OK if we use the setting above
+        // Firefox on Android bug: image looks terrible if imageSmoothing = false. Lets use mode 2 or 3, or let browser default
+        return isMobileDevice && !isIOSDevice && browserName === "FIREFOX" ? 2 : 1;
     }
 
     function setCRTMode(mode) {
         crtMode = mode;
-        updateImageComposition();
+        crtModeEffective = crtMode === -1 ? crtModeAutoValue() : crtMode;
+        canvasContext = null;
+    }
+
+    function crtModeAutoValue() {
+        return isMobileDevice ? 0 : 1;
     }
 
     function updateLogo() {
@@ -497,7 +508,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (pasteDialog) pasteDialog.hide();
             showBar();
             showCursor(true);
-            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+            if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         }
     }
 
@@ -506,8 +517,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         else loadingImage.style.display = "none";
     }
 
+    function createCanvasContext() {
+        // Prepare Context used to draw frame
+        canvasContext = canvas.getContext("2d", { alpha: false, antialias: false });
+        updateImageComposition();
+        updateImageSmoothing();
+    }
+
     function updateImageComposition() {
-        if (crtMode > 0 && !debugMode) {
+        if (crtModeEffective > 0 && !debugMode) {
             canvasContext.globalCompositeOperation = "source-over";
             canvasContext.globalAlpha = 0.8;
         } else {
@@ -517,9 +535,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateImageSmoothing() {
-        canvas.style.imageRendering = (crtFilter === 1 || crtFilter === 3) ? "initial" : canvasImageRenderingValue;
+        if (crtFilterEffective === null) return;    // let default values
 
-        var smoothing = crtFilter >= 2;
+        canvas.style.imageRendering = (crtFilterEffective === 1 || crtFilterEffective === 3) ? "initial" : canvasImageRenderingValue;
+
+        var smoothing = crtFilterEffective >= 2;
         if (canvasContext.imageSmoothingEnabled !== undefined)
             canvasContext.imageSmoothingEnabled = smoothing;
         else {
@@ -578,7 +598,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateCanvasContentSize();
 
         // Try to determine correct value for image-rendering for the canvas filter modes
-        switch (wmsx.Util.browserInfo().name) {
+        switch (browserName) {
             case "CHROME":
             case "EDGE":
             case "OPERA":   canvasImageRenderingValue = "pixelated"; break;
@@ -817,7 +837,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         else if ("webkitFullscreenElement" in document) fullScreenAPIQueryProp = "webkitFullscreenElement";
         else if ("mozFullScreenElement" in document) fullScreenAPIQueryProp = "mozFullScreenElement";
 
-        if (!fullscreenAPIEnterMethod && wmsx.Util.isMobileDevice() && !isBrowserStandalone) fullScreenByHack = true;
+        if (!fullscreenAPIEnterMethod && isMobileDevice && !isBrowserStandalone) fullScreenScrollHack = true;
 
         if ("onfullscreenchange" in document)            document.addEventListener("fullscreenchange", fullscreenByAPIChanged);
         else if ("onwebkitfullscreenchange" in document) document.addEventListener("webkitfullscreenchange", fullscreenByAPIChanged);
@@ -830,7 +850,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
             fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
                 if (isFullscreen) {
-                    if (!fullScreenByHack || !e.target.wmsxScroll)
+                    if (!fullScreenScrollHack || !e.target.wmsxScroll)
                         return blockEvent(e);
                     else
                     if (scrollMessageActive) setScrollMessage(false);
@@ -1201,9 +1221,11 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var isTouchDevice = wmsx.Util.isTouchDevice();
     var isMobileDevice = wmsx.Util.isMobileDevice();
+    var isIOSDevice = wmsx.Util.isIOSDevice();
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
+    var browserName = wmsx.Util.browserInfo().name;
 
-    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenByHack = false;
+    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenScrollHack = false;
     var viewportTag, viewPortOriginalTag, viewPortOriginalContent;
 
     var machineControlsSocket;
@@ -1239,8 +1261,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var cursorShowing = true;
     var cursorHideFrameCountdown = -1;
     var signalIsOn = false;
-    var crtFilter = 1;
-    var crtMode = 1;
+    var crtFilter = -2, crtFilterEffective = null;
+    var crtMode = -1, crtModeEffective = 0;
     var debugMode = false;
     var isLoading = false;
 
