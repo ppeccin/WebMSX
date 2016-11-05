@@ -15,9 +15,9 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
 
     this.refresh = function() {
         var state = controllersHub.getSettingsState();
-        mouseModeElement.innerHTML = "Mouse Mode: " + state.mouseMode;
-        joysticksModeElement.innerHTML = "Joysticks Mode: " + state.joysticksMode;
-        joykeysModeElement.innerHTML = "Joykeys Mode: " + state.joykeysMode;
+        mouseModeElement.innerHTML = "Mouse Mode: " + state.mouseModeDesc;
+        joysticksModeElement.innerHTML = "Joysticks Mode: " + state.joysticksModeDesc;
+        joykeysModeElement.innerHTML = "Joykeys Mode: " + state.joykeysModeDesc;
 
         for (var p = 0; p < 2; ++p) {
             var device = state.ports[p];
@@ -69,7 +69,7 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
             deviceElements[hubPort] = document.getElementById("wmsx-ports-device" + p);
             deviceTitleElements[hubPort] = document.getElementById("wmsx-ports-device" + p + "-title");
             for (var b in wmsx.JoystickButtons) {
-                var buttonElement = document.getElementById("wmsx-joy" + p + "-" + b);
+                var buttonElement = document.getElementById("wmsx-joy" + p + "-" + wmsx.JoystickButtons[b].n);
                 if (!buttonElement) continue;
                 buttonElement.wmsxButton = b;
                 buttonElement.wmsxPort = hubPort;

@@ -49,8 +49,8 @@ WMSX = {
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FULLSCREEN_MODE:         0,                          // -1: disabled, 0: off, 1: on
-    SCREEN_FILTER_MODE:             1,                          // 0..3
-    SCREEN_CRT_MODE:                1,                          // 0..1
+    SCREEN_CRT_MODE:                -1,                         // -1: auto, 0: off, 1: on
+    SCREEN_FILTER_MODE:             -1,                         // -2: browser default, -1: auto, 0..3: smoothing level
     SCREEN_DEFAULT_SCALE:           1.1,                        // 0.5 .. N, 0.1 steps
     SCREEN_DEFAULT_ASPECT:          1.1,                        // 0.1 steps
     SCREEN_CONTROL_BAR:             0,                          // 0: always, 1: hover

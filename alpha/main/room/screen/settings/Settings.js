@@ -16,6 +16,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
+        visible = true;
         setTimeout(function() {
             self["wmsx-modal"].focus();
         }, 50);
@@ -30,6 +31,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         WMSX.userPreferences.save();
         self["wmsx-modal"].classList.remove("wmsx-show");
         self["wmsx-cover"].classList.remove("wmsx-show");
+        visible = false;
     };
 
     this.setPage = function (page) {
@@ -51,11 +53,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         if (contentPosition) self["wmsx-content"].style.left = contentPosition;
         if (selectionPosition) self["wmsx-menu-selection"].style.left = selectionPosition;
 
-        self["wmsx-menu-general"].classList[page === "GENERAL" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-media"].classList[page === "MEDIA" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-inputs"].classList[page === "INPUTS" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-ports"].classList[page === "PORTS" ? "add" : "remove"]("wmsx-selected");
-        self["wmsx-menu-about"].classList[page === "ABOUT" ? "add" : "remove"]("wmsx-selected");
+        self["wmsx-menu-general"].classList.toggle("wmsx-selected", page === "GENERAL");
+        self["wmsx-menu-media"].classList.toggle("wmsx-selected", page === "MEDIA");
+        self["wmsx-menu-inputs"].classList.toggle("wmsx-selected", page === "INPUTS" );
+        self["wmsx-menu-ports"].classList.toggle("wmsx-selected", page === "PORTS");
+        self["wmsx-menu-about"].classList.toggle("wmsx-selected", page === "ABOUT");
 
         switch(page) {
             case "ABOUT":
@@ -68,11 +70,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     };
 
     this.keyboardSettingsStateUpdate = function() {
-        if (keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
+        if (visible && keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
     };
 
     this.controllersSettingsStateUpdate = function () {
-        if (portsConfigurator) portsConfigurator.controllersSettingsStateUpdate();
+        if (visible && portsConfigurator) portsConfigurator.controllersSettingsStateUpdate();
     };
 
     var create = function () {
@@ -187,13 +189,14 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         e.returnValue = false;  // IE
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
-        if (press && code === KEY_ESC) self.hide();
-        else return WMSX.room.machineControls.processKey(code, press);
-
-        return blockEvent(e);
+        if (press && code === KEY_ESC) {
+            blockEvent(e);
+            self.hide();
+        }
     };
 
 
+    var visible = false;
     this.cover = null;
 
     var keyboardConfigurator, portsConfigurator;

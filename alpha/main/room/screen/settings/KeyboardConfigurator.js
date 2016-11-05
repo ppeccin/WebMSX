@@ -80,8 +80,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
     function refreshUnmappedIndicator() {
         for (var k = 0; k < keyElements.length; ++k) {
             var map = domKeyboard.getKeyMapping(keyElements[k].wmsxKey);
-            if (!map || map.length === 0) keyElements[k].classList.add("wmsx-keyboard-key-unmapped");
-            else keyElements[k].classList.remove("wmsx-keyboard-key-unmapped");
+            keyElements[k].classList.toggle("wmsx-keyboard-key-unmapped", !map || map.length === 0);
         }
     }
 

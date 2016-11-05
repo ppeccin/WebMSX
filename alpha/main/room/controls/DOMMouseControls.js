@@ -212,7 +212,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     function updateConnectionsToHub() {
         if (pointerLocked && port < 0) unlockPointer();
-        hub.updateMouseConnections(port === 0 ? wmsx.ControllersHub.MOUSE : null, port === 1 ? wmsx.ControllersHub.MOUSE : null);
+        hub.updateMouseConnections(port === 0 ? TYPE : null, port === 1 ? TYPE : null);
         screen.mouseActiveCursorStateUpdate(port >= 0);
     }
 
@@ -232,6 +232,8 @@ wmsx.DOMMouseControls = function(hub) {
     var pointerLocked = false;
 
     var controllersSocket, screen;
+
+    var TYPE = wmsx.ControllersHub.MOUSE;
 
     var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
 

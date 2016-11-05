@@ -15,19 +15,14 @@ wmsx.ScreenGUI.html = function() {
             <div id="wmsx-screen-fs-center" tabindex="-1">
                 <div id="wmsx-screen-canvas-outer">
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
-                    <div id="wmsx-osd"></div>
                     <div id="wmsx-logo">
                         <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
-                        <div id="wmsx-logo-message-fs">
-                            For the best experience on<br>mobile devices, go full-screen
-                            <div id="wmsx-logo-message-yes"></div>
-                            <div id="wmsx-logo-message-no"></div>
-                        </div>
-                        <div id="wmsx-logo-message-add">
-                            For the best experience, use<br>the "Add to Home Screen" option<br>then reopen from the new Icon
-                            <div id="wmsx-logo-message-ok"></div>
-                        </div>
+                        <div id="wmsx-logo-message"></div>
+                        <div id="wmsx-logo-message-yes"></div>
+                        <div id="wmsx-logo-message-no"></div>
+                        <div id="wmsx-logo-message-ok"></div>
                     </div>
+                    <div id="wmsx-osd"></div>
                     <img id="wmsx-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                 </div>
                 <div id="wmsx-bar">
@@ -45,6 +40,12 @@ wmsx.ScreenGUI.html = function() {
 wmsx.ScreenGUI.css = function() {
     return `
 
+html {
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    text-size-adjust: none;
+}
+
 html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + ` {
     visibility: visible;
 }
@@ -55,7 +56,7 @@ html:not(.wmsx-full-screen) .wmsx-full-screen-only {
     display: none;
 }
 
-html.wmsx-full-screen-hack body {
+html.wmsx-full-screen-scroll-hack body {
     position: absolute;
     width: 100%;
     height: ` + Math.max(1280, (Math.max(screen.width, screen.height) * 1.4) | 0) + `px;
@@ -86,7 +87,7 @@ html.wmsx-full-screen-hack body {
     -moz-user-select: none;
     -ms-user-select: none;
 }
-html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
+html.wmsx-full-screen-scroll-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     display: block;
     position: absolute;
     top: 0;
@@ -113,17 +114,17 @@ html.wmsx-full-screen-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     background: hsl(0, 0%, 92%);
     border-radius: 15px;
     box-shadow: 2px 2px 9px rgba(0, 0, 0, 0.7);
-    transition: all 1.1s step-end, opacity 1s linear;
+    transition: all 1.7s step-end, opacity 1.6s linear;
     opacity: 0;
     z-index: -1;
 }
-html.wmsx-full-screen-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
+html.wmsx-full-screen-scroll-hack #wmsx-screen-fs.wmsx-scroll-message #wmsx-screen-scroll-message {
     opacity: 1;
     bottom: 23%;
     width: 215px;
     height: 56px;
     padding: 13px 20px;
-    z-index: 20;
+    z-index: 10;
     transition: none;
 }
 
@@ -144,7 +145,7 @@ html.wmsx-full-screen #wmsx-screen-fs {
     right: 0;
     z-index: 2147483647;
 }
-html.wmsx-full-screen-hack #wmsx-screen-fs {
+html.wmsx-full-screen-scroll-hack #wmsx-screen-fs {
     position: fixed;
     bottom: 0;
     height: 100vh;
@@ -163,6 +164,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     position: relative;
     vertical-align: top;
     line-height: 1px;
+    z-index: 3;
 }
 
 #wmsx-screen-canvas {
@@ -174,10 +176,13 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     left: 0;
     right: 0;
     height: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
-    margin: 1px auto 0;
-    background: rgba(45, 45, 45, .80);
+    margin: 0 auto;
+    border-top: 1px solid black;
+    background: hsl(0, 0%, 16%);
     overflow: visible;                    /* for the Menu to show through */
-    z-index: 10;
+    box-sizing: content-box;
+    z-index: 5;
+
 }
 #wmsx-bar-inner {
     position: absolute;
@@ -266,6 +271,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     height: 0;
     bottom: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
     font-size: 13px;
+    line-height: 1px;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -274,7 +280,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     display: inline-block;
     padding-bottom: 3px;
     border: 1px solid black;
-    background: rgb(40, 40, 40);
+    background: hsl(0, 0%, 16%);
 }
 .wmsx-bar-menu-item, #wmsx-bar-menu-title {
     position: relative;
@@ -353,7 +359,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     margin: auto;
     color: white;
     font-size: 19px;
-    background: rgb(40, 40, 40);
+    background: hsl(0, 0%, 16%);
     padding: 20px 0 0;
     text-align: center;
     border: 1px solid black;
@@ -363,7 +369,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
-    z-index: 1;
+    z-index: 4;
 }
 #wmsx-screen-fs .wmsx-select-dialog.wmsx-show {
     display: block;
@@ -421,15 +427,23 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     bottom: 0;
     left: 0;
     right: 0;
+    background: black;
+}
+#wmsx-logo.wmsx-show {
+    display: block;
 }
 
-html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-image, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-image {
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
     bottom: 36%;
 }
-html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-loading-icon, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-loading-icon {
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-loading-icon {
     top: 41%;
 }
-html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-message-fs, html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-add #wmsx-logo-message-add {
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
+    display: block;
+}
+
+#wmsx-logo-message-yes.wmsx-show, #wmsx-logo-message-no.wmsx-show, #wmsx-logo-message-ok.wmsx-show {
     display: block;
 }
 
@@ -447,8 +461,11 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     -ms-user-select: none;
     user-select: none;
 }
+html.wmsx-full-screen #wmsx-logo-image {
+    max-width: 70%;
+}
 
-#wmsx-logo-message-fs, #wmsx-logo-message-add {
+#wmsx-logo-message {
     display: none;
     position: absolute;
     left: 0; right: 0;
@@ -460,15 +477,16 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
 }
 
 #wmsx-logo-message-yes, #wmsx-logo-message-no, #wmsx-logo-message-ok {
+    display: none;
     position: absolute;
-    top: 62%;
+    top: 82%;
     width: 34%;
     height: 64%;
     transform: translate(-50%, -50%);
 }
 #wmsx-logo-message-yes { left: 33%; }
 #wmsx-logo-message-no  { left: 67%; }
-#wmsx-logo-message-ok  { top: 68%; left: 50%; }
+#wmsx-logo-message-ok  { top: 85%; left: 50%; }
 
 #wmsx-logo-message-yes::after, #wmsx-logo-message-no::after, #wmsx-logo-message-ok::after {
     position: absolute;
@@ -480,6 +498,7 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     line-height: 50px;
     background: hsl(0, 70%, 50%);
     border-radius: 6px;
+    color: white;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, .65);
     transform: translate(-50%, -50%);
 }
@@ -754,45 +773,171 @@ html:not(.wmsx-full-screen) #wmsx-screen-fs.wmsx-logo-message-fs #wmsx-logo-mess
     display: none;
     position: absolute;
     left: 50%;
-    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 4) + `px;
+    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 2) + `px;
     margin: 0 auto;
     padding: 5px 0 0 5px;
     width: 518px;
     height: 161px;
-    background: hsl(0, 0%, 19%);
+    background: hsl(0, 0%, 16%);
     box-sizing: border-box;
     transform: translateX(-50%);
     transform-origin: center bottom;
     transition: height 0.3s ease-in-out;
     text-align: left;
+    z-index: 2;
 }
 html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
+#wmsx-touch-config {
+    display: none;
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    width: 220px;
+    height: 164px;
+    margin: auto;
+    padding: 16px 0 0;
+    color: white;
+    font-size: 19px;
+    line-height: 23px;
+    background: hsl(0, 0%, 16%);
+    text-align: center;
+    border: 1px solid black;
+    box-sizing: initial;
+    text-shadow: 1px 1px 1px black;
+    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: auto;
+    z-index: 3;
+}
+#wmsx-screen-fs.wmsx-touch-config-active #wmsx-touch-config {
+    display: block;
+}
+#wmsx-touch-config::before {
+    content: "";
+    position: absolute;
+    top: 50px;
+    left: 12px;
+    width: 196px;
+    height: 80px;
+    background: black;
+}
+
+#wmsx-touch-config-minus, #wmsx-touch-config-plus {
+    position: absolute;
+    top: 50px;
+    width: 60px;
+    height: 80px;
+    cursor: pointer;
+}
+#wmsx-touch-config-minus {
+    left: 12px;
+}
+#wmsx-touch-config-plus {
+    right: 12px;
+}
+
+#wmsx-touch-config-minus::after, #wmsx-touch-config-plus::after {
+    content: "";
+    position: absolute;
+    top: 27px;
+    border: 12px solid transparent;
+}
+#wmsx-touch-config-minus::after {
+    left: 0;
+    border-right: 23px solid hsl(0, 0%, 80%);
+}
+#wmsx-touch-config-minus.wmsx-disabled::after {
+    border-right-color: hsl(0, 0%, 40%);
+}
+#wmsx-touch-config-plus::after {
+    right: 0;
+    border-left: 23px solid hsl(0, 0%, 80%);
+}
+#wmsx-touch-config-plus.wmsx-disabled::after {
+    border-left-color: hsl(0, 0%, 40%);
+}
+
+#wmsx-touch-config-p1, #wmsx-touch-config-p2, #wmsx-touch-config-off {
+    position: absolute;
+    bottom: 12px;
+    width: 57px;
+    height: 26px;
+    font-size: 15px;
+    line-height: 22px;
+    color: hsl(0, 0%, 70%);
+    background: black;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+#wmsx-touch-config-p1 {
+    left: 12px;
+}
+#wmsx-touch-config-p2 {
+    left: 81px;
+}
+#wmsx-touch-config-off {
+    right: 12px;
+    width: 58px;
+}
+#wmsx-touch-config-p1.wmsx-selected, #wmsx-touch-config-p2.wmsx-selected, #wmsx-touch-config-off.wmsx-selected {
+    color: white;
+    text-shadow: 1px 1px 1px black;
+    background: hsl(0, 70%, 50%);
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+}
+#wmsx-touch-config-p1.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-p2.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-off.wmsx-selected.wmsx-selected-inactive {
+    border: 2px dashed hsl(0, 70%, 50%);
+    background: black;
+    box-shadow: none;
+}
+
+#wmsx-touch-config-dir {
+    display: none;
+    position: absolute;
+    top: 25px;
+    left: 45px;
+    transform: scale(.75);
+}
+#wmsx-touch-config-dir.wmsx-show {
+    display: block;
+}
+#wmsx-touch-config-dir::before {
+    display: none;
+}
+
+#wmsx-touch-config-button {
+    display: none;
+    position: absolute;
+    top: 55px;
+    left: 74px;
+    text-shadow: none;
+}
+#wmsx-touch-config-button.wmsx-show {
+    display: block;
+}
 
 #wmsx-touch-left, #wmsx-touch-right {
     display: none;
     position: absolute;
+    z-index: 1;
 }
 
 html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-right {
     display: block;
 }
 
-@media only screen and (orientation: portrait) {
-    html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
-        display: none;
-    }
-}
-
-#wmsx-touch-dir {
+.wmsx-touch-dir {
     width: 130px;
     height: 130px;
-    color: hsl(0, 0%, 72%);
+    color: hsl(0, 0%, 75%);
     border-radius: 100%;
 }
-#wmsx-touch-dir::after {
+.wmsx-touch-dir::before {
     content: "";
     position: absolute;
     top: 14px; left: 14px;
@@ -801,25 +946,25 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 100%;
 }
 
-.wmsx-touch-dir-joy #wmsx-touch-dir-up, .wmsx-touch-dir-joy #wmsx-touch-dir-left {
+.wmsx-touch-dir-joy .wmsx-touch-dir-up, .wmsx-touch-dir-joy .wmsx-touch-dir-left {
     position: absolute;
     background: hsl(0, 0%, 31%);
     border-radius: 2px 2px 0 0;
     box-shadow: inset 1px 2px 0px hsl(0, 0%, 43%), inset -1px -1px hsl(0, 0%, 19%), 0 3px 0 1px hsl(0, 0%, 21%);
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-up {
+.wmsx-touch-dir-joy .wmsx-touch-dir-up {
     width: 26px;
     height: 78px;
     top: 24px;
     left: 52px;
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-left {
+.wmsx-touch-dir-joy .wmsx-touch-dir-left {
     width: 78px;
     height: 25px;
     top: 51px;
     left: 26px;
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-left::before {
+.wmsx-touch-dir-joy .wmsx-touch-dir-left::before {
     content: "";
     position: absolute;
     top: 2px;
@@ -829,7 +974,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background: inherit;
     z-index: 1;
 }
-.wmsx-touch-dir-joy #wmsx-touch-dir-left::after {
+.wmsx-touch-dir-joy .wmsx-touch-dir-left::after {
     content: "";
     position: absolute;
     top: 4px;
@@ -842,7 +987,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 
 
-.wmsx-touch-dir-key #wmsx-touch-dir-up, .wmsx-touch-dir-key #wmsx-touch-dir-left, .wmsx-touch-dir-key #wmsx-touch-dir-down, .wmsx-touch-dir-key #wmsx-touch-dir-right {
+.wmsx-touch-dir-key .wmsx-touch-dir-up, .wmsx-touch-dir-key .wmsx-touch-dir-left, .wmsx-touch-dir-key .wmsx-touch-dir-down, .wmsx-touch-dir-key .wmsx-touch-dir-right {
     position: absolute;
     background: rgb(70, 85, 180);
     border: 0 solid hsl(232, 44%, 37%);
@@ -852,31 +997,31 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 2px 2px 0 0;
     box-sizing: border-box;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-up, .wmsx-touch-dir-key #wmsx-touch-dir-down {
+.wmsx-touch-dir-key .wmsx-touch-dir-up, .wmsx-touch-dir-key .wmsx-touch-dir-down {
     left: 50px;
     width: 30px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-up {
+.wmsx-touch-dir-key .wmsx-touch-dir-up {
     top: 26px;
     height: 26px;
     border-bottom-width: 2px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-down {
+.wmsx-touch-dir-key .wmsx-touch-dir-down {
     bottom: 26px;
     height: 28px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-left, .wmsx-touch-dir-key #wmsx-touch-dir-right {
+.wmsx-touch-dir-key .wmsx-touch-dir-left, .wmsx-touch-dir-key .wmsx-touch-dir-right {
     top: 47px;
     width: 25px;
     height: 36px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-left {
+.wmsx-touch-dir-key .wmsx-touch-dir-left {
     left: 24px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-right {
+.wmsx-touch-dir-key .wmsx-touch-dir-right {
     right: 24px;
 }
-.wmsx-touch-dir-key #wmsx-touch-dir-up::after {
+.wmsx-touch-dir-key .wmsx-touch-dir-up::after {
     content: "";
     position: absolute;
     top: 28px;
@@ -886,27 +1031,27 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background: hsl(0, 0%, 20%);
 }
 
-#wmsx-touch-dir .wmsx-arrow-up, #wmsx-touch-dir .wmsx-arrow-down, #wmsx-touch-dir .wmsx-arrow-left, #wmsx-touch-dir .wmsx-arrow-right {
+.wmsx-touch-dir .wmsx-arrow-up, .wmsx-touch-dir .wmsx-arrow-down, .wmsx-touch-dir .wmsx-arrow-left, .wmsx-touch-dir .wmsx-arrow-right {
     position: absolute;
     border-width: 5px;
     z-index: 2;
 }
-#wmsx-touch-dir .wmsx-arrow-up {
+.wmsx-touch-dir .wmsx-arrow-up {
     top: 26px;
     left: 60px;
     border-bottom-width: 11px;
 }
-#wmsx-touch-dir .wmsx-arrow-down {
+.wmsx-touch-dir .wmsx-arrow-down {
     bottom: 29px;
     left: 60px;
     border-top-width: 11px;
 }
-#wmsx-touch-dir .wmsx-arrow-left {
+.wmsx-touch-dir .wmsx-arrow-left {
     top: 58px;
     left: 26px;
     border-right-width: 11px;
 }
-#wmsx-touch-dir .wmsx-arrow-right {
+.wmsx-touch-dir .wmsx-arrow-right {
     top: 58px;
     right: 26px;
     border-left-width: 11px;
@@ -919,11 +1064,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     height: 72px;
     font-size: 20px;
     line-height: 68px;
-    color: hsl(0, 0%, 77%);
+    color: hsl(0, 0%, 79%);
     border-radius: 100%;
     cursor: default;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    z-index: 0;
 }
 
 .wmsx-touch-button::before {
@@ -933,14 +1079,17 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     z-index: -1;
 }
 
-.wmsx-touch-button-joy::before {
+.wmsx-touch-button-joy::before, .wmsx-touch-button-none::before {
     width: 50px;
     height: 48px;
-    top: 09px;
+    top: 9px;
     left: 11px;
-    border: 2px solid hsl(0, 0%, 47%);
     border-radius: 100%;
 }
+#wmsx-screen-fs.wmsx-touch-config-active .wmsx-touch-button-none::before {
+    border: 2px solid hsl(0, 0%, 30%);
+}
+
 .wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
     border: none;
     background: hsl(120, 76%, 32%);
@@ -973,30 +1122,30 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     border-radius: 3px 3px 1px 1px;
 }
 
-#wmsx-touch-T_A { z-index: 9 }
-#wmsx-touch-T_B { z-index: 8 }
-#wmsx-touch-T_C { z-index: 7 }
-#wmsx-touch-T_D { z-index: 6 }
-#wmsx-touch-T_E { z-index: 5 }
-#wmsx-touch-T_F { z-index: 4 }
-#wmsx-touch-T_G { z-index: 3 }
+#wmsx-touch-T_A { z-index: 7 }
+#wmsx-touch-T_B { z-index: 6 }
+#wmsx-touch-T_C { z-index: 5 }
+#wmsx-touch-T_D { z-index: 4 }
+#wmsx-touch-T_E { z-index: 3 }
+#wmsx-touch-T_F { z-index: 2 }
+#wmsx-touch-T_G { z-index: 1 }
 
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
-        left: -6px;
+        left: calc(-6px - ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
     #wmsx-touch-right {
-        right: 7px;
+        right: calc(5px - ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
     html.wmsx-full-screen.wmsx-touch-active #wmsx-screen-fs-center {
-        left: 117px;
-        right: 85px;
+        left: ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px;
+        right: ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px;
     }
 }
 
@@ -1015,12 +1164,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 @media only screen and (orientation: portrait) {    /* Portrait */
 
     #wmsx-touch-left {
-        left: 3px;
-        bottom: 183px;
+        left: 4px;
+        bottom: 182px;
     }
     #wmsx-touch-right {
-        right: 7px;
-        bottom: 38px;
+        right: 5px;
+        bottom: 36px;
         width: 112px;
         height: 224px;
     }
@@ -1056,6 +1205,11 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         bottom: 0%;
         right: 0%;
     }
+
+    html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
+        display: none;
+    }
+
 }
 
 @media only screen and (orientation: portrait) and (max-device-height: 638px) {    /* Medium Portrait. Like iPhone 5 */

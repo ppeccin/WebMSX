@@ -48,8 +48,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             if (i < diskStack.length) {
                 li.classList.add("wmsx-visible");
                 li.innerHTML = "" + (i + 1) + ":&nbsp;&nbsp;" + diskStack[i].name;
-                if (i === diskSelectedNum) li.classList.add("wmsx-selected");
-                else li.classList.remove("wmsx-selected");
+                li.classList.toggle("wmsx-selected", i === diskSelectedNum);
             } else {
                 li.classList.remove("wmsx-visible");
             }
@@ -133,8 +132,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         });
 
         // Hide on lost focus
-        dialog.addEventListener("blur", hideAbort, true);
-        dialog.addEventListener("focusout", hideAbort, true);
+        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
+        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select Disk with click
         list.addEventListener("click", function mouseClickDiskSelect(e) {

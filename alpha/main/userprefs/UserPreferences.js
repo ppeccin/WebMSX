@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Migration
+
 WMSX.userPreferences = { };
 
 WMSX.userPreferences.compatibleVersions = new Set([ 0, 1 ]);
@@ -23,26 +25,26 @@ WMSX.userPreferences.defaults = function() {
         joysticks: [
             {
                 buttons: {
-                    UP:        [ g.GB_UP ],
-                    DOWN:      [ g.GB_DOWN ],
-                    LEFT:      [ g.GB_LEFT ],
-                    RIGHT:     [ g.GB_RIGHT ],
-                    A:         [ g.GB_1, g.GB_3 ],
-                    B:         [ g.GB_2, g.GB_3 ],
-                    X:         [ ],
-                    Y:         [ ],
-                    L:         [ g.GB_L1, g.GB_L2 ],
-                    R:         [ g.GB_R1, g.GB_R2 ],
-                    BACK:      [ g.GB_BACK ],
-                    START:     [ g.GB_START ]
+                    J_UP:        [ g.GB_UP ],
+                    J_DOWN:      [ g.GB_DOWN ],
+                    J_LEFT:      [ g.GB_LEFT ],
+                    J_RIGHT:     [ g.GB_RIGHT ],
+                    J_A:         [ g.GB_1, g.GB_3 ],
+                    J_B:         [ g.GB_2, g.GB_3 ],
+                    J_X:         [ ],
+                    J_Y:         [ ],
+                    J_L:         [ g.GB_L1, g.GB_L2 ],
+                    J_R:         [ g.GB_R1, g.GB_R2 ],
+                    J_BACK:      [ g.GB_BACK ],
+                    J_START:     [ g.GB_START ]
                 },
                 virtualButtonsKeys: {
-                    X:         [ ],
-                    Y:         [ ],
-                    L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
-                    R:         [ k.VK_F12 ],
-                    BACK:      [ k.VK_ESCAPE ],
-                    START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
+                    J_X:         [ ],
+                    J_Y:         [ ],
+                    J_L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
+                    J_R:         [ k.VK_F12 ],
+                    J_BACK:      [ k.VK_ESCAPE ],
+                    J_START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
                 },
                 settings: {
                     device:    -1,  // -1 = auto
@@ -55,26 +57,26 @@ WMSX.userPreferences.defaults = function() {
             },
             {
                 buttons: {
-                    UP:        [ g.GB_UP ],
-                    DOWN:      [ g.GB_DOWN ],
-                    LEFT:      [ g.GB_LEFT ],
-                    RIGHT:     [ g.GB_RIGHT ],
-                    A:         [ g.GB_1, g.GB_3 ],
-                    B:         [ g.GB_2, g.GB_3 ],
-                    X:         [ ],
-                    Y:         [ ],
-                    L:         [ g.GB_L1, g.GB_L2 ],
-                    R:         [ g.GB_R1, g.GB_R2 ],
-                    BACK:      [ g.GB_BACK ],
-                    START:     [ g.GB_START ]
+                    J_UP:        [ g.GB_UP ],
+                    J_DOWN:      [ g.GB_DOWN ],
+                    J_LEFT:      [ g.GB_LEFT ],
+                    J_RIGHT:     [ g.GB_RIGHT ],
+                    J_A:         [ g.GB_1, g.GB_3 ],
+                    J_B:         [ g.GB_2, g.GB_3 ],
+                    J_X:         [ ],
+                    J_Y:         [ ],
+                    J_L:         [ g.GB_L1, g.GB_L2 ],
+                    J_R:         [ g.GB_R1, g.GB_R2 ],
+                    J_BACK:      [ g.GB_BACK ],
+                    J_START:     [ g.GB_START ]
                 },
                 virtualButtonsKeys: {
-                    X:         [ ],
-                    Y:         [ ],
-                    L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
-                    R:         [ k.VK_F12 ],
-                    BACK:      [ k.VK_ESCAPE ],
-                    START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
+                    J_X:         [ ],
+                    J_Y:         [ ],
+                    J_L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
+                    J_R:         [ k.VK_F12 ],
+                    J_BACK:      [ k.VK_ESCAPE ],
+                    J_START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
                 },
                 settings: {
                     device:    -1,  // -1 = auto
@@ -90,22 +92,22 @@ WMSX.userPreferences.defaults = function() {
         joykeys: [
             {
                 buttons: {
-                    UP:        [ k.VK_UP, k.VK_NUM_UP ],
-                    DOWN:      [ k.VK_DOWN, k.VK_NUM_DOWN ],
-                    LEFT:      [ k.VK_LEFT, k.VK_NUM_LEFT ],
-                    RIGHT:     [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
-                    A:         [ k.VK_SPACE, k.VK_LSHIFT, k.VK_INSERT ],
-                    B:         [ k.VK_LALT, k.VK_LCONTROL, k.VK_DELETE, k.VK_M ]
+                    J_UP:        [ k.VK_UP, k.VK_NUM_UP ],
+                    J_DOWN:      [ k.VK_DOWN, k.VK_NUM_DOWN ],
+                    J_LEFT:      [ k.VK_LEFT, k.VK_NUM_LEFT ],
+                    J_RIGHT:     [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
+                    J_A:         [ k.VK_SPACE, k.VK_LSHIFT, k.VK_INSERT ],
+                    J_B:         [ k.VK_LALT, k.VK_LCONTROL, k.VK_DELETE, k.VK_M ]
                 }
             },
             {
                 buttons: {
-                    UP:        [ k.VK_T ],
-                    DOWN:      [ k.VK_G ],
-                    LEFT:      [ k.VK_F ],
-                    RIGHT:     [ k.VK_H ],
-                    A:         [ k.VK_A ],
-                    B:         [ k.VK_Z ]
+                    J_UP:        [ k.VK_T ],
+                    J_DOWN:      [ k.VK_G ],
+                    J_LEFT:      [ k.VK_F ],
+                    J_RIGHT:     [ k.VK_H ],
+                    J_A:         [ k.VK_A ],
+                    J_B:         [ k.VK_Z ]
                 }
             }
         ],
@@ -113,9 +115,9 @@ WMSX.userPreferences.defaults = function() {
         touch: {
             directional: "JOYSTICK",       // JOYSTICK, KEYBOARD
             buttons: {
-                T_A: j.A,
-                T_B: j.B,
-                T_C: j.AB,
+                T_A: j.J_A,
+                T_B: j.J_B,
+                T_C: j.J_AB,
                 T_D: m.ESCAPE,
                 T_E: m.ENTER,
                 T_F: m.F1,

@@ -176,8 +176,8 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     };
 
     function updateConnectionsToHub() {
-        var j1 = joystick1 ? wmsx.ControllersHub.JOYSTICK + " 1" : null;
-        var j2 = joystick2 ? wmsx.ControllersHub.JOYSTICK + " 2" : null;
+        var j1 = joystick1 ? TYPE + " 1" : null;
+        var j2 = joystick2 ? TYPE + " 2" : null;
         hub.updateJoystickConnections(swappedMode ? j2 : j1, swappedMode ? j1 : j2);
     }
 
@@ -297,6 +297,8 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     var joyPrefs = [];
 
     var buttonDetectionPrefs = null, buttonDetectionListener = null;
+
+    var TYPE = wmsx.ControllersHub.JOYSTICK;
 
     var DETECTION_DELAY = 60;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off

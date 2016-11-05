@@ -25,16 +25,10 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         if (confirm) machineTypeSocket.changeMachine(machineSelected);
     };
 
-    this.toggle = function(drive) {
-        if (visible) this.hide(false);
-        else this.show(drive);
-    };
-
     function refreshList() {
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
-            if (li.wmsxMachine == machineSelected) li.classList.add("wmsx-selected");
-            else li.classList.remove("wmsx-selected");
+            li.classList.toggle("wmsx-selected", li.wmsxMachine === machineSelected);
         }
     }
 
@@ -97,8 +91,8 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         });
 
         // Hide on lost focus
-        dialog.addEventListener("blur", hideAbort, true);
-        dialog.addEventListener("focusout", hideAbort, true);
+        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
+        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select with mousedown
         list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
@@ -128,7 +122,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
     var visible = false;
 
     var k = wmsx.DOMKeys;
-    var ESC_KEY = k.VK_ESCAPE.c, UP_KEY = k.VK_UP.c, DOWN_KEY = k.VK_DOWN.c;
+    var ESC_KEY = k.VK_ESCAPE.c;
     var CONFIRM_KEYS = [ k.VK_ENTER.c, k.VK_SPACE.c ];
     var SELECT_KEYS = {};
         SELECT_KEYS[k.VK_UP.c] = -1;

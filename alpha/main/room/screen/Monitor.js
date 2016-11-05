@@ -31,7 +31,7 @@ wmsx.Monitor = function(display) {
     this.setDefaults = function() {
         display.crtModeSetDefault();
         display.crtFilterSetDefault();
-        this.displayScale(WMSX.SCREEN_DEFAULT_ASPECT, displayScaleY);
+        this.displayScale(WMSX.SCREEN_DEFAULT_ASPECT, WMSX.SCREEN_DEFAULT_SCALE);
         display.requestReadjust(true);
     };
 
@@ -52,22 +52,22 @@ wmsx.Monitor = function(display) {
     };
 
     this.displayAspectDecrease = function() {
-        this.displayScale(limitAspectX(displayAspectX - wmsx.Monitor.SCALE_STEP), displayScaleY);
+        this.displayScale(normalizeAspectX(displayAspectX - wmsx.Monitor.SCALE_STEP), displayScaleY);
         this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayAspectIncrease = function() {
-        this.displayScale(limitAspectX(displayAspectX + wmsx.Monitor.SCALE_STEP), displayScaleY);
+        this.displayScale(normalizeAspectX(displayAspectX + wmsx.Monitor.SCALE_STEP), displayScaleY);
         this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayScaleDecrease = function() {
-        this.displayScale(displayAspectX, limitScaleY(displayScaleY - wmsx.Monitor.SCALE_STEP));
+        this.displayScale(displayAspectX, normalizeScaleY(displayScaleY - wmsx.Monitor.SCALE_STEP));
         this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.displayScaleIncrease = function() {
-        this.displayScale(displayAspectX, limitScaleY(displayScaleY + wmsx.Monitor.SCALE_STEP));
+        this.displayScale(displayAspectX, normalizeScaleY(displayScaleY + wmsx.Monitor.SCALE_STEP));
         this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
@@ -81,12 +81,14 @@ wmsx.Monitor = function(display) {
         display.displayScale(displayAspectX, displayScaleY);
     };
 
-    function limitAspectX(aspectX) {
-        return aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
+    function normalizeAspectX(aspectX) {
+        var ret = aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
+        return Math.round(ret * 10) / 10;
     }
 
-    function limitScaleY(scaleY) {
-        return scaleY < 0.5 ? 0.5 : scaleY;
+    function normalizeScaleY(scaleY) {
+        var ret = scaleY < 0.5 ? 0.5 : scaleY;
+        return Math.round(ret * 10) / 10;
     }
 
 
@@ -97,6 +99,6 @@ wmsx.Monitor = function(display) {
 
 };
 
-wmsx.Monitor.SCALE_STEP = 0.05;
+wmsx.Monitor.SCALE_STEP = 0.1;
 
 

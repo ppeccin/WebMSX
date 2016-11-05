@@ -1,155 +1,165 @@
 <!DOCTYPE html>
 <html>
 
-    <head lang="en">
+<head lang="en">
 
-        <!-- DEBUG -->
-        <!--<script src="http://10.42.10.128:9090/target/target-script-min.js#WebMSX"></script>-->
+    <meta charset="UTF-8">
+    <title>WebMSX</title>
+    <meta name="description" content="WebMSX - The online MSX Emulator">
+    <link rel="icon" type="image/png" href="../runtime/images/files/logo-icon32.png?v=5">
 
-        <meta charset="UTF-8">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <meta name="viewport" content="width=700, maximum-scale=1.0">
-        <title>WebMSX Alpha</title>
-    </head>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="width = 700, minimum-scale = 0.2, maximum-scale = 1.0, user-scalable = yes">
+    <!--<link rel="apple-touch-icon" sizes="192x192" href="../runtime/images/files/logo-icon.png">-->
 
-    <body style="background: #eeeeee;">
+    <!-- DEBUG -->
+    <!--<script src="http://10.42.10.128:9090/target/target-script-min.js#WebMSX"></script>-->
 
-        <div id="wmsx" style="text-align: center; margin-top: 20px;">
-            <div id="wmsx-screen" style="box-shadow: 2px 2px 10px rgba(0, 0, 0, .7);"></div>
-        </div>
+</head>
 
-        <script src="../main/WMSX.js"></script>
-        <script src="../main/util/Util.js"></script>
-        <script src="../main/util/SHA1.js"></script>
-        <script src="../main/util/ZIP.js"></script>
-        <script src="../main/util/EmbeddedFiles.js"></script>
-        <script src="../main/util/MultiDownloader.js"></script>
-        <script src="../main/util/MultiFileReader.js"></script>
-        <script src="../main/msx/cpu/Z80.js"></script>
-        <script src="../main/msx/ppi/PPI.js"></script>
-        <script src="../main/msx/video/VDP.js"></script>
-        <script src="../main/msx/video/VDPCommandProcessor.js"></script>
-        <script src="../main/msx/video/VideoSignal.js"></script>
-        <script src="../main/msx/video/VideoStandard.js"></script>
-        <script src="../main/msx/audio/PSG.js"></script>
-        <script src="../main/msx/audio/AudioSignal.js"></script>
-        <script src="../main/msx/audio/PSGAudio.js"></script>
-        <script src="../main/msx/audio/PCM8BitAudio.js"></script>
-        <script src="../main/msx/audio/SCCIAudio.js"></script>
-        <script src="../main/msx/audio/YM2413Tables.js"></script>
-        <script src="../main/msx/audio/YM2413Audio.js"></script>
-        <script src="../main/msx/miscdevices/RTC.js"></script>
-        <script src="../main/msx/miscdevices/SystemFlags.js"></script>
-        <script src="../main/msx/miscdevices/ImageCassetteDriver.js"></script>
-        <script src="../main/msx/miscdevices/BIOSKeyboardExtension.js"></script>
-        <script src="../main/msx/miscdevices/ImageDiskDriver.js"></script>
-        <script src="../main/msx/rom/ROM.js"></script>
-        <script src="../main/msx/rom/ROMDatabase.js"></script>
-        <script src="../main/msx/slots/SlotCreator.js"></script>
-        <script src="../main/msx/slots/SlotFormats.js"></script>
-        <script src="../main/msx/slots/Slot.js"></script>
-        <script src="../main/msx/slots/SlotEmpty.js"></script>
-        <script src="../main/msx/slots/SlotExpanded.js"></script>
-        <script src="../main/msx/slots/SlotExpandedSpecial.js"></script>
-        <script src="../main/msx/slots/SlotNormal.js"></script>
-        <script src="../main/msx/slots/ram/SlotRAM64K.js"></script>
-        <script src="../main/msx/slots/ram/SlotRAMMapper.js"></script>
-        <script src="../main/msx/slots/bios/SlotBIOS.js"></script>
-        <script src="../main/msx/slots/bios/SlotMSX2BIOSExt.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeASCII8K.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeASCII16K.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeKonami.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeRType.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeCrossBlaim.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeDOS2.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeHarryFox.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeAlQuran.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeSuperSwangi.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeZemina80.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeZemina90.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeZemina126.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeSuperLodeRunner.js"></script>
-        <script src="../main/msx/slots/cartridges/CartridgeDooly.js"></script>
-        <script src="../main/msx/slots/cartridges/special/disk/CartridgeDiskPatched.js"></script>
-        <script src="../main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js"></script>
-        <script src="../main/msx/slots/cartridges/special/scc/CartridgeSCCExpansion.js"></script>
-        <script src="../main/msx/slots/cartridges/special/scc/CartridgeSCCIExpansion.js"></script>
-        <script src="../main/msx/slots/cartridges/special/scc/CartridgeManbow2.js"></script>
-        <script src="../main/msx/slots/cartridges/special/kanji/CartridgeKanjiFont.js"></script>
-        <script src="../main/msx/slots/cartridges/special/sram/CartridgePAC.js"></script>
-        <script src="../main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js"></script>
-        <script src="../main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js"></script>
-        <script src="../main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js"></script>
-        <script src="../main/msx/slots/cartridges/special/sram/CartridgeASCII8KSRAM.js"></script>
-        <script src="../main/msx/slots/cartridges/special/sram/CartridgeASCII16KSRAM.js"></script>
-        <script src="../main/msx/slots/cartridges/special/sram/CartridgeHalnote.js"></script>
-        <script src="../main/msx/slots/cartridges/special/pcm/CartridgeMajutsushi.js"></script>
-        <script src="../main/msx/slots/cartridges/special/pcm/CartridgeSynthesizer.js"></script>
-        <script src="../main/msx/machine/MachineTypeSocket.js"></script>
-        <script src="../main/msx/machine/ExtensionsSocket.js"></script>
-        <script src="../main/msx/machine/DeviceMissing.js"></script>
-        <script src="../main/msx/machine/Clock.js"></script>
-        <script src="../main/msx/machine/ClockMultuplexer.js"></script>
-        <script src="../main/msx/machine/BUS.js"></script>
-        <script src="../main/msx/machine/Machine.js"></script>
-        <script src="../main/msx/controls/KeyboardKeys.js"></script>
-        <script src="../main/msx/controls/JoystickButtons.js"></script>
-        <script src="../main/msx/controls/MachineControls.js"></script>
-        <script src="../main/images/Images.js"></script>
-        <script src="../main/room/files/FileLoader.js"></script>
-        <script src="../main/room/files/FileDownloader.js"></script>
-        <script src="../main/room/controls/DOMKeys.js"></script>
-        <script src="../main/room/controls/GamepadButtons.js"></script>
-        <script src="../main/room/controls/TouchControls.js"></script>
-        <script src="../main/room/controls/BuiltInKeyboards.js"></script>
-        <script src="../main/room/controls/DOMKeyboard.js"></script>
-        <script src="../main/room/controls/GamepadJoysticksControls.js"></script>
-        <script src="../main/room/controls/DOMJoykeysControls.js"></script>
-        <script src="../main/room/controls/DOMMouseControls.js"></script>
-        <script src="../main/room/controls/DOMTouchControls.js"></script>
-        <script src="../main/room/controls/ControllersHub.js"></script>
-        <script src="../main/room/controls/DOMMachineControls.js"></script>
-        <script src="../main/room/controls/DOMVirtualKeyboard.js"></script>
-        <script src="../main/room/screen/ScreenGUI.js"></script>
-        <script src="../main/room/screen/virtualkeyboard/VirtualKeyboard.js"></script>
-        <script src="../main/room/screen/Monitor.js"></script>
-        <script src="../main/room/screen/CanvasDisplay.js"></script>
-        <script src="../main/room/screen/settings/SettingsGUI.js"></script>
-        <script src="../main/room/screen/settings/ControlMappingPopup.js"></script>
-        <script src="../main/room/screen/settings/KeyboardConfigurator.js"></script>
-        <script src="../main/room/screen/settings/PortsConfigurator.js"></script>
-        <script src="../main/room/screen/settings/Settings.js"></script>
-        <script src="../main/room/screen/paste/PasteDialog.js"></script>
-        <script src="../main/room/screen/diskselect/DiskSelectDialog.js"></script>
-        <script src="../main/room/screen/machineselect/MachineSelectDialog.js"></script>
-        <script src="../main/room/speaker/WebAudioSpeaker.js"></script>
-        <script src="../main/room/savestate/LocalStorageSaveStateMedia.js"></script>
-        <script src="../main/room/cassette/FileCassetteDeck.js"></script>
-        <script src="../main/room/disk/DiskImages.js"></script>
-        <script src="../main/room/disk/FileDiskDrive.js"></script>
-        <script src="../main/room/controls/PeripheralControls.js"></script>
-        <script src="../main/room/controls/DOMPeripheralControls.js"></script>
-        <script src="../main/room/Room.js"></script>
-        <script src="../main/userprefs/UserPreferences.js"></script>
-        <script src="../runtime/images/EmbeddedImages.js"></script>
-        <script src="../runtime/sysroms/CompressedSystemROMs.js"></script>
-        <script src="../runtime/sysroms/EmbeddedSystemROMs.js"></script>
-        <script src="../main/Configurator.js"></script>
-        <script src="../main/Launcher.js"></script>
+<body style="background: #eeeeee;">
 
-        <script>
+<div id="wmsx" style="text-align: center; margin-top: 20px;">
+    <div id="wmsx-screen" style="box-shadow: 2px 2px 10px rgba(0, 0, 0, .7);"></div>
+</div>
 
-            // TODO Remove
-             WMSX.CARTRIDGE1_URL = "Goonies.rom";
-            // WMSX.SCREEN_CONTROL_BAR = 1;
-            // WMSX.TOUCH_MODE = 1;
-            // WMSX.SCREEN_FULLSCREEN_MODE = 1;
-            WMSX.AUDIO_BUFFER_BASE = 512;
+<script>
+    window.WMSX_IMAGES_PATH = "../runtime/images/files/";
+</script>
 
-        </script>
+<script src="../main/WMSX.js"></script>
+<script src="../main/util/Util.js"></script>
+<script src="../main/util/SHA1.js"></script>
+<script src="../main/util/ZIP.js"></script>
+<script src="../main/util/EmbeddedFiles.js"></script>
+<script src="../main/util/MultiDownloader.js"></script>
+<script src="../main/util/MultiFileReader.js"></script>
+<script src="../main/msx/cpu/Z80.js"></script>
+<script src="../main/msx/ppi/PPI.js"></script>
+<script src="../main/msx/video/VDP.js"></script>
+<script src="../main/msx/video/VDPCommandProcessor.js"></script>
+<script src="../main/msx/video/VideoSignal.js"></script>
+<script src="../main/msx/video/VideoStandard.js"></script>
+<script src="../main/msx/audio/PSG.js"></script>
+<script src="../main/msx/audio/AudioSignal.js"></script>
+<script src="../main/msx/audio/PSGAudio.js"></script>
+<script src="../main/msx/audio/PCM8BitAudio.js"></script>
+<script src="../main/msx/audio/SCCIAudio.js"></script>
+<script src="../main/msx/audio/YM2413Tables.js"></script>
+<script src="../main/msx/audio/YM2413Audio.js"></script>
+<script src="../main/msx/miscdevices/RTC.js"></script>
+<script src="../main/msx/miscdevices/SystemFlags.js"></script>
+<script src="../main/msx/miscdevices/ImageCassetteDriver.js"></script>
+<script src="../main/msx/miscdevices/BIOSKeyboardExtension.js"></script>
+<script src="../main/msx/miscdevices/ImageDiskDriver.js"></script>
+<script src="../main/msx/rom/ROM.js"></script>
+<script src="../main/msx/rom/ROMDatabase.js"></script>
+<script src="../main/msx/slots/SlotCreator.js"></script>
+<script src="../main/msx/slots/SlotFormats.js"></script>
+<script src="../main/msx/slots/Slot.js"></script>
+<script src="../main/msx/slots/SlotEmpty.js"></script>
+<script src="../main/msx/slots/SlotExpanded.js"></script>
+<script src="../main/msx/slots/SlotExpandedSpecial.js"></script>
+<script src="../main/msx/slots/SlotNormal.js"></script>
+<script src="../main/msx/slots/ram/SlotRAM64K.js"></script>
+<script src="../main/msx/slots/ram/SlotRAMMapper.js"></script>
+<script src="../main/msx/slots/bios/SlotBIOS.js"></script>
+<script src="../main/msx/slots/bios/SlotMSX2BIOSExt.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeASCII8K.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeASCII16K.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeKonami.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeRType.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeCrossBlaim.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeDOS2.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeHarryFox.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeAlQuran.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeSuperSwangi.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeZemina80.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeZemina90.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeZemina126.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeSuperLodeRunner.js"></script>
+<script src="../main/msx/slots/cartridges/CartridgeDooly.js"></script>
+<script src="../main/msx/slots/cartridges/special/disk/CartridgeDiskPatched.js"></script>
+<script src="../main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js"></script>
+<script src="../main/msx/slots/cartridges/special/scc/CartridgeSCCExpansion.js"></script>
+<script src="../main/msx/slots/cartridges/special/scc/CartridgeSCCIExpansion.js"></script>
+<script src="../main/msx/slots/cartridges/special/scc/CartridgeManbow2.js"></script>
+<script src="../main/msx/slots/cartridges/special/kanji/CartridgeKanjiFont.js"></script>
+<script src="../main/msx/slots/cartridges/special/sram/CartridgePAC.js"></script>
+<script src="../main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js"></script>
+<script src="../main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js"></script>
+<script src="../main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js"></script>
+<script src="../main/msx/slots/cartridges/special/sram/CartridgeASCII8KSRAM.js"></script>
+<script src="../main/msx/slots/cartridges/special/sram/CartridgeASCII16KSRAM.js"></script>
+<script src="../main/msx/slots/cartridges/special/sram/CartridgeHalnote.js"></script>
+<script src="../main/msx/slots/cartridges/special/pcm/CartridgeMajutsushi.js"></script>
+<script src="../main/msx/slots/cartridges/special/pcm/CartridgeSynthesizer.js"></script>
+<script src="../main/msx/machine/MachineTypeSocket.js"></script>
+<script src="../main/msx/machine/ExtensionsSocket.js"></script>
+<script src="../main/msx/machine/DeviceMissing.js"></script>
+<script src="../main/msx/machine/Clock.js"></script>
+<script src="../main/msx/machine/ClockMultuplexer.js"></script>
+<script src="../main/msx/machine/BUS.js"></script>
+<script src="../main/msx/machine/Machine.js"></script>
+<script src="../main/msx/controls/KeyboardKeys.js"></script>
+<script src="../main/msx/controls/JoystickButtons.js"></script>
+<script src="../main/msx/controls/MachineControls.js"></script>
+<script src="../main/images/Images.js"></script>
+<script src="../main/room/files/FileLoader.js"></script>
+<script src="../main/room/files/FileDownloader.js"></script>
+<script src="../main/room/controls/DOMKeys.js"></script>
+<script src="../main/room/controls/GamepadButtons.js"></script>
+<script src="../main/room/controls/TouchControls.js"></script>
+<script src="../main/room/controls/BuiltInKeyboards.js"></script>
+<script src="../main/room/controls/DOMKeyboard.js"></script>
+<script src="../main/room/controls/GamepadJoysticksControls.js"></script>
+<script src="../main/room/controls/DOMJoykeysControls.js"></script>
+<script src="../main/room/controls/DOMMouseControls.js"></script>
+<script src="../main/room/controls/DOMTouchControls.js"></script>
+<script src="../main/room/controls/ControllersHub.js"></script>
+<script src="../main/room/controls/DOMMachineControls.js"></script>
+<script src="../main/room/controls/DOMVirtualKeyboard.js"></script>
+<script src="../main/room/screen/ScreenGUI.js"></script>
+<script src="../main/room/screen/virtualkeyboard/VirtualKeyboard.js"></script>
+<script src="../main/room/screen/Monitor.js"></script>
+<script src="../main/room/screen/CanvasDisplay.js"></script>
+<script src="../main/room/screen/settings/SettingsGUI.js"></script>
+<script src="../main/room/screen/settings/ControlMappingPopup.js"></script>
+<script src="../main/room/screen/settings/KeyboardConfigurator.js"></script>
+<script src="../main/room/screen/settings/PortsConfigurator.js"></script>
+<script src="../main/room/screen/settings/Settings.js"></script>
+<script src="../main/room/screen/paste/PasteDialog.js"></script>
+<script src="../main/room/screen/diskselect/DiskSelectDialog.js"></script>
+<script src="../main/room/screen/machineselect/MachineSelectDialog.js"></script>
+<script src="../main/room/screen/touchconfig/TouchConfigDialog.js"></script>
+<script src="../main/room/speaker/WebAudioSpeaker.js"></script>
+<script src="../main/room/savestate/LocalStorageSaveStateMedia.js"></script>
+<script src="../main/room/cassette/FileCassetteDeck.js"></script>
+<script src="../main/room/disk/DiskImages.js"></script>
+<script src="../main/room/disk/FileDiskDrive.js"></script>
+<script src="../main/room/controls/PeripheralControls.js"></script>
+<script src="../main/room/controls/DOMPeripheralControls.js"></script>
+<script src="../main/room/Room.js"></script>
+<script src="../main/userprefs/UserPreferences.js"></script>
+<script src="../runtime/images/EmbeddedImages.js"></script>
+<script src="../runtime/sysroms/CompressedSystemROMs.js"></script>
+<script src="../runtime/sysroms/EmbeddedSystemROMs.js"></script>
+<script src="../main/Configurator.js"></script>
+<script src="../main/Launcher.js"></script>
 
-    </body>
+<script>
+
+    // TODO Remove
+    WMSX.AUTODETECT_URL = "Goonies.rom";
+    WMSX.AUDIO_BUFFER_BASE = 512;
+    //            WMSX.SCREEN_FILTER_MODE = 1;
+    //            WMSX.SCREEN_CRT_MODE = 0;
+    //            WMSX.SCREEN_FULLSCREEN_MODE = 1;
+
+</script>
+
+</body>
 
 </html>
