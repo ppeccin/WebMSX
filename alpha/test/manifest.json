@@ -9,8 +9,8 @@
     "sizes": "192x192",
     "type": "image/png"
   }, {
-    "src": "../runtime/images/files/logo.png",
-    "sizes": "668x200",
+    "src": "../runtime/images/files/logo-icon512.png",
+    "sizes": "512x512",
     "type": "image/png"
   }]
 }
