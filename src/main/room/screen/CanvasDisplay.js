@@ -3,6 +3,9 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
 // TODO Auto-Fullscreen mode?  (for mobile standalone)
+// TODO Info for web-app-capable
+// TODO Audio on Android
+// TODO Logo massage scale for mobile site
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
