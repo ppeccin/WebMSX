@@ -113,6 +113,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
             }
             generateNextSample();
             --frameSamples;
+            --availSamples;
         }
     }
 
@@ -128,20 +129,17 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     function generateNextSample() {
         samples[nextSampleToGenerate] = source.nextSample() * volume;
         if (++nextSampleToGenerate >= maxSamples) nextSampleToGenerate = 0;          // Circular Buffer
-        --availSamples;
     }
 
     function generateNextSampleMute() {
         samples[nextSampleToGenerate] = 0;
         if (++nextSampleToGenerate >= maxSamples) nextSampleToGenerate = 0;          // Circular Buffer
-        --availSamples;
     }
 
     function generateMissingSamples(quant, mute) {
-        if (mute)
-            for (var j = quant; j > 0; j = j - 1) generateNextSampleMute()
-        else
-            for (var i = quant; i > 0; i = i - 1) generateNextSample()
+        if (mute) for (var j = quant; j > 0; j = j - 1) generateNextSampleMute()
+        else      for (var i = quant; i > 0; i = i - 1) generateNextSample()
+        availSamples -= quant;
     }
 
 
