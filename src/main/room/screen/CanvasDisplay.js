@@ -2,8 +2,9 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Logo massage scale for mobile site
 // TODO Auto default scale on orientation change
+// TODO Menu and other screen scale
+// TODO Safari layout bug when going full screen
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -229,10 +230,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.displayDefaultScale = function() {
         if (WMSX.SCREEN_DEFAULT_SCALE > 0) return WMSX.SCREEN_DEFAULT_SCALE;
 
-        //console.error(">>> Parent width: " + mainElement.parentElement.clientWidth);
+        var maxWidth = Number.parseFloat(window.getComputedStyle(mainElement.parentElement).width);
 
-        var maxWidth = mainElement.parentElement.clientWidth;
-        return maxWidth >= 680 ? 1.1 : maxWidth >= 560 ? 0.9 : maxWidth >= 440 ? 0.7 : maxWidth >= 340 ? 0.55 : 0.5;
+        //console.error(">>> Parent width: " + maxWidth);
+
+        return maxWidth >= 660 ? 1.1 : maxWidth >= 540 ? 0.9 : maxWidth >= 420 ? 0.7 : maxWidth >= 320 ? 0.55 : 0.5;
     };
 
     function hideOSD() {

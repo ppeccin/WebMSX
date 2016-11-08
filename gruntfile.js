@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         clean: {
-            init: ["temp", "release/stable/3.0"],
+            init: ["temp", "release/stable/4.0"],
             finish: ["temp"]
         },
 
@@ -190,14 +190,15 @@ module.exports = function (grunt) {
         copy: {
             standalone: {
                 files: [
-                    {src: ["temp/wmsx.html"], dest: "release/stable/3.0/standalone", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["temp/wmsx.html"], dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "temp/wmsx.html", dest: "test/standalone.html"}
                 ]
             },
             deployable: {
                 files: [
-                    {src: ["temp/example.html"], dest: "release/stable/3.0/deployable", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["temp/wmsx.js"], dest: "release/stable/3.0/deployable", expand: true, flatten: true, filter: "isFile"}
-                    // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/stable/3.0/deployable/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: ["temp/example.html"], dest: "release/stable/4.0/deployable", expand: true, flatten: true, filter: "isFile"},
+                    {src: ["temp/wmsx.js"], dest: "release/stable/4.0/deployable", expand: true, flatten: true, filter: "isFile"}
+                    // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/stable/4.0/deployable/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         }
