@@ -56,9 +56,10 @@ wmsx.Configurator = {
             WMSX.SCREEN_MSX1_COLOR_MODE |= 0;
             WMSX.SCREEN_FORCE_HOST_NATIVE_FPS |= 0;
             WMSX.SCREEN_VSYNCH_MODE |= 0;
-            WMSX.AUDIO_SIGNAL_BUFFER_FRAMES |= 0;
-            WMSX.AUDIO_BUFFER_BASE |= 0;
-            WMSX.AUDIO_BUFFER_SIZE |= 0;
+            WMSX.AUDIO_MONITOR_BUFFER_BASE |= 0;
+            WMSX.AUDIO_MONITOR_BUFFER_SIZE |= 0;
+            WMSX.AUDIO_SIGNAL_BUFFER_RATIO = parseFloat(WMSX.AUDIO_SIGNAL_BUFFER_RATIO);
+            WMSX.AUDIO_SIGNAL_ADD_FRAMES |= 0;
         }
     },
 

@@ -57,9 +57,10 @@ WMSX = {
     SCREEN_MSX1_COLOR_MODE:         0,                          // 0..5
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
     SCREEN_VSYNCH_MODE:             1,                          // -1: disabled, 0: off, 1: on
-    AUDIO_SIGNAL_BUFFER_FRAMES:     3,                          // Enough room to generate 3 frames of audio
-    AUDIO_BUFFER_BASE:              256,                        // 256, 512, 1024. Don't change! :-)
-    AUDIO_BUFFER_SIZE:              -1,                         // 256, 512, 1024, 2048, 4096, 8192. 0: disable audio. -1: auto. More buffer = more delay
+    AUDIO_MONITOR_BUFFER_BASE:      256,                        // 256, 512, 1024. Don't change! :-)
+    AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // 256, 512, 1024, 2048, 4096, 8192. 0: disable audio. -1: auto. More buffer = more delay
+    AUDIO_SIGNAL_BUFFER_RATIO:      1.4,                        // Signal buffer based on monitor buffer
+    AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames of audio in signal buffer
     MOUSE_MODE:                     0,                          // -1: disabled, 0: auto, 1: enabled at port 1, 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled, 0: auto, 1: enabled at port 1, 2: enabled at port 2
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI, 1: JIS

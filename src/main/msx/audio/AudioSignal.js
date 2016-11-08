@@ -3,7 +3,9 @@
 wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 "use strict";
 
-    function init(self) {
+    var self = this;
+
+    function init() {
         var multi = wmsx.Machine.BASE_CPU_CLOCK / sampleRate;
         switch (multi) {
             case 32:
@@ -20,27 +22,35 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     this.audioClockPulse = null;    // Defined at initialization
 
     this.flush = function() {
-        //console.log("Flush: " + name);
-
         nextSampleToGenerate = 0;
         nextSampleToRetrieve = 0;
+        availSamples = maxAvailSamples;
+
+        //console.log("FLUSH!");
     };
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = ((sampleRate / fps) | 0) + SAMPLES_PER_FRRAME_ADJUST;
-        if (samplesPerFrame > MAX_SAMPLES) samplesPerFrame = MAX_SAMPLES;
+        samplesPerFrame = (sampleRate / fps) | 0;
+        updateBufferSize();
     };
 
     this.audioFinishFrame = function() {             // Enough samples to complete frame, signal always ON
-        var missingSamples = samplesPerFrame - frameSamples;
-        if (missingSamples > 0)
-            for (var i = missingSamples; i > 0; i = i - 1) generateNextSample()
-        frameSamples = 0;
+        if (frameSamples > 0) {
+            //console.log(">>> Audio finish frame: " + frameSamples);
+            while(frameSamples > 0) audioClockPulse32x();
+        }
+        frameSamples = samplesPerFrame;
     };
 
     this.retrieveSamples = function(quant, mute) {
-        //Util.log(">>> Samples generated: " + (nextSampleToGenerate - nextSampleToRetrieve));
+        var generated = maxAvailSamples - availSamples;
+
+        //var generated = nextSampleToGenerate >= nextSampleToRetrieve
+        //    ? nextSampleToGenerate - nextSampleToRetrieve
+        //    : maxSamples - nextSampleToRetrieve + nextSampleToGenerate;
+
+        //console.log(">>> Samples available: " + generated);
 
         //if (nextSampleToGenerate === nextSampleToRetrieve)
         //    console.log("MATCH: " + nextSampleToGenerate );
@@ -48,22 +58,22 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         //if (nextSampleToGenerate < nextSampleToRetrieve)
         //    console.log("WRAP: " + nextSampleToGenerate );
 
-        var missing = nextSampleToGenerate >= nextSampleToRetrieve
-            ? quant - (nextSampleToGenerate - nextSampleToRetrieve)
-            : quant - (MAX_SAMPLES - nextSampleToRetrieve + nextSampleToGenerate);
+        var missing = quant - generated;
 
         if (missing > 0) {
+            if (missing > availSamples) missing = availSamples;
             generateMissingSamples(missing, mute);
             //wmsx.Util.log(">>> Missing samples generated: " + missing);
         } else {
             //wmsx.Util.log(">>> No missing samples");
         }
 
-        var end = nextSampleToRetrieve + quant;
-        if (end >= MAX_SAMPLES) end -= MAX_SAMPLES;
-
         retrieveResult.start = nextSampleToRetrieve;
-        nextSampleToRetrieve = end;
+
+        var retrieved = generated + missing;
+        availSamples += retrieved;
+        nextSampleToRetrieve += retrieved;
+        if (nextSampleToRetrieve >= maxSamples) nextSampleToRetrieve -= maxSamples;     // Circular Buffer
 
         return retrieveResult;
     };
@@ -76,10 +86,33 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         return "AudioSignal " + name;
     };
 
+    this.setAudioMonitorBufferSize = function (size) {
+        monitorBufferSize = size;
+        updateBufferSize();
+    };
+
+    function updateBufferSize() {
+        var size = (monitorBufferSize * WMSX.AUDIO_SIGNAL_BUFFER_RATIO + samplesPerFrame * WMSX.AUDIO_SIGNAL_ADD_FRAMES) | 0;
+        if (size > maxSamples) {
+            samples.length = size;
+            wmsx.Util.arrayFill(samples, 0, maxSamples, size);
+            maxSamples = size;
+            retrieveResult.bufferSize = maxSamples;
+            maxAvailSamples = maxSamples - 2;
+            self.flush();
+
+            //console.log(">>> Buffer size for: " + name + ": " + maxSamples);
+        }
+    }
+
     function audioClockPulse32x() {
-        if (frameSamples < samplesPerFrame) {
+        if (frameSamples > 0) {
+            if (availSamples <= 0) {
+                frameSamples = 0;
+                return;
+            }
             generateNextSample();
-            frameSamples = frameSamples + 1;
+            --frameSamples;
         }
     }
 
@@ -89,22 +122,19 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         if ((clock72xCountDown & 1) || clock72xCountDown === 8) return;
         if (clock72xCountDown === 0) clock72xCountDown = 9;
 
-        if (frameSamples < samplesPerFrame) {
-            generateNextSample();
-            frameSamples = frameSamples + 1;
-        }
+        audioClockPulse32x();
     }
 
     function generateNextSample() {
         samples[nextSampleToGenerate] = source.nextSample() * volume;
-        if (++nextSampleToGenerate >= MAX_SAMPLES)
-            nextSampleToGenerate = 0;
+        if (++nextSampleToGenerate >= maxSamples) nextSampleToGenerate = 0;          // Circular Buffer
+        --availSamples;
     }
 
     function generateNextSampleMute() {
         samples[nextSampleToGenerate] = 0;
-        if (++nextSampleToGenerate >= MAX_SAMPLES)
-            nextSampleToGenerate = 0;
+        if (++nextSampleToGenerate >= maxSamples) nextSampleToGenerate = 0;          // Circular Buffer
+        --availSamples;
     }
 
     function generateMissingSamples(quant, mute) {
@@ -125,18 +155,19 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
     var samplesPerFrame;
     var frameSamples = 0;
 
-    var MAX_SAMPLES = (sampleRate / 60 * WMSX.AUDIO_SIGNAL_BUFFER_FRAMES) | 0;      // Enough frames of samples
-    var SAMPLES_PER_FRRAME_ADJUST = -1;                                             // Helps avoid buffer over-filling
+    var maxSamples = 0;
+    var availSamples = 0, maxAvailSamples = 0;
+    var samples = wmsx.Util.arrayFill(new Array(maxSamples), 0);
 
-    var samples = wmsx.Util.arrayFill(new Array(MAX_SAMPLES), 0);
+    var monitorBufferSize = 0;
 
     var retrieveResult = {
         buffer: samples,
-        bufferSize: MAX_SAMPLES,
+        bufferSize: maxSamples,
         start: 0
     };
 
 
-    init(this);
+    init();
 
 };

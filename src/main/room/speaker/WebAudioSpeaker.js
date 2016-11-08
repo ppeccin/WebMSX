@@ -55,7 +55,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     var createAudioContextAndProcessor = function() {
-        if (WMSX.AUDIO_BUFFER_SIZE === 0) {
+        if (WMSX.AUDIO_MONITOR_BUFFER_SIZE === 0) {
             wmsx.Util.warning("Audio disabled in configuration");
             return;
         }
@@ -66,7 +66,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate + (audioContext.state ? ", " + audioContext.state : ""));
             updateResamplingFactors();
             // If not specified, calculate buffer size according to host audio sampling rate. 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
-            bufferSize = WMSX.AUDIO_BUFFER_SIZE !== -1 ? WMSX.AUDIO_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * WMSX.AUDIO_BUFFER_BASE;
+            bufferSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE !== -1 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * WMSX.AUDIO_MONITOR_BUFFER_BASE;
             processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
             processor.onaudioprocess = onAudioProcess;
             wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
@@ -98,6 +98,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         for (var i = 0; i < audioSignal.length; i++) {
             resamplingFactor[i] = audioSignal[i].getSampleRate() / audioContext.sampleRate;
             resamplingLeftOver[i] = 0;
+            audioSignal[i].setAudioMonitorBufferSize((resamplingFactor[i] * bufferSize) | 0);
         }
     }
 
