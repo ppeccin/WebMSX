@@ -2,8 +2,7 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Auto default scale on orientation change
-// TODO Menu and other screen scale
+// TODO Menu and other screens scale
 // TODO Safari layout bug when going full screen
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -47,7 +46,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         document.documentElement.classList.add("wmsx-started");
         setPageVisibilityHandling();
         this.focus();
-        if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
+        //if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
     };
 
     this.powerOff = function() {
@@ -287,6 +286,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.setFullscreen = function(mode) {
+        if (fullscreenAPIEnterMethod) {
+            if (mode) enterFullScreenByAPI();
+            else exitFullScreenByAPI();
+        } else
+            setFullscreenState(mode)
+    };
+
+    function setFullscreenState(mode) {
         isFullscreen = mode;
 
         if (mode) {
@@ -294,18 +301,15 @@ wmsx.CanvasDisplay = function(mainElement) {
             document.documentElement.classList.add("wmsx-full-screen");
             if (fullScreenScrollHack) document.documentElement.classList.add("wmsx-full-screen-scroll-hack");
             controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
-            enterFullScreenByAPI();
             if (fullScreenScrollHack) setScrollMessage(true);
         } else {
             restoreViewport();
             document.documentElement.classList.remove("wmsx-full-screen");
             document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
-            exitFullScreenByAPI();
-            monitor.displayScale(aspectX, self.displayDefaultScale());
         }
 
         self.requestReadjust();
-    };
+    }
 
     this.focus = function() {
         canvas.focus();
@@ -440,7 +444,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function fullscreenByAPIChanged() {
-        self.setFullscreen(isFullScreenByAPI());
+        setFullscreenState(isFullScreenByAPI());
     }
 
     function isFullScreenByAPI() {
@@ -628,8 +632,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
-        window.addEventListener("orientationchange", function() {
-            if (isFullscreen) self.requestReadjust();
+        window.addEventListener("orientationchange", function orientationChanged() {
+            self.requestReadjust();
         });
 
         onMouseDown(logoMessageYes,logoMessageYesClicked);    // User Initiated Gesture required
@@ -1114,7 +1118,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function readjustAll(force, skipFocus) {
-        if (readjustScreeSizeChanged() || force) {
+        if (readjustScreeSizeChanged(force)) {
             if (isFullscreen) {
                 var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
                 var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(readjustScreenSize.wk);
@@ -1125,7 +1129,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
-                updateScale();
+                monitor.displayScale(aspectX, self.displayDefaultScale());
             }
 
             if (!skipFocus) self.focus();
@@ -1137,10 +1141,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (readjustInterval && (wmsx.Util.performanceNow() - readjustRequestTime >= 1000)) {
             clearInterval(readjustInterval);
             readjustInterval = null;
+            //console.log("READJUST TERMINATED");
         }
     }
 
-    function readjustScreeSizeChanged() {
+    function readjustScreeSizeChanged(force) {
+        var parW = mainElement.parentElement.clientWidth;
         var winW = fsElement.clientWidth;
         var winH = fsElement.clientHeight;
         var winWK = winW;
@@ -1149,13 +1155,15 @@ wmsx.CanvasDisplay = function(mainElement) {
             winWK -= wmsx.DOMTouchControls.TOTAL_WIDTH;
             if (touchControlsActive) winW = winWK;      // The same for everytinhg if TouchControls indeed enabled
         }
-        if (readjustScreenSize.w !== winW || readjustScreenSize.h !== winH || readjustScreenSize.wk !== winWK) {
-            readjustScreenSize.w = winW;
-            readjustScreenSize.wk = winWK;
-            readjustScreenSize.h = winH;
-            return true;
-        } else
+
+        if (!force && readjustScreenSize.pw === parW && readjustScreenSize.w === winW && readjustScreenSize.h === winH && readjustScreenSize.wk === winWK)
             return false;
+
+        readjustScreenSize.pw = parW;
+        readjustScreenSize.w = winW;
+        readjustScreenSize.wk = winWK;
+        readjustScreenSize.h = winH;
+        return true;
     }
 
     function displayOptimalScaleY(maxWidth, maxHeight) {
@@ -1206,6 +1214,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 wasFullscreenByAPI = isFullScreenByAPI();
                 wasUnpaused = !machine.systemPause(true);
             } else {
+                self.requestReadjust();
                 if (wasUnpaused) {
                     if (wasFullscreenByAPI && !isFullScreenByAPI())
                         showLogoMessage(true, "Emulation paused.<br>Resume in full-screen?", machineSystemUnpauseAction);
@@ -1236,7 +1245,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var diskDrive;
 
     var readjustInterval = 0, readjustRequestTime = 0;
-    var readjustScreenSize = { w: 0, wk: 0, h: 0 };
+    var readjustScreenSize = { w: 0, wk: 0, h: 0, pw: 0 };
 
     var isFullscreen = false;
 
