@@ -124,11 +124,11 @@ module.exports = function (grunt) {
                     "src/main/room/controls/DOMPeripheralControls.js",
                     "src/main/room/Room.js",
                     "src/main/userprefs/UserPreferences.js",
-                    "src/main/Configurator.js",
-                    "src/main/Launcher.js",
                     "src/runtime/images/EmbeddedImages.js",
                     "src/runtime/sysroms/CompressedSystemROMs.js",
-                    "src/runtime/sysroms/EmbeddedSystemROMs.js"
+                    "src/runtime/sysroms/EmbeddedSystemROMs.js",
+                    "src/main/Configurator.js",
+                    "src/main/Launcher.js"
                 ],
                 dest: "temp/wmsx.part.js"
             },

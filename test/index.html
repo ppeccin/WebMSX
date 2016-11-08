@@ -3,8 +3,11 @@
 
     <head lang="en">
 
+        <!-- DEBUG -->
+        <!--<script src="http://10.42.10.128:9090/target/target-script-min.js#WebMSX"></script>-->
+
         <meta charset="UTF-8">
-        <meta name="viewport" content="width = 700, minimum-scale = 0.2, maximum-scale = 1.0, user-scalable = yes">
+        <meta name="viewport" content="width = device-width, user-scalable = yes">
 
         <title>WebMSX</title>
         <meta name="description" content="WebMSX - The online MSX emulator">
@@ -16,15 +19,24 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
         <link rel="apple-touch-icon-precomposed" sizes="192x192" href="../src/runtime/images/files/logo-icon192.png">
-
-        <!-- DEBUG -->
-        <!--<script src="http://10.42.10.128:9090/target/target-script-min.js#WebMSX"></script>-->
+        
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+            }
+            @media only screen and (orientation: landscape) and (max-device-width: 767px) {
+                #wmsx {
+                    max-width: 75%;
+                }
+            }
+        </style>
 
     </head>
 
     <body style="background: #eeeeee;">
 
-        <div id="wmsx" style="text-align: center; margin-top: 20px;">
+        <div id="wmsx" style="text-align: center; margin: 20px auto 0;">
             <div id="wmsx-screen" style="box-shadow: 2px 2px 10px rgba(0, 0, 0, .7);"></div>
         </div>
 
@@ -152,7 +164,7 @@
 
             // TODO Remove
 //            WMSX.AUTODETECT_URL = "Goonies.rom";
-//            WMSX.AUDIO_MONITOR_BUFFER_BASE = 4096;
+//            WMSX.AUDIO_MONITOR_BUFFER_BASE = 512;
 //            WMSX.AUDIO_SIGNAL_ADD_FRAMES = 3;
 //            WMSX.SCREEN_DEFAULT_SCALE = 0.55;
 //            WMSX.SCREEN_FILTER_MODE = 1;

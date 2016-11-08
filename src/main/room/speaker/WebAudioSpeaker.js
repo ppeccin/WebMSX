@@ -58,9 +58,9 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         // Set bufferBaseSize according to browser and platform
         return wmsx.Util.isMobileDevice()
             ? wmsx.Util.browserInfo().name === "CHROME" && !wmsx.Util.isIOSDevice()
-                ? 4096      // for now mobile Chrome needs more buffer, except on iOS
-                : 1024      // other mobile scenarios
-            : 256;          // desktop
+                ? 5      // for now mobile Chrome needs more buffer, except on iOS
+                : 3      // other mobile scenarios
+            : 1;          // desktop
     }
 
     var createAudioContextAndProcessor = function() {
@@ -76,7 +76,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             updateResamplingFactors();
             var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_BASE : determineAutoBufferBaseSize();
             // If not specified, calculate buffer size based on bufferBaseSize, according to host audio sampling rate. 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
-            bufferSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * bufferBaseSize;
+            bufferSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(bufferBaseSize - 1) * 256;
             processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
             processor.onaudioprocess = onAudioProcess;
             wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);

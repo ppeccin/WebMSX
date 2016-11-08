@@ -2,10 +2,8 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Auto-Fullscreen mode?  (for mobile standalone)
-// TODO Info for web-app-capable
-// TODO Audio on Android
 // TODO Logo massage scale for mobile site
+// TODO Auto default scale on orientation change
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -228,6 +226,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         osdTimeout = setTimeout(hideOSD, OSD_TIME);
     };
 
+    this.displayDefaultScale = function() {
+        if (WMSX.SCREEN_DEFAULT_SCALE > 0) return WMSX.SCREEN_DEFAULT_SCALE;
+
+        //console.error(">>> Parent width: " + mainElement.parentElement.clientWidth);
+
+        var maxWidth = mainElement.parentElement.clientWidth;
+        return maxWidth >= 680 ? 1.1 : maxWidth >= 560 ? 0.9 : maxWidth >= 440 ? 0.7 : maxWidth >= 340 ? 0.55 : 0.5;
+    };
+
     function hideOSD() {
         osd.style.transition = "all 0.15s linear";
         osd.style.top = "-29px";
@@ -292,7 +299,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             document.documentElement.classList.remove("wmsx-full-screen");
             document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
             exitFullScreenByAPI();
-            monitor.displayScale(aspectX, WMSX.SCREEN_DEFAULT_SCALE);
+            monitor.displayScale(aspectX, self.displayDefaultScale());
         }
 
         self.requestReadjust();
@@ -395,7 +402,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-
     function setVirtualKeyboard(active) {
         if (virtualKeyboardActive === active) return;
 
@@ -461,6 +467,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.width = "" + canvasWidth + "px";
         canvas.style.height = "" + canvasHeight + "px";
         updateBarWidth(canvasWidth);
+        updateLogoMessageScale();
     }
 
     function updateBarWidth(canvasWidth) {
@@ -587,6 +594,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logo = document.getElementById("wmsx-logo");
         logoImage = document.getElementById("wmsx-logo-image");
         logoMessage = document.getElementById("wmsx-logo-message");
+        logoMessageText = document.getElementById("wmsx-logo-message-text");
         logoMessageYes = document.getElementById("wmsx-logo-message-yes");
         logoMessageNo =  document.getElementById("wmsx-logo-message-no");
         logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
@@ -720,7 +728,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (FULLSCREEN_MODE !== -1)
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
 
-        if (!WMSX.SCREEN_RESIZE_DISABLED) {
+        if (!WMSX.SCREEN_RESIZE_DISABLED && !isMobileDevice) {
             scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
             scaleUpButton.classList.add("wmsx-full-screen-hidden");
             scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -4, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
@@ -849,7 +857,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas) or scroll message in hack mode
         if (!fullscreenAPIEnterMethod) {
             scrollMessage.wmsxScroll = canvas.wmsxScroll = logo.wmsxScroll = logoImage.wmsxScroll =
-                logoMessage.wmsxScroll = logoMessageYes.wmsxScroll = logoMessageNo.wmsxScroll = logoMessageOk.wmsxScroll = true;
+                logoMessage.wmsxScroll = logoMessageText.wmsxScroll = logoMessageYes.wmsxScroll = logoMessageNo.wmsxScroll = logoMessageOk.wmsxScroll = true;
 
             fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
                 if (isFullscreen) {
@@ -1039,7 +1047,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function showLogoMessage(yesNo, mes, afterAction) {
         if (afterAction) afterMessageAction = afterAction;
-        logoMessage.innerHTML = mes;
+        logoMessageText.innerHTML = mes;
         logoMessageOk.classList.toggle("wmsx-show", !yesNo);
         logoMessageYes.classList.toggle("wmsx-show", yesNo);
         logoMessageNo .classList.toggle("wmsx-show", yesNo);
@@ -1075,6 +1083,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!isFullscreen) showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen");  // Keep same action
         else closeLogoMessage();
         return blockEvent(e);
+    }
+
+    function updateLogoMessageScale() {
+        var width = fsElementCenter.clientWidth;
+        var scale = Math.min(width / wmsx.ScreenGUI.LOGO_MESSAGE_WIDTH, 1);
+        logoMessage.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
+
+        //console.error("MESSAGE SCALE width: " + width);
     }
 
     function setScrollMessage(state) {
@@ -1270,7 +1286,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var isLoading = false;
 
     var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
-    var scaleY = WMSX.SCREEN_DEFAULT_SCALE;
+    var scaleY = 1.1;
     var pixelWidth = 1, pixelHeight = 1;
 
     var mousePointerLocked = false;
@@ -1281,7 +1297,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logo, logoImage, logoMessage, logoMessageYes, logoMessageNo, logoMessageOk;
+    var logo, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk;
     var loadingImage;
     var scrollMessage, scrollMessageActive = false;
 
