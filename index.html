@@ -2,23 +2,34 @@
 <html>
 
     <head lang="en">
+
         <meta charset="UTF-8">
-        <title>WebMSX - The online MSX Emulator</title>
-        <meta name="description" content="WebMSX - The online MSX Emulator">
-        <link rel="icon" href="images/icon32.png">
+        <meta name="viewport" content="width = device-width, user-scalable = yes">
+
+        <title>WebMSX</title>
+        <meta name="description" content="WebMSX - The online MSX emulator">
+        <link rel="icon" type="image/png" sizes="192x192" href="images/logo-icon192.png">
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="theme-color" content="#363636">
+        <link rel="manifest" href="manifest.json">
+
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon" sizes="192x192" href="images/logo-icon192.png">
 
         <meta property="og:type"         content="website">
         <meta property="og:url"          content="http://webmsx.org">
-        <meta property="og:title"        content="WebMSX - The online MSX Emulator">
-        <meta property="og:description"  content="Play MSX2+ games with FM sound right in your browser!">
+        <meta property="og:title"        content="WebMSX - The online MSX emulator">
+        <meta property="og:description"  content="Play MSX2+ games in your browser!">
         <meta property="og:image"        content="http://webmsx.org/images/wmsx-logo-large.png">
 
         <meta name="twitter:card"        content="summary_large_image">
         <meta name="twitter:site"        content="@ppeccin">
         <meta name="twitter:creator"     content="@ppeccin">
         <meta name="twitter:url"         content="http://webmsx.org">
-        <meta name="twitter:title"       content="WebMSX - The online MSX Emulator">
-        <meta name="twitter:description" content="Play MSX2+ games with FM sound right in your browser!">
+        <meta name="twitter:title"       content="WebMSX - The online MSX emulator">
+        <meta name="twitter:description" content="Play MSX2+ games in your browser!">
         <meta name="twitter:image"       content="http://webmsx.org/images/wmsx-logo-large.png">
 
         <script>
@@ -30,102 +41,140 @@
             ga('send', 'pageview');
 
             function donate() {
-                alert("To help support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
+                alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
             }
 
         </script>
 
         <style>
             html, body {
+                position: relative;
                 margin: 0;
                 padding: 0;
-                min-height: 1000px;
-                font-family: Helvetica, Arial, sans-serif;
-                font-size: 16px;
-                font-weight: normal;
-                color: rgba(0, 0, 0, .92);
-                background: #f2f2f2;
+                font: normal 16px sans-serif;
+                color: hsl(0, 0%, 10%);
+                background: #f4f4f4;
+                height: 100%;
             }
-            #topbar, #footer {
-                margin: 0;
-                color: rgba(255, 255, 255, .95);
+            body {
+                height: auto;
+                min-height: 100%;
+            }
+            .container {
+                max-width: 660px;
+                margin: 0 auto;
+                padding: 0 11px;
+            }
+            @media only screen and (orientation: landscape) and (max-device-width: 767px) {
+                .container { max-width: 75%; }
+            }
+            #topbar {
+                height: 51px;
+                color: hsl(0, 0%, 95%);
                 overflow: hidden;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+                background: hsl(0, 0%, 21%);
+                box-shadow: 0 0 7px hsl(0, 0%, 20%);
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
             }
-            #topbar {
-                background: rgb(70, 70, 70);
-                height: 47px;
-            }
-            #topbar .container {
-                width: 650px;
-            }
-            #footer {
-                padding: 10px 0 5px;
-                background: rgb(50, 50, 50);
-            }
-            .container {
-                width: 700px;
-                margin: 0 auto;
-            }
             #logo {
                 float: left;
-                margin: 8px 0 0;
+                width: 107px;
+                height: 32px;
+                margin: 10px 20px 0 0;
+                background-size: 104px 32px;
             }
-            #desc {
+            #desc span {
                 float: right;
+                margin-top: 24px;
                 font-size: 15px;
                 line-height: 15px;
-                margin: 21px 16px;
                 font-weight: 600;
+            }
+            #desc span:first-child {
+                margin-right: 10px;
             }
             .social {
                 display: block;
                 float: right;
-                width: 28px;
-                height: 28px;
-                margin: 11px 0 0 5px;
+                width: 26px;
+                height: 26px;
+                margin: 13px 0 0 5px;
+                background-size: 26px 26px;
+                background-repeat: no-repeat;
             }
-            h1 {
-                margin: 35px 0 20px;
+            @media only screen and (max-width: 440px) {
+                #desc { display: none; }
+            }
+            #wmsx {
+                margin-top: 20px;
+                text-align: center;
+            }
+            #wmsx-screen {
+                box-shadow: 2px 2px 10px rgba(0, 0, 0, .7);
+            }
+            .info {
+                display: none;
+                height: 44px;
+                padding-top: 24px;
                 font-size: 18px;
-                font-weight: bold;
+                line-height: 25px;
+                text-align: center;
             }
-            ul {
-                line-height: 146%;
+            @media only screen and (max-width: 499px) {
+                #info-thin { display: block; }
+            }
+            @media only screen and (min-width: 500px) {
+                #info-wide { display: block; }
+            }
+            #footer-space {
+                margin-top: 26px;
+                height: 76px;
+            }
+            #footer {
+                position: absolute;
+                bottom: 0;
+                left: 0; right: 0;
+                height: 76px;
+                background: hsl(0, 0%, 88%);
+                overflow: hidden;
+                font-size: 15px;
+                line-height: 13px;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            #footer .container {
+                padding: 2px 55px 0;
+                box-sizing: border-box;
             }
             a {
                 font-weight: 600;
                 text-decoration: none;
-                color: #0060e0;
+                color: hsl(214, 100%, 43%);
             }
             a:hover {
                 color: #0050ba;
-                text-shadow: #00aaf0 0 0 2px;
+                text-shadow: 0 0 2px hsl(197, 100%, 47%);
             }
             #donate {
+                display: block;
                 position: relative;
-                top: -1px;
-                font-size: 15px;
-                font-weight: bold;
+                margin: 0 auto;
+                padding: 7px 12px;
                 color: white;
-                background-color: #d04020;
-                text-shadow: 1px 1px #444;
+                font-size: 14px;
+                font-weight: 600;
+                background-color: hsl(10, 73%, 47%);
                 border: none;
-                border-radius: 100px;
-                padding: 4px 10px;
-                box-shadow: 1px 1px 2px #111;
+                border-radius: 5px;
+                box-shadow: 1px 1px 4px rgba(0, 0, 0, .4);
                 outline: none;
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
             }
             #donate:hover {
-                /*background-color: #e06030;*/
-                box-shadow: 1px 1px 4px 1px #222;
-            }
-            .noshow {
-                display: none;
+                background-color: hsl(10, 90%, 56%);
+                box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, .4);
             }
         </style>
     </head>
@@ -134,89 +183,52 @@
 
         <div id="topbar">
             <div class="container">
-                <img id="logo" src="images/logositebar.png" title="WMSX - The online MSX Emulator" alt="WMSX - The online MSX Emulator">
-                <a class="social" style="background: url('images/github.png') no-repeat;" href="https://github.com/ppeccin/webmsx" title="Project Homepage on GitHub" target="_blank"></a>
-                <a class="social" style="background: url('images/twitter.png') no-repeat;" href="https://twitter.com/intent/tweet?source=http%3A%2F%2Fwebmsx.org&text=:%20http%3A%2F%2Fwebmsx.org&via=ppeccin" target="_blank" title="Tweet" onclick="window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(document.title) + ':%20'  + encodeURIComponent(document.URL)); return false;"></a>
-                <a class="social" style="background: url('images/facebook.png') no-repeat;" href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fwebmsx.org&t=" title="Share on Facebook" target="_blank" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(document.URL) + '&t=' + encodeURIComponent(document.URL)); return false;"></a>
-                <div id="desc">WebMSX - The online MSX Emulator</div>
+                <a id="logo" style="background-image: url('images/logo-site-bar.png');" href="http://webmsx.org" title="WebMSX - The online MSX emulator" target="_blank"></a>
+                <a class="social" style="background-image: url('images/github.png');" href="https://github.com/ppeccin/webmsx" title="Project Homepage on GitHub" target="_blank"></a>
+                <a class="social" style="background-image: url('images/twitter.png');" href="https://twitter.com/intent/tweet?source=http%3A%2F%2Fwebmsx.org&text=:%20http%3A%2F%2Fwebmsx.org&via=ppeccin" target="_blank" title="Tweet" onclick="window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(document.title) + ':%20'  + encodeURIComponent(document.URL)); return false;"></a>
+                <a class="social" style="background-image: url('images/facebook.png');" href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fwebmsx.org&t=" title="Share on Facebook" target="_blank" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(document.URL) + '&t=' + encodeURIComponent(document.URL)); return false;"></a>
+                <div id="desc">
+                    <span>The online MSX Emulator</span>
+                    <span>WebMSX&nbsp;-&nbsp;</span>
+                </div>
             </div>
         </div>
 
-        <div class="noshow">
-            WebMSX - The online MSX Emulator,
-
-            WMSX - The online MSX Emulator,
-
-            Play MSX games online in your browser,
-
+        <div style="display: none;">
+            WebMSX - The online MSX emulator,
+            WMSX - The online MSX emulator,
+            Play MSX2+ games online in your browser, mobile, touch screen,
             Javascript HTML5 MSX Emulator,
-
             MSX.js, MSX.thml, WMSX.js, WMSX.html, WebMSX.js, WebMSX.html,
-
             MSX-MUSIC, SCC, SCC+, FM-PAC, FM, PSG,
-
             9918, 9938, 9958, VDP, Z80, PPI,
-
             ROM, ROMS, Disk, Tape, Images,
-
             BASIC, MSX-BASIC, MSX-DOS
         </div>
 
-        <div id="wmsx" style="margin: 20px auto 0; min-height: 534px;">
-            <div id="wmsx-screen" style="margin: 0 auto; box-shadow: 2px 2px 10px rgb(60, 60, 60);"></div>
+        <div id="wmsx" class="container">
+            <div id="wmsx-screen"></div>
         </div>
 
         <script src="wmsx/wmsx.js"></script>
 
-        <div class="container">
-
-            <h1 style="margin: 25px 0 10px; text-align: center;">
-                Click the media icons to <a onclick="WMSX.room.screen.openLoadFileDialog();" href="javascript:void(0);">load</a> MSX <a href="http://www.google.com/search?q=MSX+roms+Good" target="_blank">ROMs/Disks/Tapes</a>, or drag & drop files
-            </h1>
-
-            <div style="text-align: center;">
-                <span>Check the <b><a onclick="WMSX.room.screen.openSettings('GENERAL');" href="javascript:void(0);">Settings Dialog</a></b> for more options. Liked WebMSX?&nbsp;&nbsp;</span>
-                <button id="donate" onclick="donate();">Donate!</button>
-            </div>
-
-            <div style="padding-left: 45px;">
-                <h1>WebMSX Features</h1>
-                <ul>
-                    <li>9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz</li>
-                    <li>PSG, SCC, SCC-I, FM-PAC, PCM and MSX-MUSIC sound</li>
-                    <li>Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox</li>
-                    <li>Put games or any MSX software in webpages easily</li>
-                    <li>Show MSX software running with a single link to the WebMSX page</li>
-                    <li>Run it locally with a single HTML file, no install needed</li>
-                    <li>Play Cartridge ROMs, Disk and Tape images</li>
-                    <li>Powerful Drag & Drop system for loading media files</li>
-                    <li>Load several disks at once and easily switch disks</li>
-                    <li>"Files as Disk" and "ZIP as Disk" emulation</li>
-                    <li>Savestates support. Export and share Savestate files</li>
-                    <li>Fully customizable Keyboard, Joysticks, Joykeys and Mouse controllers</li>
-                    <li>Joykeys support. Emulate MSX Joysticks using Host Keyboard</li>
-                    <li>Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys</li>
-                    <li>Easily toggle extensions like SCC, PAC, DOS2, etc.</li>
-                    <li>Adjustable speed, Pause and Frame-by-frame advance</li>
-                    <li>Copy & Paste text, Screen Capture, Debug modes</li>
-                    <li>Resizable Screen, Full Screen mode</li>
-                    <li>Javascript API for loading media and machine control</li>
-                </ul>
-                <br>
-                <p>Visit the <b><a href="https://github.com/ppeccin/webmsx" target="_blank">Project Homepage</a></b> for release notes and docs.</p>
-
-            </div>
-
+        <div id="info-thin" class="info container">
+            Use the media icons to <a onclick="WMSX.room.screen.openLoadFileDialog();" href="javascript:void(0);">load files</a>
         </div>
-        <br>
+        <div id="info-wide" class="info container">
+            Drag & Drop or use the media icons to <a onclick="WMSX.room.screen.openLoadFileDialog();" href="javascript:void(0);">load files</a>
+        </div>
+        <button id="donate" onclick="donate();">DONATE!</button>
 
+        <div id="footer-space"></div>
         <div id="footer">
-            <script>WMSX.PROXY_DOWNLOADER = "http://webmsx.herokuapp.com/proxy-remote-download?url=";</script>
-            <div class="container" style="padding-left: 50px;">
-                <p>Discuss at <a href="http://groups.google.com/group/webmsx" target="_blank">http://groups.google.com/group/webmsx</a></p>
-                <p class="copyright">WebMSX created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo Augusto Peccin</a></p>
+            <div class="container">
+                <script>WMSX.PROXY_DOWNLOADER = "http://webmsx.herokuapp.com/proxy-remote-download?url=";</script>
+                <p>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a></p>
+                <p><a href="https://github.com/ppeccin/webmsx" target="_blank">Project&nbsp;Homepage</a> on&nbsp;GitHub</p>
             </div>
         </div>
 
     </body>
+
 </html>
