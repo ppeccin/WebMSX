@@ -219,8 +219,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 .wmsx-bar-button {
     display: inline-block;
     width: 24px;
-    height: 23px;
-    margin: 3px 1px 0;
+    height: 28px;
+    margin: 0 1px;
     background-image: url("` + wmsx.Images.urls.sprites + `");
     background-repeat: no-repeat;
     background-size: 296px 81px;
@@ -235,14 +235,17 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 */
 
 #wmsx-bar-power {
-    margin: 3px 12px 0 6px;
+    margin: 0 12px 0 6px;
 }
 #wmsx-bar-settings, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
     float: right;
-    margin: 3px 0;
+    margin: 0;
 }
 #wmsx-bar-settings {
     margin-right: 5px;
+}
+#wmsx-bar-full-screen.wmsx-mobile {
+    margin: 0 8px;
 }
 #wmsx-bar-scale-plus {
     width: 21px;
@@ -254,18 +257,17 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     position: absolute;
     left: 0; right: 0;
     width: 37px;
-    margin: 4px auto 0;
+    margin: 0 auto;
 }
 #wmsx-bar.wmsx-narrow #wmsx-bar-keyboard {
     position: static;
     float: right;
-    margin: 4px 8px 0 0;
 }
 #wmsx-bar-logo {
     position: absolute;
     left: 0; right: 0;
     width: 52px;
-    margin: 3px auto 0;
+    margin: 0 auto;
 }
 
 

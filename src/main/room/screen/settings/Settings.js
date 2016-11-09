@@ -69,6 +69,10 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         }
     };
 
+    this.isVisible = function() {
+        return visible;
+    };
+
     this.keyboardSettingsStateUpdate = function() {
         if (visible && keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
     };

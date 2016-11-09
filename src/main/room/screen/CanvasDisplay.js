@@ -2,8 +2,8 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Revisit menu items availability
 // TODO Safari FS bug
+// TODO Visibility change auto scale problem
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -406,6 +406,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.requestReadjust = function(now, skipFocus) {
+        if (settingsDialog && settingsDialog.isVisible()) settingsDialog.hide();
         if (now)
             readjustAll(true, skipFocus);
         else {
@@ -672,7 +673,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Save State",         clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU, disabled: true }
         ];
         menu.menuTitle = "System";
-        powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -29, "System Power", null, menu);
+        powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu);
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
@@ -687,7 +688,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
         ];
         menu.menuTitle = "Drive A:";
-        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -54, "Disk A:", null, menu);
+        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -51, "Disk A:", null, menu);
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
@@ -702,7 +703,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
         menu.menuTitle = "Drive B:";
-        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -54, "Disk B:", null, menu);
+        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Disk B:", null, menu);
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
@@ -711,7 +712,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cartridge 1";
-        cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -150, -54, "Cartridge 1", null, menu);
+        cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -150, -51, "Cartridge 1", null, menu);
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
@@ -720,7 +721,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
         menu.menuTitle = "Cartridge 2";
-        cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -179, -54, "Cartridge 2", null, menu);
+        cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -179, -51, "Cartridge 2", null, menu);
 
         menu = [
             { label: "Load form File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
@@ -731,26 +732,28 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Tape",    clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cassette Tape";
-        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -208, -54, "Cassette Tape", null, menu);
+        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -208, -51, "Cassette Tape", null, menu);
 
         menu = createSettingsMenuOptions();
         menu.menuTitle = "Settings";
-        settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -4, "Settings", null, menu);
+        settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, "Settings", null, menu);
 
-        if (FULLSCREEN_MODE !== -1)
-            fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -4, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
+        if (FULLSCREEN_MODE !== -1) {
+            fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
+            if (isMobileDevice) fullscreenButton.classList.add("wmsx-mobile");
+        }
 
         if (!WMSX.SCREEN_RESIZE_DISABLED && !isMobileDevice) {
-            scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -4, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
+            scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -1, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
             scaleUpButton.classList.add("wmsx-full-screen-hidden");
-            scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -4, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
+            scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -1, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
             scaleDownButton.classList.add("wmsx-full-screen-hidden");
         }
 
-        var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -68, -27, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
+        var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -68, -25, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
         keyboardButton.classList.add("wmsx-full-screen-only");
 
-        logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -26, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -25, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
         logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
@@ -772,9 +775,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "",            divider: true });
 
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
-        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS,     fullScreenHidden: true });
+        if (!isMobileDevice)
+        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
         if (isTouchDevice)
         menu.push({ label: "Touch Controls",                 control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
+        if (!isMobileDevice)
         menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
         return menu;
     }
@@ -1349,7 +1354,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullscreenButton;
     var settingsButton;
 
-    var mediaButtonBackYOffsets = [ -54, -29, -4 ];
+    var mediaButtonBackYOffsets = [ -51, -26, -1 ];
 
     var OSD_TIME = 3000;
     var CURSOR_HIDE_FRAMES = 150;
