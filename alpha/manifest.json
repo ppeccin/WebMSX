@@ -1,0 +1,16 @@
+{
+  "name": "WebMSX",
+  "description": "WebMSX - The online MSX emulator",
+  "display": "standalone",
+  "background_color": "#000",
+  "theme_color": "#363636",
+  "icons": [{
+    "src": "images/logo-icon192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }, {
+    "src": ".images/logo-icon512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }]
+}
