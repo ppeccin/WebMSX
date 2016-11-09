@@ -2,6 +2,7 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
+// TODO Revisit menu items availability
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -766,7 +767,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
         menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS,     fullScreenHidden: true });
         if (isTouchDevice)
-        menu.push({ label: "Touch Controls",                 control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG });
+        menu.push({ label: "Touch Controls",                 control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
         menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
         return menu;
     }
@@ -939,7 +940,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 item.firstChild.textContent = menu[op].label;
                 item.wmsxMenuOption = menu[op];
 
-                if (menu[op].hidden || (isFullscreen && menu[op].fullScreenHidden)) {
+                if (menu[op].hidden || (isFullscreen && menu[op].fullScreenHidden) || (!isFullscreen && menu[op].fullScreenOnly)) {
                     item.style.display = "none";
                 } else {
                     item.style.display = "block";
