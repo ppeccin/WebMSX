@@ -50,9 +50,6 @@ html {
     text-size-adjust: none;
 }
 
-html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + ` {
-    visibility: visible;
-}
 html.wmsx-full-screen .wmsx-full-screen-hidden {
     display: none;
 }
@@ -100,6 +97,9 @@ html.wmsx-full-screen-scroll-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     height: 100%;
     border: none;
     box-shadow: none;
+}
+html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + ` {
+    visibility: visible;
 }
 
 #wmsx-screen-scroll-message {

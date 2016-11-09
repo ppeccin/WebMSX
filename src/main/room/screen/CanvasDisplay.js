@@ -2,8 +2,6 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Safari FS bug
-// TODO Visibility change auto scale problem
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -308,13 +306,27 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (fullScreenScrollHack) document.documentElement.classList.add("wmsx-full-screen-scroll-hack");
             controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
             if (fullScreenScrollHack) setScrollMessage(true);
+            if (!fullscreenAPIEnterMethod) tryToFixSafariBugOnFullScreenChange();
         } else {
             restoreViewport();
             document.documentElement.classList.remove("wmsx-full-screen");
-            document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
+            if (fullScreenScrollHack) document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
+            if (!fullscreenAPIEnterMethod) tryToFixSafariBugOnFullScreenChange();
         }
 
         self.requestReadjust();
+    }
+
+    function tryToFixSafariBugOnFullScreenChange() {
+        // Toggle a dummy element existence inside mainElemen to force a reflow
+        var dummy = document.getElementById("wmsx-dummy-element");
+        if (dummy) {
+            mainElement.removeChild(dummy);
+        } else {
+            dummy = document.createElement("div");
+            dummy.id = "wmsx-dummy-element";
+            mainElement.appendChild(dummy);
+        }
     }
 
     this.focus = function() {
@@ -1243,7 +1255,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 wasFullscreenByAPI = isFullScreenByAPI();
                 wasUnpaused = !machine.systemPause(true);
             } else {
-                self.requestReadjust();
+                if (isMobileDevice) self.requestReadjust();
                 if (wasUnpaused) {
                     if (wasFullscreenByAPI && !isFullScreenByAPI())
                         showLogoMessage(true, "Emulation paused.<br>Resume in full-screen?", machineSystemUnpauseAction);
