@@ -109,6 +109,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         settingsDialog.show(page);
     };
 
+    this.openSaveStateDialog = function (save) {
+        if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls);
+        if (pasteDialog) pasteDialog.hide();
+        saveStateDialog.show(save);
+    };
+
     this.openDiskSelectDialog = function(drive, inc, altPower) {
         if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
         if (pasteDialog) pasteDialog.hide();
@@ -662,8 +668,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Power",              clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",              clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "",                   divider: true },
-            { label: "Load State File",    clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_FILE },
-            { label: "Save State File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_FILE, disabled: true }
+            { label: "Load State",         clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
+            { label: "Save State",         clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU, disabled: true }
         ];
         menu.menuTitle = "System";
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -29, "System Power", null, menu);
@@ -1280,6 +1286,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var machineControlsStateReport = {};
 
     var settingsDialog;
+    var saveStateDialog;
     var diskSelectDialog;
     var machineSelectDialog;
     var touchConfigDialog;

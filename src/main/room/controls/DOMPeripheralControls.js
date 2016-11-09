@@ -57,6 +57,12 @@ wmsx.DOMPeripheralControls = function() {
             case controls.MACHINE_SAVE_STATE_FILE:
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);
                 break;
+            case controls.MACHINE_LOAD_STATE_MENU:
+                screen.openSaveStateDialog(false);
+                break;
+            case controls.MACHINE_SAVE_STATE_MENU:
+                screen.openSaveStateDialog(true);
+                break;
             case controls.DISK_LOAD_FILES:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
                 break;

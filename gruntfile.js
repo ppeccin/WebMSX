@@ -112,6 +112,7 @@ module.exports = function (grunt) {
                     "src/main/room/screen/settings/PortsConfigurator.js",
                     "src/main/room/screen/settings/Settings.js",
                     "src/main/room/screen/paste/PasteDialog.js",
+                    "src/main/room/screen/savesate/SaveStateDialog.js",
                     "src/main/room/screen/diskselect/DiskSelectDialog.js",
                     "src/main/room/screen/machineselect/MachineSelectDialog.js",
                     "src/main/room/screen/touchconfig/TouchConfigDialog.js",
