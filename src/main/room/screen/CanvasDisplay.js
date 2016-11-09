@@ -3,6 +3,7 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
 // TODO Revisit menu items availability
+// TODO Safari FS bug
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -1113,7 +1114,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         var width = fsElementCenter.clientWidth;
         var scale = Math.min(width / wmsx.ScreenGUI.LOGO_MESSAGE_WIDTH, 1);
         logoMessage.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
-        //console.error("MESSAGE SCALE width: " + width);
+        //console.error("MESSAGE SCALE width: " + width + ", scale: " + scale);
     }
 
     function setScrollMessage(state) {
