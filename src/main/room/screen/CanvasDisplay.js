@@ -2,8 +2,6 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Other screens scale
-// TODO Safari layout bug when going full screen
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -977,7 +975,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         var height = fsElementCenter.clientHeight - wmsx.ScreenGUI.BAR_HEIGHT - 8;      // bar + borders + tolerance
-        var scale = h < height ? 1 : Math.min(height / h, 1);
+        var scale = h < height ? 1 : height / h;
         if (barMenu) barMenu.style.transform = "scale(" + scale.toFixed(4) + ")";
 
         //console.error("MESSAGE SCALE height: " + height + ", h: " + h);
@@ -1147,7 +1145,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
-                monitor.displayScale(aspectX, self.displayDefaultScale());
+                monitor.displayScale(WMSX.SCREEN_DEFAULT_ASPECT, self.displayDefaultScale());
             }
 
             if (!skipFocus) self.focus();

@@ -360,7 +360,6 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 540px;
     max-width: 92%;
     height: 270px;
-    max-height: 98%;
     margin: auto;
     color: white;
     font-size: 19px;
