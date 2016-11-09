@@ -2,7 +2,7 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Menu and other screens scale
+// TODO Other screens scale
 // TODO Safari layout bug when going full screen
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -473,7 +473,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.width = "" + canvasWidth + "px";
         canvas.style.height = "" + canvasHeight + "px";
         updateBarWidth(canvasWidth);
-        updateLogoMessageScale();
+        if (logoMessageActive) updateLogoMessageScale();
     }
 
     function updateBarWidth(canvasWidth) {
@@ -909,13 +909,16 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (p + wmsx.ScreenGUI.BAR_MENU_WIDTH > refElement.parentElement.clientWidth) {
                 barMenu.style.right = 0;
                 barMenu.style.left = "auto";
+                barMenu.style.transformOrigin = "bottom right";
             } else {
                 if (p < 0) p = 0;
                 barMenu.style.left = "" + p + "px";
                 barMenu.style.right = "auto";
+                barMenu.style.transformOrigin = "bottom left";
             }
         } else {
             barMenu.style.left = barMenu.style.right = 0;
+            barMenu.style.transformOrigin = "bottom center";
         }
 
         // Show
@@ -930,6 +933,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         var it = 0;
         var item;
         var maxShown = Math.min(menu.length, BAR_MENU_MAX_ITEMS);
+        var h = wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + 3;         // title + borders
+
         for (var op = 0; op < maxShown; ++op) {
             if (menu[op].label !== undefined) {
                 item = barMenu.wmsxItems[it];
@@ -945,7 +950,12 @@ wmsx.CanvasDisplay = function(mainElement) {
                     item.classList.toggle("wmsx-bar-menu-item-disabled", !!menu[op].disabled);
 
                     // Divider?
-                    item.classList.toggle("wmsx-bar-menu-item-divider", !!menu[op].divider);
+                    if (menu[op].divider) {
+                        item.classList.add("wmsx-bar-menu-item-divider");
+                    } else {
+                        item.classList.remove("wmsx-bar-menu-item-divider");
+                        h += wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT;   // ecah non-divider item
+                    }
 
                     // Toggle option?
                     if (menu[op].toggle !== undefined) {
@@ -965,6 +975,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             item.style.display = "none";
             item.wmsxMenuOption = null;
         }
+
+        var height = fsElementCenter.clientHeight - wmsx.ScreenGUI.BAR_HEIGHT - 8;      // bar + borders + tolerance
+        var scale = h < height ? 1 : Math.min(height / h, 1);
+        if (barMenu) barMenu.style.transform = "scale(" + scale.toFixed(4) + ")";
+
+        //console.error("MESSAGE SCALE height: " + height + ", h: " + h);
 
         barMenu.style.height = "auto";
     }
@@ -1052,6 +1068,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function showLogoMessage(yesNo, mes, afterAction) {
+        logoMessageActive = true;
         if (afterAction) afterMessageAction = afterAction;
         logoMessageText.innerHTML = mes;
         logoMessageOk.classList.toggle("wmsx-show", !yesNo);
@@ -1059,6 +1076,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoMessageNo .classList.toggle("wmsx-show", yesNo);
         fsElement.classList.add("wmsx-logo-message-active");
 
+        updateLogoMessageScale();
         signalIsOn = false;
         updateLogo();
     }
@@ -1072,6 +1090,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoMessageYes.classList.remove("wmsx-show");
         logoMessageNo .classList.remove("wmsx-show");
         fsElement.classList.remove("wmsx-logo-message-active");
+        logoMessageActive = false;
     }
 
     function logoMessageYesClicked(e) {
@@ -1095,7 +1114,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         var width = fsElementCenter.clientWidth;
         var scale = Math.min(width / wmsx.ScreenGUI.LOGO_MESSAGE_WIDTH, 1);
         logoMessage.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
-
         //console.error("MESSAGE SCALE width: " + width);
     }
 
@@ -1308,7 +1326,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logo, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk;
+    var logo, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk, logoMessageActive = false;
     var loadingImage;
     var scrollMessage, scrollMessageActive = false;
 

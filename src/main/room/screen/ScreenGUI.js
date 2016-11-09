@@ -277,6 +277,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     font-size: 13px;
     line-height: 1px;
     overflow: hidden;
+    transform-origin: bottom center;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
