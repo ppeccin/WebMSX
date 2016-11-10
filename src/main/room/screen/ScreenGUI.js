@@ -57,6 +57,10 @@ html:not(.wmsx-full-screen) .wmsx-full-screen-only {
     display: none;
 }
 
+html.wmsx-full-screen-scroll-hack {
+    background: black;
+}
+
 html.wmsx-full-screen-scroll-hack body {
     position: absolute;
     width: 100%;
@@ -68,6 +72,7 @@ html.wmsx-full-screen-scroll-hack body {
     border: none;
     overflow-x: hidden;
     overflow-y: auto;
+    visibility: hidden;
 }
 
 #wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {
