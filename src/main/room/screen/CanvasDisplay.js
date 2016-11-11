@@ -633,8 +633,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             showCursor();
             showBar();
         }
+        fsElement.addEventListener("touchstart", showBarOnMouseMoveOrTap);
         fsElement.addEventListener("mousemove", showBarOnMouseMoveOrTap);
-        fsElement.addEventListener("touchStart", showBarOnMouseMoveOrTap);
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
