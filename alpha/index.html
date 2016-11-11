@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="cache.manifest">
+<html>
 
     <head lang="en">
 
@@ -40,9 +40,9 @@
             ga('create', 'UA-67920324-1', 'auto');
             ga('send', 'pageview');
 
-            if (window.applicationCache) window.applicationCache.addEventListener("updateready", function updateCache(e) {
-                window.applicationCache.swapCache();
-            });
+//            if (window.applicationCache) window.applicationCache.addEventListener("updateready", function updateCache(e) {
+//                window.applicationCache.swapCache();
+//            });
 
             function donate() {
                 alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
