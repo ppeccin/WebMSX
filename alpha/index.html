@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html manifest="appcache.manifest">
 
     <head lang="en">
 
@@ -12,7 +12,7 @@
 
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="theme-color" content="#363636">
-        <link rel="manifest" href="manifest.webapp">
+        <link rel="manifest" href="webapp.manifest">
 
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -39,6 +39,10 @@
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
             ga('create', 'UA-67920324-1', 'auto');
             ga('send', 'pageview');
+
+            if (window.applicationCache) window.applicationCache.addEventListener("updateready", function updateCache(e) {
+                window.applicationCache.swapCache();
+            });
 
             function donate() {
                 alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
