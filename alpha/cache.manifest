@@ -1,9 +1,10 @@
 CACHE MANIFEST
-# Version 4.0.0.1
+# Version 4.0.0.2
 
+./index.html
 ./manifest.webapp
 ./wmsx/wmsx.js
-./images/logo-site-bar
+./images/logo-site-bar.png
 ./images/facebook.png
 ./images/twitter.png
 ./images/github.png
