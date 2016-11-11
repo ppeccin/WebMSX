@@ -51,7 +51,7 @@ wmsx.DOMPeripheralControls = function() {
             case controls.MACHINE_POWER_RESET:
                 machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);
                 break;
-            case controls.MACHINE_LOAD_STATE_FILE:                                                      // Only this Machine Control has a key here
+            case controls.MACHINE_LOAD_STATE_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
@@ -150,11 +150,10 @@ wmsx.DOMPeripheralControls = function() {
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case controls.AUTO_LOAD_FILE:
-                if (secPort) return this.controlActivated(controls.AUTO_LOAD_URL, altPower, false);
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
             case controls.AUTO_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort);
+                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
             case controls.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
@@ -226,9 +225,10 @@ wmsx.DOMPeripheralControls = function() {
     var initKeys = function() {
         var k = wmsx.DOMKeys;
 
-        keyCodeMap[KEY_AUTO | k.CONTROL] = controls.AUTO_LOAD_FILE;
+        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = controls.AUTO_LOAD_FILE;
+        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL | k.ALT] = controls.AUTO_LOAD_URL;
 
-        keyCodeMap[KEY_AUTO | k.CONTROL | k.ALT] = controls.MACHINE_SELECT;
+        keyCodeMap[KEY_STATE_FILE | k.CONTROL | k.ALT] = controls.MACHINE_SAVE_STATE_FILE;
 
         keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILES;
         keyCodeMap[KEY_DISK | k.CONTROL] = controls.DISK_EMPTY;
@@ -279,7 +279,6 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_PASTE2 | k.ALT]  = controls.PASTE_STRING;
         keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT]   = controls.CAPTURE_SCREEN;
 
-        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = controls.MACHINE_LOAD_STATE_FILE;
     };
 
     function initGroups() {
@@ -329,7 +328,6 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
     var KEY_CART  = wmsx.DOMKeys.VK_F7.c;
     var KEY_TAPE  = wmsx.DOMKeys.VK_F8.c;
-    var KEY_AUTO  = wmsx.DOMKeys.VK_F12.c;
 
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
@@ -353,6 +351,7 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
 
     var KEY_MACHINE_POWER  = wmsx.DOMKeys.VK_F11.c;
+    var KEY_STATE_FILE     = wmsx.DOMKeys.VK_F12.c;
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 

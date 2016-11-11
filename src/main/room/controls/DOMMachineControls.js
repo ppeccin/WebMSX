@@ -107,8 +107,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         keyCodeMap[KEY_STATE_11a | k.ALT] = controls.LOAD_STATE_11;
         keyCodeMap[KEY_STATE_12 | k.ALT]  = controls.LOAD_STATE_12;
         keyCodeMap[KEY_STATE_12a | k.ALT] = controls.LOAD_STATE_12;
-
-        keyCodeMap[KEY_POWER | k.CONTROL | k.ALT] = controls.SAVE_STATE_FILE;
     };
 
 

@@ -166,7 +166,7 @@ wmsx.SettingsGUI.html = function() {
                             </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                F11
+                                F12
                             </div>
                         </div>
                         <div class="wmsx-desc">Save State File</div>
@@ -284,13 +284,18 @@ wmsx.SettingsGUI.html = function() {
                         <div class="wmsx-desc">Load Cassette Tape</div>
                     </div>
                     <div class="wmsx-hotkey">
-                        <div class="wmsx-desc">
-                            Right-Click Media Icons on the bottom bar
+                        <div class="wmsx-command">
+                            <div class="wmsx-key">
+                                Ctrl
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                F11
+                            </div>
                         </div>
+                        <div class="wmsx-desc">Load Any Media</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-desc">
-                            Drag &amp; Drop Files or URLs (auto detect)
+                            Drag &amp; Drop Files or URLs (Any Media)
                         </div>
                     </div>
                 </div>
@@ -939,11 +944,11 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 }
 
 #wmsx-media .wmsx-top-left .wmsx-command {
-    width: 55px;
+    width: 107px;
 }
 
 #wmsx-media .wmsx-top-right .wmsx-command {
-    width: 110px;
+    width: 101px;
 }
 
 #wmsx-media .wmsx-bottom-left .wmsx-command {

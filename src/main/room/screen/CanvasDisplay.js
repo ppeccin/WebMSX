@@ -2,7 +2,6 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Open any File/URL
 // TODO Logo about in small screens
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -683,15 +682,18 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Power",              clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",              clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "",                   divider: true },
-            { label: "Load State",         clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
-            { label: "Save State",         clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU, disabled: true }
+            { label: "Open File",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_FILE },
+            { label: "Open URL",           clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_URL },
+            { label: "",                   divider: true },
+            { label: "Load State",                     control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
+            { label: "Save State",                     control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU, disabled: true }
         ];
         menu.menuTitle = "System";
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu);
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
-            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES, disabled: true },
+            { label: "Add from Files",                 control: wmsx.PeripheralControls.DISK_ADD_FILES, disabled: true },
             { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK },
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
@@ -706,7 +708,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
-            { label: "Add from Files",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, disabled: true },
+            { label: "Add from Files",                 control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, disabled: true },
             { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true },
             { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
@@ -859,7 +861,17 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Modifier options for left, middle or right click
         for (var i = 0; i < menu.length; ++i)
-            if (menu[i].clickModif === modifs) peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot); // altPower for middleClick
+            if (menu[i].clickModif === modifs) {
+                peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
+                return
+            }
+        // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
+        if (modifs & KEY_SHIFT_MASK) {
+            modifs &= ~KEY_SHIFT_MASK;
+            for (i = 0; i < menu.length; ++i)
+               if (menu[i].clickModif === modifs)
+                    peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
+        }
     }
 
     function peripheralControlButtonMouseEnter(e) {
@@ -1065,19 +1077,17 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
                 var altPower = e.button === 1;
                 var secSlot;
-                if (e.target.wmsxMenuOption.machine) {
-                    machineTypeSocket.changeMachine(e.target.wmsxMenuOption.machine);
-                } else if (e.target.wmsxMenuOption.extension) {
+                if (e.target.wmsxMenuOption.extension) {
                     secSlot = e.shiftKey;
                     extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);
                 } else if (e.target.wmsxMenuOption.control) {
-                    secSlot = e.target.wmsxMenuOption.secSlot;
+                    secSlot = e.target.wmsxMenuOption.secSlot || e.shiftKey;
                     hideBarMenu();
                     peripheralControls.controlActivated(e.target.wmsxMenuOption.control, altPower, secSlot);
                 }
             }
         };
-        // Fire menu item with a left or middle mouse up or a touchEnd
+        // Fire menu item with a left or middle mouse up
         onMouseUp(barMenu, function (e) {
             if (!e.button || e.button === 1) fireItem(e);
             return blockEvent(e);
