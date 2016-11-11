@@ -1,0 +1,16 @@
+CACHE MANIFEST
+# Version 4.0.0.1
+
+./manifest.webapp
+./wmsx/wmsx.js
+./images/logo-site-bar
+./images/facebook.png
+./images/twitter.png
+./images/github.png
+./images/logo-icon32.png
+./images/logo-icon64.png
+./images/logo-icon192.png
+./images/logo-icon512.png
+./images/wmsx-logo.png
+./images/wmsx-logo-large.png
+
