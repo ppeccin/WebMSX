@@ -629,10 +629,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             default:        canvasImageRenderingValue = "pixelated";
         }
 
-        fsElement.addEventListener("mousemove", function() {
+        function showBarOnMouseMoveOrTap() {
             showCursor();
             showBar();
-        });
+        }
+        fsElement.addEventListener("mousemove", showBarOnMouseMoveOrTap);
+        fsElement.addEventListener("touchStart", showBarOnMouseMoveOrTap);
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);

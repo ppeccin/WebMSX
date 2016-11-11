@@ -207,13 +207,15 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
 html.wmsx-bar-auto-hide #wmsx-bar, html.wmsx-full-screen #wmsx-bar {
     position: absolute;
     bottom: 0;
-    transition: height 0.3s ease-in-out;
+    transition: height 0.08s ease-in-out;
 }
 html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
+    transition: height 0.5s ease-in-out;
     height: 0;
 }
 @media only screen and (orientation: landscape) {
     html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
+        transition: height 0.5s ease-in-out;
         height: 0;
     }
 }
