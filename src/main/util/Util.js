@@ -455,6 +455,37 @@ wmsx.Util = new function() {
         return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
     };
 
+    this.onEventOrTapWithBlock = function(element, eventType, handler) {
+        function onEventOrTap(e) {
+            handler(e);
+            return blockEvent(e);
+        }
+        element.addEventListener("touchstart", onEventOrTap);
+        element.addEventListener(eventType, onEventOrTap);
+    };
+
+    this.onEventOrTapWithBlockUIG = function(element, eventType, handler) {
+        function onEventOrTapUIG(e) {
+            // If not User Initiated Gesture needed on the event TARGET handle only on touchstart,
+            // otherwise handle only touchend or original event if no touch events fired
+            if (e.type === "touchstart" && e.target.wmsxNeedsUIG) return;
+            if (e.type === "touchend" && !e.target.wmsxNeedsUIG) return;
+            // Fire original event and block
+            handler(e);
+            return blockEvent(e);
+        }
+        element.addEventListener("touchstart", onEventOrTapUIG);
+        element.addEventListener("touchend", onEventOrTapUIG);
+        element.addEventListener(eventType, onEventOrTapUIG);
+    };
+
+    function blockEvent(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+    this.blockEvent = blockEvent;
+
     this.log2 = function(x) {
         return Math.log(x) / Math.log(2);
     };

@@ -75,6 +75,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             li.style.textAlign = "center";
             li.innerHTML = slotOptions[i].d;
             li.wmsxSlot = i;
+            li.wmsxNeedsUIG = true;         // Will open dialog or download file!
             listItems.push(li);
             list.appendChild(li);
         }
@@ -91,9 +92,6 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
             // Abort
             if (e.keyCode === ESC_KEY) hideAbort();
             // Confirm
@@ -105,7 +103,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
                 refreshList();
             }
 
-            return false;
+            return wmsx.Util.blockEvent(e);
         });
 
         // Hide on lost focus
@@ -113,22 +111,16 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select with mousedown
-        list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
-            e.stopPropagation();
+        wmsx.Util.onEventOrTapWithBlockUIG(list, "mousedown", function mouseDownDiskSelect(e) {
             if (!e.button && e.target.wmsxSlot !== undefined) {
                 slotSelected = e.target.wmsxSlot;
                 refreshList();
                 setTimeout(hideConfirm, 160);
             }
-            return false;
         });
 
         // Supress context menu
-        dialog.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        });
+        dialog.addEventListener("contextmenu", wmsx.Util.blockEvent);
     }
 
 

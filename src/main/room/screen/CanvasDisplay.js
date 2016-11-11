@@ -585,27 +585,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function onMouseDown(element, handler) {
-        element.addEventListener("mousedown", handler);
-    }
-
-    function onMouseUp(element, handler) {
-        element.addEventListener("mouseup", handler);
-    }
-
-
-    function blockEvent(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }
-
     function suppressContextMenu(element) {
-        element.addEventListener("contextmenu", blockEvent);
+        element.addEventListener("contextmenu", wmsx.Util.blockEvent);
     }
 
     function preventDrag(element) {
-        element.ondragstart = blockEvent;
+        element.ondragstart = wmsx.Util.blockEvent;
     }
 
     function setupMain() {
@@ -656,9 +641,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             self.requestReadjust();
         });
 
-        onMouseDown(logoMessageYes,logoMessageYesClicked);    // User Initiated Gesture required
-        onMouseDown(logoMessageNo,logoMessageNoClicked);
-        onMouseDown(logoMessageOk,logoMessageOkClicked);
+        logoMessageYes.wmsxNeedsUIG = true;     // User Initiated Gesture required
+        wmsx.Util.onEventOrTapWithBlockUIG(logoMessageYes, "mousedown", logoMessageYesClicked);
+        wmsx.Util.onEventOrTapWithBlock(logoMessageNo,  "mousedown", logoMessageNoClicked);
+        wmsx.Util.onEventOrTapWithBlock(logoMessageOk,  "mousedown", logoMessageOkClicked);
     }
 
     function setupVirtualKeyboard() {
@@ -682,8 +668,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Power",              clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",              clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "",                   divider: true },
-            { label: "Open File",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_FILE },
-            { label: "Open URL",           clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_URL },
+            { label: "Open File",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_FILE, needsUIG: true },
+            { label: "Open URL",           clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_URL, needsUIG: true },
             { label: "",                   divider: true },
             { label: "Load State",                     control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
             { label: "Save State",                     control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU, disabled: true }
@@ -692,14 +678,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu);
 
         menu = [
-            { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES },
-            { label: "Add from Files",                 control: wmsx.PeripheralControls.DISK_ADD_FILES, disabled: true },
-            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK },
-            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK },
+            { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
+            { label: "Add from Files",                 control: wmsx.PeripheralControls.DISK_ADD_FILES, disabled: true, needsUIG: true },
+            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
+            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
             { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360 },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, disabled: true },
-            { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true },
+            { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
         ];
@@ -707,14 +693,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -51, "Disk A:", null, menu);
 
         menu = [
-            { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true },
-            { label: "Add from Files",                 control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, disabled: true },
-            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true },
-            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true },
+            { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
+            { label: "Add from Files",                 control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, disabled: true, needsUIG: true },
+            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true, needsUIG: true },
+            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true, needsUIG: true },
             { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
             { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, secSlot: true, disabled: true },
-            { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true },
+            { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
@@ -722,29 +708,29 @@ wmsx.CanvasDisplay = function(mainElement) {
         diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Disk B:", null, menu);
 
         menu = [
-            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE },
-            { label: "Load Data",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true },
-            { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true },
+            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
+            { label: "Load Data",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true, needsUIG: true },
+            { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cartridge 1";
         cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -150, -51, "Cartridge 1", null, menu);
 
         menu = [
-            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true },
-            { label: "Load Data",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true },
-            { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true },
+            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "Load Data",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
+            { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
         menu.menuTitle = "Cartridge 2";
         cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -179, -51, "Cartridge 2", null, menu);
 
         menu = [
-            { label: "Load form File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE },
+            { label: "Load form File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, needsUIG: true },
             { label: "New Blank Tape", clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
             { label: "Rewind Tape",                control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true },
             { label: "Run Program",    clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, disabled: true },
-            { label: "Save Tape File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true },
+            { label: "Save Tape File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Tape",    clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true }
         ];
         menu.menuTitle = "Cassette Tape";
@@ -756,6 +742,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (FULLSCREEN_MODE !== -1) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
+            fullscreenButton.wmsxNeedsUIG = true;
             if (isMobileDevice) fullscreenButton.classList.add("wmsx-mobile");
         }
 
@@ -774,7 +761,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoButton.classList.add("wmsx-narrow-hidden");
 
         // Mouse buttons perform the various actions
-        onMouseDown(buttonsBar, peripheralControlButtonMouseDown);
+        wmsx.Util.onEventOrTapWithBlockUIG(buttonsBar, "mousedown", peripheralControlButtonMouseDown);
     }
 
     function createSettingsMenuOptions() {
@@ -836,8 +823,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function peripheralControlButtonMouseDown(e) {
-        blockEvent(e);
-
         // Single option, only left click
         if (e.target.wmsxControl) {
             hideBarMenu();
@@ -905,9 +890,9 @@ wmsx.CanvasDisplay = function(mainElement) {
             fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
                 if (isFullscreen) {
                     if (!fullScreenScrollHack || !e.target.wmsxScroll)
-                        return blockEvent(e);
+                        return wmsx.Util.blockEvent(e);
                     else
-                    if (scrollMessageActive) setScrollMessage(false);
+                        if (scrollMessageActive) setScrollMessage(false);
                 }
             });
         }
@@ -973,21 +958,25 @@ wmsx.CanvasDisplay = function(mainElement) {
         var h = wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + 3;         // title + borders
 
         for (var op = 0; op < maxShown; ++op) {
-            if (menu[op].label !== undefined) {
+            var option = menu[op];
+            if (option.label !== undefined) {
                 item = barMenu.wmsxItems[it];
-                item.firstChild.textContent = menu[op].label;
-                item.wmsxMenuOption = menu[op];
+                item.firstChild.textContent = option.label;
+                item.wmsxMenuOption = option;
 
-                if (menu[op].hidden || (isFullscreen && menu[op].fullScreenHidden) || (!isFullscreen && menu[op].fullScreenOnly)) {
+                if (option.hidden || (isFullscreen && option.fullScreenHidden) || (!isFullscreen && option.fullScreenOnly)) {
                     item.style.display = "none";
                 } else {
                     item.style.display = "block";
 
-                    // Disabled ?
-                    item.classList.toggle("wmsx-bar-menu-item-disabled", !!menu[op].disabled);
+                    // User Generated Gesture needed?
+                    item.wmsxNeedsUIG = option.needsUIG;
+
+                    // Disabled?
+                    item.classList.toggle("wmsx-bar-menu-item-disabled", !!option.disabled);
 
                     // Divider?
-                    if (menu[op].divider) {
+                    if (option.divider) {
                         item.classList.add("wmsx-bar-menu-item-divider");
                     } else {
                         item.classList.remove("wmsx-bar-menu-item-divider");
@@ -995,9 +984,9 @@ wmsx.CanvasDisplay = function(mainElement) {
                     }
 
                     // Toggle option?
-                    if (menu[op].toggle !== undefined) {
+                    if (option.toggle !== undefined) {
                         item.classList.add("wmsx-bar-menu-item-toggle");
-                        item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!menu[op].checked);
+                        item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!option.checked);
                     } else {
                         item.classList.remove("wmsx-bar-menu-item-toggle");
                     }
@@ -1070,7 +1059,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Block keys and hide with ESC
         barMenu.addEventListener("keydown", function(e) {
             if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) hideBarMenu();
-            return blockEvent(e);
+            return wmsx.Util.blockEvent(e);
         });
 
         var fireItem = function(e) {
@@ -1087,13 +1076,15 @@ wmsx.CanvasDisplay = function(mainElement) {
                 }
             }
         };
-        // Fire menu item with a left or middle mouse up
-        onMouseUp(barMenu, function (e) {
-            if (!e.button || e.button === 1) fireItem(e);
-            return blockEvent(e);
-        });
+
         // Block mousedown
-        onMouseDown(barMenu, blockEvent);
+        wmsx.Util.onEventOrTapWithBlock(barMenu, "mousedown", function() { /* nothing */ });
+
+        // Fire menu item with a left or middle mouse up
+        wmsx.Util.onEventOrTapWithBlockUIG(barMenu, "mouseup", function (e) {
+            if (!e.button || e.button === 1) fireItem(e);
+        });
+
 
         // Hide on lost focus
         barMenu.addEventListener("blur", hideBarMenu, true);
@@ -1131,18 +1122,15 @@ wmsx.CanvasDisplay = function(mainElement) {
     function logoMessageYesClicked(e) {
         self.setFullscreen(true);
         closeLogoMessage();
-        return blockEvent(e);
     }
 
     function logoMessageNoClicked(e) {
         closeLogoMessage();
-        return blockEvent(e);
     }
 
     function logoMessageOkClicked(e) {
         if (!isFullscreen) showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen");  // Keep same action
         else closeLogoMessage();
-        return blockEvent(e);
     }
 
     function updateLogoMessageScale() {

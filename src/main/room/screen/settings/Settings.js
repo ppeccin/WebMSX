@@ -94,7 +94,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         mainElement.appendChild(self.cover);
 
          // Supress context menu
-        self.cover.addEventListener("contextmenu", blockEvent);
+        self.cover.addEventListener("contextmenu", wmsx.Util.blockEvent);
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
@@ -119,17 +119,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         }
     };
 
-    function blockEvent(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }
-
     var setEvents = function () {
         // Close the modal with a click outside
         self.cover.addEventListener("mousedown", function (e) {
             self.hide();
-            return blockEvent(e);
+            return wmsx.Util.blockEvent(e);
         });
         document.documentElement.addEventListener("mousedown", function (e) {
             self.hideLesser();
@@ -139,10 +133,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
             e.stopPropagation();
         });
         // Close with the back button
-        self["wmsx-back"].addEventListener("mousedown", function (e) {
-            self.hide();
-            return blockEvent(e);
-        });
+        wmsx.Util.onEventOrTapWithBlock(self["wmsx-back"], "mousedown", self.hide);
 
         // Several key events
         self.cover.addEventListener("keydown", function (e) {
@@ -153,25 +144,20 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         });
 
         // Tabs
-        self["wmsx-menu-general"].addEventListener("mousedown", function (e) {
+        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-general"], "mousedown", function (e) {
             self.setPage("GENERAL");
-            return blockEvent(e);
         });
-        self["wmsx-menu-inputs"].addEventListener("mousedown", function (e) {
+        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-inputs"], "mousedown", function (e) {
             self.setPage("INPUTS");
-            return blockEvent(e);
         });
-        self["wmsx-menu-ports"].addEventListener("mousedown", function (e) {
+        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-ports"], "mousedown", function (e) {
             self.setPage("PORTS");
-            return blockEvent(e);
         });
-        self["wmsx-menu-media"].addEventListener("mousedown", function (e) {
+        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-media"], "mousedown", function (e) {
             self.setPage("MEDIA");
-            return blockEvent(e);
         });
-        self["wmsx-menu-about"].addEventListener("mousedown", function (e) {
+        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-about"], "mousedown", function (e) {
             self.setPage("ABOUT");
-            return blockEvent(e);
         });
     };
 
@@ -194,8 +180,8 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
         if (press && code === KEY_ESC) {
-            blockEvent(e);
             self.hide();
+            return wmsx.Util.blockEvent(e);
         }
     };
 
