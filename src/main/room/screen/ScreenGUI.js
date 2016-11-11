@@ -72,7 +72,7 @@ html.wmsx-full-screen-scroll-hack body {
     border: none;
     overflow-x: hidden;
     overflow-y: auto;
-    visibility: hidden;
+    _visibility: hidden;
 }
 
 #wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {
@@ -102,6 +102,7 @@ html.wmsx-full-screen-scroll-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     height: 100%;
     border: none;
     box-shadow: none;
+    z-index: 2147483646;    /* one behind fsElement */
 }
 html.wmsx-started #` + WMSX.SCREEN_ELEMENT_ID + ` {
     visibility: visible;

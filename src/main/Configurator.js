@@ -225,6 +225,8 @@ wmsx.Configurator = {
         DISKA_FILES: "DISKA_FILES_URL",
         DISKB_FILES: "DISKB_FILES_URL",
         TAPE: "TAPE_URL",
+        LOAD: "AUTODETECT_URL",
+        AUTO: "AUTODETECT_URL",
         AUTODETECT: "AUTODETECT_URL",
         STATE: "STATE_URL",
         SAVESTATE: "STATE_URL",

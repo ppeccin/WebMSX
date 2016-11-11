@@ -318,7 +318,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function tryToFixSafariBugOnFullScreenChange() {
-        // Toggle a dummy element existence inside mainElemen to force a reflow
+        // Toggle a dummy element existence inside mainElement to try to force a reflow
         var dummy = document.getElementById("wmsx-dummy-element");
         if (dummy) {
             mainElement.removeChild(dummy);
