@@ -370,9 +370,9 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     height: 270px;
     margin: auto;
     color: white;
-    font-size: 19px;
+    font-size: 18px;
     background: hsl(0, 0%, 16%);
-    padding: 20px 0 0;
+    padding: 14px 0 0;
     text-align: center;
     border: 1px solid black;
     box-sizing: initial;
@@ -397,7 +397,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-screen-fs .wmsx-select-dialog ul {
     position: relative;
     width: 88%;
-    top: 15px;
+    top: 7px;
     margin: auto;
     padding: 0;
     list-style: none;

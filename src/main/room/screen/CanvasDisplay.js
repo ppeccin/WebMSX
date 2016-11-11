@@ -2,6 +2,8 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
+// TODO Open any File/URL
+// TODO Logo about in small screens
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -54,7 +56,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.start = function(startAction) {
         // Show the logo messages or start automatically
         if (isMobileDevice && !isFullscreen) {
-            if (!fullscreenAPIEnterMethod && !isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then reopen from the new Icon', startAction);
+            if (!fullscreenAPIEnterMethod && !isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then launch from the installed icon', startAction);
             else showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen", startAction);
         } else
             startAction();

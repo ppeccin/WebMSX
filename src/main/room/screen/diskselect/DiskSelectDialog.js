@@ -48,7 +48,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
     function refreshList() {
         header.textContent = "Select Disk in Drive " + (drive === 1 ? "B:" : "A:") + " " + diskDrive.getCurrentDiskNumDesc(drive);
-        var height = 82 + Math.max(diskStack.length, 4) * 30;
+        var height = 65 + Math.max(diskStack.length, 4) * 30;
         dialog.style.height = "" + height + "px";
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];

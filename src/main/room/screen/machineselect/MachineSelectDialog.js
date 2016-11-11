@@ -44,7 +44,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         dialog.id = "wmsx-machineselect";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
-        dialog.style.height = "340px";
+        dialog.style.height = "319px";
         dialog.tabIndex = -1;
 
         var header = document.createTextNode("Select Machine");

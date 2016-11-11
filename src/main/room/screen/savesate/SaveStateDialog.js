@@ -44,7 +44,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
 
     function refreshList() {
         header.textContent = "Select Slot to " + (save ? "Save" : "Load");
-        var height = 62 + 10 * 30;
+        var height = 49 + 10 * 30;
         dialog.style.height = "" + height + "px";
         var prefix = save ? "Save to " : "Load from ";
         for (var i = 0; i < listItems.length; ++i) {
