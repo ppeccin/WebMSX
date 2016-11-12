@@ -336,7 +336,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.powerStateUpdate = function(power) {
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
-        powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[4].disabled = !power;
+        powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[7].disabled = !power;
     };
 
     this.diskDrivesMediaStateUpdate = function(drive) {
