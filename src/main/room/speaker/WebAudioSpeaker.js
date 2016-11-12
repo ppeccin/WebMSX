@@ -88,7 +88,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     function registerUnlockOnTouchIfNeeded() {
         // iOS needs to unlock AudioContext on user interaction!
         if (processor && (!audioContext.state || audioContext.state === "suspended")) {
-            mainElement.addEventListener("touchstart", function unlockAudioContextOnTouch() {
+            mainElement.addEventListener("touchstart", function unlockAudioContextOnTouch() {       // TODO Is touchstart really acceptable for UIG needs?
                 wmsx.Util.log("Unlocking Audio Context...");
                 mainElement.removeEventListener("touchstart", unlockAudioContextOnTouch);
 

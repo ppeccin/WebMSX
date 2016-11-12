@@ -44,12 +44,6 @@ wmsx.ScreenGUI.html = function() {
 wmsx.ScreenGUI.css = function() {
     return `
 
-html {
-    -webkit-text-size-adjust: none;
-    -moz-text-size-adjust: none;
-    text-size-adjust: none;
-}
-
 html.wmsx-full-screen .wmsx-full-screen-hidden {
     display: none;
 }
@@ -88,10 +82,17 @@ html.wmsx-full-screen-scroll-hack body {
     padding: 0;
     border: 1px solid black;
     background: black;
-    user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    text-size-adjust: none;
 }
 html.wmsx-full-screen-scroll-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
     display: block;

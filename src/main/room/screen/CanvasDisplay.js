@@ -674,7 +674,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Open URL",           clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_URL, needsUIG: true },
             { label: "",                   divider: true },
             { label: "Load State",                     control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
-            { label: "Save State",                     control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU, disabled: true }
+            { label: "Save State",                     control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU }
         ];
         menu.menuTitle = "System";
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu);
@@ -843,21 +843,26 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Open/close menu with left-click if no modifiers
         if (modifs === 0 && !e.button) {
             if (barMenuActive !== menu) showBarMenu(menu, e.target, true);
+            else hideBarMenu();
             return;
         }
 
         // Modifier options for left, middle or right click
         for (var i = 0; i < menu.length; ++i)
             if (menu[i].clickModif === modifs) {
+                hideBarMenu();
                 peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
-                return
+                return;
             }
         // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
         if (modifs & KEY_SHIFT_MASK) {
             modifs &= ~KEY_SHIFT_MASK;
             for (i = 0; i < menu.length; ++i)
-               if (menu[i].clickModif === modifs)
-                    peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
+               if (menu[i].clickModif === modifs) {
+                   hideBarMenu();
+                   peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
+                   return;
+               }
         }
     }
 
@@ -1080,7 +1085,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         };
 
         // Block mousedown
-        wmsx.Util.onEventOrTapWithBlock(barMenu, "mousedown", function() { /* nothing */ });
+        barMenu.addEventListener("mousedown", wmsx.Util.blockEvent);
 
         // Fire menu item with a left or middle mouse up
         wmsx.Util.onEventOrTapWithBlockUIG(barMenu, "mouseup", function (e) {
