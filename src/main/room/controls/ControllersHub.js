@@ -63,7 +63,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     this.readControllerPort = function(port) {
         var forward = controllerAtPort[port];
-        return (forward ? forward.readControllerPort(port) : 0x3f) | keyboard.readJapaneseKeyboardLayoutPort();
+        return (forward ? forward.readControllerPort(port) : 0x3f) | japanaseKeyboardLayoutPortValue;
     };
 
     this.writeControllerPin8Port = function(port, value) {
@@ -245,6 +245,8 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var touchControls =    new wmsx.DOMTouchControls(this, keyboard);
 
     var turboFireSpeed = 0;
+
+    var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
     var screen;
 

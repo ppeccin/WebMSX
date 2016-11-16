@@ -34,21 +34,12 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.controllersClockPulse = function() {
-        if (turboFireSpeed)
-            if (--turboFireFlipClockCount <= 0) turboFireFlipClockCount = turboFireSpeed;
+        if (turboFireSpeed && (--turboFireFlipClockCount <= 0)) turboFireFlipClockCount = turboFireSpeed;
     };
 
     this.readKeyboardPort = function(row) {
-        if (turboFireSpeed)
-            return row === 8
-                ? keyboardRowValues[8] | (turboFireFlipClockCount > 2)
-                : keyboardRowValues[row];
-        else
-            return keyboardRowValues[row];
-    };
-
-    this.readJapaneseKeyboardLayoutPort = function() {
-        return japanaseKeyboardLayoutPortValue;
+        if (turboFireSpeed && row === 8) return keyboardRowValues[8] | (turboFireFlipClockCount > 2)
+        else return keyboardRowValues[row];
     };
 
     this.toggleKeyboardLayout = function() {
@@ -236,8 +227,6 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var keyStateMap = {};
     var extraModifiersActive = new Set();
     var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 12 rows used
-
-    var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
     var mapping = {};
     var keyCodeMap;

@@ -53,8 +53,7 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     };
 
     this.setTurboFireSpeed = function(speed) {
-        turboFireSpeed = speed ? speed * speed + 3 : 0;
-        turboFireFlipClockCount = 0;
+        // No turbo fire controlled locally
     };
 
     this.processKey = function(code, press) {
@@ -142,8 +141,6 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     var swappedMode = false;
 
     var keyCodeMap = {};
-
-    var turboFireSpeed = 0, turboFireFlipClockCount = 0;
 
     var joy1State = new JoystickState();
     var joy2State = new JoystickState();

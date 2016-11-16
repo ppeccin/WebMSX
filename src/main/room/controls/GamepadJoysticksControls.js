@@ -251,7 +251,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     }
 
     function updateForTurboFire(joyState, prevTriggerAState) {
-        if (joyState.buttonsState["A"]) {
+        if (joyState.buttonsState["J_A"]) {
             if (prevTriggerAState === false) turboFireFlipClockCount = 2;
             else {
                 if (turboFireFlipClockCount > 2 ) joyState.portValue |= 0x10;
