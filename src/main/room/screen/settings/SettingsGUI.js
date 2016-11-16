@@ -65,6 +65,16 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                T
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">CPU Turbo Mode</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                 Q
                             </div>
                         </div>
@@ -85,22 +95,21 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                R
+                                E
                             </div>
                         </div>
-                        <div class="wmsx-desc">CRT Modes</div>
+                        <div class="wmsx-desc">CRT Filters</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                T
+                                R
                             </div>
                         </div>
-                        <div class="wmsx-desc">CRT Filters</div>
+                        <div class="wmsx-desc">CRT Modes</div>
                     </div>
-                    <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
@@ -218,7 +227,7 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Next Frame</div>
                     </div>
-                    <div class="wmsx-full-divider"></div>
+                    <div class="wmsx-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
@@ -895,7 +904,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 }
 
 #wmsx-general {
-    padding-top: 23px;
+    padding-top: 21px;
     padding-left: 36px;
 }
 
@@ -1645,6 +1654,11 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 
 .wmsx-clear {
     clear: both;
+}
+
+.wmsx-divider {
+    clear: both;
+    height: 27px;
 }
 
 .wmsx-full-divider {

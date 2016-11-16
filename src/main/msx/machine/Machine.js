@@ -529,6 +529,10 @@ wmsx.Machine = function() {
                     self.showOSD("V-Synch: " + (vSynchMode === 1 ? "ON" : vSynchMode === 0 ? "OFF" : "DISABLED"), true);
                 }
                 break;
+            case controls.CPU_TURBO_MODE:
+                var mode = cpu.toggleTurbo();
+                self.showOSD("CPU Turbo Speed: " + (mode ? "ON (7.1 MHz)" : "OFF (3.5 MHz)"), true);
+                break;
             case controls.PALETTE:
                 vdp.togglePalettes();
                 break;

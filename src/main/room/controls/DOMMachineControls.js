@@ -70,9 +70,9 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         keyCodeMap[KEY_TRACE | k.ALT]           = controls.TRACE;
         keyCodeMap[KEY_DEBUG | k.ALT]           = controls.DEBUG;
         keyCodeMap[KEY_SPRITE_MODE | k.ALT]     = controls.SPRITE_MODE;
-        keyCodeMap[KEY_PALETTE | k.ALT]         = controls.PALETTE;
         keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]  = controls.VIDEO_STANDARD;
         keyCodeMap[KEY_VSYNCH | k.ALT]          = controls.VSYNCH;
+        keyCodeMap[KEY_CPU_TURBO | k.ALT]       = controls.CPU_TURBO_MODE;
 
         keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_0;
         keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = controls.SAVE_STATE_0;
@@ -139,9 +139,9 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
     var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
     var KEY_SPRITE_MODE      = wmsx.DOMKeys.VK_S.c;
-    var KEY_PALETTE          = wmsx.DOMKeys.VK_E.c;
     var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_Q.c;
     var KEY_VSYNCH           = wmsx.DOMKeys.VK_W.c;
+    var KEY_CPU_TURBO        = wmsx.DOMKeys.VK_T.c;
 
     var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
     var KEY_STATE_0a         = wmsx.DOMKeys.VK_BACKQUOTE.c;

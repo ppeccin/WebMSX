@@ -5,8 +5,6 @@
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160Hz
 
-// TODO Turbo mode! :-)
-
 wmsx.Z80 = function() {
 "use strict";
 
@@ -28,7 +26,8 @@ wmsx.Z80 = function() {
     };
 
     this.clockPulses = function(quant) {
-        for (var i = 0; i < quant; ++i) {
+        var cpuQuant = quant << turboClockShift;
+        for (var i = cpuQuant; i > 0; --i) {
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T > 0) {
                 instruction.operation();
@@ -38,7 +37,7 @@ wmsx.Z80 = function() {
                 else fetchNextInstruction();
             }
         }
-        cycles += quant;                             // Quantized cycle reporting. Lower precision, better performance
+        cycles += quant;                             // TODO VDP Turbo? Other queries?      Quantized cycle reporting. Lower precision, better performance
     };
 
     this.connectBus = function(aBus) {
@@ -68,6 +67,15 @@ wmsx.Z80 = function() {
     this.getCycles = function() {
         return cycles;
     };
+
+    this.toggleTurbo = function() {
+        turboClockShift = turboClockShift === 0 ? 1 : 0;
+        return !!turboClockShift;
+    };
+
+
+    // Speed mode
+    var turboClockShift = 0;
 
     // Extension Handling
     var extensionHandlers = [];
@@ -2601,7 +2609,8 @@ wmsx.Z80 = function() {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
             c: cycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
-            ecr: extensionCurrentlyRunning, eei: extensionExtraIterations
+            ecr: extensionCurrentlyRunning, eei: extensionExtraIterations,
+            tcs: turboClockShift
         };
     };
 
@@ -2610,6 +2619,7 @@ wmsx.Z80 = function() {
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
         cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
+        turboClockShift = s.tcs || 0;
     };
 
 

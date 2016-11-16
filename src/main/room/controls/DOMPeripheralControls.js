@@ -346,7 +346,7 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_TOUCH_TOGGLE          = wmsx.DOMKeys.VK_N.c;
     var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
 
-    var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_T.c;
+    var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_E.c;
     var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
     var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
 
