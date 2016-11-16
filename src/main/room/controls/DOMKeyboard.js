@@ -38,7 +38,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.readKeyboardPort = function(row) {
-        if (turboFireSpeed && row === 8) return keyboardRowValues[8] | (turboFireFlipClockCount > 2)
+        if (turboFireSpeed && row === 8) return keyboardRowValues[8] | (turboFireFlipClockCount > 2);
         else return keyboardRowValues[row];
     };
 

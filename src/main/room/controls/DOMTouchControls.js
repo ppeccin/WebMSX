@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Turbofire
 // TODO Mappings on Savestates?
 
 wmsx.DOMTouchControls = function(hub, keyForwardControls) {
@@ -30,12 +29,16 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.readControllerPort = function(aPort) {
-        if (aPort === port) return joyState.portValue;
+        if (aPort === port) return (turboFireFlipClockCount > 2) ? joyState.portValue | 0x10 : joyState.portValue;
         else return 0x3f;
     };
 
     this.writeControllerPin8Port = function(atPort, val) {
         // Do nothing
+    };
+
+    this.controllersClockPulse = function() {
+        if (turboFireSpeed && (--turboFireFlipClockCount <= 0)) turboFireFlipClockCount = turboFireSpeed;
     };
 
     this.toggleMode = function() {
@@ -248,8 +251,11 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
         if (mapping.button) {
             // Joystick button
-            if (press) joyState.portValue &= ~mapping.mask;
-            else       joyState.portValue |=  mapping.mask;
+            if (press) {
+                joyState.portValue &= ~mapping.mask;
+                if (turboFireSpeed && mapping.mask === 0x10) turboFireFlipClockCount = 3;
+            } else
+                joyState.portValue |= mapping.mask;
         } else if (mapping.key) {
             // Keyboard key
             keyForwardControls.processMSXKey(mapping.key, press);

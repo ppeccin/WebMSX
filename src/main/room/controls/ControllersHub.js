@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Turbo fire release / press ratio is wrong
+
 wmsx.ControllersHub = function(keyForwardControls) {
 "use strict";
 
@@ -75,6 +77,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     this.controllersClockPulse = function() {
         keyboard.controllersClockPulse();
         joystickControls.controllersClockPulse();
+        touchControls.controllersClockPulse();
     };
 
     this.toggleKeyboardLayout = function() {
@@ -99,11 +102,11 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     this.toggleTurboFireSpeed = function() {
         turboFireSpeed = (turboFireSpeed + 1) % 7;
-        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (7 - turboFireSpeed) : ": OFF"), true);
         keyboard.setTurboFireSpeed(turboFireSpeed);
         joystickControls.setTurboFireSpeed(turboFireSpeed);
         joykeysControls.setTurboFireSpeed(turboFireSpeed);
         touchControls.setTurboFireSpeed(turboFireSpeed);
+        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (7 - turboFireSpeed) : ": OFF"), true);
     };
 
     this.setupTouchControlsIfNeeded = function(mainElement) {
