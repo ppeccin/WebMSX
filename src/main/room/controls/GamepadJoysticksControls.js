@@ -29,7 +29,9 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     };
 
     this.readControllerPort = function(port) {
-        return (port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue;
+        return turboFireClockCount > turboFireFlipClock
+            ? ((port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue) | 0x10
+            : ((port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue);
     };
 
      this.writeControllerPin8Port = function(atPort, val) {
@@ -66,9 +68,10 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         }
     };
 
-    this.setTurboFireSpeed = function(speed) {
-        turboFireSpeed = speed ? speed * speed + 3 : 0;
-        turboFireFlipClockCount = 0;
+    this.setTurboFireClocks = function(clocks) {
+        turboFireClocks = clocks;
+        turboFireFlipClock = (turboFireClocks / 2) | 0;
+        turboFireClockCount = 0;
     };
 
     this.controllersClockPulse = function(noMessage) {
@@ -81,13 +84,11 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
 
         var gamepads = navigator.getGamepads();     // Just one poll per clock here then use it several times
 
-        if (turboFireSpeed)
-            if (--turboFireFlipClockCount <= 0) turboFireFlipClockCount = turboFireSpeed;
+        if (turboFireClocks && --turboFireClockCount <= 0) turboFireClockCount = turboFireClocks;
 
         if (joystick1) {
             if (joystick1.update(gamepads)) {
                 if (joystick1.hasMoved()) update(joystick1, joy1State, joy1Prefs);
-                else if (turboFireSpeed) updateForTurboFire(joy1State);
             } else {
                 joystick1 = null;
                 joy1State.reset();
@@ -103,7 +104,6 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         if (joystick2) {
             if (joystick2.update(gamepads)) {
                 if (joystick2.hasMoved()) update(joystick2, joy2State, joy2Prefs);
-                else if (turboFireSpeed) updateForTurboFire(joy2State);
             } else {
                 joystick2 = null;
                 joy2State.reset();
@@ -213,7 +213,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         var buttonsState = joyState.buttonsState;
 
         // Turbo-fire
-        var prevTriggerAState = buttonsState["A"];
+        var prevTriggerAState = buttonsState["J_A"];
 
         // Update buttons states
         for (var b in joystickButtons) {
@@ -240,7 +240,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
         }
 
         // Turbo-fire
-        if (turboFireSpeed) updateForTurboFire(joyState, prevTriggerAState === true);
+        if (turboFireClocks && joyState.buttonsState["J_A"] && !prevTriggerAState) turboFireClockCount = turboFireFlipClock;
 
         // Use Analog direction if no directional buttons pressed
         if (!(buttonsState["UP"] || buttonsState["DOWN"] || buttonsState["LEFT"] || buttonsState["RIGHT"])) {
@@ -248,16 +248,6 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
             if (dir !== joyState.analogDirection) {
                 joyState.analogDirection = dir;
                 joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[dir + 1];
-            }
-        }
-    }
-
-    function updateForTurboFire(joyState, prevTriggerAState) {
-        if (joyState.buttonsState["J_A"]) {
-            if (prevTriggerAState === false) turboFireFlipClockCount = 2;
-            else {
-                if (turboFireFlipClockCount > 2 ) joyState.portValue |= 0x10;
-                else joyState.portValue &= ~0x10;
             }
         }
     }
@@ -287,7 +277,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     var mode = -1;
     var swappedMode = false;
 
-    var turboFireSpeed = 0, turboFireFlipClockCount = 0;
+    var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
 
     var joy1State = new JoystickState();
     var joy2State = new JoystickState();

@@ -34,11 +34,11 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     };
 
     this.controllersClockPulse = function() {
-        if (turboFireSpeed && (--turboFireFlipClockCount <= 0)) turboFireFlipClockCount = turboFireSpeed;
+        if (turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
     this.readKeyboardPort = function(row) {
-        if (turboFireSpeed && row === 8) return keyboardRowValues[8] | (turboFireFlipClockCount > 2);
+        if (turboFireClocks && row === 8) return keyboardRowValues[8] | (turboFireClockCount > turboFireFlipClock);
         else return keyboardRowValues[row];
     };
 
@@ -67,9 +67,10 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         }
     };
 
-    this.setTurboFireSpeed = function(speed) {
-        turboFireSpeed = speed ? speed * speed + 3 : 0;
-        turboFireFlipClockCount = 0;
+    this.setTurboFireClocks = function(clocks) {
+        turboFireClocks = clocks;
+        turboFireFlipClock = (turboFireClocks / 2) | 0;
+        turboFireClockCount = 0;
     };
 
     this.releaseControllers = function() {
@@ -154,7 +155,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
             var mattrix = msxKeys[msxKey].m;
             if (press) {
                 keyboardRowValues[mattrix[0]] &= ~(1 << mattrix[1]);
-                if (turboFireSpeed && msxKey === "SPACE") turboFireFlipClockCount = 3;
+                if (turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
             } else {
                 keyboardRowValues[mattrix[0]] |= (1 << mattrix[1]);
             }
@@ -231,7 +232,7 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
     var mapping = {};
     var keyCodeMap;
 
-    var turboFireSpeed = 0, turboFireFlipClockCount = 0;
+    var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
 
     var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
 

@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Turbo fire release / press ratio is wrong
-
 wmsx.ControllersHub = function(keyForwardControls) {
 "use strict";
 
@@ -101,12 +99,13 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.toggleTurboFireSpeed = function() {
-        turboFireSpeed = (turboFireSpeed + 1) % 7;
-        keyboard.setTurboFireSpeed(turboFireSpeed);
-        joystickControls.setTurboFireSpeed(turboFireSpeed);
-        joykeysControls.setTurboFireSpeed(turboFireSpeed);
-        touchControls.setTurboFireSpeed(turboFireSpeed);
-        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (7 - turboFireSpeed) : ": OFF"), true);
+        turboFireSpeed = (turboFireSpeed + 1) % 11;
+        var turboClocks = turboFireSpeed ? (60 / turboFirePerSecond[turboFireSpeed]) | 0 : 0;
+        keyboard.setTurboFireClocks(turboClocks);
+        joystickControls.setTurboFireClocks(turboClocks);
+        joykeysControls.setTurboFireClocks(turboClocks);
+        touchControls.setTurboFireClocks(turboClocks);
+        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (11 - turboFireSpeed) : ": OFF"), true);
     };
 
     this.setupTouchControlsIfNeeded = function(mainElement) {
@@ -248,6 +247,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var touchControls =    new wmsx.DOMTouchControls(this, keyboard);
 
     var turboFireSpeed = 0;
+    var turboFirePerSecond = [ 0, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.4, 2 ];
 
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 

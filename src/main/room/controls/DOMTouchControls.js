@@ -29,7 +29,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.readControllerPort = function(aPort) {
-        if (aPort === port) return (turboFireFlipClockCount > 2) ? joyState.portValue | 0x10 : joyState.portValue;
+        if (aPort === port) return (turboFireClockCount > turboFireFlipClock) ? joyState.portValue | 0x10 : joyState.portValue;
         else return 0x3f;
     };
 
@@ -38,7 +38,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     };
 
     this.controllersClockPulse = function() {
-        if (turboFireSpeed && (--turboFireFlipClockCount <= 0)) turboFireFlipClockCount = turboFireSpeed;
+        if (turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
     this.toggleMode = function() {
@@ -73,9 +73,10 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         return port;
     };
 
-    this.setTurboFireSpeed = function(speed) {
-        turboFireSpeed = speed ? speed * speed + 3 : 0;
-        turboFireFlipClockCount = 0;
+    this.setTurboFireClocks = function(clocks) {
+        turboFireClocks = clocks;
+        turboFireFlipClock = (turboFireClocks / 2) | 0;
+        turboFireClockCount = 0;
     };
 
     this.getMappingForControl = function(button, port) {
@@ -253,7 +254,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
             // Joystick button
             if (press) {
                 joyState.portValue &= ~mapping.mask;
-                if (turboFireSpeed && mapping.mask === 0x10) turboFireFlipClockCount = 3;
+                if (turboFireClocks && mapping.mask === 0x10) turboFireClockCount = turboFireFlipClock + 1;
             } else
                 joyState.portValue |= mapping.mask;
         } else if (mapping.key) {
@@ -295,7 +296,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     var isMobileDevice = wmsx.Util.isMobileDevice();
     var mode = WMSX.TOUCH_MODE >= 1 ? WMSX.TOUCH_MODE - 1 : isTouchDevice ? -1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;
-    var turboFireSpeed = 0, turboFireFlipClockCount = 0;
+    var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
 
     var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY, dirCurrentDir = -1;
     var buttonElements = { };

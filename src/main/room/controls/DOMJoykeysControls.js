@@ -52,7 +52,7 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
         }
     };
 
-    this.setTurboFireSpeed = function(speed) {
+    this.setTurboFireClocks = function(speed) {
         // No turbo fire controlled locally
     };
 
