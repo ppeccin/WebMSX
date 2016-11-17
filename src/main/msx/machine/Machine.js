@@ -531,7 +531,7 @@ wmsx.Machine = function() {
                 break;
             case controls.CPU_TURBO_MODE:
                 var mode = cpu.toggleTurbo();
-                self.showOSD("CPU Turbo Speed: " + (mode ? "ON (7.1 MHz)" : "OFF (3.5 MHz)"), true);
+                self.showOSD("CPU Turbo Speed: " + (mode ? "2x (7.16 MHz)" : "OFF (3.58 MHz)"), true);
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();

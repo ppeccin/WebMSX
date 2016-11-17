@@ -1,10 +1,9 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Migration
-
 WMSX.userPreferences = { };
 
-WMSX.userPreferences.compatibleVersions = new Set([ 0, 1 ]);
+WMSX.userPreferences.currentVersion = 1;
+WMSX.userPreferences.compatibleVersions = new Set([ 1 ]);
 
 WMSX.userPreferences.defaults = function() {
 "use strict";
@@ -16,8 +15,6 @@ WMSX.userPreferences.defaults = function() {
     var g = wmsx.GamepadButtons;
 
     return {
-
-        prefsVersion: 1,
 
         keyboard: undefined,        // auto
         customKeyboards: { },
@@ -128,24 +125,38 @@ WMSX.userPreferences.defaults = function() {
 };
 
 WMSX.userPreferences.load = function() {
+    var prefs;
+
     // Load from Local Storage
     try {
-        WMSX.userPreferences.current = JSON.parse(localStorage.wmsxprefs || "{}");
-        // Migrations
-        if (WMSX.userPreferences.current.version) delete WMSX.userPreferences.current.version;
-        if (!WMSX.userPreferences.current.prefsVersion) WMSX.userPreferences.current.prefsVersion = 0;
+        prefs = JSON.parse(localStorage.wmsxprefs || "{}");
+        // Migrations from old to new version control fields
+        if (prefs.version) delete prefs.version;
     } catch(e) {
         // Give up
     }
 
     // Absent or incompatible version
-    if (!WMSX.userPreferences.current || !WMSX.userPreferences.compatibleVersions.has(WMSX.userPreferences.current.prefsVersion))
-        WMSX.userPreferences.current = {};
+    if (!prefs || !WMSX.userPreferences.compatibleVersions.has(prefs.prefsVersion)) {
+        // Create new empty preferences and keep settings as possible
+        var oldPrefs = prefs;
+        prefs = {};
+        if (oldPrefs) {
+            // Migration from version < 1 to version 1: Keep only keyboard settings
+            prefs.keyboard = oldPrefs.keyboard;
+            prefs.customKeyboards = oldPrefs.customKeyboards;
+        }
+    }
 
-    // Fill missing properties
+    // Fill missing properties with defaults
     var defs = WMSX.userPreferences.defaults();
     for (var pref in defs)
-        if (!WMSX.userPreferences.current[pref]) WMSX.userPreferences.current[pref] = defs[pref];
+        if (!prefs[pref]) prefs[pref] = defs[pref];
+
+    // Update preferences version to current
+    prefs.prefsVersion = WMSX.userPreferences.currentVersion;
+
+    WMSX.userPreferences.current = prefs;
 };
 
 WMSX.userPreferences.save = function() {
