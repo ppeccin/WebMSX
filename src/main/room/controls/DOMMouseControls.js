@@ -66,8 +66,8 @@ wmsx.DOMMouseControls = function(hub) {
 
         mouseState.pin8Value = val;
 
-        var elapsed = controllersSocket.getCPUCycles() - mouseState.lastPin8FlipCPUCycle;
-        mouseState.lastPin8FlipCPUCycle += elapsed;
+        var elapsed = controllersSocket.getBUSCycles() - mouseState.lastPin8FlipBUSCycle;
+        mouseState.lastPin8FlipBUSCycle += elapsed;
 
         // Resets read cycle if timeout passed since last flip
         if (elapsed > READ_CYCLE_RESET_TIMEOUT) mouseState.readCycle = -1;
@@ -247,7 +247,7 @@ wmsx.DOMMouseControls = function(hub) {
 
             this.portValue = 0x3f;
             this.pin8Value = 0;
-            this.lastPin8FlipCPUCycle = 0;
+            this.lastPin8FlipBUSCycle = 0;
             this.readCycle = -1;
             this.readDX = 0;
             this.readDY = 0;

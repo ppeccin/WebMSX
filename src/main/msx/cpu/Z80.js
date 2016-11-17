@@ -37,7 +37,7 @@ wmsx.Z80 = function() {
                 else fetchNextInstruction();
             }
         }
-        cycles += quant;                             // TODO VDP Turbo? Other queries?      Quantized cycle reporting. Lower precision, better performance
+        busCycles += quant;                          // Quantized bus cycle reporting. Lower precision, better performance
     };
 
     this.connectBus = function(aBus) {
@@ -50,7 +50,7 @@ wmsx.Z80 = function() {
     };
 
     this.reset = function() {
-        cycles = 0;
+        busCycles = 0;
         T = -1; opcode = null; ackINT = false;
         instruction = null; prefix = 0;
         PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
@@ -64,8 +64,8 @@ wmsx.Z80 = function() {
         }
     };
 
-    this.getCycles = function() {
-        return cycles;
+    this.getBUSCycles = function() {
+        return busCycles;
     };
 
     this.toggleTurbo = function() {
@@ -124,7 +124,7 @@ wmsx.Z80 = function() {
 
     // Fetch and Instruction control
 
-    var cycles = 0;
+    var busCycles = 0;
     var T = -1;                         // Clocks remaining in the current instruction
 
     var opcode;
@@ -2608,7 +2608,7 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
-            c: cycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
+            c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations,
             tcs: turboClockShift
         };
@@ -2617,7 +2617,7 @@ wmsx.Z80 = function() {
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
-        cycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
+        busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
         turboClockShift = s.tcs || 0;
     };
@@ -2627,7 +2627,7 @@ wmsx.Z80 = function() {
 
     this.toString = function() {
         return "CPU " +
-            " PC: " + wmsx.Util.toHex2(PC) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + cycles + "\n\n" +
+            " PC: " + wmsx.Util.toHex2(PC) + "      op: " + (instruction ? instruction.mnemonic : "NULL") + "          cycle: " + busCycles + "\n\n" +
             "A: " + wmsx.Util.toHex2(A) + "     B: " + wmsx.Util.toHex2(B) + "     C: " + wmsx.Util.toHex2(C) + "     D: " + wmsx.Util.toHex2(DE >>> 8) +
             "     E: " + wmsx.Util.toHex2(DE & 0xff) + "     H: " + wmsx.Util.toHex2(HL >>> 8) + "     L: " + wmsx.Util.toHex2(HL & 0xff) + "\n" +
             "BC: " + wmsx.Util.toHex2(fromBC()) + "  DE: " + wmsx.Util.toHex2(DE) + "  HL: " + wmsx.Util.toHex2(HL) +

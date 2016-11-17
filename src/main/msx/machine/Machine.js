@@ -787,8 +787,8 @@ wmsx.Machine = function() {
         this.controllersClockPulse = function() {
             controls.controllersClockPulse();
         };
-        this.getCPUCycles = function() {
-            return cpu.getCycles();
+        this.getBUSCycles = function() {
+            return cpu.getBUSCycles();
         };
         var controls;
     }

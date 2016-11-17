@@ -227,7 +227,7 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.reset = function() {
-        frame = cycles = lastCPUCyclesComputed = 0;
+        frame = cycles = lastBUSCyclesComputed = 0;
         dataFirstWrite = null; dataPreRead = 0; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
@@ -254,11 +254,11 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.updateCycles = function() {
-        var cpuCycles = cpu.getCycles();
-        if (cpuCycles === lastCPUCyclesComputed) return cycles;
+        var busCycles = cpu.getBUSCycles();
+        if (busCycles === lastBUSCyclesComputed) return cycles;
 
-        var elapsed = (cpuCycles - lastCPUCyclesComputed) * 6;
-        lastCPUCyclesComputed = cpuCycles;
+        var elapsed = (busCycles - lastBUSCyclesComputed) * 6;
+        lastBUSCyclesComputed = busCycles;
         cycles += elapsed;
 
         return cycles;
@@ -2259,7 +2259,7 @@ wmsx.VDP = function(machine, cpu) {
     var bufferLineAdvance;
     var currentScanline;
 
-    var cycles, lastCPUCyclesComputed;
+    var cycles, lastBUSCyclesComputed;
 
     var startingScanline;
     var finishingScanline;
@@ -2382,7 +2382,7 @@ wmsx.VDP = function(machine, cpu) {
             mt: machineType,
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
-            f: frame, c: cycles, cc: lastCPUCyclesComputed,
+            f: frame, c: cycles, cc: lastBUSCyclesComputed,
             vp: vramPointer, d: dataFirstWrite, dr: dataPreRead, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
@@ -2402,7 +2402,7 @@ wmsx.VDP = function(machine, cpu) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
-        frame = s.f || 0; cycles = s.c; lastCPUCyclesComputed = s.cc;
+        frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
         vramPointer = s.vp; dataFirstWrite = s.d; dataPreRead = s.dr || 0; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
@@ -2433,7 +2433,7 @@ wmsx.VDP = function(machine, cpu) {
 
 
     function logInfo(text) {
-        wmsx.Util.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getCycles() - debugLineStartCPUCycles));
+        wmsx.Util.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getBUSCycles() - debugLineStartCPUCycles));
     }
     this.logInfo = logInfo;
 
