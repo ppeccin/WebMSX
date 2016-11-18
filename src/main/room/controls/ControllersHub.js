@@ -105,7 +105,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.setTurboFireClocks(turboClocks);
         joykeysControls.setTurboFireClocks(turboClocks);
         touchControls.setTurboFireClocks(turboClocks);
-        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + (11 - turboFireSpeed) : ": OFF"), true);
+        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + turboFireSpeed : ": OFF"), true);
     };
 
     this.setupTouchControlsIfNeeded = function(mainElement) {
@@ -247,7 +247,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var touchControls =    new wmsx.DOMTouchControls(this, keyboard);
 
     var turboFireSpeed = 0;
-    var turboFirePerSecond = [ 0, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.4, 2 ];
+    var turboFirePerSecond = [ 0, 2, 2.4, 3, 4, 5, 6, 7.5, 10, 12, 15 ];
 
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
