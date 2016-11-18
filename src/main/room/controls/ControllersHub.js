@@ -253,6 +253,19 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     var screen;
 
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            t: touchControls.saveState()
+        };
+    };
+
+    this.loadState = function(s) {
+        touchControls.loadState(s.t);
+    };
+
 };
 
 

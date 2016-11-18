@@ -289,28 +289,30 @@ wmsx.Machine = function() {
             br: basicAutoRunDone,
             vss: videoStandardSoft && videoStandardSoft.name,
             dd: diskDriveSocket.getDrive().saveState(),
-            ct: cassetteSocket.getDeck().saveState()
+            ct: cassetteSocket.getDeck().saveState(),
+            cs: controllersSocket.saveState()
         };
     }
 
-    function loadState(state) {
-        self.machineName = state.mn;
-        self.machineType = state.mt;
-        videoStandardIsAuto = state.va;
-        setVideoStandard(wmsx.VideoStandard[state.vs]);
-        videoStandardSoft = state.vss && wmsx.VideoStandard[state.vss];
-        speedControl = state.s || 1;
-        basicAutoRunDone = !!state.br;
+    function loadState(s) {
+        self.machineName = s.mn;
+        self.machineType = s.mt;
+        videoStandardIsAuto = s.va;
+        setVideoStandard(wmsx.VideoStandard[s.vs]);
+        videoStandardSoft = s.vss && wmsx.VideoStandard[s.vss];
+        speedControl = s.s || 1;
+        basicAutoRunDone = !!s.br;
         mainVideoClockUpdateSpeed();
-        cpu.loadState(state.c);
-        vdp.loadState(state.vd);
-        psg.loadState(state.ps);
-        ppi.loadState(state.pp);
-        rtc.loadState(state.rc);
-        syf.loadState(state.sf);
-        bus.loadState(state.b);
-        diskDriveSocket.getDrive().loadState(state.dd);
-        cassetteSocket.getDeck().loadState(state.ct);
+        cpu.loadState(s.c);
+        vdp.loadState(s.vd);
+        psg.loadState(s.ps);
+        ppi.loadState(s.pp);
+        rtc.loadState(s.rc);
+        syf.loadState(s.sf);
+        bus.loadState(s.b);
+        diskDriveSocket.getDrive().loadState(s.dd);
+        cassetteSocket.getDeck().loadState(s.ct);
+        if (s.cs) controllersSocket.loadState(s.cs);
         machineTypeSocket.fireMachineTypeStateUpdate();
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.firePowerStateUpdate();
@@ -789,6 +791,12 @@ wmsx.Machine = function() {
         };
         this.getBUSCycles = function() {
             return cpu.getBUSCycles();
+        };
+        this.saveState = function() {
+            return controls.saveState();
+        };
+        this.loadState = function(s) {
+            controls.loadState(s);
         };
         var controls;
     }

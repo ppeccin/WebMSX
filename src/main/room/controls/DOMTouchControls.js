@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Mappings on Savestates?
-
 wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 "use strict";
 
@@ -62,10 +60,10 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     this.getModeDesc = function() {
         switch (mode) {
-            case -1:  return "AUTO";
-            case 0:   return "ENABLED";
-            case 1:   return "ENABLED (port 2)";
-            default:  return !isTouchDevice ? "NOT SUPPORTED" : "DISABLED";
+            case -1: return "AUTO";
+            case 0:  return "ENABLED";
+            case 1:  return "ENABLED (port 2)";
+            default: return !isTouchDevice ? "NOT SUPPORTED" : "DISABLED";
         }
     };
 
@@ -320,6 +318,21 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         };
         this.reset();
     }
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            p: prefs
+        };
+    };
+
+    this.loadState = function(s) {
+        resetStates();
+        prefs = s.p;
+        updateMappings();
+    };
 
 };
 
