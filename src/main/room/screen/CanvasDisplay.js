@@ -3,6 +3,7 @@
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
 // TODO Logo about in small screens
+// TODO FS message start/action problem
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
