@@ -773,18 +773,48 @@ html.wmsx-full-screen #wmsx-logo-image {
     top: 5px;
     width: 25px;
     height: 35px;
-    padding-top: 11px;
+    padding: 11px 0 0 6px;
 }
 .wmsx-keyboard-up, .wmsx-keyboard-down {
     width: 39px;
     height: 23px;
-    padding-top: 5px;
+    padding: 5px 0 0 13px;
 }
 .wmsx-keyboard-down {
     position: absolute;
     top: 23px;
     left: 26px;
+    padding-top: 7px;
 }
+.wmsx-keyboard-right {
+    padding-left: 9px;
+}
+
+.wmsx-keyboard-up::after, .wmsx-keyboard-down::after, .wmsx-keyboard-left::after, .wmsx-keyboard-right::after {
+    content: "";
+    display: block;
+    border: 4px solid transparent;
+    width: 6px;
+    height: 6px;
+    box-sizing: border-box;
+}
+.wmsx-keyboard-up::after {
+    border-bottom: 5px solid white;
+    border-top-width: 0;
+}
+.wmsx-keyboard-down::after {
+    border-top: 5px solid white;
+    border-bottom-width: 0;
+}
+.wmsx-keyboard-left::after {
+    border-right: 5px solid white;
+    border-left-width: 0;
+}
+.wmsx-keyboard-right::after {
+    border-left: 5px solid white;
+    border-right-width: 0;
+}
+
 
 
 #wmsx-virtual-keyboard {
@@ -1021,12 +1051,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 .wmsx-touch-dir-key .wmsx-touch-dir-up {
     top: 26px;
-    height: 26px;
+    height: 25px;
     border-bottom-width: 2px;
 }
 .wmsx-touch-dir-key .wmsx-touch-dir-down {
     bottom: 26px;
-    height: 28px;
+    height: 27px;
 }
 .wmsx-touch-dir-key .wmsx-touch-dir-left, .wmsx-touch-dir-key .wmsx-touch-dir-right {
     top: 47px;
@@ -1040,12 +1070,12 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     right: 24px;
 }
 .wmsx-touch-dir-key .wmsx-touch-dir-up::after {
-    content: "";
+content: "";
     position: absolute;
-    top: 28px;
-    left: 0px;
-    width: 26px;
-    height: 18px;
+    top: 26px;
+    left: -1px;
+    width: 28px;
+    height: 22px;
     background: hsl(0, 0%, 20%);
 }
 

@@ -29,7 +29,7 @@ wmsx.VirtualKeyboard = {
                     var msxKey = this.translations[key] || key;
                     if (wmsx.KeyboardKeys[msxKey]) {
                         keyElement.wmsxKey = msxKey;
-                        keyElement.innerHTML = this.labels[msxKey] || wmsx.KeyboardKeys[msxKey].sn;
+                        keyElement.innerHTML = this.labels[msxKey] !== undefined ? this.labels[msxKey] : wmsx.KeyboardKeys[msxKey].sn;
                     }
                     rowDiv.appendChild(keyElement);
                     if (keysCallback) keysCallback(keyElement);
@@ -60,7 +60,7 @@ wmsx.VirtualKeyboard = {
 
     labels: {   // Instead of the 3-char shot names
         STOP: "STOP", HOME: "HOME", CONTROL: "CTRL", SHIFT: "SHIFT", CAPSLOCK: "CAPS", SPACE: "SPACE", GRAPH: "GRAPH", CODE: "CODE", DEAD: "DEAD",
-        LEFT: "&#9668;", UP: "&#9650;", DOWN: "&#9660;", RIGHT: "&#9658;"
+        LEFT: "", UP: "", DOWN: "", RIGHT: ""       // Arrows will be drawn with div borders
     },
 
     dark: [
