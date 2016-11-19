@@ -331,7 +331,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     this.loadState = function(s) {
         resetStates();
         prefs = s.p;
-        updateMappings();
+        if (dirElement) updateMappings();
     };
 
 };
