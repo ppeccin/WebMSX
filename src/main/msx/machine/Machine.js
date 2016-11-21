@@ -32,7 +32,7 @@ wmsx.Machine = function() {
         cpu.powerOn();
         this.reset();
         this.powerIsOn = true;
-        machineControlsSocket.firePowerStateUpdate();
+        machineControlsSocket.firePowerAndUserPauseStateUpdate();
         if (!mainVideoClock.isRunning()) mainVideoClock.go();
     };
 
@@ -45,7 +45,8 @@ wmsx.Machine = function() {
         if (syf) syf.powerOff();
         bus.powerOff();
         this.powerIsOn = false;
-        machineControlsSocket.firePowerStateUpdate();
+        if (userPaused) this.userPause(false);
+        else machineControlsSocket.firePowerAndUserPauseStateUpdate();
     };
 
     this.reset = function() {
@@ -160,7 +161,7 @@ wmsx.Machine = function() {
             userPaused = !!pause; userPauseMoreFrames = -1;
             if (userPaused && !keepAudio) audioSocket.muteAudio();
             else audioSocket.unMuteAudio();
-            machineControlsSocket.fireUserPauseStateUpdate();
+            machineControlsSocket.firePowerAndUserPauseStateUpdate();
         }
         return prev;
     };
@@ -316,7 +317,7 @@ wmsx.Machine = function() {
         if (s.cs) controllersSocket.loadState(s.cs);
         machineTypeSocket.fireMachineTypeStateUpdate();
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
-        machineControlsSocket.firePowerStateUpdate();
+        machineControlsSocket.firePowerAndUserPauseStateUpdate();
         audioSocket.flushAllSignals();
     }
 
@@ -812,21 +813,16 @@ wmsx.Machine = function() {
         this.controlStateChanged = function(control, state) {
             controlStateChanged(control, state);
         };
-        this.setPowerStateListener = function(listener) {
-            powerStateListener = listener;
-            this.firePowerStateUpdate();
+        this.addPowerAndUserPauseStateListener = function(listener) {
+            if (powerAndUserPauseStateListeners.indexOf(listener) >= 0) return;
+            powerAndUserPauseStateListeners[powerAndUserPauseStateListeners.length] = listener;
+            this.firePowerAndUserPauseStateUpdate();
         };
-        this.setUserPauseStateListener = function(listener) {
-            userPauseStateListener = listener;
-            this.fireUserPauseStateUpdate();
+        this.firePowerAndUserPauseStateUpdate = function() {
+            for (var i = 0; i < powerAndUserPauseStateListeners.length; ++i)
+                powerAndUserPauseStateListeners[i].machinePowerAndUserPauseStateUpdate(self.powerIsOn, userPaused);
         };
-        this.firePowerStateUpdate = function() {
-            if (powerStateListener) powerStateListener.powerStateUpdate(self.powerIsOn);
-        };
-        this.fireUserPauseStateUpdate = function() {
-            if (userPauseStateListener) userPauseStateListener.userPauseStateUpdate(userPaused);
-        };
-        var powerStateListener, userPauseStateListener;
+        var powerAndUserPauseStateListeners = [];
     }
 
 

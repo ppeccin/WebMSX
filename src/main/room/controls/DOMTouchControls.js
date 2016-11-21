@@ -7,7 +7,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     this.connect = function(pMachineControlsSocket) {
         machineControlsSocket = pMachineControlsSocket;
-        machineControlsSocket.setUserPauseStateListener(this);
+        machineControlsSocket.addPowerAndUserPauseStateListener(this);
     };
 
     this.connectPeripherals = function(pScreen) {
@@ -173,13 +173,15 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         screen.touchControlsActiveUpdate(active);
     };
 
-    this.userPauseStateUpdate = function(paused) {
-        isMachinePaused = paused;
+    this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
+        machinePower = power;
+        machinePaused = paused;
         if (speedControls) updateSpeedControls();
     };
 
     function updateSpeedControls() {
-        speedControls.classList.toggle("wmsx-paused", isMachinePaused);
+        speedControls.classList.toggle("wmsx-poweroff", !machinePower);
+        speedControls.classList.toggle("wmsx-paused", machinePaused);
     }
 
     function updateMode() {
@@ -290,17 +292,17 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     function pauseTouchStart(e) {
         blockEvent(e);
-        machineControlsSocket.controlStateChanged(machineControls.PAUSE, true);
+        machineControlsSocket.controlStateChanged(!machinePower ? machineControls.POWER : machineControls.PAUSE, true);
     }
 
     function fastTouchStart(e) {
         blockEvent(e);
-        machineControlsSocket.controlStateChanged(isMachinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, true);
+        machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, true);
     }
 
     function fastTouchEnd(e) {
         blockEvent(e);
-        machineControlsSocket.controlStateChanged(isMachinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, false);
+        machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, false);
     }
 
     function updateMappings() {
@@ -344,7 +346,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     var speedControls;
 
     var joyState = new JoystickState();
-    var isMachinePaused = false;
+    var machinePower = false, machinePaused = false;
 
     var prefs;
 

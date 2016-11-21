@@ -336,7 +336,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.focus();
     };
 
-    this.powerStateUpdate = function(power) {
+    this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[7].disabled = !power;
     };
@@ -414,7 +414,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         isLoading = state;
         updateLoading();
         if (!state) {
-            machineControlsSocket.setPowerStateListener(this);
+            machineControlsSocket.addPowerAndUserPauseStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
         }

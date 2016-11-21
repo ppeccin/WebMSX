@@ -1209,7 +1209,7 @@ content: "";
     border-left-color: inherit;
     border-right-width: 0;
 }
-#wmsx-touch-speed.wmsx-paused #wmsx-touch-pause::after {
+#wmsx-touch-speed.wmsx-paused #wmsx-touch-pause::after, #wmsx-touch-speed.wmsx-poweroff #wmsx-touch-pause::after {
     margin-top: 14px;
     width: 17px;
     height: 20px;
@@ -1221,6 +1221,9 @@ content: "";
     width: 7px;
     border-width: 0;
     border-left-width: 3px;
+}
+#wmsx-touch-speed.wmsx-poweroff #wmsx-touch-fast {
+    display: none;
 }
 
 
