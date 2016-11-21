@@ -1182,7 +1182,7 @@ content: "";
     float: left;
     width: 46px;
     height: 48px;
-    border-color: hsl(0, 0%, 75%);
+    border-color: hsl(0, 0%, 70%);
 }
 #wmsx-touch-pause::after, #wmsx-touch-fast::before, #wmsx-touch-fast::after {
     content: "";
