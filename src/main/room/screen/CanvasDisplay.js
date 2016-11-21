@@ -2,8 +2,6 @@
 
 // TODO Remove unstable UNICODE chars (Paste, Arrows)
 // TODO Remove "Center" rounding problems as possible
-// TODO Logo about in small screens
-// TODO FS message start/action problem
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -280,7 +278,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -1) return;
 
-        closeLogoMessage();
+        closeLogoMessage(true);
 
         // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
         if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
@@ -337,6 +335,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
+        if (power) closeLogoMessage(false);
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[7].disabled = !power;
     };
@@ -1116,9 +1115,9 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     }
 
-    function closeLogoMessage() {
+    function closeLogoMessage(performAction) {
         if (afterMessageAction) {
-            afterMessageAction();
+            if (performAction) afterMessageAction();
             afterMessageAction = null;
         }
         logoMessageOk.classList.remove("wmsx-show");
@@ -1130,16 +1129,16 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function logoMessageYesClicked(e) {
         self.setFullscreen(true);
-        closeLogoMessage();
+        closeLogoMessage(true);
     }
 
     function logoMessageNoClicked(e) {
-        closeLogoMessage();
+        closeLogoMessage(true);
     }
 
     function logoMessageOkClicked(e) {
         if (!isFullscreen) showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen");  // Keep same action
-        else closeLogoMessage();
+        else closeLogoMessage(true);
     }
 
     function updateLogoMessageScale() {

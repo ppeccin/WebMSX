@@ -6,6 +6,8 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     var self = this;
 
     this.show = function (page) {
+        if (mainElement.clientWidth < 596 || mainElement.clientHeight < 454) return;    // Minimum size to open dialog
+
         if (!this.cover) {
             create();
             setTimeout(function() {
