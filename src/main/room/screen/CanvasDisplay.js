@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Remove unstable UNICODE chars (Paste, Arrows)
-// TODO Remove "Center" rounding problems as possible
+// TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
+// TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -420,7 +420,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.requestReadjust = function(now, skipFocus) {
-        if (settingsDialog && settingsDialog.isVisible()) settingsDialog.hide();
+        if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
         if (now)
             readjustAll(true, skipFocus);
         else {
@@ -495,6 +495,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.height = "" + canvasHeight + "px";
         updateBarWidth(canvasWidth);
         if (logoMessageActive) updateLogoMessageScale();
+        if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
     }
 
     function updateBarWidth(canvasWidth) {
@@ -1381,7 +1382,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;
 
-    var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 1;
+    var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 0;
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 

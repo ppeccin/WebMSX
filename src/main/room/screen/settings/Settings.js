@@ -6,8 +6,6 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     var self = this;
 
     this.show = function (page) {
-        if (mainElement.clientWidth < 596 || mainElement.clientHeight < 454) return;    // Minimum size to open dialog
-
         if (!this.cover) {
             create();
             setTimeout(function() {
@@ -15,6 +13,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
             }, 0);
             return;
         }
+
+        if (!this.position()) return;
+
         if (page) this.setPage(page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
@@ -75,6 +76,25 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         return visible;
     };
 
+    this.position = function() {
+        var w = mainElement.clientWidth;
+        var h = mainElement.clientHeight;
+        if (w < 537 || h < 434) {
+            this.hide();
+            return false;
+        }
+
+        if (w < 600) w -= 2;
+        if (WMSX.SCREEN_CONTROL_BAR) {
+            if (h >= 456 + wmsx.ScreenGUI.BAR_HEIGHT) h -= wmsx.ScreenGUI.BAR_HEIGHT + 3;
+            else h += 8;
+        }
+        this["wmsx-modal"].style.top =  "" + (((h - 456) / 2) | 0) + "px";
+        this["wmsx-modal"].style.left = "" + (((w - 600) / 2) | 0) + "px";
+
+        return true;
+    };
+
     this.keyboardSettingsStateUpdate = function() {
         if (visible && keyboardConfigurator) keyboardConfigurator.keyboardSettingsStateUpdate();
     };
@@ -83,7 +103,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         if (visible && portsConfigurator) portsConfigurator.controllersSettingsStateUpdate();
     };
 
-    var create = function () {
+    function create() {
         var styles = document.createElement('style');
         styles.type = 'text/css';
         styles.innerHTML = wmsx.SettingsGUI.css();
@@ -104,10 +124,10 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
 
         setFields();
         setEvents();
-    };
+    }
 
     // Automatically set fields for each child element that has the "id" attribute
-    var setFields = function () {
+    function setFields() {
         traverseDOM(self.cover, function (element) {
             if (element.id) self[element.id] = element;
         });
@@ -119,9 +139,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
                 traverseDOM(child[i], func);
             }
         }
-    };
+    }
 
-    var setEvents = function () {
+    function setEvents() {
         // Close the modal with a click outside
         self.cover.addEventListener("mousedown", function (e) {
             self.hide();
@@ -161,23 +181,23 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-about"], "mousedown", function (e) {
             self.setPage("ABOUT");
         });
-    };
+    }
 
-    var refreshAboutPage = function () {
+    function refreshAboutPage() {
         self["wmsx-browserinfo"].innerHTML = navigator.userAgent;
-    };
+    }
 
-    var refreshInputsPage = function() {
+    function refreshInputsPage() {
         if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, self.cover);
         keyboardConfigurator.refresh();
-    };
+    }
 
-    var refreshPortsPage = function() {
+    function refreshPortsPage() {
         if (!portsConfigurator) portsConfigurator = new wmsx.PortsConfigurator(controllersHub, self.cover);
         portsConfigurator.refresh();
-    };
+    }
 
-    var processKeyEvent = function(e, press) {
+    function processKeyEvent(e, press) {
         e.returnValue = false;  // IE
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
 
@@ -185,7 +205,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
             self.hide();
             return wmsx.Util.blockEvent(e);
         }
-    };
+    }
 
 
     var visible = false;

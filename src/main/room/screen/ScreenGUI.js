@@ -11,9 +11,7 @@ wmsx.ScreenGUI = {
 };
 
 wmsx.ScreenGUI.html = function() {
-    return `
-
-        <div id="wmsx-screen-fs" tabindex="0">
+    return `<div id="wmsx-screen-fs" tabindex="0">
             <div id="wmsx-screen-fs-center" tabindex="-1">
                 <div id="wmsx-screen-canvas-outer">
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
@@ -36,15 +34,11 @@ wmsx.ScreenGUI.html = function() {
             <div id="wmsx-screen-scroll-message">
                 Swipe up/down on the Screen <br>to hide the browser bars!
             </div>
-        </div>
-
-        `;
+        </div>`;
 };
 
 wmsx.ScreenGUI.css = function() {
-    return `
-
-html.wmsx-full-screen .wmsx-full-screen-hidden {
+    return `html.wmsx-full-screen .wmsx-full-screen-hidden {
     display: none;
 }
 html:not(.wmsx-full-screen) .wmsx-full-screen-only {
@@ -213,11 +207,13 @@ html.wmsx-bar-auto-hide #wmsx-bar, html.wmsx-full-screen #wmsx-bar {
 html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     transition: height 0.5s ease-in-out;
     height: 0;
+    bottom: -1px;
 }
 @media only screen and (orientation: landscape) {
     html.wmsx-full-screen #wmsx-bar.wmsx-hidden {
         transition: height 0.5s ease-in-out;
         height: 0;
+        bottom: -1px;
     }
 }
 
@@ -1352,8 +1348,6 @@ content: "";
         right: 0%;
     }
 
-}
-
-`;
+}`;
 
 };

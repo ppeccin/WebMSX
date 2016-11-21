@@ -5,9 +5,7 @@
 wmsx.SettingsGUI = {};
 
 wmsx.SettingsGUI.html = function() {
-    return `
-
-    <div id="wmsx-modal" tabindex="-1">
+    return `<div id="wmsx-modal" tabindex="-1">
         <div id="wmsx-menu">
             <div id="wmsx-back">
                 <div class="wmsx-back-arrow">
@@ -663,16 +661,12 @@ wmsx.SettingsGUI.html = function() {
             <br>
             (right-click to clear)
         </div>
-    </div>
-
-`;
+    </div>`;
 };
 
 
 wmsx.SettingsGUI.css = function() {
-    return `
-
-#wmsx-cover * {
+    return `#wmsx-cover * {
     outline: none;
     box-sizing: border-box;     /* Fix for Bootstrap :-( */
 }
@@ -697,7 +691,6 @@ wmsx.SettingsGUI.css = function() {
     -ms-user-select: none;
     z-index: 50;
 }
-
 #wmsx-cover.wmsx-show {
     transition: visibility .2s ease-out, opacity .2s ease-out;
     height: 100%;
@@ -710,19 +703,15 @@ wmsx.SettingsGUI.css = function() {
     overflow: hidden;
     width: 600px;
     height: 456px;
-    top: calc(50% - 15px);
-    left: 50%;
+    top: 22px;
+    left: 29px;
     color: hsl(0, 0%, 10%);
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
-    transform: translate(-50%, -50%) scale(0.85);
-    transition: all .2s ease-out;
+    transform: scale(0.85);
+    transition: transform .2s ease-out;
 }
-html.wmsx-bar-auto-hide #wmsx-modal {
-    top: calc(50%);
-}
-
 #wmsx-modal.wmsx-show {
-    transform: translate(-50%, -50%);
+    transform: scale(1);
 }
 
 #wmsx-cover .wmsx-hotkey {
@@ -801,7 +790,7 @@ html.wmsx-bar-auto-hide #wmsx-modal {
     position: absolute;
     width: 40px;
     height: 34px;
-    margin: 3px;
+    margin: 3px 1px;
     padding: 16px 12px;
     cursor: pointer;
 }
@@ -1669,7 +1658,6 @@ html.wmsx-bar-auto-hide #wmsx-modal {
 #wmsx-general .wmsx-full-divider {
     clear: both;
     height: 18px;
-}
+}`;
 
-`;
 };
