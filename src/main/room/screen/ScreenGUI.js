@@ -1209,11 +1209,6 @@ content: "";
     border-left-color: inherit;
     border-right-width: 0;
 }
-#wmsx-touch-speed.wmsx-paused  #wmsx-touch-fast::after {
-    width: 9px;
-    border-width: 0;
-    border-left-width: 3px;
-}
 #wmsx-touch-speed.wmsx-paused #wmsx-touch-pause::after {
     margin-top: 14px;
     width: 17px;
@@ -1221,6 +1216,11 @@ content: "";
     border-width: 10px;
     border-left-width: 17px;
     border-right-width: 0;
+}
+#wmsx-touch-speed.wmsx-paused  #wmsx-touch-fast::after {
+    width: 7px;
+    border-width: 0;
+    border-left-width: 3px;
 }
 
 
@@ -1238,7 +1238,7 @@ content: "";
     #wmsx-touch-speed {
         position: absolute;
         left: -109px;
-        bottom: 4px;
+        top: 8px;
     }
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
@@ -1274,8 +1274,8 @@ content: "";
     }
     #wmsx-touch-speed {
         position: absolute;
-        left: 16px;
-        bottom: ` + (wmsx.ScreenGUI.BAR_HEIGHT + 8) + `px;
+        left: 19px;
+        bottom: ` + (wmsx.ScreenGUI.BAR_HEIGHT + 18) + `px;
     }
 
     .wmsx-touch-button {
