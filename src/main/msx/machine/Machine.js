@@ -160,6 +160,7 @@ wmsx.Machine = function() {
             userPaused = !!pause; userPauseMoreFrames = -1;
             if (userPaused && !keepAudio) audioSocket.muteAudio();
             else audioSocket.unMuteAudio();
+            machineControlsSocket.fireUserPauseStateUpdate();
         }
         return prev;
     };
@@ -811,17 +812,21 @@ wmsx.Machine = function() {
         this.controlStateChanged = function(control, state) {
             controlStateChanged(control, state);
         };
-        this.addPowerStateListener = function(listener) {
-            if (powerStateListeners.indexOf(listener) < 0) {
-                powerStateListeners.push(listener);
-                listener.powerStateUpdate();		// Fire a redefinition event
-            }
+        this.setPowerStateListener = function(listener) {
+            powerStateListener = listener;
+            this.firePowerStateUpdate();
+        };
+        this.setUserPauseStateListener = function(listener) {
+            userPauseStateListener = listener;
+            this.fireUserPauseStateUpdate();
         };
         this.firePowerStateUpdate = function() {
-            for (var i = 0; i < powerStateListeners.length; i++)
-                powerStateListeners[i].powerStateUpdate(self.powerIsOn);
+            if (powerStateListener) powerStateListener.powerStateUpdate(self.powerIsOn);
         };
-        var powerStateListeners = [];
+        this.fireUserPauseStateUpdate = function() {
+            if (userPauseStateListener) userPauseStateListener.userPauseStateUpdate(userPaused);
+        };
+        var powerStateListener, userPauseStateListener;
     }
 
 

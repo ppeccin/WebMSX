@@ -414,7 +414,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         isLoading = state;
         updateLoading();
         if (!state) {
-            machineControlsSocket.addPowerStateListener(this);
+            machineControlsSocket.setPowerStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
         }

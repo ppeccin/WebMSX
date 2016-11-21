@@ -1,9 +1,14 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMTouchControls = function(hub, keyForwardControls) {
+wmsx.DOMTouchControls = function(hub, keyboard) {
 "use strict";
 
     var self = this;
+
+    this.connect = function(pMachineControlsSocket) {
+        machineControlsSocket = pMachineControlsSocket;
+        machineControlsSocket.setUserPauseStateListener(this);
+    };
 
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
@@ -88,9 +93,21 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     this.setupTouchControlsIfNeeded = function(mainElement) {
         if (dirElement || port < 0) return;
 
+        speedControls = document.createElement('div');
+        speedControls.id = "wmsx-touch-speed";
+        var pause = document.createElement('div');
+        pause.id = "wmsx-touch-pause";
+        pause.addEventListener("touchstart", pauseTouchStart);
+        speedControls.appendChild(pause);
+        var ff = document.createElement('div');
+        ff.id = "wmsx-touch-fast";
+        ff.addEventListener("touchstart", fastTouchStart);
+        ff.addEventListener("touchend", fastTouchEnd);
+        speedControls.appendChild(ff);
+        mainElement.appendChild(speedControls);
+
         var group = document.createElement('div');
         group.id = "wmsx-touch-left";
-        mainElement.appendChild(group);
         dirElement = wmsx.DOMTouchControls.createDirectional();
         dirElement.addEventListener("touchstart", dirTouchStart);
         dirElement.addEventListener("touchmove", dirTouchMove);
@@ -99,14 +116,15 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         dirElement.addEventListener("mousedown", dirTouchStart);
         dirElement.addEventListener("mouseup", dirTouchEnd);
         group.appendChild(dirElement);
+        mainElement.appendChild(group);
 
         group = document.createElement('div');
         group.id = "wmsx-touch-right";
-        mainElement.appendChild(group);
-
         var buts = wmsx.TouchControls.buttons;
         for (var b in buts) createButton(group, buts[b]);
+        mainElement.appendChild(group);
 
+        updateSpeedControls();
         updateMappings();
 
         function createButton(group, name) {
@@ -154,6 +172,15 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
         document.documentElement.classList.toggle("wmsx-touch-active", active);
         screen.touchControlsActiveUpdate(active);
     };
+
+    this.userPauseStateUpdate = function(paused) {
+        isMachinePaused = paused;
+        if (speedControls) updateSpeedControls();
+    };
+
+    function updateSpeedControls() {
+        speedControls.classList.toggle("wmsx-paused", isMachinePaused);
+    }
 
     function updateMode() {
         port = mode === -2 ? -1 : mode === -1 ? (isTouchDevice && isMobileDevice ? 0 : -1) : mode;
@@ -217,11 +244,11 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
         if (dirElement.wmsxMappingIsKeys) {
             var release = DIRECTION_TO_KEYS[dirCurrentDir + 1];
-            if (release[0]) keyForwardControls.processMSXKey(release[0], false);
-            if (release[1]) keyForwardControls.processMSXKey(release[1], false);
+            if (release[0]) keyboard.processMSXKey(release[0], false);
+            if (release[1]) keyboard.processMSXKey(release[1], false);
             var press = DIRECTION_TO_KEYS[newDir + 1];
-            if (press[0]) keyForwardControls.processMSXKey(press[0], true);
-            if (press[1]) keyForwardControls.processMSXKey(press[1], true);
+            if (press[0]) keyboard.processMSXKey(press[0], true);
+            if (press[1]) keyboard.processMSXKey(press[1], true);
         } else
             joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[newDir + 1];
 
@@ -257,8 +284,23 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
                 joyState.portValue |= mapping.mask;
         } else if (mapping.key) {
             // Keyboard key
-            keyForwardControls.processMSXKey(mapping.key, press);
+            keyboard.processMSXKey(mapping.key, press);
         }
+    }
+
+    function pauseTouchStart(e) {
+        blockEvent(e);
+        machineControlsSocket.controlStateChanged(machineControls.PAUSE, true);
+    }
+
+    function fastTouchStart(e) {
+        blockEvent(e);
+        machineControlsSocket.controlStateChanged(isMachinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, true);
+    }
+
+    function fastTouchEnd(e) {
+        blockEvent(e);
+        machineControlsSocket.controlStateChanged(isMachinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, false);
     }
 
     function updateMappings() {
@@ -287,6 +329,7 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
     }
 
 
+    var machineControls = wmsx.MachineControls;
     var machineControlsSocket;
     var screen;
 
@@ -298,8 +341,10 @@ wmsx.DOMTouchControls = function(hub, keyForwardControls) {
 
     var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY, dirCurrentDir = -1;
     var buttonElements = { };
+    var speedControls;
 
     var joyState = new JoystickState();
+    var isMachinePaused = false;
 
     var prefs;
 

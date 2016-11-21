@@ -1178,6 +1178,52 @@ content: "";
 #wmsx-touch-T_F { z-index: 2 }
 #wmsx-touch-T_G { z-index: 1 }
 
+#wmsx-touch-pause, #wmsx-touch-fast {
+    float: left;
+    width: 46px;
+    height: 48px;
+    border-color: hsl(0, 0%, 75%);
+}
+#wmsx-touch-pause::after, #wmsx-touch-fast::before, #wmsx-touch-fast::after {
+    content: "";
+    display: inline-block;
+    border: 0 solid transparent;
+    box-sizing: border-box;
+}
+#wmsx-touch-pause::after {
+    margin-top: 16px;
+    width: 14px;
+    height: 16px;
+    border-width: 0;
+    border-left-width: 4px;
+    border-left-color: inherit;
+    border-right-width: 4px;
+    border-right-color: inherit;
+}
+#wmsx-touch-fast::before, #wmsx-touch-fast::after {
+    margin-top: 16px;
+    width: 12px;
+    height: 16px;
+    border-width: 8px;
+    border-left-width: 12px;
+    border-left-color: inherit;
+    border-right-width: 0;
+}
+#wmsx-touch-speed.wmsx-paused  #wmsx-touch-fast::after {
+    width: 9px;
+    border-width: 0;
+    border-left-width: 3px;
+}
+#wmsx-touch-speed.wmsx-paused #wmsx-touch-pause::after {
+    margin-top: 14px;
+    width: 17px;
+    height: 20px;
+    border-width: 10px;
+    border-left-width: 17px;
+    border-right-width: 0;
+}
+
+
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
         left: calc(-6px - ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px);
@@ -1188,6 +1234,11 @@ content: "";
         right: calc(5px - ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
+    }
+    #wmsx-touch-speed {
+        position: absolute;
+        left: -109px;
+        bottom: 4px;
     }
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
@@ -1212,7 +1263,7 @@ content: "";
 @media only screen and (orientation: portrait) {    /* Portrait */
 
     #wmsx-touch-left {
-        left: 4px;
+        left: 2px;
         bottom: 182px;
     }
     #wmsx-touch-right {
@@ -1220,6 +1271,11 @@ content: "";
         bottom: 36px;
         width: 112px;
         height: 224px;
+    }
+    #wmsx-touch-speed {
+        position: absolute;
+        left: 16px;
+        bottom: ` + (wmsx.ScreenGUI.BAR_HEIGHT + 8) + `px;
     }
 
     .wmsx-touch-button {

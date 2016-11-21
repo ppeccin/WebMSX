@@ -3,10 +3,11 @@
 wmsx.ControllersHub = function(keyForwardControls) {
 "use strict";
 
-    this.connect = function(controllersSocket, biosSocket) {
+    this.connect = function(machineControlsSocket, controllersSocket, biosSocket) {
         controllersSocket.connectControls(this);
         keyboard.connect(biosSocket);
         mouseControls.connect(controllersSocket);
+        touchControls.connect(machineControlsSocket);
     };
 
     this.connectPeripherals = function(pScreen) {

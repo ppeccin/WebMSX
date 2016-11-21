@@ -83,7 +83,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         dialog.tabIndex = -1;
 
         header = document.createElement("div");
-        header.innerHTML = "Tap Control to set";
+        header.innerHTML = "Tap Control to setup";
         dialog.appendChild(header);
 
         minus = document.createElement("div");
