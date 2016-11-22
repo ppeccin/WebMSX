@@ -33,6 +33,10 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         if (bios) bios.getKeyboardExtension().cancelTypeString();
     };
 
+    this.isShiftPressed = function () {
+        return (keyboardRowValues[6] & 1) === 0;
+    };
+
     this.controllersClockPulse = function() {
         if (turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
@@ -139,8 +143,8 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
         if (msxKey) {
             // Special case for Portuguese "Alt Gr" key, which is LControl+RAlt. Release MSX CONTROL key if pressed, so AltGr can be used as normal RAlt
             if (code === RAltKeyCode && keyStateMap["CONTROL"]) {
-                var mattrix = msxKeys["CONTROL"].m;
-                keyboardRowValues[mattrix[0]] |= (1 << mattrix[1]);
+                var matrix = msxKeys["CONTROL"].m;
+                keyboardRowValues[matrix[0]] |= (1 << matrix[1]);
                 keyStateMap["CONTROL"] = false;
             }
             this.processMSXKey(msxKey, press);

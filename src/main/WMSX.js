@@ -77,13 +77,13 @@ WMSX.MACHINES_CONFIG = {
     MSX1:   { desc: "MSX Auto Detect",      autoType: 1 },
     MSX2PA: { desc: "MSX2+ America (NTSC)", type: 3, presets: "_MSX2PA"},
     MSX2PE: { desc: "MSX2+ Europe (PAL)",   type: 3, presets: "_MSX2PE"},
-    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",   type: 3, presets: "_MSX2PJ"},
+    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",   type: 3, presets: "_MSX2PJ", japanese: true },
     MSX2A:  { desc: "MSX2 America (NTSC)",  type: 2, presets: "_MSX2A"},
     MSX2E:  { desc: "MSX2 Europe (PAL)",    type: 2, presets: "_MSX2E"},
-    MSX2J:  { desc: "MSX2 Japan (NTSC)",    type: 2, presets: "_MSX2J"},
+    MSX2J:  { desc: "MSX2 Japan (NTSC)",    type: 2, presets: "_MSX2J",  japanese: true },
     MSX1A:  { desc: "MSX America (NTSC)",   type: 1, presets: "_MSX1A"},
     MSX1E:  { desc: "MSX Europe (PAL)",     type: 1, presets: "_MSX1E"},
-    MSX1J:  { desc: "MSX Japan (NTSC)",     type: 1, presets: "_MSX1J"}
+    MSX1J:  { desc: "MSX Japan (NTSC)",     type: 1, presets: "_MSX1J",  japanese: true }
 };
 
 WMSX.EXTENSIONS_CONFIG = {

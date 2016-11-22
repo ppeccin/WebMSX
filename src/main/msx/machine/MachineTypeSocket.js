@@ -13,6 +13,10 @@ wmsx.MachineTypeSocket = function(machine) {
         return machine.machineName;
     };
 
+    this.isJapaneseMachine = function() {
+        return WMSX.MACHINES_CONFIG[machine.machineName].japanese === true;
+    };
+
     this.changeMachine = function (name) {
         if (machine.machineName == name) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);

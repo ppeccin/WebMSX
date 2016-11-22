@@ -1,11 +1,12 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
+wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machineTypeSocket) {
 "use strict";
 
     var self = this;
 
     function init() {
+        japanese = machineTypeSocket.isJapaneseMachine();
         setupKeyboard();
     }
 
@@ -16,6 +17,14 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
     this.refresh = function() {
         keyboardNameElement.innerHTML = "Current Keyboard:&nbsp;&nbsp;" + domKeyboard.getCurrentKeyboardDesc();
         refreshUnmappedIndicator();
+    };
+
+    this.refreshForJapanese = function() {
+        var jap = machineTypeSocket.isJapaneseMachine();
+        if (jap !== japanese) {
+            japanese = jap;
+            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, japanese);
+        }
     };
 
     this.getMappingForControl = function(key) {
@@ -35,11 +44,11 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
         keyboardElement = document.getElementById("wmsx-keyboard");
         keyboardElement.addEventListener("mousedown", mouseDownKeyboard);
 
-        wmsx.VirtualKeyboard.create(keyboardElement, function(keyElement) {
+        keysElements = wmsx.VirtualKeyboard.create(keyboardElement, function(keyElement) {
             if (keyElement.wmsxKey) keyElements.push(keyElement);
             keyElement.addEventListener("mouseenter", mouseEnterKey);
             keyElement.addEventListener("mouseleave", mouseLeaveKey);
-        });
+        }, false, japanese);
     }
 
     function mouseDownKeyboard(e) {
@@ -84,12 +93,14 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement) {
         }
     }
 
-    var keyboardElement;
+    var keyboardElement, keysElements;
     var domKeyboard = controllersHub.getKeyboard();
 
     var keyElements = [];
     var keyElementEditing = null, msxKeyEditing = null;
     var keyboardNameElement;
+
+    var japanese = false;
 
     var popup = wmsx.ControlMappingPopup.get();
 

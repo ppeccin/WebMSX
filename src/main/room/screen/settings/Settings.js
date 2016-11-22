@@ -1,22 +1,22 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SettingsDialog = function(mainElement, controllersHub) {
+wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
 "use strict";
 
     var self = this;
 
-    this.show = function (page) {
+    this.show = function (atPage) {
         if (!this.cover) {
             create();
             setTimeout(function() {
-                self.show(page);
+                self.show(atPage);
             }, 0);
             return;
         }
 
         if (!this.position()) return;
 
-        if (page) this.setPage(page);
+        this.setPage(atPage || page);
         this["wmsx-cover"].classList.add("wmsx-show");
         this["wmsx-modal"].classList.add("wmsx-show");
         visible = true;
@@ -37,7 +37,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
         visible = false;
     };
 
-    this.setPage = function (page) {
+    this.setPage = function (pPage) {
+        page = pPage;
+
         var contentPosition = {
             "GENERAL": "0",
             "MEDIA":  "-600px",
@@ -188,7 +190,8 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     }
 
     function refreshInputsPage() {
-        if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, self.cover);
+        if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, self.cover, machineTypeSocket);
+        keyboardConfigurator.refreshForJapanese();
         keyboardConfigurator.refresh();
     }
 
@@ -208,6 +211,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub) {
     }
 
 
+    var page = "GENERAL";
     var visible = false;
     this.cover = null;
 

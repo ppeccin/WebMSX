@@ -2,6 +2,8 @@
 
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
+// TODO Touch text input
+// TODO Short Virtual Keyboard
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -102,7 +104,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openSettings = function(page) {
-        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub);
+        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub, machineTypeSocket);
         if (pasteDialog) pasteDialog.hide();
         settingsDialog.show(page);
     };
@@ -655,7 +657,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         virtualKeyboardElement = document.createElement('div');
         virtualKeyboardElement.id = "wmsx-virtual-keyboard";
         fsElementCenter.appendChild(virtualKeyboardElement);
-        virtualKeyboard = new wmsx.DOMVirtualKeyboard(virtualKeyboardElement, controllersHub.getKeyboard());
+        virtualKeyboard = new wmsx.DOMVirtualKeyboard(virtualKeyboardElement, controllersHub.getKeyboard(), machineTypeSocket);
     }
 
     function setupBar() {

@@ -2,7 +2,7 @@
 
 wmsx.VirtualKeyboard = {
 
-    create: function(mainElement, keysCallback) {
+    create: function(mainElement, keysCallback, shift, japanese) {
         "use strict";
 
         var inner = document.createElement("div");
@@ -10,6 +10,7 @@ wmsx.VirtualKeyboard = {
         mainElement.appendChild(inner);
 
         // Create Keyboard
+        var keyElements = [];
         for (var s in this.sections) {
             var section = document.createElement("div");
             section.classList.add("wmsx-keyboard-" + s);
@@ -20,21 +21,34 @@ wmsx.VirtualKeyboard = {
                 section.appendChild(rowDiv);
                 var row = rows[r];
                 for (var c = 0; c < row.length; ++c) {
-                    var key = row[c];
-                    var keyName = "wmsx-keyboard-" + key.toLocaleLowerCase();
+                    var keyID = row[c];
+                    var keyName = "wmsx-keyboard-" + keyID.toLowerCase();
                     var keyElement = document.createElement("div");
                     keyElement.classList.add("wmsx-keyboard-key");
                     keyElement.classList.add(keyName);
                     if (this.dark.indexOf(keyName) >= 0) keyElement.classList.add("wmsx-keyboard-key-dark");
-                    var msxKey = this.translations[key] || key;
-                    if (wmsx.KeyboardKeys[msxKey]) {
-                        keyElement.wmsxKey = msxKey;
-                        keyElement.innerHTML = this.labels[msxKey] !== undefined ? this.labels[msxKey] : wmsx.KeyboardKeys[msxKey].sn;
-                    }
+                    keyElement.wmsxKeyID = keyID;
+                    keyElement.wmsxKey = this.idToMSMKey[keyID] || keyID;
                     rowDiv.appendChild(keyElement);
+                    keyElements.push(keyElement);
                     if (keysCallback) keysCallback(keyElement);
                 }
             }
+        }
+
+        this.updateKeysLabels(keyElements, shift, japanese);
+        return keyElements;
+    },
+
+    updateKeysLabels: function(keyElements, shift, japanese) {
+        "use strict";
+        for (var k = keyElements.length - 1; k >= 0; --k) {
+            var keyElement = keyElements[k];
+            if (this.blankKeys.has(keyElement.wmsxKeyID)) continue;
+            var label = shift
+                ? (japanese && (wmsx.KeyboardKeys[keyElement.wmsxKey].jsn || wmsx.KeyboardKeys[keyElement.wmsxKey].jn)) || wmsx.KeyboardKeys[keyElement.wmsxKey].ssn || wmsx.KeyboardKeys[keyElement.wmsxKey].sn
+                : (japanese && wmsx.KeyboardKeys[keyElement.wmsxKey].jn) || wmsx.KeyboardKeys[keyElement.wmsxKey].sn;
+            keyElement.innerHTML = this.finalLabels[label] || label;
         }
     },
 
@@ -58,19 +72,20 @@ wmsx.VirtualKeyboard = {
         ]
     },
 
-    labels: {   // Instead of the 3-char shot names
-        STOP: "STOP", HOME: "HOME", CONTROL: "CTRL", SHIFT: "SHIFT", CAPSLOCK: "CAPS", SPACE: "SPACE", GRAPH: "GRAPH", CODE: "CODE", DEAD: "DEAD",
-        LEFT: "", UP: "", DOWN: "", RIGHT: ""       // Arrows will be drawn with div borders
-    },
-
     dark: [
         "wmsx-keyboard-escape", "wmsx-keyboard-tab", "wmsx-keyboard-control", "wmsx-keyboard-shift", "wmsx-keyboard-capslock", "wmsx-keyboard-graph",
         "wmsx-keyboard-backspace", "wmsx-keyboard-enter", "wmsx-keyboard-enter_x1", "wmsx-keyboard-enter_x2", "wmsx-keyboard-shift2", "wmsx-keyboard-code", "wmsx-keyboard-dead",
         "wmsx-keyboard-num_divide", "wmsx-keyboard-num_multiply", "wmsx-keyboard-num_minus", "wmsx-keyboard-num_plus"
     ],
 
-    translations: {
-        "ENTER_X1": "#NONE#", "ENTER_X2": "#NONE#", "SHIFT2": "SHIFT"
-    }
+    idToMSMKey: {
+        "ENTER_X1": "ENTER", "ENTER_X2": "ENTER", "SHIFT2": "SHIFT"
+    },
+
+    finalLabels: {   // Instead of the original labels
+        STP: "STOP", HOM: "HOME", CTR: "CTRL", SHF: "SHIFT", CAP: "CAPS", SPC: "SPACE", GRA: "GRAPH", COD: "CODE", DED: "DEAD"
+    },
+
+    blankKeys: new Set([ "ENTER_X1", "ENTER_X2", "UP", "DOWN", "LEFT", "RIGHT" ])
 
 };
