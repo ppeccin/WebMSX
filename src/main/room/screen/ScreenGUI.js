@@ -619,15 +619,12 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-arrow-left  { border-right-color: inherit; }
 .wmsx-arrow-right { border-left-color: inherit; }
 
-
 .wmsx-keyboard-key {
-    position: relative;
     display: inline-block;
     width: 26px;
     height: 25px;
     padding: 4px 0;
     margin-right: 1px;
-    box-sizing: border-box;
     font-weight: normal;
     font-size: 10px;
     line-height: 11px;
@@ -640,6 +637,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-bottom: 5px solid hsl(0, 0%, 33%);
     border-radius: 3px 3px 0 0;
     box-shadow: 0 1px 0 1px rgb(0, 0, 0);
+    box-sizing: border-box;
     cursor: pointer;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -659,10 +657,17 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-keyboard-alpha, .wmsx-keyboard-num, .wmsx-keyboard-arrows {
     position: absolute;
 }
+.wmsx-keyboard-alpha > div {
+    height: 25px;
+}
 .wmsx-keyboard-num {
     left: 417px;
 }
+.wmsx-keyboard-num > div {
+    height: 23px;
+}
 .wmsx-keyboard-arrows {
+    position: relative;
     top: 104px;
     left: 417px;
 }
@@ -674,7 +679,6 @@ html.wmsx-full-screen #wmsx-logo-image {
     font-size: 9px;
     line-height: 9px;
     border-width: 1px 2px 4px;
-    margin-bottom: 7px;
 }
 .wmsx-keyboard-stop {
     margin-left: 10px;
@@ -714,7 +718,6 @@ html.wmsx-full-screen #wmsx-logo-image {
     box-shadow: -1px 1px 0 0 black;
 }
 .wmsx-keyboard-enter_x2 {
-    position: relative;
     width: 30px;
     padding: 0;
     border: none;
@@ -725,7 +728,6 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-keyboard-enter_x2::after {
     content: "";
     display: block;
-    position: relative;
     width: 30px;
     height: 50px;
     background: inherit;
@@ -766,6 +768,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-bottom-color: hsl(232, 44%, 24%);
 }
 .wmsx-keyboard-left, .wmsx-keyboard-right {
+    position: relative;
     top: 5px;
     width: 25px;
     height: 35px;
@@ -810,7 +813,6 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-left: 5px solid white;
     border-right-width: 0;
 }
-
 
 
 #wmsx-virtual-keyboard {
