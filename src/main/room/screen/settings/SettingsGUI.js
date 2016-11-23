@@ -433,24 +433,12 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                            C
-                        </div>
+                                C
+                            </div>
                         </div>
                         <div class="wmsx-desc">Copy Screen Text</div>
                     </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                            V
-                        </div>
-                        </div>
-                        <div class="wmsx-desc">Open Text Paste box</div>
-                    </div>
-                </div>
-                <div class="wmsx-right">
-                    <div class="wmsx-hotkey">
+                        <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
@@ -459,6 +447,28 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                         </div>
                         <div class="wmsx-desc">Adjust Turbo-Fire speed</div>
+                    </div>
+            </div>
+                <div class="wmsx-right">
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                V
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Open Text Paste box</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                B
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Open Text Input box</div>
                     </div>
                 </div>
                 <div class="wmsx-full-divider"></div>
