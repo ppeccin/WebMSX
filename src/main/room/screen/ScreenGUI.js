@@ -609,6 +609,44 @@ html.wmsx-full-screen #wmsx-logo-image {
     outline: none;
 }
 
+#wmsx-text-entry-dialog {
+    display: none;
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    width: 220px;
+    height: 164px;
+    margin: auto;
+    padding: 16px 0 0;
+    color: white;
+    font-size: 19px;
+    line-height: 23px;
+    background: hsl(0, 0%, 16%);
+    text-align: center;
+    border: 1px solid black;
+    box-sizing: initial;
+    text-shadow: 1px 1px 1px black;
+    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: auto;
+    z-index: 3;
+}
+#wmsx-text-entry-dialog::before {
+    content: "Enter Text to Type";
+}
+#wmsx-text-entry-dialog.wmsx-show {
+    display: block;
+}
+#wmsx-text-entry-input {
+    position: absolute;
+    top: 50px;
+    left: 10%;
+    width: 80%;
+    height: calc(100% - 75px);
+}
+
+
 
 .wmsx-arrow-up, .wmsx-arrow-down, .wmsx-arrow-left, .wmsx-arrow-right {
     border: 0px solid transparent;

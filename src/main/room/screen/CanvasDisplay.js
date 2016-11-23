@@ -106,29 +106,34 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.openSettings = function(page) {
         if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub, machineTypeSocket);
         if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
         settingsDialog.show(page);
     };
 
     this.openSaveStateDialog = function (save) {
         if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls);
         if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
         saveStateDialog.show(save);
     };
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
         if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
         if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
         diskSelectDialog.show(drive, inc, altPower);
     };
 
     this.openMachineSelectDialog = function() {
         if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
         if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
         machineSelectDialog.show();
     };
 
     this.openTouchConfigDialog = function() {
         if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
         if (virtualKeyboardActive) setVirtualKeyboard(false);
         if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub);
         touchConfigDialog.show();
@@ -166,6 +171,15 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(canvasOuter, this, controllersHub.getKeyboard());
         pasteDialog.toggle();
+        return false;
+    };
+
+    this.toggleTextEntryDialog = function() {
+        if (!signalIsOn) return this.showOSD("Text Entry only available when Power is ON!", true, true);
+
+        if (virtualKeyboardActive) setVirtualKeyboard(false);
+        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElement, this, controllersHub.getKeyboard());
+        textEntryDialog.toggle();
         return false;
     };
 
@@ -436,6 +450,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (active) {
             if (!isTouchDevice) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
+            if (textEntryDialog) textEntryDialog.hide();
             if (!virtualKeyboardElement) setupVirtualKeyboard();
         }
         document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", active);
@@ -546,6 +561,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logo.classList.toggle("wmsx-show", !signalIsOn);
         if (!signalIsOn) {
             if (pasteDialog) pasteDialog.hide();
+            if (textEntryDialog) textEntryDialog.hide();
             showBar();
             showCursor(true);
             if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
@@ -1319,6 +1335,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var machineSelectDialog;
     var touchConfigDialog;
     var pasteDialog;
+    var textEntryDialog;
     var copyTextArea;
 
     var fsElement, fsElementCenter;

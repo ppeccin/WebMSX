@@ -198,6 +198,8 @@ wmsx.DOMPeripheralControls = function() {
                 screen.executeTextCopy(); break;
             case controls.PASTE_STRING:
                 screen.toggleTextPasteDialog(); break;
+            case controls.ENTER_STRING:
+                screen.toggleTextEntryDialog(); break;
             case controls.CAPTURE_SCREEN:
                 screen.saveScreenCapture(); break;
         }
@@ -277,7 +279,8 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_COPY | k.ALT]    = controls.COPY_STRING;
         keyCodeMap[KEY_PASTE | k.ALT]   = controls.PASTE_STRING;
         keyCodeMap[KEY_PASTE2 | k.ALT]  = controls.PASTE_STRING;
-        keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT]   = controls.CAPTURE_SCREEN;
+        keyCodeMap[KEY_ENTER_STRING | k.ALT]   = controls.ENTER_STRING;
+        keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT] = controls.CAPTURE_SCREEN;
 
     };
 
@@ -322,6 +325,7 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_COPY   = wmsx.DOMKeys.VK_C.c;
     var KEY_PASTE   = wmsx.DOMKeys.VK_V.c;
     var KEY_PASTE2  = wmsx.DOMKeys.VK_INSERT.c;
+    var KEY_ENTER_STRING = wmsx.DOMKeys.VK_B.c;
 
     var KEY_CAPTURE_SCREEN  = wmsx.DOMKeys.VK_G.c;
 
