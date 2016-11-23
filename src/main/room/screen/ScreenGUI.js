@@ -701,6 +701,8 @@ html.wmsx-full-screen #wmsx-logo-image {
     box-sizing: border-box;
     resize: none;
     outline: none;
+    -webkit-touch-callout: default;
+    touch-callout: default;
 }
 
 
