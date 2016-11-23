@@ -250,13 +250,20 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     margin-right: 5px;
 }
 #wmsx-bar-full-screen.wmsx-mobile {
-    margin: 0 8px;
+    margin: 0 6px;
 }
 #wmsx-bar-scale-plus {
     width: 21px;
 }
 #wmsx-bar-scale-minus {
     width: 18px;
+}
+#wmsx-bar-text {
+    float: right;
+    width: 32px;
+}
+#wmsx-bar-text.wmsx-mobile {
+    margin: 0 0 0 6px;
 }
 #wmsx-bar-keyboard {
     position: absolute;
@@ -576,7 +583,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.4);
     transition: opacity .1s ease-out;
     visibility: hidden;
     opacity: 0;
@@ -609,15 +616,27 @@ html.wmsx-full-screen #wmsx-logo-image {
     outline: none;
 }
 
-#wmsx-text-entry-dialog {
+#wmsx-text-entry-cover {
     display: none;
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 220px;
-    height: 164px;
-    margin: auto;
-    padding: 16px 0 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 4;
+}
+#wmsx-text-entry-cover.wmsx-show {
+    display: block;
+}
+
+#wmsx-text-entry-dialog {
+    position: absolute;
+    top: 25px;
+    left: 0; right: 0;
+    width: 96%;
+    max-width: 540px;
+    height: 47%;
+    max-height: 450px;
+    margin: 0 auto;
     color: white;
     font-size: 19px;
     line-height: 23px;
@@ -630,22 +649,59 @@ html.wmsx-full-screen #wmsx-logo-image {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
-    z-index: 3;
 }
-#wmsx-text-entry-dialog::before {
-    content: "Enter Text to Type";
-}
-#wmsx-text-entry-dialog.wmsx-show {
-    display: block;
-}
-#wmsx-text-entry-input {
+#wmsx-text-entry-dialog-bar {
     position: absolute;
-    top: 50px;
-    left: 10%;
-    width: 80%;
-    height: calc(100% - 75px);
+    height: 40px;
+    width: 100%;
+    line-height: 40px;
+    background: inherit;
+    overflow: hidden;
+}
+#wmsx-text-entry-dialog-bar::before {
+    content: "Input Text";
 }
 
+#wmsx-text-entry-dialog-ok, #wmsx-text-entry-dialog-cancel {
+    display: inline-block;
+    float: right;
+    width: 70px;
+    height: 22px;
+    margin-right: 15px;
+    border: 9px solid hsl(0, 0%, 16%);
+    border-left: none;
+    border-right: none;
+    font-size: 14px;
+    line-height: 22px;
+    background: hsl(0, 70%, 50%);
+    cursor: pointer;
+}
+#wmsx-text-entry-dialog-cancel {
+    color: hsl(0, 0%, 90%);
+    background: hsl(0, 0%, 30%);
+}
+#wmsx-text-entry-dialog-ok::before {
+    content: "OK";
+}
+#wmsx-text-entry-dialog-cancel::before {
+    content: "CANCEL";
+}
+
+#wmsx-text-entry-input {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: calc(100% - 30px);
+    height: calc(100% - 30px);
+    padding: 29px 6px 4px;
+    font-size: 16px;
+    border: none;
+    border-radius: 0;
+    background: hsl(0, 0%, 90%);
+    box-sizing: border-box;
+    resize: none;
+    outline: none;
+}
 
 
 .wmsx-arrow-up, .wmsx-arrow-down, .wmsx-arrow-left, .wmsx-arrow-right {
@@ -656,6 +712,7 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-arrow-down  { border-top-color: inherit; }
 .wmsx-arrow-left  { border-right-color: inherit; }
 .wmsx-arrow-right { border-left-color: inherit; }
+
 
 .wmsx-keyboard-key {
     position: absolute;

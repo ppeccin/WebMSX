@@ -6,74 +6,109 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
     var self = this;
 
     this.toggle = function() {
-        if (visible) this.hide();
+        if (visible) this.hide(false);
         else this.show();
     };
 
     this.show = function () {
-        if (!dialog) {
+        if (!cover) {
             create();
             return setTimeout(self.show, 0);
         }
 
         visible = true;
-        dialog.classList.add("wmsx-show");
-        dialog.focus();
+        cover.classList.add("wmsx-show");
+        input.focus();
     };
 
-    this.hide = function() {
+    this.hide = function(confirm) {
         visible = false;
-        dialog.classList.remove("wmsx-show");
+        cover.classList.remove("wmsx-show");
         WMSX.room.screen.focus();
+        if (confirm) keyboard.typeString(input.value);
     };
 
     function create() {
+        cover = document.createElement("div");
+        cover.id = "wmsx-text-entry-cover";
+
         dialog = document.createElement("div");
         dialog.id = "wmsx-text-entry-dialog";
-        dialog.tabIndex = -1;
+        cover.appendChild(dialog);
 
-        input = document.createElement("input");
+        input = document.createElement("textarea");
         input.id = "wmsx-text-entry-input";
+        input.spellcheck = false;
+        input.autocorrect = false;
+        input.autocapitalize = false;
         dialog.appendChild(input);
 
-        setupEvents();
+        topbar = document.createElement("div");
+        topbar.id = "wmsx-text-entry-dialog-bar";
+        dialog.appendChild(topbar);
 
-        mainElement.appendChild(dialog);
+        ok = document.createElement("div");
+        ok.id = "wmsx-text-entry-dialog-ok";
+        topbar.appendChild(ok);
+
+        cancel = document.createElement("div");
+        cancel.id = "wmsx-text-entry-dialog-cancel";
+        topbar.appendChild(cancel);
+
+        mainElement.appendChild(cover);
+
+        setupEvents();
     }
 
     function setupEvents() {
+        wmsx.Util.onEventOrTapWithBlock(ok, "mousedown", okCancelClicked);
+        wmsx.Util.onEventOrTapWithBlock(cancel, "mousedown", okCancelClicked);
+
+        // Close the modal with a click outside the dialog...
+        wmsx.Util.onEventOrTapWithBlock(cover, "mousedown", function(e) {
+            self.hide(false);
+        });
+        // ... but not with a click inside
+        wmsx.Util.onEventOrTap(dialog, "mousedown", function(e) {
+            e.stopPropagation();
+        });
+
         // Trap keys, respond to some
-        dialog.addEventListener("keydown", function(e) {
-            //e.preventDefault();
+        cover.addEventListener("keydown", function(e) {
             e.stopPropagation();
 
-            // Abort
-            if (e.keyCode === ESC_KEY) self.hide();
             // Confirm
-            //else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) self.hide();
-
-            //return false;
+            if (e.keyCode === CONFIRM_KEY && e.ctrlKey) {
+                e.preventDefault();
+                self.hide(true);
+            }
+            // Abort
+            if (e.keyCode === ABORT_KEY || (e.keyCode === TOGGLE_KEY && e.altKey)) {
+                e.preventDefault();
+                self.hide(false);
+            }
         });
 
-        // Hide on lost focus
-        //if ("onblur" in document) dialog.addEventListener("blur", self.hide, true);
-        //else dialog.addEventListener("focusout", self.hide, true);
-
-        // Supress context menu
-        dialog.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
+        // Allow context menu in input
+        input.addEventListener("contextmenu", function stopContextMenu(e) {
             e.stopPropagation();
-            return false;
         });
+        // Allow mouse selection in input
+        input.addEventListener("mousemove", function stopContextMenu(e) {
+            e.stopPropagation();
+        });
+    }
 
+    function okCancelClicked(e) {
+        self.hide(e.target === ok);
     }
 
 
     var visible = false;
-    var dialog, input;
+    var cover, dialog, topbar, input, ok, cancel;
 
     var k = wmsx.DOMKeys;
-    var ESC_KEY = k.VK_ESCAPE.c;
-    var CONFIRM_KEYS = [ k.VK_ENTER.c ];
+    var ABORT_KEY = k.VK_ESCAPE.c, TOGGLE_KEY = k.VK_B.c;
+    var CONFIRM_KEY = k.VK_ENTER.c;
 
 };

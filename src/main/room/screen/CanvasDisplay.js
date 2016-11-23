@@ -2,8 +2,8 @@
 
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
-// TODO Touch text input
-// TODO Short Virtual Keyboard
+// TODO Narrow Virtual Keyboard
+// TODO Add Tap on various dialogs as in TextEntryDialog
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -178,7 +178,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!signalIsOn) return this.showOSD("Text Entry only available when Power is ON!", true, true);
 
         if (virtualKeyboardActive) setVirtualKeyboard(false);
-        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElement, this, controllersHub.getKeyboard());
+        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElementCenter, this, controllersHub.getKeyboard());
         textEntryDialog.toggle();
         return false;
     };
@@ -775,7 +775,12 @@ wmsx.CanvasDisplay = function(mainElement) {
             scaleDownButton.classList.add("wmsx-full-screen-hidden");
         }
 
-        var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -68, -25, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
+        if (isMobileDevice) {
+            var textButton = addPeripheralControlButton("wmsx-bar-text", -53, -51, "Toggle Text Input", wmsx.PeripheralControls.ENTER_STRING);
+            textButton.classList.add("wmsx-mobile");
+        }
+
+        var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -83, -25, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
         keyboardButton.classList.add("wmsx-full-screen-only");
 
         logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -25, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);

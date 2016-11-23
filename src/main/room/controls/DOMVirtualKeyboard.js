@@ -20,7 +20,9 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
 
     function setKeyEvents(keyElement) {
         keyElement.addEventListener("touchstart", keyTouchStart);
+        keyElement.addEventListener("mousedown", keyTouchStart);
         keyElement.addEventListener("touchend", keyTouchEnd);
+        keyElement.addEventListener("mouseup", keyTouchEnd);
     }
 
     function keyTouchStart(e) {

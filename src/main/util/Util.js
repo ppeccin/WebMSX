@@ -455,6 +455,11 @@ wmsx.Util = new function() {
         return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
     };
 
+    this.onEventOrTap = function(element, eventType, handler) {
+        element.addEventListener("touchstart", handler);
+        element.addEventListener(eventType, handler);
+    };
+
     this.onEventOrTapWithBlock = function(element, eventType, handler) {
         function onEventOrTap(e) {
             handler(e);
