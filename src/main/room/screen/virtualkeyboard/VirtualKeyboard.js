@@ -6,7 +6,7 @@ wmsx.VirtualKeyboard = {
         "use strict";
 
         var inner = document.createElement("div");
-        inner.style.position = "relative";
+        inner.style.position = "absolute";
         mainElement.appendChild(inner);
 
         // Create Keyboard
@@ -16,14 +16,24 @@ wmsx.VirtualKeyboard = {
             section.classList.add("wmsx-keyboard-" + s);
             inner.appendChild(section);
             var rows = this.sections[s];
+            var rowY = 0;
             for (var r = 0; r < rows.length; ++r) {
                 var rowDiv = document.createElement("div");
+                rowDiv.style.top = "" + rowY + "px";
+                rowY += this.sectionRowHeight[s];
                 section.appendChild(rowDiv);
                 var row = rows[r];
+                var keyX = 1;
                 for (var c = 0; c < row.length; ++c) {
                     var keyID = row[c];
                     var keyName = "wmsx-keyboard-" + keyID.toLowerCase();
                     var keyElement = document.createElement("div");
+                    if (s !== "arrows") {
+                        var w = this.keyWidth[keyID] || this.sectionKeyWidth[s];
+                        keyElement.style.width = "" + w + "px";
+                        keyElement.style.left = "" + keyX + "px";
+                        keyX += this.keySpace[keyID] || (w + 1);
+                    }
                     keyElement.classList.add("wmsx-keyboard-key");
                     keyElement.classList.add(keyName);
                     if (this.dark.indexOf(keyName) >= 0) keyElement.classList.add("wmsx-keyboard-key-dark");
@@ -48,7 +58,11 @@ wmsx.VirtualKeyboard = {
             var label = shift
                 ? (japanese && (wmsx.KeyboardKeys[keyElement.wmsxKey].jsn || wmsx.KeyboardKeys[keyElement.wmsxKey].jn)) || wmsx.KeyboardKeys[keyElement.wmsxKey].ssn || wmsx.KeyboardKeys[keyElement.wmsxKey].sn
                 : (japanese && wmsx.KeyboardKeys[keyElement.wmsxKey].jn) || wmsx.KeyboardKeys[keyElement.wmsxKey].sn;
-            keyElement.innerHTML = this.finalLabels[label] || label;
+            label = this.finalLabels[label] || label;
+            if (keyElement.wmsxLabel !== label) {
+                keyElement.wmsxLabel = label;
+                keyElement.innerHTML = label;
+            }
         }
     },
 
@@ -70,6 +84,24 @@ wmsx.VirtualKeyboard = {
         arrows: [
             ["LEFT", "UP", "RIGHT", "DOWN" ]
         ]
+    },
+
+    sectionRowHeight: {
+        alpha: 25, num: 23, arrows: 50
+    },
+
+    sectionKeyWidth: {
+        alpha: 26, num: 22
+    },
+
+    keyWidth: {
+        F1: 39, F2: 39, F3: 39, F4: 39, F5: 39, STOP: 39, SELECT: 39, HOME: 39, INSERT: 39, DELETE: 39,
+        ESCAPE: 29, BACKSPACE: 28, TAB: 41, CONTROL: 48, SHIFT: 61, SHIFT2: 61, ENTER: 36, ENTER_X1: 13, ENTER_X2: 30,
+        SPACE: 189, CAPSLOCK: 38, DEAD: 38, GRAPH: 46, CODE: 46
+    },
+
+    keySpace: {
+        STOP: 50, ENTER_X1: 13, CAPSLOCK: 55
     },
 
     dark: [

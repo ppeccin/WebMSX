@@ -664,7 +664,6 @@ wmsx.SettingsGUI.html = function() {
     </div>`;
 };
 
-
 wmsx.SettingsGUI.css = function() {
     return `#wmsx-cover * {
     outline: none;
@@ -999,7 +998,7 @@ wmsx.SettingsGUI.css = function() {
     top: 2px;
     width: 535px;
     height: 174px;
-    padding: 12px 0 0 14px;
+    padding: 12px 0 0 13px;
     margin-top: 5px;
     background: hsl(0, 0%, 25%);
     border-radius: 1px 1px 0 0;

@@ -620,11 +620,10 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-arrow-right { border-left-color: inherit; }
 
 .wmsx-keyboard-key {
-    display: inline-block;
-    width: 26px;
+    position: absolute;
     height: 25px;
     padding: 4px 0;
-    margin-right: 1px;
+    overflow: hidden;
     font-weight: normal;
     font-size: 10px;
     line-height: 11px;
@@ -657,23 +656,18 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-keyboard-alpha, .wmsx-keyboard-num, .wmsx-keyboard-arrows {
     position: absolute;
 }
-.wmsx-keyboard-alpha > div {
-    height: 25px;
+.wmsx-keyboard-alpha > div, .wmsx-keyboard-num > div, .wmsx-keyboard-arrows > div {
+    position: absolute;
 }
 .wmsx-keyboard-num {
-    left: 417px;
-}
-.wmsx-keyboard-num > div {
-    height: 23px;
+    left: 416px;
 }
 .wmsx-keyboard-arrows {
-    position: relative;
     top: 104px;
-    left: 417px;
+    left: 416px;
 }
 .wmsx-keyboard-f1, .wmsx-keyboard-f2, .wmsx-keyboard-f3, .wmsx-keyboard-f4, .wmsx-keyboard-f5,
 .wmsx-keyboard-stop, .wmsx-keyboard-select, .wmsx-keyboard-home, .wmsx-keyboard-insert, .wmsx-keyboard-delete {
-    width: 39px;
     height: 18px;
     padding: 2px 0;
     font-size: 9px;
@@ -687,38 +681,19 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-top-color: hsl(7, 85%, 48%);
     border-bottom-color: hsl(7, 85%, 30%);
 }
-.wmsx-keyboard-escape {
-    width: 29px;
-}
-.wmsx-keyboard-backspace {
-    width: 28px;
-}
-.wmsx-keyboard-tab {
-    width: 41px;
-}
-.wmsx-keyboard-control {
-    width: 48px;
-}
-.wmsx-keyboard-shift, .wmsx-keyboard-shift2 {
-    width: 61px;
-}
 .wmsx-keyboard-enter {
-    width: 36px;
     border-radius: 2px 3px 0 0;
     border-top: none;
     box-shadow: none;
 }
 .wmsx-keyboard-enter_x1 {
-    width: 13px;
-    min-width: 0;
-    margin-right: 0;
     border-radius: 2px 0 0 0;
     border-width: 1px;
     border-right: none;
     box-shadow: -1px 1px 0 0 black;
 }
 .wmsx-keyboard-enter_x2 {
-    width: 30px;
+    overflow: visible;
     padding: 0;
     border: none;
     border-radius: 0 3px 0 0;
@@ -738,22 +713,10 @@ html.wmsx-full-screen #wmsx-logo-image {
     box-shadow: 1px 2px 0 0 black, 1px 0 0 0 black;
     box-sizing: border-box;
 }
-.wmsx-keyboard-space {
-    width: 189px;
-    background: rgb(172, 172, 172);
-}
 .wmsx-keyboard-capslock {
     margin-left: 16px;
-    width: 38px;
-}
-.wmsx-keyboard-dead {
-    width: 38px;
-}
-.wmsx-keyboard-graph, .wmsx-keyboard-code {
-    width: 46px;
 }
 .wmsx-keyboard-num .wmsx-keyboard-key {
-    width: 22px;
     height: 23px;
     line-height: 9px;
 }
@@ -768,24 +731,24 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-bottom-color: hsl(232, 44%, 24%);
 }
 .wmsx-keyboard-left, .wmsx-keyboard-right {
-    position: relative;
     top: 5px;
+    left: 1px;
     width: 25px;
     height: 35px;
     padding: 11px 0 0 6px;
 }
 .wmsx-keyboard-up, .wmsx-keyboard-down {
+    left: 27px;
     width: 39px;
     height: 23px;
     padding: 5px 0 0 13px;
 }
 .wmsx-keyboard-down {
-    position: absolute;
     top: 23px;
-    left: 26px;
     padding-top: 7px;
 }
 .wmsx-keyboard-right {
+    left: 67px;
     padding-left: 9px;
 }
 
@@ -820,8 +783,9 @@ html.wmsx-full-screen #wmsx-logo-image {
     position: absolute;
     left: 50%;
     bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 2) + `px;
+    overflow: hidden;
     margin: 0 auto;
-    padding: 5px 0 0 5px;
+    padding: 5px 0 0 4px;
     width: 518px;
     height: 161px;
     background: hsl(0, 0%, 16%);
