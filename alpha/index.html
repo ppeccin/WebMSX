@@ -45,9 +45,14 @@
 //            ga('create', 'UA-67920324-1', 'auto');
 //            ga('send', 'pageview');
 
-            if (window.applicationCache) window.applicationCache.addEventListener("updateready", function updateCache(e) {
-                window.applicationCache.swapCache();
-            });
+            if (window.applicationCache) {
+                function onUpdateReady() {
+                    window.applicationCache.swapCache();
+                    window.location.reload();
+                }
+                if (window.applicationCache.status === window.applicationCache.UPDATEREADY) onUpdateReady();
+                else window.applicationCache.addEventListener("updateready", onUpdateReady);
+            }
 
             function donate() {
                 alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
@@ -240,7 +245,7 @@
         <div id="footer">
             <div class="container">
                 <script>WMSX.PROXY_DOWNLOADER = "http://webmsx.herokuapp.com/proxy-remote-download?url=";</script>
-                <p>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a></p>
+                <p>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a>. &nbsp;Version 4.0.8a</p>
                 <p><a href="https://github.com/ppeccin/webmsx" target="_blank">Project&nbsp;Homepage</a> on&nbsp;GitHub</p>
             </div>
         </div>
