@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Narrow Virtual Keyboard
 // TODO Add Tap on various dialogs as in TextEntryDialog
-// TODO Reds are too "orange"
-// TODO Volume too low
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";

@@ -792,7 +792,7 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-menu {
     position: relative;
     background: white;
-    border-bottom: 1px solid rgb(200, 200, 200);
+    border-bottom: 1px solid hsl(0, 0%, 72%);
 }
 
 #wmsx-menu #wmsx-back {
@@ -844,8 +844,8 @@ wmsx.SettingsGUI.css = function() {
     padding: 10px 0 0 48px;
     font-size: 18px;
     color: white;
-    background: rgb(235, 40, 35);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .80);
+    background: hsl(358, 66%, 50%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .9);
     vertical-align: middle;
     box-sizing: content-box;
     -webkit-font-smoothing: antialiased;
@@ -872,7 +872,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-menu .wmsx-selected {
-    color: hsl(0, 70%, 50%);
+    color: hsl(358, 67%, 46%);
 }
 
 #wmsx-menu #wmsx-menu-selection {
@@ -881,7 +881,7 @@ wmsx.SettingsGUI.css = function() {
     bottom: 0;
     width: 20%;
     height: 3px;
-    background: hsl(0, 70%, 50%);
+    background: hsl(358, 67%, 46%);
     transition: left 0.3s ease-in-out;
 }
 

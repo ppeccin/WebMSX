@@ -329,7 +329,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item.wmsx-hover:not(.wmsx-bar-menu-item-disabled):not(.wmsx-bar-menu-item-divider) {
     color: white;
-    background: hsl(0, 70%, 50%);
+    background: hsl(358, 67%, 46%);
 }
 .wmsx-bar-menu-item-disabled {
     color: rgb(110, 110, 110);
@@ -431,7 +431,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 #wmsx-screen-fs .wmsx-select-dialog li.wmsx-selected {
     color: white;
-    background: rgb(220, 32, 26);
+    background: hsl(358, 67%, 46%);
 }
 #wmsx-screen-fs .wmsx-select-dialog li.wmsx-droptarget {
     color: white;
@@ -518,7 +518,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     height: 41px;
     font-size: 20px;
     line-height: 41px;
-    background: hsl(0, 70%, 50%);
+    background: hsl(358, 67%, 46%);
     border-radius: 6px;
     color: white;
     transform: translate(-50%, -50%);
@@ -673,7 +673,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-right: none;
     font-size: 14px;
     line-height: 22px;
-    background: hsl(0, 70%, 50%);
+    background: hsl(358, 67%, 46%);
     cursor: pointer;
 }
 #wmsx-text-entry-dialog-cancel {
@@ -773,10 +773,10 @@ html.wmsx-full-screen #wmsx-logo-image {
 }
 .wmsx-keyboard-stop {
     margin-left: 10px;
-    background: rgb(240, 80, 60);
-    border-color: hsl(7, 85%, 40%);
-    border-top-color: hsl(7, 85%, 48%);
-    border-bottom-color: hsl(7, 85%, 30%);
+    background: hsl(0, 70%, 54%);
+    border-color: hsl(0, 70%, 36%);
+    border-top-color: hsl(0, 70%, 40%);
+    border-bottom-color: hsl(0, 70%, 28%);
 }
 .wmsx-keyboard-enter {
     border-radius: 2px 3px 0 0;
@@ -994,11 +994,11 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config-p1.wmsx-selected, #wmsx-touch-config-p2.wmsx-selected, #wmsx-touch-config-off.wmsx-selected {
     color: white;
     text-shadow: 1px 1px 1px black;
-    background: hsl(0, 70%, 50%);
+    background: hsl(358, 67%, 46%);
     box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
 }
 #wmsx-touch-config-p1.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-p2.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-off.wmsx-selected.wmsx-selected-inactive {
-    border: 2px dashed hsl(0, 70%, 50%);
+    border: 2px dashed hsl(358, 67%, 46%);
     background: black;
     box-shadow: none;
 }
