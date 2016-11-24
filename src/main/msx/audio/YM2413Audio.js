@@ -696,7 +696,7 @@ wmsx.YM2413Audio = function(pName) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.50 * (1.55 / 9 / 256);                                // 9 channels, samples -256..+ 256
+    var VOLUME = 0.60 * (1.55 / 9 / 256);                               // 9 channels, samples -256..+ 256
     var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
 

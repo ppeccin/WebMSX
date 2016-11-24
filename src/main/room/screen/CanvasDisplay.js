@@ -4,6 +4,8 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Narrow Virtual Keyboard
 // TODO Add Tap on various dialogs as in TextEntryDialog
+// TODO Reds are too "orange"
+// TODO Volume too low
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -57,7 +59,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Show the logo messages or start automatically
         if (isMobileDevice && !isFullscreen) {
             if (!fullscreenAPIEnterMethod && !isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then launch from the installed App', startAction);
-            else showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen", startAction);
+            else showLogoMessage(true, "For the best experience<br>please go full-screen!", startAction);
         } else
             startAction();
     };
