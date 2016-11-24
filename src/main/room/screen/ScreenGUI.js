@@ -6,8 +6,8 @@ wmsx.ScreenGUI = {
     BAR_HEIGHT: 29,
     BAR_MENU_WIDTH: 136,
     BAR_MENU_ITEM_HEIGHT: 28,
-    LOGO_MESSAGE_WIDTH: 480,
-    LOGO_MESSAGE_HEIGHT: 210
+    LOGO_SCREEN_WIDTH: 597,
+    LOGO_SCREEN_HEIGHT: 455
 };
 
 wmsx.ScreenGUI.html = function() {
@@ -17,6 +17,7 @@ wmsx.ScreenGUI.html = function() {
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
                     <div id="wmsx-logo">
                         <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
+                        <img id="wmsx-logo-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                         <div id="wmsx-logo-message">
                             <div id="wmsx-logo-message-text"></div>
                             <div id="wmsx-logo-message-yes"></div>
@@ -25,7 +26,6 @@ wmsx.ScreenGUI.html = function() {
                         </div>
                     </div>
                     <div id="wmsx-osd"></div>
-                    <img id="wmsx-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                 </div>
                 <div id="wmsx-bar">
                     <div id="wmsx-bar-inner"></div>
@@ -441,83 +441,93 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-logo {
     position: absolute;
     display: none;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    top: 50%;
+    left: 50%;
+    width: 598px;
+    height: 456px;
     background: black;
+    transform: translate(-50%, -50%);
 }
+#wmsx-screen-fs:not(.wmsx-logo-message-active) #wmsx-logo {
+    max-width: 100%;
+    max-height: 100%;
+}
+
 #wmsx-logo.wmsx-show {
-    display: block;
-}
-
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
-    bottom: 36%;
-    max-width: 50%;
-}
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-loading-icon {
-    top: 41%;
-}
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
-    display: block;
-}
-
-#wmsx-logo-message-yes.wmsx-show, #wmsx-logo-message-no.wmsx-show, #wmsx-logo-message-ok.wmsx-show {
     display: block;
 }
 
 #wmsx-logo-image {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    top: 50%;
+    left: 50%;
     width: 334px;
     max-width: 57%;
-    margin: auto;
+    transform: translate(-50%, -50%);
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
 }
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
+    top: 153px;
+    max-width: initial;
+}
 html.wmsx-full-screen #wmsx-logo-image {
-    max-width: 70%;
+    max-width: 67%;
+}
+
+#wmsx-logo-loading-icon {
+    display: none;
+    position: absolute;
+    top: 275px;
+    left: 0; right: 0;
+    height: 14px;
+    width: 75px;
+    margin: 0 auto;
+    background-color: rgba(0, 0, 0, .8);
+    border: solid transparent;
+    border-width: 12px 30px;
+    border-radius: 3px;
+    box-sizing: content-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-loading-icon {
+    top: 200px;
 }
 
 #wmsx-logo-message {
     display: none;
     position: absolute;
-    left: 50%;
-    top: 75%;
-    bottom: 0px;
-    width: ` + wmsx.ScreenGUI.LOGO_MESSAGE_WIDTH + `px;
-    height: ` + wmsx.ScreenGUI.LOGO_MESSAGE_HEIGHT + `px;
+    top: 230px;
+    width: 100%;
     color: hsl(0, 0%, 97%);
-    font-size: 24px;
-    line-height: 30px;
-    transform: translate(-50%, -50%);
+    font-size: 30px;
+    line-height: 34px;
 }
 
 #wmsx-logo-message-yes, #wmsx-logo-message-no, #wmsx-logo-message-ok {
     display: none;
     position: absolute;
-    top: 54%;
-    width: 34%;
-    height: 64%;
-    transform: translate(-50%, -50%);
+    top: 73px;
+    width: 200px;
+    height: 130px;
 }
-#wmsx-logo-message-yes { left: 32%; }
-#wmsx-logo-message-no  { left: 68%; }
-#wmsx-logo-message-ok  { top: 66%; left: 50%; }
+#wmsx-logo-message-yes { left: 88px; }
+#wmsx-logo-message-no  { right: 88px; }
+#wmsx-logo-message-ok  { top: 91px; left: 200px; }
 
 #wmsx-logo-message-yes::after, #wmsx-logo-message-no::after, #wmsx-logo-message-ok::after {
     position: absolute;
     top: 49%;
     left: 50%;
-    width: 90px;
-    height: 41px;
-    font-size: 20px;
-    line-height: 41px;
+    width: 108px;
+    height: 48px;
+    font-size: 25px;
+    line-height: 47px;
     background: hsl(358, 67%, 46%);
     border-radius: 6px;
     color: white;
@@ -526,6 +536,13 @@ html.wmsx-full-screen #wmsx-logo-image {
 #wmsx-logo-message-yes::after { content: "YES"; }
 #wmsx-logo-message-no::after  { content: "NO"; }
 #wmsx-logo-message-ok::after  { content: "OK"; }
+
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
+    display: block;
+}
+#wmsx-logo-message-yes.wmsx-show, #wmsx-logo-message-no.wmsx-show, #wmsx-logo-message-ok.wmsx-show {
+    display: block;
+}
 
 #wmsx-osd {
     position: absolute;
@@ -546,26 +563,6 @@ html.wmsx-full-screen #wmsx-logo-image {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     opacity: 0;
-}
-
-#wmsx-loading-icon {
-    position: absolute;
-    display: none;
-    top: 60%;
-    left: 0;
-    right: 0;
-    height: 3%;
-    width: 16%;
-    margin: auto;
-    background-color: rgba(0, 0, 0, .8);
-    border: solid transparent;
-    border-width: 12px 30px;
-    border-radius: 3px;
-    box-sizing: content-box;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
 #wmsx-copy-texarea {

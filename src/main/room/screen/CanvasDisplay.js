@@ -4,6 +4,8 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Narrow Virtual Keyboard
 // TODO Add Tap on various dialogs as in TextEntryDialog
+// TODO Loading icon with signalOn
+// TODO Logo does not cover entire canvas anymore. Fix!
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -511,7 +513,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         canvas.style.width = "" + canvasWidth + "px";
         canvas.style.height = "" + canvasHeight + "px";
         updateBarWidth(canvasWidth);
-        if (logoMessageActive) updateLogoMessageScale();
+        if (!signalIsOn) updateLogoScale();
         if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
     }
 
@@ -558,19 +560,20 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateLogo() {
-        logo.classList.toggle("wmsx-show", !signalIsOn);
         if (!signalIsOn) {
+            updateLogoScale();
             if (pasteDialog) pasteDialog.hide();
             if (textEntryDialog) textEntryDialog.hide();
             showBar();
             showCursor(true);
             if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         }
+        logo.classList.toggle("wmsx-show", !signalIsOn);
     }
 
     function updateLoading() {
-        if (isLoading /* && loadingImage.isLoaded */) loadingImage.style.display = "block";
-        else loadingImage.style.display = "none";
+        if (isLoading /* && loadingImage.isLoaded */) logoLoadingIcon.style.display = "block";
+        else logoLoadingIcon.style.display = "none";
     }
 
     function createCanvasContext() {
@@ -629,13 +632,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoMessageYes = document.getElementById("wmsx-logo-message-yes");
         logoMessageNo =  document.getElementById("wmsx-logo-message-no");
         logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
-        loadingImage = document.getElementById("wmsx-loading-icon");
+        logoLoadingIcon = document.getElementById("wmsx-logo-loading-icon");
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
 
         suppressContextMenu(mainElement);
         suppressContextMenu(fsElement);
         preventDrag(logoImage);
-        preventDrag(loadingImage);
+        preventDrag(logoLoadingIcon);
 
         updateCanvasContentSize();
 
@@ -1134,7 +1137,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoMessageNo .classList.toggle("wmsx-show", yesNo);
         fsElement.classList.add("wmsx-logo-message-active");
 
-        updateLogoMessageScale();
         signalIsOn = false;
         updateLogo();
     }
@@ -1161,15 +1163,19 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function logoMessageOkClicked(e) {
-        if (!isFullscreen) showLogoMessage(true, "For the best experience on<br>mobile devices, go full-screen");  // Keep same action
+        if (!isFullscreen) showLogoMessage(true, "For the best experience<br>please go full-screen!");  // Keep same action
         else closeLogoMessage(true);
     }
 
-    function updateLogoMessageScale() {
-        var width = fsElementCenter.clientWidth;
-        var scale = Math.min(width / wmsx.ScreenGUI.LOGO_MESSAGE_WIDTH, 1);
-        logoMessage.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
-        //console.error("MESSAGE SCALE width: " + width + ", scale: " + scale);
+    function updateLogoScale() {
+        if (logoMessageActive) {
+            var width = canvasOuter.clientWidth;
+            var scale = Math.min(width / wmsx.ScreenGUI.LOGO_SCREEN_WIDTH, 1);
+            logo.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
+
+            // console.error("MESSAGE SCALE width: " + width + ", scale: " + scale);
+        } else
+            logo.style.transform = "translate(-50%, -50%)";
     }
 
     function setScrollMessage(state) {
@@ -1384,7 +1390,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
 
     var logo, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk, logoMessageActive = false;
-    var loadingImage;
+    var logoLoadingIcon;
     var scrollMessage, scrollMessageActive = false;
 
     var powerButton;
