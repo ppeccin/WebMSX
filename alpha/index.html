@@ -47,8 +47,8 @@
 
             if (window.applicationCache) {
                 function onUpdateReady() {
-//                    window.applicationCache.swapCache();
-//                    window.location.reload();
+                    window.applicationCache.swapCache();
+                    window.location.reload();
                 }
                 if (window.applicationCache.status === window.applicationCache.UPDATEREADY) onUpdateReady();
                 else window.applicationCache.addEventListener("updateready", onUpdateReady);
@@ -246,7 +246,7 @@
             <div class="container">
                 <script>WMSX.PROXY_DOWNLOADER = "http://webmsx.herokuapp.com/proxy-remote-download?url=";</script>
                 <p>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a></p>
-                <p><a href="https://github.com/ppeccin/webmsx" target="_blank">Project&nbsp;Homepage</a>. v4.0.8n</p>
+                <p><a href="https://github.com/ppeccin/webmsx" target="_blank">Project&nbsp;Homepage</a>. v4.0.8p</p>
             </div>
         </div>
 
