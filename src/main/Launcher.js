@@ -92,7 +92,17 @@ WMSX.preLoadImagesAndStart = function() {
     });
 };
 
-WMSX.VERSION = "4.0.8";
+// AppCache update control
+if (window.applicationCache) {
+    function onUpdateReady() {
+        window.applicationCache.swapCache();
+        window.location.reload();
+    }
+    if (window.applicationCache.status === window.applicationCache.UPDATEREADY) onUpdateReady();
+    else window.applicationCache.addEventListener("updateready", onUpdateReady);
+}
+
+WMSX.VERSION = "4.0.9";
 
 // Start pre-loading images right away
 WMSX.preLoadImagesAndStart();
