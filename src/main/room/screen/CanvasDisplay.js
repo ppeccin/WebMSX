@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Narrow Virtual Keyboard
 // TODO Add Tap on various dialogs as in TextEntryDialog
-// TODO Loading icon with signalOn
-// TODO Logo does not cover entire canvas anymore. Fix!
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -572,8 +570,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateLoading() {
-        if (isLoading /* && loadingImage.isLoaded */) logoLoadingIcon.style.display = "block";
-        else logoLoadingIcon.style.display = "none";
+        var disp = isLoading ? "block" : "none";
+        logoLoadingIcon.style.display = disp;
+        canvasLoadingIcon.style.display = disp;
     }
 
     function createCanvasContext() {
@@ -624,21 +623,24 @@ wmsx.CanvasDisplay = function(mainElement) {
         fsElementCenter = document.getElementById("wmsx-screen-fs-center");
         canvasOuter = document.getElementById("wmsx-screen-canvas-outer");
         canvas = document.getElementById("wmsx-screen-canvas");
+        canvasLoadingIcon = document.getElementById("wmsx-canvas-loading-icon");
         osd = document.getElementById("wmsx-osd");
         logo = document.getElementById("wmsx-logo");
+        logoCenter = document.getElementById("wmsx-logo-center");
         logoImage = document.getElementById("wmsx-logo-image");
+        logoLoadingIcon = document.getElementById("wmsx-logo-loading-icon");
         logoMessage = document.getElementById("wmsx-logo-message");
         logoMessageText = document.getElementById("wmsx-logo-message-text");
         logoMessageYes = document.getElementById("wmsx-logo-message-yes");
         logoMessageNo =  document.getElementById("wmsx-logo-message-no");
         logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
-        logoLoadingIcon = document.getElementById("wmsx-logo-loading-icon");
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
 
         suppressContextMenu(mainElement);
         suppressContextMenu(fsElement);
         preventDrag(logoImage);
         preventDrag(logoLoadingIcon);
+        preventDrag(canvasLoadingIcon);
 
         updateCanvasContentSize();
 
@@ -919,7 +921,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas) or scroll message in hack mode
         if (!fullscreenAPIEnterMethod) {
-            scrollMessage.wmsxScroll = canvas.wmsxScroll = logo.wmsxScroll = logoImage.wmsxScroll =
+            scrollMessage.wmsxScroll = canvas.wmsxScroll = logo.wmsxScroll = logoCenter.wmsxScroll = logoImage.wmsxScroll =
                 logoMessage.wmsxScroll = logoMessageText.wmsxScroll = logoMessageYes.wmsxScroll = logoMessageNo.wmsxScroll = logoMessageOk.wmsxScroll = true;
 
             fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
@@ -1171,11 +1173,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (logoMessageActive) {
             var width = canvasOuter.clientWidth;
             var scale = Math.min(width / wmsx.ScreenGUI.LOGO_SCREEN_WIDTH, 1);
-            logo.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
+            logoCenter.style.transform = "translate(-50%, -50%) scale(" + scale.toFixed(4) + ")";
 
             // console.error("MESSAGE SCALE width: " + width + ", scale: " + scale);
         } else
-            logo.style.transform = "translate(-50%, -50%)";
+            logoCenter.style.transform = "translate(-50%, -50%)";
     }
 
     function setScrollMessage(state) {
@@ -1296,7 +1298,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 if (isMobileDevice) self.requestReadjust();
                 if (wasUnpaused) {
                     if (wasFullscreenByAPI && !isFullScreenByAPI())
-                        showLogoMessage(true, "Emulation paused.<br>Resume in full-screen?", machineSystemUnpauseAction);
+                        showLogoMessage(true, "Emulation suspended.<br>Resume in full-screen?", machineSystemUnpauseAction);
                     else
                         machineSystemUnpauseAction();
                 }
@@ -1351,7 +1353,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var fsElement, fsElementCenter;
 
-    var canvas, canvasOuter;
+    var canvas, canvasOuter, canvasLoadingIcon;
     var canvasContext;
     var canvasImageRenderingValue;
 
@@ -1389,7 +1391,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logo, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk, logoMessageActive = false;
+    var logo, logoCenter, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk, logoMessageActive = false;
     var logoLoadingIcon;
     var scrollMessage, scrollMessageActive = false;
 

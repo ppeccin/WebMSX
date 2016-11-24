@@ -15,14 +15,17 @@ wmsx.ScreenGUI.html = function() {
             <div id="wmsx-screen-fs-center" tabindex="-1">
                 <div id="wmsx-screen-canvas-outer">
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
+                    <img id="wmsx-canvas-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                     <div id="wmsx-logo">
-                        <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
-                        <img id="wmsx-logo-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
-                        <div id="wmsx-logo-message">
-                            <div id="wmsx-logo-message-text"></div>
-                            <div id="wmsx-logo-message-yes"></div>
-                            <div id="wmsx-logo-message-no"></div>
-                            <div id="wmsx-logo-message-ok"></div>
+                        <div id="wmsx-logo-center">
+                            <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
+                            <img id="wmsx-logo-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
+                            <div id="wmsx-logo-message">
+                                <div id="wmsx-logo-message-text"></div>
+                                <div id="wmsx-logo-message-yes"></div>
+                                <div id="wmsx-logo-message-no"></div>
+                                <div id="wmsx-logo-message-ok"></div>
+                            </div>
                         </div>
                     </div>
                     <div id="wmsx-osd"></div>
@@ -441,20 +444,25 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-logo {
     position: absolute;
     display: none;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    background: black;
+}
+#wmsx-logo.wmsx-show {
+    display: block;
+}
+
+#wmsx-logo-center {
+    position: absolute;
     top: 50%;
     left: 50%;
     width: 598px;
     height: 456px;
-    background: black;
     transform: translate(-50%, -50%);
 }
-#wmsx-screen-fs:not(.wmsx-logo-message-active) #wmsx-logo {
+#wmsx-screen-fs:not(.wmsx-logo-message-active) #wmsx-logo-center {
     max-width: 100%;
     max-height: 100%;
-}
-
-#wmsx-logo.wmsx-show {
-    display: block;
 }
 
 #wmsx-logo-image {
@@ -477,13 +485,13 @@ html.wmsx-full-screen #wmsx-logo-image {
     max-width: 67%;
 }
 
-#wmsx-logo-loading-icon {
+#wmsx-logo-loading-icon, #wmsx-canvas-loading-icon {
     display: none;
     position: absolute;
-    top: 275px;
+    top: 62%;
     left: 0; right: 0;
-    height: 14px;
-    width: 75px;
+    width: 14%;
+    height: 3%;
     margin: 0 auto;
     background-color: rgba(0, 0, 0, .8);
     border: solid transparent;
