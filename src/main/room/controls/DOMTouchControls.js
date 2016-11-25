@@ -434,7 +434,3 @@ wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
         elem.classList.remove("wmsx-touch-button-joy", "wmsx-touch-button-none");
     }
 };
-
-wmsx.DOMTouchControls.LEFT_WIDTH = 119;
-wmsx.DOMTouchControls.RIGHT_WIDTH = 80;
-wmsx.DOMTouchControls.TOTAL_WIDTH = wmsx.DOMTouchControls.LEFT_WIDTH + wmsx.DOMTouchControls.RIGHT_WIDTH;

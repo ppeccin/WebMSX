@@ -11,6 +11,7 @@ module.exports = function (grunt) {
         concat: {
             emuPart: {
                 src: [
+                    "src/main/room/screen/FullScreenSetup.js",
                     "src/main/util/Util.js",
                     "src/main/util/SHA1.js",
                     "src/main/util/ZIP.js",

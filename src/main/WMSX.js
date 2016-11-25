@@ -48,7 +48,7 @@ WMSX = {
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",
-    SCREEN_FULLSCREEN_MODE:         0,                          // -1: disabled, 0: off, 1: on
+    SCREEN_FULLSCREEN_MODE:         -1,                         // -2: disabled, -1: auto, 0: off, 1: on
     SCREEN_CRT_MODE:                -1,                         // -1: auto, 0: off, 1: on
     SCREEN_FILTER_MODE:             -1,                         // -2: browser default, -1: auto, 0..3: smoothing level
     SCREEN_DEFAULT_SCALE:           -1,                         // 0.5 .. N, 0.1 steps. -1: auto

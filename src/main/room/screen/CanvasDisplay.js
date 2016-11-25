@@ -11,7 +11,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var self = this;
 
     function init() {
-        setupCSS();
+        wmsx.ScreenGUI.setupCSS();
         setupMain();
         setupBar();
         setupFullscreen();
@@ -46,7 +46,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         document.documentElement.classList.add("wmsx-started");
         setPageVisibilityHandling();
         this.focus();
-        //if (FULLSCREEN_MODE === 1 && isBrowserStandalone) this.setFullscreen(true);
+        if (WMSXFullScreenSetup.shouldStartInFullScreen()) setFullscreenState(true);
     };
 
     this.powerOff = function() {
@@ -56,7 +56,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.start = function(startAction) {
         // Show the logo messages or start automatically
         if (isMobileDevice && !isFullscreen) {
-            if (!fullscreenAPIEnterMethod && !isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then launch from the installed App', startAction);
+            if (!isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then launch from the installed App', startAction);
             else showLogoMessage(true, "For the best experience<br>please go full-screen!", startAction);
         } else
             startAction();
@@ -292,7 +292,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
-        if (FULLSCREEN_MODE === -1) return;
+        if (FULLSCREEN_MODE === -2) return;
 
         closeLogoMessage(true);
 
@@ -767,7 +767,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.menuTitle = "Settings";
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, "Settings", null, menu);
 
-        if (FULLSCREEN_MODE !== -1) {
+        if (FULLSCREEN_MODE !== -2) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fullscreenButton.wmsxNeedsUIG = true;
             if (isMobileDevice) fullscreenButton.classList.add("wmsx-mobile");
@@ -1190,14 +1190,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function setupCSS() {
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        style.innerHTML = wmsx.ScreenGUI.css();
-        document.head.appendChild(style);
-        delete wmsx.ScreenGUI.css;
-    }
-
     function readjustAll(force, skipFocus) {
         if (readjustScreeSizeChanged(force)) {
             if (isFullscreen) {
@@ -1233,7 +1225,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         var winWK = winW;
         if (winW > winH) {
             // For Keyboard in Landscape, always treat as if TouchControls are enabled
-            winWK -= wmsx.DOMTouchControls.TOTAL_WIDTH;
+            winWK -= wmsx.ScreenGUI.TOUCH_CONTROLS_TOTAL_WIDTH;
             if (touchControlsActive) winW = winWK;      // The same for everytinhg if TouchControls indeed enabled
         }
 

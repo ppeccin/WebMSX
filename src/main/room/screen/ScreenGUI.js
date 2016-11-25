@@ -7,7 +7,18 @@ wmsx.ScreenGUI = {
     BAR_MENU_WIDTH: 136,
     BAR_MENU_ITEM_HEIGHT: 28,
     LOGO_SCREEN_WIDTH: 597,
-    LOGO_SCREEN_HEIGHT: 455
+    LOGO_SCREEN_HEIGHT: 455,
+    TOUCH_CONTROLS_LEFT_WIDTH: 119,
+    TOUCH_CONTROLS_RIGHT_WIDTH: 80,
+    TOUCH_CONTROLS_TOTAL_WIDTH: 119 + 80
+};
+
+wmsx.ScreenGUI.setupCSS = function setupCSS() {
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = wmsx.ScreenGUI.css();
+    document.head.appendChild(style);
+    delete wmsx.ScreenGUI.css;
 };
 
 wmsx.ScreenGUI.html = function() {
@@ -41,18 +52,7 @@ wmsx.ScreenGUI.html = function() {
 };
 
 wmsx.ScreenGUI.css = function() {
-    return `html.wmsx-full-screen .wmsx-full-screen-hidden {
-    display: none;
-}
-html:not(.wmsx-full-screen) .wmsx-full-screen-only {
-    display: none;
-}
-
-html.wmsx-full-screen-scroll-hack {
-    background: black;
-}
-
-html.wmsx-full-screen-scroll-hack body {
+    return `html.wmsx-full-screen-scroll-hack body {
     position: absolute;
     width: 100%;
     height: ` + Math.max(1280, (Math.max(screen.width, screen.height) * 1.4) | 0) + `px;
@@ -63,7 +63,6 @@ html.wmsx-full-screen-scroll-hack body {
     border: none;
     overflow-x: hidden;
     overflow-y: auto;
-    _visibility: hidden;
 }
 
 #wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {
@@ -91,7 +90,7 @@ html.wmsx-full-screen-scroll-hack body {
     -moz-text-size-adjust: none;
     text-size-adjust: none;
 }
-html.wmsx-full-screen-scroll-hack #` + WMSX.SCREEN_ELEMENT_ID + ` {
+html.wmsx-full-screen #` + WMSX.SCREEN_ELEMENT_ID + ` {
     display: block;
     position: absolute;
     top: 0;
@@ -477,12 +476,12 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     -ms-user-select: none;
     user-select: none;
 }
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
-    top: 153px;
-    max-width: initial;
-}
 html.wmsx-full-screen #wmsx-logo-image {
     max-width: 67%;
+}
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-image {
+    top: 138px;
+    max-width: initial;
 }
 
 #wmsx-logo-loading-icon, #wmsx-canvas-loading-icon {
@@ -504,7 +503,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     user-select: none;
 }
 #wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-loading-icon {
-    top: 200px;
+    top: 192px;
 }
 
 #wmsx-logo-message {
@@ -513,7 +512,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     top: 230px;
     width: 100%;
     color: hsl(0, 0%, 97%);
-    font-size: 30px;
+    font-size: 29px;
     line-height: 34px;
 }
 
@@ -524,18 +523,18 @@ html.wmsx-full-screen #wmsx-logo-image {
     width: 200px;
     height: 130px;
 }
-#wmsx-logo-message-yes { left: 88px; }
-#wmsx-logo-message-no  { right: 88px; }
+#wmsx-logo-message-yes { left: 94px; }
+#wmsx-logo-message-no  { right: 94px; }
 #wmsx-logo-message-ok  { top: 91px; left: 200px; }
 
 #wmsx-logo-message-yes::after, #wmsx-logo-message-no::after, #wmsx-logo-message-ok::after {
     position: absolute;
     top: 49%;
     left: 50%;
-    width: 108px;
-    height: 48px;
+    width: 105px;
+    height: 47px;
     font-size: 25px;
-    line-height: 47px;
+    line-height: 46px;
     background: hsl(358, 67%, 46%);
     border-radius: 6px;
     color: white;
@@ -1293,12 +1292,12 @@ content: "";
 
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
-        left: calc(-6px - ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px);
+        left: calc(-6px - ` + wmsx.ScreenGUI.TOUCH_CONTROLS_LEFT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
     #wmsx-touch-right {
-        right: calc(5px - ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px);
+        right: calc(5px - ` + wmsx.ScreenGUI.TOUCH_CONTROLS_RIGHT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
@@ -1310,8 +1309,8 @@ content: "";
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
     html.wmsx-full-screen.wmsx-touch-active #wmsx-screen-fs-center {
-        left: ` + wmsx.DOMTouchControls.LEFT_WIDTH + `px;
-        right: ` + wmsx.DOMTouchControls.RIGHT_WIDTH + `px;
+        left: ` + wmsx.ScreenGUI.TOUCH_CONTROLS_LEFT_WIDTH + `px;
+        right: ` + wmsx.ScreenGUI.TOUCH_CONTROLS_RIGHT_WIDTH + `px;
     }
 }
 
@@ -1415,7 +1414,6 @@ content: "";
         bottom: 50%;
         right: 0%;
     }
-
 }`;
 
 };
