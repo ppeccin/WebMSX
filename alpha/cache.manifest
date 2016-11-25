@@ -1,6 +1,7 @@
 CACHE MANIFEST
-# Version 4.0.15c
+# Version 4.0.20
 
 ./index.html
 ./manifest.webapp
-
+./images/logo-icon192.png
+./images/logo-icon512.png
