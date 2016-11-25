@@ -106,10 +106,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     };
 
     function create() {
-        var styles = document.createElement('style');
-        styles.type = 'text/css';
-        styles.innerHTML = wmsx.SettingsGUI.css();
-        document.head.appendChild(styles);
+        wmsx.Util.insertCSS(wmsx.SettingsGUI.css());
 
         self.cover = document.createElement("div");
         self.cover.id = "wmsx-cover";

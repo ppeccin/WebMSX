@@ -13,14 +13,6 @@ wmsx.ScreenGUI = {
     TOUCH_CONTROLS_TOTAL_WIDTH: 119 + 80
 };
 
-wmsx.ScreenGUI.setupCSS = function setupCSS() {
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = wmsx.ScreenGUI.css();
-    document.head.appendChild(style);
-    delete wmsx.ScreenGUI.css;
-};
-
 wmsx.ScreenGUI.html = function() {
     return `<div id="wmsx-screen-fs" tabindex="0">
             <div id="wmsx-screen-fs-center" tabindex="-1">

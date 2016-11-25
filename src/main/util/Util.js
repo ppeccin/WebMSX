@@ -491,6 +491,13 @@ wmsx.Util = new function() {
     }
     this.blockEvent = blockEvent;
 
+    this.insertCSS = function(css) {
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = css;
+        document.head.appendChild(style);
+    };
+
     this.log2 = function(x) {
         return Math.log(x) / Math.log(2);
     };
