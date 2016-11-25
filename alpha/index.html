@@ -37,20 +37,6 @@
         <meta name="twitter:description" content="Play MSX2+ games in your browser!">
         <meta name="twitter:image"       content="http://webmsx.org/images/wmsx-logo-large.png">
 
-        <script>
-//            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-//                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-//                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-//            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-//            ga('create', 'UA-67920324-1', 'auto');
-//            ga('send', 'pageview');
-
-            function donate() {
-                alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
-            }
-
-        </script>
-
         <style>
             html, body {
                 position: relative;
@@ -58,7 +44,6 @@
                 padding: 0;
                 font: normal 16px sans-serif;
                 color: hsl(0, 0%, 10%);
-                background: #f4f4f4;
                 height: 100%;
                 -webkit-touch-callout: none;
                 touch-callout: none;
@@ -68,9 +53,13 @@
                 -moz-text-size-adjust: none;
                 text-size-adjust: none;
             }
+            html {
+                background: #f4f4f4;
+            }
             body {
                 height: auto;
                 min-height: 100%;
+                background: transparent;
             }
             .container {
                 max-width: 660px;
@@ -189,6 +178,61 @@
                 box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, .4);
             }
         </style>
+
+        <script>
+
+//            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+//                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+//                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+//            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+//            ga('create', 'UA-67920324-1', 'auto');
+//            ga('send', 'pageview');
+
+            function donate() {
+                alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n")
+            }
+
+            WMSXFullScreenSetup = {};
+
+            WMSXFullScreenSetup.apply = function fullScreenSetup() {
+                // Setup Basic CSS
+                var style = document.createElement('style');
+                style.type = 'text/css';
+                style.innerHTML = WMSXFullScreenSetup.css();
+                document.head.appendChild(style);
+
+                // Apply Standalone mode full-screen basic style to html and body immediately if we'll enter full-screen later
+                document.documentElement.classList.toggle("wmsx-full-screen", WMSXFullScreenSetup.shouldStartInFullScreen());
+
+                WMSXFullScreenSetup.applied = true;
+            };
+
+            WMSXFullScreenSetup.shouldStartInFullScreen = function() {
+                return (window.WMSX && (WMSX.SCREEN_FULLSCREEN_MODE === 1 || (WMSX.SCREEN_FULLSCREEN_MODE === -1 && WMSXFullScreenSetup.isBrowserStandaloneMode())))
+                        || WMSXFullScreenSetup.isBrowserStandaloneMode();
+            };
+
+            WMSXFullScreenSetup.isBrowserStandaloneMode = function() {
+                return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
+            };
+
+            WMSXFullScreenSetup.css = function() {
+                return '' +
+                        'html.wmsx-full-screen .wmsx-full-screen-hidden {' +
+                        '   display: none;' +
+                        '}' +
+                        'html:not(.wmsx-full-screen) .wmsx-full-screen-only {' +
+                        '   display: none;' +
+                        '}' +
+                        'html.wmsx-full-screen, html.wmsx-full-screen body {' +
+                        '   background: black;' +
+                        '}';
+            };
+
+            if (!WMSXFullScreenSetup.applied) WMSXFullScreenSetup.apply();
+
+        </script>
+
     </head>
 
     <body>
@@ -208,7 +252,7 @@
             </div>
         </div>
 
-        <div style="display: none;">
+        <div id="keywords" style="display: none;">
             WebMSX - The online MSX emulator,
             WMSX - The online MSX emulator,
             Play MSX2+ games online in your browser, mobile, touch screen,
@@ -237,7 +281,7 @@
             <div class="container">
                 <script>WMSX.PROXY_DOWNLOADER = "http://webmsx.herokuapp.com/proxy-remote-download?url=";</script>
                 <p>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a></p>
-                <p><a href="https://github.com/ppeccin/webmsx" target="_blank">Project&nbsp;Homepage</a>. &nbsp;v4.0.11a</p>
+                <p><a href="https://github.com/ppeccin/webmsx" target="_blank">Project&nbsp;Homepage</a>. &nbsp;v4.0.12</p>
             </div>
         </div>
 
