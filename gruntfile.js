@@ -144,9 +144,9 @@ module.exports = function (grunt) {
             },
            standalone: {
                 src: [
-                    "src/runtime/html/index.part1.html",
+                    "src/runtime/standalone/index.part1.html",
                     "temp/wmsx.js",
-                    "src/runtime/html/index.part2.html"
+                    "src/runtime/standalone/index.part2.html"
                 ],
                 dest: "temp/index.html"
             }
