@@ -1,7 +1,7 @@
 {
   "name" : "WebMSX",
   "title" : "WebMSX",
-  "version" : "4.0.15",
+  "version" : "4.0.21",
   "devDependencies": {
     "grunt": "",
     "grunt-contrib-clean" : "",

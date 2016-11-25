@@ -142,19 +142,13 @@ module.exports = function (grunt) {
                 ],
                 dest: "temp/wmsx.js"
             },
-            standalone: {
+           standalone: {
                 src: [
-                    "src/runtime/html/standalone.part1.html",
+                    "src/runtime/html/index.part1.html",
                     "temp/wmsx.js",
-                    "src/runtime/html/standalone.part2.html"
+                    "src/runtime/html/index.part2.html"
                 ],
-                dest: "temp/wmsx.html"
-            },
-            deployable: {
-                src: [
-                    "src/runtime/html/deploy-example.html"
-                ],
-                dest: "temp/example.html"
+                dest: "temp/index.html"
             }
         },
 
@@ -193,15 +187,17 @@ module.exports = function (grunt) {
         copy: {
             standalone: {
                 files: [
-                    {src: ["temp/wmsx.html"], dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "temp/wmsx.html", dest: "test/standalone.html"}
+                    {src: "temp/index.html", dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/cache.manifest", dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/aplha/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/aplha/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             },
-            deployable: {
+            embedded: {
                 files: [
-                    {src: ["temp/example.html"], dest: "release/aplha/4.0/deployable", expand: true, flatten: true, filter: "isFile"},
-                    {src: ["temp/wmsx.js"], dest: "release/aplha/4.0/deployable", expand: true, flatten: true, filter: "isFile"}
-                    // Using embedded images // {src: ["src/runtime/images/files/*"], dest: "release/stable/4.0/deployable/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: "src/runtime/embedded/index.html", dest: "release/aplha/4.0/embedded", expand: true, flatten: true, filter: "isFile"},
+                    {src: "temp/wmsx.js", dest: "release/aplha/4.0/embedded", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         }
@@ -217,9 +213,8 @@ module.exports = function (grunt) {
         "uglify:emuPart",
         "concat:emuFinal",
         "concat:standalone",
-        "concat:deployable",
         "copy:standalone",
-        "copy:deployable",
+        "copy:embedded",
         "clean:finish"
     ]);
 
