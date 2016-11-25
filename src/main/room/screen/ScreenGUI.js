@@ -1,17 +1,28 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// CSS data for Screen
-
-wmsx.ScreenGUI = {
-    BAR_HEIGHT: 29,
-    BAR_MENU_WIDTH: 136,
-    BAR_MENU_ITEM_HEIGHT: 28,
-    LOGO_SCREEN_WIDTH: 597,
-    LOGO_SCREEN_HEIGHT: 455,
-    TOUCH_CONTROLS_LEFT_WIDTH: 119,
-    TOUCH_CONTROLS_RIGHT_WIDTH: 80,
-    TOUCH_CONTROLS_TOTAL_WIDTH: 119 + 80
-};
+wmsx.ScreenGUI = wmsx.Util.isMobileDevice()
+    ? {
+        BAR_HEIGHT: 29,
+        BAR_MENU_WIDTH: 150,
+        BAR_MENU_ITEM_HEIGHT: 33,
+        BAR_MENU_ITEM_FONT_SIZE: 14,
+        LOGO_SCREEN_WIDTH: 597,
+        LOGO_SCREEN_HEIGHT: 455,
+        TOUCH_CONTROLS_LEFT_WIDTH: 119,
+        TOUCH_CONTROLS_RIGHT_WIDTH: 80,
+        TOUCH_CONTROLS_TOTAL_WIDTH: 119 + 80
+    }
+    : {
+        BAR_HEIGHT: 29,
+        BAR_MENU_WIDTH: 140,
+        BAR_MENU_ITEM_HEIGHT: 29,
+        BAR_MENU_ITEM_FONT_SIZE: 13,
+        LOGO_SCREEN_WIDTH: 597,
+        LOGO_SCREEN_HEIGHT: 455,
+        TOUCH_CONTROLS_LEFT_WIDTH: 119,
+        TOUCH_CONTROLS_RIGHT_WIDTH: 80,
+        TOUCH_CONTROLS_TOTAL_WIDTH: 119 + 80
+    };
 
 wmsx.ScreenGUI.html = function() {
     return `<div id="wmsx-screen-fs" tabindex="0">
@@ -174,7 +185,7 @@ html.wmsx-full-screen #wmsx-screen-fs-center {      /* Used to center and move t
     position: relative;
     left: 0;
     right: 0;
-    height: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
+    height: ` + this.BAR_HEIGHT + `px;
     margin: 0 auto;
     border-top: 1px solid black;
     background: hsl(0, 0%, 16%);
@@ -281,8 +292,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     position: absolute;
     display: inline-block;
     height: 0;
-    bottom: ` + wmsx.ScreenGUI.BAR_HEIGHT + `px;
-    font-size: 13px;
+    bottom: ` + this.BAR_HEIGHT + `px;
+    font-size: ` + this.BAR_MENU_ITEM_FONT_SIZE + `px;
     line-height: 1px;
     overflow: hidden;
     transform-origin: bottom center;
@@ -298,8 +309,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 .wmsx-bar-menu-item, #wmsx-bar-menu-title {
     position: relative;
     display: none;
-    width: ` + wmsx.ScreenGUI.BAR_MENU_WIDTH + `px;
-    height: ` + wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT + `px;
+    width: ` + this.BAR_MENU_WIDTH + `px;
+    height: ` + this.BAR_MENU_ITEM_HEIGHT + `px;
     color: rgb(205, 205, 205);
     border: none;
     padding: 0;
@@ -338,13 +349,13 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     position: absolute;
     width: 6px;
     height: 19px;
-    top: 4px;
-    left: 9px;
+    top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) | 0) + `px;
+    left: 10px;
     box-shadow: black 1px 1px 1px;
 }
 .wmsx-bar-menu-item-toggle {
     text-align: left;
-    padding: 0 0 0 28px;
+    padding: 0 0 0 30px;
 }
 .wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check {
     display: block;
@@ -367,7 +378,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     right: 0;
     width: 540px;
     max-width: 92%;
-    height: 270px;
+    height: 297px;
     margin: auto;
     color: white;
     font-size: 18px;
@@ -407,11 +418,11 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-screen-fs .wmsx-select-dialog li {
     display: none;
     overflow: hidden;
-    height: 23px;
+    height: 26px;
     background: rgb(70, 70, 70);
     margin: 7px 0;
     padding: 2px 10px;
-    line-height: 15px;
+    line-height: 17px;
     text-align: left;
     text-overflow: ellipsis;
     border: 2px dashed transparent;
@@ -875,7 +886,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     display: none;
     position: absolute;
     left: 50%;
-    bottom: ` + ( wmsx.ScreenGUI.BAR_HEIGHT + 2) + `px;
+    bottom: ` + ( this.BAR_HEIGHT + 2) + `px;
     overflow: hidden;
     margin: 0 auto;
     padding: 5px 0 0 4px;
@@ -1166,7 +1177,7 @@ content: "";
     width: 72px;
     height: 72px;
     font-size: 20px;
-    line-height: 68px;
+    line-height: 67px;
     color: hsl(0, 0%, 79%);
     border-radius: 100%;
     cursor: default;
@@ -1211,7 +1222,7 @@ content: "";
 
 .wmsx-touch-button-key {
     font-size: 16px;
-    line-height: 70px;
+    line-height: 69px;
 }
 .wmsx-touch-button-key::before {
     width: 48px;
@@ -1284,12 +1295,12 @@ content: "";
 
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
-        left: calc(-6px - ` + wmsx.ScreenGUI.TOUCH_CONTROLS_LEFT_WIDTH + `px);
+        left: calc(-6px - ` + this.TOUCH_CONTROLS_LEFT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
     #wmsx-touch-right {
-        right: calc(5px - ` + wmsx.ScreenGUI.TOUCH_CONTROLS_RIGHT_WIDTH + `px);
+        right: calc(5px - ` + this.TOUCH_CONTROLS_RIGHT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
     }
@@ -1301,8 +1312,8 @@ content: "";
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
     html.wmsx-full-screen.wmsx-touch-active #wmsx-screen-fs-center {
-        left: ` + wmsx.ScreenGUI.TOUCH_CONTROLS_LEFT_WIDTH + `px;
-        right: ` + wmsx.ScreenGUI.TOUCH_CONTROLS_RIGHT_WIDTH + `px;
+        left: ` + this.TOUCH_CONTROLS_LEFT_WIDTH + `px;
+        right: ` + this.TOUCH_CONTROLS_RIGHT_WIDTH + `px;
     }
 }
 
@@ -1333,7 +1344,7 @@ content: "";
     #wmsx-touch-speed {
         position: absolute;
         left: 19px;
-        bottom: ` + (wmsx.ScreenGUI.BAR_HEIGHT + 18) + `px;
+        bottom: ` + (this.BAR_HEIGHT + 18) + `px;
     }
 
     .wmsx-touch-button {

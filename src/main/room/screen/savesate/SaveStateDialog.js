@@ -3,8 +3,6 @@
 wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls) {
 "use strict";
 
-    console.log("CREATING");
-
     var self = this;
 
     this.show = function (pSave) {
@@ -44,7 +42,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
 
     function refreshList() {
         header.textContent = "Select Slot to " + (save ? "Save" : "Load");
-        var height = 49 + 10 * 30;
+        var height = 49 + 10 * 33;
         dialog.style.height = "" + height + "px";
         var prefix = save ? "Save to " : "Load from ";
         for (var i = 0; i < listItems.length; ++i) {
@@ -56,7 +54,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
 
     function create() {
         dialog = document.createElement("div");
-        dialog.id = "wmsx-machineselect";
+        dialog.id = "wmsx-savestate";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
         dialog.style.height = "340px";
