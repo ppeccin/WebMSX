@@ -68,8 +68,11 @@ wmsx.Z80 = function() {
         return busCycles;
     };
 
-    this.toggleTurbo = function() {
+    this.toggleTurboMode = function() {
         turboClockShift = turboClockShift === 0 ? 1 : 0;
+    };
+
+    this.getTurboMode = function() {
         return !!turboClockShift;
     };
 

@@ -28,6 +28,11 @@ wmsx.DOMPeripheralControls = function() {
         groupRestriction = pGroup || null;
     };
 
+    this.getControlReport = function(control) {
+        // Only TurboFire for now
+        return controllersHub.getControlReport(control);
+    };
+
     this.processKey = function(code, press) {
         if (!press) return false;
         var control = keyCodeMap[code & EXCLUDE_SHIFT_MASK];
@@ -176,6 +181,9 @@ wmsx.DOMPeripheralControls = function() {
                 if (altPower) return this.controlActivated(controls.SCREEN_DEFAULTS);
                 screen.openSettings();
                 break;
+            case controls.SCREEN_OPEN_QUICK_OPTIONS:
+                screen.openQuickOptionsDialog();
+                break;
             case controls.SCREEN_OPEN_TOUCH_CONFIG:
                 screen.openTouchConfigDialog();
                 break;
@@ -264,8 +272,12 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_TOUCH_TOGGLE | k.ALT]          = controls.TOUCH_TOGGLE_MODE;
         keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = controls.TURBO_FIRE_TOGGLE;
 
-        keyCodeMap[KEY_CRT_FILTER | k.ALT]  = controls.SCREEN_CRT_FILTER;
-        keyCodeMap[KEY_CRT_MODE | k.ALT] 	= controls.SCREEN_CRT_MODE;
+        keyCodeMap[KEY_CRT_FILTER | k.ALT]      = controls.SCREEN_CRT_FILTER;
+        keyCodeMap[KEY_CRT_MODE | k.ALT] 	    = controls.SCREEN_CRT_MODE;
+        keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
+        keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= controls.SCREEN_OPEN_QUICK_OPTIONS;
+        keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= controls.SCREEN_OPEN_TOUCH_CONFIG;
+
         keyCodeMap[KEY_FULLSCREEN | k.ALT]  = controls.SCREEN_FULLSCREEN;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = controls.SCREEN_SCALE_MINUS;
@@ -350,8 +362,12 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_TOUCH_TOGGLE          = wmsx.DOMKeys.VK_N.c;
     var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
 
-    var KEY_CRT_FILTER  = wmsx.DOMKeys.VK_E.c;
-    var KEY_CRT_MODE    = wmsx.DOMKeys.VK_R.c;
+    var KEY_CRT_FILTER    = wmsx.DOMKeys.VK_E.c;
+    var KEY_CRT_MODE      = wmsx.DOMKeys.VK_R.c;
+    var KEY_SETTINGS      = wmsx.DOMKeys.VK_Y.c;
+    var KEY_QUICK_OPTIONS = wmsx.DOMKeys.VK_U.c;
+    var KEY_TOUCH_CONFIG  = wmsx.DOMKeys.VK_I.c;
+
     var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
 
     var KEY_MACHINE_POWER  = wmsx.DOMKeys.VK_F11.c;

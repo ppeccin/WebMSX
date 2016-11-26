@@ -156,13 +156,6 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
         // Block mousemove preventions down event stack, so drags can start
         list.addEventListener("mousemove", function(e) { e.stopPropagation(); });
-
-        // Supress context menu
-        dialog.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        });
     }
 
     function setupDnD() {

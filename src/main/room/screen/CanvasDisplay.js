@@ -105,39 +105,41 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openSettings = function(page) {
+        closeStickyModals();
         if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub, machineTypeSocket);
-        if (pasteDialog) pasteDialog.hide();
-        if (textEntryDialog) textEntryDialog.hide();
         settingsDialog.show(page);
     };
 
     this.openSaveStateDialog = function (save) {
+        closeStickyModals();
         if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls);
-        if (pasteDialog) pasteDialog.hide();
-        if (textEntryDialog) textEntryDialog.hide();
         saveStateDialog.show(save);
     };
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
+        closeStickyModals();
         if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
-        if (pasteDialog) pasteDialog.hide();
-        if (textEntryDialog) textEntryDialog.hide();
         diskSelectDialog.show(drive, inc, altPower);
     };
 
     this.openMachineSelectDialog = function() {
+        closeStickyModals();
         if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
-        if (pasteDialog) pasteDialog.hide();
-        if (textEntryDialog) textEntryDialog.hide();
         machineSelectDialog.show();
     };
 
     this.openTouchConfigDialog = function() {
-        if (pasteDialog) pasteDialog.hide();
-        if (textEntryDialog) textEntryDialog.hide();
+        closeStickyModals();
         if (virtualKeyboardActive) setVirtualKeyboard(false);
         if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub);
         touchConfigDialog.show();
+    };
+
+    this.openQuickOptionsDialog = function() {
+        closeStickyModals();
+        if (virtualKeyboardActive) setVirtualKeyboard(false);
+        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(canvasOuter, machineControlsSocket, peripheralControls);
+        quickOtionsDialog.show();
     };
 
     this.openLoadFileDialog = function() {
@@ -561,8 +563,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateLogo() {
         if (!signalIsOn) {
             updateLogoScale();
-            if (pasteDialog) pasteDialog.hide();
-            if (textEntryDialog) textEntryDialog.hide();
+            closeStickyModals();
             showBar();
             showCursor(true);
             if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
@@ -811,11 +812,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "",            divider: true });
 
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
+
         if (!isMobileDevice)
         menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
+        else
+        menu.push({ label: "Quick Options",   clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS });
         if (isTouchDevice)
-        menu.push({ label: "Touch Controls",                 control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
+
+        menu.push({ label: "Touch Setup",                    control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
         if (!isMobileDevice)
+
         menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
         return menu;
     }
@@ -1131,6 +1137,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         buttonsBar.appendChild(barMenu);
     }
 
+    function closeStickyModals() {
+        if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
+    }
+
     function showLogoMessage(yesNo, mes, afterAction) {
         logoMessageActive = true;
         if (afterAction) afterMessageAction = afterAction;
@@ -1308,6 +1319,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     var afterMessageAction;
 
     var machine;
+    var machineControlsSocket;
+
     var monitor;
     var peripheralControls;
     var fileDownloader;
@@ -1332,14 +1345,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenScrollHack = false;
     var viewportTag, viewPortOriginalTag, viewPortOriginalContent;
 
-    var machineControlsSocket;
-    var machineControlsStateReport = {};
-
     var settingsDialog;
     var saveStateDialog;
     var diskSelectDialog;
     var machineSelectDialog;
     var touchConfigDialog;
+    var quickOtionsDialog;
     var pasteDialog;
     var textEntryDialog;
     var copyTextArea;

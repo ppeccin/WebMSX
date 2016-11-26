@@ -111,13 +111,6 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
             }
             return false;
         });
-
-        // Supress context menu
-        dialog.addEventListener("contextmenu", function stopContextMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        });
     }
 
 

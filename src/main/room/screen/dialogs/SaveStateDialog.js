@@ -116,9 +116,6 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
                 setTimeout(hideConfirm, 160);
             }
         });
-
-        // Supress context menu
-        dialog.addEventListener("contextmenu", wmsx.Util.blockEvent);
     }
 
 

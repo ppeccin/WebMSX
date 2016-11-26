@@ -221,6 +221,10 @@ wmsx.VDP = function(machine, cpu) {
             + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     };
 
+    this.getSpriteDebugModeQuickDesc = function() {
+        return ["Normal", "Unlimited", "No Collis.", "Both"][spriteDebugMode];
+    };
+
     this.setDefaults = function() {
         setDebugMode(0);
         spriteDebugMode = 0; spriteDebugModeLimit = true; spriteDebugModeCollisions = true;

@@ -114,9 +114,6 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
         self.cover.tabIndex = -1;
         mainElement.appendChild(self.cover);
 
-         // Supress context menu
-        self.cover.addEventListener("contextmenu", wmsx.Util.blockEvent);
-
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
         delete wmsx.SettingsGUI;

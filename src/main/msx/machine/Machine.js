@@ -534,8 +534,8 @@ wmsx.Machine = function() {
                 }
                 break;
             case controls.CPU_TURBO_MODE:
-                var mode = cpu.toggleTurbo();
-                self.showOSD("CPU Turbo Speed: " + (mode ? "2x (7.16 MHz)" : "OFF (3.58 MHz)"), true);
+                cpu.toggleTurboMode();
+                self.showOSD("CPU Turbo Speed: " + (cpu.getTurboMode() ? "2x (7.16 MHz)" : "OFF (3.58 MHz)"), true);
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();
@@ -771,7 +771,6 @@ wmsx.Machine = function() {
     function ControllersSocket() {
         this.connectControls = function(pControls) {
             controls = pControls;
-
         };
         this.readKeyboardPort = function(row) {
             return controls.readKeyboardPort(row);
@@ -815,12 +814,25 @@ wmsx.Machine = function() {
         };
         this.addPowerAndUserPauseStateListener = function(listener) {
             if (powerAndUserPauseStateListeners.indexOf(listener) >= 0) return;
-            powerAndUserPauseStateListeners[powerAndUserPauseStateListeners.length] = listener;
+            powerAndUserPauseStateListeners.push(listener);
             this.firePowerAndUserPauseStateUpdate();
         };
         this.firePowerAndUserPauseStateUpdate = function() {
             for (var i = 0; i < powerAndUserPauseStateListeners.length; ++i)
                 powerAndUserPauseStateListeners[i].machinePowerAndUserPauseStateUpdate(self.powerIsOn, userPaused);
+        };
+        this.getControlReport = function(control) {
+            switch (control) {
+                case controls.VIDEO_STANDARD:
+                    return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
+                case controls.CPU_TURBO_MODE:
+                    var mode = cpu.getTurboMode();
+                    return { label: mode ? "7.16 MHz" : "OFF", active: mode };
+                case controls.SPRITE_MODE:
+                    var desc = vdp.getSpriteDebugModeQuickDesc();
+                    return { label: desc, active: desc !== "Normal" };
+            }
+            return { label: "Unknown", active: false };
         };
         var powerAndUserPauseStateListeners = [];
     }

@@ -355,7 +355,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item-toggle {
     text-align: left;
-    padding: 0 0 0 30px;
+    padding-left: 30px;
 }
 .wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check {
     display: block;
@@ -413,7 +413,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     padding: 0;
     list-style: none;
     font-size: 14px;
-    color: rgb(225, 225, 225);
+    color: hsl(0, 0%, 88%);
 }
 #wmsx-screen-fs .wmsx-select-dialog li {
     display: none;
@@ -422,7 +422,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     background: rgb(70, 70, 70);
     margin: 7px 0;
     padding: 2px 10px;
-    line-height: 17px;
+    line-height: 18px;
     text-align: left;
     text-overflow: ellipsis;
     border: 2px dashed transparent;
@@ -904,6 +904,73 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
+#wmsx-quick-options {
+    display: none;
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    width: 220px;
+    height: 185px;
+    margin: auto;
+    padding: 16px 0 0;
+    color: white;
+    font-size: 19px;
+    line-height: 23px;
+    background: hsl(0, 0%, 16%);
+    text-align: center;
+    border: 1px solid black;
+    box-sizing: initial;
+    text-shadow: 1px 1px 1px black;
+    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: auto;
+    z-index: 3;
+}
+#wmsx-quick-options.wmsx-show {
+    display: block;
+}
+#wmsx-quick-options::before {
+    content: "Quick Options";
+    display: block;
+}
+
+#wmsx-quick-options ul {
+    display: inline-block;
+    width: 84px;
+    margin: 9px auto;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    color: hsl(0, 0%, 88%);
+}
+#wmsx-quick-options ul:first-child {
+    width: 102px;
+}
+#wmsx-quick-options li {
+    overflow: hidden;
+    height: 26px;
+    margin: 9px 0;
+    padding: 4px 0;
+    line-height: 18px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+#wmsx-quick-options li.wmsx-control {
+    font-size: 15px;
+    color: hsl(0, 0%, 70%);
+    background: black;
+    text-align: center;
+    cursor: pointer;
+}
+#wmsx-quick-options li.wmsx-control.wmsx-selected {
+    color: white;
+    background: hsl(358, 67%, 46%);
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+}
+
 #wmsx-touch-config {
     display: none;
     position: absolute;
@@ -929,6 +996,9 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 }
 #wmsx-screen-fs.wmsx-touch-config-active #wmsx-touch-config {
     display: block;
+}
+#wmsx-touch-config::after {
+    content: "Tap Control to Setup";
 }
 #wmsx-touch-config::before {
     content: "";

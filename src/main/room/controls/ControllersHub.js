@@ -106,7 +106,16 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.setTurboFireClocks(turboClocks);
         joykeysControls.setTurboFireClocks(turboClocks);
         touchControls.setTurboFireClocks(turboClocks);
-        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " speed: " + turboFireSpeed : ": OFF"), true);
+        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " " + this.getTurboFireSpeedDesc() : ": OFF"), true);
+    };
+
+    this.getTurboFireSpeedDesc = function() {
+        return turboFireSpeed ? "Speed: " + turboFireSpeed : "OFF";
+    };
+
+    this.getControlReport = function(control) {
+        // Only TurboFire for now
+        return { label: this.getTurboFireSpeedDesc(), active: !!turboFireSpeed };
     };
 
     this.setupTouchControlsIfNeeded = function(mainElement) {
