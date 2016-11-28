@@ -38,7 +38,7 @@ function processGet(req, res) {
         })
         .on('error', function(err) {
             console.log(">>> Error: " + err);
-            res.writeHead(400, err);
+            res.writeHead(400, err.message);
             res.end();
         })
         .pipe(res);
