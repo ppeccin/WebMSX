@@ -1,6 +1,11 @@
 CACHE MANIFEST
-# Version 4.0.24a
+# Version 4.0.24b
 
+CACHE
 manifest.webapp
 images/logo-icon192.png
 images/logo-icon512.png
+
+NETWORK
+*
+
