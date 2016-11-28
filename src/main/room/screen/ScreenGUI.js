@@ -1376,7 +1376,7 @@ content: "";
     }
     #wmsx-touch-speed {
         position: absolute;
-        left: -109px;
+        left: -107px;
         top: 8px;
     }
 
@@ -1413,7 +1413,7 @@ content: "";
     }
     #wmsx-touch-speed {
         position: absolute;
-        left: 19px;
+        left: 21px;
         bottom: ` + (this.BAR_HEIGHT + 18) + `px;
     }
 

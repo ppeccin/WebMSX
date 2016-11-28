@@ -32,6 +32,16 @@
         <meta name="twitter:description" content="Play MSX2+ games in your browser!">
         <meta name="twitter:image"       content="http://webmsx.org/images/wmsx-logo-large.png">
 
+        <script>
+
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q = i[r].q ||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m = s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window, document,'script','//www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-67920324-1', 'auto'); ga('send', 'pageview');
+
+            function donate() { alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n") }
+
+            WMSXFullScreenSetup = { apply: function fullScreenSetup() { /* Setup Basic full-screen CSS*/ if (!this.cssApplied) { var style = document.createElement('style'); style.type = 'text/css'; style.innerHTML = this.css; document.head.appendChild(style); this.cssApplied = true; } /* Apply Standalone mode full-screen basic styles to html and body immediately if needed*/ document.documentElement.classList.toggle("wmsx-full-screen", this.shouldStartInFullScreen()); }, shouldStartInFullScreen: function () { return window.WMSX ? WMSX.SCREEN_FULLSCREEN_MODE === 1 || (WMSX.SCREEN_FULLSCREEN_MODE === -1 && this.isBrowserStandaloneMode()) : this.isBrowserStandaloneMode(); }, isBrowserStandaloneMode: function () { return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches; }, css: '' + 'html.wmsx-full-screen .wmsx-full-screen-hidden {' + '   display: none;' + '}' + 'html:not(.wmsx-full-screen) .wmsx-full-screen-only {' + '   display: none;' + '}' + 'html.wmsx-full-screen, html.wmsx-full-screen body {' + '   background: black;' + '}'}; WMSXFullScreenSetup.apply();
+
+        </script>
+
         <style>
             html, body {
                 position: relative;
@@ -79,6 +89,7 @@
                 height: 32px;
                 margin: 10px 20px 0 0;
                 background-size: 104px 32px;
+                background-repeat: no-repeat;
             }
             #desc span {
                 float: right;
@@ -173,16 +184,6 @@
                 box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, .55);
             }
         </style>
-
-        <script>
-
-            // (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q = i[r].q ||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m = s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window, document,'script','//www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-67920324-1', 'auto'); ga('send', 'pageview');
-
-            function donate() { alert("To support the project, please send donations to:\n\nppeccin@gmail.com\n\nOr contact via email. Many thanks!\n") }
-
-            WMSXFullScreenSetup = { apply: function fullScreenSetup() { /* Setup Basic full-screen CSS*/ if (!this.cssApplied) { var style = document.createElement('style'); style.type = 'text/css'; style.innerHTML = this.css; document.head.appendChild(style); this.cssApplied = true; } /* Apply Standalone mode full-screen basic styles to html and body immediately if needed*/ document.documentElement.classList.toggle("wmsx-full-screen", this.shouldStartInFullScreen()); }, shouldStartInFullScreen: function () { return window.WMSX ? WMSX.SCREEN_FULLSCREEN_MODE === 1 || (WMSX.SCREEN_FULLSCREEN_MODE === -1 && this.isBrowserStandaloneMode()) : this.isBrowserStandaloneMode(); }, isBrowserStandaloneMode: function () { return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches; }, css: '' + 'html.wmsx-full-screen .wmsx-full-screen-hidden {' + '   display: none;' + '}' + 'html:not(.wmsx-full-screen) .wmsx-full-screen-only {' + '   display: none;' + '}' + 'html.wmsx-full-screen, html.wmsx-full-screen body {' + '   background: black;' + '}'}; WMSXFullScreenSetup.apply();
-
-        </script>
 
     </head>
 

@@ -2,8 +2,15 @@
 
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
+// TODO Save file on iOS
 // TODO Narrow Virtual Keyboard
 // TODO Add Tap on various dialogs as in TextEntryDialog
+// TODO MegaRAM
+// TODO Internal Donate?
+
+// TODO Verify touch callouts
+// TODO Fkeys line-height
+// TODO Logo message buttons text centering
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
