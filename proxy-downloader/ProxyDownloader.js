@@ -29,24 +29,24 @@ function processGet(req, res) {
     res.attachment(url);
 
     // Fire
+    addCorsResponseHeader(res);
     console.log(">>> Accepted");
     request
         .get(url)
         .on('response', function(response) {
             console.log(">>> Response status: " + response.statusCode);
-            addCorsResponseHeader(response);
         })
         .on('error', function(err) {
             console.log(">>> Error: " + err);
-            console.log(typeof err);
             res.sendStatus(400);
         })
         .pipe(res);
 
     function addCorsResponseHeader(response) {
         if (cors && origin) {
-            var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
-            response.headers[allowOriginHeader] = origin;
+            //var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
+            //response.headers[allowOriginHeader] = origin;
+            response.setHeader("access-control-allow-origin", origin);
         }
     }
 }
