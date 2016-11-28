@@ -34,12 +34,11 @@ function processGet(req, res) {
     request
         .get(url)
         .on('response', function(response) {
-            console.log(">>> Response status: " + response.statusCode);
+            console.log(">>> OK! Response status: " + response.statusCode);
         })
         .on('error', function(err) {
             console.log(">>> Error: " + err);
-            res.writeHead(400, err.message);
-            res.end();
+            res.writeStatus(400);
         })
         .pipe(res);
 
