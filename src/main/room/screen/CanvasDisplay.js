@@ -8,10 +8,6 @@
 // TODO MegaRAM
 // TODO Internal Donate?
 
-// TODO Verify touch callouts
-// TODO Fkeys line-height
-// TODO Logo message buttons text centering
-
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
 
@@ -54,7 +50,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         document.documentElement.classList.add("wmsx-started");
         setPageVisibilityHandling();
         this.focus();
-        if (WMSXFullScreenSetup.shouldStartInFullScreen()) setFullscreenState(true);
+        if (WMSXFullScreenSetup.shouldStartInFullScreen()) startInFullScreen();
     };
 
     this.powerOff = function() {
@@ -323,38 +319,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         } else
             setFullscreenState(mode)
     };
-
-    function setFullscreenState(mode) {
-        isFullscreen = mode;
-
-        if (mode) {
-            setViewport();
-            document.documentElement.classList.add("wmsx-full-screen");
-            if (fullScreenScrollHack) document.documentElement.classList.add("wmsx-full-screen-scroll-hack");
-            controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
-            if (fullScreenScrollHack) setScrollMessage(true);
-            if (!fullscreenAPIEnterMethod) tryToFixSafariBugOnFullScreenChange();
-        } else {
-            restoreViewport();
-            document.documentElement.classList.remove("wmsx-full-screen");
-            if (fullScreenScrollHack) document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
-            if (!fullscreenAPIEnterMethod) tryToFixSafariBugOnFullScreenChange();
-        }
-
-        self.requestReadjust();
-    }
-
-    function tryToFixSafariBugOnFullScreenChange() {
-        // Toggle a dummy element existence inside mainElement to try to force a reflow
-        var dummy = document.getElementById("wmsx-dummy-element");
-        if (dummy) {
-            mainElement.removeChild(dummy);
-        } else {
-            dummy = document.createElement("div");
-            dummy.id = "wmsx-dummy-element";
-            mainElement.appendChild(dummy);
-        }
-    }
 
     this.focus = function() {
         canvas.focus();
@@ -948,6 +912,57 @@ wmsx.CanvasDisplay = function(mainElement) {
                         if (scrollMessageActive) setScrollMessage(false);
                 }
             });
+        }
+    }
+
+    function startInFullScreen() {
+        setFullscreenState(true);
+        // Add event to enter in real fullScreenByAPI on first touch/click if possible
+        if (fullscreenAPIEnterMethod) {
+            var enterFullScreenByAPIonFirstTouch = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.type === "touchstart") return;
+                fsElement.removeEventListener("touchstart", enterFullScreenByAPIonFirstTouch, true);
+                fsElement.removeEventListener("touchend", enterFullScreenByAPIonFirstTouch, true);
+                fsElement.removeEventListener("mousedown", enterFullScreenByAPIonFirstTouch, true);
+                enterFullScreenByAPI();
+            };
+            fsElement.addEventListener("touchstart", enterFullScreenByAPIonFirstTouch, true);
+            fsElement.addEventListener("touchend", enterFullScreenByAPIonFirstTouch, true);
+            fsElement.addEventListener("mousedown", enterFullScreenByAPIonFirstTouch, true);
+        }
+    }
+
+    function setFullscreenState(mode) {
+        isFullscreen = mode;
+
+        if (mode) {
+            setViewport();
+            document.documentElement.classList.add("wmsx-full-screen");
+            if (fullScreenScrollHack) document.documentElement.classList.add("wmsx-full-screen-scroll-hack");
+            controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
+            if (fullScreenScrollHack) setScrollMessage(true);
+            if (!fullscreenAPIEnterMethod) tryToFixSafariBugOnFullScreenChange();
+        } else {
+            restoreViewport();
+            document.documentElement.classList.remove("wmsx-full-screen");
+            if (fullScreenScrollHack) document.documentElement.classList.remove("wmsx-full-screen-scroll-hack");
+            if (!fullscreenAPIEnterMethod) tryToFixSafariBugOnFullScreenChange();
+        }
+
+        self.requestReadjust();
+    }
+
+    function tryToFixSafariBugOnFullScreenChange() {
+        // Toggle a dummy element existence inside mainElement to try to force a reflow
+        var dummy = document.getElementById("wmsx-dummy-element");
+        if (dummy) {
+            mainElement.removeChild(dummy);
+        } else {
+            dummy = document.createElement("div");
+            dummy.id = "wmsx-dummy-element";
+            mainElement.appendChild(dummy);
         }
     }
 
