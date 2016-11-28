@@ -34,12 +34,11 @@ function processGet(req, res) {
         .get(url)
         .on('response', function(response) {
             console.log(">>> Response status: " + response.statusCode);
-            addCorsResponseHeader(res);
+            addCorsResponseHeader(response);
         })
         .on('error', function(err) {
             console.log(">>> Error: " + err);
-            addCorsResponseHeader(res);
-            res.sendStatus(404);
+            res.sendError(err);
         })
         .pipe(res);
 
