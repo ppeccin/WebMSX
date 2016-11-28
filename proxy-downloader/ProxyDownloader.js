@@ -40,6 +40,7 @@ function processGet(req, res) {
         })
         .on('error', function(err) {
             console.log(">>> Error: " + err);
+            res.sendStatus(404);
         })
         .pipe(res);
     console.log(">>> Accepted");
