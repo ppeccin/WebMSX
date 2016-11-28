@@ -36,10 +36,12 @@ function processGet(req, res) {
                 var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
                 response.headers[allowOriginHeader] = origin;
             }
-            console.log(">>> Response statusCode: " + response.statusCode);
-            console.log(">>> Response code: " + response.code);
+            console.log(">>> Response status: " + response.statusCode);
+        })
+        .on('error', function(err) {
+            console.log(">>> Error: " + err);
         })
         .pipe(res);
-    console.log(">>> OK!");
+    console.log(">>> Accepted");
 
 }
