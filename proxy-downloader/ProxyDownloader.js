@@ -29,13 +29,11 @@ function processGet(req, res) {
     res.attachment(url);
 
     // Fire
+    addCorsResponseHeader(res);
+    console.log(">>> Accepted");
     request
         .get(url)
         .on('response', function(response) {
-            if (cors && origin) {
-                var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
-                response.headers[allowOriginHeader] = origin;
-            }
             console.log(">>> Response status: " + response.statusCode);
         })
         .on('error', function(err) {
@@ -43,6 +41,11 @@ function processGet(req, res) {
             res.sendStatus(404);
         })
         .pipe(res);
-    console.log(">>> Accepted");
 
+    function addCorsResponseHeader(response) {
+        if (cors && origin) {
+            var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
+            response.headers[allowOriginHeader] = origin;
+        }
+    }
 }
