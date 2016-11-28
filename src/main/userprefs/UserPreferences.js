@@ -116,9 +116,9 @@ WMSX.userPreferences.defaults = function() {
                 T_B: j.J_B,
                 T_C: j.J_AB,
                 T_D: m.ESCAPE,
-                T_E: m.ENTER,
+                T_E: m.SPACE,
                 T_F: m.F1,
-                T_G: m.SPACE
+                T_G: m.ENTER
             }
         }
     };

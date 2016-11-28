@@ -820,16 +820,18 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
 
-        if (!isMobileDevice)
-        menu.push({ label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS });
-        else
-        menu.push({ label: "Quick Options",   clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS });
+        if (!isMobileDevice) {
+        menu.push({label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS});
+        menu.push({label: "Quick Options",                  control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS});
+        } else
+        menu.push({label: "Quick Options",   clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS});
+
         if (isTouchDevice)
+        menu.push({ label: "Touch Setup",                   control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
 
-        menu.push({ label: "Touch Setup",                    control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
         if (!isMobileDevice)
+        menu.push({ label: "Defaults",                      control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
 
-        menu.push({ label: "Defaults",                       control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
         return menu;
     }
 
@@ -1426,7 +1428,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;
 
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 0;
-    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 3);
+    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 4);
     var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var VIRTUAL_KEYBOARD_WIDTH = 518, VIRTUAL_KEYBOARD_HEIGHT = 161;

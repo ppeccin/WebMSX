@@ -910,12 +910,12 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 220px;
-    height: 185px;
+    height: 182px;
     margin: auto;
-    padding: 16px 0 0;
+    padding: 14px 0 0;
     color: white;
-    font-size: 19px;
-    line-height: 23px;
+    font-size: 18px;
+    line-height: 22px;
     background: hsl(0, 0%, 16%);
     text-align: center;
     border: 1px solid black;
@@ -937,8 +937,8 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 
 #wmsx-quick-options ul {
     display: inline-block;
-    width: 84px;
-    margin: 9px auto;
+    width: 86px;
+    margin: 7px auto;
     padding: 0;
     list-style: none;
     font-size: 14px;
@@ -979,10 +979,10 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     width: 220px;
     height: 164px;
     margin: auto;
-    padding: 16px 0 0;
+    padding: 15px 0 0;
     color: white;
-    font-size: 19px;
-    line-height: 23px;
+    font-size: 18px;
+    line-height: 22px;
     background: hsl(0, 0%, 16%);
     text-align: center;
     border: 1px solid black;
