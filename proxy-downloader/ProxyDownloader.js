@@ -38,15 +38,15 @@ function processGet(req, res) {
         })
         .on('error', function(err) {
             console.log(">>> Error: " + err);
-            res.sendStatus(400);
+            res.writeHead(400, err);
+            res.end();
         })
         .pipe(res);
 
     function addCorsResponseHeader(response) {
         if (cors && origin) {
-            //var allowOriginHeader = response.headers["access-control-allow-origin"] ? "access-control-allow-origin" : "Access-Control-Allow-Origin";
-            //response.headers[allowOriginHeader] = origin;
             response.setHeader("access-control-allow-origin", origin);
+            response.setHeader("Access-Control-Allow-Origin", origin);
         }
     }
 }
