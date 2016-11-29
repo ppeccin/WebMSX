@@ -7,6 +7,7 @@
 // TODO Add Tap on various dialogs as in TextEntryDialog
 // TODO MegaRAM
 // TODO Internal Donate?
+// TODO Menus changes in FS status
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -108,38 +109,38 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openSettings = function(page) {
-        closeStickyModals();
+        closeAllOverlays();
         if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub, machineTypeSocket);
         settingsDialog.show(page);
     };
 
     this.openSaveStateDialog = function (save) {
-        closeStickyModals();
+        closeAllOverlays();
         if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls);
         saveStateDialog.show(save);
     };
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
-        closeStickyModals();
+        closeAllOverlays();
         if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
         diskSelectDialog.show(drive, inc, altPower);
     };
 
     this.openMachineSelectDialog = function() {
-        closeStickyModals();
+        closeAllOverlays();
         if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
         machineSelectDialog.show();
     };
 
     this.openTouchConfigDialog = function() {
-        closeStickyModals();
+        closeAllOverlays();
         if (virtualKeyboardActive) setVirtualKeyboard(false);
         if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub);
         touchConfigDialog.show();
     };
 
     this.openQuickOptionsDialog = function() {
-        closeStickyModals();
+        closeAllOverlays();
         if (virtualKeyboardActive) setVirtualKeyboard(false);
         if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(canvasOuter, machineControlsSocket, peripheralControls);
         quickOtionsDialog.show();
@@ -424,7 +425,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         if (active) {
             if (!isTouchDevice) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
-            if (textEntryDialog) textEntryDialog.hide();
             if (!virtualKeyboardElement) setupVirtualKeyboard();
         }
         document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", active);
@@ -534,7 +534,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function updateLogo() {
         if (!signalIsOn) {
             updateLogoScale();
-            closeStickyModals();
+            closePowerOnModals();
             showBar();
             showCursor(true);
             if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
@@ -610,7 +610,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
 
         suppressContextMenu(mainElement);
-        suppressContextMenu(fsElement);
         preventDrag(logoImage);
         preventDrag(logoLoadingIcon);
         preventDrag(canvasLoadingIcon);
@@ -626,13 +625,14 @@ wmsx.CanvasDisplay = function(mainElement) {
             case "SAFARI":  canvasImageRenderingValue = "-webkit-optimize-contrast"; break;
             default:        canvasImageRenderingValue = "pixelated";
         }
+        setupEvents();
+    }
 
-        function showBarOnMouseMoveOrTap() {
+    function setupEvents() {
+        wmsx.Util.addEventsListener(fsElement, "touchstart mousemove", function showBarOnMouseMoveOrTap() {
             showCursor();
             showBar();
-        }
-        fsElement.addEventListener("touchstart", showBarOnMouseMoveOrTap);
-        fsElement.addEventListener("mousemove", showBarOnMouseMoveOrTap);
+        });
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
@@ -642,9 +642,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         logoMessageYes.wmsxNeedsUIG = true;     // User Initiated Gesture required
-        wmsx.Util.onEventOrTapWithBlockUIG(logoMessageYes, "mousedown", logoMessageYesClicked);
-        wmsx.Util.onEventOrTapWithBlock(logoMessageNo,  "mousedown", logoMessageNoClicked);
-        wmsx.Util.onEventOrTapWithBlock(logoMessageOk,  "mousedown", logoMessageOkClicked);
+        wmsx.Util.onEventsOrTapWithBlockUIG(logoMessageYes, "mousedown", logoMessageYesClicked);
+        wmsx.Util.onEventsOrTapWithBlock(logoMessageNo, "mousedown", logoMessageNoClicked);
+        wmsx.Util.onEventsOrTapWithBlock(logoMessageOk, "mousedown", logoMessageOkClicked);
+
+        wmsx.Util.onEventsOrTap(fsElement, "mousedown", function backScreenTouched(e) {
+            console.log(e.type);
+            closeAllOverlays();
+            e.preventDefault();
+        });
     }
 
     function setupVirtualKeyboard() {
@@ -766,7 +772,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoButton.classList.add("wmsx-narrow-hidden");
 
         // Mouse buttons perform the various actions
-        wmsx.Util.onEventOrTapWithBlockUIG(buttonsBar, "mousedown", peripheralControlButtonMouseDown);
+        wmsx.Util.onEventsOrTapWithBlockUIG(buttonsBar, "mousedown", buttonsBarTapOrMouseDown);
     }
 
     function createSettingsMenuOptions() {
@@ -834,33 +840,29 @@ wmsx.CanvasDisplay = function(mainElement) {
         return but;
     }
 
-    function peripheralControlButtonMouseDown(e) {
+    function buttonsBarTapOrMouseDown(e) {
+        closeAllOverlays();
+
         // Single option, only left click
         if (e.target.wmsxControl) {
-            hideBarMenu();
             if (!e.button) peripheralControls.controlActivated(e.target.wmsxControl);
             return;
         }
 
         var menu = e.target.wmsxMenu;
-        if (!menu) {
-            hideBarMenu();
-            return;
-        }
+        if (!menu) return;
 
         var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
 
         // Open/close menu with left-click if no modifiers
         if (modifs === 0 && !e.button) {
-            if (barMenuActive !== menu) showBarMenu(menu, e.target, true);
-            else hideBarMenu();
+            if (barMenuActive !== menu) showBarMenu(menu, e.target);
             return;
         }
 
         // Modifier options for left, middle or right click
         for (var i = 0; i < menu.length; ++i)
             if (menu[i].clickModif === modifs) {
-                hideBarMenu();
                 peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
                 return;
             }
@@ -869,7 +871,6 @@ wmsx.CanvasDisplay = function(mainElement) {
             modifs &= ~KEY_SHIFT_MASK;
             for (i = 0; i < menu.length; ++i)
                if (menu[i].clickModif === modifs) {
-                   hideBarMenu();
                    peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
                    return;
                }
@@ -877,7 +878,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function peripheralControlButtonMouseEnter(e) {
-        if (barMenuActive && e.target.wmsxMenu) showBarMenu(e.target.wmsxMenu, e.target, true);
+        if (barMenuActive && e.target.wmsxMenu) showBarMenu(e.target.wmsxMenu, e.target);
     }
 
     function setupCopyTextArea() {
@@ -977,14 +978,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function showBarMenu(menu, refElement, redefine) {
-        if (barMenuActive && !redefine) return;
+    function showBarMenu(menu, refElement) {
         if (!menu) return;
 
         if (!barMenu) {
             setupBarMenu();
             setTimeout(function() {
-                showBarMenu(menu, refElement, redefine);
+                showBarMenu(menu, refElement);
             }, 1);
             return;
         }
@@ -1131,6 +1131,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         });
 
         var fireItem = function(e) {
+            if (e.button > 1) return;          // Only left ot middle button
             if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
                 var altPower = e.button === 1;
                 var secSlot;
@@ -1139,7 +1140,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                     extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);
                 } else if (e.target.wmsxMenuOption.control) {
                     secSlot = e.target.wmsxMenuOption.secSlot || e.shiftKey;
-                    hideBarMenu();
+                    closeAllOverlays();
                     peripheralControls.controlActivated(e.target.wmsxMenuOption.control, altPower, secSlot);
                 }
             }
@@ -1148,22 +1149,27 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Block mousedown
         barMenu.addEventListener("mousedown", wmsx.Util.blockEvent);
 
-        // Fire menu item with a left or middle mouse up
-        wmsx.Util.onEventOrTapWithBlockUIG(barMenu, "mouseup", function (e) {
-            if (!e.button || e.button === 1) fireItem(e);
-        });
-
-
-        // Hide on lost focus
-        barMenu.addEventListener("blur", hideBarMenu, true);
-        barMenu.addEventListener("focusout", hideBarMenu, true);
+        // Fire on mouseup or tap
+        wmsx.Util.onEventsOrTapWithBlockUIG(barMenu, "mouseup", fireItem);
 
         buttonsBar.appendChild(barMenu);
     }
 
-    function closeStickyModals() {
+    function closePowerOnModals() {
         if (pasteDialog) pasteDialog.hide();
         if (textEntryDialog) textEntryDialog.hide();
+    }
+
+    function closeAllOverlays() {
+        hideBarMenu();
+        if (pasteDialog) pasteDialog.hide();
+        if (textEntryDialog) textEntryDialog.hide();
+        if (machineSelectDialog) machineSelectDialog.hide();
+        if (diskSelectDialog) diskSelectDialog.hide();
+        if (saveStateDialog) saveStateDialog.hide();
+        if (touchConfigDialog) touchConfigDialog.hide();
+        if (quickOtionsDialog) quickOtionsDialog.hide();
+        if (settingsDialog) settingsDialog.hide();
     }
 
     function showLogoMessage(yesNo, mes, afterAction) {

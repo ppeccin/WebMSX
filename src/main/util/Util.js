@@ -455,21 +455,19 @@ wmsx.Util = new function() {
         return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
     };
 
-    this.onEventOrTap = function(element, eventType, handler) {
-        element.addEventListener("touchstart", handler);
-        element.addEventListener(eventType, handler);
+    this.onEventsOrTap = function(element, events, handler) {
+        this.addEventsListener(element, "touchstart " + events, handler);
     };
 
-    this.onEventOrTapWithBlock = function(element, eventType, handler) {
+    this.onEventsOrTapWithBlock = function(element, events, handler) {
         function onEventOrTap(e) {
             handler(e);
             return blockEvent(e);
         }
-        element.addEventListener("touchstart", onEventOrTap);
-        element.addEventListener(eventType, onEventOrTap);
+        this.addEventsListener(element, "touchstart " + events, onEventOrTap);
     };
 
-    this.onEventOrTapWithBlockUIG = function(element, eventType, handler) {
+    this.onEventsOrTapWithBlockUIG = function(element, events, handler) {
         function onEventOrTapUIG(e) {
             // If not User Initiated Gesture needed on the event TARGET handle only on touchstart,
             // otherwise handle only touchend or original event if no touch events fired
@@ -479,9 +477,7 @@ wmsx.Util = new function() {
             handler(e);
             return blockEvent(e);
         }
-        element.addEventListener("touchstart", onEventOrTapUIG);
-        element.addEventListener("touchend", onEventOrTapUIG);
-        element.addEventListener(eventType, onEventOrTapUIG);
+        this.addEventsListener(element, "touchstart touchend " + events, onEventOrTapUIG);
     };
 
     function blockEvent(e) {
@@ -490,6 +486,13 @@ wmsx.Util = new function() {
         return false;
     }
     this.blockEvent = blockEvent;
+
+    this.addEventsListener = function(element, events, handler) {
+        events = events.split(" ");
+        for (var i = 0; i < events.length; ++i)
+            if (events[i]) element.addEventListener(events[i], handler);
+
+    };
 
     this.insertCSS = function(css) {
         var style = document.createElement('style');

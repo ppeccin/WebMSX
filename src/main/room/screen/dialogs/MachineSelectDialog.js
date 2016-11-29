@@ -76,10 +76,11 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
 
+        // Do not close with taps or clicks inside
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
             // Abort
             if (e.keyCode === ESC_KEY) hideAbort();
             // Confirm
@@ -93,16 +94,15 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
                     refreshList();
                 }
             }
-            return false;
+            return wmsx.Util.blockEvent(e);
         });
 
-        // Select with mousedown
-        list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
-            e.stopPropagation();
-            if (e.button === 0 && e.target.wmsxMachine) {
+        // Select with tap or mousedown
+        wmsx.Util.onEventsOrTapWithBlock(list, "mousedown", function(e) {
+            if (e.target.wmsxMachine) {
                 machineSelected = e.target.wmsxMachine;
                 refreshList();
-                setTimeout(hideConfirm, 160);
+                setTimeout(hideConfirm, 120);
             }
             return false;
         });

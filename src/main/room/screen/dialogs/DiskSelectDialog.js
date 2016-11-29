@@ -115,10 +115,13 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
 
+        // Do not close with taps or clicks inside, but allow drags to start
+        wmsx.Util.onEventsOrTap(dialog, "mousedown", function(e) {
+            e.stopPropagation();
+        });
+
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
             var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
             // Abort
             if (code === ESC_KEY) hideAbort();
@@ -134,17 +137,16 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
                     refreshList();
                 }
             }
-            return false;
+            return wmsx.Util.blockEvent(e);
         });
 
-        // Select Disk with click
-        list.addEventListener("click", function mouseClickDiskSelect(e) {
-            e.stopPropagation();
+        // Select with tap or mouseup
+        wmsx.Util.onEventsOrTapWithBlock(list, "mouseup", function(e) {
             var diskNum = e.target.wmsxDiskNum;
             if (diskNum !== undefined) {
                 diskSelectedNum = diskNum;
                 refreshList();
-                setTimeout(hideConfirm, 200);
+                setTimeout(hideConfirm, 120);
             }
             return false;
         });

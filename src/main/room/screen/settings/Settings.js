@@ -134,12 +134,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     }
 
     function setEvents() {
-        // But do not close the modal with a click inside
-        modal.addEventListener("mousedown", function (e) {
-            e.stopPropagation();
-        });
+        // Do not close with taps or clicks inside
+        wmsx.Util.onEventsOrTapWithBlock(modal, "mousedown", function() { /* do nothing */ });
+
         // Close with the back button
-        wmsx.Util.onEventOrTapWithBlock(self["wmsx-back"], "mousedown", self.hide);
+        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-back"], "mousedown", self.hide);
 
         // Several key events
         modal.addEventListener("keydown", function (e) {
@@ -150,19 +149,19 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
         });
 
         // Tabs
-        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-general"], "mousedown", function (e) {
+        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-general"], "mousedown", function (e) {
             self.setPage("GENERAL");
         });
-        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-inputs"], "mousedown", function (e) {
+        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-inputs"], "mousedown", function (e) {
             self.setPage("INPUTS");
         });
-        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-ports"], "mousedown", function (e) {
+        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-ports"], "mousedown", function (e) {
             self.setPage("PORTS");
         });
-        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-media"], "mousedown", function (e) {
+        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-media"], "mousedown", function (e) {
             self.setPage("MEDIA");
         });
-        wmsx.Util.onEventOrTapWithBlock(self["wmsx-menu-about"], "mousedown", function (e) {
+        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-about"], "mousedown", function (e) {
             self.setPage("ABOUT");
         });
     }
@@ -183,9 +182,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     }
 
     function processKeyEvent(e, press) {
-        e.returnValue = false;  // IE
         var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
-
         if (press && code === KEY_ESC) {
             self.hide();
             return wmsx.Util.blockEvent(e);

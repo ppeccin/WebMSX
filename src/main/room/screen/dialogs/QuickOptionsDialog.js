@@ -74,17 +74,18 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
     }
 
     function setupEvents() {
+        // Do not close with taps or clicks inside
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+
         // Click or Tap on options
         for (var i = 0; i < items.length; ++i)
-            wmsx.Util.onEventOrTapWithBlock(listItems[i], "mousedown", controlClicked);
+            wmsx.Util.onEventsOrTapWithBlock(listItems[i], "mousedown", controlClicked);
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
             // Exit
             if (EXIT_KEYS.indexOf(e.keyCode) >= 0) self.hide();
-            return false;
+            return wmsx.Util.blockEvent(e);
         });
     }
 

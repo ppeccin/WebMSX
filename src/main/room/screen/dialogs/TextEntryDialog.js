@@ -59,8 +59,11 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
     }
 
     function setupEvents() {
-        wmsx.Util.onEventOrTapWithBlock(ok, "mousedown", okCancelClicked);
-        wmsx.Util.onEventOrTapWithBlock(cancel, "mousedown", okCancelClicked);
+        // Do not close with taps or clicks inside
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+
+        wmsx.Util.onEventsOrTapWithBlock(ok, "mousedown", okCancelClicked);
+        wmsx.Util.onEventsOrTapWithBlock(cancel, "mousedown", okCancelClicked);
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {

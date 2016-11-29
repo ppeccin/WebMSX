@@ -118,7 +118,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
             but.id = "wmsx-touch-config-" + mode;
             but.innerHTML = mode.toUpperCase();
             but.wmsxMode = mode;
-            but.addEventListener("mousedown", modeButtonClicked);
+            wmsx.Util.onEventsOrTapWithBlock(but,"mousedown", modeButtonClicked);
             dialog.appendChild(but);
             return but;
         }
@@ -135,26 +135,23 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
     }
 
     function setupEvents() {
+        // Do not close with taps or clicks inside
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
             // Exit
             if (EXIT_KEYS.indexOf(e.keyCode) >= 0) self.hide();
             // Select
             else if (SELECT_KEYS[e.keyCode]) modifyControl(SELECT_KEYS[e.keyCode]);
-            return false;
+            return wmsx.Util.blockEvent(e);
         });
 
-        // Clicking arrow buttons modify control
-        minus.addEventListener("touchstart", function(e) { modifyButtonPressed(e, -1); });
-        minus.addEventListener("mousedown",  function(e) { modifyButtonPressed(e, -1); });
-        plus. addEventListener("touchstart", function(e) { modifyButtonPressed(e, +1); });
-        plus. addEventListener("mousedown",  function(e) { modifyButtonPressed(e, +1); });
-        minus.addEventListener("touchend", modifyButtonReleased);
-        minus.addEventListener("mouseup",  modifyButtonReleased);
-        plus. addEventListener("touchend", modifyButtonReleased);
-        plus. addEventListener("mouseup",  modifyButtonReleased);
+        // Clicking or tapping arrow buttons modify control
+        wmsx.Util.addEventsListener(minus, "touchstart mousedown", function(e) { modifyButtonPressed(e, -1); });
+        wmsx.Util.addEventsListener(plus,  "touchstart mousedown", function(e) { modifyButtonPressed(e, +1); });
+        wmsx.Util.addEventsListener(minus, "touchend mouseup", modifyButtonReleased);
+        wmsx.Util.addEventsListener(plus,  "touchend mouseup", modifyButtonReleased);
     }
 
     function modifyButtonPressed(e, inc) {

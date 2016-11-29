@@ -87,6 +87,10 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
     function setupEvents() {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
+
+        // Do not close with taps or clicks inside
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             // Abort
@@ -102,12 +106,12 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             return wmsx.Util.blockEvent(e);
         });
 
-        // Select with mousedown
-        wmsx.Util.onEventOrTapWithBlockUIG(list, "mousedown", function mouseDownDiskSelect(e) {
-            if (!e.button && e.target.wmsxSlot !== undefined) {
+        // Select with tap or mousedown (UIG)
+        wmsx.Util.onEventsOrTapWithBlockUIG(list, "mousedown", function(e) {
+            if (e.target.wmsxSlot !== undefined) {
                 slotSelected = e.target.wmsxSlot;
                 refreshList();
-                setTimeout(hideConfirm, 160);
+                setTimeout(hideConfirm, 120);
             }
         });
     }
