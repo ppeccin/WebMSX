@@ -16,14 +16,15 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
             return setTimeout(self.show, 0);
         }
 
-        visible = true;
         cover.classList.add("wmsx-show");
+        visible = true;
         input.focus();
     };
 
     this.hide = function(confirm) {
-        visible = false;
+        if (!visible) return;
         cover.classList.remove("wmsx-show");
+        visible = false;
         WMSX.room.screen.focus();
         if (confirm) keyboard.typeString(input.value);
     };

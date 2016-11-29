@@ -6,49 +6,49 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
     var self = this;
 
     this.toggle = function() {
-        if (this.cover && this.cover.style.visibility === "visible") this.hide();
+        if (visible) this.hide();
         else this.show();
     };
 
     this.show = function () {
         keyboard.cancelTypeString();
-        if (!this.cover) {
+        if (!cover) {
             create();
             self.show();
             return;
         }
         setTimeout(function() {
-            self.cover.classList.add("wmsx-show");
-            self.cover.wmsxOpen = true;
-            self.box.focus();
+            cover.classList.add("wmsx-show");
+            box.focus();
+            visible = true;
         }, 0);
     };
 
     this.hide = function () {
-        if (!this.cover) return;
-        self.cover.classList.remove("wmsx-show");
-        self.cover.wmsxOpen = false;
+        if (!visible) return;
+        cover.classList.remove("wmsx-show");
+        visible = false;
         screen.focus();
     };
 
     var create = function () {
-        self.cover = document.createElement("div");
-        self.cover.id = "wmsx-paste-cover";
-        mainElement.appendChild(self.cover);
+        cover = document.createElement("div");
+        cover.id = "wmsx-paste-cover";
+        mainElement.appendChild(cover);
 
-        self.box = document.createElement("input");
-        self.box.id = "wmsx-paste-box";
-        self.box.value = "\uD83D\uDCCB   PASTE NOW";
-        self.box.readOnly = "readonly";
-        self.box.innerHTML = "PASTE NOW!";
-        self.cover.appendChild(self.box);
+        box = document.createElement("input");
+        box.id = "wmsx-paste-box";
+        box.value = "\uD83D\uDCCB   PASTE NOW";
+        box.readOnly = "readonly";
+        box.innerHTML = "PASTE NOW!";
+        cover.appendChild(box);
 
         setEvents();
     };
 
     var setEvents = function () {
         // Close the modal with ESC or ALT-V/Ins. Ignore common keys like SPACE, ENTER, ARROWS, etc
-        self.cover.addEventListener("keydown", function (e) {
+        cover.addEventListener("keydown", function (e) {
             e.stopPropagation();
 
             // Close
@@ -63,19 +63,19 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
         });
 
         // Close the modal with a click outside the box...
-        self.cover.addEventListener("mousedown", function (e) {
+        cover.addEventListener("mousedown", function (e) {
             e.preventDefault();
             e.stopPropagation();
             self.hide();
         });
         // ... but not with a click inside
-        self.box.addEventListener("mousedown", function (e) {
+        box.addEventListener("mousedown", function (e) {
             e.stopPropagation();
         });
 
         // Capture the paste event
-        self.box.addEventListener("paste", function(e) {
-            if (!self.cover.wmsxOpen) return;
+        box.addEventListener("paste", function(e) {
+            if (!visible) return;
 
             if (e.clipboardData && e.clipboardData.getData) {
                 var str = e.clipboardData.getData("text/plain");
@@ -87,8 +87,8 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
         });
     };
 
-    this.cover = null;
-    this.box = null;
+    var cover, box;
+    var visible = false;
 
     var k = wmsx.DOMKeys;
     var ALLOW_DEFAULT_KEYS = [

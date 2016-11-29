@@ -21,6 +21,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
     };
 
     this.hide = function() {
+        if (!visible) return;
         touchControls.stopTouchDetection(self);
         WMSX.userPreferences.save();
         fsElement.classList.remove("wmsx-touch-config-active");

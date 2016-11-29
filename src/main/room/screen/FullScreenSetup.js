@@ -22,14 +22,14 @@ WMSXFullScreenSetup = {
         return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
     },
     css: '' +
+        'html.wmsx-full-screen, html.wmsx-full-screen body {' +
+        '   background: black;' +
+        '}' +
         'html.wmsx-full-screen .wmsx-full-screen-hidden {' +
         '   display: none;' +
         '}' +
         'html:not(.wmsx-full-screen) .wmsx-full-screen-only {' +
         '   display: none;' +
-        '}' +
-        'html.wmsx-full-screen, html.wmsx-full-screen body {' +
-        '   background: black;' +
         '}'
 };
 WMSXFullScreenSetup.apply();

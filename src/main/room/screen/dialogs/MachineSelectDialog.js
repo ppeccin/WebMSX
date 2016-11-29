@@ -26,6 +26,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
     };
 
     this.hide = function (confirm) {
+        if (!visible) return;
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();

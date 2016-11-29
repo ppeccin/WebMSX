@@ -6,7 +6,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     var self = this;
 
     this.show = function (atPage) {
-        if (!this.cover) {
+        if (!cover) {
             create();
             setTimeout(function() {
                 self.show(atPage);
@@ -26,6 +26,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     };
 
     this.hide = function () {
+        if (!visible) return;
         self.hideLesser();
         WMSX.room.screen.focus();
     };
@@ -108,11 +109,11 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     function create() {
         wmsx.Util.insertCSS(wmsx.SettingsGUI.css());
 
-        self.cover = document.createElement("div");
-        self.cover.id = "wmsx-cover";
-        self.cover.innerHTML = wmsx.SettingsGUI.html();
-        self.cover.tabIndex = -1;
-        mainElement.appendChild(self.cover);
+        cover = document.createElement("div");
+        cover.id = "wmsx-cover";
+        cover.innerHTML = wmsx.SettingsGUI.html();
+        cover.tabIndex = -1;
+        mainElement.appendChild(cover);
 
         delete wmsx.SettingsGUI.html;
         delete wmsx.SettingsGUI.css;
@@ -124,7 +125,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
 
     // Automatically set fields for each child element that has the "id" attribute
     function setFields() {
-        traverseDOM(self.cover, function (element) {
+        traverseDOM(cover, function (element) {
             if (element.id) self[element.id] = element;
         });
 
@@ -139,7 +140,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
 
     function setEvents() {
         // Close the modal with a click outside
-        self.cover.addEventListener("mousedown", function (e) {
+        cover.addEventListener("mousedown", function (e) {
             self.hide();
             return wmsx.Util.blockEvent(e);
         });
@@ -154,10 +155,10 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
         wmsx.Util.onEventOrTapWithBlock(self["wmsx-back"], "mousedown", self.hide);
 
         // Several key events
-        self.cover.addEventListener("keydown", function (e) {
+        cover.addEventListener("keydown", function (e) {
             processKeyEvent(e, true);
         });
-        self.cover.addEventListener("keyup", function (e) {
+        cover.addEventListener("keyup", function (e) {
             processKeyEvent(e, false);
         });
 
@@ -184,13 +185,13 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     }
 
     function refreshInputsPage() {
-        if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, self.cover, machineTypeSocket);
+        if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, cover, machineTypeSocket);
         keyboardConfigurator.refreshForJapanese();
         keyboardConfigurator.refresh();
     }
 
     function refreshPortsPage() {
-        if (!portsConfigurator) portsConfigurator = new wmsx.PortsConfigurator(controllersHub, self.cover);
+        if (!portsConfigurator) portsConfigurator = new wmsx.PortsConfigurator(controllersHub, cover);
         portsConfigurator.refresh();
     }
 
@@ -205,9 +206,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     }
 
 
+    var cover;
     var page = "GENERAL";
     var visible = false;
-    this.cover = null;
 
     var keyboardConfigurator, portsConfigurator;
 

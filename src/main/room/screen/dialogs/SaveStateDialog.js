@@ -28,10 +28,10 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
     };
 
     this.hide = function (confirm) {
+        if (!visible) return;
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
-
         if (confirm) {
             var option = slotOptions[slotSelected];
             var control = save ? option.save : option.load;
