@@ -675,88 +675,72 @@ wmsx.SettingsGUI.html = function() {
 };
 
 wmsx.SettingsGUI.css = function() {
-    return `#wmsx-cover * {
-    outline: none;
-    box-sizing: border-box;     /* Fix for Bootstrap :-( */
-}
-
-#wmsx-cover {
+    return `#wmsx-modal {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 0;
     overflow: hidden;
-    visibility: hidden;
+    width: 600px;
+    height: 0;
     opacity: 0;
+    visibility: hidden;
+    top: 22px;
+    left: 29px;
+    color: hsl(0, 0%, 10%);
     font: normal 13px sans-serif;
     white-space: nowrap;
     text-align: initial;
-    user-select: none;
-    transition: all .2s ease-out, height .3s step-end;
+    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    transform: scale(0.85);
+    transition: transform .2s ease-out;
+    outline: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    z-index: 50;
+    user-select: none;
+    box-sizing: border-box;     /* Fix for Bootstrap :-( */
+    z-index: 9;
 }
-#wmsx-cover.wmsx-show {
+#wmsx-modal.wmsx-show {
+    transform: scale(1);
     transition: visibility .2s ease-out, opacity .2s ease-out;
-    height: 100%;
+    height: 456px;
     visibility: visible;
     opacity: 1;
 }
 
-#wmsx-modal {
-    position: absolute;
-    overflow: hidden;
-    width: 600px;
-    height: 456px;
-    top: 22px;
-    left: 29px;
-    color: hsl(0, 0%, 10%);
-    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
-    transform: scale(0.85);
-    transition: transform .2s ease-out;
-}
-#wmsx-modal.wmsx-show {
-    transform: scale(1);
-}
-
-#wmsx-cover .wmsx-hotkey {
-    height: 27px;
-    padding: 3px 5px;
-    box-sizing: border-box;
-}
-
-#wmsx-cover .wmsx-heading {
+#wmsx-modal .wmsx-heading {
     font-weight: 700;
     color: hsl(0, 0%, 30%);
 }
 
-#wmsx-cover .wmsx-link {
+#wmsx-modal .wmsx-link {
     font-weight: 700;
     line-height: 21px;
     color: hsl(228, 90%, 40%);
     cursor: pointer;
 }
-#wmsx-cover .wmsx-link:hover {
+#wmsx-modal .wmsx-link:hover {
     outline: 1px solid;
 }
 
-#wmsx-cover .wmsx-command {
+.wmsx-command {
     position: relative;
     display: inline-block;
     font-weight: 600;
     color: hsl(0, 0%, 48%);
 }
 
-#wmsx-cover .wmsx-hotkey .wmsx-desc {
+.wmsx-hotkey {
+    height: 27px;
+    padding: 3px 5px;
+    box-sizing: border-box;
+}
+
+.wmsx-hotkey .wmsx-desc {
     display: inline-block;
     line-height: 21px;
 }
 
-#wmsx-cover .wmsx-key {
+.wmsx-key {
     position: relative;
     display: inline-block;
     top: -1px;
@@ -775,7 +759,7 @@ wmsx.SettingsGUI.css = function() {
     text-align: center;
 }
 
-#wmsx-cover .wmsx-key-fixed {
+.wmsx-key-fixed {
     width: 31px;
     padding-left: 0;
     padding-right: 2px;
@@ -1614,10 +1598,11 @@ wmsx.SettingsGUI.css = function() {
     color: transparent;
 }
 
-#wmsx-cover #wmsx-control-mapping-popup {
+#wmsx-control-mapping-popup {
     display: none;
     position: fixed;
     padding: 4px 9px;
+    font: normal 13px sans-serif;
     line-height: 19px;
     text-align: center;
     vertical-align: top;
@@ -1628,13 +1613,13 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
     z-index: 10;
 }
-#wmsx-cover #wmsx-control-mapping-popup .wmsx-command {
+#wmsx-control-mapping-popup .wmsx-command {
     width: auto;
     line-height: 21px;
     margin: 10px 0;
     font-weight: bold;
 }
-#wmsx-cover #wmsx-control-mapping-popup:after {
+#wmsx-control-mapping-popup:after {
     content: "";
     position: absolute;
     bottom: 0;

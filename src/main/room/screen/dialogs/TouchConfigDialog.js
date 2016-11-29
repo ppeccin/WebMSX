@@ -139,18 +139,12 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         dialog.addEventListener("keydown", function(e) {
             e.preventDefault();
             e.stopPropagation();
-
             // Exit
             if (EXIT_KEYS.indexOf(e.keyCode) >= 0) self.hide();
             // Select
             else if (SELECT_KEYS[e.keyCode]) modifyControl(SELECT_KEYS[e.keyCode]);
-
             return false;
         });
-
-        // Hide on lost focus
-        if ("onblur" in document) dialog.addEventListener("blur", self.hide, true);
-        else dialog.addEventListener("focusout", self.hide, true);
 
         // Clicking arrow buttons modify control
         minus.addEventListener("touchstart", function(e) { modifyButtonPressed(e, -1); });

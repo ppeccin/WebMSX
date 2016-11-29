@@ -585,20 +585,21 @@ html.wmsx-full-screen #wmsx-logo-image {
 }
 
 #wmsx-paste-cover {
+    display: none;
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
+    width: 340px;
+    height: 136px;
+    margin: auto;
+    border-radius: 20px;
     background: rgba(0, 0, 0, 0.4);
-    transition: opacity .1s ease-out;
-    visibility: hidden;
-    opacity: 0;
     z-index: 1;
 }
 #wmsx-paste-cover.wmsx-show {
-    visibility: visible;
-    opacity: 1;
+    display: block;
 }
 
 #wmsx-paste-box {
@@ -623,19 +624,9 @@ html.wmsx-full-screen #wmsx-logo-image {
     outline: none;
 }
 
-#wmsx-text-entry-cover {
-    display: none;
-    position: absolute;
-    top: 0; bottom: 0;
-    left: 0; right: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 4;
-}
-#wmsx-text-entry-cover.wmsx-show {
-    display: block;
-}
 
 #wmsx-text-entry-dialog {
+    display: none;
     position: absolute;
     top: 25px;
     left: 0; right: 0;
@@ -656,7 +647,12 @@ html.wmsx-full-screen #wmsx-logo-image {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;
+    z-index: 4;
 }
+#wmsx-text-entry-dialog.wmsx-show {
+    display: block;
+}
+
 #wmsx-text-entry-dialog-bar {
     position: absolute;
     height: 40px;

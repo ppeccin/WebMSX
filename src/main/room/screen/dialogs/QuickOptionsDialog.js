@@ -82,16 +82,10 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         dialog.addEventListener("keydown", function(e) {
             e.preventDefault();
             e.stopPropagation();
-
             // Exit
             if (EXIT_KEYS.indexOf(e.keyCode) >= 0) self.hide();
-
             return false;
         });
-
-        // Hide on lost focus
-        if ("onblur" in document) dialog.addEventListener("blur", self.hide, true);
-        else dialog.addEventListener("focusout", self.hide, true);
     }
 
     function controlClicked(e) {

@@ -120,7 +120,6 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             e.preventDefault();
             e.stopPropagation();
             var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
-
             // Abort
             if (code === ESC_KEY) hideAbort();
             // Confirm
@@ -135,13 +134,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
                     refreshList();
                 }
             }
-
             return false;
         });
-
-        // Hide on lost focus
-        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
-        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select Disk with click
         list.addEventListener("click", function mouseClickDiskSelect(e) {

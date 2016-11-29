@@ -87,7 +87,6 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
     function setupEvents() {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
-
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             // Abort
@@ -100,13 +99,8 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
                 if (slotSelected < 0) slotSelected = 0; else if (slotSelected > 9) slotSelected = 9;
                 refreshList();
             }
-
             return wmsx.Util.blockEvent(e);
         });
-
-        // Hide on lost focus
-        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
-        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select with mousedown
         wmsx.Util.onEventOrTapWithBlockUIG(list, "mousedown", function mouseDownDiskSelect(e) {

@@ -6,7 +6,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
     var self = this;
 
     this.toggle = function() {
-        if (visible) this.hide();
+        if (cover && cover.style.visibility === "visible") this.hide();
         else this.show();
     };
 
@@ -48,29 +48,16 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
 
     var setEvents = function () {
         // Close the modal with ESC or ALT-V/Ins. Ignore common keys like SPACE, ENTER, ARROWS, etc
-        cover.addEventListener("keydown", function (e) {
+        box.addEventListener("keydown", function (e) {
             e.stopPropagation();
-
             // Close
             if (e.keyCode === ESC_KEY || ((e.keyCode === EXIT_KEY || e.keyCode === EXIT_KEY2) && e.altKey && !e.ctrlKey && !e.shiftKey)) {
                 e.preventDefault();
                 self.hide();
                 return;
             }
-
            // Block default
            if (e.preventDefault && ALLOW_DEFAULT_KEYS.indexOf(e.keyCode) < 0) e.preventDefault();
-        });
-
-        // Close the modal with a click outside the box...
-        cover.addEventListener("mousedown", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            self.hide();
-        });
-        // ... but not with a click inside
-        box.addEventListener("mousedown", function (e) {
-            e.stopPropagation();
         });
 
         // Capture the paste event
@@ -86,6 +73,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
             }
         });
     };
+
 
     var cover, box;
     var visible = false;

@@ -80,7 +80,6 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         dialog.addEventListener("keydown", function(e) {
             e.preventDefault();
             e.stopPropagation();
-
             // Abort
             if (e.keyCode === ESC_KEY) hideAbort();
             // Confirm
@@ -94,13 +93,8 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
                     refreshList();
                 }
             }
-
             return false;
         });
-
-        // Hide on lost focus
-        if ("onblur" in document) dialog.addEventListener("blur", hideAbort, true);
-        else dialog.addEventListener("focusout", hideAbort, true);
 
         // Select with mousedown
         list.addEventListener("mousedown", function mouseDownDiskSelect(e) {
