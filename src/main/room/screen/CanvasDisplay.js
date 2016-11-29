@@ -4,10 +4,8 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Save file on iOS
 // TODO Narrow Virtual Keyboard
-// TODO Add Tap on various dialogs as in TextEntryDialog
 // TODO MegaRAM
 // TODO Internal Donate?
-// TODO Menus changes in FS status
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -646,10 +644,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         wmsx.Util.onEventsOrTapWithBlock(logoMessageNo, "mousedown", logoMessageNoClicked);
         wmsx.Util.onEventsOrTapWithBlock(logoMessageOk, "mousedown", logoMessageOkClicked);
 
-        wmsx.Util.onEventsOrTap(fsElement, "mousedown", function backScreenTouched(e) {
-            console.log(e.type);
-            closeAllOverlays();
-            e.preventDefault();
+        // Used to close overlays and modals if not processed by any other function
+        wmsx.Util.addEventsListener(fsElement, "touchstart touchend mousedown", function backScreenTouched(e) {
+            if (event.type !== "touchend") closeAllOverlays();      // Execute close action only tor touchstart and mousedown
+            else if (e.cancelable) e.preventDefault();              // preventDefault only on touchend to avoid redundant mousedown ater a touchstart
         });
     }
 
@@ -920,18 +918,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         setFullscreenState(true);
         // Add event to enter in real fullScreenByAPI on first touch/click if possible
         if (fullscreenAPIEnterMethod) {
+            var done = false;
             var enterFullScreenByAPIonFirstTouch = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (e.type === "touchstart") return;
-                fsElement.removeEventListener("touchstart", enterFullScreenByAPIonFirstTouch, true);
-                fsElement.removeEventListener("touchend", enterFullScreenByAPIonFirstTouch, true);
-                fsElement.removeEventListener("mousedown", enterFullScreenByAPIonFirstTouch, true);
+                if (done) return;
+                done = true;
+                wmsx.Util.removeEventsListener(fsElement, "touchend mousedown", enterFullScreenByAPIonFirstTouch, true);
                 enterFullScreenByAPI();
             };
-            fsElement.addEventListener("touchstart", enterFullScreenByAPIonFirstTouch, true);
-            fsElement.addEventListener("touchend", enterFullScreenByAPIonFirstTouch, true);
-            fsElement.addEventListener("mousedown", enterFullScreenByAPIonFirstTouch, true);
+            wmsx.Util.addEventsListener(fsElement,"touchend mousedown", enterFullScreenByAPIonFirstTouch, true);    // Capture!
         }
     }
 
@@ -1013,7 +1007,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Show
         barMenuActive = menu;
-        barMenu.style.transition = redefine ? "none" : BAR_MENU_TRANSITION;
         barMenu.wmsxTitle.focus();
     }
 
@@ -1083,7 +1076,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!barMenuActive) return;
 
         barMenuActive = null;
-        barMenu.style.transition = BAR_MENU_TRANSITION;
         barMenu.style.height = 0;
         self.focus();
     }
@@ -1450,7 +1442,6 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 0;
     var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 4);
-    var BAR_MENU_TRANSITION = "height 0.12s linear";
 
     var VIRTUAL_KEYBOARD_WIDTH = 518, VIRTUAL_KEYBOARD_HEIGHT = 161;
 

@@ -487,11 +487,16 @@ wmsx.Util = new function() {
     }
     this.blockEvent = blockEvent;
 
-    this.addEventsListener = function(element, events, handler) {
+    this.addEventsListener = function(element, events, handler, capture) {
         events = events.split(" ");
         for (var i = 0; i < events.length; ++i)
-            if (events[i]) element.addEventListener(events[i], handler);
+            if (events[i]) element.addEventListener(events[i], handler, capture);
+    };
 
+    this.removeEventsListener = function(element, events, handler, capture) {
+        events = events.split(" ");
+        for (var i = 0; i < events.length; ++i)
+            if (events[i]) element.removeEventListener(events[i], handler, capture);
     };
 
     this.insertCSS = function(css) {

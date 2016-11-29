@@ -131,6 +131,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
             var but = wmsx.DOMTouchControls.createButton("wmsx-touch-" + name);
             but.wmsxControl = name;
             but.addEventListener("touchstart", buttonTouchStart);
+            but.addEventListener("touchmove", wmsx.Util.blockEvent);
             but.addEventListener("touchend", buttonTouchEnd);
             but.addEventListener("touchcancel", buttonTouchEnd);
             but.addEventListener("mousedown", buttonTouchStart);
@@ -191,8 +192,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     }
 
     function dirTouchStart(e) {
-        blockEvent(e);
-
+        wmsx.Util.blockEvent(e);
         if (touchDetectionListener) return touchDetectionListener.touchControlDetected("T_DIR");
         if (dirTouchID !== null) return;
         if (dirTouchCenterX === undefined) setDirTouchCenter();
@@ -203,7 +203,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     }
 
     function dirTouchEnd(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         if (dirTouchID === null) return;
 
         var changed = e.changedTouches;
@@ -216,7 +216,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     }
 
     function dirTouchMove(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         if (dirTouchID === null) return;
 
         var changed = e.changedTouches;
@@ -264,13 +264,13 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     }
 
     function buttonTouchStart(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         if (touchDetectionListener) return touchDetectionListener.touchControlDetected(e.target.wmsxControl);
         processButtonTouch(e.target.wmsxMapping, true);
     }
 
     function buttonTouchEnd(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         processButtonTouch(e.target.wmsxMapping, false);
     }
 
@@ -291,17 +291,17 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     }
 
     function pauseTouchStart(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         machineControlsSocket.controlStateChanged(!machinePower ? machineControls.POWER : machineControls.PAUSE, true);
     }
 
     function fastTouchStart(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, true);
     }
 
     function fastTouchEnd(e) {
-        blockEvent(e);
+        wmsx.Util.blockEvent(e);
         machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, false);
     }
 
@@ -323,11 +323,6 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     function applyPreferences() {
         prefs = WMSX.userPreferences.current.touch;
-    }
-
-    function blockEvent(e) {
-        e.stopPropagation();
-        e.preventDefault();
     }
 
 
