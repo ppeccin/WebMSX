@@ -7,7 +7,6 @@
 // TODO MegaRAM
 // TODO Internal Donate?
 
-// TODO Menu long press
 // TODO Logo messages
 // TODO Full screen state when automatically off
 
@@ -778,6 +777,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Mouse buttons perform the various actions
         wmsx.Util.onEventsOrTapWithBlockUIG(buttonsBar, "mousedown", buttonsBarTapOrMouseDown);
+        wmsx.Util.addEventsListener(buttonsBar, "touchmove", buttonsBarLongTouchMove);      // To detect if touch left the target element
+        wmsx.Util.addEventsListener(buttonsBar, "touchend", buttonsBarLongTouchEnd);        // To abort the timer
     }
 
     function createSettingsMenuOptions() {
@@ -869,6 +870,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Open/close menu with left-click if no modifiers
         if (modifs === 0 && !e.button) {
             if (prevActiveMenu !== menu) showBarMenu(menu);
+            // Set long touch timer only for touchstart event
+            if (e.type === "touchstart") buttonsBarLongTouchStart(e);
             return;
         }
 
@@ -886,6 +889,37 @@ wmsx.CanvasDisplay = function(mainElement) {
                    peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
                    return;
                }
+        }
+    }
+
+    function buttonsBarLongTouchStart(e) {
+        buttonsBarLongTouchTarget = e.target;
+        buttonsBarLongTouchTimeout = window.setTimeout(buttonsBarLongTouchExecute, 550);
+    }
+
+    function buttonsBarLongTouchExecute() {
+        buttonsBarLongTouchTimeout = null;
+        var menu = barMenuActive;
+        if (!menu) return;
+
+        hideBarMenu();
+        for (var i = 0; i < menu.length; ++i)
+            if (menu[i].clickModif === 0) {
+                peripheralControls.controlActivated(menu[i].control, false, menu[i].secSlot);         // altPower for middleClick (button === 1)
+                return;
+            }
+    }
+
+    function buttonsBarLongTouchMove(e) {
+        var t = e.changedTouches[0];
+        if (!t || document.elementFromPoint(t.screenX, t.screenY) !== buttonsBarLongTouchTarget) buttonsBarLongTouchEnd(e);
+    }
+
+    function buttonsBarLongTouchEnd(e) {
+        wmsx.Util.blockEvent(e);
+        if (buttonsBarLongTouchTimeout) {
+            clearTimeout(buttonsBarLongTouchTimeout);
+            buttonsBarLongTouchTimeout = null;
         }
     }
 
@@ -1205,13 +1239,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function showLogoMessage(yesNo, mes, afterAction) {
-        logoMessageActive = true;
+        closeAllOverlays();
         if (afterAction) afterMessageAction = afterAction;
         logoMessageText.innerHTML = mes;
         logoMessageOk.classList.toggle("wmsx-show", !yesNo);
         logoMessageYes.classList.toggle("wmsx-show", yesNo);
         logoMessageNo .classList.toggle("wmsx-show", yesNo);
         fsElement.classList.add("wmsx-logo-message-active");
+        logoMessageActive = true;
 
         signalIsOn = false;
         updateLogo();
@@ -1428,6 +1463,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var virtualKeyboardElement, virtualKeyboard;
 
     var buttonsBar, buttonsBarInner, buttonsBarDesiredWidth = -1;       // 0 = same as canvas. -1 means full width mode (100%)
+    var buttonsBarLongTouchTarget, buttonsBarLongTouchTimeout;
 
     var barMenu;
     var barMenus = [], barMenuActive, barMenuItemActive, barMenuSystem;
