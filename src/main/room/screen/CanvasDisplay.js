@@ -61,9 +61,9 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.start = function(startAction) {
-        // Show the logo messages or start automatically
+        // Show the Install as App message or start automatically
         if (isMobileDevice && !isBrowserStandalone && !isFullscreen) {
-            showLogoMessage('For a full-screen experience, use<br>the "Add to Home Screen" option<br>then launch from the installed App', "NICE!", false, function startActionInFullScreen() {
+            showLogoMessage('For ' + (fullscreenAPIEnterMethod ? 'the best' : 'a full-screen') + ' experience, use<br>the "Add to Home Screen" function<br>then launch from the Installed App', "NICE", false, function startActionInFullScreen() {
                 self.setFullscreen(true);
                 startAction();
             });
@@ -1254,10 +1254,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function closeLogoMessage() {
+        fsElement.classList.remove("wmsx-logo-message-active");
+        logoMessageActive = false;
         if (afterMessageAction) {
             var action = afterMessageAction;
             afterMessageAction = null;
-            if (execAction) action();
+            action();
         }
     }
 
