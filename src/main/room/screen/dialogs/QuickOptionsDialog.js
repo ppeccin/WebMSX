@@ -75,7 +75,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
 
     function setupEvents() {
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
 
         // Click or Tap on options
         for (var i = 0; i < items.length; ++i)

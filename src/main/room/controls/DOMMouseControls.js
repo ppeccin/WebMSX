@@ -164,6 +164,8 @@ wmsx.DOMMouseControls = function(hub) {
     }
 
     function mouseMoveEvent(e) {
+        if (port < 0) return;
+
         e.preventDefault();
 
         // Get movement either by movement reported (pointer locked) or by position (pointer unlocked)
@@ -183,12 +185,17 @@ wmsx.DOMMouseControls = function(hub) {
         //console.log("Mouse moved. DX: " + mouseState.dX + ", DY: " + mouseState.dY);
     }
 
-    function mouseButtonEvent(event) {
-        var lastButtons = mouseState.buttons;
-        mouseState.buttons = event.buttons & 7;
-        mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
+    function mouseButtonEvent(e) {
+        if (port >= 0) {
+            e.preventDefault();
+            mouseState.buttons = e.buttons & 7;
+            mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
+        }
 
-        if ((mouseState.buttons & 4) && !(lastButtons & 4)) self.togglePointerLock();
+        if (e.buttons & 4) {
+            e.preventDefault();
+            self.togglePointerLock();
+        }
     }
 
     function pointerLockChangedEvent() {

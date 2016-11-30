@@ -135,7 +135,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
 
     function setEvents() {
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(modal, "mousedown", function() { /* do nothing */ });
+        wmsx.Util.onEventsOrTapWithBlock(modal, "mousedown", function() { modal.focus(); });
 
         // Close with the back button
         wmsx.Util.onEventsOrTapWithBlock(self["wmsx-back"], "mousedown", self.hide);

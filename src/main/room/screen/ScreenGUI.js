@@ -290,8 +290,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 
 #wmsx-bar-menu {
     position: absolute;
-    display: inline-block;
-    height: 0;
+    display: none;
     bottom: ` + this.BAR_HEIGHT + `px;
     font-size: ` + this.BAR_MENU_ITEM_FONT_SIZE + `px;
     line-height: 1px;
@@ -314,13 +313,15 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     color: rgb(205, 205, 205);
     border: none;
     padding: 0;
-    font: inherit;
+    line-height: ` + this.BAR_MENU_ITEM_HEIGHT + `px;
     text-shadow: 1px 1px 1px black;
     background: transparent;
     outline: none;
+    overflow: hidden;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     cursor: pointer;
+    box-sizing: border-box;
 }
 #wmsx-bar-menu-title {
     display: block;
@@ -344,27 +345,25 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     margin: 1px 0;
     background: black;
 }
-.wmsx-bar-menu-item-check {
-    display: none;
+.wmsx-bar-menu-item-toggle {
+    text-align: left;
+    padding-left: 30px;
+}
+.wmsx-bar-menu-item-toggle::after {
+    content: "";
     position: absolute;
     width: 6px;
     height: 19px;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) | 0) + `px;
     left: 10px;
+    background: rgb(70, 70, 70);
     box-shadow: black 1px 1px 1px;
 }
-.wmsx-bar-menu-item-toggle {
-    text-align: left;
-    padding-left: 30px;
-}
-.wmsx-bar-menu-item-toggle .wmsx-bar-menu-item-check {
-    display: block;
-    background: rgb(70, 70, 70);
-}
+
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked {
     color: white;
 }
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked .wmsx-bar-menu-item-check {
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked::after {
     background: rgb(248, 33, 28);
 }
 

@@ -675,7 +675,12 @@ wmsx.SettingsGUI.html = function() {
 };
 
 wmsx.SettingsGUI.css = function() {
-    return `#wmsx-modal {
+    return `#wmsx-modal * {
+    outline: none;
+    box-sizing: border-box;
+}
+
+#wmsx-modal {
     position: absolute;
     overflow: hidden;
     width: 600px;
@@ -690,18 +695,16 @@ wmsx.SettingsGUI.css = function() {
     text-align: initial;
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
     transform: scale(0.85);
-    transition: transform .2s ease-out;
-    outline: none;
+    transition: visibility .2s ease-out, opacity .2s ease-out, transform .2s ease-out, height .25s step-end;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    box-sizing: border-box;     /* Fix for Bootstrap :-( */
     z-index: 9;
 }
 #wmsx-modal.wmsx-show {
     transform: scale(1);
-    transition: visibility .2s ease-out, opacity .2s ease-out;
+    transition: visibility .2s ease-out, opacity .2s ease-out, transform .2s ease-out;
     height: 456px;
     visibility: visible;
     opacity: 1;

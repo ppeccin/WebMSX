@@ -60,7 +60,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
 
     function setupEvents() {
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
 
         wmsx.Util.onEventsOrTapWithBlock(ok, "mousedown", okCancelClicked);
         wmsx.Util.onEventsOrTapWithBlock(cancel, "mousedown", okCancelClicked);

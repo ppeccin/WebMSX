@@ -48,7 +48,7 @@ wmsx.PasteDialog = function(mainElement, screen, keyboard) {
 
     var setEvents = function () {
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(cover, "mousedown", function() { /* do nothing */ });
+        wmsx.Util.onEventsOrTapWithBlock(cover, "mousedown", function() { box.focus(); });
 
         // Close the modal with ESC or ALT-V/Ins. Ignore common keys like SPACE, ENTER, ARROWS, etc
         cover.addEventListener("keydown", function (e) {

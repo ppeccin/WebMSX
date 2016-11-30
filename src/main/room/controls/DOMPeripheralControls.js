@@ -171,6 +171,9 @@ wmsx.DOMPeripheralControls = function() {
                 monitor.setDefaults();
                 monitor.showOSD("Default Settings", true);
                 break;
+            case controls.SCREEN_TOGGLE_MENU:
+                screen.toggleMenuByKey();
+                break;
             case controls.SCREEN_OPEN_HELP:
                 screen.openHelp();
                 break;
@@ -286,6 +289,7 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_LEFT | k.CONTROL | k.ALT]   = controls.SCREEN_ASPECT_MINUS;
         keyCodeMap[KEY_RIGHT | k.CONTROL | k.ALT]  = controls.SCREEN_ASPECT_PLUS;
 
+        keyCodeMap[KEY_MENU]         	  = controls.SCREEN_TOGGLE_MENU;
         keyCodeMap[KEY_DEFAULTS | k.ALT]  = controls.SCREEN_DEFAULTS;
 
         keyCodeMap[KEY_COPY | k.ALT]    = controls.COPY_STRING;
@@ -332,6 +336,7 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_RIGHT   = wmsx.DOMKeys.VK_RIGHT.c;
     var KEY_DOWN    = wmsx.DOMKeys.VK_DOWN.c;
 
+    var KEY_MENU      = wmsx.DOMKeys.VK_CONTEXT.c;
     var KEY_DEFAULTS  = wmsx.DOMKeys.VK_BACKSPACE.c;
 
     var KEY_COPY   = wmsx.DOMKeys.VK_C.c;

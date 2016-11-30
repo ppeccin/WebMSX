@@ -117,6 +117,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
 
         // Do not close with taps or clicks inside, but allow drags to start
         wmsx.Util.onEventsOrTap(dialog, "mousedown", function(e) {
+            dialog.focus();
             e.stopPropagation();
         });
 

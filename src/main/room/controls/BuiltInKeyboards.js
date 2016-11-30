@@ -26,7 +26,7 @@
         COMMA          : k.VK_COMMA,
         PERIOD         : k.VK_PERIOD,
         SLASH          : k.VK_SLASH,
-        DEAD           : [ k.VK_CONTEXT, k.VK_END ],
+        DEAD           : [ k.VK_RCONTROL, k.VK_END ],
         A              : k.VK_A,
         B              : k.VK_B,
         C              : k.VK_C,
@@ -57,7 +57,7 @@
         CONTROL        : [ k.VK_LCONTROL ],
         CAPSLOCK       : k.VK_CAPS_LOCK,
         GRAPH          : [ k.VK_LALT, k.VK_PAGE_UP ],
-        CODE           : [ k.VK_RALT, k.VK_RCONTROL, k.VK_PAGE_DOWN ],
+        CODE           : [ k.VK_RALT, k.VK_PAGE_DOWN ],
         F1             : k.VK_F1,
         F2             : k.VK_F2,
         F3             : k.VK_F3,
@@ -117,7 +117,7 @@
     // BR specific browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
-            br.DEAD =          [ k.VK_FF_BR_TILDE, k.VK_CONTEXT, k.VK_END ];
+            br.DEAD =          [ k.VK_FF_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
             break;
         default:
             br.QUOTE =         k.VK_BR_QUOTE;
@@ -127,7 +127,7 @@
             br.SEMICOLON =     k.VK_BR_SEMICOLON;
             br.SLASH =         k.VK_BR_SLASH;
             br.BACKSLASH =     k.VK_BR_BACKSLASH;
-            br.DEAD =          [ k.VK_BR_TILDE, k.VK_CONTEXT, k.VK_END ];
+            br.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
     }
 
     wmsx.BuiltInKeyboards = {

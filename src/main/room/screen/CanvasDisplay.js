@@ -188,6 +188,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         return false;
     };
 
+    this.toggleMenuByKey = function() {
+        if (barMenuActive) hideBarMenu();
+        else {
+            closeAllOverlays();
+            showBarMenu(barMenuSystem, true);
+        }
+    };
+
     this.toggleVirtualKeyboard = function() {
         setVirtualKeyboard(!virtualKeyboardActive);
     };
@@ -629,7 +637,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function setupEvents() {
         wmsx.Util.addEventsListener(fsElement, "touchstart mousemove", function showBarOnMouseMoveOrTap() {
             showCursor();
-            showBar();
+            if (!mousePointerLocked) showBar();
         });
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
@@ -646,7 +654,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Used to close overlays and modals if not processed by any other function
         wmsx.Util.addEventsListener(fsElement, "touchstart touchend mousedown", function backScreenTouched(e) {
-            if (event.type !== "touchend") closeAllOverlays();      // Execute close action only tor touchstart and mousedown
+            if (e.type !== "touchend") closeAllOverlays();          // Execute close action only tor touchstart and mousedown
             else if (e.cancelable) e.preventDefault();              // preventDefault only on touchend to avoid redundant mousedown ater a touchstart
         });
     }
@@ -678,8 +686,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Load State",                     control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
             { label: "Save State",                     control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU }
         ];
-        menu.menuTitle = "System";
-        powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu);
+        powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu, "System");
+        barMenuSystem = menu;
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
@@ -693,8 +701,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY }
         ];
-        menu.menuTitle = "Drive A:";
-        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -51, "Disk A:", null, menu);
+        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -51, "Disk A:", null, menu, "Drive A:");
 
         menu = [
             { label: "Load from Files",    clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
@@ -708,8 +715,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true },
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
-        menu.menuTitle = "Drive B:";
-        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Disk B:", null, menu);
+        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Disk B:", null, menu, "Drive B:");
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
@@ -717,8 +723,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
-        menu.menuTitle = "Cartridge 1";
-        cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -150, -51, "Cartridge 1", null, menu);
+        cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -150, -51, "Cartridge 1", null, menu, "Cartridge 1");
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
@@ -726,8 +731,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Save Data",          clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
-        menu.menuTitle = "Cartridge 2";
-        cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -179, -51, "Cartridge 2", null, menu);
+        cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -179, -51, "Cartridge 2", null, menu, "Cartridge 2");
 
         menu = [
             { label: "Load form File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, needsUIG: true },
@@ -737,12 +741,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             { label: "Save Tape File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Tape",    clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true }
         ];
-        menu.menuTitle = "Cassette Tape";
-        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -208, -51, "Cassette Tape", null, menu);
+        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -208, -51, "Cassette Tape", null, menu, "Cassette Tape");
 
         menu = createSettingsMenuOptions();
-        menu.menuTitle = "Settings";
-        settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, "Settings", null, menu);
+        settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, "Settings", null, menu, "Settings");
 
         if (FULLSCREEN_MODE !== -2) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
@@ -817,18 +819,24 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function refreshSettingsMenuForMachineType() {
         var menu = settingsButton.wmsxMenu;
-        menu.menuTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].desc.split("(")[0] || "Settings").trim();
+        menu.wmsxTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].desc.split("(")[0] || "Settings").trim();
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
 
-    function addPeripheralControlButton(id, bx, by, tooltip, control, menu) {
+    function addPeripheralControlButton(id, bx, by, tooltip, control, menu, menuTitle) {
         var but = document.createElement('div');
         but.id = id;
         but.classList.add("wmsx-bar-button");
         but.wmsxControl = control;
-        but.wmsxMenu = menu;
         but.style.backgroundPosition = "" + bx + "px " + by + "px";
         but.wmsxBX = bx;
+        if (menu) {
+            but.wmsxMenu = menu;
+            menu.wmsxTitle = menuTitle;
+            menu.wmsxRefElement = but;
+            menu.wmsxMenuIndex = barMenus.length;
+            barMenus.push(menu);
+        }
         if (tooltip) but.title = tooltip;
 
         // Mouse hover switch menus if already open
@@ -839,6 +847,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function buttonsBarTapOrMouseDown(e) {
+        var prevActiveMenu = barMenuActive;
         closeAllOverlays();
 
         // Single option, only left click
@@ -854,7 +863,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Open/close menu with left-click if no modifiers
         if (modifs === 0 && !e.button) {
-            if (barMenuActive !== menu) showBarMenu(menu, e.target);
+            if (prevActiveMenu !== menu) showBarMenu(menu);
             return;
         }
 
@@ -876,7 +885,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function peripheralControlButtonMouseEnter(e) {
-        if (barMenuActive && e.target.wmsxMenu) showBarMenu(e.target.wmsxMenu, e.target);
+        if (barMenuActive && e.target.wmsxMenu) showBarMenu(e.target.wmsxMenu);
     }
 
     function setupCopyTextArea() {
@@ -962,7 +971,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function showBar() {
-        if (!mousePointerLocked) buttonsBar.classList.remove("wmsx-hidden");
+        buttonsBar.classList.remove("wmsx-hidden");
     }
 
     function hideBar() {
@@ -972,21 +981,23 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function showBarMenu(menu, refElement) {
+    function showBarMenu(menu, select) {
         if (!menu) return;
 
         if (!barMenu) {
             setupBarMenu();
             setTimeout(function() {
-                showBarMenu(menu, refElement);
+                showBarMenu(menu, select);
             }, 1);
             return;
         }
 
         // Define items
         refreshBarMenu(menu);
+        setBarMenuItemActive(select ? barMenu.wmsxDefaultItem : null);
 
         // Position
+        var refElement = menu.wmsxRefElement;
         if (refElement) {
             var p;
             p = (refElement.offsetLeft + refElement.clientWidth / 2 - wmsx.ScreenGUI.BAR_MENU_WIDTH / 2) | 0;
@@ -1006,12 +1017,15 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         // Show
+        showBar();
         barMenuActive = menu;
+        barMenu.style.display = "inline-block";
         barMenu.wmsxTitle.focus();
     }
 
     function refreshBarMenu(menu) {
-        barMenu.wmsxTitle.innerHTML = menu.menuTitle;
+        barMenu.wmsxTitle.innerHTML = menu.wmsxTitle;
+        barMenu.wmsxDefaultItem = null;
 
         var it = 0;
         var item;
@@ -1023,33 +1037,38 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (option.label !== undefined) {
                 item = barMenu.wmsxItems[it];
                 item.firstChild.textContent = option.label;
-                item.wmsxMenuOption = option;
+                item.wmsxMenuOption = null;
 
                 if (option.hidden || (isFullscreen && option.fullScreenHidden) || (!isFullscreen && option.fullScreenOnly)) {
                     item.style.display = "none";
                 } else {
                     item.style.display = "block";
 
-                    // User Generated Gesture needed?
-                    item.wmsxNeedsUIG = option.needsUIG;
-
-                    // Disabled?
-                    item.classList.toggle("wmsx-bar-menu-item-disabled", !!option.disabled);
-
                     // Divider?
                     if (option.divider) {
                         item.classList.add("wmsx-bar-menu-item-divider");
                     } else {
                         item.classList.remove("wmsx-bar-menu-item-divider");
-                        h += wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT;   // ecah non-divider item
-                    }
+                        h += wmsx.ScreenGUI.BAR_MENU_ITEM_HEIGHT;   // each non-divider item
 
-                    // Toggle option?
-                    if (option.toggle !== undefined) {
-                        item.classList.add("wmsx-bar-menu-item-toggle");
-                        item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!option.checked);
-                    } else {
-                        item.classList.remove("wmsx-bar-menu-item-toggle");
+                        // Toggle
+                        item.classList.toggle("wmsx-bar-menu-item-toggle", option.toggle !== undefined);
+
+                        // Disabled?
+                        if (option.disabled) {
+                            item.classList.add("wmsx-bar-menu-item-disabled");
+                        } else {
+                            item.classList.remove("wmsx-bar-menu-item-disabled");
+
+                            item.wmsxMenuOption = option;
+                            if (option.clickModif === 0) barMenu.wmsxDefaultItem = item;    // If option is the default, set this item to be selected as default
+
+                            // User Generated Gesture needed?
+                            item.wmsxNeedsUIG = option.needsUIG;
+
+                            // Toggle checked
+                             if (option.toggle !== undefined) item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!option.checked);
+                        }
                     }
                 }
 
@@ -1068,15 +1087,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (barMenu) barMenu.style.transform = "scale(" + scale.toFixed(4) + ")";
 
         //console.error("MESSAGE SCALE height: " + height + ", h: " + h);
-
-        barMenu.style.height = "auto";
     }
 
     function hideBarMenu() {
         if (!barMenuActive) return;
 
         barMenuActive = null;
-        barMenu.style.height = 0;
+        barMenu.style.display = "none";
         self.focus();
     }
 
@@ -1088,63 +1105,88 @@ wmsx.CanvasDisplay = function(mainElement) {
         inner.id = "wmsx-bar-menu-inner";
         barMenu.appendChild(inner);
 
-        var title = document.createElement('button');
+        var title = document.createElement('div');
         title.id = "wmsx-bar-menu-title";
+        title.tabIndex = -1;
         title.innerHTML = "Menu Title";
         inner.appendChild(title);
         barMenu.wmsxTitle = title;
 
         var itemMouseEntered = function (e) {
-            e.target.classList.add("wmsx-hover");
+            if (e.target.wmsxMenuOption) setBarMenuItemActive(e.target);
         };
         var itemMouseLeft = function (e) {
-            e.target.classList.remove("wmsx-hover");
+            if (e.target.wmsxMenuOption) setBarMenuItemActive(null);
         };
 
         barMenu.wmsxItems = new Array(BAR_MENU_MAX_ITEMS);
         for (var i = 0; i < BAR_MENU_MAX_ITEMS; ++i) {
-            var item = document.createElement('button');
+            var item = document.createElement('div');
             item.classList.add("wmsx-bar-menu-item");
             item.style.display = "none";
             item.innerHTML = "Menu Item " + i;
+            item.wmsxItemIndex = i;
             item.addEventListener("mouseenter", itemMouseEntered);
             item.addEventListener("mouseleave", itemMouseLeft);
-            var check = document.createElement('div');
-            check.classList.add("wmsx-bar-menu-item-check");
-            item.appendChild(check);
             inner.appendChild(item);
             barMenu.wmsxItems[i] = item;
         }
 
-        // Block keys and hide with ESC
-        barMenu.addEventListener("keydown", function(e) {
-            if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) hideBarMenu();
-            return wmsx.Util.blockEvent(e);
-        });
-
-        var fireItem = function(e) {
-            if (e.button > 1) return;          // Only left ot middle button
-            if (e.target.wmsxMenuOption && !e.target.wmsxMenuOption.disabled) {
-                var altPower = e.button === 1;
-                var secSlot;
-                if (e.target.wmsxMenuOption.extension) {
-                    secSlot = e.shiftKey;
-                    extensionsSocket.toggleExtension(e.target.wmsxMenuOption.extension, altPower, secSlot);
-                } else if (e.target.wmsxMenuOption.control) {
-                    secSlot = e.target.wmsxMenuOption.secSlot || e.shiftKey;
+        var fireMenuOption = function(option, secSlot, altPower) {
+            if (!option.disabled) {
+                if (option.extension) {
+                    extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
+                } else if (option.control) {
+                    secSlot |= option.secSlot;
                     closeAllOverlays();
-                    peripheralControls.controlActivated(e.target.wmsxMenuOption.control, altPower, secSlot);
+                    peripheralControls.controlActivated(option.control, altPower, secSlot);
                 }
             }
         };
+
+        // Block keys and respond to some
+        barMenu.addEventListener("keydown", function(e) {
+            // Hide
+            if (MENU_CLOSE_KEYS[e.keyCode]) hideBarMenu();
+            // Execute
+            else if (barMenuItemActive && MENU_EXEC_KEYS[e.keyCode & ~KEY_SHIFT_MASK & ~KEY_CTRL_MASK]) fireMenuOption(barMenuItemActive.wmsxMenuOption, e.shiftKey, e.ctrlKey);
+            // Select Menu
+            else if (MENU_SELECT_KEYS[e.keyCode]) {
+                if (!barMenuActive) return;
+                var newMenu = (barMenus.length + barMenuActive.wmsxMenuIndex + MENU_SELECT_KEYS[e.keyCode]) % barMenus.length;
+                showBarMenu(barMenus[newMenu], true);
+            }
+            // Select Item
+            else if (MENU_ITEM_SELECT_KEYS[e.keyCode]) {
+                var items = barMenu.wmsxItems;
+                var newItem = barMenuItemActive ? barMenuItemActive.wmsxItemIndex : -1;
+                var tries = BAR_MENU_MAX_ITEMS + 1;
+                do {
+                    newItem = (newItem + items.length + MENU_ITEM_SELECT_KEYS[e.keyCode]) % items.length;
+                } while (--tries >= 0 && !items[newItem].wmsxMenuOption);
+                if (tries >= 0) setBarMenuItemActive(items[newItem]);
+            }
+
+            if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) hideBarMenu();
+            return wmsx.Util.blockEvent(e);
+        });
 
         // Block mousedown
         barMenu.addEventListener("mousedown", wmsx.Util.blockEvent);
 
         // Fire on mouseup or tap
-        wmsx.Util.onEventsOrTapWithBlockUIG(barMenu, "mouseup", fireItem);
+        wmsx.Util.onEventsOrTapWithBlockUIG(barMenu, "mouseup", function(e) {
+            if (!e.target.wmsxMenuOption || e.button > 1) return;          // Only left or middle button
+            fireMenuOption(e.target.wmsxMenuOption, e.shiftKey, e.button === 1 || e.ctrlKey);
+        });
 
         buttonsBar.appendChild(barMenu);
+    }
+
+    function setBarMenuItemActive(element) {
+        if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
+        barMenuItemActive = element;
+        if (barMenuItemActive) barMenuItemActive.classList.add("wmsx-hover");
     }
 
     function closePowerOnModals() {
@@ -1390,7 +1432,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var buttonsBar, buttonsBarInner, buttonsBarDesiredWidth = -1;       // 0 = same as canvas. -1 means full width mode (100%)
 
     var barMenu;
-    var barMenuActive = null;
+    var barMenus = [], barMenuActive, barMenuItemActive, barMenuSystem;
 
     var osd;
     var osdTimeout;
@@ -1441,7 +1483,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;
 
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 0;
-    var BAR_MENU_MAX_ITEMS = Math.max(10, Object.keys(WMSX.EXTENSIONS_CONFIG).length + 1 + 4);
+    var BAR_MENU_MAX_ITEMS = Math.max(6, Object.keys(WMSX.EXTENSIONS_CONFIG).length) + 1 + 5;
 
     var VIRTUAL_KEYBOARD_WIDTH = 518, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
@@ -1450,6 +1492,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     var KEY_CTRL_MASK  =  32;
     var KEY_ALT_MASK   =  64;
     var KEY_SHIFT_MASK =  128;
+
+    var k = wmsx.DOMKeys;
+    var MENU_CLOSE_KEYS = {}; MENU_CLOSE_KEYS[k.VK_ESCAPE.c] = 1; MENU_CLOSE_KEYS[k.VK_CONTEXT.c] = 1;
+    var MENU_EXEC_KEYS = {}; MENU_EXEC_KEYS[k.VK_ENTER.c] = 1; MENU_EXEC_KEYS[k.VK_SPACE.c] = 1;
+    var MENU_SELECT_KEYS = {}; MENU_SELECT_KEYS[k.VK_LEFT.c] = -1; MENU_SELECT_KEYS[k.VK_RIGHT.c] = 1;
+    var MENU_ITEM_SELECT_KEYS = {}; MENU_ITEM_SELECT_KEYS[k.VK_UP.c] = -1; MENU_ITEM_SELECT_KEYS[k.VK_DOWN.c] = 1;
 
 
     init();

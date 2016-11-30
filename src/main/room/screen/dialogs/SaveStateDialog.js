@@ -89,7 +89,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         function hideConfirm() { self.hide(true); }
 
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { /* do nothing */ });
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
