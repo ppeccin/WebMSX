@@ -301,7 +301,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 #wmsx-bar-menu-inner {
     display: inline-block;
-    padding-bottom: 3px;
+    padding-bottom: 2px;
     border: 1px solid black;
     background: hsl(0, 0%, 16%);
 }
@@ -328,7 +328,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     color: white;
     font-weight: bold;
     border-bottom: 1px solid black;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
     text-align: center;
     background: rgb(70, 70, 70);
     cursor: auto;
@@ -1408,7 +1408,7 @@ content: "";
     }
     #wmsx-touch-speed {
         position: absolute;
-        left: 22px;
+        left: 21px;
         bottom: ` + (this.BAR_HEIGHT + 18) + `px;
     }
 

@@ -95,6 +95,7 @@ WMSX.preLoadImagesAndStart = function() {
 // AppCache update control
 if (window.applicationCache) {
     function onUpdateReady() {
+        alert("A new version is available!\nWebMSX will restart...");
         window.applicationCache.swapCache();
         window.location.reload();
     }

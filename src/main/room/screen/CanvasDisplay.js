@@ -7,6 +7,10 @@
 // TODO MegaRAM
 // TODO Internal Donate?
 
+// TODO Menu long press
+// TODO Logo messages
+// TODO Full screen state when automatically off
+
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
 
@@ -67,8 +71,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.refresh = function(image, sourceWidth, sourceHeight) {
         // Hide mouse cursor if not moving for some time
-        if (cursorShowing)
-            if (--cursorHideFrameCountdown < 0) hideCursor();
+        if (cursorHideFrameCountdown > 0)
+            if (--cursorHideFrameCountdown <= 0) hideCursorAndBar();
 
         // If needed, turn signal on and hide logo
         if (!signalIsOn) {
@@ -393,7 +397,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.mouseActiveCursorStateUpdate = function(boo) {
         cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '") -10 -10, auto' : "auto";
-        showCursor(true);
+        showCursorAndBar(true);
     };
 
     this.touchControlsActiveUpdate = function(active) {
@@ -443,17 +447,18 @@ wmsx.CanvasDisplay = function(mainElement) {
         controllersSocket.releaseControllers();
     }
 
-    function hideCursor() {
+    function hideCursorAndBar() {
         cursorShowing = false;
         updateCursor();
         hideBar();
     }
 
-    function showCursor(force) {
+    function showCursorAndBar(force) {
         if (!cursorShowing || force) {
             cursorShowing = true;
             updateCursor();
         }
+        if (!mousePointerLocked) showBar();
         cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
     }
 
@@ -541,8 +546,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!signalIsOn) {
             updateLogoScale();
             closePowerOnModals();
-            showBar();
-            showCursor(true);
+            showCursorAndBar(true);
             if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         }
         logo.classList.toggle("wmsx-show", !signalIsOn);
@@ -596,6 +600,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function setupMain() {
         mainElement.innerHTML = wmsx.ScreenGUI.html();
+        mainElement.tabIndex = -1;
         delete wmsx.ScreenGUI.html;
 
         fsElement = document.getElementById("wmsx-screen-fs");
@@ -635,10 +640,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupEvents() {
-        wmsx.Util.addEventsListener(fsElement, "touchstart mousemove", function showBarOnMouseMoveOrTap() {
-            showCursor();
-            if (!mousePointerLocked) showBar();
-        });
+        fsElement.addEventListener("mousemove", showCursorAndBar);
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
@@ -652,10 +654,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         wmsx.Util.onEventsOrTapWithBlock(logoMessageNo, "mousedown", logoMessageNoClicked);
         wmsx.Util.onEventsOrTapWithBlock(logoMessageOk, "mousedown", logoMessageOkClicked);
 
-        // Used to close overlays and modals if not processed by any other function
+        // Used to show bar and close overlays and modals if not processed by any other function
         wmsx.Util.addEventsListener(fsElement, "touchstart touchend mousedown", function backScreenTouched(e) {
-            if (e.type !== "touchend") closeAllOverlays();          // Execute close action only tor touchstart and mousedown
-            else if (e.cancelable) e.preventDefault();              // preventDefault only on touchend to avoid redundant mousedown ater a touchstart
+            if (e.type !== "touchend") {                            // Execute actions only tor touchstart or mousedown
+                closeAllOverlays();
+                showCursorAndBar();
+            } else
+                if (e.cancelable) e.preventDefault();               // preventDefault only on touchend to avoid redundant mousedown ater a touchstart
         });
     }
 
@@ -998,22 +1003,16 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Position
         var refElement = menu.wmsxRefElement;
-        if (refElement) {
-            var p;
-            p = (refElement.offsetLeft + refElement.clientWidth / 2 - wmsx.ScreenGUI.BAR_MENU_WIDTH / 2) | 0;
-            if (p + wmsx.ScreenGUI.BAR_MENU_WIDTH > refElement.parentElement.clientWidth) {
-                barMenu.style.right = 0;
-                barMenu.style.left = "auto";
-                barMenu.style.transformOrigin = "bottom right";
-            } else {
-                if (p < 0) p = 0;
-                barMenu.style.left = "" + p + "px";
-                barMenu.style.right = "auto";
-                barMenu.style.transformOrigin = "bottom left";
-            }
+        var p = (refElement && (refElement.offsetLeft - 6)) || 0;
+        if (p + wmsx.ScreenGUI.BAR_MENU_WIDTH > refElement.parentElement.clientWidth) {
+            barMenu.style.right = 0;
+            barMenu.style.left = "auto";
+            barMenu.style.transformOrigin = "bottom right";
         } else {
-            barMenu.style.left = barMenu.style.right = 0;
-            barMenu.style.transformOrigin = "bottom center";
+            if (p < 0) p = 0;
+            barMenu.style.left = "" + p + "px";
+            barMenu.style.right = "auto";
+            barMenu.style.transformOrigin = "bottom left";
         }
 
         // Show
@@ -1094,6 +1093,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         barMenuActive = null;
         barMenu.style.display = "none";
+        cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
         self.focus();
     }
 
@@ -1166,8 +1166,6 @@ wmsx.CanvasDisplay = function(mainElement) {
                 } while (--tries >= 0 && !items[newItem].wmsxMenuOption);
                 if (tries >= 0) setBarMenuItemActive(items[newItem]);
             }
-
-            if (e.keyCode === wmsx.DOMKeys.VK_ESCAPE.c) hideBarMenu();
             return wmsx.Util.blockEvent(e);
         });
 
@@ -1478,7 +1476,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var mediaButtonBackYOffsets = [ -51, -26, -1 ];
 
     var OSD_TIME = 3000;
-    var CURSOR_HIDE_FRAMES = 150;
+    var CURSOR_HIDE_FRAMES = 180;
 
     var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;
 
@@ -1489,11 +1487,11 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     var NARROW_WIDTH = 450;
 
-    var KEY_CTRL_MASK  =  32;
-    var KEY_ALT_MASK   =  64;
-    var KEY_SHIFT_MASK =  128;
-
     var k = wmsx.DOMKeys;
+    var KEY_CTRL_MASK  =  k.CONTROL;
+    var KEY_ALT_MASK   =  k.ALT;
+    var KEY_SHIFT_MASK =  k.SHIFT;
+
     var MENU_CLOSE_KEYS = {}; MENU_CLOSE_KEYS[k.VK_ESCAPE.c] = 1; MENU_CLOSE_KEYS[k.VK_CONTEXT.c] = 1;
     var MENU_EXEC_KEYS = {}; MENU_EXEC_KEYS[k.VK_ENTER.c] = 1; MENU_EXEC_KEYS[k.VK_SPACE.c] = 1;
     var MENU_SELECT_KEYS = {}; MENU_SELECT_KEYS[k.VK_LEFT.c] = -1; MENU_SELECT_KEYS[k.VK_RIGHT.c] = 1;
