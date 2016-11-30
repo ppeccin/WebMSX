@@ -36,9 +36,9 @@ wmsx.ScreenGUI.html = function() {
                             <img id="wmsx-logo-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
                             <div id="wmsx-logo-message">
                                 <div id="wmsx-logo-message-text"></div>
-                                <div id="wmsx-logo-message-yes"></div>
-                                <div id="wmsx-logo-message-no"></div>
-                                <div id="wmsx-logo-message-ok"></div>
+                                <div id="wmsx-logo-message-ok">
+                                    <div id="wmsx-logo-message-ok-text"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -505,52 +505,45 @@ html.wmsx-full-screen #wmsx-logo-image {
     user-select: none;
 }
 #wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-loading-icon {
-    top: 192px;
+    top: 190px;
 }
 
 #wmsx-logo-message {
     display: none;
     position: absolute;
-    top: 230px;
+    top: 224px;
     width: 100%;
     color: hsl(0, 0%, 97%);
     font-size: 29px;
     line-height: 34px;
 }
+#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
+    display: block;
+}
 
-#wmsx-logo-message-yes, #wmsx-logo-message-no, #wmsx-logo-message-ok {
-    display: none;
+#wmsx-logo-message-ok {
+    display: block;
     position: absolute;
-    top: 73px;
-    width: 200px;
+    top: 91px;
+    left: 193px;
+    width: 214px;
     height: 130px;
 }
-#wmsx-logo-message-yes { left: 94px; }
-#wmsx-logo-message-no  { right: 94px; }
-#wmsx-logo-message-ok  { top: 91px; left: 200px; }
-
-#wmsx-logo-message-yes::after, #wmsx-logo-message-no::after, #wmsx-logo-message-ok::after {
+#wmsx-logo-message-ok.wmsx-higher {
+    top: 74px;
+}
+#wmsx-logo-message-ok-text {
     position: absolute;
     top: 49%;
     left: 50%;
-    width: 105px;
+    width: 120px;
     height: 47px;
-    font-size: 25px;
-    line-height: 46px;
+    font-size: 23px;
+    line-height: 47px;
     background: hsl(358, 67%, 46%);
     border-radius: 6px;
     color: white;
     transform: translate(-50%, -50%);
-}
-#wmsx-logo-message-yes::after { content: "YES"; }
-#wmsx-logo-message-no::after  { content: "NO"; }
-#wmsx-logo-message-ok::after  { content: "OK"; }
-
-#wmsx-screen-fs.wmsx-logo-message-active #wmsx-logo-message {
-    display: block;
-}
-#wmsx-logo-message-yes.wmsx-show, #wmsx-logo-message-no.wmsx-show, #wmsx-logo-message-ok.wmsx-show {
-    display: block;
 }
 
 #wmsx-osd {

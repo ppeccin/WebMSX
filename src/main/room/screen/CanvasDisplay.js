@@ -6,9 +6,7 @@
 // TODO Narrow Virtual Keyboard
 // TODO MegaRAM
 // TODO Internal Donate?
-
-// TODO Logo messages
-// TODO Full screen state when automatically off
+// TODO Possible to turn machine on by hotkey bypassing logo message
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -52,7 +50,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         document.documentElement.classList.add("wmsx-started");
         setPageVisibilityHandling();
         this.focus();
-        if (WMSXFullScreenSetup.shouldStartInFullScreen()) startInFullScreen();
+        if (WMSXFullScreenSetup.shouldStartInFullScreen()) {
+            setFullscreenState(true);
+            setEnterFullscreenByAPIOnFirstTouch();
+        }
     };
 
     this.powerOff = function() {
@@ -61,9 +62,11 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.start = function(startAction) {
         // Show the logo messages or start automatically
-        if (isMobileDevice && !isFullscreen) {
-            if (!isBrowserStandalone) showLogoMessage(false, 'For the best experience, use<br>the "Add to Home Screen" option<br>then launch from the installed App', startAction);
-            else showLogoMessage(true, "For the best experience<br>please go full-screen!", startAction);
+        if (isMobileDevice && !isBrowserStandalone && !isFullscreen) {
+            showLogoMessage('For a full-screen experience, use<br>the "Add to Home Screen" option<br>then launch from the installed App', "NICE!", false, function startActionInFullScreen() {
+                self.setFullscreen(true);
+                startAction();
+            });
         } else
             startAction();
     };
@@ -310,8 +313,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -2) return;
 
-        closeLogoMessage(true);
-
         // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
         if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
             enterFullScreenByAPI();
@@ -335,7 +336,6 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
-        if (power) closeLogoMessage(false);
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (mediaButtonBackYOffsets[power ? 2 : 1]) + "px";
         powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[7].disabled = !power;
     };
@@ -466,7 +466,10 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function fullscreenByAPIChanged() {
-        setFullscreenState(isFullScreenByAPI());
+        var state = isFullScreenByAPI();
+        if (state || fullScreenAPIExitUserRequested || !isBrowserStandalone) setFullscreenState(state);
+        else (self.requestReadjust());
+        fullScreenAPIExitUserRequested = false;
     }
 
     function isFullScreenByAPI() {
@@ -483,6 +486,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function exitFullScreenByAPI() {
         if (fullScreenAPIExitMethod) try {
+            fullScreenAPIExitUserRequested = true;
             fullScreenAPIExitMethod.call(document);
         } catch (e) {
             /* give up */
@@ -614,9 +618,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoLoadingIcon = document.getElementById("wmsx-logo-loading-icon");
         logoMessage = document.getElementById("wmsx-logo-message");
         logoMessageText = document.getElementById("wmsx-logo-message-text");
-        logoMessageYes = document.getElementById("wmsx-logo-message-yes");
-        logoMessageNo =  document.getElementById("wmsx-logo-message-no");
-        logoMessageOk =  document.getElementById("wmsx-logo-message-ok");
+        logoMessageOK = document.getElementById("wmsx-logo-message-ok");
+        logoMessageOKText = document.getElementById("wmsx-logo-message-ok-text");
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
 
         suppressContextMenu(mainElement);
@@ -648,10 +651,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             self.requestReadjust();
         });
 
-        logoMessageYes.wmsxNeedsUIG = true;     // User Initiated Gesture required
-        wmsx.Util.onEventsOrTapWithBlockUIG(logoMessageYes, "mousedown", logoMessageYesClicked);
-        wmsx.Util.onEventsOrTapWithBlock(logoMessageNo, "mousedown", logoMessageNoClicked);
-        wmsx.Util.onEventsOrTapWithBlock(logoMessageOk, "mousedown", logoMessageOkClicked);
+        logoMessageOK.wmsxNeedsUIG = true;     // User Initiated Gesture required
+        wmsx.Util.onEventsOrTapWithBlock(logoMessageOK, "mousedown", closeLogoMessage);
 
         // Used to show bar and close overlays and modals if not processed by any other function
         wmsx.Util.addEventsListener(fsElement, "touchstart touchend mousedown", function backScreenTouched(e) {
@@ -853,6 +854,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function buttonsBarTapOrMouseDown(e) {
+        if (logoMessageActive) return;
+
         var prevActiveMenu = barMenuActive;
         closeAllOverlays();
 
@@ -912,7 +915,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function buttonsBarLongTouchMove(e) {
         var t = e.changedTouches[0];
-        if (!t || document.elementFromPoint(t.screenX, t.screenY) !== buttonsBarLongTouchTarget) buttonsBarLongTouchEnd(e);
+        if (!t || document.elementFromPoint(t.clientX, t.clientY) !== buttonsBarLongTouchTarget) buttonsBarLongTouchEnd(e);
     }
 
     function buttonsBarLongTouchEnd(e) {
@@ -949,7 +952,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Prevent scroll & zoom in fullscreen if not touching on the screen (canvas) or scroll message in hack mode
         if (!fullscreenAPIEnterMethod) {
             scrollMessage.wmsxScroll = canvas.wmsxScroll = logo.wmsxScroll = logoCenter.wmsxScroll = logoImage.wmsxScroll =
-                logoMessage.wmsxScroll = logoMessageText.wmsxScroll = logoMessageYes.wmsxScroll = logoMessageNo.wmsxScroll = logoMessageOk.wmsxScroll = true;
+                logoMessage.wmsxScroll = logoMessageText.wmsxScroll = logoMessageOK.wmsxScroll = logoMessageOKText.wmsxScroll = true;
 
             fsElement.addEventListener("touchmove", function preventTouchMoveInFullscreenByHack(e) {
                 if (isFullscreen) {
@@ -962,18 +965,17 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function startInFullScreen() {
-        setFullscreenState(true);
+    function setEnterFullscreenByAPIOnFirstTouch() {
         // Add event to enter in real fullScreenByAPI on first touch/click if possible
         if (fullscreenAPIEnterMethod) {
             var done = false;
-            var enterFullScreenByAPIonFirstTouch = function(e) {
+            var enterFullScreenByAPIonFirstTouch = function (e) {
                 if (done) return;
                 done = true;
                 wmsx.Util.removeEventsListener(fsElement, "touchend mousedown", enterFullScreenByAPIonFirstTouch, true);
                 enterFullScreenByAPI();
             };
-            wmsx.Util.addEventsListener(fsElement,"touchend mousedown", enterFullScreenByAPIonFirstTouch, true);    // Capture!
+            wmsx.Util.addEventsListener(fsElement, "touchend mousedown", enterFullScreenByAPIonFirstTouch, true);    // Capture!
         }
     }
 
@@ -1238,13 +1240,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (settingsDialog) settingsDialog.hide();
     }
 
-    function showLogoMessage(yesNo, mes, afterAction) {
+    function showLogoMessage(mes, button, higherButton, afterAction) {
         closeAllOverlays();
         if (afterAction) afterMessageAction = afterAction;
         logoMessageText.innerHTML = mes;
-        logoMessageOk.classList.toggle("wmsx-show", !yesNo);
-        logoMessageYes.classList.toggle("wmsx-show", yesNo);
-        logoMessageNo .classList.toggle("wmsx-show", yesNo);
+        logoMessageOK.classList.toggle("wmsx-higher", !!higherButton);
+        logoMessageOKText.innerHTML = button || "OK";
         fsElement.classList.add("wmsx-logo-message-active");
         logoMessageActive = true;
 
@@ -1252,30 +1253,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     }
 
-    function closeLogoMessage(performAction) {
+    function closeLogoMessage() {
         if (afterMessageAction) {
-            if (performAction) afterMessageAction();
+            var action = afterMessageAction;
             afterMessageAction = null;
+            if (execAction) action();
         }
-        logoMessageOk.classList.remove("wmsx-show");
-        logoMessageYes.classList.remove("wmsx-show");
-        logoMessageNo .classList.remove("wmsx-show");
-        fsElement.classList.remove("wmsx-logo-message-active");
-        logoMessageActive = false;
-    }
-
-    function logoMessageYesClicked(e) {
-        self.setFullscreen(true);
-        closeLogoMessage(true);
-    }
-
-    function logoMessageNoClicked(e) {
-        closeLogoMessage(true);
-    }
-
-    function logoMessageOkClicked(e) {
-        if (!isFullscreen) showLogoMessage(true, "For the best experience<br>please go full-screen!");  // Keep same action
-        else closeLogoMessage(true);
     }
 
     function updateLogoScale() {
@@ -1390,26 +1373,28 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setPageVisibilityHandling() {
-        var wasUnpaused, wasFullscreenByAPI;
+        var wasUnpaused, wasFullscreen;
         function visibilityChange() {
             if (document.hidden) {
-                wasFullscreenByAPI = isFullScreenByAPI();
+                wasFullscreen = isFullscreen;
                 wasUnpaused = !machine.systemPause(true);
             } else {
-                if (isMobileDevice) self.requestReadjust();
-                if (wasUnpaused) {
-                    if (wasFullscreenByAPI && !isFullScreenByAPI())
-                        showLogoMessage(true, "Emulation suspended.<br>Resume in full-screen?", machineSystemUnpauseAction);
-                    else
-                        machineSystemUnpauseAction();
-                }
+                if (wasFullscreen && isMobileDevice) {
+                    if (isFullscreen || !machine.isSystemPaused()) {
+                        self.requestReadjust();
+                        if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) setEnterFullscreenByAPIOnFirstTouch();
+                        if (wasUnpaused) machine.systemPause(false);
+                    } else {
+                        if (wasUnpaused) showLogoMessage("<br>Emulation suspended", "RESUME", true, function () {
+                            self.setFullscreen(true);
+                            machine.systemPause(false);
+                        });
+                    }
+                } else
+                    if (wasUnpaused) machine.systemPause(false);
             }
         }
         document.addEventListener("visibilitychange", visibilityChange);
-
-        function machineSystemUnpauseAction() {
-            machine.systemPause(false);
-        }
     }
 
 
@@ -1439,7 +1424,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
     var browserName = wmsx.Util.browserInfo().name;
 
-    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenScrollHack = false;
+    var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenAPIExitUserRequested = false, fullScreenScrollHack = false;
     var viewportTag, viewPortOriginalTag, viewPortOriginalContent;
 
     var settingsDialog;
@@ -1493,7 +1478,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
-    var logo, logoCenter, logoImage, logoMessage, logoMessageText, logoMessageYes, logoMessageNo, logoMessageOk, logoMessageActive = false;
+    var logo, logoCenter, logoImage, logoMessage, logoMessageText, logoMessageOK, logoMessageOKText, logoMessageActive = false;
     var logoLoadingIcon;
     var scrollMessage, scrollMessageActive = false;
 

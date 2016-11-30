@@ -176,6 +176,10 @@ wmsx.Machine = function() {
         return prev;
     };
 
+    this.isSystemPaused = function() {
+        return systemPaused;
+    };
+
     this.setBIOS = function(pBIOS) {                    // Called by SlotBIOS on connection
         bios = pBIOS === EMPTY_SLOT ? null : pBIOS;
         videoStandardSoft = null;
