@@ -44,7 +44,7 @@ WMSX = {
     RAMMAPPER_SIZE:                 512,
 
     AUTO_START:                     true,
-    AUTO_POWER_ON_DELAY:            0,                          // -1: no auto Power-ON, >= 0: wait specified milliseconds before Power-ON
+    AUTO_POWER_ON_DELAY:            0,                          // -1: no auto Power-ON, 0: default Power-ON, >= 1: wait specified milliseconds before Power-ON
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",

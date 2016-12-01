@@ -7,6 +7,7 @@
 // TODO MegaRAM
 // TODO Internal Donate?
 // TODO Possible to turn machine on by hotkey bypassing logo message
+// TODO Review keys on OSX
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";

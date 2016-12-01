@@ -60,7 +60,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             ? wmsx.Util.browserInfo().name === "CHROME" && !wmsx.Util.isIOSDevice()
                 ? 5      // for now mobile Chrome needs more buffer, except on iOS
                 : 3      // other mobile scenarios
-            : 1;          // desktop
+            : 1;         // desktop
     }
 
     var createAudioContextAndProcessor = function() {
