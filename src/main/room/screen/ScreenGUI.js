@@ -328,7 +328,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     color: white;
     font-weight: bold;
     border-bottom: 1px solid black;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     text-align: center;
     background: rgb(70, 70, 70);
     cursor: auto;
