@@ -74,7 +74,7 @@ wmsx.FileLoader = function() {
         var reader = new FileReader();
         reader.onload = function (event) {
             var content = new Uint8Array(event.target.result);
-            var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModifiedDate };
+            var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModified ? new Date(file.lastModified) : file.lastModifiedDate };     // lastModifiedDate deprecated?
             self.loadFromFile(aFile, openType, port, altPower, asExpansion);
             if (then) then(true);
         };

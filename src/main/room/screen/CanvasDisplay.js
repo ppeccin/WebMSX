@@ -397,7 +397,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.mouseActiveCursorStateUpdate = function(boo) {
-        cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '") -10 -10, auto' : "auto";
+        cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '"), auto' : "auto";
         showCursorAndBar(true);
     };
 

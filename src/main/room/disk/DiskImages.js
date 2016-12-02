@@ -145,9 +145,10 @@ wmsx.DiskImages = function() {
 
             // Attributes. "Archive" set
             pos = entryPos + 0x16;
-            var time = encodeTime(item.lastModifiedDate);
+            var d = item.lastModified ? new Date(item.lastModified) : item.lastModifiedDate;         // lastModifiedDate deprecated?
+            var time = encodeTime(d);
             image[pos] = time & 255; image[pos + 1] = time >> 8;
-            var date = encodeDate(item.lastModifiedDate);
+            var date = encodeDate(d);
             image[pos + 2] = date & 255; image[pos + 3] = date >> 8;
 
             // Starting Cluster
