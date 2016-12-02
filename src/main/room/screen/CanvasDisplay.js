@@ -638,10 +638,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             case "SAFARI":  canvasImageRenderingValue = "-webkit-optimize-contrast"; break;
             default:        canvasImageRenderingValue = "pixelated";
         }
-        setupEvents();
+        setupMainEvents();
     }
 
-    function setupEvents() {
+    function setupMainEvents() {
         fsElement.addEventListener("mousemove", showCursorAndBar);
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
@@ -776,10 +776,173 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
-        // Mouse buttons perform the various actions
-        wmsx.Util.onEventsOrTapWithBlockUIG(buttonsBar, "mousedown", buttonsBarTapOrMouseDown);
-        wmsx.Util.addEventsListener(buttonsBar, "touchmove", buttonsBarLongTouchMove);      // To select menu entries
-        wmsx.Util.addEventsListener(buttonsBar, "touchend",  buttonsBarLongTouchEnd);      // To abort or execute selected entry
+        // Events for BarButtons and also MenuItems
+        wmsx.Util.onEventsOrTapWithBlockUIG(buttonsBar, "mousedown", barElementTapOrMouseDown);
+        wmsx.Util.addEventsListener(buttonsBar, "touchmove", barElementTouchMove);
+        wmsx.Util.addEventsListener(buttonsBar, "mouseup touchend", barElementTouchEndOrMouseUp);
+    }
+
+    function addPeripheralControlButton(id, bx, by, tooltip, control, menu, menuTitle) {
+        var but = document.createElement('div');
+        but.id = id;
+        but.classList.add("wmsx-bar-button");
+        but.wmsxBarElementType = 1;     // Bar button
+        but.wmsxControl = control;
+        but.style.backgroundPosition = "" + bx + "px " + by + "px";
+        but.wmsxBX = bx;
+        if (menu) {
+            but.wmsxMenu = menu;
+            menu.wmsxTitle = menuTitle;
+            menu.wmsxRefElement = but;
+            menu.wmsxMenuIndex = barMenus.length;
+            barMenus.push(menu);
+        }
+        if (tooltip) but.title = tooltip;
+
+        // Mouse hover button
+        but.addEventListener("mouseenter", function(e) { barButtonHoverOver(e.target); });
+
+        buttonsBarInner.appendChild(but);
+        return but;
+    }
+
+    function barButtonTapOrMousedown(elem, e) {
+        if (logoMessageActive) return;
+
+        var prevActiveMenu = barMenuActive;
+        closeAllOverlays();
+
+        // Single option, only left click
+        if (elem.wmsxControl) {
+            if (!e.button) peripheralControls.controlActivated(elem.wmsxControl);
+            return;
+        }
+
+        var menu = elem.wmsxMenu;
+        if (!menu) return;
+
+        var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
+
+        // Open/close menu with left-click if no modifiers
+        if (modifs === 0 && !e.button) {
+            if (prevActiveMenu !== menu) {
+                showBarMenu(menu);
+                // Only start LongTouch for touches!
+                if (e.type === "touchstart") barButtonLongTouchStart(e);
+            }
+            return;
+        }
+
+        // Modifier options for left, middle or right click
+        for (var i = 0; i < menu.length; ++i)
+            if (menu[i].clickModif === modifs) {
+                peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
+                return;
+            }
+        // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
+        if (modifs & KEY_SHIFT_MASK) {
+            modifs &= ~KEY_SHIFT_MASK;
+            for (i = 0; i < menu.length; ++i)
+                if (menu[i].clickModif === modifs) {
+                    peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
+                    return;
+                }
+        }
+    }
+
+    function barButtonLongTouchStart(e) {
+        barButtonLongTouchTarget = e.target;
+        barButtonLongTouchSelectTimeout = window.setTimeout(function buttonsBarLongTouchSelectDefault() {
+            if (!barMenuActive) return;
+            var items = barMenu.wmsxItems;
+            for (var i = 0; i < items.length; ++i) {
+                var option = items[i].wmsxMenuOption;
+                if (option && option.clickModif === 0) {
+                    barMenuItemSetActive(items[i]);
+                    return;
+                }}
+        }, 450);
+    }
+
+    function barButtonLongTouchCancel() {
+        if (barButtonLongTouchSelectTimeout) {
+            clearTimeout(barButtonLongTouchSelectTimeout);
+            barButtonLongTouchSelectTimeout = null;
+        }
+    }
+
+    function barButtonHoverOver(elem) {
+        if (barMenuActive && elem.wmsxMenu) showBarMenu(elem.wmsxMenu);
+    }
+
+    function barButtonTouchEndOrMouseUp(elem, e) {
+        if (logoMessageActive) return;
+        // Only touch, left or middle button
+        if (barMenuItemActive && !(e.button > 1)) barMenuItemFireActive(e.shiftKey, e.button === 1 || e.ctrlKey);
+    }
+
+    function barMenuItemTapOrMouseDown(elem, e) {
+        barMenuItemSetActive(elem);
+    }
+
+    function barMenuItemHoverOver(elem) {
+        barMenuItemSetActive(elem);
+    }
+
+    function barMenuItemHoverOut(elem) {
+        barMenuItemSetActive(null);
+    }
+
+    function barMenuItemTouchEndOrMouseUp(elem, e) {
+        if (logoMessageActive) return;
+        // Only touch, left or middle button
+        if (barMenuItemActive && !(e.button > 1)) barMenuItemFireActive(e.shiftKey, e.button === 1 || e.ctrlKey);
+    }
+
+    function barMenuItemFireActive(secSlot, altPower) {
+        var option = barMenuItemActive.wmsxMenuOption;
+        if (option && !option.disabled) {
+            if (option.extension) {
+                extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
+            } else if (option.control) {
+                secSlot |= option.secSlot;
+                closeAllOverlays();
+                peripheralControls.controlActivated(option.control, altPower, secSlot);
+            }
+        }
+    }
+
+    function barMenuItemSetActive(element) {
+        if (element === barMenuItemActive) return;
+        if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
+        barMenuItemActive = element;
+        if (barMenuItemActive) barMenuItemActive.classList.add("wmsx-hover");
+    }
+
+    function barElementTapOrMouseDown(e) {
+        var elem = e.target;
+        if (elem.wmsxBarElementType === 1) barButtonTapOrMousedown(elem, e);
+        else if (elem.wmsxBarElementType === 2) barMenuItemTapOrMouseDown(elem, e);
+        else hideBarMenu();
+    }
+
+    function barElementTouchMove(e) {
+        wmsx.Util.blockEvent(e);
+        var t = e.changedTouches[0];
+        var elem = t && document.elementFromPoint(t.clientX, t.clientY);
+        if (barButtonLongTouchTarget && elem !== barButtonLongTouchTarget) barButtonLongTouchCancel();
+        if (elem.wmsxBarElementType !== 2 && elem !== barButtonLongTouchTarget) barMenuItemSetActive(null);
+        if (elem.wmsxBarElementType === 1) barButtonHoverOver(elem);
+        else if (elem.wmsxBarElementType === 2) barMenuItemHoverOver(elem);
+
+    }
+
+    function barElementTouchEndOrMouseUp(e) {
+        wmsx.Util.blockEvent(e);
+        barButtonLongTouchCancel();
+        var elem = e.target;
+        if (elem.wmsxBarElementType === 1) barButtonTouchEndOrMouseUp(elem, e);
+        else if (elem.wmsxBarElementType === 2) barMenuItemTouchEndOrMouseUp(elem, e);
     }
 
     function createSettingsMenuOptions() {
@@ -828,118 +991,6 @@ wmsx.CanvasDisplay = function(mainElement) {
         var menu = settingsButton.wmsxMenu;
         menu.wmsxTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].desc.split("(")[0] || "Settings").trim();
         if (barMenuActive === menu) refreshBarMenu(menu);
-    }
-
-    function addPeripheralControlButton(id, bx, by, tooltip, control, menu, menuTitle) {
-        var but = document.createElement('div');
-        but.id = id;
-        but.classList.add("wmsx-bar-button");
-        but.wmsxControl = control;
-        but.style.backgroundPosition = "" + bx + "px " + by + "px";
-        but.wmsxBX = bx;
-        if (menu) {
-            but.wmsxMenu = menu;
-            menu.wmsxTitle = menuTitle;
-            menu.wmsxRefElement = but;
-            menu.wmsxMenuIndex = barMenus.length;
-            barMenus.push(menu);
-        }
-        if (tooltip) but.title = tooltip;
-
-        // Mouse hover switch menus if already open
-        but.addEventListener("mouseenter", peripheralControlButtonMouseEnter);
-
-        buttonsBarInner.appendChild(but);
-        return but;
-    }
-
-    function buttonsBarTapOrMouseDown(e) {
-        if (logoMessageActive) return;
-
-        var prevActiveMenu = barMenuActive;
-        closeAllOverlays();
-
-        // Single option, only left click
-        if (e.target.wmsxControl) {
-            if (!e.button) peripheralControls.controlActivated(e.target.wmsxControl);
-            return;
-        }
-
-        var menu = e.target.wmsxMenu;
-        if (!menu) return;
-
-        var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
-
-        // Open/close menu with left-click if no modifiers
-        if (modifs === 0 && !e.button) {
-            if (prevActiveMenu !== menu) {
-                showBarMenu(menu);
-                // Set long touch timer only for touchstart event
-                if (e.type === "touchstart") buttonsBarLongTouchStart(e);
-            }
-            return;
-        }
-
-        // Modifier options for left, middle or right click
-        for (var i = 0; i < menu.length; ++i)
-            if (menu[i].clickModif === modifs) {
-                peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
-                return;
-            }
-        // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
-        if (modifs & KEY_SHIFT_MASK) {
-            modifs &= ~KEY_SHIFT_MASK;
-            for (i = 0; i < menu.length; ++i)
-               if (menu[i].clickModif === modifs) {
-                   peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
-                   return;
-               }
-        }
-    }
-
-    function buttonsBarLongTouchStart(e) {
-        buttonsBarLongTouchTarget = e.target;
-        buttonsBarLongTouchSelectDefaultTimeout = window.setTimeout(buttonsBarLongTouchSelectDefault, 400);
-    }
-
-    function buttonsBarLongTouchSelectDefault() {
-        buttonsBarLongTouchSelectDefaultTimeout = null;
-        if (!barMenuActive) return;
-
-        var items = barMenu.wmsxItems;
-        for (var i = 0; i < items.length; ++i) {
-            var option = items[i].wmsxMenuOption;
-            if (option && option.clickModif === 0) {
-                barMenuSetItemActive(items[i]);
-                return;
-            }
-        }
-    }
-
-    function buttonsBarLongTouchMove(e) {
-        var t = e.changedTouches[0];
-        var elem = t && document.elementFromPoint(t.clientX, t.clientY);
-        if (elem !== buttonsBarLongTouchTarget) {
-            buttonsBarLongTouchCancelTimeout();
-            //barMenuSetItemActive(elem && elem.wmsxMenuOption ? elem : null);
-        }
-    }
-
-    function buttonsBarLongTouchEnd(e) {
-        wmsx.Util.blockEvent(e);
-        buttonsBarLongTouchCancelTimeout();
-        if (barMenuItemActive) barMenuFireItemActive(false, false);
-    }
-
-    function buttonsBarLongTouchCancelTimeout() {
-        if (buttonsBarLongTouchSelectDefaultTimeout) {
-            clearTimeout(buttonsBarLongTouchSelectDefaultTimeout);
-            buttonsBarLongTouchSelectDefaultTimeout = null;
-        }
-    }
-
-    function peripheralControlButtonMouseEnter(e) {
-        if (barMenuActive && e.target.wmsxMenu) showBarMenu(e.target.wmsxMenu);
     }
 
     function setupCopyTextArea() {
@@ -1035,7 +1086,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function showBarMenu(menu, select) {
-        if (!menu) return;
+        if (!menu || barMenuActive === menu) return;
 
         if (!barMenu) {
             setupBarMenu();
@@ -1047,7 +1098,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Define items
         refreshBarMenu(menu);
-        barMenuSetItemActive(select ? barMenu.wmsxDefaultItem : null);
+        barMenuItemSetActive(select ? barMenu.wmsxDefaultItem : null);
 
         // Position
         var refElement = menu.wmsxRefElement;
@@ -1160,22 +1211,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         inner.appendChild(title);
         barMenu.wmsxTitle = title;
 
-        var itemMouseEntered = function (e) {
-            if (e.target.wmsxMenuOption) barMenuSetItemActive(e.target);
-        };
-        var itemMouseLeft = function (e) {
-            if (e.target.wmsxMenuOption) barMenuSetItemActive(null);
-        };
-
         barMenu.wmsxItems = new Array(BAR_MENU_MAX_ITEMS);
         for (var i = 0; i < BAR_MENU_MAX_ITEMS; ++i) {
             var item = document.createElement('div');
             item.classList.add("wmsx-bar-menu-item");
             item.style.display = "none";
             item.innerHTML = "Menu Item " + i;
+            item.wmsxBarElementType = 2;     // Menu Item
             item.wmsxItemIndex = i;
-            item.addEventListener("mouseenter", itemMouseEntered);
-            item.addEventListener("mouseleave", itemMouseLeft);
+            item.addEventListener("mouseenter", function (e) { barMenuItemHoverOver(e.target); });
+            item.addEventListener("mouseleave", function (e) { barMenuItemHoverOut(e.target); });
             inner.appendChild(item);
             barMenu.wmsxItems[i] = item;
         }
@@ -1185,7 +1230,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             // Hide
             if (MENU_CLOSE_KEYS[e.keyCode]) hideBarMenu();
             // Execute
-            else if (barMenuItemActive && MENU_EXEC_KEYS[e.keyCode & ~KEY_SHIFT_MASK & ~KEY_CTRL_MASK]) barMenuFireItemActive(e.shiftKey, e.ctrlKey);
+            else if (barMenuItemActive && MENU_EXEC_KEYS[e.keyCode & ~KEY_SHIFT_MASK & ~KEY_CTRL_MASK]) barMenuItemFireActive(e.shiftKey, e.ctrlKey);
             // Select Menu
             else if (MENU_SELECT_KEYS[e.keyCode]) {
                 if (!barMenuActive) return;
@@ -1200,42 +1245,14 @@ wmsx.CanvasDisplay = function(mainElement) {
                 do {
                     newItem = (newItem + items.length + MENU_ITEM_SELECT_KEYS[e.keyCode]) % items.length;
                 } while (--tries >= 0 && !items[newItem].wmsxMenuOption);
-                if (tries >= 0) barMenuSetItemActive(items[newItem]);
+                if (tries >= 0) barMenuItemSetActive(items[newItem]);
             }
-            return wmsx.Util.blockEvent(e);
-        });
-
-        // Block mousedown and touchstart
-        wmsx.Util.addEventsListener(barMenu, "mousedown touchstart", wmsx.Util.blockEvent);
-
-        // Fire on mouseup or touchend
-        wmsx.Util.addEventsListener(barMenu, "mouseup touchend", function(e) {
-            // Only touch, left or middle button
-            if (barMenuItemActive && !(e.button > 1)) barMenuFireItemActive(e.shiftKey, e.button === 1 || e.ctrlKey);
             return wmsx.Util.blockEvent(e);
         });
 
         buttonsBar.appendChild(barMenu);
     }
 
-    var barMenuFireItemActive = function (secSlot, altPower) {
-        var option = barMenuItemActive.wmsxMenuOption;
-        if (option && !option.disabled) {
-            if (option.extension) {
-                extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
-            } else if (option.control) {
-                secSlot |= option.secSlot;
-                closeAllOverlays();
-                peripheralControls.controlActivated(option.control, altPower, secSlot);
-            }
-        }
-    };
-
-    function barMenuSetItemActive(element) {
-        if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
-        barMenuItemActive = element;
-        if (barMenuItemActive) barMenuItemActive.classList.add("wmsx-hover");
-    }
 
     function closePowerOnModals() {
         if (pasteDialog) pasteDialog.hide();
@@ -1464,7 +1481,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var virtualKeyboardElement, virtualKeyboard;
 
     var buttonsBar, buttonsBarInner, buttonsBarDesiredWidth = -1;       // 0 = same as canvas. -1 means full width mode (100%)
-    var buttonsBarLongTouchTarget, buttonsBarLongTouchSelectDefaultTimeout;
+    var barButtonLongTouchTarget, barButtonLongTouchSelectTimeout;
 
     var barMenu;
     var barMenus = [], barMenuActive, barMenuItemActive, barMenuSystem;
