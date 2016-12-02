@@ -8,6 +8,7 @@
 // TODO Internal Donate?
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Review keys on OSX
+// TODO Alts for HOME, INS, DEL
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";

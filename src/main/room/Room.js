@@ -44,7 +44,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     function afterPowerONDelay(func) {
         var wait = WMSX.AUTO_POWER_ON_DELAY;
         if (wait === 0 && WMSXFullScreenSetup.shouldStartInFullScreen()) wait = 2000;   // Wait a bit more
-        wait -=  (Date.now() - roomPowerOnTime);
+        wait -= (Date.now() - roomPowerOnTime);
         if (wait < 1) wait = 1;
         setTimeout(func, wait);
     }

@@ -30,7 +30,7 @@ WMSX.start = function (machinePowerOn) {
     // Prepare ROM Database
     wmsx.ROMDatabase.uncompress();
 
-    // Auto-load BIOS, Expansions, Cartridges, Disks and Tape files if specified and downloadable
+    // Auto-load BIOS, Expansions, State, Cartridges, Disks and Tape files if specified and downloadable
     if (WMSX.STATE_URL) {
         // Machine State loading, Machine will Auto Power on
         new wmsx.MultiDownloader(
@@ -42,7 +42,7 @@ WMSX.start = function (machinePowerOn) {
             }
         ).start();
     } else {
-        // Normal parameters loading. Power Machine on only after all files are loaded and inserted
+        // Normal media loading. Power Machine on only after all files are loaded and inserted
         var slotURLs = wmsx.Configurator.slotURLSpecs();
         var mediaURLs = wmsx.Configurator.mediaURLSpecs();
         var extensionsURLs = wmsx.Configurator.extensionsInitialURLSpecs();
