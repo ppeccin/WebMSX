@@ -254,6 +254,9 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         } else
             joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[newDir + 1];
 
+        // Haptic feedback!
+        if (newDir >= 0 && navigator.vibrate) navigator.vibrate(10);
+
         dirCurrentDir = newDir;
     }
 
@@ -288,6 +291,9 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
             // Keyboard key
             keyboard.processMSXKey(mapping.key, press);
         }
+
+        // Haptic feedback!
+        if (press && navigator.vibrate) navigator.vibrate(10);
     }
 
     function pauseTouchStart(e) {

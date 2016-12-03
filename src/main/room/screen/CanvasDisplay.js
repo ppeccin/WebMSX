@@ -7,6 +7,7 @@
 // TODO MegaRAM
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
+// TODO WakeLock
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -859,6 +860,8 @@ wmsx.CanvasDisplay = function(mainElement) {
                 var option = items[i].wmsxMenuOption;
                 if (option && option.clickModif === 0) {
                     barMenuItemSetActive(items[i]);
+                    // Haptic feedback!
+                    if (navigator.vibrate) navigator.vibrate(10);
                     return;
                 }}
         }, 450);
