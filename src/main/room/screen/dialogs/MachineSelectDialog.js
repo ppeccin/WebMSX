@@ -100,6 +100,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         // Select with tap or mousedown
         wmsx.Util.onEventsOrTapWithBlock(list, "mousedown", function(e) {
             if (e.target.wmsxMachine) {
+                wmsx.Util.hapticFeedbackOnTouch(e);
                 machineSelected = e.target.wmsxMachine;
                 refreshList();
                 setTimeout(hideConfirm, 120);

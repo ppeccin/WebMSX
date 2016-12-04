@@ -91,6 +91,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
     }
 
     function okCancelClicked(e) {
+        wmsx.Util.hapticFeedbackOnTouch(e);
         self.hide(e.target === ok);
     }
 

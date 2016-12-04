@@ -29,7 +29,9 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         WMSX.room.screen.focus();
     };
 
-    this.touchControlDetected = function(control) {
+    this.touchControlDetected = function(control, e) {
+        wmsx.Util.hapticFeedbackOnTouch(e);
+
         editing = control;
         var isDirectional = editing === "T_DIR";
         editingSequence = isDirectional ? dirSequence : buttonSequence;
@@ -124,10 +126,13 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         }
     }
 
-    function modifyControl(inc) {
+    function modifyControl(inc, haptic) {
         if (!editing) return;
         editingSeqIndex += inc;
-        if (editingSeqIndex < 0) editingSeqIndex = 0; else if (editingSeqIndex >= editingSequence.length) editingSeqIndex = editingSequence.length - 1;
+        if (editingSeqIndex < 0) return editingSeqIndex = 0;
+        else if (editingSeqIndex >= editingSequence.length) return editingSeqIndex = editingSequence.length - 1;
+
+        if (haptic) wmsx.Util.hapticFeedback();
         var newMapping = editingSequence[editingSeqIndex];
         if (!(editing === "T_DIR")) newMapping = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
         touchControls.customizeControl(editing, newMapping);
@@ -156,9 +161,10 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
 
     function modifyButtonPressed(e, inc) {
         modifyButtonReleased(e);
-        modifyControl(inc);
+        var touch = e.type === "touchstart";
+        modifyControl(inc, touch);
         modifyKeyTimeout = setTimeout(function repeat() {
-            modifyControl(inc);
+            modifyControl(inc, touch);
             modifyKeyTimeout = setTimeout(repeat, 35);
         }, 400);
     }
@@ -170,6 +176,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
     }
 
     function modeButtonClicked(e) {
+        wmsx.Util.hapticFeedbackOnTouch(e);
         var mode = e.target.wmsxMode;
         var modeNum = mode === "p1" ? 0 : mode === "p2" ? 1 : -2;
         touchControls.setMode(modeNum);

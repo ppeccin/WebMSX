@@ -64,7 +64,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.start = function(startAction) {
         // Show the Install as App message or start automatically
         if (isMobileDevice && !isBrowserStandalone && !isFullscreen) {
-            showLogoMessage('For ' + (fullscreenAPIEnterMethod ? 'the best' : 'a full-screen') + ' experience, use<br>the "Add to Home Screen" function<br>then launch from the Installed App', "NICE", false, function startActionInFullScreen() {
+            showLogoMessage('For ' + (fullscreenAPIEnterMethod ? 'the best' : 'a full-screen') + ' experience, use<br>the "Add to Home Screen" function<br>then launch from the Installed App', "NICE!", false, function startActionInFullScreen() {
                 self.setFullscreen(true);
                 startAction();
             });
@@ -801,7 +801,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (tooltip) but.title = tooltip;
 
         // Mouse hover button
-        but.addEventListener("mouseenter", function(e) { barButtonHoverOver(e.target); });
+        but.addEventListener("mouseenter", function(e) { barButtonHoverOver(e.target, e); });
 
         buttonsBarInner.appendChild(but);
         return but;
@@ -809,6 +809,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function barButtonTapOrMousedown(elem, e) {
         if (logoMessageActive) return;
+
+        wmsx.Util.hapticFeedbackOnTouch(e);
 
         var prevActiveMenu = barMenuActive;
         closeAllOverlays();
@@ -859,9 +861,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             for (var i = 0; i < items.length; ++i) {
                 var option = items[i].wmsxMenuOption;
                 if (option && option.clickModif === 0) {
-                    barMenuItemSetActive(items[i]);
-                    // Haptic feedback!
-                    if (navigator.vibrate) navigator.vibrate(10);
+                    barMenuItemSetActive(items[i], true);
                     return;
                 }}
         }, 450);
@@ -874,8 +874,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function barButtonHoverOver(elem) {
-        if (barMenuActive && elem.wmsxMenu) showBarMenu(elem.wmsxMenu);
+    function barButtonHoverOver(elem, e) {
+        if (barMenuActive && elem.wmsxMenu && barMenuActive !== elem.wmsxMenu ) {
+            wmsx.Util.hapticFeedbackOnTouch(e);
+            showBarMenu(elem.wmsxMenu);
+        }
     }
 
     function barButtonTouchEndOrMouseUp(elem, e) {
@@ -885,11 +888,11 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function barMenuItemTapOrMouseDown(elem, e) {
-        barMenuItemSetActive(elem);
+        barMenuItemSetActive(elem, e.type === "touchstart");
     }
 
-    function barMenuItemHoverOver(elem) {
-        barMenuItemSetActive(elem);
+    function barMenuItemHoverOver(elem, e) {
+        barMenuItemSetActive(elem, e.type === "touchmove");
     }
 
     function barMenuItemHoverOut(elem) {
@@ -915,11 +918,14 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function barMenuItemSetActive(element) {
+    function barMenuItemSetActive(element, haptic) {
         if (element === barMenuItemActive) return;
         if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
         barMenuItemActive = element;
-        if (barMenuItemActive) barMenuItemActive.classList.add("wmsx-hover");
+        if (barMenuItemActive && barMenuItemActive.wmsxMenuOption) {
+            if (haptic) wmsx.Util.hapticFeedback();
+            barMenuItemActive.classList.add("wmsx-hover");
+        }
     }
 
     function barElementTapOrMouseDown(e) {
@@ -935,8 +941,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         var elem = t && document.elementFromPoint(t.clientX, t.clientY);
         if (barButtonLongTouchTarget && elem !== barButtonLongTouchTarget) barButtonLongTouchCancel();
         if (elem.wmsxBarElementType !== 2 && elem !== barButtonLongTouchTarget) barMenuItemSetActive(null);
-        if (elem.wmsxBarElementType === 1) barButtonHoverOver(elem);
-        else if (elem.wmsxBarElementType === 2) barMenuItemHoverOver(elem);
+        if (elem.wmsxBarElementType === 1) barButtonHoverOver(elem, e);
+        else if (elem.wmsxBarElementType === 2) barMenuItemHoverOver(elem, e);
 
     }
 
@@ -1105,7 +1111,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Position
         var refElement = menu.wmsxRefElement;
-        var p = (refElement && (refElement.offsetLeft - 6)) || 0;
+        var p = (refElement && (refElement.offsetLeft - 15)) || 0;
         if (p + wmsx.ScreenGUI.BAR_MENU_WIDTH > refElement.parentElement.clientWidth) {
             barMenu.style.right = 0;
             barMenu.style.left = "auto";
@@ -1222,7 +1228,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             item.innerHTML = "Menu Item " + i;
             item.wmsxBarElementType = 2;     // Menu Item
             item.wmsxItemIndex = i;
-            item.addEventListener("mouseenter", function (e) { barMenuItemHoverOver(e.target); });
+            item.addEventListener("mouseenter", function (e) { barMenuItemHoverOver(e.target, e); });
             item.addEventListener("mouseleave", function (e) { barMenuItemHoverOut(e.target); });
             inner.appendChild(item);
             barMenu.wmsxItems[i] = item;
@@ -1287,7 +1293,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         updateLogo();
     }
 
-    function closeLogoMessage() {
+    function closeLogoMessage(e) {
+        wmsx.Util.hapticFeedbackOnTouch(e);
         fsElement.classList.remove("wmsx-logo-message-active");
         logoMessageActive = false;
         if (afterMessageAction) {

@@ -109,6 +109,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         // Select with tap or mousedown (UIG)
         wmsx.Util.onEventsOrTapWithBlockUIG(list, "mousedown", function(e) {
             if (e.target.wmsxSlot !== undefined) {
+                wmsx.Util.hapticFeedbackOnTouch(e);
                 slotSelected = e.target.wmsxSlot;
                 refreshList();
                 setTimeout(hideConfirm, 120);
