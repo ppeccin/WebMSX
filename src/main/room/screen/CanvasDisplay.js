@@ -8,6 +8,8 @@
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
 // TODO Haptic Feedback in preferences
+// TODO Dialog titles uniformization
+// TODO OSD scale
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -99,8 +101,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.mousePointerLocked = function(state) {
         mousePointerLocked = state;
-        if (mousePointerLocked) hideBar();
-        else showBar();
+        if (mousePointerLocked) hideCursorAndBar();
+        else showCursorAndBar();
     };
 
     this.openHelp = function() {
@@ -397,7 +399,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.mouseActiveCursorStateUpdate = function(boo) {
         cursorType = boo ? 'url("' + wmsx.Images.urls.mouseCursor + '"), auto' : "auto";
-        showCursorAndBar(true);
+        fsElement.style.cursor = cursorShowing ? cursorType : "none";
+        showCursorAndBar();
     };
 
     this.touchControlsActiveUpdate = function(active) {
@@ -437,8 +440,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (!isTouchDevice) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
             if (!virtualKeyboardElement) setupVirtualKeyboard();
         }
+        showCursorAndBar(true);
         document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", active);
-
         virtualKeyboardActive = active;
         self.requestReadjust(true);
     }
@@ -448,22 +451,28 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function hideCursorAndBar() {
-        cursorShowing = false;
-        updateCursor();
+        hideCursor();
         hideBar();
     }
 
-    function showCursorAndBar(force) {
-        if (!cursorShowing || force) {
-            cursorShowing = true;
-            updateCursor();
-        }
-        if (!mousePointerLocked) showBar();
+    function showCursorAndBar(forceBar) {
+        showCursor();
+        if (forceBar || !mousePointerLocked) showBar();
         cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
     }
 
-    function updateCursor() {
-        fsElement.style.cursor = cursorShowing ? cursorType : "none";
+    function showCursor() {
+        if (!cursorShowing) {
+            fsElement.style.cursor = cursorType;
+            cursorShowing = true;
+        }
+    }
+
+    function hideCursor() {
+        if (cursorShowing) {
+            fsElement.style.cursor = "none";
+            cursorShowing = false;
+        }
     }
 
     function fullscreenByAPIChanged() {
@@ -643,12 +652,16 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMainEvents() {
-        fsElement.addEventListener("mousemove", showCursorAndBar);
+        fsElement.addEventListener("mousemove", function showCursorOnMouseMove(e) {
+            showCursorAndBar();
+        });
 
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
         window.addEventListener("orientationchange", function orientationChanged() {
+            closeAllOverlays();
+            showCursorAndBar();
             self.requestReadjust();
         });
 
@@ -1124,7 +1137,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         // Show
-        showBar();
+        showCursorAndBar(true);
         barMenuActive = menu;
         barMenu.style.display = "inline-block";
         barMenu.wmsxTitle.focus();

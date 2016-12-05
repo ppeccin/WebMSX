@@ -44,6 +44,7 @@ wmsx.Machine = function() {
         if (rtc) rtc.powerOff();
         if (syf) syf.powerOff();
         bus.powerOff();
+        controllersSocket.resetControllers();
         this.powerIsOn = false;
         if (userPaused) this.userPause(false);
         else machineControlsSocket.firePowerAndUserPauseStateUpdate();

@@ -150,6 +150,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
             if (e.target.wmsxControlItem) {
                 peripheralControls.controlActivated(e.target.wmsxControlItem.control, true);
+                wmsx.Util.hapticFeedbackOnTouch(e);
                 refreshOptions();
             } else
                 dialog.focus();

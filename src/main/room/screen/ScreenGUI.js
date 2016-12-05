@@ -909,7 +909,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     overflow: hidden;
     height: 26px;
     font-size: 14px;
-    line-height: 25px;
+    line-height: 26px;
     text-overflow: ellipsis;
     white-space: nowrap;
     box-sizing: border-box;
@@ -918,6 +918,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     float: right;
     width: 86px;
     font-size: 15px;
+    line-height: 25px;
     color: hsl(0, 0%, 70%);
     background: black;
     text-align: center;
@@ -1072,7 +1073,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     margin-top: 11px;
 }
 #wmsx-touch-config .wmsx-control {
-    width: 63px;
+    width: 62px;
 }
 
 
