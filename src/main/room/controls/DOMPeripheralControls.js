@@ -202,9 +202,11 @@ wmsx.DOMPeripheralControls = function() {
             case controls.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
             case controls.TOUCH_TOGGLE_MODE:
-                controllersHub.toggleTouchControlsMode(); break;
+                controllersHub.toggleTouchControlsMode(altPower); break;       // altPower for skip auto option
             case controls.TURBO_FIRE_TOGGLE:
                 controllersHub.toggleTurboFireSpeed(); break;
+            case controls.HAPTIC_FEEDBACK_TOGGLE_MODE:
+                controllersHub.toggleHapticFeedback(); break;
             case controls.COPY_STRING:
                 screen.executeTextCopy(); break;
             case controls.PASTE_STRING:

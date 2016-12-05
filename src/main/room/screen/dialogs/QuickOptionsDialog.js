@@ -30,8 +30,8 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
             var report = item.peripheral ? peripheralControls.getControlReport(item.control) : machineControls.getControlReport(item.control);
             item.value = report.label;
             item.selected = report.active;
-            listItems[i].innerHTML = item.value;
-            listItems[i].classList.toggle("wmsx-selected", !!item.selected);
+            controlsItems[i].innerHTML = item.value;
+            controlsItems[i].classList.toggle("wmsx-selected", !!item.selected);
         }
     }
 
@@ -51,22 +51,23 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         ];
 
         // Define list
-        var labels = document.createElement('ul');
-        var controls = document.createElement('ul');
+        var list = document.createElement('ul');
+        list.classList.add("wmsx-quick-options-list");
 
         for (var i = 0; i < items.length; ++i) {
             var li = document.createElement("li");
-            li.innerHTML = items[i].label;
-            labels.appendChild(li);
-            li = document.createElement("li");
-            li.wmsxItem = i;
-            li.classList.add("wmsx-control");
-            listItems.push(li);
-            controls.appendChild(li);
+            var label = document.createElement("div");
+            label.innerHTML = items[i].label;
+            li.appendChild(label);
+            var control = document.createElement("div");
+            control.classList.add("wmsx-control");
+            control.wmsxControlItem = items[i];
+            li.appendChild(control);
+            list.appendChild(li);
+            controlsItems.push(control);
         }
 
-        dialog.appendChild(labels);
-        dialog.appendChild(controls);
+        dialog.appendChild(list);
 
         setupEvents();
 
@@ -74,12 +75,17 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
     }
 
     function setupEvents() {
-        // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
-
-        // Click or Tap on options
-        for (var i = 0; i < items.length; ++i)
-            wmsx.Util.onEventsOrTapWithBlock(listItems[i], "mousedown", controlClicked);
+        // Do not close with taps or clicks inside, select with tap or mousedown
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
+            if(e.target.wmsxControlItem) {
+                wmsx.Util.hapticFeedbackOnTouch(e);
+                var item = e.target.wmsxControlItem;
+                if (item.peripheral) peripheralControls.controlActivated(item.control, false, false);
+                else machineControls.controlStateChanged(item.control, true);
+                refresh();
+            } else
+                dialog.focus();
+        });
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
@@ -89,18 +95,10 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         });
     }
 
-    function controlClicked(e) {
-        wmsx.Util.hapticFeedbackOnTouch(e);
-        var item = items[e.target.wmsxItem];
-        if (item.peripheral) peripheralControls.controlActivated(item.control, false, false);
-        else machineControls.controlStateChanged(item.control, true);
-        refresh();
-    }
-
 
     var visible = false;
     var dialog, list;
-    var items, listItems = [];
+    var items, controlsItems = [];
 
     var k = wmsx.DOMKeys;
     var EXIT_KEYS = [ k.VK_ESCAPE.c, k.VK_ENTER.c, k.VK_SPACE.c ];

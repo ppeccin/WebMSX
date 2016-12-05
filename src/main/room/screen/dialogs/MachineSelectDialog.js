@@ -45,7 +45,6 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         dialog.id = "wmsx-machineselect";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
-        dialog.style.height = "346px";
         dialog.tabIndex = -1;
 
         var header = document.createTextNode("Select Machine");
@@ -54,6 +53,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         // Define list
         list = document.createElement('ul');
         list.style.width = "80%";
+        var height = 45;
 
         for (var i = 0; i < machines.length; ++i) {
             if (!WMSX.MACHINES_CONFIG[machines[i]].type) continue;       // Exclude EMPTY and AUTO options from list
@@ -64,7 +64,9 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
             li.wmsxMachine = machines[i];
             listItems.push(li);
             list.appendChild(li);
+            height += 33;
         }
+        dialog.style.height = "" + height + "px";
         dialog.appendChild(list);
 
         setupEvents();
@@ -76,8 +78,17 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         function hideAbort()   { self.hide(false); }
         function hideConfirm() { self.hide(true); }
 
-        // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
+        // Do not close with taps or clicks inside, select with tap or mousedown
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
+            if (e.target.wmsxMachine) {
+                wmsx.Util.hapticFeedbackOnTouch(e);
+                machineSelected = e.target.wmsxMachine;
+                refreshList();
+                setTimeout(hideConfirm, 120);
+            } else
+                dialog.focus();
+            return false;
+        });
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
@@ -95,17 +106,6 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
                 }
             }
             return wmsx.Util.blockEvent(e);
-        });
-
-        // Select with tap or mousedown
-        wmsx.Util.onEventsOrTapWithBlock(list, "mousedown", function(e) {
-            if (e.target.wmsxMachine) {
-                wmsx.Util.hapticFeedbackOnTouch(e);
-                machineSelected = e.target.wmsxMachine;
-                refreshList();
-                setTimeout(hideConfirm, 120);
-            }
-            return false;
         });
     }
 

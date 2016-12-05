@@ -59,11 +59,14 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
     }
 
     function setupEvents() {
-        // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
-
-        wmsx.Util.onEventsOrTapWithBlock(ok, "mousedown", okCancelClicked);
-        wmsx.Util.onEventsOrTapWithBlock(cancel, "mousedown", okCancelClicked);
+        // Do not close with taps or clicks inside, finish with ok or cancel button
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
+            if (e.target === ok || e.target === cancel) {
+                wmsx.Util.hapticFeedbackOnTouch(e);
+                self.hide(e.target === ok);
+            } else
+                dialog.focus();
+        });
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
@@ -84,15 +87,10 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
         input.addEventListener("contextmenu", function stopContextMenu(e) {
             e.stopPropagation();
         });
-        // Allow mouse selection in input
+        // Allow selection in input
         wmsx.Util.addEventsListener(input, "touchstart touchmove touchend mousedown mousemove mouseup", function stopContextMenu(e) {
             e.stopPropagation();
         });
-    }
-
-    function okCancelClicked(e) {
-        wmsx.Util.hapticFeedbackOnTouch(e);
-        self.hide(e.target === ok);
     }
 
 

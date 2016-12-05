@@ -7,7 +7,7 @@
 // TODO MegaRAM
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
-// TODO WakeLock
+// TODO Haptic Feedback in preferences
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -140,7 +140,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.openTouchConfigDialog = function() {
         closeAllOverlays();
         if (virtualKeyboardActive) setVirtualKeyboard(false);
-        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub);
+        if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub, peripheralControls);
         touchConfigDialog.show();
     };
 

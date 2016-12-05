@@ -44,13 +44,15 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         if (turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
-    this.toggleMode = function() {
+    this.toggleMode = function(skipAuto) {
         if (!isTouchDevice) {
             hub.showErrorMessage("Touch Controls unavailable. Not a touch device!");
             return;
         }
 
-        this.setMode(mode < 1 ? mode + 1 : -2);
+        var newMode = skipAuto ? (port === 0 ? 1 : mode === -2 ? 0 : mode + 1 ) : mode + 1;
+        if (newMode > 1) newMode = -2;
+        this.setMode(newMode);
         hub.showStatusMessage("Touch Controls " + this.getModeDesc());
     };
 

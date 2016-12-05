@@ -95,8 +95,13 @@ wmsx.ControllersHub = function(keyForwardControls) {
         mouseControls.toggleMode();
     };
 
-    this.toggleTouchControlsMode = function() {
-        touchControls.toggleMode();
+    this.toggleTouchControlsMode = function(skipAuto) {
+        touchControls.toggleMode(skipAuto);
+    };
+
+    this.toggleHapticFeedback = function() {
+        if (navigator.vibrate) wmsx.Util.hapticFeedbackEnabled ^= 1;
+        else this.showErrorMessage("Haptic Feedback not available");
     };
 
     this.toggleTurboFireSpeed = function() {

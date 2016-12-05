@@ -892,15 +892,58 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
+
+.wmsx-quick-options-list {
+    margin-top: 16px;
+    padding: 0;
+    list-style: none;
+    color: hsl(0, 0%, 88%);
+}
+.wmsx-quick-options-list li {
+    margin-top: 9px;
+    line-height: 1px;
+    text-align: left;
+}
+.wmsx-quick-options-list li div {
+    display: inline-block;
+    overflow: hidden;
+    height: 26px;
+    font-size: 14px;
+    line-height: 25px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+.wmsx-quick-options-list .wmsx-control {
+    float: right;
+    width: 86px;
+    font-size: 15px;
+    color: hsl(0, 0%, 70%);
+    background: black;
+    text-align: center;
+    cursor: pointer;
+}
+.wmsx-quick-options-list .wmsx-control.wmsx-selected {
+    color: white;
+    background: hsl(358, 67%, 46%);
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+}
+.wmsx-quick-options-list .wmsx-control.wmsx-selected.wmsx-inactive {
+    line-height: 21px;
+    border: 2px dashed hsl(358, 67%, 46%);
+    background: black;
+}
+
+
 #wmsx-quick-options {
     display: none;
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 220px;
+    width: 188px;
     height: 182px;
     margin: auto;
-    padding: 14px 0 0;
+    padding: 14px 16px 0;
     color: white;
     font-size: 18px;
     line-height: 22px;
@@ -923,58 +966,22 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
-#wmsx-quick-options ul {
-    display: inline-block;
-    width: 86px;
-    margin: 7px auto;
-    padding: 0;
-    list-style: none;
-    font-size: 14px;
-    color: hsl(0, 0%, 88%);
-}
-#wmsx-quick-options ul:first-child {
-    width: 102px;
-}
-#wmsx-quick-options li {
-    overflow: hidden;
-    height: 26px;
-    margin: 9px 0;
-    padding: 4px 0;
-    line-height: 18px;
-    text-align: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    box-sizing: border-box;
-}
-#wmsx-quick-options li.wmsx-control {
-    font-size: 15px;
-    color: hsl(0, 0%, 70%);
-    background: black;
-    text-align: center;
-    cursor: pointer;
-}
-#wmsx-quick-options li.wmsx-control.wmsx-selected {
-    color: white;
-    background: hsl(358, 67%, 46%);
-    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
-}
-
 #wmsx-touch-config {
     display: none;
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 220px;
-    height: 164px;
+    height: 212px;
     margin: auto;
-    padding: 15px 0 0;
+    padding: 0 16px;
     color: white;
     font-size: 18px;
     line-height: 22px;
     background: hsl(0, 0%, 16%);
     text-align: center;
     border: 1px solid black;
-    box-sizing: initial;
+    box-sizing: border-box;
     text-shadow: 1px 1px 1px black;
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
     -webkit-font-smoothing: antialiased;
@@ -987,14 +994,17 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 }
 #wmsx-touch-config::after {
     content: "Tap Control to Setup";
+    position: absolute;
+    display: block;
+    top: 14px;
+    left: 0;
+    width: 100%;
 }
 #wmsx-touch-config::before {
     content: "";
-    position: absolute;
-    top: 50px;
-    left: 12px;
-    width: 196px;
-    height: 80px;
+    display: block;
+    margin-top: 50px;
+    height: 76px;
     background: black;
 }
 
@@ -1002,20 +1012,20 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     position: absolute;
     top: 50px;
     width: 60px;
-    height: 80px;
+    height: 76px;
     cursor: pointer;
 }
 #wmsx-touch-config-minus {
-    left: 12px;
+    left: 16px;
 }
 #wmsx-touch-config-plus {
-    right: 12px;
+    right: 16px;
 }
 
 #wmsx-touch-config-minus::after, #wmsx-touch-config-plus::after {
     content: "";
     position: absolute;
-    top: 27px;
+    top: 26px;
     border: 12px solid transparent;
 }
 #wmsx-touch-config-minus::after {
@@ -1033,45 +1043,10 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     border-left-color: hsl(0, 0%, 40%);
 }
 
-#wmsx-touch-config-p1, #wmsx-touch-config-p2, #wmsx-touch-config-off {
-    position: absolute;
-    bottom: 12px;
-    width: 57px;
-    height: 26px;
-    font-size: 15px;
-    line-height: 22px;
-    color: hsl(0, 0%, 70%);
-    background: black;
-    border: 2px solid transparent;
-    box-sizing: border-box;
-    cursor: pointer;
-}
-#wmsx-touch-config-p1 {
-    left: 12px;
-}
-#wmsx-touch-config-p2 {
-    left: 81px;
-}
-#wmsx-touch-config-off {
-    right: 12px;
-    width: 58px;
-}
-#wmsx-touch-config-p1.wmsx-selected, #wmsx-touch-config-p2.wmsx-selected, #wmsx-touch-config-off.wmsx-selected {
-    color: white;
-    text-shadow: 1px 1px 1px black;
-    background: hsl(358, 67%, 46%);
-    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
-}
-#wmsx-touch-config-p1.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-p2.wmsx-selected.wmsx-selected-inactive, #wmsx-touch-config-off.wmsx-selected.wmsx-selected-inactive {
-    border: 2px dashed hsl(358, 67%, 46%);
-    background: black;
-    box-shadow: none;
-}
-
 #wmsx-touch-config-dir {
     display: none;
     position: absolute;
-    top: 25px;
+    top: 24px;
     left: 45px;
     transform: scale(.75);
 }
@@ -1085,13 +1060,21 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-touch-config-button {
     display: none;
     position: absolute;
-    top: 55px;
+    top: 54px;
     left: 74px;
     text-shadow: none;
 }
 #wmsx-touch-config-button.wmsx-show {
     display: block;
 }
+
+#wmsx-touch-config .wmsx-quick-options-list {
+    margin-top: 11px;
+}
+#wmsx-touch-config .wmsx-control {
+    width: 63px;
+}
+
 
 #wmsx-touch-left, #wmsx-touch-right {
     display: none;

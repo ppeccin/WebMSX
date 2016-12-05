@@ -42,8 +42,6 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
 
     function refreshList() {
         header.textContent = "Select Slot to " + (save ? "Save" : "Load");
-        var height = 49 + 10 * 33;
-        dialog.style.height = "" + height + "px";
         var prefix = save ? "Save to " : "Load from ";
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
@@ -57,7 +55,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         dialog.id = "wmsx-savestate";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
-        dialog.style.height = "340px";
+        dialog.style.height = "" + (45 + 11 * 33) + "px";
         dialog.tabIndex = -1;
 
         header = document.createTextNode("Select Slot");
@@ -91,6 +89,16 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         // Do not close with taps or clicks inside
         wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
 
+        // Select with tap or mousedown (UIG)
+        wmsx.Util.onEventsOrTapWithBlockUIG(dialog, "mousedown", function(e) {
+            if (e.target.wmsxSlot >= 0) {
+                wmsx.Util.hapticFeedbackOnTouch(e);
+                slotSelected = e.target.wmsxSlot;
+                refreshList();
+                setTimeout(hideConfirm, 120);
+            }
+        });
+
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             // Abort
@@ -104,16 +112,6 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
                 refreshList();
             }
             return wmsx.Util.blockEvent(e);
-        });
-
-        // Select with tap or mousedown (UIG)
-        wmsx.Util.onEventsOrTapWithBlockUIG(list, "mousedown", function(e) {
-            if (e.target.wmsxSlot !== undefined) {
-                wmsx.Util.hapticFeedbackOnTouch(e);
-                slotSelected = e.target.wmsxSlot;
-                refreshList();
-                setTimeout(hideConfirm, 120);
-            }
         });
     }
 
@@ -138,6 +136,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         { d: "Slot 7", load: c.LOAD_STATE_7,            save: c.SAVE_STATE_7 },
         { d: "Slot 8", load: c.LOAD_STATE_8,            save: c.SAVE_STATE_8 },
         { d: "Slot 9", load: c.LOAD_STATE_9,            save: c.SAVE_STATE_9 },
+        { d: "Slot 10", load: c.LOAD_STATE_10,          save: c.SAVE_STATE_10 },
         { d: "File",   load: p.MACHINE_LOAD_STATE_FILE, save: p.MACHINE_SAVE_STATE_FILE, peripheral: true }
     ];
 

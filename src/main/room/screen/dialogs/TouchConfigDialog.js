@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
+wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, peripheralControls) {
     "use strict";
 
     var self = this;
@@ -17,7 +17,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         editing = editingSequence = null; editingSeqIndex = -1;
         touchControls.startTouchDetection(self);
         refresh();
-        refreshMode();
+        refreshOptions();
     };
 
     this.hide = function() {
@@ -45,7 +45,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
     };
 
     this.controllersSettingsStateUpdate = function() {
-        if (visible) refreshMode();
+        if (visible) refreshOptions();
     };
 
     function refresh() {
@@ -62,22 +62,17 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         plus.classList.toggle("wmsx-disabled", !editingSequence || editingSeqIndex >= editingSequence.length - 1);
     }
 
-    function refreshMode() {
-        p1.classList.remove("wmsx-selected");
-        p2.classList.remove("wmsx-selected");
-        off.classList.remove("wmsx-selected");
-
+    function refreshOptions() {
         var state = controllersHub.getSettingsState();
         var port = state.touchPortSet;
+        var active = state.touchActive;
 
-        if (port >= 0) {
-            var butPort = port === 1 ? p2 : p1;
-            butPort.classList.add("wmsx-selected");
-            var active = state.touchActive;   // Really active at port
-            butPort.classList.toggle("wmsx-selected-inactive", !active);
-            off.classList.toggle("wmsx-selected", !active);
-        } else
-            off.classList.add("wmsx-selected");
+        optionsItems[0].innerHTML = port === 0 ? "Port 1" : port === 1 ? "Port 2" : "OFF";
+        optionsItems[0].classList.toggle("wmsx-selected", port >= 0);
+        optionsItems[0].classList.toggle("wmsx-inactive", !active);
+
+        optionsItems[1].innerHTML = wmsx.Util.hapticFeedbackEnabled ? "ON" : "OFF";
+        optionsItems[1].classList.toggle("wmsx-selected", wmsx.Util.hapticFeedbackEnabled);
     }
 
     function create() {
@@ -99,9 +94,29 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         button = wmsx.DOMTouchControls.createButton("wmsx-touch-config-button");
         dialog.appendChild(button);
 
-        p1 =  createModeButton("p1");
-        p2 =  createModeButton("p2");
-        off = createModeButton("off");
+        // Options and modes
+        var items = [
+            { label: "Touch Controller", control: wmsx.PeripheralControls.TOUCH_TOGGLE_MODE },
+            { label: "Haptic Feedback",  control: wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE }
+        ];
+
+        // Define list
+        var list = document.createElement('ul');
+        list.classList.add("wmsx-quick-options-list");
+
+        for (var i = 0; i < items.length; ++i) {
+            var li = document.createElement("li");
+            var label = document.createElement("div");
+            label.innerHTML = items[i].label;
+            li.appendChild(label);
+            var control = document.createElement("div");
+            control.classList.add("wmsx-control");
+            control.wmsxControlItem = items[i];
+            li.appendChild(control);
+            list.appendChild(li);
+            optionsItems.push(control);
+        }
+        dialog.appendChild(list);
 
         setupEvents();
 
@@ -115,15 +130,6 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         buttonSequence.push(wmsx.JoystickButtons.J_AB.button);
         for (var k in wmsx.KeyboardKeys) buttonSequence.push(k);
 
-        function createModeButton(mode) {
-            var but = document.createElement('div');
-            but.id = "wmsx-touch-config-" + mode;
-            but.innerHTML = mode.toUpperCase();
-            but.wmsxMode = mode;
-            wmsx.Util.onEventsOrTapWithBlock(but,"mousedown", modeButtonClicked);
-            dialog.appendChild(but);
-            return but;
-        }
     }
 
     function modifyControl(inc, haptic) {
@@ -140,8 +146,14 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
     }
 
     function setupEvents() {
-        // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
+        // Do not close with taps or clicks inside, select options buttons
+        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
+            if (e.target.wmsxControlItem) {
+                peripheralControls.controlActivated(e.target.wmsxControlItem.control, true);
+                refreshOptions();
+            } else
+                dialog.focus();
+        });
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
@@ -175,16 +187,10 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub) {
         if (modifyKeyTimeout) clearTimeout(modifyKeyTimeout);
     }
 
-    function modeButtonClicked(e) {
-        wmsx.Util.hapticFeedbackOnTouch(e);
-        var mode = e.target.wmsxMode;
-        var modeNum = mode === "p1" ? 0 : mode === "p2" ? 1 : -2;
-        touchControls.setMode(modeNum);
-    }
-
 
     var visible = false;
-    var dialog, directional, button, minus, plus, p1, p2, off;
+    var dialog, directional, button, minus, plus;
+    var optionsItems = [];
 
     var editing, editingSequence, editingSeqIndex;
     var modifyKeyTimeout;
