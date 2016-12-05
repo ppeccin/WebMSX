@@ -55,7 +55,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         dialog.id = "wmsx-savestate";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
-        dialog.style.height = "" + (45 + 11 * 33) + "px";
+        dialog.style.height = "" + (43 + 11 * 33) + "px";
         dialog.tabIndex = -1;
 
         header = document.createTextNode("Select Slot");

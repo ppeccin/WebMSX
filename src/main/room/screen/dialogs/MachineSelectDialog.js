@@ -53,7 +53,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         // Define list
         list = document.createElement('ul');
         list.style.width = "80%";
-        var height = 45;
+        var height = 43;
 
         for (var i = 0; i < machines.length; ++i) {
             if (!WMSX.MACHINES_CONFIG[machines[i]].type) continue;       // Exclude EMPTY and AUTO options from list

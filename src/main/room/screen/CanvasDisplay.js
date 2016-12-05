@@ -3,13 +3,10 @@
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Save file on iOS
-// TODO Narrow Virtual Keyboard
 // TODO MegaRAM
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
 // TODO Haptic Feedback in preferences
-// TODO Dialog titles uniformization
-// TODO OSD scale
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -141,14 +138,14 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.openTouchConfigDialog = function() {
         closeAllOverlays();
-        if (virtualKeyboardActive) setVirtualKeyboard(false);
+        if (virtualKeyboardMode) setVirtualKeyboard(0);
         if (!touchConfigDialog) touchConfigDialog = new wmsx.TouchConfigDialog(fsElement, canvasOuter, controllersHub, peripheralControls);
         touchConfigDialog.show();
     };
 
     this.openQuickOptionsDialog = function() {
         closeAllOverlays();
-        if (virtualKeyboardActive) setVirtualKeyboard(false);
+        if (virtualKeyboardMode) setVirtualKeyboard(0);
         if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(canvasOuter, machineControlsSocket, peripheralControls);
         quickOtionsDialog.show();
     };
@@ -191,7 +188,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.toggleTextEntryDialog = function() {
         if (!signalIsOn) return this.showOSD("Text Entry only available when Power is ON!", true, true);
 
-        if (virtualKeyboardActive) setVirtualKeyboard(false);
+        if (virtualKeyboardMode) setVirtualKeyboard(0);
         if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElementCenter, this, controllersHub.getKeyboard());
         textEntryDialog.toggle();
         return false;
@@ -206,7 +203,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.toggleVirtualKeyboard = function() {
-        setVirtualKeyboard(!virtualKeyboardActive);
+        setVirtualKeyboard((virtualKeyboardMode + 1) % 3);
     };
 
     this.getScreenCapture = function() {
@@ -266,6 +263,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         osd.style.top = "15px";
         osd.style.opacity = 1;
         osdShowing = true;
+
+        var availWidth = canvasOuter.clientWidth - 30;      //  message width - borders
+        var width = osd.clientWidth;
+        var scale = width < availWidth ? 1 : availWidth / width;
+        osd.style.transform = "scale(" + scale.toFixed(4) + ")";
+
         osdTimeout = setTimeout(hideOSD, OSD_TIME);
     };
 
@@ -433,16 +436,17 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-    function setVirtualKeyboard(active) {
-        if (virtualKeyboardActive === active) return;
+    function setVirtualKeyboard(mode) {
+        if (virtualKeyboardMode === mode) return;
 
-        if (active) {
+        if (mode) {
             if (!isTouchDevice) return self.showOSD("Virtual Keyboard unavailable. Not a touch device!", true, true);
             if (!virtualKeyboardElement) setupVirtualKeyboard();
+            virtualKeyboardElement.classList.toggle("wmsx-keyboard-narrow", mode == 2);
         }
         showCursorAndBar(true);
-        document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", active);
-        virtualKeyboardActive = active;
+        document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", !!mode);
+        virtualKeyboardMode = mode;
         self.requestReadjust(true);
     }
 
@@ -520,10 +524,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function updateKeyboardWidth(maxWidth) {
-        var width = Math.min(1024, maxWidth);       // Limit to 1024px
-        var scale = width / VIRTUAL_KEYBOARD_WIDTH;
+        var availWidth = Math.min(1024, maxWidth);       // Limit to 1024px
+        var width = virtualKeyboardMode === 1 ? VIRTUAL_KEYBOARD_WIDE_WIDTH : VIRTUAL_KEYBOARD_NARROW_WIDTH;
+        var scale = availWidth / width;
+        virtualKeyboardElement.style.width = "" + width + "px";
         virtualKeyboardElement.style.transform = "translateX(-50%) scale(" + scale.toFixed(8) + ")";
-        return { w: width, h: Math.ceil(VIRTUAL_KEYBOARD_HEIGHT * scale) };
+        return { w: availWidth, h: Math.ceil(VIRTUAL_KEYBOARD_HEIGHT * scale) };
     }
 
     function updateCanvasContentSize() {
@@ -1101,7 +1107,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function hideBar() {
-        if ((BAR_AUTO_HIDE || isFullscreen) && !barMenuActive && !virtualKeyboardActive) {
+        if ((BAR_AUTO_HIDE || isFullscreen) && !barMenuActive && !virtualKeyboardMode) {
             hideBarMenu();
             buttonsBar.classList.add("wmsx-hidden");
         }
@@ -1342,11 +1348,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (readjustScreeSizeChanged(force)) {
             if (isFullscreen) {
                 var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
-                var keyboardRect = virtualKeyboardActive && updateKeyboardWidth(readjustScreenSize.wk);
-                buttonsBarDesiredWidth = isLandscape ? virtualKeyboardActive ? keyboardRect.w : 0 : -1;
+                var keyboardRect = virtualKeyboardMode && updateKeyboardWidth(readjustScreenSize.wk);
+                buttonsBarDesiredWidth = isLandscape ? virtualKeyboardMode ? keyboardRect.w : 0 : -1;
                 var winH = readjustScreenSize.h;
-                if (!isLandscape || virtualKeyboardActive) winH -= wmsx.ScreenGUI.BAR_HEIGHT + 2;
-                if (virtualKeyboardActive) winH -= keyboardRect.h + 2;
+                if (!isLandscape || virtualKeyboardMode) winH -= wmsx.ScreenGUI.BAR_HEIGHT + 2;
+                if (virtualKeyboardMode) winH -= keyboardRect.h + 2;
                 monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
@@ -1500,7 +1506,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasImageRenderingValue;
 
     var touchControlsActive = false;
-    var virtualKeyboardActive = false;
+    var virtualKeyboardMode = 0;
     var virtualKeyboardElement, virtualKeyboard;
 
     var buttonsBar, buttonsBarInner, buttonsBarDesiredWidth = -1;       // 0 = same as canvas. -1 means full width mode (100%)
@@ -1560,7 +1566,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 0;
     var BAR_MENU_MAX_ITEMS = Math.max(6, Object.keys(WMSX.EXTENSIONS_CONFIG).length) + 1 + 5;
 
-    var VIRTUAL_KEYBOARD_WIDTH = 518, VIRTUAL_KEYBOARD_HEIGHT = 161;
+    var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
     var NARROW_WIDTH = 450;
 

@@ -28,7 +28,7 @@ wmsx.VirtualKeyboard = {
                     var keyID = row[c];
                     var keyName = "wmsx-keyboard-" + keyID.toLowerCase();
                     var keyElement = document.createElement("div");
-                    if (s !== "arrows") {
+                    if (!this.byCSSKeys.has(keyID)) {
                         var w = this.keyWidth[keyID] || this.sectionKeyWidth[s];
                         keyElement.style.width = "" + w + "px";
                         keyElement.style.left = "" + keyX + "px";
@@ -118,6 +118,8 @@ wmsx.VirtualKeyboard = {
         STP: "STOP", HOM: "HOME", CTR: "CTRL", SHF: "SHIFT", CAP: "CAPS", SPC: "SPACE", GRA: "GRAPH", COD: "CODE", DED: "DEAD"
     },
 
-    blankKeys: new Set([ "ENTER_X1", "ENTER_X2", "UP", "DOWN", "LEFT", "RIGHT" ])
+    blankKeys: new Set([ "ENTER_X1", "ENTER_X2", "UP", "DOWN", "LEFT", "RIGHT" ]),
+
+    byCSSKeys: new Set([ "SPACE", "CODE", "DEAD", "UP", "DOWN", "LEFT", "RIGHT" ])
 
 };
