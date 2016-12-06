@@ -78,7 +78,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         // Do not close with taps or clicks inside, select with tap or mousedown
         wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
             if(e.target.wmsxControlItem) {
-                wmsx.Util.hapticFeedbackOnTouch(e);
+                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 var item = e.target.wmsxControlItem;
                 if (item.peripheral) peripheralControls.controlActivated(item.control, false, false);
                 else machineControls.controlStateChanged(item.control, true);

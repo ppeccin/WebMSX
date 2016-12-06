@@ -120,7 +120,10 @@ WMSX.userPreferences.defaults = function() {
                 T_F: m.F1,
                 T_G: m.ENTER
             }
-        }
+        },
+
+        hapticFeedback: null                // auto
+
     };
 };
 
@@ -151,7 +154,7 @@ WMSX.userPreferences.load = function() {
     // Fill missing properties with defaults
     var defs = WMSX.userPreferences.defaults();
     for (var pref in defs)
-        if (!prefs[pref]) prefs[pref] = defs[pref];
+        if (prefs[pref] === undefined) prefs[pref] = defs[pref];
 
     // Update preferences version to current
     prefs.prefsVersion = WMSX.userPreferences.currentVersion;

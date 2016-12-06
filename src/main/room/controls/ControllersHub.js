@@ -100,8 +100,16 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.toggleHapticFeedback = function() {
-        if (navigator.vibrate) wmsx.Util.hapticFeedbackEnabled ^= 1;
-        else this.showErrorMessage("Haptic Feedback not available");
+        if (hapticFeedbackCapable) {
+            hapticFeedbackEnabled = !hapticFeedbackEnabled;
+            WMSX.userPreferences.current.hapticFeedback = hapticFeedbackEnabled;
+            WMSX.userPreferences.setDirty();
+        } else
+            this.showErrorMessage("Haptic Feedback not available");
+    };
+
+    this.hapticFeedbackEnabled = function() {
+        return hapticFeedbackEnabled;
     };
 
     this.toggleTurboFireSpeed = function() {
@@ -217,6 +225,14 @@ wmsx.ControllersHub = function(keyForwardControls) {
         return controllerAtPort[port].clearControl(button, port);
     };
 
+    this.hapticFeedback = function() {
+        if (hapticFeedbackEnabled) navigator.vibrate(8);
+    };
+
+    this.hapticFeedbackOnTouch = function(e) {
+        if (hapticFeedbackEnabled && (e.type === "touchstart" || e.type === "touchend" || e.type === "touchmove")) navigator.vibrate(8);
+    };
+
     var processKeyEvent = function(e, press) {
         e.returnValue = false;  // IE
         e.preventDefault();
@@ -264,6 +280,9 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var turboFireSpeed = 0;
     var turboFirePerSecond = [ 0, 2, 2.4, 3, 4, 5, 6, 7.5, 10, 12, 15 ];
 
+    var hapticFeedbackCapable = !!navigator.vibrate;
+    var hapticFeedbackEnabled = hapticFeedbackCapable && WMSX.userPreferences.current.hapticFeedback !== false;
+
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
     var screen;
@@ -273,13 +292,20 @@ wmsx.ControllersHub = function(keyForwardControls) {
 
     this.saveState = function() {
         return {
-            t: touchControls.saveState()
+            t: touchControls.saveState(),
+            h: hapticFeedbackEnabled
+
         };
     };
 
     this.loadState = function(s) {
         touchControls.loadState(s.t);
+        hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
     };
+
+
+    wmsx.ControllersHub.hapticFeedback = this.hapticFeedback;
+    wmsx.ControllersHub.hapticFeedbackOnTouch = this.hapticFeedbackOnTouch;
 
 };
 

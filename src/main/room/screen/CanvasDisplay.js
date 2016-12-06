@@ -2,11 +2,11 @@
 
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
-// TODO Save file on iOS
+// TODO Save file on iOS?
 // TODO MegaRAM
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
-// TODO Haptic Feedback in preferences
+// TODO Start URL on install
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -829,7 +829,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function barButtonTapOrMousedown(elem, e) {
         if (logoMessageActive) return;
 
-        wmsx.Util.hapticFeedbackOnTouch(e);
+        controllersHub.hapticFeedbackOnTouch(e);
 
         var prevActiveMenu = barMenuActive;
         closeAllOverlays();
@@ -895,7 +895,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function barButtonHoverOver(elem, e) {
         if (barMenuActive && elem.wmsxMenu && barMenuActive !== elem.wmsxMenu ) {
-            wmsx.Util.hapticFeedbackOnTouch(e);
+            controllersHub.hapticFeedbackOnTouch(e);
             showBarMenu(elem.wmsxMenu);
         }
     }
@@ -942,7 +942,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
         barMenuItemActive = element;
         if (barMenuItemActive && barMenuItemActive.wmsxMenuOption) {
-            if (haptic) wmsx.Util.hapticFeedback();
+            if (haptic) controllersHub.hapticFeedback();
             barMenuItemActive.classList.add("wmsx-hover");
         }
     }
@@ -1313,7 +1313,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function closeLogoMessage(e) {
-        wmsx.Util.hapticFeedbackOnTouch(e);
+        controllersHub.hapticFeedbackOnTouch(e);
         fsElement.classList.remove("wmsx-logo-message-active");
         logoMessageActive = false;
         if (afterMessageAction) {

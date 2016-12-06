@@ -499,14 +499,6 @@ wmsx.Util = new function() {
             if (events[i]) element.removeEventListener(events[i], handler, capture);
     };
 
-    this.hapticFeedback = function() {
-        if (this.hapticFeedbackEnabled) navigator.vibrate(8);
-    };
-
-    this.hapticFeedbackOnTouch = function(e) {
-        if (this.hapticFeedbackEnabled && (e.type === "touchstart" || e.type === "touchend" || e.type === "touchmove")) navigator.vibrate(8);
-    };
-
     this.insertCSS = function(css) {
         var style = document.createElement('style');
         style.type = 'text/css';
@@ -525,8 +517,6 @@ wmsx.Util = new function() {
     this.performanceNow = function() {
         return this.performanceNow.startOffset ? Date.now() - this.performanceNow.startOffset : window.performance.now();
     };
-
-    this.hapticFeedbackEnabled = !!navigator.vibrate;
 
 };
 

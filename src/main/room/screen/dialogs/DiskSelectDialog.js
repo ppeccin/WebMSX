@@ -145,7 +145,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         wmsx.Util.onEventsOrTapWithBlock(list, "mouseup", function(e) {
             var diskNum = e.target.wmsxDiskNum;
             if (diskNum !== undefined) {
-                wmsx.Util.hapticFeedbackOnTouch(e);
+                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 diskSelectedNum = diskNum;
                 refreshList();
                 setTimeout(hideConfirm, 120);

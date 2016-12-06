@@ -714,11 +714,11 @@ html.wmsx-full-screen #wmsx-logo-image {
 .wmsx-keyboard-key {
     position: absolute;
     height: 25px;
-    padding: 4px 0;
+    padding: 5px 0 0;
     overflow: hidden;
     font-weight: normal;
     font-size: 10px;
-    line-height: 11px;
+    line-height: 10px;
     text-align: center;
     vertical-align: top;
     color: white;
@@ -755,13 +755,13 @@ html.wmsx-full-screen #wmsx-logo-image {
     left: 416px;
 }
 .wmsx-keyboard-arrows {
-    top: 100px;
-    left: 416px;
+    top: 104px;
+    left: 417px;
 }
 .wmsx-keyboard-f1, .wmsx-keyboard-f2, .wmsx-keyboard-f3, .wmsx-keyboard-f4, .wmsx-keyboard-f5,
 .wmsx-keyboard-stop, .wmsx-keyboard-select, .wmsx-keyboard-home, .wmsx-keyboard-insert, .wmsx-keyboard-delete {
     height: 18px;
-    padding: 2px 0;
+    padding-top: 2px;
     font-size: 9px;
     line-height: 9px;
     border-width: 1px 2px 4px;
@@ -848,24 +848,23 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-bottom-color: hsl(232, 44%, 24%);
 }
 .wmsx-keyboard-left, .wmsx-keyboard-right {
-    top: 7px;
-    left: 1px;
+    top: 6px;
     width: 26px;
-    height: 35px;
-    padding: 11px 0 0 6px;
+    height: 33px;
+    padding: 10px 0 0 6px;
 }
 .wmsx-keyboard-up, .wmsx-keyboard-down {
-    left: 28px;
+    left: 27px;
     width: 37px;
-    height: 25px;
+    height: 23px;
     padding: 5px 0 0 12px;
 }
 .wmsx-keyboard-down {
-    top: 25px;
-    padding-top: 9px;
+    top: 23px;
+    padding-top: 7px;
 }
 .wmsx-keyboard-right {
-    left: 66px;
+    left: 65px;
     padding-left: 10px;
 }
 
@@ -898,18 +897,17 @@ html.wmsx-full-screen #wmsx-logo-image {
     display: none;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-arrows {
-    top: 102px;
-    left: 335px;
+    left: 336px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-space {
-    width: 151px;
+    width: 141px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-code {
-    left: 255px;
-    width: 38px;
+    left: 245px;
+    width: 40px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-dead {
-    left: 294px;
+    left: 286px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-shift2 {
     display: none;
@@ -918,23 +916,18 @@ html.wmsx-full-screen #wmsx-logo-image {
     top: 9px;
     width: 23px;
     height: 27px;
-    padding: 8px 0 0 5px;
+    padding: 7px 0 0 5px;
     border-bottom-width: 3px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-up, .wmsx-keyboard-narrow .wmsx-keyboard-down  {
-    left: 25px;
+    left: 24px;
     width: 26px;
-    height: 24px;
-    padding: 6px 0 0 7px;
+    padding-left: 7px;
     border-bottom-width: 3px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-right  {
-    left: 52px;
+    left: 51px;
     padding-left: 8px;
-}
-.wmsx-keyboard-narrow .wmsx-keyboard-down  {
-    top: 24px;
-    padding-top: 9px;
 }
 
 

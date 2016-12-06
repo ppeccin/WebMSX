@@ -250,7 +250,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         } else
             joyState.portValue = joyState.portValue & ~0xf | DIRECTION_TO_PORT_VALUE[newDir + 1];
 
-        if (newDir >= 0) wmsx.Util.hapticFeedback();
+        if (newDir >= 0) hub.hapticFeedback();
 
         dirCurrentDir = newDir;
     }
@@ -275,7 +275,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     function processButtonTouch(mapping, press) {
         if (!mapping) return;
 
-        if (press) wmsx.Util.hapticFeedback();
+        if (press) hub.hapticFeedback();
 
         if (mapping.button) {
             // Joystick button
@@ -292,20 +292,20 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     function pauseTouchStart(e) {
         wmsx.Util.blockEvent(e);
-        wmsx.Util.hapticFeedback();
+        hub.hapticFeedback();
         machineControlsSocket.controlStateChanged(!machinePower ? machineControls.POWER : machineControls.PAUSE, true);
     }
 
     function fastTouchStart(e) {
         wmsx.Util.blockEvent(e);
-        wmsx.Util.hapticFeedback();
+        hub.hapticFeedback();
         machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, true);
     }
 
     function fastTouchEnd(e) {
         wmsx.Util.blockEvent(e);
         if (machinePaused) return;
-        wmsx.Util.hapticFeedback();
+        hub.hapticFeedback();
         machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, false);
     }
 

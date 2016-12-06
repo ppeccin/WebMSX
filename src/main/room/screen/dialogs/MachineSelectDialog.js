@@ -81,7 +81,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         // Do not close with taps or clicks inside, select with tap or mousedown
         wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
             if (e.target.wmsxMachine) {
-                wmsx.Util.hapticFeedbackOnTouch(e);
+                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 machineSelected = e.target.wmsxMachine;
                 refreshList();
                 setTimeout(hideConfirm, 120);

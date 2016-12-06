@@ -30,7 +30,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
     };
 
     this.touchControlDetected = function(control, e) {
-        wmsx.Util.hapticFeedbackOnTouch(e);
+        controllersHub.hapticFeedbackOnTouch(e);
 
         editing = control;
         var isDirectional = editing === "T_DIR";
@@ -71,8 +71,9 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         optionsItems[0].classList.toggle("wmsx-selected", port >= 0);
         optionsItems[0].classList.toggle("wmsx-inactive", !active);
 
-        optionsItems[1].innerHTML = wmsx.Util.hapticFeedbackEnabled ? "ON" : "OFF";
-        optionsItems[1].classList.toggle("wmsx-selected", wmsx.Util.hapticFeedbackEnabled);
+        var haptic = controllersHub.hapticFeedbackEnabled();
+        optionsItems[1].innerHTML = haptic ? "ON" : "OFF";
+        optionsItems[1].classList.toggle("wmsx-selected", haptic);
     }
 
     function create() {
@@ -129,16 +130,15 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         buttonSequence.push(wmsx.JoystickButtons.J_B.button);
         buttonSequence.push(wmsx.JoystickButtons.J_AB.button);
         for (var k in wmsx.KeyboardKeys) buttonSequence.push(k);
-
     }
 
-    function modifyControl(inc, haptic) {
+    function modifyControl(inc, e) {
         if (!editing) return;
         editingSeqIndex += inc;
         if (editingSeqIndex < 0) return editingSeqIndex = 0;
         else if (editingSeqIndex >= editingSequence.length) return editingSeqIndex = editingSequence.length - 1;
 
-        if (haptic) wmsx.Util.hapticFeedback();
+        controllersHub.hapticFeedbackOnTouch(e);
         var newMapping = editingSequence[editingSeqIndex];
         if (!(editing === "T_DIR")) newMapping = newMapping && (wmsx.JoystickButtons[newMapping] || wmsx.KeyboardKeys[newMapping]);
         touchControls.customizeControl(editing, newMapping);
@@ -150,7 +150,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
             if (e.target.wmsxControlItem) {
                 peripheralControls.controlActivated(e.target.wmsxControlItem.control, true);
-                wmsx.Util.hapticFeedbackOnTouch(e);
+                controllersHub.hapticFeedbackOnTouch(e);
                 refreshOptions();
             } else
                 dialog.focus();
@@ -161,7 +161,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
             // Exit
             if (EXIT_KEYS.indexOf(e.keyCode) >= 0) self.hide();
             // Select
-            else if (SELECT_KEYS[e.keyCode]) modifyControl(SELECT_KEYS[e.keyCode]);
+            else if (SELECT_KEYS[e.keyCode]) modifyControl(SELECT_KEYS[e.keyCode], e);
             return wmsx.Util.blockEvent(e);
         });
 
@@ -174,18 +174,18 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
 
     function modifyButtonPressed(e, inc) {
         modifyButtonReleased(e);
-        var touch = e.type === "touchstart";
-        modifyControl(inc, touch);
+        modifyControl(inc, e);
         modifyKeyTimeout = setTimeout(function repeat() {
-            modifyControl(inc, touch);
-            modifyKeyTimeout = setTimeout(repeat, 35);
-        }, 400);
+            modifyKeyInterval = setInterval(function () {
+                modifyControl(inc, e);
+            }, 35);
+        }, 415);
     }
 
     function modifyButtonReleased(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (modifyKeyTimeout) clearTimeout(modifyKeyTimeout);
+        wmsx.Util.blockEvent(e);
+        if (modifyKeyTimeout) { clearTimeout(modifyKeyTimeout); modifyKeyTimeout = null }
+        if (modifyKeyInterval) { clearInterval(modifyKeyInterval); modifyKeyInterval = null }
     }
 
 
@@ -194,7 +194,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
     var optionsItems = [];
 
     var editing, editingSequence, editingSeqIndex;
-    var modifyKeyTimeout;
+    var modifyKeyTimeout, modifyKeyInterval;
     var dirSequence, buttonSequence;
 
     var prefs = WMSX.userPreferences.current.touch;

@@ -62,7 +62,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
         // Do not close with taps or clicks inside, finish with ok or cancel button
         wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
             if (e.target === ok || e.target === cancel) {
-                wmsx.Util.hapticFeedbackOnTouch(e);
+                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 self.hide(e.target === ok);
             } else
                 dialog.focus();
