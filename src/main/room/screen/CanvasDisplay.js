@@ -3,10 +3,8 @@
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Save file on iOS?
-// TODO MegaRAM
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
-// TODO Start URL on install
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -61,14 +59,21 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.start = function(startAction) {
-        // Show the Install as App message or start automatically
+        // Show mobile messages or start automatically
         if (isMobileDevice && !isBrowserStandalone && !isFullscreen) {
-            showLogoMessage('For ' + (fullscreenAPIEnterMethod ? 'the best' : 'a full-screen') + ' experience, use<br>the "Add to Home Screen" function<br>then launch from the Installed App', "NICE!", false, function startActionInFullScreen() {
-                self.setFullscreen(true);
-                startAction();
-            });
+            // Install as App message
+            if (wmsx.Util.isOfficialHomepage())
+                showLogoMessage('For ' + (fullscreenAPIEnterMethod ? 'the best' : 'a full-screen') + ' experience, use<br>the "Add to Home Screen" function<br>then launch from the Installed App', "NICE!", false, startActionInFullScreen);
+            // Go fullscreen message
+            else
+                showLogoMessage('For the best experience,<br>WebMSX will go full-screen', "GO!", true, startActionInFullScreen);
         } else
             startAction();
+
+        function startActionInFullScreen() {
+            self.setFullscreen(true);
+            startAction();
+        }
     };
 
     this.refresh = function(image, sourceWidth, sourceHeight) {

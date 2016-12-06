@@ -1,5 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Slot formats not yet supported
+
 wmsx.SlotFormatsNotSupported = {
 
     "Arc": 0,               // Make Support?                                  1 game, no alts.           Copy protection Cart? Can't find ROM
@@ -12,6 +14,8 @@ wmsx.SlotFormatsNotSupported = {
     "Playball": 0,          // Resolves to Normal, works with no samples      2 games, no alts.          Special sound chip. Not so great games
 
     "MSXAUDIO": 0,          // Make Support                                   System ROM
-    "Kanji12": 0            // Points to Kanji1, which supports both          System ROM
+    "Kanji12": 0,           // Points to Kanji1, which supports both          System ROM
+
+    "MegaRAM": 0            // Make Support?
 
 };

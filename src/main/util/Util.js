@@ -439,6 +439,14 @@ wmsx.Util = new function() {
         return ((navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage || "en-US").trim();
     };
 
+    this.isOfficialHomepage = function () {
+        var loc = window.location;
+        return loc
+            && (loc.hostname.toLowerCase() === "webmsx.org")
+            && (loc.port === "" || loc.port === "80")
+            && (loc.pathname === "/" || loc.pathname === "/index.html");
+    };
+
     this.isTouchDevice = function() {
         return ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
     };
