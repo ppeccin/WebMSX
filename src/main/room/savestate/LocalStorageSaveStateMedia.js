@@ -87,7 +87,7 @@ wmsx.LocalStorageSaveStateMedia = function() {
                 id = wmsx.Util.int8BitArrayToByteString(data, 0, SAVE_STATE_IDENTIFIER.length);
 
             // Check for the identifier
-            if (id !== SAVE_STATE_IDENTIFIER) return;
+            if (id !== SAVE_STATE_IDENTIFIER && id !== SAVE_STATE_IDENTIFIER_OLD) return;
 
             var stateData;
             if (typeof data == "string")
@@ -104,7 +104,8 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     var fileDownloader;
 
-    var SAVE_STATE_IDENTIFIER = "wmsxsavestate!";
+    var SAVE_STATE_IDENTIFIER = String.fromCharCode(0, 0) + "wmsx" + String.fromCharCode(0, 0) + "state!";     // char 0 so browsers like Safari think the file is binary...  :-(
+    var SAVE_STATE_IDENTIFIER_OLD = "wmsxsavestate!";
     var SAVE_STATE_FILE_EXTENSION = ".wst";
 
 };
