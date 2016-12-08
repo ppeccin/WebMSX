@@ -2,8 +2,7 @@
 
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
-// TODO Possible to turn machine on by hotkey bypassing logo message
-// TODO Alts for HOME, INS, DEL
+// TODO Possible to use hotkeys and bypass logo messages
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";

@@ -159,7 +159,7 @@ wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CON
 
     // Alternate codes for FF
     k.VK_FF_MINUS = {c: 173, n: "-" };
-    k.VK_FF_EQUAL = {c: 61, n: "=" };
+    k.VK_FF_EQUALS = {c: 61, n: "=" };
     k.VK_FF_SEMICOLON = {c: 59, n: ";" };
 
     // BR alternate codes

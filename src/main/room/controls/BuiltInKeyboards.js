@@ -70,9 +70,9 @@
         SELECT         : [ k.VK_SCROLL_LOCK, k.VK_F10 ],
         ENTER          : [ k.VK_ENTER, k.VK_NUM_ENTER ],
         SPACE          : k.VK_SPACE,
-        HOME           : [ k.VK_HOME, k.VK_NUM_HOME ],
-        INSERT         : [ k.VK_INSERT, k.VK_NUM_INSERT ],
-        DELETE         : [ k.VK_DELETE, k.VK_NUM_DELETE ],
+        HOME           : [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_EQUALS.c | wmsx.DOMKeys.ALT, n: [ "Alt", "=" ] } ],
+        INSERT         : [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ],
+        DELETE         : [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_CLOSE_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "]" ] } ],
         UP             : [ k.VK_UP, k.VK_NUM_UP ],
         DOWN           : [ k.VK_DOWN, k.VK_NUM_DOWN ],
         RIGHT          : [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
@@ -101,7 +101,8 @@
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
             base.MINUS =     k.VK_FF_MINUS;
-            base.EQUAL =     k.VK_FF_EQUAL;
+            base.EQUAL =     k.VK_FF_EQUALS;
+            base.HOME =      [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_EQUALS.c | wmsx.DOMKeys.ALT, n: [ "Alt", "=" ] } ];
             base.SEMICOLON = k.VK_FF_SEMICOLON;
     }
 
@@ -122,7 +123,9 @@
         default:
             br.QUOTE =         k.VK_BR_QUOTE;
             br.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
+            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_BR_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
             br.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
+            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_BR_CLOSE_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "]" ] } ];
             br.BACKQUOTE =     k.VK_BR_ACUTE;
             br.SEMICOLON =     k.VK_BR_SEMICOLON;
             br.SLASH =         k.VK_BR_SLASH;

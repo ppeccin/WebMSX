@@ -835,7 +835,7 @@ html.wmsx-full-screen #wmsx-logo-image {
 
 .wmsx-keyboard-num .wmsx-keyboard-key {
     height: 23px;
-    line-height: 9px;
+    padding-top: 4px;
 }
 .wmsx-keyboard-arrows .wmsx-keyboard-key {
     font-size: 8px;
