@@ -4,7 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
-// TODO Out of FSbyAPI state
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -485,9 +484,26 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function fullscreenByAPIChanged() {
-        var state = isFullScreenByAPI();
-        if (state || fullScreenAPIExitUserRequested || !isBrowserStandalone) setFullscreenState(state);
-        else (self.requestReadjust());
+        var prevFSState = isFullscreen;
+        var newAPIState = isFullScreenByAPI();
+
+        // Return to window interface mode if user asked or not in standalone mode
+        if (newAPIState || fullScreenAPIExitUserRequested || !isBrowserStandalone) setFullscreenState(newAPIState);
+        else self.requestReadjust();
+
+        // If machine not paused and on mobile, set message to resume, or set event to return to full screen
+        if (prevFSState && !newAPIState && !fullScreenAPIExitUserRequested && isMobileDevice) {
+            if (isBrowserStandalone) {
+                setEnterFullscreenByAPIOnFirstTouch();
+            } else {
+                machine.systemPause(true);
+                showLogoMessage("<br>Emulation suspended", "RESUME", true, function () {
+                    self.setFullscreen(true);
+                    machine.systemPause(false);
+                });
+            }
+        }
+
         fullScreenAPIExitUserRequested = false;
     }
 
@@ -1308,6 +1324,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function showLogoMessage(mes, button, higherButton, afterAction) {
+        if (logoMessageActive) return;
+
         closeAllOverlays();
         if (afterAction) afterMessageAction = afterAction;
         logoMessageText.innerHTML = mes;
@@ -1443,25 +1461,14 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setPageVisibilityHandling() {
-        var wasUnpaused, wasFullscreen;
+        var wasUnpaused;
         function visibilityChange() {
+            if (logoMessageActive) return;
+
             if (document.hidden) {
-                wasFullscreen = isFullscreen;
                 wasUnpaused = !machine.systemPause(true);
             } else {
-                if (wasFullscreen && isMobileDevice) {
-                    if (isFullscreen || !machine.isSystemPaused()) {
-                        self.requestReadjust();
-                        if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) setEnterFullscreenByAPIOnFirstTouch();
-                        if (wasUnpaused) machine.systemPause(false);
-                    } else {
-                        if (wasUnpaused) showLogoMessage("<br>Emulation suspended", "RESUME", true, function () {
-                            self.setFullscreen(true);
-                            machine.systemPause(false);
-                        });
-                    }
-                } else
-                    if (wasUnpaused) machine.systemPause(false);
+                if (wasUnpaused) machine.systemPause(false);
             }
         }
         document.addEventListener("visibilitychange", visibilityChange);
