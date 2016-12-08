@@ -73,8 +73,8 @@ wmsx.FileDownloader = function() {
 
         downloadLinkElement = document.createElement('a');
         downloadLinkElement.style.display = "none";
+        downloadLinkElement.target = "_blank";
         downloadLinkElement.href = "#";
-        if (saveType === "DATA") downloadLinkElement.target = "_blank";
         downloadLinkElementParent.appendChild(downloadLinkElement);
     }
 

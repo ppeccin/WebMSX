@@ -420,8 +420,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     height: 26px;
     background: rgb(70, 70, 70);
     margin: 7px 0;
-    padding: 2px 10px;
-    line-height: 18px;
+    padding: 11px 10px 0;
+    line-height: 0;
     text-align: left;
     text-overflow: ellipsis;
     border: 2px dashed transparent;

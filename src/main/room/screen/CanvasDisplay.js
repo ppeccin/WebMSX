@@ -4,7 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to turn machine on by hotkey bypassing logo message
 // TODO Alts for HOME, INS, DEL
-// TODO Touch menu bug
 // TODO Out of FSbyAPI state
 
 wmsx.CanvasDisplay = function(mainElement) {
@@ -932,6 +931,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function barMenuItemFireActive(secSlot, altPower) {
         var option = barMenuItemActive.wmsxMenuOption;
+        barMenuItemSetActive(null);
         if (option && !option.disabled) {
             if (option.extension) {
                 extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
@@ -946,11 +946,12 @@ wmsx.CanvasDisplay = function(mainElement) {
     function barMenuItemSetActive(element, haptic) {
         if (element === barMenuItemActive) return;
         if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
-        barMenuItemActive = element;
-        if (barMenuItemActive && barMenuItemActive.wmsxMenuOption) {
+        if (element && element.wmsxMenuOption) {
+            barMenuItemActive = element;
             if (haptic) controllersHub.hapticFeedback();
             barMenuItemActive.classList.add("wmsx-hover");
-        }
+        } else
+            barMenuItemActive = null;
     }
 
     function barElementTapOrMouseDown(e) {
@@ -1226,6 +1227,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         barMenuActive = null;
         barMenu.style.display = "none";
+        barMenuItemSetActive(null);
         cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
         self.focus();
     }
