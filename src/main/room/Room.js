@@ -69,12 +69,13 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         self.fileLoader.connectPeripherals(self.cassetteDeck, self.diskDrive);
         self.fileDownloader.connectPeripherals(self.screen);
         self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.peripheralControls, self.controllersHub, self.diskDrive);
+        self.speaker.connectPeripherals(self.screen);
         self.machineControls.connectPeripherals(self.screen);
         self.controllersHub.connectPeripherals(self.screen);
         self.stateMedia.connectPeripherals(self.fileDownloader);
         self.cassetteDeck.connectPeripherals(self.screen, self.fileDownloader);
         self.diskDrive.connectPeripherals(self.screen, self.fileDownloader);
-        self.peripheralControls.connectPeripherals(self.screen, self.controllersHub, self.fileLoader, self.cassetteDeck, self.diskDrive);
+        self.peripheralControls.connectPeripherals(self.screen, self.speaker, self.controllersHub, self.fileLoader, self.cassetteDeck, self.diskDrive);
     }
 
     function buildAndPlugMachine() {

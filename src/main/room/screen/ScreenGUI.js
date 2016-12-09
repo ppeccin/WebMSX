@@ -1003,7 +1003,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 188px;
-    height: 177px;
+    height: 212px;
     margin: auto;
     padding: 14px 16px 0;
     color: white;
@@ -1034,7 +1034,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 220px;
-    height: 210px;
+    height: 244px;
     margin: auto;
     padding: 0 16px;
     color: white;
@@ -1309,13 +1309,13 @@ content: "";
 
 .wmsx-touch-button-joy.wmsx-touch-button-joy-A::before {
     border: none;
-    background: hsl(120, 76%, 32%);
+    background: hsl(120, 76%, 31%);
     box-shadow: inset 0 2px hsl(120, 76%, 41%), 0 4px 0 1px hsl(120, 76%, 20%);
 }
 .wmsx-touch-button-joy.wmsx-touch-button-joy-B::before {
     border: none;
-    background: hsl(0, 60%, 37%);
-    box-shadow: inset 0 2px hsl(0, 60%, 48%), 0 4px 0 1px hsl(0, 60%, 27%);
+    background: hsl(0, 60%, 35%);
+    box-shadow: inset 0 2px hsl(0, 60%, 48%), 0 4px 0 1px hsl(0, 60%, 23%);
 }
 .wmsx-touch-button-joy.wmsx-touch-button-joy-AB::before {
     border: none;

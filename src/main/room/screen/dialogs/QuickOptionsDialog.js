@@ -47,7 +47,8 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
             { label: "NTSC / PAL",    control: mc.VIDEO_STANDARD },
             { label: "CPU Turbo",     control: mc.CPU_TURBO_MODE },
             { label: "Sprites Mode",  control: mc.SPRITE_MODE },
-            { label: "Turbo Fire",    control: pc.TURBO_FIRE_TOGGLE,  peripheral: true }
+            { label: "Audio Buffer",  control: pc.SPEAKER_BUFFER_TOGGLE,  peripheral: true },
+            { label: "Turbo Fire",    control: pc.TURBO_FIRE_TOGGLE,      peripheral: true }
         ];
 
         // Define list

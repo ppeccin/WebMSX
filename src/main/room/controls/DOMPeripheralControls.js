@@ -15,8 +15,9 @@ wmsx.DOMPeripheralControls = function() {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pScreen, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
         screen = pScreen;
+        speaker = pSpeaker;
         monitor = pScreen.getMonitor();
         controllersHub = pControllersHub;
         fileLoader = pFileLoader;
@@ -29,8 +30,14 @@ wmsx.DOMPeripheralControls = function() {
     };
 
     this.getControlReport = function(control) {
-        // Only TurboFire for now
-        return controllersHub.getControlReport(control);
+        switch (control) {
+            case controls.TURBO_FIRE_TOGGLE:
+            case controls.HAPTIC_FEEDBACK_TOGGLE_MODE:
+                return controllersHub.getControlReport(control);
+            case controls.SPEAKER_BUFFER_TOGGLE:
+                return speaker.getControlReport(control);
+        }
+        return { label: "Unknown", active: false };
     };
 
     this.processKey = function(code, press) {
@@ -215,6 +222,8 @@ wmsx.DOMPeripheralControls = function() {
                 screen.toggleTextEntryDialog(); break;
             case controls.CAPTURE_SCREEN:
                 screen.saveScreenCapture(); break;
+            case controls.SPEAKER_BUFFER_TOGGLE:
+                speaker.toggleBufferBaseSize(); break;
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {
@@ -300,6 +309,7 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_ENTER_STRING | k.ALT]   = controls.ENTER_STRING;
         keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT] = controls.CAPTURE_SCREEN;
 
+        keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = controls.SPEAKER_BUFFER_TOGGLE;
     };
 
     function initGroups() {
@@ -317,6 +327,7 @@ wmsx.DOMPeripheralControls = function() {
     var machineControlsSocket;
     var screen;
     var monitor;
+    var speaker;
     var controllersHub;
     var fileLoader;
     var cartridgeSocket;
@@ -347,6 +358,8 @@ wmsx.DOMPeripheralControls = function() {
     var KEY_ENTER_STRING = wmsx.DOMKeys.VK_B.c;
 
     var KEY_CAPTURE_SCREEN  = wmsx.DOMKeys.VK_G.c;
+
+    var KEY_SPEAKER_BUFFER  = wmsx.DOMKeys.VK_A.c;
 
     var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
     var KEY_CART  = wmsx.DOMKeys.VK_F7.c;

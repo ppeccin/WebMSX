@@ -446,7 +446,7 @@ wmsx.SettingsGUI.html = function() {
                                 H
                             </div>
                         </div>
-                        <div class="wmsx-desc">Adjust Turbo-Fire speed</div>
+                        <div class="wmsx-desc">Adjust Turbo Fire speed</div>
                     </div>
             </div>
                 <div class="wmsx-right">
@@ -534,7 +534,7 @@ wmsx.SettingsGUI.html = function() {
                                 H
                             </div>
                         </div>
-                        <div class="wmsx-desc">Adjust Turbo-Fire speed</div>
+                        <div class="wmsx-desc">Adjust Turbo Fire speed</div>
                     </div>
                 </div>
                 <div class="wmsx-right">

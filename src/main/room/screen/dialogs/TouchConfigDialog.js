@@ -66,14 +66,18 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         var state = controllersHub.getSettingsState();
         var port = state.touchPortSet;
         var active = state.touchActive;
-
         optionsItems[0].innerHTML = port === 0 ? "Port 1" : port === 1 ? "Port 2" : "OFF";
         optionsItems[0].classList.toggle("wmsx-selected", port >= 0);
         optionsItems[0].classList.toggle("wmsx-inactive", !active);
 
-        var haptic = controllersHub.hapticFeedbackEnabled();
-        optionsItems[1].innerHTML = haptic ? "ON" : "OFF";
-        optionsItems[1].classList.toggle("wmsx-selected", haptic);
+        for (var i = 1; i < optionsItems.length; ++i) {
+            var item = optionsItems[i].wmsxControlItem;
+            var report = peripheralControls.getControlReport(item.control);
+            item.value = report.label;
+            item.selected = report.active;
+            optionsItems[i].innerHTML = item.value;
+            optionsItems[i].classList.toggle("wmsx-selected", !!item.selected);
+        }
     }
 
     function create() {
@@ -98,7 +102,8 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         // Options and modes
         var items = [
             { label: "Touch Controller", control: wmsx.PeripheralControls.TOUCH_TOGGLE_MODE },
-            { label: "Haptic Feedback",  control: wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE }
+            { label: "Haptic Feedback",  control: wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE },
+            { label: "Turbo Fire",       control: wmsx.PeripheralControls.TURBO_FIRE_TOGGLE }
         ];
 
         // Define list

@@ -108,10 +108,6 @@ wmsx.ControllersHub = function(keyForwardControls) {
             this.showErrorMessage("Haptic Feedback not available");
     };
 
-    this.hapticFeedbackEnabled = function() {
-        return hapticFeedbackEnabled;
-    };
-
     this.toggleTurboFireSpeed = function() {
         turboFireSpeed = (turboFireSpeed + 1) % 11;
         var turboClocks = turboFireSpeed ? (60 / turboFirePerSecond[turboFireSpeed]) | 0 : 0;
@@ -119,16 +115,21 @@ wmsx.ControllersHub = function(keyForwardControls) {
         joystickControls.setTurboFireClocks(turboClocks);
         joykeysControls.setTurboFireClocks(turboClocks);
         touchControls.setTurboFireClocks(turboClocks);
-        screen.showOSD("Turbo-Fire" + (turboFireSpeed ? " " + this.getTurboFireSpeedDesc() : ": OFF"), true);
+        screen.showOSD("Turbo Fire" + (turboFireSpeed ? " speed: " + this.getTurboFireSpeedDesc() : ": OFF"), true);
     };
 
     this.getTurboFireSpeedDesc = function() {
-        return turboFireSpeed ? "Speed: " + turboFireSpeed : "OFF";
+        return turboFireSpeed ? turboFireSpeed + "x" : "OFF";
     };
 
     this.getControlReport = function(control) {
-        // Only TurboFire for now
-        return { label: this.getTurboFireSpeedDesc(), active: !!turboFireSpeed };
+        switch (control) {
+            case wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE:
+                return { label: hapticFeedbackEnabled ? "ON" : "OFF", active: !!hapticFeedbackEnabled };
+            case wmsx.PeripheralControls.TURBO_FIRE_TOGGLE:
+                return { label: this.getTurboFireSpeedDesc(), active: !!turboFireSpeed };
+        }
+        return { label: "Unknown", active: false };
     };
 
     this.setupTouchControlsIfNeeded = function(mainElement) {

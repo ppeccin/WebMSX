@@ -80,7 +80,8 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.portPin8Announced = function(atPort, val) {
-        if (val === 1 && port < 0 && mode === -1) tryAutoEnable(atPort, val);
+        // Auto enable only for port 1 and if not a mobile device
+        if (val === 1 && !isMobileDevice && port < 0 && atPort === 0 && mode === -1) autoEnable(atPort, val);
     };
 
     this.togglePointerLock = function() {
@@ -205,15 +206,10 @@ wmsx.DOMMouseControls = function(hub) {
         screen.showOSD(pointerLocked ? "Mouse Pointer Locked" : "Mouse Pointer Released", pointerLocked);   // Only force message when Locking
     }
 
-    function tryAutoEnable(atPort, pin8Val) {
-        // Auto enable only for port 1
-        if (atPort !== 0) return;
-
+    function autoEnable(atPort, pin8Val) {
         port = atPort;
-
         self.writeControllerPin8Port(port, pin8Val);
         updateConnectionsToHub();
-
         showStatusMessage("Mouse AUTO-ENABLED");
     }
 
@@ -240,8 +236,9 @@ wmsx.DOMMouseControls = function(hub) {
 
     var controllersSocket, screen;
 
-    var TYPE = wmsx.ControllersHub.MOUSE;
+    var isMobileDevice = wmsx.Util.isMobileDevice();
 
+    var TYPE = wmsx.ControllersHub.MOUSE;
     var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
 
 

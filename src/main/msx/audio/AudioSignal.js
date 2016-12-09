@@ -93,16 +93,14 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     function updateBufferSize() {
         var size = (monitorBufferSize * WMSX.AUDIO_SIGNAL_BUFFER_RATIO + samplesPerFrame * WMSX.AUDIO_SIGNAL_ADD_FRAMES) | 0;
-        if (size > maxSamples) {
-            samples.length = size;
-            wmsx.Util.arrayFill(samples, 0, maxSamples, size);
-            maxSamples = size;
-            retrieveResult.bufferSize = maxSamples;
-            maxAvailSamples = maxSamples - 2;
-            self.flush();
+        samples.length = size;
+        if (size > maxSamples) wmsx.Util.arrayFill(samples, 0, maxSamples, size);
+        maxSamples = size;
+        retrieveResult.bufferSize = maxSamples;
+        maxAvailSamples = maxSamples - 2;
+        self.flush();
 
-            //console.log(">>> Buffer size for: " + name + ": " + maxSamples);
-        }
+        //console.log(">>> Buffer size for: " + name + ": " + maxSamples);
     }
 
     function audioClockPulse32x() {

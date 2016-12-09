@@ -12,6 +12,10 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         audioSocket.connectMonitor(this);
     };
 
+    this.connectPeripherals = function(pScreen) {
+        screen = pScreen;
+    };
+
     this.connectAudioSignal = function(pAudioSignal) {
         if (audioSignal.indexOf(pAudioSignal) >= 0) return;        // Add only once
         wmsx.Util.arrayAdd(audioSignal, pAudioSignal);
@@ -25,7 +29,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     this.powerOn = function() {
-        createAudioContextAndProcessor();
+        createAudioContext();
         if (!processor) return;
 
         registerUnlockOnTouchIfNeeded();
@@ -54,7 +58,22 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         if (processor) processor.connect(audioContext.destination);
     };
 
-    function determineAutoBufferBaseSize() {
+    this.toggleBufferBaseSize = function() {
+        if (!audioContext) return screen.showOSD("Audio is DISABLED", true, true);
+
+        bufferBaseSize = (bufferBaseSize + 1) % 7;
+        this.pause();
+        createProcessor();
+        this.unpause();
+        screen.showOSD("Audio Buffer size: " + (bufferBaseSize === 0 ? "Default (" + bufferSize + ")" : bufferSize), true);
+    };
+
+    this.getControlReport = function(control) {
+        // Only BufferBaseSize for now
+        return { label: bufferBaseSize === 0 ? "Default" : bufferSize, active: !!bufferBaseSize };
+    };
+
+    function determinePlatformDefaultBufferBaseSize() {
         // Set bufferBaseSize according to browser and platform
         return wmsx.Util.isMobileDevice()
             ? wmsx.Util.browserInfo().name === "CHROME" && !wmsx.Util.isIOSDevice()
@@ -63,7 +82,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             : 2;         // desktop
     }
 
-    var createAudioContextAndProcessor = function() {
+    var createAudioContext = function() {
         if (WMSX.AUDIO_MONITOR_BUFFER_BASE === 0 || WMSX.AUDIO_MONITOR_BUFFER_SIZE === 0) {
             wmsx.Util.warning("Audio disabled in configuration");
             return;
@@ -73,15 +92,23 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             if (!constr) throw new Error("WebAudio API not supported by the browser");
             audioContext = new constr();
             wmsx.Util.log("Speaker AudioContext created. Sample rate: " + audioContext.sampleRate + (audioContext.state ? ", " + audioContext.state : ""));
-            updateResamplingFactors();
-            var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_BASE : determineAutoBufferBaseSize();
-            // If not specified, calculate buffer size based on bufferBaseSize and host audio sampling rate. Ex: for a baseSize = 1 then 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
-            bufferSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(bufferBaseSize - 1) * 256;
-            processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
-            processor.onaudioprocess = onAudioProcess;
-            wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
+            createProcessor();
         } catch(ex) {
             wmsx.Util.error("Could not create AudioContext. Audio DISABLED!\n" + ex);
+        }
+    };
+
+    var createProcessor = function() {
+        try {
+            var baseSize = bufferBaseSize > 0 ? bufferBaseSize : WMSX.AUDIO_MONITOR_BUFFER_BASE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_BASE : determinePlatformDefaultBufferBaseSize();
+            // If not specified, calculate buffer size based on baseSize and host audio sampling rate. Ex: for a baseSize = 1 then 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
+            bufferSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(baseSize - 1) * 256;
+            processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+            processor.onaudioprocess = onAudioProcess;
+            updateResamplingFactors();
+            wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
+        } catch(ex) {
+            wmsx.Util.error("Could not create ScriptProcessorNode. Audio DISABLED!\n" + ex);
         }
     };
 
@@ -102,6 +129,8 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     }
 
     function updateResamplingFactors() {
+        //if (bufferSizeProblem !== undefined) console.error("+++++++ buffer size problem: " + bufferSizeProblem);
+
         if (!processor) return;
         resamplingFactor.length = audioSignal.length;
         resamplingLeftOver.length = audioSignal.length;
@@ -113,9 +142,17 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     }
 
     function onAudioProcess(event) {
+        //if (WMSX.room.machine.powerIsOn) {
+        //    var now = performance.now();
+        //    WMSX.onAudioProcessLog.push(now - lastOnAudioProcessTime);
+        //    lastOnAudioProcessTime = now;
+        //}
+
         // Assumes there is only one output channel
         var outputBuffer = event.outputBuffer.getChannelData(0);
         var outputBufferSize = outputBuffer.length;
+
+        //if (outputBufferSize !== bufferSize) bufferSizeProblem = outputBufferSize;
 
         // Clear output buffer
         for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer[j] = 0;
@@ -135,6 +172,13 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             var d = 0;
             while (d < outputBufferSize) {
                 outputBuffer[d] += inputBuffer[s | 0];   // source position as integer
+
+                //COUNTER--; if (COUNTER < 0) {
+                //    COUNTER = 160;
+                //    SIGNAL = -SIGNAL;
+                //}
+                //outputBuffer[d] = SIGNAL * 0.4;
+
                 d = d + 1;
                 s = s + resampFactor;
                 if (s >= inputBufferSize) s = s - inputBufferSize;
@@ -147,15 +191,24 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     }
 
 
+    var screen;
+
     var audioSignal = [];
     this.signals = audioSignal;
     var resamplingFactor = [];
     var resamplingLeftOver = [];
+    var bufferBaseSize = 0;         // Default, use the parameters to choose value
 
     var audioContext;
     var bufferSize;
     var processor;
 
     var mute = false;
+
+    //var bufferSizeProblem;
+    //WMSX.onAudioProcessLog = [ ];
+    //var lastOnAudioProcessTime = 0;
+    //var COUNTER = 0;
+    //var SIGNAL = 1;
 
 };
