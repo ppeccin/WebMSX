@@ -61,19 +61,19 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     this.toggleBufferBaseSize = function() {
         if (!audioContext) return screen.showOSD("Audio is DISABLED", true, true);
 
-        bufferBaseSize = (bufferBaseSize + 1) % 7;
+        bufferBaseSize = ((bufferBaseSize + 2) % 8) - 1;  // -1..6
         this.pause();
         createProcessor();
         this.unpause();
-        screen.showOSD("Audio Buffer size: " + (bufferBaseSize === 0 ? "Default (" + bufferSize + ")" : bufferSize), true);
+        screen.showOSD("Audio Buffer size: " + (bufferBaseSize === -1 ? "Auto (" + bufferSize + ")" : bufferBaseSize === 0 ? "Platform (" + bufferSize + ")" : bufferSize), true);
     };
 
     this.getControlReport = function(control) {
         // Only BufferBaseSize for now
-        return { label: bufferBaseSize === 0 ? "Default" : bufferSize, active: !!bufferBaseSize };
+        return { label: bufferBaseSize === -2 ? "OFF" : bufferBaseSize === -1 ? "Auto" : bufferBaseSize === 0 ? "Platform" : bufferSize, active: bufferBaseSize > 0 };
     };
 
-    function determinePlatformDefaultBufferBaseSize() {
+    function determineAutoBufferBaseSize() {
         // Set bufferBaseSize according to browser and platform
         return wmsx.Util.isMobileDevice()
             ? wmsx.Util.browserInfo().name === "CHROME" && !wmsx.Util.isIOSDevice()
@@ -83,7 +83,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     }
 
     var createAudioContext = function() {
-        if (WMSX.AUDIO_MONITOR_BUFFER_BASE === 0 || WMSX.AUDIO_MONITOR_BUFFER_SIZE === 0) {
+        if (bufferBaseSize === -2 || WMSX.AUDIO_MONITOR_BUFFER_SIZE === 0) {
             wmsx.Util.warning("Audio disabled in configuration");
             return;
         }
@@ -100,11 +100,12 @@ wmsx.WebAudioSpeaker = function(mainElement) {
 
     var createProcessor = function() {
         try {
-            var baseSize = bufferBaseSize > 0 ? bufferBaseSize : WMSX.AUDIO_MONITOR_BUFFER_BASE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_BASE : determinePlatformDefaultBufferBaseSize();
             // If not specified, calculate buffer size based on baseSize and host audio sampling rate. Ex: for a baseSize = 1 then 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
-            bufferSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(baseSize - 1) * 256;
-            processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+            var baseSize = bufferBaseSize === -1 ? determineAutoBufferBaseSize() : bufferBaseSize > 0 ? bufferBaseSize : 0;
+            var totalSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : baseSize > 0 ? wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(baseSize - 1) * 256 : 0;
+            processor = audioContext.createScriptProcessor(totalSize, 1, 1);
             processor.onaudioprocess = onAudioProcess;
+            bufferSize = processor.bufferSize;
             updateResamplingFactors();
             wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         } catch(ex) {
@@ -197,7 +198,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     this.signals = audioSignal;
     var resamplingFactor = [];
     var resamplingLeftOver = [];
-    var bufferBaseSize = 0;         // Default, use the parameters to choose value
+    var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE;
 
     var audioContext;
     var bufferSize;
