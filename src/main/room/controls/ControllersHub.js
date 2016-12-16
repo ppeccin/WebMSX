@@ -282,7 +282,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var turboFirePerSecond = [ 0, 2, 2.4, 3, 4, 5, 6, 7.5, 10, 12, 15 ];
 
     var hapticFeedbackCapable = !!navigator.vibrate;
-    var hapticFeedbackEnabled = hapticFeedbackCapable && WMSX.userPreferences.current.hapticFeedback !== false;
+    var hapticFeedbackEnabled = hapticFeedbackCapable && !!WMSX.userPreferences.current.hapticFeedback;
 
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
