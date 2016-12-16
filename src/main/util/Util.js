@@ -443,8 +443,7 @@ wmsx.Util = new function() {
         var loc = window.location;
         return loc
             && (loc.hostname.toLowerCase() === "webmsx.org")
-            && (loc.port === "" || loc.port === "80")
-            && (loc.pathname === "/" || loc.pathname === "/index.html");
+            && (loc.port === "" || loc.port === "80");
     };
 
     this.isTouchDevice = function() {
