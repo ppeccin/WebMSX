@@ -396,7 +396,8 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     this.loadState = function(s) {
         resetStates();
-        prefs = s.p;
+        delete s.p.directionalBig;      // Does not consider in savestates
+        for (var pref in s.p) prefs[pref] = s.p[pref];
         if (dirElement) updateMappings();
     };
 
