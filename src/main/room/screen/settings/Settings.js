@@ -135,10 +135,10 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
 
     function setEvents() {
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(modal, "mousedown", function() { modal.focus(); });
+        wmsx.Util.onTapOrMouseDownWithBlock(modal, function() { modal.focus(); });
 
         // Close with the back button
-        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-back"], "mousedown", self.hide);
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-back"], self.hide);
 
         // Several key events
         modal.addEventListener("keydown", function (e) {
@@ -149,19 +149,19 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
         });
 
         // Tabs
-        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-general"], "mousedown", function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-general"], function (e) {
             self.setPage("GENERAL");
         });
-        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-inputs"], "mousedown", function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-inputs"], function (e) {
             self.setPage("INPUTS");
         });
-        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-ports"], "mousedown", function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-ports"], function (e) {
             self.setPage("PORTS");
         });
-        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-media"], "mousedown", function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-media"], function (e) {
             self.setPage("MEDIA");
         });
-        wmsx.Util.onEventsOrTapWithBlock(self["wmsx-menu-about"], "mousedown", function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-about"], function (e) {
             self.setPage("ABOUT");
         });
     }

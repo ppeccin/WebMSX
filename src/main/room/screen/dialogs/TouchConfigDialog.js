@@ -152,7 +152,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
 
     function setupEvents() {
         // Do not close with taps or clicks inside, select options buttons
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function(e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(dialog, function(e) {
             if (e.target.wmsxControlItem) {
                 peripheralControls.controlActivated(e.target.wmsxControlItem.control, true);
                 controllersHub.hapticFeedbackOnTouch(e);

@@ -116,7 +116,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         function hideConfirm() { self.hide(true); }
 
         // Do not close with taps or clicks inside, but allow drags to start
-        wmsx.Util.onEventsOrTap(dialog, "mousedown", function(e) {
+        wmsx.Util.onTapOrMouseDown(dialog, function(e) {
             dialog.focus();
             e.stopPropagation();
         });
@@ -142,7 +142,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         });
 
         // Select with tap or mouseup
-        wmsx.Util.onEventsOrTapWithBlock(list, "mouseup", function(e) {
+        wmsx.Util.onTapOrMouseUpWithBlock(list, function(e) {
             var diskNum = e.target.wmsxDiskNum;
             if (diskNum !== undefined) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);

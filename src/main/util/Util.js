@@ -462,34 +462,43 @@ wmsx.Util = new function() {
         return navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
     };
 
-    this.onEventsOrTap = function(element, events, handler) {
-        this.addEventsListener(element, "touchstart " + events, handler);
+    this.onTapOrMouseDown = function(element, handler) {
+        this.addEventsListener(element, this.isTouchDevice() ? "touchstart mousedown" : "mousedown", handler);
     };
 
-    this.onEventsOrTapWithBlock = function(element, events, handler) {
-        function onEventOrTap(e) {
+    this.onTapOrMouseDownWithBlock = function(element, handler) {
+        function onTapOrMouseDown(e) {
             handler(e);
             return blockEvent(e);
         }
-        this.addEventsListener(element, "touchstart " + events, onEventOrTap);
+        this.addEventsListener(element, this.isTouchDevice() ? "touchstart mousedown" : "mousedown", onTapOrMouseDown);
     };
 
-    this.onEventsOrTapWithBlockUIG = function(element, events, handler) {
-        function onEventOrTapUIG(e) {
+    this.onTapOrMouseUpWithBlock = function(element, handler) {
+        function onTapOrMouseUp(e) {
+            handler(e);
+            return blockEvent(e);
+        }
+        this.addEventsListener(element, this.isTouchDevice() ? "touchstart mouseup" : "mouseup", onTapOrMouseUp);
+    };
+
+    this.onTapOrMouseDownWithBlockUIG = function(element, handler) {
+        var done = false;
+        function onTapOrMouseDownUIG(e) {
             // If not User Initiated Gesture needed on the event TARGET handle only on touchstart,
-            // otherwise handle only touchend or original event if no touch events fired
+            // otherwise handle only touchend or mousedown if no touch events fired
             if (e.type === "touchstart" && e.target.wmsxNeedsUIG) return;
             if (e.type === "touchend" && !e.target.wmsxNeedsUIG) return;
             // Fire original event and block
             handler(e);
             return blockEvent(e);
         }
-        this.addEventsListener(element, "touchstart touchend " + events, onEventOrTapUIG);
+        this.addEventsListener(element, this.isTouchDevice() ? "touchstart touchend mousedown" : "mousedown", onTapOrMouseDownUIG);
     };
 
     function blockEvent(e) {
-        e.preventDefault();
         e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
         return false;
     }
     this.blockEvent = blockEvent;

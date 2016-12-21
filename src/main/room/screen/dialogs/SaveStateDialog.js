@@ -87,10 +87,12 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         function hideConfirm() { self.hide(true); }
 
         // Do not close with taps or clicks inside
-        wmsx.Util.onEventsOrTapWithBlock(dialog, "mousedown", function() { dialog.focus(); });
+        wmsx.Util.onTapOrMouseDownWithBlock(dialog, function() {
+            dialog.focus();
+        });
 
         // Select with tap or mousedown (UIG)
-        wmsx.Util.onEventsOrTapWithBlockUIG(dialog, "mousedown", function(e) {
+        wmsx.Util.onTapOrMouseDownWithBlockUIG(dialog, function(e) {
             if (e.target.wmsxSlot >= 0) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 slotSelected = e.target.wmsxSlot;

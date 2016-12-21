@@ -5,6 +5,7 @@
 // TODO Possible to use hotkeys and bypass logo messages
 // TODO Review AudioSignal buffer size
 // TODO AudioBuffer in preferences?
+// TODO Review volume
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";
@@ -693,8 +694,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             self.requestReadjust();
         });
 
-        logoMessageOK.wmsxNeedsUIG = true;     // User Initiated Gesture required
-        wmsx.Util.onEventsOrTapWithBlock(logoMessageOK, "mousedown", closeLogoMessage);
+        logoMessageOK.wmsxNeedsUIG = logoMessageOKText.wmsxNeedsUIG = true;     // User Initiated Gesture required
+        wmsx.Util.onTapOrMouseDownWithBlockUIG(logoMessageOK, closeLogoMessage);
 
         // Used to show bar and close overlays and modals if not processed by any other function
         wmsx.Util.addEventsListener(fsElement, "touchstart touchend mousedown", function backScreenTouched(e) {
@@ -819,7 +820,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         logoButton.classList.add("wmsx-narrow-hidden");
 
         // Events for BarButtons and also MenuItems
-        wmsx.Util.onEventsOrTapWithBlockUIG(buttonsBar, "mousedown", barElementTapOrMouseDown);
+        wmsx.Util.onTapOrMouseDownWithBlockUIG(buttonsBar, barElementTapOrMouseDown);
         wmsx.Util.addEventsListener(buttonsBar, "touchmove", barElementTouchMove);
         wmsx.Util.addEventsListener(buttonsBar, "mouseup touchend", barElementTouchEndOrMouseUp);
     }
@@ -1407,7 +1408,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (winW > winH) {
             // For Keyboard in Landscape, always treat as if TouchControls are enabled
             winWK -= wmsx.ScreenGUI.TOUCH_CONTROLS_TOTAL_WIDTH;
-            if (touchControlsActive) winW = winWK;      // The same for everytinhg if TouchControls indeed enabled
+            if (touchControlsActive) winW = winWK;      // The same for everything if TouchControls indeed enabled
         }
 
         if (!force && readjustScreenSize.pw === parW && readjustScreenSize.w === winW && readjustScreenSize.h === winH && readjustScreenSize.wk === winWK)

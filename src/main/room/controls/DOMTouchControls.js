@@ -115,7 +115,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         dirElement.addEventListener("touchmove", dirTouchMove);
         dirElement.addEventListener("touchend", dirTouchEnd);
         dirElement.addEventListener("touchcancel", dirTouchEnd);
-        dirElement.addEventListener("mousedown", dirTouchStart);        // Only for button detection
+        dirElement.addEventListener("mousedown", dirMouseDown);        // Only for button detection
         group.appendChild(dirElement);
         mainElement.appendChild(group);
 
@@ -190,6 +190,12 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         port = mode === -2 ? -1 : mode === -1 ? (isTouchDevice && isMobileDevice ? 0 : -1) : mode;
         resetStates();
         updateConnectionsToHub();
+    }
+
+    // Only for button detection
+    function dirMouseDown(e) {
+        wmsx.Util.blockEvent(e);
+        if (touchDetectionListener) return touchDetectionListener.touchControlDetected("T_DIR", e);
     }
 
     function dirTouchStart(e) {
