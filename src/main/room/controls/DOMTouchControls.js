@@ -74,6 +74,17 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         }
     };
 
+    this.toggleDirBig = function() {
+        dirBig = !dirBig;
+        prefs.directionalBig = dirBig;
+        WMSX.userPreferences.setDirty();
+        this.controllersSettingsStateUpdate();
+    };
+
+    this.isDirBig = function() {
+        return dirBig;
+    };
+
     this.getPortActive = function() {
         return port;
     };
@@ -172,7 +183,8 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     this.controllersSettingsStateUpdate = function () {
         var active = !!hub.getSettingsState().touchActive;
         document.documentElement.classList.toggle("wmsx-touch-active", active);
-        screen.touchControlsActiveUpdate(active);
+        document.documentElement.classList.toggle("wmsx-dir-big", dirBig);
+        screen.touchControlsActiveUpdate(active, dirBig);
     };
 
     this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
@@ -234,7 +246,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         var dir = -1;
         var x = newX - dirTouchCenterX, y = newY - dirTouchCenterY;
         var dist = Math.sqrt(x*x + y*y);
-        if (dist > DIR_DEADZONE) {
+        if (dist > dirDeadZone) {
             dir = (1 - Math.atan2(x, y) / Math.PI) / 2;
             dir += 1 / 16;
             if (dir >= 1) dir -= 1;
@@ -263,6 +275,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     function setDirTouchCenter() {
         var rec = dirElement.getBoundingClientRect();
+        dirDeadZone = ((rec.right - rec.left) * 0.14) | 0;      // 14% deadzone each direction
         dirTouchCenterX = (((rec.left + rec.right) / 2) | 0) + window.pageXOffset;
         dirTouchCenterY = (((rec.top + rec.bottom) / 2) | 0) + window.pageYOffset;
     }
@@ -333,6 +346,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     function applyPreferences() {
         prefs = WMSX.userPreferences.current.touch;
+        dirBig = !!prefs.directionalBig;
     }
 
 
@@ -345,8 +359,9 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     var mode = WMSX.TOUCH_MODE >= 1 ? WMSX.TOUCH_MODE - 1 : isTouchDevice ? -1 : -2;            // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
+    var dirBig = false;
 
-    var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY, dirCurrentDir = -1;
+    var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY, dirCurrentDir = -1, dirDeadZone = 0;
     var buttonElements = { };
     var speedControls;
 
@@ -359,7 +374,6 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
 
     var TYPE = wmsx.ControllersHub.TOUCH;
 
-    var DIR_DEADZONE = 18;
     var DIRECTION_TO_PORT_VALUE = [ 0xf, 0xe, 0x6, 0x7, 0x5, 0xd, 0x9, 0xb, 0xa ];      // bit 0: on, 1: off
     var DIRECTION_TO_KEYS = [ [ ], [ "UP" ], [ "RIGHT", "UP" ], [ "RIGHT" ], [ "RIGHT", "DOWN" ], [ "DOWN" ], [ "LEFT", "DOWN" ], [ "LEFT" ], [ "LEFT", "UP" ] ];
 

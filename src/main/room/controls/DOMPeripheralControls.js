@@ -31,6 +31,7 @@ wmsx.DOMPeripheralControls = function() {
 
     this.getControlReport = function(control) {
         switch (control) {
+            case controls.TOUCH_TOGGLE_DIR_BIG:
             case controls.TURBO_FIRE_TOGGLE:
             case controls.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 return controllersHub.getControlReport(control);
@@ -210,6 +211,8 @@ wmsx.DOMPeripheralControls = function() {
                 controllersHub.toggleMouseMode(); break;
             case controls.TOUCH_TOGGLE_MODE:
                 controllersHub.toggleTouchControlsMode(altPower); break;       // altPower for skip auto option
+            case controls.TOUCH_TOGGLE_DIR_BIG:
+                controllersHub.getTouchControls().toggleDirBig(); break;
             case controls.TURBO_FIRE_TOGGLE:
                 controllersHub.toggleTurboFireSpeed(); break;
             case controls.HAPTIC_FEEDBACK_TOGGLE_MODE:

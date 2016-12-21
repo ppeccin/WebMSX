@@ -412,13 +412,13 @@ wmsx.CanvasDisplay = function(mainElement) {
         showCursorAndBar();
     };
 
-    this.touchControlsActiveUpdate = function(active) {
-        if (touchControlsActive === active) return;
-
+    this.touchControlsActiveUpdate = function(active, dirBig) {
+        if (touchControlsActive === active && touchControlsDirBig === dirBig) return;
         touchControlsActive = active;
+        touchControlsDirBig = dirBig;
         if (isFullscreen) {
             if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
-            this.requestReadjust(true, true);
+            this.requestReadjust(true);
         }
     };
 
@@ -432,10 +432,10 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     };
 
-    this.requestReadjust = function(now, skipFocus) {
+    this.requestReadjust = function(now) {
         if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
         if (now)
-            readjustAll(true, skipFocus);
+            readjustAll(true);
         else {
             readjustRequestTime = wmsx.Util.performanceNow();
             if (!readjustInterval) readjustInterval = setInterval(readjustAll, 50);
@@ -1372,11 +1372,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function readjustAll(force, skipFocus) {
+    function readjustAll(force) {
         if (readjustScreeSizeChanged(force)) {
             if (isFullscreen) {
                 var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
-                var keyboardRect = virtualKeyboardMode && updateKeyboardWidth(readjustScreenSize.wk);
+                var keyboardRect = virtualKeyboardMode && updateKeyboardWidth(readjustScreenSize.w);
                 buttonsBarDesiredWidth = isLandscape ? virtualKeyboardMode ? keyboardRect.w : 0 : -1;
                 var winH = readjustScreenSize.h;
                 if (!isLandscape || virtualKeyboardMode) winH -= wmsx.ScreenGUI.BAR_HEIGHT + 2;
@@ -1387,7 +1387,7 @@ wmsx.CanvasDisplay = function(mainElement) {
                 monitor.displayScale(WMSX.SCREEN_DEFAULT_ASPECT, self.displayDefaultScale());
             }
 
-            if (!skipFocus) self.focus();
+            self.focus();
             controllersHub.screenReadjustedUpdate();
 
             //console.log("READJUST");
@@ -1402,21 +1402,14 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     function readjustScreeSizeChanged(force) {
         var parW = mainElement.parentElement.clientWidth;
-        var winW = fsElement.clientWidth;
-        var winH = fsElement.clientHeight;
-        var winWK = winW;
-        if (winW > winH) {
-            // For Keyboard in Landscape, always treat as if TouchControls are enabled
-            winWK -= wmsx.ScreenGUI.TOUCH_CONTROLS_TOTAL_WIDTH;
-            if (touchControlsActive) winW = winWK;      // The same for everything if TouchControls indeed enabled
-        }
+        var winW = fsElementCenter.clientWidth;
+        var winH = fsElementCenter.clientHeight;
 
-        if (!force && readjustScreenSize.pw === parW && readjustScreenSize.w === winW && readjustScreenSize.h === winH && readjustScreenSize.wk === winWK)
+        if (!force && readjustScreenSize.pw === parW && readjustScreenSize.w === winW && readjustScreenSize.h === winH)
             return false;
 
         readjustScreenSize.pw = parW;
         readjustScreenSize.w = winW;
-        readjustScreenSize.wk = winWK;
         readjustScreenSize.h = winH;
         return true;
     }
@@ -1522,7 +1515,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var canvasContext;
     var canvasImageRenderingValue;
 
-    var touchControlsActive = false;
+    var touchControlsActive = false, touchControlsDirBig = false;
     var virtualKeyboardMode = 0;
     var virtualKeyboardElement, virtualKeyboard;
 
