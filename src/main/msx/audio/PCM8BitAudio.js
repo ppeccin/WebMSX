@@ -38,7 +38,7 @@ wmsx.PCM8BitAudio = function() {
 
     var CHANNEL_MAX_VOLUME = 0.25 / 128;                       // Sample values in the range -128..+127
 
-    var VOLUME = 0.60;
+    var VOLUME = 0.65;
     var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // Same as PSG Audio. Main cpu clock / 32 = 112005hz
 
 
