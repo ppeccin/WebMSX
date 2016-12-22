@@ -463,6 +463,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     function hideCursorAndBar() {
         hideCursor();
         hideBar();
+        cursorHideFrameCountdown = -1;
     }
 
     function showCursorAndBar(forceBar) {
@@ -681,7 +682,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMainEvents() {
-        fsElement.addEventListener("mousemove", function showCursorOnMouseMove(e) {
+        (isMobileDevice ? canvasOuter : fsElement).addEventListener("mousemove", function showCursorOnMouseMove(e) {
             showCursorAndBar();
         });
 
@@ -690,7 +691,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         window.addEventListener("orientationchange", function orientationChanged() {
             closeAllOverlays();
-            showCursorAndBar();
+            hideCursorAndBar();
             self.requestReadjust();
         });
 
@@ -698,7 +699,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         wmsx.Util.onTapOrMouseDownWithBlockUIG(logoMessageOK, closeLogoMessage);
 
         // Used to show bar and close overlays and modals if not processed by any other function
-        wmsx.Util.addEventsListener(fsElement, "touchstart touchend mousedown", function backScreenTouched(e) {
+        wmsx.Util.addEventsListener(fsElementCenter, "touchstart touchend mousedown", function backScreenTouched(e) {
             if (e.type !== "touchend") {                            // Execute actions only tor touchstart or mousedown
                 closeAllOverlays();
                 showCursorAndBar();
