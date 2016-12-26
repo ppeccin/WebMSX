@@ -1033,7 +1033,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 220px;
+    width: 226px;
     height: 269px;
     margin: auto;
     padding: 0 16px;
@@ -1109,7 +1109,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: none;
     position: absolute;
     top: 15px;
-    left: 45px;
+    left: 48px;
     transform: scale(.70);
 }
 #wmsx-touch-config-dir.wmsx-show {
@@ -1123,7 +1123,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: none;
     position: absolute;
     top: 46px;
-    left: 74px;
+    right: 77px;
     text-shadow: none;
 }
 #wmsx-touch-config-button.wmsx-show {
