@@ -123,7 +123,9 @@ WMSX.userPreferences.defaults = function() {
             }
         },
 
-        hapticFeedback: true
+        hapticFeedback: true,
+
+        audioBufferBase: -1                // auto
 
     };
 };

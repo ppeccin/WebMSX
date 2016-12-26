@@ -65,12 +65,14 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         this.pause();
         createProcessor();
         this.unpause();
-        screen.showOSD("Audio Buffer size: " + (bufferBaseSize === -1 ? "Auto (" + bufferSize + ")" : bufferBaseSize === 0 ? "Platform (" + bufferSize + ")" : bufferSize), true);
+        screen.showOSD("Audio Buffer size: " + (bufferBaseSize === -1 ? "Auto (" + bufferSize + ")" : bufferBaseSize === 0 ? "Browser (" + bufferSize + ")" : bufferSize), true);
+        WMSX.userPreferences.current.audioBufferBase = bufferBaseSize;
+        WMSX.userPreferences.setDirty();
     };
 
     this.getControlReport = function(control) {
         // Only BufferBaseSize for now
-        return { label: bufferBaseSize === -2 ? "OFF" : bufferBaseSize === -1 ? "Auto" : bufferBaseSize === 0 ? "Platform" : bufferSize, active: bufferBaseSize > 0 };
+        return { label: bufferBaseSize === -2 ? "OFF" : bufferBaseSize === -1 ? "Auto" : bufferBaseSize === 0 ? "Browser" : bufferSize, active: bufferBaseSize > 0 };
     };
 
     function determineAutoBufferBaseSize() {
@@ -198,7 +200,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     this.signals = audioSignal;
     var resamplingFactor = [];
     var resamplingLeftOver = [];
-    var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE;
+    var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE === -3 ? WMSX.userPreferences.current.audioBufferBase : WMSX.AUDIO_MONITOR_BUFFER_BASE;
 
     var audioContext;
     var bufferSize;

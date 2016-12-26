@@ -3,7 +3,6 @@
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
-// TODO AudioBuffer in preferences?
 
 wmsx.CanvasDisplay = function(mainElement) {
 "use strict";

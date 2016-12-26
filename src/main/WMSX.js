@@ -56,7 +56,7 @@ WMSX = {
     SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
     SCREEN_VSYNCH_MODE:             1,                          // -1: disabled; 0: off; 1: on
-    AUDIO_MONITOR_BUFFER_BASE:      -1,                         // -2: disable audio; -1: auto; 0: platform default; 1..6: base value. More buffer = more delay
+    AUDIO_MONITOR_BUFFER_BASE:      -3,                         // -3: user set value; -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
     AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
     AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Internal Audio Signal buffer based on Monitor buffer
     AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames in internal Audio Signal buffer based on Monitor buffer
