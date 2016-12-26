@@ -1,4 +1,4 @@
-// WebMSX version 2.0
+// WebMSX version 4.0
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
@@ -23,7 +23,7 @@ WMSX = {
     AUTODETECT_URL:                 "",
 
     // Forcing ROM formats
-    CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, MSXDOS2, RType, CrossBlaim, Manbow2
+    CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, MSXDOS2, etc...
     CARTRIDGE2_FORMAT:              "",
 
     // Basic loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
