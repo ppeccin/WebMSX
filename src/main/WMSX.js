@@ -44,25 +44,25 @@ WMSX = {
     RAMMAPPER_SIZE:                 512,
 
     AUTO_START:                     true,
-    AUTO_POWER_ON_DELAY:            1600,                       // -1: no auto Power-ON, >= 0: wait specified milliseconds before Power-ON
+    AUTO_POWER_ON_DELAY:            1600,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",
-    SCREEN_FULLSCREEN_MODE:         -1,                         // -2: disabled, -1: auto, 0: off, 1: on
-    SCREEN_CRT_MODE:                -1,                         // -1: auto, 0: off, 1: on
-    SCREEN_FILTER_MODE:             -1,                         // -2: browser default, -1: auto, 0..3: smoothing level
-    SCREEN_DEFAULT_SCALE:           -1,                         // 0.5 .. N, 0.1 steps. -1: auto
-    SCREEN_DEFAULT_ASPECT:          1.1,                        // 0.1 steps
-    SCREEN_CONTROL_BAR:             1,                          // 0: on hover, 1: always
+    SCREEN_FULLSCREEN_MODE:         -1,                         // -2: disabled; -1: auto; 0: off; 1: on
+    SCREEN_CRT_MODE:                -1,                         // -1: auto; 0: off; 1: on
+    SCREEN_FILTER_MODE:             -1,                         // -2: browser default; -1: auto; 0..3: smoothing level
+    SCREEN_DEFAULT_SCALE:           -1,                         // -1: auto; 0.5..N in 0.1 steps: scale
+    SCREEN_DEFAULT_ASPECT:          1.1,                        // in 0.1 steps
+    SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
-    SCREEN_VSYNCH_MODE:             1,                          // -1: disabled, 0: off, 1: on
-    AUDIO_MONITOR_BUFFER_BASE:      -1,                         // 1 .. 6. 0: platform default, -1: auto, -2: disable audio. More buffer = more delay. Don't change! :-)
-    AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // 256, 512, 1024, 2048, 4096, 8192, 16384. -1: auto. More buffer = more delay. Don't change! :-)
-    AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Signal buffer based on monitor buffer
-    AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames of audio in signal buffer
-    MOUSE_MODE:                     0,                          // -1: disabled, 0: auto, 1: enabled at port 1, 2: enabled at port 2
-    TOUCH_MODE:                     0,                          // -1: disabled, 0: auto, 1: enabled at port 1, 2: enabled at port 2
-    KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI, 1: JIS
+    SCREEN_VSYNCH_MODE:             1,                          // -1: disabled; 0: off; 1: on
+    AUDIO_MONITOR_BUFFER_BASE:      -1,                         // -2: disable audio; -1: auto; 0: platform default; 1..6: base value. More buffer = more delay
+    AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
+    AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Internal Audio Signal buffer based on Monitor buffer
+    AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames in internal Audio Signal buffer based on Monitor buffer
+    MOUSE_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+    TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+    KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters

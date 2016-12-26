@@ -165,22 +165,24 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `SCREEN_ELEMENT_ID`             |  "wmsx-screen"      |  HTML Element ID to place the Emulator Screen
 | `ALLOW_URL_PARAMETERS`          |  true               |  Allows overriding any parameters via URL query parameters
 | `AUTO_START`                    |  true               |  Auto-Start the emulator as soon as ready
-| `AUTO_POWER_ON_DELAY`           |  1000               |  Auto-Power-ON after specified msecs. -1: no Auto-Power-ON
+| `AUTO_POWER_ON_DELAY`           |  1600               |  Auto-Power-ON after specified msecs. -1: no Auto-Power-ON
 | `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size. 128, 256, 512 .. 4096, if enabled
 | `CARTRIDGE1_SLOT`               |  [1]                |  Slot specification for Cartridge Slot 1
 | `CARTRIDGE2_SLOT`               |  [2, 0]             |  Slot specification for Cartridge Slot 2
 | `MEDIA_CHANGE_DISABLED`         |  false              |  Block user from changing Media (Cartridges, Disks, etc)
 | `SCREEN_RESIZE_DISABLED`        |  false              |  Block user from changing Sreen size
-| `SCREEN_FULLSCREEN_DISABLED`    |  false              |  Block user from entering FullScreen mode
-| `SCREEN_FILTER_MODE`            |  1                  |  Screen CRT Filter level. 0 .. 3
-| `SCREEN_CRT_MODE`               |  1                  |  Screen CRT Phosphor Effect. 0: off, 1: on
-| `SCREEN_DEFAULT_SCALE`          |  1.1                |  Screen size. 0.5 .. N, in 0.1 steps
+| `SCREEN_FULLSCREEN_MODE`        |  -1                 |  FullScreen mode. -2: disabled; -1: auto; 0: off; 1: on
+| `SCREEN_FILTER_MODE`            |  -1                 |  Screen CRT Filter level. -2: browser default; -1: auto; 0..3: smoothing level
+| `SCREEN_CRT_MODE`               |  -1                 |  Screen CRT Phosphor Effect. -1: auto; 0: off; 1: on
+| `SCREEN_DEFAULT_SCALE`          |  -1                 |  Screen size. -1: auto; 0.5..N in 0.1 steps
 | `SCREEN_DEFAULT_ASPECT`         |  1.1                |  Screen aspect ratio (width) in 0.1 steps
-| `SCREEN_CONTROL_BAR`            |  0                  |  Screen Bottom Bar controls. 0: always, 1: on hover
+| `SCREEN_CONTROL_BAR`            |  1                  |  Screen Bottom Bar controls. 0: on hover; 1: always
 | `SCREEN_FORCE_HOST_NATIVE_FPS`  |  -1                 |  Force host native video frequency. -1: auto-detect. Don't change! :-)
-| `SCREEN_VSYNCH_MODE`            |  1                  |  V-Synch mode. -1: disabled, 0: off, 1: on
-| `AUDIO_SIGNAL_BUFFER_FRAMES`    |  3                  |  Internal audio buffer in frames.  Don't change! :-)
-| `AUDIO_BUFFER_BASE`             |  256                |  Audio base buffer size. 256, 512 .. 2048. Don't change! :-)
-| `AUDIO_BUFFER_SIZE`             |  -1                 |  Audio buffer size. 256, 512 .. 8192. 0: no sound. -1: auto. More buffer = more delay
-| `MOUSE_MODE`                    |  0                  |  Mouse control. -1: disabled, 0: auto, 1: enabled at port 1, 2: enabled at port 2
+| `SCREEN_VSYNCH_MODE`            |  1                  |  V-Synch mode. -1: disabled; 0: off; 1: on
+| `AUDIO_MONITOR_BUFFER_BASE`     |  -1                 |  Audio buffer base size. 2: disable audio; -1: auto; 0: platform default; 1..6: base value. More buffer = more delay
+| `AUDIO_MONITOR_BUFFER_SIZE`     |  -1                 |  Audio buffer size. -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size. More buffer = more delay. Don't change! :-)
+| `AUDIO_SIGNAL_BUFFER_RATIO`     |  2                  |  Internal Audio Signal buffer based on Monitor buffer
+| `AUDIO_SIGNAL_ADD_FRAMES`       |  3                  |  Additional frames in internal Audio Signal buffer based on Monitor buffer
+| `MOUSE_MODE`                    |  0                  |  Mouse control. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+| `TOUCH_MODE`                    |  0                  |  Touch control. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
