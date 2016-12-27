@@ -73,7 +73,7 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 | `DISKB_FILES_URL`   | URL of "loose" file or ZIP file to load "as Disk" in Drive B:  | `DISKB_FILES`
 | `TAPE_URL`          | URL of Tape image file to load                       | `TAPE`
 | `STATE_URL`         | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
-| `AUTODETECT_URL`    | URL of file to load with media auto-detection        | `AUTODETECT`
+| `AUTODETECT_URL`    | URL of file to load with media auto-detection        | `AUTODETECT`, `AUTO`, `ANY`
 
 ### ROM Format (or Mapper Type)
 The ROM Format is auto-detected. To force a format, use the `CARTRIDGE1_FORMAT` and `CARTRIDGE2_FORMAT` parameters.
