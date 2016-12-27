@@ -10,7 +10,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         buildAndPlugMachine();
     }
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         self.screen.powerOn();
         self.speaker.powerOn();
         self.controllersHub.powerOn();

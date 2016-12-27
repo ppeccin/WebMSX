@@ -21,7 +21,7 @@ wmsx.Machine = function() {
         syf.setMachineType(this.machineType);
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();
         if (syf) syf.powerOn();
@@ -270,7 +270,7 @@ wmsx.Machine = function() {
 
     function setVSynchMode(mode) {
         if (vSynchMode === mode) return;
-        if (vSynchMode !== -1) vSynchMode = mode %= 2;
+        if (vSynchMode !== -1) vSynchMode = mode % 2;
         vdp.setVSynchMode(vSynchMode);
         mainVideoClockUpdateSpeed();
     }

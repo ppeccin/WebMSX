@@ -6,8 +6,6 @@
 wmsx.WebAudioSpeaker = function(mainElement) {
 "use strict";
 
-    var self = this;
-
     this.connect = function(audioSocket) {
         audioSocket.connectMonitor(this);
     };

@@ -123,14 +123,6 @@ wmsx.BUS = function(machine, cpu) {
         if (!handler || devicesOutputPorts[port] === handler) devicesOutputPorts[port] = deviceOutputMissing;
     };
 
-    this.getOutputDevice = function(port) {
-        return devicesOutputPorts[port];
-    };
-
-    this.getInputDevice = function(port) {
-        return devicesInputPorts[port];
-    };
-
     this.setWriteMonitor = function(monitor) {      // Only 1 monitor can be active
         writeMonitor = monitor;
     };

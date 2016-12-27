@@ -25,10 +25,6 @@ wmsx.DOMPeripheralControls = function() {
         diskDrive = pDiskDrive;
     };
 
-    this.setGroupRestriction = function(pGroup) {
-        groupRestriction = pGroup || null;
-    };
-
     this.getControlReport = function(control) {
         switch (control) {
             case controls.TOUCH_TOGGLE_DIR_BIG:
@@ -46,7 +42,7 @@ wmsx.DOMPeripheralControls = function() {
         var control = keyCodeMap[code & EXCLUDE_SHIFT_MASK];
         if (!control) return false;
 
-        if (groupRestriction && !groups[groupRestriction].has(control)) return false;
+        //if (groupRestriction && !groups[groupRestriction].has(control)) return false;
         self.controlActivated(control, false, !!(code & INCLUDE_SHIFT_MASK));                     // Never altPower
         return true;
     };
@@ -340,7 +336,6 @@ wmsx.DOMPeripheralControls = function() {
     var keyCodeMap = {};                // SHIFT is considered differently
 
     var groups = {};
-    var groupRestriction = null;
 
     var EXCLUDE_SHIFT_MASK = ~wmsx.DOMKeys.SHIFT;
     var INCLUDE_SHIFT_MASK = wmsx.DOMKeys.SHIFT;

@@ -30,26 +30,6 @@ wmsx.LocalStorageSaveStateMedia = function() {
         return buildStateFromData(data);
     };
 
-    this.saveResourceToFile = function(entry, data) {
-        try {
-            var res = data && JSON.stringify(data);
-            return saveToLocalStorage(entry, res);
-        } catch(ex) {
-            wmsx.Util.error(ex);
-            // give up
-        }
-    };
-
-    this.loadResourceFromFile = function(entry) {
-        try {
-            var res = loadFromLocalStorage(entry);
-            return res && JSON.parse(res);
-        } catch(ex) {
-            wmsx.Util.warning(ex);
-            // give up
-        }
-    };
-
     var saveToLocalStorage = function(entry, data) {
         try {
             localStorage["wmsx" + entry] = data;

@@ -96,6 +96,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.videoSignalOff = function() {
         signalIsOn = false;
+        showCursorAndBar();
         updateLogo();
     };
 
@@ -453,7 +454,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         self.requestReadjust(true);
     }
 
-    function releaseControllersOnLostFocus(e) {
+    function releaseControllersOnLostFocus() {
         controllersSocket.releaseControllers();
     }
 
@@ -679,7 +680,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function setupMainEvents() {
-        (isMobileDevice ? canvasOuter : fsElement).addEventListener("mousemove", function showCursorOnMouseMove(e) {
+        (isMobileDevice ? canvasOuter : fsElement).addEventListener("mousemove", function showCursorOnMouseMove() {
             showCursorAndBar();
         });
 
@@ -688,7 +689,8 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         window.addEventListener("orientationchange", function orientationChanged() {
             closeAllOverlays();
-            hideCursorAndBar();
+            if (signalIsOn) hideCursorAndBar();
+            else showCursorAndBar();
             self.requestReadjust();
         });
 
@@ -921,7 +923,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
     }
 
-    function barButtonTouchEndOrMouseUp(elem, e) {
+    function barButtonTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
         // Only touch, left or middle button
         if (barMenuItemActive && !(e.button > 1)) barMenuItemFireActive(e.shiftKey, e.button === 1 || e.ctrlKey);
@@ -935,11 +937,11 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenuItemSetActive(elem, e.type === "touchmove");
     }
 
-    function barMenuItemHoverOut(elem) {
+    function barMenuItemHoverOut() {
         barMenuItemSetActive(null);
     }
 
-    function barMenuItemTouchEndOrMouseUp(elem, e) {
+    function barMenuItemTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
         // Only touch, left or middle button
         if (barMenuItemActive && !(e.button > 1)) barMenuItemFireActive(e.shiftKey, e.button === 1 || e.ctrlKey);
@@ -992,8 +994,8 @@ wmsx.CanvasDisplay = function(mainElement) {
         wmsx.Util.blockEvent(e);
         barButtonLongTouchCancel();
         var elem = e.target;
-        if (elem.wmsxBarElementType === 1) barButtonTouchEndOrMouseUp(elem, e);
-        else if (elem.wmsxBarElementType === 2) barMenuItemTouchEndOrMouseUp(elem, e);
+        if (elem.wmsxBarElementType === 1) barButtonTouchEndOrMouseUp(e);
+        else if (elem.wmsxBarElementType === 2) barMenuItemTouchEndOrMouseUp(e);
     }
 
     function createSettingsMenuOptions() {
@@ -1083,7 +1085,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Add event to enter in real fullScreenByAPI on first touch/click if possible
         if (fullscreenAPIEnterMethod) {
             var done = false;
-            var enterFullScreenByAPIonFirstTouch = function (e) {
+            var enterFullScreenByAPIonFirstTouch = function() {
                 if (done) return;
                 done = true;
                 wmsx.Util.removeEventsListener(fsElement, "touchend mousedown", enterFullScreenByAPIonFirstTouch, true);
@@ -1272,7 +1274,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             item.wmsxBarElementType = 2;     // Menu Item
             item.wmsxItemIndex = i;
             item.addEventListener("mouseenter", function (e) { barMenuItemHoverOver(e.target, e); });
-            item.addEventListener("mouseleave", function (e) { barMenuItemHoverOut(e.target); });
+            item.addEventListener("mouseleave", barMenuItemHoverOut);
             inner.appendChild(item);
             barMenu.wmsxItems[i] = item;
         }

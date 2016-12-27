@@ -82,7 +82,6 @@ module.exports = function (grunt) {
                     "src/main/msx/machine/ExtensionsSocket.js",
                     "src/main/msx/machine/DeviceMissing.js",
                     "src/main/msx/machine/Clock.js",
-                    "src/main/msx/machine/ClockMultuplexer.js",
                     "src/main/msx/machine/BUS.js",
                     "src/main/msx/machine/Machine.js",
                     "src/main/msx/controls/KeyboardKeys.js",

@@ -269,7 +269,6 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
     var supported = false;
     var detectionDelayCount = 1;
 
-    var machineControls;
     var screen;
 
     var mode = -1;

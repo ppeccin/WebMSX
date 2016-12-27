@@ -21,7 +21,7 @@ wmsx.Slot = function() {
     this.getDataToSave = function() {
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
     };
 
     this.powerOff = function() {

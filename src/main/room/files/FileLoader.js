@@ -61,7 +61,7 @@ wmsx.FileLoader = function() {
             } catch (e) {
                 // give up
             }
-            this.readFromURL(url, openType, port, altPower, asExpansion, function (s) {
+            this.readFromURL(url, openType, port, altPower, asExpansion, function () {
                 if (!wasPaused) machine.systemPause(false);
             });
         } else {

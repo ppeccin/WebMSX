@@ -483,7 +483,6 @@ wmsx.Util = new function() {
     };
 
     this.onTapOrMouseDownWithBlockUIG = function(element, handler) {
-        var done = false;
         function onTapOrMouseDownUIG(e) {
             // If not User Initiated Gesture needed on the event TARGET handle only on touchstart,
             // otherwise handle only touchend or mousedown if no touch events fired

@@ -3,8 +3,6 @@
 wmsx.DOMMachineControls = function(keyForwardControls) {
 "use strict";
 
-    var self = this;
-
     function init() {
         initKeys();
     }
@@ -157,10 +155,6 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_STATE_11a        = wmsx.DOMKeys.VK_FF_MINUS.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
-
-    var KEY_CTRL_MASK  = 1;
-    var KEY_ALT_MASK   = 2;
-    var KEY_SHIFT_MASK = 4;
 
 
     init();

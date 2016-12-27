@@ -61,10 +61,6 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
         updateMode();
     };
 
-    this.getMode = function() {
-        return mode;
-    };
-
     this.getModeDesc = function() {
         switch (mode) {
             case -1: return "AUTO";

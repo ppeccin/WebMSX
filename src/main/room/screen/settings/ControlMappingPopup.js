@@ -3,8 +3,6 @@
 wmsx.ControlMappingPopup = function() {
 "use strict";
 
-    var self = this;
-
     function init() {
         setup();
     }
@@ -131,7 +129,7 @@ wmsx.ControlMappingPopup = function() {
     var controller = null, controlEditing = null, portEditing, modifPending = null;
 
     var popup, popupHeading, popupMapping, popupFooter;
-    var POPUP_BORDER_WIDTH = 8, POPUP_DIST = 14;
+    var POPUP_DIST = 14;
 
 
     init();

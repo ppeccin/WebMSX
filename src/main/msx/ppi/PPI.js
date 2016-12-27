@@ -15,7 +15,7 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket) {
         bus.connectOutputDevice(0xab, this.outputAB);
     };
 
-    this.powerOn = function(paused) {
+    this.powerOn = function() {
     };
 
     this.powerOff = function() {

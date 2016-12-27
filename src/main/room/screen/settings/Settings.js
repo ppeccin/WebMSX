@@ -149,19 +149,19 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
         });
 
         // Tabs
-        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-general"], function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-general"], function () {
             self.setPage("GENERAL");
         });
-        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-inputs"], function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-inputs"], function () {
             self.setPage("INPUTS");
         });
-        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-ports"], function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-ports"], function () {
             self.setPage("PORTS");
         });
-        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-media"], function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-media"], function () {
             self.setPage("MEDIA");
         });
-        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-about"], function (e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(self["wmsx-menu-about"], function () {
             self.setPage("ABOUT");
         });
     }
