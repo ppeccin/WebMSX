@@ -82,6 +82,11 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             : 2;         // desktop
     }
 
+    function determineBrowserDefaultBufferBaseSize() {
+        // Safari/WebKit does not allow 0 (browser default), so use Auto instead
+        return wmsx.Util.browserInfo().name === "SAFARI" || wmsx.Util.isIOSDevice() ? determineAutoBufferBaseSize() : 0;
+    }
+
     var createAudioContext = function() {
         if (bufferBaseSize === -2 || WMSX.AUDIO_MONITOR_BUFFER_SIZE === 0) {
             wmsx.Util.warning("Audio disabled in configuration");
@@ -101,7 +106,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     var createProcessor = function() {
         try {
             // If not specified, calculate buffer size based on baseSize and host audio sampling rate. Ex: for a baseSize = 1 then 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
-            var baseSize = bufferBaseSize === -1 ? determineAutoBufferBaseSize() : bufferBaseSize > 0 ? bufferBaseSize : 0;
+            var baseSize = bufferBaseSize === -1 ? determineAutoBufferBaseSize() : bufferBaseSize === 0 ? determineBrowserDefaultBufferBaseSize() : bufferBaseSize;
             var totalSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : baseSize > 0 ? wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(baseSize - 1) * 256 : 0;
             processor = audioContext.createScriptProcessor(totalSize, 1, 1);
             processor.onaudioprocess = onAudioProcess;
@@ -114,18 +119,18 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     function registerUnlockOnTouchIfNeeded() {
-        // iOS needs to unlock AudioContext on user interaction!
+        // iOS needs unlocking of the AudioContext on user interaction!
         if (processor && (!audioContext.state || audioContext.state === "suspended")) {
             mainElement.addEventListener("touchend", function unlockAudioContextOnTouch() {
-                wmsx.Util.log("Unlocking Audio Context...");
-                mainElement.removeEventListener("touchend", unlockAudioContextOnTouch);
+                mainElement.removeEventListener("touchend", unlockAudioContextOnTouch, true);
 
                 var source = audioContext.createBufferSource();
                 source.buffer = audioContext.createBuffer(1, 1, 22050);
                 source.connect(audioContext.destination);
                 source.start(0);
-            });
-            wmsx.Util.log("Audio Context unlock on Touch registered");
+                wmsx.Util.log("Audio Context unlocked, " + audioContext.state);
+            }, true);
+            wmsx.Util.log("Audio Context unlock on touch registered");
         }
     }
 
