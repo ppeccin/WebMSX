@@ -7,34 +7,39 @@ WebMSX is great for displaying MSX software running inside webpages. You can lau
 Please go to **http://webmsx.org** to enjoy it online!
 
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
-
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-#### New in Version 3.0
+#### New in Version 4.0
 
-- Fully customizable Keyboard, Joysticks, Joykeys and Mouse
-- Joykeys support. Emulate MSX Joysticks using Host Keyboard
-- Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys
-- New mappers added. Several improvements and fixes
+- Support for mobile iOS and Android devices
+- Finally enjoy MSX games on your iPhone/iPad!
+- Customizable Touch Controls, Virtual Keyboard, with Haptic feedback
+- Install as a WebApp on iOS/Android/Desktop, then run offline!
+- Open files from local storage, iCloud, Google Drive, Dropbox, web links 
+- Higher resolution GUI for high-density displays, Retina displays
+- Menu navigation by keys. Easy GUI switches for most used options
+- CPU Turbo mode @ 7.16MHz 
 
 ### Features
 
 - 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
 - PSG, SCC, SCC-I, FM-PAC, PCM and MSX-MUSIC sound
-- Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox
+- Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox/Safari
+- Finally enjoy MSX games on your iPhone/iPad
+- Customizable Touch Controls/Virtual Keyboard for mobile devices (iOS, Android)
+- Install as a WebApp, then run offline
 - Put games or any MSX software in webpages easily
 - Show MSX software running with a single link to the WebMSX page
-- Run it locally with a single HTML file, no install needed
 - Play Cartridge ROMs, Disk and Tape images
 - Powerful Drag & Drop system for loading media files
 - Load several disks at once and easily switch disks
 - "Files as Disk" and "ZIP as Disk" emulation
 - Savestates support. Export and share Savestate files
-- Fully customizable Keyboard, Joysticks, Joykeys and Mouse controllers
+- Fully customizable Keyboard, Joysticks, Joykeys, Mouse and Touch controllers
 - Joykeys support. Emulate MSX Joysticks using Host Keyboard
 - Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys
 - Easily toggle extensions like SCC, PAC, DOS2, etc.
-- Adjustable speed, Pause and Frame-by-frame advance
+- Adjustable speed, Pause and Frame-by-frame advance. CPU Turbo mode
 - Copy & Paste text, Screen Capture, Debug modes
 - Resizable Screen, Full Screen mode
 - Javascript API for loading media and machine control

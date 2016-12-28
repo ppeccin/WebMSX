@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         clean: {
-            init: ["temp", "release/aplha/4.0"],
+            init: ["temp", "release/stable/4.0"],
             finish: ["temp"]
         },
 
@@ -187,17 +187,17 @@ module.exports = function (grunt) {
         copy: {
             standalone: {
                 files: [
-                    {src: "temp/index.html", dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/standalone/cache.manifest", dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/aplha/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/aplha/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/aplha/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: "temp/index.html", dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/cache.manifest", dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/stable/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/stable/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             },
             embedded: {
                 files: [
-                    {src: "src/runtime/embedded/index.html", dest: "release/aplha/4.0/embedded", expand: true, flatten: true, filter: "isFile"},
-                    {src: "temp/wmsx.js", dest: "release/aplha/4.0/embedded", expand: true, flatten: true, filter: "isFile"}
+                    {src: "src/runtime/embedded/index.html", dest: "release/stable/4.0/embedded", expand: true, flatten: true, filter: "isFile"},
+                    {src: "temp/wmsx.js", dest: "release/stable/4.0/embedded", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         }
