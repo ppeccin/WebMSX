@@ -303,8 +303,8 @@ wmsx.ControllersHub = function(keyForwardControls) {
     };
 
     this.loadState = function(s) {
-        touchControls.loadState(s.t);
-        hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
+        if (s.t) touchControls.loadState(s.t);
+        if (s.h !== undefined) hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
     };
 
 

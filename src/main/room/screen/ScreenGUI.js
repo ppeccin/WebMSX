@@ -416,6 +416,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 #wmsx-screen-fs .wmsx-select-dialog li {
     display: none;
+    position: relative;
     overflow: hidden;
     height: 26px;
     background: rgb(70, 70, 70);
@@ -440,6 +441,19 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-screen-fs .wmsx-select-dialog li.wmsx-droptarget {
     color: white;
     border-color: lightgray;
+}
+#wmsx-screen-fs .wmsx-select-dialog li.wmsx-toggle::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 17px;
+    top: 2px;
+    left: 6px;
+    background: rgb(60, 60, 60);
+    box-shadow: black 1px 1px 1px;
+}
+#wmsx-screen-fs .wmsx-select-dialog li.wmsx-toggle-checked::after {
+    background: rgb(248, 33, 28);
 }
 
 #wmsx-logo {

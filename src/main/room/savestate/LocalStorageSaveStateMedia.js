@@ -11,6 +11,10 @@ wmsx.LocalStorageSaveStateMedia = function() {
         fileDownloader = pFileDownloader;
     };
 
+    this.isSlotUsed = function(slot) {
+        return localStorage["wmsxsave" + slot] !== undefined;
+    };
+
     this.saveState = function(slot, state) {
         var data = buildDataFromState(state);
         return data && saveToLocalStorage("save" + slot, data);

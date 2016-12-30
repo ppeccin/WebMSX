@@ -28,7 +28,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         machineTypeSocket = machine.getMachineTypeSocket();
     };
 
-    this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive) {
+    this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
         fileLoader.registerForDnD(fsElement);
         fileLoader.registerForFileInputElement(fsElement);
         fileDownloader = pFileDownloader;
@@ -38,6 +38,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         controllersHub.setKeyInputElement(fsElement);
         controllersHub.setMouseInputElement(fsElement);
         diskDrive = pDiskDrive;
+        stateMedia = pStateMedia;
     };
 
     this.powerOn = function() {
@@ -124,7 +125,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.openSaveStateDialog = function (save) {
         closeAllOverlays();
-        if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls);
+        if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls, stateMedia);
         saveStateDialog.show(save);
     };
 
@@ -1484,6 +1485,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var controllersSocket;
     var cartridgeSocket;
     var diskDrive;
+    var stateMedia;
 
     var readjustInterval = 0, readjustRequestTime = 0;
     var readjustScreenSize = { w: 0, wk: 0, h: 0, pw: 0 };

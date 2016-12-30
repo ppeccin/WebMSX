@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls) {
+wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls, stateMedia) {
 "use strict";
 
     var self = this;
@@ -47,7 +47,14 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             var li = listItems[i];
             li.innerHTML = prefix + slotOptions[i].d;
             li.classList.toggle("wmsx-selected", i === slotSelected);
+            li.classList.toggle("wmsx-toggle-checked", stateMedia.isSlotUsed(i));
         }
+        refreshListSelection();
+    }
+
+    function refreshListSelection() {
+        for (var i = 0; i < listItems.length; ++i)
+            listItems[i].classList.toggle("wmsx-selected", i === slotSelected);
     }
 
     function create() {
@@ -68,6 +75,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         for (var i = 0; i < slotOptions.length; ++i) {
             var li = document.createElement("li");
             li.classList.add("wmsx-visible");
+            if (i < slotOptions.length - 1) li.classList.add("wmsx-toggle");
             li.style.textAlign = "center";
             li.innerHTML = slotOptions[i].d;
             li.wmsxSlot = i;
@@ -96,7 +104,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             if (e.target.wmsxSlot >= 0) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 slotSelected = e.target.wmsxSlot;
-                refreshList();
+                refreshListSelection();
                 setTimeout(hideConfirm, 120);
             }
         });
@@ -110,8 +118,8 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             // Select
             else if (SELECT_KEYS[e.keyCode]) {
                 slotSelected += SELECT_KEYS[e.keyCode];
-                if (slotSelected < 0) slotSelected = 0; else if (slotSelected > 9) slotSelected = 9;
-                refreshList();
+                if (slotSelected < 0) slotSelected = 0; else if (slotSelected > 10) slotSelected = 10;
+                refreshListSelection();
             }
             return wmsx.Util.blockEvent(e);
         });
