@@ -47,7 +47,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             var li = listItems[i];
             li.innerHTML = prefix + slotOptions[i].d;
             li.classList.toggle("wmsx-selected", i === slotSelected);
-            li.classList.toggle("wmsx-toggle-checked", stateMedia.isSlotUsed(i));
+            li.classList.toggle("wmsx-toggle-checked", stateMedia.isSlotUsed(i + 1));
         }
         refreshListSelection();
     }
