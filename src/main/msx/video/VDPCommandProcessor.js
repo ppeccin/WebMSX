@@ -145,19 +145,7 @@ wmsx.VDPCommandProcessor = function() {
     }
 
     function getLOP() {
-        switch(register[46] & 0x0f) {
-            case 0x00: return lopIMP;
-            case 0x01: return lopAND;
-            case 0x02: return lopOR;
-            case 0x03: return lopXOR;
-            case 0x04: return lopNOT;
-            case 0x08: return lopTIMP;
-            case 0x09: return lopTAND;
-            case 0x0a: return lopTOR;
-            case 0x0b: return lopTXOR;
-            case 0x0c: return lopTNOT;
-            default:   return lopIMP;
-        }
+        return LOGICAL_OPERATIONS[register[46] & 0x0f];
     }
 
     function HMMC() {
@@ -827,6 +815,7 @@ wmsx.VDPCommandProcessor = function() {
     var VRAM_LIMIT = wmsx.VDP.VRAM_LIMIT;
     var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // Used for savestates
     var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
+    var LOGICAL_OPERATIONS = [ lopIMP, lopAND, lopOR, lopXOR, lopNOT, lopIMP, lopIMP, lopIMP, lopTIMP, lopTAND, lopTOR, lopTXOR, lopTNOT, lopIMP, lopIMP, lopIMP ];
 
 
     // Main VDP connections
@@ -849,7 +838,7 @@ wmsx.VDPCommandProcessor = function() {
             ce: CE, tr: TR,
             wr: writeReady, wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
             SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
-            DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP, dp: destPos
+            DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP), dp: destPos
         };
     };
 
@@ -857,7 +846,7 @@ wmsx.VDPCommandProcessor = function() {
         CE = s.ce; TR = s.tr;
         writeReady = s.wr; writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
         SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
-        DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP; destPos = s.dp;
+        DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined; destPos = s.dp;
     };
 
 
