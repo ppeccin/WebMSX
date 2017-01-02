@@ -149,7 +149,7 @@ wmsx.FileLoader = function() {
                     // Try normal loading from files
                     var files = wmsx.Util.getZIPFilesSorted(zip);
                     if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, true)) return;
-                    // Try Zip-as-Disk if allowed
+                    // Try Zip-as-Disk if allowed   TODO Really allow any files to be loaded here, even when not specifying FILES/ZIP as Disk?
                     if (openType === OPEN_TYPE.AUTO)
                         if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
                 } catch(ez) {
