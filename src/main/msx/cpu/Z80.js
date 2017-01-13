@@ -78,7 +78,7 @@ wmsx.Z80 = function() {
 
 
     // Speed mode
-    var turboClockShift = 0;
+    var turboClockShift = WMSX.CPU_TURBO_MODE ? 1 : 0;
 
     // Extension Handling
     var extensionHandlers = [];

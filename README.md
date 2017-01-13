@@ -188,6 +188,7 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `AUDIO_MONITOR_BUFFER_SIZE`     |  -1                 |  Audio buffer size. -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size. More buffer = more delay. Don't change! :-)
 | `AUDIO_SIGNAL_BUFFER_RATIO`     |  2                  |  Internal Audio Signal buffer based on Monitor buffer
 | `AUDIO_SIGNAL_ADD_FRAMES`       |  3                  |  Additional frames in internal Audio Signal buffer based on Monitor buffer
+| `CPU_TURBO_MODE`                |  0                  |  CPU Turbo (7.16MHz). 0: off; 1: on
 | `MOUSE_MODE`                    |  0                  |  Mouse control. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
 | `TOUCH_MODE`                    |  0                  |  Touch control. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
