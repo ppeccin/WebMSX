@@ -376,8 +376,13 @@ wmsx.Machine = function() {
                 bios.getKeyboardExtension().typeString('\r\r\rRUN "' + WMSX.BASIC_RUN + '"\r' + type);
             } else if (WMSX.BASIC_LOAD) {
                 bios.getKeyboardExtension().typeString('\r\r\rrLOAD "' + WMSX.BASIC_LOAD + '"\r' + type);
-            } else
+            } else if (WMSX.BASIC_TYPE) {
+                bios.getKeyboardExtension().typeString(type);
+            } else if (WMSX.BASIC_ENTER) {
+                bios.getKeyboardExtension().typeString(type + '\r');
+            } else {
                 cassetteSocket.typeAutoRunCommand();
+            }
 
             basicAutoRunDone = true;
         } else
