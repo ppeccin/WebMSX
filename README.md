@@ -165,6 +165,8 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `AUTODETECT_URL`                |  --                 |  URL of file to load with media auto-detection
 | `BASIC_RUN`                     |  --                 |  Run the specified file name
 | `BASIC_LOAD`                    |  --                 |  Load the specified file name
+| `BASIC_BRUN`                    |  --                 |  Run the specified binary file name
+| `BASIC_BLOAD`                   |  --                 |  Load the specified binary file name
 | `BASIC_ENTER`                   |  --                 |  Type the specified text then hit ENTER
 | `BASIC_TYPE`                    |  --                 |  Type the specified text                
 | `SCREEN_ELEMENT_ID`             |  "wmsx-screen"      |  HTML Element ID to place the Emulator Screen

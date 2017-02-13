@@ -29,6 +29,8 @@ WMSX = {
     // Basic loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
     BASIC_RUN:                      "",
     BASIC_LOAD:                     "",
+    BASIC_BRUN:                     "",
+    BASIC_BLOAD:                    "",
     BASIC_ENTER:                    "",
     BASIC_TYPE:                     "",
 

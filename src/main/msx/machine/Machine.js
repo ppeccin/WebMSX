@@ -372,12 +372,14 @@ wmsx.Machine = function() {
         if (!basicAutoRunDone) {
             var type = WMSX.BASIC_ENTER ? WMSX.BASIC_ENTER + "\r" : "";
             type += WMSX.BASIC_TYPE || "";
-            if (WMSX.BASIC_RUN) {
-                bios.getKeyboardExtension().typeString('\r\r\rRUN "' + WMSX.BASIC_RUN + '"\r' + type);
-            } else if (WMSX.BASIC_LOAD) {
-                bios.getKeyboardExtension().typeString('\r\r\rrLOAD "' + WMSX.BASIC_LOAD + '"\r' + type);
-            } else
+            if (WMSX.BASIC_RUN)        bios.getKeyboardExtension().typeString('\r\r\rRUN "' + WMSX.BASIC_RUN + '"\r' + type);
+            else if (WMSX.BASIC_LOAD)  bios.getKeyboardExtension().typeString('\r\r\rLOAD "' + WMSX.BASIC_LOAD + '"\r' + type);
+            else if (WMSX.BASIC_BRUN)  bios.getKeyboardExtension().typeString('\r\r\rBLOAD "' + WMSX.BASIC_BRUN + '",r\r' + type);
+            else if (WMSX.BASIC_BLOAD) bios.getKeyboardExtension().typeString('\r\r\rBLOAD "' + WMSX.BASIC_BLOAD + '"\r' + type);
+            else {
                 cassetteSocket.typeAutoRunCommand();
+                if (type) bios.getKeyboardExtension().typeString(type);
+            }
 
             basicAutoRunDone = true;
         } else
