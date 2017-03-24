@@ -7,7 +7,6 @@ wmsx.DOMPeripheralControls = function() {
 
     function init() {
         initKeys();
-        initGroups();
     }
 
     this.connect = function(pMachineControlsSocket, pCartridgeSocket) {
@@ -311,15 +310,6 @@ wmsx.DOMPeripheralControls = function() {
         keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = controls.SPEAKER_BUFFER_TOGGLE;
     };
 
-    function initGroups() {
-        groups.DISK = new Set([
-            controls.DISK_LOAD_FILES, controls.DISK_LOAD_URL, controls.DISK_LOAD_FILES_AS_DISK, controls.DISK_LOAD_ZIP_AS_DISK,
-            controls.DISK_ADD_FILES, controls.DISK_EMPTY, controls.DISK_EMPTY_360, controls.DISK_EMPTY_720,
-            controls.DISK_SELECT, controls.DISK_PREVIOUS, controls.DISK_NEXT, controls.DISK,
-            controls.DISK_SAVE_FILE, controls.DISK_REMOVE
-        ]);
-    }
-
 
     var controls = wmsx.PeripheralControls;
 
@@ -334,8 +324,6 @@ wmsx.DOMPeripheralControls = function() {
     var diskDrive;
 
     var keyCodeMap = {};                // SHIFT is considered differently
-
-    var groups = {};
 
     var EXCLUDE_SHIFT_MASK = ~wmsx.DOMKeys.SHIFT;
     var INCLUDE_SHIFT_MASK = wmsx.DOMKeys.SHIFT;

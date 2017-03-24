@@ -54,7 +54,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     this.resetControllers = function() {
         keyboard.resetControllers();
         joystickControls.resetControllers();
-        joystickControls.resetControllers();
+        joykeysControls.resetControllers();
         mouseControls.resetControllers();
     };
 

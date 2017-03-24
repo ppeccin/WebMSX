@@ -909,8 +909,8 @@ wmsx.Machine = function() {
             //console.log(wmsx.Util.performanceNow() - pulseTime);
         }
         var duration = wmsx.Util.performanceNow() - start;
-        wmsx.Util.log("Done running " + frames + " frames in " + duration + " ms");
-        wmsx.Util.log(frames / (duration/1000) + "  frames/sec");
+        wmsx.Util.log("Done running " + frames + " frames in " + (duration | 0) + " ms");
+        wmsx.Util.log((frames / (duration/1000)).toFixed(2) + "  frames/sec");
         mainVideoClock.go();
     };
 

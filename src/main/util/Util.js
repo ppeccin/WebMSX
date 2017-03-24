@@ -429,8 +429,9 @@ wmsx.Util = new function() {
         }
         m = m[2] ? [m[1], m[2]]: [ navigator.appName, navigator.appVersion, '-?' ];
         if ((temp = ua.match(/version\/(\d+)/i)) != null) m.splice(1, 1, temp[1]);
+        var name = m[0].toUpperCase();
         return this.browserInfoAvailable = {
-            name: m[0].toUpperCase(),
+            name: this.isIOSDevice() || name === "NETSCAPE" ? "SAFARI" : name,
             version: m[1]
         };
     };

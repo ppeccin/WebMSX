@@ -56,7 +56,7 @@ wmsx.ControlMappingPopup = function() {
     function keyUp(e) {
         if (!controlEditing) return;
 
-        // Modifier keys are accepted only on release, and oly the last one depressed
+        // Modifier keys are accepted only on release, and only the last one depressed
         if (modifPending === e.keyCode) customizeControlKeyEvent(e);
 
         e.stopPropagation();

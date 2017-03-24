@@ -93,6 +93,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             0, 0, sourceWidth, sourceHeight,
             0, 0, targetWidth, targetHeight
         );
+
+        //console.log("" + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
     };
 
     this.videoSignalOff = function() {
@@ -695,6 +697,8 @@ wmsx.CanvasDisplay = function(mainElement) {
             self.requestReadjust();
         });
 
+        mainElement.addEventListener("drop", closeAllOverlays, true);
+
         logoMessageOK.wmsxNeedsUIG = logoMessageOKText.wmsxNeedsUIG = true;     // User Initiated Gesture required
         wmsx.Util.onTapOrMouseDownWithBlockUIG(logoMessageOK, closeLogoMessage);
 
@@ -974,6 +978,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function barElementTapOrMouseDown(e) {
+        cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
         var elem = e.target;
         if (elem.wmsxBarElementType === 1) barButtonTapOrMousedown(elem, e);
         else if (elem.wmsxBarElementType === 2) barMenuItemTapOrMouseDown(elem, e);
@@ -992,6 +997,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     }
 
     function barElementTouchEndOrMouseUp(e) {
+        cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
         wmsx.Util.blockEvent(e);
         barButtonLongTouchCancel();
         var elem = e.target;
@@ -1024,7 +1030,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         menu.push({ label: "Touch Setup",                   control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
 
         if (!isMobileDevice)
-        menu.push({ label: "Defaults",                      control: wmsx.PeripheralControls.SCREEN_DEFAULTS,          fullScreenHidden: true });
+        menu.push({ label: "Defaults",                      control: wmsx.PeripheralControls.SCREEN_DEFAULTS/*,          fullScreenHidden: true*/ });
 
         return menu;
     }
