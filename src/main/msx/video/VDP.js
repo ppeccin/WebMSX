@@ -310,6 +310,7 @@ wmsx.VDP = function(machine, cpu) {
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
                 if (mod & 0x18) updateMode();                            // Mx
+                if (mod & 0x04) updateBlinking();                        // CDR  (Undocumented, changes reg 13 timing to lines instead of frames)
                 if (mod & 0x03) updateSpritesConfig();                   // SI, MAG
                 break;
             case 2:
@@ -564,6 +565,10 @@ wmsx.VDP = function(machine, cpu) {
     function lineEvents() {
         // Start of line
         //debugLineStartCPUCycles = cpu.getCycles();
+
+        // Page blinking per line (undocumented CDR bit set)
+        if (blinkPerLine && blinkPageDuration > 0)
+            if (clockPageBlinking()) updateLayoutTableAddressMask();
 
         // Verify and change sections of the screen
         if (currentScanline === startingActiveScanline) enterActiveDisplay();
@@ -874,6 +879,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateBlinking() {
+        blinkPerLine = (register[1] & 0x04) !== 0;               // Ser blinking speed per line instead od per frame, based on undocumented CDR but
         if ((register[13] >>> 4) === 0) {
             blinkEvenPage = false; blinkPageDuration = 0;        // Force page to be fixed on the Odd page
         } else if ((register[13] & 0x0f) === 0) {
@@ -882,6 +888,15 @@ wmsx.VDP = function(machine, cpu) {
             blinkEvenPage = true;  blinkPageDuration = 1;        // Force next page to be the Even page and let alternance start
         }
         updateLayoutTableAddressMask();                          // To reflect correct page
+    }
+
+    function clockPageBlinking() {
+        if (--blinkPageDuration === 0) {
+            blinkEvenPage = !blinkEvenPage;
+            blinkPageDuration = ((register[13] >>> (blinkEvenPage ? 4 : 0)) & 0x0f) * 10;   // Duration in frames or lines depending on undocumented CDR bit
+            return true;
+        }
+        return false;
     }
 
     function renderLineBorders() {
@@ -2108,13 +2123,8 @@ wmsx.VDP = function(machine, cpu) {
 
         if (renderMetricsChangePending) updateRenderMetrics(true);
 
-        // Page blinking
-        if (blinkPageDuration > 0) {
-            if (--blinkPageDuration === 0) {
-                blinkEvenPage = !blinkEvenPage;
-                blinkPageDuration = ((register[13] >>> (blinkEvenPage ? 4 : 0)) & 0x0f) * 10;        // Duration in frames
-            }
-        }
+        // Page blinking per frame
+        if (!blinkPerLine && blinkPageDuration > 0) clockPageBlinking();
 
         // Field alternance
         status[2] ^= 0x02;                    // Invert EO (Display Field flag)
@@ -2254,7 +2264,7 @@ wmsx.VDP = function(machine, cpu) {
     var vramInterleaving;
 
     var frame;
-    var blinkEvenPage, blinkPageDuration;
+    var blinkEvenPage, blinkPageDuration, blinkPerLine;
 
     var vSynchMode;
     var videoStandard, pulldown;
@@ -2390,7 +2400,7 @@ wmsx.VDP = function(machine, cpu) {
             vp: vramPointer, d: dataFirstWrite, dr: dataPreRead, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
-            bp: blinkEvenPage, bpd: blinkPageDuration,
+            bp: blinkEvenPage, bpd: blinkPageDuration, bpl: blinkPerLine,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
@@ -2404,6 +2414,10 @@ wmsx.VDP = function(machine, cpu) {
     this.loadState = function(s) {
         this.setMachineType(s.mt);
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
+        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
+        status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
+        paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
+        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
@@ -2411,13 +2425,9 @@ wmsx.VDP = function(machine, cpu) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
         leftScrollCharsInPage = leftScrollChars & 31;
-        blinkEvenPage = s.bp; blinkPageDuration = s.bpd;
+        blinkEvenPage = s.bp; blinkPageDuration = s.bpd; blinkPerLine = s.bpl !== undefined ? s.bpl : (register[1] & 0x04) !== 0;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
         verticalIntReached = s.vi;
-        register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
-        status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
-        paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
-        vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
