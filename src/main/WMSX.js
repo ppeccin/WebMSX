@@ -64,7 +64,8 @@ WMSX = {
     AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames in internal Audio Signal buffer based on Monitor buffer
     MOUSE_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-    CPU_TURBO_MODE:                 0,                          // 0: off; 1: on
+    CPU_TURBO_MODE:                 0,                          // 0: off; 1: on 2x (7.16 MHz). Backward compatibility
+    CPU_TURBO_MULTI:                1,                          // 1..8 CPU clock multiplier. Overrides CPU_TURBO_MODE if > 1
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 

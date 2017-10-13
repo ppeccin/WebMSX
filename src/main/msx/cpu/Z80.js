@@ -26,8 +26,8 @@ wmsx.Z80 = function() {
     };
 
     this.clockPulses = function(quant) {
-        var cpuQuant = quant << turboClockShift;
-        for (var i = cpuQuant; i > 0; --i) {
+        var turboQuant = quant * turboClockMulti;
+        for (var i = turboQuant; i > 0; --i) {
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T > 0) {
                 instruction.operation();
@@ -37,7 +37,7 @@ wmsx.Z80 = function() {
                 else fetchNextInstruction();
             }
         }
-        busCycles += quant;                          // Quantized bus cycle reporting. Lower precision, better performance
+        busCycles += quant;                          // Quantized bus cycle reporting in original clock (no turbo). Lower precision, better performance
     };
 
     this.connectBus = function(aBus) {
@@ -69,16 +69,29 @@ wmsx.Z80 = function() {
     };
 
     this.toggleTurboMode = function() {
-        turboClockShift = turboClockShift === 0 ? 1 : 0;
+        turboClockMulti = turboClockMulti % 8 + 1;        // 1..8
     };
 
-    this.getTurboMode = function() {
-        return !!turboClockShift;
+    this.getTurboMulti = function() {
+        return turboClockMulti;
+    };
+
+    this.getTurboFreqDesc = function() {
+        switch (turboClockMulti) {
+            case 1: return "3.58 MHZ";
+            case 2: return "7.16 MHZ";
+            case 3: return "10.7 MHZ";
+            case 4: return "14.3 MHZ";
+            case 5: return "17.9 MHZ";
+            case 6: return "21.5 MHZ";
+            case 7: return "25.1 MHZ";
+            case 8: return "28.6 MHZ";
+        }
     };
 
 
     // Speed mode
-    var turboClockShift = WMSX.CPU_TURBO_MODE ? 1 : 0;
+    var turboClockMulti = WMSX.CPU_TURBO_MULTI > 1 && WMSX.CPU_TURBO_MULTI <= 8 ? WMSX.CPU_TURBO_MULTI : WMSX.CPU_TURBO_MODE === 0 ? 1 : 2;
 
     // Extension Handling
     var extensionHandlers = [];
@@ -2613,7 +2626,7 @@ wmsx.Z80 = function() {
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
             c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations,
-            tcs: turboClockShift
+            tcm: turboClockMulti
         };
     };
 
@@ -2622,7 +2635,7 @@ wmsx.Z80 = function() {
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
         busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
-        turboClockShift = s.tcs || 0;
+        turboClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
     };
 
 

@@ -542,7 +542,8 @@ wmsx.Machine = function() {
                 break;
             case controls.CPU_TURBO_MODE:
                 cpu.toggleTurboMode();
-                self.showOSD("CPU Turbo Speed: " + (cpu.getTurboMode() ? "2x (7.16 MHz)" : "OFF (3.58 MHz)"), true);
+                var multi = cpu.getTurboMulti();
+                self.showOSD("CPU Turbo Speed: " + (multi > 1 ? "" + multi + "x (" + cpu.getTurboFreqDesc() + ")" : "OFF"), true);
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();
@@ -833,8 +834,8 @@ wmsx.Machine = function() {
                 case controls.VIDEO_STANDARD:
                     return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
                 case controls.CPU_TURBO_MODE:
-                    var mode = cpu.getTurboMode();
-                    return { label: mode ? "7.16 MHz" : "OFF", active: mode };
+                    var mode = cpu.getTurboMulti() > 1 ? cpu.getTurboFreqDesc() : "OFF";
+                    return { label: mode, active: mode !== "OFF" };
                 case controls.SPRITE_MODE:
                     var desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };

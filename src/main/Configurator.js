@@ -60,6 +60,8 @@ wmsx.Configurator = {
             WMSX.AUDIO_MONITOR_BUFFER_SIZE |= 0;
             WMSX.AUDIO_SIGNAL_BUFFER_RATIO = parseFloat(WMSX.AUDIO_SIGNAL_BUFFER_RATIO);
             WMSX.AUDIO_SIGNAL_ADD_FRAMES |= 0;
+            WMSX.CPU_TURBO_MODE |= 0;
+            WMSX.CPU_TURBO_MULTI |= 0;
         }
     },
 
