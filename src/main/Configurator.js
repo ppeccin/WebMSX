@@ -62,6 +62,7 @@ wmsx.Configurator = {
             WMSX.AUDIO_SIGNAL_ADD_FRAMES |= 0;
             WMSX.CPU_TURBO_MODE |= 0;
             WMSX.CPU_TURBO_MULTI |= 0;
+            WMSX.VDP_TURBO_MULTI |= 0;
         }
     },
 

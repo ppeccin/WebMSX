@@ -1017,7 +1017,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0; bottom: 0;
     left: 0; right: 0;
     width: 188px;
-    height: 212px;
+    height: 246px;
     margin: auto;
     padding: 14px 16px 0;
     color: white;

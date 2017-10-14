@@ -225,6 +225,14 @@ wmsx.VDP = function(machine, cpu) {
         return ["Normal", "Unlimited", "No Collis.", "Both"][spriteDebugMode];
     };
 
+    this.toggleTurboMode = function() {
+        commandProcessor.toggleTurboMode();
+    };
+
+    this.getTurboMulti = function() {
+        return commandProcessor.getTurboMulti();
+    };
+
     this.setDefaults = function() {
         setDebugMode(0);
         spriteDebugMode = 0; spriteDebugModeLimit = true; spriteDebugModeCollisions = true;

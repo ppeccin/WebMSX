@@ -286,7 +286,7 @@ wmsx.DOMPeripheralControls = function() {
 
         keyCodeMap[KEY_CRT_FILTER | k.ALT]      = controls.SCREEN_CRT_FILTER;
         keyCodeMap[KEY_CRT_MODE | k.ALT] 	    = controls.SCREEN_CRT_MODE;
-        keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
+        //keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
         keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= controls.SCREEN_OPEN_QUICK_OPTIONS;
         keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= controls.SCREEN_OPEN_TOUCH_CONFIG;
 
@@ -370,7 +370,7 @@ wmsx.DOMPeripheralControls = function() {
 
     var KEY_CRT_FILTER    = wmsx.DOMKeys.VK_E.c;
     var KEY_CRT_MODE      = wmsx.DOMKeys.VK_R.c;
-    var KEY_SETTINGS      = wmsx.DOMKeys.VK_Y.c;
+    //var KEY_SETTINGS      = wmsx.DOMKeys.VK_Y.c;
     var KEY_QUICK_OPTIONS = wmsx.DOMKeys.VK_U.c;
     var KEY_TOUCH_CONFIG  = wmsx.DOMKeys.VK_I.c;
 

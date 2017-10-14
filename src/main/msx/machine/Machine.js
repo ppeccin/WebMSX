@@ -543,7 +543,12 @@ wmsx.Machine = function() {
             case controls.CPU_TURBO_MODE:
                 cpu.toggleTurboMode();
                 var multi = cpu.getTurboMulti();
-                self.showOSD("CPU Turbo Speed: " + (multi > 1 ? "" + multi + "x (" + cpu.getTurboFreqDesc() + ")" : "OFF"), true);
+                self.showOSD("CPU Turbo: " + (multi > 1 ? "" + multi + "x (" + cpu.getTurboFreqDesc() + ")" : "OFF"), true);
+                break;
+            case controls.VDP_TURBO_MODE:
+                vdp.toggleTurboMode();
+                multi = vdp.getTurboMulti();
+                self.showOSD("VDP Engine Turbo: " + (multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF"), true);
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();
@@ -836,6 +841,9 @@ wmsx.Machine = function() {
                 case controls.CPU_TURBO_MODE:
                     var mode = cpu.getTurboMulti() > 1 ? cpu.getTurboFreqDesc() : "OFF";
                     return { label: mode, active: mode !== "OFF" };
+                case controls.VDP_TURBO_MODE:
+                    var multi = vdp.getTurboMulti();
+                    return { label: multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF", active: multi !== 1 };
                 case controls.SPRITE_MODE:
                     var desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };

@@ -73,6 +73,16 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                Y
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">VDP Turbo Mode</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                 Q
                             </div>
                         </div>
@@ -128,6 +138,7 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Sprite Modes</div>
                     </div>
+                    <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
@@ -137,10 +148,6 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                         </div>
                         <div class="wmsx-desc">Capture Screen</div>
-                    </div>
-                    <div class="wmsx-full-divider"></div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-desc">Right-Click Bar Icons: Default Action</div>
                     </div>
                 </div>
                 <div class="wmsx-right">

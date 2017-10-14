@@ -70,10 +70,8 @@ wmsx.VDPCommandProcessor = function() {
     };
 
     this.updateStatus = function() {
-        if (CE & finishingCycle > 0) {
-            var cycles = vdp.updateCycles();
-            if (cycles >= finishingCycle) finish();
-        }
+        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || vdp.updateCycles() >= finishingCycle))
+            finish();
 
         status[2] = (status[2] & ~0x81) | (TR << 7) | CE;
     };
@@ -86,6 +84,14 @@ wmsx.VDPCommandProcessor = function() {
         modePPBMask = ~0 << modePPBShift;
         layoutLineBytes = modeData.layLineBytes || 256;         // works as in mode G7 if not defined
 
+    };
+
+    this.toggleTurboMode = function() {
+        turboClockMulti = (turboClockMulti + 1) % 9;            // 0..8
+    };
+
+    this.getTurboMulti = function() {
+        return turboClockMulti;
     };
 
     function getSX() {
@@ -766,12 +772,14 @@ wmsx.VDPCommandProcessor = function() {
 
     function estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
         if (infinite)
-            finishingCycle = -1;
-        else {
-            var cycles = vdp.updateCycles();
-            finishingCycle = cycles + ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) | 0);
+            finishingCycle = -1;    // infinite
+        else if (turboClockMulti === 0) {
+            finishingCycle = 0;     // instantaneous
+        } else {
+            var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) / turboClockMulti) | 0;
+            finishingCycle = vdp.updateCycles() + duration;
 
-            //console.log ("+++++ Duration: " + (finishingCycle - cycles));
+            //console.log ("+++++ Duration: " + duration);
         }
     }
 
@@ -805,7 +813,6 @@ wmsx.VDPCommandProcessor = function() {
         writeHandler = null;
         writeReady = false;
         readHandler = null;
-        finishingCycle = -1;
         register[46] &= ~0xf0;
 
         //console.log("FINISH");
@@ -817,13 +824,16 @@ wmsx.VDPCommandProcessor = function() {
     var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
     var LOGICAL_OPERATIONS = [ lopIMP, lopAND, lopOR, lopXOR, lopNOT, lopIMP, lopIMP, lopIMP, lopTIMP, lopTAND, lopTOR, lopTXOR, lopTNOT, lopIMP, lopIMP, lopIMP ];
 
+        // Speed mode
+    var turboClockMulti = WMSX.VDP_TURBO_MULTI >= 0 && WMSX.VDP_TURBO_MULTI <= 8 ? WMSX.VDP_TURBO_MULTI : 1;
 
     // Main VDP connections
     var vdp, vram, register, status;
 
     var CE = false, TR = false;
     var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
-    var writeReady = false, writeHandler = null, readHandler = null, finishingCycle = 0;
+    var writeReady = false, writeHandler = null, readHandler = null;
+    var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
     var modeData;
     var modePPB, modePPBShift, modePPBMask;
@@ -838,7 +848,8 @@ wmsx.VDPCommandProcessor = function() {
             ce: CE, tr: TR,
             wr: writeReady, wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
             SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
-            DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP), dp: destPos
+            DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP), dp: destPos,
+            tcm: turboClockMulti
         };
     };
 
@@ -847,6 +858,7 @@ wmsx.VDPCommandProcessor = function() {
         writeReady = s.wr; writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
         SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
         DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined; destPos = s.dp;
+        turboClockMulti = s.tcm !== undefined ? s.tcm : 1;
     };
 
 

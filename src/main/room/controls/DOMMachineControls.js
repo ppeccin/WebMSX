@@ -69,6 +69,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]  = controls.VIDEO_STANDARD;
         keyCodeMap[KEY_VSYNCH | k.ALT]          = controls.VSYNCH;
         keyCodeMap[KEY_CPU_TURBO | k.ALT]       = controls.CPU_TURBO_MODE;
+        keyCodeMap[KEY_VDP_TURBO | k.ALT]       = controls.VDP_TURBO_MODE;
 
         keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_0;
         keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = controls.SAVE_STATE_0;
@@ -138,6 +139,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_Q.c;
     var KEY_VSYNCH           = wmsx.DOMKeys.VK_W.c;
     var KEY_CPU_TURBO        = wmsx.DOMKeys.VK_T.c;
+    var KEY_VDP_TURBO        = wmsx.DOMKeys.VK_Y.c;
 
     var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
     var KEY_STATE_0a         = wmsx.DOMKeys.VK_BACKQUOTE.c;
