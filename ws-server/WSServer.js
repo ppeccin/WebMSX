@@ -37,7 +37,8 @@ function WSServer() {
         }
     };
 
-    var httpServer = http.createServer(serverConfig, handleRequest);
+    // var httpServer = http.createServer(serverConfig, handleRequest);
+    var httpServer = http.createServer(handleRequest);
     httpServer.listen(HTTP_PORT, '0.0.0.0');
 
     // ----------------------------------------------------------------------------------------
