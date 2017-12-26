@@ -3,10 +3,10 @@
  */
 
 module.exports = {
-    wsserver: WSServer
+    server: wsserver
 };
 
-function WSServer() {
+function wsserver() {
 
     const HTTP_PORT = 5001;
 
