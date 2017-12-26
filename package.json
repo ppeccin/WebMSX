@@ -5,7 +5,7 @@
   "description": "WebMSX - The online MSX Emulator",
 
   "engines": {
-    "node": "6.11.1"
+    "node": "*"
   },
 
   "main": "index.js",
