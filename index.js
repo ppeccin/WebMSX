@@ -19,4 +19,6 @@ app.listen(app.get('port'), function() {
 
 // WS Server
 
- // WSServer();
+var ws = require('./ws-server/WSServer');
+
+ws.wsserver();
