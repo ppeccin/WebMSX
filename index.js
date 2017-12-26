@@ -1,3 +1,6 @@
+
+// Proxy Downloader
+
 var express = require('express');
 var proxy =   require('./proxy-downloader/ProxyDownloader');
 
@@ -12,3 +15,8 @@ app.get('/proxy-remote-download', proxy.processGet);
 app.listen(app.get('port'), function() {
     console.log('WebMSX started on port', app.get('port'));
 });
+
+
+// WS Server
+
+WSServer();
