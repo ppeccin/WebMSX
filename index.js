@@ -22,4 +22,4 @@ app.listen(app.get('port'), function() {
 
 // WS Server
 
-ws.server();
+// ws.server();
