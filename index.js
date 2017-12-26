@@ -1,8 +1,11 @@
 
-// Proxy Downloader
 
 var express = require('express');
 var proxy =   require('./proxy-downloader/ProxyDownloader');
+var ws =      require('./ws-server/WSServer');
+
+
+// Proxy Downloader
 
 var app = express();
 
@@ -19,6 +22,4 @@ app.listen(app.get('port'), function() {
 
 // WS Server
 
-// var ws = require('./ws-server/WSServer');
-//
-// ws.wsserver();
+ws.wsserver();
