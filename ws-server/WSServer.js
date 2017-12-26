@@ -3,17 +3,17 @@
  */
 
 module.exports = {
-    server: wsserver
+    wsserver: WSServer
 };
 
-function wsserver() {
+const HTTP_PORT = 5001;
 
-    const HTTP_PORT = 5001;
+const fs = require('fs');
+const http = require('http');
+const WebSocket = require('websocket');
+const WebSocketServer = WebSocket.Server;
 
-    const fs = require('fs');
-    const http = require('http');
-    const WebSocket = require('ws');
-    const WebSocketServer = WebSocket.Server;
+function WSServer() {
 
     // Yes, SSL is required
     const serverConfig = {
