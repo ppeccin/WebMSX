@@ -1,7 +1,7 @@
 {
 
   "name": "WebMSX",
-  "version": "5.0.0.1",
+  "version": "5.0.1b",
   "description": "WebMSX - The online MSX Emulator",
 
   "engines": {
