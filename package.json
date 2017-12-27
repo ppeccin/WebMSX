@@ -1,11 +1,11 @@
 {
 
   "name": "WebMSX",
-  "version": "2.1.0",
+  "version": "5.0.0.1",
   "description": "WebMSX - The online MSX Emulator",
 
   "engines": {
-    "node": "*"
+    "node": "6.2.0"
   },
 
   "main": "index.js",
@@ -15,11 +15,11 @@
   },
 
   "dependencies": {
-    "express": "4.13.3",
     "request": "^2.73.0",
-    "fs": "*",
-    "http": "*",
-    "ws": "*"
+    "express": "4.13.4",
+    "bufferutil": "1.2.1",
+    "utf-8-validate": "1.2.1",
+    "ws": "1.1.0"
   },
 
   "repository": {
