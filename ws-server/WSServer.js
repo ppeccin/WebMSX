@@ -44,7 +44,7 @@ function WSServer(httpServer, httpPort) {
     // ----------------------------------------------------------------------------------------
 
     // Create a server for handling websocket calls
-    var wss = new WebSocketServer({server: httpServer, port: httpPort });
+    var wss = new WebSocketServer({server: httpServer});   // , port: httpPort });
 
     wss.on('connection', function (ws) {
         console.log('new ws connection');
