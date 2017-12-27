@@ -47,9 +47,10 @@ function WSServer() {
     var wss = new WebSocketServer({server: httpServer});
 
     wss.on('connection', function (ws) {
+        console.log('new ws connection');
         ws.on('message', function (message) {
             // Broadcast any received message to all clients
-            console.log('received: %s', message);
+            console.log('ws received: %s', message);
             wss.broadcast(message);
         });
     });
