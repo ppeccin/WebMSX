@@ -13,7 +13,7 @@ module.exports = {
 const WebSocket = require('ws');
 const WebSocketServer = WebSocket.Server;
 
-function WSServer(httpServer) {
+function WSServer(httpServer, httpPort) {
 
     // Yes, SSL is required
     // const serverConfig = {
@@ -44,7 +44,7 @@ function WSServer(httpServer) {
     // ----------------------------------------------------------------------------------------
 
     // Create a server for handling websocket calls
-    var wss = new WebSocketServer({server: httpServer});
+    var wss = new WebSocketServer({server: httpServer, port: httpPort });
 
     wss.on('connection', function (ws) {
         console.log('new ws connection');
@@ -63,6 +63,6 @@ function WSServer(httpServer) {
         });
     };
 
-    console.log('WebSocket server running.');
+    console.log('WebSocket server running on port: ' + httpPort);
 
 }
