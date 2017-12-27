@@ -10,7 +10,7 @@ const HTTP_PORT = 5001;
 
 const fs = require('fs');
 const http = require('http');
-const WebSocket = require('websocket');
+const WebSocket = require('ws');
 const WebSocketServer = WebSocket.Server;
 
 function WSServer() {
