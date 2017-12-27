@@ -7,19 +7,16 @@ var wsserver = require('./ws-server/WSServer');
 
 // Proxy Downloader
 
-var app = express();
+var server = express();
+server.set('port', (process.env.PORT || 5000));
+//server.use(express.static(__dirname + '/website'));
+server.get('/proxy-remote-download', proxy.processGet);
 
-app.set('port', (process.env.PORT || 5000));
-
-//app.use(express.static(__dirname + '/website'));
-
-app.get('/proxy-remote-download', proxy.processGet);
-
-app.listen(app.get('port'), function() {
-    console.log('WebMSX started on port', app.get('port'));
+server.listen(server.get('port'), function() {
+    console.log('WebMSX started on port', server.get('port'));
 });
 
 
 // WS Server
 
-wsserver.wsserver();
+wsserver.wsserver(server);
