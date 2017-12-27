@@ -56,7 +56,7 @@ function WSServer(httpServer, httpPort) {
     });
 
     wss.broadcast = function (data) {
-        this.clients.forEach(function (client) {
+        this.clients.forEach(function  (client) {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(data);
             }
