@@ -20,4 +20,4 @@ server.listen(server.get('port'), function() {
 
 // WS Server
 
-wsserver.wsserver(server, server.get('port'));
+wsserver.wsserver(server, port);
