@@ -1,6 +1,3 @@
-/**
- * Created by peccin on 18/07/2016.
- */
 
 module.exports = {
     processGet: processGet
