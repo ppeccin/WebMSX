@@ -1,20 +1,29 @@
 
 wmsx.SessionManager = function(wss) {
 
-    this.onWSClientConnected = function(client) {
-        console.log("SessionManager >>> WSClient " + client.id + " connected");
+    this.onWSClientConnected = function(wsClient) {
+        console.log("SessionManager >>> WSClient " + wsClient.id + " connected");
 
-        client.setMessageListener((client, message) => this.onWSClientMessage(client, message));
+        wsClient.setMessageListener((client, message) => this.onWSClientMessage(client, message));
     };
 
-    this.onWSClientMessage = function (client, message) {
-        console.log("SessionManager >>> WSClient " + client.id + " message: " + message);
+    this.onWSClientDisconnected = function(wsClient) {
+        console.log("SessionManager >>> WSClient " + wsClient.id + " disconnected");
+
+        const session = this.sessions[wsClient.sessionID];
+        if (!session) return;
+
+        session.onWSClientDisconnected(wsClient);
+    };
+
+    this.onWSClientMessage = function (wsClient, message) {
+        console.log("SessionManager >>> WSClient " + wsClient.id + " message:", message);
 
         switch(message.messageType) {
-            case "startSession":
-                this.processCreateSession(client, message); return;
+            case "createSession":
+                this.processCreateSession(wsClient, message); return;
             case "joinSession":
-                this.processJoinSession(client, message); return;
+                this.processJoinSession(wsClient, message); return;
         }
 
         // this.wss.broadcast(message);
@@ -39,6 +48,12 @@ wmsx.SessionManager = function(wss) {
         session.transferWSClientAsClient(wsClient);
     };
 
+    this.removeSession = function(id) {
+        console.log("SessionManager >>> Removing Session " + id);
+
+        delete this.sessions[id];
+    };
+
     this.nextID = function() {
         let id = new Date().getTime();
         while (this.sessions[id]) id++;
@@ -49,6 +64,7 @@ wmsx.SessionManager = function(wss) {
     this.wss = wss;
     this.sessions = {};
 
-    this.wss.setClientConnectedListener(client => this.onWSClientConnected(client));
+    this.wss.setClientConnectedListener(wsClient => this.onWSClientConnected(wsClient));
+    this.wss.setClientDisconnectedListener(wsClient => this.onWSClientDisconnected(wsClient));
 
 };

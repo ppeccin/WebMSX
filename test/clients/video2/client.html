@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>-->
+        <script src="client.js"></script>
+    </head>
+
+    <body>
+        <video id="localVideo" autoplay muted style="width:40%;"></video>
+        <video id="remoteVideo" autoplay style="width:40%;"></video>
+
+        <br />
+
+        <input type="button" id="JoinButton" onclick="join()" value="Join Video"></input>
+        <input type="text" id="SessionIDField"></input>
+
+        <script type="text/javascript">
+            pageReady();
+        </script>
+    </body>
+</html>

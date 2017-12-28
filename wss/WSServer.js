@@ -12,6 +12,10 @@ wmsx.WSSever = function() {
         this.clientConnectedListener = listener;
     };
 
+    this.setClientDisconnectedListener = function(listener) {
+        this.clientDisconnectedListener = listener;
+    };
+
     this.onWSConnection = function(ws) {
         const client = new wmsx.WSClient(++this.nextClientID, ws, this);
 
@@ -20,12 +24,14 @@ wmsx.WSSever = function() {
         if (this.clientConnectedListener) this.clientConnectedListener(client);
     };
 
-    this.onClientDisconnection = function(client) {
-        console.log("WSServer >>> Client " + client.id + " disconnected");
+    this.onWSClientDisconnected = function(wsClient) {
+        console.log("WSServer >>> Client " + wsClient.id + " disconnected");
+
+        if (this.clientDisconnectedListener) this.clientDisconnectedListener(wsClient);
     };
 
     this.broadcast = function(message) {
-        console.log("WSServer >>> Broadcasting message: " + message);
+        console.log("WSServer >>> Broadcasting message:", message);
 
         this.wss.clients.forEach(function(ws) {
             if (ws.readyState === WebSocket.OPEN) {
@@ -38,5 +44,6 @@ wmsx.WSSever = function() {
     this.nextClientID = 0;
     this.wss = undefined;
     this.clientConnectedListener = undefined;
+    this.clientDiscnnectedListener = undefined;
 
 };
