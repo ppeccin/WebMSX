@@ -1,9 +1,3 @@
-function myAddIceCandidate(remoteConnection, e) {
-    console.log(e.candidate);
-
-    return remoteConnection.addIceCandidate(e.candidate);
-}
-
 (function() {
 
     let startButton = null;
@@ -30,7 +24,7 @@ function myAddIceCandidate(remoteConnection, e) {
 
         startButton.addEventListener('click', startSession, false);
         stopButton.addEventListener('click', stopSession, false);
-        sendButton.addEventListener('click', sendMessage, false);
+        sendButton.addEventListener('click', sendChatMessage, false);
     }
 
     function startSession() {
@@ -42,6 +36,7 @@ function myAddIceCandidate(remoteConnection, e) {
     function stopSession() {
         ws.close();
         sessionIDField.value = "";
+        sessionIDField.style.backgroundColor = "transparent";
     }
 
     function onSessionMessage(message) {
@@ -51,46 +46,51 @@ function myAddIceCandidate(remoteConnection, e) {
             console.log("Session created: " + mes.sessionID);
             sessionID = mes.sessionID;
             sessionIDField.value = sessionID;
+            sessionIDField.style.backgroundColor = "lightgreen";
         }
 
         if(mes.messageType === "clientJoined") {
             console.log("Client " + mes.clientID + " joined");
 
-            connectClient(mes.clientID);
+            let client = {id: mes.clientID};
+            clients[mes.clientID] = client;
+            startRTC(client);
         }
 
         if(mes.messageType === "clientLeft") {
             console.log("Client " + mes.clientID + " left");
+
+            let client = clients[mes.clientID];
+            if (!client) return;
+            delete clients[client.id];
+            closeRTC(client);
         }
 
-        if(mes.client_sdp) {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(mes.client_sdp))
-                .catch(errorHandler);
+        if(mes.clientSDP) {
+            let client = clients[mes.fromClientID];
+            if (!client) return;
+            client.rtcConnection.setRemoteDescription(new RTCSessionDescription(mes.clientSDP))
+                .catch(handleError);
         }
-    }
-
-    function connectClient(clientID) {
-        let client = { id: clientID };
-        this.clients[clientID] = client;
-
-        startRTC(client);
     }
 
     function startRTC(client) {
         // Create the local connection and its event listeners
-        let rtcConnection = new RTCPeerConnection();
+        let rtcConnection = new RTCPeerConnection({});
+        client.rtcConnection = rtcConnection;
 
         // Set up the ICE candidates
         rtcConnection.onicecandidate = e => {
             if (!e.candidate)
-                ws.send(JSON.stringify({ clientSDP: rtcConnection.localDescription }));
+                ws.send(JSON.stringify({ toClientID: client.id, serverSDP: rtcConnection.localDescription }));
         };
 
         // Create the data channel and establish its event listeners
-        dataChannel = rtcConnection.createDataChannel("dataChannel", { _protocol: "tcp", _id: 29 } );
-        dataChannel.onopen = handleChannelStatusChange;
-        dataChannel.onclose = handleChannelStatusChange;
-        dataChannel.onmessage = handleChannelOnMessage;
+        let dataChannel = rtcConnection.createDataChannel("dataChannel", { _protocol: "tcp", _id: 29 } );
+        client.dataChannel = dataChannel;
+        dataChannel.onopen = event => handleChannelStatusChange(client, event);
+        dataChannel.onclose = event => handleChannelStatusChange(client, event);
+        dataChannel.onmessage = event => handleChannelOnMessage(client, event);
 
         // Create an offer to connect; this starts the process
         rtcConnection.createOffer()
@@ -99,53 +99,48 @@ function myAddIceCandidate(remoteConnection, e) {
     }
 
     function sendChatMessage() {
-        const message = messageInputBox.value;
-        dataChannel.send(message);
+        const message = "Server: " + messageInputBox.value;
+
+        printMessage(message);
+
+        for (let cID in clients)
+            clients[cID].dataChannel.send(message);
 
         messageInputBox.value = "";
         messageInputBox.focus();
     }
 
-    function handleChannelStatusChange(event) {
+    function printMessage(mes) {
+        const el = document.createElement("p");
+        const txtNode = document.createTextNode(mes);
+        el.appendChild(txtNode);
+        receiveBox.appendChild(el);
+    }
+
+    function handleChannelStatusChange(client, event) {
+        let dataChannel = client.dataChannel;
         if (dataChannel) {
             const state = dataChannel.readyState;
-
-            console.log("sendChannelStatusChange:", event);
-
-            if (state === "open") {
-                messageInputBox.disabled = false;
-                messageInputBox.focus();
-                sendButton.disabled = false;
-            } else {
-                messageInputBox.disabled = true;
-                sendButton.disabled = true;
-            }
+            console.log("Client " + client.id + " sendChannelStatusChange:", event);
         }
     }
 
-    function handleChannelOnMessage(event) {
-        const el = document.createElement("p");
-        const txtNode = document.createTextNode(event.data);
+    function handleChannelOnMessage(client, event) {
+        let mes = "Client " + client.id + ": " + event.data;
 
-        el.appendChild(txtNode);
-        receiveBox.appendChild(el);
+        printMessage(mes);
+
+        for (let cID in clients)
+            clients[cID].dataChannel.send(mes);
     }
 
     function handleError(error) {
         console.log("RTC Error:", + error);
     }
 
-    function closeRTC() {
-
-        if (dataChannel) dataChannel.close();
-        if (rtcConnection) rtcConnection.close();
-
-        dataChannel = null;
-        rtcConnection = null;
-
-        messageInputBox.value = "";
-        messageInputBox.disabled = true;
-        sendButton.disabled = true;
+    function closeRTC(client) {
+        if (client.dataChannel) client.dataChannel.close();
+        if (client.rtcConnection) client.rtcConnection.close();
     }
 
     window.addEventListener('load', onPageLoad, false);

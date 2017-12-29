@@ -31,7 +31,7 @@ wmsx.WSClient = function() {
     };
 
     Proto.onWSMessage = function(message) {
-        console.log("WSClient " + this.id + " >>> Message received:", message);
+        // console.log("WSClient " + this.id + " >>> Message received:", message);
 
         if (this.messageListener) this.messageListener(this, JSON.parse(message));
     };

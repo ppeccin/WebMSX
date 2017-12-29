@@ -46,7 +46,6 @@
         if(mes.messageType === "sessionJoined") {
             console.log("Session joined: " + mes.sessionID);
             sessionIDField.style.backgroundColor = "lightgreen";
-
             startRTC();
         }
 
@@ -57,13 +56,15 @@
 
         if(mes.serverSDP) {
             rtcConnection.setRemoteDescription(new RTCSessionDescription(mes.serverSDP))
+                .then(() => rtcConnection.createAnswer())
+                .then(desc => rtcConnection.setLocalDescription(desc))
                 .catch(handleError);
         }
     }
 
     function startRTC() {
         // Create the local connection and its event listeners
-        rtcConnection = new RTCPeerConnection();
+        rtcConnection = new RTCPeerConnection({});
 
         // Set up the ICE candidates
         rtcConnection.onicecandidate = e => {
@@ -71,24 +72,29 @@
                 ws.send(JSON.stringify({ clientSDP: rtcConnection.localDescription }));
         };
 
-        // Create the data channel and establish its event listeners
-        dataChannel = rtcConnection.createDataChannel("dataChannel", { _protocol: "tcp", _id: 29 } );
-        dataChannel.onopen = handleChannelStatusChange;
-        dataChannel.onclose = handleChannelStatusChange;
-        dataChannel.onmessage = handleChannelOnMessage;
-
-        // Create an offer to connect; this starts the process
-        rtcConnection.createOffer()
-            .then(desc => rtcConnection.setLocalDescription(desc))
-            .catch(handleError);
+        // Wait for data channel
+        rtcConnection.ondatachannel = event => {
+            dataChannel = event.channel;
+            dataChannel.onopen = handleChannelStatusChange;
+            dataChannel.onclose = handleChannelStatusChange;
+            dataChannel.onmessage = handleChannelOnMessage;
+        };
     }
 
     function sendChatMessage() {
-        const message = messageInputBox.value;
-        dataChannel.send(message);
+        const mes = messageInputBox.value;
+
+        dataChannel.send(mes);
 
         messageInputBox.value = "";
         messageInputBox.focus();
+    }
+
+    function printMessage(mes) {
+        const el = document.createElement("p");
+        const txtNode = document.createTextNode(mes);
+        el.appendChild(txtNode);
+        receiveBox.appendChild(el);
     }
 
     function handleChannelStatusChange(event) {
