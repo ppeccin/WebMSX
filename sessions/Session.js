@@ -57,10 +57,13 @@ wmsx.Session = function() {
 
         if (toClientID === 0) {
             // Broadcast
-            for (let cID in this.clients)
+            for (const cID in this.clients)
                 this.clients[cID].sendMessage(message);
         } else {
-            this.clients[toClientID].sendMessage(message);
+            const client = this.clients[toClientID];
+            if (!client)
+                return console.log("Session " + this.id + " >>> Server message, Client " + toClientID + " not found");
+            client.sendMessage(message);
         }
     };
 
