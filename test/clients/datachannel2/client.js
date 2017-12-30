@@ -30,7 +30,7 @@
     function connectSession() {
         ws = new WebSocket("ws://localhost");
         ws.onmessage = onSessionMessage;
-        ws.onopen = () => ws.send(JSON.stringify({ messageType: "joinSession", sessionID: sessionIDField.value }));
+        ws.onopen = () => ws.send(JSON.stringify({ sessionControl: "joinSession", sessionID: sessionIDField.value }));
     }
 
     function disconnectSession() {
@@ -43,13 +43,13 @@
     function onSessionMessage(message) {
         const mes = JSON.parse(message.data);
 
-        if(mes.messageType === "sessionJoined") {
+        if(mes.sessionControl === "sessionJoined") {
             console.log("Session joined: " + mes.sessionID);
             sessionIDField.style.backgroundColor = "lightgreen";
             startRTC();
         }
 
-        if(mes.messageType === "sessionDestroyed") {
+        if(mes.sessionControl === "sessionDestroyed") {
             console.log("Session destroyed");
             disconnectSession();
         }

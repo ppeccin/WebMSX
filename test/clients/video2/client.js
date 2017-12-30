@@ -42,7 +42,7 @@ function join() {
     if (!localStream) return;
 
     const sessionID = document.getElementById("SessionIDField").value;
-    serverConnection.send(JSON.stringify({ messageType: "joinSession", sessionID }));
+    serverConnection.send(JSON.stringify({ sessionControl: "joinSession", sessionID }));
 
     peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnection.onicecandidate = gotIceCandidate;
@@ -53,12 +53,12 @@ function join() {
 function gotMessageFromServer(message) {
     const signal = JSON.parse(message.data);
 
-    if(signal.messageType === "sessionJoined") {
+    if(signal.sessionControl === "sessionJoined") {
         console.log("Session joined: " + signal.sessionID);
         document.getElementById("SessionIDField").style.backgroundColor = "lightgreen";
     }
 
-    if(signal.messageType === "sessionDestroyed") {
+    if(signal.sessionControl === "sessionDestroyed") {
         console.log("Session destroyed");
     }
 

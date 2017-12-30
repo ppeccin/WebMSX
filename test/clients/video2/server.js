@@ -20,7 +20,7 @@ function pageReady() {
     serverConnection = new WebSocket('ws://localhost');
     // serverConnection = new WebSocket('ws://ppeccin-websockets.herokuapp.com');
     serverConnection.onmessage = gotMessageFromServer;
-    serverConnection.onopen = () => serverConnection.send(JSON.stringify({ messageType: "createSession" }));
+    serverConnection.onopen = () => serverConnection.send(JSON.stringify({ sessionControl: "createSession" }));
 
     const constraints = {
         video: true,
@@ -53,16 +53,16 @@ function start() {
 function gotMessageFromServer(message) {
     const signal = JSON.parse(message.data);
 
-    if(signal.messageType === "sessionCreated") {
+    if(signal.sessionControl === "sessionCreated") {
         console.log("Session created: " + signal.sessionID);
         document.getElementById("SessionIDField").value = signal.sessionID;
     }
 
-    if(signal.messageType === "clientJoined") {
+    if(signal.sessionControl === "clientJoined") {
         console.log("Client " + signal.clientID + " joined");
     }
 
-    if(signal.messageType === "clientLeft") {
+    if(signal.sessionControl === "clientLeft") {
         console.log("Client " + signal.clientID + " left");
     }
 

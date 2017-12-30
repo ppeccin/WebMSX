@@ -30,7 +30,7 @@
     function startSession() {
         ws = new WebSocket("ws://localhost");
         ws.onmessage = onSessionMessage;
-        ws.onopen = () => ws.send(JSON.stringify({ messageType: "createSession" }));
+        ws.onopen = () => ws.send(JSON.stringify({ sessionControl: "createSession" }));
     }
 
     function stopSession() {
@@ -42,14 +42,14 @@
     function onSessionMessage(message) {
         const mes = JSON.parse(message.data);
 
-        if(mes.messageType === "sessionCreated") {
+        if(mes.sessionControl === "sessionCreated") {
             console.log("Session created: " + mes.sessionID);
             sessionID = mes.sessionID;
             sessionIDField.value = sessionID;
             sessionIDField.style.backgroundColor = "lightgreen";
         }
 
-        if(mes.messageType === "clientJoined") {
+        if(mes.sessionControl === "clientJoined") {
             console.log("Client " + mes.clientID + " joined");
 
             let client = {id: mes.clientID};
@@ -57,7 +57,7 @@
             startRTC(client);
         }
 
-        if(mes.messageType === "clientLeft") {
+        if(mes.sessionControl === "clientLeft") {
             console.log("Client " + mes.clientID + " left");
 
             let client = clients[mes.clientID];

@@ -19,14 +19,14 @@ wmsx.SessionManager = function(wss) {
     this.onWSClientMessage = function (wsClient, message) {
         console.log("SessionManager >>> WSClient " + wsClient.id + " message:", message);
 
-        switch(message.messageType) {
+        switch(message.sessionControl) {
             case "createSession":
                 this.processCreateSession(wsClient, message); return;
             case "joinSession":
                 this.processJoinSession(wsClient, message); return;
+            default:
+                console.log("SessionManager >>> Ignored...");
         }
-
-        // this.wss.broadcast(message);
     };
 
     this.processCreateSession = function(wsClient, message) {

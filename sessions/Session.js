@@ -20,7 +20,7 @@ wmsx.Session = function() {
         wsClient.sessionID = this.id;
         wsClient.setMessageListener((wsClient, message) => this.onServerMessage(wsClient, message));
 
-        wsClient.sendMessage({ messageType: "sessionCreated", sessionID: this.id });
+        wsClient.sendMessage({ sessionControl: "sessionCreated", sessionID: this.id });
     };
 
     Proto.transferWSClientAsClient = function(wsClient) {
@@ -31,8 +31,8 @@ wmsx.Session = function() {
         wsClient.sessionID = this.id;
         wsClient.setMessageListener((wsClient, message) => this.onClientMessage(wsClient, message));
 
-        wsClient.sendMessage({ messageType: "sessionJoined", sessionID: this.id });
-        this.server.sendMessage({ messageType: "clientJoined", clientID: wsClient.id });
+        wsClient.sendMessage({ sessionControl: "sessionJoined", sessionID: this.id });
+        this.server.sendMessage({ sessionControl: "clientJoined", clientID: wsClient.id });
     };
 
     Proto.onWSClientDisconnected = function(wsClient) {
@@ -44,7 +44,7 @@ wmsx.Session = function() {
             this.destroy();
         } else {
             delete this.clients[wsClient.id];
-            this.server.sendMessage({ messageType: "clientLeft", clientID: wsClient.id });
+            this.server.sendMessage({ sessionControl: "clientLeft", clientID: wsClient.id });
         }
     };
 
@@ -79,7 +79,7 @@ wmsx.Session = function() {
 
         this.manager.removeSession(this.id);
         for (let cID in this.clients) {
-            this.clients[cID].sendMessage({messageType: "sessionDestroyed"});
+            this.clients[cID].sendMessage({sessionControl: "sessionDestroyed"});
             this.clients[cID].closeForced();
         }
 
