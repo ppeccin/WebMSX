@@ -8,7 +8,7 @@ require("./sessions/SessionManager");
 
 const express =  require("express");
 const proxy =    require("./proxy-downloader/ProxyDownloader");
-const port =     process.env.PORT || 80;
+const port =     process.env.PORT || 8081;
 
 
 // Proxy Downloader

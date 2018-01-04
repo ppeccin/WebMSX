@@ -30,17 +30,6 @@ wmsx.WSSever = function() {
         if (this.clientDisconnectedListener) this.clientDisconnectedListener(wsClient);
     };
 
-    this.broadcast = function(message) {
-        console.log("WSServer >>> Broadcasting message:", message);
-
-        this.wss.clients.forEach(function(ws) {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(message);
-            }
-        });
-    };
-
-
     this.nextClientID = 0;
     this.wss = undefined;
     this.clientConnectedListener = undefined;

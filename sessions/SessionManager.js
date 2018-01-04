@@ -36,8 +36,19 @@ wmsx.SessionManager = function(wss) {
     };
 
     this.processCreateSession = function(wsClient, message) {
-        const id = this.nextID();
-        console.log("SessionManager >>> Creating Session " + id);
+        let id;
+        if (message.sessionID) {
+            id = ("" + message.sessionID).trim();
+            console.log("SessionManager >>> Creating asked Session " + id);
+            if (this.sessions[id]) {
+                console.log("SessionManager >>> Session " + id + " is already in use");
+                wsClient.sendMessage({ sessionControl: "createError", errorMessage: 'Session "' + id + '" is already in use'});
+                wsClient.closeForced();
+            }
+        } else {
+            id = "" + this.nextID();
+            console.log("SessionManager >>> Creating Session " + id);
+        }
 
         const session = new wmsx.Session(id, this);
         this.sessions[id] = session;
@@ -46,12 +57,16 @@ wmsx.SessionManager = function(wss) {
     };
 
     this.processJoinSession = function(wsClient, message) {
-        const sessionID = message["sessionID"];
-        if (!this.sessions[sessionID])
-            return console.log("SessionManager >>> Session " + sessionID + " not found while joining Client " + wsClient.id);
+        const sessionID = ("" + message.sessionID).trim();
+        if (!this.sessions[sessionID]) {
+            console.log("SessionManager >>> Session " + sessionID + " not found while joining Client " + wsClient.id);
+            wsClient.sendMessage({ sessionControl: "joinError", errorMessage: 'Session "' + sessionID + '" is not available' });
+            wsClient.closeForced();
+            return;
+        }
 
         const session = this.sessions[sessionID];
-        session.transferWSClientAsClient(wsClient);
+        session.transferWSClientAsClient(wsClient, message);
     };
 
     this.removeSession = function(id) {
@@ -61,8 +76,11 @@ wmsx.SessionManager = function(wss) {
     };
 
     this.nextID = function() {
-        let id = new Date().getTime();
-        while (this.sessions[id]) id++;
+        let id = (Math.random() * 90000 | 0) + 10000;
+        while (this.sessions[id]) {
+            id++;
+            if (id > 99999) id = 10000;
+        }
         return id;
     };
 

@@ -13,7 +13,7 @@ wmsx.Session = function() {
     const Proto = Class.prototype;
 
     Proto.transferWSClientAsServer = function(wsClient) {
-        console.log("Session " + this.id + " >>> Setting Server " + wsClient.id);
+        // console.log("Session " + this.id + " >>> Setting Server " + wsClient.id);
 
         this.server = wsClient;
         wsClient.isSessionServer = true;
@@ -23,54 +23,66 @@ wmsx.Session = function() {
         wsClient.sendMessage({ sessionControl: "sessionCreated", sessionID: this.id });
     };
 
-    Proto.transferWSClientAsClient = function(wsClient) {
-        console.log("Session " + this.id + " >>> Joining Client " + wsClient.id);
+    Proto.transferWSClientAsClient = function(wsClient, message) {
+        let nick = message.clientNick || "C";
+        if (this.clients[nick]) {
+            let i = 1;
+            while (this.clients[nick + i]) ++i;
+            nick += i;
+        }
 
-        this.clients[wsClient.id] = wsClient;
+        console.log("Session " + this.id + " >>> Joining Client " + nick);
+
+        this.clients[nick] = wsClient;
+        wsClient.nick = nick;
         wsClient.isSessionClient = true;
         wsClient.sessionID = this.id;
         wsClient.setMessageListener((wsClient, message) => this.onClientMessage(wsClient, message));
 
-        wsClient.sendMessage({ sessionControl: "sessionJoined", sessionID: this.id });
-        this.server.sendMessage({ sessionControl: "clientJoined", clientID: wsClient.id });
+        wsClient.sendMessage({ sessionControl: "sessionJoined", sessionID: this.id, clientNick: wsClient.nick });
+        this.server.sendMessage({ sessionControl: "clientJoined", clientNick: wsClient.nick });
     };
 
     Proto.onWSClientDisconnected = function(wsClient) {
-        console.log("Session " + this.id + " >>> WSClient " + wsClient.id + " disconnected");
-
         wsClient.setMessageListener(undefined);
 
         if (wsClient.isSessionServer) {
+            console.log("Session " + this.id + " >>> Server disconnected");
             this.destroy();
         } else {
-            delete this.clients[wsClient.id];
-            this.server.sendMessage({ sessionControl: "clientLeft", clientID: wsClient.id });
+            console.log("Session " + this.id + " >>> Client " + wsClient.nick + " disconnected");
+            delete this.clients[wsClient.nick];
+            this.server.sendMessage({ sessionControl: "clientLeft", clientNick: wsClient.nick });
         }
     };
 
     Proto.onServerMessage = function (wsClient, message) {
         // console.log("Session " + this.id + " >>> Server message:", message);
 
-        const toClientID = message.toClientID;
-        if (toClientID === undefined && !message.sessionControl)
-            return console.log("Session " + this.id + " >>> Server message has no destination ClientID");
+        if (message.sessionControl === "keep-alive") return;
 
-        if (toClientID === 0) {
-            // Broadcast
-            for (const cID in this.clients)
-                this.clients[cID].sendMessage(message);
-        } else {
-            const client = this.clients[toClientID];
+        const toClientNick = message.toClientNick;
+        if (toClientNick === undefined)
+            return console.error("Session " + this.id + " >>> ERROR: Server message has no destination 'toClientNick'");
+
+        // if (toClientNick === "") {
+        //     // Broadcast
+        //     for (const cNick in this.clients)
+        //         this.clients[cNick].sendMessage(message);
+        // } else {
+            const client = this.clients[toClientNick];
             if (!client)
-                return console.log("Session " + this.id + " >>> Server message, Client " + toClientID + " not found");
+                return console.error("Session " + this.id + " >>> ERROR: Server message, Client " + toClientNick + " not found");
             client.sendMessage(message);
-        }
+        // }
     };
 
     Proto.onClientMessage = function (wsClient, message) {
-        // console.log("Session " + this.id + " >>> Client " + wsClient.id + " message:", message);
+        // console.log("Session " + this.id + " >>> Client " + wsClient.clientNick + " message:", message);
 
-        message.fromClientID = wsClient.id;
+        if (message.sessionControl === "keep-alive") return;
+
+        message.fromClientNick = wsClient.nick;
         this.server.sendMessage(message);
     };
 
@@ -78,9 +90,9 @@ wmsx.Session = function() {
         console.log("Session " + this.id + " >>> Destroying Session");
 
         this.manager.removeSession(this.id);
-        for (let cID in this.clients) {
-            this.clients[cID].sendMessage({ sessionControl: "sessionDestroyed" });
-            this.clients[cID].closeForced();
+        for (let cNick in this.clients) {
+            this.clients[cNick].sendMessage({ sessionControl: "sessionDestroyed" });
+            this.clients[cNick].closeForced();
         }
 
         this.manager = this.server = this.clients = undefined;

@@ -18,12 +18,20 @@ wmsx.WSClient = function() {
     const Proto = Class.prototype;
 
     Proto.sendMessage = function(message) {
-        this.ws.send(JSON.stringify(message));
+        try {
+            this.ws.send(JSON.stringify(message));
+        } catch (e) {
+            // ignore
+        }
     };
 
     Proto.closeForced = function() {
         this.forceClosed = true;
-        this.ws.close();
+        this.messageListener = undefined;
+        // Give some time for last messages to be sent
+        setTimeout(() => {
+                if (this.ws) this.ws.close();
+            }, 300);
     };
 
     Proto.setMessageListener = function(listener) {
