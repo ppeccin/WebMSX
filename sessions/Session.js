@@ -49,10 +49,10 @@ wmsx.Session = function() {
     };
 
     Proto.onServerMessage = function (wsClient, message) {
-        console.log("Session " + this.id + " >>> Server message:", message);
+        // console.log("Session " + this.id + " >>> Server message:", message);
 
         const toClientID = message.toClientID;
-        if (toClientID === undefined)
+        if (toClientID === undefined && !message.sessionControl)
             return console.log("Session " + this.id + " >>> Server message has no destination ClientID");
 
         if (toClientID === 0) {
@@ -68,7 +68,7 @@ wmsx.Session = function() {
     };
 
     Proto.onClientMessage = function (wsClient, message) {
-        console.log("Session " + this.id + " >>> Client " + wsClient.id + " message:", message);
+        // console.log("Session " + this.id + " >>> Client " + wsClient.id + " message:", message);
 
         message.fromClientID = wsClient.id;
         this.server.sendMessage(message);
@@ -79,7 +79,7 @@ wmsx.Session = function() {
 
         this.manager.removeSession(this.id);
         for (let cID in this.clients) {
-            this.clients[cID].sendMessage({sessionControl: "sessionDestroyed"});
+            this.clients[cID].sendMessage({ sessionControl: "sessionDestroyed" });
             this.clients[cID].closeForced();
         }
 

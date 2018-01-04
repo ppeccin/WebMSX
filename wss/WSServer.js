@@ -19,13 +19,13 @@ wmsx.WSSever = function() {
     this.onWSConnection = function(ws) {
         const client = new wmsx.WSClient(++this.nextClientID, ws, this);
 
-        console.log("WSServer >>> New Client " + client.id + " connected");
+        // console.log("WSServer >>> New Client " + client.id + " connected");
 
         if (this.clientConnectedListener) this.clientConnectedListener(client);
     };
 
     this.onWSClientDisconnected = function(wsClient) {
-        console.log("WSServer >>> Client " + wsClient.id + " disconnected");
+        // console.log("WSServer >>> Client " + wsClient.id + " disconnected");
 
         if (this.clientDisconnectedListener) this.clientDisconnectedListener(wsClient);
     };

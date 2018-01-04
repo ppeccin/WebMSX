@@ -17,15 +17,21 @@ wmsx.SessionManager = function(wss) {
     };
 
     this.onWSClientMessage = function (wsClient, message) {
-        console.log("SessionManager >>> WSClient " + wsClient.id + " message:", message);
+        if (message.sessionControl) {
+            console.log("SessionManager >>> WSClient " + wsClient.id + " session control message: " + message.sessionControl);
 
-        switch(message.sessionControl) {
-            case "createSession":
-                this.processCreateSession(wsClient, message); return;
-            case "joinSession":
-                this.processJoinSession(wsClient, message); return;
-            default:
-                console.log("SessionManager >>> Ignored...");
+            switch (message.sessionControl) {
+                case "createSession":
+                    this.processCreateSession(wsClient, message);
+                    return;
+                case "joinSession":
+                    this.processJoinSession(wsClient, message);
+                    return;
+                case "keep-alive":
+                    return;
+                default:
+                    console.log("SessionManager >>> Ignored...");
+            }
         }
     };
 
