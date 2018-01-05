@@ -24,8 +24,8 @@ wmsx.Session = function() {
     };
 
     Proto.transferWSClientAsClient = function(wsClient, message) {
-        let nick = message.clientNick || "C";
-        if (this.clients[nick]) {
+        let nick = message.clientNick || "Client";
+        if (this.clients[nick] || nick === "Client") {
             let i = 1;
             while (this.clients[nick + i]) ++i;
             nick += i;
