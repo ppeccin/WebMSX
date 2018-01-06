@@ -1,10 +1,11 @@
+// Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx = {};  // namespace
 
-require("./wss/WSServer");
-require("./wss/WSClient");
-require("./sessions/Session");
-require("./sessions/SessionManager");
+require("./session-server/WSServer");
+require("./session-server/WSClient");
+require("./session-server/Session");
+require("./session-server/SessionManager");
 
 const express =  require("express");
 const proxy =    require("./proxy-downloader/ProxyDownloader");
@@ -21,12 +22,9 @@ const httpServer = app.listen(port, function() {
 });
 
 
-// WS Server
+// Session Manager
 
 const wss = new wmsx.WSSever();
 wss.start(httpServer);
-
-
-// Session Manager
 
 const sessionManager = new wmsx.SessionManager(wss);

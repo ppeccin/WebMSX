@@ -1,3 +1,4 @@
+// Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.SessionManager = function(wss) {
 
@@ -53,7 +54,7 @@ wmsx.SessionManager = function(wss) {
         const session = new wmsx.Session(id, this);
         this.sessions[id] = session;
 
-        session.transferWSClientAsServer(wsClient);
+        session.transferWSClientAsServer(wsClient, message);
     };
 
     this.processJoinSession = function(wsClient, message) {

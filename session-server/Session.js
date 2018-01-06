@@ -1,3 +1,4 @@
+// Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 wmsx.Session = function() {
 
@@ -12,7 +13,7 @@ wmsx.Session = function() {
     };
     const Proto = Class.prototype;
 
-    Proto.transferWSClientAsServer = function(wsClient) {
+    Proto.transferWSClientAsServer = function(wsClient, message) {
         // console.log("Session " + this.id + " >>> Setting Server " + wsClient.id);
 
         this.server = wsClient;
@@ -20,7 +21,12 @@ wmsx.Session = function() {
         wsClient.sessionID = this.id;
         wsClient.setMessageListener((wsClient, message) => this.onServerMessage(wsClient, message));
 
-        wsClient.sendMessage({ sessionControl: "sessionCreated", sessionID: this.id });
+        const response = { sessionControl: "sessionCreated", sessionID: this.id };
+
+        // Server wants to query variables?
+        insertQueriedVariablesInReponse(message, response);
+
+        wsClient.sendMessage(response);
     };
 
     Proto.transferWSClientAsClient = function(wsClient, message) {
@@ -39,8 +45,13 @@ wmsx.Session = function() {
         wsClient.sessionID = this.id;
         wsClient.setMessageListener((wsClient, message) => this.onClientMessage(wsClient, message));
 
-        wsClient.sendMessage({ sessionControl: "sessionJoined", sessionID: this.id, clientNick: wsClient.nick });
+        const clientResponse = { sessionControl: "sessionJoined", sessionID: this.id, clientNick: wsClient.nick };
+
+        // Client wants to query variables?
+        insertQueriedVariablesInReponse(message, clientResponse);
+
         this.server.sendMessage({ sessionControl: "clientJoined", clientNick: wsClient.nick });
+        wsClient.sendMessage(clientResponse);
     };
 
     Proto.onWSClientDisconnected = function(wsClient) {
@@ -97,6 +108,18 @@ wmsx.Session = function() {
 
         this.manager = this.server = this.clients = undefined;
     };
+
+    function insertQueriedVariablesInReponse(message, response) {
+        let qVars = message.queryVariables;
+        if (qVars) {
+            const resVars = {};
+            for (let i = 0, len = qVars.length; i < len; ++i) {
+                const v = qVars[i].trim();
+                resVars[v] = process.env[v];
+            }
+            response.queriedVariables = resVars;
+        }
+    }
 
     return Class;
 
