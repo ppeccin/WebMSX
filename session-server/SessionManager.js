@@ -40,12 +40,13 @@ wmsx.SessionManager = function(wss) {
         let id;
         if (message.sessionID) {
             id = ("" + message.sessionID).trim();
-            console.log("SessionManager >>> Creating asked Session " + id);
             if (this.sessions[id]) {
                 console.log("SessionManager >>> Session " + id + " is already in use");
                 wsClient.sendMessage({ sessionControl: "createError", errorMessage: 'Session "' + id + '" is already in use'});
                 wsClient.closeForced();
+                return;
             }
+            console.log("SessionManager >>> Creating asked Session " + id);
         } else {
             id = "" + this.nextID();
             console.log("SessionManager >>> Creating Session " + id);
