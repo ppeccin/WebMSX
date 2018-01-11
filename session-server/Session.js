@@ -7,6 +7,8 @@ wmsx.Session = function() {
         this.id = id;
         this.manager = manager;
 
+        this.originalCreationMessage = undefined;
+
         this.server = undefined;
         this.clients = {};
 
@@ -15,6 +17,8 @@ wmsx.Session = function() {
 
     Proto.transferWSClientAsServer = function(wsClient, message) {
         // console.log("Session " + this.id + " >>> Setting Server " + wsClient.id);
+
+        this.originalCreationMessage = message;
 
         this.server = wsClient;
         wsClient.isSessionServer = true;
@@ -45,14 +49,18 @@ wmsx.Session = function() {
         wsClient.sessionID = this.id;
         wsClient.setMessageListener((wsClient, message) => this.onClientMessage(wsClient, message));
 
-        const clientResponse = { sessionControl: "sessionJoined", sessionID: this.id, clientNick: wsClient.nick };
+
+        // Sends the same original SessionCreation message to Client, to carry additional properties passed at creation
+        const clientResponse = this.originalCreationMessage;
+        clientResponse.sessionControl = "sessionJoined";
+        clientResponse.clientNick = wsClient.nick;
 
         // Client wants to query variables?
         insertQueriedVariablesInReponse(message, clientResponse);
 
         wsClient.sendMessage(clientResponse);
 
-        // Sends the same Client message to Server, to carry additional properties passed
+        // Sends the same Client message to Server, to carry additional properties passed when joining
         message.sessionControl = "clientJoined";
         message.clientNick = wsClient.nick;
         this.server.sendMessage(message);
@@ -110,7 +118,7 @@ wmsx.Session = function() {
             this.clients[cNick].closeForced();
         }
 
-        this.manager = this.server = this.clients = undefined;
+        this.originalCreationMessage = this.manager = this.server = this.clients = undefined;
     };
 
     function insertQueriedVariablesInReponse(message, response) {
