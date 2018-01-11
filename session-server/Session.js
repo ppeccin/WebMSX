@@ -50,8 +50,12 @@ wmsx.Session = function() {
         // Client wants to query variables?
         insertQueriedVariablesInReponse(message, clientResponse);
 
-        this.server.sendMessage({ sessionControl: "clientJoined", clientNick: wsClient.nick });
         wsClient.sendMessage(clientResponse);
+
+        // Sends the same Client message to Server, to carry additional properties passed
+        message.sessionControl = "clientJoined";
+        message.clientNick = wsClient.nick;
+        this.server.sendMessage(message);
     };
 
     Proto.onWSClientDisconnected = function(wsClient) {
