@@ -9,12 +9,12 @@ wmsx.DOMPeripheralControls = function() {
         initKeys();
     }
 
-    this.connect = function(pMachineControlsSocket, pCartridgeSocket) {
-        machineControlsSocket = pMachineControlsSocket;
+    this.connect = function(pCartridgeSocket) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+        machineControls = pMachineControls;
         screen = pScreen;
         speaker = pSpeaker;
         monitor = pScreen.getMonitor();
@@ -54,16 +54,16 @@ wmsx.DOMPeripheralControls = function() {
                 break;
             case controls.MACHINE_POWER_TOGGLE:
                 if (altPower) return this.controlActivated(controls.MACHINE_POWER_RESET);
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.POWER, true);
+                machineControls.processControlState(wmsx.MachineControls.POWER, true);
                 break;
             case controls.MACHINE_POWER_RESET:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.RESET, true);
+                machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 break;
             case controls.MACHINE_LOAD_STATE_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
                 break;
             case controls.MACHINE_SAVE_STATE_FILE:
-                machineControlsSocket.controlStateChanged(wmsx.MachineControls.SAVE_STATE_FILE, true);
+                machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
                 break;
             case controls.MACHINE_LOAD_STATE_MENU:
                 screen.openSaveStateDialog(false);
@@ -170,9 +170,8 @@ wmsx.DOMPeripheralControls = function() {
             case controls.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
             case controls.SCREEN_DEFAULTS:
-                machineControlsSocket.setDefaults();
+                machineControls.processControlState(wmsx.MachineControls.DEFAULTS, true);
                 monitor.setDefaults();
-                monitor.showOSD("Default Settings", true);
                 break;
             case controls.SCREEN_TOGGLE_MENU:
                 screen.toggleMenuByKey();
@@ -195,6 +194,9 @@ wmsx.DOMPeripheralControls = function() {
                 break;
             case controls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD:
                 screen.toggleVirtualKeyboard();
+                break;
+            case controls.SCREEN_OPEN_NETPLAY:
+                screen.openNetPlayDialog();
                 break;
             case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardLayout(); break;
@@ -313,7 +315,7 @@ wmsx.DOMPeripheralControls = function() {
 
     var controls = wmsx.PeripheralControls;
 
-    var machineControlsSocket;
+    var machineControls;
     var screen;
     var monitor;
     var speaker;

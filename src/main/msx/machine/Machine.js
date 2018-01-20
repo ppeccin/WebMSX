@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Machine = function() {
+wmsx.Machine = function(mainVideoClock) {
 "use strict";
 
     var self = this;
@@ -74,10 +74,10 @@ wmsx.Machine = function() {
      };
 
     this.videoClockPulse = function() {
-        if (systemPaused) return;
+        // Video clock will be the VDP Frame video clock (60Hz/50Hz)
+        // CPU and other clocks will be sent by the VDP
 
         if (bios) bios.getKeyboardExtension().keyboardExtensionClockPulse();
-        controllersSocket.controllersClockPulse();
 
         if (!self.powerIsOn) return;
 
@@ -301,6 +301,14 @@ wmsx.Machine = function() {
         };
     }
 
+    this.saveStateExtended = function() {
+        var state = saveState();
+        state.pw = this.powerIsOn;
+        state.up = userPaused;
+        state.upf = userPauseMoreFrames;
+        return state;
+    };
+
     function loadState(s) {
         self.machineName = s.mn;
         self.machineType = s.mt;
@@ -324,7 +332,15 @@ wmsx.Machine = function() {
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
         audioSocket.flushAllSignals();
+        saveStateSocket.externalStateChange();
     }
+
+    this.loadStateExtended = function(state) {
+        if (this.powerIsOn !== state.pw) state.pw ? this.powerOn() : this.powerOff();
+        this.userPause(state.up);
+        userPauseMoreFrames = state.upf;
+        loadState(state);
+    };
 
     function mainVideoClockUpdateSpeed() {
         var freq = vdp.getDesiredBaseFrequency();
@@ -334,10 +350,6 @@ wmsx.Machine = function() {
     }
 
     function mainComponentsCreate() {
-        // Main clock will be the VDP VideoClock (60Hz/50Hz)
-        // CPU and other clocks (CPU and AudioClocks dividers) will be sent by the VDP
-        self.mainVideoClock = mainVideoClock = new wmsx.Clock(self.videoClockPulse);
-
         self.cpu = cpu = new wmsx.Z80();
         self.vdp = vdp = new wmsx.VDP(self, cpu);
         self.psg = psg = new wmsx.PSG(audioSocket, controllersSocket);
@@ -397,7 +409,6 @@ wmsx.Machine = function() {
     var isLoading = false;
     var basicAutoRunDone = false;
 
-    var mainVideoClock;
     var cpu;
     var bus;
     var ppi;
@@ -559,6 +570,10 @@ wmsx.Machine = function() {
                 break;
             case controls.SPRITE_MODE:
                 vdp.toggleSpriteDebugModes();
+                break;
+            case controls.DEFAULTS:
+                self.setDefaults();
+                self.showOSD("Default Settings", true);
                 break;
         }
     }
@@ -819,9 +834,6 @@ wmsx.Machine = function() {
     // MachineControls Socket  -----------------------------------------
 
     function MachineControlsSocket() {
-        this.setDefaults = function() {
-            self.setDefaults();
-        };
         this.controlStateChanged = function(control, state) {
             controlStateChanged(control, state);
         };
@@ -901,6 +913,9 @@ wmsx.Machine = function() {
                 self.showOSD("State File loaded", true);
             }
             return true;
+        };
+        this.externalStateChange = function() {
+            media.externalStateChange();
         };
         var media;
         var VERSION = 9;

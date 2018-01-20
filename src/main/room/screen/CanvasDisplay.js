@@ -157,6 +157,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         quickOtionsDialog.show();
     };
 
+    this.openNetPlayDialog = function() {
+        closeAllOverlays();
+        if (!netPlayDialog) netPlayDialog = new wmsx.NetPlayDialog(fsElementCenter);
+        netPlayDialog.show();
+    };
+
     this.openLoadFileDialog = function() {
         peripheralControls.controlActivated(wmsx.PeripheralControls.AUTO_LOAD_FILE);
         return false;
@@ -421,6 +427,10 @@ wmsx.CanvasDisplay = function(mainElement) {
             if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
             this.requestReadjust(true);
         }
+    };
+
+    this.roomNetPlayStatusChangeUpdate = function(oldMode) {
+        if (netPlayDialog) netPlayDialog.roomNetPlayStatusChangeUpdate(oldMode);
     };
 
     this.setLoading = function(state) {
@@ -730,14 +740,16 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         var menu = [
-            { label: "Power",              clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
-            { label: "Reset",              clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
-            { label: "",                   divider: true },
-            { label: "Open File",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_FILE, needsUIG: true },
-            { label: "Open URL",           clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_URL, needsUIG: true },
-            { label: "",                   divider: true },
-            { label: "Load State",                     control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
-            { label: "Save State",                     control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU }
+            { label: "Power",          clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
+            { label: "Reset",          clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
+            { label: "",               divider: true },
+            { label: "Net Play!",                     control: wmsx.PeripheralControls.SCREEN_OPEN_NETPLAY },
+            { label: "",               divider: true },
+            { label: "Open File",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_FILE, needsUIG: true },
+            { label: "Open URL",       clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.AUTO_LOAD_URL, needsUIG: true },
+            { label: "",               divider: true },
+            { label: "Load State",                    control: wmsx.PeripheralControls.MACHINE_LOAD_STATE_MENU },
+            { label: "Save State",                    control: wmsx.PeripheralControls.MACHINE_SAVE_STATE_MENU }
         ];
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, "System Power", null, menu, "System");
         barMenuSystem = menu;
@@ -1329,6 +1341,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (saveStateDialog) saveStateDialog.hide();
         if (touchConfigDialog) touchConfigDialog.hide();
         if (quickOtionsDialog) quickOtionsDialog.hide();
+        if (netPlayDialog) netPlayDialog.hide();
         if (settingsDialog) settingsDialog.hide();
     }
 
@@ -1513,6 +1526,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var machineSelectDialog;
     var touchConfigDialog;
     var quickOtionsDialog;
+    var netPlayDialog;
     var pasteDialog;
     var textEntryDialog;
     var copyTextArea;

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMMachineControls = function(keyForwardControls) {
+wmsx.DOMMachineControls = function(room, keyForwardControls) {
 "use strict";
 
     function init() {
@@ -26,13 +26,20 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
         var control = keyCodeMap[code];
         if (!control) return keyForwardControls.processKey(code, press);        // Next in chain
 
-        var state = controlStateMap[control];
-        if (!state || (state !== press)) {
-            controlStateMap[control] = press;
-            machineControlsSocket.controlStateChanged(control, press);
-        }
+        if (press === keyStateMap[code]) return true;
+        keyStateMap[code] = press;
+
+        processControlState(control, press);
         return true;
     };
+
+    function processControlState(control, press) {
+        if (room.netController)
+            room.netController.processLocalMachineControlState(control, press);
+        else
+            machineControlsSocket.controlStateChanged(control, press);
+    }
+    this.processControlState = processControlState;
 
     var preventIEHelp = function() {
         window.onhelp = function () {
@@ -113,6 +120,7 @@ wmsx.DOMMachineControls = function(keyForwardControls) {
     var monitor;
 
     var keyCodeMap = {};
+    var keyStateMap = {};
 
     var controlStateMap =  {};
 

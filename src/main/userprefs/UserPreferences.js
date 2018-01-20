@@ -125,7 +125,10 @@ WMSX.userPreferences.defaults = function() {
 
         hapticFeedback: true,
 
-        audioBufferBase: -1                // auto
+        audioBufferBase: -1,                // auto
+
+        netPlaySessionName: "",
+        netPlayNick: ""
 
     };
 };

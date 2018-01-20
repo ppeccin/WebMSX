@@ -88,7 +88,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, keyboard) {
             e.stopPropagation();
         });
         // Allow selection in input
-        wmsx.Util.addEventsListener(input, "touchstart touchmove touchend mousedown mousemove mouseup", function stopContextMenu(e) {
+        wmsx.Util.addEventsListener(input, "touchstart touchmove touchend mousedown mousemove mouseup", function(e) {
             e.stopPropagation();
         });
     }

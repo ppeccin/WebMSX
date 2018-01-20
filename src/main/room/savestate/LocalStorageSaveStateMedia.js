@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.LocalStorageSaveStateMedia = function() {
+wmsx.LocalStorageSaveStateMedia = function(room) {
 "use strict";
 
     this.connect = function(socket) {
@@ -32,6 +32,11 @@ wmsx.LocalStorageSaveStateMedia = function() {
 
     this.loadStateFile = function(data) {
         return buildStateFromData(data);
+    };
+
+    this.externalStateChange = function() {
+        // Let the NetPlay Server know
+        if (room.netPlayMode === 1) room.netController.processExternalStateChange();
     };
 
     var saveToLocalStorage = function(entry, data) {

@@ -55,7 +55,7 @@ wmsx.KeyboardKeys = {
     CONTROL        : { m:  [ 6, 1 ], key: "CONTROL",       sn: "CTR" },
     CAPSLOCK       : { m:  [ 6, 3 ], key: "CAPSLOCK",      sn: "CAP" },
     GRAPH          : { m:  [ 6, 2 ], key: "GRAPH",         sn: "GRA" },
-    CODE           : { m:  [ 6, 4 ], key: "CODE",          sn: "COD",  jn: "KANA" },
+    CODE           : { m:  [ 6, 4 ], key: "CODE",          sn: "COD",               jn: "KANA" },
     F1             : { m:  [ 6, 5 ], key: "F1",            sn: "F1",   ssn: "F6" },
     F2             : { m:  [ 6, 6 ], key: "F2",            sn: "F2",   ssn: "F7" },
     F3             : { m:  [ 6, 7 ], key: "F3",            sn: "F3",   ssn: "F8" },
@@ -91,8 +91,8 @@ wmsx.KeyboardKeys = {
     NUM_MINUS      : { m: [ 10, 5 ], key: "NUM_MINUS",     sn: "-" },
     NUM_COMMA      : { m: [ 10, 6 ], key: "NUM_COMMA",     sn: "," },
     NUM_PERIOD     : { m: [ 10, 7 ], key: "NUM_PERIOD",    sn: "." },
-    YES            : { m: [ 11, 1 ], key: "YES",           sn: "YES",    jn: "HAI" },
-    NO             : { m: [ 11, 3 ], key: "NO",            sn: "NO",     jn: "IIE" }
+    YES            : { m: [ 11, 1 ], key: "YES",           sn: "YES",                   jn: "HAI" },
+    NO             : { m: [ 11, 3 ], key: "NO",            sn: "NO",                    jn: "IIE" }
 
 };
 

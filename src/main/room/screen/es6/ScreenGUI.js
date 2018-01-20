@@ -1042,6 +1042,127 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 
+#wmsx-netplay {
+    display: none;
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    width: 390px;
+    height: 220px;
+    margin: auto;
+    padding-top: 11px;
+    color: white;
+    font-size: 18px;
+    line-height: 22px;
+    background: hsl(0, 0%, 16%);
+    text-align: center;
+    border: 1px solid black;
+    box-sizing: initial;
+    text-shadow: 1px 1px 1px black;
+    box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
+    transform-origin: center center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: auto;
+    z-index: 50;
+}
+#wmsx-netplay.wmsx-show {
+    display: block;
+}
+#wmsx-netplay::before {
+    content: "Net Play!";
+    display: block;
+}
+#wmsx-netplay-status-box {
+    margin-top: 17px;
+}
+#wmsx-netplay-status {
+    display: inline-block;
+    position: relative;
+    width: 340px;
+    font-size: 15px;
+    line-height: 27px;
+    background: black;
+    vertical-align: top;
+    text-shadow: none;
+     -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: auto;
+}
+.wmsx-netplay-button {
+    display: inline-block;
+    width: 86px;
+    padding: 0;
+    margin: 0;
+    font-size: 15px;
+    line-height: 26px;
+    color: white;
+    background: hsl(358, 67%, 46%);
+    text-shadow: 1px 1px 1px black;
+    border: none;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+    cursor: pointer;    
+}
+#wmsx-netplay-session-box {
+    margin-top: 18px;
+}
+#wmsx-netplay-session-label,
+#wmsx-netplay-nick-label {
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+#wmsx-netplay-session-label::before {
+    content: "Session Name";
+}
+#wmsx-netplay input {
+    width: 150px;
+    height: 26px;
+    padding: 0 10px;
+    margin: 0 8px;
+    font-size: 15px;
+    line-height: 26px;
+    background: rgb(240, 240, 240);
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+    outline: none;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: auto;
+}
+#wmsx-netplay-nick-label {
+    margin-top: 10px;
+}
+#wmsx-netplay-nick-label::before {
+    content: "User Nickname";
+}
+.wmsx-netplay-button:disabled {
+    color: rgb(130, 130, 130);
+    background: rgb(70, 70, 70);
+    cursor: default;
+}
+#wmsx-netplay input:disabled {
+    color: black;
+    background: rgb(180, 180, 180);
+    cursor: default;
+}
+#wmsx-netplay-session-box.wmsx-disabled div {
+    color: rgb(130, 130, 130);
+}
+#wmsx-netplay-status.wmsx-active::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 18px;
+    top: 4px;
+    left: 7px;
+    background: rgb(248, 33, 28);
+}
+
 #wmsx-touch-config {
     display: none;
     position: absolute;
