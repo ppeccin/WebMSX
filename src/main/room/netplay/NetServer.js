@@ -72,6 +72,7 @@ wmsx.NetServer = function(room) {
                     // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     netUpdateFull.s = machine.saveStateExtended();
                     netUpdateFull.c = machineControlsToProcess.length ? machineControlsToProcess : undefined;
+                    netUpdateFull.k = keyboardMatrixChangesToProcess.length ? keyboardMatrixChangesToProcess : undefined;
                     dataFull = JSON.stringify(netUpdateFull);
 
                     window.DATAFULL = dataFull;
@@ -82,6 +83,7 @@ wmsx.NetServer = function(room) {
                 if (!dataNormal) {
                     // netUpdate.u = updates;
                     netUpdate.c = machineControlsToProcess.length ? machineControlsToProcess : undefined;
+                    netUpdate.k = keyboardMatrixChangesToProcess.length ? keyboardMatrixChangesToProcess : undefined;
                     dataNormal = JSON.stringify(netUpdate);
                 }
                 data = dataNormal;
@@ -104,9 +106,16 @@ wmsx.NetServer = function(room) {
         if (machineControlsToProcess.length) {
             for (var i = 0, len = machineControlsToProcess.length; i < len; ++i) {
                 var control = machineControlsToProcess[i];
-                machineControlsSocket.controlStateChanged(control.c, control.p);
+                machineControlsSocket.controlStateChanged(control >> 4, control & 0x01);        // binary encoded
             }
             machineControlsToProcess.length = 0;
+        }
+        if (keyboardMatrixChangesToProcess.length) {
+            for (i = 0, len = keyboardMatrixChangesToProcess.length; i < len; ++i) {
+                var change = keyboardMatrixChangesToProcess[i];
+                keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
+            }
+            keyboardMatrixChangesToProcess.length = 0;
         }
 
         machine.videoClockPulse();
@@ -114,11 +123,16 @@ wmsx.NetServer = function(room) {
 
     this.processLocalMachineControlState = function (control, press) {
         if (localOnlyMachineControls.has(control))
-        // Process local-only controls right away, do not store
+            // Process local-only controls right away, do not store
             machineControlsSocket.controlStateChanged(control, press);
         else
+            // Just store changes, to be processed on netVideoClockPulse
+            machineControlsToProcess.push((control << 4) | press );                 // binary encoded
+    };
+
+    this.processLocalKeyboardMatrixChange = function(line, col, press) {
         // Just store changes, to be processed on netVideoClockPulse
-            machineControlsToProcess.push({ c: control, p: press });
+        keyboardMatrixChangesToProcess.push((line << 8) | (col << 4) | press );    // binary encoded
     };
 
     this.processCheckLocalPeripheralControl = function (control) {
@@ -182,6 +196,7 @@ wmsx.NetServer = function(room) {
         sessionID = message.sessionID;
         // updates = 0;
         machineControlsToProcess.length = 0;
+        keyboardMatrixChangesToProcess.length = 0;
         room.enterNetServerMode(self);
 
         room.showOSD('NetPlay session "' + message.sessionID + '" started', true);
@@ -284,6 +299,7 @@ wmsx.NetServer = function(room) {
     function onClientNetUpdate(netUpdate) {
         // Store remote controls to process on netVideoClockPulse
         if (netUpdate.c) machineControlsToProcess.push.apply(machineControlsToProcess, netUpdate.c);
+        if (netUpdate.k) keyboardMatrixChangesToProcess.push.apply(keyboardMatrixChangesToProcess, netUpdate.k);
     }
 
     function keepAlive() {
@@ -298,8 +314,10 @@ wmsx.NetServer = function(room) {
 
     var machine = room.machine;
     var machineControlsSocket = machine.getMachineControlsSocket();
+    var keyboard = room.keyboard;
 
-    var machineControlsToProcess = new Array(100); machineControlsToProcess.length = 0;     // pre allocate empty Array
+    var machineControlsToProcess = new Array(100); machineControlsToProcess.length = 0;                 // pre allocate empty Array
+    var keyboardMatrixChangesToProcess = new Array(100); keyboardMatrixChangesToProcess.length = 0;     // pre allocate empty Array
     var netUpdate = { v: 0, c: undefined };
     var netUpdateFull = { cm: {}, s: {}, v: 0, c: undefined };
     var nextUpdateFull = false;

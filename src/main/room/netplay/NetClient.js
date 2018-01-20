@@ -75,8 +75,13 @@ wmsx.NetClient = function(room) {
         if (disabledMachineControls.has(control))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
-        // Send only to server, do not process locally
-        machineControlsToSend.push({ c: control, p: press });
+        // Store and send only to server, do not process locally
+        machineControlsToSend.push((control << 4) | press );                    // binary encoded
+    };
+
+    this.processLocalKeyboardMatrixChange = function(line, col, press) {
+        // Store and send only to server, do not process locally
+        keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
     };
 
     this.processCheckLocalPeripheralControl = function (control) {
@@ -162,6 +167,7 @@ wmsx.NetClient = function(room) {
         wmsx.Util.log('NetPlay Session "' + sessionID + '" joined as "' + nick + '"');
 
         machineControlsToSend.length = 0;
+        keyboardMatrixChangesToSend.length = 0;
         room.enterNetClientMode(self);
     }
 
@@ -233,20 +239,35 @@ wmsx.NetClient = function(room) {
             var controls = netUpdate.c;
             for (var i = 0, len = controls.length; i < len; ++i) {
                 var control = controls[i];
-                machineControlsSocket.controlStateChanged(control.c, control.p);
+                machineControlsSocket.controlStateChanged(control >> 4, control & 0x01);        // binary encoded
+            }
+        }
+        if (netUpdate.k) {
+            var changes = netUpdate.k;
+            for (i = 0, len = changes.length; i < len; ++i) {
+                var change = changes[i];
+                keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
             }
         }
 
         machine.videoClockPulse();
 
         // Send local controls to Server. We always send a message even when empty to keep the channel active
-        if (dataChannelActive)
+        if (dataChannelActive) {
             // Use DataChannel if available
-            dataChannel.send(JSON.stringify({ c: machineControlsToSend.length ? machineControlsToSend : undefined }));
-        else
+            dataChannel.send(JSON.stringify({
+                c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
+            }));
+        } else {
             // Or fallback to WebSocket relayed through the Session Server (BAD!)
-            ws.send(JSON.stringify({ wmsxUpdate: { c: machineControlsToSend.length ? machineControlsToSend : undefined } }));
+            ws.send(JSON.stringify({wmsxUpdate: {
+                c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
+            }}));
+        }
         machineControlsToSend.length = 0;
+        keyboardMatrixChangesToSend.length = 0;
     }
 
     function keepAlive() {
@@ -261,8 +282,10 @@ wmsx.NetClient = function(room) {
 
     var machine = room.machine;
     var machineControlsSocket = machine.getMachineControlsSocket();
+    var keyboard = room.keyboard;
 
-    var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;     // pre allocate empty Array
+    var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                   // pre allocate empty Array
+    var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;       // pre allocate empty Array
 
     var ws;
     var sessionID;

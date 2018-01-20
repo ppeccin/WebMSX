@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMKeyboard = function(hub, keyForwardControls) {
+wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
 "use strict";
 
     var self = this;
@@ -142,29 +142,37 @@ wmsx.DOMKeyboard = function(hub, keyForwardControls) {
 
         if (msxKey) {
             // Special case for Portuguese "Alt Gr" key, which is LControl+RAlt. Release MSX CONTROL key if pressed, so AltGr can be used as normal RAlt
-            if (code === RAltKeyCode && keyStateMap["CONTROL"]) {
-                var matrix = msxKeys["CONTROL"].m;
-                keyboardRowValues[matrix[0]] |= (1 << matrix[1]);
-                keyStateMap["CONTROL"] = false;
-            }
+            if (code === RAltKeyCode && keyStateMap["CONTROL"])
+                processMSXKeyChange("CONTROL", false);
             this.processMSXKey(msxKey, press);
         }
     };
 
     this.processMSXKey = function(msxKey, press) {
+        if (keyStateMap[msxKey] === press) return;
+        keyStateMap[msxKey] = press;
+
         // Update key matrix bits
-        var state = keyStateMap[msxKey];
-        if (state === undefined || (state !== press)) {
-            keyStateMap[msxKey] = press;
-            var mattrix = msxKeys[msxKey].m;
-            if (press) {
-                keyboardRowValues[mattrix[0]] &= ~(1 << mattrix[1]);
-                if (turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
-            } else {
-                keyboardRowValues[mattrix[0]] |= (1 << mattrix[1]);
-            }
-        }
+        processMSXKeyChange(msxKey, press);
+
+        // TurboFire TODO NetPlay
+        if (press && turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
     };
+
+    function processMSXKeyChange(msxKey, press) {
+        var matrix = msxKeys[msxKey].m;
+
+        if (room.netController)
+            room.netController.processLocalKeyboardMatrixChange(matrix[0], matrix[1], press);
+        else
+            applyMatrixChange(matrix[0], matrix[1], press);
+    }
+
+    function applyMatrixChange(line, col, press) {
+        if (press) keyboardRowValues[line] &= ~(1 << col);
+        else keyboardRowValues[line] |= (1 << col);
+    }
+    this.applyMatrixChange = applyMatrixChange;
 
     var updateMapping = function() {
         var map = customKeyboards[currentKeyboard] || wmsx.BuiltInKeyboards[currentKeyboard];

@@ -135,7 +135,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     function buildPeripherals() {
         self.peripheralControls = new wmsx.DOMPeripheralControls();
         self.machineControls = new wmsx.DOMMachineControls(self, self.peripheralControls);
-        self.controllersHub = new wmsx.ControllersHub(self.machineControls);
+        self.controllersHub = new wmsx.ControllersHub(self, self.machineControls);
         self.keyboard = self.controllersHub.getKeyboard();
         self.fileDownloader = new wmsx.FileDownloader();
         self.stateMedia = new wmsx.LocalStorageSaveStateMedia(self);

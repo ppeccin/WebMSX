@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.ControllersHub = function(keyForwardControls) {
+wmsx.ControllersHub = function(room, keyForwardControls) {
 "use strict";
 
     this.connect = function(machineControlsSocket, controllersSocket, biosSocket) {
@@ -275,7 +275,7 @@ wmsx.ControllersHub = function(keyForwardControls) {
     var touchPresent =     [ null, null ];
     var settingsStateRet = { ports: [ null, null ]};
 
-    var keyboard =         new wmsx.DOMKeyboard(this, keyForwardControls);
+    var keyboard =         new wmsx.DOMKeyboard(room, this, keyForwardControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this, keyboard);
     var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyboard);
