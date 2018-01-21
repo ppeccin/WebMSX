@@ -34,7 +34,7 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
     };
 
     this.isShiftPressed = function () {
-        return (keyboardRowValues[6] & 1) === 0;
+        return (keyboardMatrix[6] & 1) === 0;
     };
 
     this.controllersClockPulse = function() {
@@ -42,8 +42,8 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
     };
 
     this.readKeyboardPort = function(row) {
-        if (turboFireClocks && row === 8) return keyboardRowValues[8] | (turboFireClockCount > turboFireFlipClock);
-        else return keyboardRowValues[row];
+        if (turboFireClocks && row === 8) return keyboardMatrix[8] | (turboFireClockCount > turboFireFlipClock);     // TODO NetPplay
+        else return keyboardMatrix[row];
     };
 
     this.toggleKeyboardLayout = function() {
@@ -80,7 +80,7 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
     this.releaseControllers = function() {
         keyStateMap = {};
         extraModifiersActive.clear();
-        wmsx.Util.arrayFill(keyboardRowValues, 0xff);
+        wmsx.Util.arrayFill(keyboardMatrix, 0xff);
     };
 
     this.resetControllers = function() {
@@ -169,8 +169,8 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
     }
 
     function applyMatrixChange(line, col, press) {
-        if (press) keyboardRowValues[line] &= ~(1 << col);
-        else keyboardRowValues[line] |= (1 << col);
+        if (press) keyboardMatrix[line] &= ~(1 << col);
+        else keyboardMatrix[line] |= (1 << col);
     }
     this.applyMatrixChange = applyMatrixChange;
 
@@ -239,7 +239,8 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
 
     var keyStateMap = {};
     var extraModifiersActive = new Set();
-    var keyboardRowValues = wmsx.Util.arrayFill(new Array(16), 0xff);            // only 12 rows used
+
+    var keyboardMatrix = wmsx.Util.arrayFill(new Array(12), 0xff);
 
     var mapping = {};
     var keyCodeMap;
@@ -250,6 +251,20 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
 
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix)
+        };
+    };
+
+    this.loadState = function(s) {
+        wmsx.Util.restoreStringBase64ToInt8BitArray(s.k, keyboardMatrix);
+    };
+
 
     init();
 

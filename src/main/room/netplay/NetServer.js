@@ -71,6 +71,7 @@ wmsx.NetServer = function(room) {
                     //netUpdateFull.u = updates;
                     // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     netUpdateFull.s = machine.saveStateExtended();
+                    netUpdateFull.ks = keyboard.saveState();
                     netUpdateFull.c = machineControlsToProcess.length ? machineControlsToProcess : undefined;
                     netUpdateFull.k = keyboardMatrixChangesToProcess.length ? keyboardMatrixChangesToProcess : undefined;
                     dataFull = JSON.stringify(netUpdateFull);
@@ -92,7 +93,7 @@ wmsx.NetServer = function(room) {
             try {
                 if (client.dataChannelActive)
                     // Use DataChannel if available
-                    client.dataChannel.send(data);
+                    sendToDataChannel(client.dataChannel, data);
                 else
                     // Or fallback to WebSocket relayed through the Session Server (BAD!)
                     ws.send(JSON.stringify({ toClientNick: client.nick, wmsxUpdate: data }));
@@ -311,6 +312,31 @@ wmsx.NetServer = function(room) {
         }
     }
 
+    // Automatically fragments message if needed. Data must be a String
+    function sendToDataChannel(dataChannel, data) {
+        var len = data.length;
+
+        if (len < MAX_DATA_CHANNEL_SIZE)
+            return dataChannel.send(data);
+
+        var c = 0;
+        var p = 0;
+        while (true) {
+            var frag = data.substr(p, DATA_CHANNEL_FRAG_SIZE);
+            p += DATA_CHANNEL_FRAG_SIZE;
+            c++;
+            if (p < len)
+                dataChannel.send(DATA_CHANNEL_FRAG_PART + frag);
+            else {
+                dataChannel.send(DATA_CHANNEL_FRAG_END + frag);
+
+                // console.log("Fragmented message sent: " + data.length, + ", fragments: " + c);
+
+                return;
+            }
+        }
+    }
+
 
     var machine = room.machine;
     var machineControlsSocket = machine.getMachineControlsSocket();
@@ -342,5 +368,11 @@ wmsx.NetServer = function(room) {
         mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
         mc.POWER_FRY, mc.VSYNCH, mc.TRACE
     ]);
+
+
+    var MAX_DATA_CHANNEL_SIZE = 16300;
+    var DATA_CHANNEL_FRAG_SIZE = 16200;
+    var DATA_CHANNEL_FRAG_PART = "#@FrgS@#";
+    var DATA_CHANNEL_FRAG_END =  "#@FrgE@#";
 
 };
