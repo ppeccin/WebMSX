@@ -70,6 +70,8 @@ WMSX = {
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
+    WEB_EXTENSIONS_SERVER:          "",                         // Server address for Proxy download and NetPlay, only available at the official website
+
     ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
 
 };
