@@ -149,7 +149,7 @@ wmsx.NetServer = function(room) {
         // Setup keep-alive
         if (keepAliveTimer === undefined) keepAliveTimer = setInterval(keepAlive, 30000);
         // Start a new Session
-        var command = { sessionControl: "createSession", wsOnly: wsOnly, queryVariables: [ "RTC_CONFIG", "RTC_DATA_CHANNEL_CONFIG" ] };
+        var command = { sessionControl: "createSession", sessionType: "wmsx", wsOnly: wsOnly, queryVariables: [ "RTC_CONFIG", "RTC_DATA_CHANNEL_CONFIG" ] };
         if (sessionIDToCreate) command.sessionID = sessionIDToCreate;
         ws.send(JSON.stringify(command));
     }
