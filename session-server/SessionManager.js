@@ -52,7 +52,8 @@ wmsx.SessionManager = function(wss) {
             console.log("SessionManager >>> Creating Session " + id);
         }
 
-        const session = new wmsx.Session(id, this);
+        const type = message.sessionType ? ("" + message.sessionType).trim() : undefined;
+        const session = new wmsx.Session(id, type, this);
         this.sessions[id] = session;
 
         session.transferWSClientAsServer(wsClient, message);
@@ -60,14 +61,17 @@ wmsx.SessionManager = function(wss) {
 
     this.processJoinSession = function(wsClient, message) {
         const sessionID = ("" + message.sessionID).trim();
-        if (!this.sessions[sessionID]) {
+        const sessionType = message.sessionType ? ("" + message.sessionType).trim() : undefined;
+
+        const session = this.sessions[sessionID];
+
+        if (!session || session.type !== sessionType) {
             console.log("SessionManager >>> Session " + sessionID + " not found while joining Client " + wsClient.id);
             wsClient.sendMessage({ sessionControl: "joinError", errorMessage: 'Session "' + sessionID + '" is not available' });
             wsClient.closeForced();
             return;
         }
 
-        const session = this.sessions[sessionID];
         session.transferWSClientAsClient(wsClient, message);
     };
 

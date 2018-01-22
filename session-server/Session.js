@@ -2,9 +2,10 @@
 
 wmsx.Session = function() {
 
-    const Class = function Session(id, manager) {
+    const Class = function Session(id, type, manager) {
 
         this.id = id;
+        this.type = type;
         this.manager = manager;
 
         this.originalCreationMessage = undefined;
@@ -47,6 +48,7 @@ wmsx.Session = function() {
         wsClient.nick = nick;
         wsClient.isSessionClient = true;
         wsClient.sessionID = this.id;
+        wsClient.sessionType = this.type;
         wsClient.setMessageListener((wsClient, message) => this.onClientMessage(wsClient, message));
 
 
