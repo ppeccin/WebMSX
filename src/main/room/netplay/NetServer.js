@@ -57,8 +57,6 @@ wmsx.NetServer = function(room) {
     };
 
     this.netVideoClockPulse = function() {
-        //++updates;     Not needed in an ordered DataChannel?
-
         var data, dataFull, dataNormal;
         for (var cNick in clients) {
             var client = clients[cNick];
@@ -67,23 +65,16 @@ wmsx.NetServer = function(room) {
             if (client.justJoined || nextUpdateFull) {
                 client.justJoined = false;
                 if (!dataFull) {
-                    //netUpdateFull.u = updates;
-                    // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     netUpdateFull.s = machine.saveStateExtended();
                     netUpdateFull.ks = keyboard.saveState();
-                    netUpdateFull.c = machineControlsToProcess.length ? machineControlsToProcess : undefined;
-                    netUpdateFull.k = keyboardMatrixChangesToProcess.length ? keyboardMatrixChangesToProcess : undefined;
+                    // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     dataFull = JSON.stringify(netUpdateFull);
-
-                    window.DATAFULL = dataFull;
-
                 }
                 data = dataFull;
             } else {
                 if (!dataNormal) {
-                    // netUpdate.u = updates;
-                    netUpdate.c = machineControlsToProcess.length ? machineControlsToProcess : undefined;
-                    netUpdate.k = keyboardMatrixChangesToProcess.length ? keyboardMatrixChangesToProcess : undefined;
+                    netUpdate.c = machineControlsToSend.length ? machineControlsToSend : undefined;
+                    netUpdate.k = keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined;
                     dataNormal = JSON.stringify(netUpdate);
                 }
                 data = dataNormal;
@@ -101,41 +92,29 @@ wmsx.NetServer = function(room) {
             }
         }
 
-        if (nextUpdateFull) nextUpdateFull = false;
-
-        if (machineControlsToProcess.length) {
-            for (var i = 0, len = machineControlsToProcess.length; i < len; ++i) {
-                var control = machineControlsToProcess[i];
-                machineControlsSocket.controlStateChanged(control >> 4, control & 0x01);        // binary encoded
-            }
-            machineControlsToProcess.length = 0;
-        }
-        if (keyboardMatrixChangesToProcess.length) {
-            for (i = 0, len = keyboardMatrixChangesToProcess.length; i < len; ++i) {
-                var change = keyboardMatrixChangesToProcess[i];
-                keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
-            }
-            keyboardMatrixChangesToProcess.length = 0;
-        }
+        nextUpdateFull = false;
+        machineControlsToSend.length = 0;
+        keyboardMatrixChangesToSend.length = 0;
 
         machine.videoClockPulse();
     };
 
-    this.processLocalMachineControlState = function (control, press) {
-        if (localOnlyMachineControls.has(control))
-            // Process local-only controls right away, do not store
-            machineControlsSocket.controlStateChanged(control, press);
-        else
-            // Just store changes, to be processed on netVideoClockPulse
-            machineControlsToProcess.push((control << 4) | press );                 // binary encoded
+    this.processMachineControlState = function (control, press) {
+        machineControlsSocket.controlStateChanged(control, press);
+
+        // Store changes to be sent to Clients
+        if (!localOnlyMachineControls.has(control))
+            machineControlsToSend.push((control << 4) | press );                 // binary encoded
     };
 
-    this.processLocalKeyboardMatrixChange = function(line, col, press) {
-        // Just store changes, to be processed on netVideoClockPulse
-        keyboardMatrixChangesToProcess.push((line << 8) | (col << 4) | press );    // binary encoded
+    this.processKeyboardMatrixChange = function(line, col, press) {
+        keyboard.applyMatrixChange(line, col, press);
+
+        // Store changes to be sent to Clients
+        keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
     };
 
-    this.processCheckLocalPeripheralControl = function (control) {
+    this.processCheckPeripheralControl = function (control) {
         // All controls allowed
         return true;
     };
@@ -194,9 +173,8 @@ wmsx.NetServer = function(room) {
         } catch (e) {}
 
         sessionID = message.sessionID;
-        // updates = 0;
-        machineControlsToProcess.length = 0;
-        keyboardMatrixChangesToProcess.length = 0;
+        machineControlsToSend.length = 0;
+        keyboardMatrixChangesToSend.length = 0;
         room.enterNetServerMode(self);
 
         room.showOSD('NetPlay session "' + message.sessionID + '" started', true);
@@ -297,9 +275,20 @@ wmsx.NetServer = function(room) {
     }
 
     function onClientNetUpdate(netUpdate) {
-        // Store remote controls to process on netVideoClockPulse
-        if (netUpdate.c) machineControlsToProcess.push.apply(machineControlsToProcess, netUpdate.c);
-        if (netUpdate.k) keyboardMatrixChangesToProcess.push.apply(keyboardMatrixChangesToProcess, netUpdate.k);
+        // Process changes as if they were local controls
+
+        if (netUpdate.c) {
+            for (var i = 0, changes = netUpdate.c, len = changes.length; i < len; ++i) {
+                var change = changes[i];
+                self.processMachineControlState(change >> 4, change & 0x01);                           // binary encoded
+            }
+        }
+        if (netUpdate.k) {
+            for (i = 0, changes = netUpdate.k, len = changes.length; i < len; ++i) {
+                change = changes[i];
+                self.processKeyboardMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);    // binary encoded
+            }
+        }
     }
 
     function keepAlive() {
@@ -341,8 +330,8 @@ wmsx.NetServer = function(room) {
     var machineControlsSocket = machine.getMachineControlsSocket();
     var keyboard = room.keyboard;
 
-    var machineControlsToProcess = new Array(100); machineControlsToProcess.length = 0;                 // pre allocate empty Array
-    var keyboardMatrixChangesToProcess = new Array(100); keyboardMatrixChangesToProcess.length = 0;     // pre allocate empty Array
+    var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                 // pre allocate empty Array
+    var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;     // pre allocate empty Array
     var netUpdate = { v: 0, c: undefined };
     var netUpdateFull = { cm: {}, s: {}, v: 0, c: undefined };
     var nextUpdateFull = false;
@@ -354,10 +343,9 @@ wmsx.NetServer = function(room) {
     var clients = {};
     var wsOnly = false;
 
-    // var updates = 0;
-
     var rtcConnectionConfig;
     var dataChannelConfig;
+
 
     var mc = wmsx.MachineControls;
     var localOnlyMachineControls = new Set([

@@ -35,7 +35,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
 
     function processControlState(control, press) {
         if (room.netController)
-            room.netController.processLocalMachineControlState(control, press);
+            room.netController.processMachineControlState(control, press);
         else
             machineControlsSocket.controlStateChanged(control, press);
     }

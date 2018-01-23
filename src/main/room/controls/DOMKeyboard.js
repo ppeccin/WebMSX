@@ -163,7 +163,7 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
         var matrix = msxKeys[msxKey].m;
 
         if (room.netController)
-            room.netController.processLocalKeyboardMatrixChange(matrix[0], matrix[1], press);
+            room.netController.processKeyboardMatrixChange(matrix[0], matrix[1], press);
         else
             applyMatrixChange(matrix[0], matrix[1], press);
     }

@@ -237,6 +237,8 @@ wmsx.Machine = function(mainVideoClock) {
             } else
                 bus.insertSlot(slot, pri);
         }
+
+        saveStateSocket.externalStateChange();
     }
 
     function setVideoStandard(pVideoStandard, forceUpdate) {

@@ -70,7 +70,7 @@ wmsx.NetClient = function(room) {
         // Client gets clocks from Server at onServerNetUpdate()
     };
 
-    this.processLocalMachineControlState = function (control, press) {
+    this.processMachineControlState = function (control, press) {
         // Reject controls not available to NetPlay Clients
         if (disabledMachineControls.has(control))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
@@ -79,12 +79,12 @@ wmsx.NetClient = function(room) {
         machineControlsToSend.push((control << 4) | press );                    // binary encoded
     };
 
-    this.processLocalKeyboardMatrixChange = function(line, col, press) {
+    this.processKeyboardMatrixChange = function(line, col, press) {
         // Store and send only to server, do not process locally
         keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
     };
 
-    this.processCheckLocalPeripheralControl = function (control) {
+    this.processCheckPeripheralControl = function (control) {
         // Reject controls not available to NetPlay Clients
         if (disabledPeripheralControls.has(control)) {
             room.showOSD("Function not available in NetPlay Client mode", true, true);
@@ -136,7 +136,6 @@ wmsx.NetClient = function(room) {
         sessionID = message.sessionID;
         nick = message.clientNick;
         wsOnly = wsOnlyDesired || message.wsOnly;
-        // nextUpdate = -1;
 
         if (wsOnly) return enterNetClientMode();
 
@@ -215,41 +214,9 @@ wmsx.NetClient = function(room) {
     function onServerNetUpdate(netUpdate) {
         // window.machine.log(netUpdate);
 
-        // Not needed in an ordered DataChannel?
-        //if (netUpdate.u !== nextUpdate && nextUpdate >= 0) {
-        //    wmsx.Util.error("NetPlay Client expected update: " + nextUpdate + ", but got: " + netUpdate.u);
-        //    self.leaveSession(true, "NetPlay session ended: Update sequence error");
-        //}
-        //nextUpdate = netUpdate.u + 1;
+        // NetClient gets no local clock, so we use the chance ...
 
-        // NetClient gets no local clock, so...
         machine.getControllersSocket().controllersClockPulse();
-
-        // Full Update?
-        if (netUpdate.s) {
-            machine.loadStateExtended(netUpdate.s);
-            keyboard.loadState(netUpdate.ks);
-            // Change Controls Mode automatically to adapt to Server
-            // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
-        }
-
-        // Apply controls changes
-        if (netUpdate.c) {
-            var controls = netUpdate.c;
-            for (var i = 0, len = controls.length; i < len; ++i) {
-                var control = controls[i];
-                machineControlsSocket.controlStateChanged(control >> 4, control & 0x01);        // binary encoded
-            }
-        }
-        if (netUpdate.k) {
-            var changes = netUpdate.k;
-            for (i = 0, len = changes.length; i < len; ++i) {
-                var change = changes[i];
-                keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
-            }
-        }
-
-        machine.videoClockPulse();
 
         // Send local controls to Server. We always send a message even when empty to keep the channel active
         if (dataChannelActive) {
@@ -261,12 +228,38 @@ wmsx.NetClient = function(room) {
         } else {
             // Or fallback to WebSocket relayed through the Session Server (BAD!)
             ws.send(JSON.stringify({wmsxUpdate: {
-                c: machineControlsToSend.length ? machineControlsToSend : undefined,
-                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
-            }}));
+                    c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                    k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
+                }}));
         }
         machineControlsToSend.length = 0;
         keyboardMatrixChangesToSend.length = 0;
+
+        // Full Update?
+        if (netUpdate.s) {
+            machine.loadStateExtended(netUpdate.s);
+            keyboard.loadState(netUpdate.ks);
+            // Change Controls Mode automatically to adapt to Server
+            // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
+        } else {
+            // Apply controls changes from Server
+            if (netUpdate.c) {
+                var controls = netUpdate.c;
+                for (var i = 0, len = controls.length; i < len; ++i) {
+                    var control = controls[i];
+                    machineControlsSocket.controlStateChanged(control >> 4, control & 0x01);        // binary encoded
+                }
+            }
+            if (netUpdate.k) {
+                var changes = netUpdate.k;
+                for (i = 0, len = changes.length; i < len; ++i) {
+                    var change = changes[i];
+                    keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
+                }
+            }
+        }
+
+        machine.videoClockPulse();
     }
 
     function keepAlive() {
@@ -323,7 +316,6 @@ wmsx.NetClient = function(room) {
     var dataChannelActive = false;
     var dataChannelFragmentData = "";
 
-    // var nextUpdate = -1;
 
     var mc = wmsx.MachineControls;
     var disabledMachineControls = new Set([
