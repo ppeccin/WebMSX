@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.ControllersHub = function(room, keyForwardControls) {
+wmsx.ControllersHub = function(room, machineControls) {
 "use strict";
 
     this.connect = function(machineControlsSocket, controllersSocket, biosSocket) {
@@ -275,11 +275,11 @@ wmsx.ControllersHub = function(room, keyForwardControls) {
     var touchPresent =     [ null, null ];
     var settingsStateRet = { ports: [ null, null ]};
 
-    var keyboard =         new wmsx.DOMKeyboard(room, this, keyForwardControls);
+    var keyboard =         new wmsx.DOMKeyboard(this, room, machineControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this, keyboard);
     var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyboard);
-    var touchControls =    new wmsx.DOMTouchControls(this, keyboard);
+    var touchControls =    new wmsx.DOMTouchControls(this, keyboard, machineControls);
 
     var turboFireSpeed = 0;
     var turboFirePerSecond = [ 0, 2, 2.4, 3, 4, 5, 6, 7.5, 10, 12, 15 ];

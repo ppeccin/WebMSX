@@ -212,28 +212,8 @@ wmsx.NetClient = function(room) {
     }
 
     function onServerNetUpdate(netUpdate) {
-        // window.machine.log(netUpdate);
-
         // NetClient gets no local clock, so we use the chance ...
-
         machine.getControllersSocket().controllersClockPulse();
-
-        // Send local controls to Server. We always send a message even when empty to keep the channel active
-        if (dataChannelActive) {
-            // Use DataChannel if available
-            dataChannel.send(JSON.stringify({
-                c: machineControlsToSend.length ? machineControlsToSend : undefined,
-                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
-            }));
-        } else {
-            // Or fallback to WebSocket relayed through the Session Server (BAD!)
-            ws.send(JSON.stringify({wmsxUpdate: {
-                    c: machineControlsToSend.length ? machineControlsToSend : undefined,
-                    k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
-                }}));
-        }
-        machineControlsToSend.length = 0;
-        keyboardMatrixChangesToSend.length = 0;
 
         // Full Update?
         if (netUpdate.s) {
@@ -257,9 +237,26 @@ wmsx.NetClient = function(room) {
                     keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
                 }
             }
+
+            machine.videoClockPulse();
         }
 
-        machine.videoClockPulse();
+        // Send local controls to Server. We always send a message even when empty to keep the channel active
+        if (dataChannelActive) {
+            // Use DataChannel if available
+            dataChannel.send(JSON.stringify({
+                c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
+            }));
+        } else {
+            // Or fallback to WebSocket relayed through the Session Server (BAD!)
+            ws.send(JSON.stringify({wmsxUpdate: {
+                    c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                    k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
+                }}));
+        }
+        machineControlsToSend.length = 0;
+        keyboardMatrixChangesToSend.length = 0;
     }
 
     function keepAlive() {

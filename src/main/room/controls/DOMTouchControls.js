@@ -1,13 +1,12 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMTouchControls = function(hub, keyboard) {
+wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
 "use strict";
 
     var self = this;
 
     this.connect = function(pMachineControlsSocket) {
-        machineControlsSocket = pMachineControlsSocket;
-        machineControlsSocket.addPowerAndUserPauseStateListener(this);
+        pMachineControlsSocket.addPowerAndUserPauseStateListener(this);
     };
 
     this.connectPeripherals = function(pScreen) {
@@ -308,20 +307,20 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     function pauseTouchStart(e) {
         wmsx.Util.blockEvent(e);
         hub.hapticFeedback();
-        machineControlsSocket.controlStateChanged(!machinePower ? machineControls.POWER : machineControls.PAUSE, true);
+        machineControls.processControlState(!machinePower ? mControls.POWER : mControls.PAUSE, true);
     }
 
     function fastTouchStart(e) {
         wmsx.Util.blockEvent(e);
         hub.hapticFeedback();
-        machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, true);
+        machineControls.processControlState(machinePaused ? mControls.FRAME : mControls.FAST_SPEED, true);
     }
 
     function fastTouchEnd(e) {
         wmsx.Util.blockEvent(e);
         if (machinePaused) return;
         hub.hapticFeedback();
-        machineControlsSocket.controlStateChanged(machinePaused ? machineControls.FRAME : machineControls.FAST_SPEED, false);
+        machineControls.processControlState(machinePaused ? mControls.FRAME : mControls.FAST_SPEED, false);
     }
 
     function updateMappings() {
@@ -346,8 +345,7 @@ wmsx.DOMTouchControls = function(hub, keyboard) {
     }
 
 
-    var machineControls = wmsx.MachineControls;
-    var machineControlsSocket;
+    var mControls = wmsx.MachineControls;
     var screen;
 
     var isTouchDevice = wmsx.Util.isTouchDevice();

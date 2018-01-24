@@ -57,6 +57,8 @@ wmsx.NetServer = function(room) {
     };
 
     this.netVideoClockPulse = function() {
+        machine.videoClockPulse();
+
         var data, dataFull, dataNormal;
         for (var cNick in clients) {
             var client = clients[cNick];
@@ -95,8 +97,6 @@ wmsx.NetServer = function(room) {
         nextUpdateFull = false;
         machineControlsToSend.length = 0;
         keyboardMatrixChangesToSend.length = 0;
-
-        machine.videoClockPulse();
     };
 
     this.processMachineControlState = function (control, press) {

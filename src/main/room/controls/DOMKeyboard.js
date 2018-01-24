@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
+wmsx.DOMKeyboard = function (hub, room, machineControls) {
 "use strict";
 
     var self = this;
@@ -133,7 +133,7 @@ wmsx.DOMKeyboard = function(room, hub, keyForwardControls) {
 
         // Try other controls if not found
         if (!msxKey) {
-            if (keyForwardControls.processKey(code, press)) return;
+            if (machineControls.processKey(code, press)) return;
 
             msxKey = keyCodeMap[code & IGNORE_ALL_MODIFIERS_MASK];          // Second try, ignore modifiers, only if no other controls were found
 

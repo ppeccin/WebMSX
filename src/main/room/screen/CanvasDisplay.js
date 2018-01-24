@@ -28,11 +28,12 @@ wmsx.CanvasDisplay = function(mainElement) {
         machineTypeSocket = machine.getMachineTypeSocket();
     };
 
-    this.connectPeripherals = function(fileLoader, pFileDownloader, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
+    this.connectPeripherals = function(fileLoader, pFileDownloader, pMachineControls, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
         fileLoader.registerForDnD(fsElement);
         fileLoader.registerForFileInputElement(fsElement);
         fileDownloader = pFileDownloader;
         fileDownloader.registerForDownloadElement(fsElement);
+        machineControls = pMachineControls;
         peripheralControls = pPeripheralControls;
         controllersHub = pControllersHub;
         controllersHub.setKeyInputElement(fsElement);
@@ -127,7 +128,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
     this.openSaveStateDialog = function (save) {
         closeAllOverlays();
-        if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControlsSocket, peripheralControls, stateMedia);
+        if (!saveStateDialog) saveStateDialog = new wmsx.SaveStateDialog(fsElementCenter, machineControls, peripheralControls, stateMedia);
         saveStateDialog.show(save);
     };
 
@@ -153,7 +154,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.openQuickOptionsDialog = function() {
         closeAllOverlays();
         if (virtualKeyboardMode) setVirtualKeyboard(0);
-        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(canvasOuter, machineControlsSocket, peripheralControls);
+        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(canvasOuter, machineControls, peripheralControls);
         quickOtionsDialog.show();
     };
 
@@ -1496,6 +1497,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     var machineControlsSocket;
 
     var monitor;
+    var machineControls;
     var peripheralControls;
     var fileDownloader;
     var controllersHub;

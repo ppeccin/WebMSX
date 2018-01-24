@@ -84,7 +84,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 var item = e.target.wmsxControlItem;
                 if (item.peripheral) peripheralControls.controlActivated(item.control, false, false);
-                else machineControls.controlStateChanged(item.control, true);
+                else machineControls.processControlState(item.control, true);
                 refresh();
             } else
                 dialog.focus();

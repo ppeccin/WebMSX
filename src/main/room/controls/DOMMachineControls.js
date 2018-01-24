@@ -41,6 +41,10 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     }
     this.processControlState = processControlState;
 
+    this.getControlReport = function(control) {
+        return machineControlsSocket.getControlReport(control);
+    };
+
     var preventIEHelp = function() {
         window.onhelp = function () {
             return false;
