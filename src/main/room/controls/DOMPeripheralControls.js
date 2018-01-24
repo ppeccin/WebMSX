@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMPeripheralControls = function() {
+wmsx.DOMPeripheralControls = function(room) {
 "use strict";
 
     var self = this;
@@ -47,6 +47,9 @@ wmsx.DOMPeripheralControls = function() {
     };
 
     this.controlActivated = function(control, altPower, secPort) {
+        // Check for NetPlay blocked controls
+        if (room.netController && !room.netController.processCheckPeripheralControl(control)) return;
+
         // All controls are Press-only and repeatable
         switch(control) {
             case controls.MACHINE_SELECT:                                                         // Machine Controls called directly by Screen, no keys here

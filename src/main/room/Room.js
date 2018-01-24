@@ -133,7 +133,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     }
 
     function buildPeripherals() {
-        self.peripheralControls = new wmsx.DOMPeripheralControls();
+        self.peripheralControls = new wmsx.DOMPeripheralControls(self);
         self.machineControls = new wmsx.DOMMachineControls(self, self.peripheralControls);
         self.controllersHub = new wmsx.ControllersHub(self, self.machineControls);
         self.keyboard = self.controllersHub.getKeyboard();
