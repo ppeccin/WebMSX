@@ -191,7 +191,7 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function loadStack(drive, stack, altPower, add) {
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 0, d: drive, s: stack, p: altPower, a: add });
+        if (room.netPlayMode === 1) netAddOperationToSend({ op: 0, d: drive, s: serializeStack(stack), p: altPower, a: add });
 
         if (add) {
             driveStack[drive] = driveStack[drive].concat(stack);
@@ -219,89 +219,6 @@ wmsx.FileDiskDrive = function(room) {
 
         return wmsx.Util.leafFilenameNoExtension(fileName) + ".dsk";
     }
-
-    // DiskDriver interface methods
-
-    this.diskHasChanged = function(drive) {
-        if (driveDiskChanged[drive]) {
-            driveDiskChanged[drive] = false;
-            return true;
-        }
-        return driveDiskChanged[drive];         // false = no, null = unknown
-    };
-
-    this.isDiskInserted = function(drive) {
-        return !!getCurrentDisk(drive);
-    };
-
-    this.diskWriteProtected = function(drive) {
-        return false;
-    };
-
-    this.readByte = function(drive, position) {
-        if (!this.isDiskInserted(drive)) return null;
-        var dContent = getCurrentDisk(drive).content;
-        // Disk boundary check
-        return position >= dContent.length ? null : dContent[position];
-    };
-
-    this.readSectorsToSlot = function(drive, logicalSector, quantSectors, slot, address) {
-        if (!this.isDiskInserted(drive)) return false;
-        var dContent = getCurrentDisk(drive).content;
-        var startByte = logicalSector * BYTES_PER_SECTOR;
-        var quantBytes = quantSectors * BYTES_PER_SECTOR;
-
-        // Disk boundary check
-        if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
-
-        // Transfer
-        for (var i = 0; i < quantBytes; i++)
-           slot.write(address + i, dContent[startByte + i]);
-
-        return true;
-    };
-
-    this.writeSectorsFromSlot = function(drive, logicalSector, quantSectors, slot, address) {
-        if (!this.isDiskInserted(drive)) return false;
-        var dContent = getCurrentDisk(drive).content;
-        var startByte =  logicalSector * BYTES_PER_SECTOR;
-        var quantBytes = quantSectors * BYTES_PER_SECTOR;
-
-        // Disk boundary check
-        if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
-
-        // Transfer
-        for (var i = 0; i < quantBytes; i++)
-            dContent[startByte + i] = slot.read(address + i);
-
-        return true;
-    };
-
-    // Returns the extra time for motor to spin (drive LED simulation)
-    this.motorOn = function(drive) {
-        if (driveMotorOffTimer[drive]) {
-            clearTimeout(driveMotorOffTimer[drive]);
-            driveMotorOffTimer[drive] = null;
-        }
-        if (driveMotor[drive]) return 0;
-        driveMotor[drive] = true;
-        fireMotorStateUpdate();
-        return MOTOR_SPINUP_EXTRA_ITERATIONS;
-    };
-
-    this.allMotorsOff = function(resetDelay) {          // Simulated delay
-        motorOff(0, resetDelay);
-        motorOff(1, resetDelay);
-    };
-
-    this.allMotorsOffNow = function() {                 // Instantly with no delays
-        driveMotor[0] = driveMotor[1] = false;
-        fireMotorStateUpdate();
-    };
-
-    this.formatCurrentDisk = function(drive, mediaType) {
-        return images.formatDisk(mediaType, getCurrentDisk(drive).content);
-    };
 
     // Add a delay before turning the motor off (drive LED simulation)
     function motorOff(drive, resetDelay) {
@@ -374,6 +291,112 @@ wmsx.FileDiskDrive = function(room) {
         return driveStack[drive].length > 1 ? "(" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ") " : "";
     }
 
+    function serializeStack(stack) {
+        var res = new Array(stack.length);
+        for (var d = 0; d < stack.length; ++d)
+            res[d] = { name: stack[d].name, content: wmsx.Util.compressInt8BitArrayToStringBase64(stack[d].content) };
+        return res;
+    }
+
+    function deserializeStack(stack, oldStack) {
+        if (oldStack) {
+            oldStack.length = stack.length;
+            for (var d = 0; d < stack.length; ++d)
+                oldStack[d] = { name: stack[d].name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(stack[d].content, oldStack[d] && oldStack[d].content) };
+        } else {
+            var res = new Array(stack.length);
+            for (d = 0; d < stack.length; ++d)
+                res[d] = { name: stack[d].name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(stack[d].content) };
+            return res;
+        }
+    }
+
+    // DiskDriver interface methods  ----------------
+
+    this.diskHasChanged = function(drive) {
+        if (driveDiskChanged[drive]) {
+            driveDiskChanged[drive] = false;
+            return true;
+        }
+        return driveDiskChanged[drive];         // false = no, null = unknown
+    };
+
+    this.isDiskInserted = function(drive) {
+        return !!getCurrentDisk(drive);
+    };
+
+    this.diskWriteProtected = function(drive) {
+        return false;
+    };
+
+    this.readByte = function(drive, position) {
+        if (!this.isDiskInserted(drive)) return null;
+        var dContent = getCurrentDisk(drive).content;
+        // Disk boundary check
+        return position >= dContent.length ? null : dContent[position];
+    };
+
+    this.readSectorsToSlot = function(drive, logicalSector, quantSectors, slot, address) {
+        if (!this.isDiskInserted(drive)) return false;
+        var dContent = getCurrentDisk(drive).content;
+        var startByte = logicalSector * BYTES_PER_SECTOR;
+        var quantBytes = quantSectors * BYTES_PER_SECTOR;
+
+        // Disk boundary check
+        if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
+
+        // Transfer
+        for (var i = 0; i < quantBytes; i++)
+            slot.write(address + i, dContent[startByte + i]);
+
+        return true;
+    };
+
+    this.writeSectorsFromSlot = function(drive, logicalSector, quantSectors, slot, address) {
+        if (!this.isDiskInserted(drive)) return false;
+        var dContent = getCurrentDisk(drive).content;
+        var startByte =  logicalSector * BYTES_PER_SECTOR;
+        var quantBytes = quantSectors * BYTES_PER_SECTOR;
+
+        // Disk boundary check
+        if ((startByte >= dContent.length) || (startByte + quantBytes > dContent.length)) return false;
+
+        // Transfer
+        for (var i = 0; i < quantBytes; i++)
+            dContent[startByte + i] = slot.read(address + i);
+
+        return true;
+    };
+
+    // Returns the extra time for motor to spin (drive LED simulation)
+    this.motorOn = function(drive) {
+        if (driveMotorOffTimer[drive]) {
+            clearTimeout(driveMotorOffTimer[drive]);
+            driveMotorOffTimer[drive] = null;
+        }
+        if (driveMotor[drive]) return 0;
+        driveMotor[drive] = true;
+        fireMotorStateUpdate();
+        return MOTOR_SPINUP_EXTRA_ITERATIONS;
+    };
+
+    this.allMotorsOff = function(resetDelay) {          // Simulated delay
+        motorOff(0, resetDelay);
+        motorOff(1, resetDelay);
+    };
+
+    this.allMotorsOffNow = function() {                 // Instantly with no delays
+        driveMotor[0] = driveMotor[1] = false;
+        fireMotorStateUpdate();
+    };
+
+    this.formatCurrentDisk = function(drive, mediaType) {
+        return images.formatDisk(mediaType, getCurrentDisk(drive).content);
+    };
+
+
+    // NetPlay  -------------------------------------------
+
     function netAddOperationToSend(operation) {
         netOperationsToSend.push(operation);
     }
@@ -387,7 +410,7 @@ wmsx.FileDiskDrive = function(room) {
             var op = ops[i];
             switch (op.op) {
                 case 0:
-                    loadStack(op.d, op.s, op.p, op.a); break;
+                    loadStack(op.d, deserializeStack(op.s), op.p, op.a); break;
                 case 1:
                     this.removeStack(op.d); break;
                 case 2:
@@ -408,11 +431,8 @@ wmsx.FileDiskDrive = function(room) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        var stack = [[], []];
-        for (var d = 0; d < driveStack[0].length; ++d) stack[0].push( { name: driveStack[0][d].name, content: wmsx.Util.compressInt8BitArrayToStringBase64(driveStack[0][d].content) });
-        for (    d = 0; d < driveStack[1].length; ++d) stack[1].push( { name: driveStack[1][d].name, content: wmsx.Util.compressInt8BitArrayToStringBase64(driveStack[1][d].content) });
         return {
-            s: stack,
+            s: [ serializeStack(driveStack[0]), serializeStack(driveStack[1]) ],
             c: curDisk,
             b: driveBlankDiskAdded,
             g: driveDiskChanged,
@@ -421,11 +441,8 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadState = function(state) {
-        var oldStack = driveStack;
-        driveStack[0].length = driveStack[1].length = 0;
-        var stack = state.s;
-        for (var d = 0; d < stack[0].length; ++d) driveStack[0].push( { name: stack[0][d].name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(stack[0][d].content, oldStack[0][d] && oldStack[0][d].content) });
-        for (    d = 0; d < stack[1].length; ++d) driveStack[1].push( { name: stack[1][d].name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(stack[1][d].content, oldStack[1][d] && oldStack[1][d].content) });
+        deserializeStack(state.s[0], driveStack[0]);
+        deserializeStack(state.s[1], driveStack[1]);
         curDisk = state.c;
         driveBlankDiskAdded = state.b;
         driveDiskChanged = state.g;

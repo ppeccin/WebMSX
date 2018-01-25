@@ -97,6 +97,7 @@ wmsx.NetServer = function(room) {
                     netUpdate.k = keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined;
                     netUpdate.cp = controllersPortValuesToSend;
                     netUpdate.dd = diskDrive.netGetOperationsToSend();
+                    netUpdate.cd = cassetteDeck.netGetOperationsToSend();
                     dataNormal = JSON.stringify(netUpdate);
                 }
                 data = dataNormal;
@@ -118,6 +119,7 @@ wmsx.NetServer = function(room) {
         machineControlsToSend.length = 0;
         keyboardMatrixChangesToSend.length = 0;
         diskDrive.netClearOperationsToSend();
+        cassetteDeck.netClearOperationsToSend();
     };
 
     this.processMachineControlState = function (control, press) {
@@ -206,6 +208,7 @@ wmsx.NetServer = function(room) {
         clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
         clientsControllersPortValuesChanged = false;
         diskDrive.netClearOperationsToSend();
+        cassetteDeck.netClearOperationsToSend();
         room.enterNetServerMode(self);
 
         room.showOSD('NetPlay session "' + message.sessionID + '" started', true);
@@ -388,6 +391,7 @@ wmsx.NetServer = function(room) {
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
     var diskDrive = room.diskDrive;
+    var cassetteDeck = room.cassetteDeck;
 
     var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                 // pre allocate empty Array
     var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;     // pre allocate empty Array

@@ -139,23 +139,23 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
                 break;
             case controls.TAPE_EMPTY:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.loadEmptyTape();
+                if (!mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
                 break;
             case controls.TAPE_SAVE_FILE:
                 if (secPort) return this.controlActivated(controls.TAPE_AUTO_RUN, altPower, false);
                 cassetteDeck.saveTapeFile();
                 break;
             case controls.TAPE_REWIND:
-                cassetteDeck.rewind();
+                cassetteDeck.userRewind();
                 break;
             case controls.TAPE_TO_END:
-                cassetteDeck.seekToEnd();
+                cassetteDeck.userSeekToEnd();
                 break;
             case controls.TAPE_SEEK_BACK:
-                cassetteDeck.seekBackward();
+                cassetteDeck.userSeekBackward();
                 break;
             case controls.TAPE_SEEK_FWD:
-                cassetteDeck.seekForward();
+                cassetteDeck.userSeekForward();
                 break;
             case controls.TAPE_AUTO_RUN:
                 cassetteDeck.userTypeCurrentAutoRunCommand();

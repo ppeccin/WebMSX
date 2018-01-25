@@ -242,6 +242,7 @@ wmsx.NetClient = function(room) {
             }
             if (netUpdate.cp) controllersPortValues = netUpdate.cp;
             if (netUpdate.dd) diskDrive.netProcessOperations(netUpdate.dd);
+            if (netUpdate.cd) cassetteDeck.netProcessOperations(netUpdate.cd);
 
             // Send local (Client) Machine clock
             machine.videoClockPulse();
@@ -322,6 +323,7 @@ wmsx.NetClient = function(room) {
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
     var diskDrive = room.diskDrive;
+    var cassetteDeck = room.cassetteDeck;
 
     var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
