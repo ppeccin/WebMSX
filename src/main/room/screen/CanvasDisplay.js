@@ -376,8 +376,8 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
-        var cart1 = cartridgeSocket.inserted(0);
-        var cart2 = cartridgeSocket.inserted(1);
+        var cart1 = cartridgeSocket.cartridgeInserted(0);
+        var cart2 = cartridgeSocket.cartridgeInserted(1);
         cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") + "  [" + cart1.format.name + "]" : "" );
         cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") + "  [" + cart2.format.name + "]" : "" );
         cartridge1Button.style.backgroundPosition = "" + cartridge1Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart1 ? 1 : 0)]) + "px";

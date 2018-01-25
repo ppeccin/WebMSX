@@ -259,11 +259,11 @@ wmsx.FileLoader = function() {
             if (cartridgeSocket.loadCartridgeData(port, name, content)) return true;
         // Try to load as ROM (BIOS or Cartridge)
         if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.AUTO) {
-            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format), cartridgeSocket.inserted(port));
+            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format), cartridgeSocket.cartridgeInserted(port));
             if (slot) {
-                if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insert(slot, altPower);
-                else if (asExpansion) expansionSocket.insert(slot, port, altPower);
-                else cartridgeSocket.insert(slot, port, altPower);
+                if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insertBIOS(slot, altPower);
+                else if (asExpansion) expansionSocket.insertExpansion(slot, port, altPower);
+                else cartridgeSocket.insertCartridge(slot, port, altPower);
                 return true;
             }
         }
@@ -274,7 +274,7 @@ wmsx.FileLoader = function() {
     function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower) {
         var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content));
         if (!slot) return false;
-        slotSocket.insert(slot, slotPos, altPower);
+        slotSocket.insertSlot(slot, slotPos, altPower);
         return true;
     }
 

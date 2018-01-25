@@ -126,7 +126,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
             case pc.CARTRIDGE_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(secPort ? 1 : 0, altPower);
+                if (!mediaChangeDisabledWarning()) cartridgeSocket.removeCartridge(secPort ? 1 : 0, altPower);
                 break;
             case pc.CARTRIDGE_LOAD_DATA_FILE:
                 if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;

@@ -24,12 +24,12 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.typeString = function(str) {
-        var bios = biosSocket.inserted();
+        var bios = biosSocket.biosInserted();
         if (bios) bios.getKeyboardExtension().typeString(str);
     };
 
     this.cancelTypeString = function() {
-        var bios = biosSocket.inserted();
+        var bios = biosSocket.biosInserted();
         if (bios) bios.getKeyboardExtension().cancelTypeString();
     };
 

@@ -577,10 +577,10 @@ wmsx.Machine = function(mainVideoClock) {
     // BIOS Socket  -----------------------------------------
 
     function BIOSSocket() {
-        this.insert = function (bios, altPower) {
-            slotSocket.insert(bios, BIOS_SLOT, altPower);
+        this.insertBIOS = function (bios, altPower) {
+            slotSocket.insertSlot(bios, BIOS_SLOT, altPower);
         };
-        this.inserted = function () {
+        this.biosInserted = function () {
             return bios;
         };
     }
@@ -589,13 +589,13 @@ wmsx.Machine = function(mainVideoClock) {
     // System Expansions Socket  --------------------------------
 
     function ExpansionSocket() {
-        this.insert = function (expansion, port, altPower) {
-            if (expansion == slotSocket.inserted(EXPANSIONS_SLOTS[port || 0])) return;
-            slotSocket.insert(expansion, EXPANSIONS_SLOTS[port || 0], altPower);
+        this.insertExpansion = function (expansion, port, altPower) {
+            if (expansion == slotSocket.slotInserted(EXPANSIONS_SLOTS[port || 0])) return;
+            slotSocket.insertSlot(expansion, EXPANSIONS_SLOTS[port || 0], altPower);
             self.showOSD("Expansion " + (port === 1 ? "2" : "1") + ": " + (expansion ? expansion.rom.source : "EMPTY"), true);
         };
-        this.inserted = function (port) {
-            return slotSocket.inserted(EXPANSIONS_SLOTS[port || 0]);
+        this.expansionInserted = function (port) {
+            return slotSocket.slotInserted(EXPANSIONS_SLOTS[port || 0]);
         };
     }
 
@@ -606,26 +606,26 @@ wmsx.Machine = function(mainVideoClock) {
         this.connectFileDownloader = function (pFileDownloader) {
             fileDownloader = pFileDownloader;
         };
-        this.insert = function (cartridge, port, altPower) {
+        this.insertCartridge = function (cartridge, port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            if (cartridge === slotSocket.inserted(slotPos)) return;
-            slotSocket.insert(cartridge, slotPos, altPower);
+            if (cartridge === slotSocket.slotInserted(slotPos)) return;
+            slotSocket.insertSlot(cartridge, slotPos, altPower);
             this.fireCartridgesStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
         };
-        this.remove = function (port, altPower) {
+        this.removeCartridge = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            if (slotSocket.inserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
-            slotSocket.insert(null, slotPos, altPower);
+            if (slotSocket.slotInserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
+            slotSocket.insertSlot(null, slotPos, altPower);
             this.fireCartridgesStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + " removed", true);
         };
-        this.inserted = function (port) {
-            return slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
+        this.cartridgeInserted = function (port) {
+            return slotSocket.slotInserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
         };
         this.dataOperationNotSupportedMessage = function(port, operation, silent) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            var cart = slotSocket.inserted(slotPos);
+            var cart = slotSocket.slotInserted(slotPos);
             if (cart === null) {
                 if (!silent) self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
                 return true;
@@ -638,7 +638,7 @@ wmsx.Machine = function(mainVideoClock) {
         };
         this.loadCartridgeData = function (port, name, arrContent) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            var cart = slotSocket.inserted(slotPos);
+            var cart = slotSocket.slotInserted(slotPos);
             if (!cart) return null;
             if (!cart.loadData(wmsx.Util.leafFilename(name), arrContent)) return;
             self.showOSD(cart.getDataDesc() + " loaded in Cartridge " + (port === 1 ? "2" : "1"), true);
@@ -646,7 +646,7 @@ wmsx.Machine = function(mainVideoClock) {
         };
         this.saveCartridgeDataFile = function (port) {
             if (this.dataOperationNotSupportedMessage(port, true, false)) return;
-            var cart = slotSocket.inserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
+            var cart = slotSocket.slotInserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
             var dataToSave = cart.getDataToSave();
             fileDownloader.startDownloadBinary(dataToSave.fileName, dataToSave.content, cart.getDataDesc());
         };
@@ -668,14 +668,14 @@ wmsx.Machine = function(mainVideoClock) {
     // Slot Socket  ---------------------------------------------
 
     function SlotSocket() {
-        this.insert = function (slot, slotPos, altPower) {
+        this.insertSlot = function (slot, slotPos, altPower) {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn && !altPower) self.powerOff();
             insertSlot(slot, slotPos);
             if (!altPower && (slot || powerWasOn)) self.userPowerOn(false);
             else if (slot && self.powerIsOn) slot.powerOn();
         };
-        this.inserted = function (slotPos) {
+        this.slotInserted = function (slotPos) {
             var res = getSlot(slotPos);
             return res === EMPTY_SLOT ? null : res;
         };

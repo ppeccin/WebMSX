@@ -23,7 +23,7 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.isActive = function(ext, secSlot) {
-        var loaded = slotSocket.inserted(secSlot ? config[ext].SLOT2 : config[ext].SLOT);
+        var loaded = slotSocket.slotInserted(secSlot ? config[ext].SLOT2 : config[ext].SLOT);
         return !!loaded && loaded.format.name == config[ext].format;
     };
 
@@ -94,7 +94,7 @@ wmsx.ExtensionsSocket = function(machine) {
         }
 
         // Remove
-        for (var i = 0; i < toRemoveSlots.length; ++i) slotSocket.insert(null, toRemoveSlots[i], true);
+        for (var i = 0; i < toRemoveSlots.length; ++i) slotSocket.insertSlot(null, toRemoveSlots[i], true);
 
         // Insert
         new wmsx.MultiDownloader(
