@@ -53,8 +53,8 @@ WMSX = {
     SCREEN_FULLSCREEN_MODE:         -1,                         // -2: disabled; -1: auto; 0: off; 1: on
     SCREEN_CRT_MODE:                -1,                         // -1: auto; 0: off; 1: on
     SCREEN_FILTER_MODE:             -1,                         // -2: browser default; -1: auto; 0..3: smoothing level
-    SCREEN_DEFAULT_SCALE:           -1,                         // -1: auto; 0.5..N in 0.1 steps: scale
-    SCREEN_DEFAULT_ASPECT:          1.1,                        // in 0.1 steps
+    SCREEN_DEFAULT_SCALE:           -1,                         // -1: auto; 0.5..N in 0.05 steps: scale
+    SCREEN_DEFAULT_ASPECT:          1.1,                        // in 0.05 steps
     SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
     SCREEN_VSYNCH_MODE:             1,                          // -1: disabled; 0: off; 1: on

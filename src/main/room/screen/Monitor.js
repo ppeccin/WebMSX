@@ -82,12 +82,12 @@ wmsx.Monitor = function(display) {
 
     function normalizeAspectX(aspectX) {
         var ret = aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
-        return Math.round(ret * 10) / 10;
+        return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
     }
 
     function normalizeScaleY(scaleY) {
         var ret = scaleY < 0.5 ? 0.5 : scaleY;
-        return Math.round(ret * 10) / 10;
+        return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
     }
 
 
@@ -98,6 +98,6 @@ wmsx.Monitor = function(display) {
 
 };
 
-wmsx.Monitor.SCALE_STEP = 0.1;
+wmsx.Monitor.SCALE_STEP = 0.05;
 
 

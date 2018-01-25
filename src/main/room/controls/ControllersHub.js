@@ -63,6 +63,13 @@ wmsx.ControllersHub = function(room, machineControls) {
     };
 
     this.readControllerPort = function(port) {
+        if (room.netController)
+            return room.netController.readControllerPort(port);
+
+        return this.readLocalControllerPort(port);
+    };
+
+    this.readLocalControllerPort = function(port) {
         var forward = controllerAtPort[port];
         return (forward ? forward.readControllerPort(port) : 0x3f) | japanaseKeyboardLayoutPortValue;
     };

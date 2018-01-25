@@ -50,12 +50,12 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     this.mainVideoClockPulse = function() {
         if (self.machine.isSystemPaused()) return;
 
-        self.machine.getControllersSocket().controllersClockPulse();
-
         if (self.netController)
             self.netController.netVideoClockPulse();
-        else
+        else {
+            self.controllersHub.controllersClockPulse();
             self.machine.videoClockPulse();
+        }
     };
 
     this.enterStandaloneMode = function() {

@@ -93,6 +93,10 @@ wmsx.NetClient = function(room) {
         return true;
     };
 
+    this.readControllerPort = function(port) {
+        return controllersPortValues[port];
+    };
+
     function onSessionServerConnected() {
         // Setup keep-alive
         if (keepAliveTimer === undefined) keepAliveTimer = setInterval(keepAlive, 30000);
@@ -167,6 +171,7 @@ wmsx.NetClient = function(room) {
 
         machineControlsToSend.length = 0;
         keyboardMatrixChangesToSend.length = 0;
+        controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
         room.enterNetClientMode(self);
     }
 
@@ -212,13 +217,11 @@ wmsx.NetClient = function(room) {
     }
 
     function onServerNetUpdate(netUpdate) {
-        // NetClient gets no local clock, so we use the chance ...
-        machine.getControllersSocket().controllersClockPulse();
-
         // Full Update?
         if (netUpdate.s) {
             machine.loadStateExtended(netUpdate.s);
             keyboard.loadState(netUpdate.ks);
+            controllersPortValues = netUpdate.cp;
             // Change Controls Mode automatically to adapt to Server
             // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
         } else {
@@ -237,23 +240,43 @@ wmsx.NetClient = function(room) {
                     keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
                 }
             }
+            if (netUpdate.cp) controllersPortValues = netUpdate.cp;
 
+            // Send local (Client) Machine clock
             machine.videoClockPulse();
         }
 
-        // Send local controls to Server. We always send a message even when empty to keep the channel active
+        // Send clock do Controllers
+        controllersHub.controllersClockPulse();
+
+        // Send local controls updates to Server
+
+        var controllersPortValuesChangeToSend;
+        var a = controllersHub.readLocalControllerPort(0), b = controllersHub.readLocalControllerPort(1);
+        if (controllersPortValuesToSend[0] !== a || controllersPortValuesToSend[1] !== b) {
+            controllersPortValuesToSend[0] = a; controllersPortValuesToSend[1] = b;
+            controllersPortValuesChangeToSend = controllersPortValuesToSend;
+            // console.log("Sending port values");
+        }
+
+        // We always send a message even when empty to keep the channel active
+
         if (dataChannelActive) {
             // Use DataChannel if available
             dataChannel.send(JSON.stringify({
                 c: machineControlsToSend.length ? machineControlsToSend : undefined,
-                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
+                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined,
+                cp: controllersPortValuesChangeToSend
             }));
         } else {
             // Or fallback to WebSocket relayed through the Session Server (BAD!)
-            ws.send(JSON.stringify({wmsxUpdate: {
+            ws.send(JSON.stringify({
+                wmsxUpdate: {
                     c: machineControlsToSend.length ? machineControlsToSend : undefined,
-                    k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined
-                }}));
+                    k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined,
+                    cp: controllersPortValuesChangeToSend
+                }
+            }));
         }
         machineControlsToSend.length = 0;
         keyboardMatrixChangesToSend.length = 0;
@@ -290,12 +313,19 @@ wmsx.NetClient = function(room) {
     }
 
 
+    var CONT_PORT_ALL_RELEASED = 0x7f;
+
+
     var machine = room.machine;
     var machineControlsSocket = machine.getMachineControlsSocket();
     var keyboard = room.keyboard;
+    var controllersHub = room.controllersHub;
+
+    var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
     var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                   // pre allocate empty Array
     var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;       // pre allocate empty Array
+    var controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
     var ws;
     var sessionID;

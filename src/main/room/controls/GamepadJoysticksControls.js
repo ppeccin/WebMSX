@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
+wmsx.GamepadJoysticksControls = function(hub, keyboard) {
 "use strict";
 
     this.connectPeripherals = function(pScreen) {
@@ -227,7 +227,7 @@ wmsx.GamepadJoysticksControls = function(hub, keyForwardControls) {
                         // Virtual button
                         var keys = prefs.virtualButtonsKeys[b];
                         if (keys) for (var k = 0; k < keys.length; ++k)
-                            keyForwardControls.processKey(keys[k].c, state);
+                            keyboard.processKey(keys[k].c, state);
                     } else {
                         // Real MSX button
                         if (state) joyState.portValue &= ~joystickButtons[b].mask;

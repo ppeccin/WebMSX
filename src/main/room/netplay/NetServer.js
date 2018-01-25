@@ -57,8 +57,25 @@ wmsx.NetServer = function(room) {
     };
 
     this.netVideoClockPulse = function() {
+        // Send clock do Controllers
+        controllersHub.controllersClockPulse();
+
+        // Merge Controller ports values from Clients with Server and update resulting port values
+        updateClientsMergedControllersPortValues();
+        var a = controllersHub.readLocalControllerPort(0) & clientsMergedControllersPortValues[0],
+            b = controllersHub.readLocalControllerPort(1) & clientsMergedControllersPortValues[1];
+
+        // Have they changed?
+        var controllersPortValuesToSend;
+        if (controllersPortValues[0] !== a || controllersPortValues[1] !== b) {
+            controllersPortValues[0] = a; controllersPortValues[1] = b;
+            controllersPortValuesToSend = controllersPortValues;
+        }
+
+        // Send local (Server) Machine clock
         machine.videoClockPulse();
 
+        // Send net clock update to all Clients
         var data, dataFull, dataNormal;
         for (var cNick in clients) {
             var client = clients[cNick];
@@ -69,6 +86,7 @@ wmsx.NetServer = function(room) {
                 if (!dataFull) {
                     netUpdateFull.s = machine.saveStateExtended();
                     netUpdateFull.ks = keyboard.saveState();
+                    netUpdateFull.cp = controllersPortValues;
                     // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     dataFull = JSON.stringify(netUpdateFull);
                 }
@@ -77,6 +95,7 @@ wmsx.NetServer = function(room) {
                 if (!dataNormal) {
                     netUpdate.c = machineControlsToSend.length ? machineControlsToSend : undefined;
                     netUpdate.k = keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined;
+                    netUpdate.cp = controllersPortValuesToSend;
                     dataNormal = JSON.stringify(netUpdate);
                 }
                 data = dataNormal;
@@ -119,6 +138,10 @@ wmsx.NetServer = function(room) {
         return true;
     };
 
+    this.readControllerPort = function(port) {
+        return controllersPortValues[port];
+    };
+
     this.processExternalStateChange = function() {
         nextUpdateFull = true;
     };
@@ -139,8 +162,11 @@ wmsx.NetServer = function(room) {
     function onSessionMessage(event) {
         const message = JSON.parse(event.data);
 
-        if (message.wmsxUpdate)
-            return onClientNetUpdate(message.wmsxUpdate);
+        if (message.wmsxUpdate) {
+            var client = clients[event.clientNick];
+            if (client) onClientNetUpdate(client, message.wmsxUpdate);
+            return;
+        }
 
         if (message.sessionControl) {
             switch (message.sessionControl) {
@@ -175,6 +201,8 @@ wmsx.NetServer = function(room) {
         sessionID = message.sessionID;
         machineControlsToSend.length = 0;
         keyboardMatrixChangesToSend.length = 0;
+        clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
+        clientsControllersPortValuesChanged = false;
         room.enterNetServerMode(self);
 
         room.showOSD('NetPlay session "' + message.sessionID + '" started', true);
@@ -244,7 +272,7 @@ wmsx.NetServer = function(room) {
     }
 
     function onDataChannelMessage(client, event) {
-        onClientNetUpdate(JSON.parse(event.data));
+        onClientNetUpdate(client, JSON.parse(event.data));
     }
 
     function onRTCError(client, error) {
@@ -274,9 +302,8 @@ wmsx.NetServer = function(room) {
         delete clients[client.nick];
     }
 
-    function onClientNetUpdate(netUpdate) {
-        // Process changes as if they were local controls
-
+    function onClientNetUpdate(client, netUpdate) {
+        // Process MachineControls and Keyboard changes as if they were local controls immediately
         if (netUpdate.c) {
             for (var i = 0, changes = netUpdate.c, len = changes.length; i < len; ++i) {
                 var change = changes[i];
@@ -289,6 +316,33 @@ wmsx.NetServer = function(room) {
                 self.processKeyboardMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);    // binary encoded
             }
         }
+
+        // Store Controllers port value changes for later merging with other Clients and Server values
+        if (netUpdate.cp) {
+            clientsControllersPortValuesChanged = true;
+
+            // Retain values only if they are different than the all-released state
+            var portValues = netUpdate.cp;
+            client.controllersPortValues = portValues[0] !== CONT_PORT_ALL_RELEASED || portValues[1] !== CONT_PORT_ALL_RELEASED
+                ? portValues : undefined;
+        }
+
+        // client.lastUpdate = netUpdate;
+    }
+
+    function updateClientsMergedControllersPortValues() {
+        if (!clientsControllersPortValuesChanged) return;
+        // console.log("Updating clients port values");
+
+        clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
+        for (var nick in clients) {
+            var portValues = clients[nick].controllersPortValues;
+            if (!portValues) continue;
+            clientsMergedControllersPortValues[0] &= portValues[0];
+            clientsMergedControllersPortValues[1] &= portValues[1];
+        }
+
+        clientsControllersPortValuesChanged = false;
     }
 
     function keepAlive() {
@@ -329,19 +383,26 @@ wmsx.NetServer = function(room) {
     var machine = room.machine;
     var machineControlsSocket = machine.getMachineControlsSocket();
     var keyboard = room.keyboard;
+    var controllersHub = room.controllersHub;
 
     var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                 // pre allocate empty Array
     var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;     // pre allocate empty Array
-    var netUpdate = { v: 0, c: undefined };
-    var netUpdateFull = { cm: {}, s: {}, v: 0, c: undefined };
+    var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
+
+    var netUpdate = { c: undefined, k: undefined, cp: undefined };
+    var netUpdateFull = { s: undefined, ks: undefined, cp: undefined };
     var nextUpdateFull = false;
 
     var ws;
     var sessionID;
     var sessionIDToCreate;
     var keepAliveTimer;
-    var clients = {};
     var wsOnly = false;
+
+    var clients = {};
+    this.clients = clients;
+    var clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
+    var clientsControllersPortValuesChanged = false;
 
     var rtcConnectionConfig;
     var dataChannelConfig;
@@ -356,6 +417,7 @@ wmsx.NetServer = function(room) {
         mc.POWER_FRY, mc.VSYNCH, mc.TRACE
     ]);
 
+    var CONT_PORT_ALL_RELEASED = 0x7f;
 
     var MAX_DATA_CHANNEL_SIZE = 16300;
     var DATA_CHANNEL_FRAG_SIZE = 16200;

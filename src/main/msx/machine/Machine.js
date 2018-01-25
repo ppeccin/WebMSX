@@ -817,9 +817,6 @@ wmsx.Machine = function(mainVideoClock) {
         this.resetControllers = function() {
             controls.resetControllers();
         };
-        this.controllersClockPulse = function() {
-            controls.controllersClockPulse();
-        };
         this.getBUSCycles = function() {
             return cpu.getBUSCycles();
         };

@@ -53,7 +53,7 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     };
 
     this.setTurboFireClocks = function(speed) {
-        // No turbo fire controlled locally
+        // No turbo fire controlled locally  TODO Implement Joykeys TurboFire
     };
 
     this.processKey = function(code, press) {
