@@ -812,6 +812,7 @@ wmsx.Machine = function(mainVideoClock) {
             controls.writeControllerPin8Port(port, value);
         };
         this.releaseControllers = function() {
+            // TODO NetPlay
             controls.releaseControllers();
         };
         this.resetControllers = function() {

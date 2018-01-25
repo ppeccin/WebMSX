@@ -142,8 +142,10 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
         if (msxKey) {
             // Special case for Portuguese "Alt Gr" key, which is LControl+RAlt. Release MSX CONTROL key if pressed, so AltGr can be used as normal RAlt
-            if (code === RAltKeyCode && keyStateMap["CONTROL"])
-                processMSXKeyChange("CONTROL", false);
+            if (code === RAltKeyCode && keyStateMap["CONTROL"]) {
+                var m = msxKeys["CONTROL"].m;
+                applyMatrixChange(m[0], m[1], false);
+            }
             this.processMSXKey(msxKey, press);
         }
     };
@@ -153,20 +155,23 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         keyStateMap[msxKey] = press;
 
         // Update key matrix bits
-        processMSXKeyChange(msxKey, press);
+        var matrix = msxKeys[msxKey].m;
+        processMatrixChange(matrix[0], matrix[1], press);
 
         // TurboFire TODO NetPlay
         if (press && turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
     };
 
-    function processMSXKeyChange(msxKey, press) {
-        var matrix = msxKeys[msxKey].m;
+    function processMatrixChange(line, col, press) {
+        // Store changes to be sent to peers
+        if (room.netController) netMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
 
-        if (room.netController)
-            room.netController.processKeyboardMatrixChange(matrix[0], matrix[1], press);
-        else
-            applyMatrixChange(matrix[0], matrix[1], press);
+        // Do not apply change now if Client
+        if (room.netPlayMode === 2) return;
+
+        applyMatrixChange(line, col, press);
     }
+    this.processMatrixChange = processMatrixChange;
 
     function applyMatrixChange(line, col, press) {
         if (press) keyboardMatrix[line] &= ~(1 << col);
@@ -228,6 +233,30 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
 
+    // NetPlay  -------------------------------------------
+
+    this.netGetMatrixChangesToSend = function() {
+        return netMatrixChangesToSend.length ? netMatrixChangesToSend : undefined;
+    };
+
+    this.netClearMatrixChangesToSend = function() {
+        netMatrixChangesToSend.length = 0;
+    };
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix)
+        };
+    };
+
+    this.loadState = function(s) {
+        wmsx.Util.restoreStringBase64ToInt8BitArray(s.k, keyboardMatrix);
+    };
+
+
     var msxKeys = wmsx.KeyboardKeys;
 
     var availableKeyboards;
@@ -247,23 +276,12 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
 
+    var netMatrixChangesToSend = new Array(100); netMatrixChangesToSend.length = 0;     // pre allocate empty Array
+
     var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
 
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
-
-
-    // Savestate  -------------------------------------------
-
-    this.saveState = function() {
-        return {
-            k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix)
-        };
-    };
-
-    this.loadState = function(s) {
-        wmsx.Util.restoreStringBase64ToInt8BitArray(s.k, keyboardMatrix);
-    };
 
 
     init();

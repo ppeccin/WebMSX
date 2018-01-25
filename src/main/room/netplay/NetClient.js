@@ -70,11 +70,6 @@ wmsx.NetClient = function(room) {
         // Client gets clocks from Server at onServerNetUpdate()
     };
 
-    this.processKeyboardMatrixChange = function(line, col, press) {
-        // Store and send only to server, do not process locally
-        keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
-    };
-
     this.readControllerPort = function(port) {
         return controllersPortValues[port];
     };
@@ -152,7 +147,7 @@ wmsx.NetClient = function(room) {
         wmsx.Util.log('NetPlay Session "' + sessionID + '" joined as "' + nick + '"');
 
         machineControls.netClearControlsToSend();
-        keyboardMatrixChangesToSend.length = 0;
+        keyboard.netClearMatrixChangesToSend();
         controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
         room.enterNetClientMode(self);
     }
@@ -212,7 +207,7 @@ wmsx.NetClient = function(room) {
                 var controls = netUpdate.c;
                 for (var i = 0, len = controls.length; i < len; ++i) {
                     var control = controls[i];
-                    machineControls.applyControlState(control >> 4, control & 0x01);        // binary encoded
+                    machineControls.applyControlState(control >> 4, control & 0x01);                // binary encoded
                 }
             }
             if (netUpdate.k) {
@@ -249,7 +244,7 @@ wmsx.NetClient = function(room) {
             // Use DataChannel if available
             dataChannel.send(JSON.stringify({
                 c: machineControls.netGetControlsToSend(),
-                k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined,
+                k: keyboard.netGetMatrixChangesToSend(),
                 cp: controllersPortValuesChangeToSend
             }));
         } else {
@@ -257,13 +252,13 @@ wmsx.NetClient = function(room) {
             ws.send(JSON.stringify({
                 wmsxUpdate: {
                     c: machineControls.netGetControlsToSend(),
-                    k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined,
+                    k: keyboard.netGetMatrixChangesToSend(),
                     cp: controllersPortValuesChangeToSend
                 }
             }));
         }
         machineControls.netClearControlsToSend();
-        keyboardMatrixChangesToSend.length = 0;
+        keyboard.netClearMatrixChangesToSend();
     }
 
     function keepAlive() {
@@ -309,7 +304,6 @@ wmsx.NetClient = function(room) {
 
     var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
-    var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;       // pre allocate empty Array
     var controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
     var ws;

@@ -94,7 +94,7 @@ wmsx.NetServer = function(room) {
             } else {
                 if (!dataNormal) {
                     netUpdate.c = machineControls.netGetControlsToSend();
-                    netUpdate.k = keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined;
+                    netUpdate.k = keyboard.netGetMatrixChangesToSend();
                     netUpdate.cp = controllersPortValuesToSend;
                     netUpdate.dd = diskDrive.netGetOperationsToSend();
                     netUpdate.cd = cassetteDeck.netGetOperationsToSend();
@@ -117,16 +117,9 @@ wmsx.NetServer = function(room) {
 
         nextUpdateFull = false;
         machineControls.netClearControlsToSend();
-        keyboardMatrixChangesToSend.length = 0;
+        keyboard.netClearMatrixChangesToSend();
         diskDrive.netClearOperationsToSend();
         cassetteDeck.netClearOperationsToSend();
-    };
-
-    this.processKeyboardMatrixChange = function(line, col, press) {
-        keyboard.applyMatrixChange(line, col, press);
-
-        // Store changes to be sent to Clients
-        keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
     };
 
     this.readControllerPort = function(port) {
@@ -191,7 +184,7 @@ wmsx.NetServer = function(room) {
 
         sessionID = message.sessionID;
         machineControls.netClearControlsToSend();
-        keyboardMatrixChangesToSend.length = 0;
+        keyboard.netClearMatrixChangesToSend();
         clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
         clientsControllersPortValuesChanged = false;
         diskDrive.netClearOperationsToSend();
@@ -300,13 +293,13 @@ wmsx.NetServer = function(room) {
         if (netUpdate.c) {
             for (var i = 0, changes = netUpdate.c, len = changes.length; i < len; ++i) {
                 var change = changes[i];
-                machineControls.processControlState(change >> 4, change & 0x01);                           // binary encoded
+                machineControls.processControlState(change >> 4, change & 0x01);                    // binary encoded
             }
         }
         if (netUpdate.k) {
             for (i = 0, changes = netUpdate.k, len = changes.length; i < len; ++i) {
                 change = changes[i];
-                self.processKeyboardMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);    // binary encoded
+                keyboard.processMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);    // binary encoded
             }
         }
 
@@ -380,7 +373,6 @@ wmsx.NetServer = function(room) {
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 
-    var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;     // pre allocate empty Array
     var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
     var netUpdate = { c: undefined, k: undefined, cp: undefined };
