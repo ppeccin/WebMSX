@@ -145,6 +145,7 @@ wmsx.NetClient = function(room) {
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
+        peripheralControls.netClientClearControlsToSend();
         room.enterNetClientMode(self);
     }
 
@@ -196,7 +197,7 @@ wmsx.NetClient = function(room) {
         if (netUpdate.s) {
             machine.loadStateExtended(netUpdate.s);
             keyboard.loadState(netUpdate.ks);
-            controllersHub.netSetPortValues(netUpdate.cp);
+            controllersHub.netClientSetPortValues(netUpdate.cp);
 
             // Change Controls Mode automatically to adapt to Server
             // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
@@ -204,9 +205,9 @@ wmsx.NetClient = function(room) {
             // Apply controls changes from Server
             if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
             if (netUpdate.k) keyboard.netClientApplyMatrixChanges(netUpdate.k);
-            if (netUpdate.cp) controllersHub.netSetPortValues(netUpdate.cp);
-            if (netUpdate.dd) diskDrive.netProcessOperations(netUpdate.dd);
-            if (netUpdate.cd) cassetteDeck.netProcessOperations(netUpdate.cd);
+            if (netUpdate.cp) controllersHub.netClientSetPortValues(netUpdate.cp);
+            if (netUpdate.dd) diskDrive.netClientProcessOperations(netUpdate.dd);
+            if (netUpdate.cd) cassetteDeck.netClientProcessOperations(netUpdate.cd);
 
             // Send local (Client) Machine clock
             machine.videoClockPulse();
@@ -219,7 +220,8 @@ wmsx.NetClient = function(room) {
         var update = {
             c: machineControls.netGetControlsToSend(),
             k: keyboard.netGetMatrixChangesToSend(),
-            cp: controllersHub.netGetPortValuesToSend()
+            cp: controllersHub.netGetPortValuesToSend(),
+            pp: peripheralControls.netClientGetControlsToSend()
         };
 
         // Use DataChannel if available
@@ -230,6 +232,7 @@ wmsx.NetClient = function(room) {
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
+        peripheralControls.netClientClearControlsToSend();
     }
 
     function keepAlive() {
@@ -267,6 +270,7 @@ wmsx.NetClient = function(room) {
     var machineControls = room.machineControls;
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
+    var peripheralControls = room.peripheralControls;
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 

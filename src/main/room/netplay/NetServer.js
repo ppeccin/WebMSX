@@ -74,7 +74,7 @@ wmsx.NetServer = function(room) {
                 if (!dataFull) {
                     netUpdateFull.s = machine.saveStateExtended();
                     netUpdateFull.ks = keyboard.saveState();
-                    netUpdateFull.cp = controllersHub.netGetPortValues();
+                    netUpdateFull.cp = controllersHub.netServerGetPortValues();
                     // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     dataFull = JSON.stringify(netUpdateFull);
                 }
@@ -84,8 +84,8 @@ wmsx.NetServer = function(room) {
                     netUpdate.c = machineControls.netGetControlsToSend();
                     netUpdate.k = keyboard.netGetMatrixChangesToSend();
                     netUpdate.cp = controllersHub.netGetPortValuesToSend();
-                    netUpdate.dd = diskDrive.netGetOperationsToSend();
-                    netUpdate.cd = cassetteDeck.netGetOperationsToSend();
+                    netUpdate.dd = diskDrive.netServerGetOperationsToSend();
+                    netUpdate.cd = cassetteDeck.netServerGetOperationsToSend();
                     dataNormal = JSON.stringify(netUpdate);
                 }
                 data = dataNormal;
@@ -105,8 +105,8 @@ wmsx.NetServer = function(room) {
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
-        diskDrive.netClearOperationsToSend();
-        cassetteDeck.netClearOperationsToSend();
+        diskDrive.netServerClearOperationsToSend();
+        cassetteDeck.netServerClearOperationsToSend();
     };
 
     this.processExternalStateChange = function() {
@@ -170,8 +170,8 @@ wmsx.NetServer = function(room) {
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
         controllersHub.netServerClearClientsInfo();
-        diskDrive.netClearOperationsToSend();
-        cassetteDeck.netClearOperationsToSend();
+        diskDrive.netServerClearOperationsToSend();
+        cassetteDeck.netServerClearOperationsToSend();
         room.enterNetServerMode(self);
 
         room.showOSD('NetPlay session "' + message.sessionID + '" started', true);
@@ -278,6 +278,7 @@ wmsx.NetServer = function(room) {
         // Process MachineControls and Keyboard changes as if they were local controls immediately
         if (netUpdate.c) machineControls.netServerProcessControlsChanges(netUpdate.c);
         if (netUpdate.k) keyboard.netServerProcessMatrixChanges(netUpdate.k);
+        if (netUpdate.pp) peripheralControls.netServerProcessControlsChanges(netUpdate.pp);
 
         // Store Controllers port value changes for later merging with other Clients and Server values
         if (netUpdate.cp) controllersHub.netServerClientPortValuesChanged(client, netUpdate.cp);
@@ -322,6 +323,7 @@ wmsx.NetServer = function(room) {
     var machineControls = room.machineControls;
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
+    var peripheralControls = room.peripheralControls;
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 

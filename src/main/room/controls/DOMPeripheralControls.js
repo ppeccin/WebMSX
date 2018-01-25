@@ -42,14 +42,19 @@ wmsx.DOMPeripheralControls = function(room) {
         if (!control) return false;
 
         //if (groupRestriction && !groups[groupRestriction].has(control)) return false;
-        self.controlActivated(control, false, !!(code & INCLUDE_SHIFT_MASK));                     // Never altPower
+        self.controlActivated(control, false, !!(code & INCLUDE_SHIFT_MASK));               // Never altPower
         return true;
     };
 
     this.controlActivated = function(control, altPower, secPort) {
-        // Check for NetPlay blocked controls
-        if (room.netPlayMode === 2 && netClientDisabledControls.has(control))
-            return room.showOSD("Function not available in NetPlay Client mode", true, true);
+        if (room.netPlayMode === 2) {
+            // Check for NetPlay blocked controls
+            if (netClientDisabledControls.has(control))
+                return room.showOSD("Function not available in NetPlay Client mode", true, true);
+            // Store changes to be sent to Server. No local processing
+            if (netClientSendToServerOnlyControls.has(control))
+                return netControlsToSend.push((control << 4) | (altPower << 1) | secPort);      // binary encoded
+        }
 
         // All controls are Press-only and repeatable
         switch(control) {
@@ -57,7 +62,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) screen.openMachineSelectDialog();
                 break;
             case pc.MACHINE_POWER_TOGGLE:
-                if (altPower) return this.controlActivated(pc.MACHINE_POWER_RESET);
+                if (altPower) return machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 machineControls.processControlState(wmsx.MachineControls.POWER, true);
                 break;
             case pc.MACHINE_POWER_RESET:
@@ -143,7 +148,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
                 break;
             case pc.TAPE_SAVE_FILE:
-                if (secPort) return this.controlActivated(pc.TAPE_AUTO_RUN, altPower, false);
+                if (secPort) return cassetteDeck.userTypeCurrentAutoRunCommand();
                 cassetteDeck.saveTapeFile();
                 break;
             case pc.TAPE_REWIND:
@@ -317,6 +322,22 @@ wmsx.DOMPeripheralControls = function(room) {
     };
 
 
+    // NetPlay  -------------------------------------------
+
+    this.netClientGetControlsToSend = function() {
+        return netControlsToSend.length ? netControlsToSend : undefined;
+    };
+
+    this.netClientClearControlsToSend = function() {
+        netControlsToSend.length = 0;
+    };
+
+    this.netServerProcessControlsChanges = function(changes) {
+        for (var i = 0, len = changes.length; i < len; ++i)
+            self.controlActivated(changes[i] >> 4, (changes[i] >> 1) & 0x01, changes[i] & 0x01);     // binary encoded
+    };
+
+
     var pc = wmsx.PeripheralControls;
 
     var machineControls;
@@ -330,6 +351,8 @@ wmsx.DOMPeripheralControls = function(room) {
     var diskDrive;
 
     var keyCodeMap = {};                // SHIFT is considered differently
+
+    var netControlsToSend = new Array(100); netControlsToSend.length = 0;     // pre allocate empty Array
 
     var EXCLUDE_SHIFT_MASK = ~wmsx.DOMKeys.SHIFT;
     var INCLUDE_SHIFT_MASK = wmsx.DOMKeys.SHIFT;
@@ -389,21 +412,21 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var netClientDisabledControls = new Set([
         // TODO NetPlay
-        pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
-
         pc.MACHINE_SELECT,
+        pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
-        pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL,
+        pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
+    ]);
 
-        pc.COPY_STRING, pc.CAPTURE_SCREEN,
+    var netClientSendToServerOnlyControls = new Set([
+        // TODO NetPlay
         pc.DISK_REMOVE, pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
         pc.CARTRIDGE_REMOVE,
         pc.TAPE_REMOVE, pc.TAPE_EMPTY, pc.TAPE_REWIND, pc.TAPE_TO_END, pc.TAPE_SEEK_FWD, pc.TAPE_SEEK_BACK, pc.TAPE_AUTO_RUN
     ]);
-
 
     init();
 

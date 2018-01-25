@@ -65,7 +65,7 @@ wmsx.FileDiskDrive = function(room) {
             mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
         }
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 3, d: drive, m: mediaType, u: unformatted });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 3, d: drive, m: mediaType, u: unformatted });
 
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = unformatted ? images.createNewBlankDisk(mediaType) : images.createNewFormattedDisk(mediaType);
@@ -87,7 +87,7 @@ wmsx.FileDiskDrive = function(room) {
     this.removeStack = function(drive) {
         if (noDiskInsertedMessage(drive)) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 1, d: drive });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 1, d: drive });
 
         var wasStack = driveStack[drive].length > 1;
         emptyStack(drive);
@@ -98,7 +98,7 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.insertDiskFromStack = function(drive, num) {
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 2, d: drive, n: num });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2, d: drive, n: num });
 
         setCurrentDiskNum(drive, num);
         diskInsertedMessage(drive);
@@ -109,7 +109,7 @@ wmsx.FileDiskDrive = function(room) {
         var stack = driveStack[drive];
         if (from < 0 || to < 0 || from > stack.length -1 || to > stack.length -1) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 4, d: drive, f: from, t: to });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 4, d: drive, f: from, t: to });
 
         var disk = stack[curDisk[drive]];
         stack.splice(to, 0, stack.splice(from, 1)[0]);
@@ -191,7 +191,7 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function loadStack(drive, stack, altPower, add) {
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 0, d: drive, s: serializeStack(stack), p: altPower, a: add });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, d: drive, s: serializeStack(stack), p: altPower, a: add });
 
         if (add) {
             driveStack[drive] = driveStack[drive].concat(stack);
@@ -397,15 +397,15 @@ wmsx.FileDiskDrive = function(room) {
 
     // NetPlay  -------------------------------------------
 
-    function netAddOperationToSend(operation) {
-        netOperationsToSend.push(operation);
-    }
-
-    this.netGetOperationsToSend = function() {
+    this.netServerGetOperationsToSend = function() {
         return netOperationsToSend.length ? netOperationsToSend : undefined;
     };
 
-    this.netProcessOperations = function(ops) {
+    this.netServerClearOperationsToSend = function() {
+        netOperationsToSend.length = 0;
+    };
+
+    this.netClientProcessOperations = function(ops) {
         for (var i = 0, len = ops.length; i < len; ++i) {
             var op = ops[i];
             switch (op.op) {
@@ -421,10 +421,6 @@ wmsx.FileDiskDrive = function(room) {
                     this.moveDiskInStack(op.d, op.f, op.t); break;
             }
         }
-    };
-
-    this.netClearOperationsToSend = function() {
-        netOperationsToSend.length = 0;
     };
 
 

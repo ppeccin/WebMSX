@@ -281,12 +281,8 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     // NetPlay  -------------------------------------------
 
-    this.netGetPortValues = function() {
+    this.netServerGetPortValues = function() {
         return netPortValues;
-    };
-
-    this.netSetPortValues = function(values) {
-        netPortValues[0] = values[0]; netPortValues[1] = values[1];
     };
 
     this.netGetPortValuesToSend = function() {
@@ -297,6 +293,10 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     this.netClearPortValuesToSend = function() {
         netPortValuesToSend = undefined;
+    };
+
+    this.netClientSetPortValues = function(values) {
+        netPortValues[0] = values[0]; netPortValues[1] = values[1];
     };
 
     this.netServerClientPortValuesChanged = function(client, values) {

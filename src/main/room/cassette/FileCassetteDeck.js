@@ -17,7 +17,7 @@ wmsx.FileCassetteDeck = function(room) {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return null;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 0, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent), p: altPower });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent), p: altPower });
 
         tapeFileName = wmsx.Util.leafFilename(name);
         tapeContent = wmsx.Util.asNormalArray(arrContent);    // Ensure normal growable Array
@@ -31,14 +31,14 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userLoadEmptyTape = function() {
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 1 });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 1 });
         loadEmptyTape();
     };
 
     this.removeTape = function() {
         if (noTapeMessage()) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 2 });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2 });
 
         tapeFileName = null;
         tapeContent = null;
@@ -50,7 +50,7 @@ wmsx.FileCassetteDeck = function(room) {
     this.userRewind = function() {
         if (noTapeMessage()) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 3 });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 3 });
 
         rewind();
     };
@@ -63,7 +63,7 @@ wmsx.FileCassetteDeck = function(room) {
     this.userSeekToEnd = function() {
         if (noTapeMessage()) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 4 });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 4 });
 
         seekToEnd();
     };
@@ -76,7 +76,7 @@ wmsx.FileCassetteDeck = function(room) {
     this.userSeekForward = function() {
         if (noTapeMessage()) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 5 });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 5 });
 
         if (!isTapeEnd()) seekHeader(1, 1);
         if (isTapeEnd()) return seekToEnd();
@@ -86,7 +86,7 @@ wmsx.FileCassetteDeck = function(room) {
     this.userSeekBackward = function() {
         if (noTapeMessage()) return;
 
-        if (room.netPlayMode === 1) netAddOperationToSend({ op: 6 });
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 6 });
 
         if (!isTapeStart()) seekHeader(-1, -1);
         if (isTapeStart()) return rewind();
@@ -267,15 +267,15 @@ wmsx.FileCassetteDeck = function(room) {
 
     // NetPlay  -------------------------------------------
 
-    function netAddOperationToSend(operation) {
-        netOperationsToSend.push(operation);
-    }
-
-    this.netGetOperationsToSend = function() {
+    this.netServerGetOperationsToSend = function() {
         return netOperationsToSend.length ? netOperationsToSend : undefined;
     };
 
-    this.netProcessOperations = function(ops) {
+    this.netServerClearOperationsToSend = function() {
+        netOperationsToSend.length = 0;
+    };
+
+    this.netClientProcessOperations = function(ops) {
         for (var i = 0, len = ops.length; i < len; ++i) {
             var op = ops[i];
             switch (op.op) {
@@ -295,10 +295,6 @@ wmsx.FileCassetteDeck = function(room) {
                     this.userSeekBackward(); break;
             }
         }
-    };
-
-    this.netClearOperationsToSend = function() {
-        netOperationsToSend.length = 0;
     };
 
 
