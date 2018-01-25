@@ -29,7 +29,7 @@ wmsx.CartridgeManbow2 = function(rom) {
 
     this.getDataToSave = function() {
         var content = new Uint8Array(bytes.slice(458752));      // Last 64K
-        return { fileName: sramContentName || "Manbow2.sram", content: content };
+        return { fileName: sramContentName || "Manbow2.sram", content: content, desc: this.getDataDesc() };
     };
 
     this.connect = function(machine) {

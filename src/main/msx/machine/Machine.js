@@ -603,9 +603,6 @@ wmsx.Machine = function(mainVideoClock) {
     // CartridgeSocket  -----------------------------------------
 
     function CartridgeSocket() {
-        this.connectFileDownloader = function (pFileDownloader) {
-            fileDownloader = pFileDownloader;
-        };
         this.insertCartridge = function (cartridge, port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             if (cartridge === slotSocket.slotInserted(slotPos)) return;
@@ -644,11 +641,10 @@ wmsx.Machine = function(mainVideoClock) {
             self.showOSD(cart.getDataDesc() + " loaded in Cartridge " + (port === 1 ? "2" : "1"), true);
             return arrContent;
         };
-        this.saveCartridgeDataFile = function (port) {
+        this.getCartridgeData = function (port) {
             if (this.dataOperationNotSupportedMessage(port, true, false)) return;
             var cart = slotSocket.slotInserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
-            var dataToSave = cart.getDataToSave();
-            fileDownloader.startDownloadBinary(dataToSave.fileName, dataToSave.content, cart.getDataDesc());
+            return cart.getDataToSave();
         };
         this.fireCartridgesStateUpdate = function () {
             for (var i = 0; i < listeners.length; i++)
@@ -660,7 +656,6 @@ wmsx.Machine = function(mainVideoClock) {
                 if (!silent) listener.cartridgesStateUpdate();
             }
         };
-        var fileDownloader;
         var listeners = [];
     }
 

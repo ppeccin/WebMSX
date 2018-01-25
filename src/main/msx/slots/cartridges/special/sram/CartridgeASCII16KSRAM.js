@@ -37,7 +37,7 @@ wmsx.CartridgeASCII16KSRAM = function(rom, format) {
 
     this.getDataToSave = function() {
         var content = new Uint8Array(sram);
-        return { fileName: sramContentName || "Data.sram", content: content };
+        return { fileName: sramContentName || "Data.sram", content: content, desc: this.getDataDesc() };
     };
 
     this.powerOn = function() {

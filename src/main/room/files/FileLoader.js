@@ -11,11 +11,11 @@ wmsx.FileLoader = function() {
         biosSocket = machine.getBIOSSocket();
         machine.getExtensionsSocket().connectFileLoader(this);
         expansionSocket = machine.getExpansionSocket();
-        cartridgeSocket = machine.getCartridgeSocket();
         saveStateSocket = machine.getSavestateSocket();
     };
 
-    this.connectPeripherals = function(pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pCartridgeSlot, pCassetteDeck, pDiskDrive) {
+        cartridgeSlot = pCartridgeSlot;
         cassetteDeck = pCassetteDeck;
         diskDrive = pDiskDrive;
     };
@@ -256,14 +256,14 @@ wmsx.FileLoader = function() {
             if (saveStateSocket.loadStateFile(content)) return true;
         // Try as Cartridge Data (SRAM, etc)
         if (openType === OPEN_TYPE.CART_DATA || openType === OPEN_TYPE.AUTO)
-            if (cartridgeSocket.loadCartridgeData(port, name, content)) return true;
+            if (cartridgeSlot.loadCartridgeData(port, name, content)) return true;
         // Try to load as ROM (BIOS or Cartridge)
         if (openType === OPEN_TYPE.ROM || openType === OPEN_TYPE.AUTO) {
-            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format), cartridgeSocket.cartridgeInserted(port));
+            var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format), cartridgeSlot.cartridgeInserted(port));
             if (slot) {
                 if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insertBIOS(slot, altPower);
                 else if (asExpansion) expansionSocket.insertExpansion(slot, port, altPower);
-                else cartridgeSocket.insertCartridge(slot, port, altPower);
+                else cartridgeSlot.insertCartridge(slot, port, altPower);
                 return true;
             }
         }
@@ -439,8 +439,8 @@ wmsx.FileLoader = function() {
     var slotSocket;
     var biosSocket;
     var expansionSocket;
-    var cartridgeSocket;
     var saveStateSocket;
+    var cartridgeSlot;
     var cassetteDeck;
     var diskDrive;
 

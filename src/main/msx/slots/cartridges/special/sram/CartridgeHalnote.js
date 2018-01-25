@@ -30,7 +30,7 @@ wmsx.CartridgeHalnote = function(rom) {
 
     this.getDataToSave = function() {
         var content = new Uint8Array(sram);
-        return { fileName: sramContentName || "Halnote.sram", content: content };
+        return { fileName: sramContentName || "Halnote.sram", content: content, desc: this.getDataDesc() };
     };
 
     this.powerOn = function() {

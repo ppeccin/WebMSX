@@ -13,7 +13,8 @@ wmsx.DOMPeripheralControls = function(room) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pCartridgeSlot, pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+        cartridgeSlot = pCartridgeSlot;
         machineControls = pMachineControls;
         screen = pScreen;
         speaker = pSpeaker;
@@ -126,14 +127,14 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
             case pc.CARTRIDGE_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSocket.removeCartridge(secPort ? 1 : 0, altPower);
+                if (!mediaChangeDisabledWarning()) cartridgeSlot.removeCartridge(secPort ? 1 : 0, altPower);
                 break;
             case pc.CARTRIDGE_LOAD_DATA_FILE:
                 if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
                 fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, secPort, false);
                 break;
             case pc.CARTRIDGE_SAVE_DATA_FILE:
-                cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
+                cartridgeSlot.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case pc.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
@@ -344,9 +345,10 @@ wmsx.DOMPeripheralControls = function(room) {
     var screen;
     var monitor;
     var speaker;
+    var cartridgeSocket;
+    var cartridgeSlot;
     var controllersHub;
     var fileLoader;
-    var cartridgeSocket;
     var cassetteDeck;
     var diskDrive;
 

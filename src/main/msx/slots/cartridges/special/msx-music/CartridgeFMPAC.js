@@ -28,7 +28,7 @@ wmsx.CartridgeFMPAC = function(rom) {
 
     this.getDataToSave = function() {
         var content = wmsx.CartridgePAC.buildPACFileContentToSave(sram);
-        return { fileName: sramContentName || "PAC SRAM.pac", content: content };
+        return { fileName: sramContentName || "PAC SRAM.pac", content: content, desc: this.getDataDesc() };
     };
 
     this.connect = function(pMachine) {

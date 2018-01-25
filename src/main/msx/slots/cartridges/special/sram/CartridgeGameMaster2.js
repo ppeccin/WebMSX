@@ -28,7 +28,7 @@ wmsx.CartridgeGameMaster2 = function(rom) {
 
     this.getDataToSave = function() {
         var content = new Uint8Array(sram);
-        return { fileName: sramContentName || "GameMaster2.sram", content: content };
+        return { fileName: sramContentName || "GameMaster2.sram", content: content, desc: this.getDataDesc() };
     };
 
     this.powerOn = function() {
