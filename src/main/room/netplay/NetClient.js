@@ -70,10 +70,6 @@ wmsx.NetClient = function(room) {
         // Client gets clocks from Server at onServerNetUpdate()
     };
 
-    this.readControllerPort = function(port) {
-        return controllersPortValues[port];
-    };
-
     function onSessionServerConnected() {
         // Setup keep-alive
         if (keepAliveTimer === undefined) keepAliveTimer = setInterval(keepAlive, 30000);
@@ -148,7 +144,7 @@ wmsx.NetClient = function(room) {
 
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
-        controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
+        controllersHub.netClearPortValuesToSend();
         room.enterNetClientMode(self);
     }
 
@@ -194,11 +190,14 @@ wmsx.NetClient = function(room) {
     }
 
     function onServerNetUpdate(netUpdate) {
+        // console.log(netUpdate);
+
         // Full Update?
         if (netUpdate.s) {
             machine.loadStateExtended(netUpdate.s);
             keyboard.loadState(netUpdate.ks);
-            controllersPortValues = netUpdate.cp;
+            controllersHub.netSetPortValues(netUpdate.cp);
+
             // Change Controls Mode automatically to adapt to Server
             // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
         } else {
@@ -217,7 +216,7 @@ wmsx.NetClient = function(room) {
                     keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
                 }
             }
-            if (netUpdate.cp) controllersPortValues = netUpdate.cp;
+            if (netUpdate.cp) controllersHub.netSetPortValues(netUpdate.cp);
             if (netUpdate.dd) diskDrive.netProcessOperations(netUpdate.dd);
             if (netUpdate.cd) cassetteDeck.netProcessOperations(netUpdate.cd);
 
@@ -228,24 +227,14 @@ wmsx.NetClient = function(room) {
         // Send clock do Controllers
         controllersHub.controllersClockPulse();
 
-        // Send local controls updates to Server
-
-        var controllersPortValuesChangeToSend;
-        var a = controllersHub.readLocalControllerPort(0), b = controllersHub.readLocalControllerPort(1);
-        if (controllersPortValuesToSend[0] !== a || controllersPortValuesToSend[1] !== b) {
-            controllersPortValuesToSend[0] = a; controllersPortValuesToSend[1] = b;
-            controllersPortValuesChangeToSend = controllersPortValuesToSend;
-            // console.log("Sending port values");
-        }
-
-        // We always send a message even when empty to keep the channel active
+        // Send local controls changes. We always send a message even when empty to keep the channel active
 
         if (dataChannelActive) {
             // Use DataChannel if available
             dataChannel.send(JSON.stringify({
                 c: machineControls.netGetControlsToSend(),
                 k: keyboard.netGetMatrixChangesToSend(),
-                cp: controllersPortValuesChangeToSend
+                cp: controllersHub.netGetPortValuesToSend()
             }));
         } else {
             // Or fallback to WebSocket relayed through the Session Server (BAD!)
@@ -253,12 +242,13 @@ wmsx.NetClient = function(room) {
                 wmsxUpdate: {
                     c: machineControls.netGetControlsToSend(),
                     k: keyboard.netGetMatrixChangesToSend(),
-                    cp: controllersPortValuesChangeToSend
+                    cp: controllersHub.netGetPortValuesToSend()
                 }
             }));
         }
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
+        controllersHub.netClearPortValuesToSend();
     }
 
     function keepAlive() {
@@ -292,19 +282,12 @@ wmsx.NetClient = function(room) {
     }
 
 
-    var CONT_PORT_ALL_RELEASED = 0x7f;
-
-
     var machine = room.machine;
     var machineControls = room.machineControls;
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
-
-    var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
-
-    var controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
     var ws;
     var sessionID;

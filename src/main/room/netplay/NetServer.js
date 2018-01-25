@@ -60,18 +60,6 @@ wmsx.NetServer = function(room) {
         // Send clock do Controllers
         controllersHub.controllersClockPulse();
 
-        // Merge Controller ports values from Clients with Server and update resulting port values
-        updateClientsMergedControllersPortValues();
-        var a = controllersHub.readLocalControllerPort(0) & clientsMergedControllersPortValues[0],
-            b = controllersHub.readLocalControllerPort(1) & clientsMergedControllersPortValues[1];
-
-        // Have they changed?
-        var controllersPortValuesToSend;
-        if (controllersPortValues[0] !== a || controllersPortValues[1] !== b) {
-            controllersPortValues[0] = a; controllersPortValues[1] = b;
-            controllersPortValuesToSend = controllersPortValues;
-        }
-
         // Send local (Server) Machine clock
         machine.videoClockPulse();
 
@@ -86,7 +74,7 @@ wmsx.NetServer = function(room) {
                 if (!dataFull) {
                     netUpdateFull.s = machine.saveStateExtended();
                     netUpdateFull.ks = keyboard.saveState();
-                    netUpdateFull.cp = controllersPortValues;
+                    netUpdateFull.cp = controllersHub.netGetPortValues();
                     // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
                     dataFull = JSON.stringify(netUpdateFull);
                 }
@@ -95,7 +83,7 @@ wmsx.NetServer = function(room) {
                 if (!dataNormal) {
                     netUpdate.c = machineControls.netGetControlsToSend();
                     netUpdate.k = keyboard.netGetMatrixChangesToSend();
-                    netUpdate.cp = controllersPortValuesToSend;
+                    netUpdate.cp = controllersHub.netGetPortValuesToSend();
                     netUpdate.dd = diskDrive.netGetOperationsToSend();
                     netUpdate.cd = cassetteDeck.netGetOperationsToSend();
                     dataNormal = JSON.stringify(netUpdate);
@@ -118,12 +106,9 @@ wmsx.NetServer = function(room) {
         nextUpdateFull = false;
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
+        controllersHub.netClearPortValuesToSend();
         diskDrive.netClearOperationsToSend();
         cassetteDeck.netClearOperationsToSend();
-    };
-
-    this.readControllerPort = function(port) {
-        return controllersPortValues[port];
     };
 
     this.processExternalStateChange = function() {
@@ -185,8 +170,8 @@ wmsx.NetServer = function(room) {
         sessionID = message.sessionID;
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
-        clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
-        clientsControllersPortValuesChanged = false;
+        controllersHub.netClearPortValuesToSend();
+        controllersHub.netServerClearClientsInfo();
         diskDrive.netClearOperationsToSend();
         cassetteDeck.netClearOperationsToSend();
         room.enterNetServerMode(self);
@@ -289,6 +274,9 @@ wmsx.NetServer = function(room) {
     }
 
     function onClientNetUpdate(client, netUpdate) {
+        // console.log(netUpdate);
+        // client.lastUpdate = netUpdate;
+
         // Process MachineControls and Keyboard changes as if they were local controls immediately
         if (netUpdate.c) {
             for (var i = 0, changes = netUpdate.c, len = changes.length; i < len; ++i) {
@@ -304,31 +292,7 @@ wmsx.NetServer = function(room) {
         }
 
         // Store Controllers port value changes for later merging with other Clients and Server values
-        if (netUpdate.cp) {
-            clientsControllersPortValuesChanged = true;
-
-            // Retain values only if they are different than the all-released state
-            var portValues = netUpdate.cp;
-            client.controllersPortValues = portValues[0] !== CONT_PORT_ALL_RELEASED || portValues[1] !== CONT_PORT_ALL_RELEASED
-                ? portValues : undefined;
-        }
-
-        // client.lastUpdate = netUpdate;
-    }
-
-    function updateClientsMergedControllersPortValues() {
-        if (!clientsControllersPortValuesChanged) return;
-        // console.log("Updating clients port values");
-
-        clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
-        for (var nick in clients) {
-            var portValues = clients[nick].controllersPortValues;
-            if (!portValues) continue;
-            clientsMergedControllersPortValues[0] &= portValues[0];
-            clientsMergedControllersPortValues[1] &= portValues[1];
-        }
-
-        clientsControllersPortValuesChanged = false;
+        if (netUpdate.cp) controllersHub.netServerClientPortValuesChanged(client, netUpdate.cp);
     }
 
     function keepAlive() {
@@ -373,8 +337,6 @@ wmsx.NetServer = function(room) {
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 
-    var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
-
     var netUpdate = { c: undefined, k: undefined, cp: undefined };
     var netUpdateFull = { s: undefined, ks: undefined, cp: undefined };
     var nextUpdateFull = false;
@@ -387,14 +349,10 @@ wmsx.NetServer = function(room) {
 
     var clients = {};
     this.clients = clients;
-    var clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
-    var clientsControllersPortValuesChanged = false;
 
     var rtcConnectionConfig;
     var dataChannelConfig;
 
-
-    var CONT_PORT_ALL_RELEASED = 0x7f;
 
     var MAX_DATA_CHANNEL_SIZE = 16300;
     var DATA_CHANNEL_FRAG_SIZE = 16200;

@@ -195,8 +195,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
 
-    var netClientDisabledControls = new Set([
-        // TODO NetPlay
+    var netServerLocalOnlyControls = new Set([
         mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
         mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
         mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
@@ -204,7 +203,8 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         mc.POWER_FRY, mc.VSYNCH, mc.TRACE
     ]);
 
-    var netServerLocalOnlyControls = new Set([
+    var netClientDisabledControls = new Set([
+        // TODO NetPlay
         mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
         mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
         mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,

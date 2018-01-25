@@ -3,6 +3,8 @@
 wmsx.ControllersHub = function(room, machineControls) {
 "use strict";
 
+    var self = this;
+
     this.connect = function(machineControlsSocket, controllersSocket, biosSocket) {
         controllersSocket.connectControls(this);
         keyboard.connect(biosSocket);
@@ -64,15 +66,15 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     this.readControllerPort = function(port) {
         if (room.netController)
-            return room.netController.readControllerPort(port);
-
-        return this.readLocalControllerPort(port);
+            return netPortValues[port];
+        else
+            return readLocalControllerPort(port);
     };
 
-    this.readLocalControllerPort = function(port) {
+    function readLocalControllerPort(port) {
         var forward = controllerAtPort[port];
-        return (forward ? forward.readControllerPort(port) : 0x3f) | japanaseKeyboardLayoutPortValue;
-    };
+        return (forward ? forward.readControllerPort(port) | japanaseKeyboardLayoutPortValue : PORT_VALUE_ALL_RELEASED);
+    }
 
     this.writeControllerPin8Port = function(port, value) {
         mouseControls.portPin8Announced(port, value);       // Give Mouse a chance to Auto Enable
@@ -84,6 +86,9 @@ wmsx.ControllersHub = function(room, machineControls) {
         keyboard.controllersClockPulse();
         joystickControls.controllersClockPulse();
         touchControls.controllersClockPulse();
+
+        if (room.netPlayMode === 1) netServerUpdatePortValues();
+        else if(room.netPlayMode === 2) netClientUpdatePortValues();
     };
 
     this.toggleKeyboardLayout = function() {
@@ -274,6 +279,93 @@ wmsx.ControllersHub = function(room, machineControls) {
     }
 
 
+    // NetPlay  -------------------------------------------
+
+    this.netGetPortValues = function() {
+        return netPortValues;
+    };
+
+    this.netSetPortValues = function(values) {
+        netPortValues[0] = values[0]; netPortValues[1] = values[1];
+    };
+
+    this.netGetPortValuesToSend = function() {
+        return netPortValuesToSend
+            ? netPortValuesToSend
+            : undefined;
+    };
+
+    this.netClearPortValuesToSend = function() {
+        netPortValuesToSend = undefined;
+    };
+
+    this.netServerClientPortValuesChanged = function(client, values) {
+        // console.log("Receiving Client port values", values);
+
+        netClientsPortValuesChanged = true;
+
+        // Retain values only if they are different than the all-released state
+        client.controllersPortValues = values[0] !== PORT_VALUE_ALL_RELEASED || values[1] !== PORT_VALUE_ALL_RELEASED
+            ? values : undefined;
+    };
+
+    this.netServerClearClientsInfo = function () {
+        netClientsMergedPortValues[0] = PORT_VALUE_ALL_RELEASED; netClientsMergedPortValues[1] = PORT_VALUE_ALL_RELEASED;
+        netClientsPortValuesChanged = false;
+    };
+
+    function netClientUpdatePortValues() {
+        var a = readLocalControllerPort(0);
+        var b = readLocalControllerPort(1);
+
+        // Have they changed?
+        if (netLocalPortValues[0] !== a || netLocalPortValues[1] !== b) {
+            netLocalPortValues[0] = a; netLocalPortValues[1] = b;
+            netPortValuesToSend = netLocalPortValues;
+        }
+    }
+
+    function netServerUpdatePortValues() {
+        if (netClientsPortValuesChanged) {
+            // console.log("Updating Clients merged port values");
+
+            self.netServerClearClientsInfo();
+            var clients = room.netController.clients;
+            for (var nick in clients) {
+                var portValues = clients[nick].controllersPortValues;
+                if (!portValues) continue;
+                netClientsMergedPortValues[0] &= portValues[0];
+                netClientsMergedPortValues[1] &= portValues[1];
+            }
+        }
+
+        var a = readLocalControllerPort(0) & netClientsMergedPortValues[0];
+        var b = readLocalControllerPort(1) & netClientsMergedPortValues[1];
+
+        // Have they changed?
+        if (netPortValues[0] !== a || netPortValues[1] !== b) {
+            netPortValues[0] = a; netPortValues[1] = b;
+            netPortValuesToSend = netPortValues;
+        }
+    }
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            t: touchControls.saveState(),
+            h: hapticFeedbackEnabled
+
+        };
+    };
+
+    this.loadState = function(s) {
+        if (s.t) touchControls.loadState(s.t);
+        if (s.h !== undefined) hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
+    };
+
+
     var controllerAtPort = [ null, null ];
 
     var mousePresent =     [ null, null ];
@@ -295,24 +387,15 @@ wmsx.ControllersHub = function(room, machineControls) {
     var hapticFeedbackEnabled = hapticFeedbackCapable && !!WMSX.userPreferences.current.hapticFeedback;
 
     var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
+    var PORT_VALUE_ALL_RELEASED = 0x3f | japanaseKeyboardLayoutPortValue;
+
+    var netPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
+    var netLocalPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
+    var netClientsMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
+    var netClientsPortValuesChanged = false;
+    var netPortValuesToSend;
 
     var screen;
-
-
-    // Savestate  -------------------------------------------
-
-    this.saveState = function() {
-        return {
-            t: touchControls.saveState(),
-            h: hapticFeedbackEnabled
-
-        };
-    };
-
-    this.loadState = function(s) {
-        if (s.t) touchControls.loadState(s.t);
-        if (s.h !== undefined) hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
-    };
 
 
     wmsx.ControllersHub.hapticFeedback = this.hapticFeedback;
