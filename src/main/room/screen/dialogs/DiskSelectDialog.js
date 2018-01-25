@@ -36,7 +36,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         visible = false;
         WMSX.room.screen.focus();
         if (confirm && diskSelectedNum >= 0) {
-            diskDrive.insertDisk(drive, diskSelectedNum);
+            diskDrive.insertDiskFromStack(drive, diskSelectedNum);
             diskDrive.autoPowerCycle(altPower);
         }
     };

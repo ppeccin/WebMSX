@@ -2,7 +2,7 @@
 
 // Dual Disk Drive ( A: = drive 0, B: = drive 1 )
 
-wmsx.FileDiskDrive = function() {
+wmsx.FileDiskDrive = function(room) {
 "use strict";
 
     var self = this;
@@ -64,6 +64,9 @@ wmsx.FileDiskDrive = function() {
             if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
             mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
         }
+
+        if (room.netPlayMode === 1) netAddOperationToSend({ op: 3, d: drive, m: mediaType, u: unformatted });
+
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = unformatted ? images.createNewBlankDisk(mediaType) : images.createNewFormattedDisk(mediaType);
 
@@ -84,11 +87,33 @@ wmsx.FileDiskDrive = function() {
     this.removeStack = function(drive) {
         if (noDiskInsertedMessage(drive)) return;
 
+        if (room.netPlayMode === 1) netAddOperationToSend({ op: 1, d: drive });
+
         var wasStack = driveStack[drive].length > 1;
         emptyStack(drive);
         driveDiskChanged[drive] = null;
 
         screen.showOSD((wasStack ? "Disk Stack in Drive " : "Disk ") + driveName[drive] + " removed", true);
+        fireMediaStateUpdate(drive);
+    };
+
+    this.insertDiskFromStack = function(drive, num) {
+        if (room.netPlayMode === 1) netAddOperationToSend({ op: 2, d: drive, n: num });
+
+        setCurrentDiskNum(drive, num);
+        diskInsertedMessage(drive);
+        fireMediaStateUpdate(drive);
+    };
+
+    this.moveDiskInStack = function (drive, from, to) {
+        var stack = driveStack[drive];
+        if (from < 0 || to < 0 || from > stack.length -1 || to > stack.length -1) return;
+
+        if (room.netPlayMode === 1) netAddOperationToSend({ op: 4, d: drive, f: from, t: to });
+
+        var disk = stack[curDisk[drive]];
+        stack.splice(to, 0, stack.splice(from, 1)[0]);
+        if (disk) curDisk[drive] = stack.indexOf(disk);
         fireMediaStateUpdate(drive);
     };
 
@@ -107,14 +132,9 @@ wmsx.FileDiskDrive = function() {
     };
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
+        if (room.netPlayMode === 2) return;
         if (noDiskInsertedMessage(drive)) return;
         screen.openDiskSelectDialog(drive, inc, altPower);
-    };
-
-    this.insertDisk = function(drive, num) {
-        setCurrentDiskNum(drive, num);
-        diskInsertedMessage(drive);
-        fireMediaStateUpdate(drive);
     };
 
     this.getDriveStack = function(drive) {
@@ -131,15 +151,6 @@ wmsx.FileDiskDrive = function() {
 
     this.getCurrentDiskNumDesc = function(drive) {
         return currentDiskNumDesc(drive);
-    };
-
-    this.moveDiskInStack = function (drive, from, to) {
-        var stack = driveStack[drive];
-        if (from < 0 || to < 0 || from > stack.length -1 || to > stack.length -1) return;
-        var disk = stack[curDisk[drive]];
-        stack.splice(to, 0, stack.splice(from, 1)[0]);
-        if (disk) curDisk[drive] = stack.indexOf(disk);
-        fireMediaStateUpdate(drive);
     };
 
     function checkFileIsValidImage(file, stopRecursion) {
@@ -180,6 +191,8 @@ wmsx.FileDiskDrive = function() {
     }
 
     function loadStack(drive, stack, altPower, add) {
+        if (room.netPlayMode === 1) netAddOperationToSend({ op: 0, d: drive, s: stack, p: altPower, a: add });
+
         if (add) {
             driveStack[drive] = driveStack[drive].concat(stack);
             if (!getCurrentDisk(drive)) setCurrentDiskNum(drive, 0);
@@ -361,6 +374,36 @@ wmsx.FileDiskDrive = function() {
         return driveStack[drive].length > 1 ? "(" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ") " : "";
     }
 
+    function netAddOperationToSend(operation) {
+        netOperationsToSend.push(operation);
+    }
+
+    this.netGetOperationsToSend = function() {
+        return netOperationsToSend.length ? netOperationsToSend : undefined;
+    };
+
+    this.netProcessOperations = function(ops) {
+        for (var i = 0, len = ops.length; i < len; ++i) {
+            var op = ops[i];
+            switch (op.op) {
+                case 0:
+                    loadStack(op.d, op.s, op.p, op.a); break;
+                case 1:
+                    this.removeStack(op.d); break;
+                case 2:
+                    this.insertDiskFromStack(op.d, op.n); break;
+                case 3:
+                    this.insertNewDisk(op.d, op.m, op.u); break;
+                case 4:
+                    this.moveDiskInStack(op.d, op.f, op.t); break;
+            }
+        }
+    };
+
+    this.netClearOperationsToSend = function() {
+        netOperationsToSend.length = 0;
+    };
+
 
     // Savestate  -------------------------------------------
 
@@ -407,12 +450,14 @@ wmsx.FileDiskDrive = function() {
 
     var driveBlankDiskAdded = [ false, false ];
 
-    var driveDiskChanged    = [ null, null ];         // true = yes, false = no, null = unknown
+    var driveDiskChanged    = [ null, null ];       // true = yes, false = no, null = unknown
     var driveMotor          = [ false, false ];
     var driveMotorOffTimer  = [ null, null ];
 
     var driveName = [ "A:", "B:" ];
     var nextNewDiskFormatOption = [ -1, -1 ];
+
+    var netOperationsToSend = [];
 
     var BYTES_PER_SECTOR = 512;                     // Fixed for now, for all disks
 
