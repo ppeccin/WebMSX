@@ -171,13 +171,11 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
         applyMatrixChange(line, col, press);
     }
-    this.processMatrixChange = processMatrixChange;
 
     function applyMatrixChange(line, col, press) {
         if (press) keyboardMatrix[line] &= ~(1 << col);
         else keyboardMatrix[line] |= (1 << col);
     }
-    this.applyMatrixChange = applyMatrixChange;
 
     var updateMapping = function() {
         var map = customKeyboards[currentKeyboard] || wmsx.BuiltInKeyboards[currentKeyboard];
@@ -241,6 +239,20 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     this.netClearMatrixChangesToSend = function() {
         netMatrixChangesToSend.length = 0;
+    };
+
+    this.netServerProcessMatrixChanges = function(changes) {
+        for (var i = 0, len = changes.length; i < len; ++i) {
+            var change = changes[i];
+            // Store changes to be sent to Clients
+            netMatrixChangesToSend.push(change);
+            applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);              // binary encoded
+        }
+    };
+
+    this.netClientApplyMatrixChanges = function(changes) {
+        for (var i = 0, len = changes.length; i < len; ++i)
+            applyMatrixChange(changes[i] >> 8, (changes[i] & 0xf0) >> 4, changes[i] & 0x01);   // binary encoded
     };
 
 

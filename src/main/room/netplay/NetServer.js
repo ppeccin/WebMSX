@@ -92,12 +92,10 @@ wmsx.NetServer = function(room) {
             }
 
             try {
-                if (client.dataChannelActive)
-                    // Use DataChannel if available
-                    sendToDataChannel(client.dataChannel, data);
-                else
-                    // Or fallback to WebSocket relayed through the Session Server (BAD!)
-                    ws.send(JSON.stringify({ toClientNick: client.nick, wmsxUpdate: data }));
+                // Use DataChannel if available
+                if (client.dataChannelActive) sendToDataChannel(client.dataChannel, data);
+                // Or fallback to WebSocket relayed through the Session Server (BAD!)
+                else ws.send(JSON.stringify({ toClientNick: client.nick, wmsxUpdate: data }));
             } catch (e) {
                 dropClient(client, true, true, 'NetPlay client "' + client.nick + '" dropped: P2P error sending data');
             }
@@ -278,18 +276,8 @@ wmsx.NetServer = function(room) {
         // client.lastUpdate = netUpdate;
 
         // Process MachineControls and Keyboard changes as if they were local controls immediately
-        if (netUpdate.c) {
-            for (var i = 0, changes = netUpdate.c, len = changes.length; i < len; ++i) {
-                var change = changes[i];
-                machineControls.processControlState(change >> 4, change & 0x01);                    // binary encoded
-            }
-        }
-        if (netUpdate.k) {
-            for (i = 0, changes = netUpdate.k, len = changes.length; i < len; ++i) {
-                change = changes[i];
-                keyboard.processMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);    // binary encoded
-            }
-        }
+        if (netUpdate.c) machineControls.netServerProcessControlsChanges(netUpdate.c);
+        if (netUpdate.k) keyboard.netServerProcessMatrixChanges(netUpdate.k);
 
         // Store Controllers port value changes for later merging with other Clients and Server values
         if (netUpdate.cp) controllersHub.netServerClientPortValuesChanged(client, netUpdate.cp);

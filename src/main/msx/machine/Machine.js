@@ -277,10 +277,6 @@ wmsx.Machine = function(mainVideoClock) {
         mainVideoClockUpdateSpeed();
     }
 
-    function powerFry() {
-        //ram.powerFry();
-    }
-
     function saveState() {
         return {
             mn: self.machineName,
@@ -497,9 +493,6 @@ wmsx.Machine = function(mainVideoClock) {
                 break;
             case controls.POWER_OFF:
                 if (self.powerIsOn) self.powerOff();
-                break;
-            case controls.POWER_FRY:
-                powerFry();
                 break;
             case controls.PAUSE:
                 self.userPause(!userPaused, false);

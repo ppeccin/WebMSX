@@ -66,7 +66,7 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     this.readControllerPort = function(port) {
         if (room.netController)
-            return netPortValues[port];
+            return netPortValues[port];     // TODO NetPlay add Mouse support
         else
             return readLocalControllerPort(port);
     };

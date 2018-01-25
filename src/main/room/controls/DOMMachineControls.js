@@ -35,12 +35,12 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
 
     function processControlState(control, press) {
         // Check for NetPlay blocked controls
-        if (room.netPlayMode === 2 && netClientDisabledControls.has(control))
+        if (room.netPlayMode === 2 && netServerLocalOnlyControls.has(control))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
         // Store changes to be sent to peers
         if (!(room.netPlayMode === 1 && netServerLocalOnlyControls.has(control)))
-            netControlsToSend.push((control << 4) | press );                 // binary encoded
+            netControlsToSend.push((control << 4) | press );       // binary encoded
 
         // Do not apply control now if Client
         if (room.netPlayMode === 2) return;
@@ -52,7 +52,6 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     function applyControlState(control, press) {
         machineControlsSocket.controlStateChanged(control, press);
     }
-    this.applyControlState = applyControlState;
 
     this.getControlReport = function(control) {
         return machineControlsSocket.getControlReport(control);
@@ -141,6 +140,20 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         netControlsToSend.length = 0;
     };
 
+    this.netServerProcessControlsChanges = function(changes) {
+        for (var i = 0, len = changes.length; i < len; ++i) {
+            var change = changes[i];
+            // Store changes to be sent to Clients?
+            if (!netServerLocalOnlyControls.has(change >> 4)) netControlsToSend.push(change);
+            applyControlState(change >> 4, change & 0x01);              // binary encoded
+        }
+    };
+
+    this.netClientApplyControlsChanges = function(changes) {
+        for (var i = 0, len = changes.length; i < len; ++i)
+            applyControlState(changes[i] >> 4, changes[i] & 0x01);      // binary encoded
+    };
+
 
     var mc = wmsx.MachineControls;
 
@@ -200,16 +213,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
         mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
         mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
-        mc.POWER_FRY, mc.VSYNCH, mc.TRACE
-    ]);
-
-    var netClientDisabledControls = new Set([
-        // TODO NetPlay
-        mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
-        mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
-        mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
-        mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
-        mc.POWER_FRY, mc.VSYNCH, mc.TRACE
+        mc.VSYNCH, mc.TRACE
     ]);
 
 

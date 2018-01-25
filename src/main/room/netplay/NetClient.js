@@ -202,20 +202,8 @@ wmsx.NetClient = function(room) {
             // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
         } else {
             // Apply controls changes from Server
-            if (netUpdate.c) {
-                var controls = netUpdate.c;
-                for (var i = 0, len = controls.length; i < len; ++i) {
-                    var control = controls[i];
-                    machineControls.applyControlState(control >> 4, control & 0x01);                // binary encoded
-                }
-            }
-            if (netUpdate.k) {
-                var changes = netUpdate.k;
-                for (i = 0, len = changes.length; i < len; ++i) {
-                    var change = changes[i];
-                    keyboard.applyMatrixChange(change >> 8, (change & 0xf0) >> 4, change & 0x01);   // binary encoded
-                }
-            }
+            if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
+            if (netUpdate.k) keyboard.netClientApplyMatrixChanges(netUpdate.k);
             if (netUpdate.cp) controllersHub.netSetPortValues(netUpdate.cp);
             if (netUpdate.dd) diskDrive.netProcessOperations(netUpdate.dd);
             if (netUpdate.cd) cassetteDeck.netProcessOperations(netUpdate.cd);
@@ -228,24 +216,17 @@ wmsx.NetClient = function(room) {
         controllersHub.controllersClockPulse();
 
         // Send local controls changes. We always send a message even when empty to keep the channel active
+        var update = {
+            c: machineControls.netGetControlsToSend(),
+            k: keyboard.netGetMatrixChangesToSend(),
+            cp: controllersHub.netGetPortValuesToSend()
+        };
 
-        if (dataChannelActive) {
-            // Use DataChannel if available
-            dataChannel.send(JSON.stringify({
-                c: machineControls.netGetControlsToSend(),
-                k: keyboard.netGetMatrixChangesToSend(),
-                cp: controllersHub.netGetPortValuesToSend()
-            }));
-        } else {
-            // Or fallback to WebSocket relayed through the Session Server (BAD!)
-            ws.send(JSON.stringify({
-                wmsxUpdate: {
-                    c: machineControls.netGetControlsToSend(),
-                    k: keyboard.netGetMatrixChangesToSend(),
-                    cp: controllersHub.netGetPortValuesToSend()
-                }
-            }));
-        }
+        // Use DataChannel if available
+        if (dataChannelActive) dataChannel.send(JSON.stringify(update));
+        // Or fallback to WebSocket relayed through the Session Server (BAD!)
+        else ws.send(JSON.stringify({ wmsxUpdate: update }));
+
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
