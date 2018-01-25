@@ -26,11 +26,11 @@ wmsx.DOMPeripheralControls = function(room) {
 
     this.getControlReport = function(control) {
         switch (control) {
-            case controls.TOUCH_TOGGLE_DIR_BIG:
-            case controls.TURBO_FIRE_TOGGLE:
-            case controls.HAPTIC_FEEDBACK_TOGGLE_MODE:
+            case pc.TOUCH_TOGGLE_DIR_BIG:
+            case pc.TURBO_FIRE_TOGGLE:
+            case pc.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 return controllersHub.getControlReport(control);
-            case controls.SPEAKER_BUFFER_TOGGLE:
+            case pc.SPEAKER_BUFFER_TOGGLE:
                 return speaker.getControlReport(control);
         }
         return { label: "Unknown", active: false };
@@ -48,195 +48,196 @@ wmsx.DOMPeripheralControls = function(room) {
 
     this.controlActivated = function(control, altPower, secPort) {
         // Check for NetPlay blocked controls
-        if (room.netController && !room.netController.processCheckPeripheralControl(control)) return;
+        if (room.netPlayMode === 2 && netClientDisabledControls.has(control))
+            return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
         // All controls are Press-only and repeatable
         switch(control) {
-            case controls.MACHINE_SELECT:                                                         // Machine Controls called directly by Screen, no keys here
+            case pc.MACHINE_SELECT:                                                         // Machine Controls called directly by Screen, no keys here
                 if (!mediaChangeDisabledWarning()) screen.openMachineSelectDialog();
                 break;
-            case controls.MACHINE_POWER_TOGGLE:
-                if (altPower) return this.controlActivated(controls.MACHINE_POWER_RESET);
+            case pc.MACHINE_POWER_TOGGLE:
+                if (altPower) return this.controlActivated(pc.MACHINE_POWER_RESET);
                 machineControls.processControlState(wmsx.MachineControls.POWER, true);
                 break;
-            case controls.MACHINE_POWER_RESET:
+            case pc.MACHINE_POWER_RESET:
                 machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 break;
-            case controls.MACHINE_LOAD_STATE_FILE:
+            case pc.MACHINE_LOAD_STATE_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
                 break;
-            case controls.MACHINE_SAVE_STATE_FILE:
+            case pc.MACHINE_SAVE_STATE_FILE:
                 machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
                 break;
-            case controls.MACHINE_LOAD_STATE_MENU:
+            case pc.MACHINE_LOAD_STATE_MENU:
                 screen.openSaveStateDialog(false);
                 break;
-            case controls.MACHINE_SAVE_STATE_MENU:
+            case pc.MACHINE_SAVE_STATE_MENU:
                 screen.openSaveStateDialog(true);
                 break;
-            case controls.DISK_LOAD_FILES:
+            case pc.DISK_LOAD_FILES:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
                 break;
-            case controls.DISK_ADD_FILES:
+            case pc.DISK_ADD_FILES:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, true);   // asExpansion
                 break;
-            case controls.DISK_LOAD_URL:
+            case pc.DISK_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
                 break;
-            case controls.DISK_LOAD_FILES_AS_DISK:
+            case pc.DISK_LOAD_FILES_AS_DISK:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort, false);
                 break;
-            case controls.DISK_LOAD_ZIP_AS_DISK:
+            case pc.DISK_LOAD_ZIP_AS_DISK:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort, false);
                 break;
-            case controls.DISK_REMOVE:
+            case pc.DISK_REMOVE:
                 if (!mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
                 break;
-            case controls.DISK_EMPTY:
+            case pc.DISK_EMPTY:
                 diskDrive.insertNewDisk(secPort ? 1 : 0, null);
                 break;
-            case controls.DISK_EMPTY_720:
+            case pc.DISK_EMPTY_720:
                 diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
                 break;
-            case controls.DISK_EMPTY_360:
+            case pc.DISK_EMPTY_360:
                 diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
-            case controls.DISK_SAVE_FILE:
+            case pc.DISK_SAVE_FILE:
                 diskDrive.saveDiskFile(secPort ? 1 : 0);
                 break;
-            case controls.DISK_SELECT:
+            case pc.DISK_SELECT:
                 diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 0, altPower);
                 break;
-            case controls.DISK_PREVIOUS:
+            case pc.DISK_PREVIOUS:
                 diskDrive.openDiskSelectDialog(secPort ? 1 : 0, -1, altPower);
                 break;
-            case controls.DISK_NEXT:
+            case pc.DISK_NEXT:
                 diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 1, altPower);
                 break;
-            case controls.CARTRIDGE_LOAD_FILE:
+            case pc.CARTRIDGE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
                 break;
-            case controls.CARTRIDGE_LOAD_URL:
+            case pc.CARTRIDGE_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
-            case controls.CARTRIDGE_REMOVE:
+            case pc.CARTRIDGE_REMOVE:
                 if (!mediaChangeDisabledWarning()) cartridgeSocket.remove(secPort ? 1 : 0, altPower);
                 break;
-            case controls.CARTRIDGE_LOAD_DATA_FILE:
+            case pc.CARTRIDGE_LOAD_DATA_FILE:
                 if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
                 fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, secPort, false);
                 break;
-            case controls.CARTRIDGE_SAVE_DATA_FILE:
+            case pc.CARTRIDGE_SAVE_DATA_FILE:
                 cartridgeSocket.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
-            case controls.TAPE_LOAD_FILE:
+            case pc.TAPE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
                 break;
-            case controls.TAPE_LOAD_URL:
+            case pc.TAPE_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
-            case controls.TAPE_REMOVE:
+            case pc.TAPE_REMOVE:
                 if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
                 break;
-            case controls.TAPE_EMPTY:
+            case pc.TAPE_EMPTY:
                 if (!mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
                 break;
-            case controls.TAPE_SAVE_FILE:
-                if (secPort) return this.controlActivated(controls.TAPE_AUTO_RUN, altPower, false);
+            case pc.TAPE_SAVE_FILE:
+                if (secPort) return this.controlActivated(pc.TAPE_AUTO_RUN, altPower, false);
                 cassetteDeck.saveTapeFile();
                 break;
-            case controls.TAPE_REWIND:
+            case pc.TAPE_REWIND:
                 cassetteDeck.userRewind();
                 break;
-            case controls.TAPE_TO_END:
+            case pc.TAPE_TO_END:
                 cassetteDeck.userSeekToEnd();
                 break;
-            case controls.TAPE_SEEK_BACK:
+            case pc.TAPE_SEEK_BACK:
                 cassetteDeck.userSeekBackward();
                 break;
-            case controls.TAPE_SEEK_FWD:
+            case pc.TAPE_SEEK_FWD:
                 cassetteDeck.userSeekForward();
                 break;
-            case controls.TAPE_AUTO_RUN:
+            case pc.TAPE_AUTO_RUN:
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
-            case controls.AUTO_LOAD_FILE:
+            case pc.AUTO_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
-            case controls.AUTO_LOAD_URL:
+            case pc.AUTO_LOAD_URL:
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
-            case controls.SCREEN_CRT_MODE:
+            case pc.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
-            case controls.SCREEN_CRT_FILTER:
+            case pc.SCREEN_CRT_FILTER:
                 monitor.crtFilterToggle(); break;
-            case controls.SCREEN_FULLSCREEN:
+            case pc.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
-            case controls.SCREEN_DEFAULTS:
+            case pc.SCREEN_DEFAULTS:
                 machineControls.processControlState(wmsx.MachineControls.DEFAULTS, true);
                 monitor.setDefaults();
                 break;
-            case controls.SCREEN_TOGGLE_MENU:
+            case pc.SCREEN_TOGGLE_MENU:
                 screen.toggleMenuByKey();
                 break;
-            case controls.SCREEN_OPEN_HELP:
+            case pc.SCREEN_OPEN_HELP:
                 screen.openHelp();
                 break;
-            case controls.SCREEN_OPEN_ABOUT:
+            case pc.SCREEN_OPEN_ABOUT:
                 screen.openAbout();
                 break;
-            case controls.SCREEN_OPEN_SETTINGS:
-                if (altPower) return this.controlActivated(controls.SCREEN_DEFAULTS);
+            case pc.SCREEN_OPEN_SETTINGS:
+                if (altPower) return this.controlActivated(pc.SCREEN_DEFAULTS);
                 screen.openSettings();
                 break;
-            case controls.SCREEN_OPEN_QUICK_OPTIONS:
+            case pc.SCREEN_OPEN_QUICK_OPTIONS:
                 screen.openQuickOptionsDialog();
                 break;
-            case controls.SCREEN_OPEN_TOUCH_CONFIG:
+            case pc.SCREEN_OPEN_TOUCH_CONFIG:
                 screen.openTouchConfigDialog();
                 break;
-            case controls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD:
+            case pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD:
                 screen.toggleVirtualKeyboard();
                 break;
-            case controls.SCREEN_OPEN_NETPLAY:
+            case pc.SCREEN_OPEN_NETPLAY:
                 screen.openNetPlayDialog();
                 break;
-            case controls.KEYBOARD_TOGGLE_HOST_LAYOUT:
+            case pc.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardLayout(); break;
-            case controls.JOYSTICKS_TOGGLE_MODE:
+            case pc.JOYSTICKS_TOGGLE_MODE:
                 controllersHub.toggleJoystickMode(); break;
-            case controls.JOYKEYS_TOGGLE_MODE:
+            case pc.JOYKEYS_TOGGLE_MODE:
                 controllersHub.toggleJoykeysMode(); break;
-            case controls.MOUSE_TOGGLE_MODE:
+            case pc.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(); break;
-            case controls.TOUCH_TOGGLE_MODE:
+            case pc.TOUCH_TOGGLE_MODE:
                 controllersHub.toggleTouchControlsMode(altPower); break;       // altPower for skip auto option
-            case controls.TOUCH_TOGGLE_DIR_BIG:
+            case pc.TOUCH_TOGGLE_DIR_BIG:
                 controllersHub.getTouchControls().toggleDirBig(); break;
-            case controls.TURBO_FIRE_TOGGLE:
+            case pc.TURBO_FIRE_TOGGLE:
                 controllersHub.toggleTurboFireSpeed(); break;
-            case controls.HAPTIC_FEEDBACK_TOGGLE_MODE:
+            case pc.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 controllersHub.toggleHapticFeedback(); break;
-            case controls.COPY_STRING:
+            case pc.COPY_STRING:
                 screen.executeTextCopy(); break;
-            case controls.PASTE_STRING:
+            case pc.PASTE_STRING:
                 screen.toggleTextPasteDialog(); break;
-            case controls.ENTER_STRING:
+            case pc.ENTER_STRING:
                 screen.toggleTextEntryDialog(); break;
-            case controls.CAPTURE_SCREEN:
+            case pc.CAPTURE_SCREEN:
                 screen.saveScreenCapture(); break;
-            case controls.SPEAKER_BUFFER_TOGGLE:
+            case pc.SPEAKER_BUFFER_TOGGLE:
                 speaker.toggleBufferBaseSize(); break;
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {
-            case controls.SCREEN_ASPECT_MINUS:
+            case pc.SCREEN_ASPECT_MINUS:
                 monitor.displayAspectDecrease(); break;
-            case controls.SCREEN_ASPECT_PLUS:
+            case pc.SCREEN_ASPECT_PLUS:
                 monitor.displayAspectIncrease(); break;
-            case controls.SCREEN_SCALE_MINUS:
+            case pc.SCREEN_SCALE_MINUS:
                 monitor.displayScaleDecrease(); break;
-            case controls.SCREEN_SCALE_PLUS:
+            case pc.SCREEN_SCALE_PLUS:
                 monitor.displayScaleIncrease(); break;
         }
     };
@@ -252,71 +253,71 @@ wmsx.DOMPeripheralControls = function(room) {
     var initKeys = function() {
         var k = wmsx.DOMKeys;
 
-        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = controls.AUTO_LOAD_FILE;
-        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL | k.ALT] = controls.AUTO_LOAD_URL;
+        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = pc.AUTO_LOAD_FILE;
+        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL | k.ALT] = pc.AUTO_LOAD_URL;
 
-        keyCodeMap[KEY_STATE_FILE | k.CONTROL | k.ALT] = controls.MACHINE_SAVE_STATE_FILE;
+        keyCodeMap[KEY_STATE_FILE | k.CONTROL | k.ALT] = pc.MACHINE_SAVE_STATE_FILE;
 
-        keyCodeMap[KEY_DISK] = controls.DISK_LOAD_FILES;
-        keyCodeMap[KEY_DISK | k.CONTROL] = controls.DISK_EMPTY;
-        keyCodeMap[KEY_DISK | k.ALT] = controls.DISK_REMOVE;
-        keyCodeMap[KEY_DISK | k.CONTROL | k.ALT] = controls.DISK_SAVE_FILE;
+        keyCodeMap[KEY_DISK] = pc.DISK_LOAD_FILES;
+        keyCodeMap[KEY_DISK | k.CONTROL] = pc.DISK_EMPTY;
+        keyCodeMap[KEY_DISK | k.ALT] = pc.DISK_REMOVE;
+        keyCodeMap[KEY_DISK | k.CONTROL | k.ALT] = pc.DISK_SAVE_FILE;
 
-        keyCodeMap[KEY_DISK_SELECT | k.ALT]  = controls.DISK_SELECT;
-        keyCodeMap[KEY_DISK_SELECT2 | k.ALT] = controls.DISK_SELECT;
-        keyCodeMap[KEY_DISK_PREV | k.ALT]    = controls.DISK_PREVIOUS;
-        keyCodeMap[KEY_DISK_NEXT | k.ALT]    = controls.DISK_NEXT;
+        keyCodeMap[KEY_DISK_SELECT | k.ALT]  = pc.DISK_SELECT;
+        keyCodeMap[KEY_DISK_SELECT2 | k.ALT] = pc.DISK_SELECT;
+        keyCodeMap[KEY_DISK_PREV | k.ALT]    = pc.DISK_PREVIOUS;
+        keyCodeMap[KEY_DISK_NEXT | k.ALT]    = pc.DISK_NEXT;
 
-        keyCodeMap[KEY_CART] = controls.CARTRIDGE_LOAD_FILE;
-        keyCodeMap[KEY_CART | k.ALT] = controls.CARTRIDGE_REMOVE;
-        keyCodeMap[KEY_CART | k.CONTROL] = controls.CARTRIDGE_LOAD_DATA_FILE;
-        keyCodeMap[KEY_CART | k.CONTROL | k.ALT] = controls.CARTRIDGE_SAVE_DATA_FILE;
+        keyCodeMap[KEY_CART] = pc.CARTRIDGE_LOAD_FILE;
+        keyCodeMap[KEY_CART | k.ALT] = pc.CARTRIDGE_REMOVE;
+        keyCodeMap[KEY_CART | k.CONTROL] = pc.CARTRIDGE_LOAD_DATA_FILE;
+        keyCodeMap[KEY_CART | k.CONTROL | k.ALT] = pc.CARTRIDGE_SAVE_DATA_FILE;
 
-        keyCodeMap[KEY_TAPE]  = controls.TAPE_LOAD_FILE;
-        keyCodeMap[KEY_TAPE | k.CONTROL]  = controls.TAPE_EMPTY;
-        keyCodeMap[KEY_TAPE | k.ALT]  = controls.TAPE_REMOVE;
-        keyCodeMap[KEY_TAPE | k.CONTROL | k.ALT]  = controls.TAPE_SAVE_FILE;
+        keyCodeMap[KEY_TAPE]  = pc.TAPE_LOAD_FILE;
+        keyCodeMap[KEY_TAPE | k.CONTROL]  = pc.TAPE_EMPTY;
+        keyCodeMap[KEY_TAPE | k.ALT]  = pc.TAPE_REMOVE;
+        keyCodeMap[KEY_TAPE | k.CONTROL | k.ALT]  = pc.TAPE_SAVE_FILE;
 
-        keyCodeMap[KEY_TAPE_REW | k.CONTROL | k.ALT]  = controls.TAPE_REWIND;
-        keyCodeMap[KEY_TAPE_END | k.CONTROL | k.ALT]  = controls.TAPE_TO_END;
-        keyCodeMap[KEY_TAPE_BCK | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_BACK;
-        keyCodeMap[KEY_TAPE_FWD | k.CONTROL | k.ALT]  = controls.TAPE_SEEK_FWD;
+        keyCodeMap[KEY_TAPE_REW | k.CONTROL | k.ALT]  = pc.TAPE_REWIND;
+        keyCodeMap[KEY_TAPE_END | k.CONTROL | k.ALT]  = pc.TAPE_TO_END;
+        keyCodeMap[KEY_TAPE_BCK | k.CONTROL | k.ALT]  = pc.TAPE_SEEK_BACK;
+        keyCodeMap[KEY_TAPE_FWD | k.CONTROL | k.ALT]  = pc.TAPE_SEEK_FWD;
 
-        keyCodeMap[KEY_KEYBOARD_TOGGLE | k.ALT]       = controls.KEYBOARD_TOGGLE_HOST_LAYOUT;
-        keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = controls.JOYSTICKS_TOGGLE_MODE;
-        keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = controls.JOYKEYS_TOGGLE_MODE;
-        keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = controls.MOUSE_TOGGLE_MODE;
-        keyCodeMap[KEY_TOUCH_TOGGLE | k.ALT]          = controls.TOUCH_TOGGLE_MODE;
-        keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = controls.TURBO_FIRE_TOGGLE;
+        keyCodeMap[KEY_KEYBOARD_TOGGLE | k.ALT]       = pc.KEYBOARD_TOGGLE_HOST_LAYOUT;
+        keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = pc.JOYSTICKS_TOGGLE_MODE;
+        keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = pc.JOYKEYS_TOGGLE_MODE;
+        keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = pc.MOUSE_TOGGLE_MODE;
+        keyCodeMap[KEY_TOUCH_TOGGLE | k.ALT]          = pc.TOUCH_TOGGLE_MODE;
+        keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = pc.TURBO_FIRE_TOGGLE;
 
-        keyCodeMap[KEY_CRT_FILTER | k.ALT]      = controls.SCREEN_CRT_FILTER;
-        keyCodeMap[KEY_CRT_MODE | k.ALT] 	    = controls.SCREEN_CRT_MODE;
+        keyCodeMap[KEY_CRT_FILTER | k.ALT]      = pc.SCREEN_CRT_FILTER;
+        keyCodeMap[KEY_CRT_MODE | k.ALT] 	    = pc.SCREEN_CRT_MODE;
         //keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
-        keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= controls.SCREEN_OPEN_QUICK_OPTIONS;
-        keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= controls.SCREEN_OPEN_TOUCH_CONFIG;
+        keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= pc.SCREEN_OPEN_QUICK_OPTIONS;
+        keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= pc.SCREEN_OPEN_TOUCH_CONFIG;
 
-        keyCodeMap[KEY_FULLSCREEN | k.ALT]  = controls.SCREEN_FULLSCREEN;
+        keyCodeMap[KEY_FULLSCREEN | k.ALT]  = pc.SCREEN_FULLSCREEN;
 
-        keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = controls.SCREEN_SCALE_MINUS;
-        keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = controls.SCREEN_SCALE_PLUS;
+        keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;
+        keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = pc.SCREEN_SCALE_PLUS;
 
-        keyCodeMap[KEY_LEFT | k.CONTROL | k.ALT]   = controls.SCREEN_ASPECT_MINUS;
-        keyCodeMap[KEY_RIGHT | k.CONTROL | k.ALT]  = controls.SCREEN_ASPECT_PLUS;
+        keyCodeMap[KEY_LEFT | k.CONTROL | k.ALT]   = pc.SCREEN_ASPECT_MINUS;
+        keyCodeMap[KEY_RIGHT | k.CONTROL | k.ALT]  = pc.SCREEN_ASPECT_PLUS;
 
-        keyCodeMap[KEY_MENU]         	  = controls.SCREEN_TOGGLE_MENU;
-        keyCodeMap[KEY_DEFAULTS | k.ALT]  = controls.SCREEN_DEFAULTS;
+        keyCodeMap[KEY_MENU]         	  = pc.SCREEN_TOGGLE_MENU;
+        keyCodeMap[KEY_DEFAULTS | k.ALT]  = pc.SCREEN_DEFAULTS;
 
-        keyCodeMap[KEY_COPY | k.ALT]    = controls.COPY_STRING;
-        keyCodeMap[KEY_PASTE | k.ALT]   = controls.PASTE_STRING;
-        keyCodeMap[KEY_PASTE2 | k.ALT]  = controls.PASTE_STRING;
-        keyCodeMap[KEY_ENTER_STRING | k.ALT]   = controls.ENTER_STRING;
-        keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT] = controls.CAPTURE_SCREEN;
+        keyCodeMap[KEY_COPY | k.ALT]    = pc.COPY_STRING;
+        keyCodeMap[KEY_PASTE | k.ALT]   = pc.PASTE_STRING;
+        keyCodeMap[KEY_PASTE2 | k.ALT]  = pc.PASTE_STRING;
+        keyCodeMap[KEY_ENTER_STRING | k.ALT]   = pc.ENTER_STRING;
+        keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT] = pc.CAPTURE_SCREEN;
 
-        keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = controls.SPEAKER_BUFFER_TOGGLE;
+        keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = pc.SPEAKER_BUFFER_TOGGLE;
     };
 
 
-    var controls = wmsx.PeripheralControls;
+    var pc = wmsx.PeripheralControls;
 
     var machineControls;
     var screen;
@@ -385,6 +386,21 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_STATE_FILE     = wmsx.DOMKeys.VK_F12.c;
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
+
+    var netClientDisabledControls = new Set([
+        // TODO NetPlay
+        pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
+
+        pc.MACHINE_SELECT,
+        pc.COPY_STRING, pc.CAPTURE_SCREEN,
+
+        pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_REMOVE,
+        pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360, pc.DISK_SAVE_FILE, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
+        pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_REMOVE, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
+        pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_REMOVE, pc.TAPE_EMPTY, pc.TAPE_SAVE_FILE,
+        pc.TAPE_REWIND, pc.TAPE_TO_END, pc.TAPE_SEEK_FWD, pc.TAPE_SEEK_BACK, pc.TAPE_AUTO_RUN,
+        pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
+    ]);
 
 
     init();

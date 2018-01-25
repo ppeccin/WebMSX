@@ -93,7 +93,7 @@ wmsx.NetServer = function(room) {
                 data = dataFull;
             } else {
                 if (!dataNormal) {
-                    netUpdate.c = machineControlsToSend.length ? machineControlsToSend : undefined;
+                    netUpdate.c = machineControls.netGetControlsToSend();
                     netUpdate.k = keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined;
                     netUpdate.cp = controllersPortValuesToSend;
                     netUpdate.dd = diskDrive.netGetOperationsToSend();
@@ -116,18 +116,10 @@ wmsx.NetServer = function(room) {
         }
 
         nextUpdateFull = false;
-        machineControlsToSend.length = 0;
+        machineControls.netClearControlsToSend();
         keyboardMatrixChangesToSend.length = 0;
         diskDrive.netClearOperationsToSend();
         cassetteDeck.netClearOperationsToSend();
-    };
-
-    this.processMachineControlState = function (control, press) {
-        machineControlsSocket.controlStateChanged(control, press);
-
-        // Store changes to be sent to Clients
-        if (!localOnlyMachineControls.has(control))
-            machineControlsToSend.push((control << 4) | press );                 // binary encoded
     };
 
     this.processKeyboardMatrixChange = function(line, col, press) {
@@ -135,11 +127,6 @@ wmsx.NetServer = function(room) {
 
         // Store changes to be sent to Clients
         keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
-    };
-
-    this.processCheckPeripheralControl = function (control) {
-        // All controls allowed
-        return true;
     };
 
     this.readControllerPort = function(port) {
@@ -203,7 +190,7 @@ wmsx.NetServer = function(room) {
         } catch (e) {}
 
         sessionID = message.sessionID;
-        machineControlsToSend.length = 0;
+        machineControls.netClearControlsToSend();
         keyboardMatrixChangesToSend.length = 0;
         clientsMergedControllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
         clientsControllersPortValuesChanged = false;
@@ -313,7 +300,7 @@ wmsx.NetServer = function(room) {
         if (netUpdate.c) {
             for (var i = 0, changes = netUpdate.c, len = changes.length; i < len; ++i) {
                 var change = changes[i];
-                self.processMachineControlState(change >> 4, change & 0x01);                           // binary encoded
+                machineControls.processControlState(change >> 4, change & 0x01);                           // binary encoded
             }
         }
         if (netUpdate.k) {
@@ -387,13 +374,12 @@ wmsx.NetServer = function(room) {
 
 
     var machine = room.machine;
-    var machineControlsSocket = machine.getMachineControlsSocket();
+    var machineControls = room.machineControls;
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 
-    var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                 // pre allocate empty Array
     var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;     // pre allocate empty Array
     var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
@@ -415,15 +401,6 @@ wmsx.NetServer = function(room) {
     var rtcConnectionConfig;
     var dataChannelConfig;
 
-
-    var mc = wmsx.MachineControls;
-    var localOnlyMachineControls = new Set([
-        mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
-        mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
-        mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
-        mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
-        mc.POWER_FRY, mc.VSYNCH, mc.TRACE
-    ]);
 
     var CONT_PORT_ALL_RELEASED = 0x7f;
 

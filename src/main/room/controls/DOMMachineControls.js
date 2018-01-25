@@ -34,12 +34,25 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     };
 
     function processControlState(control, press) {
-        if (room.netController)
-            room.netController.processMachineControlState(control, press);
-        else
-            machineControlsSocket.controlStateChanged(control, press);
+        // Check for NetPlay blocked controls
+        if (room.netPlayMode === 2 && netClientDisabledControls.has(control))
+            return room.showOSD("Function not available in NetPlay Client mode", true, true);
+
+        // Store changes to be sent to peers
+        if (!(room.netPlayMode === 1 && netServerLocalOnlyControls.has(control)))
+            netControlsToSend.push((control << 4) | press );                 // binary encoded
+
+        // Do not apply control now if Client
+        if (room.netPlayMode === 2) return;
+
+        applyControlState(control, press);
     }
     this.processControlState = processControlState;
+
+    function applyControlState(control, press) {
+        machineControlsSocket.controlStateChanged(control, press);
+    }
+    this.applyControlState = applyControlState;
 
     this.getControlReport = function(control) {
         return machineControlsSocket.getControlReport(control);
@@ -54,71 +67,82 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var initKeys = function() {
         var k = wmsx.DOMKeys;
 
-        keyCodeMap[KEY_POWER]                   = controls.POWER;
-        keyCodeMap[KEY_POWER | k.ALT]           = controls.POWER;
+        keyCodeMap[KEY_POWER]                   = mc.POWER;
+        keyCodeMap[KEY_POWER | k.ALT]           = mc.POWER;
 
-        keyCodeMap[KEY_POWER | k.SHIFT]         = controls.RESET;
-        keyCodeMap[KEY_POWER | k.SHIFT | k.ALT] = controls.RESET;
+        keyCodeMap[KEY_POWER | k.SHIFT]         = mc.RESET;
+        keyCodeMap[KEY_POWER | k.SHIFT | k.ALT] = mc.RESET;
 
-        keyCodeMap[KEY_SPEED]                   = controls.FAST_SPEED;
-        keyCodeMap[KEY_SPEED | k.ALT]           = controls.FAST_SPEED;
-        keyCodeMap[KEY_SPEED | k.SHIFT]         = controls.SLOW_SPEED;
-        keyCodeMap[KEY_SPEED | k.SHIFT | k.ALT] = controls.SLOW_SPEED;
+        keyCodeMap[KEY_SPEED]                   = mc.FAST_SPEED;
+        keyCodeMap[KEY_SPEED | k.ALT]           = mc.FAST_SPEED;
+        keyCodeMap[KEY_SPEED | k.SHIFT]         = mc.SLOW_SPEED;
+        keyCodeMap[KEY_SPEED | k.SHIFT | k.ALT] = mc.SLOW_SPEED;
 
-        keyCodeMap[KEY_INC_SPEED | k.SHIFT | k.ALT]    = controls.INC_SPEED;
-        keyCodeMap[KEY_DEC_SPEED | k.SHIFT | k.ALT]    = controls.DEC_SPEED;
-        keyCodeMap[KEY_NORMAL_SPEED | k.SHIFT | k.ALT] = controls.NORMAL_SPEED;
-        keyCodeMap[KEY_MIN_SPEED | k.SHIFT | k.ALT]    = controls.MIN_SPEED;
+        keyCodeMap[KEY_INC_SPEED | k.SHIFT | k.ALT]    = mc.INC_SPEED;
+        keyCodeMap[KEY_DEC_SPEED | k.SHIFT | k.ALT]    = mc.DEC_SPEED;
+        keyCodeMap[KEY_NORMAL_SPEED | k.SHIFT | k.ALT] = mc.NORMAL_SPEED;
+        keyCodeMap[KEY_MIN_SPEED | k.SHIFT | k.ALT]    = mc.MIN_SPEED;
 
-        keyCodeMap[KEY_PAUSE | k.ALT]           = controls.PAUSE;
-        keyCodeMap[KEY_PAUSE | k.SHIFT | k.ALT] = controls.PAUSE_AUDIO_ON;
-        keyCodeMap[KEY_FRAME | k.ALT]           = controls.FRAME;
-        keyCodeMap[KEY_FRAMEa | k.ALT]          = controls.FRAME;
-        keyCodeMap[KEY_TRACE | k.ALT]           = controls.TRACE;
-        keyCodeMap[KEY_DEBUG | k.ALT]           = controls.DEBUG;
-        keyCodeMap[KEY_SPRITE_MODE | k.ALT]     = controls.SPRITE_MODE;
-        keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]  = controls.VIDEO_STANDARD;
-        keyCodeMap[KEY_VSYNCH | k.ALT]          = controls.VSYNCH;
-        keyCodeMap[KEY_CPU_TURBO | k.ALT]       = controls.CPU_TURBO_MODE;
-        keyCodeMap[KEY_VDP_TURBO | k.ALT]       = controls.VDP_TURBO_MODE;
+        keyCodeMap[KEY_PAUSE | k.ALT]           = mc.PAUSE;
+        keyCodeMap[KEY_PAUSE | k.SHIFT | k.ALT] = mc.PAUSE_AUDIO_ON;
+        keyCodeMap[KEY_FRAME | k.ALT]           = mc.FRAME;
+        keyCodeMap[KEY_FRAMEa | k.ALT]          = mc.FRAME;
+        keyCodeMap[KEY_TRACE | k.ALT]           = mc.TRACE;
+        keyCodeMap[KEY_DEBUG | k.ALT]           = mc.DEBUG;
+        keyCodeMap[KEY_SPRITE_MODE | k.ALT]     = mc.SPRITE_MODE;
+        keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]  = mc.VIDEO_STANDARD;
+        keyCodeMap[KEY_VSYNCH | k.ALT]          = mc.VSYNCH;
+        keyCodeMap[KEY_CPU_TURBO | k.ALT]       = mc.CPU_TURBO_MODE;
+        keyCodeMap[KEY_VDP_TURBO | k.ALT]       = mc.VDP_TURBO_MODE;
 
-        keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_0;
-        keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = controls.SAVE_STATE_0;
-        keyCodeMap[KEY_STATE_1 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_1;
-        keyCodeMap[KEY_STATE_2 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_2;
-        keyCodeMap[KEY_STATE_3 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_3;
-        keyCodeMap[KEY_STATE_4 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_4;
-        keyCodeMap[KEY_STATE_5 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_5;
-        keyCodeMap[KEY_STATE_6 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_6;
-        keyCodeMap[KEY_STATE_7 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_7;
-        keyCodeMap[KEY_STATE_8 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_8;
-        keyCodeMap[KEY_STATE_9 | k.CONTROL | k.ALT]   = controls.SAVE_STATE_9;
-        keyCodeMap[KEY_STATE_10 | k.CONTROL | k.ALT]  = controls.SAVE_STATE_10;
-        keyCodeMap[KEY_STATE_11 | k.CONTROL | k.ALT]  = controls.SAVE_STATE_11;
-        keyCodeMap[KEY_STATE_11a | k.CONTROL | k.ALT] = controls.SAVE_STATE_11;
-        keyCodeMap[KEY_STATE_12 | k.CONTROL | k.ALT]  = controls.SAVE_STATE_12;
-        keyCodeMap[KEY_STATE_12a | k.CONTROL | k.ALT] = controls.SAVE_STATE_12;
+        keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_0;
+        keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = mc.SAVE_STATE_0;
+        keyCodeMap[KEY_STATE_1 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_1;
+        keyCodeMap[KEY_STATE_2 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_2;
+        keyCodeMap[KEY_STATE_3 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_3;
+        keyCodeMap[KEY_STATE_4 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_4;
+        keyCodeMap[KEY_STATE_5 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_5;
+        keyCodeMap[KEY_STATE_6 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_6;
+        keyCodeMap[KEY_STATE_7 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_7;
+        keyCodeMap[KEY_STATE_8 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_8;
+        keyCodeMap[KEY_STATE_9 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_9;
+        keyCodeMap[KEY_STATE_10 | k.CONTROL | k.ALT]  = mc.SAVE_STATE_10;
+        keyCodeMap[KEY_STATE_11 | k.CONTROL | k.ALT]  = mc.SAVE_STATE_11;
+        keyCodeMap[KEY_STATE_11a | k.CONTROL | k.ALT] = mc.SAVE_STATE_11;
+        keyCodeMap[KEY_STATE_12 | k.CONTROL | k.ALT]  = mc.SAVE_STATE_12;
+        keyCodeMap[KEY_STATE_12a | k.CONTROL | k.ALT] = mc.SAVE_STATE_12;
 
-        keyCodeMap[KEY_STATE_0 | k.ALT]   = controls.LOAD_STATE_0;
-        keyCodeMap[KEY_STATE_0a | k.ALT]  = controls.LOAD_STATE_0;
-        keyCodeMap[KEY_STATE_1 | k.ALT]   = controls.LOAD_STATE_1;
-        keyCodeMap[KEY_STATE_2 | k.ALT]   = controls.LOAD_STATE_2;
-        keyCodeMap[KEY_STATE_3 | k.ALT]   = controls.LOAD_STATE_3;
-        keyCodeMap[KEY_STATE_4 | k.ALT]   = controls.LOAD_STATE_4;
-        keyCodeMap[KEY_STATE_5 | k.ALT]   = controls.LOAD_STATE_5;
-        keyCodeMap[KEY_STATE_6 | k.ALT]   = controls.LOAD_STATE_6;
-        keyCodeMap[KEY_STATE_7 | k.ALT]   = controls.LOAD_STATE_7;
-        keyCodeMap[KEY_STATE_8 | k.ALT]   = controls.LOAD_STATE_8;
-        keyCodeMap[KEY_STATE_9 | k.ALT]   = controls.LOAD_STATE_9;
-        keyCodeMap[KEY_STATE_10 | k.ALT]  = controls.LOAD_STATE_10;
-        keyCodeMap[KEY_STATE_11 | k.ALT]  = controls.LOAD_STATE_11;
-        keyCodeMap[KEY_STATE_11a | k.ALT] = controls.LOAD_STATE_11;
-        keyCodeMap[KEY_STATE_12 | k.ALT]  = controls.LOAD_STATE_12;
-        keyCodeMap[KEY_STATE_12a | k.ALT] = controls.LOAD_STATE_12;
+        keyCodeMap[KEY_STATE_0 | k.ALT]   = mc.LOAD_STATE_0;
+        keyCodeMap[KEY_STATE_0a | k.ALT]  = mc.LOAD_STATE_0;
+        keyCodeMap[KEY_STATE_1 | k.ALT]   = mc.LOAD_STATE_1;
+        keyCodeMap[KEY_STATE_2 | k.ALT]   = mc.LOAD_STATE_2;
+        keyCodeMap[KEY_STATE_3 | k.ALT]   = mc.LOAD_STATE_3;
+        keyCodeMap[KEY_STATE_4 | k.ALT]   = mc.LOAD_STATE_4;
+        keyCodeMap[KEY_STATE_5 | k.ALT]   = mc.LOAD_STATE_5;
+        keyCodeMap[KEY_STATE_6 | k.ALT]   = mc.LOAD_STATE_6;
+        keyCodeMap[KEY_STATE_7 | k.ALT]   = mc.LOAD_STATE_7;
+        keyCodeMap[KEY_STATE_8 | k.ALT]   = mc.LOAD_STATE_8;
+        keyCodeMap[KEY_STATE_9 | k.ALT]   = mc.LOAD_STATE_9;
+        keyCodeMap[KEY_STATE_10 | k.ALT]  = mc.LOAD_STATE_10;
+        keyCodeMap[KEY_STATE_11 | k.ALT]  = mc.LOAD_STATE_11;
+        keyCodeMap[KEY_STATE_11a | k.ALT] = mc.LOAD_STATE_11;
+        keyCodeMap[KEY_STATE_12 | k.ALT]  = mc.LOAD_STATE_12;
+        keyCodeMap[KEY_STATE_12a | k.ALT] = mc.LOAD_STATE_12;
     };
 
 
-    var controls = wmsx.MachineControls;
+    // NetPlay  -------------------------------------------
+
+    this.netGetControlsToSend = function() {
+        return netControlsToSend.length ? netControlsToSend : undefined;
+    };
+
+    this.netClearControlsToSend = function() {
+        netControlsToSend.length = 0;
+    };
+
+
+    var mc = wmsx.MachineControls;
 
     var machineControlsSocket;
     var monitor;
@@ -128,9 +152,10 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
 
     var controlStateMap =  {};
 
+    var netControlsToSend = new Array(100); netControlsToSend.length = 0;     // pre allocate empty Array
+
 
     // Default Key Values
-
 
     var KEY_POWER            = wmsx.DOMKeys.VK_F11.c;
 
@@ -169,6 +194,23 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var KEY_STATE_11a        = wmsx.DOMKeys.VK_FF_MINUS.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
+
+    var netClientDisabledControls = new Set([
+        // TODO NetPlay
+        mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
+        mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
+        mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
+        mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
+        mc.POWER_FRY, mc.VSYNCH, mc.TRACE
+    ]);
+
+    var netServerLocalOnlyControls = new Set([
+        mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
+        mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
+        mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
+        mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
+        mc.POWER_FRY, mc.VSYNCH, mc.TRACE
+    ]);
 
 
     init();

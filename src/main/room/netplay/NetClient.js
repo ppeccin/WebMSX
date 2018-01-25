@@ -70,27 +70,9 @@ wmsx.NetClient = function(room) {
         // Client gets clocks from Server at onServerNetUpdate()
     };
 
-    this.processMachineControlState = function (control, press) {
-        // Reject controls not available to NetPlay Clients
-        if (disabledMachineControls.has(control))
-            return room.showOSD("Function not available in NetPlay Client mode", true, true);
-
-        // Store and send only to server, do not process locally
-        machineControlsToSend.push((control << 4) | press );                    // binary encoded
-    };
-
     this.processKeyboardMatrixChange = function(line, col, press) {
         // Store and send only to server, do not process locally
         keyboardMatrixChangesToSend.push((line << 8) | (col << 4) | press );    // binary encoded
-    };
-
-    this.processCheckPeripheralControl = function (control) {
-        // Reject controls not available to NetPlay Clients
-        if (disabledPeripheralControls.has(control)) {
-            room.showOSD("Function not available in NetPlay Client mode", true, true);
-            return false;
-        }
-        return true;
     };
 
     this.readControllerPort = function(port) {
@@ -169,7 +151,7 @@ wmsx.NetClient = function(room) {
         room.showOSD('NetPlay Session "' + sessionID + '" joined as "' + nick + '"', true);
         wmsx.Util.log('NetPlay Session "' + sessionID + '" joined as "' + nick + '"');
 
-        machineControlsToSend.length = 0;
+        machineControls.netClearControlsToSend();
         keyboardMatrixChangesToSend.length = 0;
         controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
         room.enterNetClientMode(self);
@@ -230,7 +212,7 @@ wmsx.NetClient = function(room) {
                 var controls = netUpdate.c;
                 for (var i = 0, len = controls.length; i < len; ++i) {
                     var control = controls[i];
-                    machineControlsSocket.controlStateChanged(control >> 4, control & 0x01);        // binary encoded
+                    machineControls.applyControlState(control >> 4, control & 0x01);        // binary encoded
                 }
             }
             if (netUpdate.k) {
@@ -266,7 +248,7 @@ wmsx.NetClient = function(room) {
         if (dataChannelActive) {
             // Use DataChannel if available
             dataChannel.send(JSON.stringify({
-                c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                c: machineControls.netGetControlsToSend(),
                 k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined,
                 cp: controllersPortValuesChangeToSend
             }));
@@ -274,13 +256,13 @@ wmsx.NetClient = function(room) {
             // Or fallback to WebSocket relayed through the Session Server (BAD!)
             ws.send(JSON.stringify({
                 wmsxUpdate: {
-                    c: machineControlsToSend.length ? machineControlsToSend : undefined,
+                    c: machineControls.netGetControlsToSend(),
                     k: keyboardMatrixChangesToSend.length ? keyboardMatrixChangesToSend : undefined,
                     cp: controllersPortValuesChangeToSend
                 }
             }));
         }
-        machineControlsToSend.length = 0;
+        machineControls.netClearControlsToSend();
         keyboardMatrixChangesToSend.length = 0;
     }
 
@@ -319,7 +301,7 @@ wmsx.NetClient = function(room) {
 
 
     var machine = room.machine;
-    var machineControlsSocket = machine.getMachineControlsSocket();
+    var machineControls = room.machineControls;
     var keyboard = room.keyboard;
     var controllersHub = room.controllersHub;
     var diskDrive = room.diskDrive;
@@ -327,7 +309,6 @@ wmsx.NetClient = function(room) {
 
     var controllersPortValues = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
-    var machineControlsToSend = new Array(100); machineControlsToSend.length = 0;                   // pre allocate empty Array
     var keyboardMatrixChangesToSend = new Array(100); keyboardMatrixChangesToSend.length = 0;       // pre allocate empty Array
     var controllersPortValuesToSend = [ CONT_PORT_ALL_RELEASED, CONT_PORT_ALL_RELEASED ];
 
@@ -346,33 +327,6 @@ wmsx.NetClient = function(room) {
     var dataChannel;
     var dataChannelActive = false;
     var dataChannelFragmentData = "";
-
-
-    var mc = wmsx.MachineControls;
-    var disabledMachineControls = new Set([
-        // TODO NetPlay
-        mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
-        mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
-        mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,
-        mc.LOAD_STATE_7, mc.LOAD_STATE_8, mc.LOAD_STATE_9, mc.LOAD_STATE_10, mc.LOAD_STATE_11, mc.LOAD_STATE_12,
-        mc.POWER_FRY, mc.VSYNCH, mc.TRACE
-    ]);
-
-    var pc = wmsx.PeripheralControls;
-    var disabledPeripheralControls = new Set([
-        // TODO NetPlay
-        pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
-
-        pc.MACHINE_SELECT,
-        pc.COPY_STRING, pc.CAPTURE_SCREEN,
-
-        pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_REMOVE,
-        pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360, pc.DISK_SAVE_FILE, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
-        pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_REMOVE, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
-        pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_REMOVE, pc.TAPE_EMPTY, pc.TAPE_SAVE_FILE,
-        pc.TAPE_REWIND, pc.TAPE_TO_END, pc.TAPE_SEEK_FWD, pc.TAPE_SEEK_BACK, pc.TAPE_AUTO_RUN,
-        pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
-    ]);
 
 
     var DATA_CHANNEL_FRAG_SIZE = 16200;
