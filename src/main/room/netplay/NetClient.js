@@ -205,6 +205,7 @@ wmsx.NetClient = function(room) {
             // Apply controls changes from Server
             if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
             if (netUpdate.k) keyboard.netClientApplyMatrixChanges(netUpdate.k);
+            if (netUpdate.cs) cartridgeSlot.netClientProcessOperations(netUpdate.cs);
             if (netUpdate.cp) controllersHub.netClientSetPortValues(netUpdate.cp);
             if (netUpdate.dd) diskDrive.netClientProcessOperations(netUpdate.dd);
             if (netUpdate.cd) cassetteDeck.netClientProcessOperations(netUpdate.cd);
@@ -269,6 +270,7 @@ wmsx.NetClient = function(room) {
     var machine = room.machine;
     var machineControls = room.machineControls;
     var keyboard = room.keyboard;
+    var cartridgeSlot = room.cartridgeSlot;
     var controllersHub = room.controllersHub;
     var peripheralControls = room.peripheralControls;
     var diskDrive = room.diskDrive;

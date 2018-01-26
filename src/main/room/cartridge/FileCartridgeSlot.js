@@ -12,7 +12,9 @@ wmsx.FileCartridgeSlot = function(room) {
     };
 
     this.insertCartridge = function (cartridge, port, altPower) {
-        return cartridgeSocket.insertCartridge(cartridge, port, altPower);
+        cartridgeSocket.insertCartridge(cartridge, port, altPower);
+
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, c: cartridge.saveState(), p: port, a: altPower });
     };
 
     this.cartridgeInserted = function (port) {
@@ -20,16 +22,47 @@ wmsx.FileCartridgeSlot = function(room) {
     };
 
     this.removeCartridge = function (port, altPower) {
-        return cartridgeSocket.removeCartridge(port, altPower);
+        var removed = cartridgeSocket.removeCartridge(port, altPower);
+
+        if (removed && room.netPlayMode === 1) netOperationsToSend.push({ op: 1, p: port, a: altPower });
     };
 
     this.loadCartridgeData = function (port, name, arrContent) {
-        return cartridgeSocket.loadCartridgeData(port, name, arrContent);
+        var loaded = cartridgeSocket.loadCartridgeData(port, name, arrContent);
+
+        if (loaded && room.netPlayMode === 1) netOperationsToSend.push({ op: 2, p: port, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent) });
+
+        return loaded;
     };
 
     this.saveCartridgeDataFile = function (port) {
         var data = cartridgeSocket.getCartridgeData(port);
         fileDownloader.startDownloadBinary(data.fileName, data.content, data.desc);
+    };
+
+
+    // NetPlay  -------------------------------------------
+
+    this.netServerGetOperationsToSend = function() {
+        return netOperationsToSend.length ? netOperationsToSend : undefined;
+    };
+
+    this.netServerClearOperationsToSend = function() {
+        netOperationsToSend.length = 0;
+    };
+
+    this.netClientProcessOperations = function(ops) {
+        for (var i = 0, len = ops.length; i < len; ++i) {
+            var op = ops[i];
+            switch (op.op) {
+                case 0:
+                    cartridgeSocket.insertCartridge(wmsx.SlotCreator.recreateFromSaveState(op.c, cartridgeSocket.cartridgeInserted(op.p)), op.p, op.a); break;
+                case 1:
+                    cartridgeSocket.removeCartridge(op.p, op.a); break;
+                case 2:
+                    cartridgeSocket.loadCartridgeData(op.p, op.n, wmsx.Util.uncompressStringBase64ToInt8BitArray(op.c)); break;
+            }
+        }
     };
 
 

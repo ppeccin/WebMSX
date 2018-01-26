@@ -43,12 +43,12 @@ wmsx.FileDiskDrive = function(room) {
         } catch(ez) {
             wmsx.Util.error(ez);      // Error decompressing files. Abort
         }
-        return null;
+        return;
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
         var content = images.createFromFiles(0xF9, files);
-        if (!content) return null;
+        if (!content) return;
         if (addToStack && maxStackReachedMessage(drive)) return [];
 
         type = type || "Files as Disk";

@@ -83,6 +83,7 @@ wmsx.NetServer = function(room) {
                 if (!dataNormal) {
                     netUpdate.c = machineControls.netGetControlsToSend();
                     netUpdate.k = keyboard.netGetMatrixChangesToSend();
+                    netUpdate.cs = cartridgeSlot.netServerGetOperationsToSend();
                     netUpdate.cp = controllersHub.netGetPortValuesToSend();
                     netUpdate.dd = diskDrive.netServerGetOperationsToSend();
                     netUpdate.cd = cassetteDeck.netServerGetOperationsToSend();
@@ -104,6 +105,7 @@ wmsx.NetServer = function(room) {
         nextUpdateFull = false;
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
+        cartridgeSlot.netServerClearOperationsToSend();
         controllersHub.netClearPortValuesToSend();
         diskDrive.netServerClearOperationsToSend();
         cassetteDeck.netServerClearOperationsToSend();
@@ -168,6 +170,7 @@ wmsx.NetServer = function(room) {
         sessionID = message.sessionID;
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
+        cartridgeSlot.netServerClearOperationsToSend();
         controllersHub.netClearPortValuesToSend();
         controllersHub.netServerClearClientsInfo();
         diskDrive.netServerClearOperationsToSend();
@@ -322,6 +325,7 @@ wmsx.NetServer = function(room) {
     var machine = room.machine;
     var machineControls = room.machineControls;
     var keyboard = room.keyboard;
+    var cartridgeSlot = room.cartridgeSlot;
     var controllersHub = room.controllersHub;
     var peripheralControls = room.peripheralControls;
     var diskDrive = room.diskDrive;

@@ -237,8 +237,6 @@ wmsx.Machine = function(mainVideoClock) {
             } else
                 bus.insertSlot(slot, pri);
         }
-
-        saveStateSocket.externalStateChange();
     }
 
     function setVideoStandard(pVideoStandard, forceUpdate) {
@@ -605,17 +603,20 @@ wmsx.Machine = function(mainVideoClock) {
     function CartridgeSocket() {
         this.insertCartridge = function (cartridge, port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            if (cartridge === slotSocket.slotInserted(slotPos)) return;
-            slotSocket.insertSlot(cartridge, slotPos, altPower);
+            slotSocket.insertSlot(cartridge, slotPos, altPower, true);  // internal
             this.fireCartridgesStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
         };
         this.removeCartridge = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
-            if (slotSocket.slotInserted(slotPos) === null) return self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
-            slotSocket.insertSlot(null, slotPos, altPower);
+            if (slotSocket.slotInserted(slotPos) === null) {
+                self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
+                return false;
+            }
+            slotSocket.insertSlot(null, slotPos, altPower, true);     // internal
             this.fireCartridgesStateUpdate();
             self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + " removed", true);
+            return true;
         };
         this.cartridgeInserted = function (port) {
             return slotSocket.slotInserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
@@ -636,7 +637,7 @@ wmsx.Machine = function(mainVideoClock) {
         this.loadCartridgeData = function (port, name, arrContent) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             var cart = slotSocket.slotInserted(slotPos);
-            if (!cart) return null;
+            if (!cart) return;
             if (!cart.loadData(wmsx.Util.leafFilename(name), arrContent)) return;
             self.showOSD(cart.getDataDesc() + " loaded in Cartridge " + (port === 1 ? "2" : "1"), true);
             return arrContent;
@@ -663,12 +664,14 @@ wmsx.Machine = function(mainVideoClock) {
     // Slot Socket  ---------------------------------------------
 
     function SlotSocket() {
-        this.insertSlot = function (slot, slotPos, altPower) {
+        this.insertSlot = function (slot, slotPos, altPower, internal) {
             var powerWasOn = self.powerIsOn;
             if (powerWasOn && !altPower) self.powerOff();
             insertSlot(slot, slotPos);
             if (!altPower && (slot || powerWasOn)) self.userPowerOn(false);
             else if (slot && self.powerIsOn) slot.powerOn();
+
+            if (!internal) saveStateSocket.externalStateChange();
         };
         this.slotInserted = function (slotPos) {
             var res = getSlot(slotPos);

@@ -15,7 +15,7 @@ wmsx.FileCassetteDeck = function(room) {
 
     this.loadTapeFile = function(name, arrContent, altPower) {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
-            return null;
+            return;
 
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent), p: altPower });
 
