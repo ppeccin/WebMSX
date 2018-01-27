@@ -275,6 +275,11 @@ wmsx.Machine = function(mainVideoClock) {
         mainVideoClockUpdateSpeed();
     }
 
+    function setVSynchForcedPulldown(pulldown) {
+        vdp.setVSynchForcedPulldown(pulldown);
+    }
+    this.setVSynchForcedPulldown = setVSynchForcedPulldown;
+
     function saveState() {
         return {
             mn: self.machineName,

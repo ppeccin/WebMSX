@@ -65,6 +65,12 @@ wmsx.VDP = function(machine, cpu) {
         updateSynchronization();
     };
 
+    this.setVSynchForcedPulldown = function(pulldown) {
+        if (pulldownForced === pulldown) return;
+        pulldownForced = pulldown;
+        updateSynchronization();
+    };
+
     this.getVideoOutput = function() {
         return videoSignal;
     };
@@ -538,16 +544,20 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateSynchronization() {
+        // If we must, use a forced pulldown
+        if (pulldownForced)
+            pulldown = pulldownForced;
+
         // According to the native video frequency detected, target Video Standard and vSynchMode, use a specific pulldown configuration
-        if (vSynchMode === 1) {    // ON
+        else if (vSynchMode === 1) {    // ON
             // Will V-synch to host freq if detected and supported, or use optimal timer configuration)
             pulldown = videoStandard.pulldowns[wmsx.Clock.HOST_NATIVE_FPS] || videoStandard.pulldowns.TIMER;
-        } else {                  // OFF, DISABLED
+        } else {                        // OFF, DISABLED
             // No V-synch. Always use the optimal timer configuration)
             pulldown = videoStandard.pulldowns.TIMER;
         }
 
-        //console.log("Update Synchronization: " + pulldown.frequency);
+        console.log("Update Synchronization: " + pulldown.frequency);
     }
 
     // Total frame lines: 262 for NTSC, 313 for PAL
@@ -2275,7 +2285,7 @@ wmsx.VDP = function(machine, cpu) {
     var blinkEvenPage, blinkPageDuration, blinkPerLine;
 
     var vSynchMode;
-    var videoStandard, pulldown;
+    var videoStandard, pulldown, pulldownForced;
 
     var bufferPosition;
     var bufferLineAdvance;
