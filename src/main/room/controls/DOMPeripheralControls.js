@@ -253,8 +253,13 @@ wmsx.DOMPeripheralControls = function(room) {
             monitor.showOSD("Media change is disabled!", true, true);
             return true;
         }
+        if (room.netPlayMode === 2) {
+            monitor.showOSD("Media loading is disabled in NetPlay Client mode!", true, true);
+            return true;
+        }
         return false;
     };
+    this.mediaChangeDisabledWarning = mediaChangeDisabledWarning;
 
     var initKeys = function() {
         var k = wmsx.DOMKeys;

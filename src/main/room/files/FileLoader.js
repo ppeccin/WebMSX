@@ -14,7 +14,8 @@ wmsx.FileLoader = function() {
         saveStateSocket = machine.getSavestateSocket();
     };
 
-    this.connectPeripherals = function(pCartridgeSlot, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pPeripheralControls, pCartridgeSlot, pCassetteDeck, pDiskDrive) {
+        peripheralControls = pPeripheralControls;
         cartridgeSlot = pCartridgeSlot;
         cassetteDeck = pCassetteDeck;
         diskDrive = pDiskDrive;
@@ -387,8 +388,8 @@ wmsx.FileLoader = function() {
         e.stopPropagation();
         e.target.focus();
 
-        if (WMSX.MEDIA_CHANGE_DISABLED) return;
         if (!e.dataTransfer) return;
+        if (peripheralControls.mediaChangeDisabledWarning()) return;
 
         var wasPaused = machine.systemPause(true);
 
@@ -440,6 +441,7 @@ wmsx.FileLoader = function() {
     var biosSocket;
     var expansionSocket;
     var saveStateSocket;
+    var peripheralControls;
     var cartridgeSlot;
     var cassetteDeck;
     var diskDrive;

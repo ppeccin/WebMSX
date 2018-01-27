@@ -146,7 +146,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         self.screen = new wmsx.CanvasDisplay(screenElement);
         self.speaker = new wmsx.WebAudioSpeaker(screenElement);
 
-        self.fileLoader.connectPeripherals(self.cartridgeSlot, self.cassetteDeck, self.diskDrive);
+        self.fileLoader.connectPeripherals(self.peripheralControls, self.cartridgeSlot, self.cassetteDeck, self.diskDrive);
         self.fileDownloader.connectPeripherals(self.screen);
         self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.machineControls, self.peripheralControls, self.controllersHub, self.diskDrive, self.stateMedia);
         self.speaker.connectPeripherals(self.screen);
