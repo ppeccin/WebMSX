@@ -194,7 +194,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.toggleTextPasteDialog = function() {
         if (!signalIsOn) return this.showOSD("Text Paste only available when Power is ON!", true, true);
 
-        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(canvasOuter, this, controllersHub.getKeyboard());
+        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(canvasOuter, this, peripheralControls);
         pasteDialog.toggle();
         return false;
     };
@@ -203,7 +203,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!signalIsOn) return this.showOSD("Text Entry only available when Power is ON!", true, true);
 
         if (virtualKeyboardMode) setVirtualKeyboard(0);
-        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElementCenter, this, controllersHub.getKeyboard());
+        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElementCenter, this, peripheralControls);
         textEntryDialog.toggle();
         return false;
     };
@@ -826,7 +826,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         }
 
         if (isMobileDevice) {
-            var textButton = addPeripheralControlButton("wmsx-bar-text", -53, -51, "Toggle Text Input", wmsx.PeripheralControls.ENTER_STRING);
+            var textButton = addPeripheralControlButton("wmsx-bar-text", -53, -51, "Toggle Text Input", wmsx.PeripheralControls.OPEN_ENTER_STRING);
             textButton.classList.add("wmsx-mobile");
         }
 

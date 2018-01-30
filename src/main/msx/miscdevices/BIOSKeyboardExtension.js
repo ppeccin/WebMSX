@@ -3,12 +3,16 @@
 wmsx.BIOSKeyboardExtension = function(bus) {
 "use strict";
 
+    // ADDS string to the type sequence
     this.typeString = function(str) {
-        stringToType = str !== undefined && str !== null ? str.toString() : null;
+        if (str === undefined || str === null) return;
+        var addStr = str.toString();
+        if (!addStr) return;
 
-        if (stringToType) stringToType = stringToType.replace(/\r\n/g, '\r').replace(/\n/g, '\r');       // Normalize to the MSX like break
+        // Normalize to the MSX like break
+        addStr = addStr.replace(/\r\n/g, '\r').replace(/\n/g, '\r');
 
-        typeFromPosition = 0;
+        stringToType = (stringToType || "") + addStr;
     };
 
     this.cancelTypeString = function() {
@@ -42,7 +46,22 @@ wmsx.BIOSKeyboardExtension = function(bus) {
 
         // Update and check for termination
         typeFromPosition += str.length;
-        if (typeFromPosition >= stringToType.length) stringToType = null;
+        if (typeFromPosition >= stringToType.length) this.cancelTypeString();
+    };
+
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            s: stringToType && btoa(stringToType),
+            p: typeFromPosition
+        };
+    };
+
+    this.loadState = function(state) {
+        stringToType = state.s && atob(state.s);
+        typeFromPosition = state.p;
     };
 
 

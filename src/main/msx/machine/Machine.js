@@ -8,6 +8,7 @@ wmsx.Machine = function(mainVideoClock) {
     function init() {
         socketsCreate();
         mainComponentsCreate();
+        computeBasicAutoRunCommandParameters();
         self.setMachine(WMSX.MACHINE);
         self.setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
@@ -295,6 +296,7 @@ wmsx.Machine = function(mainVideoClock) {
             vs: videoStandard.name,
             s: speedControl,
             br: basicAutoRunDone,
+            bc: basicAutoRunCommand || "",
             vss: videoStandardSoft && videoStandardSoft.name,
             dd: diskDriveSocket.getDrive().saveState(),
             ct: cassetteSocket.getDeck().saveState(),
@@ -318,6 +320,7 @@ wmsx.Machine = function(mainVideoClock) {
         videoStandardSoft = s.vss && wmsx.VideoStandard[s.vss];
         speedControl = s.s || 1;
         basicAutoRunDone = !!s.br;
+        if (s.bc !== undefined) basicAutoRunCommand = s.bc;
         mainVideoClockUpdateSpeed();
         cpu.loadState(s.c);
         vdp.loadState(s.vd);
@@ -381,22 +384,21 @@ wmsx.Machine = function(mainVideoClock) {
         machineControlsSocket = new MachineControlsSocket();
     }
 
-    function typeBasicAutoRunCommand() {
-        if (!basicAutoRunDone) {
-            var type = WMSX.BASIC_ENTER ? WMSX.BASIC_ENTER + "\r" : "";
-            type += WMSX.BASIC_TYPE || "";
-            if (WMSX.BASIC_RUN)        bios.getKeyboardExtension().typeString('\r\r\rRUN "' + WMSX.BASIC_RUN + '"\r' + type);
-            else if (WMSX.BASIC_LOAD)  bios.getKeyboardExtension().typeString('\r\r\rLOAD "' + WMSX.BASIC_LOAD + '"\r' + type);
-            else if (WMSX.BASIC_BRUN)  bios.getKeyboardExtension().typeString('\r\r\rBLOAD "' + WMSX.BASIC_BRUN + '",r\r' + type);
-            else if (WMSX.BASIC_BLOAD) bios.getKeyboardExtension().typeString('\r\r\rBLOAD "' + WMSX.BASIC_BLOAD + '"\r' + type);
-            else {
-                cassetteSocket.typeAutoRunCommand();
-                if (type) bios.getKeyboardExtension().typeString(type);
-            }
+    function computeBasicAutoRunCommandParameters() {
+        basicAutoRunCommand = (WMSX.BASIC_ENTER ? WMSX.BASIC_ENTER + "\r" : "") + (WMSX.BASIC_TYPE || "");
+        if (WMSX.BASIC_RUN)        basicAutoRunCommand = '\r\r\rRUN "' + WMSX.BASIC_RUN + '"\r' + basicAutoRunCommand;
+        else if (WMSX.BASIC_LOAD)  basicAutoRunCommand = '\r\r\rLOAD "' + WMSX.BASIC_LOAD + '"\r' + basicAutoRunCommand;
+        else if (WMSX.BASIC_BRUN)  basicAutoRunCommand = '\r\r\rBLOAD "' + WMSX.BASIC_BRUN + '",r\r' + basicAutoRunCommand;
+        else if (WMSX.BASIC_BLOAD) basicAutoRunCommand = '\r\r\rBLOAD "' + WMSX.BASIC_BLOAD + '"\r' + basicAutoRunCommand;
+    }
 
+    function typeBasicAutoRunCommand() {
+        cassetteSocket.typeAutoRunCommand();
+        if (!basicAutoRunDone) {
+            if (basicAutoRunCommand) biosSocket.keyboardExtensionTypeString(basicAutoRunCommand);
             basicAutoRunDone = true;
-        } else
-            cassetteSocket.typeAutoRunCommand();
+            basicAutoRunCommand = undefined;
+        }
     }
 
 
@@ -408,7 +410,7 @@ wmsx.Machine = function(mainVideoClock) {
     var alternateSpeed = false;
 
     var isLoading = false;
-    var basicAutoRunDone = false;
+    var basicAutoRunDone = false, basicAutoRunCommand;
 
     var cpu;
     var bus;
@@ -585,6 +587,12 @@ wmsx.Machine = function(mainVideoClock) {
         };
         this.biosInserted = function () {
             return bios;
+        };
+        this.keyboardExtensionTypeString = function(str) {
+            if (bios) bios.getKeyboardExtension().typeString(str);
+        };
+        this.keyboardExtensionCancelTypeString = function() {
+            if (bios) bios.getKeyboardExtension().cancelTypeString();
         };
     }
 

@@ -356,7 +356,6 @@ wmsx.ControllersHub = function(room, machineControls) {
         return {
             t: touchControls.saveState(),
             h: hapticFeedbackEnabled
-
         };
     };
 

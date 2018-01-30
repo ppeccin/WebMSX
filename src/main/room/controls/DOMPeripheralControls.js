@@ -13,8 +13,9 @@ wmsx.DOMPeripheralControls = function(room) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pCartridgeSlot, pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pCartridgeSlot, pKeyboard, pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
         cartridgeSlot = pCartridgeSlot;
+        keyboard = pKeyboard;
         machineControls = pMachineControls;
         screen = pScreen;
         speaker = pSpeaker;
@@ -47,7 +48,7 @@ wmsx.DOMPeripheralControls = function(room) {
         return true;
     };
 
-    this.controlActivated = function(control, altPower, secPort) {
+    this.controlActivated = function(control, altPower, secPort, data) {
         if (room.netPlayMode === 2) {
             // Check for NetPlay blocked controls
             if (netClientDisabledControls.has(control))
@@ -226,10 +227,12 @@ wmsx.DOMPeripheralControls = function(room) {
                 controllersHub.toggleHapticFeedback(); break;
             case pc.COPY_STRING:
                 screen.executeTextCopy(); break;
-            case pc.PASTE_STRING:
+            case pc.OPEN_PASTE_STRING:
                 screen.toggleTextPasteDialog(); break;
-            case pc.ENTER_STRING:
+            case pc.OPEN_ENTER_STRING:
                 screen.toggleTextEntryDialog(); break;
+            case pc.TYPE_STRING:                        // No key, only sent programmatically
+                keyboard.typeString(data); break;
             case pc.CAPTURE_SCREEN:
                 screen.saveScreenCapture(); break;
             case pc.SPEAKER_BUFFER_TOGGLE:
@@ -319,9 +322,9 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_DEFAULTS | k.ALT]  = pc.SCREEN_DEFAULTS;
 
         keyCodeMap[KEY_COPY | k.ALT]    = pc.COPY_STRING;
-        keyCodeMap[KEY_PASTE | k.ALT]   = pc.PASTE_STRING;
-        keyCodeMap[KEY_PASTE2 | k.ALT]  = pc.PASTE_STRING;
-        keyCodeMap[KEY_ENTER_STRING | k.ALT]   = pc.ENTER_STRING;
+        keyCodeMap[KEY_PASTE | k.ALT]   = pc.OPEN_PASTE_STRING;
+        keyCodeMap[KEY_PASTE2 | k.ALT]  = pc.OPEN_PASTE_STRING;
+        keyCodeMap[KEY_ENTER_STRING | k.ALT]   = pc.OPEN_ENTER_STRING;
         keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT] = pc.CAPTURE_SCREEN;
 
         keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = pc.SPEAKER_BUFFER_TOGGLE;
@@ -352,6 +355,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var speaker;
     var cartridgeSocket;
     var cartridgeSlot;
+    var keyboard;
     var controllersHub;
     var fileLoader;
     var cassetteDeck;

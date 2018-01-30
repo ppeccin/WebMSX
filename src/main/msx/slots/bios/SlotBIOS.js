@@ -79,7 +79,8 @@ wmsx.SlotBIOS = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             v: this.originalVideoStandard.name,
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            ke: keyboardExtension.saveState()
         };
     };
 
@@ -88,6 +89,7 @@ wmsx.SlotBIOS = function(rom) {
         this.originalVideoStandard = wmsx.VideoStandard[state.v];
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
+        if (state.ke) keyboardExtension.loadState(state.ke);
     };
 
 
