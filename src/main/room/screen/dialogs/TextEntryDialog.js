@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.TextEntryDialog = function(mainElement, screen, peripheralControls) {
+wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
     "use strict";
 
     var self = this;
@@ -26,7 +26,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, peripheralControls) {
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
-        if (confirm) peripheralControls.controlActivated(wmsx.PeripheralControls.TYPE_STRING, false, false, input.value);
+        if (confirm) machineControls.processControlState(wmsx.MachineControls.TYPE_STRING, true, input.value);
     };
 
     function create() {

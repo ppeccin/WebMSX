@@ -194,7 +194,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     this.toggleTextPasteDialog = function() {
         if (!signalIsOn) return this.showOSD("Text Paste only available when Power is ON!", true, true);
 
-        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(canvasOuter, this, peripheralControls);
+        if (!pasteDialog) pasteDialog = new wmsx.PasteDialog(canvasOuter, this, machineControls);
         pasteDialog.toggle();
         return false;
     };
@@ -203,7 +203,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         if (!signalIsOn) return this.showOSD("Text Entry only available when Power is ON!", true, true);
 
         if (virtualKeyboardMode) setVirtualKeyboard(0);
-        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElementCenter, this, peripheralControls);
+        if (!textEntryDialog) textEntryDialog = new wmsx.TextEntryDialog(fsElementCenter, this, machineControls);
         textEntryDialog.toggle();
         return false;
     };

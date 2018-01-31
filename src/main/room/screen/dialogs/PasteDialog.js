@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PasteDialog = function(mainElement, screen, peripheralControls) {
+wmsx.PasteDialog = function(mainElement, screen, machineControls) {
 "use strict";
 
     var self = this;
@@ -72,7 +72,7 @@ wmsx.PasteDialog = function(mainElement, screen, peripheralControls) {
                 var str = e.clipboardData.getData("text/plain");
                 if (str) {
                     self.hide();
-                    peripheralControls.controlActivated(wmsx.PeripheralControls.TYPE_STRING, false, false, str);
+                    machineControls.processControlState(wmsx.MachineControls.TYPE_STRING, true, str);
                 }
             }
         });

@@ -458,7 +458,7 @@ wmsx.Machine = function(mainVideoClock) {
 
     var controls = wmsx.MachineControls;
 
-    function controlStateChanged(control, state) {
+    function controlStateChanged(control, state, data) {
         if (isLoading || systemPaused) return;
 
         // Normal state controls
@@ -536,6 +536,9 @@ wmsx.Machine = function(mainVideoClock) {
                 wasPaused = self.systemPause(true);
                 saveStateSocket.loadState(control & 0xff);  // get binary encoded slot number
                 if (!wasPaused) self.systemPause(false);
+                break;
+            case controls.TYPE_STRING:
+                biosSocket.keyboardExtensionTypeString(data);
                 break;
             case controls.VIDEO_STANDARD:
                 self.showOSD(null, true);	// Prepares for the upcoming "AUTO" OSD to always show
@@ -838,8 +841,8 @@ wmsx.Machine = function(mainVideoClock) {
     // MachineControls Socket  -----------------------------------------
 
     function MachineControlsSocket() {
-        this.controlStateChanged = function(control, state) {
-            controlStateChanged(control, state);
+        this.controlStateChanged = function(control, state, data) {
+            controlStateChanged(control, state, data);
         };
         this.addPowerAndUserPauseStateListener = function(listener) {
             if (powerAndUserPauseStateListeners.indexOf(listener) >= 0) return;

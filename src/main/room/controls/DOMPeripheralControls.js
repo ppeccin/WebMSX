@@ -13,9 +13,8 @@ wmsx.DOMPeripheralControls = function(room) {
         cartridgeSocket = pCartridgeSocket;
     };
 
-    this.connectPeripherals = function(pCartridgeSlot, pKeyboard, pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pCartridgeSlot, pMachineControls, pScreen, pSpeaker, pControllersHub, pFileLoader, pCassetteDeck, pDiskDrive) {
         cartridgeSlot = pCartridgeSlot;
-        keyboard = pKeyboard;
         machineControls = pMachineControls;
         screen = pScreen;
         speaker = pSpeaker;
@@ -55,7 +54,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 return room.showOSD("Function not available in NetPlay Client mode", true, true);
             // Store changes to be sent to Server. No local processing
             if (netClientSendToServerOnlyControls.has(control))
-                return netControlsToSend.push((control << 4) | (altPower << 1) | secPort);      // binary encoded
+                return netControlsToSend.push({ c: (control << 4) | (altPower << 1) | secPort, d: data });      // binary encoded with data
         }
 
         // All controls are Press-only and repeatable
@@ -121,6 +120,12 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.DISK_NEXT:
                 diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 1, altPower);
                 break;
+            case pc.DISK_INSERT:
+                diskDrive.insertDiskFromStack(data.d, data.n, data.a);
+                break;
+            case pc.DISK_MOVE:
+                diskDrive.moveDiskInStack(data.d, data.f, data.t);
+                break;
             case pc.CARTRIDGE_LOAD_FILE:
                 if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
                 break;
@@ -144,7 +149,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case pc.TAPE_REMOVE:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.removeTape();
+                if (!mediaChangeDisabledWarning()) cassetteDeck.userRemoveTape();
                 break;
             case pc.TAPE_EMPTY:
                 if (!mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
@@ -231,8 +236,6 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.toggleTextPasteDialog(); break;
             case pc.OPEN_ENTER_STRING:
                 screen.toggleTextEntryDialog(); break;
-            case pc.TYPE_STRING:                        // No key, only sent programmatically
-                keyboard.typeString(data); break;
             case pc.CAPTURE_SCREEN:
                 screen.saveScreenCapture(); break;
             case pc.SPEAKER_BUFFER_TOGGLE:
@@ -342,8 +345,10 @@ wmsx.DOMPeripheralControls = function(room) {
     };
 
     this.netServerProcessControlsChanges = function(changes) {
-        for (var i = 0, len = changes.length; i < len; ++i)
-            self.controlActivated(changes[i] >> 4, (changes[i] >> 1) & 0x01, changes[i] & 0x01);     // binary encoded
+        for (var i = 0, len = changes.length; i < len; ++i) {
+            var change = changes[i];
+            self.controlActivated(change.c >> 4, (change.c >> 1) & 0x01, change.c & 0x01, change.d);     // binary encoded with data
+        }
     };
 
 
@@ -355,7 +360,6 @@ wmsx.DOMPeripheralControls = function(room) {
     var speaker;
     var cartridgeSocket;
     var cartridgeSlot;
-    var keyboard;
     var controllersHub;
     var fileLoader;
     var cassetteDeck;
@@ -434,7 +438,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var netClientSendToServerOnlyControls = new Set([
         // TODO NetPlay
-        pc.DISK_REMOVE, pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
+        pc.DISK_REMOVE, pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360, pc.DISK_INSERT, pc.DISK_MOVE,
         pc.CARTRIDGE_REMOVE,
         pc.TAPE_REMOVE, pc.TAPE_EMPTY, pc.TAPE_REWIND, pc.TAPE_TO_END, pc.TAPE_SEEK_FWD, pc.TAPE_SEEK_BACK, pc.TAPE_AUTO_RUN
     ]);

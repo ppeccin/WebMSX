@@ -33,24 +33,24 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         return true;
     };
 
-    function processControlState(control, press) {
+    function processControlState(control, press, data) {
         // Check for NetPlay blocked controls
         if (room.netPlayMode === 2 && netServerLocalOnlyControls.has(control))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
         // Store changes to be sent to peers
         if (!(room.netPlayMode === 1 && netServerLocalOnlyControls.has(control)))
-            netControlsToSend.push((control << 4) | press );       // binary encoded
+            netControlsToSend.push({ c: (control << 4) | press, d: data });       // binary encoded
 
         // Do not apply control now if Client
         if (room.netPlayMode === 2) return;
 
-        applyControlState(control, press);
+        applyControlState(control, press, data);
     }
     this.processControlState = processControlState;
 
-    function applyControlState(control, press) {
-        machineControlsSocket.controlStateChanged(control, press);
+    function applyControlState(control, press, data) {
+        machineControlsSocket.controlStateChanged(control, press, data);
     }
 
     this.getControlReport = function(control) {
@@ -144,14 +144,16 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         for (var i = 0, len = changes.length; i < len; ++i) {
             var change = changes[i];
             // Store changes to be sent to Clients?
-            if (!netServerLocalOnlyControls.has(change >> 4)) netControlsToSend.push(change);
-            applyControlState(change >> 4, change & 0x01);              // binary encoded
+            if (!netServerLocalOnlyControls.has(change.c >> 4)) netControlsToSend.push(change);
+            applyControlState(change.c >> 4, change.c & 0x01, change.d);      // binary encoded, with data
         }
     };
 
     this.netClientApplyControlsChanges = function(changes) {
-        for (var i = 0, len = changes.length; i < len; ++i)
-            applyControlState(changes[i] >> 4, changes[i] & 0x01);      // binary encoded
+        for (var i = 0, len = changes.length; i < len; ++i) {
+            var change = changes[i];
+            applyControlState(change.c >> 4, change.c & 0x01, change.d);      // binary encoded, with data
+        }
     };
 
 

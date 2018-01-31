@@ -35,10 +35,8 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
-        if (confirm && diskSelectedNum >= 0) {
-            diskDrive.insertDiskFromStack(drive, diskSelectedNum);
-            diskDrive.autoPowerCycle(altPower);
-        }
+        if (confirm && diskSelectedNum >= 0)
+            peripheralControls.controlActivated(wmsx.PeripheralControls.DISK_INSERT, altPower, false, { d: drive, n: diskSelectedNum, a: altPower });
     };
 
     this.diskDrivesMediaStateUpdate = function(pDrive) {
@@ -179,7 +177,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             var from = diskMoveFrom.wmsxDiskNum;
             var to = diskMoveTo.wmsxDiskNum;
             if (from === undefined || to === undefined || to === from) return false;
-            diskDrive.moveDiskInStack(drive, from, to);
+            peripheralControls.controlActivated(wmsx.PeripheralControls.DISK_MOVE, altPower, false, { d: drive, f: from, t: to });
             return false;
         });
 

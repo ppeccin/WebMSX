@@ -36,14 +36,12 @@ wmsx.FileDiskDrive = function(room) {
                 if (disk) stack.push(disk);
             }
             if (stack.length > 0) {
-                loadStack(drive, stack, altPower, addToStack);
-                stackLoadedMessage(drive, null, stack.length, addToStack);
+                loadStack(drive, stack, null, altPower, addToStack);
                 return stack;
             }
         } catch(ez) {
             wmsx.Util.error(ez);      // Error decompressing files. Abort
         }
-        return;
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
@@ -54,8 +52,7 @@ wmsx.FileDiskDrive = function(room) {
         type = type || "Files as Disk";
         name = name || ("New " + type + ".dsk");
         var stack = [{ name: name, content: content }];
-        loadStack(drive, stack, altPower, addToStack);
-        stackLoadedMessage(drive, type, stack.length, addToStack);
+        loadStack(drive, stack, type, altPower, addToStack);
         return stack;
     };
 
@@ -81,13 +78,13 @@ wmsx.FileDiskDrive = function(room) {
         add = add && driveStack[drive].length > 1;
         screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
 
-        if (add) self.openDiskSelectDialog(drive, 0, true);
+        if (add && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, true);
     };
 
     this.removeStack = function(drive) {
-        if (noDiskInsertedMessage(drive)) return;
-
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 1, d: drive });
+
+        if (noDiskInsertedMessage(drive)) return;
 
         var wasStack = driveStack[drive].length > 1;
         emptyStack(drive);
@@ -97,12 +94,14 @@ wmsx.FileDiskDrive = function(room) {
         fireMediaStateUpdate(drive);
     };
 
-    this.insertDiskFromStack = function(drive, num) {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2, d: drive, n: num });
+    this.insertDiskFromStack = function(drive, num, altPower) {
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2, d: drive, n: num, a: altPower });
 
         setCurrentDiskNum(drive, num);
         diskInsertedMessage(drive);
         fireMediaStateUpdate(drive);
+
+        if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
     };
 
     this.moveDiskInStack = function (drive, from, to) {
@@ -127,12 +126,7 @@ wmsx.FileDiskDrive = function(room) {
         }
     };
 
-    this.autoPowerCycle = function(altPower) {
-        if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
-    };
-
     this.openDiskSelectDialog = function(drive, inc, altPower) {
-        if (room.netPlayMode === 2) return;
         if (noDiskInsertedMessage(drive)) return;
         screen.openDiskSelectDialog(drive, inc, altPower);
     };
@@ -190,8 +184,8 @@ wmsx.FileDiskDrive = function(room) {
         curDisk[drive] = -1;
     }
 
-    function loadStack(drive, stack, altPower, add) {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, d: drive, s: serializeStack(stack), p: altPower, a: add });
+    function loadStack(drive, stack, type, altPower, add) {
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, d: drive, s: serializeStack(stack), t: type, p: altPower, a: add });
 
         if (add) {
             driveStack[drive] = driveStack[drive].concat(stack);
@@ -201,9 +195,14 @@ wmsx.FileDiskDrive = function(room) {
             driveBlankDiskAdded[drive] = false;
             setCurrentDiskNum(drive, 0);
         }
+        stackLoadedMessage(drive, type, stack.length, add);
         fireMediaStateUpdate(drive);
-        if (driveStack[drive].length > 1 && !altPower) self.openDiskSelectDialog(drive, 0, altPower);
-        else self.autoPowerCycle(altPower);
+
+        if (driveStack[drive].length > 1) {
+            if (!altPower && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, altPower);
+        } else
+            if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
+
     }
 
     function replaceCurrentDisk(drive, name, content) {     // Affects only current disk from stack
@@ -410,11 +409,11 @@ wmsx.FileDiskDrive = function(room) {
             var op = ops[i];
             switch (op.op) {
                 case 0:
-                    loadStack(op.d, deserializeStack(op.s), op.p, op.a); break;
+                    loadStack(op.d, deserializeStack(op.s), op.t, op.p, op.a); break;
                 case 1:
                     this.removeStack(op.d); break;
                 case 2:
-                    this.insertDiskFromStack(op.d, op.n); break;
+                    this.insertDiskFromStack(op.d, op.n, op.a); break;
                 case 3:
                     this.insertNewDisk(op.d, op.m, op.u); break;
                 case 4:

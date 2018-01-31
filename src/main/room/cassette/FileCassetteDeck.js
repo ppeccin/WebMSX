@@ -35,10 +35,10 @@ wmsx.FileCassetteDeck = function(room) {
         loadEmptyTape();
     };
 
-    this.removeTape = function() {
-        if (noTapeMessage()) return;
-
+    this.userRemoveTape = function() {
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2 });
+
+        if (noTapeMessage()) return;
 
         tapeFileName = null;
         tapeContent = null;
@@ -48,9 +48,9 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userRewind = function() {
-        if (noTapeMessage()) return;
-
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 3 });
+
+        if (noTapeMessage()) return;
 
         rewind();
     };
@@ -61,9 +61,9 @@ wmsx.FileCassetteDeck = function(room) {
     }
 
     this.userSeekToEnd = function() {
-        if (noTapeMessage()) return;
-
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 4 });
+
+        if (noTapeMessage()) return;
 
         seekToEnd();
     };
@@ -74,9 +74,9 @@ wmsx.FileCassetteDeck = function(room) {
     }
 
     this.userSeekForward = function() {
-        if (noTapeMessage()) return;
-
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 5 });
+
+        if (noTapeMessage()) return;
 
         if (!isTapeEnd()) seekHeader(1, 1);
         if (isTapeEnd()) return seekToEnd();
@@ -84,9 +84,9 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userSeekBackward = function() {
-        if (noTapeMessage()) return;
-
         if (room.netPlayMode === 1) netOperationsToSend.push({ op: 6 });
+
+        if (noTapeMessage()) return;
 
         if (!isTapeStart()) seekHeader(-1, -1);
         if (isTapeStart()) return rewind();
@@ -123,7 +123,10 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userTypeCurrentAutoRunCommand = function() {
+        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 7 });
+
         if (noTapeMessage()) return;
+
         if (tapeContent.length === 0) {
             screen.showOSD("Cassette Tape is empty!", true, true);
             return;
@@ -282,17 +285,19 @@ wmsx.FileCassetteDeck = function(room) {
                 case 0:
                     this.loadTapeFile(op.n, wmsx.Util.uncompressStringBase64ToInt8BitArray(op.c, tapeContent), op.p); break;
                 case 1:
-                    loadEmptyTape(); break;
+                    this.userLoadEmptyTape(); break;
                 case 2:
-                    this.removeTape(); break;
+                    this.userRemoveTape(); break;
                 case 3:
-                    rewind(); break;
+                    this.userRewind(); break;
                 case 4:
-                    seekToEnd(); break;
+                    this.userSeekToEnd(); break;
                 case 5:
                     this.userSeekForward(); break;
                 case 6:
                     this.userSeekBackward(); break;
+                case 7:
+                    this.userTypeCurrentAutoRunCommand(); break
             }
         }
     };
