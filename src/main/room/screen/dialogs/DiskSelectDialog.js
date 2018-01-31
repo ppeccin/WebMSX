@@ -170,10 +170,11 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             return false;
         });
 
-        list.addEventListener("drop", function dragStart(e) {
-            e.stopPropagation();
+        dialog.addEventListener("drop", function drop(e) {
             e.preventDefault();
-            if (!diskMoveFrom || !diskMoveTo) return false;
+            if (!diskMoveFrom) return false;
+            e.stopPropagation();
+            if (!diskMoveTo) return false;
             var from = diskMoveFrom.wmsxDiskNum;
             var to = diskMoveTo.wmsxDiskNum;
             if (from === undefined || to === undefined || to === from) return false;

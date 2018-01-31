@@ -708,7 +708,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             self.requestReadjust();
         });
 
-        mainElement.addEventListener("drop", closeAllOverlays, true);
+        mainElement.addEventListener("drop", closeAllOverlays, false);
 
         logoMessageOK.wmsxNeedsUIG = logoMessageOKText.wmsxNeedsUIG = true;     // User Initiated Gesture required
         wmsx.Util.onTapOrMouseDownWithBlockUIG(logoMessageOK, closeLogoMessage);

@@ -385,7 +385,6 @@ wmsx.FileLoader = function() {
     function onDrop(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
-        e.stopPropagation();
         e.target.focus();
 
         if (!e.dataTransfer) return;
