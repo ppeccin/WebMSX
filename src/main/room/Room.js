@@ -170,7 +170,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         self.cartridgeSlot.connect(self.machine.getCartridgeSocket());
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
-        self.peripheralControls.connect(self.machine.getCartridgeSocket());
+        self.peripheralControls.connect(self.machine.getMachineTypeSocket(), self.machine.getExtensionsSocket(), self.machine.getCartridgeSocket());
     }
 
 

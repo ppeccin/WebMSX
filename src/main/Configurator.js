@@ -122,7 +122,7 @@ wmsx.Configurator = {
             urlSpecs[urlSpecs.length] = {
                 url: url,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true);
+                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true, true);      // internal
                 }
             };
         }

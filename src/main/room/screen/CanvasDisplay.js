@@ -140,7 +140,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openMachineSelectDialog = function() {
         closeAllOverlays();
-        if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket);
+        if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket, peripheralControls);
         machineSelectDialog.show();
     };
 
@@ -970,7 +970,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         barMenuItemSetActive(null);
         if (option && !option.disabled) {
             if (option.extension) {
-                if (!extensionChangeDisabledWarning()) extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
+                if (!extensionChangeDisabledWarning()) peripheralControls.processControlActivated(wmsx.PeripheralControls.EXTENSION_TOGGLE, altPower, secSlot, option.extension);
             } else if (option.control) {
                 secSlot |= option.secSlot;
                 closeAllOverlays();
@@ -1029,9 +1029,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 menu.push(opt);
             }
         }
-        menu.push({ label: "",            divider: true });
+        menu.push({ label: "",               divider: true });
 
-        menu.push({ label: "Select Machine",                 control: wmsx.PeripheralControls.MACHINE_SELECT });
+        menu.push({ label: "Select Machine",                control: wmsx.PeripheralControls.SCREEN_OPEN_MACHINE_SELECT });
 
         if (!isMobileDevice) {
         menu.push({label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS});
@@ -1493,10 +1493,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function extensionChangeDisabledWarning() {
         if (WMSX.MEDIA_CHANGE_DISABLED) {
             machine.showOSD("Extension change is disabled!", true, true);
-            return true;
-        }
-        if (room.netPlayMode === 2) {
-            machine.showOSD("Extension change is disabled in NetPlay Client mode!", true, true);
             return true;
         }
         return false;

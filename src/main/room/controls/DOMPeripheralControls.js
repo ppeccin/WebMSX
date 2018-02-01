@@ -9,7 +9,9 @@ wmsx.DOMPeripheralControls = function(room) {
         initKeys();
     }
 
-    this.connect = function(pCartridgeSocket) {
+    this.connect = function(pMachineTypeSocket, pExtensionsSocket, pCartridgeSocket) {
+        machineTypeSocket = pMachineTypeSocket;
+        extensionsSocket = pExtensionsSocket;
         cartridgeSocket = pCartridgeSocket;
     };
 
@@ -68,10 +70,7 @@ wmsx.DOMPeripheralControls = function(room) {
     function applyControlActivated (control, altPower, secPort, data, user) {
         // All controls are Press-only and repeatable
         switch(control) {
-            case pc.MACHINE_SELECT:                                                         // Machine Controls called directly by Screen, no keys here
-                if (!user || !mediaChangeDisabledWarning()) screen.openMachineSelectDialog();
-                break;
-            case pc.MACHINE_POWER_TOGGLE:
+            case pc.MACHINE_POWER_TOGGLE:           // MACHINE_ Controls called directly by Screen, no keys here
                 if (altPower) return machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 machineControls.processControlState(wmsx.MachineControls.POWER, true);
                 break;
@@ -79,7 +78,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 break;
             case pc.MACHINE_LOAD_STATE_FILE:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
                 break;
             case pc.MACHINE_SAVE_STATE_FILE:
                 machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
@@ -90,23 +89,29 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.MACHINE_SAVE_STATE_MENU:
                 screen.openSaveStateDialog(true);
                 break;
+            case pc.MACHINE_SELECT:
+                machineTypeSocket.changeMachine(data);
+                break;
+            case pc.EXTENSION_TOGGLE:
+                extensionsSocket.toggleExtension(data, altPower, secPort);
+                break;
             case pc.DISK_LOAD_FILES:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
                 break;
             case pc.DISK_ADD_FILES:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, true);   // asExpansion
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, true);   // asExpansion
                 break;
             case pc.DISK_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
                 break;
             case pc.DISK_LOAD_FILES_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort, false);
                 break;
             case pc.DISK_LOAD_ZIP_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort, false);
                 break;
             case pc.DISK_REMOVE:
-                if (!user || !mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(secPort ? 1 : 0);
                 break;
             case pc.DISK_EMPTY:
                 diskDrive.insertNewDisk(secPort ? 1 : 0, null);
@@ -136,13 +141,13 @@ wmsx.DOMPeripheralControls = function(room) {
                 diskDrive.moveDiskInStack(data.d, data.f, data.t);
                 break;
             case pc.CARTRIDGE_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
                 break;
             case pc.CARTRIDGE_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
             case pc.CARTRIDGE_REMOVE:
-                if (!user || !mediaChangeDisabledWarning()) cartridgeSlot.removeCartridge(secPort ? 1 : 0, altPower);
+                if (!user || !mediaChangeDisabledWarning(control)) cartridgeSlot.removeCartridge(secPort ? 1 : 0, altPower);
                 break;
             case pc.CARTRIDGE_LOAD_DATA_FILE:
                 if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
@@ -152,16 +157,16 @@ wmsx.DOMPeripheralControls = function(room) {
                 cartridgeSlot.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case pc.TAPE_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
                 break;
             case pc.TAPE_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case pc.TAPE_REMOVE:
-                if (!user || !mediaChangeDisabledWarning()) cassetteDeck.userRemoveTape();
+                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userRemoveTape();
                 break;
             case pc.TAPE_EMPTY:
-                if (!user || !mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
+                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userLoadEmptyTape();
                 break;
             case pc.TAPE_SAVE_FILE:
                 if (secPort) return cassetteDeck.userTypeCurrentAutoRunCommand();
@@ -183,10 +188,10 @@ wmsx.DOMPeripheralControls = function(room) {
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case pc.AUTO_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
             case pc.AUTO_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
             case pc.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
@@ -208,7 +213,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openAbout();
                 break;
             case pc.SCREEN_OPEN_SETTINGS:
-                if (altPower) return applyControlActivated(pc.SCREEN_DEFAULTS, null, null, null, user);
+                if (altPower) return applyControlActivated(pc.SCREEN_DEFAULTS, false, false, null, user);
                 screen.openSettings();
                 break;
             case pc.SCREEN_OPEN_QUICK_OPTIONS:
@@ -216,6 +221,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case pc.SCREEN_OPEN_TOUCH_CONFIG:
                 screen.openTouchConfigDialog();
+                break;
+            case pc.SCREEN_OPEN_MACHINE_SELECT:
+                if (!user || !mediaChangeDisabledWarning(control)) screen.openMachineSelectDialog();
                 break;
             case pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD:
                 screen.toggleVirtualKeyboard();
@@ -263,12 +271,12 @@ wmsx.DOMPeripheralControls = function(room) {
         }
     }
 
-    var mediaChangeDisabledWarning = function() {
+    var mediaChangeDisabledWarning = function(control) {
         if (WMSX.MEDIA_CHANGE_DISABLED) {
             monitor.showOSD("Media change is disabled!", true, true);
             return true;
         }
-        if (room.netPlayMode === 2) {
+        if (room.netPlayMode === 2 && netServerOnlyControls.has(control)) {
             monitor.showOSD("Media loading is disabled in NetPlay Client mode!", true, true);
             return true;
         }
@@ -377,6 +385,8 @@ wmsx.DOMPeripheralControls = function(room) {
     var monitor;
     var speaker;
     var cartridgeSocket;
+    var machineTypeSocket;
+    var extensionsSocket;
     var cartridgeSlot;
     var controllersHub;
     var fileLoader;
@@ -444,7 +454,6 @@ wmsx.DOMPeripheralControls = function(room) {
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 
     var netServerOnlyControls = new Set([
-        pc.MACHINE_SELECT,
         pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
@@ -469,6 +478,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OPEN_SETTINGS,
         pc.SCREEN_OPEN_QUICK_OPTIONS,
         pc.SCREEN_OPEN_TOUCH_CONFIG,
+        pc.SCREEN_OPEN_MACHINE_SELECT,
         pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD,
         pc.SCREEN_DEFAULTS,
 

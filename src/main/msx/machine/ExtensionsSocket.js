@@ -93,7 +93,7 @@ wmsx.ExtensionsSocket = function(machine) {
         }
 
         // Remove
-        for (var i = 0; i < toRemoveSlots.length; ++i) slotSocket.insertSlot(null, toRemoveSlots[i], true);
+        for (var i = 0; i < toRemoveSlots.length; ++i) slotSocket.insertSlot(null, toRemoveSlots[i], true, true);   // internal
 
         // Insert
         new wmsx.MultiDownloader(
@@ -136,7 +136,7 @@ wmsx.ExtensionsSocket = function(machine) {
         return {
             url: wmsx.SlotFormats[config[ext].format].embeddedURL || "",
             onSuccess: function (res) {
-                fileLoader.loadFromContentAsSlot(res.url, res.content, secSlot ? config[ext].SLOT2 : config[ext].SLOT, true);
+                fileLoader.loadFromContentAsSlot(res.url, res.content, secSlot ? config[ext].SLOT2 : config[ext].SLOT, true, true);     // internal
             }
         };
     }

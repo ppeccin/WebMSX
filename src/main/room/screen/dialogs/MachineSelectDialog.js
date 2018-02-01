@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
+wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralControls) {
 "use strict";
 
     var self = this;
@@ -30,7 +30,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket) {
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
-        if (confirm) machineTypeSocket.changeMachine(machineSelected);
+        if (confirm) peripheralControls.processControlActivated(wmsx.PeripheralControls.MACHINE_SELECT, false, false, machineSelected);
     };
 
     function refreshList() {

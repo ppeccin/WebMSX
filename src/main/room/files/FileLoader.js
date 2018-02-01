@@ -186,18 +186,18 @@ wmsx.FileLoader = function() {
         }
     };
 
-    this.loadFromContentAsSlot = function (name, content, slotPos, altPower) {
+    this.loadFromContentAsSlot = function (name, content, slotPos, altPower, internal) {
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
             try {
                 var files = wmsx.Util.getZIPFilesSorted(zip);
                 for (var i = 0; i < files.length; i++)
-                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower)) return;
+                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower, internal)) return;
             } catch (ez) {
                 // Error decompressing files. Abort
             }
         } else {
-            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower)) return;
+            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower, internal)) return;
         }
         showError("Unsupported ROM file!");
     };
@@ -272,10 +272,10 @@ wmsx.FileLoader = function() {
         return false;
     }
 
-    function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower) {
+    function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower, internal) {
         var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content));
         if (!slot) return false;
-        slotSocket.insertSlot(slot, slotPos, altPower);
+        slotSocket.insertSlot(slot, slotPos, altPower, internal);
         return true;
     }
 
@@ -388,7 +388,7 @@ wmsx.FileLoader = function() {
         e.target.focus();
 
         if (!e.dataTransfer) return;
-        if (peripheralControls.mediaChangeDisabledWarning()) return;
+        if (peripheralControls.mediaChangeDisabledWarning(wmsx.PeripheralControls.AUTO_LOAD_FILE)) return;
 
         var wasPaused = machine.systemPause(true);
 
