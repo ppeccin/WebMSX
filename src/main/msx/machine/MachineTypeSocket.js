@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO NetPlay Verify asynchrony loading when changing Machine Type and Extensions
 wmsx.MachineTypeSocket = function(machine) {
 "use strict";
 
@@ -42,7 +41,7 @@ wmsx.MachineTypeSocket = function(machine) {
                     self.fireMachineTypeStateUpdate();
                 });
             }
-        ).start();
+        ).start();      // Synchronous since all loaded files are Embedded
     };
 
     this.addMachineTypeStateListener = function (listener) {

@@ -45,8 +45,10 @@ wmsx.ExtensionsSocket = function(machine) {
 
         var powerWasOn = machine.powerIsOn;
         if (!altPower && powerWasOn) machine.powerOff();
+        var wasPaused = machine.systemPause(true);
 
         this.refreshSlotsFromConfig(function(changed) {
+            if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed) machine.showOSD(config[ext].desc + " Extension " +
                 (newVal ? "enabled at slot " + machine.getSlotSocket().getSlotDesc(secSlot ? config[ext].SLOT2 : config[ext].SLOT) : "disabled"), true);
@@ -102,7 +104,7 @@ wmsx.ExtensionsSocket = function(machine) {
                 self.fireExtensionsAndCartridgesStateUpdate();
                 then(true);
             }
-        ).start();
+        ).start();      // Synchronous since all loaded files are Embedded
     };
 
     function refreshConfigFromSlots() {

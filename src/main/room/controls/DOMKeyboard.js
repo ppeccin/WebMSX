@@ -40,7 +40,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.readKeyboardPort = function(row) {
-        if (turboFireClocks && row === 8) return keyboardMatrix[8] | (turboFireClockCount > turboFireFlipClock);     // TODO NetPplay
+        if (turboFireClocks && row === 8) return keyboardMatrix[8] | (turboFireClockCount > turboFireFlipClock);     // TODO NetPplay TurboFire
         else return keyboardMatrix[row];
     };
 
@@ -156,7 +156,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         var matrix = msxKeys[msxKey].m;
         processMatrixChange(matrix[0], matrix[1], press);
 
-        // TurboFire TODO NetPlay
+        // TurboFire TODO NetPlay TurboFire
         if (press && turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
     };
 

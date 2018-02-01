@@ -402,6 +402,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.machineTypeStateUpdate = function() {
+        if (machineSelectDialog) machineSelectDialog.machineTypeStateUpdate();
         refreshSettingsMenuForMachineType();
     };
 
@@ -432,6 +433,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.roomNetPlayStatusChangeUpdate = function(oldMode) {
         if (netPlayDialog) netPlayDialog.roomNetPlayStatusChangeUpdate(oldMode);
+    };
+
+    this.quickOptionsControlsStateUpdate = function () {
+        if (quickOtionsDialog) quickOtionsDialog.quickOptionsControlsStateUpdate();
     };
 
     this.setLoading = function(state) {

@@ -168,6 +168,7 @@ wmsx.Machine = function(mainVideoClock) {
         return prev;
     };
 
+    // TODO NetPlay Client Check wrongly receiving and processing/ignoring clocks from Server
     this.systemPause = function(val) {
         var prev = systemPaused;
         if (systemPaused !== val) {

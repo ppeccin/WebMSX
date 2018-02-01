@@ -21,8 +21,8 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         // Ask to load all files
         for (var f = 0; f < urls.length; ++f) {
             var url = urls[f];
-            if (url[0] === "@") getEmbedded(urlSpec, f, url);         // Embedded file?
-            else getHTTP(urlSpec, f, url);                            // No, HTTP
+            if (url[0] === "@") getEmbedded(urlSpec, f, url);         // Embedded file. SYNCHRONOUS
+            else getHTTP(urlSpec, f, url);                            // HTTP GET. ASYNCHRONOUS!!!
         }
     }
 
@@ -33,7 +33,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         else loadError(urlSpec, "Embedded file not found!");
     }
 
-    function getHTTP(urlSpec, f, url, remote) {
+    function getHTTP(urlSpec, f, url) {
         var finalUrl = isRemote(url) ? proxyze(url) : url;      // May use a proxy downloader if configured
 
         var req = new XMLHttpRequest();

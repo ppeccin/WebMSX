@@ -99,7 +99,7 @@ wmsx.FileLoader = function() {
                 showError("URL reading error: " + urls[0].error);
                 if (then) then(false);
             }
-        ).start();
+        ).start();      // Probably Asynchronous since URL is probably not an Embedded file
     };
 
     this.readFromFiles = function (files, openType, port, altPower, asExpansion, then) {

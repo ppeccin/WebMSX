@@ -15,7 +15,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
         machineSelected = machineTypeSocket.getMachine();
         dialog.classList.add("wmsx-show");
         dialog.focus();
-        refreshList();
+        refresh();
 
         var availHeight = mainElement.clientHeight - wmsx.ScreenGUI.BAR_HEIGHT - 20;      //  bar - tolerance
         var height = dialog.clientHeight;
@@ -33,7 +33,13 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
         if (confirm) peripheralControls.processControlActivated(wmsx.PeripheralControls.MACHINE_SELECT, false, false, machineSelected);
     };
 
-    function refreshList() {
+    this.machineTypeStateUpdate = function() {
+        if (!visible) return;
+        machineSelected = machineTypeSocket.getMachine();
+        refresh();
+    };
+
+    function refresh() {
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
             li.classList.toggle("wmsx-selected", li.wmsxMachine === machineSelected);
@@ -83,7 +89,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
             if (e.target.wmsxMachine) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 machineSelected = e.target.wmsxMachine;
-                refreshList();
+                refresh();
                 setTimeout(hideConfirm, 120);
             } else
                 dialog.focus();
@@ -102,7 +108,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
                 var newMachine = machines[idx];
                 if (newMachine && WMSX.MACHINES_CONFIG[newMachine].type) {      // Exclude EMPTY and AUTO options
                     machineSelected = newMachine;
-                    refreshList();
+                    refresh();
                 }
             }
             return wmsx.Util.blockEvent(e);

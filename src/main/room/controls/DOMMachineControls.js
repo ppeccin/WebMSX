@@ -11,8 +11,8 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         machineControlsSocket = pControlsSocket;
     };
 
-    this.connectPeripherals = function(screen) {
-        monitor = screen.getMonitor();
+    this.connectPeripherals = function(pScreen) {
+        screen = pScreen;
     };
 
     this.powerOn = function() {
@@ -51,6 +51,8 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
 
     function applyControlState(control, press, data) {
         machineControlsSocket.controlStateChanged(control, press, data);
+
+        if (quickOptionsControls.has(control)) screen.quickOptionsControlsStateUpdate();
     }
 
     this.getControlReport = function(control) {
@@ -160,7 +162,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var mc = wmsx.MachineControls;
 
     var machineControlsSocket;
-    var monitor;
+    var screen;
 
     var keyCodeMap = {};
     var keyStateMap = {};
@@ -209,6 +211,10 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var KEY_STATE_11a        = wmsx.DOMKeys.VK_FF_MINUS.c;
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
+
+    var quickOptionsControls = new Set([
+        mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE
+    ]);
 
     var netServerOnlyControls = new Set([
         mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,

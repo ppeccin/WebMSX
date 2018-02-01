@@ -40,7 +40,7 @@ WMSX.start = function (machinePowerOn) {
                     WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
                 });
             }
-        ).start();
+        ).start();      // Asynchronous
     } else {
         // Normal media loading. Power Machine on only after all files are loaded and inserted
         var slotURLs = wmsx.Configurator.slotURLSpecs();
@@ -51,7 +51,7 @@ WMSX.start = function (machinePowerOn) {
             function onAllSuccess() {
                 WMSX.room.start();
             }
-        ).start();
+        ).start();      // Asynchronous if there are media to load, otherwise Synchronous
     }
 
     WMSX.shutdown = function () {

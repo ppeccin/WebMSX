@@ -25,6 +25,10 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         WMSX.room.screen.focus();
     };
 
+    this.quickOptionsControlsStateUpdate = function() {
+        if (visible) refresh();
+    };
+
     function refresh() {
         for (var i = 0; i < items.length; ++i) {
             var item = items[i];
@@ -83,9 +87,11 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
             if (e.target.wmsxControlItem) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 var item = e.target.wmsxControlItem;
-                if (item.peripheral) peripheralControls.processControlActivated(item.control, false, false);
-                else machineControls.processControlState(item.control, true);
-                refresh();
+                if (item.peripheral) {
+                    peripheralControls.processControlActivated(item.control, false, false);
+                    refresh();
+                } else
+                    machineControls.processControlState(item.control, true);    // will receive update notification and auto refresh
             } else
                 dialog.focus();
         });
