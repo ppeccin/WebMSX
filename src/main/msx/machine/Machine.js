@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.Machine = function(mainVideoClock) {
+wmsx.Machine = function() {
 "use strict";
 
     var self = this;
@@ -9,10 +9,13 @@ wmsx.Machine = function(mainVideoClock) {
         socketsCreate();
         mainComponentsCreate();
         computeBasicAutoRunCommandParameters();
+    }
+
+    this.socketsConnected = function() {
         self.setMachine(WMSX.MACHINE);
         self.setDefaults();
         setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
-    }
+    };
 
     this.setMachine = function(name) {
         this.machineName = name;
@@ -34,7 +37,6 @@ wmsx.Machine = function(mainVideoClock) {
         this.reset();
         this.powerIsOn = true;
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
-        if (!mainVideoClock.isRunning()) mainVideoClock.go();
     };
 
     this.powerOff = function() {
@@ -92,6 +94,10 @@ wmsx.Machine = function(mainVideoClock) {
 
     this.getMachineTypeSocket = function() {
         return machineTypeSocket;
+    };
+
+    this.getVideoClockSocket = function() {
+        return videoClockSocket;
     };
 
     this.getSlotSocket = function() {
@@ -194,7 +200,7 @@ wmsx.Machine = function(mainVideoClock) {
         vdp.setDefaults();
         speedControl = 1;
         alternateSpeed = null;
-        mainVideoClockUpdateSpeed();
+        videoClockUpdateSpeed();
     };
 
     function getSlot(slotPos) {
@@ -247,7 +253,7 @@ wmsx.Machine = function(mainVideoClock) {
 
         videoStandard = pVideoStandard;
         vdp.setVideoStandard(videoStandard);
-        mainVideoClockUpdateSpeed();
+        videoClockUpdateSpeed();
     }
 
     function setVideoStandardAuto() {
@@ -274,13 +280,8 @@ wmsx.Machine = function(mainVideoClock) {
         if (vSynchMode === mode) return;
         if (vSynchMode !== -1) vSynchMode = mode % 2;
         vdp.setVSynchMode(vSynchMode);
-        mainVideoClockUpdateSpeed();
+        videoClockUpdateSpeed();
     }
-
-    function setVSynchForcedPulldown(pulldown) {
-        vdp.setVSynchForcedPulldown(pulldown);
-    }
-    this.setVSynchForcedPulldown = setVSynchForcedPulldown;
 
     function saveState() {
         return {
@@ -322,7 +323,7 @@ wmsx.Machine = function(mainVideoClock) {
         speedControl = s.s || 1;
         basicAutoRunDone = !!s.br;
         if (s.bc !== undefined) basicAutoRunCommand = s.bc;
-        mainVideoClockUpdateSpeed();
+        videoClockUpdateSpeed();
         cpu.loadState(s.c);
         vdp.loadState(s.vd);
         psg.loadState(s.ps);
@@ -347,10 +348,10 @@ wmsx.Machine = function(mainVideoClock) {
         loadState(state);
     };
 
-    function mainVideoClockUpdateSpeed() {
+    function videoClockUpdateSpeed() {
         var freq = vdp.getDesiredBaseFrequency();
-        mainVideoClock.setVSynch(vSynchMode > 0);
-        mainVideoClock.setFrequency((freq * (alternateSpeed || speedControl)) | 0);
+        videoClockSocket.setVSynch(vSynchMode > 0);
+        videoClockSocket.setFrequency((freq * (alternateSpeed || speedControl)) | 0);
         audioSocket.setFps(freq);
     }
 
@@ -372,6 +373,7 @@ wmsx.Machine = function(mainVideoClock) {
 
     function socketsCreate() {
         machineTypeSocket = new wmsx.MachineTypeSocket(self);
+        videoClockSocket = new VideoClockSocket();
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         extensionsSocket = new wmsx.ExtensionsSocket(self);
@@ -426,6 +428,7 @@ wmsx.Machine = function(mainVideoClock) {
     var systemPaused = false;
 
     var machineTypeSocket;
+    var videoClockSocket;
     var slotSocket;
     var biosSocket;
     var extensionsSocket;
@@ -466,11 +469,11 @@ wmsx.Machine = function(mainVideoClock) {
         if (control === controls.FAST_SPEED) {
             if (state && alternateSpeed !== SPEED_FAST) {
                 alternateSpeed = SPEED_FAST;
-                mainVideoClockUpdateSpeed();
+                videoClockUpdateSpeed();
                 self.showOSD("FAST FORWARD", true);
             } else if (!state && alternateSpeed === SPEED_FAST) {
                 alternateSpeed = null;
-                mainVideoClockUpdateSpeed();
+                videoClockUpdateSpeed();
                 self.showOSD(null, true);
             }
             return;
@@ -478,11 +481,11 @@ wmsx.Machine = function(mainVideoClock) {
         if (control === controls.SLOW_SPEED) {
             if (state && alternateSpeed !== SPEED_SLOW) {
                 alternateSpeed = SPEED_SLOW;
-                mainVideoClockUpdateSpeed();
+                videoClockUpdateSpeed();
                 self.showOSD("SLOW MOTION", true);
             } else if (!state && alternateSpeed === SPEED_SLOW) {
                 alternateSpeed = null;
-                mainVideoClockUpdateSpeed();
+                videoClockUpdateSpeed();
                 self.showOSD(null, true);
             }
             return;
@@ -519,7 +522,7 @@ wmsx.Machine = function(mainVideoClock) {
                 else if (control === controls.NORMAL_SPEED) speedIndex = SPEEDS.indexOf(1);
                 speedControl = SPEEDS[speedIndex];
                 self.showOSD("Speed: " + ((speedControl * 100) | 0) + "%", true);
-                mainVideoClockUpdateSpeed();
+                videoClockUpdateSpeed();
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
@@ -548,7 +551,7 @@ wmsx.Machine = function(mainVideoClock) {
                 else setVideoStandardAuto();
                 break;
             case controls.VSYNCH:
-                if (vSynchMode === -1 || wmsx.Clock.HOST_NATIVE_FPS === -1) {
+                if (vSynchMode === -1 || videoClockSocket.getVSynchNativeFrequency() === -1) {
                     self.showOSD("V-Synch is disabled / unsupported", true, true);
                 } else {
                     setVSynchMode(vSynchMode + 1);
@@ -580,6 +583,25 @@ wmsx.Machine = function(mainVideoClock) {
                 self.showOSD("Default Settings", true);
                 break;
         }
+    }
+
+
+    // Video Clock Socket  -----------------------------------------
+
+    function VideoClockSocket() {
+        this.connectClock = function(clock) {
+            videoClock = clock;
+        };
+        this.getVSynchNativeFrequency = function() {
+            return videoClock.getVSynchNativeFrequency();
+        };
+        this.setVSynch = function(state) {
+            videoClock.setVSynch(state);
+        };
+        this.setFrequency = function(freq) {
+            videoClock.setFrequency(freq);
+        };
+        var videoClock;
     }
 
 
@@ -735,10 +757,10 @@ wmsx.Machine = function(mainVideoClock) {
             for (var i = signals.length - 1; i >= 0; --i) signals[i].setFps(fps);
         };
         this.pauseAudio = function() {
-            if (monitor) monitor.pause();
+            if (monitor) monitor.pauseAudio();
         };
         this.unpauseAudio = function() {
-            if (monitor) monitor.unpause();
+            if (monitor) monitor.unpauseAudio();
         };
         this.flushAllSignals = function() {
             for (var i = signals.length - 1; i >= 0; --i) signals[i].flush();
@@ -931,20 +953,6 @@ wmsx.Machine = function(mainVideoClock) {
 
 
     // Debug methods  ------------------------------------------------------
-
-    this.runFramesAtTopSpeed = function(frames) {
-        mainVideoClock.pause();
-        var start = wmsx.Util.performanceNow();
-        for (var i = 0; i < frames; i++) {
-            //var pulseTime = wmsx.Util.performanceNow();
-            self.videoClockPulse();
-            //console.log(wmsx.Util.performanceNow() - pulseTime);
-        }
-        var duration = wmsx.Util.performanceNow() - start;
-        wmsx.Util.log("Done running " + frames + " frames in " + (duration | 0) + " ms");
-        wmsx.Util.log((frames / (duration/1000)).toFixed(2) + "  frames/sec");
-        mainVideoClock.go();
-    };
 
     this.eval = function(str) {
         return eval(str);

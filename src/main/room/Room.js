@@ -35,7 +35,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     };
 
     this.start = function(startAction) {
-        wmsx.Clock.detectHostNativeFPSAndCallback(function() {
+        this.mainVideoClock.detectHostNativeFPSAndCallback(function() {
             afterPowerONDelay(function () {
                 self.setLoading(false);
                 self.screen.start(startAction || machinePowerOnStartAction);
@@ -160,7 +160,8 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     }
 
     function buildAndPlugMachine() {
-        self.machine = new wmsx.Machine(self.mainVideoClock);
+        self.machine = new wmsx.Machine();
+        self.mainVideoClock.connect(self.machine.getVideoClockSocket());
         self.stateMedia.connect(self.machine.getSavestateSocket());
         self.fileLoader.connect(self.machine);
         self.screen.connect(self.machine);
@@ -171,6 +172,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         self.cassetteDeck.connect(self.machine.getCassetteSocket());
         self.diskDrive.connect(self.machine.getDiskDriveSocket());
         self.peripheralControls.connect(self.machine.getMachineTypeSocket(), self.machine.getExtensionsSocket(), self.machine.getCartridgeSocket());
+        self.machine.socketsConnected();
     }
 
 
@@ -199,6 +201,23 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     this.isLoading = false;
 
     var roomPowerOnTime;
+
+
+    // Debug methods  ------------------------------------------------------
+
+    this.runFramesAtTopSpeed = function(frames) {
+        this.mainVideoClock.pause();
+        var start = wmsx.Util.performanceNow();
+        for (var i = 0; i < frames; i++) {
+            //var pulseTime = wmsx.Util.performanceNow();
+            self.mainVideoClockPulse();
+            //console.log(wmsx.Util.performanceNow() - pulseTime);
+        }
+        var duration = wmsx.Util.performanceNow() - start;
+        wmsx.Util.log("Done running " + frames + " frames in " + (duration | 0) + " ms");
+        wmsx.Util.log((frames / (duration/1000)).toFixed(2) + "  frames/sec");
+        this.mainVideoClock.go();
+    };
 
 
     init();

@@ -31,11 +31,11 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         if (!processor) return;
 
         registerUnlockOnTouchIfNeeded();
-        this.unpause();
+        this.unpauseAudio();
     };
 
     this.powerOff = function() {
-        this.pause();
+        this.pauseAudio();
         if (audioContext) audioContext.close();
         audioContext = processor = undefined;
     };
@@ -48,11 +48,11 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         mute = false;
     };
 
-    this.pause = function () {
+    this.pauseAudio = function () {
         if (processor) processor.disconnect();
     };
 
-    this.unpause = function () {
+    this.unpauseAudio = function () {
         if (processor) processor.connect(audioContext.destination);
     };
 
@@ -60,9 +60,9 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         if (!audioContext) return screen.showOSD("Audio is DISABLED", true, true);
 
         bufferBaseSize = ((bufferBaseSize + 2) % 8) - 1;  // -1..6
-        this.pause();
+        this.pauseAudio();
         createProcessor();
-        this.unpause();
+        this.unpauseAudio();
         screen.showOSD("Audio Buffer size: " + (bufferBaseSize === -1 ? "Auto (" + bufferSize + ")" : bufferBaseSize === 0 ? "Browser (" + bufferSize + ")" : bufferSize), true);
         WMSX.userPreferences.current.audioBufferBase = bufferBaseSize;
         WMSX.userPreferences.setDirty();
