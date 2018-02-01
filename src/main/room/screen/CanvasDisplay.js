@@ -165,7 +165,7 @@ wmsx.CanvasDisplay = function(mainElement) {
     };
 
     this.openLoadFileDialog = function() {
-        peripheralControls.controlActivated(wmsx.PeripheralControls.AUTO_LOAD_FILE);
+        peripheralControls.processControlActivated(wmsx.PeripheralControls.AUTO_LOAD_FILE);
         return false;
     };
 
@@ -877,7 +877,7 @@ wmsx.CanvasDisplay = function(mainElement) {
 
         // Single option, only left click
         if (elem.wmsxControl) {
-            if (!e.button) peripheralControls.controlActivated(elem.wmsxControl);
+            if (!e.button) peripheralControls.processControlActivated(elem.wmsxControl);
             return;
         }
 
@@ -899,7 +899,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         // Modifier options for left, middle or right click
         for (var i = 0; i < menu.length; ++i)
             if (menu[i].clickModif === modifs) {
-                peripheralControls.controlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
+                peripheralControls.processControlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
                 return;
             }
         // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
@@ -907,7 +907,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             modifs &= ~KEY_SHIFT_MASK;
             for (i = 0; i < menu.length; ++i)
                 if (menu[i].clickModif === modifs) {
-                    peripheralControls.controlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
+                    peripheralControls.processControlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
                     return;
                 }
         }
@@ -974,7 +974,7 @@ wmsx.CanvasDisplay = function(mainElement) {
             } else if (option.control) {
                 secSlot |= option.secSlot;
                 closeAllOverlays();
-                peripheralControls.controlActivated(option.control, altPower, secSlot);
+                peripheralControls.processControlActivated(option.control, altPower, secSlot);
             }
         }
     }

@@ -43,24 +43,33 @@ wmsx.DOMPeripheralControls = function(room) {
         if (!control) return false;
 
         //if (groupRestriction && !groups[groupRestriction].has(control)) return false;
-        self.controlActivated(control, false, !!(code & INCLUDE_SHIFT_MASK));               // Never altPower
+        self.processControlActivated(control, false, !!(code & INCLUDE_SHIFT_MASK));               // Never altPower
         return true;
     };
 
-    this.controlActivated = function(control, altPower, secPort, data) {
-        if (room.netPlayMode === 2) {
+    this.processControlActivated = function(control, altPower, secPort, data) {
+        // If a Net-dependent Control
+        if (!netLocalImmediateControls.has(control)) {
             // Check for NetPlay blocked controls
-            if (netClientDisabledControls.has(control))
+            if (room.netPlayMode === 2 && netServerOnlyControls.has(control) && !netClientSendToServerControls.has(control))
                 return room.showOSD("Function not available in NetPlay Client mode", true, true);
-            // Store changes to be sent to Server. No local processing
-            if (netClientSendToServerOnlyControls.has(control))
-                return netControlsToSend.push({ c: (control << 4) | (altPower << 1) | secPort, d: data });      // binary encoded with data
+
+            // Store changes to be sent to peers
+            if (!(room.netPlayMode === 1 && netServerOnlyControls.has(control)))
+                netControlsToSend.push({ c: (control << 4) | (altPower << 1) | secPort, d: data });      // binary encoded with data
+
+            // Do not apply control now if Client
+            if (room.netPlayMode === 2) return;
         }
 
+        applyControlActivated (control, altPower, secPort, data, true);     // user-initiated
+    };
+
+    function applyControlActivated (control, altPower, secPort, data, user) {
         // All controls are Press-only and repeatable
         switch(control) {
             case pc.MACHINE_SELECT:                                                         // Machine Controls called directly by Screen, no keys here
-                if (!mediaChangeDisabledWarning()) screen.openMachineSelectDialog();
+                if (!user || !mediaChangeDisabledWarning()) screen.openMachineSelectDialog();
                 break;
             case pc.MACHINE_POWER_TOGGLE:
                 if (altPower) return machineControls.processControlState(wmsx.MachineControls.RESET, true);
@@ -70,7 +79,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 break;
             case pc.MACHINE_LOAD_STATE_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
                 break;
             case pc.MACHINE_SAVE_STATE_FILE:
                 machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
@@ -82,22 +91,22 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openSaveStateDialog(true);
                 break;
             case pc.DISK_LOAD_FILES:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
                 break;
             case pc.DISK_ADD_FILES:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, true);   // asExpansion
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, true);   // asExpansion
                 break;
             case pc.DISK_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
                 break;
             case pc.DISK_LOAD_FILES_AS_DISK:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort, false);
                 break;
             case pc.DISK_LOAD_ZIP_AS_DISK:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort, false);
                 break;
             case pc.DISK_REMOVE:
-                if (!mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
+                if (!user || !mediaChangeDisabledWarning()) diskDrive.removeStack(secPort ? 1 : 0);
                 break;
             case pc.DISK_EMPTY:
                 diskDrive.insertNewDisk(secPort ? 1 : 0, null);
@@ -127,13 +136,13 @@ wmsx.DOMPeripheralControls = function(room) {
                 diskDrive.moveDiskInStack(data.d, data.f, data.t);
                 break;
             case pc.CARTRIDGE_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
                 break;
             case pc.CARTRIDGE_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
                 break;
             case pc.CARTRIDGE_REMOVE:
-                if (!mediaChangeDisabledWarning()) cartridgeSlot.removeCartridge(secPort ? 1 : 0, altPower);
+                if (!user || !mediaChangeDisabledWarning()) cartridgeSlot.removeCartridge(secPort ? 1 : 0, altPower);
                 break;
             case pc.CARTRIDGE_LOAD_DATA_FILE:
                 if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
@@ -143,16 +152,16 @@ wmsx.DOMPeripheralControls = function(room) {
                 cartridgeSlot.saveCartridgeDataFile(secPort ? 1 : 0);
                 break;
             case pc.TAPE_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
                 break;
             case pc.TAPE_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
                 break;
             case pc.TAPE_REMOVE:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.userRemoveTape();
+                if (!user || !mediaChangeDisabledWarning()) cassetteDeck.userRemoveTape();
                 break;
             case pc.TAPE_EMPTY:
-                if (!mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
+                if (!user || !mediaChangeDisabledWarning()) cassetteDeck.userLoadEmptyTape();
                 break;
             case pc.TAPE_SAVE_FILE:
                 if (secPort) return cassetteDeck.userTypeCurrentAutoRunCommand();
@@ -174,10 +183,10 @@ wmsx.DOMPeripheralControls = function(room) {
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case pc.AUTO_LOAD_FILE:
-                if (!mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
             case pc.AUTO_LOAD_URL:
-                if (!mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning()) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
                 break;
             case pc.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
@@ -199,7 +208,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openAbout();
                 break;
             case pc.SCREEN_OPEN_SETTINGS:
-                if (altPower) return this.controlActivated(pc.SCREEN_DEFAULTS);
+                if (altPower) return applyControlActivated(pc.SCREEN_DEFAULTS, null, null, null, user);
                 screen.openSettings();
                 break;
             case pc.SCREEN_OPEN_QUICK_OPTIONS:
@@ -252,7 +261,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.SCREEN_SCALE_PLUS:
                 monitor.displayScaleIncrease(); break;
         }
-    };
+    }
 
     var mediaChangeDisabledWarning = function() {
         if (WMSX.MEDIA_CHANGE_DISABLED) {
@@ -336,18 +345,27 @@ wmsx.DOMPeripheralControls = function(room) {
 
     // NetPlay  -------------------------------------------
 
-    this.netClientGetControlsToSend = function() {
+    this.netGetControlsToSend = function() {
         return netControlsToSend.length ? netControlsToSend : undefined;
     };
 
-    this.netClientClearControlsToSend = function() {
+    this.netClearControlsToSend = function() {
         netControlsToSend.length = 0;
     };
 
     this.netServerProcessControlsChanges = function(changes) {
         for (var i = 0, len = changes.length; i < len; ++i) {
             var change = changes[i];
-            self.controlActivated(change.c >> 4, (change.c >> 1) & 0x01, change.c & 0x01, change.d);     // binary encoded with data
+            // Store changes to be sent to Clients?
+            if (!netServerOnlyControls.has(change.c >> 4)) netControlsToSend.push(change);
+            applyControlActivated(change.c >> 4, (change.c >> 1) & 0x01, change.c & 0x01, change.d);     // binary encoded with data
+        }
+    };
+
+    this.netClientApplyControlsChanges = function(changes) {
+        for (var i = 0, len = changes.length; i < len; ++i) {
+            var change = changes[i];
+            applyControlActivated(change.c >> 4, (change.c >> 1) & 0x01, change.c & 0x01, change.d);     // binary encoded with data
         }
     };
 
@@ -425,23 +443,49 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 
-    var netClientDisabledControls = new Set([
-        // TODO NetPlay
+    var netServerOnlyControls = new Set([
         pc.MACHINE_SELECT,
         pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
+        pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
     ]);
 
-    var netClientSendToServerOnlyControls = new Set([
-        // TODO NetPlay
-        pc.DISK_REMOVE, pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360, pc.DISK_INSERT, pc.DISK_MOVE,
-        pc.CARTRIDGE_REMOVE,
-        pc.TAPE_REMOVE, pc.TAPE_EMPTY, pc.TAPE_REWIND, pc.TAPE_TO_END, pc.TAPE_SEEK_FWD, pc.TAPE_SEEK_BACK, pc.TAPE_AUTO_RUN
+    var netClientSendToServerControls = new Set([
+        pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360
     ]);
+
+    var netLocalImmediateControls = new Set([
+        pc.SCREEN_ASPECT_PLUS, pc.SCREEN_ASPECT_MINUS,
+        pc.SCREEN_SCALE_PLUS, pc.SCREEN_SCALE_MINUS,
+        pc.SCREEN_FULLSCREEN,
+        pc.SCREEN_CRT_FILTER, pc.SCREEN_CRT_MODE,
+        pc.SCREEN_TOGGLE_MENU,
+        pc.SCREEN_OPEN_HELP,
+        pc.SCREEN_OPEN_ABOUT,
+        pc.SCREEN_OPEN_SETTINGS,
+        pc.SCREEN_OPEN_QUICK_OPTIONS,
+        pc.SCREEN_OPEN_TOUCH_CONFIG,
+        pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD,
+        pc.SCREEN_DEFAULTS,
+
+        pc.SPEAKER_BUFFER_TOGGLE,
+
+        pc.MACHINE_POWER_TOGGLE, pc.MACHINE_POWER_RESET,
+
+        pc.KEYBOARD_TOGGLE_HOST_LAYOUT, pc.JOYSTICKS_TOGGLE_MODE, pc.JOYKEYS_TOGGLE_MODE, pc.MOUSE_TOGGLE_MODE, pc.TOUCH_TOGGLE_MODE, pc.TOUCH_TOGGLE_DIR_BIG, pc.TURBO_FIRE_TOGGLE,
+        pc.HAPTIC_FEEDBACK_TOGGLE_MODE,
+
+        pc.COPY_STRING, pc.OPEN_PASTE_STRING, pc.OPEN_ENTER_STRING, pc.CAPTURE_SCREEN,
+
+        pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,     // just operates the DiskSelectDialog
+
+        pc.SCREEN_OPEN_NETPLAY
+    ]);
+
 
     init();
 

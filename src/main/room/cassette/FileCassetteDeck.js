@@ -17,7 +17,7 @@ wmsx.FileCassetteDeck = function(room) {
         if (wmsx.Util.arrayIndexOfSubArray(arrContent, HEADER, 0) !== 0)
             return;
 
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent), p: altPower });
+        if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 20, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent), p: altPower });
 
         tapeFileName = wmsx.Util.leafFilename(name);
         tapeContent = wmsx.Util.asNormalArray(arrContent);    // Ensure normal growable Array
@@ -30,14 +30,15 @@ wmsx.FileCassetteDeck = function(room) {
         return tapeContent;
     };
 
+    this.loadSerializedTape = function(name, content, altPower) {
+        this.loadTapeFile(name, wmsx.Util.uncompressStringBase64ToInt8BitArray(content, tapeContent), altPower);
+    };
+
     this.userLoadEmptyTape = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 1 });
         loadEmptyTape();
     };
 
     this.userRemoveTape = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2 });
-
         if (noTapeMessage()) return;
 
         tapeFileName = null;
@@ -48,8 +49,6 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userRewind = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 3 });
-
         if (noTapeMessage()) return;
 
         rewind();
@@ -61,8 +60,6 @@ wmsx.FileCassetteDeck = function(room) {
     }
 
     this.userSeekToEnd = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 4 });
-
         if (noTapeMessage()) return;
 
         seekToEnd();
@@ -74,8 +71,6 @@ wmsx.FileCassetteDeck = function(room) {
     }
 
     this.userSeekForward = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 5 });
-
         if (noTapeMessage()) return;
 
         if (!isTapeEnd()) seekHeader(1, 1);
@@ -84,8 +79,6 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userSeekBackward = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 6 });
-
         if (noTapeMessage()) return;
 
         if (!isTapeStart()) seekHeader(-1, -1);
@@ -123,8 +116,6 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
     this.userTypeCurrentAutoRunCommand = function() {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 7 });
-
         if (noTapeMessage()) return;
 
         if (tapeContent.length === 0) {
@@ -268,41 +259,6 @@ wmsx.FileCassetteDeck = function(room) {
     };
 
 
-    // NetPlay  -------------------------------------------
-
-    this.netServerGetOperationsToSend = function() {
-        return netOperationsToSend.length ? netOperationsToSend : undefined;
-    };
-
-    this.netServerClearOperationsToSend = function() {
-        netOperationsToSend.length = 0;
-    };
-
-    this.netClientProcessOperations = function(ops) {
-        for (var i = 0, len = ops.length; i < len; ++i) {
-            var op = ops[i];
-            switch (op.op) {
-                case 0:
-                    this.loadTapeFile(op.n, wmsx.Util.uncompressStringBase64ToInt8BitArray(op.c, tapeContent), op.p); break;
-                case 1:
-                    this.userLoadEmptyTape(); break;
-                case 2:
-                    this.userRemoveTape(); break;
-                case 3:
-                    this.userRewind(); break;
-                case 4:
-                    this.userSeekToEnd(); break;
-                case 5:
-                    this.userSeekForward(); break;
-                case 6:
-                    this.userSeekBackward(); break;
-                case 7:
-                    this.userTypeCurrentAutoRunCommand(); break
-            }
-        }
-    };
-
-
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
@@ -332,8 +288,6 @@ wmsx.FileCassetteDeck = function(room) {
 
     var screen;
     var fileDownloader;
-
-    var netOperationsToSend = [];
 
     var HEADER = [ 0x1f, 0xa6, 0xde, 0xba, 0xcc, 0x13, 0x7d, 0x74 ];
     var BIN_ID = [ 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0, 0xd0 ];

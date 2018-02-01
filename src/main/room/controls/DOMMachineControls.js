@@ -35,11 +35,11 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
 
     function processControlState(control, press, data) {
         // Check for NetPlay blocked controls
-        if (room.netPlayMode === 2 && netServerLocalOnlyControls.has(control))
+        if (room.netPlayMode === 2 && netServerOnlyControls.has(control))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
         // Store changes to be sent to peers
-        if (!(room.netPlayMode === 1 && netServerLocalOnlyControls.has(control)))
+        if (!(room.netPlayMode === 1 && netServerOnlyControls.has(control)))
             netControlsToSend.push({ c: (control << 4) | press, d: data });       // binary encoded
 
         // Do not apply control now if Client
@@ -144,7 +144,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
         for (var i = 0, len = changes.length; i < len; ++i) {
             var change = changes[i];
             // Store changes to be sent to Clients?
-            if (!netServerLocalOnlyControls.has(change.c >> 4)) netControlsToSend.push(change);
+            if (!netServerOnlyControls.has(change.c >> 4)) netControlsToSend.push(change);
             applyControlState(change.c >> 4, change.c & 0x01, change.d);      // binary encoded, with data
         }
     };
@@ -210,7 +210,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
 
-    var netServerLocalOnlyControls = new Set([
+    var netServerOnlyControls = new Set([
         mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
         mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
         mc.LOAD_STATE_0, mc.LOAD_STATE_1, mc.LOAD_STATE_2, mc.LOAD_STATE_3, mc.LOAD_STATE_4, mc.LOAD_STATE_5, mc.LOAD_STATE_6,

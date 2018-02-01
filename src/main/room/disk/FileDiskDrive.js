@@ -56,13 +56,17 @@ wmsx.FileDiskDrive = function(room) {
         return stack;
     };
 
+    this.loadSerializedStack = function (drive, stackContent, type, altPower, add) {
+        loadStack(drive, deserializeStack(stackContent), type, altPower, add);
+    };
+
     this.insertNewDisk = function(drive, mediaType, unformatted) {     // Cycle among format options if no mediaType given
         if (!mediaType) {
             if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
             mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
         }
 
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 3, d: drive, m: mediaType, u: unformatted });
+        if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 11, d: drive, m: mediaType, u: unformatted });
 
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
         var content = unformatted ? images.createNewBlankDisk(mediaType) : images.createNewFormattedDisk(mediaType);
@@ -82,8 +86,6 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.removeStack = function(drive) {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 1, d: drive });
-
         if (noDiskInsertedMessage(drive)) return;
 
         var wasStack = driveStack[drive].length > 1;
@@ -95,8 +97,6 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.insertDiskFromStack = function(drive, num, altPower) {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 2, d: drive, n: num, a: altPower });
-
         setCurrentDiskNum(drive, num);
         diskInsertedMessage(drive);
         fireMediaStateUpdate(drive);
@@ -107,8 +107,6 @@ wmsx.FileDiskDrive = function(room) {
     this.moveDiskInStack = function (drive, from, to) {
         var stack = driveStack[drive];
         if (from < 0 || to < 0 || from > stack.length -1 || to > stack.length -1) return;
-
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 4, d: drive, f: from, t: to });
 
         var disk = stack[curDisk[drive]];
         stack.splice(to, 0, stack.splice(from, 1)[0]);
@@ -185,7 +183,7 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function loadStack(drive, stack, type, altPower, add) {
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, d: drive, s: serializeStack(stack), t: type, p: altPower, a: add });
+        if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 10, d: drive, s: serializeStack(stack), t: type, p: altPower, a: add });
 
         if (add) {
             driveStack[drive] = driveStack[drive].concat(stack);
@@ -394,35 +392,6 @@ wmsx.FileDiskDrive = function(room) {
     };
 
 
-    // NetPlay  -------------------------------------------
-
-    this.netServerGetOperationsToSend = function() {
-        return netOperationsToSend.length ? netOperationsToSend : undefined;
-    };
-
-    this.netServerClearOperationsToSend = function() {
-        netOperationsToSend.length = 0;
-    };
-
-    this.netClientProcessOperations = function(ops) {
-        for (var i = 0, len = ops.length; i < len; ++i) {
-            var op = ops[i];
-            switch (op.op) {
-                case 0:
-                    loadStack(op.d, deserializeStack(op.s), op.t, op.p, op.a); break;
-                case 1:
-                    this.removeStack(op.d); break;
-                case 2:
-                    this.insertDiskFromStack(op.d, op.n, op.a); break;
-                case 3:
-                    this.insertNewDisk(op.d, op.m, op.u); break;
-                case 4:
-                    this.moveDiskInStack(op.d, op.f, op.t); break;
-            }
-        }
-    };
-
-
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
@@ -468,8 +437,6 @@ wmsx.FileDiskDrive = function(room) {
 
     var driveName = [ "A:", "B:" ];
     var nextNewDiskFormatOption = [ -1, -1 ];
-
-    var netOperationsToSend = [];
 
     var BYTES_PER_SECTOR = 512;                     // Fixed for now, for all disks
 

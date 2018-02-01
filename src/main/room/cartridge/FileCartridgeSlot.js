@@ -14,7 +14,24 @@ wmsx.FileCartridgeSlot = function(room) {
     this.insertCartridge = function (cartridge, port, altPower) {
         cartridgeSocket.insertCartridge(cartridge, port, altPower);
 
-        if (room.netPlayMode === 1) netOperationsToSend.push({ op: 0, c: cartridge.saveState(), p: port, a: altPower });
+        if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 0, c: cartridge.saveState(), p: port, a: altPower });
+    };
+
+    this.insertSerializedCartridge = function (cartridgeContent, port, altPower) {
+        var cart = wmsx.SlotCreator.recreateFromSaveState(cartridgeContent, cartridgeSocket.cartridgeInserted(port));
+        cartridgeSocket.insertCartridge(cart, port, altPower);
+    };
+
+    this.loadCartridgeData = function (port, name, arrContent) {
+        var loaded = cartridgeSocket.loadCartridgeData(port, name, arrContent);
+
+        if (loaded && room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 1, p: port, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent) });
+
+        return loaded;
+    };
+
+    this.loadSerializedCartridgeData = function (port, name, content) {
+        cartridgeSocket.loadCartridgeData(port, name, wmsx.Util.uncompressStringBase64ToInt8BitArray(content));
     };
 
     this.cartridgeInserted = function (port) {
@@ -22,17 +39,7 @@ wmsx.FileCartridgeSlot = function(room) {
     };
 
     this.removeCartridge = function (port, altPower) {
-        var removed = cartridgeSocket.removeCartridge(port, altPower);
-
-        if (removed && room.netPlayMode === 1) netOperationsToSend.push({ op: 1, p: port, a: altPower });
-    };
-
-    this.loadCartridgeData = function (port, name, arrContent) {
-        var loaded = cartridgeSocket.loadCartridgeData(port, name, arrContent);
-
-        if (loaded && room.netPlayMode === 1) netOperationsToSend.push({ op: 2, p: port, n: name, c: wmsx.Util.compressInt8BitArrayToStringBase64(arrContent) });
-
-        return loaded;
+        cartridgeSocket.removeCartridge(port, altPower);
     };
 
     this.saveCartridgeDataFile = function (port) {
@@ -41,34 +48,7 @@ wmsx.FileCartridgeSlot = function(room) {
     };
 
 
-    // NetPlay  -------------------------------------------
-
-    this.netServerGetOperationsToSend = function() {
-        return netOperationsToSend.length ? netOperationsToSend : undefined;
-    };
-
-    this.netServerClearOperationsToSend = function() {
-        netOperationsToSend.length = 0;
-    };
-
-    this.netClientProcessOperations = function(ops) {
-        for (var i = 0, len = ops.length; i < len; ++i) {
-            var op = ops[i];
-            switch (op.op) {
-                case 0:
-                    cartridgeSocket.insertCartridge(wmsx.SlotCreator.recreateFromSaveState(op.c, cartridgeSocket.cartridgeInserted(op.p)), op.p, op.a); break;
-                case 1:
-                    cartridgeSocket.removeCartridge(op.p, op.a); break;
-                case 2:
-                    cartridgeSocket.loadCartridgeData(op.p, op.n, wmsx.Util.uncompressStringBase64ToInt8BitArray(op.c)); break;
-            }
-        }
-    };
-
-
     var cartridgeSocket;
     var fileDownloader;
-
-    var netOperationsToSend = [];
 
 };

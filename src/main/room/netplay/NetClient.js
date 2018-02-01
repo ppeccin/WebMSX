@@ -145,7 +145,7 @@ wmsx.NetClient = function(room) {
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
-        peripheralControls.netClientClearControlsToSend();
+        peripheralControls.netClearControlsToSend();
         room.enterNetClientMode(self);
     }
 
@@ -191,7 +191,7 @@ wmsx.NetClient = function(room) {
     }
 
     function onServerNetUpdate(netUpdate) {
-        // console.log(netUpdate);
+        // if (Object.keys(netUpdate).length) console.log(netUpdate);
 
         // Full Update?
         if (netUpdate.s) {
@@ -205,10 +205,9 @@ wmsx.NetClient = function(room) {
             // Apply controls changes from Server
             if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
             if (netUpdate.k) keyboard.netClientApplyMatrixChanges(netUpdate.k);
-            if (netUpdate.cs) cartridgeSlot.netClientProcessOperations(netUpdate.cs);
             if (netUpdate.cp) controllersHub.netClientSetPortValues(netUpdate.cp);
-            if (netUpdate.dd) diskDrive.netClientProcessOperations(netUpdate.dd);
-            if (netUpdate.cd) cassetteDeck.netClientProcessOperations(netUpdate.cd);
+            if (netUpdate.pc) peripheralControls.netClientApplyControlsChanges(netUpdate.pc);
+            if (netUpdate.po) processPeripheralOperations(netUpdate.po);
 
             // Send local (Client) Machine clock
             machine.videoClockPulse();
@@ -222,7 +221,7 @@ wmsx.NetClient = function(room) {
             c: machineControls.netGetControlsToSend(),
             k: keyboard.netGetMatrixChangesToSend(),
             cp: controllersHub.netGetPortValuesToSend(),
-            pp: peripheralControls.netClientGetControlsToSend()
+            pc: peripheralControls.netGetControlsToSend()
         };
 
         // Use DataChannel if available
@@ -233,7 +232,25 @@ wmsx.NetClient = function(room) {
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
         controllersHub.netClearPortValuesToSend();
-        peripheralControls.netClientClearControlsToSend();
+        peripheralControls.netClearControlsToSend();
+    }
+
+    function processPeripheralOperations(ops) {
+        for (var i = 0, len = ops.length; i < len; ++i) {
+            var op = ops[i];
+            switch (op.op) {
+                case 0:
+                    cartridgeSlot.insertSerializedCartridge(op.c, op.p, op.a); break;
+                case 1:
+                    cartridgeSlot.loadSerializedCartridgeData(op.p, op.n, op.c); break;
+                case 10:
+                    diskDrive.loadSerializedStack(op.d, op.s, op.t, op.p, op.a); break;
+                case 11:
+                    diskDrive.insertNewDisk(op.d, op.m, op.u); break;
+                case 20:
+                    cassetteDeck.loadSerializedTape(op.n, op.c, op.p); break;
+            }
+        }
     }
 
     function keepAlive() {
@@ -270,9 +287,9 @@ wmsx.NetClient = function(room) {
     var machine = room.machine;
     var machineControls = room.machineControls;
     var keyboard = room.keyboard;
-    var cartridgeSlot = room.cartridgeSlot;
     var controllersHub = room.controllersHub;
     var peripheralControls = room.peripheralControls;
+    var cartridgeSlot = room.cartridgeSlot;
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 

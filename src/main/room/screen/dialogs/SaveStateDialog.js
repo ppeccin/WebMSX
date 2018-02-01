@@ -35,7 +35,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         if (confirm) {
             var option = slotOptions[slotSelected];
             var control = save ? option.save : option.load;
-            if (option.peripheral) peripheralControls.controlActivated(control);
+            if (option.peripheral) peripheralControls.processControlActivated(control);
             else machineControls.processControlState(control, true);
         }
     };
