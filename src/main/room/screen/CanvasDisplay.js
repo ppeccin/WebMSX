@@ -4,7 +4,7 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
-wmsx.CanvasDisplay = function(mainElement) {
+wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
     var self = this;
@@ -970,7 +970,7 @@ wmsx.CanvasDisplay = function(mainElement) {
         barMenuItemSetActive(null);
         if (option && !option.disabled) {
             if (option.extension) {
-                extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
+                if (!extensionChangeDisabledWarning()) extensionsSocket.toggleExtension(option.extension, altPower, secSlot);
             } else if (option.control) {
                 secSlot |= option.secSlot;
                 closeAllOverlays();
@@ -1488,6 +1488,18 @@ wmsx.CanvasDisplay = function(mainElement) {
             }
         }
         document.addEventListener("visibilitychange", visibilityChange);
+    }
+
+    function extensionChangeDisabledWarning() {
+        if (WMSX.MEDIA_CHANGE_DISABLED) {
+            machine.showOSD("Extension change is disabled!", true, true);
+            return true;
+        }
+        if (room.netPlayMode === 2) {
+            machine.showOSD("Extension change is disabled in NetPlay Client mode!", true, true);
+            return true;
+        }
+        return false;
     }
 
 

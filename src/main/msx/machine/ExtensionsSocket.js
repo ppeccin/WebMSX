@@ -38,7 +38,6 @@ wmsx.ExtensionsSocket = function(machine) {
 
     this.toggleExtension = function (ext, altPower, secSlot) {
         if (config[ext] === undefined) return;
-        if (WMSX.MEDIA_CHANGE_DISABLED) return machine.showOSD("Extension change is disabled!", true, true);
         secSlot = secSlot && config[ext].SLOT2;
 
         var newVal = !this.isActive(ext, secSlot);
