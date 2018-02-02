@@ -843,7 +843,6 @@ wmsx.Machine = function() {
             controls.writeControllerPin8Port(port, value);
         };
         this.releaseControllers = function() {
-            // TODO NetPlay
             controls.releaseControllers();
         };
         this.resetControllers = function() {

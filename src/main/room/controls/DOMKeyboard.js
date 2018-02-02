@@ -76,9 +76,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.releaseControllers = function() {
-        keyStateMap = {};
-        extraModifiersActive.clear();
-        wmsx.Util.arrayFill(keyboardMatrix, 0xff);
+        for (var msxKey in keyStateMap)
+            if (keyStateMap[msxKey]) this.processMSXKey(msxKey, false);
     };
 
     this.resetControllers = function() {
@@ -142,7 +141,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
             // Special case for Portuguese "Alt Gr" key, which is LControl+RAlt. Release MSX CONTROL key if pressed, so AltGr can be used as normal RAlt
             if (code === RAltKeyCode && keyStateMap["CONTROL"]) {
                 var m = msxKeys["CONTROL"].m;
-                applyMatrixChange(m[0], m[1], false);
+                processMatrixChange(m[0], m[1], false);
             }
             this.processMSXKey(msxKey, press);
         }
@@ -152,7 +151,6 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         if (keyStateMap[msxKey] === press) return;
         keyStateMap[msxKey] = press;
 
-        // Update key matrix bits
         var matrix = msxKeys[msxKey].m;
         processMatrixChange(matrix[0], matrix[1], press);
 
@@ -171,6 +169,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     function applyMatrixChange(line, col, press) {
+        // Update key matrix bits
         if (press) keyboardMatrix[line] &= ~(1 << col);
         else keyboardMatrix[line] |= (1 << col);
     }
@@ -277,7 +276,6 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var screen;
 
     var keyStateMap = {};
-    var extraModifiersActive = new Set();
 
     var keyboardMatrix = wmsx.Util.arrayFill(new Array(12), 0xff);
 

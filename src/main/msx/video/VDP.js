@@ -215,6 +215,8 @@ wmsx.VDP = function(machine, cpu) {
 
     this.toggleSpriteDebugModes = function() {
         setSpriteDebugMode(spriteDebugMode + 1);
+        videoSignal.showOSD("Sprites Mode" + (spriteDebugMode > 0 ? " " + spriteDebugMode : "") + ": "
+            + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     };
 
     this.getSpriteDebugModeQuickDesc = function() {
@@ -510,28 +512,26 @@ wmsx.VDP = function(machine, cpu) {
     function setDebugMode(mode) {
         debugMode = mode % 8;
         var oldDebugModeSpriteHighlight = debugModeSpriteHighlight;
-        debugModeSpriteHighlight = mode >= 1 && mode <= 3;
-        debugModeSpriteInfo = mode === 2 || mode === 3;
-        debugModeSpriteInfoNumbers = mode === 2;
+        debugModeSpriteHighlight = debugMode >= 1 && debugMode <= 3;
+        debugModeSpriteInfo = debugMode === 2 || debugMode === 3;
+        debugModeSpriteInfoNumbers = debugMode === 2;
         // mode 3 is SpriteInfoName
-        debugModeSpritesHidden = mode >= 4;
+        debugModeSpritesHidden = debugMode >= 4;
         var oldDebugModePatternInfo = debugModePatternInfo;
-        debugModePatternInfo = mode >= 5;
-        debugModePatternInfoBlocks = mode === 6;
-        debugModePatternInfoNames = mode === 7;
+        debugModePatternInfo = debugMode >= 5;
+        debugModePatternInfoBlocks = debugMode === 6;
+        debugModePatternInfoNames = debugMode === 7;
         if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTableAddress();
-        videoSignal.setDebugMode(mode > 0);
+        videoSignal.setDebugMode(debugMode > 0);
     }
 
     function setSpriteDebugMode(mode) {
         spriteDebugMode = mode % 4;
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
         spriteDebugModeCollisions = spriteDebugMode < 2;
-        videoSignal.showOSD("Sprites Mode" + (spriteDebugMode > 0 ? " " + spriteDebugMode : "") + ": "
-            + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     }
 
     function debugAdjustPalette() {
