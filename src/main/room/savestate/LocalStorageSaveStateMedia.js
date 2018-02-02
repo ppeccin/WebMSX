@@ -36,7 +36,7 @@ wmsx.LocalStorageSaveStateMedia = function(room) {
 
     this.externalStateChange = function() {
         // Let the NetPlay Server know
-        if (room.netPlayMode === 1) room.netController.processExternalStateChange();
+        if (room.netController) room.netController.processExternalStateChange();
     };
 
     var saveToLocalStorage = function(entry, data) {

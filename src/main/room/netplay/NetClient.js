@@ -70,6 +70,10 @@ wmsx.NetClient = function(room) {
         // Client gets clocks from Server at onServerNetUpdate()
     };
 
+    this.processExternalStateChange = function() {
+        room.screen.quickOptionsControlsStateUpdate();
+    };
+
     function onSessionServerConnected() {
         // Setup keep-alive
         if (keepAliveTimer === undefined) keepAliveTimer = setInterval(keepAlive, 30000);

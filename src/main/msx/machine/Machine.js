@@ -306,6 +306,7 @@ wmsx.Machine = function() {
     }
 
     this.saveStateExtended = function() {
+        // TODO NetPlay Debug and Sprite modes
         var state = saveState();
         state.vy = vSynchMode;
         state.pw = this.powerIsOn;
