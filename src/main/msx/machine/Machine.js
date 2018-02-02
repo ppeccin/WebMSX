@@ -282,8 +282,8 @@ wmsx.Machine = function() {
         videoClockUpdateSpeed();
     }
 
-    function saveState() {
-        return {
+    function saveState(extended) {
+        var s = {
             mn: self.machineName,
             mt: self.machineType,
             b:  bus.saveState(),
@@ -291,7 +291,7 @@ wmsx.Machine = function() {
             sf: syf.saveState(),
             pp: ppi.saveState(),
             ps: psg.saveState(),
-            vd: vdp.saveState(),
+            vd: vdp.saveState(extended),
             c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
@@ -303,19 +303,24 @@ wmsx.Machine = function() {
             ct: cassetteSocket.getDeck().saveState(),
             cs: controllersSocket.saveState()
         };
+        if (extended) {
+            s.vy = vSynchMode;
+            s.pw = self.powerIsOn;
+            s.up = userPaused;
+            s.upf = userPauseMoreFrames;
+        }
+        return s;
     }
-
-    this.saveStateExtended = function() {
-        // TODO NetPlay Debug and Sprite modes
-        var state = saveState();
-        state.vy = vSynchMode;
-        state.pw = this.powerIsOn;
-        state.up = userPaused;
-        state.upf = userPauseMoreFrames;
-        return state;
-    };
+    this.saveState = saveState;
 
     function loadState(s) {
+        // Extended
+        if (s.vy !== undefined) setVSynchMode(s.vy, true);  // force update
+        if (s.pw !== undefined && self.powerIsOn !== s.pw) s.pw ? self.powerOn() : self.powerOff();
+        if (s.up !== undefined) self.userPause(s.up);
+        if (s.upf !== undefined) userPauseMoreFrames = s.upf;
+
+        // Normal
         self.machineName = s.mn;
         self.machineType = s.mt;
         videoStandardIsAuto = s.va;
@@ -341,14 +346,7 @@ wmsx.Machine = function() {
         audioSocket.flushAllSignals();
         saveStateSocket.externalStateChange();
     }
-
-    this.loadStateExtended = function(state) {
-        setVSynchMode(state.vy, true);  // force update
-        if (this.powerIsOn !== state.pw) state.pw ? this.powerOn() : this.powerOff();
-        this.userPause(state.up);
-        userPauseMoreFrames = state.upf;
-        loadState(state);
-    };
+    this.loadState = loadState;
 
     function videoClockUpdateSpeed() {
         var pulldown = vdp.getDesiredVideoPulldown();

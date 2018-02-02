@@ -73,7 +73,7 @@ wmsx.NetServer = function(room) {
                 client.justJoined = false;
                 if (!dataFull) {
                     netUpdateFull.vf = room.mainVideoClock.getVSynchNativeFrequency();
-                    netUpdateFull.s = machine.saveStateExtended();
+                    netUpdateFull.s = machine.saveState(true);      // extended
                     netUpdateFull.ks = keyboard.saveState();
                     netUpdateFull.cp = controllersHub.netServerGetPortValues();
                     // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };

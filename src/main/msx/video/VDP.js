@@ -206,7 +206,7 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.toggleDebugModes = function() {
-        setDebugMode((debugMode + 1) % 8);
+        setDebugMode(debugMode + 1);
         videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": "
             + [ "OFF", "Sprites Highlighted", "Sprite Numbers", "Sprite Names",
                 "Sprites Hidden", "Pattern Bits", "Pattern Color Blocks", "Pattern Names"][debugMode], true);
@@ -214,11 +214,7 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.toggleSpriteDebugModes = function() {
-        spriteDebugMode = ++spriteDebugMode % 4;
-        spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
-        spriteDebugModeCollisions = spriteDebugMode < 2;
-        videoSignal.showOSD("Sprites Mode" + (spriteDebugMode > 0 ? " " + spriteDebugMode : "") + ": "
-            + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
+        setSpriteDebugMode(spriteDebugMode + 1);
     };
 
     this.getSpriteDebugModeQuickDesc = function() {
@@ -512,7 +508,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function setDebugMode(mode) {
-        debugMode = mode;
+        debugMode = mode % 8;
         var oldDebugModeSpriteHighlight = debugModeSpriteHighlight;
         debugModeSpriteHighlight = mode >= 1 && mode <= 3;
         debugModeSpriteInfo = mode === 2 || mode === 3;
@@ -528,6 +524,14 @@ wmsx.VDP = function(machine, cpu) {
         updateSpritesConfig();
         updateSpritePatternTableAddress();
         videoSignal.setDebugMode(mode > 0);
+    }
+
+    function setSpriteDebugMode(mode) {
+        spriteDebugMode = mode % 4;
+        spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
+        spriteDebugModeCollisions = spriteDebugMode < 2;
+        videoSignal.showOSD("Sprites Mode" + (spriteDebugMode > 0 ? " " + spriteDebugMode : "") + ": "
+            + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     }
 
     function debugAdjustPalette() {
@@ -2399,8 +2403,8 @@ wmsx.VDP = function(machine, cpu) {
 
     // Savestate  -------------------------------------------
 
-    this.saveState = function() {
-        return {
+    this.saveState = function(extended) {
+        var s = {
             mt: machineType,
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
@@ -2417,6 +2421,11 @@ wmsx.VDP = function(machine, cpu) {
             vrint: vramInterleaving,
             cp: commandProcessor.saveState()
         };
+        if (extended) {
+            s.dm = debugMode;
+            s.sm = spriteDebugMode;
+        }
+        return s;
     };
 
     this.loadState = function(s) {
@@ -2448,6 +2457,10 @@ wmsx.VDP = function(machine, cpu) {
         updateBackdropColor();
         updateTransparency();
         updateRenderMetrics(true);
+
+        // Extended
+        if (s.dm !== undefined) setDebugMode(s.dm);
+        if (s.sm !== undefined) setSpriteDebugMode(s.sm);
     };
 
 

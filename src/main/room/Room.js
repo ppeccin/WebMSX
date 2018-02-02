@@ -67,7 +67,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
 
         // Restore state from before NetPlay if any
         if (this.netPlayStateBeforeClientMode) {
-            this.machine.loadStateExtended(this.netPlayStateBeforeClientMode);
+            this.machine.loadState(this.netPlayStateBeforeClientMode);      // extended
             // TODO NetPlay this.machineControls.setP1ControlsAndPaddleMode(this.netPlayControlsModeBeforeClientMode.p1, this.netPlayControlsModeBeforeClientMode.pd);
             this.netPlayStateBeforeClientMode = undefined;
         }
@@ -92,7 +92,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         self.mainVideoClock.pause();    // Clock comes from Server
 
         // Save state from before NetPlay, to be restored when session is over
-        this.netPlayStateBeforeClientMode = this.machine.saveStateExtended();
+        this.netPlayStateBeforeClientMode = this.machine.saveState(true);       // extended
         // TODO NetPlay this.netPlayControlsModeBeforeClientMode = { p1: this.machineControls.isP1ControlsMode(), pd: this.machineControls.isPaddleMode() };
 
         if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
