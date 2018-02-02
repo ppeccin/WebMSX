@@ -547,7 +547,7 @@ wmsx.VDP = function(machine, cpu) {
             pulldown = videoStandard.pulldowns.TIMER;
         }
 
-        console.log("Update Synchronization: " + pulldown.frequency);
+        // console.log("Update Synchronization: " + pulldown.frequency);
     }
 
     // Total frame lines: 262 for NTSC, 313 for PAL

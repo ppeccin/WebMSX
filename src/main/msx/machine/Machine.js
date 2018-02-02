@@ -174,7 +174,6 @@ wmsx.Machine = function() {
         return prev;
     };
 
-    // TODO NetPlay Client Check wrongly receiving and processing/ignoring clocks from Server
     this.systemPause = function(val) {
         var prev = systemPaused;
         if (systemPaused !== val) {
@@ -276,9 +275,9 @@ wmsx.Machine = function() {
         setVideoStandard(forcedVideoStandard);
     }
 
-    function setVSynchMode(mode) {
-        if (vSynchMode === mode) return;
-        if (vSynchMode !== -1) vSynchMode = mode % 2;
+    function setVSynchMode(mode, force) {
+        if (vSynchMode === mode && !force) return;
+        vSynchMode = mode === -1 ? -1 : mode % 2;
         vdp.setVSynchMode(vSynchMode);
         videoClockUpdateSpeed();
     }
@@ -308,6 +307,7 @@ wmsx.Machine = function() {
 
     this.saveStateExtended = function() {
         var state = saveState();
+        state.vy = vSynchMode;
         state.pw = this.powerIsOn;
         state.up = userPaused;
         state.upf = userPauseMoreFrames;
@@ -342,6 +342,7 @@ wmsx.Machine = function() {
     }
 
     this.loadStateExtended = function(state) {
+        setVSynchMode(state.vy, true);  // force update
         if (this.powerIsOn !== state.pw) state.pw ? this.powerOn() : this.powerOff();
         this.userPause(state.up);
         userPauseMoreFrames = state.upf;

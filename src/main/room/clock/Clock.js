@@ -14,9 +14,9 @@ wmsx.Clock = function(clockPulse) {
             //lastPulseTime = wmsx.Util.performanceNow();
             //timeMeasures = [];
 
-            useRequestAnimationFrame = vSynch && (cyclesPerSecond === vSynchNativeFrequency);
+            useRequestAnimationFrame = vSynch && (cyclesPerSecond === this.getVSynchNativeFrequency());
 
-            console.log("Clock using RequestAnimationFrame: " + useRequestAnimationFrame);
+            // console.log("Clock using RequestAnimationFrame: " + useRequestAnimationFrame);
 
             running = true;
             if (useRequestAnimationFrame)
@@ -59,7 +59,11 @@ wmsx.Clock = function(clockPulse) {
     };
 
     this.getVSynchNativeFrequency = function() {
-        return vSynchNativeFrequency;
+        return vSynchAltNativeFrequency || vSynchNativeFrequency;
+    };
+
+    this.setVSynchAltNativeFrequency = function(freq) {
+        vSynchAltNativeFrequency = freq;
     };
 
     var internalSetFrequency = function(freq) {
@@ -150,6 +154,7 @@ wmsx.Clock = function(clockPulse) {
     var vSynch = true;
 
     var vSynchNativeFrequency = WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;      // -1 = Unknown or not detected
+    var vSynchAltNativeFrequency = undefined;                           // undefined = deactivated. Used by NetPlay to force the same frequency as the Server
 
     //var timeMeasures = [];
     //var lastPulseTime = 0;

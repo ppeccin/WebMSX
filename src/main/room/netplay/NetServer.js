@@ -72,6 +72,7 @@ wmsx.NetServer = function(room) {
             if (client.justJoined || nextUpdateFull) {
                 client.justJoined = false;
                 if (!dataFull) {
+                    netUpdateFull.vf = room.mainVideoClock.getVSynchNativeFrequency();
                     netUpdateFull.s = machine.saveStateExtended();
                     netUpdateFull.ks = keyboard.saveState();
                     netUpdateFull.cp = controllersHub.netServerGetPortValues();

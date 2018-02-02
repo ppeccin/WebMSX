@@ -195,6 +195,7 @@ wmsx.NetClient = function(room) {
 
         // Full Update?
         if (netUpdate.s) {
+            room.mainVideoClock.setVSynchAltNativeFrequency(netUpdate.vf);
             machine.loadStateExtended(netUpdate.s);
             keyboard.loadState(netUpdate.ks);
             controllersHub.netClientSetPortValues(netUpdate.cp);

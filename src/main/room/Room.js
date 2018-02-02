@@ -62,6 +62,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         var oldMode = this.netPlayMode;
         this.netPlayMode = 0;
         this.netController = undefined;
+        this.mainVideoClock.setVSynchAltNativeFrequency(undefined);
         self.mainVideoClock.go();       // Local Clock
 
         // Restore state from before NetPlay if any
@@ -78,6 +79,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         var oldMode = this.netPlayMode;
         this.netPlayMode = 1;
         this.netController = netServer;
+        this.mainVideoClock.setVSynchAltNativeFrequency(undefined);
         self.mainVideoClock.go();       // Local Clock, also sent to Client
 
         if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
