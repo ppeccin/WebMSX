@@ -350,10 +350,11 @@ wmsx.Machine = function() {
     };
 
     function videoClockUpdateSpeed() {
-        var freq = vdp.getDesiredBaseFrequency();
+        var pulldown = vdp.getDesiredVideoPulldown();
         videoClockSocket.setVSynch(vSynchMode > 0);
-        videoClockSocket.setFrequency((freq * (alternateSpeed || speedControl)) | 0);
-        audioSocket.setFps(freq);
+        var freq = (pulldown.frequency * (alternateSpeed || speedControl)) | 0;
+        videoClockSocket.setFrequency(freq, pulldown.divider);
+        audioSocket.setFps(freq / pulldown.divider);
     }
 
     function mainComponentsCreate() {
@@ -599,8 +600,8 @@ wmsx.Machine = function() {
         this.setVSynch = function(state) {
             videoClock.setVSynch(state);
         };
-        this.setFrequency = function(freq) {
-            videoClock.setFrequency(freq);
+        this.setFrequency = function(freq, div) {
+            videoClock.setFrequency(freq, div);
         };
         var videoClock;
     }

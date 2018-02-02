@@ -16,7 +16,7 @@ wmsx.Clock = function(clockPulse) {
 
             useRequestAnimationFrame = vSynch && (cyclesPerSecond === this.getVSynchNativeFrequency());
 
-            // console.log("Clock using RequestAnimationFrame: " + useRequestAnimationFrame);
+            // console.log("Clock at " + cyclesPerSecond + " / " + divider + " using RequestAnimationFrame: " + useRequestAnimationFrame);
 
             running = true;
             if (useRequestAnimationFrame)
@@ -38,13 +38,13 @@ wmsx.Clock = function(clockPulse) {
         }
     };
 
-    this.setFrequency = function(freq) {
+    this.setFrequency = function(freq, div) {
         if (running) {
             this.pause();
-            internalSetFrequency(freq);
+            internalSetFrequency(freq, div);
             this.go();
         } else {
-            internalSetFrequency(freq);
+            internalSetFrequency(freq, div);
         }
     };
 
@@ -66,9 +66,11 @@ wmsx.Clock = function(clockPulse) {
         vSynchAltNativeFrequency = freq;
     };
 
-    var internalSetFrequency = function(freq) {
+    var internalSetFrequency = function(freq, div) {
         cyclesPerSecond = freq;
         cycleTimeMs = 1000 / freq;
+        divider = div >= 1 ? div : 1;
+        if (dividerCounter > divider) dividerCounter = divider;
     };
 
     var pulse = function() {
@@ -77,7 +79,15 @@ wmsx.Clock = function(clockPulse) {
         //lastPulseTime = pulseTime;
 
         animationFrame = null;
-        clockPulse();
+
+        if (divider > 1) {
+            if (--dividerCounter <= 0) {
+                dividerCounter = divider;
+                clockPulse();
+            }
+        } else
+            clockPulse();
+
         if (useRequestAnimationFrame && !animationFrame)
             animationFrame = requestAnimationFrame(pulse);
 
@@ -148,6 +158,8 @@ wmsx.Clock = function(clockPulse) {
 
     var cyclesPerSecond = 1;
     var cycleTimeMs = 1000;
+    var divider = 1;
+    var dividerCounter = 1;
     var useRequestAnimationFrame;
     var animationFrame = null;
     var interval = null;
