@@ -213,7 +213,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
     var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
 
     var quickOptionsControls = new Set([
-        mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE
+        mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE, mc.VSYNCH
     ]);
 
     var netServerOnlyControls = new Set([

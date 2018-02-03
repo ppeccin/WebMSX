@@ -14,7 +14,6 @@ wmsx.Machine = function() {
     this.socketsConnected = function() {
         self.setMachine(WMSX.MACHINE);
         self.setDefaults();
-        setVSynchMode(WMSX.SCREEN_VSYNCH_MODE);
     };
 
     this.setMachine = function(name) {
@@ -159,6 +158,12 @@ wmsx.Machine = function() {
                 self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true, true);
     };
 
+    this.setBIOS = function(pBIOS) {                    // Called by SlotBIOS on connection
+        bios = pBIOS === EMPTY_SLOT ? null : pBIOS;
+        videoStandardSoft = null;
+        setVideoStandardAuto();
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
     };
@@ -188,10 +193,14 @@ wmsx.Machine = function() {
         return systemPaused;
     };
 
-    this.setBIOS = function(pBIOS) {                    // Called by SlotBIOS on connection
-        bios = pBIOS === EMPTY_SLOT ? null : pBIOS;
-        videoStandardSoft = null;
-        setVideoStandardAuto();
+    // To be called once and only by Room during Native Video Freq detection
+    this.vSynchSetSupported = function(boo) {
+        var mode = WMSX.SCREEN_VSYNCH_MODE !== -1 && boo
+            ? WMSX.SCREEN_VSYNCH_MODE >= 0
+                ? WMSX.SCREEN_VSYNCH_MODE
+                : WMSX.userPreferences.current.vSynch >= 0 ? WMSX.userPreferences.current.vSynch : 1
+            : -1;
+        setVSynchMode(mode, true);  // force
     };
 
     this.setDefaults = function() {
@@ -277,9 +286,22 @@ wmsx.Machine = function() {
 
     function setVSynchMode(mode, force) {
         if (vSynchMode === mode && !force) return;
-        vSynchMode = mode === -1 ? -1 : mode % 2;
+        vSynchMode = mode < 0 ? mode : mode % 2;
         vdp.setVSynchMode(vSynchMode);
         videoClockUpdateSpeed();
+    }
+
+    function vSynchModeToggle() {
+        if (vSynchMode < 0 || videoClockSocket.getVSynchNativeFrequency() === -1)
+            return self.showOSD("V-Synch is disabled / unsupported", true, true);
+
+        setVSynchMode(vSynchMode + 1);
+        self.showOSD("V-Synch: " + (vSynchMode === 1 ? "ON" : vSynchMode === 0 ? "OFF" : "DISABLED"), true);
+
+        // Persist
+        WMSX.userPreferences.current.vSynch = vSynchMode;
+        WMSX.userPreferences.setDirty();
+        WMSX.userPreferences.save();
     }
 
     function saveState(extended) {
@@ -350,7 +372,7 @@ wmsx.Machine = function() {
 
     function videoClockUpdateSpeed() {
         var pulldown = vdp.getDesiredVideoPulldown();
-        videoClockSocket.setVSynch(vSynchMode > 0);
+        videoClockSocket.setVSynch(vSynchMode === 1);
         var freq = (pulldown.frequency * (alternateSpeed || speedControl)) | 0;
         videoClockSocket.setFrequency(freq, pulldown.divider);
         audioSocket.setFps(freq / pulldown.divider);
@@ -552,12 +574,7 @@ wmsx.Machine = function() {
                 else setVideoStandardAuto();
                 break;
             case controls.VSYNCH:
-                if (vSynchMode === -1 || videoClockSocket.getVSynchNativeFrequency() === -1) {
-                    self.showOSD("V-Synch is disabled / unsupported", true, true);
-                } else {
-                    setVSynchMode(vSynchMode + 1);
-                    self.showOSD("V-Synch: " + (vSynchMode === 1 ? "ON" : vSynchMode === 0 ? "OFF" : "DISABLED"), true);
-                }
+                vSynchModeToggle();
                 break;
             case controls.CPU_TURBO_MODE:
                 cpu.toggleTurboMode();
@@ -889,6 +906,8 @@ wmsx.Machine = function() {
                 case controls.SPRITE_MODE:
                     var desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };
+                case controls.VSYNCH:
+                    return { label: vSynchMode < 0 ? "DISABL" : vSynchMode ? "ON" : "OFF", active: vSynchMode === 1 };
             }
             return { label: "Unknown", active: false };
         };

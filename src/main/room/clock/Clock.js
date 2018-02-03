@@ -102,12 +102,12 @@ wmsx.Clock = function(clockPulse) {
 
         if (WMSX.SCREEN_VSYNCH_MODE === -1) {
             wmsx.Util.warning("Video native V-Synch disabled in configuration");
-            if (callback) callback();
+            if (callback) callback(vSynchNativeFrequency);
             return;
         }
         if (WMSX.SCREEN_FORCE_HOST_NATIVE_FPS !== -1) {
             wmsx.Util.warning("Host video frequency forced in configuration: " + WMSX.SCREEN_FORCE_HOST_NATIVE_FPS);
-            if (callback) callback();
+            if (callback) callback(vSynchNativeFrequency);
             return;
         }
 
@@ -124,7 +124,7 @@ wmsx.Clock = function(clockPulse) {
             if (good60 >= 10 || good50 >= 10 || good120 >= 10 || good100 >= 10) {
                 vSynchNativeFrequency = good60 >= 10 ? 60 : good50 >= 10 ? 50 : good120 >= 10 ? 120 : 100;
                 wmsx.Util.log("Video native frequency detected: " + vSynchNativeFrequency + "Hz");
-                if (callback) callback();
+                if (callback) callback(vSynchNativeFrequency);
                 return;
             }
 
@@ -142,7 +142,7 @@ wmsx.Clock = function(clockPulse) {
             } else {
                 vSynchNativeFrequency = -1;
                 wmsx.Util.error("Could not detect video native frequency. V-Synch DISABLED!");
-                if (callback) callback();
+                if (callback) callback(vSynchNativeFrequency);
             }
         };
 
@@ -165,7 +165,7 @@ wmsx.Clock = function(clockPulse) {
     var interval = null;
     var vSynch = true;
 
-    var vSynchNativeFrequency = WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;      // -1 = Unknown or not detected
+    var vSynchNativeFrequency = WMSX.SCREEN_VSYNCH_MODE === -1 ? -1 : WMSX.SCREEN_FORCE_HOST_NATIVE_FPS;      // -1 = Unknown or not detected
     var vSynchAltNativeFrequency = undefined;                           // undefined = deactivated. Used by NetPlay to force the same frequency as the Server
 
     //var timeMeasures = [];

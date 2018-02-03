@@ -313,10 +313,18 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         setCRTFilter(newLevel);
         var levelDesc = crtFilterEffective === null ? "browser default" : crtFilterEffective < 1 ? "OFF" : "level " + crtFilterEffective;
         this.showOSD("CRT filter: " + (crtFilter === -1 ? "AUTO (" + levelDesc + ")" : levelDesc), true);
+
+        // Persist
+        if (WMSX.userPreferences.current.crtFilter !== crtFilter) {
+            WMSX.userPreferences.current.crtFilter = crtFilter;
+            WMSX.userPreferences.setDirty();
+            WMSX.userPreferences.save();
+        }
     };
 
     this.crtFilterSetDefault = function() {
-        setCRTFilter(WMSX.SCREEN_FILTER_MODE);
+        var user = WMSX.userPreferences.current.crtFilter;
+        setCRTFilter(WMSX.SCREEN_FILTER_MODE !== -3 ? WMSX.SCREEN_FILTER_MODE : user > -3 ? user : -1);
     };
 
     this.crtModeToggle = function() {
@@ -328,6 +336,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.crtModeSetDefault = function() {
         setCRTMode(WMSX.SCREEN_CRT_MODE);
+    };
+
+    this.getControlReport = function(control) {
+        // Only CRT Filter for now
+        return { label: crtFilter === -2 ? "Browser" : crtFilter === -1 ? "Auto" : crtFilter === 0 ? "OFF" : "Level " + crtFilter, active: crtFilter >= 0 };
     };
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated

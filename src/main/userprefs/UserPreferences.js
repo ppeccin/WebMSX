@@ -123,6 +123,9 @@ WMSX.userPreferences.defaults = function() {
             }
         },
 
+        vSynch: 1,                          // on
+        crtFilter: -1,                      // auto
+
         hapticFeedback: true,
 
         audioBufferBase: -1,                // auto
