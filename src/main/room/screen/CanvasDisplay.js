@@ -324,7 +324,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.crtFilterSetDefault = function() {
         var user = WMSX.userPreferences.current.crtFilter;
-        setCRTFilter(WMSX.SCREEN_FILTER_MODE !== -3 ? WMSX.SCREEN_FILTER_MODE : user > -3 ? user : -1);
+        setCRTFilter(WMSX.SCREEN_FILTER_MODE !== -3 ? WMSX.SCREEN_FILTER_MODE : user !== null && user > -3 ? user : -1);
     };
 
     this.crtModeToggle = function() {

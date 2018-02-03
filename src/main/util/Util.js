@@ -4,13 +4,25 @@ wmsx.Util = new function() {
 "use strict";
 
     this.log = function(str) {
-        console.log(">> wmsx: " + str);
+        var args = [ ">> wmsx:" ];
+        Array.prototype.push.apply(args, arguments);
+        console.log.apply(console, args);
+        //console.log(str);
+        // this.logs.push(str);
     };
     this.warning = function(str) {
-        console.warn(">> wmsx Warning: " + str);
+        var args = [ ">> wmsx Warning:" ];
+        Array.prototype.push.apply(args, arguments);
+        console.warn.apply(console, args);
+        //console.warn(str);
+        // this.logs.push(str);
     };
     this.error = function(str) {
-        console.error(">> wmsx Error: " + str);
+        var args = [ ">> wmsx Error:" ];
+        Array.prototype.push.apply(args, arguments);
+        console.error.apply(console, args);
+        //console.error(str);
+        // this.logs.push(str);
     };
 
     this.message = function(str) {

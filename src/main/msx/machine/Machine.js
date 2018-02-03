@@ -195,10 +195,11 @@ wmsx.Machine = function() {
 
     // To be called once and only by Room during Native Video Freq detection
     this.vSynchSetSupported = function(boo) {
+        var user = WMSX.userPreferences.current.vSynch;
         var mode = WMSX.SCREEN_VSYNCH_MODE !== -1 && boo
             ? WMSX.SCREEN_VSYNCH_MODE >= 0
                 ? WMSX.SCREEN_VSYNCH_MODE
-                : WMSX.userPreferences.current.vSynch >= 0 ? WMSX.userPreferences.current.vSynch : 1
+                : user !== null && user >= 0 ? user : 1
             : -1;
         setVSynchMode(mode, true);  // force
     };
