@@ -21,13 +21,13 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         // Ask to load all files
         for (var f = 0; f < urls.length; ++f) {
             var url = urls[f];
-            if (url[0] === "@") getEmbedded(urlSpec, f, url);         // Embedded file. SYNCHRONOUS
-            else getHTTP(urlSpec, f, url);                            // HTTP GET. ASYNCHRONOUS!!!
+            if (wmsx.EmbeddedFiles.isEmbeddedURL(url)) getEmbedded(urlSpec, f, url);    // Embedded file. SYNCHRONOUS
+            else getHTTP(urlSpec, f, url);                                              // HTTP GET. ASYNCHRONOUS!!!
         }
     }
 
     function getEmbedded(urlSpec, f, url) {
-        wmsx.Util.log("Reading Embedded file: " + url);
+        //wmsx.Util.log("Reading Embedded file: " + url);
         var file = wmsx.EmbeddedFiles.get(url.substr(1));
         if (file !== undefined) loadSuccess(urlSpec, f, file.content);
         else loadError(urlSpec, "Embedded file not found!");

@@ -66,22 +66,22 @@ wmsx.Configurator = {
         }
     },
 
-    applyPresets: function(presetList) {
+    applyPresets: function(presetList, silent) {
         var presetNames = (presetList || "").trim().toUpperCase().split(",");
         // Apply list in order
         for (var i = 0; i < presetNames.length; i++)
-            this.applyPreset(presetNames[i].trim());
+            this.applyPreset(presetNames[i].trim(), silent);
     },
 
-    applyPreset: function(presetName) {
+    applyPreset: function(presetName, silent) {
         if (!presetName) return;
         var presetPars = WMSX.PRESETS_CONFIG[presetName];
         if (presetPars) {
-            wmsx.Util.log("Applying preset: " + presetName);
+            if (!silent) wmsx.Util.log("Applying preset: " + presetName);
             for (var par in presetPars) {
                 var parName = par.trim().toUpperCase();
-                if (parName[0] !== "_") this.applyParam(parName, presetPars[par]);      // Normal Parameter to set
-                else if (parName === "_INCLUDE") this.applyPresets(presetPars[par]);    // Preset to include
+                if (parName[0] !== "_") this.applyParam(parName, presetPars[par]);              // Normal Parameter to set
+                else if (parName === "_INCLUDE") this.applyPresets(presetPars[par], true);      // Preset to include, silent
             }
         } else
             wmsx.Util.warning("Preset \"" + presetName + "\" not found, skipping...");

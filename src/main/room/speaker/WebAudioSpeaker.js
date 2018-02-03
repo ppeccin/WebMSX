@@ -77,7 +77,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         // Set bufferBaseSize according to browser and platform
         return wmsx.Util.isMobileDevice()
             ? wmsx.Util.browserInfo().name === "CHROME" && !wmsx.Util.isIOSDevice()
-                ? 5      // for now mobile Chrome needs more buffer, except on iOS
+                ? 4      // for now mobile Chrome needs more buffer, except on iOS
                 : 3      // other mobile scenarios
             : 2;         // desktop
     }

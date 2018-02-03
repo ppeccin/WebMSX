@@ -10,7 +10,8 @@ wmsx.SlotCreator = function () {
 
         // Choose the best option
         var bestOption = options[0];
-        wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.prioritySelected);
+        var silent = wmsx.EmbeddedFiles.isEmbeddedURL(rom.source);
+        if (!silent) wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.prioritySelected);
         return bestOption.createFromROM(rom);
     };
 
@@ -29,12 +30,13 @@ wmsx.SlotCreator = function () {
 
         // Get info from the library
         var info = wmsx.ROMDatabase[hash];
+        var silent = wmsx.EmbeddedFiles.isEmbeddedURL(rom.source);
         if (info) {
             info = cloneInfo(info);
-            wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : "") + " (" + hash + ")");
+            if (!silent) wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : "") + " (" + hash + ")");
         } else {
             info = buildInfo(rom.source);
-            wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : ""));
+            if (!silent) wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : ""));
         }
 
         finishInfo(info, rom.source, hash, formatHint);
