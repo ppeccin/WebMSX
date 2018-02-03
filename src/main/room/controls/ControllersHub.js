@@ -373,6 +373,7 @@ wmsx.ControllersHub = function(room, machineControls) {
     var touchPresent =     [ null, null ];
     var settingsStateRet = { ports: [ null, null ]};
 
+    // Key processing sequence: JoyKeys -> Keyboard -> MachineControls -> PeripheralControls
     var keyboard =         new wmsx.DOMKeyboard(this, room, machineControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
     var joystickControls = new wmsx.GamepadJoysticksControls(this, keyboard);

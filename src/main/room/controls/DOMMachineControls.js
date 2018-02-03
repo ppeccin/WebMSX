@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMMachineControls = function(room, keyForwardControls) {
+wmsx.DOMMachineControls = function(room, peripheralControls) {
 "use strict";
 
     function init() {
@@ -24,7 +24,7 @@ wmsx.DOMMachineControls = function(room, keyForwardControls) {
 
     this.processKey = function(code, press) {
         var control = keyCodeMap[code];
-        if (!control) return keyForwardControls.processKey(code, press);        // Next in chain
+        if (!control) return peripheralControls.processKey(code, press);        // Next in chain
 
         if (press === keyStateMap[code]) return true;
         keyStateMap[code] = press;

@@ -94,7 +94,7 @@ WMSX.userPreferences.defaults = function() {
                     J_LEFT:      [ k.VK_LEFT, k.VK_NUM_LEFT ],
                     J_RIGHT:     [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
                     J_A:         [ k.VK_SPACE, k.VK_LSHIFT, k.VK_INSERT ],
-                    J_B:         [ k.VK_LALT, k.VK_LCONTROL, k.VK_DELETE, k.VK_M ]
+                    J_B:         [ k.VK_M, k.VK_LCONTROL, k.VK_DELETE  ]        // had k.VK_LALT also
                 }
             },
             {

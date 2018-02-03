@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
+wmsx.DOMJoykeysControls = function(hub, keyboard) {
 "use strict";
 
     this.connectPeripherals = function(pScreen) {
@@ -57,15 +57,18 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
     };
 
     this.processKey = function(code, press) {
-        if (mode < 0) return keyForwardControls.processKey(code, press);
+        if (mode < 0) return keyboard.processKey(code, press);
 
         var mappings = keyCodeMap[code];
-        if (!mappings) return keyForwardControls.processKey(code, press);
+        if (!mappings) return keyboard.processKey(code, press);
 
         for (var i = 0; i < mappings.length; ++i) {
             if (press) joyStates[mappings[i].p].portValue &= ~joystickButtons[mappings[i].b].mask;
             else       joyStates[mappings[i].p].portValue |=  joystickButtons[mappings[i].b].mask;
         }
+
+        // Also always let Keyboard process key releases
+        if (!press) keyboard.processKey(code, press);
     };
 
     this.getMappingForControl = function(button, port) {
@@ -134,7 +137,6 @@ wmsx.DOMJoykeysControls = function(hub, keyForwardControls) {
 
     var joystickButtons = wmsx.JoystickButtons;
 
-    var machineControlsSocket;
     var screen;
 
     var mode = -1;
