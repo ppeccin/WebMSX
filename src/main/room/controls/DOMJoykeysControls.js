@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMJoykeysControls = function(hub, keyboard) {
+wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
 "use strict";
 
     this.connectPeripherals = function(pScreen) {
@@ -32,14 +32,21 @@ wmsx.DOMJoykeysControls = function(hub, keyboard) {
     };
 
     this.toggleMode = function() {
-        ++mode; if (mode > 3) mode = -1;
+        var newMode = (room.netPlayMode === 2 && !netServerSwapped ? NET_CLIENT_SWAP_MODE_SEQ : NORMAL_MODE_SEQ)[mode + 1];  // mode starts from -1 so +1
+        this.setMode(newMode);
+        hub.showStatusMessage("Joykeys " + this.getModeDesc());
+    };
 
+    this.setMode = function(newMode) {
+        mode = newMode;
         swappedMode = mode === 1 || mode === 3;
         resetStates();
         updateConnectionsToHub();
         updateCodeMap();
+    };
 
-        hub.showStatusMessage("Joykeys " + this.getModeDesc());
+    this.getMode = function () {
+        return mode;
     };
 
     this.getModeDesc = function() {
@@ -49,6 +56,22 @@ wmsx.DOMJoykeysControls = function(hub, keyboard) {
             case 2:  return "DUAL";
             case 3:  return "DUAL (swapped)";
             default: return "DISABLED";
+        }
+    };
+
+    this.getSwappedState = function() {
+        return swappedMode;
+    };
+
+    this.netClientAdaptToServerSwappedState = function(swapped) {
+        netServerSwapped = swapped;
+        if (mode === -1) return;
+        if (!swapped) {
+            if (mode === 0) this.setMode(1);
+            else if (mode === 2) this.setMode(3);
+        } else {
+            if (mode === 1) this.setMode(0);
+            else if (mode === 3) this.setMode(2);
         }
     };
 
@@ -151,6 +174,11 @@ wmsx.DOMJoykeysControls = function(hub, keyboard) {
     var joy1Prefs;
     var joy2Prefs;
     var joyPrefs = [];
+
+    var netServerSwapped = false;
+
+    var NORMAL_MODE_SEQ =          [ 0, 1, 2, 3, -1];
+    var NET_CLIENT_SWAP_MODE_SEQ = [ 1, 3, 0, -1, 2];
 
     var TYPE = wmsx.ControllersHub.JOYKEYS;
 

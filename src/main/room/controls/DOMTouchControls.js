@@ -60,6 +60,10 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
         updateMode();
     };
 
+    this.getMode = function () {
+        return mode;
+    };
+
     this.getModeDesc = function() {
         switch (mode) {
             case -1: return "AUTO";
@@ -67,6 +71,16 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
             case 1:  return "ENABLED (port 2)";
             default: return !isTouchDevice ? "NOT SUPPORTED" : "DISABLED";
         }
+    };
+
+    this.getSwappedState = function() {
+        return port === 1;
+    };
+
+    this.netClientAdaptToServerSwappedState = function(swapped) {
+        if (port === -1) return;
+        if (port === 0 && !swapped) this.setMode(1);
+        else if (port === 1 && swapped) this.setMode(0);
     };
 
     this.toggleDirBig = function() {

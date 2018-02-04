@@ -203,9 +203,7 @@ wmsx.NetClient = function(room) {
             machine.loadState(netUpdate.s);     // extended
             keyboard.loadState(netUpdate.ks);
             controllersHub.netClientSetPortValues(netUpdate.cp);
-
-            // Change Controls Mode automatically to adapt to Server
-            // TODO NetPlay room.consoleControls.setP1ControlsAndPaddleMode(!netUpdate.cm.p1, netUpdate.cm.pd);
+            controllersHub.netClientAdaptToServerSwappedState(netUpdate.cs);
         } else {
             // Apply controls changes from Server
             if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);

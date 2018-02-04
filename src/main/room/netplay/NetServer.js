@@ -76,7 +76,7 @@ wmsx.NetServer = function(room) {
                     netUpdateFull.s = machine.saveState(true);      // extended
                     netUpdateFull.ks = keyboard.saveState();
                     netUpdateFull.cp = controllersHub.netServerGetPortValues();
-                    // TODO NetPlay netUpdateFull.cm = { p1: room.consoleControls.isP1ControlsMode(), pd: room.consoleControls.isPaddleMode() };
+                    netUpdateFull.cs = controllersHub.netServerGetCombinedSwappedState();
                     dataFull = JSON.stringify(netUpdateFull);
                 }
                 data = dataFull;

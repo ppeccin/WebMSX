@@ -155,7 +155,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         // Do not close with taps or clicks inside, select options buttons
         wmsx.Util.onTapOrMouseDownWithBlock(dialog, function(e) {
             if (e.target.wmsxControlItem) {
-                peripheralControls.processControlActivated(e.target.wmsxControlItem.control, true);
+                peripheralControls.processControlActivated(e.target.wmsxControlItem.control, true);     // true = skip auto in TouchControls mode
                 controllersHub.hapticFeedbackOnTouch(e);
                 refreshOptions();
             } else

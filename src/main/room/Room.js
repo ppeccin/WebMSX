@@ -69,8 +69,8 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         // Restore state from before NetPlay if any
         if (this.netPlayStateBeforeClientMode) {
             this.machine.loadState(this.netPlayStateBeforeClientMode);      // extended
-            // TODO NetPlay this.machineControls.setP1ControlsAndPaddleMode(this.netPlayControlsModeBeforeClientMode.p1, this.netPlayControlsModeBeforeClientMode.pd);
-            this.netPlayStateBeforeClientMode = undefined;
+            this.controllersHub.netClientRestoreControlsModes(this.netPlayControlsModesBeforeClientMode);
+            this.netPlayStateBeforeClientMode = this.netPlayControlsModesBeforeClientMode = undefined;
         }
 
         if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
@@ -94,7 +94,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
 
         // Save state from before NetPlay, to be restored when session is over
         this.netPlayStateBeforeClientMode = this.machine.saveState(true);       // extended
-        // TODO NetPlay this.netPlayControlsModeBeforeClientMode = { p1: this.machineControls.isP1ControlsMode(), pd: this.machineControls.isPaddleMode() };
+        this.netPlayControlsModesBeforeClientMode = this.controllersHub.netClientGetControlsModes();
 
         if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
     };
@@ -199,7 +199,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     this.netServer = undefined;
     this.netClient = undefined;
     this.netPlayStateBeforeClientMode = undefined;
-    this.netPlayControlsModeBeforeClientMode = undefined;
+    this.netPlayControlsModesBeforeClientMode = undefined;
 
     this.isLoading = false;
 

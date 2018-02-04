@@ -349,6 +349,26 @@ wmsx.ControllersHub = function(room, machineControls) {
         }
     }
 
+    this.netServerGetCombinedSwappedState = function () {
+        return joykeysControls.getSwappedState() || joystickControls.getSwappedState() || touchControls.getSwappedState()
+    };
+
+    this.netClientGetControlsModes = function() {
+        return { k: joykeysControls.getMode(), j: joystickControls.getMode(), t: touchControls.getMode() };
+    };
+
+    this.netClientRestoreControlsModes = function(modes) {
+        joykeysControls.setMode(modes.k);
+        joystickControls.setMode(modes.j);
+        touchControls.setMode(modes.t);
+    };
+
+    this.netClientAdaptToServerSwappedState = function(swapped) {
+        joykeysControls.netClientAdaptToServerSwappedState(swapped);
+        joystickControls.netClientAdaptToServerSwappedState(swapped);
+        touchControls.netClientAdaptToServerSwappedState(swapped);
+    };
+
 
     // Savestate  -------------------------------------------
 
@@ -376,8 +396,8 @@ wmsx.ControllersHub = function(room, machineControls) {
     // Key processing sequence: JoyKeys -> Keyboard -> MachineControls -> PeripheralControls
     var keyboard =         new wmsx.DOMKeyboard(this, room, machineControls);
     var mouseControls =    new wmsx.DOMMouseControls(this);
-    var joystickControls = new wmsx.GamepadJoysticksControls(this, keyboard);
-    var joykeysControls =  new wmsx.DOMJoykeysControls(this, keyboard);
+    var joystickControls = new wmsx.GamepadJoysticksControls(room, this, keyboard);
+    var joykeysControls =  new wmsx.DOMJoykeysControls(room, this, keyboard);
     var touchControls =    new wmsx.DOMTouchControls(this, keyboard, machineControls);
 
     var turboFireSpeed = 0;

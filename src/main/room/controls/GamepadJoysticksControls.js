@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.GamepadJoysticksControls = function(hub, keyboard) {
+wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
 "use strict";
 
     this.connectPeripherals = function(pScreen) {
@@ -41,7 +41,13 @@ wmsx.GamepadJoysticksControls = function(hub, keyboard) {
             hub.showErrorMessage("Joysticks unavailable (not supported by browser)");
             return;
         }
-        ++mode; if (mode > 0) mode = -2;
+        var newMode = (room.netPlayMode === 2 && !netServerSwapped ? NET_CLIENT_SWAP_MODE_SEQ : NORMAL_MODE_SEQ)[mode + 2];      // mode starts from -2 so +2
+        this.setMode(newMode);
+        hub.showStatusMessage("Joysticks " + this.getModeDesc());
+    };
+
+    this.setMode = function(newMode) {
+        mode = newMode;
 
         if (mode === -2) {
             joystick1 = joystick2 = null;
@@ -54,8 +60,10 @@ wmsx.GamepadJoysticksControls = function(hub, keyboard) {
 
         resetStates();
         updateConnectionsToHub();
+    };
 
-        hub.showStatusMessage("Joysticks " + this.getModeDesc());
+    this.getMode = function () {
+        return mode;
     };
 
     this.getModeDesc = function() {
@@ -64,6 +72,17 @@ wmsx.GamepadJoysticksControls = function(hub, keyboard) {
             case 0:  return "AUTO (swapped)";
             default: return !supported ? "NOT SUPPORTED" : "DISABLED";
         }
+    };
+
+    this.getSwappedState = function() {
+        return swappedMode;
+    };
+
+    this.netClientAdaptToServerSwappedState = function(swapped) {
+        netServerSwapped = swapped;
+        if (mode === -2) return;
+        if (mode === -1 && !swapped) this.setMode(0);
+        else if (mode === 0 && swapped) this.setMode(-1);
     };
 
     this.setTurboFireClocks = function(clocks) {
@@ -286,6 +305,11 @@ wmsx.GamepadJoysticksControls = function(hub, keyboard) {
     var joyPrefs = [];
 
     var buttonDetectionPrefs = null, buttonDetectionListener = null;
+
+    var netServerSwapped = false;
+
+    var NORMAL_MODE_SEQ =          [ -1, 0, -2];
+    var NET_CLIENT_SWAP_MODE_SEQ = [ 0, -2, -1];
 
     var TYPE = wmsx.ControllersHub.JOYSTICK;
 
