@@ -99,6 +99,8 @@ wmsx.RTC = function() {
     };
 
     function setClockRunning(enabled) {
+        //console.log("RTC set running: " + enabled);
+
         if (clockRunning === enabled) return;
 
         if (enabled) {
@@ -127,7 +129,7 @@ wmsx.RTC = function() {
             regClock[0x5] = (date.getHours() / 10) | 0;                // 10 hour counter
         } else {                // 12h mode
             regClock[0x4] = date.getHours() % 12 % 10;                 //  1 hour counter
-            regClock[0x5] = ((date.getHours() % 12) / 10) | 0;         // 10 hour counte
+            regClock[0x5] = ((date.getHours() % 12) / 10) | 0;         // 10 hour counter
             if (date.getHours() >= 12) regClock[0x5] |= 2;             //  PM flag
         }
         regClock[0x6] = date.getDay() + 1;                             // day of week counter
@@ -138,14 +140,16 @@ wmsx.RTC = function() {
         regClock[0xb] = (date.getFullYear() - 1980) % 10;              //  1 year counter
         regClock[0xc] = ((date.getFullYear() - 1980) / 10) | 0;        // 10 year counter
 
-        //console.log("RTC read from Host CLock with offset: " + clockOffset);
+        //console.log("Read:", date,"24H:",!!(regAlarm[0xa] & 1));
+
+        //console.log("RTC read from Host Clock with offset: " + clockOffset);
     }
 
     function clockFromRegistersToOffset() {
         var second = regClock[0x0] + regClock[0x1] * 10;
         var minute = regClock[0x2] + regClock[0x3] * 10;
         var hour;
-        if (regAlarm & 0xa)
+        if (regAlarm[0xa] & 1)
             hour   = regClock[0x4] + regClock[0x5] * 10;                                                // 24h mode
         else
             hour   = regClock[0x4] + ((regClock[0x5] & 2) ? 12 : 0) + ((regClock[0x5] & 1) ? 10 : 0);   // 12h mode
@@ -173,7 +177,7 @@ wmsx.RTC = function() {
 
     function set24HMode(val) {
         val &= 1;
-        if (regAlarm[0xa] === val) return;
+        if ((regAlarm[0xa] & 1) === val) return;
 
         var h;
         if (val) {
@@ -193,6 +197,7 @@ wmsx.RTC = function() {
     var isMSX2;
 
     var mode = 0;
+    var time = 0;
     var clockRunning = true;
 
     var regClock = wmsx.Util.arrayFill(new Array(13), 0);
