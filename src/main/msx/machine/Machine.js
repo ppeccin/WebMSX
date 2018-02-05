@@ -79,6 +79,7 @@ wmsx.Machine = function() {
         // Video clock will be the VDP Frame video clock (60Hz/50Hz)
         // CPU and other clocks will be sent by the VDP
 
+        rtc.videoClockPulse();
         if (bios) bios.getKeyboardExtension().keyboardExtensionClockPulse();
 
         if (!self.powerIsOn) return;
@@ -374,9 +375,10 @@ wmsx.Machine = function() {
     function videoClockUpdateSpeed() {
         var pulldown = vdp.getDesiredVideoPulldown();
         videoClockSocket.setVSynch(vSynchMode === 1);
-        var freq = (pulldown.frequency * (alternateSpeed || speedControl)) | 0;
-        videoClockSocket.setFrequency(freq, pulldown.divider);
-        audioSocket.setFps(freq / pulldown.divider);
+        var hostFreq = (pulldown.frequency * (alternateSpeed || speedControl)) | 0;
+        videoClockSocket.setFrequency(hostFreq, pulldown.divider);
+        audioSocket.setFps(hostFreq / pulldown.divider);
+        rtc.setFps(pulldown.frequency / pulldown.divider);
     }
 
     function mainComponentsCreate() {

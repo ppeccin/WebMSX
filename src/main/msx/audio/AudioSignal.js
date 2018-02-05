@@ -31,7 +31,7 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     this.setFps = function(fps) {
         // Calculate total samples per frame based on fps
-        samplesPerFrame = (sampleRate / fps) | 0;
+        samplesPerFrame = Math.floor(sampleRate / fps);
         updateBufferSize();
     };
 
