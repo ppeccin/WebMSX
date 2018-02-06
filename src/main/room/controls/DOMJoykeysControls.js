@@ -16,6 +16,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
 
     this.releaseControllers = function() {
         resetStates();
+        var keyStateMap = {};
     };
 
     this.resetControllers = function() {
@@ -24,11 +25,15 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     };
 
     this.readControllerPort = function(port) {
-        return joyStates[port ^ swappedMode].portValue;
+        return turboFireClockCount > turboFireFlipClock ? joyStates[port ^ swappedMode].portValue | 0x10 : joyStates[port ^ swappedMode].portValue;
     };
 
     this.writeControllerPin8Port = function(atPort, val) {
         // Do nothing
+    };
+
+    this.controllersClockPulse = function() {
+        if (mode >=0 && turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
     this.toggleMode = function() {
@@ -38,6 +43,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     };
 
     this.setMode = function(newMode) {
+        if (newMode >= 0 && mode < 0) keyStateMap = {};
         mode = newMode;
         swappedMode = mode === 1 || mode === 3;
         resetStates();
@@ -75,19 +81,25 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
         }
     };
 
-    this.setTurboFireClocks = function(speed) {
-        // No turbo fire controlled locally  TODO Implement Joykeys TurboFire
+    this.setTurboFireClocks = function(clocks) {
+        turboFireClocks = clocks;
+        turboFireFlipClock = (turboFireClocks / 2) | 0;
+        turboFireClockCount = 0;
     };
 
     this.processKey = function(code, press) {
-        if (mode < 0) return keyboard.processKey(code, press);
+        if (mode < 0 || keyStateMap[code] === press) return keyboard.processKey(code, press);
+        keyStateMap[code] = press;
 
         var mappings = keyCodeMap[code];
         if (!mappings) return keyboard.processKey(code, press);
 
         for (var i = 0; i < mappings.length; ++i) {
-            if (press) joyStates[mappings[i].p].portValue &= ~joystickButtons[mappings[i].b].mask;
-            else       joyStates[mappings[i].p].portValue |=  joystickButtons[mappings[i].b].mask;
+            if (press) {
+                joyStates[mappings[i].p].portValue &= ~joystickButtons[mappings[i].b].mask;
+                if (turboFireClocks && mappings[i].b === "J_A") turboFireClockCount = turboFireFlipClock + 1;
+            } else
+                joyStates[mappings[i].p].portValue |=  joystickButtons[mappings[i].b].mask;
         }
 
         // Also always let Keyboard process key releases
@@ -166,10 +178,13 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     var swappedMode = false;
 
     var keyCodeMap = {};
+    var keyStateMap = {};
 
     var joy1State = new JoystickState();
     var joy2State = new JoystickState();
     var joyStates = [ joy1State, joy2State ];
+
+    var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
 
     var joy1Prefs;
     var joy2Prefs;

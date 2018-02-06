@@ -489,7 +489,7 @@ wmsx.Machine = function() {
     var controls = wmsx.MachineControls;
 
     function controlStateChanged(control, state, data) {
-        if (isLoading || systemPaused) return;
+        if (isLoading || systemPaused) return;      // TODO NetPlay Big problem not to accept controls here when systemPaused
 
         // Normal state controls
         if (control === controls.FAST_SPEED) {

@@ -154,7 +154,6 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         var matrix = msxKeys[msxKey].m;
         processMatrixChange(matrix[0], matrix[1], press);
 
-        // TurboFire TODO NetPlay TurboFire
         if (press && turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
     };
 

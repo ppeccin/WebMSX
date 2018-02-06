@@ -31,7 +31,7 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
     };
 
     this.readControllerPort = function(aPort) {
-        if (aPort === port) return (turboFireClockCount > turboFireFlipClock) ? joyState.portValue | 0x10 : joyState.portValue;
+        if (aPort === port) return turboFireClockCount > turboFireFlipClock ? joyState.portValue | 0x10 : joyState.portValue;
         else return 0x3f;
     };
 
@@ -40,7 +40,7 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
     };
 
     this.controllersClockPulse = function() {
-        if (turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
+        if (port >=0 && turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
     this.toggleMode = function(skipAuto) {
@@ -309,7 +309,7 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
             // Joystick button
             if (press) {
                 joyState.portValue &= ~mapping.mask;
-                if (turboFireClocks && mapping.mask === 0x10) turboFireClockCount = turboFireFlipClock + 1;
+                if (turboFireClocks && (mapping.mask & 0x10)) turboFireClockCount = turboFireFlipClock + 1;
             } else
                 joyState.portValue |= mapping.mask;
         } else if (mapping.key) {

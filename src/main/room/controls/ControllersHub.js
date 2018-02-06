@@ -84,6 +84,7 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     this.controllersClockPulse = function() {
         keyboard.controllersClockPulse();
+        joykeysControls.controllersClockPulse();
         joystickControls.controllersClockPulse();
         touchControls.controllersClockPulse();
 
