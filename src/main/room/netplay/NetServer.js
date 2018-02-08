@@ -72,11 +72,13 @@ wmsx.NetServer = function(room) {
             if (client.justJoined || nextUpdateFull) {
                 client.justJoined = false;
                 if (!dataFull) {
-                    netUpdateFull.vf = room.mainVideoClock.getVSynchNativeFrequency();
-                    netUpdateFull.s = machine.saveState(true);      // extended
-                    netUpdateFull.ks = keyboard.saveState();
-                    netUpdateFull.cp = controllersHub.netServerGetPortValues();
-                    netUpdateFull.cs = controllersHub.netServerGetCombinedSwappedState();
+                    var netUpdateFull = {
+                        vf: room.mainVideoClock.getVSynchNativeFrequency(),
+                        s: machine.saveState(true),      // extended
+                        ks: keyboard.saveState(),
+                        cp: controllersHub.netServerGetPortValues(),
+                        cs: controllersHub.netServerGetCombinedSwappedState()
+                    };
                     dataFull = JSON.stringify(netUpdateFull);
                 }
                 data = dataFull;
@@ -334,7 +336,6 @@ wmsx.NetServer = function(room) {
     var cassetteDeck = room.cassetteDeck;
 
     var netUpdate = { c: undefined, k: undefined, cp: undefined };
-    var netUpdateFull = { s: undefined, ks: undefined, cp: undefined };
     var nextUpdateFull = false;
 
     var ws;

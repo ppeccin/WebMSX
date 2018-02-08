@@ -30,7 +30,7 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
         updateConnectionsToHub();
     };
 
-    this.readControllerPort = function(aPort) {
+    this.readLocalControllerPort = function(aPort) {
         if (aPort === port) return turboFireClockCount > turboFireFlipClock ? joyState.portValue | 0x10 : joyState.portValue;
         else return 0x3f;
     };

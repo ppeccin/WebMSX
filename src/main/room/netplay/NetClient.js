@@ -117,6 +117,7 @@ wmsx.NetClient = function(room) {
         sessionID = message.sessionID;
         nick = message.clientNick;
         wsOnly = wsOnlyDesired || message.wsOnly;
+        justJoined = true;
 
         if (wsOnly) return enterNetClientMode();
 
@@ -203,7 +204,11 @@ wmsx.NetClient = function(room) {
             machine.loadState(netUpdate.s);     // extended
             keyboard.loadState(netUpdate.ks);
             controllersHub.netClientSetPortValues(netUpdate.cp);
-            controllersHub.netClientAdaptToServerSwappedState(netUpdate.cs);
+            if (justJoined) {
+                // Change Controls Mode automatically to adapt to Server
+                controllersHub.netClientAdaptToServerSwappedState(netUpdate.cs);
+                justJoined = false;
+            }
         } else {
             // Apply controls changes from Server
             if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
@@ -302,6 +307,7 @@ wmsx.NetClient = function(room) {
     var nick;
     var nickDesired;
     var wsOnlyDesired = false;
+    var justJoined = false;
     var keepAliveTimer;
 
     var rtcConnectionConfig;

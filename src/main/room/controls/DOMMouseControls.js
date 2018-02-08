@@ -53,7 +53,7 @@ wmsx.DOMMouseControls = function(hub) {
         updateConnectionsToHub();
     }
 
-    this.readControllerPort = function(atPort) {
+    this.readLocalControllerPort = function(atPort) {
         if (atPort === port) return mouseState.portValue;
         else return 0x3f;
     };

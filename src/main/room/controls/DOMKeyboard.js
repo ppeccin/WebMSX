@@ -36,12 +36,21 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.controllersClockPulse = function() {
-        if (turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
+        // Turbo fire
+        if (turboFireClocks && turboKeyPressed) {
+            --turboFireClockCount;
+            // State flipped?
+            if (turboFireClockCount === turboFireFlipClock || turboFireClockCount === 0) {
+                var press = turboFireClockCount > 0;
+                var matrix = msxKeys["SPACE"].m;
+                processMatrixChange(matrix[0], matrix[1], press);
+            }
+            if (turboFireClockCount <= 0) turboFireClockCount = turboFireClocks;        // restart cycle
+        }
     };
 
     this.readKeyboardPort = function(row) {
-        if (turboFireClocks && row === 8) return keyboardMatrix[8] | (turboFireClockCount > turboFireFlipClock);     // TODO NetPplay TurboFire
-        else return keyboardMatrix[row];
+        return keyboardMatrix[row];
     };
 
     this.toggleKeyboardLayout = function() {
@@ -78,6 +87,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     this.releaseControllers = function() {
         for (var msxKey in keyStateMap)
             if (keyStateMap[msxKey]) this.processMSXKey(msxKey, false);
+        turboKeyPressed = false;
     };
 
     this.resetControllers = function() {
@@ -148,13 +158,18 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.processMSXKey = function(msxKey, press) {
+        // TurboFire. Affects only SPACE
+        if (turboFireClocks && msxKey === "SPACE") {
+            if (turboKeyPressed === press) return;
+            if (press) turboFireClockCount = turboFireFlipClock;
+            turboKeyPressed = press;
+        }
+
         if (keyStateMap[msxKey] === press) return;
         keyStateMap[msxKey] = press;
 
         var matrix = msxKeys[msxKey].m;
         processMatrixChange(matrix[0], matrix[1], press);
-
-        if (press && turboFireClocks && msxKey === "SPACE") turboFireClockCount = turboFireFlipClock + 1;
     };
 
     function processMatrixChange(line, col, press) {
@@ -282,6 +297,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var keyCodeMap;
 
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
+    var turboKeyPressed = false;
 
     var netMatrixChangesToSend = new Array(100); netMatrixChangesToSend.length = 0;     // pre allocate empty Array
 

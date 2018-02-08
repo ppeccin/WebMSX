@@ -24,7 +24,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
         updateConnectionsToHub();
     };
 
-    this.readControllerPort = function(port) {
+    this.readLocalControllerPort = function(port) {
         return turboFireClockCount > turboFireFlipClock ? joyStates[port ^ swappedMode].portValue | 0x10 : joyStates[port ^ swappedMode].portValue;
     };
 
@@ -88,11 +88,17 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     };
 
     this.processKey = function(code, press) {
-        if (mode < 0 || keyStateMap[code] === press) return keyboard.processKey(code, press);
-        keyStateMap[code] = press;
+        if (mode < 0) return keyboard.processKey(code, press);
 
         var mappings = keyCodeMap[code];
         if (!mappings) return keyboard.processKey(code, press);
+
+        if (keyStateMap[code] === press) {
+            if (!press) keyboard.processKey(code, press);       // Always let Keyboard process key releases
+            return;
+        }
+
+        keyStateMap[code] = press;
 
         for (var i = 0; i < mappings.length; ++i) {
             if (press) {
@@ -102,7 +108,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
                 joyStates[mappings[i].p].portValue |=  joystickButtons[mappings[i].b].mask;
         }
 
-        // Also always let Keyboard process key releases
+        // Always let Keyboard process key releases
         if (!press) keyboard.processKey(code, press);
     };
 

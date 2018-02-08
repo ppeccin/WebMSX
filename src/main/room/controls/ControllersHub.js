@@ -73,7 +73,7 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     function readLocalControllerPort(port) {
         var forward = controllerAtPort[port];
-        return (forward ? forward.readControllerPort(port) | japanaseKeyboardLayoutPortValue : PORT_VALUE_ALL_RELEASED);
+        return (forward ? forward.readLocalControllerPort(port) | japanaseKeyboardLayoutPortValue : PORT_VALUE_ALL_RELEASED);
     }
 
     this.writeControllerPin8Port = function(port, value) {
@@ -287,9 +287,7 @@ wmsx.ControllersHub = function(room, machineControls) {
     };
 
     this.netGetPortValuesToSend = function() {
-        return netPortValuesToSend
-            ? netPortValuesToSend
-            : undefined;
+        return netPortValuesToSend;
     };
 
     this.netClearPortValuesToSend = function() {
