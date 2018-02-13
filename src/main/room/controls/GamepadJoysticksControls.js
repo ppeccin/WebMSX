@@ -3,6 +3,8 @@
 wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
 "use strict";
 
+    var self = this;
+
     this.connectPeripherals = function(pScreen) {
         screen = pScreen;
     };
@@ -11,6 +13,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
         supported = !!navigator.getGamepads;
         if (!supported) return;
         applyPreferences();
+        if (mode >= -1) updateMode();
     };
 
     this.powerOff = function() {
@@ -48,19 +51,22 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
 
     this.setMode = function(newMode) {
         mode = newMode;
+        updateMode();
+    };
 
+    function updateMode() {
         if (mode === -2) {
             joystick1 = joystick2 = null;
         } else if (mode === -1) {
             detectionDelayCount = -1;
-            this.controllersClockPulse(true);
+            self.controllersClockPulse(true);
         }
 
         swappedMode = mode === 0;
 
         resetStates();
         updateConnectionsToHub();
-    };
+    }
 
     this.getMode = function () {
         return mode;
@@ -290,7 +296,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
 
     var screen;
 
-    var mode = -1;
+    var mode = WMSX.GAMEPADS_MODE - 1;      // parameter is -1..1
     var swappedMode = false;
 
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;

@@ -9,6 +9,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
 
     this.powerOn = function() {
         applyPreferences();
+        if (mode >= 0) updateMode();
     };
 
     this.powerOff = function() {
@@ -45,11 +46,15 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     this.setMode = function(newMode) {
         if (newMode >= 0 && mode < 0) keyStateMap = {};
         mode = newMode;
+        updateMode();
+    };
+
+    function updateMode() {
         swappedMode = mode === 1 || mode === 3;
         resetStates();
         updateConnectionsToHub();
         updateCodeMap();
-    };
+    }
 
     this.getMode = function () {
         return mode;
@@ -180,7 +185,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
 
     var screen;
 
-    var mode = -1;
+    var mode = WMSX.JOYKEYS_MODE;
     var swappedMode = false;
 
     var keyCodeMap = {};
