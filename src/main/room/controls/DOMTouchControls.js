@@ -77,10 +77,10 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
         return port === 1;
     };
 
-    this.netClientAdaptToServerSwappedState = function(swapped) {
+    this.netClientAdaptToServerControlsModes = function(modes) {
         if (port === -1) return;
-        if (port === 0 && !swapped) this.setMode(1);
-        else if (port === 1 && swapped) this.setMode(0);
+        if (port === 0 && !modes.sw) this.setMode(1);
+        else if (port === 1 && modes.sw) this.setMode(0);
     };
 
     this.toggleDirBig = function() {

@@ -348,24 +348,26 @@ wmsx.ControllersHub = function(room, machineControls) {
         }
     }
 
-    this.netServerGetCombinedSwappedState = function () {
-        return joykeysControls.getSwappedState() || joystickControls.getSwappedState() || touchControls.getSwappedState()
+    this.netServerGetControlsModes = function () {
+        return { sw: joykeysControls.getSwappedState() || joystickControls.getSwappedState() || touchControls.getSwappedState() }
     };
 
     this.netClientGetControlsModes = function() {
-        return { k: joykeysControls.getMode(), j: joystickControls.getMode(), t: touchControls.getMode() };
+        return { k: joykeysControls.getMode(), j: joystickControls.getMode(), m: mouseControls.getMode(), t: touchControls.getMode() };
     };
 
     this.netClientRestoreControlsModes = function(modes) {
         joykeysControls.setMode(modes.k);
         joystickControls.setMode(modes.j);
+        mouseControls.setMode(modes.m);
         touchControls.setMode(modes.t);
     };
 
-    this.netClientAdaptToServerSwappedState = function(swapped) {
-        joykeysControls.netClientAdaptToServerSwappedState(swapped);
-        joystickControls.netClientAdaptToServerSwappedState(swapped);
-        touchControls.netClientAdaptToServerSwappedState(swapped);
+    this.netClientAdaptToServerControlsModes = function(modes) {
+        joykeysControls.netClientAdaptToServerControlsModes(modes);
+        joystickControls.netClientAdaptToServerControlsModes(modes);
+        mouseControls.netClientAdaptToServerControlsModes(modes);
+        touchControls.netClientAdaptToServerControlsModes(modes);
     };
 
 

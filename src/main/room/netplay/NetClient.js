@@ -206,7 +206,7 @@ wmsx.NetClient = function(room) {
             controllersHub.netClientSetPortValues(netUpdate.cp);
             if (justJoined) {
                 // Change Controls Mode automatically to adapt to Server
-                controllersHub.netClientAdaptToServerSwappedState(netUpdate.cs);
+                controllersHub.netClientAdaptToServerControlsModes(netUpdate.cm);
                 justJoined = false;
             }
         } else {

@@ -84,11 +84,11 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
         return swappedMode;
     };
 
-    this.netClientAdaptToServerSwappedState = function(swapped) {
-        netServerSwapped = swapped;
+    this.netClientAdaptToServerControlsModes = function(modes) {
+        netServerSwapped = modes.sw;
         if (mode === -2) return;
-        if (mode === -1 && !swapped) this.setMode(0);
-        else if (mode === 0 && swapped) this.setMode(-1);
+        if (mode === -1 && !netServerSwapped) this.setMode(0);
+        else if (mode === 0 && netServerSwapped) this.setMode(-1);
     };
 
     this.setTurboFireClocks = function(clocks) {

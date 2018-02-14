@@ -77,7 +77,7 @@ wmsx.NetServer = function(room) {
                         s: machine.saveState(true),      // extended
                         ks: keyboard.saveState(),
                         cp: controllersHub.netServerGetPortValues(),
-                        cs: controllersHub.netServerGetCombinedSwappedState()
+                        cm: controllersHub.netServerGetControlsModes()
                     };
                     dataFull = JSON.stringify(netUpdateFull);
                 }

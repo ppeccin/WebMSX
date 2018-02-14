@@ -33,9 +33,19 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.toggleMode = function() {
-        ++mode; if (mode > 1) mode = -2;
-        updateMode();
+        var newMode = mode + 1;
+        if (newMode > 1) newMode = -2;
+        this.setMode(newMode);
         showStatusMessage("Mouse " + this.getModeDesc());
+    };
+
+    this.setMode = function(newMode) {
+        mode = newMode;
+        updateMode();
+    };
+
+    this.getMode = function () {
+        return mode;
     };
 
     this.getModeDesc = function() {
@@ -52,6 +62,9 @@ wmsx.DOMMouseControls = function(hub) {
         if (port < 0) resetMouseState(mouseState);
         updateConnectionsToHub();
     }
+
+    this.netClientAdaptToServerControlsModes = function(modes) {
+    };
 
     this.readLocalControllerPort = function(atPort) {
         if (atPort === port) return mouseState.portValue;

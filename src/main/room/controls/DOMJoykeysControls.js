@@ -74,10 +74,10 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
         return swappedMode;
     };
 
-    this.netClientAdaptToServerSwappedState = function(swapped) {
-        netServerSwapped = swapped;
+    this.netClientAdaptToServerControlsModes = function(modes) {
+        netServerSwapped = modes.sw;
         if (mode === -1) return;
-        if (!swapped) {
+        if (!netServerSwapped) {
             if (mode === 0) this.setMode(1);
             else if (mode === 2) this.setMode(3);
         } else {
