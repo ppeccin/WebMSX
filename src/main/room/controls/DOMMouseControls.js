@@ -2,7 +2,7 @@
 
 // Only 1 Mouse supported
 
-// TODO Screen focus problem. Verify metrics
+// TODO NetPlay Verify wrong metrics?
 wmsx.DOMMouseControls = function(room, hub) {
 "use strict";
 
@@ -232,7 +232,7 @@ wmsx.DOMMouseControls = function(room, hub) {
 
     function mouseButtonEvent(e) {
         if (port >= 0) {
-            e.preventDefault();
+            // e.preventDefault();  was preventing return of focus
             mouseLocalState.buttons = e.buttons & 3;
             if (!netClientMode) updatePortButtonsValue();
             netMouseStateToSend = mouseLocalState;
