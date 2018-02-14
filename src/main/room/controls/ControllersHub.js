@@ -78,7 +78,7 @@ wmsx.ControllersHub = function(room, machineControls) {
         var forward = controllerAtPort[port];
         return forward && forward !== mouseControls
             ? forward.readLocalControllerPort(port) | japanaseKeyboardLayoutPortValue
-            : PORT_VALUE_ALL_RELEASED;
+            : portValueAllReleased;
     }
 
     this.writeControllerPin8Port = function(port, value) {
@@ -328,13 +328,13 @@ wmsx.ControllersHub = function(room, machineControls) {
             netClientsMergedPortValuesChanged = true;
 
             // Retain values only if they are different than the all-released state
-            client.controllersPortValues = portValues[0] !== PORT_VALUE_ALL_RELEASED || portValues[1] !== PORT_VALUE_ALL_RELEASED
+            client.controllersPortValues = portValues[0] !== portValueAllReleased || portValues[1] !== portValueAllReleased
                 ? portValues : undefined;
         }
     };
 
     this.netServerClearClientsMergedInfo = function () {
-        netClientsMergedPortValues[0] = PORT_VALUE_ALL_RELEASED; netClientsMergedPortValues[1] = PORT_VALUE_ALL_RELEASED;
+        netClientsMergedPortValues[0] = portValueAllReleased; netClientsMergedPortValues[1] = portValueAllReleased;
         netClientsMergedPortValuesChanged = false;
     };
 
@@ -400,12 +400,18 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     this.saveState = function() {
         return {
+            jk: japanaseKeyboardLayoutPortValue,
             t: touchControls.saveState(),
             h: hapticFeedbackEnabled
         };
     };
 
     this.loadState = function(s) {
+        if (s.jk !== undefined) {
+            japanaseKeyboardLayoutPortValue = s.jk;
+            portValueAllReleased = 0x3f | japanaseKeyboardLayoutPortValue;
+            this.portValueAllReleased = portValueAllReleased;
+        }
         if (s.t) touchControls.loadState(s.t);
         if (s.h !== undefined) hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
     };
@@ -432,13 +438,14 @@ wmsx.ControllersHub = function(room, machineControls) {
     var hapticFeedbackCapable = !!navigator.vibrate;
     var hapticFeedbackEnabled = hapticFeedbackCapable && !!WMSX.userPreferences.current.hapticFeedback;
 
-    var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;      // TODO NetPlay Not being Synched
-    var PORT_VALUE_ALL_RELEASED = 0x3f | japanaseKeyboardLayoutPortValue;
-    this.PORT_VALUE_ALL_RELEASED = PORT_VALUE_ALL_RELEASED;
+    var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
 
-    var netMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
-    var netLocalMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
-    var netClientsMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
+    var portValueAllReleased = 0x3f | japanaseKeyboardLayoutPortValue;
+    this.portValueAllReleased = portValueAllReleased;
+
+    var netMergedPortValues = [ portValueAllReleased, portValueAllReleased ];
+    var netLocalMergedPortValues = [ portValueAllReleased, portValueAllReleased ];
+    var netClientsMergedPortValues = [ portValueAllReleased, portValueAllReleased ];
     var netClientsMergedPortValuesChanged = false;
     var netMergedPortValuesToSend;
 

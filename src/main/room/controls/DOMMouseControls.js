@@ -91,7 +91,7 @@ wmsx.DOMMouseControls = function(room, hub) {
 
     function readLocalControllerPort(atPort) {
         if (atPort === port) return mouseLocalState.portValue;
-        else return PORT_VALUE_ALL_RELEASED;
+        else return hub.portValueAllReleased;
     }
 
     this.writeControllerPin8Port = function(atPort, val) {
@@ -274,7 +274,7 @@ wmsx.DOMMouseControls = function(room, hub) {
         s.dX = 0; s.dY = 0;
         s.buttons = 0;
 
-        s.portValue = PORT_VALUE_ALL_RELEASED;
+        s.portValue = hub.portValueAllReleased;
         s.pin8Value = 0; s.lastPin8FlipBUSCycle = 0;
         s.readDX = 0; s.readDY = 0;
 
@@ -297,7 +297,7 @@ wmsx.DOMMouseControls = function(room, hub) {
 
     function netReadControllerPort(atPort) {
         if (atPort === port) return mouseState.portValue;
-        else return PORT_VALUE_ALL_RELEASED;
+        else return hub.portValueAllReleased;
     }
 
     this.netGetMouseStateToSend = function() {
@@ -359,8 +359,6 @@ wmsx.DOMMouseControls = function(room, hub) {
 
     var TYPE = wmsx.ControllersHub.MOUSE;
     var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
-
-    var PORT_VALUE_ALL_RELEASED = hub.PORT_VALUE_ALL_RELEASED;
 
 };
 
