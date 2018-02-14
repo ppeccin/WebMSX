@@ -23,7 +23,7 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.releaseControllers = function() {
-        mouseState.reset();
+        resetMouseState(mouseState);
     };
 
     this.resetControllers = function() {
@@ -49,7 +49,7 @@ wmsx.DOMMouseControls = function(hub) {
 
     function updateMode() {
         port = mode < 0 ? -1 : mode;
-        if (port < 0) mouseState.reset();
+        if (port < 0) resetMouseState(mouseState);
         updateConnectionsToHub();
     }
 
@@ -226,7 +226,7 @@ wmsx.DOMMouseControls = function(hub) {
     }
 
 
-    var mouseState = new MouseState();
+    var mouseState = resetMouseState({});
 
     var mode = WMSX.MOUSE_MODE - 1;              // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;                               // -1: disconnected, 0: connected at port 0, 1: connected at port 1
@@ -245,20 +245,19 @@ wmsx.DOMMouseControls = function(hub) {
 
 
     // Stores a complete Mouse state, with positions and buttons
-    function MouseState() {
-        this.reset = function() {
-            this.dX = 0;
-            this.dY = 0;
-            this.buttons = 0;
+    function resetMouseState(s) {
+        s.dX = 0;
+        s.dY = 0;
+        s.buttons = 0;
 
-            this.portValue = 0x3f;
-            this.pin8Value = 0;
-            this.lastPin8FlipBUSCycle = 0;
-            this.readCycle = -1;
-            this.readDX = 0;
-            this.readDY = 0;
-        };
-        this.reset();
+        s.portValue = 0x3f;
+        s.pin8Value = 0;
+        s.lastPin8FlipBUSCycle = 0;
+        s.readCycle = -1;
+        s.readDX = 0;
+        s.readDY = 0;
+
+        return s;
     }
 
 };
