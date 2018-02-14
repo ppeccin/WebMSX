@@ -2,7 +2,6 @@
 
 // Only 1 Mouse supported
 
-// TODO NetPlay Verify wrong metrics?
 wmsx.DOMMouseControls = function(room, hub) {
 "use strict";
 
