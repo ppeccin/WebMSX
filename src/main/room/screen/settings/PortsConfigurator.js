@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
+wmsx.PortsConfigurator = function(controllersHub, peripheralControls, returnFocusElement) {
 "use strict";
 
     var self = this;
@@ -57,11 +57,11 @@ wmsx.PortsConfigurator = function(controllersHub, returnFocusElement) {
     function setup() {
         // Set mode fields
         mouseModeElement = document.getElementById("wmsx-ports-mouse-mode");
-        mouseModeElement.addEventListener("click", function() { controllersHub.toggleMouseMode(); });
+        mouseModeElement.addEventListener("click", function() { peripheralControls.processControlActivated(wmsx.PeripheralControls.MOUSE_TOGGLE_MODE); });
         joysticksModeElement = document.getElementById("wmsx-ports-joysticks-mode");
-        joysticksModeElement.addEventListener("click", function() { controllersHub.toggleJoystickMode(); });
+        joysticksModeElement.addEventListener("click", function() { peripheralControls.processControlActivated(wmsx.PeripheralControls.JOYSTICKS_TOGGLE_MODE); });
         joykeysModeElement = document.getElementById("wmsx-ports-joykeys-mode");
-        joykeysModeElement.addEventListener("click", function() { controllersHub.toggleJoykeysMode(); });
+        joykeysModeElement.addEventListener("click", function() { peripheralControls.processControlActivated(wmsx.PeripheralControls.JOYKEYS_TOGGLE_MODE); });
 
         // Set device and buttons elements
         for (var p = 1; p <= 2; ++p) {

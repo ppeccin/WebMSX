@@ -25,6 +25,13 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
         updateConnectionsToHub();
     };
 
+    this.readControllerPort = function(port) {
+        if (room.netController)
+            return hub.netGetMergedPortValues()[port];
+        else
+            return this.readLocalControllerPort(port);
+    };
+
     this.readLocalControllerPort = function(port) {
         return turboFireClockCount > turboFireFlipClock ? joyStates[port ^ swappedMode].portValue | 0x10 : joyStates[port ^ swappedMode].portValue;
     };

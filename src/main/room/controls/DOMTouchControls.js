@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
+wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
 "use strict";
 
     var self = this;
@@ -28,6 +28,13 @@ wmsx.DOMTouchControls = function(hub, keyboard, machineControls) {
     this.resetControllers = function() {
         this.releaseControllers();
         updateConnectionsToHub();
+    };
+
+    this.readControllerPort = function(port) {
+        if (room.netController)
+            return hub.netGetMergedPortValues()[port];
+        else
+            return this.readLocalControllerPort(port);
     };
 
     this.readLocalControllerPort = function(aPort) {

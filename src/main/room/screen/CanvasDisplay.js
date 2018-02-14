@@ -122,7 +122,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openSettings = function(page) {
         closeAllOverlays();
-        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub, machineTypeSocket);
+        if (!settingsDialog) settingsDialog = new wmsx.SettingsDialog(fsElementCenter, controllersHub, peripheralControls, machineTypeSocket);
         settingsDialog.show(page);
     };
 

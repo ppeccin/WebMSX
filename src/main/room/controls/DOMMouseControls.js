@@ -2,7 +2,8 @@
 
 // Only 1 Mouse supported
 
-wmsx.DOMMouseControls = function(hub) {
+// TODO Screen focus problem. Verify metrics
+wmsx.DOMMouseControls = function(room, hub) {
 "use strict";
 
     var self = this;
@@ -23,7 +24,10 @@ wmsx.DOMMouseControls = function(hub) {
     };
 
     this.releaseControllers = function() {
-        resetMouseState(mouseState);
+        if (port >= 0) {
+            if (netClientMode) resetClientModeLocalMouseState(mouseLocalState);
+            else resetMouseState(mouseState);
+        }
     };
 
     this.resetControllers = function() {
@@ -44,8 +48,17 @@ wmsx.DOMMouseControls = function(hub) {
         updateMode();
     };
 
+    this.setModeEffective = function(newMode) {
+        mode = newMode.m;
+        updateMode(newMode.p);
+    };
+
     this.getMode = function () {
         return mode;
+    };
+
+    this.getModeEffective = function () {
+        return { m: mode, p: port };
     };
 
     this.getModeDesc = function() {
@@ -57,19 +70,29 @@ wmsx.DOMMouseControls = function(hub) {
         }
     };
 
-    function updateMode() {
-        port = mode < 0 ? -1 : mode;
-        if (port < 0) resetMouseState(mouseState);
+    function updateMode(forcePort) {
+        port = forcePort !== undefined ? forcePort : mode < 0 ? -1 : mode;
+        if (netClientMode) resetClientModeLocalMouseState(mouseLocalState);
+        else resetMouseState(mouseState);
         updateConnectionsToHub();
     }
 
     this.netClientAdaptToServerControlsModes = function(modes) {
+        this.setModeEffective(modes.m);     // Use same effective mode as the Server
     };
 
-    this.readLocalControllerPort = function(atPort) {
-        if (atPort === port) return mouseState.portValue;
-        else return 0x3f;
+    this.readControllerPort = function(port) {
+        // MouseControls are Net-aware and do not participate in Hub´s port merging
+        if (room.netController)
+            return netReadControllerPort(port);
+        else
+            return readLocalControllerPort(port);
     };
+
+    function readLocalControllerPort(atPort) {
+        if (atPort === port) return mouseLocalState.portValue;
+        else return PORT_VALUE_ALL_RELEASED;
+    }
 
     this.writeControllerPin8Port = function(atPort, val) {
         if (atPort !== port) return;
@@ -87,7 +110,7 @@ wmsx.DOMMouseControls = function(hub) {
 
         ++mouseState.readCycle;
         if (mouseState.readCycle === 0) updateDeltas();
-        updatePortValue();
+        updatePortXYValue();
 
         //console.log("Mouse SET ReadCycle: " + mouseState.readCycle + ", elapsed: " + elapsed);
     };
@@ -147,7 +170,11 @@ wmsx.DOMMouseControls = function(hub) {
         if (func) func.apply(document);
     }
 
-    function updatePortValue() {
+    function updatePortButtonsValue() {
+        mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4)
+    }
+
+    function updatePortXYValue() {
         switch (mouseState.readCycle) {
             case 0:
                 mouseState.portValue = (mouseState.portValue & ~0x0f) | ((mouseState.readDX >> 4) & 0xf); break;
@@ -195,8 +222,10 @@ wmsx.DOMMouseControls = function(hub) {
         }
         lastMoveEvent = e;
 
-        mouseState.dX += dX / pixelScaleX;
-        mouseState.dY += dY / pixelScaleY;
+        mouseLocalState.dX += dX / pixelScaleX;
+        mouseLocalState.dY += dY / pixelScaleY;
+
+        netMouseStateToSend = mouseLocalState;
 
         //console.log("Mouse moved. DX: " + mouseState.dX + ", DY: " + mouseState.dY);
     }
@@ -204,8 +233,9 @@ wmsx.DOMMouseControls = function(hub) {
     function mouseButtonEvent(e) {
         if (port >= 0) {
             e.preventDefault();
-            mouseState.buttons = e.buttons & 7;
-            mouseState.portValue = (mouseState.portValue & ~0x30) | ((~mouseState.buttons & 3) << 4);
+            mouseLocalState.buttons = e.buttons & 3;
+            if (!netClientMode) updatePortButtonsValue();
+            netMouseStateToSend = mouseLocalState;
         }
 
         if (e.buttons & 4) {
@@ -238,8 +268,82 @@ wmsx.DOMMouseControls = function(hub) {
         hub.showStatusMessage(mes);
     }
 
+    function resetMouseState(s) {
+        s.readCycle = -1;
 
+        s.dX = 0; s.dY = 0;
+        s.buttons = 0;
+
+        s.portValue = PORT_VALUE_ALL_RELEASED;
+        s.pin8Value = 0; s.lastPin8FlipBUSCycle = 0;
+        s.readDX = 0; s.readDY = 0;
+
+        netMouseStateToSend = mouseState;
+
+        return s;
+    }
+
+    function resetClientModeLocalMouseState(s) {
+        s.dX = 0; s.dY = 0;
+        s.buttons = undefined;
+
+        netMouseStateToSend = undefined;
+
+        return s;
+    }
+
+
+    // NetPlay  -------------------------------------------
+
+    function netReadControllerPort(atPort) {
+        if (atPort === port) return mouseState.portValue;
+        else return PORT_VALUE_ALL_RELEASED;
+    }
+
+    this.netGetMouseStateToSend = function() {
+        return netMouseStateToSend;
+    };
+
+    this.netClearMouseInfoToSend = function() {
+        if (netClientMode) resetClientModeLocalMouseState(mouseLocalState);
+        else netMouseStateToSend = undefined;
+    };
+
+    this.netServerGetMouseState = function() {
+        return mouseState;
+    };
+
+    this.netServerReceiveClientMouseState = function(state) {
+        // Merge states. Add deltas and overwrite buttons
+        mouseState.dX += state.dX; mouseState.dY += state.dY;
+        if (state.buttons !== undefined) {
+            mouseState.buttons = state.buttons;
+            updatePortButtonsValue();
+        }
+
+        netMouseStateToSend = mouseState;
+
+        // console.log("Client Mouse state:", state);
+    };
+
+    this.netClientReceiveServerMouseState = function(state) {
+        mouseState = state;
+
+        // console.log("Server Mouse state:", state);
+    };
+
+    this.netSetClientMode = function(state) {
+        netClientMode = state;
+        mouseLocalState = state ? resetClientModeLocalMouseState({}) : mouseState;
+    };
+
+
+    // Store a complete Mouse state, with positions and buttons
     var mouseState = resetMouseState({});
+    var mouseLocalState = mouseState;
+
+    var netClientMode = false;
+    var netMouseStateToSend = undefined;
 
     var mode = WMSX.MOUSE_MODE - 1;              // -2: disabled, -1: auto, 0: enabled at port 0, 1: enabled at port 1. (parameter is -1 .. 2)
     var port = -1;                               // -1: disconnected, 0: connected at port 0, 1: connected at port 1
@@ -256,22 +360,7 @@ wmsx.DOMMouseControls = function(hub) {
     var TYPE = wmsx.ControllersHub.MOUSE;
     var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
 
-
-    // Stores a complete Mouse state, with positions and buttons
-    function resetMouseState(s) {
-        s.dX = 0;
-        s.dY = 0;
-        s.buttons = 0;
-
-        s.portValue = 0x3f;
-        s.pin8Value = 0;
-        s.lastPin8FlipBUSCycle = 0;
-        s.readCycle = -1;
-        s.readDX = 0;
-        s.readDY = 0;
-
-        return s;
-    }
+    var PORT_VALUE_ALL_RELEASED = hub.PORT_VALUE_ALL_RELEASED;
 
 };
 

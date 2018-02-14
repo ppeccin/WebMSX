@@ -60,20 +60,25 @@ wmsx.ControllersHub = function(room, machineControls) {
         mouseControls.resetControllers();
     };
 
+    this.roomNetPlayStatusChangeUpdate = function(oldMode) {
+        mouseControls.netSetClientMode(room.netPlayMode === 2);
+    };
+
     this.readKeyboardPort = function(row) {
         return keyboard.readKeyboardPort(row);
     };
 
     this.readControllerPort = function(port) {
-        if (room.netController)
-            return netPortValues[port];     // TODO NetPlay add Mouse support
-        else
-            return readLocalControllerPort(port);
+        var forward = controllerAtPort[port];
+        return forward ? forward.readControllerPort(port) : this.netGetMergedPortValues()[port];
     };
 
-    function readLocalControllerPort(port) {
+    function readLocalControllerPortForMerging(port) {
+        // MouseControls are Net-aware and do not participate in port merging
         var forward = controllerAtPort[port];
-        return (forward ? forward.readLocalControllerPort(port) | japanaseKeyboardLayoutPortValue : PORT_VALUE_ALL_RELEASED);
+        return forward && forward !== mouseControls
+            ? forward.readLocalControllerPort(port) | japanaseKeyboardLayoutPortValue
+            : PORT_VALUE_ALL_RELEASED;
     }
 
     this.writeControllerPin8Port = function(port, value) {
@@ -88,8 +93,8 @@ wmsx.ControllersHub = function(room, machineControls) {
         joystickControls.controllersClockPulse();
         touchControls.controllersClockPulse();
 
-        if (room.netPlayMode === 1) netServerUpdatePortValues();
-        else if(room.netPlayMode === 2) netClientUpdatePortValues();
+        if (room.netPlayMode === 1) netServerUpdateMergedPortValues();
+        else if(room.netPlayMode === 2) netClientUpdateMergedPortValues();
     };
 
     this.toggleKeyboardLayout = function() {
@@ -282,53 +287,73 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     // NetPlay  -------------------------------------------
 
-    this.netServerGetPortValues = function() {
-        return netPortValues;
+    this.netGetInfoToSend = function() {
+        var mouseInfo = mouseControls.netGetMouseStateToSend();
+        return mouseInfo || netMergedPortValuesToSend
+            ? { m: mouseInfo, p: netMergedPortValuesToSend }
+            : undefined;
     };
 
-    this.netGetPortValuesToSend = function() {
-        return netPortValuesToSend;
+    this.netClearInfoToSend = function() {
+        netMergedPortValuesToSend = undefined;
+        mouseControls.netClearMouseInfoToSend();
     };
 
-    this.netClearPortValuesToSend = function() {
-        netPortValuesToSend = undefined;
+    this.netServerGetFullInfo = function() {
+        return { m: mouseControls.netServerGetMouseState(), p: netMergedPortValues };
     };
 
-    this.netClientSetPortValues = function(values) {
-        netPortValues[0] = values[0]; netPortValues[1] = values[1];
+    this.netGetMergedPortValues = function() {
+        return netMergedPortValues;
     };
 
-    this.netServerClientPortValuesChanged = function(client, values) {
-        // console.log("Receiving Client port values", values);
+    this.netClientReceiveServerInfo = function(info) {
+        if (info.m) mouseControls.netClientReceiveServerMouseState(info.m);
 
-        netClientsPortValuesChanged = true;
-
-        // Retain values only if they are different than the all-released state
-        client.controllersPortValues = values[0] !== PORT_VALUE_ALL_RELEASED || values[1] !== PORT_VALUE_ALL_RELEASED
-            ? values : undefined;
+        var portValues = info.p;
+        if (portValues) {
+            netMergedPortValues[0] = portValues[0]; netMergedPortValues[1] = portValues[1];
+        }
     };
 
-    this.netServerClearClientsInfo = function () {
+    this.netServerReceiveClientInfo = function(client, info) {
+        // console.log("Receiving Client info:", info);
+
+        // Update Mouse info immediately
+        if (info.m) mouseControls.netServerReceiveClientMouseState(info.m);
+
+        // Store other Clients merged port values for later
+        var portValues = info.p;
+        if (portValues) {
+            netClientsMergedPortValuesChanged = true;
+
+            // Retain values only if they are different than the all-released state
+            client.controllersPortValues = portValues[0] !== PORT_VALUE_ALL_RELEASED || portValues[1] !== PORT_VALUE_ALL_RELEASED
+                ? portValues : undefined;
+        }
+    };
+
+    this.netServerClearClientsMergedInfo = function () {
         netClientsMergedPortValues[0] = PORT_VALUE_ALL_RELEASED; netClientsMergedPortValues[1] = PORT_VALUE_ALL_RELEASED;
-        netClientsPortValuesChanged = false;
+        netClientsMergedPortValuesChanged = false;
     };
 
-    function netClientUpdatePortValues() {
-        var a = readLocalControllerPort(0);
-        var b = readLocalControllerPort(1);
+    function netClientUpdateMergedPortValues() {
+        var a = readLocalControllerPortForMerging(0);
+        var b = readLocalControllerPortForMerging(1);
 
         // Have they changed?
-        if (netLocalPortValues[0] !== a || netLocalPortValues[1] !== b) {
-            netLocalPortValues[0] = a; netLocalPortValues[1] = b;
-            netPortValuesToSend = netLocalPortValues;
+        if (netLocalMergedPortValues[0] !== a || netLocalMergedPortValues[1] !== b) {
+            netLocalMergedPortValues[0] = a; netLocalMergedPortValues[1] = b;
+            netMergedPortValuesToSend = netLocalMergedPortValues;
         }
     }
 
-    function netServerUpdatePortValues() {
-        if (netClientsPortValuesChanged) {
+    function netServerUpdateMergedPortValues() {
+        if (netClientsMergedPortValuesChanged) {
             // console.log("Updating Clients merged port values");
 
-            self.netServerClearClientsInfo();
+            self.netServerClearClientsMergedInfo();
             var clients = room.netController.clients;
             for (var nick in clients) {
                 var portValues = clients[nick].controllersPortValues;
@@ -338,28 +363,28 @@ wmsx.ControllersHub = function(room, machineControls) {
             }
         }
 
-        var a = readLocalControllerPort(0) & netClientsMergedPortValues[0];
-        var b = readLocalControllerPort(1) & netClientsMergedPortValues[1];
+        var a = readLocalControllerPortForMerging(0) & netClientsMergedPortValues[0];
+        var b = readLocalControllerPortForMerging(1) & netClientsMergedPortValues[1];
 
         // Have they changed?
-        if (netPortValues[0] !== a || netPortValues[1] !== b) {
-            netPortValues[0] = a; netPortValues[1] = b;
-            netPortValuesToSend = netPortValues;
+        if (netMergedPortValues[0] !== a || netMergedPortValues[1] !== b) {
+            netMergedPortValues[0] = a; netMergedPortValues[1] = b;
+            netMergedPortValuesToSend = netMergedPortValues;
         }
     }
 
     this.netServerGetControlsModes = function () {
-        return { sw: joykeysControls.getSwappedState() || joystickControls.getSwappedState() || touchControls.getSwappedState() }
+        return { m: mouseControls.getModeEffective(), sw: joykeysControls.getSwappedState() || joystickControls.getSwappedState() || touchControls.getSwappedState() };
     };
 
     this.netClientGetControlsModes = function() {
-        return { k: joykeysControls.getMode(), j: joystickControls.getMode(), m: mouseControls.getMode(), t: touchControls.getMode() };
+        return { k: joykeysControls.getMode(), j: joystickControls.getMode(), m: mouseControls.getModeEffective(), t: touchControls.getMode() };
     };
 
     this.netClientRestoreControlsModes = function(modes) {
         joykeysControls.setMode(modes.k);
         joystickControls.setMode(modes.j);
-        mouseControls.setMode(modes.m);
+        mouseControls.setModeEffective(modes.m);
         touchControls.setMode(modes.t);
     };
 
@@ -396,10 +421,10 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     // Key processing sequence: JoyKeys -> Keyboard -> MachineControls -> PeripheralControls
     var keyboard =         new wmsx.DOMKeyboard(this, room, machineControls);
-    var mouseControls =    new wmsx.DOMMouseControls(this);
+    var mouseControls =    new wmsx.DOMMouseControls(room, this);
     var joystickControls = new wmsx.GamepadJoysticksControls(room, this, keyboard);
     var joykeysControls =  new wmsx.DOMJoykeysControls(room, this, keyboard);
-    var touchControls =    new wmsx.DOMTouchControls(this, keyboard, machineControls);
+    var touchControls =    new wmsx.DOMTouchControls(room, this, keyboard, machineControls);
 
     var turboFireSpeed = 0;
     var turboFirePerSecond = [ 0, 2, 2.4, 3, 4, 5, 6, 7.5, 10, 12, 15 ];
@@ -407,14 +432,15 @@ wmsx.ControllersHub = function(room, machineControls) {
     var hapticFeedbackCapable = !!navigator.vibrate;
     var hapticFeedbackEnabled = hapticFeedbackCapable && !!WMSX.userPreferences.current.hapticFeedback;
 
-    var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;
+    var japanaseKeyboardLayoutPortValue = WMSX.KEYBOARD_JAPAN_LAYOUT !== 0 ? 0x40 : 0;      // TODO NetPlay Not being Synched
     var PORT_VALUE_ALL_RELEASED = 0x3f | japanaseKeyboardLayoutPortValue;
+    this.PORT_VALUE_ALL_RELEASED = PORT_VALUE_ALL_RELEASED;
 
-    var netPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
-    var netLocalPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
+    var netMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
+    var netLocalMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
     var netClientsMergedPortValues = [ PORT_VALUE_ALL_RELEASED, PORT_VALUE_ALL_RELEASED ];
-    var netClientsPortValuesChanged = false;
-    var netPortValuesToSend;
+    var netClientsMergedPortValuesChanged = false;
+    var netMergedPortValuesToSend;
 
     var screen;
 

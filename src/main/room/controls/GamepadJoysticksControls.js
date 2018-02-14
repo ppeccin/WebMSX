@@ -29,6 +29,13 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
         updateConnectionsToHub();
     };
 
+    this.readControllerPort = function(port) {
+        if (room.netController)
+            return hub.netGetMergedPortValues()[port];
+        else
+            return this.readLocalControllerPort(port);
+    };
+
     this.readLocalControllerPort = function(port) {
         return turboFireClockCount > turboFireFlipClock
             ? ((port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue) | 0x10

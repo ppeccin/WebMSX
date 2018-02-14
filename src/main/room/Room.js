@@ -73,7 +73,10 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
             this.netPlayStateBeforeClientMode = this.netPlayControlsModesBeforeClientMode = undefined;
         }
 
-        if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+        if (oldMode !== this.netPlayMode) {
+            this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+            this.controllersHub.roomNetPlayStatusChangeUpdate(oldMode);
+        }
     };
 
     this.enterNetServerMode = function(netServer) {
@@ -83,7 +86,10 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         this.mainVideoClock.setVSynchAltNativeFrequency(undefined);
         self.mainVideoClock.go();       // Local Clock, also sent to Client
 
-        if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+        if (oldMode !== this.netPlayMode) {
+            this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+            this.controllersHub.roomNetPlayStatusChangeUpdate(oldMode);
+        }
     };
 
     this.enterNetClientMode = function(netClient) {
@@ -96,7 +102,10 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         this.netPlayStateBeforeClientMode = this.machine.saveState(true);       // extended
         this.netPlayControlsModesBeforeClientMode = this.controllersHub.netClientGetControlsModes();
 
-        if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+        if (oldMode !== this.netPlayMode) {
+            this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+            this.controllersHub.roomNetPlayStatusChangeUpdate(oldMode);
+        }
     };
 
     this.enterNetPendingMode = function(netController) {
@@ -105,7 +114,10 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         this.netController = undefined;
         self.mainVideoClock.go();       // Local Clock continued
 
-        if (oldMode !== this.netPlayMode) this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+        if (oldMode !== this.netPlayMode) {
+            this.screen.roomNetPlayStatusChangeUpdate(oldMode);
+            this.controllersHub.roomNetPlayStatusChangeUpdate(oldMode);
+        }
     };
 
     this.getNetServer = function() {

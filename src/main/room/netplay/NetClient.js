@@ -149,7 +149,7 @@ wmsx.NetClient = function(room) {
 
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
-        controllersHub.netClearPortValuesToSend();
+        controllersHub.netClearInfoToSend();
         peripheralControls.netClearControlsToSend();
         room.enterNetClientMode(self);
     }
@@ -198,29 +198,6 @@ wmsx.NetClient = function(room) {
     function onServerNetUpdate(netUpdate) {
         // if (Object.keys(netUpdate).length) console.log(netUpdate);
 
-        // Full Update?
-        if (netUpdate.s) {
-            room.mainVideoClock.setVSynchAltNativeFrequency(netUpdate.vf);
-            machine.loadState(netUpdate.s);     // extended
-            keyboard.loadState(netUpdate.ks);
-            controllersHub.netClientSetPortValues(netUpdate.cp);
-            if (justJoined) {
-                // Change Controls Mode automatically to adapt to Server
-                controllersHub.netClientAdaptToServerControlsModes(netUpdate.cm);
-                justJoined = false;
-            }
-        } else {
-            // Apply controls changes from Server
-            if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
-            if (netUpdate.k) keyboard.netClientApplyMatrixChanges(netUpdate.k);
-            if (netUpdate.cp) controllersHub.netClientSetPortValues(netUpdate.cp);
-            if (netUpdate.pc) peripheralControls.netClientApplyControlsChanges(netUpdate.pc);
-            if (netUpdate.po) processPeripheralOperations(netUpdate.po);
-
-            // Send local (Client) Machine clock
-            machine.videoClockPulse();
-        }
-
         // Send clock do Controllers
         controllersHub.controllersClockPulse();
 
@@ -228,7 +205,7 @@ wmsx.NetClient = function(room) {
         var update = {
             c: machineControls.netGetControlsToSend(),
             k: keyboard.netGetMatrixChangesToSend(),
-            cp: controllersHub.netGetPortValuesToSend(),
+            ch: controllersHub.netGetInfoToSend(),
             pc: peripheralControls.netGetControlsToSend()
         };
 
@@ -239,8 +216,31 @@ wmsx.NetClient = function(room) {
 
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
-        controllersHub.netClearPortValuesToSend();
+        controllersHub.netClearInfoToSend();
         peripheralControls.netClearControlsToSend();
+
+        // Full Update?
+        if (netUpdate.s) {
+            room.mainVideoClock.setVSynchAltNativeFrequency(netUpdate.vf);
+            machine.loadState(netUpdate.s);     // extended
+            keyboard.loadState(netUpdate.ks);
+            if (justJoined) {
+                // Change Controls Mode automatically to adapt to Server
+                controllersHub.netClientAdaptToServerControlsModes(netUpdate.cm);
+                justJoined = false;
+            }
+            controllersHub.netClientReceiveServerInfo(netUpdate.ch);
+        } else {
+            // Apply controls changes from Server
+            if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
+            if (netUpdate.k) keyboard.netClientApplyMatrixChanges(netUpdate.k);
+            if (netUpdate.ch) controllersHub.netClientReceiveServerInfo(netUpdate.ch);
+            if (netUpdate.pc) peripheralControls.netClientApplyControlsChanges(netUpdate.pc);
+            if (netUpdate.po) processPeripheralOperations(netUpdate.po);
+        }
+
+        // Send local (Client) Machine clock
+        machine.videoClockPulse();
     }
 
     function processPeripheralOperations(ops) {

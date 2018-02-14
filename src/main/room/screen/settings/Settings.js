@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
+wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, machineTypeSocket) {
 "use strict";
 
     var self = this;
@@ -177,7 +177,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, machineTypeSocket) {
     }
 
     function refreshPortsPage() {
-        if (!portsConfigurator) portsConfigurator = new wmsx.PortsConfigurator(controllersHub, modal);
+        if (!portsConfigurator) portsConfigurator = new wmsx.PortsConfigurator(controllersHub, peripheralControls, modal);
         portsConfigurator.refresh();
     }
 

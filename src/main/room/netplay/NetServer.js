@@ -60,9 +60,6 @@ wmsx.NetServer = function(room) {
         // Send clock do Controllers
         controllersHub.controllersClockPulse();
 
-        // Send local (Server) Machine clock
-        machine.videoClockPulse();
-
         // Send net clock update to all Clients
         var data, dataFull, dataNormal;
         for (var cNick in clients) {
@@ -76,8 +73,8 @@ wmsx.NetServer = function(room) {
                         vf: room.mainVideoClock.getVSynchNativeFrequency(),
                         s: machine.saveState(true),      // extended
                         ks: keyboard.saveState(),
-                        cp: controllersHub.netServerGetPortValues(),
-                        cm: controllersHub.netServerGetControlsModes()
+                        cm: controllersHub.netServerGetControlsModes(),
+                        ch: controllersHub.netServerGetFullInfo()
                     };
                     dataFull = JSON.stringify(netUpdateFull);
                 }
@@ -86,7 +83,7 @@ wmsx.NetServer = function(room) {
                 if (!dataNormal) {
                     netUpdate.c = machineControls.netGetControlsToSend();
                     netUpdate.k = keyboard.netGetMatrixChangesToSend();
-                    netUpdate.cp = controllersHub.netGetPortValuesToSend();
+                    netUpdate.ch = controllersHub.netGetInfoToSend();
                     netUpdate.pc = peripheralControls.netGetControlsToSend();
                     netUpdate.po = peripheralOperationsToSend.length ? peripheralOperationsToSend : undefined;
                     dataNormal = JSON.stringify(netUpdate);
@@ -103,13 +100,15 @@ wmsx.NetServer = function(room) {
                 dropClient(client, true, true, 'NetPlay client "' + client.nick + '" dropped: P2P error sending data');
             }
         }
-
         nextUpdateFull = false;
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
-        controllersHub.netClearPortValuesToSend();
+        controllersHub.netClearInfoToSend();
         peripheralControls.netClearControlsToSend();
         peripheralOperationsToSend.length = 0;
+
+        // Send local (Server) Machine clock
+        machine.videoClockPulse();
     };
 
     this.addPeripheralOperationToSend = function(op) {
@@ -175,8 +174,8 @@ wmsx.NetServer = function(room) {
         sessionID = message.sessionID;
         machineControls.netClearControlsToSend();
         keyboard.netClearMatrixChangesToSend();
-        controllersHub.netClearPortValuesToSend();
-        controllersHub.netServerClearClientsInfo();
+        controllersHub.netClearInfoToSend();
+        controllersHub.netServerClearClientsMergedInfo();
         peripheralControls.netClearControlsToSend();
         peripheralOperationsToSend.length = 0;
         room.enterNetServerMode(self);
@@ -287,8 +286,8 @@ wmsx.NetServer = function(room) {
         if (netUpdate.k) keyboard.netServerProcessMatrixChanges(netUpdate.k);
         if (netUpdate.pc) peripheralControls.netServerProcessControlsChanges(netUpdate.pc);
 
-        // Store Controllers port value changes for later merging with other Clients and Server values
-        if (netUpdate.cp) controllersHub.netServerClientPortValuesChanged(client, netUpdate.cp);
+        // Process Controller ports info
+        if (netUpdate.ch) controllersHub.netServerReceiveClientInfo(client, netUpdate.ch);
     }
 
     function keepAlive() {
