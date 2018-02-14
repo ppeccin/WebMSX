@@ -779,9 +779,9 @@ wmsx.VDP = function(machine, cpu) {
             newRenderWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   newPixelWidth = 2;
             newRenderHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; newPixelHeight = 2;
         } else {
-            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }   // Mode
+            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 2; }   // Mode
             else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
-            if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
+            if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 2; }     // IL
             else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
         }
 

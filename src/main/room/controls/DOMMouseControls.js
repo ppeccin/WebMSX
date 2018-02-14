@@ -102,6 +102,8 @@ wmsx.DOMMouseControls = function(hub) {
 
     this.setScreenPixelScale = function(scaleX, scaleY) {
         pixelScaleX = scaleX; pixelScaleY = scaleY;
+
+        //console.log("MouseControls scaleX: " + scaleX + ", scaleY: " + scaleY);
     };
 
     this.getMappingForControl = function(button, port) {
