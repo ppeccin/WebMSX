@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.NetPlayDialog = function(mainElement) {
+wmsx.NetPlayDialog = function(room, mainElement) {
     "use strict";
 
     var self = this;
@@ -68,6 +68,7 @@ wmsx.NetPlayDialog = function(mainElement) {
                 statusBox.classList.add("wmsx-active");
                 sessionBox.classList.add("wmsx-disabled");
                 sessionName.setAttribute("placeholder", "Automatic");
+                link.href = getSessionLink();
                 break;
             case 2:
                 var netClient = room.getNetClient();
@@ -82,6 +83,7 @@ wmsx.NetPlayDialog = function(mainElement) {
                 sessionBox.classList.remove("wmsx-disabled");
                 sessionBox.classList.add("wmsx-disabled");
                 sessionName.setAttribute("placeholder", "Enter a name");
+                link.href = getSessionLink();
                 break;
             case -1:
             case -2:
@@ -112,15 +114,15 @@ wmsx.NetPlayDialog = function(mainElement) {
         nick.value = prefs.netPlayNick;
     }
 
+    function getSessionLink() {
+        return wmsx.Util.browserCurrentURL() + "?JOIN=" + room.netController.getSessionID();
+    }
+
     function performCommand(e) {
         var button = e.target;
         if (button.disabled) return;
 
         wmsx.ControllersHub.hapticFeedbackOnTouch(e);
-
-        if (button === link) {
-            console.log(wmsx.Util.browserCurrentURL() + "?JOIN=" + room.netController.getSessionID());
-        }
 
         var save = false;
         var prevMode = room.netPlayMode;
@@ -160,14 +162,17 @@ wmsx.NetPlayDialog = function(mainElement) {
         statusBox.id = "wmsx-netplay-status-box";
         dialog.appendChild(statusBox);
 
+        linkText = document.createElement("input");
+        linkText.id = "wmsx-netplay-link-text";
+        statusBox.appendChild(linkText);
+
         status = document.createElement("div");
         status.id = "wmsx-netplay-status";
         status.textContent = "STANDALONE";
         statusBox.appendChild(status);
 
-        link = document.createElement("div");
+        link = document.createElement("a");
         link.id = "wmsx-netplay-link";
-        link.wmsxCommand = true;
         link.textContent = "\uD83D\uDD17";
         link.setAttribute("title", "Copy Join Session link to clipboard");
         statusBox.appendChild(link);
@@ -260,18 +265,33 @@ wmsx.NetPlayDialog = function(mainElement) {
             e.stopPropagation();
         });
 
+        // Block drag
+        dialog.ondragstart = wmsx.Util.blockEvent;
+
         // Allow context in status
-        status.addEventListener("contextmenu", function(e) {
+        statusBox.addEventListener("contextmenu", function(e) {
             e.stopPropagation();
+        });
+
+        // Click on link
+        wmsx.Util.addEventsListener(link, "click", function(e) {
+            wmsx.Util.blockEvent(e);
+
+            if (!document.queryCommandSupported || !document.queryCommandSupported('copy'))
+                return room.showOSD("Copy to Clipboard not supported by the browser!", true, true);
+
+            linkText.value = getSessionLink();
+            linkText.focus();
+            linkText.select();
+            document.execCommand("copy");
+            dialog.focus();
         });
     }
 
 
-    var room = WMSX.room;
-
     var visible = false;
     var dialog, statusBox, sessionBox;
-    var start, join, stop, status, link, sessionName, nick;
+    var start, join, stop, status, link, linkText, sessionName, nick;
 
     var prefs = WMSX.userPreferences.current;
 

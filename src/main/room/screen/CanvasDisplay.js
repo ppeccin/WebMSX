@@ -160,7 +160,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openNetPlayDialog = function() {
         closeAllOverlays();
-        if (!netPlayDialog) netPlayDialog = new wmsx.NetPlayDialog(fsElementCenter);
+        if (!netPlayDialog) netPlayDialog = new wmsx.NetPlayDialog(room, fsElementCenter);
         netPlayDialog.show();
     };
 

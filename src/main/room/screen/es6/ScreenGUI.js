@@ -1086,7 +1086,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     background: black;
     vertical-align: top;
     text-shadow: none;
-     -webkit-user-select: text;
+    -webkit-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
     user-select: text;
@@ -1112,14 +1112,16 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     top: 0;
     width: 26px;
     height: 27px;
+    color: white;
     font-size: 15px;
     font-weight: 600;
     line-height: 27px;
+    text-decoration: none;
     background: black;
     text-align: center;
 }
 #wmsx-netplay-link:hover {
-    background: rgb(248, 33, 28);
+    background: hsl(358, 67%, 46%);
     cursor: pointer;
 }
 #wmsx-netplay-status-box.wmsx-active #wmsx-netplay-link {
@@ -1150,7 +1152,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 #wmsx-netplay-session-label::before {
     content: "Session Name";
 }
-#wmsx-netplay input {
+#wmsx-netplay-session-box input {
     width: 150px;
     height: 26px;
     padding: 0 10px;
@@ -1186,6 +1188,24 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 }
 #wmsx-netplay-session-box.wmsx-disabled div {
     color: rgb(130, 130, 130);
+}
+input#wmsx-netplay-link-text {
+    position: absolute;
+    top: 8px;
+    left: 50px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    color: transparent;
+    background: transparent;
+    opacity: 0;
+    z-index: -10;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 #wmsx-touch-config {
