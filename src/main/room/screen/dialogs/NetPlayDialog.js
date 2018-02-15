@@ -33,10 +33,10 @@ wmsx.NetPlayDialog = function(room, mainElement) {
     this.roomNetPlayStatusChangeUpdate = function(oldMode) {
         if (visible) refresh();
 
-        // Close automatically when entering Server/Client mode
-        if (room.netPlayMode > 0 && oldMode < 0 && visible) return setTimeout(function() {
+        // Close automatically when entering Client mode
+        if (room.netPlayMode === 2 && oldMode < 0 && visible) return setTimeout(function() {
             self.hide();
-        }, 1500);
+        }, 2000);
 
         // Open automatically when leaving Server/Client mode
         if (room.netPlayMode === 0 && oldMode > 0 && !visible) self.show();
