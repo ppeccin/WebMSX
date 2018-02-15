@@ -26,7 +26,7 @@ WMSX = {
     CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, MSXDOS2, etc...
     CARTRIDGE2_FORMAT:              "",
 
-    // Basic loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
+    // BASIC loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
     BASIC_RUN:                      "",
     BASIC_LOAD:                     "",
     BASIC_BRUN:                     "",
@@ -37,7 +37,11 @@ WMSX = {
     // Extensions
     EXTENSIONS:                     { },
 
-    // General configuration
+    // NetPlay
+    NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
+    NETPLAY_NICK:                   "",                         // NetPlay! Nickname
+
+    // Internal Machine configuration
     BIOS_SLOT:                      [0],
     BIOSEXT_SLOT:                   [2, 1],
     CARTRIDGE1_SLOT:                [1],
@@ -45,6 +49,7 @@ WMSX = {
     EXPANSION_SLOTS:                [[3, 2], [3, 3]],
     RAMMAPPER_SIZE:                 512,
 
+    // General options
     AUTO_START:                     true,
     AUTO_POWER_ON_DELAY:            1600,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
     MEDIA_CHANGE_DISABLED:          false,

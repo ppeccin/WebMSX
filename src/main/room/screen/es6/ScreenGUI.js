@@ -1074,6 +1074,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     display: block;
 }
 #wmsx-netplay-status-box {
+    position: relative;
     margin-top: 17px;
 }
 #wmsx-netplay-status {
@@ -1089,7 +1090,40 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     -moz-user-select: text;
     -ms-user-select: text;
     user-select: text;
+    box-sizing: border-box;
     cursor: auto;
+}
+#wmsx-netplay-status-box.wmsx-active #wmsx-netplay-status {
+    padding: 0 16px 0 12px;
+}
+#wmsx-netplay-status-box.wmsx-active #wmsx-netplay-status::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 18px;
+    top: 4px;
+    left: 7px;
+    background: rgb(248, 33, 28);
+}
+#wmsx-netplay-link {
+    display: none;
+    position: absolute;
+    right: 25px;
+    top: 0;
+    width: 26px;
+    height: 27px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 27px;
+    background: black;
+    text-align: center;
+}
+#wmsx-netplay-link:hover {
+    background: rgb(248, 33, 28);
+    cursor: pointer;
+}
+#wmsx-netplay-status-box.wmsx-active #wmsx-netplay-link {
+    display: block;
 }
 .wmsx-netplay-button {
     display: inline-block;
@@ -1152,15 +1186,6 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 }
 #wmsx-netplay-session-box.wmsx-disabled div {
     color: rgb(130, 130, 130);
-}
-#wmsx-netplay-status.wmsx-active::after {
-    content: "";
-    position: absolute;
-    width: 6px;
-    height: 18px;
-    top: 4px;
-    left: 7px;
-    background: rgb(248, 33, 28);
 }
 
 #wmsx-touch-config {

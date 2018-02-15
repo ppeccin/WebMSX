@@ -30,8 +30,11 @@ WMSX.start = function (machinePowerOn) {
     // Prepare ROM Database
     wmsx.ROMDatabase.uncompress();
 
+    // NetPlay! auto-join Session?
+    var joinSession = WMSX.NETPLAY_JOIN;
+
     // Auto-load BIOS, Expansions, State, Cartridges, Disks and Tape files if specified and downloadable
-    if (WMSX.STATE_URL) {
+    if (!joinSession && WMSX.STATE_URL) {
         // Machine State loading, Machine will Auto Power on
         new wmsx.MultiDownloader(
             [{ url: WMSX.STATE_URL }],
@@ -42,14 +45,17 @@ WMSX.start = function (machinePowerOn) {
             }
         ).start();      // Asynchronous
     } else {
-        // Normal media loading. Power Machine on only after all files are loaded and inserted
+        // Normal media loading. Power Machine on only after all files are loaded and inserted, then join Session if needed
         var slotURLs = wmsx.Configurator.slotURLSpecs();
-        var mediaURLs = wmsx.Configurator.mediaURLSpecs();
         var extensionsURLs = wmsx.Configurator.extensionsInitialURLSpecs();
+        var mediaURLs = joinSession ? [] : wmsx.Configurator.mediaURLSpecs();       // Skip media loading if joining Session
         new wmsx.MultiDownloader(
             slotURLs.concat(mediaURLs).concat(extensionsURLs),
             function onAllSuccess() {
-                WMSX.room.start();
+                WMSX.room.start(joinSession
+                    ? function() { WMSX.room.getNetClient().joinSession(joinSession, WMSX.NETPLAY_NICK); }
+                    : undefined
+                );
             }
         ).start();      // Asynchronous if there are media to load, otherwise Synchronous
     }

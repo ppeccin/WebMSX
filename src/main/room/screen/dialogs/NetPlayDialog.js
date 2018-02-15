@@ -52,7 +52,7 @@ wmsx.NetPlayDialog = function(mainElement) {
                 join.disabled = false;
                 sessionName.disabled = false;
                 nick.disabled = false;
-                status.classList.remove("wmsx-active");
+                statusBox.classList.remove("wmsx-active");
                 sessionBox.classList.remove("wmsx-disabled");
                 sessionName.setAttribute("placeholder", "Enter a name");
                 break;
@@ -65,7 +65,7 @@ wmsx.NetPlayDialog = function(mainElement) {
                 join.disabled = true;
                 sessionName.disabled = true;
                 nick.disabled = true;
-                status.classList.add("wmsx-active");
+                statusBox.classList.add("wmsx-active");
                 sessionBox.classList.add("wmsx-disabled");
                 sessionName.setAttribute("placeholder", "Automatic");
                 break;
@@ -78,7 +78,7 @@ wmsx.NetPlayDialog = function(mainElement) {
                 join.disabled = false;
                 sessionName.disabled = true;
                 nick.disabled = true;
-                status.classList.add("wmsx-active");
+                statusBox.classList.add("wmsx-active");
                 sessionBox.classList.remove("wmsx-disabled");
                 sessionBox.classList.add("wmsx-disabled");
                 sessionName.setAttribute("placeholder", "Enter a name");
@@ -88,7 +88,7 @@ wmsx.NetPlayDialog = function(mainElement) {
                 status.textContent = "Establishing connection...";
                 sessionName.disabled = true;
                 nick.disabled = true;
-                status.classList.remove("wmsx-active");
+                statusBox.classList.remove("wmsx-active");
                 sessionBox.classList.add("wmsx-disabled");
                 if (room.netPlayMode === -1) {
                     start.textContent = "CANCEL";
@@ -117,6 +117,10 @@ wmsx.NetPlayDialog = function(mainElement) {
         if (button.disabled) return;
 
         wmsx.ControllersHub.hapticFeedbackOnTouch(e);
+
+        if (button === link) {
+            console.log(wmsx.Util.browserCurrentURL() + "?JOIN=" + room.netController.getSessionID());
+        }
 
         var save = false;
         var prevMode = room.netPlayMode;
@@ -158,8 +162,15 @@ wmsx.NetPlayDialog = function(mainElement) {
 
         status = document.createElement("div");
         status.id = "wmsx-netplay-status";
-        status.textContent = "HOSTING Session: Teste";
+        status.textContent = "STANDALONE";
         statusBox.appendChild(status);
+
+        link = document.createElement("div");
+        link.id = "wmsx-netplay-link";
+        link.wmsxCommand = true;
+        link.textContent = "\uD83D\uDD17";
+        link.setAttribute("title", "Copy Join Session link to clipboard");
+        statusBox.appendChild(link);
 
         sessionBox = document.createElement("div");
         sessionBox.id = "wmsx-netplay-session-box";
@@ -260,7 +271,7 @@ wmsx.NetPlayDialog = function(mainElement) {
 
     var visible = false;
     var dialog, statusBox, sessionBox;
-    var start, join, stop, status, sessionName, nick;
+    var start, join, stop, status, link, sessionName, nick;
 
     var prefs = WMSX.userPreferences.current;
 
