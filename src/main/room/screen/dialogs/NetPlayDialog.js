@@ -27,7 +27,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         if (!visible) return;
         dialog.classList.remove("wmsx-show");
         visible = false;
-        WMSX.room.screen.focus();
+        room.screen.focus();
     };
 
     this.roomNetPlayStatusChangeUpdate = function(oldMode) {
