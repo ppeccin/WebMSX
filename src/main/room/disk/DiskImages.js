@@ -299,7 +299,8 @@ wmsx.DiskImages = function() {
         0xFF: { desc: "320KB", size: 327680 }
     };
 
-    this.MEDIA_TYPE_VALID_SIZES = new Set([ 368640, 737280, 327680, 655360, 184320, 163840 ]);
+    // IMPORTANT: In reverse order of size
+    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];
 
     this.MEDIA_TYPE_BOOT_SECTOR_DOS1 = {
         0xF9: [

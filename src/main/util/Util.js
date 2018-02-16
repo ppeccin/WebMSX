@@ -30,9 +30,9 @@ wmsx.Util = new function() {
         alert(str);
     };
 
-    this.asNormalArray = function(arr) {
-        if (arr instanceof Array) return arr;
-        return this.arrayCopy(arr, 0, new Array(arr.length));
+    this.asNormalArray = function(arr, pos, length) {
+        if (!length && arr instanceof Array) return arr;
+        return length ? this.arrayCopy(arr, pos, new Array(length)) : this.arrayCopy(arr, 0, new Array(arr.length));
     };
 
     this.arrayFill = function(arr, val, from, to) {

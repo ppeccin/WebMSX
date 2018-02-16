@@ -32,10 +32,11 @@ wmsx.FileDiskDrive = function(room) {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                var disk = checkFileIsValidImage(file);
-                if (disk) stack.push(disk);
+                var disks = checkFileHasValidImages(file);
+                if (disks) stack.push.apply(stack, disks);
             }
             if (stack.length > 0) {
+                if (stack.length > maxStack) stack = stack.slice(0, maxStack);
                 loadStack(drive, stack, null, altPower, addToStack);
                 return stack;
             }
@@ -145,9 +146,18 @@ wmsx.FileDiskDrive = function(room) {
         return currentDiskNumDesc(drive);
     };
 
-    function checkFileIsValidImage(file, stopRecursion) {
-        if (checkContentIsValidImage(file.content))
-            return { name: file.name.split("/").pop(), content: wmsx.Util.asNormalArray(file.content) };
+    function checkFileHasValidImages(file, stopRecursion) {
+        var quant = checkContentIsValidImages(file.content);
+        if (quant) {
+            var name = file.name.split("/").pop();
+            if (quant === 1) return [{ name: name, content: wmsx.Util.asNormalArray(file.content) }];
+
+            var disks = new Array(quant);
+            var size = (file.content.length / quant) | 0;
+            for (var i = 0, pos = 0; i < quant; ++i, pos += size)
+                disks[i] = { name: name + (i+1), content: wmsx.Util.asNormalArray(file.content, pos, size) };
+            return disks;
+        }
 
         if (!stopRecursion) {
             var zip = wmsx.Util.checkContentIsZIP(file.content);
@@ -156,7 +166,7 @@ wmsx.FileDiskDrive = function(room) {
                     var files = wmsx.Util.getZIPFilesSorted(zip);
                     for (var f in files) {
                         files[f].content = files[f].asUint8Array();
-                        var res = checkFileIsValidImage(files[f], true);
+                        var res = checkFileHasValidImages(files[f], true);
                         if (res) return res;
                     }
                 } catch (ez) {
@@ -167,14 +177,21 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         var gzip = wmsx.Util.checkContentIsGZIP(file.content);
-        if (gzip) return checkFileIsValidImage({ name: file.name, content: gzip }, true);
+        if (gzip) return checkFileHasValidImages({ name: file.name, content: gzip }, true);
 
         return null;
     }
 
-    function checkContentIsValidImage(content) {
-        return self.MEDIA_TYPE_VALID_SIZES.has(content.length) ? content : null;            // Valid image size
-        //(anyContent || content[0] === 0xe9 || content[0] === 0xeb);                       // Valid boot sector?
+    function checkContentIsValidImages(content) {
+        if (MEDIA_TYPE_VALID_SIZES_SET.has(content.length))
+            return 1;
+
+        for (var i = 0, len = MEDIA_TYPE_VALID_SIZES.length; i < len; ++i) {
+            var size = MEDIA_TYPE_VALID_SIZES[i];
+            if (content.length % size === 0) return (content.length / size) | 0;
+        }
+
+        return 0;
     }
 
     function emptyStack(drive) {
@@ -445,9 +462,11 @@ wmsx.FileDiskDrive = function(room) {
 
     var MAX_STACK = wmsx.FileDiskDrive.MAX_STACK;
 
+    var MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
+    var MEDIA_TYPE_VALID_SIZES_SET = new Set(MEDIA_TYPE_VALID_SIZES);
+
     this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
-    this.MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
 
 
