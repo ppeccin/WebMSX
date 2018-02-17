@@ -64,6 +64,8 @@ wmsx.Configurator = {
             WMSX.VDP_TURBO_MODE |= 0;
             WMSX.CPU_SOFT_TURBO_MULTI |= 0;
             WMSX.VDP_SOFT_TURBO_MULTI |= 0;
+            WMSX.DEBUG_MODE |= 0;
+            WMSX.SPRITES_DEBUG_MODE |= 0;
         }
     },
 

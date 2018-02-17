@@ -232,8 +232,8 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.setDefaults = function() {
-        setDebugMode(0);
-        spriteDebugMode = 0; spriteDebugModeLimit = true; spriteDebugModeCollisions = true;
+        setDebugMode(STARTING_DEBUG_MODE);
+        setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
     this.reset = function() {
@@ -2270,6 +2270,8 @@ wmsx.VDP = function(machine, cpu) {
     var DEBUG_PAT_BLOCK_TABLE_ADDRESS = DEBUG_PAT_DIGI16_TABLE_ADDRESS + 256 * 8 * 4;
     var VRAM_TOTAL_SIZE = DEBUG_PAT_BLOCK_TABLE_ADDRESS + 8;
 
+    var STARTING_DEBUG_MODE = WMSX.DEBUG_MODE;
+    var STARTING_SPRITES_DEBUG_MODE = WMSX.SPRITES_DEBUG_MODE;
 
     // Frame as off screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;

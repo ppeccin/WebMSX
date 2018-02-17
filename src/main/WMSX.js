@@ -76,6 +76,8 @@ WMSX = {
     CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
     VDP_SOFT_TURBO_MULTI:           5,                          // 1..8 VDP Command Engine clock multiplier when in AUTO mode and activated by software
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
+    DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
+    SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     WEB_EXTENSIONS_SERVER:          "",                         // Server address for Proxy download and NetPlay, only available at the official website

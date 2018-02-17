@@ -113,6 +113,8 @@ wmsx.Clock = function(clockPulse) {
 
         // Start detection
 
+        if (!window.requestAnimationFrame) return giveUp();
+
         var tries = 0;
         // var samples = [];
         var lastTime = 0;
@@ -121,8 +123,8 @@ wmsx.Clock = function(clockPulse) {
 
         var nativeFPSSampler = function() {
             // Detected?
-            if (good60 >= 13 || good50 >= 13 || good120 >= 13 || good100 >= 13) {
-                vSynchNativeFrequency = good60 >= 13 ? 60 : good50 >= 13 ? 50 : good120 >= 13 ? 120 : 100;
+            if (good60 >= 12 || good50 >= 18 || good120 >= 14 || good100 >= 18) {
+                vSynchNativeFrequency = good60 >= 12 ? 60 : good50 >= 18 ? 50 : good120 >= 14 ? 120 : 100;
                 wmsx.Util.log("Video native frequency detected: " + vSynchNativeFrequency + "Hz");
                 if (callback) callback(vSynchNativeFrequency);
                 // console.log(samples);
@@ -130,7 +132,7 @@ wmsx.Clock = function(clockPulse) {
             }
 
             tries++;
-            if (tries <= 60) {
+            if (tries <= 70) {
                 var currentTime = wmsx.Util.performanceNow();
                 var sample = 1000 / (currentTime - lastTime);
                 // samples[samples.length] = sample;
@@ -140,12 +142,16 @@ wmsx.Clock = function(clockPulse) {
                 if (sample >= 112.8 && sample <= 127.2) good120++;
                 if (sample >= 94    && sample <= 106)   good100++;
                 requestAnimationFrame(nativeFPSSampler);
-            } else {
-                vSynchNativeFrequency = -1;
-                wmsx.Util.error("Could not detect video native frequency. V-Synch DISABLED!");
-                if (callback) callback(vSynchNativeFrequency);
-            }
+            } else
+                return giveUp();
         };
+
+        function giveUp() {
+            vSynchNativeFrequency = -1;
+            wmsx.Util.error("Could not detect video native frequency. V-Synch DISABLED!");
+            // console.log(samples);
+            if (callback) callback(vSynchNativeFrequency);
+        }
 
         nativeFPSSampler();
     };
