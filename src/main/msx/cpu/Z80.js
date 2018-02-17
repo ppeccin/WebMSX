@@ -69,6 +69,8 @@ wmsx.Z80 = function() {
     };
 
     this.setCPUTurboMulti = function(multi) {
+        // console.log("SET CPU MULTI:" + multi);
+
         turboClockMulti = multi < 1 ? 1 : multi > 8 ? 8 : multi;    // 1..8
     };
 

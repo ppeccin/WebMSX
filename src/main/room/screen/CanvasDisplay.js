@@ -21,7 +21,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.connect = function(pMachine) {
         machine = pMachine;
         monitor.connect(machine.getVideoOutput());
-        machineControlsSocket = machine.getMachineControlsSocket();
         controllersSocket = machine.getControllersSocket();
         cartridgeSocket = machine.getCartridgeSocket();
         extensionsSocket = machine.getExtensionsSocket();
@@ -452,13 +451,18 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (quickOtionsDialog) quickOtionsDialog.quickOptionsControlsStateUpdate();
     };
 
+    this.machineTurboModesStateUpdate = function() {
+        if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
         updateLoading();
         if (!state) {
-            machineControlsSocket.addPowerAndUserPauseStateListener(this);
+            machine.getMachineControlsSocket().addPowerAndUserPauseStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
+            machine.getBIOSSocket().setMachineTurboModesStateListener(this);
         }
     };
 
@@ -1520,7 +1524,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var afterMessageAction;
 
     var machine;
-    var machineControlsSocket;
 
     var monitor;
     var machineControls;

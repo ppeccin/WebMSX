@@ -8,28 +8,30 @@ wmsx.TurboDriver = function() {
 
     this.connect = function(pBios, pMachine) {
         bios = pBios;
+        biosSocket = pMachine.getBIOSSocket();
         machine = pMachine;
-        this.cpuTurboModeUpdate();
+        this.turboModesUpdate();
     };
 
     this.reset = function() {
         chgCpuValue = 0;
         if (!softTurboON) return;
         softTurboON = false;
-        this.cpuTurboModeUpdate();
+        this.turboModesUpdate();
     };
 
-    this.cpuTurboModeUpdate = function() {
+    this.turboModesUpdate = function() {
         var msx1 = machine.machineType < 2;
-        var mode = machine.getCPUTurboMode();
-        if (mode === -1 || msx1) unPatchBIOS();
-        else patchBIOS();
-        if (mode === 0) this.updateSoftCPUTurbo();
-    };
+        var cpuMode = machine.getCPUTurboMode();
+        var vdpMode = machine.getVDPTurboMode();
 
-    // Should be called only when in CPU Turbo AUTO mode
-    this.updateSoftCPUTurbo = function() {
-        machine.cpu.setCPUTurboMulti(softTurboON ? SOFT_TURBO_MULTI : 1);
+        if (cpuMode === -1 || msx1) unPatchBIOS();
+        else patchBIOS();
+
+        machine.cpu.setCPUTurboMulti(cpuMode === 0 && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode > 1 ? cpuMode : 1);
+        machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 1 ? vdpMode : 1);
+
+        biosSocket.fireMachineTurboModesStateUpdate();
     };
 
     this.cpuExtensionBegin = function(s) {
@@ -92,7 +94,7 @@ wmsx.TurboDriver = function() {
         softTurboON = newSoftON;
 
         if (machine.getCPUTurboMode() === 0) {
-            self.updateSoftCPUTurbo();
+            self.turboModesUpdate();
             machine.showCPUTurboModeMessage();
         } else
             machine.showOSD("Could not set CPU Turbo by software: mode is FORCED " + machine.getCPUTurboModeDesc(), true, true);
@@ -115,16 +117,15 @@ wmsx.TurboDriver = function() {
     };
 
     this.loadState = function(s) {
-        softTurboON = s.st;
-        chgCpuValue = s.cv;
+        softTurboON = s ? s.st : false;
+        chgCpuValue = s ? s.cv : 0;
     };
 
 
     var bios;
+    var biosSocket;
     var machine;
     var softTurboON = false;
     var chgCpuValue = 0;
-
-    var SOFT_TURBO_MULTI = WMSX.CPU_SOFT_TURBO_MULTI;
 
 };

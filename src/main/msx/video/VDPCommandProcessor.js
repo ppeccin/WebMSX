@@ -86,8 +86,10 @@ wmsx.VDPCommandProcessor = function() {
 
     };
 
-    this.toggleVDPTurboMode = function() {
-        turboClockMulti = (turboClockMulti + 1) % 9;            // 0..8
+    this.setVDPTurboMulti = function(multi) {
+        // console.log("SET VDP MULTI:" + multi);
+
+        turboClockMulti = multi < 0 || multi > 8 ? 0 : multi;   // 0..8
     };
 
     this.getVDPTurboMulti = function() {
@@ -824,8 +826,8 @@ wmsx.VDPCommandProcessor = function() {
     var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
     var LOGICAL_OPERATIONS = [ lopIMP, lopAND, lopOR, lopXOR, lopNOT, lopIMP, lopIMP, lopIMP, lopTIMP, lopTAND, lopTOR, lopTXOR, lopTNOT, lopIMP, lopIMP, lopIMP ];
 
-        // Speed mode
-    var turboClockMulti = WMSX.VDP_TURBO_MULTI >= 0 && WMSX.VDP_TURBO_MULTI <= 8 ? WMSX.VDP_TURBO_MULTI : 1;
+    // Turbo
+    var turboClockMulti = 1;
 
     // Main VDP connections
     var vdp, vram, register, status;

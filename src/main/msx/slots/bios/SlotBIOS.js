@@ -101,8 +101,7 @@ wmsx.SlotBIOS = function(rom) {
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
         if (state.ke) keyboardExtension.loadState(state.ke);
-        if (state.td) turboDriver.loadState(state.td);
-        else turboDriver.reset();
+        turboDriver.loadState(state.td);
     };
 
 

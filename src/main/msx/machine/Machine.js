@@ -14,6 +14,7 @@ wmsx.Machine = function() {
     this.socketsConnected = function() {
         self.setMachine(WMSX.MACHINE);
         self.setCPUTurboMode(cpuTurboMode);
+        self.setVDPTurboMode(vdpTurboMode);
         self.setDefaults();
     };
 
@@ -212,11 +213,8 @@ wmsx.Machine = function() {
     };
 
     this.setCPUTurboMode = function(mode) {
-        // console.log("SET CPU TURBO:" + mode);
-
         cpuTurboMode = mode > 8 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..8
-        biosSocket.turboDriverCPUTurboModeUpdate();
-        if (cpuTurboMode !== 0) cpu.setCPUTurboMulti(cpuTurboMode > 1 ? cpuTurboMode : 1);
+        biosSocket.turboDriverTurboModesUpdate();
     };
 
     this.getCPUTurboMode = function() {
@@ -231,6 +229,27 @@ wmsx.Machine = function() {
         var desc = cpuTurboMode < 0 ? "OFF " : cpuTurboMode === 0 ? "Auto " : "";
         var multi = cpu.getCPUTurboMulti();
         desc += (multi > 1 ? "" + multi + "x " : "") + "(" + cpu.getCPUTurboFreqDesc() + ")";
+        return desc;
+    };
+
+    this.toggleVDPTurboMode = function() {
+        this.setVDPTurboMode(vdpTurboMode + 1);
+        self.showOSD("VDP Engine Turbo: " + this.getVDPTurboModeDesc(), true);
+    };
+
+    this.setVDPTurboMode = function(mode) {
+        vdpTurboMode = mode > 9 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..9
+        biosSocket.turboDriverTurboModesUpdate();
+    };
+
+    this.getVDPTurboMode = function() {
+        return vdpTurboMode;
+    };
+
+    this.getVDPTurboModeDesc = function() {
+        var desc = vdpTurboMode < 0 ? "OFF " : vdpTurboMode === 0 ? "Auto " : vdpTurboMode === 9 ? "Instant" : "";
+        var multi = vdp.getVDPTurboMulti();
+        desc += (multi > 1 && multi < 9 ? "" + multi + "x " : "");
         return desc;
     };
 
@@ -348,7 +367,8 @@ wmsx.Machine = function() {
             c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
-            tm: cpuTurboMode,
+            ctm: cpuTurboMode,
+            vtm: vdpTurboMode,
             s: speedControl,
             br: basicAutoRunDone,
             bc: basicAutoRunCommand || "",
@@ -398,8 +418,9 @@ wmsx.Machine = function() {
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
         audioSocket.flushAllSignals();
-        var turboMode = s.tm !== undefined ? s.tm : cpu.getCPUTurboMulti() > 1 ? cpu.getCPUTurboMulti() : 0;
-        self.setCPUTurboMode(turboMode);
+        cpuTurboMode = s.ctm !== undefined ? s.ctm : cpu.getCPUTurboMulti() > 1 ? cpu.getCPUTurboMulti() : 0;
+        vdpTurboMode = s.vtm !== undefined ? s.vtm : vdp.getVDPTurboMulti() > 1 ? vdp.getVDPTurboMulti() : 0;
+        biosSocket.turboDriverTurboModesUpdate();
         saveStateSocket.externalStateChange();
     }
     this.loadState = loadState;
@@ -505,7 +526,9 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
 
     var vSynchMode;
+
     var cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;
+    var vdpTurboMode = WMSX.VDP_TURBO_MODE;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
@@ -616,9 +639,7 @@ wmsx.Machine = function() {
                 self.toggleCPUTurboMode();
                 break;
             case controls.VDP_TURBO_MODE:
-                vdp.toggleVDPTurboMode();
-                var multi = vdp.getVDPTurboMulti();
-                self.showOSD("VDP Engine Turbo: " + (multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF"), true);
+                self.toggleVDPTurboMode();
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();
@@ -672,9 +693,16 @@ wmsx.Machine = function() {
         this.keyboardExtensionCancelTypeString = function() {
             if (bios) bios.getKeyboardExtension().cancelTypeString();
         };
-        this.turboDriverCPUTurboModeUpdate = function() {
-            if (bios) bios.getTurboDriver().cpuTurboModeUpdate();
+        this.turboDriverTurboModesUpdate = function() {
+            if (bios) bios.getTurboDriver().turboModesUpdate();
         };
+        this.setMachineTurboModesStateListener = function(list) {
+            machineTurboModesListener = list;
+        };
+        this.fireMachineTurboModesStateUpdate = function() {
+            if (machineTurboModesListener) machineTurboModesListener.machineTurboModesStateUpdate();
+        };
+        var machineTurboModesListener;
     }
 
 
@@ -940,7 +968,7 @@ wmsx.Machine = function() {
                     return { label: desc, active: multi > 1 };
                 case controls.VDP_TURBO_MODE:
                     multi = vdp.getVDPTurboMulti();
-                    return { label: multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF", active: multi !== 1 };
+                    return { label: self.getVDPTurboModeDesc(), active: multi !== 1 };
                 case controls.SPRITE_MODE:
                     desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };

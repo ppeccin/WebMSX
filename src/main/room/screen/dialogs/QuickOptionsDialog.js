@@ -29,6 +29,10 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         if (visible) refresh();
     };
 
+    this.machineTurboModesStateUpdate = function() {
+        if (visible) refresh();
+    };
+
     function refresh() {
         for (var i = 0; i < items.length; ++i) {
             var item = items[i];
