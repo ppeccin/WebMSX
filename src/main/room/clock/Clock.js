@@ -114,30 +114,31 @@ wmsx.Clock = function(clockPulse) {
         // Start detection
 
         var tries = 0;
-        var samples = [];
+        // var samples = [];
         var lastTime = 0;
         var good60 = 0, good50 = 0, good120 = 0, good100 = 0;
         var tolerance = 0.06;
 
         var nativeFPSSampler = function() {
             // Detected?
-            if (good60 >= 10 || good50 >= 10 || good120 >= 10 || good100 >= 10) {
-                vSynchNativeFrequency = good60 >= 10 ? 60 : good50 >= 10 ? 50 : good120 >= 10 ? 120 : 100;
+            if (good60 >= 13 || good50 >= 13 || good120 >= 13 || good100 >= 13) {
+                vSynchNativeFrequency = good60 >= 13 ? 60 : good50 >= 13 ? 50 : good120 >= 13 ? 120 : 100;
                 wmsx.Util.log("Video native frequency detected: " + vSynchNativeFrequency + "Hz");
                 if (callback) callback(vSynchNativeFrequency);
+                // console.log(samples);
                 return;
             }
 
             tries++;
             if (tries <= 50) {
                 var currentTime = wmsx.Util.performanceNow();
-                var sample = currentTime - lastTime;
-                samples[samples.length] = sample;
+                var sample = 1000 / (currentTime - lastTime);
+                // samples[samples.length] = sample;
                 lastTime = currentTime;
-                if ((sample >= (1000 / 60) *  (1 - tolerance)) && (sample <= (1000 / 60) *  (1 + tolerance))) good60++;
-                if ((sample >= (1000 / 50) *  (1 - tolerance)) && (sample <= (1000 / 50) *  (1 + tolerance))) good50++;
-                if ((sample >= (1000 / 120) * (1 - tolerance)) && (sample <= (1000 / 120) * (1 + tolerance))) good120++;
-                if ((sample >= (1000 / 100) * (1 - tolerance)) && (sample <= (1000 / 100) * (1 + tolerance))) good100++;
+                if (sample >= 47    && sample <= 53)    good50++;
+                if (sample >= 56.4  && sample <= 63.6)  good60++;
+                if (sample >= 112.8 && sample <= 127.2) good120++;
+                if (sample >= 94    && sample <= 106)   good100++;
                 requestAnimationFrame(nativeFPSSampler);
             } else {
                 vSynchNativeFrequency = -1;
