@@ -14,7 +14,7 @@ wmsx.VDP = function(machine, cpu) {
         videoSignal = new wmsx.VideoSignal(self);
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
-        initFrameResources();
+        initFrameResources(false);
         initColorCaches();
         initDebugPatternTables();
         initSpritesConflictMap();
@@ -522,6 +522,7 @@ wmsx.VDP = function(machine, cpu) {
         debugModePatternInfoBlocks = debugMode === 6;
         debugModePatternInfoNames = debugMode === 7;
         if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
+        initFrameResources(debugModeSpriteHighlight);
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTableAddress();
@@ -2181,15 +2182,21 @@ wmsx.VDP = function(machine, cpu) {
         status[9] = 0xfe;                     // Fixed "1" bits
     }
 
-    function initFrameResources() {
+    function initFrameResources(useAlpha) {
+        if (frameCanvas && (frameContextUsingAlpha || !useAlpha)) return;     // never go back to non alpha
+
+        frameContextUsingAlpha = !!useAlpha;
         frameCanvas = document.createElement('canvas');
         // Maximum VPD resolution including borders
-        frameCanvas.width =  wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
+        frameCanvas.width = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
         frameCanvas.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
-        frameContext = frameCanvas.getContext("2d", { alpha: false, antialias: false });
-        frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
-        frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // One extra line
-        backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
+        frameContext = frameCanvas.getContext("2d", { alpha: frameContextUsingAlpha, antialias: false });
+
+        if (!frameImageData) {
+            frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
+            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // One extra line
+            backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
+        }
     }
 
     function initColorPalette() {
@@ -2267,6 +2274,7 @@ wmsx.VDP = function(machine, cpu) {
     // Frame as off screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
     var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
+    var frameContextUsingAlpha = false;
 
 
     var machineType, isV9918, isV9938, isV9958;
