@@ -86,11 +86,11 @@ wmsx.VDPCommandProcessor = function() {
 
     };
 
-    this.toggleTurboMode = function() {
+    this.toggleVDPTurboMode = function() {
         turboClockMulti = (turboClockMulti + 1) % 9;            // 0..8
     };
 
-    this.getTurboMulti = function() {
+    this.getVDPTurboMulti = function() {
         return turboClockMulti;
     };
 

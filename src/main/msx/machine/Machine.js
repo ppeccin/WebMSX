@@ -205,6 +205,29 @@ wmsx.Machine = function() {
         setVSynchMode(mode, true);  // force
     };
 
+    this.toggleCPUTurboMode = function() {
+        this.setCPUTurboMode(cpuTurboMode + 1);
+    };
+
+    this.setCPUTurboMode = function(mode) {
+        cpuTurboMode = mode % 9;        // 0..8
+        cpu.setCPUTurboMulti(cpuTurboMode > 1 ? cpuTurboMode : 1);
+    };
+
+    this.getCPUTurboModeDesc = function() {
+        switch (cpuTurboMode) {
+            case 0: return "Auto";
+            case 1: return "1x";    //  (3.58 MHz)";
+            case 2: return "2x";    //  (7.16 MHz)";
+            case 3: return "3x";    //  (10.7 MHz)";
+            case 4: return "4x";    //  (14.3 MHz)";
+            case 5: return "5x";    //  (17.9 MHz)";
+            case 6: return "6x";    //  (21.5 MHz)";
+            case 7: return "7x";    //  (25.1 MHz)";
+            case 8: return "8x";    //  (28.6 MHz)";
+        }
+    };
+
     this.setDefaults = function() {
         setVideoStandardAuto();
         vdp.setDefaults();
@@ -473,6 +496,7 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
 
     var vSynchMode;
+    var cpuTurboMode = WMSX.CPU_TURBO_MULTI > 1 && WMSX.CPU_TURBO_MULTI <= 8 ? WMSX.CPU_TURBO_MULTI : WMSX.CPU_TURBO_MODE === 0 ? 0 : 2;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
@@ -580,13 +604,12 @@ wmsx.Machine = function() {
                 vSynchModeToggle();
                 break;
             case controls.CPU_TURBO_MODE:
-                cpu.toggleTurboMode();
-                var multi = cpu.getTurboMulti();
-                self.showOSD("CPU Turbo: " + (multi > 1 ? "" + multi + "x (" + cpu.getTurboFreqDesc() + ")" : "OFF"), true);
+                self.toggleCPUTurboMode();
+                self.showOSD("CPU Turbo: " + self.getCPUTurboModeDesc(), true);
                 break;
             case controls.VDP_TURBO_MODE:
-                vdp.toggleTurboMode();
-                multi = vdp.getTurboMulti();
+                vdp.toggleVDPTurboMode();
+                var multi = vdp.getVDPTurboMulti();
                 self.showOSD("VDP Engine Turbo: " + (multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF"), true);
                 break;
             case controls.PALETTE:
@@ -901,10 +924,9 @@ wmsx.Machine = function() {
                 case controls.VIDEO_STANDARD:
                     return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
                 case controls.CPU_TURBO_MODE:
-                    var mode = cpu.getTurboMulti() > 1 ? cpu.getTurboFreqDesc() : "OFF";
-                    return { label: mode, active: mode !== "OFF" };
+                    return { label: self.getCPUTurboModeDesc(), active: cpuTurboMode > 1 };
                 case controls.VDP_TURBO_MODE:
-                    var multi = vdp.getTurboMulti();
+                    var multi = vdp.getVDPTurboMulti();
                     return { label: multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF", active: multi !== 1 };
                 case controls.SPRITE_MODE:
                     var desc = vdp.getSpriteDebugModeQuickDesc();

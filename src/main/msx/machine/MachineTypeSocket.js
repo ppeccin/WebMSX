@@ -29,12 +29,12 @@ wmsx.MachineTypeSocket = function(machine) {
         var wasOn = machine.powerIsOn;
         machine.powerOff();
         var wasPaused = machine.systemPause(true);
+        machine.setMachine(name);
 
         new wmsx.MultiDownloader(
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
-                    machine.setMachine(name);
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
                     machine.showOSD(machineConfig.desc + " machine activated", true);

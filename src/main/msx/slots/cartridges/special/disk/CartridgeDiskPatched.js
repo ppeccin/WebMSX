@@ -39,7 +39,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
     };
 
     this.cpuExtensionFinish = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction
+        // Receive all CPU Extensions and pass to the Disk Driver
         return driver.cpuExtensionFinish(s);
     };
 

@@ -223,12 +223,12 @@ wmsx.VDP = function(machine, cpu) {
         return ["Normal", "Unlimited", "No Collis.", "Both"][spriteDebugMode];
     };
 
-    this.toggleTurboMode = function() {
-        commandProcessor.toggleTurboMode();
+    this.toggleVDPTurboMode = function() {
+        commandProcessor.toggleVDPTurboMode();
     };
 
-    this.getTurboMulti = function() {
-        return commandProcessor.getTurboMulti();
+    this.getVDPTurboMulti = function() {
+        return commandProcessor.getVDPTurboMulti();
     };
 
     this.setDefaults = function() {

@@ -19,11 +19,14 @@ wmsx.SlotBIOS = function(rom) {
         keyboardExtension = new wmsx.BIOSKeyboardExtension(machine.bus);
         cassetteDriver = new wmsx.ImageCassetteDriver();
         cassetteDriver.connect(this, machine);
+        turboDriver = new wmsx.TurboDriver();
+        turboDriver.connect(this, machine);
         machine.setBIOS(this);
     };
 
     this.disconnect = function(machine) {
         if (cassetteDriver) cassetteDriver.disconnect(this, machine);
+        if (turboDriver) turboDriver.disconnect(this, machine);
         machine.setBIOS(null);
     };
 
@@ -43,13 +46,13 @@ wmsx.SlotBIOS = function(rom) {
     };
 
     this.cpuExtensionBegin = function(s) {
-        // Receive all CPU Extensions and pass to the Cassette Driver
-        return cassetteDriver.cpuExtensionBegin(s);
+        // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
+        return s.extNum < 8 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction
-        return cassetteDriver.cpuExtensionFinish(s);
+        // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
+        return s.extNum < 8 ? cassetteDriver.cpuExtensionFinish(s) : turboDriver.cpuExtensionFinish(s);
     };
 
     this.setVideoStandardForced = function(forcedVideoStandard) {
@@ -94,6 +97,7 @@ wmsx.SlotBIOS = function(rom) {
 
 
     var cassetteDriver;
+    var turboDriver;
     var keyboardExtension;
 
 

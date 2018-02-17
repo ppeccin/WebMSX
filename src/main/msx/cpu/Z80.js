@@ -68,30 +68,17 @@ wmsx.Z80 = function() {
         return busCycles;
     };
 
-    this.toggleTurboMode = function() {
-        turboClockMulti = turboClockMulti % 8 + 1;        // 1..8
+    this.setCPUTurboMulti = function(multi) {
+        turboClockMulti = multi < 1 ? 1 : multi % 8 + 1;    // 1..8
     };
 
-    this.getTurboMulti = function() {
+    this.getCPUTurboMulti = function() {
         return turboClockMulti;
-    };
-
-    this.getTurboFreqDesc = function() {
-        switch (turboClockMulti) {
-            case 1: return "3.58 MHZ";
-            case 2: return "7.16 MHZ";
-            case 3: return "10.7 MHZ";
-            case 4: return "14.3 MHZ";
-            case 5: return "17.9 MHZ";
-            case 6: return "21.5 MHZ";
-            case 7: return "25.1 MHZ";
-            case 8: return "28.6 MHZ";
-        }
     };
 
 
     // Speed mode
-    var turboClockMulti = WMSX.CPU_TURBO_MULTI > 1 && WMSX.CPU_TURBO_MULTI <= 8 ? WMSX.CPU_TURBO_MULTI : WMSX.CPU_TURBO_MODE === 0 ? 1 : 2;
+    var turboClockMulti = 1;
 
     // Extension Handling
     var extensionHandlers = [];
