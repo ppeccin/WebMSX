@@ -133,6 +133,23 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Nextor16Patch": {
+        name: "Nextor16Patch",
+        desc: "Nextor ASCII-16 Patched Kernel",
+        priority: 1302,
+        embeddedURL: "@[Nextor16Patch].rom",
+        priorityForRom: function (rom) {
+            // Only Nextor16Patch 128K content. Must be selected via info format hint
+            return (rom.content.length === 0x20000 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeNextorPatched(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeNextorPatched.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "SCCExpansion": {
         name: "SCCExpansion",
         desc: "Konami SCC Sound Cartridge",
