@@ -78,7 +78,7 @@ wmsx.Z80 = function() {
 
 
     // Speed mode
-    var turboClockMulti = 1;
+    var turboClockMulti = 1;    // TODO Start with correct value from Machine
 
     // Extension Handling
     var extensionHandlers = [];
