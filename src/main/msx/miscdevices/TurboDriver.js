@@ -6,20 +6,34 @@ wmsx.TurboDriver = function() {
 
     var self = this;
 
-    this.connect = function(bios, pMachine) {
+    this.connect = function(pBios, pMachine) {
+        bios = pBios;
         machine = pMachine;
-        if (machine.machineType > 1) patchBIOS(bios);       // Only for MSX2 or better
+        this.cpuTurboModeUpdate();
     };
 
-    this.disconnect = function(bios, machine) {
-        machine = undefined;
+    this.reset = function() {
+        chgCpuValue = 0;
+        if (!softTurboON) return;
+        softTurboON = false;
+        this.cpuTurboModeUpdate();
     };
 
-    this.powerOff = function() {
+    this.cpuTurboModeUpdate = function() {
+        var msx1 = machine.machineType < 2;
+        var mode = machine.getCPUTurboMode();
+        if (mode === -1 || msx1) unPatchBIOS();
+        else patchBIOS();
+        if (mode === 0) this.updateSoftCPUTurbo();
+    };
+
+    // Should be called only when in CPU Turbo AUTO mode
+    this.updateSoftCPUTurbo = function() {
+        machine.cpu.setCPUTurboMulti(softTurboON ? SOFT_TURBO_MULTI : 1);
     };
 
     this.cpuExtensionBegin = function(s) {
-        if (machine.machineType <= 1) return;               // Only for MSX2 or better
+        if (machine.machineType <= 1) return;           // Only for MSX2 or better, safety
         switch (s.extNum) {
             case 8:
                 return CHGCPU(s.A);
@@ -32,43 +46,85 @@ wmsx.TurboDriver = function() {
         // No Finish operation
     };
 
-    function patchBIOS(bios) {
+    function patchBIOS() {
         var bytes = bios.bytes;
+        if (bytes[0x190] === 0xed) return;      // already patched
 
         // CHGCPU routine JUMP
         bytes[0x0180] = 0xc3;
-        bytes[0x0181] = 0x8c;
+        bytes[0x0181] = 0x8d;
         bytes[0x0182] = 0x01;
 
         // GETCPU routine JUMP
         bytes[0x0183] = 0xc3;
-        bytes[0x0184] = 0x8f;
+        bytes[0x0184] = 0x90;
         bytes[0x0185] = 0x01;
 
         // CHGCPU routine (EXT 8)
-        bytes[0x018c] = 0xed;
-        bytes[0x018d] = 0xe8;
-        bytes[0x018e] = 0xc9;
+        bytes[0x018d] = 0xed;
+        bytes[0x018e] = 0xe8;
+        bytes[0x018f] = 0xc9;
 
         // GETCPU routine (EXT 9)
-        bytes[0x018f] = 0xed;
-        bytes[0x0190] = 0xe9;
-        bytes[0x0191] = 0xc9;
+        bytes[0x0190] = 0xed;
+        bytes[0x0191] = 0xe9;
+        bytes[0x0192] = 0xc9;
+
+        // console.log("BIOS Patched");
+    }
+
+    function unPatchBIOS() {
+        var bytes = bios.bytes;
+        if (bytes[0x190] !== 0xed) return;      // already un-patched
+
+        bytes[0x0180] = bytes[0x0183] = bytes[0x018d] = bytes[0x0190] = 0xc9;
+
+        // console.log("BIOS UN-Patched");
     }
 
     function CHGCPU(A) {
-        console.log("CHGCPU: " + A);
+        // console.log("CHGCPU: " + A);
 
-        machine.cpu.setCPUTurboMulti((A & 0x03) > 0 ? 2 : 1);
+        chgCpuValue = A & 0x83;
+        var newSoftON = (chgCpuValue & 0x03) > 0;
+        if (softTurboON === newSoftON) return;
+
+        softTurboON = newSoftON;
+
+        if (machine.getCPUTurboMode() === 0) {
+            self.updateSoftCPUTurbo();
+            machine.showCPUTurboModeMessage();
+        } else
+            machine.showOSD("Could not set CPU Turbo by software: mode is FORCED " + machine.getCPUTurboModeDesc(), true, true);
     }
 
     function GETCPU() {
-        console.log("GETCPU");
+        // console.log("GETCPU");
 
-        return { A: machine.cpu.getCPUTurboMulti() > 1 ? 1 : 0 };
+        return { A: chgCpuValue };
     }
 
 
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            st: softTurboON,
+            cv: chgCpuValue
+        };
+    };
+
+    this.loadState = function(s) {
+        softTurboON = s.st;
+        chgCpuValue = s.cv;
+    };
+
+
+    var bios;
     var machine;
+    var softTurboON = false;
+    var chgCpuValue = 0;
+
+    var SOFT_TURBO_MULTI = WMSX.CPU_SOFT_TURBO_MULTI;
 
 };

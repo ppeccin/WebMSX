@@ -13,6 +13,7 @@ wmsx.Machine = function() {
 
     this.socketsConnected = function() {
         self.setMachine(WMSX.MACHINE);
+        self.setCPUTurboMode(cpuTurboMode);
         self.setDefaults();
     };
 
@@ -207,25 +208,30 @@ wmsx.Machine = function() {
 
     this.toggleCPUTurboMode = function() {
         this.setCPUTurboMode(cpuTurboMode + 1);
+        this.showCPUTurboModeMessage();
     };
 
     this.setCPUTurboMode = function(mode) {
-        cpuTurboMode = mode % 9;        // 0..8
-        cpu.setCPUTurboMulti(cpuTurboMode > 1 ? cpuTurboMode : 1);
+        // console.log("SET CPU TURBO:" + mode);
+
+        cpuTurboMode = mode > 8 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..8
+        biosSocket.turboDriverCPUTurboModeUpdate();
+        if (cpuTurboMode !== 0) cpu.setCPUTurboMulti(cpuTurboMode > 1 ? cpuTurboMode : 1);
+    };
+
+    this.getCPUTurboMode = function() {
+        return cpuTurboMode;
+    };
+
+    this.showCPUTurboModeMessage = function() {
+        self.showOSD("CPU Turbo: " + this.getCPUTurboModeDesc(), true);
     };
 
     this.getCPUTurboModeDesc = function() {
-        switch (cpuTurboMode) {
-            case 0: return "Auto";
-            case 1: return "1x";    //  (3.58 MHz)";
-            case 2: return "2x";    //  (7.16 MHz)";
-            case 3: return "3x";    //  (10.7 MHz)";
-            case 4: return "4x";    //  (14.3 MHz)";
-            case 5: return "5x";    //  (17.9 MHz)";
-            case 6: return "6x";    //  (21.5 MHz)";
-            case 7: return "7x";    //  (25.1 MHz)";
-            case 8: return "8x";    //  (28.6 MHz)";
-        }
+        var desc = cpuTurboMode < 0 ? "OFF " : cpuTurboMode === 0 ? "Auto " : "";
+        var multi = cpu.getCPUTurboMulti();
+        desc += (multi > 1 ? "" + multi + "x " : "") + "(" + cpu.getCPUTurboFreqDesc() + ")";
+        return desc;
     };
 
     this.setDefaults = function() {
@@ -342,6 +348,7 @@ wmsx.Machine = function() {
             c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
+            tm: cpuTurboMode,
             s: speedControl,
             br: basicAutoRunDone,
             bc: basicAutoRunCommand || "",
@@ -391,6 +398,8 @@ wmsx.Machine = function() {
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
         audioSocket.flushAllSignals();
+        var turboMode = s.tm !== undefined ? s.tm : cpu.getCPUTurboMulti() > 1 ? cpu.getCPUTurboMulti() : 0;
+        self.setCPUTurboMode(turboMode);
         saveStateSocket.externalStateChange();
     }
     this.loadState = loadState;
@@ -496,7 +505,7 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
 
     var vSynchMode;
-    var cpuTurboMode = WMSX.CPU_TURBO_MULTI > 1 && WMSX.CPU_TURBO_MULTI <= 8 ? WMSX.CPU_TURBO_MULTI : WMSX.CPU_TURBO_MODE === 0 ? 0 : 2;
+    var cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
@@ -605,7 +614,6 @@ wmsx.Machine = function() {
                 break;
             case controls.CPU_TURBO_MODE:
                 self.toggleCPUTurboMode();
-                self.showOSD("CPU Turbo: " + self.getCPUTurboModeDesc(), true);
                 break;
             case controls.VDP_TURBO_MODE:
                 vdp.toggleVDPTurboMode();
@@ -663,6 +671,9 @@ wmsx.Machine = function() {
         };
         this.keyboardExtensionCancelTypeString = function() {
             if (bios) bios.getKeyboardExtension().cancelTypeString();
+        };
+        this.turboDriverCPUTurboModeUpdate = function() {
+            if (bios) bios.getTurboDriver().cpuTurboModeUpdate();
         };
     }
 
@@ -924,12 +935,14 @@ wmsx.Machine = function() {
                 case controls.VIDEO_STANDARD:
                     return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
                 case controls.CPU_TURBO_MODE:
-                    return { label: self.getCPUTurboModeDesc(), active: cpuTurboMode > 1 };
+                    var multi = cpu.getCPUTurboMulti();
+                    var desc = cpuTurboMode < 0 ? "OFF" : cpuTurboMode === 0 ? "Auto" + (multi > 1 ? " " + multi + "x" : "") : "" + multi + "x" ;
+                    return { label: desc, active: multi > 1 };
                 case controls.VDP_TURBO_MODE:
-                    var multi = vdp.getVDPTurboMulti();
+                    multi = vdp.getVDPTurboMulti();
                     return { label: multi === 0 ? "Instant" : multi > 1 ? "" + multi + "x" : "OFF", active: multi !== 1 };
                 case controls.SPRITE_MODE:
-                    var desc = vdp.getSpriteDebugModeQuickDesc();
+                    desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };
                 case controls.VSYNCH:
                     return { label: vSynchMode < 0 ? "DISABL" : vSynchMode ? "ON" : "OFF", active: vSynchMode === 1 };

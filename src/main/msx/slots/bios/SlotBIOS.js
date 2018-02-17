@@ -26,7 +26,6 @@ wmsx.SlotBIOS = function(rom) {
 
     this.disconnect = function(machine) {
         if (cassetteDriver) cassetteDriver.disconnect(this, machine);
-        if (turboDriver) turboDriver.disconnect(this, machine);
         machine.setBIOS(null);
     };
 
@@ -34,8 +33,16 @@ wmsx.SlotBIOS = function(rom) {
         return keyboardExtension;
     };
 
+    this.getTurboDriver = function () {
+        return turboDriver;
+    };
+
     this.powerOff = function() {
         if (cassetteDriver) cassetteDriver.powerOff();
+    };
+
+    this.reset = function() {
+        if (turboDriver) turboDriver.reset();
     };
 
     this.read = function(address) {
@@ -83,7 +90,8 @@ wmsx.SlotBIOS = function(rom) {
             r: this.rom.saveState(),
             v: this.originalVideoStandard.name,
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            ke: keyboardExtension.saveState()
+            ke: keyboardExtension.saveState(),
+            td: turboDriver.saveState()
         };
     };
 
@@ -93,6 +101,8 @@ wmsx.SlotBIOS = function(rom) {
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
         if (state.ke) keyboardExtension.loadState(state.ke);
+        if (state.td) turboDriver.loadState(state.td);
+        else turboDriver.reset();
     };
 
 

@@ -71,8 +71,8 @@ WMSX = {
     GAMEPADS_MODE:                  0,                          // -1: disabled; 0: auto; 1: auto (swapped)
     MOUSE_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-    CPU_TURBO_MODE:                 0,                          // 0: off; 1: on 2x (7.16 MHz). Deprecated, use CPU_TURBO_MULTI
-    CPU_TURBO_MULTI:                1,                          // 1..8 CPU clock multiplier. Overrides CPU_TURBO_MODE if > 1
+    CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
+    CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
     VDP_TURBO_MULTI:                1,                          // 0: instantaneous; 1..8 VDP Command Engine clock multiplier
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",

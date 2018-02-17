@@ -69,16 +69,29 @@ wmsx.Z80 = function() {
     };
 
     this.setCPUTurboMulti = function(multi) {
-        turboClockMulti = multi < 1 ? 1 : multi % 8 + 1;    // 1..8
+        turboClockMulti = multi < 1 ? 1 : multi > 8 ? 8 : multi;    // 1..8
     };
 
     this.getCPUTurboMulti = function() {
         return turboClockMulti;
     };
 
+    this.getCPUTurboFreqDesc = function() {
+        switch (turboClockMulti) {
+            case 1: return "3.58 MHz";
+            case 2: return "7.16 MHz";
+            case 3: return "10.7 MHz";
+            case 4: return "14.3 MHz";
+            case 5: return "17.9 MHz";
+            case 6: return "21.5 MHz";
+            case 7: return "25.1 MHz";
+            case 8: return "28.6 MHz";
+        }
+    };
+
 
     // Speed mode
-    var turboClockMulti = 1;    // TODO Start with correct value from Machine
+    var turboClockMulti = 1;
 
     // Extension Handling
     var extensionHandlers = [];
