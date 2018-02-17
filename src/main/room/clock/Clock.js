@@ -130,7 +130,7 @@ wmsx.Clock = function(clockPulse) {
             }
 
             tries++;
-            if (tries <= 50) {
+            if (tries <= 60) {
                 var currentTime = wmsx.Util.performanceNow();
                 var sample = 1000 / (currentTime - lastTime);
                 // samples[samples.length] = sample;
