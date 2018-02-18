@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Mextor Device-bases Driver for disk images. Implements driver public calls using the CPU extension protocol
+// Nextor Device-based Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageNextorDeviceDriver = function() {
 "use strict";
 
@@ -123,6 +123,14 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DEV_RW(F, A, B, C, DE, HL) {
+        // Invalid Device or Logical Unit
+        if (A !== 1 || C !== 1)
+            return { A: IDEVL, B: 0 };
+
+        // Not Ready error if Disk not present
+        if (!drive.isDiskInserted(1))
+            return { A: NRDY, B: 0 };
+
         if (F & 1) return DEV_RW_Write(F, A, B, C, DE, HL);
         else return DEV_RW_Read(F, A, B, C, DE, HL);
     }
@@ -130,11 +138,15 @@ wmsx.ImageNextorDeviceDriver = function() {
     function DEV_RW_Read(F, A, B, C, DE, HL) {
         wmsx.Util.log("DEV_RW Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
-        var suc = false && drive.readSectorsToSlot(A, DE, B, getSlotForMemoryAccess(HL), HL);
+        var initialSector = bus.read(DE+0) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
+
+        console.log(initialSector);
+
+        var suc = drive.readSectorsToSlot(1, initialSector, B, bus, HL);
 
         // Not Ready error if can't read
         if (!suc)
-            return { A: 2, B: 0 };
+            return { A: NRDY, B: 0 };
 
         // Success
         return { A: 0 };
@@ -143,19 +155,17 @@ wmsx.ImageNextorDeviceDriver = function() {
     function DEV_RW_Write(F, A, B, C, DE, HL) {
         wmsx.Util.log("DEV_RW Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
-        // Not Ready error if Disk not present
-        if (!drive.isDiskInserted(A))
-            return { A: 2, B: 0 };
-
         // Disk Write Protected
-        if (drive.diskWriteProtected(A))
-            return { A: 7, B: 0 };
+        if (drive.diskWriteProtected(1))
+            return { A: WPROT, B: 0 };
 
-        var suc = false && drive.writeSectorsFromSlot(A, DE, B, getSlotForMemoryAccess(HL), HL);
+        var initialSector = bus.read(DE) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
+
+        var suc = drive.writeSectorsFromSlot(1, initialSector, B, bus, HL);
 
         // Not Ready error if can't write
         if (!suc)
-            return { A: 2, B: 0 };
+            return { A: NRDY, B: 0 };
 
         // Success
         return { A: 0 };
@@ -163,6 +173,13 @@ wmsx.ImageNextorDeviceDriver = function() {
 
     function DEV_INFO(A, B, HL) {
         wmsx.Util.log("DEV_INFO: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
+
+        // Invalid Device or Info not available
+        if (A !== 1 || B !== 0)
+            return { A: 1 };
+
+        // Basic Info: One Logical Unit, no Flags
+        bus.write(HL, 0x01); bus.write(HL + 1, 0x00);
 
         return { A: 0 };
     }
@@ -174,14 +191,10 @@ wmsx.ImageNextorDeviceDriver = function() {
         if (A !== 1 || B !== 1)
             return { A: 0 };
 
-        var res = false && drive.diskHasChanged(A);       // true = yes, false = no, null = unknown
+        var res = drive.diskHasChanged(1);       // true = yes, false = no, null = unknown
 
-        // Success, Disk not changed
-        if (res === false)
-            return { A: 1 };
-
-        // Success, Disk changed
-        return { A: 2 };
+        // Success
+        return { A: res ? 2 : 1 };
     }
 
     function LUN_INFO(A, B, HL) {
@@ -191,6 +204,7 @@ wmsx.ImageNextorDeviceDriver = function() {
         if (A !== 1 || B !== 1)
             return { A: 1 };
 
+        // Info: Block Device, Sector Size 512, Removable, no CHS info
         var res = [ 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00];
         for (var b = 0; b < 12; ++b) bus.write(HL + b, res[b]);
 
@@ -198,17 +212,13 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { A: 0 };
     }
 
-    function writeToMemory(bytes, address) {
-        var slot = getSlotForMemoryAccess(address);
-        for (var i = 0; i < bytes.length; i++)
-            slot.write(address + i, bytes[i]);
-    }
-
 
     var drive;
     var bus;
 
-    var BYTES_PER_SECTOR = 512;                 // Fixed for now
+    var  NRDY =  0xFC,
+         WPROT = 0xF8,
+         IDEVL = 0xB5;
 
 };
 
