@@ -137,8 +137,8 @@ wmsx.ImageDiskDriver = function() {
             return { F: F | 1, A: 2, B: B, extraIterations: spinTime };
 
         // Disk Write Protected
-        if (drive.diskWriteProtected(A))
-            return { F: F | 1, A: 0, B: B, extraIterations: spinTime };
+        //if (drive.diskWriteProtected(A))
+        //    return { F: F | 1, A: 0, B: B, extraIterations: spinTime };
 
         var suc = drive.writeSectorsFromSlot(A, DE, B, getSlotForMemoryAccess(HL), HL);
 
@@ -200,8 +200,8 @@ wmsx.ImageDiskDriver = function() {
             return { F: F | 1, A: 12 };
 
         // Disk Write Protected error
-        if (drive.diskWriteProtected(d))
-            return { F: F | 1, A: 0 };
+        //if (drive.diskWriteProtected(d))
+        //    return { F: F | 1, A: 0 };
 
         var mediaType = drive.FORMAT_OPTIONS_MEDIA_TYPES[f];
 

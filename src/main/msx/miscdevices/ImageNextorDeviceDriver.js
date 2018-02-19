@@ -34,6 +34,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     };
 
     this.cpuExtensionFinish = function(s) {
+        // nothing
     };
 
     function patchNextorKernel(kernel) {
@@ -111,7 +112,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DRV_VERSION() {
-         wmsx.Util.log("DRV_VERSION");
+        wmsx.Util.log("DRV_VERSION");
 
         return { A: 5, B: 0, C: 0 };
     }
@@ -140,8 +141,6 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         var initialSector = bus.read(DE+0) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
 
-        console.log(initialSector);
-
         var suc = drive.readSectorsToSlot(1, initialSector, B, bus, HL);
 
         // Not Ready error if can't read
@@ -156,8 +155,8 @@ wmsx.ImageNextorDeviceDriver = function() {
         wmsx.Util.log("DEV_RW Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
         // Disk Write Protected
-        if (drive.diskWriteProtected(1))
-            return { A: WPROT, B: 0 };
+        //if (drive.diskWriteProtected(1))
+        //    return { A: WPROT, B: 0 };
 
         var initialSector = bus.read(DE) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
 
@@ -174,14 +173,32 @@ wmsx.ImageNextorDeviceDriver = function() {
     function DEV_INFO(A, B, HL) {
         wmsx.Util.log("DEV_INFO: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
 
-        // Invalid Device or Info not available
-        if (A !== 1 || B !== 0)
+        // Invalid Device
+        if (A !== 1)
             return { A: 1 };
 
         // Basic Info: One Logical Unit, no Flags
-        bus.write(HL, 0x01); bus.write(HL + 1, 0x00);
+        if (B === 0) {
+            bus.write(HL, 0x01); bus.write(HL + 1, 0x00);
+            return {A: 0};
+        }
 
-        return { A: 0 };
+        // Manufacturer Name
+        if (B === 1) {
+            var str = "WebMSX                                                                   ";
+            for (var b = 0; b < 64; ++b) bus.write(HL + b, str.charCodeAt(b));
+            return {A: 0};
+        }
+
+        // Device Name
+        if (B === 2) {
+            str = "WebMSX Removable Image Media                                                 ";
+            for (b = 0; b < 64; ++b) bus.write(HL + b, str.charCodeAt(b));
+            return {A: 0};
+        }
+
+        // Info not available
+        return { A: 1 };
     }
 
     function DEV_STATUS(A, B) {
@@ -194,7 +211,7 @@ wmsx.ImageNextorDeviceDriver = function() {
         var res = drive.diskHasChanged(1);       // true = yes, false = no, null = unknown
 
         // Success
-        return { A: res ? 2 : 1 };
+        return { A: res === null ? 3 : res ? 2 : 1 };
     }
 
     function LUN_INFO(A, B, HL) {
@@ -204,8 +221,10 @@ wmsx.ImageNextorDeviceDriver = function() {
         if (A !== 1 || B !== 1)
             return { A: 1 };
 
-        // Info: Block Device, Sector Size 512, Removable, no CHS info
-        var res = [ 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00];
+        var ts = drive.getTotalSectorsAvailable(1) || 0;
+
+        // Info: Block Device, Sector Size 512, Total Sectors, Removable, no CHS info
+        var res = [ 0x00, 0x00, 0x02, ts & 0xff, (ts >> 8) & 0xff, (ts >> 16) & 0xff, (ts >> 24) & 0xff, 0x01, 0x00, 0x00, 0x00, 0x00];
         for (var b = 0; b < 12; ++b) bus.write(HL + b, res[b]);
 
         // Success

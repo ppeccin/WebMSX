@@ -335,6 +335,11 @@ wmsx.FileDiskDrive = function(room) {
         return driveDiskChanged[drive];         // false = no, null = unknown
     };
 
+    this.getTotalSectorsAvailable = function(drive) {
+        if (!this.isDiskInserted(drive)) return null;
+        return (getCurrentDisk(drive).content.length / BYTES_PER_SECTOR) | 0;
+    };
+
     this.isDiskInserted = function(drive) {
         return !!getCurrentDisk(drive);
     };
