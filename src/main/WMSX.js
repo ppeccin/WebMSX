@@ -23,7 +23,7 @@ WMSX = {
     AUTODETECT_URL:                 "",
 
     // Forcing ROM formats
-    CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, MSXDOS2, etc...
+    CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, etc...
     CARTRIDGE2_FORMAT:              "",
 
     // BASIC loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
@@ -104,10 +104,10 @@ WMSX.MACHINES_CONFIG = {
 
 WMSX.EXTENSIONS_CONFIG = {
     DISK:      { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
+    NEXTOR:    { desc: "Nextor Device", SLOT: [3, 3],             format: "Nextor16Patch", require: "RAMMAPPER" },
     RAMMAPPER: { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAMNORMAL" },
     RAMNORMAL: {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
     MSXMUSIC:  { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
-    DOS2:      { desc: "MSX-DOS 2",     SLOT: [3, 3],             format: "MSXDOS2",       require: "RAMMAPPER, DISK", requireFlag: "MSX2" },
     KANJI:     { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1" },
     SCCI:      { desc: "Konami SCC+",   SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
     SCC:       { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
@@ -130,8 +130,9 @@ WMSX.PRESETS_CONFIG = {
     KANJI:   { "EXTENSIONS.KANJI":  1 },
     NOKANJI: { "EXTENSIONS.KANJI":  0 },
 
-    DOS2:   { "EXTENSIONS.DOS2":  1 },
-    NODOS2: { "EXTENSIONS.DOS2":  0 },
+    NEXTOR:   { "EXTENSIONS.NEXTOR":  1 },
+    NONEXTOR: { "EXTENSIONS.NEXTOR":  0 },
+    DOS2:     { "EXTENSIONS.NEXTOR":  1 },
 
     SCCI:  { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
@@ -161,7 +162,7 @@ WMSX.PRESETS_CONFIG = {
         EXPANSION_SLOTS:                   [[2, 2], [2, 3]],
         "EXTENSIONS_CONFIG.DISK.SLOT":     [3, 2],
         "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3],
-        "EXTENSIONS_CONFIG.DOS2.SLOT":     [2, 3],
+        "EXTENSIONS_CONFIG.NEXTOR.SLOT":   [2, 3],
         "EXTENSIONS_CONFIG.KANJI.SLOT":    [2, 1]
     },
 
@@ -223,7 +224,7 @@ WMSX.PRESETS_CONFIG = {
         BIOS_URL:           "@MSX1_JAP.bios"
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, NOMSXMUSIC, NODOS2",
+        _INCLUDE:           "_BASE, NOMSXMUSIC, NONEXTOR",
         BIOSEXT_URL:        "@[Empty].rom"
     },
 

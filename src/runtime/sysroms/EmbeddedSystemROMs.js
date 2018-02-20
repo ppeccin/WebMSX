@@ -7,7 +7,7 @@ wmsx.EmbeddedSystemROMs = {
         for (var f in wmsx.CompressedSystemROMs) wmsx.EmbeddedFiles.embedFileCompressedContent(f, wmsx.CompressedSystemROMs[f]);
         delete wmsx.CompressedSystemROMs;
 
-        // ROMs bases on diffs from others
+        // ROMs based on diffs from others
         for (var d in this.romDiffs) wmsx.EmbeddedFiles.embedFileDiff(d, this.romDiffs[d]);
         delete wmsx.CompressedSystemROMs;
     },

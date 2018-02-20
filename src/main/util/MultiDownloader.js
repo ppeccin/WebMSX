@@ -21,8 +21,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         // Ask to load all files
         for (var f = 0; f < urls.length; ++f) {
             var url = urls[f];
-            if (wmsx.EmbeddedFiles.isEmbeddedURL(url)) getEmbedded(urlSpec, f, url);    // Embedded file. SYNCHRONOUS
-            else getHTTP(urlSpec, f, url);                                              // HTTP GET. ASYNCHRONOUS!!!
+            if (wmsx.EmbeddedFiles && wmsx.EmbeddedFiles.isEmbeddedURL(url))
+                getEmbedded(urlSpec, f, url);       // Embedded file. SYNCHRONOUS
+            else
+                getHTTP(urlSpec, f, url);           // HTTP GET. ASYNCHRONOUS!!!
         }
     }
 
@@ -102,7 +104,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     }
 
     function scheduleLoadingIcon() {
-        if (WMSX.room.isLoading) return;
+        if (!WMSX.room || WMSX.room.isLoading) return;
 
         loadingTimer = window.setTimeout(function setLoadingOnDelay() {
             loadingTimer = null;

@@ -300,7 +300,7 @@ wmsx.DiskImages = function() {
     };
 
     // IMPORTANT: In reverse order of size
-    this.MEDIA_TYPE_VALID_SIZES = [ 130793472, 16777216, 737280, 655360, 368640, 327680, 184320, 163840 ];
+    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840, 102400];  // , 51200, 8192, 0 ];
 
     this.MEDIA_TYPE_BOOT_SECTOR_DOS1 = {
         0xF9: [
