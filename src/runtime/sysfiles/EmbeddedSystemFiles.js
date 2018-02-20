@@ -1,18 +1,17 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.EmbeddedSystemROMs = {
+wmsx.EmbeddedSystemFiles = {
 
-    embedROMs: function () {
+    embedFiles: function () {
         // Compressed ROMs
-        for (var f in wmsx.CompressedSystemROMs) wmsx.EmbeddedFiles.embedFileCompressedContent(f, wmsx.CompressedSystemROMs[f]);
-        delete wmsx.CompressedSystemROMs;
+        for (var f in wmsx.CompressedSystemFiles) wmsx.EmbeddedFiles.embedFileCompressedContent(f, wmsx.CompressedSystemFiles[f]);
+        delete wmsx.CompressedSystemFiles;
 
         // ROMs based on diffs from others
-        for (var d in this.romDiffs) wmsx.EmbeddedFiles.embedFileDiff(d, this.romDiffs[d]);
-        delete wmsx.CompressedSystemROMs;
+        for (var d in this.fileDiffs) wmsx.EmbeddedFiles.embedFileDiff(d, this.fileDiffs[d]);
     },
 
-    romDiffs: {
+    fileDiffs: {
 
         "MSX1_NTSC.bios": { based: "MSX1_PAL.bios", diffs: {
             0x2b: [ 0x11 ],                                             // NTSC flag
@@ -52,4 +51,4 @@ wmsx.EmbeddedSystemROMs = {
 
 };
 
-wmsx.EmbeddedSystemROMs.embedROMs();
+wmsx.EmbeddedSystemFiles.embedFiles();

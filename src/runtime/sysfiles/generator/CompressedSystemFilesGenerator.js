@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CompressedSystemROMsGenerator = {
+wmsx.CompressedSystemFilesGenerator = {
 
     generate: function() {
 
@@ -12,7 +12,7 @@ wmsx.CompressedSystemROMsGenerator = {
             function onAllSuccess(specs) {
                 var romsFile =
                     "// Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.\n\n" +
-                    "wmsx.CompressedSystemROMs = {";
+                    "wmsx.CompressedSystemFiles = {";
 
                 var first = true;
 
@@ -26,9 +26,9 @@ wmsx.CompressedSystemROMsGenerator = {
                 romsFile += "\n\n};";
 
                 var f = new wmsx.FileDownloader();
-                f.connectPeripherals(wmsx.CompressedSystemROMsGenerator);             // Dummy screen for OSD
+                f.connectPeripherals(wmsx.CompressedSystemFilesGenerator);             // Dummy screen for OSD
                 f.registerForDownloadElement(document.getElementsByTagName("body")[0]);
-                f.startDownloadBinary("CompressedSystemROMs.js", romsFile, "CompressedSystemROMs file");
+                f.startDownloadBinary("CompressedSystemFiles.js", romsFile, "CompressedSystemFiles file");
             }
         );
 
@@ -39,7 +39,7 @@ wmsx.CompressedSystemROMsGenerator = {
 
 };
 
-wmsx.CompressedSystemROMsGenerator.fileList = [
+wmsx.CompressedSystemFilesGenerator.fileList = [
     "MSX1_JAP.bios",
     "MSX1_PAL.bios",
     "MSX2_JAP.bios",
@@ -60,5 +60,6 @@ wmsx.CompressedSystemROMsGenerator.fileList = [
     "[RAMMapper].rom",
     "[SCCExpansion].rom",
     "[SCCIExpansion].rom",
-    "[PACExpansion].rom"
+    "[PACExpansion].rom",
+    "Nextor.dsk"
 ];

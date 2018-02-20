@@ -128,8 +128,8 @@ module.exports = function (grunt) {
                     "src/main/room/Room.js",
                     "src/main/userprefs/UserPreferences.js",
                     "src/runtime/images/EmbeddedImages.js",
-                    "src/runtime/sysroms/CompressedSystemROMs.js",
-                    "src/runtime/sysroms/EmbeddedSystemROMs.js",
+                    "src/runtime/sysfiles/CompressedSystemFiles.js",
+                    "src/runtime/sysfiles/EmbeddedSystemFiles.js",
                     "src/main/Configurator.js",
                     "src/main/Launcher.js"
                 ],
