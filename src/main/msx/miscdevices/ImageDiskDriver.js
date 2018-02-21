@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
+// MSX-DOS 1 Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageDiskDriver = function() {
 "use strict";
 

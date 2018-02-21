@@ -18,6 +18,7 @@ WMSX = {
     DISKB_URL:                      "",
     DISKA_FILES_URL:                "",                         // Files to load "as Disk". For several files, use a ZIP file
     DISKB_FILES_URL:                "",
+    NEXTOR_IMAGE_URL:               "",                         // Image file
     TAPE_URL:                       "",
     STATE_URL:                      "",
     AUTODETECT_URL:                 "",

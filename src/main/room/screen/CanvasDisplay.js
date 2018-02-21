@@ -373,18 +373,23 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.diskDrivesMediaStateUpdate = function(drive) {
-        var button = drive === 1 ? diskBButton : diskAButton;
+        var button = drive === 2 ? diskNButton : drive === 1 ? diskBButton : diskAButton;
         var stack = diskDrive.getDriveStack(drive);
         button.title = diskDrive.getCurrentDiskDesc(drive);
-        button.wmsxMenu[1].disabled = stack.length === 0 || stack.length >= wmsx.FileDiskDrive.MAX_STACK;
-        button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
-        button.wmsxMenu[8].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
+        if (drive < 2) {
+            button.wmsxMenu[1].disabled = stack.length === 0 || stack.length >= wmsx.FileDiskDrive.MAX_STACK;
+            button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
+            button.wmsxMenu[8].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
+        } else {
+            button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled = stack.length === 0;
+        }
         if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
     };
 
-    this.diskDrivesMotorStateUpdate = function(diskA, diskAMotor, diskB, diskBMotor) {
+    this.diskDrivesMotorStateUpdate = function(diskA, diskAMotor, diskB, diskBMotor, diskN, diskNMotor) {
         diskAButton.style.backgroundPosition = "" + diskAButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskAMotor ? 2 : ( diskA ? 1 : 0 ))]) + "px";
         diskBButton.style.backgroundPosition = "" + diskBButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskBMotor ? 2 : ( diskB ? 1 : 0 ))]) + "px";
+        diskNButton.style.backgroundPosition = "" + diskNButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskNMotor ? 2 : ( diskN ? 1 : 0 ))]) + "px";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -804,6 +809,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             {                              clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true }
         ];
         diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Disk B:", null, menu, "Drive B:");
+
+        menu = [
+            { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
+            { label: "Empty 16MB Disk",    clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
+            { label: "Save Disk File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_SAVE_FILE, disabled: true, needsUIG: true },
+            { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_REMOVE, disabled: true }
+        ];
+        diskNButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Nextor Device", null, menu, "Nextor Device");
 
         menu = [
             { label: "Load from File",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
@@ -1610,6 +1623,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var powerButton;
     var diskAButton;
     var diskBButton;
+    var diskNButton;
     var cartridge1Button;
     var cartridge2Button;
     var tapeButton;

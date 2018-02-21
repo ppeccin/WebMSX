@@ -129,7 +129,7 @@ wmsx.ImageNextorDeviceDriver = function() {
             return { A: IDEVL, B: 0 };
 
         // Not Ready error if Disk not present
-        if (!drive.isDiskInserted(1))
+        if (!drive.isDiskInserted(2))
             return { A: NRDY, B: 0 };
 
         if (F & 1) return DEV_RW_Write(F, A, B, C, DE, HL);
@@ -141,7 +141,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         var initialSector = bus.read(DE+0) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
 
-        var suc = drive.readSectorsToSlot(1, initialSector, B, bus, HL);
+        var suc = drive.readSectorsToSlot(2, initialSector, B, bus, HL);
 
         // Not Ready error if can't read
         if (!suc)
@@ -160,7 +160,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         var initialSector = bus.read(DE) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
 
-        var suc = drive.writeSectorsFromSlot(1, initialSector, B, bus, HL);
+        var suc = drive.writeSectorsFromSlot(2, initialSector, B, bus, HL);
 
         // Not Ready error if can't write
         if (!suc)
@@ -192,7 +192,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Device Name
         if (B === 2) {
-            str = "WebMSX Removable Image Media                                                 ";
+            str = "WebMSX Removable Image                                                       ";
             for (b = 0; b < 64; ++b) bus.write(HL + b, str.charCodeAt(b));
             return {A: 0};
         }
@@ -208,7 +208,7 @@ wmsx.ImageNextorDeviceDriver = function() {
         if (A !== 1 || B !== 1)
             return { A: 0 };
 
-        var res = drive.diskHasChanged(1);       // true = yes, false = no, null = unknown
+        var res = drive.diskHasChanged(2);       // true = yes, false = no, null = unknown
 
         // Success
         return { A: res === null ? 3 : res ? 2 : 1 };
@@ -221,7 +221,7 @@ wmsx.ImageNextorDeviceDriver = function() {
         if (A !== 1 || B !== 1)
             return { A: 1 };
 
-        var ts = drive.getTotalSectorsAvailable(1) || 0;
+        var ts = drive.getTotalSectorsAvailable(2) || 0;
 
         // Info: Block Device, Sector Size 512, Total Sectors, Removable, no CHS info
         var res = [ 0x00, 0x00, 0x02, ts & 0xff, (ts >> 8) & 0xff, (ts >> 16) & 0xff, (ts >> 24) & 0xff, 0x01, 0x00, 0x00, 0x00, 0x00];

@@ -33,22 +33,17 @@ wmsx.CartridgeNextorPatched = function(rom) {
     };
 
     this.reset = function() {
-        bankOffset = bankOffset2 = -0x4000;
+        bankOffset = -0x4000;
     };
 
     this.write = function(address, value) {
         if ((address >= 0x6000 && address < 0x6800) )
             bankOffset = ((value & 0x07) << 14) - 0x4000;
-
-        if ((address >= 0x7000 && address < 0x7800) )
-            bankOffset2 = ((value & 0x07) << 14) - 0x8000;
     };
 
     this.read = function(address) {
         if (address >= 0x4000 && address < 0x8000)      // page 1
             return bytes[bankOffset + address];
-        if (address >= 0x8000 && address < 0xc000)      // page 2
-            return bytes[bankOffset2 + address];
         return 0xff;
     };
 
@@ -66,7 +61,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var bankOffset, bankOffset2;
+    var bankOffset;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.Nextor16Patch;

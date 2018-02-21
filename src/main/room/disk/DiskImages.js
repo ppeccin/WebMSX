@@ -299,9 +299,6 @@ wmsx.DiskImages = function() {
         0xFF: { desc: "320KB", size: 327680 }
     };
 
-    // IMPORTANT: In reverse order of size
-    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840, 102400 ];
-
     this.MEDIA_TYPE_BOOT_SECTOR_DOS1 = {
         0xF9: [
             0xEB, 0xFE, 0x90, 0x57, 0x4D, 0x53, 0x58, 0x20, 0x20, 0x20, 0x20, 0x00, 0x02, 0x02, 0x01, 0x00,
@@ -382,5 +379,8 @@ wmsx.DiskImages = function() {
         // Media FF; 40 Tracks; 8 sectors; 2 sides; 5.25" 320 Kb
         0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
     };
+
+    // IMPORTANT: In reverse order of size
+    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840, 102400 ];
 
 };

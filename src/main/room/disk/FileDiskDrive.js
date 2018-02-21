@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Dual Disk Drive ( A: = drive 0, B: = drive 1 )
+// Multi Device Drive ( Floppy Drives A: & B: = drive 0 & 1, Nextor Device = drive 2 )
 
 wmsx.FileDiskDrive = function(room) {
 "use strict";
@@ -24,10 +24,12 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadDiskStackFromFiles = function (drive, files, altPower, addToStack, filesFromZip) {
-        if (addToStack && maxStackReachedMessage(drive)) return [];
+        // Nextor Device never add to stack, always replace
+        if (drive === 2) addToStack = false;
+        else if (addToStack && maxStackReachedMessage(drive)) return [];
 
         var stack = [];
-        var maxStack = addToStack ? MAX_STACK - driveStack[drive].length : MAX_STACK;
+        var maxStack = drive === 2 ? 1 : addToStack ? MAX_STACK - driveStack[drive].length : MAX_STACK;
         try {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
@@ -48,7 +50,10 @@ wmsx.FileDiskDrive = function(room) {
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
         var content = images.createFromFiles(0xF9, files);
         if (!content) return;
-        if (addToStack && maxStackReachedMessage(drive)) return [];
+
+        // Nextor Device never add to stack, always replace
+        if (drive === 2) addToStack = false;
+        else if (addToStack && maxStackReachedMessage(drive)) return [];
 
         type = type || "Files as Disk";
         name = name || ("New " + type + ".dsk");
@@ -102,7 +107,7 @@ wmsx.FileDiskDrive = function(room) {
         diskInsertedMessage(drive);
         fireMediaStateUpdate(drive);
 
-        if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
+        if (getCurrentDisk(0) || getCurrentDisk(2)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: or Nextor Device have a disk
     };
 
     this.moveDiskInStack = function (drive, from, to) {
@@ -216,7 +221,7 @@ wmsx.FileDiskDrive = function(room) {
         if (driveStack[drive].length > 1) {
             if (!altPower && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, altPower);
         } else
-            if (getCurrentDisk(0)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: has a disk
+        if (getCurrentDisk(0) || getCurrentDisk(2)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: or Nextor Device have a disk
 
     }
 
@@ -264,7 +269,7 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function fireMotorStateUpdate() {
-        screen.diskDrivesMotorStateUpdate(getCurrentDisk(0), driveMotor[0], getCurrentDisk(1), driveMotor[1]);
+        screen.diskDrivesMotorStateUpdate(getCurrentDisk(0), driveMotor[0], getCurrentDisk(1), driveMotor[1], getCurrentDisk(2), driveMotor[2]);
     }
 
     function noDiskInsertedMessage(drive) {
@@ -448,19 +453,19 @@ wmsx.FileDiskDrive = function(room) {
     var fileDownloader;
     var diskDriveSocket;
 
-    var driveStack   = [[], []];                    // Several disks can be loaded for each drive
-    var curDisk      = [0, 0];                      // Current disk from stack inserted in drive
+    var driveStack   = [[], [], []];                    // Several disks can be loaded for each Floppy drive, just one for Nextor Device
+    var curDisk      = [0, 0, 0];                       // Current disk from stack inserted in drive
 
-    var driveBlankDiskAdded = [ false, false ];
+    var driveBlankDiskAdded = [ false, false, false ];
 
-    var driveDiskChanged    = [ null, null ];       // true = yes, false = no, null = unknown
-    var driveMotor          = [ false, false ];
-    var driveMotorOffTimer  = [ null, null ];
+    var driveDiskChanged    = [ null, null, null ];     // true = yes, false = no, null = unknown
+    var driveMotor          = [ false, false, false ];
+    var driveMotorOffTimer  = [ null, null, null ];
 
-    var driveName = [ "A:", "B:" ];
-    var nextNewDiskFormatOption = [ -1, -1 ];
+    var driveName = [ "A:", "B:", "Nextor" ];
+    var nextNewDiskFormatOption = [ -1, -1, -1 ];
 
-    var BYTES_PER_SECTOR = 512;                     // Fixed for now, for all disks
+    var BYTES_PER_SECTOR = 512;                         // Fixed for now, for all disks
 
     var MOTOR_SPINUP_EXTRA_ITERATIONS = 100000;
     var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;

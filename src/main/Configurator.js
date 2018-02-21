@@ -179,6 +179,12 @@ wmsx.Configurator = {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 1, true);
                 }
             } : null,
+            WMSX.NEXTOR_IMAGE_URL && {
+                url: WMSX.NEXTOR_IMAGE_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.NEXTOR, 0, true);
+                }
+            },
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {

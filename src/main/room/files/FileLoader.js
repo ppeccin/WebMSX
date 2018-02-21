@@ -212,6 +212,9 @@ wmsx.FileLoader = function() {
     }
 
     function tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, filesFromZIP) {
+        // Try as Nextor Image file
+        if (openType === OPEN_TYPE.NEXTOR)
+            return diskDrive.loadDiskStackFromFiles(2, files, altPower, false, filesFromZIP);
         // Try as a Disk Stack (all images found)
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO)
             if (diskDrive.loadDiskStackFromFiles(port, files, altPower, asExpansion, filesFromZIP)) return true;
@@ -463,10 +466,11 @@ wmsx.FileLoader = function() {
     this.OPEN_TYPE = OPEN_TYPE;                         // For the programatic interface
 
     var INPUT_ACCEPT = {
-        ROM:   ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
-        DISK:  ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
-        TAPE:  ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
-        STATE: ".wst,.WST",
+        ROM:    ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        DISK:   ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        NEXTOR: ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        TAPE:   ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        STATE:  ".wst,.WST",
         CART_DATA: ".pac,.PAC,.dat,.DAT,.sram,.SRAM",
         FILES_AS_DISK: "",
         ZIP_AS_DISK:   ".zip,.ZIP",
@@ -475,10 +479,11 @@ wmsx.FileLoader = function() {
     };
 
     var INPUT_MULTI = {
-        ROM:   false,
-        DISK:  true,
-        TAPE:  false,
-        STATE: false,
+        ROM:    false,
+        DISK:   true,
+        NEXTOR: false,
+        TAPE:   false,
+        STATE:  false,
         CART_DATA: false,
         FILES_AS_DISK: true,
         ZIP_AS_DISK:   false,
@@ -489,6 +494,7 @@ wmsx.FileLoader = function() {
     var TYPE_DESC = {
         ROM:   "ROM",
         DISK:  "Disk",
+        NEXTOR:  "Nextor Image",
         TAPE:  "Cassette",
         STATE: "Savestate",
         CART_DATA: "Cartridge Data",
@@ -506,4 +512,4 @@ wmsx.FileLoader = function() {
 
 };
 
-wmsx.FileLoader.OPEN_TYPE = {  AUTO: "AUTO", ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK" };
+wmsx.FileLoader.OPEN_TYPE = {  AUTO: "AUTO", ROM: "ROM", DISK: "DISK", NEXTOR: "NEXTOR", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK" };
