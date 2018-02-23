@@ -34,7 +34,7 @@ wmsx.FileDiskDrive = function(room) {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                var disks = checkFileHasValidImages(file);
+                var disks = checkFileHasValidImages(file, drive === 2);     // Nextor accepts any sized content
                 if (disks) stack.push.apply(stack, disks);
             }
             if (stack.length > 0) {
@@ -48,18 +48,32 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
-        var content = images.createFromFiles(0xF9, files);
-        if (!content) return;
+
+        // TODO Testing Nextor
+        drive = 2;
 
         // Nextor Device never add to stack, always replace
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
 
-        type = type || "Files as Disk";
-        name = name || ("New " + type + ".dsk");
-        var stack = [{ name: name, content: content }];
-        loadStack(drive, stack, type, altPower, addToStack);
-        return stack;
+        // Writes on the current disk or create a new one?
+        var currentContent = drive === 2 && this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;    // Nextor aways write to current if any
+        var newContent = currentContent || images.createNewFormattedDisk(0xF9);
+
+        var suc = images.writeFiles(newContent, files);
+        if (!suc) return;
+
+        if (currentContent) {
+            screen.showOSD("Files written to current disk");
+            driveDiskChanged[drive] = true;
+            return this.getDriveStack(drive);
+        } else {
+            type = type || "Files as Disk";
+            name = name || ("New " + type + ".dsk");
+            var stack = [{name: name, content: newContent}];
+            loadStack(drive, stack, type, altPower, addToStack);
+            return stack;
+        }
     };
 
     this.loadSerializedStack = function (drive, stackContent, type, altPower, add) {
@@ -151,8 +165,31 @@ wmsx.FileDiskDrive = function(room) {
         return currentDiskNumDesc(drive);
     };
 
-    function checkFileHasValidImages(file, stopRecursion) {
-        var quant = checkContentIsValidImages(file.content);
+    function checkFileHasValidImages(file, anySize, stopRecursion) {
+        // Zip File?
+        if (!stopRecursion) {
+            var zip = wmsx.Util.checkContentIsZIP(file.content);
+            if (zip) {
+                try {
+                    var files = wmsx.Util.getZIPFilesSorted(zip);
+                    for (var f in files) {
+                        files[f].content = files[f].asUint8Array();
+                        var res = checkFileHasValidImages(files[f], anySize, true);
+                        if (res) return res;
+                    }
+                } catch (ez) {
+                    wmsx.Util.error(ez);      // Error decompressing files. Abort
+                }
+                return null;
+            }
+        }
+
+        // GZip File?
+        var gzip = wmsx.Util.checkContentIsGZIP(file.content);
+        if (gzip) return checkFileHasValidImages({ name: file.name, content: gzip }, anySize, true);
+
+        // Normal File
+        var quant = checkContentIsValidImages(file.content, anySize);
         if (quant) {
             var name = file.name.split("/").pop();
             if (quant === 1) return [{ name: name, content: wmsx.Util.asNormalArray(file.content) }];
@@ -164,31 +201,11 @@ wmsx.FileDiskDrive = function(room) {
             return disks;
         }
 
-        if (!stopRecursion) {
-            var zip = wmsx.Util.checkContentIsZIP(file.content);
-            if (zip) {
-                try {
-                    var files = wmsx.Util.getZIPFilesSorted(zip);
-                    for (var f in files) {
-                        files[f].content = files[f].asUint8Array();
-                        var res = checkFileHasValidImages(files[f], true);
-                        if (res) return res;
-                    }
-                } catch (ez) {
-                    wmsx.Util.error(ez);      // Error decompressing files. Abort
-                }
-                return null;
-            }
-        }
-
-        var gzip = wmsx.Util.checkContentIsGZIP(file.content);
-        if (gzip) return checkFileHasValidImages({ name: file.name, content: gzip }, true);
-
         return null;
     }
 
-    function checkContentIsValidImages(content) {
-        if (MEDIA_TYPE_VALID_SIZES_SET.has(content.length))
+    function checkContentIsValidImages(content, anySize) {
+        if (anySize || MEDIA_TYPE_VALID_SIZES_SET.has(content.length))
             return 1;
 
         for (var i = 0, len = MEDIA_TYPE_VALID_SIZES.length; i < len; ++i) {

@@ -112,13 +112,13 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DRV_VERSION() {
-        wmsx.Util.log("DRV_VERSION");
+        // wmsx.Util.log("DRV_VERSION");
 
         return { A: 5, B: 0, C: 0 };
     }
 
     function DRV_INIT(A, B, HL) {
-        wmsx.Util.log("DRV_INIT: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("DRV_INIT: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
 
         return { F: 0, A: 0, HL: 0 };
     }
@@ -137,7 +137,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DEV_RW_Read(F, A, B, C, DE, HL) {
-        wmsx.Util.log("DEV_RW Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("DEV_RW Read: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
         var initialSector = bus.read(DE+0) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
 
@@ -152,7 +152,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DEV_RW_Write(F, A, B, C, DE, HL) {
-        wmsx.Util.log("DEV_RW Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("DEV_RW Write: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(DE) + ", " + wmsx.Util.toHex4(HL));
 
         // Disk Write Protected
         //if (drive.diskWriteProtected(1))
@@ -171,7 +171,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DEV_INFO(A, B, HL) {
-        wmsx.Util.log("DEV_INFO: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("DEV_INFO: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
 
         // Invalid Device
         if (A !== 1)
@@ -202,7 +202,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function DEV_STATUS(A, B) {
-        wmsx.Util.log("DEV_STATUS: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B));
+        // wmsx.Util.log("DEV_STATUS: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B));
 
         // Invalid Device or Logical Unit
         if (A !== 1 || B !== 1)
@@ -215,7 +215,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function LUN_INFO(A, B, HL) {
-        wmsx.Util.log("LUN_INFO: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
+        // wmsx.Util.log("LUN_INFO: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex4(HL));
 
         // Invalid Device or Logical Unit
         if (A !== 1 || B !== 1)

@@ -8,21 +8,41 @@ wmsx.DiskImages = function() {
     };
 
     // Each file must have properties: "name", "content", "lastModifiedDate", "isDir" (in that case, also "files")
-    this.createFromFiles = function (mediaType, items) {
-        if (!this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType]) return null;               // MediaType not supported for creation
+    this.writeFiles = function (image, items) {
+        var bpb = image;
 
-        var dpb = this.MEDIA_TYPE_DPB[mediaType];
-        var bytesPerSector = (dpb[2] << 8) + dpb[1];
-        var fatStartSector = (dpb[8] << 8) + dpb[7];
-        var rootDirStartSector = (dpb[17] << 8) + dpb[16];
-        var rootDirMaxEntries = dpb[10];
-        var dataStartSector = (dpb[12] << 8) + dpb[11];
-        var sectorsPerCluster = dpb[5] + 1;
-        var totalDataClusters = ((dpb[14] << 8) + dpb[13]) - 1;
-        var bytesPerCluster = sectorsPerCluster * bytesPerSector;
+        var fatDepthSig = String.fromCharCode(bpb[0x42], bpb[0x43], bpb[0x44], bpb[0x45], bpb[0x46], bpb[0x47], bpb[0x48], bpb[0x49]);
+        var fatDepth = fatDepthSig === "FAT16   " ? 16 : 12;
+
+        var bytesPerSector = bpb[0x0b] | (bpb[0x0c] << 8);
+        var sectorsPerCluster = bpb[0x0d];
+        var reservedSectors = bpb[0x0e] | (bpb[0x0f] << 8);
+        var numberOfFATs = bpb[0x10];
+        var rootDirMaxEntries = bpb[0x11] | (bpb[0x12] << 8);
+        var totalSectors = bpb[0x13] | (bpb[0x14] << 8);
+        var mediaDescriptor = bpb[0x15];
+        var sectorsPerFAT = bpb[0x16] | (bpb[0x17] << 8);
+
         var bytesPerDirEntry = 32;
+        var fatStartSector = reservedSectors;
+        var rootDirStartSector = fatStartSector + (numberOfFATs * sectorsPerFAT);
+        var dataStartSector = rootDirStartSector + (bytesPerDirEntry * rootDirMaxEntries) / bytesPerSector;
+        var totalDataClusters = ((totalSectors - dataStartSector ) / sectorsPerCluster) | 0;
+        var bytesPerCluster = sectorsPerCluster * bytesPerSector;
 
-        var image = this.createNewFormattedDisk(mediaType);
+        // var dpb = this.MEDIA_TYPE_DPB[mediaType];
+        // var bytesPerDirEntry = 32;
+        // var bytesPerSector = (dpb[2] << 8) + dpb[1];
+        // var fatStartSector = (dpb[8] << 8) + dpb[7];
+        // var rootDirStartSector = (dpb[17] << 8) + dpb[16];
+        // var rootDirMaxEntries = dpb[10];
+        // var dataStartSector = (dpb[12] << 8) + dpb[11];
+        // var sectorsPerCluster = dpb[5] + 1;
+        // var totalDataClusters = ((dpb[14] << 8) + dpb[13]) - 1;
+        // var bytesPerCluster = sectorsPerCluster * bytesPerSector;
+
+        // console.log(fatDepthSig, fatDepth, bytesPerDirEntry, bytesPerSector, fatStartSector, rootDirStartSector, rootDirMaxEntries, dataStartSector, sectorsPerCluster, totalDataClusters, bytesPerCluster);
+
         var rootDirContentPosition = rootDirStartSector * bytesPerSector;
         var filesWritten = 0, filesNotWritten = 0;
         var freeCluster = 2;
@@ -38,8 +58,8 @@ wmsx.DiskImages = function() {
         }
 
         // Finish image and return
-        this.mirrorFatCopies(mediaType, image);
-        return image;
+        this.mirrorFatCopies(numberOfFATs, fatStartSector, sectorsPerFAT, bytesPerSector, image);
+        return true;
 
 
         // Auxiliary functions
@@ -255,28 +275,28 @@ wmsx.DiskImages = function() {
         var bootSector = diskDriveSocket.isDOS2() ? this.MEDIA_TYPE_BOOT_SECTOR_DOS2[mediaType] : this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType];
         for (var b = 0; b < bootSector.length; ++b) content[b] = bootSector[b];
 
+        var bytesPerSector = bootSector[0x0b] | (bootSector[0x0c] << 8);
+        var numberOfFATs = bootSector[0x10];
+        var sectorsPerFAT = bootSector[0x16] | (bootSector[0x17] << 8);
+        var fatStartSector = bootSector[0x0e] | (bootSector[0x0f] << 8);
+        var fatStart = fatStartSector * bytesPerSector;
+
         // Initialize FATs
-        var fatStart = this.BYTES_PER_SECTOR;
         content[fatStart] = mediaType; content[fatStart + 1] = 0xff; content[fatStart + 2] = 0xff;
-        this.mirrorFatCopies(mediaType, content);
+        this.mirrorFatCopies(numberOfFATs, fatStartSector, sectorsPerFAT, bytesPerSector, content);
 
         // Initialize data area
-        var dpb = this.MEDIA_TYPE_DPB[mediaType];
-        var bytesPerSector = (dpb[2] << 8) + dpb[1];
-        var dataStartSector = (dpb[12] << 8) + dpb[11];
+        var bytesPerDirEntry = 32;
+        var rootDirStartSector = fatStartSector + (numberOfFATs * sectorsPerFAT);
+        var rootDirMaxEntries = bootSector[0x11] | (bootSector[0x12] << 8);
+        var dataStartSector = rootDirStartSector + (bytesPerDirEntry * rootDirMaxEntries) / bytesPerSector;
         for (b = dataStartSector * bytesPerSector; b < content.length; ++b) content[b] = 0xff
     };
 
-    this.mirrorFatCopies = function(mediaType, content) {
-        var dpb = this.MEDIA_TYPE_DPB[mediaType];
-        var numFats = dpb[9];
-        var bytesPerSector = (dpb[2] << 8) + dpb[1];
-        var fatStartSector = (dpb[8] << 8) + dpb[7];
-        var sectorsPerFat = dpb[15];
+    this.mirrorFatCopies = function(numberOfFats, fatStartSector, sectorsPerFat, bytesPerSector, content) {
         var bytesPerFat = sectorsPerFat * bytesPerSector;
-
         var dest = fatStartSector * bytesPerSector + bytesPerFat;     // start at second fat
-        for (var f = 2; f <= numFats; ++f) {
+        for (var f = 2; f <= numberOfFats; ++f) {
             var src = fatStartSector * bytesPerSector;
             for (var b = 0; b < bytesPerFat; ++b) content[dest++] = content[src++];
         }
@@ -381,6 +401,6 @@ wmsx.DiskImages = function() {
     };
 
     // IMPORTANT: In reverse order of size
-    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840, 102400 ];
+    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
 
 };
