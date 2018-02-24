@@ -7,41 +7,52 @@ wmsx.DiskImages = function() {
         diskDriveSocket = pDiskDriveSocket;
     };
 
+    // Image must be formatted with FAT12/16 and empty
     // Each file must have properties: "name", "content", "lastModifiedDate", "isDir" (in that case, also "files")
     this.writeFiles = function (image, items) {
-        var bpb = image;
+        // Check for partitioned disk (MBR signature, first Primary Partition starts at sector 1)
+        var mbrSig = image[0x01fe] | (image[0x01ff] << 8);
+        var partType = image[0x01c2];
+        var partStartSector = image[0x01c6] | (image[0x01c7] << 8) | (image[0x01c8] << 16) | (image[0x01c9] << 24) ;
+        var bpb = 0;
+        if (mbrSig === 0xaa55 && partStartSector === 1) bpb = this.BYTES_PER_SECTOR;
 
-        var fatDepthSig = String.fromCharCode(bpb[0x42], bpb[0x43], bpb[0x44], bpb[0x45], bpb[0x46], bpb[0x47], bpb[0x48], bpb[0x49]);
-        var fatDepth = fatDepthSig === "FAT16   " ? 16 : 12;
+         // Get data from BPB
 
-        var bytesPerSector = bpb[0x0b] | (bpb[0x0c] << 8);
-        var sectorsPerCluster = bpb[0x0d];
-        var reservedSectors = bpb[0x0e] | (bpb[0x0f] << 8);
-        var numberOfFATs = bpb[0x10];
-        var rootDirMaxEntries = bpb[0x11] | (bpb[0x12] << 8);
-        var totalSectors = bpb[0x13] | (bpb[0x14] << 8);
-        var mediaDescriptor = bpb[0x15];
-        var sectorsPerFAT = bpb[0x16] | (bpb[0x17] << 8);
+        var bytesPerSector =    image[bpb + 0x0b] | (image[bpb + 0x0c] << 8);
+        var sectorsPerCluster = image[bpb + 0x0d];
+        var reservedSectors =   image[bpb + 0x0e] | (image[bpb + 0x0f] << 8);
+        var numberOfFATs =      image[bpb + 0x10];
+        var rootDirMaxEntries = image[bpb + 0x11] | (image[bpb + 0x12] << 8);
+        var totalSecSmall =     image[bpb + 0x13] | (image[bpb + 0x14] << 8);
+        var totalSecLarge =     image[bpb + 0x20] | (image[bpb + 0x21] << 8) | (image[bpb + 0x22] << 16) | (image[bpb + 0x23] << 24);
+        var totalSectors = totalSecSmall || totalSecLarge;
+        var mediaDescriptor =   image[bpb + 0x15];
+        var sectorsPerFAT =     image[bpb + 0x16] | (image[bpb + 0x17] << 8);
 
         var bytesPerDirEntry = 32;
-        var fatStartSector = reservedSectors;
+        var fatStartSector = partStartSector + reservedSectors;
         var rootDirStartSector = fatStartSector + (numberOfFATs * sectorsPerFAT);
         var dataStartSector = rootDirStartSector + (bytesPerDirEntry * rootDirMaxEntries) / bytesPerSector;
-        var totalDataClusters = ((totalSectors - dataStartSector ) / sectorsPerCluster) | 0;
         var bytesPerCluster = sectorsPerCluster * bytesPerSector;
+        var totalDataClusters = ((totalSectors - (dataStartSector - partStartSector)) / sectorsPerCluster) | 0;
+        var totalDataBytes = totalDataClusters * sectorsPerCluster * bytesPerSector;
+        var mediaDescriptorFAT = image[fatStartSector * bytesPerSector];
 
-        // var dpb = this.MEDIA_TYPE_DPB[mediaType];
-        // var bytesPerDirEntry = 32;
-        // var bytesPerSector = (dpb[2] << 8) + dpb[1];
-        // var fatStartSector = (dpb[8] << 8) + dpb[7];
-        // var rootDirStartSector = (dpb[17] << 8) + dpb[16];
-        // var rootDirMaxEntries = dpb[10];
-        // var dataStartSector = (dpb[12] << 8) + dpb[11];
-        // var sectorsPerCluster = dpb[5] + 1;
-        // var totalDataClusters = ((dpb[14] << 8) + dpb[13]) - 1;
-        // var bytesPerCluster = sectorsPerCluster * bytesPerSector;
+        var fatDepthSig = String.fromCharCode(image[bpb + 0x36], image[bpb + 0x37], image[bpb + 0x38], image[bpb + 0x39], image[bpb + 0x3a], image[bpb + 0x3b], image[bpb + 0x3c], image[bpb + 0x3d]);
+        var fat16 = fatDepthSig === "FAT16   " ? true : fatDepthSig === "FAT12   " ? false : totalDataClusters >= 0xff0;
 
-        // console.log(fatDepthSig, fatDepth, bytesPerDirEntry, bytesPerSector, fatStartSector, rootDirStartSector, rootDirMaxEntries, dataStartSector, sectorsPerCluster, totalDataClusters, bytesPerCluster);
+        console.log("bpb", bpb, "fatDepthSig", fatDepthSig, "fat16", fat16, "mediaDescriptor", mediaDescriptor, "mediaDescriptorFAT", mediaDescriptorFAT, "bytesPerSector", bytesPerSector, "fatStartSector", fatStartSector, "rootDirStartSector", rootDirStartSector, "rootDirMaxEntries", rootDirMaxEntries, "dataStartSector", dataStartSector, "sectorsPerCluster", sectorsPerCluster, "sectorsPerFAT", sectorsPerFAT, "totalDataClusters", totalDataClusters, "bytesPerCluster", bytesPerCluster, "totalDataBytes", totalDataBytes);
+
+        // Valid FAT partition? (MediaType is ok, totalDataClusters >= 64)
+        if (!(mediaDescriptor === mediaDescriptorFAT && (mediaDescriptor === 0xf0 || mediaDescriptor >= 0xf8) && totalDataClusters >= 64)) {
+            var err = new Error("Could not write files: Disk format or partition not recognized");
+            err.wmsx = true;
+            throw err;
+        }
+
+
+        // Begin process
 
         var rootDirContentPosition = rootDirStartSector * bytesPerSector;
         var filesWritten = 0, filesNotWritten = 0;
@@ -52,7 +63,7 @@ wmsx.DiskImages = function() {
 
         // If there were files that could not be written, AND no files could be written, error
         if (filesNotWritten > 0 && filesWritten === 0) {
-            var err = new Error("No files could fit in a 720KB Disk!");
+            err = new Error("No files could fit in available disk space");
             err.wmsx = true;
             throw err;
         }
@@ -194,19 +205,26 @@ wmsx.DiskImages = function() {
             while (--quant > 0)
                 writeFatEntry(cluster, ++cluster);
 
-            writeFatEntry(cluster, 0xfff);              // Enf of chain
+            writeFatEntry(cluster, 0xffff);              // Enf of chain
         }
 
         function writeFatEntry(entry, value) {
-            var pos = fatStartSector * bytesPerSector + (entry >> 1) * 3;             // Each 2 entries take 3 bytes
-            if (entry & 1) {
-                // odd entry
-                image[pos + 1] = (image[pos + 1] & 0x0f) | ((value & 0x0f) << 4);
-                image[pos + 2] = (value & 0xff0) >> 4;
-            } else {
-                // even entry
+            var pos;
+            if (fat16) {
+                pos = fatStartSector * bytesPerSector + (entry << 1);                 // Each entry takes 2 bytes
                 image[pos] = value & 255;
-                image[pos + 1] = (image[pos + 1] & 0xf0) | ((value & 0xf00) >> 8);
+                image[pos + 1] = (value & 0xff00) >> 8;
+            } else {
+                pos = fatStartSector * bytesPerSector + (entry >> 1) * 3;             // Each 2 entries take 3 bytes
+                if (entry & 1) {
+                    // odd entry
+                    image[pos + 1] = (image[pos + 1] & 0x0f) | ((value & 0x0f) << 4);
+                    image[pos + 2] = (value & 0xff0) >> 4;
+                } else {
+                    // even entry
+                    image[pos] = value & 255;
+                    image[pos + 1] = (image[pos + 1] & 0xf0) | ((value & 0xf00) >> 8);
+                }
             }
         }
 

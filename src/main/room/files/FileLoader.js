@@ -424,6 +424,7 @@ wmsx.FileLoader = function() {
 
     function showError(message) {
         wmsx.Util.message("Could not load file(s):\n\n" + message + "\n");
+        // machine.showOSD(message, true, true);
     }
 
     function createFileInputElement() {

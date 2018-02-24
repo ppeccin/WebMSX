@@ -64,7 +64,7 @@ wmsx.FileDiskDrive = function(room) {
         if (!suc) return;
 
         if (currentContent) {
-            screen.showOSD("Files written to current disk");
+            screen.showOSD("Files written to current disk", true);
             driveDiskChanged[drive] = true;
             return this.getDriveStack(drive);
         } else {
