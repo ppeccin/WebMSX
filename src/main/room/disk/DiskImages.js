@@ -10,10 +10,12 @@ wmsx.DiskImages = function() {
     // Image must be formatted with FAT12/16 and empty
     // Each file must have properties: "name", "content", "lastModifiedDate", "isDir" (in that case, also "files")
     this.writeFiles = function (image, items) {
+
         // Check for partitioned disk (MBR signature, first Primary Partition starts at sector 1)
         var mbrSig = image[0x01fe] | (image[0x01ff] << 8);
         var partType = image[0x01c2];
         var partStartSector = image[0x01c6] | (image[0x01c7] << 8) | (image[0x01c8] << 16) | (image[0x01c9] << 24) ;
+
         var bpb = 0;
         if (mbrSig === 0xaa55 && partStartSector === 1) bpb = this.BYTES_PER_SECTOR;
 
@@ -25,10 +27,10 @@ wmsx.DiskImages = function() {
         var numberOfFATs =      image[bpb + 0x10];
         var rootDirMaxEntries = image[bpb + 0x11] | (image[bpb + 0x12] << 8);
         var totalSecSmall =     image[bpb + 0x13] | (image[bpb + 0x14] << 8);
-        var totalSecLarge =     image[bpb + 0x20] | (image[bpb + 0x21] << 8) | (image[bpb + 0x22] << 16) | (image[bpb + 0x23] << 24);
-        var totalSectors = totalSecSmall || totalSecLarge;
         var mediaDescriptor =   image[bpb + 0x15];
         var sectorsPerFAT =     image[bpb + 0x16] | (image[bpb + 0x17] << 8);
+        var totalSecLarge =     image[bpb + 0x20] | (image[bpb + 0x21] << 8) | (image[bpb + 0x22] << 16) | (image[bpb + 0x23] << 24);
+        var totalSectors = totalSecSmall || totalSecLarge;
 
         var bytesPerDirEntry = 32;
         var fatStartSector = partStartSector + reservedSectors;
@@ -44,11 +46,28 @@ wmsx.DiskImages = function() {
 
         console.log("bpb", bpb, "fatDepthSig", fatDepthSig, "fat16", fat16, "mediaDescriptor", mediaDescriptor, "mediaDescriptorFAT", mediaDescriptorFAT, "bytesPerSector", bytesPerSector, "fatStartSector", fatStartSector, "rootDirStartSector", rootDirStartSector, "rootDirMaxEntries", rootDirMaxEntries, "dataStartSector", dataStartSector, "sectorsPerCluster", sectorsPerCluster, "sectorsPerFAT", sectorsPerFAT, "totalDataClusters", totalDataClusters, "bytesPerCluster", bytesPerCluster, "totalDataBytes", totalDataBytes);
 
-        // Valid FAT partition? (MediaType is ok, totalDataClusters >= 64)
+        // Valid BPB and FAT partition? (MediaType is ok, totalDataClusters >= 64)
         if (!(mediaDescriptor === mediaDescriptorFAT && (mediaDescriptor === 0xf0 || mediaDescriptor >= 0xf8) && totalDataClusters >= 64)) {
-            var err = new Error("Could not write files: Disk format or partition not recognized");
-            err.wmsx = true;
-            throw err;
+            // Try pre-determined DPB geometry for floppy formats (MediaType from FAT)
+            var preMediaTypeInfo = this.MEDIA_TYPE_INFO[mediaDescriptorFAT];
+            if (preMediaTypeInfo && preMediaTypeInfo.size === image.length) {
+                var dpb = this.MEDIA_TYPE_DPB[mediaDescriptorFAT];
+                bytesPerSector = (dpb[2] << 8) + dpb[1];
+                sectorsPerCluster = dpb[5] + 1;
+                fatStartSector = (dpb[8] << 8) + dpb[7];
+                numberOfFATs = dpb[9];
+                rootDirMaxEntries = dpb[10];
+                dataStartSector = (dpb[12] << 8) + dpb[11];
+                totalDataClusters = ((dpb[14] << 8) + dpb[13]) - 1;
+                sectorsPerFAT = dpb[15];
+                rootDirStartSector = (dpb[17] << 8) + dpb[16];
+                bytesPerCluster = sectorsPerCluster * bytesPerSector;
+                fat16 = false;
+            } else {
+                var err = new Error("Could not write files: Disk format or partition not recognized");
+                err.wmsx = true;
+                throw err;
+            }
         }
 
 
@@ -320,11 +339,16 @@ wmsx.DiskImages = function() {
         }
     };
 
+
     var diskDriveSocket;
+
 
     this.BYTES_PER_SECTOR = 512;
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = [0xF9, 0xF8];
+
+    // IMPORTANT: In reverse order of size
+    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
 
     this.MEDIA_TYPE_INFO = {
         0xF8: { desc: "360KB", size: 368640 },
@@ -417,8 +441,5 @@ wmsx.DiskImages = function() {
         // Media FF; 40 Tracks; 8 sectors; 2 sides; 5.25" 320 Kb
         0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
     };
-
-    // IMPORTANT: In reverse order of size
-    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
 
 };
