@@ -8,7 +8,7 @@ wmsx.DiskImages = function() {
     };
 
     // Image must be formatted with FAT12/16 and empty
-    // Each file must have properties: "name", "content", "lastModifiedDate", "isDir" (in that case, also "files")
+    // Each file must have properties: "name", "content", "lastModifiedDate", "isDir" (in that case, also "items")
     this.writeFilesToImage = function (image, rootDirItems) {
 
         // Check for partitioned disk (MBR signature, first Primary Partition starts at sector 1)
@@ -35,7 +35,9 @@ wmsx.DiskImages = function() {
         var bytesPerDirEntry = 32;
         var fatStartSector = partStartSector + reservedSectors;
         var rootDirStartSector = fatStartSector + (numberOfFATs * sectorsPerFAT);
+        var rootDirContentPosition = rootDirStartSector * bytesPerSector;
         var dataStartSector = rootDirStartSector + (bytesPerDirEntry * rootDirMaxEntries) / bytesPerSector;
+        var dataContentPosition = dataStartSector * bytesPerSector;
         var bytesPerCluster = sectorsPerCluster * bytesPerSector;
         var totalDataClusters = ((totalSectors - (dataStartSector - partStartSector)) / sectorsPerCluster) | 0;
         var totalDataBytes = totalDataClusters * sectorsPerCluster * bytesPerSector;
@@ -70,23 +72,28 @@ wmsx.DiskImages = function() {
             }
         }
 
-
-        // Begin process
-
-        var rootDirContentPosition = rootDirStartSector * bytesPerSector;
-        var filesWritten = 0, filesNotWritten = 0;
-
+        // Get info about free clusters
         var info = getFreeClustersInfo();
         var remainFreeClusters = info.quant;
-        var nextFreeCluster = info.first;
+        var maxCluster = info.max;
+        var freeCluster = info.first;
 
-        if (remainFreeClusters > 0) {
-            // Write root entries, including sub-directories recursively up to available space
-            writeRootDir(rootDirItems);
+        // Disk full?
+        if (remainFreeClusters === 0) {
+            err = new Error("Could not write files: Disk full");
+            err.wmsx = true;
+            throw err;
         }
 
-        // If there were files that could not be written, AND no files could be written, error
-        if (filesNotWritten > 0 && filesWritten === 0) {
+
+        // Begin process
+        var itemsWritten = 0, itemsNotWritten = 0;
+
+        // Write root entries, including sub-directories recursively up to available space
+        writeRootDir(rootDirItems);
+
+        // If there were items that could not be written, AND no items could be written, error
+        if (itemsNotWritten > 0 && itemsWritten === 0) {
             err = new Error("No files could fit in available disk space");
             err.wmsx = true;
             throw err;
@@ -100,18 +107,21 @@ wmsx.DiskImages = function() {
         // Auxiliary functions
 
         function writeRootDir(rootDirItems) {
+            // Define root dir properties
             var rootDir = {
                 name: "ROOT",
                 isDir: true,
                 items: rootDirItems,
                 content: image.slice(rootDirContentPosition, rootDirContentPosition + rootDirMaxEntries * bytesPerDirEntry),
                 nextFreeEntry: 0,
-                clusterChain: [0],   // Dummy
-                usedNames: new Set()
+                continuousContentPosition: rootDirContentPosition,   // does not reside in data clusters
+                clusterChain: [0]                                    // Dummy
             };
+            setRootDirAvailableEntries(rootDir);
+            setRootDirUsedNames(rootDir);
 
             // Position directories first, but prioritize files if space is not enough for all
-            var availEntries = rootDirMaxEntries;
+            var availEntries = rootDir.availableEntries.length;
             var files = rootDir.items.filter(function (i) {
                 return !i.isDir;
             });
@@ -130,9 +140,17 @@ wmsx.DiskImages = function() {
             // Write subDirs recursively up to available space
             rootDir.nextFreeEntry = 0;
             writeSubDirItems(rootDir, subDirs);
+
+            // Finish
+            finishDirEntries(rootDir);
+            writeFinishedContent(rootDir);
         }
 
         function writeSubDir(dir) {
+            // Write . and .. entries
+            writeDirEntry(dir, { name: ".",  specialName: true, isDir: true, clusterChain: dir.clusterChain });
+            writeDirEntry(dir, { name: "..", specialName: true, isDir: true, clusterChain: dir.parentDir.clusterChain });
+
             // Position directories first, but prioritize files if space is not enough for all
             var availEntries = dir.items.length + 2;         // +2 for . and ..
             var files = dir.items.filter(function (i) {
@@ -146,83 +164,74 @@ wmsx.DiskImages = function() {
             });
             if (subDirs.length > availEntries) subDirs.length = availEntries;
 
-            // Write . and .. entries
-            writeDirEntry(dir, { name: ".",  specialName: true, isDir: true, clusterChain: dir.parentDir.clusterChain });
-            writeDirEntry(dir, { name: "..", specialName: true, isDir: true, clusterChain: dir.clusterChain });
-
             // Write files up to available space
             dir.nextFreeEntry = 2 + subDirs.length;
             writeFileItems(dir, files);
 
             // Write subDirs recursively up to available space
             dir.nextFreeEntry = 2;
-            var subDirsWritten = writeSubDirItems(dir, subDirs);
+            writeSubDirItems(dir, subDirs);
 
-            // Fill remaining not used (but reserved) entries for dirs with the "entry available" marker
-            var rem = subDirs.length - subDirsWritten;
-            if (rem > 0) {
-                dir.nextFreeEntry = 2 + subDirsWritten;
-                for (var i = 0; i < rem; ++i) writeAvailableDirEntry(dir);
-            }
+            // Finish content and write
+            finishDirEntries(dir);
+            writeFinishedContent(dir);
         }
 
-        // parentDir = Array of items
         function writeSubDirItems(ownerDir, subDirs) {
             // Write each subDir until disk is full
-            var itemsWritten = 0;
             for (var d = 0; d < subDirs.length; ++d) {
                 var subDir = subDirs[d];
 
-                var subDirClusters = clustersTaken((subDir.items.length + 2) * bytesPerDirEntry);       // +2 for . and ..
+                var neededClusters = clustersTaken((subDir.items.length + 2) * bytesPerDirEntry);       // +2 for . and ..
 
                 // Check if subDir fits in the remaining space
-                if (subDirClusters > availClusters()) continue;
+                if (neededClusters > remainFreeClusters) {
+                    ++itemsNotWritten;
+                    continue;
+                }
 
-                subDir.content = wmsx.Util.arrayFill(new Array(subDirClusters * bytesPerCluster), 0);
+                // Define subDir properties
+                subDir.content = wmsx.Util.arrayFill(new Array(neededClusters * bytesPerCluster), 0);
                 subDir.parentDir = ownerDir;
                 subDir.usedNames = new Set();
                 subDir.nextFreeEntry = 0;
-                // set clusterChain
 
+                // Use space
+                setClusterChain(subDir);
                 writeDirEntry(ownerDir, subDir);
-                writeFatChain(subDirCluster, subDirClusters);
-                writeContent(subDirCluster, subDir.content);      // Will just allocate space, all 0s
-
-                nextFreeCluster += subDirClusters;
 
                 // Write items of this subdirectory, recursively
                 writeSubDir(subDir);
 
                 ++itemsWritten;
             }
-            return itemsWritten;
         }
 
         function writeFileItems(ownerDir, files) {
             // Write each file until disk is full
             for (var f = 0; f < files.length; ++f) {
                 var file = files[f];
-                var fileClusters = clustersTaken(file.content.length);
+                var neededClusters = clustersTaken(file.content.length);
 
                 // Check if file fits in the remaining space
-                if (fileClusters > availClusters()) {
-                    ++filesNotWritten;
+                if (neededClusters > remainFreeClusters) {
+                    ++itemsNotWritten;
                     continue;
                 }
 
-                // set clusterChain
+                // Use space and write content
+                setClusterChain(file);
                 writeDirEntry(ownerDir, file);
-                writeFatChain(nextFreeCluster, fileClusters);
-                writeContent(nextFreeCluster, file.content);
+                writeFinishedContent(file);
 
-                ++filesWritten;
-                nextFreeCluster += fileClusters;
+                ++itemsWritten;
             }
         }
 
         function writeDirEntry(dir, item) {
             var dirContent = dir.content;
-            var entryPos = dir.nextFreeEntry * bytesPerDirEntry;
+            var entryPos = (dir.availableEntries ? dir.availableEntries[dir.nextFreeEntry] : dir.nextFreeEntry) * bytesPerDirEntry;
+
             // File Name
             var name = fat12Filename(item, dir.usedNames);
             for (var c = 0; c < 11; ++c) dirContent[entryPos + c] = name.charCodeAt(c);
@@ -232,40 +241,67 @@ wmsx.DiskImages = function() {
             dirContent[entryPos + 0x0b] = attrs;
 
             // Attributes. "Archive" set
-            entryPos = entryPos + 0x16;
+            var pos = entryPos + 0x16;
             var d = item.lastModified ? new Date(item.lastModified) : item.lastModifiedDate;         // lastModifiedDate deprecated?
             var time = encodeTime(d);
-            dirContent[entryPos] = time & 255; dirContent[entryPos + 1] = time >> 8;
+            dirContent[pos] = time & 255; dirContent[pos + 1] = time >> 8;
             var date = encodeDate(d);
-            dirContent[entryPos + 2] = date & 255; dirContent[entryPos + 3] = date >> 8;
+            dirContent[pos + 2] = date & 255; dirContent[pos + 3] = date >> 8;
 
             // Starting Cluster
-            entryPos = entryPos + 0x1a;
-            dirContent[entryPos] = item.clusterChain[0] & 255; dirContent[entryPos + 1] = item.clusterChain[0] >> 8;
+            pos = entryPos + 0x1a;
+            dirContent[pos] = item.clusterChain[0] & 255; dirContent[pos + 1] = item.clusterChain[0] >> 8;
 
             // File Size
+            pos = entryPos + 0x1c;
             var size = item.isDir ? 0 : item.content.length;
-            entryPos = entryPos + 0x1c;
-            dirContent[entryPos] = size & 255; dirContent[entryPos + 1] = (size >> 8) & 255; dirContent[entryPos + 2] = (size >> 16) & 255; dirContent[entryPos + 3] = (size >> 24) & 255;
+            dirContent[pos] = size & 255; dirContent[pos + 1] = (size >> 8) & 255; dirContent[pos + 2] = (size >> 16) & 255; dirContent[pos + 3] = (size >> 24) & 255;
 
-            ++dir.nextFreeEntry;
+            // Advance pointer to next available entry
+            dir.nextFreeEntry++;
         }
 
-        function writeAvailableDirEntry(dirContentPosition) {
-            dir.content[dir.nextFreeEntry * bytesPerDirEntry] = 0xE5;
-            ++dir.nextFreeEntry;
+        function setRootDirAvailableEntries(dir) {
+            var content = dir.content;
+            var avail = dir.availableEntries = [];
+            for (var pos = 0, e = 0, len = content.length; pos < len; pos += bytesPerDirEntry, ++e)
+                if (content[pos] === 0 || content[pos] === 0xe5) avail.push(e);
         }
 
-        function writeContent(cluster, content) {
-            var pos = clusterContentPositon(cluster);
-            for (var b = 0, len = content.length; b < len; ++b) image[pos + b] = content[b];
+        function setRootDirUsedNames(dir) {
+            var content = dir.content;
+            var used = dir.usedNames = new Set();
+            for (var pos = 0, e = 0, len = content.length; pos < len; pos += bytesPerDirEntry, ++e)
+                if (content[pos] !== 0 && content[pos] !== 0xe5) {
+                    var name = "";
+                    for (var c = 0; c < 11; ++c) name += String.fromCharCode(content[pos + c]);
+                    used.add(name);
+                }
         }
 
-        function writeFatChain(cluster, quant) {
-            while (--quant > 0)
-                writeFatEntry(cluster, ++cluster);
+        function finishDirEntries(dir) {
+            var content = dir.content;
+            var foundUsed = false;
+            for (var pos = content.length - bytesPerDirEntry; pos >= 0; pos -= bytesPerDirEntry)
+                if (foundUsed) {
+                    if (content[pos] === 0) content[pos] = 0xe5;     // mark as "available in between used entries"
+                } else
+                    if (content[pos] !== 0) foundUsed = true;
+        }
 
-            writeFatEntry(cluster, 0xffff);              // Enf of chain
+        function writeFinishedContent(item) {
+            var content = item.content;
+            var dest = item.continuousContentPosition;
+            if (dest) {
+                for (var b = 0, len = content.length; b < len; ++b) image[dest + b] = content[b];
+            } else {
+                var src = 0;
+                var clusterChain = item.clusterChain;
+                for (var c = 0, cLen = clusterChain.length; c < cLen; ++c) {
+                    dest = clusterContentPositon(clusterChain[c]);
+                    for (var end = dest + bytesPerCluster; dest < end; ++dest) image[dest] = content[src++];
+                }
+            }
         }
 
         function writeFatEntry(entry, value) {
@@ -305,17 +341,46 @@ wmsx.DiskImages = function() {
         }
 
         function getFreeClustersInfo() {
-            var maxCluster = totalDataClusters + 2 - 1;
+            var maxCluster = totalDataClusters + 2 - 1;     // Usable clusters start at 2
             var firstFreeCluster = -1;
-            var quantFreeCluesters = 0;
+            var quantFreeClusters = 0;
             for (var c = 2; c <= maxCluster; ++c) {
                 var val = readFatEntry(c);
                 if (val === 0) {
-                    ++quantFreeCluesters;
+                    ++quantFreeClusters;
                     if (firstFreeCluster < 0) firstFreeCluster = c;
                 }
             }
-            return { first: firstFreeCluster, quant: quantFreeCluesters, max: maxCluster };
+            return { first: firstFreeCluster, quant: quantFreeClusters, max: maxCluster };
+        }
+
+        function setClusterChain(item) {
+            var quant = clustersTaken(item.content.length);
+            item.clusterChain = new Array(quant);
+            if (quant === 0)
+                item.clusterChain[0] = 0;
+            else {
+                for (var c = 0; c < quant; ++c) {
+                    var cluster = freeCluster;
+                    item.clusterChain[c] = cluster;
+                    advanceFreeCluster();
+                    writeFatEntry(cluster, freeCluster);    // next in chain
+                }
+                writeFatEntry(cluster, 0xffff);             // end of chain
+            }
+        }
+
+        function advanceFreeCluster() {
+            --remainFreeClusters;
+            while(readFatEntry(++freeCluster) !== 0);
+        }
+
+        function clustersTaken(size) {
+            return Math.ceil(size / bytesPerCluster);
+        }
+
+        function clusterContentPositon(cluster) {
+            return dataContentPosition + (cluster - 2) * bytesPerCluster;
         }
 
         function fat12Filename(item, usedNames) {
@@ -339,19 +404,6 @@ wmsx.DiskImages = function() {
 
             usedNames.add(finalName);
             return finalName;
-        }
-
-        function clustersTaken(size) {
-            return Math.ceil(size / bytesPerCluster);
-        }
-
-        function availClusters() {
-            var free = totalDataClusters - (nextFreeCluster - 2);
-            return free > 0 ? free : 0;
-        }
-
-        function clusterContentPositon(cluster) {
-            return dataStartSector * bytesPerSector + (cluster - 2) * bytesPerCluster;
         }
 
         function sanitizeName(name) {

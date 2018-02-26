@@ -60,8 +60,13 @@ wmsx.FileDiskDrive = function(room) {
         var currentContent = drive === 2 && this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;    // Nextor aways write to current if any
         var newContent = currentContent || images.createNewFormattedDisk(0xF9);
 
-        var suc = images.writeFilesToImage(newContent, files);
-        if (!suc) return;
+        try {
+            var suc = images.writeFilesToImage(newContent, files);
+            if (!suc) return;
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
 
         if (currentContent) {
             screen.showOSD("Files written to current disk", true);

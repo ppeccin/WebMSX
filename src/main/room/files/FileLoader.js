@@ -112,7 +112,10 @@ wmsx.FileLoader = function() {
                 if (!known) error += DIR_NOT_SUPPORTED_HINT;                  // Directories not supported
                 showError("File reading error: " + error);
                 if (then) then(false);
-            }
+            },
+            openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK
+                ? -1                // No size limit
+                : undefined         // Default size limit
         );
         reader.start();
     };

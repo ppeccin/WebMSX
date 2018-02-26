@@ -10,8 +10,8 @@ wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError, maxTotalSize
             if (!maxTotalSize) maxTotalSize = MAX_TOTAL_SIZE;
             var totalSize = 0;
             for (var i = 0; i < files.length; i++) totalSize += files[i].size;
-            if (totalSize > maxTotalSize) {
-                var error = "Maximum total size limit exceeded: " + ((maxTotalSize / 1024) | 0) + "KB";
+            if (maxTotalSize > 0 && totalSize > maxTotalSize) {
+                var error = "Maximum total size limit of " + (((maxTotalSize / 1024) | 0) + "KB") + " exceeded";
                 if (onFirstError) onFirstError(files, error, true);     // known error
                 return;
             }
@@ -60,6 +60,6 @@ wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError, maxTotalSize
 
     var finished = false;
 
-    var MAX_TOTAL_SIZE = 8 * 720 * 1024;   // Read up 8 720KB disks of files
+    var MAX_TOTAL_SIZE = 10 * 720 * 1024;   // Default limit. Read up 10 720KB disks of files
 
 };
