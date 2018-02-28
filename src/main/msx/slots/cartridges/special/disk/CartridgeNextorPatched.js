@@ -18,10 +18,12 @@ wmsx.CartridgeNextorPatched = function(rom) {
     this.connect = function(machine) {
         driver = new wmsx.ImageNextorDeviceDriver();
         driver.connect(this, machine);
+        machine.getDiskDriveSocket().dos2CartridgeConnected(this);
     };
 
     this.disconnect = function(machine) {
         if (driver) driver.disconnect(this, machine);
+        machine.getDiskDriveSocket().dos2CartridgeDisconnected(this);
     };
 
     this.powerOn = function() {

@@ -233,7 +233,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     margin: 0 1px;
     background-image: url("` + wmsx.Images.urls.sprites + `");
     background-repeat: no-repeat;
-    background-size: 296px 81px;
+    background-size: 326px 81px;
     cursor: pointer;
 }
 /*

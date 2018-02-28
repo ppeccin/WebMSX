@@ -128,6 +128,8 @@ wmsx.ImageNextorDeviceDriver = function() {
         if (A !== 1 || C !== 1)
             return { A: IDEVL, B: 0 };
 
+        drive.motorFlash(2);
+
         // Not Ready error if Disk not present
         if (!drive.isDiskInserted(2))
             return { A: NRDY, B: 0 };

@@ -24,7 +24,7 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadDiskStackFromFiles = function (drive, files, altPower, addToStack, filesFromZip) {
-        // Nextor Device never add to stack, always replace
+        // Nextor Device never adds to stack, always replaces
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
 
@@ -52,7 +52,7 @@ wmsx.FileDiskDrive = function(room) {
         // TODO Testing Nextor
         drive = 2;
 
-        // Nextor Device never add to stack, always replace
+        // Nextor Device never adds to stack, always replaces
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
 
@@ -85,10 +85,10 @@ wmsx.FileDiskDrive = function(room) {
         loadStack(drive, deserializeStack(stackContent), type, altPower, add);
     };
 
-    this.insertNewDisk = function(drive, mediaType, unformatted) {     // Cycle among format options if no mediaType given
+    this.insertNewDisk = function(drive, mediaType, unformatted) {
+        // Choose a default format options if no mediaType given
         if (!mediaType) {
-            if (++(nextNewDiskFormatOption[drive]) >= this.FORMAT_OPTIONS_MEDIA_TYPES.length) nextNewDiskFormatOption[drive] = 0;
-            mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[nextNewDiskFormatOption[drive]];
+            mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[0];
         }
 
         if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 11, d: drive, m: mediaType, u: unformatted });
@@ -97,7 +97,7 @@ wmsx.FileDiskDrive = function(room) {
         var content = unformatted ? images.createNewBlankDisk(mediaType) : images.createNewFormattedDisk(mediaType);
 
         // Add a new disk to the stack?
-        var add = driveStack[drive].length === 0 || !driveBlankDiskAdded[drive];    // Only add 1 disk to loaded stacks, always to the bottom
+        var add = driveStack[drive].length === 0 || (drive !== 2 && !driveBlankDiskAdded[drive]);    // Only add 1 disk to loaded stacks, always to the bottom. Nextor never adds
         if (add) driveStack[drive].push({});
 
         curDisk[drive] = driveStack[drive].length - 1;
@@ -273,7 +273,7 @@ wmsx.FileDiskDrive = function(room) {
                 driveMotorOffTimer[drive] = null;
                 driveMotor[drive] = false;
                 fireMotorStateUpdate();
-            }, MOTOR_SPINDOWN_EXTRA_MILLIS);
+            }, MOTOR_SPINDOWN_EXTRA_MILLIS[drive]);
     }
 
     function setCurrentDiskNum(drive, num) {
@@ -414,7 +414,7 @@ wmsx.FileDiskDrive = function(room) {
         return true;
     };
 
-    // Returns the extra time for motor to spin (drive LED simulation)
+    // Returns the extra time for motor to spin up (drive LED simulation)
     this.motorOn = function(drive) {
         if (driveMotorOffTimer[drive]) {
             clearTimeout(driveMotorOffTimer[drive]);
@@ -423,16 +423,25 @@ wmsx.FileDiskDrive = function(room) {
         if (driveMotor[drive]) return 0;
         driveMotor[drive] = true;
         fireMotorStateUpdate();
-        return MOTOR_SPINUP_EXTRA_ITERATIONS;
+        return MOTOR_SPINUP_EXTRA_ITERATIONS[drive];
+    };
+
+    // No motor spin up time
+    this.motorFlash = function(drive) {
+        if (driveMotor[drive]) return;
+        driveMotor[drive] = true;
+        fireMotorStateUpdate();
+        motorOff(drive);
     };
 
     this.allMotorsOff = function(resetDelay) {          // Simulated delay
         motorOff(0, resetDelay);
         motorOff(1, resetDelay);
+        motorOff(2);
     };
 
     this.allMotorsOffNow = function() {                 // Instantly with no delays
-        driveMotor[0] = driveMotor[1] = false;
+        driveMotor[0] = driveMotor[1] = driveMotor[2] = false;
         fireMotorStateUpdate();
     };
 
@@ -444,6 +453,7 @@ wmsx.FileDiskDrive = function(room) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
+        // TODO New drive 2
         return {
             s: [ serializeStack(driveStack[0]), serializeStack(driveStack[1]) ],
             c: curDisk,
@@ -454,6 +464,7 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadState = function(state) {
+        // TODO New drive 2
         deserializeStack(state.s[0], driveStack[0]);
         deserializeStack(state.s[1], driveStack[1]);
         curDisk = state.c;
@@ -484,13 +495,12 @@ wmsx.FileDiskDrive = function(room) {
     var driveMotor          = [ false, false, false ];
     var driveMotorOffTimer  = [ null, null, null ];
 
-    var driveName = [ "A:", "B:", "Nextor" ];
-    var nextNewDiskFormatOption = [ -1, -1, -1 ];
+    var driveName = [ "A:", "B:", "Nextor:" ];
 
     var BYTES_PER_SECTOR = 512;                         // Fixed for now, for all disks
 
-    var MOTOR_SPINUP_EXTRA_ITERATIONS = 100000;
-    var MOTOR_SPINDOWN_EXTRA_MILLIS = 2300;
+    var MOTOR_SPINUP_EXTRA_ITERATIONS = [ 100000, 100000, 0 ];
+    var MOTOR_SPINDOWN_EXTRA_MILLIS = [ 2300, 2300, 50 ];
 
     var MAX_STACK = wmsx.FileDiskDrive.MAX_STACK;
 
