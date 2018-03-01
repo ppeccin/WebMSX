@@ -71,6 +71,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     function applyControlActivated (control, altPower, secPort, data, user) {
         // All controls are Press-only and repeatable
+        var port = secPort ? 1 : 0;
         switch(control) {
             case pc.MACHINE_POWER_TOGGLE:           // MACHINE_ Controls called directly by Screen, no keys here
                 if (altPower) return machineControls.processControlState(wmsx.MachineControls.RESET, true);
@@ -80,7 +81,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 machineControls.processControlState(wmsx.MachineControls.RESET, true);
                 break;
             case pc.MACHINE_LOAD_STATE_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, false, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, 0, false);
                 break;
             case pc.MACHINE_SAVE_STATE_FILE:
                 machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
@@ -98,43 +99,43 @@ wmsx.DOMPeripheralControls = function(room) {
                 extensionsSocket.toggleExtension(data, altPower, secPort);
                 break;
             case pc.DISK_LOAD_FILES:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, port, false);
                 break;
             case pc.DISK_ADD_FILES:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, secPort, true);   // asExpansion
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, port, true);   // asExpansion
                 break;
             case pc.DISK_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, port);
                 break;
             case pc.DISK_LOAD_FILES_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, port, false);
                 break;
             case pc.DISK_LOAD_ZIP_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, port, false);
                 break;
             case pc.DISK_REMOVE:
-                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(secPort ? 1 : 0);
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(port);
                 break;
             case pc.DISK_EMPTY:
-                diskDrive.insertNewDisk(secPort ? 1 : 0, null);
+                diskDrive.insertNewDisk(port, null);
                 break;
             case pc.DISK_EMPTY_720:
-                diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
+                diskDrive.insertNewDisk(port, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
                 break;
             case pc.DISK_EMPTY_360:
-                diskDrive.insertNewDisk(secPort ? 1 : 0, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
+                diskDrive.insertNewDisk(port, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
                 break;
             case pc.DISK_SAVE_FILE:
-                diskDrive.saveDiskFile(secPort ? 1 : 0);
+                diskDrive.saveDiskFile(port);
                 break;
             case pc.DISK_SELECT:
-                diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 0, altPower);
+                diskDrive.openDiskSelectDialog(port, 0, altPower);
                 break;
             case pc.DISK_PREVIOUS:
-                diskDrive.openDiskSelectDialog(secPort ? 1 : 0, -1, altPower);
+                diskDrive.openDiskSelectDialog(port, -1, altPower);
                 break;
             case pc.DISK_NEXT:
-                diskDrive.openDiskSelectDialog(secPort ? 1 : 0, 1, altPower);
+                diskDrive.openDiskSelectDialog(port, 1, altPower);
                 break;
             case pc.DISK_INSERT:
                 diskDrive.insertDiskFromStack(data.d, data.n, data.a);
@@ -143,10 +144,16 @@ wmsx.DOMPeripheralControls = function(room) {
                 diskDrive.moveDiskInStack(data.d, data.f, data.t);
                 break;
             case pc.NEXTOR_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.NEXTOR, altPower, false, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.NEXTOR, altPower, 2, false);
                 break;
             case pc.NEXTOR_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.NEXTOR, altPower, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.NEXTOR, altPower, 2);
+                break;
+            case pc.NEXTOR_LOAD_FILES_AS_DISK:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);
+                break;
+            case pc.NEXTOR_LOAD_ZIP_AS_DISK:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, 2, false);
                 break;
             case pc.NEXTOR_REMOVE:
                 if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(2);
@@ -158,26 +165,26 @@ wmsx.DOMPeripheralControls = function(room) {
                 diskDrive.saveDiskFile(2);
                 break;
             case pc.CARTRIDGE_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, port, false);
                 break;
             case pc.CARTRIDGE_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.ROM, altPower, port);
                 break;
             case pc.CARTRIDGE_REMOVE:
-                if (!user || !mediaChangeDisabledWarning(control)) cartridgeSlot.removeCartridge(secPort ? 1 : 0, altPower);
+                if (!user || !mediaChangeDisabledWarning(control)) cartridgeSlot.removeCartridge(port, altPower);
                 break;
             case pc.CARTRIDGE_LOAD_DATA_FILE:
-                if (cartridgeSocket.dataOperationNotSupportedMessage(secPort ? 1 : 0, false, false)) break;
-                fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, secPort, false);
+                if (cartridgeSocket.dataOperationNotSupportedMessage(port, false, false)) break;
+                fileLoader.openFileChooserDialog(OPEN_TYPE.CART_DATA, altPower, port, false);
                 break;
             case pc.CARTRIDGE_SAVE_DATA_FILE:
-                cartridgeSlot.saveCartridgeDataFile(secPort ? 1 : 0);
+                cartridgeSlot.saveCartridgeDataFile(port);
                 break;
             case pc.TAPE_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
                 break;
             case pc.TAPE_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, secPort);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
                 break;
             case pc.TAPE_REMOVE:
                 if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userRemoveTape();
@@ -205,10 +212,10 @@ wmsx.DOMPeripheralControls = function(room) {
                 cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case pc.AUTO_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, port, false);
                 break;
             case pc.AUTO_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, secPort, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, port, false);
                 break;
             case pc.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;

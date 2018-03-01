@@ -48,16 +48,12 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
-
-        // TODO Testing Nextor
-        drive = 2;
-
         // Nextor Device never adds to stack, always replaces
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
 
         // Writes on the current disk or create a new one?
-        var currentContent = drive === 2 && this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;    // Nextor aways write to current if any
+        var currentContent = drive === 2 && this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;    // Nextor aways writes to current if any
         var newContent = currentContent || images.createNewFormattedDisk(0xF9);
 
         try {

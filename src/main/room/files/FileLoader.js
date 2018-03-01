@@ -30,20 +30,19 @@ wmsx.FileLoader = function() {
         fileInputElementParent = element;
     };
 
-    this.openFileChooserDialog = function (openType, altPower, inSecondaryPort, asExpansion) {
+    this.openFileChooserDialog = function (openType, altPower, port, asExpansion) {
         if (!fileInputElement) createFileInputElement();
         fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
         fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
 
         chooserOpenType = openType;
-        chooserPort = inSecondaryPort ? 1 : 0;
+        chooserPort = port;
         chooserAltPower = altPower;
         chooserAsExpansion = asExpansion;
         fileInputElement.click();
     };
 
-    this.openURLChooserDialog = function (openType, altPower, inSecondaryPort, asExpansion) {
-        var port = inSecondaryPort ? 1 : 0;
+    this.openURLChooserDialog = function (openType, altPower, port, asExpansion) {
         var url;
         try {
             url = localStorage && localStorage[LOCAL_STORAGE_LAST_URL_KEY];
@@ -398,10 +397,10 @@ wmsx.FileLoader = function() {
 
         var wasPaused = machine.systemPause(true);
 
-        var port = e.shiftKey ? 1 : 0;
         var altPower = dragButtons & MOUSE_BUT2_MASK;
-        var asExpansion = e.ctrlKey;
         var asDisk = e.altKey;
+        var asExpansion = !e.altKey && e.ctrlKey;
+        var port = asDisk && e.ctrlKey ? 2 : e.shiftKey ? 1 : 0;
 
         var openType = asDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.AUTO;
 

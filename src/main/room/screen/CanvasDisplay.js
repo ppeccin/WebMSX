@@ -377,11 +377,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var stack = diskDrive.getDriveStack(drive);
         button.title = diskDrive.getCurrentDiskDesc(drive);
         if (drive < 2) {
-            button.wmsxMenu[1].disabled = stack.length === 0 || stack.length >= wmsx.FileDiskDrive.MAX_STACK;
-            button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
-            button.wmsxMenu[8].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
+            button.wmsxMenu[1].disabled = button.wmsxMenu[2].disabled = stack.length >= wmsx.FileDiskDrive.MAX_STACK;
+            button.wmsxMenu[5].disabled = stack.length <= 1;
+            button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = stack.length === 0;
+            button.wmsxMenu[7].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
         } else {
-            button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled = stack.length === 0;
+            button.wmsxMenu[5].disabled = button.wmsxMenu[6].disabled = stack.length === 0;
         }
         if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
     };
@@ -784,11 +785,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = [
             { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
-            { label: "Add Image Files",                control: wmsx.PeripheralControls.DISK_ADD_FILES, disabled: true, needsUIG: true },
-            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
-            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
-            { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720 },
-            { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360 },
+            { label: "Add Image Files",                control: wmsx.PeripheralControls.DISK_ADD_FILES, needsUIG: true },
+            { label: "Add Blank Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_720 },
+            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
+            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, disabled: true },
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true },
@@ -798,11 +798,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = [
             { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
-            { label: "Add Image Files",                control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, disabled: true, needsUIG: true },
-            { label: 'Load "Files as Disk"',           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true, needsUIG: true },
-            { label: 'Load "ZIP as Disk"',             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true, needsUIG: true },
-            { label: "Blank 720KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
-            { label: "Blank 360KB Disk",               control: wmsx.PeripheralControls.DISK_EMPTY_360, secSlot: true },
+            { label: "Add Image Files",                control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, needsUIG: true },
+            { label: "Add Blank Disk",                 control: wmsx.PeripheralControls.DISK_EMPTY_720, secSlot: true },
+            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true, needsUIG: true },
+            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true, needsUIG: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, secSlot: true, disabled: true },
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true },
@@ -812,8 +811,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
-            { label: "New 16M Boot Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
-            { label: "New 32M Boot Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
+            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.NEXTOR_LOAD_FILES_AS_DISK, needsUIG: true },
+            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.NEXTOR_LOAD_ZIP_AS_DISK, needsUIG: true },
+            { label: "New 16M Boot Disk",  clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
+            { label: "New 32M Boot Disk",  clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_REMOVE, disabled: true }
         ];
