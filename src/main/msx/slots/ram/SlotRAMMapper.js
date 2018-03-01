@@ -14,6 +14,7 @@ wmsx.SlotRAMMapper = function(rom) {
         bytes = wmsx.Util.arrayFill(new Array(size * 1024), 0);
         self.bytes = bytes;
         pageMask = (bytes.length >> 14) - 1;
+        pageReadBackOR = 0xff & ~pageMask;
     }
 
     this.connect = function(machine) {
@@ -62,11 +63,13 @@ wmsx.SlotRAMMapper = function(rom) {
 
     this.inputAll = function(port) {
         switch (port & 255) {
-            case 0xfc: return page0Offset >> 14;
-            case 0xfd: return (page1Offset + 0x4000) >> 14;
-            case 0xfe: return (page2Offset + 0x8000) >> 14;
-            case 0xff: return (page3Offset + 0xc000) >> 14;
+            case 0xfc: return pageReadBackOR | (page0Offset >> 14);
+            case 0xfd: return pageReadBackOR | (page1Offset + 0x4000) >> 14;
+            case 0xfe: return pageReadBackOR | (page2Offset + 0x8000) >> 14;
+            case 0xff: return pageReadBackOR | (page3Offset + 0xc000) >> 14;
         }
+        // console.warn("RAM Mapper readback on port", port.toString(16), ", result:", res.toString(16));
+        // return res;
     };
 
     this.read = function(address) {
@@ -92,6 +95,7 @@ wmsx.SlotRAMMapper = function(rom) {
 
     var page0Offset, page1Offset, page2Offset, page3Offset;
     var pageMask = 0;
+    var pageReadBackOR = 0;
 
     var bytes;
     this.bytes = null;
@@ -118,6 +122,7 @@ wmsx.SlotRAMMapper = function(rom) {
         this.bytes = bytes;
         pageMask = (bytes.length >> 14) - 1;
         page0Offset = state.p0; page1Offset = state.p1; page2Offset = state.p2; page3Offset = state.p3;
+        pageReadBackOR = 0xff & ~pageMask;
     };
 
 
