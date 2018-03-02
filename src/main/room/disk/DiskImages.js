@@ -153,7 +153,7 @@ wmsx.DiskImages = function() {
         function writeSubDir(dir) {
             // Write . and .. entries
             writeDirEntry(dir, { name: ".",  specialName: true, lastModifiedDate: dir.lastModifiedDate, isDir: true, clusterChain: dir.clusterChain });
-            writeDirEntry(dir, { name: "..", specialName: true, lastModifiedDate: dir.parentDir.lastModifiedDate, isDir: true, clusterChain: dir.parentDir.clusterChain });
+            writeDirEntry(dir, { name: "..", specialName: true, lastModifiedDate: dir.lastModifiedDate, isDir: true, clusterChain: dir.parentDir.clusterChain });
 
             // Position directories first, but prioritize files if space is not enough for all
             var availEntries = dir.items.length + 2;         // +2 for . and ..

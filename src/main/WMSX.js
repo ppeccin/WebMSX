@@ -105,7 +105,7 @@ WMSX.MACHINES_CONFIG = {
 
 WMSX.EXTENSIONS_CONFIG = {
     DISK:      { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
-    NEXTOR:    { desc: "Nextor Device", SLOT: [3, 3],             format: "Nextor16Patch", require: "RAMMAPPER" },
+    NEXTOR:    { desc: "Nextor Device", SLOT: [3, 3], SLOT2: [2], format: "Nextor16Patch", require: "RAMMAPPER" },
     RAMMAPPER: { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAMNORMAL" },
     RAMNORMAL: {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
     MSXMUSIC:  { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },

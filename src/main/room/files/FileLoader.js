@@ -287,9 +287,11 @@ wmsx.FileLoader = function() {
         var rootDir = [];
 
         var dirs = zip.folder(/.+/);
-        dirs = dirs.filter(function(f) { return f.dir && f.name && f.name.trim(); });         // get only directories first
+        dirs = dirs.filter(function(f) { return f.dir && f.name && f.name.trim(); });                         // get only directories first
         dirs.sort(function (a, b) {                                                                           // sort dirs according to depth
-            return wmsx.Util.stringCountOccurrences(a.name, "/") - wmsx.Util.stringCountOccurrences(b.name, "/");
+            if (a.dirDepth === undefined) a.dirDepth = wmsx.Util.stringCountOccurrences(a.name, "/");
+            if (b.dirDepth === undefined) b.dirDepth = wmsx.Util.stringCountOccurrences(b.name, "/");
+            return a.dirDepth - b.dirDepth;
         });
         for (var d = 0; d < dirs.length; ++d)
             createDir(dirs[d]);
@@ -303,7 +305,7 @@ wmsx.FileLoader = function() {
         function createDir(newDir) {
             var parts = newDir.name.split("/");
             var dir = rootDir;
-            for (var p = 0; p < parts.length - 2; ++p) {
+            for (var p = 0; p < parts.length - 1; ++p) {
                 var part = parts[p];
                 var subDir = dir.find(function(i) { return i.isDir && i.name == part; });
                 if (!subDir) {
@@ -312,11 +314,7 @@ wmsx.FileLoader = function() {
                 }
                 dir = subDir.items;
             }
-            newDir.isDir = true;
-            newDir.name = parts[parts.length - 2];
-            newDir.lastModifiedDate = newDir.date;
-            newDir.items = [];
-            dir.push(newDir);
+            // No leaf File to include
         }
 
         function putFile(file) {
@@ -326,16 +324,20 @@ wmsx.FileLoader = function() {
                 var part = parts[p];
                 var subDir = dir.find(function(i) { return i.isDir && i.name == part; });
                 if (!subDir) {
-                    subDir = { isDir: true, name: part, items: [] };
+                    subDir = { isDir: true, name: part, lastModifiedDate: file.date, items: [] };
                     dir.push(subDir);
                 }
                 dir = subDir.items;
             }
-            file.isDir = false;
-            file.name = parts[parts.length - 1];
-            file.lastModifiedDate = file.date;
-            file.content = file.asUint8Array();
-            dir.push(file);
+            // Leaf File, if it really exists
+            var name = parts[parts.length - 1];
+            if (name && name.trim()) {
+                file.name = name;
+                file.isDir = false;
+                file.lastModifiedDate = file.date;
+                file.content = file.asUint8Array();
+                dir.push(file);
+            }
         }
     }
 
