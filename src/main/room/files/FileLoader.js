@@ -23,6 +23,7 @@ wmsx.FileLoader = function() {
 
     this.registerForDnD = function (element) {
         element.addEventListener("dragover", onDragOver, false);
+        element.addEventListener("dragleave", onDragLeave, false);
         element.addEventListener("drop", onDrop, false);
     };
 
@@ -32,13 +33,13 @@ wmsx.FileLoader = function() {
 
     this.openFileChooserDialog = function (openType, altPower, port, asExpansion) {
         if (!fileInputElement) createFileInputElement();
-        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
-        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
+        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);      // Nextor gets only one image
+        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);
 
         chooserOpenType = openType;
         chooserPort = port;
         chooserAltPower = altPower;
-        chooserAsExpansion = asExpansion;
+        chooserAsExpansion = asExpansion;    // Serves as AddToStack when loading in Floppy Drives
         fileInputElement.click();
     };
 
@@ -214,9 +215,6 @@ wmsx.FileLoader = function() {
     }
 
     function tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, filesFromZIP) {
-        // Try as Nextor Image file
-        if (openType === OPEN_TYPE.NEXTOR)
-            return diskDrive.loadDiskStackFromFiles(2, files, altPower, false, filesFromZIP);
         // Try as a Disk Stack (all images found)
         if (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO)
             if (diskDrive.loadDiskStackFromFiles(port, files, altPower, asExpansion, filesFromZIP)) return true;
@@ -378,13 +376,23 @@ wmsx.FileLoader = function() {
         if (e.dataTransfer) {
             if (WMSX.MEDIA_CHANGE_DISABLED)
                 e.dataTransfer.dropEffect = "none";
-            else if (e.ctrlKey)
-                e.dataTransfer.dropEffect = "copy";
-            else if (e.altKey)
+            else
                 e.dataTransfer.dropEffect = "link";
         }
 
+        var ele = e.target;
+        var dropInfo = ele.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
+        if (!dropInfo) return;
+
+        ele.classList.add("wmsx-drop-choice");
         dragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
+
+        // console.log("DRAG OVER:", dropInfo.openType, dropInfo.port);
+    }
+
+    function onDragLeave(e) {
+        var ele = e.target;
+        if (ele.wmsxDropFileInfo) ele.classList.remove("wmsx-drop-choice");
     }
 
     function onDrop(e) {
@@ -393,19 +401,24 @@ wmsx.FileLoader = function() {
         e.target.focus();
 
         if (!e.dataTransfer) return;
-        if (peripheralControls.mediaChangeDisabledWarning(wmsx.PeripheralControls.AUTO_LOAD_FILE)) return;
 
-        var wasPaused = machine.systemPause(true);
+        var ele = e.target;
+        ele.classList.remove("wmsx-drop-choice");
+
+        var dropInfo = ele.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
+        if (!dropInfo || peripheralControls.mediaChangeDisabledWarning(wmsx.PeripheralControls.AUTO_LOAD_FILE)) return;
 
         var altPower = dragButtons & MOUSE_BUT2_MASK;
         var asDisk = e.altKey;
-        var asExpansion = !e.altKey && e.ctrlKey;
-        var port = asDisk && e.ctrlKey ? 2 : e.shiftKey ? 1 : 0;
-
-        var openType = asDisk ? OPEN_TYPE.AUTO_AS_DISK : OPEN_TYPE.AUTO;
+        var asExpansion = e.ctrlKey;    // Serves as AddToStack when loading in Floppy Drives
+        var port = dropInfo.port !== undefined ? dropInfo.port : e.shiftKey ? 1 : 0;
+        var openType = dropInfo.openType;
+        if (asDisk && (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO))
+            openType = asExpansion ? OPEN_TYPE.FILES_AS_DISK : OPEN_TYPE.AUTO_AS_DISK;      // asExpansion to force ignore ZIP-AS-DISK
 
         // Try to get local file/files if present
         var files = e.dataTransfer && e.dataTransfer.files;
+        var wasPaused = machine.systemPause(true);
         var resume = function (s) {
             if (!wasPaused) machine.systemPause(false);
         };
@@ -471,7 +484,6 @@ wmsx.FileLoader = function() {
     var INPUT_ACCEPT = {
         ROM:    ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
         DISK:   ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
-        NEXTOR: ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
         TAPE:   ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
         STATE:  ".wst,.WST",
         CART_DATA: ".pac,.PAC,.dat,.DAT,.sram,.SRAM",
@@ -484,7 +496,6 @@ wmsx.FileLoader = function() {
     var INPUT_MULTI = {
         ROM:    false,
         DISK:   true,
-        NEXTOR: false,
         TAPE:   false,
         STATE:  false,
         CART_DATA: false,
@@ -497,7 +508,6 @@ wmsx.FileLoader = function() {
     var TYPE_DESC = {
         ROM:   "ROM",
         DISK:  "Disk",
-        NEXTOR:  "Nextor Image",
         TAPE:  "Cassette",
         STATE: "Savestate",
         CART_DATA: "Cartridge Data",
@@ -509,10 +519,10 @@ wmsx.FileLoader = function() {
 
     var LOCAL_STORAGE_LAST_URL_KEY = "wmsxlasturl";
 
-    var DIR_NOT_SUPPORTED_HINT = '\n\nIMPORTANT: Directories are not supported for loading!\nPlease use "ZIP as Disk" loading for full directories support.';
+    var DIR_NOT_SUPPORTED_HINT = '\n\nIMPORTANT: Directories are not supported for loading!\nPlease use a ZIP File if you need directories support.';
 
     WMSX.fileLoader = this;
 
 };
 
-wmsx.FileLoader.OPEN_TYPE = {  AUTO: "AUTO", ROM: "ROM", DISK: "DISK", NEXTOR: "NEXTOR", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK" };
+wmsx.FileLoader.OPEN_TYPE = {  AUTO: "AUTO", ROM: "ROM", DISK: "DISK", TAPE: "TAPE", STATE: "STATE", CART_DATA: "CART_DATA", FILES_AS_DISK: "FILES_AS_DISK", ZIP_AS_DISK: "ZIP_AS_DISK", AUTO_AS_DISK: "AUTO_AS_DISK" };

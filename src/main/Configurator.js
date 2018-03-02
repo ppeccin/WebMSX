@@ -179,10 +179,10 @@ wmsx.Configurator = {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 1, true);
                 }
             } : null,
-            WMSX.NEXTOR_IMAGE_URL && {
+            WMSX.NEXTOR_IMAGE_URL && {          // TODO Add AS_DISK parameter
                 url: WMSX.NEXTOR_IMAGE_URL,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.NEXTOR, 0, true);
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 2, true);
                 }
             },
             WMSX.TAPE_URL && {

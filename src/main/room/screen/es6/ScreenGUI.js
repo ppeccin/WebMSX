@@ -229,7 +229,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 .wmsx-bar-button {
     display: inline-block;
     width: 24px;
-    height: 28px;
+    height: 29px;
     margin: 0 1px;
     background-image: url("` + wmsx.Images.urls.sprites + `");
     background-repeat: no-repeat;
@@ -558,6 +558,11 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-radius: 6px;
     color: white;
     transform: translate(-50%, -50%);
+}
+
+.wmsx-bar-button.wmsx-drop-choice {
+    box-shadow: inset 0 2px yellow, inset 0 -2px yellow, 2px 0 yellow, -2px 0 yellow;
+    z-index: 999999999;
 }
 
 #wmsx-osd {

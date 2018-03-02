@@ -144,10 +144,10 @@ wmsx.DOMPeripheralControls = function(room) {
                 diskDrive.moveDiskInStack(data.d, data.f, data.t);
                 break;
             case pc.NEXTOR_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.NEXTOR, altPower, 2, false);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
                 break;
             case pc.NEXTOR_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.NEXTOR, altPower, 2);
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
                 break;
             case pc.NEXTOR_LOAD_FILES_AS_DISK:
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);

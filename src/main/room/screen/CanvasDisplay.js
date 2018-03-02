@@ -14,6 +14,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         delete wmsx.ScreenGUI.css;
         setupMain();
         setupBar();
+        setupFileLoaderDropTargets();
         setupFullscreen();
         monitor = new wmsx.Monitor(self);
     }
@@ -1535,6 +1536,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return false;
     }
 
+    function setupFileLoaderDropTargets() {
+        fsElement.wmsxDropFileInfo =        { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : let modifiers key define the port
+        diskAButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 0 };
+        diskBButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 1 };
+        diskNButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 2 };
+        cartridge1Button.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 0 };
+        cartridge2Button.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 1 };
+        tapeButton.wmsxDropFileInfo =       { openType: OPEN_TYPE.TAPE, port: 0 };
+    }
+
 
     var afterMessageAction;
 
@@ -1659,6 +1670,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var MENU_SELECT_KEYS = {}; MENU_SELECT_KEYS[k.VK_LEFT.c] = -1; MENU_SELECT_KEYS[k.VK_RIGHT.c] = 1;
     var MENU_ITEM_SELECT_KEYS = {}; MENU_ITEM_SELECT_KEYS[k.VK_UP.c] = -1; MENU_ITEM_SELECT_KEYS[k.VK_DOWN.c] = 1;
 
+    var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 
     init();
 
