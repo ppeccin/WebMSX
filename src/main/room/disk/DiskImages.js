@@ -11,6 +11,8 @@ wmsx.DiskImages = function() {
     // Each file must have properties: "name", "content", "lastModifiedDate", "isDir" (in that case, also "items")
     this.writeFilesToImage = function (image, rootDirItems) {
 
+        // console.log(rootDirItems);
+
         // Check for partitioned disk (MBR signature, first Primary Partition starts at sector 1)
         var mbrSig = image[0x01fe] | (image[0x01ff] << 8);
         var partType = image[0x01c2];
@@ -88,6 +90,7 @@ wmsx.DiskImages = function() {
 
         // Begin process
         var itemsWritten = 0, itemsNotWritten = 0;
+        var dateNOW = new Date();
 
         // Write root entries, including sub-directories recursively up to available space
         writeRootDir(rootDirItems);
@@ -110,6 +113,7 @@ wmsx.DiskImages = function() {
             // Define root dir properties
             var rootDir = {
                 name: "ROOT",
+                lastModifiedDate: dateNOW,
                 isDir: true,
                 items: rootDirItems,
                 content: image.slice(rootDirContentPosition, rootDirContentPosition + rootDirMaxEntries * bytesPerDirEntry),
@@ -148,8 +152,8 @@ wmsx.DiskImages = function() {
 
         function writeSubDir(dir) {
             // Write . and .. entries
-            writeDirEntry(dir, { name: ".",  specialName: true, isDir: true, clusterChain: dir.clusterChain });
-            writeDirEntry(dir, { name: "..", specialName: true, isDir: true, clusterChain: dir.parentDir.clusterChain });
+            writeDirEntry(dir, { name: ".",  specialName: true, lastModifiedDate: dir.lastModifiedDate, isDir: true, clusterChain: dir.clusterChain });
+            writeDirEntry(dir, { name: "..", specialName: true, lastModifiedDate: dir.parentDir.lastModifiedDate, isDir: true, clusterChain: dir.parentDir.clusterChain });
 
             // Position directories first, but prioritize files if space is not enough for all
             var availEntries = dir.items.length + 2;         // +2 for . and ..
@@ -242,7 +246,7 @@ wmsx.DiskImages = function() {
 
             // Attributes. "Archive" set
             var pos = entryPos + 0x16;
-            var d = item.lastModified ? new Date(item.lastModified) : item.lastModifiedDate;         // lastModifiedDate deprecated?
+            var d = item.lastModified ? new Date(item.lastModified) : item.lastModifiedDate || dateNOW;         // lastModifiedDate deprecated?
             var time = encodeTime(d);
             dirContent[pos] = time & 255; dirContent[pos + 1] = time >> 8;
             var date = encodeDate(d);

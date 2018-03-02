@@ -285,14 +285,16 @@ wmsx.FileLoader = function() {
     function createTreeFromZip(zip) {     // throws
         // Build file tree structure as required by image creator
         var rootDir = [];
-        var dirs = zip.folder(/.+/).filter(function(f) { return f.dir && f.name; });         // get only directories first
-        dirs.sort(function (a, b) {                                                          // sort dirs according to depth
+
+        var dirs = zip.folder(/.+/);
+        dirs = dirs.filter(function(f) { return f.dir && f.name && f.name.trim(); });         // get only directories first
+        dirs.sort(function (a, b) {                                                                           // sort dirs according to depth
             return wmsx.Util.stringCountOccurrences(a.name, "/") - wmsx.Util.stringCountOccurrences(b.name, "/");
         });
         for (var d = 0; d < dirs.length; ++d)
             createDir(dirs[d]);
 
-        var files = zip.file(/.+/).filter(function(f) { return !f.dir && f.name; });         // get only real files
+        var files = zip.file(/.+/).filter(function(f) { return !f.dir && f.name && f.name.trim(); });         // get only real files
         for (var f = 0; f < files.length; ++f)
             putFile(files[f]);
 
@@ -305,7 +307,7 @@ wmsx.FileLoader = function() {
                 var part = parts[p];
                 var subDir = dir.find(function(i) { return i.isDir && i.name == part; });
                 if (!subDir) {
-                    subDir = { isDir: true, name: part, items: [] };
+                    subDir = { isDir: true, name: part, lastModifiedDate: newDir.date, items: [] };
                     dir.push(subDir);
                 }
                 dir = subDir.items;
