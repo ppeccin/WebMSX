@@ -347,23 +347,32 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item-toggle {
     text-align: left;
-    padding-left: 30px;
+    padding-left: 33px;
 }
+.wmsx-bar-menu-item-toggle::before,
 .wmsx-bar-menu-item-toggle::after {
     content: "";
     position: absolute;
     width: 6px;
-    height: 19px;
+    height: 9px;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) | 0) + `px;
-    left: 10px;
+    left: 12px;
     background: rgb(70, 70, 70);
     box-shadow: black 1px 1px 1px;
+}
+.wmsx-bar-menu-item-toggle::after {
+    top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) + 10 | 0) + `px;
 }
 
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked {
     color: white;
 }
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked::after {
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op1::before,
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op3::before {
+    background: rgb(248, 33, 28);
+}
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op2::after,
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op3::after {
     background: rgb(248, 33, 28);
 }
 

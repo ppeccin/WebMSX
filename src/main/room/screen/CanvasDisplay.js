@@ -1063,7 +1063,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         for (var ext in extConfig) {
             var conf = extConfig[ext];
             if (conf.desc) {            // Only show extensions with descriptions
-                var opt = { label: conf.desc, extension: ext, toggle: true, checked: false };
+                var opt = { label: conf.desc, extension: ext, toggle: true, checkedOp: 0 };
                 menu.push(opt);
             }
         }
@@ -1092,7 +1092,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             var opt = menu[i];
             if (opt.extension) {
                 opt.hidden = !extensionsSocket.isValid(opt.extension);
-                opt.checked = extensionsSocket.isActiveAnySlot(opt.extension);
+                opt.checkedOp = extensionsSocket.getActiveCombinedOps(opt.extension);
             }
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
@@ -1276,7 +1276,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                             item.wmsxNeedsUIG = option.needsUIG;
 
                             // Toggle checked
-                             if (option.toggle !== undefined) item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!option.checked);
+                             if (option.toggle !== undefined) {
+                                 item.classList.toggle("wmsx-bar-menu-item-toggle-checked", !!option.checkedOp);
+                                 item.classList.toggle("wmsx-op1", (option.checkedOp & 1) !== 0);
+                                 item.classList.toggle("wmsx-op2", (option.checkedOp & 2) !== 0);
+                             }
                         }
                     }
                 }

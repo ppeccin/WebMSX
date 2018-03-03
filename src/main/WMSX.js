@@ -104,23 +104,24 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    DISK:      { desc: "Floppy Drives", SLOT: [2, 2],             format: "DiskPatch" },
-    NEXTOR:    { desc: "Nextor Device", SLOT: [3, 3], SLOT2: [2], format: "Nextor16Patch", require: "RAMMAPPER" },
-    RAMMAPPER: { desc: "RAM Mapper",    SLOT: [3],                format: "RAMMapper",     mutual: "RAMNORMAL" },
-    RAMNORMAL: {                        SLOT: [3],                format: "RAMNormal",     mutual: "RAMMAPPER" },
-    MSXMUSIC:  { desc: "MSX-MUSIC",     SLOT: [2, 3],             format: "MSXMUSIC" },
-    KANJI:     { desc: "KANJI Fonts",   SLOT: [3, 1],             format: "Kanji1" },
-    SCCI:      { desc: "Konami SCC+",   SLOT: [1], SLOT2: [2, 0], format: "SCCIExpansion", remove: "SCC, PAC" },
-    SCC:       { desc: "Konami SCC",    SLOT: [1], SLOT2: [2, 0], format: "SCCExpansion",  remove: "SCCI, PAC" },
-    PAC:       { desc: "PAC SRAM",      SLOT: [1], SLOT2: [2, 0], format: "PACExpansion",  remove: "SCC, SCCI" }
+    NEXTOR:    { desc: "Nextor Drive",  format: "Nextor16Patch", OP1: [2, 3], OP2: [3, 3], toggleOp: "DISK",             require: "RAMMAPPER"  },
+    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 3], OP2: [3, 3], toggleOp: "NEXTOR" },
+    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 change: { RAMNORMAL: 0 } },
+    RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 change: { RAMMAPPER: 0 } },
+    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [2, 2]  },
+    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [3, 1]  },
+    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2, 0], change: { SCC: 0, PAC: 0 },  both: true },
+    SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2, 0], change: { SCCI: 0, PAC: 0 }, both: true },
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2, 0], change: { SCC: 0, SCCI: 0 }, both: true }
 };
 
 WMSX.PRESETS_CONFIG = {
 
     // Extensions Options Presets
 
-    DISK:   { "EXTENSIONS.DISK": 1 },
-    NODISK: { "EXTENSIONS.DISK": 0 },
+    DISK:     { "EXTENSIONS.DISK": 1 },
+    DISK2:    { "EXTENSIONS.DISK": 2 },
+    NODISK:   { "EXTENSIONS.DISK": 0 },
 
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
     RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
@@ -131,9 +132,11 @@ WMSX.PRESETS_CONFIG = {
     KANJI:   { "EXTENSIONS.KANJI":  1 },
     NOKANJI: { "EXTENSIONS.KANJI":  0 },
 
-    NEXTOR:   { "EXTENSIONS.NEXTOR":  1 },
+    NEXTOR:   { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
+    NEXTOR2:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
+    NEXTORC:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
+    DOS2:     { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     NONEXTOR: { "EXTENSIONS.NEXTOR":  0 },
-    DOS2:     { "EXTENSIONS.NEXTOR":  1 },
 
     SCCI:  { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
