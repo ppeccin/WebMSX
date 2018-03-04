@@ -236,6 +236,9 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     background-size: 326px 81px;
     cursor: pointer;
 }
+.wmsx-bar-button.wmsx-hidden {
+    display: none;
+}
 /*
 .wmsx-bar-button {
     border: 1px solid yellow;
@@ -357,7 +360,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     height: 9px;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) | 0) + `px;
     left: 12px;
-    background: rgb(70, 70, 70);
+    background: rgb(82, 82, 82);
     box-shadow: black 1px 1px 1px;
 }
 .wmsx-bar-menu-item-toggle::after {
@@ -369,11 +372,18 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op1::before,
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op3::before {
-    background: rgb(248, 33, 28);
+    background: rgb(254, 32, 30);
 }
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op2::after,
 .wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op3::after {
-    background: rgb(248, 33, 28);
+    background: rgb(254, 32, 30);
+}
+.wmsx-bar-menu-item-toggle.wmsx-no-op2::before {
+    top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) + 2 | 0) + `px;
+    height: 16px;
+}
+.wmsx-bar-menu-item-toggle.wmsx-no-op2::after {
+    display: none;
 }
 
 #wmsx-screen-fs .wmsx-select-dialog {
@@ -462,7 +472,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-shadow: black 1px 1px 1px;
 }
 #wmsx-screen-fs .wmsx-select-dialog li.wmsx-toggle-checked::after {
-    background: rgb(248, 33, 28);
+    background: rgb(254, 32, 30);
 }
 
 #wmsx-logo {
@@ -1117,7 +1127,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     height: 18px;
     top: 4px;
     left: 7px;
-    background: rgb(248, 33, 28);
+    background: rgb(254, 32, 30);
 }
 #wmsx-netplay-link {
     display: none;

@@ -121,8 +121,7 @@ wmsx.FileDiskDrive = function(room) {
         setCurrentDiskNum(drive, num);
         diskInsertedMessage(drive);
         fireMediaStateUpdate(drive);
-
-        if (getCurrentDisk(0) || getCurrentDisk(2)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: or Nextor Device have a disk
+        autoPower(altPower);
     };
 
     this.moveDiskInStack = function (drive, from, to) {
@@ -239,8 +238,13 @@ wmsx.FileDiskDrive = function(room) {
         if (driveStack[drive].length > 1) {
             if (!altPower && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, altPower);
         } else
-        if (getCurrentDisk(0) || getCurrentDisk(2)) diskDriveSocket.autoPowerCycle(altPower);       // Only if Drive A: or Nextor Device have a disk
+            autoPower(altPower);
+    }
 
+    function autoPower(altPower) {
+        // Only if Drive A: or Nextor Device has a disk
+        if ((diskDriveSocket.hasDiskInterface() && getCurrentDisk(0))
+            || (diskDriveSocket.hasNextorInterface() && getCurrentDisk(2))) diskDriveSocket.autoPowerCycle(altPower);
     }
 
     function replaceCurrentDisk(drive, name, content) {     // Affects only current disk from stack

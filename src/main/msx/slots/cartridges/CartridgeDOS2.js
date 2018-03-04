@@ -13,11 +13,11 @@ wmsx.CartridgeDOS2 = function(rom) {
     }
 
     this.connect = function(machine) {
-        machine.getDiskDriveSocket().dos2CartridgeConnected(this);
+        machine.getDiskDriveSocket().dos2ROMConnected(this);
     };
 
     this.disconnect = function(machine) {
-        machine.getDiskDriveSocket().dos2CartridgeDisconnected(this);
+        machine.getDiskDriveSocket().dos2ROMDisconnected(this);
     };
 
     this.powerOn = function() {

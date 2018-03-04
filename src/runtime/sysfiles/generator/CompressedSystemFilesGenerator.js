@@ -54,7 +54,7 @@ wmsx.CompressedSystemFilesGenerator.fileList = [
     "[DiskPatch].rom",
     "[Nextor16Patch].rom",
     "[MSXMUSIC].rom",
-    "[MSXDOS2]v22.rom",
+    // "[MSXDOS2]v22.rom",      // No more since Nextor
     "[Empty].rom",
     "[RAMNormal].rom",
     "[RAMMapper].rom",

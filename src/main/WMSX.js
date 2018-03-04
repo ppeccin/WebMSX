@@ -104,39 +104,47 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    NEXTOR:    { desc: "Nextor Drive",  format: "Nextor16Patch", OP1: [2, 3], OP2: [3, 3], toggleOp: "DISK",             require: "RAMMAPPER"  },
-    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 3], OP2: [3, 3], toggleOp: "NEXTOR" },
-    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 change: { RAMNORMAL: 0 } },
-    RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 change: { RAMMAPPER: 0 } },
-    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [2, 2]  },
-    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [3, 1]  },
-    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2, 0], change: { SCC: 0, PAC: 0 },  both: true },
-    SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2, 0], change: { SCCI: 0, PAC: 0 }, both: true },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2, 0], change: { SCC: 0, SCCI: 0 }, both: true }
+    NEXTOR:    { desc: "Nextor Drive",  format: "Nextor16Patch", OP1: [2, 3], OP2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
+    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 3], OP2: [3, 3], toggle: "NEXTOR" },
+    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 mutual: "RAMNORMAL" },
+    RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 mutual: "RAMMAPPER" },
+    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [2, 2] },
+    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [3, 1] },
+    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2, 0], change: { SCC: 0, PAC: 0  } },
+    SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2, 0], change: { SCCI: 0, PAC: 0 } },
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2, 0], change: { SCC: 0, SCCI: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
 
     // Extensions Options Presets
 
+    // Floppy Disk Drives
     DISK:     { "EXTENSIONS.DISK": 1 },
     DISK2:    { "EXTENSIONS.DISK": 2 },
     NODISK:   { "EXTENSIONS.DISK": 0 },
 
-    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
-    RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
-
-    MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
-    NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
-
-    KANJI:   { "EXTENSIONS.KANJI":  1 },
-    NOKANJI: { "EXTENSIONS.KANJI":  0 },
-
+    // Nextor Mass Storage Drive
     NEXTOR:   { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
+    NEXTORA:  { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
     NEXTOR2:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     NEXTORC:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     DOS2:     { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     NONEXTOR: { "EXTENSIONS.NEXTOR":  0 },
+
+    // RAM type
+    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
+    RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
+
+    // Japanese character support
+    KANJI:   { "EXTENSIONS.KANJI":  1 },
+    NOKANJI: { "EXTENSIONS.KANJI":  0 },
+
+    // MSX Music
+    MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
+    NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
+
+    // Other Cartridge extensions
 
     SCCI:  { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
@@ -164,10 +172,12 @@ WMSX.PRESETS_CONFIG = {
     ALTSLOTCONFIG: {
         BIOSEXT_SLOT:                      [3, 1],
         EXPANSION_SLOTS:                   [[2, 2], [2, 3]],
-        "EXTENSIONS_CONFIG.DISK.SLOT":     [3, 2],
-        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3],
-        "EXTENSIONS_CONFIG.NEXTOR.SLOT":   [2, 3],
-        "EXTENSIONS_CONFIG.KANJI.SLOT":    [2, 1]
+        "EXTENSIONS_CONFIG.DISK.OP1":      [3, 3],
+        "EXTENSIONS_CONFIG.DISK.OP2":      [2, 3],
+        "EXTENSIONS_CONFIG.NEXTOR.OP1":    [3, 3],
+        "EXTENSIONS_CONFIG.NEXTOR.OP2":    [2, 3],
+        "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [3, 2],
+        "EXTENSIONS_CONFIG.KANJI.OP1":     [2, 1]
     },
 
     // MSX2+ Machine Presets. Do not use directly
@@ -188,7 +198,8 @@ WMSX.PRESETS_CONFIG = {
         BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios"
     },
     _MSX2PBASE: {
-        _INCLUDE:           "_MSX2BASE"
+        _INCLUDE:           "_MSX2BASE",
+        MSX2P:              true
     },
 
     // MSX2 Machine Presets. Do not use directly
@@ -236,7 +247,8 @@ WMSX.PRESETS_CONFIG = {
 
     _BASE: {
         _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
-        MSX2:               false
+        MSX2:               false,
+        MSX2P:              false
     }
 
 };

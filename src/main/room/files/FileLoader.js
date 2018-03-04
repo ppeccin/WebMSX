@@ -388,7 +388,7 @@ wmsx.FileLoader = function() {
         var dropInfo = ele.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
         if (!dropInfo) return;
 
-        ele.classList.add("wmsx-drop-choice");
+        if (ele.wmsxDropFileInfo) ele.classList.add("wmsx-drop-choice");
         dragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
 
         // console.log("DRAG OVER:", dropInfo.openType, dropInfo.port);

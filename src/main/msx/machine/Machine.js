@@ -710,9 +710,11 @@ wmsx.Machine = function() {
 
     function ExpansionSocket() {
         this.insertExpansion = function (expansion, port, altPower) {
-            if (expansion == slotSocket.slotInserted(EXPANSIONS_SLOTS[port || 0])) return;
-            slotSocket.insertSlot(expansion, EXPANSIONS_SLOTS[port || 0], altPower);
-            self.showOSD("Expansion " + (port === 1 ? "2" : "1") + ": " + (expansion ? expansion.rom.source : "EMPTY"), true);
+            var slot = EXPANSIONS_SLOTS[port || 0];
+            if (expansion == slotSocket.slotInserted(slot)) return;
+            slotSocket.insertSlot(expansion, slot, altPower);
+            cartridgeSocket.fireCartridgesStateUpdate();
+            self.showOSD("Expansion " + (port === 1 ? "2" : "1") + " (slot " + getSlotDesc(slot) + "): " + (expansion ? expansion.rom.source : "EMPTY"), true);
         };
         this.expansionInserted = function (port) {
             return slotSocket.slotInserted(EXPANSIONS_SLOTS[port || 0]);
@@ -885,7 +887,7 @@ wmsx.Machine = function() {
     // Disk Drive Socket  -----------------------------------------
 
     function DiskDriveSocket() {
-        this.connectDrive = function (pDrive) {
+        this.connectDrive = function (pDrive) {     // Multi Disk/Nextor drive
             drive = pDrive;
         };
         this.getDrive = function() {
@@ -895,16 +897,47 @@ wmsx.Machine = function() {
             // No power cycle by default if machine is on, only auto power on.
             if (!self.powerIsOn && !altPower) self.userPowerOn(false);
         };
-        this.dos2CartridgeConnected = function(cart) {
-            dos2Carts.add(cart);
+        this.diskInterfaceConnected = function(cart) {
+            diskInterfaces.add(cart);
+            this.fireInterfacesChangeUpdate();
         };
-        this.dos2CartridgeDisconnected = function(cart) {
-            dos2Carts.delete(cart);
+        this.diskInterfaceDisconnected = function(cart) {
+            diskInterfaces.delete(cart);
+            this.fireInterfacesChangeUpdate();
         };
-        this.isDOS2 = function() {
-            return dos2Carts.size > 0;
+        this.dos2ROMConnected = function(cart) {
+            dos2ROMs.add(cart);
         };
-        var dos2Carts = new Set();
+        this.dos2ROMDisconnected = function(cart) {
+            dos2ROMs.delete(cart);
+        };
+        this.nextorInterfaceConnected = function(cart) {
+            nextorInterfaces.add(cart);
+            this.fireInterfacesChangeUpdate();
+        };
+        this.nextorInterfaceDisconnected = function(cart) {
+            nextorInterfaces.delete(cart);
+            this.fireInterfacesChangeUpdate();
+        };
+        this.hasDiskInterface = function() {
+            return diskInterfaces.size > 0;
+        };
+        this.hasDOS2 = function() {
+            return dos2ROMs.size > 0 || nextorInterfaces.size > 0;
+        };
+        this.hasNextorInterface = function() {
+            return nextorInterfaces.size > 0;
+        };
+        this.setInterfacesChangeListener = function(list) {
+            interfacesChangeListener = list;
+            this.fireInterfacesChangeUpdate();
+        };
+        this.fireInterfacesChangeUpdate = function() {
+            if (interfacesChangeListener)
+                interfacesChangeListener.diskInterfacesStateUpdate(this.hasDiskInterface(), this.hasNextorInterface());
+        };
+        var diskInterfaces = new Set(), dos2ROMs = new Set(), nextorInterfaces = new Set();
+        var interfacesChangeListener;
         var drive;
     }
 

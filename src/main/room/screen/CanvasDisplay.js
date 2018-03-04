@@ -394,6 +394,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskNButton.style.backgroundPosition = "" + diskNButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskNMotor ? 2 : ( diskN ? 1 : 0 ))]) + "px";
     };
 
+    this.diskInterfacesStateUpdate = function(hasDiskInterface, hasNextorInterface) {
+        diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
+        diskBButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
+        diskNButton.classList.toggle("wmsx-hidden", !hasNextorInterface);
+    };
+
     this.extensionsAndCartridgesStateUpdate = function() {
         var cart1 = cartridgeSocket.cartridgeInserted(0);
         var cart2 = cartridgeSocket.cartridgeInserted(1);
@@ -469,6 +475,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             machine.getMachineControlsSocket().addPowerAndUserPauseStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
+            machine.getDiskDriveSocket().setInterfacesChangeListener(this);
             machine.getBIOSSocket().setMachineTurboModesStateListener(this);
         }
     };
@@ -1092,7 +1099,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             var opt = menu[i];
             if (opt.extension) {
                 opt.hidden = !extensionsSocket.isValid(opt.extension);
-                opt.checkedOp = extensionsSocket.getActiveCombinedOps(opt.extension);
+                opt.checkedOp = WMSX.EXTENSIONS[opt.extension];
+                opt.noOp2 = !WMSX.EXTENSIONS_CONFIG[opt.extension].OP2;
             }
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
@@ -1262,6 +1270,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
                         // Toggle
                         item.classList.toggle("wmsx-bar-menu-item-toggle", option.toggle !== undefined);
+                        item.classList.toggle("wmsx-no-op2", option.noOp2);
 
                         // Disabled?
                         if (option.disabled) {

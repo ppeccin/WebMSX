@@ -22,15 +22,14 @@ wmsx.ExtensionsSocket = function(machine) {
         this.fireExtensionsAndCartridgesStateUpdate();
     };
 
-    this.isActive = function(ext, op2) {
-        var loaded = slotSocket.slotInserted(op2 ? config[ext].OP2 : config[ext].OP1);
-        return !!loaded && loaded.format.name === config[ext].format;
+    this.isActiveOnConf = function(ext, op2) {
+        var op = config[ext].OP2 && op2 ? 2 : 1;
+        return (WMSX.EXTENSIONS[ext] & op) !== 0;
     };
 
-    this.getActiveCombinedOps = function(ext) {
-        var op = this.isActive(ext, false) ? 1 : 0;
-        op |= (config[ext].OP2 ? this.isActive(ext, true) : op) ? 2 : 0;
-        return op;
+    this.isActiveOnSlot = function(ext, op2) {
+        var loaded = slotSocket.slotInserted(op2 ? config[ext].OP2 : config[ext].OP1);
+        return !!loaded && loaded.format.name === config[ext].format;
     };
 
     this.isValid = function(ext) {
@@ -38,25 +37,25 @@ wmsx.ExtensionsSocket = function(machine) {
         return !regFlag || WMSX[regFlag];
     };
 
-    // TODO Fix. Toggling is broken for op1 only exts. Message is broken.
     this.toggleExtension = function (ext, altPower, secOp) {
         if (config[ext] === undefined) return;
         var hasOp2 = !!config[ext].OP2;
-        secOp = secOp && hasOp2;
+        var both = hasOp2 && !config[ext].toggle;
+        secOp = secOp && hasOp2;        // Alternate toggling focused on op2
 
         var newOp = 0;
 
-        console.log(this.getActiveCombinedOps(ext));
+        //console.log(ext, WMSX.EXTENSIONS[ext]);
 
-        switch (this.getActiveCombinedOps(ext)) {
-            case 0: newOp = 1; break;
-            case 1: newOp = hasOp2 ? 2 : 0; break;
-            case 2: newOp = hasOp2 && config[ext].both ? 3 : 0; break;
-            case 3: newOp = 0; break;
+        switch (WMSX.EXTENSIONS[ext] || 0) {
+            case 0: newOp = secOp ? 2 : 1; break;
+            case 1: newOp = hasOp2 ? secOp && both ? 3 : 2 : 0; break;
+            case 2: newOp = both ? secOp || !both ? 0 : 3 : 0; break;
+            case 3: newOp = secOp ? 1 : 0; break;
         }
 
-        updateExtension(ext, (newOp & 1) !== 0, false);
-        updateExtension(ext, (newOp & 2) !== 0, true);
+        updateExtensionOnConf(ext, (newOp & 1) !== 0, false);
+        if (hasOp2) updateExtensionOnConf(ext, (newOp & 2) !== 0, true);
 
         var powerWasOn = machine.powerIsOn;
         if (!altPower && powerWasOn) machine.powerOff();
@@ -66,7 +65,7 @@ wmsx.ExtensionsSocket = function(machine) {
             if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed) {
-                var mes = config[ext].desc + " Extension " + (newOp ? "enabled at slot " + machine.getSlotSocket().getSlotDesc(secOp ? config[ext].OP2 : config[ext].OP1) : "disabled");
+                var mes = config[ext].desc + " Extension " + (newOp ? "enabled at " + (newOp === 3 ? "both slots" : "slot " + machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2 : config[ext].OP1)) : "disabled");
                 machine.showOSD(mes, true);
                 console.log(mes);
             }
@@ -93,15 +92,15 @@ wmsx.ExtensionsSocket = function(machine) {
         for (var ext in config) {
             var conf = config[ext];
             if (WMSX.EXTENSIONS[ext] & 1) {
-                if (!self.isActive(ext, false)) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext, false));
+                if (!self.isActiveOnSlot(ext, false)) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext, false));
             } else {
-                if (self.isActive(ext, false)) toRemoveSlots.push(conf.OP1);
+                if (self.isActiveOnSlot(ext, false)) toRemoveSlots.push(conf.OP1);
             }
             if (conf.OP2) {
                 if (WMSX.EXTENSIONS[ext] & 2) {
-                    if (!self.isActive(ext, true)) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext, true));
+                    if (!self.isActiveOnSlot(ext, true)) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext, true));
                 } else {
-                    if (self.isActive(ext, true)) toRemoveSlots.push(conf.OP2);
+                    if (self.isActiveOnSlot(ext, true)) toRemoveSlots.push(conf.OP2);
                 }
             }
         }
@@ -127,45 +126,46 @@ wmsx.ExtensionsSocket = function(machine) {
 
     function refreshConfigFromSlots() {
         for (var ext in config) {
-            var state = self.isActive(ext, false) ? 1 : 0;
-            state |= (config[ext].OP2 && self.isActive(ext, true)) ? 2 : 0;
+            var state = self.isActiveOnSlot(ext, false) ? 1 : 0;
+            state |= (config[ext].OP2 && self.isActiveOnSlot(ext, true)) ? 2 : 0;
             WMSX.EXTENSIONS[ext] = state;
         }
     }
 
-    function updateExtension(ext, val, op2, stopRecursion) {
+    function updateExtensionOnConf(ext, val, op2, stopRecursion) {
         op2 = op2 && !!config[ext].OP2;
-        if (self.isActive(ext, op2) === val) return;
+        if (self.isActiveOnConf(ext, op2) === val) return;
 
-        console.log("Update ext: ", ext, val, "op2:", op2);
+        //console.log("Update ext: ", ext, val, "op2:", op2);
 
         WMSX.EXTENSIONS[ext] ^= (op2 ? 2 : 1);
 
         if (stopRecursion) return;
 
         var conf = config[ext];
+        if (conf.mutual) updateExtensionOnConf(conf.mutual, !val, op2, true);
         if (val) {
             // Activate or Deactivate on same op
             if (conf.change)
-                for (var c in conf.change) updateExtension(c, !!conf.change[c], op2, true);
+                for (var c in conf.change) updateExtensionOnConf(c, !!conf.change[c], op2, true);
             // Toggle options with partner extension if activated
-            if (conf.toggleOp) {
-                c = conf.toggleOp;
-                if (self.isActive(c, op2)) {
-                    updateExtension(c, false, op2, true);
-                    if (!self.isActive(ext, !op2)) updateExtension(c, true, !op2, true);     // only if we are not there too!
+            if (conf.toggle) {
+                c = conf.toggle;
+                if (self.isActiveOnConf(c, op2)) {
+                    updateExtensionOnConf(c, false, op2, true);
+                    if (!self.isActiveOnConf(ext, !op2)) updateExtensionOnConf(c, true, !op2, true);     // only if we are not there too!
                 }
             }
             // Activate others that we require
-            if (conf.require)
-                for (var r = 0, req = conf.require.split(","); r < req.length; ++r) updateExtension(req[r].trim(), true, op2, false);
+            //if (conf.require)
+            //    for (var r = 0, req = conf.require.split(","); r < req.length; ++r) updateExtensionOnConf(req[r].trim(), true, op2, false);
         } else {
             // Deactivate others that require this
-            for (var dep in config)
-                if (config[dep].require && config[dep].require.indexOf(ext) >= 0) {
-                    updateExtension(dep, false, false, false);
-                    updateExtension(dep, false, true, false);
-                }
+            //for (var dep in config)
+            //    if (config[dep].require && config[dep].require.indexOf(ext) >= 0) {
+            //        updateExtensionOnConf(dep, false, false, false);
+            //        updateExtensionOnConf(dep, false, true, false);
+            //    }
         }
     }
 

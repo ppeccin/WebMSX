@@ -5,10 +5,6 @@ wmsx.MachineTypeSocket = function(machine) {
 
     var self = this;
 
-    this.isActive = function(name) {
-        return machine.machineName == name;
-    };
-
     this.getMachine = function() {
         return machine.machineName;
     };

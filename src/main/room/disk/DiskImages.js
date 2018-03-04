@@ -436,7 +436,7 @@ wmsx.DiskImages = function() {
 
     this.formatDisk = function (mediaType, content) {
         // Write Boot Sector
-        var bootSector = diskDriveSocket.isDOS2() ? this.MEDIA_TYPE_BOOT_SECTOR_DOS2[mediaType] : this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType];
+        var bootSector = diskDriveSocket.hasDOS2() ? this.MEDIA_TYPE_BOOT_SECTOR_DOS2[mediaType] : this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType];
         for (var b = 0; b < bootSector.length; ++b) content[b] = bootSector[b];
 
         var bytesPerSector = bootSector[0x0b] | (bootSector[0x0c] << 8);

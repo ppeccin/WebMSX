@@ -17,10 +17,12 @@ wmsx.CartridgeDiskPatched = function(rom) {
     this.connect = function(machine) {
         driver = new wmsx.ImageDiskDriver();
         driver.connect(this, machine);
+        machine.getDiskDriveSocket().diskInterfaceConnected(this);
     };
 
     this.disconnect = function(machine) {
         if (driver) driver.disconnect(this, machine);
+        machine.getDiskDriveSocket().diskInterfaceDisconnected(this);
     };
 
     this.powerOff = function() {
