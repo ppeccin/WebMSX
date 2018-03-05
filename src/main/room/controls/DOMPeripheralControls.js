@@ -158,7 +158,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.NEXTOR_REMOVE:
                 if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(2);
                 break;
-            case pc.NEXTOR_EMPTY:
+            case pc.NEXTOR_NEW_EMPTY:
                 diskDrive.insertNewDisk(2);
                 break;
             case pc.NEXTOR_SAVE_FILE:
@@ -482,7 +482,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
         pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360,
-        pc.NEXTOR_LOAD_FILE, pc.NEXTOR_LOAD_URL, pc.NEXTOR_EMPTY, pc.NEXTOR_SAVE_FILE, pc.NEXTOR_REMOVE,
+        pc.NEXTOR_LOAD_FILE, pc.NEXTOR_LOAD_URL, pc.NEXTOR_NEW_EMPTY, pc.NEXTOR_SAVE_FILE, pc.NEXTOR_REMOVE,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL

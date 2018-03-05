@@ -192,12 +192,12 @@ wmsx.FileDiskDrive = function(room) {
         var quant = checkContentIsValidImages(file.content, anySize);
         if (quant) {
             var name = file.name.split("/").pop();
-            if (quant === 1) return [{ name: name, content: wmsx.Util.asNormalArray(file.content) }];
+            if (quant === 1) return [{ name: name, content: file.content }];    // Using content directly now. Was: wmsx.Util.asNormalArray(file.content)
 
             var disks = new Array(quant);
             var size = (file.content.length / quant) | 0;
             for (var i = 0, pos = 0; i < quant; ++i, pos += size)
-                disks[i] = { name: name + (i+1), content: wmsx.Util.asNormalArray(file.content, pos, size) };
+                disks[i] = { name: name + (i+1), content: file.content.slice(pos, pos + size) };    // Using content directly now. Was wmsx.Util.asNormalArray(file.content, pos, size)*/
             return disks;
         }
 
