@@ -569,4 +569,12 @@ wmsx.DiskImages = function() {
         0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
     };
 
+    this.NEXTOR_SIZES_INFO = {
+        "16":  { fat1: 0x200, fat2:   0x800, fat: 12, header: "@Disk16MHead.dat" },
+        "32":  { fat1: 0x200, fat2:  0x1a00, fat: 12, header: "@Disk32MHead.dat" },
+        "64":  { fat1: 0x400, fat2: 0x10400, fat: 16, header: "@Disk64MHead.dat" },
+        "128": { fat1: 0x400, fat2: 0x20400, fat: 16, header: "@Disk128MHead.dat" }
+    };
+
+
 };

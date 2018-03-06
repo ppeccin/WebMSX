@@ -54,12 +54,17 @@ wmsx.CompressedSystemFilesGenerator.fileList = [
     "[DiskPatch].rom",
     "[Nextor16Patch].rom",
     "[MSXMUSIC].rom",
-    // "[MSXDOS2]v22.rom",      // No more since Nextor
+    // "[MSXDOS2]v22.rom",      // No more since Nextor support
     "[Empty].rom",
     "[RAMNormal].rom",
     "[RAMMapper].rom",
     "[SCCExpansion].rom",
     "[SCCIExpansion].rom",
     "[PACExpansion].rom",
-    "Nextor.dsk"
+    "Disk16MHeader.dat",
+    "Disk32MHeader.dat",
+    "Disk64MHeader.dat",
+    "Disk128MHeader.dat",
+    "DOS1Boot.zip",
+    "NextorBoot.zip"
 ];
