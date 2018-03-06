@@ -205,7 +205,7 @@ wmsx.ImageDiskDriver = function() {
 
         var mediaType = drive.FORMAT_OPTIONS_MEDIA_TYPES[f];
 
-        drive.insertNewDisk(d, mediaType, true);    // unformatted
+        drive.insertNewDisk(d, mediaType, false, true);    // not boot disk, unformatted
 
         drive.motorOn(d);
         drive.formatCurrentDisk(d, mediaType);

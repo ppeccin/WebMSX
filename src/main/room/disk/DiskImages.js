@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DiskImages = function() {
+wmsx.DiskImages = function(room) {
 "use strict";
 
     this.connect = function(pDiskDriveSocket) {
@@ -424,17 +424,21 @@ wmsx.DiskImages = function() {
 
     };
 
-    this.createNewBlankDisk = function (mediaType) {
-        return wmsx.Util.arrayFill(new Array(this.MEDIA_TYPE_INFO[mediaType].size), 0);
-    };
-
-    this.createNewFormattedDisk = function (mediaType) {
-        var content = this.createNewBlankDisk(mediaType);
-        this.formatDisk(mediaType, content);
+    this.createNewDisk = function (mediaType, boot, unformatted) {
+        var content = new Uint8Array(this.MEDIA_TYPE_INFO[mediaType].size);
+        if (!unformatted) {
+            this.formatDisk(mediaType, content);
+            //if (boot) this.makeBootDisk(mediaType, content);
+        }
         return content;
     };
 
     this.formatDisk = function (mediaType, content) {
+        if (this.NEXTOR_MEDIA_TYPE_HEADER_INFO[mediaType]) this.formatNextorDisk(mediaType, content);
+        else this.formatFloppyDisk(mediaType, content);
+    };
+
+    this.formatFloppyDisk = function (mediaType, content) {
         // Write Boot Sector
         var bootSector = diskDriveSocket.hasDOS2() ? this.MEDIA_TYPE_BOOT_SECTOR_DOS2[mediaType] : this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType];
         for (var b = 0; b < bootSector.length; ++b) content[b] = bootSector[b];
@@ -466,18 +470,46 @@ wmsx.DiskImages = function() {
         }
     };
 
+    this.formatNextorDisk = function (mediaType, content) {
+        var info = this.NEXTOR_MEDIA_TYPE_HEADER_INFO[mediaType];
+        new wmsx.MultiDownloader(
+            [{ url: info.header }],
+            function onAllSuccess(urls) {
+                // Header (PartitionTable + BootSector)
+                var header = urls[0].content;
+                wmsx.Util.arrayCopy(header, 0, content);
+                // FATs data
+                var data = info.fatData;
+                for (var f in info.fatsPos) {
+                    var pos = info.fatsPos[f];
+                    content[pos] = data & 0xff;
+                    content[pos + 1] = (data >> 8) & 0xff;
+                    content[pos + 2] = (data >> 16) & 0xff;
+                    content[pos + 3] = (data >> 24) & 0xff;
+                }
+            }
+        ).start();      // Synchronous
+    };
+
+    this.makeBootDisk = function (drive) {
+        var urls = [{ url: "@DOS1Boot.zip" }];
+        if (diskDriveSocket.hasNextorInterface()) urls.push({ url: "@NextorBoot.zip" });
+        new wmsx.MultiDownloader(
+            urls,
+            function onAllSuccess(urls) {
+                room.fileLoader.loadFromContent("Boot", urls[0].content, room.fileLoader.OPEN_TYPE.AUTO_AS_DISK, drive, true, false, null);
+                if (urls[1]) room.fileLoader.loadFromContent("Boot", urls[1].content, room.fileLoader.OPEN_TYPE.AUTO_AS_DISK, drive, true, false, null);
+            }
+        ).start();      // Synchronous
+    };
+
 
     var diskDriveSocket;
 
-
     this.BYTES_PER_SECTOR = 512;
 
-    this.FORMAT_OPTIONS_MEDIA_TYPES = [0xF9, 0xF8];
-
-    // IMPORTANT: In reverse order of size
-    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
-
     this.MEDIA_TYPE_INFO = {
+        // Floppy Disks
         0xF8: { desc: "360KB", size: 368640 },
         0xF9: { desc: "720KB", size: 737280 },
         0xFA: { desc: "320KB", size: 327680 },
@@ -485,8 +517,19 @@ wmsx.DiskImages = function() {
         0xFC: { desc: "180KB", size: 184320 },
         0xFD: { desc: "360KB", size: 368640 },
         0xFE: { desc: "160KB", size: 163840 },
-        0xFF: { desc: "320KB", size: 327680 }
+        0xFF: { desc: "320KB", size: 327680 },
+        // Nextor Disks
+        16:   { desc: "16MB",  size: 16777216 },
+        32:   { desc: "32MB",  size: 33554432 },
+        64:   { desc: "64MB",  size: 67108864 },
+        128:  { desc: "128MB", size: 134217728 }
     };
+
+    this.FORMAT_OPTIONS_MEDIA_TYPES = [ 0xF9, 0xF8 ];
+    this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = [ 16, 32, 64, 128 ];
+
+    // IMPORTANT: In reverse order of size
+    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
 
     this.MEDIA_TYPE_BOOT_SECTOR_DOS1 = {
         0xF9: [
@@ -569,12 +612,11 @@ wmsx.DiskImages = function() {
         0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
     };
 
-    this.NEXTOR_SIZES_INFO = {
-        "16":  { fat1: 0x200, fat2:   0x800, fat: 12, header: "@Disk16MHead.dat" },
-        "32":  { fat1: 0x200, fat2:  0x1a00, fat: 12, header: "@Disk32MHead.dat" },
-        "64":  { fat1: 0x400, fat2: 0x10400, fat: 16, header: "@Disk64MHead.dat" },
-        "128": { fat1: 0x400, fat2: 0x20400, fat: 16, header: "@Disk128MHead.dat" }
+    this.NEXTOR_MEDIA_TYPE_HEADER_INFO = {
+        16:  { fatsPos: [ 0x200,   0x800 ], fatData: [ 0x00fffff0 ], header: "@Disk16MHeader.dat" },
+        32:  { fatsPos: [ 0x200,  0x1a00 ], fatData: [ 0x00fffff0 ], header: "@Disk32MHeader.dat" },
+        64:  { fatsPos: [ 0x400, 0x10400 ], fatData: [ 0xfffffff0 ], header: "@Disk64MHeader.dat" },
+        128: { fatsPos: [ 0x400, 0x20400 ], fatData: [ 0xfffffff0 ], header: "@Disk128MHeader.dat" }
     };
-
 
 };

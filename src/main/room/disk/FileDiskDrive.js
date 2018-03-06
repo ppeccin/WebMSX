@@ -54,7 +54,7 @@ wmsx.FileDiskDrive = function(room) {
 
         // Writes on the current disk or create a new one?
         var currentContent = drive === 2 && this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;    // Nextor aways writes to current if any
-        var newContent = currentContent || images.createNewFormattedDisk(0xF9);
+        var newContent = currentContent || images.createNewDisk(0xF9);
 
         try {
             var suc = images.writeFilesToImage(newContent, files);
@@ -81,16 +81,16 @@ wmsx.FileDiskDrive = function(room) {
         loadStack(drive, deserializeStack(stackContent), type, altPower, add);
     };
 
-    this.insertNewDisk = function(drive, mediaType, unformatted) {
-        // Choose a default format options if no mediaType given
-        if (!mediaType) {
-            mediaType = this.FORMAT_OPTIONS_MEDIA_TYPES[0];
-        }
+    this.insertNewDisk = function(drive, mediaType, boot, unformatted) {
+        // Choose a default format option if no mediaType given
+        if (!mediaType) mediaType = drive === 2 ? this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[0] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
 
-        if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 11, d: drive, m: mediaType, u: unformatted });
+        if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 11, d: drive, m: mediaType, b: boot, u: unformatted });
+
+        var info = this.MEDIA_TYPE_INFO[mediaType];
 
         var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
-        var content = unformatted ? images.createNewBlankDisk(mediaType) : images.createNewFormattedDisk(mediaType);
+        var content = images.createNewDisk(mediaType, boot, unformatted);
 
         // Add a new disk to the stack?
         var add = driveStack[drive].length === 0 || (drive !== 2 && !driveBlankDiskAdded[drive]);    // Only add 1 disk to loaded stacks, always to the bottom. Nextor never adds
@@ -99,6 +99,8 @@ wmsx.FileDiskDrive = function(room) {
         curDisk[drive] = driveStack[drive].length - 1;
         replaceCurrentDisk(drive, fileName, content);
         driveBlankDiskAdded[drive] = true;
+
+        if (boot) images.makeBootDisk(drive);
 
         add = add && driveStack[drive].length > 1;
         screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
@@ -480,7 +482,7 @@ wmsx.FileDiskDrive = function(room) {
         return eval(str);
     };
 
-    var images = new wmsx.DiskImages();
+    var images = new wmsx.DiskImages(room);
 
     var screen;
     var fileDownloader;
@@ -507,10 +509,11 @@ wmsx.FileDiskDrive = function(room) {
     var MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
     var MEDIA_TYPE_VALID_SIZES_SET = new Set(MEDIA_TYPE_VALID_SIZES);
 
-    this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
-
+    this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
+    this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = images.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES;
+    this.NEXTOR_MEDIA_TYPE_HEADER_INFO = images.NEXTOR_MEDIA_TYPE_HEADER_INFO;
 
     init();
 

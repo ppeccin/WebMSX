@@ -3,7 +3,7 @@
 wmsx.EmbeddedSystemFiles = {
 
     embedFiles: function () {
-        // Compressed ROMs
+        // Compressed ROMs and other files
         for (var f in wmsx.CompressedSystemFiles) wmsx.EmbeddedFiles.embedFileCompressedContent(f, wmsx.CompressedSystemFiles[f]);
         delete wmsx.CompressedSystemFiles;
 

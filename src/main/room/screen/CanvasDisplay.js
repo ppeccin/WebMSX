@@ -827,8 +827,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
-            { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_NEW_EMPTY },
-            { label: "New Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_NEW_BOOT },
+            { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
+            { label: "New Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_BOOT },
             { label: "Add Files to Disk",              control: wmsx.PeripheralControls.NEXTOR_LOAD_FILES_AS_DISK, needsUIG: true },
             { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.NEXTOR_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_SAVE_FILE, disabled: true, needsUIG: true },
