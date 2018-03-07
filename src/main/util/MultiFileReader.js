@@ -29,6 +29,7 @@ wmsx.MultiFileReader = function (files, onAllSuccess, onFirstError, maxTotalSize
         reader.onload = function (event) {
             file.success = true;
             file.content = new Uint8Array(event.target.result);
+            // console.log("SUCCESS:", file.name);
             checkFinish();
         };
         reader.onerror = function (event) {

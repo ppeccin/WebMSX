@@ -503,18 +503,30 @@ wmsx.DiskImages = function(room) {
         ).start();      // Synchronous
     };
 
-    // TODO Implement considering cluster size and directories size
-    this.totalFilesSizeOnDisk = function(files) {
-        return 500 * 1024;
-    };
-
-    this.nextorMediaTypeForSize = function(size) {
+    // Estimated 30% free space left
+    this.nextorMediaTypeNeededForFiles = function(files) {
+        // console.log("FILES:", window.F = files);
         var mediaType;
         for (var i = 0, len = this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES.length; i < len; ++i) {
             mediaType = this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[i];
-            if (this.MEDIA_TYPE_INFO[mediaType].size > size) break;
+            var size = this.estimatedTotalSizeOnDisk(files, mediaType);
+            if (this.MEDIA_TYPE_INFO[mediaType].size > size * 1.3) break;
         }
         return mediaType;
+    };
+
+    this.estimatedTotalSizeOnDisk = function(files, mediaType) {
+        var clusterSize = this.MEDIA_TYPE_INFO[mediaType].clusterSize;
+        var total = 0;
+        for (var f = 0, len = files.length; f < len; ++f) {
+            var file = files[f];
+            if (file.isDir) {
+                total += Math.ceil(file.items.length * 32 / clusterSize) * clusterSize;
+                total += this.estimatedTotalSizeOnDisk(file.items, mediaType);
+            } else
+                total += Math.ceil(file.content.length / clusterSize) * clusterSize;
+        }
+        return total;
     };
 
 
@@ -524,19 +536,19 @@ wmsx.DiskImages = function(room) {
 
     this.MEDIA_TYPE_INFO = {
         // Floppy Disks
-        0xF8: { desc: "360KB", size: 368640 },
-        0xF9: { desc: "720KB", size: 737280 },
-        0xFA: { desc: "320KB", size: 327680 },
-        0xFB: { desc: "640KB", size: 655360 },
-        0xFC: { desc: "180KB", size: 184320 },
-        0xFD: { desc: "360KB", size: 368640 },
-        0xFE: { desc: "160KB", size: 163840 },
-        0xFF: { desc: "320KB", size: 327680 },
+        0xF8: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
+        0xF9: { desc: "720KB", size: 737280,    clusterSize:  2 * 512 },
+        0xFA: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
+        0xFB: { desc: "640KB", size: 655360,    clusterSize:  2 * 512 },
+        0xFC: { desc: "180KB", size: 184320,    clusterSize:  1 * 512 },
+        0xFD: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
+        0xFE: { desc: "160KB", size: 163840,    clusterSize:  1 * 512 },
+        0xFF: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
         // Nextor Disks
-        16:   { desc: "16MB",  size: 16777216 },
-        32:   { desc: "32MB",  size: 33554432 },
-        64:   { desc: "64MB",  size: 67108864 },
-        128:  { desc: "128MB", size: 134217728 }
+        16:   { desc: "16MB",  size: 16777216,  clusterSize: 32 * 512 },
+        32:   { desc: "32MB",  size: 33554432,  clusterSize: 16 * 512 },
+        64:   { desc: "64MB",  size: 67108864,  clusterSize:  4 * 512 },
+        128:  { desc: "128MB", size: 134217728, clusterSize:  4 * 512 }
     };
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = [ 0xF9, 0xF8 ];

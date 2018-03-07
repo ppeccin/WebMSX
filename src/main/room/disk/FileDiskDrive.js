@@ -48,13 +48,19 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
+        // TODO NetPlay
         // Writes on the current disk or create a new one?
         var content;
         var curDisk = getCurrentDisk(drive);
         if (curDisk) {
             content = curDisk.content;
         } else {
-            var mediaType = drive === 2 ? images.nextorMediaTypeForSize(images.totalFilesSizeOnDisk(files)) : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+            try {
+                var mediaType = drive === 2 ? images.nextorMediaTypeNeededForFiles(files) : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+            } catch (e) {
+                console.error(e);
+                mediaType = drive === 2 ? this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[1] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+            }
             content = images.createNewDisk(mediaType);
         }
 
