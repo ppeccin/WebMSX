@@ -49,25 +49,31 @@ wmsx.FileDiskDrive = function(room) {
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
         // Writes on the current disk or create a new one?
-        var currentContent = this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;
-        var newContent = currentContent || images.createNewDisk(0xF9);  // TODO Calculate size for Nextor
+        var content;
+        var curDisk = getCurrentDisk(drive);
+        if (curDisk) {
+            content = curDisk.content;
+        } else {
+            var mediaType = drive === 2 ? images.nextorMediaTypeForSize(images.totalFilesSizeOnDisk(files)) : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+            content = images.createNewDisk(mediaType);
+        }
 
         try {
-            var suc = images.writeFilesToImage(newContent, files);
+            var suc = images.writeFilesToImage(content, files);
             if (!suc) return;
         } catch (e) {
             console.error(e);
             throw e;
         }
 
-        if (currentContent) {
+        if (curDisk) {
             screen.showOSD("Files written to current disk", true);
             driveDiskChanged[drive] = true;
             return this.getDriveStack(drive);
         } else {
             type = type || "Files as Disk";
             name = name || ("New " + type + ".dsk");
-            var stack = [{name: name, content: newContent}];
+            var stack = [{name: name, content: content}];
             loadStack(drive, stack, type, altPower);
             return stack;
         }

@@ -503,6 +503,20 @@ wmsx.DiskImages = function(room) {
         ).start();      // Synchronous
     };
 
+    // TODO Implement considering cluster size and directories size
+    this.totalFilesSizeOnDisk = function(files) {
+        return 500 * 1024;
+    };
+
+    this.nextorMediaTypeForSize = function(size) {
+        var mediaType;
+        for (var i = 0, len = this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES.length; i < len; ++i) {
+            mediaType = this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[i];
+            if (this.MEDIA_TYPE_INFO[mediaType].size > size) break;
+        }
+        return mediaType;
+    };
+
 
     var diskDriveSocket;
 
