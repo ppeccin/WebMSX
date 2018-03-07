@@ -119,11 +119,8 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.DISK_EMPTY:
                 diskDrive.insertNewDisk(port);
                 break;
-            case pc.DISK_EMPTY_720:
-                diskDrive.insertNewDisk(port, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[0]);
-                break;
-            case pc.DISK_EMPTY_360:
-                diskDrive.insertNewDisk(port, diskDrive.FORMAT_OPTIONS_MEDIA_TYPES[1]);
+            case pc.DISK_BOOT:
+                diskDrive.insertNewDisk(port, null, true);
                 break;
             case pc.DISK_SAVE_FILE:
                 diskDrive.saveDiskFile(port);
@@ -484,7 +481,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
-        pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360,
+        pc.DISK_EMPTY, pc.DISK_BOOT,
         pc.NEXTOR_LOAD_FILE, pc.NEXTOR_LOAD_URL, pc.NEXTOR_LOAD_FILES_AS_DISK, pc.NEXTOR_LOAD_ZIP_AS_DISK, pc.NEXTOR_SAVE_FILE,
         pc.NEXTOR_EMPTY, pc.NEXTOR_BOOT,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
@@ -492,8 +489,9 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
     ]);
 
+    // TODO Verify
     var netClientSendToServerControls = new Set([
-        pc.DISK_EMPTY, pc.DISK_EMPTY_720, pc.DISK_EMPTY_360
+        pc.DISK_EMPTY, pc.DISK_BOOT, pc.NEXTOR_EMPTY, pc.NEXTOR_BOOT
     ]);
 
     var netLocalImmediateControls = new Set([

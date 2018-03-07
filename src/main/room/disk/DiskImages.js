@@ -3,6 +3,8 @@
 wmsx.DiskImages = function(room) {
 "use strict";
 
+    var self = this;
+
     this.connect = function(pDiskDriveSocket) {
         diskDriveSocket = pDiskDriveSocket;
     };
@@ -424,12 +426,9 @@ wmsx.DiskImages = function(room) {
 
     };
 
-    this.createNewDisk = function (mediaType, boot, unformatted) {
+    this.createNewDisk = function (mediaType, unformatted) {
         var content = new Uint8Array(this.MEDIA_TYPE_INFO[mediaType].size);
-        if (!unformatted) {
-            this.formatDisk(mediaType, content);
-            //if (boot) this.makeBootDisk(mediaType, content);
-        }
+        if (!unformatted) this.formatDisk(mediaType, content);
         return content;
     };
 
@@ -491,14 +490,15 @@ wmsx.DiskImages = function(room) {
         ).start();      // Synchronous
     };
 
-    this.makeBootDisk = function (drive) {
+    this.makeBootDisk = function (content) {
         var urls = [{ url: "@DOS1Boot.zip" }];
         if (diskDriveSocket.hasNextorInterface()) urls.push({ url: "@NextorBoot.zip" });
         new wmsx.MultiDownloader(
             urls,
             function onAllSuccess(urls) {
-                room.fileLoader.loadFromContent("Boot", urls[0].content, room.fileLoader.OPEN_TYPE.AUTO_AS_DISK, drive, true, false, null);
-                if (urls[1]) room.fileLoader.loadFromContent("Boot", urls[1].content, room.fileLoader.OPEN_TYPE.AUTO_AS_DISK, drive, true, false, null);
+                if (urls[1])
+                    self.writeFilesToImage(content, room.fileLoader.createTreeFromZip(wmsx.Util.checkContentIsZIP(urls[1].content)));      // throws
+                self.writeFilesToImage(content, room.fileLoader.createTreeFromZip(wmsx.Util.checkContentIsZIP(urls[0].content)));          // throws
             }
         ).start();      // Synchronous
     };

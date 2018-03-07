@@ -48,13 +48,9 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
-        // Nextor Device never adds to stack, always replaces
-        if (drive === 2) addToStack = false;
-        else if (addToStack && maxStackReachedMessage(drive)) return [];
-
         // Writes on the current disk or create a new one?
-        var currentContent = drive === 2 && this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;    // Nextor aways writes to current if any
-        var newContent = currentContent || images.createNewDisk(0xF9);
+        var currentContent = this.isDiskInserted(drive) ? getCurrentDisk(drive).content : undefined;
+        var newContent = currentContent || images.createNewDisk(0xF9);  // TODO Calculate size for Nextor
 
         try {
             var suc = images.writeFilesToImage(newContent, files);
@@ -72,7 +68,7 @@ wmsx.FileDiskDrive = function(room) {
             type = type || "Files as Disk";
             name = name || ("New " + type + ".dsk");
             var stack = [{name: name, content: newContent}];
-            loadStack(drive, stack, type, altPower, addToStack);
+            loadStack(drive, stack, type, altPower);
             return stack;
         }
     };
@@ -82,6 +78,8 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.insertNewDisk = function(drive, mediaType, boot, unformatted) {
+        if (drive !== 2 && maxStackReachedMessage(drive)) return;
+
         // Choose a default format option if no mediaType given
         if (!mediaType) mediaType = drive === 2 ? this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[0] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
 
@@ -89,21 +87,20 @@ wmsx.FileDiskDrive = function(room) {
 
         var info = this.MEDIA_TYPE_INFO[mediaType];
 
-        var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + " Disk.dsk";
-        var content = images.createNewDisk(mediaType, boot, unformatted);
+        var fileName = "New " + this.MEDIA_TYPE_INFO[mediaType].desc + (boot ? " Boot" : "") + " Disk.dsk";
+        var content = images.createNewDisk(mediaType, unformatted);
 
         // Add a new disk to the stack?
-        var add = driveStack[drive].length === 0 || (drive !== 2 && !driveBlankDiskAdded[drive]);    // Only add 1 disk to loaded stacks, always to the bottom. Nextor never adds
+        var add = driveStack[drive].length === 0 || drive !== 2;    // Add 1 disk to loaded stacks, always to the bottom. Nextor never adds
         if (add) driveStack[drive].push({});
 
         curDisk[drive] = driveStack[drive].length - 1;
         replaceCurrentDisk(drive, fileName, content);
-        driveBlankDiskAdded[drive] = true;
 
-        if (boot) images.makeBootDisk(drive);
+        if (boot) images.makeBootDisk(content);
 
         add = add && driveStack[drive].length > 1;
-        screen.showOSD((add ? "New " : "") + "Blank" + (!unformatted ? " Formatted" : "") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
+        screen.showOSD((add ? "New " : "") + (boot ? "Boot" : "Blank") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
 
         if (add && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, true);
     };
@@ -231,7 +228,6 @@ wmsx.FileDiskDrive = function(room) {
             if (!getCurrentDisk(drive)) setCurrentDiskNum(drive, 0);
         } else {
             driveStack[drive] = stack;
-            driveBlankDiskAdded[drive] = false;
             setCurrentDiskNum(drive, 0);
         }
         stackLoadedMessage(drive, type, stack.length, add);
@@ -459,7 +455,6 @@ wmsx.FileDiskDrive = function(room) {
         return {
             s: [ serializeStack(driveStack[0]), serializeStack(driveStack[1]) ],
             c: curDisk,
-            b: driveBlankDiskAdded,
             g: driveDiskChanged,
             m: driveMotor
         };
@@ -470,7 +465,6 @@ wmsx.FileDiskDrive = function(room) {
         deserializeStack(state.s[0], driveStack[0]);
         deserializeStack(state.s[1], driveStack[1]);
         curDisk = state.c;
-        driveBlankDiskAdded = state.b;
         driveDiskChanged = state.g;
         driveMotor = state.m;
         fireMediaStateUpdate(0); fireMediaStateUpdate(1);
@@ -490,8 +484,6 @@ wmsx.FileDiskDrive = function(room) {
 
     var driveStack   = [[], [], []];                    // Several disks can be loaded for each Floppy drive, just one for Nextor Device
     var curDisk      = [0, 0, 0];                       // Current disk from stack inserted in drive
-
-    var driveBlankDiskAdded = [ false, false, false ];
 
     var driveDiskChanged    = [ null, null, null ];     // true = yes, false = no, null = unknown
     var driveMotor          = [ false, false, false ];

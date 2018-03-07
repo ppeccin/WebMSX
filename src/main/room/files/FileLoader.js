@@ -206,10 +206,10 @@ wmsx.FileLoader = function() {
     };
 
     function tryLoadZipAsDisk(name, zip, port, altPower, asExpansion) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, name, createTreeFromZip(zip), altPower, asExpansion, "ZIP as Disk");    // throws
+        return diskDrive.loadAsDiskFromFiles(port, name, self.createTreeFromZip(zip), altPower, asExpansion, "ZIP as Disk");    // throws
     }
 
-    function tryLoadFilesAsDisk (files, port, altPower, asExpansion) {     // throws
+    function tryLoadFilesAsDisk (files, port, altPower, asExpansion) {      // throws
         var name = files.length !== 1 ? null : wmsx.Util.leafFilename(files[0].name);
         return diskDrive.loadAsDiskFromFiles(port, name, files, altPower, asExpansion, "Files as Disk");     // throws
     }
@@ -282,7 +282,7 @@ wmsx.FileLoader = function() {
         return true;
     }
 
-    function createTreeFromZip(zip) {     // throws
+    this.createTreeFromZip = function (zip) {     // throws
         // Build file tree structure as required by image creator
         var rootDir = [];
 
@@ -339,7 +339,7 @@ wmsx.FileLoader = function() {
                 dir.push(file);
             }
         }
-    }
+    };
 
     function onFileInputChange(e) {
         e.returnValue = false;  // IE
