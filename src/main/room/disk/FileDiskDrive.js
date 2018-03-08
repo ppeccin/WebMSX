@@ -485,7 +485,7 @@ wmsx.FileDiskDrive = function(room) {
     this.saveState = function() {
         // TODO New drive 2
         return {
-            s: [ serializeStack(driveStack[0]), serializeStack(driveStack[1]) ],
+            s: [ serializeStack(driveStack[0]), serializeStack(driveStack[1]), serializeStack(driveStack[2]) ],
             c: curDisk,
             g: driveDiskChanged,
             m: driveMotor
@@ -496,6 +496,7 @@ wmsx.FileDiskDrive = function(room) {
         // TODO New drive 2
         deserializeStack(state.s[0], driveStack[0]);
         deserializeStack(state.s[1], driveStack[1]);
+        if (state.s[2]) deserializeStack(state.s[2], driveStack[2]);
         curDisk = state.c;
         driveDiskChanged = state.g;
         driveMotor = state.m;

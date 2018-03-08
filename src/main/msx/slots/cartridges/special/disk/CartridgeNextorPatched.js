@@ -77,7 +77,8 @@ wmsx.CartridgeNextorPatched = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b1: bankOffset
         };
     };
 
@@ -85,6 +86,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
+        bankOffset = s.b1;
     };
 
 
@@ -95,7 +97,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
 wmsx.CartridgeNextorPatched.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeNextorPatched.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeNextorPatched(null, null);
+    var cart = previousSlot || new wmsx.CartridgeNextorPatched();
     cart.loadState(state);
     return cart;
 };
