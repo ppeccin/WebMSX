@@ -48,7 +48,6 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack) {
-        // TODO NetPlay
         // Writes on the current disk or create a new one?
         var content;
         var curDisk = getCurrentDisk(drive);
@@ -73,8 +72,10 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         if (curDisk) {
+            // TODO NetPlay
             screen.showOSD(currentDiskDesc(drive) + " (" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)", true);
-            driveDiskChanged[drive] = true;
+            curDisk.content = content;
+            replaceCurrentDisk(drive, curDisk, true);     // true = send net operation
             return this.getDriveStack(drive);
         } else {
             name = (name || ("New " + this.MEDIA_TYPE_INFO[mediaType].desc)) + ".dsk";
@@ -85,7 +86,13 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadSerializedStack = function (drive, stackContent, type, altPower, add) {
-        loadStack(drive, deserializeStack(stackContent), type, altPower, add);
+        // Cannot reuse old stack if adding!
+        loadStack(drive, deserializeStack(stackContent, add ? undefined : driveStack[drive]), type, altPower, add);
+    };
+
+    this.replaceCurrentDiskSerialized = function (drive, disk) {
+        var oldDisk = getCurrentDisk(drive);
+        replaceCurrentDisk(drive, deserializeDisk(disk, oldDisk));
     };
 
     this.insertNewDisk = function(drive, mediaType, boot, unformatted) {
@@ -106,7 +113,7 @@ wmsx.FileDiskDrive = function(room) {
         if (add) driveStack[drive].push({});
 
         curDisk[drive] = driveStack[drive].length - 1;
-        replaceCurrentDisk(drive, fileName, content);
+        replaceCurrentDisk(drive, { name: fileName, content: content });
 
         if (boot) images.makeBootDisk(content);
 
@@ -256,12 +263,12 @@ wmsx.FileDiskDrive = function(room) {
             || (diskDriveSocket.hasNextorInterface() && getCurrentDisk(2))) diskDriveSocket.autoPowerCycle(altPower);
     }
 
-    function replaceCurrentDisk(drive, name, content) {     // Affects only current disk from stack
-        getCurrentDisk(drive).name = name;
-        getCurrentDisk(drive).content = content;
+    function replaceCurrentDisk(drive, disk, sendNetOp) {     // Affects only current disk from stack
+        if (sendNetOp && room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 12, d: drive, k: serializeDisk(disk) });
+
+        driveStack[drive][curDisk[drive]] = disk;
         driveDiskChanged[drive] = true;
         fireMediaStateUpdate(drive);
-        return content;
     }
 
     function makeFileNameToSave(fileName) {
@@ -345,22 +352,35 @@ wmsx.FileDiskDrive = function(room) {
     function serializeStack(stack) {
         var res = new Array(stack.length);
         for (var d = 0; d < stack.length; ++d)
-            res[d] = { name: stack[d].name, content: wmsx.Util.compressInt8BitArrayToStringBase64(stack[d].content) };
+            res[d] = serializeDisk(stack[d]);
         return res;
     }
 
+    function serializeDisk(disk) {
+        return { name: disk.name, content: wmsx.Util.compressInt8BitArrayToStringBase64(disk.content) };
+    }
+
+    // TODO Test Savestates
     function deserializeStack(stack, oldStack) {
         if (oldStack) {
+            // Try to reuse oldStack
             oldStack.length = stack.length;
             for (var d = 0; d < stack.length; ++d)
-                oldStack[d] = { name: stack[d].name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(stack[d].content, oldStack[d] && oldStack[d].content) };
+                oldStack[d] = deserializeDisk(stack[d], oldStack[d]);
+            return oldStack;
         } else {
             var res = new Array(stack.length);
             for (d = 0; d < stack.length; ++d)
-                res[d] = { name: stack[d].name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(stack[d].content) };
+                res[d] = deserializeDisk(stack[d]);
             return res;
         }
     }
+
+    function deserializeDisk(disk, oldDisk) {
+        // Try to reuse oldDisk content buffer
+        return { name: disk.name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(disk.content, oldDisk && oldDisk.content) };
+    }
+
 
     // DiskDriver interface methods  ----------------
 

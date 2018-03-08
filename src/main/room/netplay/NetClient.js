@@ -255,6 +255,8 @@ wmsx.NetClient = function(room) {
                     diskDrive.loadSerializedStack(op.d, op.s, op.t, op.p, op.a); break;
                 case 11:
                     diskDrive.insertNewDisk(op.d, op.m, op.b, op.u); break;
+                case 12:
+                    diskDrive.replaceCurrentDiskSerialized(op.d, op.k); break;
                 case 20:
                     cassetteDeck.loadSerializedTape(op.n, op.c, op.p); break;
             }
