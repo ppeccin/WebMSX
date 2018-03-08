@@ -483,7 +483,7 @@ wmsx.FileDiskDrive = function(room) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        // TODO New drive 2
+        clearDisconnectedDiskInterfaces();
         return {
             s: [ serializeStack(driveStack[0]), serializeStack(driveStack[1]), serializeStack(driveStack[2]) ],
             c: curDisk,
@@ -493,7 +493,6 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadState = function(state) {
-        // TODO New drive 2
         deserializeStack(state.s[0], driveStack[0]);
         deserializeStack(state.s[1], driveStack[1]);
         if (state.s[2]) deserializeStack(state.s[2], driveStack[2]);
@@ -503,6 +502,25 @@ wmsx.FileDiskDrive = function(room) {
         fireMediaStateUpdate(0); fireMediaStateUpdate(1);
         this.allMotorsOff(true);
     };
+
+    function clearDisconnectedDiskInterfaces() {
+        if (!diskDriveSocket.hasDiskInterface()) {
+            driveStack[0] = []; driveStack[1] = [];
+            curDisk[0] = curDisk[1] = 0;
+            driveDiskChanged[0] = driveDiskChanged[1] = null;
+            driveMotor[0] = driveMotor[1] = false;
+            driveMotorOffTimer[0] = driveMotorOffTimer[1] = null;
+            fireMediaStateUpdate(0); fireMediaStateUpdate(1);
+        }
+        if (!diskDriveSocket.hasNextorInterface()) {
+            driveStack[2] = [];
+            curDisk[2] = 0;
+            driveDiskChanged[2] = null;
+            driveMotor[2] = false;
+            driveMotorOffTimer[2] = null;
+            fireMediaStateUpdate(2);
+        }
+    }
 
 
     this.eval = function(str) {
