@@ -810,7 +810,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true }
         ];
-        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -51, "Disk A:", null, menu, "Drive A:", mediaIconsContainer);
+        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -237, -51, "Drive A:", null, menu, "Drive A:", mediaIconsContainer);
 
         menu = [
             { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
@@ -823,7 +823,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true }
         ];
-        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Disk B:", null, menu, "Drive B:", mediaIconsContainer);
+        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -266, -51, "Drive B:", null, menu, "Drive B:", mediaIconsContainer);
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
@@ -1671,7 +1671,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var mediaButtonBackYOffsets = [ -51, -26, -1 ];
 
-    var OSD_TIME = 3000;
+    var OSD_TIME = 4500;
     var CURSOR_HIDE_FRAMES = 180;
 
     var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;

@@ -47,7 +47,7 @@ wmsx.FileDiskDrive = function(room) {
         }
     };
 
-    this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack, type) {
+    this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack) {
         // TODO NetPlay
         // Writes on the current disk or create a new one?
         var content;
@@ -65,22 +65,21 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         try {
-            var suc = images.writeFilesToImage(content, files);
-            if (!suc) return;
+            var filesWritten = images.writeFilesToImage(content, files);
+            if (!filesWritten) return;
         } catch (e) {
             console.error(e);
             throw e;
         }
 
         if (curDisk) {
-            screen.showOSD("Files written to current disk", true);
+            screen.showOSD(currentDiskDesc(drive) + " (" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)", true);
             driveDiskChanged[drive] = true;
             return this.getDriveStack(drive);
         } else {
-            type = type || "Files as Disk";
-            name = name || ("New " + type + ".dsk");
-            var stack = [{name: name, content: content}];
-            loadStack(drive, stack, type, altPower);
+            name = (name || ("New " + this.MEDIA_TYPE_INFO[mediaType].desc)) + ".dsk";
+            var stack = [{ name: name, content: content }];
+            loadStack(drive, stack, null, altPower, false, "(" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)");
             return stack;
         }
     };
@@ -111,10 +110,10 @@ wmsx.FileDiskDrive = function(room) {
 
         if (boot) images.makeBootDisk(content);
 
-        add = add && driveStack[drive].length > 1;
-        screen.showOSD((add ? "New " : "") + (boot ? "Boot" : "Blank") + " Disk " + (add ? "added. " : "inserted. ") + currentDiskDesc(drive), true);
+        var added = add && driveStack[drive].length > 1;
+        diskInsertedMessage(drive);
 
-        if (add && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, true);
+        if (added && room.netPlayMode !== 2) self.openDiskSelectDialog(drive, 0, true);
     };
 
     this.removeStack = function(drive) {
@@ -124,7 +123,7 @@ wmsx.FileDiskDrive = function(room) {
         emptyStack(drive);
         driveDiskChanged[drive] = null;
 
-        screen.showOSD((wasStack ? "Disk Stack in Drive " : "Disk ") + driveName[drive] + " removed", true);
+        screen.showOSD((wasStack ? "Disk Stack in " : "Disk in ") + driveName[drive] + " removed", true);
         fireMediaStateUpdate(drive);
     };
 
@@ -149,7 +148,7 @@ wmsx.FileDiskDrive = function(room) {
         if (noDiskInsertedMessage(drive)) return;
 
         try {
-            fileDownloader.startDownloadBinary(makeFileNameToSave(getCurrentDisk(drive).name), new Uint8Array(getCurrentDisk(drive).content), "Disk " + driveName[drive] + " file");
+            fileDownloader.startDownloadBinary(makeFileNameToSave(getCurrentDisk(drive).name), new Uint8Array(getCurrentDisk(drive).content), driveName[drive] + " Image file");
         } catch(ex) {
             // give up
         }
@@ -232,7 +231,7 @@ wmsx.FileDiskDrive = function(room) {
         curDisk[drive] = -1;
     }
 
-    function loadStack(drive, stack, type, altPower, add) {
+    function loadStack(drive, stack, type, altPower, add, appendMessage) {
         if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 10, d: drive, s: serializeStack(stack), t: type, p: altPower, a: add });
 
         if (add) {
@@ -242,7 +241,7 @@ wmsx.FileDiskDrive = function(room) {
             driveStack[drive] = stack;
             setCurrentDiskNum(drive, 0);
         }
-        stackLoadedMessage(drive, type, stack.length, add);
+        stackLoadedMessage(drive, type, stack.length, add, appendMessage);
         fireMediaStateUpdate(drive);
 
         if (driveStack[drive].length > 1) {
@@ -306,7 +305,7 @@ wmsx.FileDiskDrive = function(room) {
 
     function noDiskInsertedMessage(drive) {
         if (!self.isDiskInserted(drive)) {
-            screen.showOSD("No Disk in Drive " + driveName[drive], true, true);
+            screen.showOSD("No Disk in " + driveName[drive], true, true);
             return true;
         } else
             return false;
@@ -314,18 +313,18 @@ wmsx.FileDiskDrive = function(room) {
 
     function maxStackReachedMessage(drive) {
         if (driveStack[drive].length >= MAX_STACK) {
-            screen.showOSD("Maximum Stack size in Drive " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true, true);
+            screen.showOSD("Maximum Stack size in " + driveName[drive] + " (" + driveStack[drive].length + " disks)", true, true);
             return true;
         } else
             return false;
     }
 
-    function stackLoadedMessage(drive, type, quant, added) {
+    function stackLoadedMessage(drive, type, quant, added, appendMessage) {
         type = type || "Disk";
-        var mes = added ? "" + quant + " " + type + (quant > 1 ? "s" : "") + " added to Drive " + driveName[drive]
-            : quant > 1 ? "" + quant + " Disks loaded in Drive " + driveName[drive]
+        var mes = added ? "" + quant + " " + type + (quant > 1 ? "s" : "") + " added to " + driveName[drive]
+            : quant > 1 ? "" + quant + " Disks loaded in " + driveName[drive]
             : currentDiskDesc(drive);
-        screen.showOSD(mes, true);
+        screen.showOSD(mes + (appendMessage ? " " + appendMessage : ""), true);
     }
 
     function diskInsertedMessage(drive) {
@@ -335,11 +334,12 @@ wmsx.FileDiskDrive = function(room) {
 
     function currentDiskDesc(drive) {
         var disk = getCurrentDisk(drive);
-        return [ "Disk " + driveName[drive], currentDiskNumDesc(drive), disk && disk.name].join(" ");
+        var numDesc = currentDiskNumDesc(drive);
+        return driveName[drive] + " " + (numDesc ? numDesc + " " : "") + (disk ? disk.name : "");
     }
 
     function currentDiskNumDesc(drive) {
-        return driveStack[drive].length > 1 ? "(" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ") " : "";
+        return driveStack[drive].length > 1 ? "(" + (curDisk[drive] + 1) + "/" + driveStack[drive].length + ")" : "";
     }
 
     function serializeStack(stack) {
@@ -501,7 +501,7 @@ wmsx.FileDiskDrive = function(room) {
     var driveMotor          = [ false, false, false ];
     var driveMotorOffTimer  = [ null, null, null ];
 
-    var driveName = [ "A:", "B:", "Nextor:" ];
+    var driveName = [ "Drive A:", "Drive B:", "Nextor Drive:" ];
 
     var BYTES_PER_SECTOR = 512;                         // Fixed for now, for all disks
 

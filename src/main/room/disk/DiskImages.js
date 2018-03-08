@@ -50,7 +50,7 @@ wmsx.DiskImages = function(room) {
         var fatDepthSig = String.fromCharCode(image[bpb + 0x36], image[bpb + 0x37], image[bpb + 0x38], image[bpb + 0x39], image[bpb + 0x3a], image[bpb + 0x3b], image[bpb + 0x3c], image[bpb + 0x3d]);
         var fat16 = fatDepthSig === "FAT16   " ? true : fatDepthSig === "FAT12   " ? false : totalDataClusters >= 0xff0;
 
-        console.log("bpb", bpb, "fatDepthSig", fatDepthSig, "fat16", fat16, "mediaDescriptor", mediaDescriptor, "mediaDescriptorFAT", mediaDescriptorFAT, "bytesPerSector", bytesPerSector, "fatStartSector", fatStartSector, "rootDirStartSector", rootDirStartSector, "rootDirMaxEntries", rootDirMaxEntries, "dataStartSector", dataStartSector, "sectorsPerCluster", sectorsPerCluster, "sectorsPerFAT", sectorsPerFAT, "totalDataClusters", totalDataClusters, "bytesPerCluster", bytesPerCluster, "totalDataBytes", totalDataBytes);
+        // console.log("bpb", bpb, "fatDepthSig", fatDepthSig, "fat16", fat16, "mediaDescriptor", mediaDescriptor, "mediaDescriptorFAT", mediaDescriptorFAT, "bytesPerSector", bytesPerSector, "fatStartSector", fatStartSector, "rootDirStartSector", rootDirStartSector, "rootDirMaxEntries", rootDirMaxEntries, "dataStartSector", dataStartSector, "sectorsPerCluster", sectorsPerCluster, "sectorsPerFAT", sectorsPerFAT, "totalDataClusters", totalDataClusters, "bytesPerCluster", bytesPerCluster, "totalDataBytes", totalDataBytes);
 
         // Valid BPB and FAT partition? (MediaType is ok, totalDataClusters >= 64)
         if (!(mediaDescriptor === mediaDescriptorFAT && (mediaDescriptor === 0xf0 || mediaDescriptor >= 0xf8) && totalDataClusters >= 64)) {
@@ -106,7 +106,8 @@ wmsx.DiskImages = function(room) {
 
         // Finish image and return
         this.mirrorFatCopies(numberOfFATs, fatStartSector, sectorsPerFAT, bytesPerSector, image);
-        return true;
+
+        return itemsWritten;
 
 
         // Auxiliary functions

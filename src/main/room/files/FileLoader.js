@@ -134,7 +134,7 @@ wmsx.FileLoader = function() {
                 } else {
                     zip = wmsx.Util.checkContentIsZIP(file.content);
                     if (zip) {
-                        if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
+                        if (tryLoadZipAsDisk(removeFileNameExtention(file.name), zip, port, altPower, asExpansion)) return;     // throws
                     } else {
                         if (openType === OPEN_TYPE.ZIP_AS_DISK)
                             mes = "Not a ZIP file!";
@@ -155,7 +155,7 @@ wmsx.FileLoader = function() {
                     if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, true)) return;
                     // Try Zip-as-Disk if allowed   TODO Really allow any files to be loaded here, even when not specifying FILES/ZIP as Disk?
                     if (openType === OPEN_TYPE.AUTO)
-                        if (tryLoadZipAsDisk(file.name, zip, port, altPower, asExpansion)) return;     // throws
+                        if (tryLoadZipAsDisk(removeFileNameExtention(file.name), zip, port, altPower, asExpansion)) return;     // throws
                 } catch(ez) {
                     wmsx.Util.error(ez);      // Error decompressing files. Abort
                 }
@@ -206,12 +206,11 @@ wmsx.FileLoader = function() {
     };
 
     function tryLoadZipAsDisk(name, zip, port, altPower, asExpansion) {     // throws
-        return diskDrive.loadAsDiskFromFiles(port, name, self.createTreeFromZip(zip), altPower, asExpansion, "ZIP as Disk");    // throws
+        return diskDrive.loadAsDiskFromFiles(port, name, self.createTreeFromZip(zip), altPower, asExpansion);    // throws
     }
 
     function tryLoadFilesAsDisk (files, port, altPower, asExpansion) {      // throws
-        var name = files.length !== 1 ? null : wmsx.Util.leafFilename(files[0].name);
-        return diskDrive.loadAsDiskFromFiles(port, name, files, altPower, asExpansion, "Files as Disk");     // throws
+        return diskDrive.loadAsDiskFromFiles(port, null, files, altPower, asExpansion);     // throws
     }
 
     function tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, filesFromZIP) {
@@ -439,6 +438,12 @@ wmsx.FileLoader = function() {
             else
                 resume();
         }
+    }
+
+    function removeFileNameExtention(name) {
+        if (!name || !name.trim()) return name;
+        var index = name.lastIndexOf('.');
+        return (index > 0 ? name.substring(0, index) : name).trim();
     }
 
     function showError(message) {
