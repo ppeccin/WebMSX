@@ -179,12 +179,18 @@ wmsx.Configurator = {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 1, true);
                 }
             } : null,
-            WMSX.NEXTOR_IMAGE_URL && {          // TODO Add AS_DISK parameter
-                url: WMSX.NEXTOR_IMAGE_URL,
+            WMSX.NEXTOR_URL && {    // TODO Test
+                url: WMSX.NEXTOR_URL,
                 onSuccess: function (res) {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 2, true);
                 }
             },
+            (!WMSX.NEXTOR_URL && WMSX.NEXTOR_FILES_URL) ? {
+                url: WMSX.NEXTOR_FILES_URL,
+                onSuccess: function (res) {
+                    WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 2, true);
+                }
+            } : null,
             WMSX.TAPE_URL && {
                 url: WMSX.TAPE_URL,
                 onSuccess: function (res) {

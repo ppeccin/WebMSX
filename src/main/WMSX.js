@@ -16,9 +16,10 @@ WMSX = {
     CARTRIDGE2_URL:                 "",
     DISKA_URL:                      "",                         // Image files
     DISKB_URL:                      "",
-    DISKA_FILES_URL:                "",                         // Files to load "as Disk". For several files, use a ZIP file
+    NEXTOR_URL:                     "",
+    DISKA_FILES_URL:                "",                         // File to load into a Disk. For several files, use a ZIP file
     DISKB_FILES_URL:                "",
-    NEXTOR_IMAGE_URL:               "",                         // Image file
+    NEXTOR_FILES_URL:               "",
     TAPE_URL:                       "",
     STATE_URL:                      "",
     AUTODETECT_URL:                 "",

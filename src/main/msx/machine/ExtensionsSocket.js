@@ -67,7 +67,7 @@ wmsx.ExtensionsSocket = function(machine) {
             if (changed) {
                 var mes = config[ext].desc + " Extension " + (newOp ? "enabled at " + (newOp === 3 ? "both slots" : "slot " + machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2 : config[ext].OP1)) : "disabled");
                 machine.showOSD(mes, true);
-                console.log(mes);
+                wmsx.Util.log(mes);
             }
         });
     };

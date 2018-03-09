@@ -312,13 +312,13 @@ wmsx.NetServer = function(room) {
             var frag = data.substr(p, DATA_CHANNEL_FRAG_SIZE);
             p += DATA_CHANNEL_FRAG_SIZE;
             c++;
-            if (p < len)
+            if (p < len) {
+                // console.log("Sending fragment: " + c);
                 dataChannel.send(DATA_CHANNEL_FRAG_PART + frag);
-            else {
+            } else {
+                // console.log("Sending fragment: " + c);
                 dataChannel.send(DATA_CHANNEL_FRAG_END + frag);
-
-                // console.log("Fragmented message sent: " + data.length, + ", fragments: " + c);
-
+                // console.log("Fragmented message sent: " + data.length + ", fragments: " + c);
                 return;
             }
         }

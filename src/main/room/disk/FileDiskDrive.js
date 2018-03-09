@@ -154,7 +154,10 @@ wmsx.FileDiskDrive = function(room) {
         if (noDiskInsertedMessage(drive)) return;
 
         try {
-            fileDownloader.startDownloadBinary(makeFileNameToSave(getCurrentDisk(drive).name), new Uint8Array(getCurrentDisk(drive).content), driveName[drive] + " Image file");
+            var disk = getCurrentDisk(drive);
+            fileDownloader.startDownloadBinary(makeFileNameToSave(disk.name),
+                disk.content.constructor === Uint8Array ? disk.content : new Uint8Array(disk.content),
+                driveName[drive] + " Image file");
         } catch(ex) {
             // give up
         }
@@ -381,7 +384,7 @@ wmsx.FileDiskDrive = function(room) {
 
     function deserializeDisk(disk, oldDisk) {
         // Try to reuse oldDisk content buffer
-        return { name: disk.name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(disk.content, oldDisk && oldDisk.content) };
+        return { name: disk.name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(disk.content, oldDisk && oldDisk.content, false, Uint8Array) };
     }
 
 
@@ -485,7 +488,6 @@ wmsx.FileDiskDrive = function(room) {
 
     // Savestate  -------------------------------------------
 
-    // TODO NetPlay chash for 128MB disk
     this.saveState = function() {
         clearDisconnectedDiskInterfaces();
         return {
