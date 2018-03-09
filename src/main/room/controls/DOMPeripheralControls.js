@@ -55,7 +55,7 @@ wmsx.DOMPeripheralControls = function(room) {
         // If a Net-dependent Control
         if (!netLocalImmediateControls.has(control)) {
             // Check for NetPlay blocked controls
-            if (room.netPlayMode === 2 && netServerOnlyControls.has(control) && !netClientSendToServerControls.has(control))
+            if (room.netPlayMode === 2 && netServerOnlyControls.has(control) /*&& !netClientSendToServerControls.has(control)*/)
                 return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
             // Store changes to be sent to peers
@@ -155,11 +155,14 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.NEXTOR_REMOVE:
                 if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(2);
                 break;
-            case pc.NEXTOR_EMPTY:
-                diskDrive.insertNewDisk(2);
+            case pc.NEXTOR_CHOOSE_EMPTY:
+                diskDrive.openNewNextorDiskDialog(altPower, false);
                 break;
-            case pc.NEXTOR_BOOT:
-                diskDrive.insertNewDisk(2, null, true);
+            case pc.NEXTOR_CHOOSE_BOOT:
+                diskDrive.openNewNextorDiskDialog(altPower, true);
+                break;
+            case pc.NEXTOR_NEW:
+                diskDrive.insertNewDisk(2, data.m, data.b);
                 break;
             case pc.NEXTOR_SAVE_FILE:
                 diskDrive.saveDiskFile(2);
@@ -481,18 +484,17 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
-        pc.DISK_EMPTY, pc.DISK_BOOT,
+        pc.DISK_EMPTY, pc.DISK_BOOT, pc.DISK_MOVE, pc.DISK_INSERT, pc.DISK_REMOVE,
         pc.NEXTOR_LOAD_FILE, pc.NEXTOR_LOAD_URL, pc.NEXTOR_LOAD_FILES_AS_DISK, pc.NEXTOR_LOAD_ZIP_AS_DISK, pc.NEXTOR_SAVE_FILE,
-        pc.NEXTOR_EMPTY, pc.NEXTOR_BOOT,
+        pc.NEXTOR_CHOOSE_EMPTY, pc.NEXTOR_CHOOSE_BOOT, pc.NEXTOR_NEW, pc.NEXTOR_REMOVE,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
     ]);
 
-    // TODO Verify
-    var netClientSendToServerControls = new Set([
-        pc.DISK_EMPTY, pc.DISK_BOOT, pc.NEXTOR_EMPTY, pc.NEXTOR_BOOT
-    ]);
+    // var netClientSendToServerControls = new Set([
+    //     // No controls for now
+    // ]);
 
     var netLocalImmediateControls = new Set([
         pc.SCREEN_ASPECT_PLUS, pc.SCREEN_ASPECT_MINUS,

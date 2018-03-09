@@ -17,10 +17,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         dialog.classList.add("wmsx-show");
         dialog.focus();
 
-        var availWidth = mainElement.clientWidth - 20;      //  - tolerance
-        var width = dialog.clientWidth;
-        var scale = width < availWidth ? 1 : availWidth / width;
-        dialog.style.transform = "translate(" + (scale < 1 ? "-" + ((width - availWidth - 20) / 2 | 0) + "px" : "0") + ", -" + ((wmsx.ScreenGUI.BAR_HEIGHT / 2) | 0) + "px) scale(" + scale.toFixed(4) + ")";
+        wmsx.Util.scaleToFitParent(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
     };
 
     this.hide = function() {
@@ -40,6 +37,10 @@ wmsx.NetPlayDialog = function(room, mainElement) {
 
         // Open automatically when leaving Server/Client mode
         if (room.netPlayMode === 0 && oldMode > 0 && !visible) self.show();
+    };
+
+    this.isVisible = function() {
+        return visible;
     };
 
     function refresh() {

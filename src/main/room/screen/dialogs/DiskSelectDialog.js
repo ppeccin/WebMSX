@@ -22,12 +22,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
         dialog.classList.add("wmsx-show");
         dialog.focus();
 
-        var availHeight = mainElement.clientHeight - wmsx.ScreenGUI.BAR_HEIGHT - 20;      //  bar - tolerance
-        var height = dialog.clientHeight;
-        var scale = height < availHeight ? 1 : availHeight / height;
-        dialog.style.transform = "translateY(-" + ((wmsx.ScreenGUI.BAR_HEIGHT / 2) | 0) + "px) scale(" + scale.toFixed(4) + ")";
-
-        //console.error("DISK SEL SCALE availHeight: " + availHeight + ", height: " + height + ", final: " + height * scale);
+        wmsx.Util.scaleToFitParent(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
     };
 
     this.hide = function (confirm) {

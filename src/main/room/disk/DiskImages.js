@@ -535,25 +535,10 @@ wmsx.DiskImages = function(room) {
 
     this.BYTES_PER_SECTOR = 512;
 
-    this.MEDIA_TYPE_INFO = {
-        // Floppy Disks
-        0xF8: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
-        0xF9: { desc: "720KB", size: 737280,    clusterSize:  2 * 512 },
-        0xFA: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
-        0xFB: { desc: "640KB", size: 655360,    clusterSize:  2 * 512 },
-        0xFC: { desc: "180KB", size: 184320,    clusterSize:  1 * 512 },
-        0xFD: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
-        0xFE: { desc: "160KB", size: 163840,    clusterSize:  1 * 512 },
-        0xFF: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
-        // Nextor Disks
-        16:   { desc: "16MB",  size: 16777216,  clusterSize: 32 * 512 },
-        32:   { desc: "32MB",  size: 33554432,  clusterSize: 16 * 512 },
-        64:   { desc: "64MB",  size: 67108864,  clusterSize:  4 * 512 },
-        128:  { desc: "128MB", size: 134217728, clusterSize:  4 * 512 }
-    };
+    this.MEDIA_TYPE_INFO = wmsx.DiskImages.MEDIA_TYPE_INFO;
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = [ 0xF9, 0xF8 ];
-    this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = [ 16, 32, 64, 128 ];
+    this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = wmsx.DiskImages.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES;
 
     // IMPORTANT: In reverse order of size
     this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
@@ -647,3 +632,23 @@ wmsx.DiskImages = function(room) {
     };
 
 };
+
+wmsx.DiskImages.MEDIA_TYPE_INFO = {
+    // Floppy Disks
+    0xF8: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
+    0xF9: { desc: "720KB", size: 737280,    clusterSize:  2 * 512 },
+    0xFA: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
+    0xFB: { desc: "640KB", size: 655360,    clusterSize:  2 * 512 },
+    0xFC: { desc: "180KB", size: 184320,    clusterSize:  1 * 512 },
+    0xFD: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
+    0xFE: { desc: "160KB", size: 163840,    clusterSize:  1 * 512 },
+    0xFF: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
+    // Nextor Disks
+    16:   { desc: "16MB",  size: 16777216,  clusterSize: 32 * 512, secDesc: "(FAT12)" },
+    32:   { desc: "32MB",  size: 33554432,  clusterSize: 16 * 512, secDesc: "(FAT12)" },
+    64:   { desc: "64MB",  size: 67108864,  clusterSize:  4 * 512, secDesc: "(FAT16)" },
+    128:  { desc: "128MB", size: 134217728, clusterSize:  4 * 512, secDesc: "(FAT16)" }
+};
+
+wmsx.DiskImages.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = [ 16, 32, 64, 128 ];
+

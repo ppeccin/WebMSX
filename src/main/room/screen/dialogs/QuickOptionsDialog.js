@@ -15,6 +15,8 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         visible = true;
         dialog.classList.add("wmsx-show");
         dialog.focus();
+
+        wmsx.Util.scaleToFitParent(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
     };
 
     this.hide = function() {

@@ -138,6 +138,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskSelectDialog.show(drive, inc, altPower);
     };
 
+    this.openNewNextorDiskDialog = function(altPower, bootable) {
+        closeAllOverlays();
+        if (!newNextorDiskDialog) newNextorDiskDialog = new wmsx.NewNextorDiskDialog(fsElementCenter, peripheralControls);
+        newNextorDiskDialog.show(altPower, bootable);
+    };
+
     this.openMachineSelectDialog = function() {
         closeAllOverlays();
         if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket, peripheralControls);
@@ -154,7 +160,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.openQuickOptionsDialog = function() {
         closeAllOverlays();
         if (virtualKeyboardMode) setVirtualKeyboard(0);
-        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(canvasOuter, machineControls, peripheralControls);
+        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(fsElementCenter, machineControls, peripheralControls);
         quickOtionsDialog.show();
     };
 
@@ -461,6 +467,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.roomNetPlayStatusChangeUpdate = function(oldMode) {
+        if (!netPlayDialog || !netPlayDialog.isVisible()) closeAllOverlays();
         if (netPlayDialog) netPlayDialog.roomNetPlayStatusChangeUpdate(oldMode);
     };
 
@@ -827,8 +834,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
-            { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_EMPTY },
-            { label: "New Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_BOOT },
+            { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_CHOOSE_EMPTY },
+            { label: "New Boot Disk",                  control: wmsx.PeripheralControls.NEXTOR_CHOOSE_BOOT },
             { label: "Add Files to Disk",              control: wmsx.PeripheralControls.NEXTOR_LOAD_FILES_AS_DISK, needsUIG: true },
             { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.NEXTOR_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_SAVE_FILE, disabled: true, needsUIG: true },
@@ -1399,6 +1406,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (textEntryDialog) textEntryDialog.hide();
         if (machineSelectDialog) machineSelectDialog.hide();
         if (diskSelectDialog) diskSelectDialog.hide();
+        if (newNextorDiskDialog) newNextorDiskDialog.hide();
         if (saveStateDialog) saveStateDialog.hide();
         if (touchConfigDialog) touchConfigDialog.hide();
         if (quickOtionsDialog) quickOtionsDialog.hide();
@@ -1602,6 +1610,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var settingsDialog;
     var saveStateDialog;
     var diskSelectDialog;
+    var newNextorDiskDialog;
     var machineSelectDialog;
     var touchConfigDialog;
     var quickOtionsDialog;

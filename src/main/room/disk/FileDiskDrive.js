@@ -10,6 +10,7 @@ wmsx.FileDiskDrive = function(room) {
     function init() {
         emptyStack(0);
         emptyStack(1);
+        emptyStack(2);
     }
 
     this.connect = function(pDiskDriveSocket) {
@@ -72,7 +73,6 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         if (curDisk) {
-            // TODO NetPlay
             screen.showOSD(currentDiskDesc(drive) + " (" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)", true);
             curDisk.content = content;
             replaceCurrentDisk(drive, curDisk, true);     // true = send net operation
@@ -128,7 +128,6 @@ wmsx.FileDiskDrive = function(room) {
 
         var wasStack = driveStack[drive].length > 1;
         emptyStack(drive);
-        driveDiskChanged[drive] = null;
 
         screen.showOSD((wasStack ? "Disk Stack in " : "Disk in ") + driveName[drive] + " removed", true);
         fireMediaStateUpdate(drive);
@@ -164,6 +163,10 @@ wmsx.FileDiskDrive = function(room) {
     this.openDiskSelectDialog = function(drive, inc, altPower) {
         if (noDiskInsertedMessage(drive)) return;
         screen.openDiskSelectDialog(drive, inc, altPower);
+    };
+
+    this.openNewNextorDiskDialog = function(altPower, bootable) {
+        screen.openNewNextorDiskDialog(altPower, bootable);
     };
 
     this.getDriveStack = function(drive) {
@@ -236,6 +239,7 @@ wmsx.FileDiskDrive = function(room) {
     function emptyStack(drive) {
         driveStack[drive].length = 0;
         curDisk[drive] = -1;
+        driveDiskChanged[drive] = null;
     }
 
     function loadStack(drive, stack, type, altPower, add, appendMessage) {
@@ -360,7 +364,6 @@ wmsx.FileDiskDrive = function(room) {
         return { name: disk.name, content: wmsx.Util.compressInt8BitArrayToStringBase64(disk.content) };
     }
 
-    // TODO Test Savestates
     function deserializeStack(stack, oldStack) {
         if (oldStack) {
             // Try to reuse oldStack
@@ -482,6 +485,7 @@ wmsx.FileDiskDrive = function(room) {
 
     // Savestate  -------------------------------------------
 
+    // TODO NetPlay chash for 128MB disk
     this.saveState = function() {
         clearDisconnectedDiskInterfaces();
         return {
@@ -496,30 +500,27 @@ wmsx.FileDiskDrive = function(room) {
         deserializeStack(state.s[0], driveStack[0]);
         deserializeStack(state.s[1], driveStack[1]);
         if (state.s[2]) deserializeStack(state.s[2], driveStack[2]);
+        else clearNextorDrive();
         curDisk = state.c;
         driveDiskChanged = state.g;
         driveMotor = state.m;
-        fireMediaStateUpdate(0); fireMediaStateUpdate(1);
+        fireMediaStateUpdate(0); fireMediaStateUpdate(1); fireMediaStateUpdate(2);
         this.allMotorsOff(true);
     };
 
     function clearDisconnectedDiskInterfaces() {
         if (!diskDriveSocket.hasDiskInterface()) {
-            driveStack[0] = []; driveStack[1] = [];
-            curDisk[0] = curDisk[1] = 0;
-            driveDiskChanged[0] = driveDiskChanged[1] = null;
+            emptyStack(0); emptyStack(1);
             driveMotor[0] = driveMotor[1] = false;
-            driveMotorOffTimer[0] = driveMotorOffTimer[1] = null;
             fireMediaStateUpdate(0); fireMediaStateUpdate(1);
         }
-        if (!diskDriveSocket.hasNextorInterface()) {
-            driveStack[2] = [];
-            curDisk[2] = 0;
-            driveDiskChanged[2] = null;
-            driveMotor[2] = false;
-            driveMotorOffTimer[2] = null;
-            fireMediaStateUpdate(2);
-        }
+        if (!diskDriveSocket.hasNextorInterface()) clearNextorDrive();
+    }
+
+    function clearNextorDrive() {
+        emptyStack(2);
+        driveMotor[2] = false;
+        fireMediaStateUpdate(2);
     }
 
 
