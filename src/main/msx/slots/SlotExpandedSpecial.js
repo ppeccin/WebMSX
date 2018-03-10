@@ -40,6 +40,10 @@ wmsx.SlotExpandedSpecial = function() {
         for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
 
+    this.isAllEmpty = function() {
+        return subSlots[0] === EMPTY_SLOT && subSlots[1] === EMPTY_SLOT && subSlots[2] === EMPTY_SLOT && subSlots[3] === EMPTY_SLOT;
+    };
+
     this.insertSubSlot = function(subSlot, subSlotNumber) {
         subSlot = subSlot || wmsx.SlotEmpty.singleton;
         if (subSlots[subSlotNumber] === subSlot) return;
@@ -115,8 +119,7 @@ wmsx.SlotExpandedSpecial = function() {
     };
 
     function create() {
-        var emptySlot = wmsx.SlotEmpty.singleton;
-        subSlot0 = subSlot1 = subSlot2 = subSlot3 = emptySlot;
+        subSlot0 = subSlot1 = subSlot2 = subSlot3 = EMPTY_SLOT;
         subSlots = [ subSlot0, subSlot1, subSlot2, subSlot3 ];
 
         self.subSlots = subSlots;
@@ -128,6 +131,8 @@ wmsx.SlotExpandedSpecial = function() {
     var subSlots;
     var subSlot0, subSlot1, subSlot2, subSlot3;
     var secondarySlotConfig = 0;
+
+    var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
     this.format = wmsx.SlotFormats.ExpandedS;
 

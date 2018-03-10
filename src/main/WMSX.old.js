@@ -45,10 +45,10 @@ WMSX = {
 
     // Internal Machine configuration
     BIOS_SLOT:                      [0],
-    BIOSEXT_SLOT:                   [3, 1],
+    BIOSEXT_SLOT:                   [2, 1],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
-    EXPANSION_SLOTS:                [[2, 2], [2, 3]],
+    EXPANSION_SLOTS:                [[3, 2], [3, 3]],
     RAMMAPPER_SIZE:                 512,
 
     // General options
@@ -105,12 +105,12 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    NEXTOR:    { desc: "Nextor Drive",  format: "Nextor16Patch", OP1: [2, 3], OP2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
-    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 3], OP2: [3, 3], toggle: "NEXTOR" },
+    NEXTOR:    { desc: "Nextor Drive",  format: "Nextor16Patch", OP1: [2, 2], OP2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
+    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 2], OP2: [3, 3], toggle: "NEXTOR" },
     RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 mutual: "RAMNORMAL" },
     RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 mutual: "RAMMAPPER" },
-    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [3, 2] },
-    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [2, 1] },
+    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [2, 3] },
+    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [3, 1] },
     SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0 } },
     SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0 } },
     PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } }
@@ -121,13 +121,14 @@ WMSX.PRESETS_CONFIG = {
     // Extensions Options Presets
 
     // Floppy Disk Drives
-    DISK:     { "EXTENSIONS.DISK": 2 },
-    DISKA:    { "EXTENSIONS.DISK": 1 },
+    DISK:     { "EXTENSIONS.DISK": 1 },
+    DISK2:    { "EXTENSIONS.DISK": 2 },
     NODISK:   { "EXTENSIONS.DISK": 0 },
 
     // Nextor Mass Storage Drive
     NEXTOR:   { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
     NEXTORA:  { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
+    NEXTOR2:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     NEXTORC:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     DOS2:     { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
     NONEXTOR: { "EXTENSIONS.NEXTOR":  0 },
@@ -170,14 +171,14 @@ WMSX.PRESETS_CONFIG = {
     VSYNCHON:       { SCREEN_VSYNCH_MODE: 1 },
 
     ALTSLOTCONFIG: {
-        BIOSEXT_SLOT:                      [2, 1],
-        EXPANSION_SLOTS:                   [[3, 2], [3, 3]],
-        "EXTENSIONS_CONFIG.DISK.OP1":      [2, 3],
-        "EXTENSIONS_CONFIG.DISK.OP2":      [3, 3],
-        "EXTENSIONS_CONFIG.NEXTOR.OP1":    [2, 3],
-        "EXTENSIONS_CONFIG.NEXTOR.OP2":    [3, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [2, 2],
-        "EXTENSIONS_CONFIG.KANJI.OP1":     [3, 1]
+        BIOSEXT_SLOT:                      [3, 1],
+        EXPANSION_SLOTS:                   [[2, 2], [2, 3]],
+        "EXTENSIONS_CONFIG.DISK.OP1":      [3, 2],
+        "EXTENSIONS_CONFIG.DISK.OP2":      [2, 3],
+        "EXTENSIONS_CONFIG.NEXTOR.OP1":    [3, 2],
+        "EXTENSIONS_CONFIG.NEXTOR.OP2":    [2, 3],
+        "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [3, 3],
+        "EXTENSIONS_CONFIG.KANJI.OP1":     [2, 1]
     },
 
     // MSX2+ Machine Presets. Do not use directly

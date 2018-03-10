@@ -283,7 +283,8 @@ wmsx.Machine = function() {
     function insertSlot(slot, slotPos) {
         if (typeof slotPos === "number") slotPos = [slotPos];
 
-        if ((!slot || slot === EMPTY_SLOT) && (getSlot(slotPos) || EMPTY_SLOT) === EMPTY_SLOT) return;
+        var isEmpty = !slot || slot === EMPTY_SLOT;
+        if (isEmpty && (getSlot(slotPos) || EMPTY_SLOT) === EMPTY_SLOT) return;
 
         var pri = slotPos[0], sec = slotPos[1];
 
@@ -297,9 +298,13 @@ wmsx.Machine = function() {
                 if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
             }
             curPriSlot.insertSubSlot(slot, sec);
+            // Demotes an Expanded slot to a normal slot if all empty
+            if (isEmpty && curPriSlot.isAllEmpty()) bus.insertSlot(slot, pri);
         } else {
             if (curPriSlot.isExpanded()) {
                 curPriSlot.insertSubSlot(slot, 0);
+                // Demotes an Expanded slot to a normal slot if all empty
+                if (isEmpty && curPriSlot.isAllEmpty()) bus.insertSlot(slot, pri);
             } else
                 bus.insertSlot(slot, pri);
         }
@@ -387,6 +392,7 @@ wmsx.Machine = function() {
     }
     this.saveState = saveState;
 
+    // TODO Make backward Extensions config compatible
     function loadState(s) {
         // Extended
         if (s.vy !== undefined) setVSynchMode(s.vy, true);  // force update
