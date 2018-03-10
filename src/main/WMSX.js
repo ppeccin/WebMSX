@@ -36,12 +36,12 @@ WMSX = {
     BASIC_ENTER:                    "",
     BASIC_TYPE:                     "",
 
-    // Extensions
-    EXTENSIONS:                     { },
-
     // NetPlay
     NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
-    NETPLAY_NICK:                   "",                         // NetPlay! Nickname
+    NETPLAY_NICK:                   "",                         // NetPlay! Nickname, optional
+
+    // Extensions
+    EXTENSIONS:                     { },
 
     // Internal Machine configuration
     BIOS_SLOT:                      [0],

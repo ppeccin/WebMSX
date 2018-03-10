@@ -279,7 +279,7 @@ wmsx.SettingsGUI.html = function() {
                                 F6
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Disk</div>
+                        <div class="wmsx-desc">Load Drive A / B</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -287,7 +287,7 @@ wmsx.SettingsGUI.html = function() {
                                 F7
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Cartridge</div>
+                        <div class="wmsx-desc">Load Cartridge 1 / 2</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -295,7 +295,7 @@ wmsx.SettingsGUI.html = function() {
                                 F8
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Cassette Tape</div>
+                        <div class="wmsx-desc">Load Nextor Drive / Tape</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -305,12 +305,7 @@ wmsx.SettingsGUI.html = function() {
                                 F11
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Any Media</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-desc">
-                            Drag &amp; Drop Files or URLs (Any Media)
-                        </div>
+                        <div class="wmsx-desc">Open File (autodetect)</div>
                     </div>
                 </div>
                 <div class="wmsx-top-right">
@@ -323,7 +318,7 @@ wmsx.SettingsGUI.html = function() {
                                 Shift
                             </div>
                         </div>
-                        <div class="wmsx-desc">Use Drive B / Slot 2</div>
+                        <div class="wmsx-desc">Drive B / Slot 2 / Tape</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -357,23 +352,43 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                     </div>
                 </div>
-                <div class="wmsx-full-divider"></div>
-                <div class="wmsx-hotkey">
-                    <div class="wmsx-command">
-                        <div class="wmsx-key wmsx-key-fixed">
-                            Ctrl
+                <div class="wmsx-clear"></div>
+                <div class="wmsx-middle-left">
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-desc wmsx-heading">
+                            Drag &amp; Drop Files or URLs:
                         </div>
                     </div>
-                    <div class="wmsx-desc">&nbsp;+ Drag &amp; Drop Disk Files to Load and Add Disks to the current Drive Stack
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            + <div class="wmsx-key wmsx-key-fixed">
+                                Ctrl
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">&nbsp; Load Image Files and Add Disks to Drive Stack (up to 10 Disks)
+                        </div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            + <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">&nbsp; Add Files or ZIP Contents do Disk
+                        </div>
                     </div>
                 </div>
-                <div class="wmsx-hotkey">
-                    <div class="wmsx-command">
-                        <div class="wmsx-key wmsx-key-fixed">
-                            Alt
+                <div class="wmsx-middle-right">
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            + <div class="wmsx-key wmsx-key-fixed">
+                                Ctrl
+                            </div> <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>
                         </div>
-                    </div>
-                    <div class="wmsx-desc">&nbsp;+ Drag &amp; Drop Files or ZIP File to force "Files as Disk" or "ZIP as Disk" loading
+                        <div class="wmsx-desc">Don't expand ZIP Contents
+                        </div>
                     </div>
                 </div>
                 <div class="wmsx-full-divider"></div>
@@ -425,7 +440,7 @@ wmsx.SettingsGUI.html = function() {
                         </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
                             Alt
                         </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                            F8
+                            F12
                         </div>
                     </div>
                     <div class="wmsx-desc">
@@ -928,16 +943,27 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-media .wmsx-top-left {
     float: left;
-    width: 290px;
+    width: 287px;
 }
 
 #wmsx-media .wmsx-top-right {
     float: left;
+    height: 154px;
+}
+
+#wmsx-media .wmsx-middle-left {
+    float: left;
+    width: 287px;
+}
+
+#wmsx-media .wmsx-middle-right {
+    float: left;
+    margin-top: 54px;
 }
 
 #wmsx-media .wmsx-bottom-left {
     float: left;
-    width: 294px;
+    width: 298px;
 }
 
 #wmsx-media .wmsx-bottom-right {
@@ -945,11 +971,15 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-media .wmsx-top-left .wmsx-command {
-    width: 107px;
+    width: 105px;
 }
 
 #wmsx-media .wmsx-top-right .wmsx-command {
-    width: 101px;
+    width: 100px;
+}
+
+#wmsx-media .wmsx-middle-right .wmsx-command {
+    width: 84px;
 }
 
 #wmsx-media .wmsx-bottom-left .wmsx-command {
@@ -957,7 +987,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-media .wmsx-bottom-right .wmsx-command {
-    width: 138px;
+    width: 136px;
 }
 
 #wmsx-media .wmsx-bottom .wmsx-command {

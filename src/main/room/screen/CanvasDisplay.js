@@ -401,11 +401,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.diskInterfacesStateUpdate = function(hasDiskInterface, hasNextorInterface) {
+        peripheralControls.nextorInterfaceActive(hasNextorInterface);
         // Show/hide icons
         diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
         diskBButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
         diskNButton.classList.toggle("wmsx-hidden", !hasNextorInterface);
-        // Right order for icons
+        // Order of icons
         if (!hasDiskInterface || !hasNextorInterface) return;
         diskNButton.style.float = WMSX.EXTENSIONS.NEXTOR & 1 ? "left" : "none";
     };
@@ -861,12 +862,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -179, -51, "Cartridge 2", null, menu, "Cartridge 2", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, needsUIG: true },
-            { label: "New Blank Tape",  clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY },
-            { label: "Rewind Tape",                 control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true },
-            { label: "Run Program",     clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, disabled: true },
-            { label: "Save Image File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, needsUIG: true },
-            { label: "Remove Tape",     clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true }
+            { label: "Load Image File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "New Blank Tape",  clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY, secSlot: true },
+            { label: "Rewind Tape",                 control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true, secSlot: true },
+            { label: "Run Program",     clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, secSlot: true, disabled: true },
+            { label: "Save Image File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, secSlot: true, needsUIG: true },
+            { label: "Remove Tape",     clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true, secSlot: true }
         ];
         tapeButton = addPeripheralControlButton("wmsx-bar-tape", -208, -51, "Cassette Tape", null, menu, "Cassette Tape", mediaIconsContainer);
 
@@ -964,14 +965,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 return;
             }
         // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
-        if (modifs & KEY_SHIFT_MASK) {
-            modifs &= ~KEY_SHIFT_MASK;
-            for (i = 0; i < menu.length; ++i)
-                if (menu[i].clickModif === modifs) {
-                    peripheralControls.processControlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
-                    return;
-                }
-        }
+        // if (modifs & KEY_SHIFT_MASK) {
+        //     modifs &= ~KEY_SHIFT_MASK;
+        //     for (i = 0; i < menu.length; ++i)
+        //         if (menu[i].clickModif === modifs) {
+        //             peripheralControls.processControlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
+        //             return;
+        //         }
+        // }
     }
 
     function barButtonLongTouchStart(e) {
@@ -1092,19 +1093,19 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
         menu.push({ label: "",               divider: true });
 
-        menu.push({ label: "Select Machine",                control: wmsx.PeripheralControls.SCREEN_OPEN_MACHINE_SELECT });
+        menu.push({ label: "Select Machine", clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_MACHINE_SELECT });
 
         if (!isMobileDevice) {
         menu.push({label: "Help & Settings", clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_SETTINGS});
-        menu.push({label: "Quick Options",                  control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS});
+        menu.push({label: "Quick Options",   clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS});
         } else
         menu.push({label: "Quick Options",   clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS});
 
         if (isTouchDevice)
-        menu.push({ label: "Touch Setup",                   control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
+        menu.push({ label: "Touch Setup",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_TOUCH_CONFIG, fullScreenOnly: true});
 
         if (!isMobileDevice)
-        menu.push({ label: "Defaults",                      control: wmsx.PeripheralControls.SCREEN_DEFAULTS/*,          fullScreenHidden: true*/ });
+        menu.push({ label: "Defaults",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS/*,          fullScreenHidden: true*/ });
 
         return menu;
     }

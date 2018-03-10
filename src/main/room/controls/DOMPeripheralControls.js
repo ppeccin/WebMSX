@@ -41,6 +41,10 @@ wmsx.DOMPeripheralControls = function(room) {
         return { label: "Unknown", active: false };
     };
 
+    this.nextorInterfaceActive = function(state) {
+        nextor = state;
+    };
+
     this.processKey = function(code, press) {
         if (!press) return false;
         var control = keyCodeMap[code & EXCLUDE_SHIFT_MASK];
@@ -84,7 +88,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, 0, false);
                 break;
             case pc.MACHINE_SAVE_STATE_FILE:
-                machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
+            case pc.TAPE_AUTO_RUN:
+                if (!secPort) return machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
+                cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case pc.MACHINE_LOAD_STATE_MENU:
                 screen.openSaveStateDialog(false);
@@ -140,33 +146,6 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.DISK_MOVE:
                 diskDrive.moveDiskInStack(data.d, data.f, data.t);
                 break;
-            case pc.NEXTOR_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
-                break;
-            case pc.NEXTOR_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
-                break;
-            case pc.NEXTOR_LOAD_FILES_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);
-                break;
-            case pc.NEXTOR_LOAD_ZIP_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, 2, false);
-                break;
-            case pc.NEXTOR_REMOVE:
-                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(2);
-                break;
-            case pc.NEXTOR_CHOOSE_EMPTY:
-                diskDrive.openNewNextorDiskDialog(altPower, false);
-                break;
-            case pc.NEXTOR_CHOOSE_BOOT:
-                diskDrive.openNewNextorDiskDialog(altPower, true);
-                break;
-            case pc.NEXTOR_NEW:
-                diskDrive.insertNewDisk(2, data.m, data.b);
-                break;
-            case pc.NEXTOR_SAVE_FILE:
-                diskDrive.saveDiskFile(2);
-                break;
             case pc.CARTRIDGE_LOAD_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ROM, altPower, port, false);
                 break;
@@ -183,20 +162,49 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.CARTRIDGE_SAVE_DATA_FILE:
                 cartridgeSlot.saveCartridgeDataFile(port);
                 break;
+            case pc.NEXTOR_LOAD_FILE:
             case pc.TAPE_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
+                if (!user || !mediaChangeDisabledWarning(control)) {
+                    if (!secPort && nextor) return fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
+                    fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
+                }
                 break;
+            case pc.NEXTOR_LOAD_URL:
             case pc.TAPE_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
+                if (!user || !mediaChangeDisabledWarning(control)) {
+                    if (!secPort && nextor) return fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
+                    fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
+                }
                 break;
+            case pc.NEXTOR_LOAD_FILES_AS_DISK:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);
+                break;
+            case pc.NEXTOR_LOAD_ZIP_AS_DISK:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, 2, false);
+                break;
+            case pc.NEXTOR_REMOVE:
             case pc.TAPE_REMOVE:
-                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userRemoveTape();
+                if (!user || !mediaChangeDisabledWarning(control)) {
+                    if (!secPort && nextor) return diskDrive.removeStack(2);
+                    cassetteDeck.userRemoveTape();
+                }
                 break;
+            case pc.NEXTOR_CHOOSE_EMPTY:
             case pc.TAPE_EMPTY:
-                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userLoadEmptyTape();
+                if (!user || !mediaChangeDisabledWarning(control)) {
+                    if (!secPort && nextor) return diskDrive.openNewNextorDiskDialog(altPower, false);
+                    cassetteDeck.userLoadEmptyTape();
+                }
                 break;
+            case pc.NEXTOR_CHOOSE_BOOT:
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.openNewNextorDiskDialog(altPower, true);
+                break;
+            case pc.NEXTOR_NEW:
+                diskDrive.insertNewDisk(2, data.m, data.b);
+                break;
+            case pc.NEXTOR_SAVE_FILE:
             case pc.TAPE_SAVE_FILE:
-                if (secPort) return cassetteDeck.userTypeCurrentAutoRunCommand();
+                if (!secPort && nextor) return diskDrive.saveDiskFile(2);
                 cassetteDeck.saveTapeFile();
                 break;
             case pc.TAPE_REWIND:
@@ -210,9 +218,6 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case pc.TAPE_SEEK_FWD:
                 cassetteDeck.userSeekForward();
-                break;
-            case pc.TAPE_AUTO_RUN:
-                cassetteDeck.userTypeCurrentAutoRunCommand();
                 break;
             case pc.AUTO_LOAD_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, port, false);
@@ -338,6 +343,7 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_TAPE | k.CONTROL]  = pc.TAPE_EMPTY;
         keyCodeMap[KEY_TAPE | k.ALT]  = pc.TAPE_REMOVE;
         keyCodeMap[KEY_TAPE | k.CONTROL | k.ALT]  = pc.TAPE_SAVE_FILE;
+        keyCodeMap[KEY_TAPE_RUN | k.CONTROL | k.ALT]  = pc.TAPE_AUTO_RUN;
 
         keyCodeMap[KEY_TAPE_REW | k.CONTROL | k.ALT]  = pc.TAPE_REWIND;
         keyCodeMap[KEY_TAPE_END | k.CONTROL | k.ALT]  = pc.TAPE_TO_END;
@@ -420,6 +426,8 @@ wmsx.DOMPeripheralControls = function(room) {
     var cassetteDeck;
     var diskDrive;
 
+    var nextor = false;
+
     var keyCodeMap = {};                // SHIFT is considered differently
 
     var netControlsToSend = new Array(100); netControlsToSend.length = 0;     // pre allocate empty Array
@@ -446,9 +454,11 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_SPEAKER_BUFFER  = wmsx.DOMKeys.VK_A.c;
 
-    var KEY_DISK  = wmsx.DOMKeys.VK_F6.c;
-    var KEY_CART  = wmsx.DOMKeys.VK_F7.c;
-    var KEY_TAPE  = wmsx.DOMKeys.VK_F8.c;
+    var KEY_DISK   = wmsx.DOMKeys.VK_F6.c;
+    var KEY_CART   = wmsx.DOMKeys.VK_F7.c;
+    var KEY_NEXTOR = wmsx.DOMKeys.VK_F8.c;      // Share same key
+    var KEY_TAPE   = wmsx.DOMKeys.VK_F8.c;      // Share same key, sec slot or Nextor inactive
+    var KEY_TAPE_RUN  = wmsx.DOMKeys.VK_F12.c;
 
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
     var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;

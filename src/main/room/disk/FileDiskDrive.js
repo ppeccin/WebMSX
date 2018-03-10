@@ -530,6 +530,7 @@ wmsx.FileDiskDrive = function(room) {
         return eval(str);
     };
 
+
     var images = new wmsx.DiskImages(room);
 
     var screen;
