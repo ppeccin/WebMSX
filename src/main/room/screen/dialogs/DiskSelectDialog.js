@@ -50,6 +50,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
                 li.classList.add("wmsx-visible");
                 li.innerHTML = "" + (i + 1) + ":&nbsp;&nbsp;" + diskStack[i].name;
                 li.classList.toggle("wmsx-selected", i === diskSelectedNum);
+                li.classList.toggle("wmsx-toggle-checked", !!diskStack[i].modified);
             } else {
                 li.classList.remove("wmsx-visible");
             }
@@ -93,6 +94,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             var li = document.createElement("li");
             li.draggable = true;
             li.wmsxDiskNum = i;
+            li.classList.add("wmsx-toggle");
             listItems.push(li);
             list.appendChild(li);
         }

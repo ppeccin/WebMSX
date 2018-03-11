@@ -105,7 +105,11 @@ wmsx.FileCassetteDeck = function(room) {
                 if (!tapeFileName ) tapeFileName = "New Tape.cas";
                 fireStateUpdate();
             }
-            fileDownloader.startDownloadBinary(makeFileNameToSave(tapeFileName), new Uint8Array(tapeContent), "Cassette Tape file");
+            var res = fileDownloader.startDownloadBinary(makeFileNameToSave(tapeFileName), new Uint8Array(tapeContent), "Cassette Tape file");
+            if (res) {
+                modif = false;
+                fireStateUpdate();
+            }
         } catch(ex) {
             // give up
         }
@@ -213,7 +217,7 @@ wmsx.FileCassetteDeck = function(room) {
     }
 
     function fireStateUpdate() {
-        screen.tapeStateUpdate(tapeFileName, motor);
+        screen.tapeStateUpdate(tapeFileName, motor, modif);
     }
 
 
@@ -237,12 +241,14 @@ wmsx.FileCassetteDeck = function(room) {
         fillToNextSlot();
         for (var i = 0; i < HEADER.length; i++)
             tapeContent[tapePosition++] = HEADER[i];
+        modif = true;
         return true;
     };
 
     this.writeByte = function(val) {
         if (!tapeContent) loadEmptyTape();
         tapeContent[tapePosition++] = val;              // Grow
+        modif = true;
         return true;
     };
 
@@ -266,7 +272,8 @@ wmsx.FileCassetteDeck = function(room) {
             f: tapeFileName,
             c: tapeContent && wmsx.Util.compressInt8BitArrayToStringBase64(tapeContent),
             p: tapePosition,
-            m: motor
+            m: motor,
+            d: modif
         };
     };
 
@@ -275,6 +282,7 @@ wmsx.FileCassetteDeck = function(room) {
         tapeContent = state.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c, tapeContent);
         tapePosition = state.p;
         motor = state.m;
+        modif = !!state.d;
         fireStateUpdate();
     };
 
@@ -285,6 +293,7 @@ wmsx.FileCassetteDeck = function(room) {
     var tapeContent = null;     // Must be normal growable Array
     var tapePosition = -1;
     var motor = false;
+    var modif = false;
 
     var screen;
     var fileDownloader;

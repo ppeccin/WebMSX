@@ -75,11 +75,12 @@ wmsx.FileDiskDrive = function(room) {
         if (curDisk) {
             screen.showOSD(currentDiskDesc(drive) + " (" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)", true);
             curDisk.content = content;
+            curDisk.modified = true;
             replaceCurrentDisk(drive, curDisk, true);     // true = send net operation
             return this.getDriveStack(drive);
         } else {
             name = (name || ("New " + this.MEDIA_TYPE_INFO[mediaType].desc)) + ".dsk";
-            var stack = [{ name: name, content: content }];
+            var stack = [{ name: name, content: content, modified: true }];
             loadStack(drive, stack, null, altPower, false, "(" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)");
             return stack;
         }
@@ -155,9 +156,13 @@ wmsx.FileDiskDrive = function(room) {
 
         try {
             var disk = getCurrentDisk(drive);
-            fileDownloader.startDownloadBinary(makeFileNameToSave(disk.name),
+            var res = fileDownloader.startDownloadBinary(makeFileNameToSave(disk.name),
                 disk.content.constructor === Uint8Array ? disk.content : new Uint8Array(disk.content),
                 driveName[drive] + " Image file");
+            if (res) {
+                disk.modified = false;
+                fireMotorStateUpdate();
+            }
         } catch(ex) {
             // give up
         }
@@ -314,7 +319,10 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function fireMotorStateUpdate() {
-        screen.diskDrivesMotorStateUpdate(getCurrentDisk(0), driveMotor[0], getCurrentDisk(1), driveMotor[1], getCurrentDisk(2), driveMotor[2]);
+        var diskA = getCurrentDisk(0);
+        var diskB = getCurrentDisk(1);
+        var diskN = getCurrentDisk(2);
+        screen.diskDrivesMotorStateUpdate(diskA, driveMotor[0], diskA && diskA.modified, diskB, driveMotor[1], diskB && diskB.modified, diskN, driveMotor[2], diskN && diskN.modified);
     }
 
     function noDiskInsertedMessage(drive) {
@@ -364,7 +372,7 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function serializeDisk(disk) {
-        return { name: disk.name, content: wmsx.Util.compressInt8BitArrayToStringBase64(disk.content) };
+        return { name: disk.name, content: wmsx.Util.compressInt8BitArrayToStringBase64(disk.content), modif: disk.modified };
     }
 
     function deserializeStack(stack, oldStack) {
@@ -384,7 +392,7 @@ wmsx.FileDiskDrive = function(room) {
 
     function deserializeDisk(disk, oldDisk) {
         // Try to reuse oldDisk content buffer
-        return { name: disk.name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(disk.content, oldDisk && oldDisk.content, false, Uint8Array) };
+        return { name: disk.name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(disk.content, oldDisk && oldDisk.content, false, Uint8Array), modified: !!disk.modif };
     }
 
 
@@ -435,8 +443,9 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.writeSectorsFromSlot = function(drive, logicalSector, quantSectors, slot, address) {
-        if (!this.isDiskInserted(drive)) return false;
-        var dContent = getCurrentDisk(drive).content;
+        var disk = getCurrentDisk(drive);
+        if (!disk) return false;
+        var dContent = disk.content;
         var startByte =  logicalSector * BYTES_PER_SECTOR;
         var quantBytes = quantSectors * BYTES_PER_SECTOR;
 
@@ -446,6 +455,8 @@ wmsx.FileDiskDrive = function(room) {
         // Transfer
         for (var i = 0; i < quantBytes; i++)
             dContent[startByte + i] = slot.read(address + i);
+
+        disk.modified = true;   // No deed to fire update since motor is on
 
         return true;
     };

@@ -14,7 +14,7 @@ wmsx.FileDownloader = function() {
     this.startDownloadBinary = function (fileName, data, desc) {
         try {
             if (!saveType) setup();
-            if (checkNone()) return;
+            if (checkNone()) return false;
 
             var href;
             if (saveType === "BLOB") {
@@ -30,9 +30,11 @@ wmsx.FileDownloader = function() {
             downloadLinkElement.click();
 
             screen.showOSD(desc + " saved", true);
+            return true;
         } catch(ex) {
             screen.showOSD(desc + " save FAILED!", true, true);
             wmsx.Util.error(ex);
+            return false;
         }
     };
 
