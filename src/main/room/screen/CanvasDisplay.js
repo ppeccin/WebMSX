@@ -818,7 +818,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true }
         ];
-        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -69, true, "Drive A:", null, menu, "Drive A:", mediaIconsContainer);
+        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -72, true, "Drive A:", null, menu, "Drive A:", mediaIconsContainer);
 
         menu = [
             { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
@@ -831,7 +831,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true }
         ];
-        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -194, -69, true, "Drive B:", null, menu, "Drive B:", mediaIconsContainer);
+        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -194, -72, true, "Drive B:", null, menu, "Drive B:", mediaIconsContainer);
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
@@ -842,7 +842,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_REMOVE, disabled: true }
         ];                                                      /* -223 -252*/
-        diskNButton = addPeripheralControlButton("wmsx-bar-diskn", -252, -69, true, "Nextor Drive", null, menu, "Nextor Drive", mediaIconsContainer);
+        diskNButton = addPeripheralControlButton("wmsx-bar-diskn", -252, -72, true, "Nextor Drive", null, menu, "Nextor Drive", mediaIconsContainer);
         diskNButton.classList.add("wmsx-hidden");
 
         menu = [
@@ -851,7 +851,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
         ];
-        cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -78, -69, true, "Cartridge 1", null, menu, "Cartridge 1", mediaIconsContainer);
+        cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -78, -72, true, "Cartridge 1", null, menu, "Cartridge 1", mediaIconsContainer);
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
@@ -859,7 +859,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
         ];
-        cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -107, -69, true, "Cartridge 2", null, menu, "Cartridge 2", mediaIconsContainer);
+        cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -107, -72, true, "Cartridge 2", null, menu, "Cartridge 2", mediaIconsContainer);
 
         menu = [
             { label: "Load Image File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, secSlot: true, needsUIG: true },
@@ -869,7 +869,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, secSlot: true, needsUIG: true },
             { label: "Remove Tape",     clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true, secSlot: true }
         ];
-        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -136, -69, true, "Cassette Tape", null, menu, "Cassette Tape", mediaIconsContainer);
+        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -136, -72, true, "Cassette Tape", null, menu, "Cassette Tape", mediaIconsContainer);
 
         menu = createSettingsMenuOptions();
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings");
@@ -1681,7 +1681,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var settingsButton;
 
     var barButtonBackYOffsets = [ -51, -26, -1 ];
-    var mediaButtonBackYOffsets = [ -69, -46, -23, 0 ];
+    var mediaButtonBackYOffsets = [ -72, -48, -24, 0 ];
 
     var OSD_TIME = 4500;
     var CURSOR_HIDE_FRAMES = 180;

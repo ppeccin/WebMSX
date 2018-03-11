@@ -233,11 +233,11 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     margin: 0 1px;
     background-image: url("` + wmsx.Images.urls.sprites + `");
     background-repeat: no-repeat;
-    background-size: 568px 200px;
+    background-size: 568px 206px;
     cursor: pointer;
 }
 .wmsx-bar-button.wmsx-media-button {
-    background-size: 284px 100px;
+    background-size: 284px 103px;
 }
 .wmsx-bar-button.wmsx-hidden {
     display: none;
