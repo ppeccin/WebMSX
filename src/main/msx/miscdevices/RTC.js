@@ -84,7 +84,7 @@ wmsx.RTC = function() {
         if (regAddress < 0xd) {
             switch (mode) {
                 case 0:
-                    if (clockRunning) clockFromLiveToRegisters(false);
+                    if (clockRunning) clockFromTimeToRegisters();
                     res = regClock[regAddress];
                     break;
                 case 1:
@@ -119,7 +119,7 @@ wmsx.RTC = function() {
             clockRunning = true;
         } else {
             clockRunning = false;                     // Freeze then transfer to registers
-            clockFromTimeToRegisters(true);           // Force update
+            clockFromTimeToRegisters();
         }
     }
 

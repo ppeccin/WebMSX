@@ -14,6 +14,10 @@ wmsx.CartridgeGameMaster2 = function(rom) {
         self.sram = sram;
     }
 
+    this.connect = function(machine) {
+        cartridgeSocket = machine.getCartridgeSocket();
+    };
+
     this.getDataDesc = function() {
         return "SRAM";
     };
@@ -27,8 +31,14 @@ wmsx.CartridgeGameMaster2 = function(rom) {
     };
 
     this.getDataToSave = function() {
+        sramModif = false;
+        cartridgeSocket.fireCartridgesModifiedStateUpdate();
         var content = new Uint8Array(sram);
         return { fileName: sramContentName || "GameMaster2.sram", content: content, desc: this.getDataDesc() };
+    };
+
+    this.dataModified = function() {
+        return sramModif;
     };
 
     this.powerOn = function() {
@@ -56,8 +66,13 @@ wmsx.CartridgeGameMaster2 = function(rom) {
             return;
         }
         // SRAM write
-        if (address >= 0xb000 && (bank4 & 0x10))
+        if (address >= 0xb000 && (bank4 & 0x10)) {
             sram[((bank4 & 0x20) << 7) + address - 0xb000] = value;             // Only 4KB of SRAM visible, in 2 banks (bank in bit 5)
+            if (!sramModif) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
+        }
     };
 
     this.read = function(address) {
@@ -87,6 +102,9 @@ wmsx.CartridgeGameMaster2 = function(rom) {
     var sram;
     this.sram = null;
     var sramContentName;
+    var sramModif = false;
+
+    var cartridgeSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.GameMaster2;
@@ -103,7 +121,8 @@ wmsx.CartridgeGameMaster2 = function(rom) {
             b3: bank3,
             b4: bank4,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
-            sn: sramContentName
+            sn: sramContentName,
+            d: sramModif
         };
     };
 
@@ -117,6 +136,7 @@ wmsx.CartridgeGameMaster2 = function(rom) {
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
         this.sram = sram;
         sramContentName = s.sn;
+        sramModif = !!s.d;
     };
 
 

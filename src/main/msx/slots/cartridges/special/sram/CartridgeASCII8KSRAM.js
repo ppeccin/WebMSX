@@ -22,6 +22,10 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         sramSelectMask = format === wmsx.SlotFormats.Wizardry ? 0x80 : aboveROMBankBit;         // Bits for ROM Bank Select
     }
 
+    this.connect = function(machine) {
+        cartridgeSocket = machine.getCartridgeSocket();
+    };
+
     this.getDataDesc = function() {
         return "SRAM";
     };
@@ -36,8 +40,14 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
     };
 
     this.getDataToSave = function() {
+        sramModif = false;
+        cartridgeSocket.fireCartridgesModifiedStateUpdate();
         var content = new Uint8Array(sram);
         return { fileName: sramContentName || "Data.sram", content: content, desc: this.getDataDesc() };
+    };
+
+    this.dataModified = function() {
+        return sramModif;
     };
 
     this.powerOn = function() {
@@ -71,11 +81,19 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         // SRAM write bank 3
         if (address < 0xa000 && (bank3 & sramSelectMask)) {
             sram[(((bank3 & 0x03) << 13) + address - 0x8000) & sramSizeMask] = value;
+            if (!sramModif) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
             return;
         }
         // SRAM write bank 4
         if (bank4 & sramSelectMask) {
             sram[(((bank4 & 0x03) << 13) + address - 0xa000) & sramSizeMask] = value;
+            if (!sramModif) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
         }
     };
 
@@ -113,6 +131,9 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
     this.sram = null;
     var sramSizeMask;
     var sramContentName;
+    var sramModif = false;
+
+    var cartridgeSocket;
 
     this.rom = null;
     this.format = format;
@@ -133,7 +154,8 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
             rsm: romSelectMask,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
             sn: sramContentName,
-            ssm: sramSelectMask
+            ssm: sramSelectMask,
+            d: sramModif
         };
     };
 
@@ -153,6 +175,7 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         sramSizeMask = sram.length - 1;
         sramContentName = s.sn;
         sramSelectMask = s.ssm;
+        sramModif = !!s.d;
     };
 
 

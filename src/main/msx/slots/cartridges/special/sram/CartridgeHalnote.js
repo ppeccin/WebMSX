@@ -16,6 +16,10 @@ wmsx.CartridgeHalnote = function(rom) {
         self.sram = sram;
     }
 
+    this.connect = function(machine) {
+        cartridgeSocket = machine.getCartridgeSocket();
+    };
+
     this.getDataDesc = function() {
         return "SRAM";
     };
@@ -29,8 +33,14 @@ wmsx.CartridgeHalnote = function(rom) {
     };
 
     this.getDataToSave = function() {
+        sramModif = false;
+        cartridgeSocket.fireCartridgesModifiedStateUpdate();
         var content = new Uint8Array(sram);
         return { fileName: sramContentName || "Halnote.sram", content: content, desc: this.getDataDesc() };
+    };
+
+    this.dataModified = function() {
+        return sramModif;
     };
 
     this.powerOn = function() {
@@ -107,6 +117,9 @@ wmsx.CartridgeHalnote = function(rom) {
     this.sram = null;
     var sramEnabled;
     var sramContentName;
+    var sramModif = false;
+
+    var cartridgeSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.Halnote;
@@ -128,7 +141,8 @@ wmsx.CartridgeHalnote = function(rom) {
             sbe: subBanksEnabled,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
             se: sramEnabled,
-            sn: sramContentName
+            sn: sramContentName,
+            d: sramModif
         };
     };
 
@@ -147,6 +161,7 @@ wmsx.CartridgeHalnote = function(rom) {
         this.sram = sram;
         sramEnabled = s.se;
         sramContentName = s.sn;
+        sramModif = !!s.d;
     };
 
 

@@ -27,17 +27,24 @@ wmsx.CartridgeFMPAC = function(rom) {
     };
 
     this.getDataToSave = function() {
+        sramModif = false;
+        cartridgeSocket.fireCartridgesModifiedStateUpdate();
         var content = wmsx.CartridgePAC.buildPACFileContentToSave(sram);
         return { fileName: sramContentName || "PAC SRAM.pac", content: content, desc: this.getDataDesc() };
     };
 
     this.connect = function(pMachine) {
         machine = pMachine;
+        cartridgeSocket = machine.getCartridgeSocket();
         updateFMEnable();
     };
 
     this.disconnect = function(machine) {
         fm.disconnect(machine);
+    };
+
+    this.dataModified = function() {
+        return sramModif;
     };
 
     this.powerOn = function() {
@@ -79,8 +86,13 @@ wmsx.CartridgeFMPAC = function(rom) {
         }
 
         // SRAM write
-        if (sramActive && address >= 0x4000 && address <= 0x5ffd)
+        if (sramActive && address >= 0x4000 && address <= 0x5ffd) {
             sram[address - 0x4000] = value;
+            if (!sramModif) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
+        }
     };
 
     this.read = function(address) {
@@ -125,6 +137,9 @@ wmsx.CartridgeFMPAC = function(rom) {
     var sramActive;
     this.sram = null;
     var sramContentName;
+    var sramModif = false;
+
+    var cartridgeSocket;
 
     var fmEnable;
     var bankOffset;
@@ -150,7 +165,8 @@ wmsx.CartridgeFMPAC = function(rom) {
             sa: sramActive,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
             sn: sramContentName,
-            fm: fm.saveState()
+            fm: fm.saveState(),
+            d: sramModif
         };
     };
 
@@ -164,6 +180,7 @@ wmsx.CartridgeFMPAC = function(rom) {
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
         sramContentName = s.sn;
         fm.loadState(s.fm);
+        sramModif = !!s.d;
         updateFMEnable();
     };
 

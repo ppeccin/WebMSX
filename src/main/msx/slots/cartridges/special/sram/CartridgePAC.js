@@ -13,6 +13,10 @@ wmsx.CartridgePAC = function(rom) {
         if (rom.content.length !== 0) loadSRAM(rom.source, rom.content);
     }
 
+    this.connect = function(machine) {
+        cartridgeSocket = machine.getCartridgeSocket();
+    };
+
     this.getDataDesc = function() {
         return "SRAM";
     };
@@ -25,8 +29,14 @@ wmsx.CartridgePAC = function(rom) {
     };
 
     this.getDataToSave = function() {
+        sramModif = false;
+        cartridgeSocket.fireCartridgesModifiedStateUpdate();
         var content = wmsx.CartridgePAC.buildPACFileContentToSave(sram);
         return { fileName: sramContentName || "PAC SRAM.pac", content: content, desc: this.getDataDesc() };
+    };
+
+    this.dataModified = function() {
+        return sramModif;
     };
 
     this.powerOn = function() {
@@ -45,8 +55,13 @@ wmsx.CartridgePAC = function(rom) {
             return;
         }
         // SRAM write
-        if (sramActive && address >= 0x4000 && address <= 0x5ffd)
+        if (sramActive && address >= 0x4000 && address <= 0x5ffd) {
             sram[address - 0x4000] = value;
+            if (!sramModif) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
+        }
     };
 
     this.read = function(address) {
@@ -68,6 +83,9 @@ wmsx.CartridgePAC = function(rom) {
     var sramActive;
     this.sram = null;
     var sramContentName;
+    var sramModif = false;
+
+    var cartridgeSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.PACExpansion;
@@ -81,7 +99,8 @@ wmsx.CartridgePAC = function(rom) {
             r: this.rom.saveState(),
             sa: sramActive,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
-            sn: sramContentName
+            sn: sramContentName,
+            d: sramModif
         };
     };
 
@@ -90,6 +109,7 @@ wmsx.CartridgePAC = function(rom) {
         sramActive = s.sa;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
         sramContentName = s.sn;
+        sramModif = !!s.d;
     };
 
 

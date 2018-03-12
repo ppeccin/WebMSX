@@ -416,8 +416,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var cart2 = cartridgeSocket.cartridgeInserted(1);
         cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") + "  [" + cart1.format.name + "]" : "" );
         cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") + "  [" + cart2.format.name + "]" : "" );
-        cartridge1Button.style.backgroundPosition = "" + cartridge1Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart1 ? 1 : 0)]) + "px";
-        cartridge2Button.style.backgroundPosition = "" + cartridge2Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart2 ? 1 : 0)]) + "px";
         var dataDesc = cart1 && cart1.getDataDesc();
         cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
         cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data") + " File";
@@ -428,7 +426,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data") + " File";
         cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data") + " File";
         cartridge2Button.wmsxMenu[3].disabled = !cart2;
+        this.cartridgesModifiedStateUpdate(cart1, cart2);
         refreshSettingsMenuForExtensions();
+    };
+
+    this.cartridgesModifiedStateUpdate = function(cart1, cart2) {
+        cartridge1Button.style.backgroundPosition = "" + cartridge1Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart1 ? cart1.dataModified() ? 2 : 1 : 0)]) + "px";
+        cartridge2Button.style.backgroundPosition = "" + cartridge2Button.wmsxBX + "px " + (mediaButtonBackYOffsets[(cart2 ? cart2.dataModified() ? 2 : 1 : 0)]) + "px";
     };
 
     this.tapeStateUpdate = function (name, motor, modif) {
@@ -489,6 +493,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
             machine.getDiskDriveSocket().setInterfacesChangeListener(this);
             machine.getBIOSSocket().setMachineTurboModesStateListener(this);
+            machine.getCartridgeSocket().setCartridgesModifiedStateListener(this);
         }
     };
 

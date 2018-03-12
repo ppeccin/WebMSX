@@ -28,11 +28,18 @@ wmsx.CartridgeManbow2 = function(rom) {
     };
 
     this.getDataToSave = function() {
+        sramModif = false;
+        cartridgeSocket.fireCartridgesModifiedStateUpdate();
         var content = new Uint8Array(bytes.slice(458752));      // Last 64K
         return { fileName: sramContentName || "Manbow2.sram", content: content, desc: this.getDataDesc() };
     };
 
+    this.dataModified = function() {
+        return sramModif;
+    };
+
     this.connect = function(machine) {
+        cartridgeSocket = machine.getCartridgeSocket();
         scc.setAudioSocket(machine.getAudioSocket());
         if (sccConnected) connectSCC();     // needed in LoadStates
     };
@@ -102,7 +109,14 @@ wmsx.CartridgeManbow2 = function(rom) {
     };
 
     function writeMem(address, value) {
-        if (address >= 458752 && address < 524288) bytes[address] = value;      // only last 64K writable
+        // only last 64K writable
+        if (address >= 458752 && address < 524288) {
+            bytes[address] = value;
+            if (!sramModif) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
+        }
     }
 
     function connectSCC() {
@@ -122,6 +136,9 @@ wmsx.CartridgeManbow2 = function(rom) {
     var sccSelected = false;
     var sccConnected = false;
     var sramContentName;
+    var sramModif = false;
+
+    var cartridgeSocket;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.Manbow2;
@@ -141,7 +158,8 @@ wmsx.CartridgeManbow2 = function(rom) {
             scc: scc.saveState(),
             scs: sccSelected,
             scn: sccConnected,
-            sn: sramContentName
+            sn: sramContentName,
+            d: sramModif
         };
     };
 
@@ -157,6 +175,7 @@ wmsx.CartridgeManbow2 = function(rom) {
         sccSelected = s.scs;
         sccConnected = s.scn;
         sramContentName = s.sn;
+        sramModif = !!s.d;
 
         if (sccConnected) connectSCC();
     };

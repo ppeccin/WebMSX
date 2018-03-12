@@ -781,13 +781,22 @@ wmsx.Machine = function() {
             for (var i = 0; i < listeners.length; i++)
                 listeners[i].cartridgesStateUpdate();
         };
+        this.fireCartridgesModifiedStateUpdate = function () {
+            if (modifiedListener)
+                modifiedListener.cartridgesModifiedStateUpdate(slotSocket.slotInserted(CARTRIDGE0_SLOT), slotSocket.slotInserted(CARTRIDGE1_SLOT));
+        };
         this.addCartridgesStateListener = function (listener, silent) {
             if (listeners.indexOf(listener) < 0) {
                 listeners.push(listener);
                 if (!silent) listener.cartridgesStateUpdate();
             }
         };
+        this.setCartridgesModifiedStateListener = function (listener) {
+            modifiedListener = listener;
+            this.fireCartridgesModifiedStateUpdate();
+        };
         var listeners = [];
+        var modifiedListener;
     }
 
 
