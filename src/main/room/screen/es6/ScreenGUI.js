@@ -44,6 +44,26 @@ wmsx.ScreenGUI.html = function() {
                     </div>
                     <div id="wmsx-osd"></div>
                 </div>
+                <div id="wmsx-drop-area">
+                    <div id="wmsx-drop-drive-a">
+                        <div class="wmsx-drop-option">Drive A</div>
+                    </div>
+                    <div id="wmsx-drop-drive-b">
+                        <div class="wmsx-drop-option">Drive B</div>
+                    </div>
+                    <div id="wmsx-drop-drive-n">
+                        <div class="wmsx-drop-option">Nextor Drive</div>
+                    </div>
+                    <div id="wmsx-drop-cart-1">
+                        <div class="wmsx-drop-option">Cartridge 1</div>
+                    </div>
+                    <div id="wmsx-drop-cart-2">
+                        <div class="wmsx-drop-option">Cartridge 2</div>
+                    </div>
+                    <div id="wmsx-drop-tape">
+                        <div class="wmsx-drop-option">Cassette</div>
+                    </div>
+                </div>
                 <div id="wmsx-bar">
                     <div id="wmsx-bar-inner"></div>
                 </div>
@@ -1455,7 +1475,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     right: 24px;
 }
 .wmsx-touch-dir-key .wmsx-touch-dir-up::after {
-content: "";
+    content: "";
     position: absolute;
     top: 26px;
     left: -1px;
@@ -1610,6 +1630,58 @@ content: "";
 #wmsx-touch-speed.wmsx-poweroff #wmsx-touch-fast {
     display: none;
 }
+
+#wmsx-drop-area {
+    position: absolute;
+    display: none;
+    left: 0;
+    right: 0;
+    margin: auto;
+    padding: 0;
+    bottom: 59px;
+    width: 532px;
+    height: 210px;
+    font-size: 0;
+    line-height: 0;
+    background: hsla(0, 0%, 0%, .8);
+    text-align: left;
+    z-index: 99;
+}
+#wmsx-drop-area > div {
+    position: relative;
+    display: inline-block;
+    width: 164px;
+    height: 90px;
+    margin: 10px 0 0 10px;
+    border: 1px solid black;
+    background: hsl(0, 0%, 16%);
+    box-sizing: border-box;
+}
+.wmsx-drop-option {
+    padding: 20px 0 0 0px;
+    font-size: 18px;
+    line-height: 24px;
+    color: hsl(0, 0%, 76%);
+    text-align: center;
+    vertical-align: bottom;
+}
+.wmsx-drop-option::before {
+    content: "";
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    background: url("../src/runtime/images/files/sprites.png");
+    background-position: -165px -48px;
+    background-size: 284px 103px;
+    vertical-align: bottom;
+}
+
+
+
+
+
+
+
 
 
 @media only screen and (orientation: landscape) {    /* Landscape */

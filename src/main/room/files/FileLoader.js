@@ -23,6 +23,7 @@ wmsx.FileLoader = function() {
 
     this.registerForDnD = function (element) {
         element.addEventListener("dragover", onDragOver, false);
+        element.addEventListener("dragenter", onDragEnter, true);
         element.addEventListener("dragleave", onDragLeave, false);
         element.addEventListener("drop", onDrop, false);
     };
@@ -371,6 +372,12 @@ wmsx.FileLoader = function() {
         return false;
     }
 
+    function onDragEnter(e) {
+        e.stopPropagation();
+        var ele = e.target;
+        //console.log("DRAG ENTER:", ele);
+    }
+
     function onDragOver(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
@@ -390,12 +397,14 @@ wmsx.FileLoader = function() {
         if (ele.wmsxDropFileInfo) ele.classList.add("wmsx-drop-choice");
         dragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
 
-        // console.log("DRAG OVER:", dropInfo.openType, dropInfo.port);
+        //console.log("DRAG OVER:", dropInfo.openType, dropInfo.port);
     }
 
     function onDragLeave(e) {
         var ele = e.target;
         if (ele.wmsxDropFileInfo) ele.classList.remove("wmsx-drop-choice");
+
+        //console.log("DRAG LEAVE:", ele);
     }
 
     function onDrop(e) {
