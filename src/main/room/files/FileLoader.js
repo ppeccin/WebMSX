@@ -22,10 +22,9 @@ wmsx.FileLoader = function() {
     };
 
     this.registerForDnD = function (element) {
-        element.addEventListener("dragover", onDragOver, false);
-        element.addEventListener("dragenter", onDragEnter, true);
-        element.addEventListener("dragleave", onDragLeave, false);
-        element.addEventListener("drop", onDrop, false);
+        dragRootElement = element;
+        dragRootElement.addEventListener("dragover", onDragOver, false);
+        dragRootElement.addEventListener("drop", onDrop, false);
     };
 
     this.registerForFileInputElement = function (element) {
@@ -372,39 +371,39 @@ wmsx.FileLoader = function() {
         return false;
     }
 
-    function onDragEnter(e) {
-        e.stopPropagation();
-        var ele = e.target;
-        //console.log("DRAG ENTER:", ele);
-    }
-
     function onDragOver(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
         e.stopPropagation();
 
-        if (e.dataTransfer) {
-            if (WMSX.MEDIA_CHANGE_DISABLED)
-                e.dataTransfer.dropEffect = "none";
-            else
-                e.dataTransfer.dropEffect = "link";
-        }
+        if (!e.dataTransfer) return;
 
-        var ele = e.target;
-        var dropInfo = ele.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
-        if (!dropInfo) return;
+        e.dataTransfer.dropEffect = WMSX.MEDIA_CHANGE_DISABLED ? "none" : "link";
 
-        if (ele.wmsxDropFileInfo) ele.classList.add("wmsx-drop-choice");
-        dragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-click
+        setDragTarget(e.target);
+        currentDragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-drag
 
-        //console.log("DRAG OVER:", dropInfo.openType, dropInfo.port);
+        // Mechanism for ending drag, since its undetectable...  :-(
+        if (currentDragTimer) clearTimeout(currentDragTimer);
+        currentDragTimer = setTimeout(dragEnded, 250);
+
+        //console.log("DRAG OVER:", e.target);
     }
 
-    function onDragLeave(e) {
-        var ele = e.target;
-        if (ele.wmsxDropFileInfo) ele.classList.remove("wmsx-drop-choice");
+    function setDragTarget(target) {
+        while (target && !target.wmsxDropFileInfo) target = target.parentElement;
+        if (currentDropTarget === target) return;
 
-        //console.log("DRAG LEAVE:", ele);
+        if (currentDropTarget) currentDropTarget.classList.remove("wmsx-selected");
+        currentDropTarget = target;
+        if (currentDropTarget) currentDropTarget.classList.add("wmsx-selected");
+
+        dragRootElement.classList.toggle("wmsx-drag-active", !!currentDropTarget);
+    }
+
+    function dragEnded() {
+        setDragTarget(undefined);
+        currentDragTimer = undefined;
     }
 
     function onDrop(e) {
@@ -412,15 +411,15 @@ wmsx.FileLoader = function() {
         e.preventDefault();
         e.target.focus();
 
-        if (!e.dataTransfer) return;
+        if (!currentDropTarget || !e.dataTransfer) return dragEnded();
 
-        var ele = e.target;
-        ele.classList.remove("wmsx-drop-choice");
+        var dropInfo = currentDropTarget.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
 
-        var dropInfo = ele.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
+        dragEnded();
+
         if (!dropInfo || peripheralControls.mediaChangeDisabledWarning(wmsx.PeripheralControls.AUTO_LOAD_FILE)) return;
 
-        var altPower = dragButtons & MOUSE_BUT2_MASK;
+        var altPower = currentDragButtons & MOUSE_BUT2_MASK;
         var asDisk = e.altKey;
         var asExpansion = e.ctrlKey;    // Serves as AddToStack when loading in Floppy Drives
         var port = dropInfo.port !== undefined ? dropInfo.port : e.shiftKey ? 1 : 0;
@@ -485,12 +484,16 @@ wmsx.FileLoader = function() {
     var fileInputElement;
     var fileInputElementParent;
 
+
     var chooserOpenType;
     var chooserPort = 0;
     var chooserAltPower = false;
     var chooserAsExpansion = false;
 
-    var dragButtons = 1;
+    var dragRootElement;
+    var currentDropTarget;
+    var currentDragButtons = 1;
+    var currentDragTimer;
 
     var MOUSE_BUT1_MASK = 1;
     var MOUSE_BUT2_MASK = 2;

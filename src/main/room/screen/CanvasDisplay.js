@@ -1574,13 +1574,20 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function setupFileLoaderDropTargets() {
-        fsElement.wmsxDropFileInfo =        { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : let modifiers key define the port
-        diskAButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 0 };
-        diskBButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 1 };
-        diskHButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 2 };
-        cartridge1Button.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 0 };
-        cartridge2Button.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 1 };
-        tapeButton.wmsxDropFileInfo =       { openType: OPEN_TYPE.TAPE, port: 0 };
+        fsElement.wmsxDropFileInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : let modifiers key define the port
+
+        var option = document.getElementById("wmsx-drop-drivea");
+        option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 0 };
+        option = document.getElementById("wmsx-drop-driveb");
+        option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 1 };
+        option = document.getElementById("wmsx-drop-driveh");
+        option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 2 };
+        option = document.getElementById("wmsx-drop-cart1");
+        option.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 0 };
+        option = document.getElementById("wmsx-drop-cart2");
+        option.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 1 };
+        option = document.getElementById("wmsx-drop-tape");
+        option.wmsxDropFileInfo = { openType: OPEN_TYPE.TAPE, port: 0 };
     }
 
 

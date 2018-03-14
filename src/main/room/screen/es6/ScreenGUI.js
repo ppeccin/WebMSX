@@ -45,24 +45,12 @@ wmsx.ScreenGUI.html = function() {
                     <div id="wmsx-osd"></div>
                 </div>
                 <div id="wmsx-drop-area">
-                    <div id="wmsx-drop-drive-a">
-                        <div class="wmsx-drop-option">Drive A</div>
-                    </div>
-                    <div id="wmsx-drop-drive-b">
-                        <div class="wmsx-drop-option">Drive B</div>
-                    </div>
-                    <div id="wmsx-drop-drive-n">
-                        <div class="wmsx-drop-option">Hard Drive</div>
-                    </div>
-                    <div id="wmsx-drop-cart-1">
-                        <div class="wmsx-drop-option">Cartridge 1</div>
-                    </div>
-                    <div id="wmsx-drop-cart-2">
-                        <div class="wmsx-drop-option">Cartridge 2</div>
-                    </div>
-                    <div id="wmsx-drop-tape">
-                        <div class="wmsx-drop-option">Cassette</div>
-                    </div>
+                    <div id="wmsx-drop-drivea"><div class="wmsx-drop-option">Drive A</div></div>
+                    <div id="wmsx-drop-driveb"><div class="wmsx-drop-option">Drive B</div></div>
+                    <div id="wmsx-drop-driveh"><div class="wmsx-drop-option">Hard Drive</div></div>
+                    <div id="wmsx-drop-cart1"><div class="wmsx-drop-option">Cartridge 1</div></div>
+                    <div id="wmsx-drop-cart2"><div class="wmsx-drop-option">Cartridge 2</div></div>
+                    <div id="wmsx-drop-tape"><div class="wmsx-drop-option">Cassette</div></div>
                 </div>
                 <div id="wmsx-bar">
                     <div id="wmsx-bar-inner"></div>
@@ -612,11 +600,6 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-radius: 6px;
     color: white;
     transform: translate(-50%, -50%);
-}
-
-.wmsx-bar-button.wmsx-drop-choice {
-    box-shadow: inset 0 2px yellow, inset 0 -2px yellow, 2px 0 yellow, -2px 0 yellow;
-    z-index: 999999999;
 }
 
 #wmsx-osd {
@@ -1650,6 +1633,9 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     text-align: left;
     z-index: 99;
 }
+#wmsx-screen-fs.wmsx-drag-active #wmsx-drop-area {
+    display: block;
+}
 #wmsx-drop-area > div {
     position: relative;
     display: inline-block;
@@ -1660,24 +1646,35 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background: hsl(0, 0%, 16%);
     box-sizing: border-box;
 }
+#wmsx-drop-area > div.wmsx-selected {
+    background: hsl(358, 67%, 38%);
+}
 .wmsx-drop-option {
-    padding: 20px 0 0 0px;
-    font-size: 18px;
+    padding: 0;
+    font-size: 19px;
     line-height: 24px;
-    color: hsl(0, 0%, 76%);
+    color: hsl(0, 0%, 79%);
+    text-shadow: 2px 2px black;
     text-align: center;
     vertical-align: bottom;
 }
 .wmsx-drop-option::before {
     content: "";
-    display: inline-block;
-    width: 28px;
-    height: 28px;
+    display: block;
+    margin: 11px auto 7px;
+    width: 41px;
+    height: 36px;
     background: url("../src/runtime/images/files/sprites.png");
-    background-position: -165px -48px;
-    background-size: 284px 103px;
+    _background-position: -335px -108px;
+    background-size: 568px 206px;
     vertical-align: bottom;
 }
+#wmsx-drop-drivea .wmsx-drop-option::before { background-position: -334px -108px; }
+#wmsx-drop-driveb .wmsx-drop-option::before { background-position: -392px -108px; }
+#wmsx-drop-driveh .wmsx-drop-option::before { background-position: -508px -108px; }
+#wmsx-drop-cart1 .wmsx-drop-option::before { background-position: -159px -108px; }
+#wmsx-drop-cart2 .wmsx-drop-option::before { background-position: -217px -108px; }
+#wmsx-drop-tape .wmsx-drop-option::before { background-position: -275px -108px; }
 
 
 @media only screen and (orientation: landscape) {    /* Landscape */
