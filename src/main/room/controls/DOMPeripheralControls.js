@@ -308,7 +308,7 @@ wmsx.DOMPeripheralControls = function(room) {
             monitor.showOSD("Media change is disabled!", true, true);
             return true;
         }
-        if (room.netPlayMode === 2 && netServerOnlyControls.has(control)) {
+        if (room.netPlayMode === 2 && (!control || netServerOnlyControls.has(control))) {
             monitor.showOSD("Media loading is disabled in NetPlay Client mode!", true, true);
             return true;
         }

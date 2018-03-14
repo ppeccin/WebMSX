@@ -157,11 +157,11 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         self.cartridgeSlot = new wmsx.FileCartridgeSlot(self);
         self.cassetteDeck = new wmsx.FileCassetteDeck(self);
         self.diskDrive = new wmsx.FileDiskDrive(self);
-        self.fileLoader = new wmsx.FileLoader();
+        self.fileLoader = new wmsx.FileLoader(self);
         self.screen = new wmsx.CanvasDisplay(self, screenElement);
         self.speaker = new wmsx.WebAudioSpeaker(screenElement);
 
-        self.fileLoader.connectPeripherals(self.peripheralControls, self.cartridgeSlot, self.cassetteDeck, self.diskDrive);
+        self.fileLoader.connectPeripherals(self.screen, self.peripheralControls, self.cartridgeSlot, self.cassetteDeck, self.diskDrive);
         self.fileDownloader.connectPeripherals(self.screen);
         self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.machineControls, self.peripheralControls, self.controllersHub, self.diskDrive, self.stateMedia);
         self.speaker.connectPeripherals(self.screen);

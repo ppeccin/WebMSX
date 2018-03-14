@@ -402,13 +402,20 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.diskInterfacesStateUpdate = function(hasDiskInterface, hasHardDiskInterface) {
         peripheralControls.hardDiskInterfaceActive(hasHardDiskInterface);
-        // Show/hide icons
+        // Show/hide/disable icons
         diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
+        diskAButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
+        diskAButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasDiskInterface;
         diskBButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
+        diskBButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
+        diskBButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasDiskInterface;
         diskHButton.classList.toggle("wmsx-hidden", !hasHardDiskInterface);
+        diskHButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasHardDiskInterface);
+        diskHButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasHardDiskInterface;
         // Order of icons
-        if (!hasDiskInterface || !hasHardDiskInterface) return;
-        diskHButton.style.float = WMSX.EXTENSIONS.HARDDISK & 1 ? "left" : "none";
+        var toTheLeft = (WMSX.EXTENSIONS.HARDDISK & 1) || (hasHardDiskInterface && !hasDiskInterface);
+        diskHButton.style.float = toTheLeft ? "left" : "none";
+        diskHButton.wmsxDragTarget.style.float = toTheLeft ? "left" : "none";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -1576,11 +1583,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function setupFileLoaderDropTargets() {
         fsElement.wmsxDropFileInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : let modifiers key define the port
 
-        var option = document.getElementById("wmsx-drop-drivea");
+        var option;
+        diskAButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-drivea");
         option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 0 };
-        option = document.getElementById("wmsx-drop-driveb");
+        diskBButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-driveb");
         option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 1 };
-        option = document.getElementById("wmsx-drop-driveh");
+        diskHButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-driveh");
         option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 2 };
         option = document.getElementById("wmsx-drop-cart1");
         option.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 0 };
@@ -1589,6 +1597,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         option = document.getElementById("wmsx-drop-tape");
         option.wmsxDropFileInfo = { openType: OPEN_TYPE.TAPE, port: 0 };
     }
+
+    this.setFileLoaderDragActive = function (state) {
+        if (state) closeAllOverlays();
+        fsElement.classList.toggle("wmsx-drag-active", state);
+    };
 
 
     var afterMessageAction;

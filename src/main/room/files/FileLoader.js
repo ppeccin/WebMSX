@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.FileLoader = function() {
+wmsx.FileLoader = function(room) {
 "use strict";
 
     var self = this;
@@ -14,7 +14,8 @@ wmsx.FileLoader = function() {
         saveStateSocket = machine.getSavestateSocket();
     };
 
-    this.connectPeripherals = function(pPeripheralControls, pCartridgeSlot, pCassetteDeck, pDiskDrive) {
+    this.connectPeripherals = function(pScreen, pPeripheralControls, pCartridgeSlot, pCassetteDeck, pDiskDrive) {
+        screen = pScreen;
         peripheralControls = pPeripheralControls;
         cartridgeSlot = pCartridgeSlot;
         cassetteDeck = pCassetteDeck;
@@ -22,9 +23,8 @@ wmsx.FileLoader = function() {
     };
 
     this.registerForDnD = function (element) {
-        dragRootElement = element;
-        dragRootElement.addEventListener("dragover", onDragOver, false);
-        dragRootElement.addEventListener("drop", onDrop, false);
+        element.addEventListener("dragover", onDragOver, false);
+        element.addEventListener("drop", onDrop, false);
     };
 
     this.registerForFileInputElement = function (element) {
@@ -378,10 +378,10 @@ wmsx.FileLoader = function() {
 
         if (!e.dataTransfer) return;
 
-        e.dataTransfer.dropEffect = WMSX.MEDIA_CHANGE_DISABLED ? "none" : "link";
-
         setDragTarget(e.target);
         currentDragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-drag
+
+        e.dataTransfer.dropEffect = !currentDropTarget || currentDropTarget.wmsxDropFileInfo.disabled ? "none" : "link";
 
         // Mechanism for ending drag, since its undetectable...  :-(
         if (currentDragTimer) clearTimeout(currentDragTimer);
@@ -391,14 +391,15 @@ wmsx.FileLoader = function() {
     }
 
     function setDragTarget(target) {
-        while (target && !target.wmsxDropFileInfo) target = target.parentElement;
+        if (target && peripheralControls.mediaChangeDisabledWarning()) target = undefined;
+        else while (target && !target.wmsxDropFileInfo) target = target.parentElement;
         if (currentDropTarget === target) return;
 
         if (currentDropTarget) currentDropTarget.classList.remove("wmsx-selected");
         currentDropTarget = target;
         if (currentDropTarget) currentDropTarget.classList.add("wmsx-selected");
 
-        dragRootElement.classList.toggle("wmsx-drag-active", !!currentDropTarget);
+        screen.setFileLoaderDragActive(!!currentDropTarget);
     }
 
     function dragEnded() {
@@ -417,7 +418,7 @@ wmsx.FileLoader = function() {
 
         dragEnded();
 
-        if (!dropInfo || peripheralControls.mediaChangeDisabledWarning(wmsx.PeripheralControls.AUTO_LOAD_FILE)) return;
+        if (!dropInfo || dropInfo.disabled) return;
 
         var altPower = currentDragButtons & MOUSE_BUT2_MASK;
         var asDisk = e.altKey;
@@ -476,6 +477,7 @@ wmsx.FileLoader = function() {
     var biosSocket;
     var expansionSocket;
     var saveStateSocket;
+    var screen;
     var peripheralControls;
     var cartridgeSlot;
     var cassetteDeck;
@@ -490,7 +492,6 @@ wmsx.FileLoader = function() {
     var chooserAltPower = false;
     var chooserAsExpansion = false;
 
-    var dragRootElement;
     var currentDropTarget;
     var currentDragButtons = 1;
     var currentDragTimer;
