@@ -41,8 +41,8 @@ wmsx.DOMPeripheralControls = function(room) {
         return { label: "Unknown", active: false };
     };
 
-    this.nextorInterfaceActive = function(state) {
-        nextor = state;
+    this.hardDiskInterfaceActive = function(state) {
+        hardDisk = state;
     };
 
     this.processKey = function(code, press) {
@@ -162,49 +162,49 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.CARTRIDGE_SAVE_DATA_FILE:
                 cartridgeSlot.saveCartridgeDataFile(port);
                 break;
-            case pc.NEXTOR_LOAD_FILE:
+            case pc.HARDDISK_LOAD_FILE:
             case pc.TAPE_LOAD_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && nextor) return fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
+                    if (!secPort && hardDisk) return fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
                     fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
                 }
                 break;
-            case pc.NEXTOR_LOAD_URL:
+            case pc.HARDDISK_LOAD_URL:
             case pc.TAPE_LOAD_URL:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && nextor) return fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
+                    if (!secPort && hardDisk) return fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
                     fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
                 }
                 break;
-            case pc.NEXTOR_LOAD_FILES_AS_DISK:
+            case pc.HARDDISK_LOAD_FILES_AS_DISK:
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);
                 break;
-            case pc.NEXTOR_LOAD_ZIP_AS_DISK:
+            case pc.HARDDISK_LOAD_ZIP_AS_DISK:
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, 2, false);
                 break;
-            case pc.NEXTOR_REMOVE:
+            case pc.HARDDISK_REMOVE:
             case pc.TAPE_REMOVE:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && nextor) return diskDrive.removeStack(2);
+                    if (!secPort && hardDisk) return diskDrive.removeStack(2);
                     cassetteDeck.userRemoveTape();
                 }
                 break;
-            case pc.NEXTOR_CHOOSE_EMPTY:
+            case pc.HARDDISK_CHOOSE_EMPTY:
             case pc.TAPE_EMPTY:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && nextor) return diskDrive.openNewNextorDiskDialog(altPower, false);
+                    if (!secPort && hardDisk) return diskDrive.openNewHardDiskDialog(altPower, false);
                     cassetteDeck.userLoadEmptyTape();
                 }
                 break;
-            case pc.NEXTOR_CHOOSE_BOOT:
-                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.openNewNextorDiskDialog(altPower, true);
+            case pc.HARDDISK_CHOOSE_BOOT:
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.openNewHardDiskDialog(altPower, true);
                 break;
-            case pc.NEXTOR_NEW:
+            case pc.HARDDISK_NEW:
                 diskDrive.insertNewDisk(2, data.m, data.b);
                 break;
-            case pc.NEXTOR_SAVE_FILE:
+            case pc.HARDDISK_SAVE_FILE:
             case pc.TAPE_SAVE_FILE:
-                if (!secPort && nextor) return diskDrive.saveDiskFile(2);
+                if (!secPort && hardDisk) return diskDrive.saveDiskFile(2);
                 cassetteDeck.saveTapeFile();
                 break;
             case pc.TAPE_REWIND:
@@ -426,7 +426,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var cassetteDeck;
     var diskDrive;
 
-    var nextor = false;
+    var hardDisk = false;
 
     var keyCodeMap = {};                // SHIFT is considered differently
 
@@ -456,8 +456,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_DISK   = wmsx.DOMKeys.VK_F6.c;
     var KEY_CART   = wmsx.DOMKeys.VK_F7.c;
-    var KEY_NEXTOR = wmsx.DOMKeys.VK_F8.c;      // Share same key
-    var KEY_TAPE   = wmsx.DOMKeys.VK_F8.c;      // Share same key, sec slot or Nextor inactive
+    var KEY_HARDDISK = wmsx.DOMKeys.VK_F8.c;      // Share same key
+    var KEY_TAPE   = wmsx.DOMKeys.VK_F8.c;        // Share same key, sec slot or HardDisk inactive
     var KEY_TAPE_RUN  = wmsx.DOMKeys.VK_F12.c;
 
     var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
@@ -495,8 +495,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
         pc.DISK_EMPTY, pc.DISK_BOOT, pc.DISK_MOVE, pc.DISK_INSERT, pc.DISK_REMOVE,
-        pc.NEXTOR_LOAD_FILE, pc.NEXTOR_LOAD_URL, pc.NEXTOR_LOAD_FILES_AS_DISK, pc.NEXTOR_LOAD_ZIP_AS_DISK, pc.NEXTOR_SAVE_FILE,
-        pc.NEXTOR_CHOOSE_EMPTY, pc.NEXTOR_CHOOSE_BOOT, pc.NEXTOR_NEW, pc.NEXTOR_REMOVE,
+        pc.HARDDISK_LOAD_FILE, pc.HARDDISK_LOAD_URL, pc.HARDDISK_LOAD_FILES_AS_DISK, pc.HARDDISK_LOAD_ZIP_AS_DISK, pc.HARDDISK_SAVE_FILE,
+        pc.HARDDISK_CHOOSE_EMPTY, pc.HARDDISK_CHOOSE_BOOT, pc.HARDDISK_NEW, pc.HARDDISK_REMOVE,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL

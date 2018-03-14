@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Multi Device Drive ( Floppy Drives A: & B: = drive 0 & 1, Nextor Device = drive 2 )
+// Multi Device Drive ( Floppy Drives A: & B: = drive 0 & 1, Hard Drive = drive 2 )
 
 wmsx.FileDiskDrive = function(room) {
 "use strict";
@@ -25,7 +25,7 @@ wmsx.FileDiskDrive = function(room) {
     };
 
     this.loadDiskStackFromFiles = function (drive, files, altPower, addToStack, filesFromZip) {
-        // Nextor Device never adds to stack, always replaces
+        // Hard Drive never adds to stack, always replaces
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
 
@@ -35,7 +35,7 @@ wmsx.FileDiskDrive = function(room) {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                var disks = checkFileHasValidImages(file, drive === 2);     // Nextor accepts any sized content
+                var disks = checkFileHasValidImages(file, drive === 2);     // Hard Drive accepts any sized content
                 if (disks) stack.push.apply(stack, disks);
             }
             if (stack.length > 0) {
@@ -56,10 +56,10 @@ wmsx.FileDiskDrive = function(room) {
             content = curDisk.content;
         } else {
             try {
-                var mediaType = drive === 2 ? images.nextorMediaTypeNeededForFiles(files) : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+                var mediaType = drive === 2 ? images.hardDiskMediaTypeNeededForFiles(files) : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
             } catch (e) {
                 console.error(e);
-                mediaType = drive === 2 ? this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[1] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+                mediaType = drive === 2 ? this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES[1] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
             }
             content = images.createNewDisk(mediaType);
         }
@@ -100,7 +100,7 @@ wmsx.FileDiskDrive = function(room) {
         if (drive !== 2 && maxStackReachedMessage(drive)) return;
 
         // Choose a default format option if no mediaType given
-        if (!mediaType) mediaType = drive === 2 ? this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[0] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
+        if (!mediaType) mediaType = drive === 2 ? this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES[0] : this.FORMAT_OPTIONS_MEDIA_TYPES[0];
 
         if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 11, d: drive, m: mediaType, b: boot, u: unformatted });
 
@@ -110,7 +110,7 @@ wmsx.FileDiskDrive = function(room) {
         var content = images.createNewDisk(mediaType, unformatted);
 
         // Add a new disk to the stack?
-        var add = driveStack[drive].length === 0 || drive !== 2;    // Add 1 disk to loaded stacks, always to the bottom. Nextor never adds
+        var add = driveStack[drive].length === 0 || drive !== 2;    // Add 1 disk to loaded stacks, always to the bottom. Hard Drive never adds
         if (add) driveStack[drive].push({});
 
         curDisk[drive] = driveStack[drive].length - 1;
@@ -173,8 +173,8 @@ wmsx.FileDiskDrive = function(room) {
         screen.openDiskSelectDialog(drive, inc, altPower);
     };
 
-    this.openNewNextorDiskDialog = function(altPower, bootable) {
-        screen.openNewNextorDiskDialog(altPower, bootable);
+    this.openNewHardDiskDialog = function(altPower, bootable) {
+        screen.openNewHardDiskDialog(altPower, bootable);
     };
 
     this.getDriveStack = function(drive) {
@@ -270,9 +270,9 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function autoPower(altPower) {
-        // Only if Drive A: or Nextor Device has a disk
+        // Only if Drive A: or Hard Drive has a disk
         if ((diskDriveSocket.hasDiskInterface() && getCurrentDisk(0))
-            || (diskDriveSocket.hasNextorInterface() && getCurrentDisk(2))) diskDriveSocket.autoPowerCycle(altPower);
+            || (diskDriveSocket.hasHardDiskInterface() && getCurrentDisk(2))) diskDriveSocket.autoPowerCycle(altPower);
     }
 
     function replaceCurrentDisk(drive, disk, sendNetOp) {     // Affects only current disk from stack
@@ -513,7 +513,7 @@ wmsx.FileDiskDrive = function(room) {
         deserializeStack(state.s[0], driveStack[0]);
         deserializeStack(state.s[1], driveStack[1]);
         if (state.s[2]) deserializeStack(state.s[2], driveStack[2]);
-        else clearNextorDrive();
+        else clearHardDrive();
         curDisk = state.c;
         driveDiskChanged = state.g;
         driveMotor = state.m;
@@ -527,10 +527,10 @@ wmsx.FileDiskDrive = function(room) {
             driveMotor[0] = driveMotor[1] = false;
             fireMediaStateUpdate(0); fireMediaStateUpdate(1);
         }
-        if (!diskDriveSocket.hasNextorInterface()) clearNextorDrive();
+        if (!diskDriveSocket.hasHardDiskInterface()) clearHardDrive();
     }
 
-    function clearNextorDrive() {
+    function clearHardDrive() {
         emptyStack(2);
         driveMotor[2] = false;
         fireMediaStateUpdate(2);
@@ -548,14 +548,14 @@ wmsx.FileDiskDrive = function(room) {
     var fileDownloader;
     var diskDriveSocket;
 
-    var driveStack   = [[], [], []];                    // Several disks can be loaded for each Floppy drive, just one for Nextor Device
+    var driveStack   = [[], [], []];                    // Several disks can be loaded for each Floppy drive, just one for Hard Drive
     var curDisk      = [0, 0, 0];                       // Current disk from stack inserted in drive
 
     var driveDiskChanged    = [ null, null, null ];     // true = yes, false = no, null = unknown
     var driveMotor          = [ false, false, false ];
     var driveMotorOffTimer  = [ null, null, null ];
 
-    var driveName = [ "Drive A:", "Drive B:", "Nextor Drive:" ];
+    var driveName = [ "Drive A:", "Drive B:", "Hard Drive:" ];
 
     var BYTES_PER_SECTOR = 512;                         // Fixed for now, for all disks
 
@@ -570,8 +570,8 @@ wmsx.FileDiskDrive = function(room) {
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;
     this.FORMAT_OPTIONS_MEDIA_TYPES = images.FORMAT_OPTIONS_MEDIA_TYPES;
-    this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = images.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES;
-    this.NEXTOR_MEDIA_TYPE_HEADER_INFO = images.NEXTOR_MEDIA_TYPE_HEADER_INFO;
+    this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES = images.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES;
+    this.HARDDISK_MEDIA_TYPE_HEADER_INFO = images.HARDDISK_MEDIA_TYPE_HEADER_INFO;
 
     init();
 

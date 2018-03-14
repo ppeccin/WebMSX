@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.NewNextorDiskDialog = function(mainElement, peripheralControls) {
+wmsx.NewHardDiskDialog = function(mainElement, peripheralControls) {
 "use strict";
 
     var self = this;
@@ -30,7 +30,7 @@ wmsx.NewNextorDiskDialog = function(mainElement, peripheralControls) {
         WMSX.room.screen.focus();
         if (confirm) {
             var mediaType = mediaTypes[optionSelected];
-            peripheralControls.processControlActivated(wmsx.PeripheralControls.NEXTOR_NEW, altPower, false, { m: mediaType, b: bootable });
+            peripheralControls.processControlActivated(wmsx.PeripheralControls.HARDDISK_NEW, altPower, false, { m: mediaType, b: bootable });
         }
     };
 
@@ -41,7 +41,7 @@ wmsx.NewNextorDiskDialog = function(mainElement, peripheralControls) {
 
     function create() {
         dialog = document.createElement("div");
-        dialog.id = "wmsx-new-nextor-disk";
+        dialog.id = "wmsx-new-hard-disk";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
         dialog.style.height = "175px";
@@ -117,7 +117,7 @@ wmsx.NewNextorDiskDialog = function(mainElement, peripheralControls) {
     var bootable = false;
     var header;
 
-    var mediaTypes = wmsx.DiskImages.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES;
+    var mediaTypes = wmsx.DiskImages.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES;
     var mediaInfo = wmsx.DiskImages.MEDIA_TYPE_INFO;
 
     var c = wmsx.MachineControls;

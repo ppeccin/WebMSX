@@ -434,13 +434,13 @@ wmsx.DiskImages = function(room) {
     };
 
     this.formatDisk = function (mediaType, content) {
-        if (this.NEXTOR_MEDIA_TYPE_HEADER_INFO[mediaType]) this.formatNextorDisk(mediaType, content);
+        if (this.HARDDISK_MEDIA_TYPE_HEADER_INFO[mediaType]) this.formatHardDisk(mediaType, content);
         else this.formatFloppyDisk(mediaType, content);
     };
 
     this.formatFloppyDisk = function (mediaType, content) {
         // Write Boot Sector
-        var bootSector = diskDriveSocket.hasDOS2() ? this.MEDIA_TYPE_BOOT_SECTOR_DOS2[mediaType] : this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType];
+        var bootSector = diskDriveSocket.hasDOS2() || diskDriveSocket.hasHardDiskInterface() ? this.MEDIA_TYPE_BOOT_SECTOR_DOS2[mediaType] : this.MEDIA_TYPE_BOOT_SECTOR_DOS1[mediaType];
         for (var b = 0; b < bootSector.length; ++b) content[b] = bootSector[b];
 
         var bytesPerSector = bootSector[0x0b] | (bootSector[0x0c] << 8);
@@ -470,8 +470,8 @@ wmsx.DiskImages = function(room) {
         }
     };
 
-    this.formatNextorDisk = function (mediaType, content) {
-        var info = this.NEXTOR_MEDIA_TYPE_HEADER_INFO[mediaType];
+    this.formatHardDisk = function (mediaType, content) {
+        var info = this.HARDDISK_MEDIA_TYPE_HEADER_INFO[mediaType];
         new wmsx.MultiDownloader(
             [{ url: info.header }],
             function onAllSuccess(urls) {
@@ -493,7 +493,7 @@ wmsx.DiskImages = function(room) {
 
     this.makeBootDisk = function (content) {
         var urls = [{ url: "@DOS1Boot.zip" }];
-        if (diskDriveSocket.hasNextorInterface()) urls.push({ url: "@NextorBoot.zip" });
+        if (diskDriveSocket.hasHardDiskInterface()) urls.push({ url: "@NextorBoot.zip" });
         new wmsx.MultiDownloader(
             urls,
             function onAllSuccess(urls) {
@@ -505,11 +505,11 @@ wmsx.DiskImages = function(room) {
     };
 
     // Estimated 30% free space left
-    this.nextorMediaTypeNeededForFiles = function(files) {
+    this.hardDiskMediaTypeNeededForFiles = function(files) {
         // console.log("FILES:", window.F = files);
         var mediaType;
-        for (var i = 0, len = this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES.length; i < len; ++i) {
-            mediaType = this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES[i];
+        for (var i = 0, len = this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES.length; i < len; ++i) {
+            mediaType = this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES[i];
             var size = this.estimatedTotalSizeOnDisk(files, mediaType);
             if (this.MEDIA_TYPE_INFO[mediaType].size > size * 1.3) break;
         }
@@ -538,7 +538,7 @@ wmsx.DiskImages = function(room) {
     this.MEDIA_TYPE_INFO = wmsx.DiskImages.MEDIA_TYPE_INFO;
 
     this.FORMAT_OPTIONS_MEDIA_TYPES = [ 0xF9, 0xF8 ];
-    this.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = wmsx.DiskImages.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES;
+    this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES = wmsx.DiskImages.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES;
 
     // IMPORTANT: In reverse order of size
     this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
@@ -624,7 +624,7 @@ wmsx.DiskImages = function(room) {
         0xFF: [0xFF, 0x00, 0x02, 0x0F, 0x04, 0x01, 0x02, 0x01, 0x00, 0x02, 0x70, 0x0a, 0x00, 0x3c, 0x01, 0x01, 0x03, 0x00]
     };
 
-    this.NEXTOR_MEDIA_TYPE_HEADER_INFO = {
+    this.HARDDISK_MEDIA_TYPE_HEADER_INFO = {
         16:  { fatsPos: [ 0x200,   0x800 ], fatData: [ 0x00fffff0 ], header: "@Disk16MHeader.dat" },
         32:  { fatsPos: [ 0x200,  0x1a00 ], fatData: [ 0x00fffff0 ], header: "@Disk32MHeader.dat" },
         64:  { fatsPos: [ 0x400, 0x10400 ], fatData: [ 0xfffffff0 ], header: "@Disk64MHeader.dat" },
@@ -643,12 +643,12 @@ wmsx.DiskImages.MEDIA_TYPE_INFO = {
     0xFD: { desc: "360KB", size: 368640,    clusterSize:  2 * 512 },
     0xFE: { desc: "160KB", size: 163840,    clusterSize:  1 * 512 },
     0xFF: { desc: "320KB", size: 327680,    clusterSize:  2 * 512 },
-    // Nextor Disks
+    // Hard Disks
     16:   { desc: "16MB",  size: 16777216,  clusterSize: 32 * 512, secDesc: "(FAT12)" },
     32:   { desc: "32MB",  size: 33554432,  clusterSize: 16 * 512, secDesc: "(FAT12)" },
     64:   { desc: "64MB",  size: 67108864,  clusterSize:  4 * 512, secDesc: "(FAT16)" },
     128:  { desc: "128MB", size: 134217728, clusterSize:  4 * 512, secDesc: "(FAT16)" }
 };
 
-wmsx.DiskImages.NEXTOR_FORMAT_OPTIONS_MEDIA_TYPES = [ 16, 32, 64, 128 ];
+wmsx.DiskImages.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES = [ 16, 32, 64, 128 ];
 

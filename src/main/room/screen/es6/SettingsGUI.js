@@ -295,7 +295,7 @@ wmsx.SettingsGUI.html = function() {
                                 F8
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Nextor Drive / Tape</div>
+                        <div class="wmsx-desc">Load Hard Drive / Tape</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -348,7 +348,7 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                     <div class="wmsx-hotkey wmsx-clear">
                         <div class="wmsx-desc">
-                            Right-Drag / Middle-Click: No Auto-Reset
+                            Right-Drag / Right-Click: No Auto-Reset
                         </div>
                     </div>
                 </div>
@@ -365,7 +365,7 @@ wmsx.SettingsGUI.html = function() {
                                 Ctrl
                             </div>
                         </div>
-                        <div class="wmsx-desc">&nbsp; Load Image Files and Add Disks to Drive Stack (up to 10 Disks)
+                        <div class="wmsx-desc">&nbsp; Load Image Files and Add Disks to Drive (A, B) Stack (up to 10 Disks)
                         </div>
                     </div>
                     <div class="wmsx-hotkey">
@@ -427,7 +427,7 @@ wmsx.SettingsGUI.html = function() {
                                 Pg Up / Dn
                             </div>
                         </div>
-                        <div class="wmsx-desc">Select Disk</div>
+                        <div class="wmsx-desc">Select Disk (A, B)</div>
                     </div>
                 </div>
                 <div class="wmsx-clear"></div>
@@ -987,7 +987,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-media .wmsx-bottom-right .wmsx-command {
-    width: 136px;
+    width: 131px;
 }
 
 #wmsx-media .wmsx-bottom .wmsx-command {

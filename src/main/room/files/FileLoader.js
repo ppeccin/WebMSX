@@ -34,7 +34,7 @@ wmsx.FileLoader = function() {
 
     this.openFileChooserDialog = function (openType, altPower, port, asExpansion) {
         if (!fileInputElement) createFileInputElement();
-        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);      // Nextor gets only one image
+        fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);      // HardDisk gets only one image
         fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);
 
         chooserOpenType = openType;

@@ -52,7 +52,7 @@ wmsx.ScreenGUI.html = function() {
                         <div class="wmsx-drop-option">Drive B</div>
                     </div>
                     <div id="wmsx-drop-drive-n">
-                        <div class="wmsx-drop-option">Nextor Drive</div>
+                        <div class="wmsx-drop-option">Hard Drive</div>
                     </div>
                     <div id="wmsx-drop-cart-1">
                         <div class="wmsx-drop-option">Cartridge 1</div>
@@ -501,6 +501,9 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 
 #wmsx-diskselect.wmsx-select-dialog li {
     padding-left: 23px;
+}
+#wmsx-diskselect.wmsx-select-dialog li.wmsx-toggle::after {
+    background: hsl(0, 0%, 73%);
 }
 #wmsx-diskselect.wmsx-select-dialog li.wmsx-toggle-checked::after {
     background: rgb(230, 205, 31);
@@ -1675,13 +1678,6 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background-size: 284px 103px;
     vertical-align: bottom;
 }
-
-
-
-
-
-
-
 
 
 @media only screen and (orientation: landscape) {    /* Landscape */

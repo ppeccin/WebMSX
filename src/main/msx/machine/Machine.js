@@ -902,7 +902,7 @@ wmsx.Machine = function() {
     // Disk Drive Socket  -----------------------------------------
 
     function DiskDriveSocket() {
-        this.connectDrive = function (pDrive) {     // Multi Disk/Nextor drive
+        this.connectDrive = function (pDrive) {     // Multi Disk/HardDisk drive
             drive = pDrive;
         };
         this.getDrive = function() {
@@ -920,28 +920,28 @@ wmsx.Machine = function() {
             diskInterfaces.delete(cart);
             this.fireInterfacesChangeUpdate();
         };
+        this.hardDiskInterfaceConnected = function(cart) {
+            hardDiskInterfaces.add(cart);
+            this.fireInterfacesChangeUpdate();
+        };
+        this.hardDiskInterfaceDisconnected = function(cart) {
+            hardDiskInterfaces.delete(cart);
+            this.fireInterfacesChangeUpdate();
+        };
         this.dos2ROMConnected = function(cart) {
             dos2ROMs.add(cart);
         };
         this.dos2ROMDisconnected = function(cart) {
             dos2ROMs.delete(cart);
         };
-        this.nextorInterfaceConnected = function(cart) {
-            nextorInterfaces.add(cart);
-            this.fireInterfacesChangeUpdate();
-        };
-        this.nextorInterfaceDisconnected = function(cart) {
-            nextorInterfaces.delete(cart);
-            this.fireInterfacesChangeUpdate();
-        };
         this.hasDiskInterface = function() {
             return diskInterfaces.size > 0;
         };
-        this.hasDOS2 = function() {
-            return dos2ROMs.size > 0 || nextorInterfaces.size > 0;
+        this.hasHardDiskInterface = function() {
+            return hardDiskInterfaces.size > 0;
         };
-        this.hasNextorInterface = function() {
-            return nextorInterfaces.size > 0;
+        this.hasDOS2 = function() {
+            return dos2ROMs.size > 0 || hardDiskInterfaces.size > 0;
         };
         this.setInterfacesChangeListener = function(list) {
             interfacesChangeListener = list;
@@ -949,9 +949,9 @@ wmsx.Machine = function() {
         };
         this.fireInterfacesChangeUpdate = function() {
             if (interfacesChangeListener)
-                interfacesChangeListener.diskInterfacesStateUpdate(this.hasDiskInterface(), this.hasNextorInterface());
+                interfacesChangeListener.diskInterfacesStateUpdate(this.hasDiskInterface(), this.hasHardDiskInterface());
         };
-        var diskInterfaces = new Set(), dos2ROMs = new Set(), nextorInterfaces = new Set();
+        var diskInterfaces = new Set(), hardDiskInterfaces = new Set(), dos2ROMs = new Set();
         var interfacesChangeListener;
         var drive;
     }

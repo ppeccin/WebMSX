@@ -16,10 +16,10 @@ WMSX = {
     CARTRIDGE2_URL:                 "",
     DISKA_URL:                      "",                         // Image files
     DISKB_URL:                      "",
-    NEXTOR_URL:                     "",
+    HARDDISK_URL:                     "",
     DISKA_FILES_URL:                "",                         // File to load into a Disk. For several files, use a ZIP file
     DISKB_FILES_URL:                "",
-    NEXTOR_FILES_URL:               "",
+    HARDDISK_FILES_URL:               "",
     TAPE_URL:                       "",
     STATE_URL:                      "",
     AUTODETECT_URL:                 "",
@@ -105,8 +105,8 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    NEXTOR:    { desc: "Nextor Drive",  format: "Nextor16Patch", OP1: [2, 2], OP2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
-    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 2], OP2: [3, 3], toggle: "NEXTOR" },
+    HARDDISK:  { desc: "Hard Drive",    format: "Nextor16Patch", OP1: [2, 2], OP2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
+    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 2], OP2: [3, 3], toggle: "HARDDISK" },
     RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 mutual: "RAMNORMAL" },
     RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 mutual: "RAMMAPPER" },
     MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [2, 3] },
@@ -125,13 +125,12 @@ WMSX.PRESETS_CONFIG = {
     DISK2:    { "EXTENSIONS.DISK": 2 },
     NODISK:   { "EXTENSIONS.DISK": 0 },
 
-    // Nextor Mass Storage Drive
-    NEXTOR:   { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
-    NEXTORA:  { "EXTENSIONS.NEXTOR":  1, "EXTENSIONS.DISK": 2 },
-    NEXTOR2:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
-    NEXTORC:  { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
-    DOS2:     { "EXTENSIONS.NEXTOR":  2, "EXTENSIONS.DISK": 1 },
-    NONEXTOR: { "EXTENSIONS.NEXTOR":  0 },
+    // Hard Disk: Nextor Mass Storage Drive
+    HARDDISK:   { "EXTENSIONS.HARDDISK":  1, "EXTENSIONS.DISK": 2 },
+    HARDDISKA:  { "EXTENSIONS.HARDDISK":  1, "EXTENSIONS.DISK": 2 },
+    HARDDISKC:  { "EXTENSIONS.HARDDISK":  2, "EXTENSIONS.DISK": 1 },
+    DOS2:       { "EXTENSIONS.HARDDISK":  2, "EXTENSIONS.DISK": 1 },
+    NOHARDDISK: { "EXTENSIONS.HARDDISK":  0 },
 
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
@@ -175,8 +174,8 @@ WMSX.PRESETS_CONFIG = {
         EXPANSION_SLOTS:                   [[2, 2], [2, 3]],
         "EXTENSIONS_CONFIG.DISK.OP1":      [3, 2],
         "EXTENSIONS_CONFIG.DISK.OP2":      [2, 3],
-        "EXTENSIONS_CONFIG.NEXTOR.OP1":    [3, 2],
-        "EXTENSIONS_CONFIG.NEXTOR.OP2":    [2, 3],
+        "EXTENSIONS_CONFIG.HARDDISK.OP1":  [3, 2],
+        "EXTENSIONS_CONFIG.HARDDISK.OP2":  [2, 3],
         "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [3, 3],
         "EXTENSIONS_CONFIG.KANJI.OP1":     [2, 1]
     },
@@ -240,7 +239,7 @@ WMSX.PRESETS_CONFIG = {
         BIOS_URL:           "@MSX1_JAP.bios"
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, NOMSXMUSIC, NONEXTOR",
+        _INCLUDE:           "_BASE, NOMSXMUSIC, NOHARDDISK",
         BIOSEXT_URL:        "@[Empty].rom"
     },
 

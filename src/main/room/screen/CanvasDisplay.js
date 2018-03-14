@@ -138,10 +138,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskSelectDialog.show(drive, inc, altPower);
     };
 
-    this.openNewNextorDiskDialog = function(altPower, bootable) {
+    this.openNewHardDiskDialog = function(altPower, bootable) {
         closeAllOverlays();
-        if (!newNextorDiskDialog) newNextorDiskDialog = new wmsx.NewNextorDiskDialog(fsElementCenter, peripheralControls);
-        newNextorDiskDialog.show(altPower, bootable);
+        if (!newHardDiskDialog) newHardDiskDialog = new wmsx.NewHardDiskDialog(fsElementCenter, peripheralControls);
+        newHardDiskDialog.show(altPower, bootable);
     };
 
     this.openMachineSelectDialog = function() {
@@ -380,7 +380,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.diskDrivesMediaStateUpdate = function(drive) {
-        var button = drive === 2 ? diskNButton : drive === 1 ? diskBButton : diskAButton;
+        var button = drive === 2 ? diskHButton : drive === 1 ? diskBButton : diskAButton;
         var stack = diskDrive.getDriveStack(drive);
         button.title = diskDrive.getCurrentDiskDesc(drive);
         if (drive < 2) {
@@ -397,18 +397,18 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.diskDrivesMotorStateUpdate = function (diskA, diskAMotor, diskAModif, diskB, diskBMotor, diskBModif, diskN, diskNMotor, diskNModif) {
         diskAButton.style.backgroundPosition = "" + diskAButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskAMotor ? 3 : ( diskA ? diskAModif ?  2 : 1 : 0 ))]) + "px";
         diskBButton.style.backgroundPosition = "" + diskBButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskBMotor ? 3 : ( diskB ? diskBModif ?  2 : 1 : 0 ))]) + "px";
-        diskNButton.style.backgroundPosition = "" + diskNButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskNMotor ? 3 : ( diskN ? diskNModif ?  2 : 1 : 0 ))]) + "px";
+        diskHButton.style.backgroundPosition = "" + diskHButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskNMotor ? 3 : ( diskN ? diskNModif ?  2 : 1 : 0 ))]) + "px";
     };
 
-    this.diskInterfacesStateUpdate = function(hasDiskInterface, hasNextorInterface) {
-        peripheralControls.nextorInterfaceActive(hasNextorInterface);
+    this.diskInterfacesStateUpdate = function(hasDiskInterface, hasHardDiskInterface) {
+        peripheralControls.hardDiskInterfaceActive(hasHardDiskInterface);
         // Show/hide icons
         diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
         diskBButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
-        diskNButton.classList.toggle("wmsx-hidden", !hasNextorInterface);
+        diskHButton.classList.toggle("wmsx-hidden", !hasHardDiskInterface);
         // Order of icons
-        if (!hasDiskInterface || !hasNextorInterface) return;
-        diskNButton.style.float = WMSX.EXTENSIONS.NEXTOR & 1 ? "left" : "none";
+        if (!hasDiskInterface || !hasHardDiskInterface) return;
+        diskHButton.style.float = WMSX.EXTENSIONS.HARDDISK & 1 ? "left" : "none";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -823,7 +823,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true }
         ];
-        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -72, true, "Drive A:", null, menu, "Drive A:", mediaIconsContainer);
+        diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -72, true, "Drive A", null, menu, "Drive A", mediaIconsContainer);
 
         menu = [
             { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
@@ -836,19 +836,19 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true }
         ];
-        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -194, -72, true, "Drive B:", null, menu, "Drive B:", mediaIconsContainer);
+        diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -194, -72, true, "Drive B", null, menu, "Drive B", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.NEXTOR_LOAD_FILE, needsUIG: true },
-            { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.NEXTOR_CHOOSE_EMPTY },
-            { label: "New Boot Disk",                  control: wmsx.PeripheralControls.NEXTOR_CHOOSE_BOOT },
-            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.NEXTOR_LOAD_FILES_AS_DISK, needsUIG: true },
-            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.NEXTOR_LOAD_ZIP_AS_DISK, needsUIG: true },
-            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_SAVE_FILE, disabled: true, needsUIG: true },
-            { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.NEXTOR_REMOVE, disabled: true }
+            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.HARDDISK_LOAD_FILE, needsUIG: true },
+            { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.HARDDISK_CHOOSE_EMPTY },
+            { label: "New Boot Disk",                  control: wmsx.PeripheralControls.HARDDISK_CHOOSE_BOOT },
+            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.HARDDISK_LOAD_FILES_AS_DISK, needsUIG: true },
+            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.HARDDISK_LOAD_ZIP_AS_DISK, needsUIG: true },
+            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_SAVE_FILE, disabled: true, needsUIG: true },
+            { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_REMOVE, disabled: true }
         ];                                                      /* -223 -252*/
-        diskNButton = addPeripheralControlButton("wmsx-bar-diskn", -252, -72, true, "Nextor Drive", null, menu, "Nextor Drive", mediaIconsContainer);
-        diskNButton.classList.add("wmsx-hidden");
+        diskHButton = addPeripheralControlButton("wmsx-bar-diskh", -252, -72, true, "Hard Drive", null, menu, "Hard Drive", mediaIconsContainer);
+        diskHButton.classList.add("wmsx-hidden");
 
         menu = [
             { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
@@ -1030,7 +1030,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function barMenuItemTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
         // Only touch, left or middle button
-        if (barMenuItemActive && !(e.button > 1)) barMenuItemFireActive(e.shiftKey, e.button === 1 || e.ctrlKey);
+        if (barMenuItemActive) barMenuItemFireActive(e.shiftKey, e.button >= 1 || e.ctrlKey);
     }
 
     function barMenuItemFireActive(secSlot, altPower) {
@@ -1413,7 +1413,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (textEntryDialog) textEntryDialog.hide();
         if (machineSelectDialog) machineSelectDialog.hide();
         if (diskSelectDialog) diskSelectDialog.hide();
-        if (newNextorDiskDialog) newNextorDiskDialog.hide();
+        if (newHardDiskDialog) newHardDiskDialog.hide();
         if (saveStateDialog) saveStateDialog.hide();
         if (touchConfigDialog) touchConfigDialog.hide();
         if (quickOtionsDialog) quickOtionsDialog.hide();
@@ -1577,7 +1577,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         fsElement.wmsxDropFileInfo =        { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : let modifiers key define the port
         diskAButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 0 };
         diskBButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 1 };
-        diskNButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 2 };
+        diskHButton.wmsxDropFileInfo =      { openType: OPEN_TYPE.DISK, port: 2 };
         cartridge1Button.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 0 };
         cartridge2Button.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 1 };
         tapeButton.wmsxDropFileInfo =       { openType: OPEN_TYPE.TAPE, port: 0 };
@@ -1617,7 +1617,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var settingsDialog;
     var saveStateDialog;
     var diskSelectDialog;
-    var newNextorDiskDialog;
+    var newHardDiskDialog;
     var machineSelectDialog;
     var touchConfigDialog;
     var quickOtionsDialog;
@@ -1675,7 +1675,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var mediaIconsContainer;
     var diskAButton;
     var diskBButton;
-    var diskNButton;
+    var diskHButton;
     var cartridge1Button;
     var cartridge2Button;
     var tapeButton;
