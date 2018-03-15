@@ -41,8 +41,9 @@ wmsx.DOMPeripheralControls = function(room) {
         return { label: "Unknown", active: false };
     };
 
-    this.hardDiskInterfaceActive = function(state) {
-        hardDisk = state;
+    this.diskInterfacesStateUpdate = function(pHasDisk, pHasHardDisk) {
+        hasDisk = pHasDisk;
+        hasHardDisk = pHasHardDisk;
     };
 
     this.processKey = function(code, press) {
@@ -105,40 +106,40 @@ wmsx.DOMPeripheralControls = function(room) {
                 extensionsSocket.toggleExtension(data, altPower, secPort);
                 break;
             case pc.DISK_LOAD_FILES:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, port, false);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, port, false);
                 break;
             case pc.DISK_ADD_FILES:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, port, true);   // asExpansion
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, port, true);   // asExpansion
                 break;
             case pc.DISK_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, port);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, port);
                 break;
             case pc.DISK_LOAD_FILES_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, port, false);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, port, false);
                 break;
             case pc.DISK_LOAD_ZIP_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, port, false);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, port, false);
                 break;
             case pc.DISK_REMOVE:
-                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(port);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) diskDrive.removeStack(port);
                 break;
             case pc.DISK_EMPTY:
-                diskDrive.insertNewDisk(port);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) diskDrive.insertNewDisk(port);
                 break;
             case pc.DISK_BOOT:
-                diskDrive.insertNewDisk(port, null, true);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) diskDrive.insertNewDisk(port, null, true);
                 break;
             case pc.DISK_SAVE_FILE:
-                diskDrive.saveDiskFile(port);
+                if (hasDisk) diskDrive.saveDiskFile(port);
                 break;
             case pc.DISK_SELECT:
-                diskDrive.openDiskSelectDialog(port, 0, altPower);
+                if (hasDisk) diskDrive.openDiskSelectDialog(port, 0, altPower);
                 break;
             case pc.DISK_PREVIOUS:
-                diskDrive.openDiskSelectDialog(port, -1, altPower);
+                if (hasDisk) diskDrive.openDiskSelectDialog(port, -1, altPower);
                 break;
             case pc.DISK_NEXT:
-                diskDrive.openDiskSelectDialog(port, 1, altPower);
+                if (hasDisk) diskDrive.openDiskSelectDialog(port, 1, altPower);
                 break;
             case pc.DISK_INSERT:
                 diskDrive.insertDiskFromStack(data.d, data.n, data.a);
@@ -165,14 +166,14 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.HARDDISK_LOAD_FILE:
             case pc.TAPE_LOAD_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hardDisk) return fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
+                    if (!secPort && hasHardDisk) return fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
                     fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
                 }
                 break;
             case pc.HARDDISK_LOAD_URL:
             case pc.TAPE_LOAD_URL:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hardDisk) return fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
+                    if (!secPort && hasHardDisk) return fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
                     fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
                 }
                 break;
@@ -185,14 +186,14 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.HARDDISK_REMOVE:
             case pc.TAPE_REMOVE:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hardDisk) return diskDrive.removeStack(2);
+                    if (!secPort && hasHardDisk) return diskDrive.removeStack(2);
                     cassetteDeck.userRemoveTape();
                 }
                 break;
             case pc.HARDDISK_CHOOSE_EMPTY:
             case pc.TAPE_EMPTY:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hardDisk) return diskDrive.openNewHardDiskDialog(altPower, false);
+                    if (!secPort && hasHardDisk) return diskDrive.openNewHardDiskDialog(altPower, false);
                     cassetteDeck.userLoadEmptyTape();
                 }
                 break;
@@ -204,7 +205,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case pc.HARDDISK_SAVE_FILE:
             case pc.TAPE_SAVE_FILE:
-                if (!secPort && hardDisk) return diskDrive.saveDiskFile(2);
+                if (!secPort && hasHardDisk) return diskDrive.saveDiskFile(2);
                 cassetteDeck.saveTapeFile();
                 break;
             case pc.TAPE_REWIND:
@@ -426,7 +427,8 @@ wmsx.DOMPeripheralControls = function(room) {
     var cassetteDeck;
     var diskDrive;
 
-    var hardDisk = false;
+    var hasDisk = false;
+    var hasHardDisk = false;
 
     var keyCodeMap = {};                // SHIFT is considered differently
 

@@ -401,7 +401,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.diskInterfacesStateUpdate = function(hasDiskInterface, hasHardDiskInterface) {
-        peripheralControls.hardDiskInterfaceActive(hasHardDiskInterface);
+        peripheralControls.diskInterfacesStateUpdate(hasDiskInterface, hasHardDiskInterface);
         // Show/hide/disable icons
         diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
         diskAButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
@@ -1581,7 +1581,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function setupFileLoaderDropTargets() {
-        fsElement.wmsxDropFileInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : let modifiers key define the port
+        fsElement.wmsxDropFileInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : auto port assignment
 
         var option;
         diskAButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-drivea");

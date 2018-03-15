@@ -251,6 +251,7 @@ wmsx.FileLoader = function(room) {
 
     function tryLoadContentAsSingleMedia(name, content, openType, port, altPower, asExpansion, format) {
         openType = openType || OPEN_TYPE.AUTO;
+        port = port || 0;       // There is no "auto" port here. Set to 0 if undefined
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.AUTO)
             if (cassetteDeck.loadTapeFile(name, content, altPower)) return true;
