@@ -34,10 +34,10 @@ wmsx.FileLoader = function(room) {
     this.openFileChooserDialog = function (openType, altPower, port, asExpansion) {
         if (!fileInputElement) createFileInputElement();
         fileInputElement.multiple = INPUT_MULTI[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);      // HardDisk gets only one image
-        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO] && !(openType === OPEN_TYPE.DISK && port === 2);
+        fileInputElement.accept = INPUT_ACCEPT[OPEN_TYPE[openType] || OPEN_TYPE.AUTO];
 
         chooserOpenType = openType;
-        chooserPort = port;
+        chooserPort = port;                  // Can be "auto" values: undefined, < 0
         chooserAltPower = altPower;
         chooserAsExpansion = asExpansion;    // Serves as AddToStack when loading in Floppy Drives
         fileInputElement.click();
@@ -62,7 +62,7 @@ wmsx.FileLoader = function(room) {
             } catch (e) {
                 // give up
             }
-            this.readFromURL(url, openType, port, altPower, asExpansion, function () {
+            this.readFromURL(url, openType, port, altPower, asExpansion, function () {      // port can be "auto" values: undefined, < 0
                 if (!wasPaused) machine.systemPause(false);
             });
         } else {
@@ -251,7 +251,7 @@ wmsx.FileLoader = function(room) {
 
     function tryLoadContentAsSingleMedia(name, content, openType, port, altPower, asExpansion, format) {
         openType = openType || OPEN_TYPE.AUTO;
-        port = port || 0;       // There is no "auto" port here. Set to 0 if undefined
+        port = port < 0 ? -port : port === undefined ? 0 : port;       // There is no "auto" port here. Reduce to >= 0 (0, 1, 2...)
         // Try as Cassette file
         if (openType === OPEN_TYPE.TAPE || openType === OPEN_TYPE.AUTO)
             if (cassetteDeck.loadTapeFile(name, content, altPower)) return true;
@@ -424,7 +424,7 @@ wmsx.FileLoader = function(room) {
         var altPower = currentDragButtons & MOUSE_BUT2_MASK;
         var asDisk = e.altKey;
         var asExpansion = e.ctrlKey;    // Serves as AddToStack when loading in Floppy Drives
-        var port = dropInfo.port !== undefined ? dropInfo.port : e.shiftKey ? 1 : 0;
+        var port = dropInfo.port !== undefined ? dropInfo.port : e.shiftKey ? -1 : undefined;
         var openType = dropInfo.openType;
         if (asDisk && (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO))
             openType = asExpansion ? OPEN_TYPE.FILES_AS_DISK : OPEN_TYPE.AUTO_AS_DISK;      // asExpansion to force ignore ZIP-AS-DISK
@@ -517,27 +517,27 @@ wmsx.FileLoader = function(room) {
     };
 
     var INPUT_MULTI = {
-        ROM:    false,
-        DISK:   true,
-        TAPE:   false,
-        STATE:  false,
+        ROM: false,
+        DISK: true,
+        TAPE: false,
+        STATE: false,
         CART_DATA: false,
         FILES_AS_DISK: true,
-        ZIP_AS_DISK:   false,
-        AUTO_AS_DISK:  true,
-        AUTO:   false
+        ZIP_AS_DISK: false,
+        AUTO_AS_DISK: true,
+        AUTO: false
     };
 
     var TYPE_DESC = {
-        ROM:   "ROM",
-        DISK:  "Disk",
-        TAPE:  "Cassette",
+        ROM: "ROM",
+        DISK: "Disk",
+        TAPE: "Cassette",
         STATE: "Savestate",
         CART_DATA: "Cartridge Data",
-        FILES_AS_DISK: "Files as Disk",
-        ZIP_AS_DISK:   "ZIP as Disk",
-        AUTO_AS_DISK:  "as Disk",
-        AUTO:   "ROM, Cassette or Disk"
+        FILES_AS_DISK: "Files",
+        ZIP_AS_DISK: "ZIP Contents",
+        AUTO_AS_DISK: "as Disk",
+        AUTO: "ROM, Cassette or Disk"
     };
 
     var LOCAL_STORAGE_LAST_URL_KEY = "wmsxlasturl";

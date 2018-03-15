@@ -413,7 +413,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskHButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasHardDiskInterface);
         diskHButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasHardDiskInterface;
         // Order of icons
-        var toTheLeft = (WMSX.EXTENSIONS.HARDDISK & 1) || (hasHardDiskInterface && !hasDiskInterface);
+        var toTheLeft = diskDrive.isHardDriveFirst();
         diskHButton.style.float = toTheLeft ? "left" : "none";
         diskHButton.wmsxDragTarget.style.float = toTheLeft ? "left" : "none";
     };

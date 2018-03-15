@@ -24,7 +24,27 @@ wmsx.FileDiskDrive = function(room) {
         fileDownloader = pDownloader;
     };
 
+    this.isHardDriveFirst = function() {
+        return (WMSX.EXTENSIONS.HARDDISK & 1) || (diskDriveSocket.hasHardDiskInterface() && !diskDriveSocket.hasDiskInterface());
+    };
+
     this.loadDiskStackFromFiles = function (drive, files, altPower, addToStack, filesFromZip) {
+        // Choose drive automatically?
+        var autoDrive = false;
+        if (!(drive >= 0)) {
+            autoDrive = true;
+            var hasDisk = diskDriveSocket.hasDiskInterface();
+            var hasHardDisk = diskDriveSocket.hasHardDiskInterface();
+            if (!hasDisk) {
+                if (!hasHardDisk) return;
+                drive = 2;
+            } else if (!hasHardDisk) {
+                drive = drive < 0 ? -drive : 0;
+            } else {
+                drive = drive < 0 ? -drive : this.isHardDriveFirst() ? 2 : 0;
+            }
+        }
+
         // Hard Drive never adds to stack, always replaces
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
@@ -35,7 +55,7 @@ wmsx.FileDiskDrive = function(room) {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                var disks = checkFileHasValidImages(file, drive === 2);     // Hard Drive accepts any sized content
+                var disks = checkFileHasValidImages(file, drive === 2, !autoDrive);     // Hard Drive accepts any content only if not autoDrive
                 if (disks) stack.push.apply(stack, disks);
             }
             if (stack.length > 0) {
@@ -48,7 +68,21 @@ wmsx.FileDiskDrive = function(room) {
         }
     };
 
-    this.loadAsDiskFromFiles = function (drive, name, files, altPower, addToStack) {
+    this.loadAsDiskFromFiles = function (drive, name, files, altPower) {
+        // Choose drive automatically?
+        if (!(drive >= 0)) {
+            var hasDisk = diskDriveSocket.hasDiskInterface();
+            var hasHardDisk = diskDriveSocket.hasHardDiskInterface();
+            if (!hasDisk) {
+                if (!hasHardDisk) return;
+                drive = 2;
+            } else if (!hasHardDisk) {
+                drive = drive < 0 ? -drive : 0;
+            } else {
+                drive = drive < 0 ? -drive : this.isHardDriveFirst() ? 2 : 0;
+            }
+        }
+
         // Writes on the current disk or create a new one?
         var content;
         var curDisk = getCurrentDisk(drive);
@@ -193,7 +227,7 @@ wmsx.FileDiskDrive = function(room) {
         return currentDiskNumDesc(drive);
     };
 
-    function checkFileHasValidImages(file, anySize, stopRecursion) {
+    function checkFileHasValidImages(file, hardDisk, anyContent, stopRecursion) {
         // Zip File?
         if (!stopRecursion) {
             var zip = wmsx.Util.checkContentIsZIP(file.content);
@@ -202,7 +236,7 @@ wmsx.FileDiskDrive = function(room) {
                     var files = wmsx.Util.getZIPFilesSorted(zip);
                     for (var f in files) {
                         files[f].content = files[f].asUint8Array();
-                        var res = checkFileHasValidImages(files[f], anySize, true);
+                        var res = checkFileHasValidImages(files[f], hardDisk, anyContent, true);
                         if (res) return res;
                     }
                 } catch (ez) {
@@ -214,10 +248,10 @@ wmsx.FileDiskDrive = function(room) {
 
         // GZip File?
         var gzip = wmsx.Util.checkContentIsGZIP(file.content);
-        if (gzip) return checkFileHasValidImages({ name: file.name, content: gzip }, anySize, true);
+        if (gzip) return checkFileHasValidImages({ name: file.name, content: gzip }, hardDisk, anyContent, true);
 
         // Normal File
-        var quant = checkContentIsValidImages(file.content, anySize);
+        var quant = checkContentIsValidImages(file.content, hardDisk, anyContent);
         if (quant) {
             var name = file.name.split("/").pop();
             if (quant === 1) return [{ name: name, content: file.content }];    // Using content directly now. Was: wmsx.Util.asNormalArray(file.content)
@@ -232,16 +266,28 @@ wmsx.FileDiskDrive = function(room) {
         return null;
     }
 
-    function checkContentIsValidImages(content, anySize) {
-        if (anySize || MEDIA_TYPE_VALID_SIZES_SET.has(content.length))
-            return 1;
+    function checkContentIsValidImages(content, hardDisk, anyContent) {
+        // TODO Avoid trying to load big contents as ROM. SHA1 calculation breaks VM!!!
+        console.log(hardDisk, anyContent);
 
-        for (var i = 0, len = MEDIA_TYPE_VALID_SIZES.length; i < len; ++i) {
+        if (MEDIA_TYPE_VALID_SIZES_SET.has(content.length)) return 1;       // Any valid Floppy size
+
+        if (hardDisk) {
+            // Only multiple of sector size (512), >= 200 sectors, bootsector/partition table identifiable or first 32 bytes zeroed
+            if (content.length % BYTES_PER_SECTOR) return 0;
+            if (content.length / BYTES_PER_SECTOR < 200) return 0;
+            if (anyContent) return 1;
+            if (content[510] === 0x55 && content[511] === 0xaa) return 1;   // partition table signature
+            return 0;
+        } else {
+            // For now accept only multiple 720K images like the other emulators, and only for Floppy Drives
+            // for (var i = 0, len = MEDIA_TYPE_VALID_SIZES.length; i < len; ++i) {
+            var i = 0;
             var size = MEDIA_TYPE_VALID_SIZES[i];
             if (content.length % size === 0) return (content.length / size) | 0;
+            //}
+            return 0;
         }
-
-        return 0;
     }
 
     function emptyStack(drive) {

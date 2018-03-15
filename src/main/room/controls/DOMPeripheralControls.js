@@ -221,10 +221,16 @@ wmsx.DOMPeripheralControls = function(room) {
                 cassetteDeck.userSeekForward();
                 break;
             case pc.AUTO_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, port, false);
+                if (!user || !mediaChangeDisabledWarning(control)) {
+                    var autoPort = secPort ? -1 : undefined;    // Auto port selection, with "secondary port" intent if asked
+                    fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, autoPort, false);
+                }
                 break;
             case pc.AUTO_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, port, false);
+                if (!user || !mediaChangeDisabledWarning(control)) {
+                    var autoPort = secPort ? -1 : undefined;    // Auto port selection, with "secondary port" intent if asked
+                    fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, autoPort, false);
+                }
                 break;
             case pc.SCREEN_CRT_MODE:
                 monitor.crtModeToggle(); break;
