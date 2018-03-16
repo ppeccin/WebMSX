@@ -25,7 +25,11 @@ wmsx.SlotCreator = function () {
     this.produceInfo = function(rom, formatHint) {
         // Preserve original length as MD5 computation may increase it
         var origLen = rom.content.length;
-        var hash = wmsx.Util.sha1Generator.calcSHA1FromByteArray(rom.content).toUpperCase();
+
+        // Don't compute hash for too big contents. Will rely on hints only
+        var hash = rom.content.length > MAX_HASH_CONTENT_SIZE
+            ? "0000000000000000000000000000000000000000"
+            : wmsx.Util.sha1Generator.calcSHA1FromByteArray(rom.content).toUpperCase();
         if (rom.content.length > origLen) rom.content.length = origLen;
 
         // Get info from the library
@@ -128,6 +132,8 @@ wmsx.SlotCreator = function () {
     var FORMAT_PRIORITY_LIMIT = 1000;
     var FORMAT_PRIORITY_BOOST = 1000;
     var FORMAT_FORCE_PRIORITY_BOOST = 5000;
+
+    var MAX_HASH_CONTENT_SIZE = (WMSX.ROM_MAX_HASH_SIZE_KB || 3072) * 1024;
 
     this.FORMAT_PRIORITY_BOOST = FORMAT_PRIORITY_BOOST;
 

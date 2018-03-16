@@ -379,10 +379,10 @@ wmsx.FileLoader = function(room) {
 
         if (!e.dataTransfer) return;
 
-        setDragTarget(e.target);
+        setDragTarget(e.target, e.ctrlKey, e.altKey);
         currentDragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-drag
 
-        e.dataTransfer.dropEffect = !currentDropTarget || currentDropTarget.wmsxDropFileInfo.disabled ? "none" : "link";
+        e.dataTransfer.dropEffect = !currentDropTarget || currentDropTarget.wmsxDropInfo.disabled ? "none" : "link";
 
         // Mechanism for ending drag, since its undetectable...  :-(
         if (currentDragTimer) clearTimeout(currentDragTimer);
@@ -391,14 +391,28 @@ wmsx.FileLoader = function(room) {
         //console.log("DRAG OVER:", e.target);
     }
 
-    function setDragTarget(target) {
+    function setDragTarget(target, add, files) {
         if (target && peripheralControls.mediaChangeDisabledWarning()) target = undefined;
-        else while (target && !target.wmsxDropFileInfo) target = target.parentElement;
+        else while (target && !target.wmsxDropInfo) target = target.parentElement;
+
+        // Get sub options if modifiers are passed
+        if (target) {
+            if (target.wmsxDropInfo.subFiles && files) target = target.wmsxDropInfo.subFiles;
+            else if (target.wmsxDropInfo.subAdd && add) target = target.wmsxDropInfo.subAdd;
+        }
         if (currentDropTarget === target) return;
 
-        if (currentDropTarget) currentDropTarget.classList.remove("wmsx-selected");
+        if (currentDropTarget) {
+            currentDropTarget.classList.remove("wmsx-selected");
+            var parent = currentDropTarget.wmsxDropInfo.main;
+            if (parent) parent.classList.remove("wmsx-selected");
+        }
         currentDropTarget = target;
-        if (currentDropTarget) currentDropTarget.classList.add("wmsx-selected");
+        if (currentDropTarget) {
+            currentDropTarget.classList.add("wmsx-selected");
+            parent = currentDropTarget.wmsxDropInfo.main;
+            if (parent) parent.classList.add("wmsx-selected");
+        }
 
         screen.setFileLoaderDragActive(!!currentDropTarget);
     }
@@ -408,6 +422,7 @@ wmsx.FileLoader = function(room) {
         currentDragTimer = undefined;
     }
 
+    // TODO Improve Cassette auto-run when inserted depending on diskInterfaces active and disks inserted
     function onDrop(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
@@ -415,15 +430,15 @@ wmsx.FileLoader = function(room) {
 
         if (!currentDropTarget || !e.dataTransfer) return dragEnded();
 
-        var dropInfo = currentDropTarget.wmsxDropFileInfo || e.currentTarget.wmsxDropFileInfo;
+        var dropInfo = currentDropTarget.wmsxDropInfo || e.currentTarget.wmsxDropInfo;
 
         dragEnded();
 
         if (!dropInfo || dropInfo.disabled) return;
 
         var altPower = currentDragButtons & MOUSE_BUT2_MASK;
-        var asDisk = e.altKey;
-        var asExpansion = e.ctrlKey;    // Serves as AddToStack when loading in Floppy Drives
+        var asDisk = e.altKey || dropInfo.files;
+        var asExpansion = e.ctrlKey || dropInfo.add;    // Serves as AddToStack when loading in Floppy Drives
         var port = dropInfo.port !== undefined ? dropInfo.port : e.shiftKey ? -1 : undefined;
         var openType = dropInfo.openType;
         if (asDisk && (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO))
@@ -536,7 +551,7 @@ wmsx.FileLoader = function(room) {
         CART_DATA: "Cartridge Data",
         FILES_AS_DISK: "Files",
         ZIP_AS_DISK: "ZIP Contents",
-        AUTO_AS_DISK: "as Disk",
+        AUTO_AS_DISK: "Files",
         AUTO: "ROM, Cassette or Disk"
     };
 

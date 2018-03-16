@@ -45,9 +45,9 @@ wmsx.ScreenGUI.html = function() {
                     <div id="wmsx-osd"></div>
                 </div>
                 <div id="wmsx-drop-area">
-                    <div id="wmsx-drop-drivea"><i></i><br>Drive A</div>
-                    <div id="wmsx-drop-driveb"><i></i><br>Drive B</div>
-                    <div id="wmsx-drop-driveh"><i></i><br>Hard Drive</div>
+                    <div id="wmsx-drop-drivea"><div id="wmsx-drop-drivea-add" class="wmsx-drop-add"></div><i></i><div id="wmsx-drop-drivea-files" class="wmsx-drop-files"></div><br>Drive A</div>
+                    <div id="wmsx-drop-driveb"><div id="wmsx-drop-driveb-add" class="wmsx-drop-add"></div><i></i><div id="wmsx-drop-driveb-files" class="wmsx-drop-files"></div><br>Drive B</div>
+                    <div id="wmsx-drop-driveh"><i></i><div id="wmsx-drop-driveh-files" class="wmsx-drop-files"></div><br>Hard Drive</div>
                     <div id="wmsx-drop-cart1"><i></i><br>Cartridge 1</div>
                     <div id="wmsx-drop-cart2"><i></i><br>Cartridge 2</div>
                     <div id="wmsx-drop-tape"><i></i><br>Cassette</div>
@@ -1677,6 +1677,41 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 #wmsx-drop-cart1 i  { background-position: -159px -108px; }
 #wmsx-drop-cart2 i  { background-position: -217px -108px; }
 #wmsx-drop-tape i   { background-position: -275px -108px; }
+
+.wmsx-drop-add, 
+.wmsx-drop-files {
+    position: absolute;
+    display: none;
+    left: 0; top: 0;
+    width: 40px;
+    height: 36px;
+    padding-top: 10px;
+    font-size: 12px;
+    line-height: 12px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .8);
+    border: 3px solid transparent;
+    box-sizing: border-box;
+}    
+.wmsx-drop-files {
+    left: unset; right: 0;
+    width: 46px;
+}
+.wmsx-drop-add::after {
+    content: "ADD";
+} 
+.wmsx-drop-files::after {
+    content: "FILES";
+} 
+#wmsx-drop-area > div:not(.wmsx-disabled).wmsx-selected .wmsx-drop-add, 
+#wmsx-drop-area > div:not(.wmsx-disabled).wmsx-selected .wmsx-drop-files {
+    display: block;
+}
+.wmsx-drop-add.wmsx-selected, 
+.wmsx-drop-files.wmsx-selected {
+    border-color: hsl(0, 0%, 82%);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .8);
+}
+
 
 
 @media only screen and (orientation: landscape) {    /* Landscape */

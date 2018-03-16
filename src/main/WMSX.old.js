@@ -80,6 +80,8 @@ WMSX = {
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
+    ROM_MAX_HASH_SIZE_KB:        3072,                          // Maximum ROM size for MD5 calculation
+    HARDDISK_MIN_SIZE_KB:         720,                          // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     WEB_EXTENSIONS_SERVER:          "",                         // Server address for Proxy download and NetPlay, only available at the official website

@@ -41,10 +41,20 @@ wmsx.FileDiskDrive = function(room) {
             } else if (!hasHardDisk) {
                 drive = drive < 0 ? -drive : 0;
             } else {
-                drive = drive < 0 ? -drive : this.isHardDriveFirst() ? 2 : 0;
+                drive = drive < 0 ? -drive : self.isHardDriveFirst() ? 2 : 0;
             }
         }
 
+        // First try as determined above (by order of interfaces and drive asked)
+        var res = tryLoadDiskStackFromFiles(drive, autoDrive, files, altPower, addToStack, filesFromZip);
+        if (res) return res;
+
+        // If autoDrive and not accepted as Floppy (first), then try as HardDisk if present
+        if (autoDrive && drive === 0 && !addToStack && hasHardDisk)
+            return tryLoadDiskStackFromFiles(2, true, files, altPower, addToStack, filesFromZip);
+    };
+
+    function tryLoadDiskStackFromFiles(drive, autoDrive, files, altPower, addToStack, filesFromZip) {
         // Hard Drive never adds to stack, always replaces
         if (drive === 2) addToStack = false;
         else if (addToStack && maxStackReachedMessage(drive)) return [];
@@ -55,7 +65,8 @@ wmsx.FileDiskDrive = function(room) {
             for (var i = 0; i < files.length && stack.length < maxStack; i++) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
-                var disks = checkFileHasValidImages(file, drive === 2, !autoDrive);     // Hard Drive accepts any content only if not autoDrive
+                // Hard Drive accepts any content only if not autoDrive and only one file being loaded
+                var disks = checkFileHasValidImages(file, drive === 2, !autoDrive && files.length === 1);
                 if (disks) stack.push.apply(stack, disks);
             }
             if (stack.length > 0) {
@@ -66,7 +77,7 @@ wmsx.FileDiskDrive = function(room) {
         } catch(ez) {
             wmsx.Util.error(ez);      // Error decompressing files. Abort
         }
-    };
+    }
 
     this.loadAsDiskFromFiles = function (drive, name, files, altPower) {
         // Choose drive automatically?
@@ -107,7 +118,7 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         if (curDisk) {
-            screen.showOSD(currentDiskDesc(drive) + " (" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)", true);
+            screen.showOSD(driveName[drive] + " " + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk", true);
             curDisk.content = content;
             curDisk.modified = true;
             replaceCurrentDisk(drive, curDisk, true);     // true = send net operation
@@ -267,18 +278,17 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     function checkContentIsValidImages(content, hardDisk, anyContent) {
-        // TODO Avoid trying to load big contents as ROM. SHA1 calculation breaks VM!!!
-        console.log(hardDisk, anyContent);
-
         if (MEDIA_TYPE_VALID_SIZES_SET.has(content.length)) return 1;       // Any valid Floppy size
 
         if (hardDisk) {
-            // Only multiple of sector size (512), >= 200 sectors, bootsector/partition table identifiable or first 32 bytes zeroed
+            // Only multiple of sector size (512), >= HARDDISK_MIN_SIZE, partition table or FAT identifiable or first 32 bytes zeroed
             if (content.length % BYTES_PER_SECTOR) return 0;
-            if (content.length / BYTES_PER_SECTOR < 200) return 0;
+            if (content.length < HARDDISK_MIN_SIZE) return 0;
             if (anyContent) return 1;
             if (content[510] === 0x55 && content[511] === 0xaa) return 1;   // partition table signature
-            return 0;
+            if (content[512] >= 0xf0 && content[513] >= 0xff) return 1;     // probably FAT
+            for (var b = 0; b < 32; ++b) if (content[b] !== 0) return 0;    // Blank?
+            return 1;                                                       // Yes!
         } else {
             // For now accept only multiple 720K images like the other emulators, and only for Floppy Drives
             // for (var i = 0, len = MEDIA_TYPE_VALID_SIZES.length; i < len; ++i) {
@@ -612,6 +622,8 @@ wmsx.FileDiskDrive = function(room) {
 
     var MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
     var MEDIA_TYPE_VALID_SIZES_SET = new Set(MEDIA_TYPE_VALID_SIZES);
+
+    var HARDDISK_MIN_SIZE = (WMSX.HARDDISK_MIN_SIZE_KB || 720) * 1024;
 
     this.MEDIA_TYPE_INFO = images.MEDIA_TYPE_INFO;
     this.MEDIA_TYPE_DPB = images.MEDIA_TYPE_DPB;

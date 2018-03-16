@@ -404,18 +404,18 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         peripheralControls.diskInterfacesStateUpdate(hasDiskInterface, hasHardDiskInterface);
         // Show/hide/disable icons
         diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
-        diskAButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
-        diskAButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasDiskInterface;
+        diskAButton.wmsxDropTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
+        diskAButton.wmsxDropTarget.wmsxDropInfo.disabled = !hasDiskInterface;
         diskBButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
-        diskBButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
-        diskBButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasDiskInterface;
+        diskBButton.wmsxDropTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
+        diskBButton.wmsxDropTarget.wmsxDropInfo.disabled = !hasDiskInterface;
         diskHButton.classList.toggle("wmsx-hidden", !hasHardDiskInterface);
-        diskHButton.wmsxDragTarget.classList.toggle("wmsx-disabled", !hasHardDiskInterface);
-        diskHButton.wmsxDragTarget.wmsxDropFileInfo.disabled = !hasHardDiskInterface;
+        diskHButton.wmsxDropTarget.classList.toggle("wmsx-disabled", !hasHardDiskInterface);
+        diskHButton.wmsxDropTarget.wmsxDropInfo.disabled = !hasHardDiskInterface;
         // Order of icons
         var toTheLeft = diskDrive.isHardDriveFirst();
         diskHButton.style.float = toTheLeft ? "left" : "none";
-        diskHButton.wmsxDragTarget.style.float = toTheLeft ? "left" : "none";
+        diskHButton.wmsxDropTarget.style.float = toTheLeft ? "left" : "none";
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -1581,21 +1581,36 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function setupFileLoaderDropTargets() {
-        fsElement.wmsxDropFileInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : auto port assignment
+        fsElement.wmsxDropInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : auto port assignment
 
-        var option;
-        diskAButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-drivea");
-        option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 0 };
-        diskBButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-driveb");
-        option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 1 };
-        diskHButton.wmsxDragTarget = option = document.getElementById("wmsx-drop-driveh");
-        option.wmsxDropFileInfo = { openType: OPEN_TYPE.DISK, port: 2 };
+        var option, subAdd, subFiles;
+        diskAButton.wmsxDropTarget = option = document.getElementById("wmsx-drop-drivea");
+        subAdd = document.getElementById("wmsx-drop-drivea-add");
+        subAdd.wmsxDropInfo = { element: subAdd, openType: OPEN_TYPE.DISK, port: 0, add: true, main: option };
+        subFiles = document.getElementById("wmsx-drop-drivea-files");
+        subFiles.wmsxDropInfo = { element: subFiles, openType: OPEN_TYPE.DISK, port: 0, files: true, main: option };
+        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.DISK, port: 0, subAdd: subAdd, subFiles: subFiles };
+
+        diskBButton.wmsxDropTarget = option = document.getElementById("wmsx-drop-driveb");
+        subAdd = document.getElementById("wmsx-drop-driveb-add");
+        subAdd.wmsxDropInfo = { element: subAdd, openType: OPEN_TYPE.DISK, port: 1, add: true, main: option };
+        subFiles = document.getElementById("wmsx-drop-driveb-files");
+        subFiles.wmsxDropInfo = { element: subFiles, openType: OPEN_TYPE.DISK, port: 1, files: true, main: option };
+        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.DISK, port: 1, subAdd: subAdd, subFiles: subFiles };
+
+        diskHButton.wmsxDropTarget = option = document.getElementById("wmsx-drop-driveh");
+        subFiles = document.getElementById("wmsx-drop-driveh-files");
+        subFiles.wmsxDropInfo = { element: subFiles, openType: OPEN_TYPE.DISK, port: 2, files: true, main: option };
+        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.DISK, port: 2, subFiles: subFiles };
+
         option = document.getElementById("wmsx-drop-cart1");
-        option.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 0 };
+        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.ROM, port: 0 };
+
         option = document.getElementById("wmsx-drop-cart2");
-        option.wmsxDropFileInfo = { openType: OPEN_TYPE.ROM,  port: 1 };
+        option.wmsxDropInfo = { openType: OPEN_TYPE.ROM, port: 1 };
+
         option = document.getElementById("wmsx-drop-tape");
-        option.wmsxDropFileInfo = { openType: OPEN_TYPE.TAPE, port: 0 };
+        option.wmsxDropInfo = { openType: OPEN_TYPE.TAPE, port: 0 };
     }
 
     this.setFileLoaderDragActive = function (state) {

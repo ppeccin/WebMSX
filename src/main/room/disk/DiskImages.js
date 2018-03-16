@@ -70,7 +70,7 @@ wmsx.DiskImages = function(room) {
                 bytesPerCluster = sectorsPerCluster * bytesPerSector;
                 fat16 = false;
             } else {
-                var err = new Error("Could not write files: Disk format or partition not recognized");
+                var err = new Error("Could not write files: Current Disk format not recognized (unformatted?)");
                 err.wmsx = true;
                 throw err;
             }
@@ -99,7 +99,7 @@ wmsx.DiskImages = function(room) {
 
         // If there were items that could not be written, AND no items could be written, error
         if (itemsNotWritten > 0 && itemsWritten === 0) {
-            err = new Error("No files could fit in available disk space");
+            err = new Error("No files could fit in available Disk space");
             err.wmsx = true;
             throw err;
         }
