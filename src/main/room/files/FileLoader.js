@@ -422,7 +422,6 @@ wmsx.FileLoader = function(room) {
         currentDragTimer = undefined;
     }
 
-    // TODO Improve Cassette auto-run when inserted depending on diskInterfaces active and disks inserted
     function onDrop(e) {
         e.returnValue = false;  // IE
         e.preventDefault();

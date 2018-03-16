@@ -24,6 +24,11 @@ wmsx.FileDiskDrive = function(room) {
         fileDownloader = pDownloader;
     };
 
+    this.hasAnyMediaInserted = function() {
+        return (diskDriveSocket.hasDiskInterface() && (driveStack[0].length || driveStack[1].length))
+            || (diskDriveSocket.hasHardDiskInterface() && driveStack[2].length);
+    };
+
     this.isHardDriveFirst = function() {
         return (WMSX.EXTENSIONS.HARDDISK & 1) || (diskDriveSocket.hasHardDiskInterface() && !diskDriveSocket.hasDiskInterface());
     };
@@ -125,7 +130,7 @@ wmsx.FileDiskDrive = function(room) {
             return this.getDriveStack(drive);
         } else {
             name = (name || ("New " + this.MEDIA_TYPE_INFO[mediaType].desc)) + ".dsk";
-            var stack = [{ name: name, content: content, modified: true }];
+            var stack = [{ name: name, content: content, modified: false }];
             loadStack(drive, stack, null, altPower, false, "(" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)");
             return stack;
         }

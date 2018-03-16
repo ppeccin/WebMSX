@@ -481,7 +481,10 @@ wmsx.Machine = function() {
     }
 
     function typeBasicAutoRunCommand() {
-        cassetteSocket.typeAutoRunCommand();
+        // Cassette auto run: only if there is no other possible bootable media inserted
+        if (!diskDriveSocket.hasAnyMediaInserted() && !cartridgeSocket.hasAnyMediaInserted())
+            cassetteSocket.typeAutoRunCommand();
+        // Basic command from parameters
         if (!basicAutoRunDone) {
             if (basicAutoRunCommand) biosSocket.keyboardExtensionTypeString(basicAutoRunCommand);
             basicAutoRunDone = true;
@@ -795,6 +798,9 @@ wmsx.Machine = function() {
             modifiedListener = listener;
             this.fireCartridgesModifiedStateUpdate();
         };
+        this.hasAnyMediaInserted = function() {
+            return slotSocket.slotInserted(CARTRIDGE0_SLOT) || slotSocket.slotInserted(CARTRIDGE1_SLOT);
+        };
         var listeners = [];
         var modifiedListener;
     }
@@ -950,6 +956,9 @@ wmsx.Machine = function() {
         this.fireInterfacesChangeUpdate = function() {
             if (interfacesChangeListener)
                 interfacesChangeListener.diskInterfacesStateUpdate(this.hasDiskInterface(), this.hasHardDiskInterface());
+        };
+        this.hasAnyMediaInserted = function() {
+            return this.getDrive().hasAnyMediaInserted();
         };
         var diskInterfaces = new Set(), hardDiskInterfaces = new Set(), dos2ROMs = new Set();
         var interfacesChangeListener;
