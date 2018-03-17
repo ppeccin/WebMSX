@@ -239,14 +239,14 @@ WMSX.PRESETS_CONFIG = {
         BIOS_URL:           "@MSX1_JAP.bios"
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE",
+        _INCLUDE:           "_BASE, NOMSXMUSIC, NOHARDDISK",
         BIOSEXT_URL:        "@[Empty].rom"
     },
 
     // Base Machines Presets. Do not use directly
 
     _BASE: {
-        _INCLUDE:           "RAMNORMAL, DISK",
+        _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
         MSX2:               false,
         MSX2P:              false
     }
