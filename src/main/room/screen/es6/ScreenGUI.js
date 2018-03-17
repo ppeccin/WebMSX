@@ -1627,7 +1627,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     padding: 0;
     font-size: 0;
     line-height: 0;
-    background: hsla(0, 0%, 0%, .8);
+    background: black;
     text-align: left;
     transform-origin: left bottom;
     z-index: 99;
@@ -1648,7 +1648,6 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     text-shadow: 2px 2px black;
     text-align: center;
     background: hsl(0, 0%, 16%);
-    border: 1px solid black;
     vertical-align: bottom;
     box-sizing: border-box;
 }
