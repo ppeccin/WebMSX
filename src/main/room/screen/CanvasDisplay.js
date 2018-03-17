@@ -28,7 +28,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         machineTypeSocket = machine.getMachineTypeSocket();
     };
 
-    this.connectPeripherals = function(fileLoader, pFileDownloader, pMachineControls, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
+    this.connectPeripherals = function(pFileLoader, pFileDownloader, pMachineControls, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
+        fileLoader = pFileLoader;
         fileLoader.registerForDnD(fsElement);
         fileLoader.registerForFileInputElement(fsElement);
         fileDownloader = pFileDownloader;
@@ -134,7 +135,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openDiskSelectDialog = function(drive, inc, altPower) {
         closeAllOverlays();
-        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls);
+        if (!diskSelectDialog) diskSelectDialog = new wmsx.DiskSelectDialog(fsElementCenter, diskDrive, peripheralControls, fileLoader);
         diskSelectDialog.show(drive, inc, altPower);
     };
 
@@ -1626,6 +1627,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var monitor;
     var machineControls;
     var peripheralControls;
+    var fileLoader;
     var fileDownloader;
     var controllersHub;
     var extensionsSocket;

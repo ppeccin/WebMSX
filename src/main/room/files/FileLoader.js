@@ -372,12 +372,16 @@ wmsx.FileLoader = function(room) {
         return false;
     }
 
+    this.setDragAndDropDisabled = function(state) {
+        dragDropDisabled = !!state;
+    };
+
     function onDragOver(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
         e.stopPropagation();
 
-        if (!e.dataTransfer) return;
+        if (dragDropDisabled || !e.dataTransfer) return;
 
         setDragTarget(e.target, e.ctrlKey, e.altKey);
         currentDragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-drag
@@ -422,13 +426,12 @@ wmsx.FileLoader = function(room) {
         currentDragTimer = undefined;
     }
 
-    // TODO Drag & Drop bug in DiskSelectDialog!
     function onDrop(e) {
         e.returnValue = false;  // IE
         e.preventDefault();
         e.target.focus();
 
-        if (!currentDropTarget || !e.dataTransfer) return dragEnded();
+        if (dragDropDisabled || !currentDropTarget || !e.dataTransfer) return dragEnded();
 
         var dropInfo = currentDropTarget.wmsxDropInfo || e.currentTarget.wmsxDropInfo;
 
@@ -511,6 +514,7 @@ wmsx.FileLoader = function(room) {
     var currentDropTarget;
     var currentDragButtons = 1;
     var currentDragTimer;
+    var dragDropDisabled = false;
 
     var MOUSE_BUT1_MASK = 1;
     var MOUSE_BUT2_MASK = 2;

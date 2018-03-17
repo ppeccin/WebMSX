@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
+wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, fileLoader) {
 "use strict";
 
     var self = this;
@@ -26,6 +26,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
     };
 
     this.hide = function (confirm) {
+        fileLoader.setDragAndDropDisabled(false);
         if (!visible) return;
         dialog.classList.remove("wmsx-show");
         visible = false;
@@ -158,12 +159,14 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls) {
             if (e.target.wmsxDiskNum === undefined) return false;
             diskMoveFrom = e.target;
             e.dataTransfer.setData('text/html', e.target.innerHTML);
+            fileLoader.setDragAndDropDisabled(true);      // Prevent FileLoader drag&drop from taking control
             return false;
         });
         list.addEventListener("dragend", function dragEnd(e) {
             e.stopPropagation();
             if (diskMoveTo) diskMoveTo.classList.remove("wmsx-droptarget");
             diskMoveFrom = diskMoveTo = undefined;
+            fileLoader.setDragAndDropDisabled(false);
             return false;
         });
 
