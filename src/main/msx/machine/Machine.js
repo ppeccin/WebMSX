@@ -26,6 +26,10 @@ wmsx.Machine = function() {
         syf.setMachineType(this.machineType);
     };
 
+    this.preStart = function() {
+        extensionsSocket.refreshConfigFromSlots();
+    };
+
     this.powerOn = function() {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();

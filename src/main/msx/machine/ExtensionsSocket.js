@@ -18,7 +18,7 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.cartridgesStateUpdate = function() {
-        refreshConfigFromSlots();
+        this.refreshConfigFromSlots();
         this.fireExtensionsAndCartridgesStateUpdate();
     };
 
@@ -124,13 +124,13 @@ wmsx.ExtensionsSocket = function(machine) {
         ).start();      // Synchronous since all loaded files are Embedded
     };
 
-    function refreshConfigFromSlots() {
+    this.refreshConfigFromSlots = function(){
         for (var ext in config) {
             var state = self.isActiveOnSlot(ext, false) ? 1 : 0;
             state |= (config[ext].OP2 && self.isActiveOnSlot(ext, true)) ? 2 : 0;
             WMSX.EXTENSIONS[ext] = state;
         }
-    }
+    };
 
     function updateExtensionOnConf(ext, val, op2, stopRecursion) {
         op2 = op2 && !!config[ext].OP2;

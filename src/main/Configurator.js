@@ -14,13 +14,16 @@ wmsx.Configurator = {
             if (urlParams.PRESETS) { this.applyParam("PRESETS", urlParams.PRESETS); delete urlParams.PRESETS }
         }
 
+        // Apply Alternate Slot Configuration first if asked
+        this.applyAltConfigPreset();
+
         // Apply main Machine configuration
         WMSX.MACHINE = (WMSX.MACHINE || "").trim().toUpperCase();
         if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
         if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
         this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
 
-        // Apply additional presets
+        // Apply additional presets over Machine configuration
         this.applyPresets(WMSX.PRESETS);
 
         // Apply additional single parameter overrides
@@ -101,6 +104,12 @@ wmsx.Configurator = {
             }
             obj[parts[parts.length - 1]] = value;
         }
+    },
+
+    applyAltConfigPreset: function() {
+        if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
+        this.applyPreset("ALTSLOTCONFIG");
+        WMSX.PRESETS = WMSX.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
     },
 
     slotURLSpecs: function() {

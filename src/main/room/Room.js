@@ -37,6 +37,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
     this.start = function(startAction) {
         this.mainVideoClock.detectHostNativeFPSAndCallback(function(nativeFPS) {
             self.machine.vSynchSetSupported(nativeFPS > 0);
+            self.machine.preStart();
             afterPowerONDelay(function () {
                 self.setLoading(false);
                 self.screen.start(startAction || machinePowerOnStartAction);

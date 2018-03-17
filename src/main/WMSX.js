@@ -120,19 +120,18 @@ WMSX.EXTENSIONS_CONFIG = {
 
 WMSX.PRESETS_CONFIG = {
 
-    // Extensions Options Presets
+    // Extensions Options Presets. Should be specified in this order
+
+    // Hard Disk: Nextor Removable Device
+    HARDDISK:   { "EXTENSIONS.HARDDISK": 1, "EXTENSIONS.DISK": 2, _INCLUDE: "RAMMAPPER" },
+    HARDDISKC:  { "EXTENSIONS.HARDDISK": 2, "EXTENSIONS.DISK": 1, _INCLUDE: "RAMMAPPER" },
+    DOS2:       { "EXTENSIONS.HARDDISK": 1, "EXTENSIONS.DISK": 2, _INCLUDE: "RAMMAPPER" },
+    NOHARDDISK: { "EXTENSIONS.HARDDISK": 0 },
 
     // Floppy Disk Drives
     DISK:     { "EXTENSIONS.DISK": 2 },
     DISKA:    { "EXTENSIONS.DISK": 1 },
     NODISK:   { "EXTENSIONS.DISK": 0 },
-
-    // Hard Disk: Nextor Mass Storage Drive
-    HARDDISK:   { "EXTENSIONS.HARDDISK":  1, "EXTENSIONS.DISK": 2 },
-    HARDDISKA:  { "EXTENSIONS.HARDDISK":  1, "EXTENSIONS.DISK": 2 },
-    HARDDISKC:  { "EXTENSIONS.HARDDISK":  2, "EXTENSIONS.DISK": 1 },
-    DOS2:       { "EXTENSIONS.HARDDISK":  2, "EXTENSIONS.DISK": 1 },
-    NOHARDDISK: { "EXTENSIONS.HARDDISK":  0 },
 
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
@@ -171,15 +170,14 @@ WMSX.PRESETS_CONFIG = {
     VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },
     VSYNCHON:       { SCREEN_VSYNCH_MODE: 1 },
 
+    // Alternate Slot Configuration: Expanded Slot 2 (on Cartridge2), try to keep RAM alone on Slot 3
+
     ALTSLOTCONFIG: {
         BIOSEXT_SLOT:                      [2, 1],
         EXPANSION_SLOTS:                   [[3, 2], [3, 3]],
-        "EXTENSIONS_CONFIG.DISK.OP1":      [2, 3],
-        "EXTENSIONS_CONFIG.DISK.OP2":      [3, 3],
-        "EXTENSIONS_CONFIG.HARDDISK.OP1":  [2, 3],
-        "EXTENSIONS_CONFIG.HARDDISK.OP2":  [3, 3],
         "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [2, 2],
-        "EXTENSIONS_CONFIG.KANJI.OP1":     [3, 1]
+        "EXTENSIONS_CONFIG.KANJI.OP1":     [3, 1],
+        "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
     },
 
     // MSX2+ Machine Presets. Do not use directly
@@ -222,7 +220,7 @@ WMSX.PRESETS_CONFIG = {
         BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios"
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAM512, MSXMUSIC",
+        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC",
         MSX2:               true
     },
 
@@ -241,14 +239,14 @@ WMSX.PRESETS_CONFIG = {
         BIOS_URL:           "@MSX1_JAP.bios"
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, NOMSXMUSIC, NOHARDDISK",
+        _INCLUDE:           "_BASE",
         BIOSEXT_URL:        "@[Empty].rom"
     },
 
     // Base Machines Presets. Do not use directly
 
     _BASE: {
-        _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
+        _INCLUDE:           "RAMNORMAL, DISK",
         MSX2:               false,
         MSX2P:              false
     }
