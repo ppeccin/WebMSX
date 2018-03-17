@@ -37,13 +37,12 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
     };
 
     this.readLocalControllerPort = function(port) {
-        return turboFireClockCount > turboFireFlipClock
-            ? ((port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue) | 0x10
-            : ((port === 1) ^ swappedMode ? joy2State.portValue : joy1State.portValue);
+        var joyState = ((port === 1) ^ swappedMode ? joy2State : joy1State);
+        return joyState.pin8Value ? 0x3f : turboFireClockCount > turboFireFlipClock ? joyState.portValue | 0x10 : joyState.portValue;
     };
 
      this.writeControllerPin8Port = function(atPort, val) {
-         // Do nothing
+         ((atPort === 1) ^ swappedMode ? joy2State : joy1State).pin8Value = val;
      };
 
     this.toggleMode = function() {
@@ -336,6 +335,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
             this.analogDirection = -1;      // CENTER
             this.buttonsState = {};         // All buttons released
             this.portValue = 0x3f;          // All switches off
+            this.pin8Value = 0;
         };
         this.reset();
     }

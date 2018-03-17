@@ -33,11 +33,12 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     };
 
     this.readLocalControllerPort = function(port) {
-        return turboFireClockCount > turboFireFlipClock ? joyStates[port ^ swappedMode].portValue | 0x10 : joyStates[port ^ swappedMode].portValue;
+        var joyState = joyStates[port ^ swappedMode];
+        return joyState.pin8Value ? 0x3f : turboFireClockCount > turboFireFlipClock ? joyState.portValue | 0x10 : joyState.portValue;
     };
 
     this.writeControllerPin8Port = function(atPort, val) {
-        // Do nothing
+        joyStates[atPort ^ swappedMode].pin8Value = val;
     };
 
     this.controllersClockPulse = function() {
@@ -220,6 +221,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     function JoystickState() {
         this.reset = function() {
             this.portValue = 0x3f;          // All switches off
+            this.pin8Value = 0;
         };
         this.reset();
     }
