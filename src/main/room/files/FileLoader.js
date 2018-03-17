@@ -422,6 +422,7 @@ wmsx.FileLoader = function(room) {
         currentDragTimer = undefined;
     }
 
+    // TODO Drag & Drop bug in DiskSelectDialog!
     function onDrop(e) {
         e.returnValue = false;  // IE
         e.preventDefault();

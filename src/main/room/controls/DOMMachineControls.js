@@ -216,6 +216,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE, mc.VSYNCH
     ]);
 
+    // User can issue control only on Server. Not sent to Client over network
     var netServerOnlyControls = new Set([
         mc.SAVE_STATE_0, mc.SAVE_STATE_1, mc.SAVE_STATE_2, mc.SAVE_STATE_3, mc.SAVE_STATE_4, mc.SAVE_STATE_5, mc.SAVE_STATE_6,
         mc.SAVE_STATE_7, mc.SAVE_STATE_8, mc.SAVE_STATE_9, mc.SAVE_STATE_10, mc.SAVE_STATE_11, mc.SAVE_STATE_12, mc.SAVE_STATE_FILE,
@@ -224,6 +225,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         mc.TRACE
     ]);
 
+    // User can issue control only on Server. Sent to Client over network
     var netClientBlockedControls = new Set([
         mc.VSYNCH
     ]);

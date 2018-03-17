@@ -60,7 +60,7 @@ wmsx.DOMPeripheralControls = function(room) {
         // If a Net-dependent Control
         if (!netLocalImmediateControls.has(control)) {
             // Check for NetPlay blocked controls
-            if (room.netPlayMode === 2 && netServerOnlyControls.has(control) /*&& !netClientSendToServerControls.has(control)*/)
+            if (room.netPlayMode === 2 && (netServerOnlyControls.has(control) || netClientBlockedControls.has(control)))
                 return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
             // Store changes to be sent to peers
@@ -315,7 +315,7 @@ wmsx.DOMPeripheralControls = function(room) {
             monitor.showOSD("Media change is disabled!", true, true);
             return true;
         }
-        if (room.netPlayMode === 2 && (!control || netServerOnlyControls.has(control))) {
+        if (room.netPlayMode === 2 && (!control || netServerOnlyControls.has(control) || netClientBlockedControls.has(control))) {
             monitor.showOSD("Media loading is disabled in NetPlay Client mode!", true, true);
             return true;
         }
@@ -498,22 +498,28 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 
+    // User can issue control only on Server. Not sent to Client over network
     var netServerOnlyControls = new Set([
         pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
-        pc.DISK_EMPTY, pc.DISK_BOOT, pc.DISK_MOVE, pc.DISK_INSERT, pc.DISK_REMOVE,
+        pc.DISK_EMPTY, pc.DISK_BOOT, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
         pc.HARDDISK_LOAD_FILE, pc.HARDDISK_LOAD_URL, pc.HARDDISK_LOAD_FILES_AS_DISK, pc.HARDDISK_LOAD_ZIP_AS_DISK, pc.HARDDISK_SAVE_FILE,
-        pc.HARDDISK_CHOOSE_EMPTY, pc.HARDDISK_CHOOSE_BOOT, pc.HARDDISK_NEW, pc.HARDDISK_REMOVE,
+        pc.HARDDISK_CHOOSE_EMPTY, pc.HARDDISK_CHOOSE_BOOT, pc.HARDDISK_NEW,
         pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
     ]);
 
-    // var netClientSendToServerControls = new Set([
-    //     // No controls for now
-    // ]);
+    // User can issue control only on Server. Sent to Client over network
+    var netClientBlockedControls = new Set([
+        pc.DISK_MOVE, pc.DISK_INSERT, pc.DISK_REMOVE,
+        pc.HARDDISK_REMOVE,
+        pc.CARTRIDGE_REMOVE,
+        pc.TAPE_EMPTY, pc.TAPE_REWIND, pc.TAPE_TO_END, pc.TAPE_SEEK_FWD, pc.TAPE_SEEK_BACK, pc.TAPE_REMOVE
+    ]);
 
+    // User can issue control both on Server and Client. Processed instantly, not sent over network
     var netLocalImmediateControls = new Set([
         pc.SCREEN_ASPECT_PLUS, pc.SCREEN_ASPECT_MINUS,
         pc.SCREEN_SCALE_PLUS, pc.SCREEN_SCALE_MINUS,
@@ -537,8 +543,6 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.HAPTIC_FEEDBACK_TOGGLE_MODE,
 
         pc.COPY_STRING, pc.OPEN_PASTE_STRING, pc.OPEN_ENTER_STRING, pc.CAPTURE_SCREEN,
-
-        pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,     // just operates the DiskSelectDialog
 
         pc.SCREEN_OPEN_NETPLAY
     ]);
