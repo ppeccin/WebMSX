@@ -19,7 +19,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         refresh();
         refreshOptions();
 
-        wmsx.Util.scaleToFitParent(dialog, mainElement, 0);
+        wmsx.Util.scaleToFitParentHeight(dialog, mainElement, 0);
     };
 
     this.hide = function() {

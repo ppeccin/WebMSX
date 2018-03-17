@@ -538,13 +538,25 @@ wmsx.Util = new function() {
         document.head.appendChild(style);
     };
 
-    this.scaleToFitParent = function(element, parent, bottomOffset) {
+    this.scaleToFitParentHeight = function(element, parent, bottomOffset) {
         var availHeight = parent.clientHeight - bottomOffset - 20;      //  bar - tolerance
         var height = element.clientHeight;
         var scale = height < availHeight ? 1 : availHeight / height;
         element.style.transform = "translateY(-" + ((bottomOffset / 2) | 0) + "px) scale(" + scale.toFixed(4) + ")";
 
         // console.log("SCALE availHeight: " + availHeight + ", height: " + height + ", final: " + height * scale);
+    };
+
+    this.scaleToFitParentWidth = function(element, parent, horizMargin) {
+        var availWidth = parent.clientWidth - (horizMargin * 2 | 0);      //  margins
+        var width = element.clientWidth;
+        var scale = width < availWidth ? 1 : availWidth / width;
+        var finaWidth = (width * scale) | 0;
+        var left = Math.floor((availWidth - finaWidth) / 2 + horizMargin);
+        element.style.left = "" + left + "px";
+        element.style.transform = "scale(" + scale.toFixed(4) + ")";
+
+        // console.log("SCALE availWidth: " + availWidth + ", width: " + width + ", final: " + width * scale + ", left: " + left);
     };
 
     this.log2 = function(x) {

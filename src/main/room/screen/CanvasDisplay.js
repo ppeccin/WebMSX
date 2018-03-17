@@ -1582,6 +1582,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function setupFileLoaderDropTargets() {
+        fileLoaderDropArea = document.getElementById("wmsx-drop-area");
+
         fsElement.wmsxDropInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : auto port assignment
 
         var option, subAdd, subFiles;
@@ -1616,7 +1618,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.setFileLoaderDragActive = function (state) {
         if (state) closeAllOverlays();
-        fsElement.classList.toggle("wmsx-drag-active", state);
+        if (state == fileLoaderDragActive) return;
+        fileLoaderDragActive = state;
+        fileLoaderDropArea.classList.toggle("wmsx-visible", state);
+        if (state) wmsx.Util.scaleToFitParentWidth(fileLoaderDropArea, fsElement, 14);
     };
 
 
@@ -1647,6 +1652,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var isIOSDevice = wmsx.Util.isIOSDevice();
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
     var browserName = wmsx.Util.browserInfo().name;
+
+    var fileLoaderDropArea, fileLoaderDragActive = false;
 
     var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenAPIExitUserRequested = false, fullScreenScrollHack = false;
     var viewportTag, viewPortOriginalTag, viewPortOriginalContent;

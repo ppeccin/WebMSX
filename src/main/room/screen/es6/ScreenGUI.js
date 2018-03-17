@@ -1620,20 +1620,19 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 #wmsx-drop-area {
     position: absolute;
     display: none;
-    left: 0;
-    right: 0;
-    margin: auto;
-    padding: 0;
     bottom: 59px;
     width: 574px;
     height: 210px;
+    margin: auto;
+    padding: 0;
     font-size: 0;
     line-height: 0;
     background: hsla(0, 0%, 0%, .8);
     text-align: left;
+    transform-origin: left bottom;
     z-index: 99;
 }
-#wmsx-screen-fs.wmsx-drag-active #wmsx-drop-area {
+#wmsx-drop-area.wmsx-visible {
     display: block;
 }
 #wmsx-drop-area > div {

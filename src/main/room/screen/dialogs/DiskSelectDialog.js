@@ -22,7 +22,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, fil
         dialog.classList.add("wmsx-show");
         dialog.focus();
 
-        wmsx.Util.scaleToFitParent(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
+        wmsx.Util.scaleToFitParentHeight(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
     };
 
     this.hide = function (confirm) {
