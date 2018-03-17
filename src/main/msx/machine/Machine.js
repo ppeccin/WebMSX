@@ -396,7 +396,6 @@ wmsx.Machine = function() {
     }
     this.saveState = saveState;
 
-    // TODO Make backward Extensions config compatible
     function loadState(s) {
         // Extended
         if (s.vy !== undefined) setVSynchMode(s.vy, true);  // force update
@@ -1062,9 +1061,10 @@ wmsx.Machine = function() {
             var state = media.loadState(slot);
             if (!state) {
                 self.showOSD("State " + slot + " not found!", true, true);
-            } else if (state.v !== VERSION) {
-                self.showOSD("State " + slot + " load failed, wrong version!", true, true);
+            } else if (!VERSIONS_ACCEPTED[state.v]) {
+                self.showOSD("State " + slot + " load failed. State version too old!", true, true);
             } else {
+                wmsx.Configurator.upgradeForState(state);
                 if (!self.powerIsOn) self.powerOn();
                 loadState(state);
                 self.showOSD("State " + slot + " loaded", true);
@@ -1081,9 +1081,10 @@ wmsx.Machine = function() {
             var state = media.loadStateFile(data);
             if (!state) return false;
             wmsx.Util.log("SaveState file loaded");
-            if (state.v !== VERSION) {
-                self.showOSD("State File load failed, wrong version!", true, true);
+            if (!VERSIONS_ACCEPTED[state.v]) {
+                self.showOSD("State File load failed. State version too old!", true, true);
             } else {
+                wmsx.Configurator.upgradeForState(state);
                 if (!self.powerIsOn) self.powerOn();
                 loadState(state);
                 self.showOSD("State File loaded", true);
@@ -1094,7 +1095,8 @@ wmsx.Machine = function() {
             media.externalStateChange();
         };
         var media;
-        var VERSION = 9;
+        var VERSION = 50;
+        var VERSIONS_ACCEPTED = { 9: true, 50: true };
     }
 
 

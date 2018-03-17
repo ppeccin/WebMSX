@@ -233,6 +233,29 @@ wmsx.Configurator = {
         return machine;
     },
 
+    upgradeForState: function(state) {
+        // Adapt Extensions Config. Make current Config compatible with old State
+        if (state.v < 50) {
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 2];
+            WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 2];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1    = [3, 1];
+            WMSX.BIOSEXT_SLOT =    [2, 1];
+            WMSX.EXPANSION_SLOTS = [[3, 2], [3, 3]];
+            WMSX.OLD_EXTENSION_CONFIG = true;
+        }
+        // Adapt Extensions Config. Revert old config to the new Config again
+        if (WMSX.OLD_EXTENSION_CONFIG && state.v >= 50) {
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1    = [2, 1];
+            WMSX.BIOSEXT_SLOT =    [3, 1];
+            WMSX.EXPANSION_SLOTS = [[2, 2], [2, 3]];
+            WMSX.OLD_EXTENSION_CONFIG = false;
+        }
+    },
+
     abbreviations: {
         P: "PRESETS",
         M: "MACHINE",
@@ -251,6 +274,8 @@ wmsx.Configurator = {
         DISKB: "DISKB_URL",
         DISKA_FILES: "DISKA_FILES_URL",
         DISKB_FILES: "DISKB_FILES_URL",
+        HARDDISK: "HARDDISK_URL",
+        HARDDISK_FILES: "HARDDISK_FILES_URL",
         TAPE: "TAPE_URL",
         ANY: "AUTODETECT_URL",
         AUTO: "AUTODETECT_URL",
