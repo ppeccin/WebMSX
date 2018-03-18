@@ -383,10 +383,11 @@ wmsx.FileLoader = function(room) {
 
         if (dragDropDisabled || !e.dataTransfer) return;
 
-        setDragTarget(e.target, e.ctrlKey, e.altKey);
-        currentDragButtons = e.buttons > 0 ? e.buttons : MOUSE_BUT1_MASK;      // If buttons not supported, consider it a left-drag
+        var mods = (e.shiftKey ? MOD_SEC : 0) | (e.ctrlKey ? MOD_ADD : 0) | (e.altKey ? MOD_FILES : 0) | (e.buttons & MOUSE_BUT2_MASK ? MOD_APOW : 0);
 
-        e.dataTransfer.dropEffect = !currentDropTarget || currentDropTarget.wmsxDropInfo.disabled ? "none" : "link";
+        setDropTarget(e.target, mods);
+
+        e.dataTransfer.dropEffect = !currentDropInfo || currentDropInfo.disabled ? "none" : "link";
 
         // Mechanism for ending drag, since its undetectable...  :-(
         if (currentDragTimer) clearTimeout(currentDragTimer);
@@ -395,34 +396,47 @@ wmsx.FileLoader = function(room) {
         //console.log("DRAG OVER:", e.target);
     }
 
-    function setDragTarget(target, add, files) {
+    function setDropTarget(target, mods) {
         if (target && peripheralControls.mediaChangeDisabledWarning()) target = undefined;
         else while (target && !target.wmsxDropInfo) target = target.parentElement;
 
-        // Get sub options if modifiers are passed
+        // Get sub options on screen depending on modifiers
         if (target) {
-            if (target.wmsxDropInfo.subFiles && files) target = target.wmsxDropInfo.subFiles;
-            else if (target.wmsxDropInfo.subAdd && add) target = target.wmsxDropInfo.subAdd;
-        }
-        if (currentDropTarget === target) return;
-
-        if (currentDropTarget) {
-            currentDropTarget.classList.remove("wmsx-selected");
-            var parent = currentDropTarget.wmsxDropInfo.main;
-            if (parent) parent.classList.remove("wmsx-selected");
-        }
-        currentDropTarget = target;
-        if (currentDropTarget) {
-            currentDropTarget.classList.add("wmsx-selected");
-            parent = currentDropTarget.wmsxDropInfo.main;
-            if (parent) parent.classList.add("wmsx-selected");
+            var info = target.wmsxDropInfo;
+            if (info.subFiles && (mods & MOD_FILES)) info = info.subFiles;
+            else if (info.subAdd && (mods & MOD_ADD)) info = info.subAdd;
         }
 
-        screen.setFileLoaderDragActive(!!currentDropTarget);
+        if (currentDropInfo === info && currentDropMods === mods) return;
+
+        if (currentDropInfo !== info) {
+            if (currentDropInfo) {
+                currentDropInfo.element.classList.remove("wmsx-selected");
+                var parent = currentDropInfo.mainEle;
+                if (parent) parent.classList.remove("wmsx-selected");
+            }
+            currentDropInfo = info;
+            if (currentDropInfo) {
+                currentDropInfo.element.classList.add("wmsx-selected");
+                parent = currentDropInfo.mainEle;
+                if (parent) parent.classList.add("wmsx-selected");
+            }
+        }
+
+        currentDropMods = mods;
+
+        var mes;
+        if (currentDropInfo) {
+            mes = (mods & MOD_SEC) && currentDropInfo.mesSec ? currentDropInfo.mesSec : currentDropInfo.mes;
+            if (currentDropInfo.files && (mods & MOD_ADD)) mes += " (do not expand ZIP contents)";
+            if (mods & MOD_APOW) mes += " - no Reset"
+        }
+
+        screen.setFileLoaderDragMessage(mes);
     }
 
     function dragEnded() {
-        setDragTarget(undefined);
+        setDropTarget(undefined, 0);
         currentDragTimer = undefined;
     }
 
@@ -431,19 +445,17 @@ wmsx.FileLoader = function(room) {
         e.preventDefault();
         e.target.focus();
 
-        if (dragDropDisabled || !currentDropTarget || !e.dataTransfer) return dragEnded();
+        if (dragDropDisabled || !currentDropInfo || currentDropInfo.disabled || !e.dataTransfer) return dragEnded();
 
-        var dropInfo = currentDropTarget.wmsxDropInfo || e.currentTarget.wmsxDropInfo;
-
+        var info = currentDropInfo;
+        var mods = currentDropMods;
         dragEnded();
 
-        if (!dropInfo || dropInfo.disabled) return;
-
-        var altPower = currentDragButtons & MOUSE_BUT2_MASK;
-        var asDisk = e.altKey || dropInfo.files;
-        var asExpansion = e.ctrlKey || dropInfo.add;    // Serves as AddToStack when loading in Floppy Drives
-        var port = dropInfo.port !== undefined ? dropInfo.port : e.shiftKey ? -1 : undefined;
-        var openType = dropInfo.openType;
+        var altPower = mods & MOD_APOW;
+        var asDisk = info.files || (mods & MOD_FILES);
+        var asExpansion = info.add || (mods & MOD_ADD);    // Serves as AddToStack when loading in Floppy Drives
+        var port = info.port !== undefined ? info.port : (mods & MOD_SEC) ? -1 : undefined;
+        var openType = info.openType;
         if (asDisk && (openType === OPEN_TYPE.DISK || openType === OPEN_TYPE.AUTO))
             openType = asExpansion ? OPEN_TYPE.FILES_AS_DISK : OPEN_TYPE.AUTO_AS_DISK;      // asExpansion to force ignore ZIP-AS-DISK
 
@@ -511,14 +523,18 @@ wmsx.FileLoader = function(room) {
     var chooserAltPower = false;
     var chooserAsExpansion = false;
 
-    var currentDropTarget;
+    var currentDropInfo;
+    var currentDropMods;
     var currentDragButtons = 1;
     var currentDragTimer;
     var dragDropDisabled = false;
 
-    var MOUSE_BUT1_MASK = 1;
     var MOUSE_BUT2_MASK = 2;
 
+    var MOD_SEC = 1;
+    var MOD_ADD = 2;
+    var MOD_FILES = 4;
+    var MOD_APOW = 8;
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
     this.OPEN_TYPE = OPEN_TYPE;                         // For the programatic interface

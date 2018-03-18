@@ -51,6 +51,7 @@ wmsx.ScreenGUI.html = function() {
                     <div id="wmsx-drop-cart1"><i></i><br>Cartridge 1</div>
                     <div id="wmsx-drop-cart2"><i></i><br>Cartridge 2</div>
                     <div id="wmsx-drop-tape"><i></i><br>Cassette</div>
+                    <span id="wmsx-drop-area-message"></span>
                 </div>
                 <div id="wmsx-bar">
                     <div id="wmsx-bar-inner"></div>
@@ -1620,13 +1621,14 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 #wmsx-drop-area {
     position: absolute;
     display: none;
-    bottom: 59px;
+    bottom: 56px;
     width: 574px;
-    height: 210px;
+    height: 238px;
     margin: auto;
     padding: 0;
     font-size: 0;
     line-height: 0;
+    color: hsl(0, 0%, 82%);
     background: black;
     text-align: left;
     transform-origin: left bottom;
@@ -1644,7 +1646,6 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     padding: 0;
     font-size: 19px;
     line-height: 24px;
-    color: hsl(0, 0%, 82%);
     text-shadow: 2px 2px black;
     text-align: center;
     background: hsl(0, 0%, 16%);
@@ -1657,6 +1658,16 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 #wmsx-drop-area > div:not(.wmsx-disabled).wmsx-selected {
     background: hsl(358, 67%, 38%);
 }
+#wmsx-drop-area-message {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 2px;
+    height: 34px;
+    font-size: 16px;
+    line-height: 34px;
+    text-align: center;
+}
+
 #wmsx-drop-area i {
     display: inline-block;
     margin: 11px auto 7px;
@@ -1666,39 +1677,40 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     background-size: 568px 206px;
     vertical-align: bottom;
 }
-#wmsx-drop-drivea i { background-position: -334px -108px; }
+#wmsx-drop-drivea i { background-position: -334px -107px; }
 #wmsx-drop-drivea.wmsx-disabled i { background-position: -334px -156px; }
-#wmsx-drop-driveb i { background-position: -392px -108px; }
+#wmsx-drop-driveb i { background-position: -392px -107px; }
 #wmsx-drop-driveb.wmsx-disabled i { background-position: -392px -156px; }
-#wmsx-drop-driveh i { background-position: -508px -108px; }
+#wmsx-drop-driveh i { background-position: -508px -107px; }
 #wmsx-drop-driveh.wmsx-disabled i { background-position: -508px -156px; }
-#wmsx-drop-cart1 i  { background-position: -159px -108px; }
-#wmsx-drop-cart2 i  { background-position: -217px -108px; }
-#wmsx-drop-tape i   { background-position: -275px -108px; }
+#wmsx-drop-cart1 i  { background-position: -159px -107px; }
+#wmsx-drop-cart2 i  { background-position: -217px -107px; }
+#wmsx-drop-tape i   { background-position: -275px -107px; }
 
 .wmsx-drop-add, 
 .wmsx-drop-files {
     position: absolute;
     display: none;
     left: 0; top: 0;
-    width: 40px;
-    height: 36px;
+    width: 50px;
+    height: 34px;
     padding-top: 10px;
-    font-size: 12px;
-    line-height: 12px;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .8);
+    font-size: 11px;
+    line-height: 9px;
+    text-shadow: 1px 1px 1px black;
     border: 3px solid transparent;
     box-sizing: border-box;
+    white-space: nowrap;
+    overflow: visible;
 }    
 .wmsx-drop-files {
     left: unset; right: 0;
-    width: 46px;
 }
 .wmsx-drop-add::after {
-    content: "ADD";
+    content: "+ DISKS";
 } 
 .wmsx-drop-files::after {
-    content: "FILES";
+    content: "+ FILES ";
 } 
 #wmsx-drop-area > div:not(.wmsx-disabled).wmsx-selected .wmsx-drop-add, 
 #wmsx-drop-area > div:not(.wmsx-disabled).wmsx-selected .wmsx-drop-files {

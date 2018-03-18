@@ -107,7 +107,9 @@ wmsx.DiskImages = function(room) {
         // Finish image and return
         this.mirrorFatCopies(numberOfFATs, fatStartSector, sectorsPerFAT, bytesPerSector, image);
 
-        return itemsWritten;
+        return itemsNotWritten > 0
+            ? "" + itemsWritten + " of " + (itemsWritten + itemsNotWritten) + " files"
+            : "" + itemsWritten + (itemsWritten === 1 ? " file" : " files");
 
 
         // Auxiliary functions

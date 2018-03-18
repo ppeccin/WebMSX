@@ -1583,45 +1583,58 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function setupFileLoaderDropTargets() {
         fileLoaderDropArea = document.getElementById("wmsx-drop-area");
+        fileLoaderDropAreaMessage = document.getElementById("wmsx-drop-area-message");
 
-        fsElement.wmsxDropInfo = { openType: OPEN_TYPE.AUTO, port: undefined };   // port = undefined : auto port assignment
+        var mainEle, subEle, subAdd, subFiles;
 
-        var option, subAdd, subFiles;
-        diskAButton.wmsxDropTarget = option = document.getElementById("wmsx-drop-drivea");
-        subAdd = document.getElementById("wmsx-drop-drivea-add");
-        subAdd.wmsxDropInfo = { element: subAdd, openType: OPEN_TYPE.DISK, port: 0, add: true, main: option };
-        subFiles = document.getElementById("wmsx-drop-drivea-files");
-        subFiles.wmsxDropInfo = { element: subFiles, openType: OPEN_TYPE.DISK, port: 0, files: true, main: option };
-        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.DISK, port: 0, subAdd: subAdd, subFiles: subFiles };
+        // port = undefined : auto port assignment
+        mainEle = fsElement;
+        subAdd = { element: mainEle, openType: OPEN_TYPE.DISK, port: undefined, add: true, mainEle: mainEle, mes: "Add Disk(s) to Drive (auto-detect)", mesSec: "Add Disk(s) to Drive B Stack" };
+        subFiles = { element: mainEle, openType: OPEN_TYPE.DISK, port: undefined, files: true, mainEle: mainEle, mes: "Add Files to Drive (auto-detect)", mesSec: "Add Files to Disk in Drive B" };
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.AUTO, port: undefined, subAdd: subAdd, subFiles: subFiles, mes: "Auto detect media", mesSec: "Auto detect media (to Drive B / Cartridge 2)" };
 
-        diskBButton.wmsxDropTarget = option = document.getElementById("wmsx-drop-driveb");
-        subAdd = document.getElementById("wmsx-drop-driveb-add");
-        subAdd.wmsxDropInfo = { element: subAdd, openType: OPEN_TYPE.DISK, port: 1, add: true, main: option };
-        subFiles = document.getElementById("wmsx-drop-driveb-files");
-        subFiles.wmsxDropInfo = { element: subFiles, openType: OPEN_TYPE.DISK, port: 1, files: true, main: option };
-        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.DISK, port: 1, subAdd: subAdd, subFiles: subFiles };
+        diskAButton.wmsxDropTarget = mainEle = document.getElementById("wmsx-drop-drivea");
+        subEle = document.getElementById("wmsx-drop-drivea-add");
+        subEle.wmsxDropInfo = subAdd = { element: subEle, openType: OPEN_TYPE.DISK, port: 0, add: true, mainEle: mainEle, mes: "Add Disk(s) to Drive A Stack" };
+        subEle = document.getElementById("wmsx-drop-drivea-files");
+        subEle.wmsxDropInfo = subFiles = { element: subEle, openType: OPEN_TYPE.DISK, port: 0, files: true, mainEle: mainEle, mes: "Add Files to Disk in Drive A" };
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.DISK, port: 0, subAdd: subAdd, subFiles: subFiles, mes: "Load Disk(s) in Drive A" };
 
-        diskHButton.wmsxDropTarget = option = document.getElementById("wmsx-drop-driveh");
-        subFiles = document.getElementById("wmsx-drop-driveh-files");
-        subFiles.wmsxDropInfo = { element: subFiles, openType: OPEN_TYPE.DISK, port: 2, files: true, main: option };
-        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.DISK, port: 2, subFiles: subFiles };
+        diskBButton.wmsxDropTarget = mainEle = document.getElementById("wmsx-drop-driveb");
+        subEle = document.getElementById("wmsx-drop-driveb-add");
+        subEle.wmsxDropInfo = subAdd = { element: subEle, openType: OPEN_TYPE.DISK, port: 1, add: true, mainEle: mainEle, mes: "Add Disk(s) to Drive B Stack"  };
+        subEle = document.getElementById("wmsx-drop-driveb-files");
+        subEle.wmsxDropInfo = subFiles = { element: subEle, openType: OPEN_TYPE.DISK, port: 1, files: true, mainEle: mainEle, mes: "Add Files to Disk in Drive B" };
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.DISK, port: 1, subAdd: subAdd, subFiles: subFiles, mes: "Load Disk(s) in Drive B" };
 
-        option = document.getElementById("wmsx-drop-cart1");
-        option.wmsxDropInfo = { element: option, openType: OPEN_TYPE.ROM, port: 0 };
+        diskHButton.wmsxDropTarget = mainEle = document.getElementById("wmsx-drop-driveh");
+        subEle = document.getElementById("wmsx-drop-driveh-files");
+        subEle.wmsxDropInfo = subFiles = { element: subEle, openType: OPEN_TYPE.DISK, port: 2, files: true, mainEle: mainEle, mes: "Add Files to Hard Disk" };
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.DISK, port: 2, subFiles: subFiles, mes: "Load Hard Disk" };
 
-        option = document.getElementById("wmsx-drop-cart2");
-        option.wmsxDropInfo = { openType: OPEN_TYPE.ROM, port: 1 };
+        mainEle = document.getElementById("wmsx-drop-cart1");
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.ROM, port: 0, mes: "Load Cartride 1" };
 
-        option = document.getElementById("wmsx-drop-tape");
-        option.wmsxDropInfo = { openType: OPEN_TYPE.TAPE, port: 0 };
+        mainEle = document.getElementById("wmsx-drop-cart2");
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.ROM, port: 1, mes: "Load Cartride 2" };
+
+        mainEle = document.getElementById("wmsx-drop-tape");
+        mainEle.wmsxDropInfo = { element: mainEle, openType: OPEN_TYPE.TAPE, port: 0, mes: "Load Cassette Tape" };
     }
 
-    this.setFileLoaderDragActive = function (state) {
-        if (state) closeAllOverlays();
-        if (state == fileLoaderDragActive) return;
-        fileLoaderDragActive = state;
-        fileLoaderDropArea.classList.toggle("wmsx-visible", state);
-        if (state) wmsx.Util.scaleToFitParentWidth(fileLoaderDropArea, fsElement, 14);
+    this.setFileLoaderDragMessage = function (mes) {
+        var active = !!mes;
+        if (active) {
+            closeAllOverlays();
+            fileLoaderDropAreaMessage.textContent = mes;
+        }
+
+        console.log("MESSAGE:", mes);
+
+        if (active == fileLoaderDragActive) return;
+        fileLoaderDragActive = active;
+        fileLoaderDropArea.classList.toggle("wmsx-visible", active);
+        if (active) wmsx.Util.scaleToFitParentWidth(fileLoaderDropArea, fsElement, 11);
     };
 
 
@@ -1653,7 +1666,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
     var browserName = wmsx.Util.browserInfo().name;
 
-    var fileLoaderDropArea, fileLoaderDragActive = false;
+    var fileLoaderDropArea, fileLoaderDragActive = false, fileLoaderDropAreaMessage;
 
     var fullscreenAPIEnterMethod, fullScreenAPIExitMethod, fullScreenAPIQueryProp, fullScreenAPIExitUserRequested = false, fullScreenScrollHack = false;
     var viewportTag, viewPortOriginalTag, viewPortOriginalContent;

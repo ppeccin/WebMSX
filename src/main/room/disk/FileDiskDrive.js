@@ -115,15 +115,15 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         try {
-            var filesWritten = images.writeFilesToImage(content, files);
-            if (!filesWritten) return;
+            var filesWrittenDesc = images.writeFilesToImage(content, files);
+            if (!filesWrittenDesc) return;
         } catch (e) {
             console.error(e);
             throw e;
         }
 
         if (curDisk) {
-            screen.showOSD(driveName[drive] + " " + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk", true);
+            screen.showOSD(driveName[drive] + " " + filesWrittenDesc + " added to disk", true);
             curDisk.content = content;
             curDisk.modified = true;
             replaceCurrentDisk(drive, curDisk, true);     // true = send net operation
@@ -131,7 +131,7 @@ wmsx.FileDiskDrive = function(room) {
         } else {
             name = (name || ("New " + this.MEDIA_TYPE_INFO[mediaType].desc)) + ".dsk";
             var stack = [{ name: name, content: content, modified: false }];
-            loadStack(drive, stack, null, altPower, false, "(" + filesWritten + (filesWritten === 1 ? " file" : " files") + " added to disk)");
+            loadStack(drive, stack, null, altPower, false, "(" + filesWrittenDesc + " added to disk)");
             return stack;
         }
     };
