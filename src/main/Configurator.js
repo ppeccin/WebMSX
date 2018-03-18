@@ -32,6 +32,12 @@ wmsx.Configurator = {
         // Ensure the correct types of the parameters
         normalizeParameterTypes();
 
+        // Auto activate HardDrive Extension if not active and user trying to load HardDisk file
+        if ((WMSX.HARDDISK_URL || WMSX.HARDDISK_FILES_URL) && !WMSX.EXTENSIONS.HARDDISK) {
+            WMSX.EXTENSIONS.HARDDISK = 1;
+            if (WMSX.EXTENSIONS.DISK) WMSX.EXTENSIONS.DISK = 2;
+        }
+
         function parseURLParams() {
             var search = (window.location.search || "").split('+').join(' ');
             var reg = /[?&]?([^=]+)=([^&]*)/g;
