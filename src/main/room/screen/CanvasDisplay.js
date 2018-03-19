@@ -407,16 +407,24 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskAButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
         diskAButton.wmsxDropTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
         diskAButton.wmsxDropTarget.wmsxDropInfo.disabled = !hasDiskInterface;
+        diskAButton.wmsxMenu.wmsxHidden = !hasDiskInterface;
         diskBButton.classList.toggle("wmsx-hidden", !hasDiskInterface);
         diskBButton.wmsxDropTarget.classList.toggle("wmsx-disabled", !hasDiskInterface);
         diskBButton.wmsxDropTarget.wmsxDropInfo.disabled = !hasDiskInterface;
+        diskBButton.wmsxMenu.wmsxHidden = !hasDiskInterface;
         diskHButton.classList.toggle("wmsx-hidden", !hasHardDiskInterface);
         diskHButton.wmsxDropTarget.classList.toggle("wmsx-disabled", !hasHardDiskInterface);
         diskHButton.wmsxDropTarget.wmsxDropInfo.disabled = !hasHardDiskInterface;
-        // Order of icons
-        var toTheLeft = diskDrive.isHardDriveFirst();
-        diskHButton.style.float = toTheLeft ? "left" : "none";
-        diskHButton.wmsxDropTarget.style.float = toTheLeft ? "left" : "none";
+        var hdMenu = diskHButton.wmsxMenu;
+        hdMenu.wmsxHidden = !hasHardDiskInterface;
+        // Order of icons and menus
+        var hdFirst = diskDrive.isHardDriveFirst();
+        diskHButton.style.float = hdFirst ? "left" : "none";
+        diskHButton.wmsxDropTarget.style.float = hdFirst ? "left" : "none";
+        var pos = hdFirst ? 1 : 4;
+        barMenus[1] = pos === 1 ? hdMenu : null;
+        barMenus[4] = pos === 4 ? hdMenu : null;
+        hdMenu.wmsxMenuIndex = pos;
     };
 
     this.extensionsAndCartridgesStateUpdate = function() {
@@ -819,6 +827,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         mediaIconsContainer = document.createElement("div");
         mediaIconsContainer.style.display = "inline-block";
         buttonsBarInner.appendChild(mediaIconsContainer);
+
+        // Create a gap in menus. HardDisk menu may be in positions 1 or 4 depending on Disk Interfaces order
+        barMenus.push(null);
 
         menu = [
             { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
@@ -1390,8 +1401,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             // Select Menu
             else if (MENU_SELECT_KEYS[e.keyCode]) {
                 if (!barMenuActive) return;
-                var newMenu = (barMenus.length + barMenuActive.wmsxMenuIndex + MENU_SELECT_KEYS[e.keyCode]) % barMenus.length;
-                showBarMenu(barMenus[newMenu], true);
+                var newMenuIndex = barMenuActive.wmsxMenuIndex;
+                do {
+                    newMenuIndex = (barMenus.length + newMenuIndex + MENU_SELECT_KEYS[e.keyCode]) % barMenus.length;
+                    var newMenu = barMenus[newMenuIndex];
+                } while(!newMenu || newMenu.wmsxHidden);    // barMenus has gaps === null
+                showBarMenu(newMenu, true);
             }
             // Select Item
             else if (MENU_ITEM_SELECT_KEYS[e.keyCode]) {
@@ -1628,9 +1643,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             closeAllOverlays();
             fileLoaderDropAreaMessage.textContent = mes;
         }
-
-        console.log("MESSAGE:", mes);
-
         if (active == fileLoaderDragActive) return;
         fileLoaderDragActive = active;
         fileLoaderDropArea.classList.toggle("wmsx-visible", active);

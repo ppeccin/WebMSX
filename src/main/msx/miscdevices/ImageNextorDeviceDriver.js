@@ -194,7 +194,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Device Name
         if (B === 2) {
-            str = "WebMSX Removable Disk Image                                                  ";
+            str = "WebMSX Removable Hard Disk                                                   ";
             for (b = 0; b < 64; ++b) bus.write(HL + b, str.charCodeAt(b));
             return {A: 0};
         }

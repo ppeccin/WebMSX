@@ -194,7 +194,7 @@ wmsx.Configurator = {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.AUTO_AS_DISK, 1, true);
                 }
             } : null,
-            WMSX.HARDDISK_URL && {    // TODO Test
+            WMSX.HARDDISK_URL && {
                 url: WMSX.HARDDISK_URL,
                 onSuccess: function (res) {
                     WMSX.room.fileLoader.loadFromContent(res.url, res.content, OPEN_TYPE.DISK, 2, true);
