@@ -25,7 +25,6 @@ wmsx.SystemFlags = function() {
     };
 
     this.powerOn = function() {
-        bootFlags = BOOT_FLAGS_POWERON;
         vdpFlags = VDP_FLAGS_POWERON;
         this.reset();
     };
@@ -34,6 +33,7 @@ wmsx.SystemFlags = function() {
     };
 
     this.reset = function() {
+        bootFlags = BOOT_FLAGS_POWERON;
     };
 
     this.inputF3 = function() {
