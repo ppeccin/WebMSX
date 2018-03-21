@@ -3,6 +3,7 @@
 // Patched 128K Nextor Kernel in ASCII16 mapper. Accesses and commands the Disk Drive
 // Based on Nextor version 2.0.4 stable. Driver Development Guide from 4/2014
 
+// ROM with 128K, in 8 * 16K banks, mapped only in page 1 at 0x4000
 // 0x4000 - 0x7fff
 
 wmsx.CartridgeNextorPatched = function(rom) {
