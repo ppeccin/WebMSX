@@ -2,7 +2,7 @@
 
 // Multiple Formats: ASCII16SRAM2, ASCII16SRAM8
 // ROMs with n * 16K banks, mapped in 2 16K banks starting at 0x4000
-// 2K ot 8K SRAM, depending on format
+// 2K or 8K SRAM, depending on format
 // 0x4000 - 0xbfff
 
 wmsx.CartridgeASCII16KSRAM = function(rom, format) {
@@ -17,9 +17,9 @@ wmsx.CartridgeASCII16KSRAM = function(rom, format) {
         sramSizeMask = sramSize - 1;
         sram = wmsx.Util.arrayFill(new Array(sramSize), 0);
         self.sram = sram;
-        var aboveROMBankBit = Math.max(0x10, 1 << Math.ceil(wmsx.Util.log2(numBanks)));         // Bit above max ROM bank number. Starting at bit 4 minimum
-        romSelectMask = aboveROMBankBit - 1;                                                    // Bit above max ROM bank number
-        sramSelectMask = aboveROMBankBit;                                                       // Bits for ROM Bank Select
+        var aboveROMBankBit = 1 << Math.ceil(wmsx.Util.log2(numBanks));                         // Bit above max ROM bank number
+        romSelectMask = aboveROMBankBit - 1;                                                    // Bits for ROM Bank Select
+        sramSelectMask = Math.max(0x10, aboveROMBankBit);                                       // Bit above max ROM bank number, starting at bit 4 minimum
     }
 
     this.connect = function(machine) {
@@ -82,10 +82,10 @@ wmsx.CartridgeASCII16KSRAM = function(rom, format) {
         switch (address & 0xc000) {
             case 0x4000: return bank1 & sramSelectMask
                 ? sram[(address - 0x4000) & sramSizeMask]                                       // SRAM access. Mirror if necessary
-                : bytes[(((bank1 & romSelectMask) % numBanks) << 13) + address - 0x4000];       // ROM  access. Mirror if necessary
+                : bytes[(((bank1 & romSelectMask) % numBanks) << 14) + address - 0x4000];       // ROM  access. Mirror if necessary
             case 0x8000: return bank2 & sramSelectMask
                 ? sram[(address - 0x8000) & sramSizeMask]
-                : bytes[(((bank2 & romSelectMask) % numBanks) << 13) + address - 0x8000];
+                : bytes[(((bank2 & romSelectMask) % numBanks) << 14) + address - 0x8000];
             default:     return 0xff;
         }
     };

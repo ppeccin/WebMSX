@@ -19,7 +19,7 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         self.sram = sram;
         var aboveROMBankBit = Math.max(0x20, 1 << Math.ceil(wmsx.Util.log2(numBanks)));         // Bit above max ROM bank number. Starting at bit 5 minimum
         romSelectMask = aboveROMBankBit - 1;
-        sramSelectMask = format === wmsx.SlotFormats.Wizardry ? 0x80 : aboveROMBankBit;         // Bits for ROM Bank Select
+        sramSelectMask = format === wmsx.SlotFormats.Wizardry ? 0x80 : aboveROMBankBit;         // Bits for SRAM Bank Select
     }
 
     this.connect = function(machine) {
