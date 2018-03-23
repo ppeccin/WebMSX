@@ -620,20 +620,16 @@ wmsx.Machine = function() {
                 return;
             case controls.SAVE_STATE_0: case controls.SAVE_STATE_1: case controls.SAVE_STATE_2: case controls.SAVE_STATE_3: case controls.SAVE_STATE_4: case controls.SAVE_STATE_5:
             case controls.SAVE_STATE_6: case controls.SAVE_STATE_7: case controls.SAVE_STATE_8: case controls.SAVE_STATE_9: case controls.SAVE_STATE_10: case controls.SAVE_STATE_11: case controls.SAVE_STATE_12:
-                var wasPaused = self.systemPause(true);
-                saveStateSocket.saveState(control & 0xff);  // get binary encoded slot number
-                if (!wasPaused) self.systemPause(false);
+                // ASSYNC! Get binary encoded slot number
+                saveStateSocket.saveState(control & 0xff);
                 break;
             case controls.SAVE_STATE_FILE:
-                wasPaused = self.systemPause(true);
                 saveStateSocket.saveStateFile();
-                if (!wasPaused) self.systemPause(false);
                 break;
             case controls.LOAD_STATE_0: case controls.LOAD_STATE_1: case controls.LOAD_STATE_2: case controls.LOAD_STATE_3: case controls.LOAD_STATE_4: case controls.LOAD_STATE_5:
             case controls.LOAD_STATE_6: case controls.LOAD_STATE_7: case controls.LOAD_STATE_8: case controls.LOAD_STATE_9: case controls.LOAD_STATE_10: case controls.LOAD_STATE_11: case controls.LOAD_STATE_12:
-                wasPaused = self.systemPause(true);
-                saveStateSocket.loadState(control & 0xff);  // get binary encoded slot number
-                if (!wasPaused) self.systemPause(false);
+                // ASSYNC! Get binary encoded slot number
+                saveStateSocket.loadState(control & 0xff);
                 break;
             case controls.TYPE_STRING:
                 biosSocket.keyboardExtensionTypeString(data);
@@ -1049,32 +1045,41 @@ wmsx.Machine = function() {
         };
         this.saveState = function(slot) {
             if (!self.powerIsOn || !media) return;
+            var wasPaused = self.systemPause(true);
             var state = saveState();
             state.v = VERSION;
-            if (media.saveState(slot, state))
-                self.showOSD("State " + slot + " saved", true);
-            else
-                self.showOSD("State " + slot + " save FAILED!", true, true);
+            // ASSYNC call!
+            media.persistState(slot, state, function then(success) {
+                if (success) self.showOSD("State " + slot + " saved", true);
+                else         self.showOSD("State " + slot + " save FAILED!", true, true);
+                if (!wasPaused) self.systemPause(false);
+            });
         };
         this.loadState = function(slot) {
             if (!media) return;
-            var state = media.loadState(slot);
-            if (!state) {
-                self.showOSD("State " + slot + " not found!", true, true);
-            } else if (!VERSIONS_ACCEPTED[state.v]) {
-                self.showOSD("State " + slot + " load failed. State version too old!", true, true);
-            } else {
-                wmsx.Configurator.upgradeForState(state);
-                if (!self.powerIsOn) self.powerOn();
-                loadState(state);
-                self.showOSD("State " + slot + " loaded", true);
-            }
+            var wasPaused = self.systemPause(true);
+            // ASSYNC call!
+            media.retrieveState(slot, function then(state) {
+                if (!state) {
+                    self.showOSD("State " + slot + " not found!", true, true);
+                } else if (!VERSIONS_ACCEPTED[state.v]) {
+                    self.showOSD("State " + slot + " load failed. State version too old!", true, true);
+                } else {
+                    wmsx.Configurator.upgradeForState(state);
+                    if (!self.powerIsOn) self.powerOn();
+                    loadState(state);
+                    self.showOSD("State " + slot + " loaded", true);
+                }
+                if (!wasPaused) self.systemPause(false);
+            });
         };
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
+            var wasPaused = self.systemPause(true);
             var state = saveState();
             state.v = VERSION;
             media.saveStateFile(state);
+            if (!wasPaused) self.systemPause(false);
         };
         this.loadStateFile = function(data) {       // Returns true if data was indeed a SaveState
             if (!media) return false;

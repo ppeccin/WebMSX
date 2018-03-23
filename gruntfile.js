@@ -119,7 +119,7 @@ module.exports = function (grunt) {
                     "src/main/room/screen/dialogs/TouchConfigDialog.js",
                     "src/main/room/screen/dialogs/QuickOptionsDialog.js",
                     "src/main/room/speaker/WebAudioSpeaker.js",
-                    "src/main/room/savestate/LocalStorageSaveStateMedia.js",
+                    "src/main/room/savestate/SaveStateMedia.js",
                     "src/main/room/cassette/FileCassetteDeck.js",
                     "src/main/room/disk/DiskImages.js",
                     "src/main/room/disk/FileDiskDrive.js",

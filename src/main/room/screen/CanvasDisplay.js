@@ -401,6 +401,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskHButton.style.backgroundPosition = "" + diskHButton.wmsxBX + "px " + (mediaButtonBackYOffsets[(diskNMotor ? 3 : ( diskN ? diskNModif ?  2 : 1 : 0 ))]) + "px";
     };
 
+    // TODO Wrong interface order after loadState
     this.diskInterfacesStateUpdate = function(hasDiskInterface, hasHardDiskInterface) {
         peripheralControls.diskInterfacesStateUpdate(hasDiskInterface, hasHardDiskInterface);
         // Show/hide/disable icons
