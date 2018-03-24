@@ -427,6 +427,7 @@ wmsx.Machine = function() {
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
         audioSocket.flushAllSignals();
+        diskDriveSocket.fireInterfacesChangeUpdate();
         cpuTurboMode = s.ctm !== undefined ? s.ctm : cpu.getCPUTurboMulti() > 1 ? cpu.getCPUTurboMulti() : 0;
         vdpTurboMode = s.vtm !== undefined ? s.vtm : vdp.getVDPTurboMulti() > 1 ? vdp.getVDPTurboMulti() : 0;
         biosSocket.turboDriverTurboModesUpdate();
@@ -1046,6 +1047,7 @@ wmsx.Machine = function() {
         this.saveState = function(slot) {
             if (!self.powerIsOn || !media) return;
             var wasPaused = self.systemPause(true);
+            self.showOSD("Saving State " + slot, true);
             var state = saveState();
             state.v = VERSION;
             // ASSYNC call!
@@ -1058,6 +1060,7 @@ wmsx.Machine = function() {
         this.loadState = function(slot) {
             if (!media) return;
             var wasPaused = self.systemPause(true);
+            self.showOSD("Loading State " + slot, true);
             // ASSYNC call!
             media.retrieveState(slot, function then(state) {
                 if (!state) {
@@ -1076,6 +1079,7 @@ wmsx.Machine = function() {
         this.saveStateFile = function() {
             if (!self.powerIsOn || !media) return;
             var wasPaused = self.systemPause(true);
+            self.showOSD("Saving State File", true);
             var state = saveState();
             state.v = VERSION;
             media.saveStateFile(state);
@@ -1083,9 +1087,10 @@ wmsx.Machine = function() {
         };
         this.loadStateFile = function(data) {       // Returns true if data was indeed a SaveState
             if (!media) return false;
+            self.showOSD("Loading State File", true);
             var state = media.loadStateFile(data);
             if (!state) return false;
-            wmsx.Util.log("SaveState file loaded");
+            wmsx.Util.log("State file loaded");
             if (!VERSIONS_ACCEPTED[state.v]) {
                 self.showOSD("State File load failed. State version too old!", true, true);
             } else {

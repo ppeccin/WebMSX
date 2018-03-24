@@ -12,23 +12,25 @@ wmsx.SaveStateMedia = function(room) {
     };
 
     this.isSlotUsed = function(slot) {
-        return localStorage["wmsxsave" + slot] !== undefined;
+        return localStorage["wmsxsave" + slot + "u"] !== undefined || localStorage["wmsxsave" + slot] !== undefined;
     };
 
+    // ASSYNC!
     this.persistState = function(slot, state, then) {
         var data = buildDataFromState(state);
         saveToPersistence("save" + slot, data, then);
     };
 
+    // ASSYNC!
     this.retrieveState = function(slot, then) {
-        loadFromPersistence("save" + slot, function loaded(data) {
+        loadFromPersistence("save" + slot, function retrieved(data) {
             then(data && buildStateFromData(data));
         });
     };
 
     this.saveStateFile = function(state) {
         var data = buildDataFromState(state);
-        if (data) fileDownloader.startDownloadBinary("WMSX SaveState" + SAVE_STATE_FILE_EXTENSION, data, "System State file");
+        if (data) fileDownloader.startDownloadBinary("WMSX SaveState" + SAVE_STATE_FILE_EXTENSION, data, "State File");
     };
 
     this.loadStateFile = function(data) {

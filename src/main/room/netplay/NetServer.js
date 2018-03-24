@@ -61,7 +61,7 @@ wmsx.NetServer = function(room) {
         controllersHub.controllersClockPulse();
 
         // Send net clock update to all Clients
-        var data, dataFull, dataNormal;
+        var data, dataFull, dataNormal, prevSystemPause;
         for (var cNick in clients) {
             var client = clients[cNick];
             if (!client.wsOnly && !client.dataChannelActive) continue;
@@ -69,6 +69,9 @@ wmsx.NetServer = function(room) {
             if (client.justJoined || nextUpdateFull) {
                 client.justJoined = false;
                 if (!dataFull) {
+                    // System Pause as Full Updates can take a long time
+                    prevSystemPause = machine.systemPause(true);
+
                     var netUpdateFull = {
                         vf: room.mainVideoClock.getVSynchNativeFrequency(),
                         s: machine.saveState(true),      // extended
@@ -109,6 +112,9 @@ wmsx.NetServer = function(room) {
 
         // Send local (Server) Machine clock
         machine.videoClockPulse();
+
+        // Resume in case of System Paused
+        if (prevSystemPause === false) machine.systemPause(false);
     };
 
     this.addPeripheralOperationToSend = function(op) {

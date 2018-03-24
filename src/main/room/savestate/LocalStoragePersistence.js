@@ -13,6 +13,7 @@ wmsx.LocalStoragePersistence = function() {
     this.store = function (key, value, onSuccess, onError) {
         try {
             localStorage["wmsx" + key] = value;
+            localStorage["wmsx" + key + "u"] = "Y";     // Used slot mark
             onSuccess();
         } catch (ex) {
             onError(ex);

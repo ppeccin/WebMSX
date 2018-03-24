@@ -221,6 +221,9 @@ wmsx.NetClient = function(room) {
 
         // Full Update?
         if (netUpdate.s) {
+            // System Pause as Full Updates can take a long time
+            var prevSystemPause = machine.systemPause(true);
+
             room.mainVideoClock.setVSynchAltNativeFrequency(netUpdate.vf);
             machine.loadState(netUpdate.s);     // extended
             keyboard.loadState(netUpdate.ks);
@@ -230,6 +233,8 @@ wmsx.NetClient = function(room) {
                 justJoined = false;
             }
             controllersHub.netClientReceiveServerInfo(netUpdate.ch);
+
+            machine.systemPause(prevSystemPause);
         } else {
             // Apply controls changes from Server
             if (netUpdate.c) machineControls.netClientApplyControlsChanges(netUpdate.c);
