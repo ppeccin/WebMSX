@@ -7,8 +7,8 @@ wmsx.DOMMouseControls = function(room, hub) {
 
     var self = this;
 
-    this.connect = function(peControllersSocket) {
-        controllersSocket = peControllersSocket;
+    this.connect = function(pControllersSocket) {
+        controllersSocket = pControllersSocket;
     };
 
     this.connectPeripherals = function(pScreen) {

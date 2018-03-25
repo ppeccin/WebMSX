@@ -36,6 +36,10 @@ WMSX = {
     BASIC_ENTER:                    "",
     BASIC_TYPE:                     "",
 
+    // Boot Keys
+    BOOT_KEYS:                      "",                         // Keys to keep pressed at every boot, comma separated
+    BOOT_KEYS_ONCE:                 "",                         // Same as above, but only on first boot (do not use both)
+
     // NetPlay
     NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
     NETPLAY_NICK:                   "",                         // NetPlay! Nickname, optional
@@ -80,8 +84,10 @@ WMSX = {
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
-    ROM_MAX_HASH_SIZE_KB:        3072,                          // Maximum ROM size for MD5 calculation
-    HARDDISK_MIN_SIZE_KB:         720,                          // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+    ROM_MAX_HASH_SIZE_KB:           3072,                       // Maximum ROM size for MD5 calculation
+    HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+    BOOT_KEYS_DURATION:             -1,                         // -1: auto. Boot Keys duration in frames
+
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
     WEB_EXTENSIONS_SERVER:          "",                         // Server address for Proxy download and NetPlay, only available at the official website

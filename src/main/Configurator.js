@@ -75,6 +75,7 @@ wmsx.Configurator = {
             WMSX.VDP_SOFT_TURBO_MULTI |= 0;
             WMSX.DEBUG_MODE |= 0;
             WMSX.SPRITES_DEBUG_MODE |= 0;
+            WMSX.BOOT_KEYS_DURATION |= 0;
         }
     },
 

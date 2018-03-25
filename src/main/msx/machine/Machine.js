@@ -990,6 +990,9 @@ wmsx.Machine = function() {
         this.getBUSCycles = function() {
             return cpu.getBUSCycles();
         };
+        this.isMSX1JapaneseMachine = function() {
+            return machineTypeSocket.isMSX1JapaneseMachine();
+        };
         this.saveState = function() {
             return controls.saveState();
         };

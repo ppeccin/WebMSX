@@ -9,7 +9,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         self.applyPreferences();
     }
 
-    this.connect = function(pBIOSSocket) {
+    this.connect = function(pBIOSSocket, pControllersSocket) {
+        controllersSocket = pControllersSocket;
         biosSocket = pBIOSSocket;
     };
 
@@ -17,7 +18,26 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         screen = pScreen;
     };
 
+    this.resetControllers = function() {
+        this.releaseControllers();
+        if (bootKeysAlways) startBootKeysCountdown();
+    };
+
     this.powerOn = function() {
+        // Boot Keys
+        if (!WMSX.BOOT_KEYS && !WMSX.BOOT_KEYS_ONCE) return;
+        var keyNames = (WMSX.BOOT_KEYS || WMSX.BOOT_KEYS_ONCE).split(",");
+        var finalKeyNames = [];
+        for (var i = 0; i < keyNames.length; ++i) {
+            var key = msxKeys[keyNames[i].trim().toUpperCase()];
+            if (!key) continue;
+            finalKeyNames.push(key.key);
+            keyboardMatrixBootKeys[key.m[0]] &= ~(1 << key.m[1]);
+        }
+        if (finalKeyNames.length) startBootKeysCountdown();
+        if (bootKeysClocks && !WMSX.BOOT_KEYS_ONCE) bootKeysAlways = true;
+
+        wmsx.Util.log("Boot Keys" + (bootKeysAlways ? "" : " (once)") + ": " + finalKeyNames.join(", "));
     };
 
     this.powerOff = function() {
@@ -36,6 +56,9 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.controllersClockPulse = function() {
+        // Boot Keys
+        if (bootKeysClocks > 0) { bootKeysClocks--; /*console.log(bootKeysClocks);*/ }
+
         // Turbo fire
         if (turboFireClocks && turboKeyPressed) {
             --turboFireClockCount;
@@ -50,7 +73,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.readKeyboardPort = function(row) {
-        return keyboardMatrix[row];
+        return bootKeysClocks > 0 ? keyboardMatrix[row] & keyboardMatrixBootKeys[row] : keyboardMatrix[row];
     };
 
     this.toggleKeyboardLayout = function() {
@@ -88,10 +111,6 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         for (var msxKey in keyStateMap)
             if (keyStateMap[msxKey]) this.processMSXKey(msxKey, false);
         turboKeyPressed = false;
-    };
-
-    this.resetControllers = function() {
-        this.releaseControllers();
     };
 
     this.getKeyMapping = function(key) {
@@ -188,6 +207,10 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         else keyboardMatrix[line] |= (1 << col);
     }
 
+    function startBootKeysCountdown() {
+        bootKeysClocks = BOOT_KEYS_CLOCKS - (BOOT_KEYS_DUR_DEFAULT && controllersSocket.isMSX1JapaneseMachine() ? 145 : 0);
+    }
+
     var updateMapping = function() {
         var map = customKeyboards[currentKeyboard] || wmsx.BuiltInKeyboards[currentKeyboard];
         for (var msxKey in msxKeys)
@@ -271,12 +294,18 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     this.saveState = function() {
         return {
-            k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix)
+            k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix),
+            kb: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrixBootKeys),
+            bc: bootKeysClocks,
+            ba: bootKeysAlways
         };
     };
 
     this.loadState = function(s) {
         wmsx.Util.restoreStringBase64ToInt8BitArray(s.k, keyboardMatrix);
+        wmsx.Util.restoreStringBase64ToInt8BitArray(s.kb, keyboardMatrixBootKeys);
+        bootKeysClocks = s.bc;
+        bootKeysAlways = s.ba;
     };
 
 
@@ -287,11 +316,16 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var currentKeyboard, currentIsAuto;
 
     var biosSocket;
+    var controllersSocket;
     var screen;
 
     var keyStateMap = {};
 
     var keyboardMatrix = wmsx.Util.arrayFill(new Array(12), 0xff);
+
+    var keyboardMatrixBootKeys = wmsx.Util.arrayFill(new Array(12), 0xff);
+    var bootKeysClocks = 0;
+    var bootKeysAlways = false;
 
     var mapping = {};
     var keyCodeMap;
@@ -303,6 +337,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
 
+    var BOOT_KEYS_DUR_DEFAULT = WMSX.BOOT_KEYS_DURATION === -1;
+    var BOOT_KEYS_CLOCKS = !BOOT_KEYS_DUR_DEFAULT ? WMSX.BOOT_KEYS_DURATION : 360;      // 360 frames default, -145 for MSX1J
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
 
