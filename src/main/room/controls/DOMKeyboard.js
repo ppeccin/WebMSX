@@ -208,7 +208,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     function startBootKeysCountdown() {
-        bootKeysClocks = BOOT_KEYS_CLOCKS - (BOOT_KEYS_DUR_DEFAULT && controllersSocket.isMSX1JapaneseMachine() ? 145 : 0);
+        bootKeysClocks = WMSX.BOOT_DURATION > 0 ? WMSX.BOOT_DURATION : 380;
     }
 
     var updateMapping = function() {
@@ -337,8 +337,6 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
 
-    var BOOT_KEYS_DUR_DEFAULT = WMSX.BOOT_KEYS_DURATION === -1;
-    var BOOT_KEYS_CLOCKS = !BOOT_KEYS_DUR_DEFAULT ? WMSX.BOOT_KEYS_DURATION : 360;      // 360 frames default, -145 for MSX1J
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
 

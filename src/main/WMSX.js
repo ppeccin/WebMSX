@@ -36,9 +36,10 @@ WMSX = {
     BASIC_ENTER:                    "",
     BASIC_TYPE:                     "",
 
-    // Boot Keys
+    // Boot Options
     BOOT_KEYS:                      "",                         // Keys to keep pressed at every boot, comma separated
     BOOT_KEYS_ONCE:                 "",                         // Same as above, but only on first boot (do not use both)
+    FAST_BOOT:                       0,                         // 0: off; 1: auto; >1: number of frames. Maximum emulation speed at boot
 
     // NetPlay
     NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
@@ -86,7 +87,7 @@ WMSX = {
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
     ROM_MAX_HASH_SIZE_KB:           3072,                       // Maximum ROM size for MD5 calculation
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
-    BOOT_KEYS_DURATION:             -1,                         // -1: auto. Boot Keys duration in frames
+    BOOT_DURATION:                  -1,                         // -1: auto. Boot Duration (for Boot Keys and Fast Boot) in frames
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
@@ -191,17 +192,20 @@ WMSX.PRESETS_CONFIG = {
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
         BIOS_URL:           "@MSX2P_NTSC.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios"
+        BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios",
+        BOOT_DURATION:      380
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
         BIOS_URL:           "@MSX2P_PAL.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios"
+        BIOSEXT_URL:        "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios",
+        BOOT_DURATION:      395
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
         BIOS_URL:           "@MSX2P_JAP.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios"
+        BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios",
+        BOOT_DURATION:      380
     },
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE",
@@ -213,17 +217,20 @@ WMSX.PRESETS_CONFIG = {
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
         BIOS_URL:           "@MSX2_NTSC.bios",
-        BIOSEXT_URL:        "@MSX2EXT_NTSC.bios"
+        BIOSEXT_URL:        "@MSX2EXT_NTSC.bios",
+        BOOT_DURATION:      385
     },
     _MSX2E: {
         _INCLUDE:           "_MSX2BASE",
         BIOS_URL:           "@MSX2_PAL.bios",
-        BIOSEXT_URL:        "@MSX2EXT_PAL.bios"
+        BIOSEXT_URL:        "@MSX2EXT_PAL.bios",
+        BOOT_DURATION:      400
     },
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
         BIOS_URL:           "@MSX2_JAP.bios",
-        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios"
+        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
+        BOOT_DURATION:      360
     },
     _MSX2BASE: {
         _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC",
@@ -234,15 +241,18 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@MSX1_NTSC.bios"
+        BIOS_URL:           "@MSX1_NTSC.bios",
+        BOOT_DURATION:      375
     },
     _MSX1E: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@MSX1_PAL.bios"
+        BIOS_URL:           "@MSX1_PAL.bios",
+        BOOT_DURATION:      375
     },
     _MSX1J: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@MSX1_JAP.bios"
+        BIOS_URL:           "@MSX1_JAP.bios",
+        BOOT_DURATION:      230
     },
     _MSX1BASE: {
         _INCLUDE:           "_BASE, NOMSXMUSIC, NOHARDDISK",
