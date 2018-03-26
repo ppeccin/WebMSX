@@ -9,8 +9,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         self.applyPreferences();
     }
 
-    this.connect = function(pBIOSSocket, pControllersSocket) {
-        controllersSocket = pControllersSocket;
+    this.connect = function(pBIOSSocket) {
         biosSocket = pBIOSSocket;
     };
 
@@ -208,7 +207,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     function startBootKeysCountdown() {
-        bootKeysClocks = WMSX.BOOT_DURATION > 0 ? WMSX.BOOT_DURATION : 380;
+        bootKeysClocks = bootKeysFrames > 0 ? bootKeysFrames : WMSX.BOOT_KEYS_FRAMES_AUTO;
     }
 
     var updateMapping = function() {
@@ -297,7 +296,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
             k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix),
             kb: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrixBootKeys),
             bc: bootKeysClocks,
-            ba: bootKeysAlways
+            ba: bootKeysAlways,
+            bf: bootKeysFrames
         };
     };
 
@@ -306,6 +306,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         wmsx.Util.restoreStringBase64ToInt8BitArray(s.kb, keyboardMatrixBootKeys);
         bootKeysClocks = s.bc;
         bootKeysAlways = s.ba;
+        bootKeysFrames = s.bf;
     };
 
 
@@ -316,7 +317,6 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var currentKeyboard, currentIsAuto;
 
     var biosSocket;
-    var controllersSocket;
     var screen;
 
     var keyStateMap = {};
@@ -326,6 +326,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var keyboardMatrixBootKeys = wmsx.Util.arrayFill(new Array(12), 0xff);
     var bootKeysClocks = 0;
     var bootKeysAlways = false;
+    var bootKeysFrames = WMSX.BOOT_KEYS_FRAMES;
 
     var mapping = {};
     var keyCodeMap;
