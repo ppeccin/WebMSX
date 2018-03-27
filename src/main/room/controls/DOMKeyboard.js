@@ -28,7 +28,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         var keyNames = (WMSX.BOOT_KEYS || WMSX.BOOT_KEYS_ONCE).split(",");
         var finalKeyNames = [];
         for (var i = 0; i < keyNames.length; ++i) {
-            var key = msxKeys[keyNames[i].trim().toUpperCase()];
+            var keyName = keyNames[i].trim().toUpperCase();
+            var key = msxKeys[keyName] || msxKeys[BOOT_KEY_NAME_SYMNS[keyName]];
             if (!key) continue;
             finalKeyNames.push(key.key);
             keyboardMatrixBootKeys[key.m[0]] &= ~(1 << key.m[1]);
@@ -341,6 +342,9 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
 
+    var BOOT_KEY_NAME_SYMNS = { "CTRL": "CONTROL", "ESC": "ESCAPE", "CAPS": "CAPSLOCK", "KANA": "CODE", "RETURN": "ENTER", "RET": "ENTER",
+        "0": "D0", "1": "D1", "2": "D2", "3": "D3", "4": "D4", "5": "D5", "6": "D6", "7": "D7", "8": "D8", "9": "D9"
+    };
 
     init();
 
