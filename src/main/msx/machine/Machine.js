@@ -273,7 +273,7 @@ wmsx.Machine = function() {
     this.setDefaults = function() {
         setVideoStandardAuto();
         vdp.setDefaults();
-        speedControl = 1;
+        speedControl = defaultSpeed;
         alternateSpeed = null;
         videoClockUpdateSpeed();
     };
@@ -422,7 +422,7 @@ wmsx.Machine = function() {
         videoStandardIsAuto = s.va;
         setVideoStandard(wmsx.VideoStandard[s.vs]);
         videoStandardSoft = s.vss && wmsx.VideoStandard[s.vss];
-        speedControl = s.s || 1;
+        speedControl = s.s || 1; if (speedControl === 1) speedControl = defaultSpeed;
         basicAutoRunDone = !!s.br;
         if (s.bc !== undefined) basicAutoRunCommand = s.bc;
         videoClockUpdateSpeed();
@@ -516,6 +516,7 @@ wmsx.Machine = function() {
 
     var speedControl = 1;
     var alternateSpeed = false;
+    var defaultSpeed = WMSX.SPEED > 0 ? WMSX.SPEED / 100 : 1;
 
     var isLoading = false;
     var basicAutoRunDone = false, basicAutoRunCommand;

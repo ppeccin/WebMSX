@@ -78,6 +78,7 @@ wmsx.Configurator = {
             WMSX.BOOT_KEYS_FRAMES |= 0;
             WMSX.BOOT_DURATION_AUTO |= 0;
             WMSX.FAST_BOOT |= 0;
+            WMSX.SPEED |= 0;
         }
     },
 

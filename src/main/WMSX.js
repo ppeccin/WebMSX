@@ -59,6 +59,7 @@ WMSX = {
     RAMMAPPER_SIZE:                 512,
 
     // General options
+    SPEED:                          100,                        // Default emulation speed (in %)
     AUTO_START:                     true,
     AUTO_POWER_ON_DELAY:            1600,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
     MEDIA_CHANGE_DISABLED:          false,
