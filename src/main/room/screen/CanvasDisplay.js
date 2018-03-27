@@ -377,7 +377,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
         powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (barButtonBackYOffsets[power ? 2 : 1]) + "px";
-        powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[7].disabled = !power;
+        if (room.netPlayMode === 2) {
+            powerButton.wmsxMenu[5].disabled = powerButton.wmsxMenu[6].disabled = powerButton.wmsxMenu[8].disabled = powerButton.wmsxMenu[9].disabled = true;
+            powerButton.wmsxMenu[1].disabled = !power;
+        } else {
+            powerButton.wmsxMenu[5].disabled = powerButton.wmsxMenu[6].disabled = powerButton.wmsxMenu[8].disabled = false;
+            powerButton.wmsxMenu[1].disabled = powerButton.wmsxMenu[9].disabled = !power;
+        }
     };
 
     this.diskDrivesMediaStateUpdate = function(drive) {
@@ -385,12 +391,24 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var stack = diskDrive.getDriveStack(drive);
         button.title = diskDrive.getCurrentDiskDesc(drive);
         if (drive < 2) {
-            button.wmsxMenu[1].disabled = button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled = stack.length >= wmsx.FileDiskDrive.MAX_STACK;
-            button.wmsxMenu[6].disabled = stack.length <= 1;
-            button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
             button.wmsxMenu[8].label = "Remove " + (stack.length > 1 ? "Stack" : "Disk");
+            if (room.netPlayMode === 2) {
+                button.wmsxMenu[0].disabled = button.wmsxMenu[1].disabled = button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled = button.wmsxMenu[4].disabled =
+                button.wmsxMenu[5].disabled = button.wmsxMenu[6].disabled = button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = true;
+            } else {
+                button.wmsxMenu[0].disabled = button.wmsxMenu[4].disabled = button.wmsxMenu[5].disabled = false;
+                button.wmsxMenu[1].disabled = button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled = stack.length >= wmsx.FileDiskDrive.MAX_STACK;
+                button.wmsxMenu[6].disabled = stack.length <= 1;
+                button.wmsxMenu[7].disabled = button.wmsxMenu[8].disabled = stack.length === 0;
+            }
         } else {
-            button.wmsxMenu[5].disabled = button.wmsxMenu[6].disabled = stack.length === 0;
+            if (room.netPlayMode === 2) {
+                button.wmsxMenu[0].disabled = button.wmsxMenu[1].disabled = button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled =
+                button.wmsxMenu[4].disabled = button.wmsxMenu[5].disabled = button.wmsxMenu[6].disabled = true;
+            } else {
+                button.wmsxMenu[0].disabled = button.wmsxMenu[1].disabled = button.wmsxMenu[2].disabled = button.wmsxMenu[3].disabled = button.wmsxMenu[4].disabled = false;
+                button.wmsxMenu[5].disabled = button.wmsxMenu[6].disabled = stack.length === 0;
+            }
         }
         if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
     };
@@ -433,15 +451,25 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") + "  [" + cart1.format.name + "]" : "" );
         cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") + "  [" + cart2.format.name + "]" : "" );
         var dataDesc = cart1 && cart1.getDataDesc();
-        cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
         cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data") + " File";
         cartridge1Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data") + " File";
-        cartridge1Button.wmsxMenu[3].disabled = !cart1;
+        if (room.netPlayMode === 2) {
+            cartridge1Button.wmsxMenu[0].disabled = cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = true;
+        } else {
+            cartridge1Button.wmsxMenu[0].disabled = false;
+            cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
+            cartridge1Button.wmsxMenu[3].disabled = !cart1;
+        }
         dataDesc = cart2 && cart2.getDataDesc();
-        cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = !dataDesc;
         cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data") + " File";
         cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data") + " File";
-        cartridge2Button.wmsxMenu[3].disabled = !cart2;
+        if (room.netPlayMode === 2) {
+            cartridge2Button.wmsxMenu[0].disabled = cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = true;
+        } else {
+            cartridge2Button.wmsxMenu[0].disabled = false;
+            cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = !dataDesc;
+            cartridge2Button.wmsxMenu[3].disabled = !cart2;
+        }
         this.cartridgesModifiedStateUpdate(cart1, cart2);
         refreshSettingsMenuForExtensions();
     };
@@ -454,7 +482,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.tapeStateUpdate = function (name, motor, modif) {
         tapeButton.title = "Cassette Tape" + ( name ? ": " + name : "" );
         tapeButton.style.backgroundPosition = "" + tapeButton.wmsxBX + "px " + (mediaButtonBackYOffsets[motor ? 3 : ( name ? modif ? 2 : 1 : 0 )]) + "px";
-        tapeButton.wmsxMenu[2].disabled = tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = !name;
+        if (room.netPlayMode === 2) {
+            tapeButton.wmsxMenu[0].disabled = tapeButton.wmsxMenu[1].disabled = tapeButton.wmsxMenu[2].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = true;
+            tapeButton.wmsxMenu[3].disabled = !name;
+        } else {
+            tapeButton.wmsxMenu[0].disabled = tapeButton.wmsxMenu[1].disabled = false;
+            tapeButton.wmsxMenu[2].disabled = tapeButton.wmsxMenu[3].disabled = tapeButton.wmsxMenu[4].disabled = tapeButton.wmsxMenu[5].disabled = !name;
+        }
     };
 
     this.machineTypeStateUpdate = function() {
