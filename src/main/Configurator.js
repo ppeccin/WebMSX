@@ -76,7 +76,7 @@ wmsx.Configurator = {
             WMSX.DEBUG_MODE |= 0;
             WMSX.SPRITES_DEBUG_MODE |= 0;
             WMSX.BOOT_KEYS_FRAMES |= 0;
-            WMSX.BOOT_KEYS_FRAMES_AUTO |= 0;
+            WMSX.BOOT_DURATION_AUTO |= 0;
             WMSX.FAST_BOOT |= 0;
         }
     },

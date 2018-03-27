@@ -34,7 +34,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
             keyboardMatrixBootKeys[key.m[0]] &= ~(1 << key.m[1]);
         }
         if (finalKeyNames.length) startBootKeysCountdown();
-        if (bootKeysClocks && !WMSX.BOOT_KEYS_ONCE) bootKeysAlways = true;
+        if (bootKeysCountdown && !WMSX.BOOT_KEYS_ONCE) bootKeysAlways = true;
 
         wmsx.Util.log("Boot Keys" + (bootKeysAlways ? "" : " (once)") + ": " + finalKeyNames.join(", "));
     };
@@ -56,7 +56,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     this.controllersClockPulse = function() {
         // Boot Keys
-        if (bootKeysClocks > 0) { bootKeysClocks--; /*console.log(bootKeysClocks);*/ }
+        if (bootKeysCountdown > 0) --bootKeysCountdown;
 
         // Turbo fire
         if (turboFireClocks && turboKeyPressed) {
@@ -72,7 +72,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     this.readKeyboardPort = function(row) {
-        return bootKeysClocks > 0 ? keyboardMatrix[row] & keyboardMatrixBootKeys[row] : keyboardMatrix[row];
+        return bootKeysCountdown > 0 ? keyboardMatrix[row] & keyboardMatrixBootKeys[row] : keyboardMatrix[row];
     };
 
     this.toggleKeyboardLayout = function() {
@@ -207,7 +207,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     function startBootKeysCountdown() {
-        bootKeysClocks = bootKeysFrames > 0 ? bootKeysFrames : WMSX.BOOT_KEYS_FRAMES_AUTO;
+        bootKeysCountdown = bootKeysFrames > 0 ? bootKeysFrames : WMSX.BOOT_DURATION_AUTO;
     }
 
     var updateMapping = function() {
@@ -295,18 +295,18 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         return {
             k: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrix),
             kb: wmsx.Util.storeInt8BitArrayToStringBase64(keyboardMatrixBootKeys),
-            bc: bootKeysClocks,
+            bf: bootKeysFrames,
             ba: bootKeysAlways,
-            bf: bootKeysFrames
+            bc: bootKeysCountdown
         };
     };
 
     this.loadState = function(s) {
         wmsx.Util.restoreStringBase64ToInt8BitArray(s.k, keyboardMatrix);
         wmsx.Util.restoreStringBase64ToInt8BitArray(s.kb, keyboardMatrixBootKeys);
-        bootKeysClocks = s.bc;
-        bootKeysAlways = s.ba;
         bootKeysFrames = s.bf;
+        bootKeysAlways = s.ba;
+        bootKeysCountdown = s.bc;
     };
 
 
@@ -324,9 +324,9 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var keyboardMatrix = wmsx.Util.arrayFill(new Array(12), 0xff);
 
     var keyboardMatrixBootKeys = wmsx.Util.arrayFill(new Array(12), 0xff);
-    var bootKeysClocks = 0;
-    var bootKeysAlways = false;
     var bootKeysFrames = WMSX.BOOT_KEYS_FRAMES;
+    var bootKeysAlways = false;
+    var bootKeysCountdown = 0;
 
     var mapping = {};
     var keyCodeMap;

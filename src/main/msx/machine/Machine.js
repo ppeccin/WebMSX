@@ -69,6 +69,11 @@ wmsx.Machine = function() {
         cpu.reset();
         bus.reset();
         audioSocket.flushAllSignals();
+        if (fastBootFrames > 0) {
+            fastBootCountdown = fastBootFrames;
+            alternateSpeed = SPEED_FAST;
+            videoClockUpdateSpeed();
+        }
     };
 
     this.userPowerOn = function(basicAutoRun) {
@@ -84,6 +89,14 @@ wmsx.Machine = function() {
     this.videoClockPulse = function() {
         // Video clock will be the VDP Frame video clock (60Hz/50Hz)
         // CPU and other clocks will be sent by the VDP
+
+        // Fast Boot
+        if (fastBootCountdown > 0) {
+            if (--fastBootCountdown <= 0) {
+                alternateSpeed = null;
+                videoClockUpdateSpeed();
+            }
+        }
 
         rtc.videoClockPulse();
         if (bios) bios.getKeyboardExtension().keyboardExtensionClockPulse();
@@ -539,6 +552,9 @@ wmsx.Machine = function() {
     var videoStandardIsAuto = false;
 
     var vSynchMode;
+
+    var fastBootFrames = WMSX.FAST_BOOT <= 0 ? 0 : WMSX.FAST_BOOT > 1 ? WMSX.FAST_BOOT : WMSX.BOOT_KEYS_FRAMES > 0 ? WMSX.BOOT_KEYS_FRAMES : WMSX.BOOT_DURATION_AUTO;
+    var fastBootCountdown = 0;
 
     var cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;
     var vdpTurboMode = WMSX.VDP_TURBO_MODE;

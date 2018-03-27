@@ -41,7 +41,7 @@ WMSX = {
     BOOT_KEYS:                      "",                         // Keys to keep pressed at every boot, comma separated
     BOOT_KEYS_ONCE:                 "",                         // Same as above, but only on first boot (do not use both)
     BOOT_KEYS_FRAMES:               -1,                         // -1: auto; > 0: number of frames for Boot Keys
-    FAST_BOOT:                       0,                         // 0: off; 1: auto; > 1: number of frames for maximum emulation speed at boot
+    FAST_BOOT:                       0,                         // 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames for 10x speed at boot
 
     // NetPlay
     NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
@@ -194,19 +194,19 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "_MSX2PBASE",
         BIOS_URL:           "@MSX2P_NTSC.bios",
         BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios",
-        BOOT_KEYS_FRAMES_AUTO: 380
+        BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
         BIOS_URL:           "@MSX2P_PAL.bios",
         BIOSEXT_URL:        "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios",
-        BOOT_KEYS_FRAMES_AUTO: 395
+        BOOT_DURATION_AUTO: 395
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
         BIOS_URL:           "@MSX2P_JAP.bios",
         BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios",
-        BOOT_KEYS_FRAMES_AUTO: 380
+        BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE",
@@ -219,19 +219,19 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "_MSX2BASE",
         BIOS_URL:           "@MSX2_NTSC.bios",
         BIOSEXT_URL:        "@MSX2EXT_NTSC.bios",
-        BOOT_KEYS_FRAMES_AUTO: 385
+        BOOT_DURATION_AUTO: 385
     },
     _MSX2E: {
         _INCLUDE:           "_MSX2BASE",
         BIOS_URL:           "@MSX2_PAL.bios",
         BIOSEXT_URL:        "@MSX2EXT_PAL.bios",
-        BOOT_KEYS_FRAMES_AUTO: 400
+        BOOT_DURATION_AUTO: 400
     },
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
         BIOS_URL:           "@MSX2_JAP.bios",
         BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
-        BOOT_KEYS_FRAMES_AUTO: 360
+        BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
         _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC",
@@ -243,17 +243,17 @@ WMSX.PRESETS_CONFIG = {
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
         BIOS_URL:           "@MSX1_NTSC.bios",
-        BOOT_KEYS_FRAMES_AUTO: 375
+        BOOT_DURATION_AUTO: 375
     },
     _MSX1E: {
         _INCLUDE:           "_MSX1BASE",
         BIOS_URL:           "@MSX1_PAL.bios",
-        BOOT_KEYS_FRAMES_AUTO: 375
+        BOOT_DURATION_AUTO: 375
     },
     _MSX1J: {
         _INCLUDE:           "_MSX1BASE",
         BIOS_URL:           "@MSX1_JAP.bios",
-        BOOT_KEYS_FRAMES_AUTO: 230
+        BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
         _INCLUDE:           "_BASE, NOMSXMUSIC, NOHARDDISK",
