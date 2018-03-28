@@ -171,6 +171,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         netPlayDialog.show();
     };
 
+    this.openCartridgeFormatDialog = function(port) {
+        closeAllOverlays();
+        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(fsElementCenter, cartridgeSocket);
+        cartFormatDialog.show(port);
+    };
+
     this.openLoadFileDialog = function() {
         peripheralControls.processControlActivated(wmsx.PeripheralControls.AUTO_LOAD_FILE);
         return false;
@@ -451,27 +457,30 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") + "  [" + cart1.format.name + "]" : "" );
         cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") + "  [" + cart2.format.name + "]" : "" );
         var dataDesc = cart1 && cart1.getDataDesc();
-        cartridge1Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data") + " File";
-        cartridge1Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data") + " File";
+        cartridge1Button.wmsxMenu[2].label = "Load " + (dataDesc || "Data") + " File";
+        cartridge1Button.wmsxMenu[3].label = "Save " + (dataDesc || "Data") + " File";
         if (room.netPlayMode === 2) {
-            cartridge1Button.wmsxMenu[0].disabled = cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = true;
+            cartridge1Button.wmsxMenu[0].disabled = cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = cartridge1Button.wmsxMenu[4].disabled = true;
         } else {
             cartridge1Button.wmsxMenu[0].disabled = false;
-            cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[2].disabled = !dataDesc;
-            cartridge1Button.wmsxMenu[3].disabled = !cart1;
+            cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = !dataDesc;
+            cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[4].disabled = !cart1;
         }
         dataDesc = cart2 && cart2.getDataDesc();
-        cartridge2Button.wmsxMenu[1].label = "Load " + (dataDesc || "Data") + " File";
-        cartridge2Button.wmsxMenu[2].label = "Save " + (dataDesc || "Data") + " File";
+        cartridge2Button.wmsxMenu[2].label = "Load " + (dataDesc || "Data") + " File";
+        cartridge2Button.wmsxMenu[3].label = "Save " + (dataDesc || "Data") + " File";
         if (room.netPlayMode === 2) {
-            cartridge2Button.wmsxMenu[0].disabled = cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = true;
+            cartridge2Button.wmsxMenu[0].disabled = cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = cartridge2Button.wmsxMenu[4].disabled = true;
         } else {
             cartridge2Button.wmsxMenu[0].disabled = false;
-            cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[2].disabled = !dataDesc;
-            cartridge2Button.wmsxMenu[3].disabled = !cart2;
+            cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = !dataDesc;
+            cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[4].disabled = !cart2;
         }
         this.cartridgesModifiedStateUpdate(cart1, cart2);
         refreshSettingsMenuForExtensions();
+
+        // TODO Unfinished Feature
+        cartridge1Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[1].disabled = true;
     };
 
     this.cartridgesModifiedStateUpdate = function(cart1, cart2) {
@@ -904,7 +913,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskHButton.classList.add("wmsx-hidden");
 
         menu = [
-            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
+            { label: "Load ROM File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
+            { label: "Set ROM Format",  clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT },
             { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
@@ -912,7 +922,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -78, -72, true, "Cartridge 1", null, menu, "Cartridge 1", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "Load ROM File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "Set ROM Format",  clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT, secSlot: true },
             { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
@@ -1475,6 +1486,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (touchConfigDialog) touchConfigDialog.hide();
         if (quickOtionsDialog) quickOtionsDialog.hide();
         if (netPlayDialog) netPlayDialog.hide();
+        if (cartFormatDialog) cartFormatDialog.hide();
         if (settingsDialog) settingsDialog.hide();
     }
 
@@ -1725,6 +1737,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var touchConfigDialog;
     var quickOtionsDialog;
     var netPlayDialog;
+    var cartFormatDialog;
     var pasteDialog;
     var textEntryDialog;
     var copyTextArea;

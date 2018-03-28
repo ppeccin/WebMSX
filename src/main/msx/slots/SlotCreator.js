@@ -4,12 +4,10 @@ wmsx.SlotCreator = function () {
 "use strict";
 
     this.createFromROM = function (rom, insertedCartridge) {
-        // Try to build the Slot if a supported format is found
-        var options = getFormatOptions(rom, insertedCartridge);
-        if (options.length === 0) return;
+        // Try to build the Slot with the best format, if a supported format is found
+        var bestOption = this.getBestFormatOption(rom, insertedCartridge);
+        if (!bestOption) return;
 
-        // Choose the best option
-        var bestOption = options[0];
         var silent = wmsx.EmbeddedFiles.isEmbeddedURL(rom.source);
         if (!silent) wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.prioritySelected);
         return bestOption.createFromROM(rom);
@@ -20,6 +18,21 @@ wmsx.SlotCreator = function () {
         if (!format) throw new Error("Unsupported ROM Format in Savestate: " + saveState.f);
         if (previousSlot && previousSlot.format !== format) previousSlot = null;       // Only possible to reuse previousSlot if the format is the same
         return format.recreateFromSaveState(saveState, previousSlot);
+    };
+
+    this.getBestFormatOption = function(rom, insertedCartridge) {
+        var options = getFormatOptions(rom, insertedCartridge);
+        return options.length === 0 ? undefined : options[0];
+    };
+
+    this.getUserFormatOptionNames = function(rom) {
+        var formatOptions = [];
+        for (var i = 0, len = wmsx.SlotFormatsUserOptions.length; i < len; ++i) {
+            var formatName = wmsx.SlotFormatsUserOptions[i];
+            var pri = wmsx.SlotFormats[formatName].priorityForRom(rom);
+            if (pri) formatOptions.push(formatName);
+        }
+        return formatOptions;
     };
 
     this.produceInfo = function(rom, formatHint) {

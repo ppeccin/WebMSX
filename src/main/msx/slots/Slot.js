@@ -51,6 +51,11 @@ wmsx.Slot = function() {
         return false;
     };
 
+    this.reinsertROMContent = function() {
+        if (this.rom.content) return;
+        this.rom.content = this.bytes || [];
+    };
+
     this.dumpBytes = function(from, chunk, quant) {
         wmsx.Util.dump(this.bytes, from, chunk, quant);
     };

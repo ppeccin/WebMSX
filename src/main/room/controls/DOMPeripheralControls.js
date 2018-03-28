@@ -163,6 +163,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.CARTRIDGE_SAVE_DATA_FILE:
                 cartridgeSlot.saveCartridgeDataFile(port);
                 break;
+            case pc.CARTRIDGE_CHOOSE_FORMAT:
+                if (!user || !mediaChangeDisabledWarning(control)) screen.openCartridgeFormatDialog(port);
+                break;
             case pc.HARDDISK_LOAD_FILE:
             case pc.TAPE_LOAD_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) {

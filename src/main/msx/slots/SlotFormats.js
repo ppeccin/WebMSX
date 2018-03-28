@@ -390,8 +390,8 @@ wmsx.SlotFormats = {
         desc: "Konami SCC-I (SCC+) Sound Mapper Cartridge (in SCC-I mode)",
         priority: 1101,
         priorityForRom: function (rom) {
-            // 0K, or any <= 128K content. Must be selected via info format hint
-            return rom.content.length <= 131072 ? this.priority : null;
+            // Any > 0 & <= 128K content. Must be selected via info format hint
+            return rom.content.length > 0 && rom.content.length <= 131072 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeSCCIExpansion(rom, true);     // Start in SCC-I mode. Special format!
@@ -711,7 +711,7 @@ wmsx.SlotFormats = {
         priority: 1123,
         priorityForRom: function (rom) {
             // Only Zemina 80 in 1 content, multiple of 8K. Must be selected via info format hint
-            return (rom.content.length & 0x1fff) === 0 ? this.priority : null;
+            return (rom.content.length >= 8192 && rom.content.length & 0x1fff) === 0 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeZemina80(rom);
@@ -727,7 +727,7 @@ wmsx.SlotFormats = {
         priority: 1124,
         priorityForRom: function (rom) {
             // Only Zemina 90 in 1 content, multiple of 16K. Must be selected via info format hint
-            return (rom.content.length & 0x3fff) === 0 ? this.priority : null;
+            return (rom.content.length >= 16384 && rom.content.length & 0x3fff) === 0 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeZemina90(rom);
@@ -743,7 +743,7 @@ wmsx.SlotFormats = {
         priority: 1125,
         priorityForRom: function (rom) {
             // Only Zemina 126 in 1 content, multiple of 16K. Must be selected via info format hint
-            return (rom.content.length & 0x3fff) === 0 ? this.priority : null;
+            return (rom.content.length >= 16384 && rom.content.length & 0x3fff) === 0 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeZemina126(rom);
@@ -759,7 +759,7 @@ wmsx.SlotFormats = {
         priority: 1126,
         priorityForRom: function (rom) {
             // Only Super Lode Runner content, multiple of 16K. Must be selected via info format hint
-            return (rom.content.length & 0x3fff) === 0 ? this.priority : null;
+            return (rom.content.length >= 16384 && rom.content.length & 0x3fff) === 0 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeSuperLodeRunner(rom);
@@ -809,3 +809,40 @@ wmsx.SlotFormats.Manbow2_2 =     wmsx.SlotFormats.Manbow2;     // Maybe actually
 wmsx.SlotFormats.HamarajaNight = wmsx.SlotFormats.Manbow2;     // Maybe actually the same (MegaFlash SCC)
 wmsx.SlotFormats.Kanji12 =       wmsx.SlotFormats.Kanji1;      // Kanji1 supports both formats
 wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;       // Maybe actually the same
+
+
+// Formats available for user selection, in order
+wmsx.SlotFormatsUserOptions = [
+    "Mirrored",
+    "NotMirrored",
+    "ASCII8",
+    "ASCII16",
+    "Konami",
+    "KonamiSCC",
+    "KonamiSCCI",
+    "ASCII8SRAM2",
+    "ASCII8SRAM8",
+    "ASCII16SRAM2",
+    "ASCII16SRAM8",
+    "GameMaster2",
+    "MSXDOS2",
+    "AlQuran",
+    "AlQuranDecoded",
+    "CrossBlaim",
+    "Dooly",
+    "Halnote",
+    "HarryFox",
+    "KoeiSRAM8",
+    "KoeiSRAM32",
+    "Majutsushi",
+    "Manbow2",
+    "MSXWrite",
+    "RType",
+    "SuperLodeRunner",
+    "SuperSwangi",
+    "Synthesizer",
+    "Wizardry",
+    "Zemina80in1",
+    "Zemina90in1",
+    "Zemina126in1"
+];
