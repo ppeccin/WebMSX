@@ -20,6 +20,12 @@ wmsx.SlotCreator = function () {
         return format.recreateFromSaveState(saveState, previousSlot);
     };
 
+    this.changeCartridgeFormat = function(cart, newFormat) {
+        var newCart = newFormat.createFromROM(cart.rom);
+        newCart.originalFormatName = cart.originalFormatName || cart.format.name;
+        return newCart;
+    };
+
     this.getBestFormatOption = function(rom, insertedCartridge) {
         var options = getFormatOptions(rom, insertedCartridge);
         return options.length === 0 ? undefined : options[0];

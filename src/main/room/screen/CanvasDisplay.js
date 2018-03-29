@@ -173,7 +173,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openCartridgeFormatDialog = function(port) {
         closeAllOverlays();
-        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(fsElementCenter, cartridgeSocket);
+        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(this, fsElementCenter, cartridgeSocket);
         cartFormatDialog.show(port);
     };
 
@@ -478,9 +478,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
         this.cartridgesModifiedStateUpdate(cart1, cart2);
         refreshSettingsMenuForExtensions();
-
-        // TODO Unfinished Feature
-        cartridge1Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[1].disabled = true;
     };
 
     this.cartridgesModifiedStateUpdate = function(cart1, cart2) {

@@ -751,11 +751,11 @@ wmsx.Machine = function() {
     // CartridgeSocket  -----------------------------------------
 
     function CartridgeSocket() {
-        this.insertCartridge = function (cartridge, port, altPower) {
+        this.insertCartridge = function (cartridge, port, altPower, skipMessage) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
             slotSocket.insertSlot(cartridge, slotPos, altPower, true);  // internal
             this.fireCartridgesStateUpdate();
-            self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
+            if (!skipMessage) self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
         };
         this.removeCartridge = function (port, altPower) {
             var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;

@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
+// TODO Cartridge oririnalFormatName on Savestate, check scroll bar styling on browsers
+wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
 "use strict";
 
     var self = this;
@@ -19,8 +20,8 @@ wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
 
         format = cartridge.format.name;
         visible = true;
-        refreshList();
         dialog.classList.add("wmsx-show");
+        refreshList();
         dialog.focus();
 
         wmsx.Util.scaleToFitParentHeight(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
@@ -32,10 +33,10 @@ wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
         visible = false;
         WMSX.room.screen.focus();
         if (confirm) {
-            var option = allFormatOptions[optionSelected];
-            var control = port ? option.save : option.load;
-            if (option.peripheral) peripheralControls.processControlActivated(control);
-            else machineControls.processControlState(control, true);
+            var formatName = userFormatOptions[optionSelected];
+            var newCart = wmsx.SlotCreator.changeCartridgeFormat(cartridge, wmsx.SlotFormats[formatName]);
+            cartridgeSocket.insertCartridge(newCart, port);
+            screen.showOSD("ROM Format: " + formatName + (optionSelected === 0 ? " (Auto)" : ""), true);
         }
         cartridge = undefined;
     };
@@ -47,24 +48,40 @@ wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
         var autoOption = wmsx.SlotCreator.getBestFormatOption(cartridge.rom);
         if (!autoOption) autoOption = wmsx.SlotFormats.Normal;  // default
         // Special case for Normal (Mirrored or NotMirrored)
-        if (autoOption === wmsx.SlotFormats.Normal && cartridge.originalFormatName)
-            autoOption = wmsx.SlotFormats[cartridge.originalFormatName];
+        if (autoOption === wmsx.SlotFormats.Normal) {
+            var subNormal = cartridge.originalFormatName || cartridge.format.name;
+            if (subNormal === "Mirrored" || subNormal === "NotMirrored")
+                autoOption = wmsx.SlotFormats[subNormal];
+        }
         userFormatOptions.unshift(autoOption.name);
         for (var i = 0; i < listItems.length; ++i) {
             if (i < userFormatOptions.length) {
                 if (userFormatOptions[i] === format) optionSelected = i;
-                listItems[i].innerHTML = i === 0 ? "AUTO: " + autoOption.name : wmsx.SlotFormats[userFormatOptions[i]].name;
+                listItems[i].innerHTML = i === 0 ? "AUTO: " + autoOption.name : userFormatOptions[i];
                 listItems[i].classList.add("wmsx-visible");
             } else
                 listItems[i].classList.remove("wmsx-visible");
         }
-        if (autoOption && cartridge.format === autoOption) optionSelected = 0;
+        if (cartridge.format === autoOption) optionSelected = 0;
         refreshListSelection();
     }
 
     function refreshListSelection() {
-        for (var i = 0; i < userFormatOptions.length; ++i)
-            listItems[i].classList.toggle("wmsx-selected", i === optionSelected);
+        var selItem;
+        for (var i = 0; i < userFormatOptions.length; ++i) {
+            if (i === optionSelected) {
+                selItem = listItems[i];
+                selItem.classList.add("wmsx-selected");
+            } else
+                listItems[i].classList.remove("wmsx-selected");
+        }
+
+        // Scroll to selected item if needed
+        if (list.scrollTop > selItem.offsetTop - 5) {       // margin top and bottom ~ 7px
+            list.scrollTop = selItem.offsetTop - 5;
+        } else if (list.scrollTop + list.offsetHeight < selItem.offsetTop + 26 + 5) {
+            list.scrollTop = selItem.offsetTop - 7 - (list.offsetHeight - 26 - 7 - 7);        // item height ~ 26px
+        }
     }
 
     function create() {
@@ -72,7 +89,7 @@ wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
         dialog.id = "wmsx-cartridge-format";
         dialog.classList.add("wmsx-select-dialog");
         dialog.style.width = "280px";
-        dialog.style.height = "" + (43 + 10 * 33) + "px";
+        dialog.style.height = "374px";
         dialog.tabIndex = -1;
 
         header = document.createTextNode("Select ROM Format");
@@ -80,7 +97,6 @@ wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
 
         // Define list
         list = document.createElement('ul');
-        list.style.width = "80%";
 
         for (var i = 0; i < allFormatOptions.length; ++i) {
             var li = document.createElement("li");
@@ -111,8 +127,7 @@ wmsx.CartridgeFormatDialog = function(mainElement, cartridgeSocket) {
 
         // Select with tap or mousedown (UIG)
         wmsx.Util.onTapOrMouseDownWithBlockUIG(dialog, function(e) {
-            if (e.target.wmsxSlot >= 0) {
-                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
+            if (e.target.wmsxIndex >= 0) {
                 optionSelected = e.target.wmsxIndex;
                 refreshListSelection();
                 setTimeout(hideConfirm, 120);
