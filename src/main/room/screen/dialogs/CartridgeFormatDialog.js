@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Cartridge oririnalFormatName on Savestate, check scroll bar styling on browsers
+// TODO Cartridge oririnalFormatName on Savestate?
 wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
 "use strict";
 

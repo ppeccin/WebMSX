@@ -508,31 +508,28 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
 }
 #wmsx-cartridge-format.wmsx-select-dialog li {
-    width: 219px;
+    width: 220px;
 }
 #wmsx-cartridge-format ::-webkit-scrollbar {
     width: 12px;
-    height: 12px;
 }
 #wmsx-cartridge-format ::-webkit-scrollbar-track {
     background: transparent;
 }
-#wmsx-cartridge-format ::-webkit-scrollbar-corner {
-    background: transparent;
-}
 #wmsx-cartridge-format ::-webkit-scrollbar-thumb {
     border: solid transparent;
+    border-width: 1px 1px 1px 2px;
     background: rgb(80, 80, 80);
     background-clip: content-box;
 }
-#wmsx-cartridge-format ::-webkit-scrollbar-thumb:vertical {
-    border-width: 1px 1px 1px 2px;
-}
-#wmsx-cartridge-format ::-webkit-scrollbar-thumb:horizontal {
-    border-width: 2px 1px 1px 1px;
-}
 
-
+/* Firefox-specific rules */
+@-moz-document url-prefix() {
+    /* Try to hide scrollbar, since we can't style it :-( */
+    #wmsx-cartridge-format.wmsx-select-dialog ul {
+        width: 304px;
+    }
+}
 
 #wmsx-logo {
     position: absolute;

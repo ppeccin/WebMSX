@@ -26,6 +26,7 @@ wmsx.SlotNormal = function(rom, format) {
             var position = rom.info.s ? parseInt(rom.info.s) : -1;
             if (position >= 0)
                 startingPage = position >> 14;
+                // Do not Mirror by default
             else {
                 // Search for the first Header with valid Handlers
                 var lowestHandlerPage = null;

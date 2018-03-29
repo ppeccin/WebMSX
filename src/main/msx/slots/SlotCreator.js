@@ -22,7 +22,7 @@ wmsx.SlotCreator = function () {
 
     this.changeCartridgeFormat = function(cart, newFormat) {
         var newCart = newFormat.createFromROM(cart.rom);
-        newCart.originalFormatName = cart.originalFormatName || cart.format.name;
+        newCart.originalFormatName = cart.originalFormatName || newCart.format.name;
         return newCart;
     };
 
