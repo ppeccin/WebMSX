@@ -120,19 +120,20 @@ wmsx.SlotNormal = function(rom, format) {
             f: this.format.name,
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            ba: baseAddress
+            ba: baseAddress,
+            m: mirrored
         };
     };
 
     this.loadState = function(s) {
-        this.format = wmsx.SlotFormats[s.f];
+        this.format = s.m === undefined ? wmsx.SlotFormats.Normal : wmsx.SlotFormats[s.f];
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
         baseAddress = s.ba;
         topAddress = baseAddress + bytes.length;
         sizeMask = bytes.length - 1;
-        mirrored = this.format === wmsx.SlotFormats.Mirrored;
+        mirrored = s.m !== undefined ? s.m : s.f === wmsx.SlotFormats.Mirrored.name;
     };
 
 
