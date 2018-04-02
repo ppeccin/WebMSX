@@ -47,12 +47,6 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         userFormatOptions = wmsx.SlotCreator.getUserFormatOptionNames(cartridge.rom);
         var autoOption = wmsx.SlotCreator.getBestFormatOption(cartridge.rom);
         if (!autoOption) autoOption = wmsx.SlotFormats.Normal;  // default
-        // Special case for Normal (Mirrored or NotMirrored)
-        if (autoOption === wmsx.SlotFormats.Normal) {
-            var subNormal = cartridge.originalFormatName || cartridge.format.name;
-            if (subNormal === "Mirrored" || subNormal === "NotMirrored")
-                autoOption = wmsx.SlotFormats[subNormal];
-        }
         userFormatOptions.unshift(autoOption.name);
         for (var i = 0; i < listItems.length; ++i) {
             if (i < userFormatOptions.length) {

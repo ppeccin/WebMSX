@@ -13,6 +13,7 @@ wmsx.SlotNormal = function(rom, format) {
         self.bytes = bytes;
         var size = bytes.length;
         sizeMask = size - 1;
+        self.format = format;
 
         // Determine startingPage and mirroring based on size, Header and ROM Info
         var startingPage = 0;
@@ -68,7 +69,6 @@ wmsx.SlotNormal = function(rom, format) {
         mirrored = !!mirrored;
         baseAddress = startingPage << 14;
         topAddress = Math.min(baseAddress + size, 0x10000);
-        self.format = mirrored ? wmsx.SlotFormats.Mirrored : wmsx.SlotFormats.NotMirrored;
 
         wmsx.Util.log("Address: 0x" + wmsx.Util.toHex4(baseAddress) + " - 0x" + wmsx.Util.toHex4(topAddress - 1) + ", Mirrored: " + mirrored);
     }

@@ -21,9 +21,7 @@ wmsx.SlotCreator = function () {
     };
 
     this.changeCartridgeFormat = function(cart, newFormat) {
-        var newCart = newFormat.createFromROM(cart.rom);
-        newCart.originalFormatName = cart.originalFormatName || newCart.format.name;
-        return newCart;
+        return newFormat.createFromROM(cart.rom);
     };
 
     this.getBestFormatOption = function(rom, insertedCartridge) {

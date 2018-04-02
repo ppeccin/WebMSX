@@ -813,6 +813,7 @@ wmsx.SlotFormats.FMPAK =         wmsx.SlotFormats.FMPAC;       // Maybe actually
 
 // Formats available for user selection, in order
 wmsx.SlotFormatsUserOptions = [
+    "Normal",
     "Mirrored",
     "NotMirrored",
     "ASCII8",
