@@ -398,7 +398,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     display: none;
 }
 
-#wmsx-screen-fs .wmsx-select-dialog {
+.wmsx-select-dialog {
     position: absolute;
     overflow: hidden;
     display: none;
@@ -424,10 +424,10 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     cursor: auto;
     z-index: 4;
 }
-#wmsx-screen-fs .wmsx-select-dialog.wmsx-show {
+.wmsx-select-dialog.wmsx-show {
     display: block;
 }
-#wmsx-screen-fs .wmsx-select-dialog .wmsx-footer {
+.wmsx-select-dialog .wmsx-footer {
     position: absolute;
     width: 100%;
     bottom: 7px;
@@ -435,7 +435,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     text-align: center;
     color: rgb(170, 170, 170);
 }
-#wmsx-screen-fs .wmsx-select-dialog ul {
+.wmsx-select-dialog > ul {
     position: relative;
     width: 88%;
     top: 5px;
@@ -445,7 +445,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     font-size: 14px;
     color: hsl(0, 0%, 88%);
 }
-#wmsx-screen-fs .wmsx-select-dialog li {
+.wmsx-select-dialog > ul li {
     display: none;
     position: relative;
     overflow: hidden;
@@ -462,18 +462,18 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
     cursor: pointer;
 }
-#wmsx-screen-fs .wmsx-select-dialog li.wmsx-visible {
+.wmsx-select-dialog > ul li.wmsx-visible {
     display: block;
 }
-#wmsx-screen-fs .wmsx-select-dialog li.wmsx-selected {
+.wmsx-select-dialog > ul li.wmsx-selected {
     color: white;
     background: hsl(358, 67%, 46%);
 }
-#wmsx-screen-fs .wmsx-select-dialog li.wmsx-droptarget {
+.wmsx-select-dialog > ul li.wmsx-droptarget {
     color: white;
     border-color: lightgray;
 }
-#wmsx-screen-fs .wmsx-select-dialog li.wmsx-toggle::after {
+.wmsx-select-dialog > ul li.wmsx-toggle::after {
     content: "";
     position: absolute;
     width: 6px;
@@ -483,7 +483,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     background: rgb(60, 60, 60);
     box-shadow: black 1px 1px 1px;
 }
-#wmsx-screen-fs .wmsx-select-dialog li.wmsx-toggle-checked::after {
+.wmsx-select-dialog > ul li.wmsx-toggle-checked::after {
     background: rgb(254, 32, 30);
 }
 
@@ -499,16 +499,20 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 
 
-#wmsx-cartridge-format.wmsx-select-dialog ul {
+#wmsx-cartridge-format.wmsx-select-dialog > ul {
     width: 100%;
-    height: 335px;
-    margin: auto 0;
+    height: 292px;
+    margin: 7px auto 0;
     padding: 0 0 0 30px;
     overflow-y: auto;
     box-sizing: border-box;
 }
-#wmsx-cartridge-format.wmsx-select-dialog li {
+#wmsx-cartridge-format.wmsx-select-dialog > ul li {
     width: 220px;
+    margin: 7px 0 2px 0;
+}
+#wmsx-cartridge-format.wmsx-select-dialog > ul li:first-child {
+    margin-top: 0;
 }
 #wmsx-cartridge-format ::-webkit-scrollbar {
     width: 12px;
@@ -522,11 +526,22 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     background: rgb(80, 80, 80);
     background-clip: content-box;
 }
-
+#wmsx-cartridge-format ul.wmsx-quick-options-list {
+    width: 220px;
+    margin: 18px 0 0 30px;
+}
+#wmsx-cartridge-format ul.wmsx-quick-options-list li div {
+    height: 24px;
+    line-height: 24px;
+}
+#wmsx-cartridge-format .wmsx-control {
+    width: 52px;
+    line-height: 24px;
+}
 /* Firefox-specific rules */
 @-moz-document url-prefix() {
     /* Try to hide scrollbar, since we can't style it :-( */
-    #wmsx-cartridge-format.wmsx-select-dialog ul {
+    #wmsx-cartridge-format.wmsx-select-dialog > ul {
         width: 304px;
     }
 }

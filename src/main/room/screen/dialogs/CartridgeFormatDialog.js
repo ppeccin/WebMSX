@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Cartridge oririnalFormatName on Savestate?
 wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
 "use strict";
 
@@ -34,6 +33,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         WMSX.room.screen.focus();
         if (confirm) {
             var formatName = userFormatOptions[optionSelected];
+            if (formatName === userFormatOptions[0]) optionSelected = 0;    // Same as Auto
             var newCart = wmsx.SlotCreator.changeCartridgeFormat(cartridge, wmsx.SlotFormats[formatName]);
             cartridgeSocket.insertCartridge(newCart, port);
             screen.showOSD("ROM Format: " + formatName + (optionSelected === 0 ? " (Auto)" : ""), true);
@@ -58,6 +58,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         }
         if (cartridge.format === autoOption) optionSelected = 0;
         refreshListSelection();
+        refreshSaveFormat();
     }
 
     function refreshListSelection() {
@@ -71,11 +72,16 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         }
 
         // Scroll to selected item if needed
-        if (list.scrollTop > selItem.offsetTop - 5) {       // margin top and bottom ~ 7px
-            list.scrollTop = selItem.offsetTop - 5;
-        } else if (list.scrollTop + list.offsetHeight < selItem.offsetTop + 26 + 5) {
-            list.scrollTop = selItem.offsetTop - 7 - (list.offsetHeight - 26 - 7 - 7);        // item height ~ 26px
+        if (list.scrollTop > selItem.offsetTop) {
+            list.scrollTop = selItem.offsetTop;
+        } else if (list.scrollTop + list.offsetHeight < selItem.offsetTop + 26 + 2) {
+            list.scrollTop = selItem.offsetTop - (list.offsetHeight - 26 - 2);        // item height ~ 26px
         }
+    }
+
+    function refreshSaveFormat() {
+        saveButton.textContent = saveFormat ? "YES" : "NO";
+        saveButton.classList.toggle("wmsx-selected", saveFormat);
     }
 
     function create() {
@@ -86,24 +92,36 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         dialog.style.height = "374px";
         dialog.tabIndex = -1;
 
-        header = document.createTextNode("Select ROM Format");
+        var header = document.createTextNode("Select ROM Format");
         dialog.appendChild(header);
 
         // Define list
         list = document.createElement('ul');
-
-        for (var i = 0; i < allFormatOptions.length; ++i) {
+        for (var i = 0, len = wmsx.SlotFormatsUserOptions.length + 1; i < len; ++i) {   // + 1 for Auto
             var li = document.createElement("li");
             li.wmsxIndex = i;
             li.classList.add("wmsx-visible");
-            // if (i < allFormatOptions.length - 1) li.classList.add("wmsx-toggle");
             li.style.textAlign = "center";
-            li.innerHTML = allFormatOptions[i];
-            li.wmsxFormat = allFormatOptions[i];
             listItems.push(li);
             list.appendChild(li);
         }
         dialog.appendChild(list);
+
+        // Define Remember selection option
+        var wDiv = document.createElement('div');
+        var ul = document.createElement('ul');
+        ul.classList.add("wmsx-quick-options-list");
+        li = document.createElement('li');
+        var div = document.createElement('div');
+        div.innerHTML = "&#128190;&nbsp; Remember Choice";
+        li.appendChild(div);
+        saveButton = document.createElement('div');
+        saveButton.innerHTML = "NO";
+        saveButton.classList.add("wmsx-control");
+        li.appendChild(saveButton);
+        ul.appendChild(li);
+        wDiv.appendChild(ul);
+        dialog.appendChild(wDiv);
 
         setupEvents();
 
@@ -122,10 +140,18 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         // Select with tap or mousedown (UIG)
         wmsx.Util.onTapOrMouseDownWithBlockUIG(dialog, function(e) {
             if (e.target.wmsxIndex >= 0) {
+                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 optionSelected = e.target.wmsxIndex;
                 refreshListSelection();
                 setTimeout(hideConfirm, 120);
             }
+        });
+
+        // Toggle Save Format option with tap or mousedown
+        wmsx.Util.onTapOrMouseDownWithBlock(saveButton, function(e) {
+            wmsx.ControllersHub.hapticFeedbackOnTouch(e);
+            saveFormat = !saveFormat;
+            refreshSaveFormat();
         });
 
         // Trap keys, respond to some
@@ -151,12 +177,10 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
     var optionSelected = 0;
     var userFormatOptions = [];
 
-    var dialog, list;
+    var dialog, list, saveButton;
     var listItems = [];
     var visible = false;
-    var header;
-
-    var allFormatOptions = wmsx.SlotFormatsUserOptions;
+    var saveFormat = false;
 
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;

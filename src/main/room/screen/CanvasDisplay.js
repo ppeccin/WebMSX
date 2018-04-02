@@ -454,8 +454,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.extensionsAndCartridgesStateUpdate = function() {
         var cart1 = cartridgeSocket.cartridgeInserted(0);
         var cart2 = cartridgeSocket.cartridgeInserted(1);
-        cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.rom.source || "<Unknown>") + "  [" + cart1.format.name + "]" : "" );
-        cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.rom.source || "<Unknown>") + "  [" + cart2.format.name + "]" : "" );
+        cartridge1Button.title = "Cartridge 1" + ( cart1 ? ": " + (cart1.format.internal ? cart1.format.desc : (cart1.rom.source || "<Unknown>") + "  [" + cart1.format.name + "]") : "" );
+        cartridge2Button.title = "Cartridge 2" + ( cart2 ? ": " + (cart2.format.internal ? cart2.format.desc : (cart2.rom.source || "<Unknown>") + "  [" + cart2.format.name + "]") : "" );
         var dataDesc = cart1 && cart1.getDataDesc();
         cartridge1Button.wmsxMenu[2].label = "Load " + (dataDesc || "Data") + " File";
         cartridge1Button.wmsxMenu[3].label = "Save " + (dataDesc || "Data") + " File";
@@ -464,7 +464,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         } else {
             cartridge1Button.wmsxMenu[0].disabled = false;
             cartridge1Button.wmsxMenu[2].disabled = cartridge1Button.wmsxMenu[3].disabled = !dataDesc;
-            cartridge1Button.wmsxMenu[1].disabled = cartridge1Button.wmsxMenu[4].disabled = !cart1;
+            cartridge1Button.wmsxMenu[1].disabled = !cart1 || cart1.format.internal;
+            cartridge1Button.wmsxMenu[4].disabled = !cart1;
         }
         dataDesc = cart2 && cart2.getDataDesc();
         cartridge2Button.wmsxMenu[2].label = "Load " + (dataDesc || "Data") + " File";
@@ -474,7 +475,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         } else {
             cartridge2Button.wmsxMenu[0].disabled = false;
             cartridge2Button.wmsxMenu[2].disabled = cartridge2Button.wmsxMenu[3].disabled = !dataDesc;
-            cartridge2Button.wmsxMenu[1].disabled = cartridge2Button.wmsxMenu[4].disabled = !cart2;
+            cartridge2Button.wmsxMenu[1].disabled = !cart2 || cart2.format.internal;
+            cartridge2Button.wmsxMenu[4].disabled = !cart2;
         }
         this.cartridgesModifiedStateUpdate(cart1, cart2);
         refreshSettingsMenuForExtensions();
