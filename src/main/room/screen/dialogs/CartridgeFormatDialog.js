@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
+wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSocket) {
 "use strict";
 
     var self = this;
@@ -18,6 +18,9 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         if (!cartridge) return;
 
         format = cartridge.format.name;
+        saveFormat = !!userROMFormats.getForROM(cartridge.rom);
+        saveFormatEnabled = !!cartridge.rom.info.h;             // No save when hash unavailable
+
         visible = true;
         dialog.classList.add("wmsx-show");
         refreshList();
@@ -33,10 +36,11 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
         WMSX.room.screen.focus();
         if (confirm) {
             var formatName = userFormatOptions[optionSelected];
-            if (formatName === userFormatOptions[0]) optionSelected = 0;    // Same as Auto
+            var isAuto = formatName === userFormatOptions[0];
             var newCart = wmsx.SlotCreator.changeCartridgeFormat(cartridge, wmsx.SlotFormats[formatName]);
-            cartridgeSocket.insertCartridge(newCart, port);
-            screen.showOSD("ROM Format: " + formatName + (optionSelected === 0 ? " (Auto)" : ""), true);
+            if (saveFormat) userROMFormats.setForROM(cartridge.rom, formatName, isAuto);
+            cartridgeSocket.insertCartridge(newCart, port, !machine.powerIsOn, true);
+            screen.showOSD("ROM Format: " + formatName + (isAuto ? " (Auto)" : ""), true);
         }
         cartridge = undefined;
     };
@@ -80,7 +84,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
     }
 
     function refreshSaveFormat() {
-        saveButton.textContent = saveFormat ? "YES" : "NO";
+        saveButton.textContent = saveFormatEnabled ? saveFormat ? "YES" : "NO" : "- -";
         saveButton.classList.toggle("wmsx-selected", saveFormat);
     }
 
@@ -149,6 +153,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
 
         // Toggle Save Format option with tap or mousedown
         wmsx.Util.onTapOrMouseDownWithBlock(saveButton, function(e) {
+            if (!saveFormatEnabled) return;
             wmsx.ControllersHub.hapticFeedbackOnTouch(e);
             saveFormat = !saveFormat;
             refreshSaveFormat();
@@ -180,7 +185,9 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, cartridgeSocket) {
     var dialog, list, saveButton;
     var listItems = [];
     var visible = false;
-    var saveFormat = false;
+    var saveFormat = false, saveFormatEnabled = false;
+
+    var userROMFormats = WMSX.userROMFormats;
 
     var k = wmsx.DOMKeys;
     var ESC_KEY = k.VK_ESCAPE.c;

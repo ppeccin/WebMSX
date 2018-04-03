@@ -173,7 +173,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openCartridgeFormatDialog = function(port) {
         closeAllOverlays();
-        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(this, fsElementCenter, cartridgeSocket);
+        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(this, fsElementCenter, machine, cartridgeSocket);
         cartFormatDialog.show(port);
     };
 

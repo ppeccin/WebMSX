@@ -3,9 +3,8 @@
 
 // Main Emulator parameters.
 // May be overridden dynamically by URL query parameters, if ALLOW_URL_PARAMETERS = true.
-// Machine type and Components are defined by Configuration Presets.
+// Machine type, Components and Extensions are defined by Configuration Presets.
 
-// TODO Add Speed Parameter in %
 WMSX = {
 
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
@@ -47,9 +46,6 @@ WMSX = {
     NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
     NETPLAY_NICK:                   "",                         // NetPlay! Nickname, optional
 
-    // Extensions
-    EXTENSIONS:                     { },
-
     // Internal Machine configuration
     BIOS_SLOT:                      [0],
     BIOSEXT_SLOT:                   [3, 1],
@@ -57,6 +53,7 @@ WMSX = {
     CARTRIDGE2_SLOT:                [2],
     EXPANSION_SLOTS:                [[2, 2], [2, 3]],
     RAMMAPPER_SIZE:                 512,
+    EXTENSIONS:                     { },
 
     // General options
     SPEED:                          100,                        // Default emulation speed (in %)

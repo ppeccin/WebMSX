@@ -4,12 +4,22 @@ wmsx.SlotCreator = function () {
 "use strict";
 
     this.createFromROM = function (rom, insertedCartridge) {
+        // ROM has User Set Format?
+        var userFormatName = userROMFormats.getForROM(rom);
+        if (userFormatName) {
+            var userFormat = wmsx.SlotFormats[userFormatName];
+            if (userFormat.priorityForRom(rom)) {
+                wmsx.Util.log("USER Format selected: " + userFormat.desc);
+                return userFormat.createFromROM(rom);
+            }
+        }
+
         // Try to build the Slot with the best format, if a supported format is found
         var bestOption = this.getBestFormatOption(rom, insertedCartridge);
         if (!bestOption) return;
 
         var silent = wmsx.EmbeddedFiles.isEmbeddedURL(rom.source);
-        if (!silent) wmsx.Util.log("Format selected: " + bestOption.desc + ", priority: " + bestOption.prioritySelected);
+        if (!silent) wmsx.Util.log("AUTO Format selected: " + bestOption.desc + ", priority: " + bestOption.prioritySelected);
         return bestOption.createFromROM(rom);
     };
 
@@ -45,7 +55,7 @@ wmsx.SlotCreator = function () {
 
         // Don't compute hash for too big contents. Will rely on hints only
         var hash = rom.content.length > MAX_HASH_CONTENT_SIZE
-            ? "0000000000000000000000000000000000000000"
+            ? undefined
             : wmsx.Util.sha1Generator.calcSHA1FromByteArray(rom.content).toUpperCase();
         if (rom.content.length > origLen) rom.content.length = origLen;
 
@@ -57,11 +67,15 @@ wmsx.SlotCreator = function () {
             if (!silent) wmsx.Util.log("ROM: " + info.n + (info.f ? ", format: " + info.f : "") + " (" + hash + ")");
         } else {
             info = buildInfo(rom.source);
-            if (!silent) wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : ""));
+            if (!silent) wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : " (no hash computed)"));
         }
 
         finishInfo(info, rom.source, hash, formatHint);
         return info;
+    };
+
+    this.setUserROMFormats = function(pUserROMFormats) {
+        userROMFormats = pUserROMFormats;
     };
 
     function getFormatOptions(rom, insertedCartridge) {
@@ -116,7 +130,7 @@ wmsx.SlotCreator = function () {
                 }
         }
         // Compute label based on other info
-        if (!info.l) info.l = produceCartridgeLabel(info);
+        // Label not being used yet. if (!info.l) info.l = produceCartridgeLabel(info);
     };
 
     function cloneInfo(info) {
@@ -142,6 +156,8 @@ wmsx.SlotCreator = function () {
         return hint.match(HINTS_PREFIX_REGEX + formatName + HINTS_SUFFIX_REGEX);
     };
 
+
+    var userROMFormats;
 
     var HINTS_PREFIX_REGEX = "\\[";
     var HINTS_SUFFIX_REGEX = "\\]";

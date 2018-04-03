@@ -9,6 +9,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
         buildMainClock();
         buildPeripherals();
         buildAndPlugMachine();
+        WMSX.userROMFormats.init();
     }
 
     this.powerOn = function() {
