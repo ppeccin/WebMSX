@@ -251,6 +251,12 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 .wmsx-bar-button.wmsx-hidden {
     display: none;
 }
+/* Firefox-specific rules */
+@-moz-document url-prefix() {
+    .wmsx-bar-button {
+        image-rendering: optimizequality;
+    }
+}
 /*
 .wmsx-bar-button {
     border: 1px solid yellow;
