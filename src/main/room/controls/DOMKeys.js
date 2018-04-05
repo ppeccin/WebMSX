@@ -2,6 +2,7 @@
 
 // General, immutable info about host keys on different browsers and keyboard languages/layouts
 
+// TODO Japanese ろ key code. 226?
 wmsx.DOMKeys = {};
 
 wmsx.DOMKeys.MOD_SHIFT = 16;
