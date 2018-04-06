@@ -1,5 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
-// Thanks to Vampier and the BlueMSX/OpenMSX teams for sharing the data, and also to Sebbeug and Arnaud for their contributions! :-)
+// Thanks to Vampier and the BlueMSX/OpenMSX teams for sharing the data, and also to Sebbeug and TFH|Fony for their contributions! :-)
 
 wmsx.ROMDatabaseUncompressed = {
 
