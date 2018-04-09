@@ -302,7 +302,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
 
     var screen;
 
-    var mode = WMSX.GAMEPADS_MODE - 1;      // parameter is -1..1
+    var mode = WMSX.JOYSTICKS_MODE - 1;      // parameter is -1..1
     var swappedMode = false;
 
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;

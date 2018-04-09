@@ -232,6 +232,7 @@ wmsx.Configurator = {
                                                               // TODO Detect other countries/locations?
         var typePreffix;
         switch (type) {
+            case 4: typePreffix = "MSX2T"; break;
             case 3: typePreffix = "MSX2P"; break;
             case 2: typePreffix = "MSX2"; break;
             case 1: typePreffix = "MSX1"; break;
@@ -294,7 +295,9 @@ wmsx.Configurator = {
         SAVESTATE: "STATE_URL",
         JOIN: "NETPLAY_JOIN",
         NICK: "NETPLAY_NICK",
+        JOYSTICKS: "JOYSTICKS_MODE",
         JOYKEYS: "JOYKEYS_MODE",
+        MOUSE: "MOUSE_MODE",
         TURBO: "CPU_TURBO_MODE",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
     }

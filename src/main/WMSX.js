@@ -74,13 +74,13 @@ WMSX = {
     AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
     AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Internal Audio Signal buffer based on Monitor buffer
     AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames in internal Audio Signal buffer based on Monitor buffer
+    JOYSTICKS_MODE:                 0,                          // -1: disabled; 0: auto; 1: auto (swapped)
     JOYKEYS_MODE:                   -1,                         // -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
-    GAMEPADS_MODE:                  0,                          // -1: disabled; 0: auto; 1: auto (swapped)
-    MOUSE_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+    MOUSE_MODE:                     -1,                         // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
     VDP_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: VDP Command Engine clock multiplier; 9: instantaneous
-    CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
+    CPU_SOFT_TURBO_MULTI:           3,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
     VDP_SOFT_TURBO_MULTI:           5,                          // 1..8 VDP Command Engine clock multiplier when in AUTO mode and activated by software
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
@@ -98,18 +98,22 @@ WMSX = {
 
 WMSX.MACHINES_CONFIG = {
     EMPTY:  { desc: "MSX2+ Barebone (NTSC)" },
-    MSX2P:  { desc: "MSX2+ Auto Detect",    autoType: 3 },
-    MSX2:   { desc: "MSX2 Auto Detect",     autoType: 2 },
-    MSX1:   { desc: "MSX Auto Detect",      autoType: 1 },
-    MSX2PA: { desc: "MSX2+ America (NTSC)", type: 3, presets: "_MSX2PA"},
-    MSX2PE: { desc: "MSX2+ Europe (PAL)",   type: 3, presets: "_MSX2PE"},
-    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",   type: 3, presets: "_MSX2PJ", japanese: true },
-    MSX2A:  { desc: "MSX2 America (NTSC)",  type: 2, presets: "_MSX2A"},
-    MSX2E:  { desc: "MSX2 Europe (PAL)",    type: 2, presets: "_MSX2E"},
-    MSX2J:  { desc: "MSX2 Japan (NTSC)",    type: 2, presets: "_MSX2J",  japanese: true },
-    MSX1A:  { desc: "MSX America (NTSC)",   type: 1, presets: "_MSX1A"},
-    MSX1E:  { desc: "MSX Europe (PAL)",     type: 1, presets: "_MSX1E"},
-    MSX1J:  { desc: "MSX Japan (NTSC)",     type: 1, presets: "_MSX1J",  japanese: true }
+    MSX2T:  { desc: "MSX2+T Auto Detect",     autoType: 4 },
+    MSX2P:  { desc: "MSX2+ Auto Detect",      autoType: 3 },
+    MSX2:   { desc: "MSX2 Auto Detect",       autoType: 2 },
+    MSX1:   { desc: "MSX Auto Detect",        autoType: 1 },
+    MSX2TA: { desc: "MSX2+T America (NTSC)",  type: 4, presets: "_MSX2TA"},
+    MSX2TE: { desc: "MSX2+T Europe (PAL)",    type: 4, presets: "_MSX2TE"},
+    MSX2TJ: { desc: "MSX2+T Japan (NTSC)",    type: 4, presets: "_MSX2TJ", japanese: true },
+    MSX2PA: { desc: "MSX2+ America (NTSC)",   type: 3, presets: "_MSX2PA"},
+    MSX2PE: { desc: "MSX2+ Europe (PAL)",     type: 3, presets: "_MSX2PE"},
+    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",     type: 3, presets: "_MSX2PJ", japanese: true },
+    MSX2A:  { desc: "MSX2 America (NTSC)",    type: 2, presets: "_MSX2A"},
+    MSX2E:  { desc: "MSX2 Europe (PAL)",      type: 2, presets: "_MSX2E"},
+    MSX2J:  { desc: "MSX2 Japan (NTSC)",      type: 2, presets: "_MSX2J",  japanese: true },
+    MSX1A:  { desc: "MSX America (NTSC)",     type: 1, presets: "_MSX1A"},
+    MSX1E:  { desc: "MSX Europe (PAL)",       type: 1, presets: "_MSX1E"},
+    MSX1J:  { desc: "MSX Japan (NTSC)",       type: 1, presets: "_MSX1J",  japanese: true }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -184,6 +188,26 @@ WMSX.PRESETS_CONFIG = {
         "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [2, 2],
         "EXTENSIONS_CONFIG.KANJI.OP1":     [3, 1],
         "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
+    },
+
+    // MSX2+ Turbp Machine Presets. Do not use directly
+
+    _MSX2TA: {
+        _INCLUDE:           "_MSX2PA, _MSX2TBASE",
+        BOOT_DURATION_AUTO: 165
+    },
+    _MSX2TE: {
+        _INCLUDE:           "_MSX2PE, _MSX2TBASE",
+        BOOT_DURATION_AUTO: 175
+    },
+    _MSX2TJ: {
+        _INCLUDE:           "_MSX2PJ, _MSX2TBASE",
+        BOOT_DURATION_AUTO: 165
+    },
+    _MSX2TBASE: {
+        _INCLUDE:           "HARDDISK",
+        CPU_TURBO_MODE:     3,
+        VDP_TURBO_MODE:     5
     },
 
     // MSX2+ Machine Presets. Do not use directly

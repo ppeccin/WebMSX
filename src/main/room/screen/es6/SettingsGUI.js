@@ -523,16 +523,6 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                M
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Toggle Mouse</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                 J
                             </div>
                         </div>
@@ -553,6 +543,16 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                M
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Toggle Mouse</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                 H
                             </div>
                         </div>
@@ -560,9 +560,9 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                 </div>
                 <div class="wmsx-right">
-                    <div id="wmsx-ports-mouse-mode" class="wmsx-hotkey wmsx-link wmsx-mouse-device">Mouse Mode: AUTO</div>
                     <div id="wmsx-ports-joysticks-mode" class="wmsx-hotkey wmsx-link wmsx-joystick-device">Joysticks Mode: AUTO</div>
                     <div id="wmsx-ports-joykeys-mode" class="wmsx-hotkey wmsx-link wmsx-joykeys-device">Joykeys Mode: DISABLED</div>
+                    <div id="wmsx-ports-mouse-mode" class="wmsx-hotkey wmsx-link wmsx-mouse-device">Mouse Mode: AUTO</div>
                 </div>
                 <div class="wmsx-full-divider"></div>
                 <div class="wmsx-bottom">
