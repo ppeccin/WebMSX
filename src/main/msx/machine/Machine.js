@@ -24,6 +24,9 @@ wmsx.Machine = function() {
         vdp.setMachineType(this.machineType);
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
+        cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;
+        vdpTurboMode = WMSX.VDP_TURBO_MODE;
+        biosSocket.turboDriverTurboModesUpdate();
     };
 
     this.preStart = function() {
@@ -557,8 +560,8 @@ wmsx.Machine = function() {
     var fastBootFrames = WMSX.FAST_BOOT <= 0 ? 0 : WMSX.FAST_BOOT > 1 ? WMSX.FAST_BOOT : WMSX.BOOT_KEYS_FRAMES > 0 ? WMSX.BOOT_KEYS_FRAMES : WMSX.BOOT_DURATION_AUTO;
     var fastBootCountdown = 0;
 
-    var cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;
-    var vdpTurboMode = WMSX.VDP_TURBO_MODE;
+    var cpuTurboMode = 0;
+    var vdpTurboMode = 0;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;

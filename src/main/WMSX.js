@@ -286,6 +286,8 @@ WMSX.PRESETS_CONFIG = {
 
     _BASE: {
         _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
+        CPU_TURBO_MODE:     0,
+        VDP_TURBO_MODE:     0,
         MSX2:               false,
         MSX2P:              false
     }
