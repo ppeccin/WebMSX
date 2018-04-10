@@ -207,7 +207,7 @@ WMSX.PRESETS_CONFIG = {
     _MSX2TBASE: {
         _INCLUDE:           "HARDDISK",
         CPU_TURBO_MODE:     3,
-        VDP_TURBO_MODE:     5
+        VDP_TURBO_MODE:     4
     },
 
     // MSX2+ Machine Presets. Do not use directly
