@@ -20,6 +20,7 @@ wmsx.Session = function() {
         // console.log("Session " + this.id + " >>> Setting Server " + wsClient.id);
 
         this.originalCreationMessage = message;
+        this.originalCreationMessage.sessionID = this.id;
 
         this.server = wsClient;
         wsClient.isSessionServer = true;
