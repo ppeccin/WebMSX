@@ -165,7 +165,7 @@ wmsx.Room = function(screenElement, machineStartPowerOn) {
 
         self.fileLoader.connectPeripherals(self.screen, self.peripheralControls, self.cartridgeSlot, self.cassetteDeck, self.diskDrive);
         self.fileDownloader.connectPeripherals(self.screen);
-        self.screen.connectPeripherals(self.fileLoader, self.fileDownloader, self.machineControls, self.peripheralControls, self.controllersHub, self.diskDrive, self.stateMedia);
+        self.screen.connectPeripherals(self.cartridgeSlot, self.fileLoader, self.fileDownloader, self.machineControls, self.peripheralControls, self.controllersHub, self.diskDrive, self.stateMedia);
         self.speaker.connectPeripherals(self.screen);
         self.machineControls.connectPeripherals(self.screen);
         self.controllersHub.connectPeripherals(self.screen);

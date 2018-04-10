@@ -28,7 +28,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         machineTypeSocket = machine.getMachineTypeSocket();
     };
 
-    this.connectPeripherals = function(pFileLoader, pFileDownloader, pMachineControls, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
+    this.connectPeripherals = function(pCartridgeSlot, pFileLoader, pFileDownloader, pMachineControls, pPeripheralControls, pControllersHub, pDiskDrive, pStateMedia) {
+        cartridgeSlot = pCartridgeSlot;
         fileLoader = pFileLoader;
         fileLoader.registerForDnD(fsElement);
         fileLoader.registerForFileInputElement(fsElement);
@@ -171,10 +172,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         netPlayDialog.show();
     };
 
-    this.openCartridgeFormatDialog = function(port) {
+    this.openCartridgeFormatDialog = function(port, altPower) {
         closeAllOverlays();
-        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(this, fsElementCenter, machine, cartridgeSocket);
-        cartFormatDialog.show(port);
+        if (!cartFormatDialog) cartFormatDialog = new wmsx.CartridgeFormatDialog(this, fsElementCenter, machine, cartridgeSlot);
+        cartFormatDialog.show(port, altPower);
     };
 
     this.openLoadFileDialog = function() {
@@ -912,8 +913,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         diskHButton.classList.add("wmsx-hidden");
 
         menu = [
-            { label: "Load ROM File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
-            { label: "Set ROM Format",  clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT },
+            { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
+            { label: "Set ROM Format",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT },
             { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
@@ -921,8 +922,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -78, -72, true, "Cartridge 1", null, menu, "Cartridge 1", mediaIconsContainer);
 
         menu = [
-            { label: "Load ROM File",    clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
-            { label: "Set ROM Format",  clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT, secSlot: true },
+            { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "Set ROM Format",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT, secSlot: true },
             { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: true, disabled: true }
@@ -930,12 +931,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -107, -72, true, "Cartridge 2", null, menu, "Cartridge 2", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image File", clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, secSlot: true, needsUIG: true },
-            { label: "New Blank Tape",  clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY, secSlot: true },
+            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "New Blank Tape",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY, secSlot: true },
             { label: "Rewind Tape",                 control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true, secSlot: true },
-            { label: "Run Program",     clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, secSlot: true, disabled: true },
-            { label: "Save Image File", clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, secSlot: true, needsUIG: true },
-            { label: "Remove Tape",     clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true, secSlot: true }
+            { label: "Run Program",        clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, secSlot: true, disabled: true },
+            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, secSlot: true, needsUIG: true },
+            { label: "Remove Tape",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true, secSlot: true }
         ];
         tapeButton = addPeripheralControlButton("wmsx-bar-tape", -136, -72, true, "Cassette Tape", null, menu, "Cassette Tape", mediaIconsContainer);
 
@@ -1702,6 +1703,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var monitor;
     var machineControls;
     var peripheralControls;
+    var cartridgeSlot;
     var fileLoader;
     var fileDownloader;
     var controllersHub;

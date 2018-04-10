@@ -80,8 +80,8 @@ WMSX = {
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
     VDP_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: VDP Command Engine clock multiplier; 9: instantaneous
-    CPU_SOFT_TURBO_MULTI:           3,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
-    VDP_SOFT_TURBO_MULTI:           5,                          // 1..8 VDP Command Engine clock multiplier when in AUTO mode and activated by software
+    CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
+    VDP_SOFT_TURBO_MULTI:           4,                          // 1..8 VDP Command Engine clock multiplier when in AUTO mode and activated by software
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)

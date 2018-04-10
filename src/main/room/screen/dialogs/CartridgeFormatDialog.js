@@ -1,20 +1,21 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSocket) {
+wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlot) {
 "use strict";
 
     var self = this;
 
-    this.show = function (pPort) {
+    this.show = function (pPort, pAltPower) {
         if (!dialog) {
             create();
             return setTimeout(function() {
-                self.show(pPort);
+                self.show(pPort, pAltPower);
             }, 0);
         }
 
         port = pPort;
-        cartridge = cartridgeSocket.cartridgeInserted(port);
+        altPower = pAltPower;
+        cartridge = cartridgeSlot.cartridgeInserted(port);
         if (!cartridge) return;
 
         format = cartridge.format.name;
@@ -39,7 +40,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSoc
             var isAuto = formatName === userFormatOptions[0];
             var newCart = wmsx.SlotCreator.changeCartridgeFormat(cartridge, wmsx.SlotFormats[formatName]);
             if (saveFormat) userROMFormats.setForROM(cartridge.rom, formatName, isAuto);
-            cartridgeSocket.insertCartridge(newCart, port, !machine.powerIsOn, true);
+            cartridgeSlot.insertCartridge(newCart, port, altPower || !machine.powerIsOn, true);
             screen.showOSD("ROM Format: " + formatName + (isAuto ? " (Auto)" : ""), true);
         }
         cartridge = undefined;
@@ -177,6 +178,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSoc
 
 
     var port = 0;
+    var altPower = false;
     var cartridge;
     var format = "";
     var optionSelected = 0;

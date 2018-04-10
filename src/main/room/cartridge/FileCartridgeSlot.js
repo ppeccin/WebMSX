@@ -11,8 +11,8 @@ wmsx.FileCartridgeSlot = function(room) {
         fileDownloader = pDownloader;
     };
 
-    this.insertCartridge = function (cartridge, port, altPower) {
-        cartridgeSocket.insertCartridge(cartridge, port, altPower);
+    this.insertCartridge = function (cartridge, port, altPower, skipMessage) {
+        cartridgeSocket.insertCartridge(cartridge, port, altPower, skipMessage);
 
         if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 0, c: cartridge.saveState(), p: port, a: altPower });
     };

@@ -164,7 +164,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 cartridgeSlot.saveCartridgeDataFile(port);
                 break;
             case pc.CARTRIDGE_CHOOSE_FORMAT:
-                if (!user || !mediaChangeDisabledWarning(control)) screen.openCartridgeFormatDialog(port);
+                if (!user || !mediaChangeDisabledWarning(control)) screen.openCartridgeFormatDialog(port, altPower);
                 break;
             case pc.HARDDISK_LOAD_FILE:
             case pc.TAPE_LOAD_FILE:
@@ -509,7 +509,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.DISK_EMPTY, pc.DISK_BOOT, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
         pc.HARDDISK_LOAD_FILE, pc.HARDDISK_LOAD_URL, pc.HARDDISK_LOAD_FILES_AS_DISK, pc.HARDDISK_LOAD_ZIP_AS_DISK, pc.HARDDISK_SAVE_FILE,
         pc.HARDDISK_CHOOSE_EMPTY, pc.HARDDISK_CHOOSE_BOOT, pc.HARDDISK_NEW,
-        pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE,
+        pc.CARTRIDGE_LOAD_FILE, pc.CARTRIDGE_LOAD_URL, pc.CARTRIDGE_LOAD_DATA_FILE, pc.CARTRIDGE_SAVE_DATA_FILE, pc.CARTRIDGE_CHOOSE_FORMAT,
         pc.TAPE_LOAD_FILE, pc.TAPE_LOAD_URL, pc.TAPE_SAVE_FILE,
         pc.AUTO_LOAD_FILE, pc.AUTO_LOAD_URL
     ]);

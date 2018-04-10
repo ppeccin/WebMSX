@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // TODO Bug in session name when URL link used
-// TODO ROM Format Dialog not net-aware
 wmsx.NetClient = function(room) {
     "use strict";
 
