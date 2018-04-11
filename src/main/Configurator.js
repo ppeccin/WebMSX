@@ -232,7 +232,7 @@ wmsx.Configurator = {
                                                               // TODO Detect other countries/locations?
         var typePreffix;
         switch (type) {
-            case 4: typePreffix = "MSX2T"; break;
+            case 4: typePreffix = "MSX2PP"; break;
             case 3: typePreffix = "MSX2P"; break;
             case 2: typePreffix = "MSX2"; break;
             case 1: typePreffix = "MSX1"; break;

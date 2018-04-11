@@ -31,6 +31,7 @@ wmsx.Monitor = function(display) {
     this.setDefaults = function() {
         display.crtModeSetDefault();
         display.crtFilterSetDefault();
+        display.aspectAndScaleSetDefault();
         display.requestReadjust(true);
     };
 

@@ -97,23 +97,23 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    EMPTY:  { desc: "MSX2+ Barebone (NTSC)" },
-    MSX2T:  { desc: "MSX2+T Auto Detect",     autoType: 4 },
-    MSX2P:  { desc: "MSX2+ Auto Detect",      autoType: 3 },
-    MSX2:   { desc: "MSX2 Auto Detect",       autoType: 2 },
-    MSX1:   { desc: "MSX Auto Detect",        autoType: 1 },
-    MSX2TA: { desc: "MSX2+T America (NTSC)",  type: 4, presets: "_MSX2TA"},
-    MSX2TE: { desc: "MSX2+T Europe (PAL)",    type: 4, presets: "_MSX2TE"},
-    MSX2TJ: { desc: "MSX2+T Japan (NTSC)",    type: 4, presets: "_MSX2TJ", japanese: true },
-    MSX2PA: { desc: "MSX2+ America (NTSC)",   type: 3, presets: "_MSX2PA"},
-    MSX2PE: { desc: "MSX2+ Europe (PAL)",     type: 3, presets: "_MSX2PE"},
-    MSX2PJ: { desc: "MSX2+ Japan (NTSC)",     type: 3, presets: "_MSX2PJ", japanese: true },
-    MSX2A:  { desc: "MSX2 America (NTSC)",    type: 2, presets: "_MSX2A"},
-    MSX2E:  { desc: "MSX2 Europe (PAL)",      type: 2, presets: "_MSX2E"},
-    MSX2J:  { desc: "MSX2 Japan (NTSC)",      type: 2, presets: "_MSX2J",  japanese: true },
-    MSX1A:  { desc: "MSX America (NTSC)",     type: 1, presets: "_MSX1A"},
-    MSX1E:  { desc: "MSX Europe (PAL)",       type: 1, presets: "_MSX1E"},
-    MSX1J:  { desc: "MSX Japan (NTSC)",       type: 1, presets: "_MSX1J",  japanese: true }
+    EMPTY:   { desc: "MSX2+ Barebone (NTSC)" },
+    MSX2PP:  { desc: "MSX2++ Auto Detect",     autoType: 4 },
+    MSX2P:   { desc: "MSX2+ Auto Detect",      autoType: 3 },
+    MSX2:    { desc: "MSX2 Auto Detect",       autoType: 2 },
+    MSX1:    { desc: "MSX Auto Detect",        autoType: 1 },
+    MSX2PPA: { desc: "MSX2++ America (NTSC)",  type: 4, presets: "_MSX2PPA"},
+    MSX2PPE: { desc: "MSX2++ Europe (PAL)",    type: 4, presets: "_MSX2PPE"},
+    MSX2PPJ: { desc: "MSX2++ Japan (NTSC)",    type: 4, presets: "_MSX2PPJ", japanese: true },
+    MSX2PA:  { desc: "MSX2+ America (NTSC)",   type: 3, presets: "_MSX2PA"},
+    MSX2PE:  { desc: "MSX2+ Europe (PAL)",     type: 3, presets: "_MSX2PE"},
+    MSX2PJ:  { desc: "MSX2+ Japan (NTSC)",     type: 3, presets: "_MSX2PJ", japanese: true },
+    MSX2A:   { desc: "MSX2 America (NTSC)",    type: 2, presets: "_MSX2A"},
+    MSX2E:   { desc: "MSX2 Europe (PAL)",      type: 2, presets: "_MSX2E"},
+    MSX2J:   { desc: "MSX2 Japan (NTSC)",      type: 2, presets: "_MSX2J",  japanese: true },
+    MSX1A:   { desc: "MSX America (NTSC)",     type: 1, presets: "_MSX1A"},
+    MSX1E:   { desc: "MSX Europe (PAL)",       type: 1, presets: "_MSX1E"},
+    MSX1J:   { desc: "MSX Japan (NTSC)",       type: 1, presets: "_MSX1J",  japanese: true }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -190,21 +190,21 @@ WMSX.PRESETS_CONFIG = {
         "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
     },
 
-    // MSX2+ Turbp Machine Presets. Do not use directly
+    // MSX2++ Machine Presets. Do not use directly
 
-    _MSX2TA: {
-        _INCLUDE:           "_MSX2PA, _MSX2TBASE",
+    _MSX2PPA: {
+        _INCLUDE:           "_MSX2PA, _MSX2PPBASE",
         BOOT_DURATION_AUTO: 165
     },
-    _MSX2TE: {
-        _INCLUDE:           "_MSX2PE, _MSX2TBASE",
+    _MSX2PPE: {
+        _INCLUDE:           "_MSX2PE, _MSX2PPBASE",
         BOOT_DURATION_AUTO: 175
     },
-    _MSX2TJ: {
-        _INCLUDE:           "_MSX2PJ, _MSX2TBASE",
+    _MSX2PPJ: {
+        _INCLUDE:           "_MSX2PJ, _MSX2PPBASE",
         BOOT_DURATION_AUTO: 165
     },
-    _MSX2TBASE: {
+    _MSX2PPBASE: {
         _INCLUDE:           "HARDDISK",
         CPU_TURBO_MODE:     3,
         VDP_TURBO_MODE:     4

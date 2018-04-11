@@ -300,7 +300,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         osdTimeout = setTimeout(hideOSD, OSD_TIME);
     };
 
-    this.displayDefaultScale = function() {
+    function displayDefaultScale() {
         if (WMSX.SCREEN_DEFAULT_SCALE > 0) return WMSX.SCREEN_DEFAULT_SCALE;
 
         var maxWidth = Number.parseFloat(window.getComputedStyle(mainElement.parentElement).width);
@@ -308,7 +308,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         //console.error(">>> Parent width: " + maxWidth);
 
         return maxWidth >= 660 ? 1.1 : maxWidth >= 540 ? 0.9 : maxWidth >= 420 ? 0.7 : maxWidth >= 320 ? 0.55 : 0.5;
-    };
+    }
 
     function hideOSD() {
         osd.style.transition = "all 0.15s linear";
@@ -320,6 +320,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
         canvasContext = null;
+    };
+
+    this.aspectAndScaleSetDefault = function() {
+        aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
+        scaleY = displayDefaultScale();
+        scaleYBeforeUserFullscreen = 0;
     };
 
     this.crtFilterToggle = function() {
@@ -359,6 +365,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.displayToggleFullscreen = function() {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -2) return;
+
+        // Save scale before Fullscreen
+        if (!isFullscreen && !isMobileDevice) scaleYBeforeUserFullscreen = scaleY;
 
         // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
         if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
@@ -1549,7 +1558,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
-                monitor.displayScale(WMSX.SCREEN_DEFAULT_ASPECT, self.displayDefaultScale());
+                monitor.displayScale(aspectX, scaleYBeforeUserFullscreen || displayDefaultScale());
             }
 
             self.focus();
@@ -1774,6 +1783,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
     var scaleY = 1.1;
+    var scaleYBeforeUserFullscreen = 0;
     var pixelWidth = 1, pixelHeight = 1;
 
     var mousePointerLocked = false;
