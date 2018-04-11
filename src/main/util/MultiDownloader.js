@@ -100,7 +100,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     }
 
     function proxyze(url) {
-        return WMSX.WEB_EXTENSIONS_SERVER ? "http://" + WMSX.WEB_EXTENSIONS_SERVER + "/proxy-remote-download?url=" + url : url;
+        return WMSX.WEB_EXTENSIONS_PROXY_SERVER ? "http://" + WMSX.WEB_EXTENSIONS_PROXY_SERVER + "/proxy-remote-download?url=" + url : url;
     }
 
     function scheduleLoadingIcon() {

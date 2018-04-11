@@ -90,7 +90,7 @@ WMSX = {
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
 
-    WEB_EXTENSIONS_SERVER:          "",                         // Server address for Proxy download and NetPlay, only available at the official website
+    WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay
 
     ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
 
