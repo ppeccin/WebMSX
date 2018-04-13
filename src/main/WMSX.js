@@ -89,6 +89,7 @@ WMSX = {
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
+    PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
 
     WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay
 

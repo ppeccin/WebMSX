@@ -32,6 +32,9 @@ wmsx.Configurator = {
         // Ensure the correct types of the parameters
         normalizeParameterTypes();
 
+        // Apply user asked page CSS
+        if(WMSX.PAGE_BACK_CSS) document.body.style.background = WMSX.PAGE_BACK_CSS;
+
         // Auto activate HardDrive Extension if not active and user trying to load HardDisk file
         if ((WMSX.HARDDISK_URL || WMSX.HARDDISK_FILES_URL) && !WMSX.EXTENSIONS.HARDDISK) {
             WMSX.EXTENSIONS.HARDDISK = 1;
