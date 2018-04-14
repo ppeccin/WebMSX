@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machineTypeSocket) {
+wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSocket) {
 "use strict";
 
     var self = this;
@@ -37,13 +37,18 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machine
         updatePopup();
     };
 
+    this.cancelKeyEditing = function() {
+        keyEditingLocked = false;
+        mouseLeaveKey();
+    };
+
     function setupKeyboard() {
         keyboardNameElement = document.getElementById("wmsx-inputs-keyboard-name");
         keyboardNameElement.addEventListener("click", function() { controllersHub.toggleKeyboardLayout(); });
 
-        keyboardElement = document.getElementById("wmsx-keyboard");
-        keyboardElement.addEventListener("mousedown", mouseDownKeyboard);
+        modalElement.addEventListener("mousedown", mouseDownModal, true);
 
+        keyboardElement = document.getElementById("wmsx-keyboard");
         keysElements = wmsx.VirtualKeyboard.create(keyboardElement, function(keyElement) {
             if (keyElement.wmsxKey) keyElements.push(keyElement);
             keyElement.addEventListener("mouseenter", mouseEnterKey);
@@ -51,13 +56,28 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machine
         }, false, japanese);
     }
 
-    function mouseDownKeyboard(e) {
-        if (msxKeyEditing && e.which === 3) domKeyboard.clearKey(msxKeyEditing);
+    function mouseDownModal(e) {
+        var msxKey = e.target.wmsxKey;
+        if (msxKey) {
+            if (msxKeyEditing === msxKey) {
+                if (e.which === 1) keyEditingLocked = !keyEditingLocked;
+                else if (e.which === 3) domKeyboard.clearKey(msxKeyEditing);
+            } else {
+                keyElementEditing = e.target;
+                msxKeyEditing = keyElementEditing.wmsxKey;
+                keyEditingLocked = e.which === 1;
+            }
+        } else {
+            keyEditingLocked = false;
+            mouseLeaveKey();
+        }
+
         self.refresh();
         updatePopup();
     }
 
     function mouseEnterKey(e) {
+        if (keyEditingLocked) return;
         if (e.target.wmsxKey) {
             keyElementEditing = e.target;
             msxKeyEditing = keyElementEditing.wmsxKey;
@@ -67,6 +87,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machine
     }
 
     function mouseLeaveKey() {
+        if (keyEditingLocked) return;
         keyElementEditing = msxKeyEditing = null;
         updatePopup();
     }
@@ -74,7 +95,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machine
     function updatePopup() {
         if (!msxKeyEditing) {
             popup.hide();
-            returnFocusElement.focus();
+            modalElement.focus();
             return;
         }
 
@@ -83,7 +104,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machine
         var x = keyRec.left + keyRec.width / 2;
         var y = keyRec.top;
 
-        popup.show(self, msxKeyEditing, 0, x, y, POPUP_HEADING, POPUP_FOOTER);
+        popup.show(self, msxKeyEditing, 0, x, y, POPUP_HEADING, POPUP_FOOTER, keyEditingLocked);
     }
 
     function refreshUnmappedIndicator() {
@@ -97,7 +118,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, returnFocusElement, machine
     var domKeyboard = controllersHub.getKeyboard();
 
     var keyElements = [];
-    var keyElementEditing = null, msxKeyEditing = null;
+    var keyElementEditing = null, msxKeyEditing = null, keyEditingLocked = false;
     var keyboardNameElement;
 
     var japanese = false;

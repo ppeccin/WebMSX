@@ -932,15 +932,19 @@ html.wmsx-full-screen #wmsx-logo-image {
 }
 .wmsx-keyboard-space {
     left: 103px;
-    width: 189px;
-}
-.wmsx-keyboard-code {
-    left: 293px;
-    width: 46px;
+    width: 217px;
 }
 .wmsx-keyboard-dead {
-    left: 340px;
-    width: 38px;
+    left: 333px;
+    width: 26px;
+}
+.wmsx-keyboard-shift2 {
+    left: 360px;
+    width: 41px;
+}
+.wmsx-keyboard-code {
+    left: 321px;
+    width: 46px;
 }
 
 .wmsx-keyboard-num .wmsx-keyboard-key {
@@ -1010,14 +1014,15 @@ html.wmsx-full-screen #wmsx-logo-image {
     left: 336px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-space {
-    width: 141px;
+    width: 155px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-code {
-    left: 245px;
-    width: 40px;
+    left: 259px;
+    width: 39px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-dead {
-    left: 286px;
+    left: 299px;
+    top: 25px;
 }
 .wmsx-keyboard-narrow .wmsx-keyboard-shift2 {
     display: none;

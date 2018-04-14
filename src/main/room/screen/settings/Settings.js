@@ -27,6 +27,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
 
     this.hide = function () {
         if (!visible) return;
+        if (keyboardConfigurator) keyboardConfigurator.cancelKeyEditing();
         self.hideLesser();
         WMSX.room.screen.focus();
     };
@@ -39,6 +40,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
     };
 
     this.setPage = function (pPage) {
+        if (keyboardConfigurator) keyboardConfigurator.cancelKeyEditing();
         page = pPage;
 
         var contentPosition = {

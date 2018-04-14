@@ -158,7 +158,7 @@ wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CON
 
     k.VK_ALTERNATE_ESC = { c: k.VK_F1.c | wmsx.DOMKeys.ALT, n: [ "Alt", "F1" ] };
 
-    // Alternate codes for FF
+    // FireFox specific codes
     k.VK_FF_MINUS = {c: 173, n: "-" };
     k.VK_FF_EQUALS = {c: 61, n: "=" };
     k.VK_FF_SEMICOLON = {c: 59, n: ";" };

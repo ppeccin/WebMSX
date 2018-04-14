@@ -1653,6 +1653,9 @@ wmsx.SettingsGUI.css = function() {
     box-sizing: border-box;
     z-index: 10;
 }
+#wmsx-control-mapping-popup.wmsx-locked {
+    border-color: hsl(60, 100%, 68%);
+}
 #wmsx-control-mapping-popup .wmsx-command {
     width: auto;
     line-height: 21px;
@@ -1673,6 +1676,9 @@ wmsx.SettingsGUI.css = function() {
     box-shadow: 4px 4px 2px 0 rgba(0, 0, 0, .55);
     box-sizing: border-box;
     transform: translateY(16px) rotate(45deg);
+}
+#wmsx-control-mapping-popup.wmsx-locked:after {
+    border-color: transparent hsl(60, 100%, 68%) hsl(60, 100%, 68%) transparent;
 }
 
 .wmsx-clear {

@@ -24,7 +24,7 @@ wmsx.KeyboardKeys = {
     COMMA          : { m:  [ 2, 2 ], key: "COMMA",         sn: ",",   ssn: "<" },
     PERIOD         : { m:  [ 2, 3 ], key: "PERIOD",        sn: ".",   ssn: ">" },
     SLASH          : { m:  [ 2, 4 ], key: "SLASH",         sn: "/",   ssn: "?" },
-    DEAD           : { m:  [ 2, 5 ], key: "DEAD",          sn: "DED",             jn: " ",    jsn: "_" },
+    DEAD           : { m:  [ 2, 5 ], key: "DEAD",          sn: "´",               jn: " ",    jsn: "_" },
     A              : { m:  [ 2, 6 ], key: "A",             sn: "A" },
     B              : { m:  [ 2, 7 ], key: "B",             sn: "B" },
     C              : { m:  [ 3, 0 ], key: "C",             sn: "C" },

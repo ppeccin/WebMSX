@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Validate old preferences x new keyboards
 (function() {
 
     // Base mapping
@@ -115,7 +116,7 @@
     // BR
     var br = {};
     for (key in base) br[key] = base[key];
-    // BR specific browser differences
+    // BR specific keys and browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
             br.DEAD =          [ k.VK_FF_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
@@ -134,9 +135,10 @@
     }
 
     wmsx.BuiltInKeyboards = {
-        all: [ "Default", "pt-BR" ],
-        "Default": us,
-        "pt-BR": br
+        all: [ "en-US", "pt-BR", "ja-JP" ],
+        "en-US": us,
+        "pt-BR": br,
+        "ja-JP": us
     };
 
 })();

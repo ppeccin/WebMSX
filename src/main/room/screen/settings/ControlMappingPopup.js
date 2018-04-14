@@ -7,7 +7,7 @@ wmsx.ControlMappingPopup = function() {
         setup();
     }
 
-    this.show = function(pController, pControlEditing, pPortEditing, x, y, heading, footer) {
+    this.show = function(pController, pControlEditing, pPortEditing, x, y, heading, footer, locked) {
         posX = x; posY = y;
         controller = pController;
         controlEditing = pControlEditing;
@@ -15,6 +15,7 @@ wmsx.ControlMappingPopup = function() {
         modifPending = null;
         popupHeading.innerHTML = heading;
         popupFooter.innerHTML = footer;
+        popup.classList.toggle("wmsx-locked", !!locked);
         update();
     };
 
@@ -35,6 +36,7 @@ wmsx.ControlMappingPopup = function() {
         popupFooter = document.getElementById("wmsx-control-mapping-popup-footer");
         popup.tabIndex = -1;
 
+        popup.addEventListener("mousedown", wmsx.Util.blockEvent);
         popup.addEventListener("keydown", keyDown);
         popup.addEventListener("keyup", keyUp);
     }

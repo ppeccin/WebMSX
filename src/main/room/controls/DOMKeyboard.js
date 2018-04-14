@@ -238,7 +238,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     function makeCustomKeyboard() {
-        var customName = currentKeyboard === availableKeyboards[0] ? "CUSTOM" : currentKeyboard + "-CUSTOM";
+        var customName = currentKeyboard + "-CUSTOM";
         // Copy current mapping to new Custom Keyboard if not yet available
         if (!customKeyboards[customName]) {
             customKeyboards[customName] = {};
@@ -247,9 +247,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
         // Redefine mappings based on current
         var custom = customKeyboards[customName];
-        for (var k in mapping) {
+        for (var k in mapping)
             custom[k] = mapping[k].slice(0);
-        }
 
         self.setKeyboard(customName, false);
     }

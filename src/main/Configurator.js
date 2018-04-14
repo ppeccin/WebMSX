@@ -10,8 +10,8 @@ wmsx.Configurator = {
         if (WMSX.ALLOW_URL_PARAMETERS) {
             urlParams = parseURLParams();
             // First override base MACHINE and PRESETS parameters
-            if (urlParams.MACHINE) { this.applyParam("MACHINE", urlParams.MACHINE); delete urlParams.MACHINE }
-            if (urlParams.PRESETS) { this.applyParam("PRESETS", urlParams.PRESETS); delete urlParams.PRESETS }
+            if (urlParams.MACHINE) { this.applyParam("MACHINE", urlParams.MACHINE); delete urlParams.MACHINE; }
+            if (urlParams.PRESETS) { this.applyParam("PRESETS", urlParams.PRESETS); delete urlParams.PRESETS; }
         }
 
         // Apply Alternate Slot Configuration first if asked

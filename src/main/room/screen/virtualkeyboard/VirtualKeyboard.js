@@ -72,8 +72,8 @@ wmsx.VirtualKeyboard = {
             ["ESCAPE", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D0", "MINUS", "EQUAL", "BACKSLASH", "BACKSPACE"],
             ["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "OPEN_BRACKET", "CLOSE_BRACKET", "ENTER_X1", "ENTER_X2"],
             ["CONTROL", "A", "S", "D", "F", "G", "H", "J", "K", "L", "SEMICOLON", "QUOTE", "BACKQUOTE", "ENTER"],
-            ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH", "SHIFT2"],
-            ["CAPSLOCK", "GRAPH", "SPACE", "CODE", "DEAD"]
+            ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", "COMMA", "PERIOD", "SLASH", "DEAD", "SHIFT2"],
+            ["CAPSLOCK", "GRAPH", "SPACE", "CODE" ]
         ],
         num: [
             ["NUM_7", "NUM_8", "NUM_9", "NUM_DIVIDE"],
@@ -106,7 +106,7 @@ wmsx.VirtualKeyboard = {
 
     dark: [
         "wmsx-keyboard-escape", "wmsx-keyboard-tab", "wmsx-keyboard-control", "wmsx-keyboard-shift", "wmsx-keyboard-capslock", "wmsx-keyboard-graph",
-        "wmsx-keyboard-backspace", "wmsx-keyboard-enter", "wmsx-keyboard-enter_x1", "wmsx-keyboard-enter_x2", "wmsx-keyboard-shift2", "wmsx-keyboard-code", "wmsx-keyboard-dead",
+        "wmsx-keyboard-backspace", "wmsx-keyboard-enter", "wmsx-keyboard-enter_x1", "wmsx-keyboard-enter_x2", "wmsx-keyboard-shift2", "wmsx-keyboard-code",
         "wmsx-keyboard-num_divide", "wmsx-keyboard-num_multiply", "wmsx-keyboard-num_minus", "wmsx-keyboard-num_plus"
     ],
 
@@ -115,11 +115,11 @@ wmsx.VirtualKeyboard = {
     },
 
     finalLabels: {   // Instead of the original labels
-        STP: "STOP", HOM: "HOME", CTR: "CTRL", SHF: "SHIFT", CAP: "CAPS", SPC: "SPACE", GRA: "GRAPH", COD: "CODE", DED: "DEAD"
+        STP: "STOP", HOM: "HOME", CTR: "CTRL", SHF: "SHIFT", CAP: "CAPS", SPC: "SPACE", GRA: "GRAPH", COD: "CODE"
     },
 
     blankKeys: new Set([ "ENTER_X1", "ENTER_X2", "UP", "DOWN", "LEFT", "RIGHT" ]),
 
-    byCSSKeys: new Set([ "SPACE", "CODE", "DEAD", "UP", "DOWN", "LEFT", "RIGHT" ])
+    byCSSKeys: new Set([ "SHIFT2", "SPACE", "CODE", "DEAD", "UP", "DOWN", "LEFT", "RIGHT" ])
 
 };
