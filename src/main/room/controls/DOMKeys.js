@@ -2,7 +2,6 @@
 
 // General, immutable info about host keys on different browsers and keyboard languages/layouts
 
-// TODO Japanese ろ key code. 226?
 wmsx.DOMKeys = {};
 
 wmsx.DOMKeys.MOD_SHIFT = 16;
@@ -158,7 +157,7 @@ wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CON
 
     k.VK_ALTERNATE_ESC = { c: k.VK_F1.c | wmsx.DOMKeys.ALT, n: [ "Alt", "F1" ] };
 
-    // FireFox specific codes
+    // FireFox specific codes (US)
     k.VK_FF_MINUS = {c: 173, n: "-" };
     k.VK_FF_EQUALS = {c: 61, n: "=" };
     k.VK_FF_SEMICOLON = {c: 59, n: ";" };
@@ -170,14 +169,29 @@ wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeys.SHIFT | wmsx.DOMKeys.CON
     k.VK_BR_SEMICOLON = {c: 191, n: ";" };
     k.VK_BR_SLASH = {c: 193, n: "/" };
     k.VK_BR_BACKSLASH = {c: 226, n: "\\" };
-
     // BR additional keys
     k.VK_BR_CEDILLA = {c: 186, n: "Ç" };
     k.VK_BR_TILDE = {c: 222, n: "~" };
     k.VK_BR_ACUTE = {c: 219, n: "´" };
-
     k.VK_FF_BR_TILDE = {c: 176, n: "~" };
     //k.VK_FF_BR_CEDILLA = {c: 0, n: "Ç" };
+
+    // JP alternate codes
+    k.VK_JP_CIRCUMFLEX = {c: 222, n: "^" };
+    k.VK_JP_ARROBA = {c: 192, n: "@" };
+    k.VK_JP_OPEN_BRACKET = {c: 219, n: "[" };
+    k.VK_JP_SEMICOLLON = {c: 187, n: ";" };
+    k.VK_JP_COLLON = {c: 186, n: ":" };
+    k.VK_JP_BACKSLASH = {c: 226, n: "\\" };
+    k.VK_JP_CAPS_LOCK = {c: 240, n: "CapsLock" };
+    k.VK_FF_JP_CIRCUMFLEX = {c: 160, n: "^" };
+    k.VK_FF_JP_ARROBA = {c: 64, n: "@" };
+    k.VK_FF_JP_SEMICOLLON = {c: 59, n: ";" };
+    k.VK_FF_JP_COLLON = {c: 58, n: ":" };
+    // JP additional keys
+    k.VK_JP_NOCONV = {c: 29, n: "NoConv" };
+    k.VK_JP_CONV = {c: 28, n: "Conv" };
+    k.VK_JP_KANA = {c: 242, n: "Kana" };
 
     k.VK_VOID = {c: -1, n: "Unbound"}
 

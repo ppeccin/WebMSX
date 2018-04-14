@@ -1,9 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Validate old preferences x new keyboards
 (function() {
 
-    // Base mapping
+    // Base mapping (en-US)
     var k = wmsx.DOMKeys;
     var base = {
         D0             : k.VK_0,
@@ -98,7 +97,7 @@
         NO             : k.VK_VOID
     };
 
-    // Apply browser differences to BASE
+    // Apply browser differences to BASE (en-US)
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
             base.MINUS =     k.VK_FF_MINUS;
@@ -109,14 +108,14 @@
 
     // Define built-in keyboards
 
-    // Default (US)
+    // Default (en-US)
     var us = {};
     for (var key in base) us[key] = base[key];
 
-    // BR
+    // pt-BR
     var br = {};
     for (key in base) br[key] = base[key];
-    // BR specific keys and browser differences
+    // pt-BR specific keys and browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
             br.DEAD =          [ k.VK_FF_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
@@ -124,21 +123,53 @@
         default:
             br.QUOTE =         k.VK_BR_QUOTE;
             br.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
-            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_BR_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
             br.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
-            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_BR_CLOSE_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "]" ] } ];
             br.BACKQUOTE =     k.VK_BR_ACUTE;
             br.SEMICOLON =     k.VK_BR_SEMICOLON;
             br.SLASH =         k.VK_BR_SLASH;
             br.BACKSLASH =     k.VK_BR_BACKSLASH;
             br.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
+            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_BR_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
+            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_BR_CLOSE_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "]" ] } ];
+    }
+
+    // ja-JP
+    var jp = {};
+    for (key in base) jp[key] = base[key];
+    // ja-JP specific keys and browser differences
+    switch (wmsx.Util.browserInfo().name) {
+        case "FIREFOX":
+            jp.EQUAL =         k.VK_FF_JP_CIRCUMFLEX;
+            jp.OPEN_BRACKET =  k.VK_FF_JP_ARROBA;
+            jp.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
+            jp.SEMICOLON =     k.VK_FF_JP_SEMICOLLON;
+            jp.QUOTE =         k.VK_FF_JP_COLLON;
+            jp.BACKQUOTE =     k.VK_CLOSE_BRACKET;
+            jp.DEAD =          [ k.VK_RCONTROL, k.VK_END ];                 // Japanese IntlRo bug: key code is the same as IntlYen, so do not use
+            jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
+            jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
+            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_JP_CIRCUMFLEX.c | wmsx.DOMKeys.ALT, n: [ "Alt", "^" ] } ];
+            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
+            break;
+        default:
+            jp.EQUAL =         k.VK_JP_CIRCUMFLEX;
+            jp.OPEN_BRACKET =  k.VK_JP_ARROBA;
+            jp.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
+            jp.SEMICOLON =     k.VK_JP_SEMICOLLON;
+            jp.QUOTE =         k.VK_JP_COLLON;
+            jp.BACKQUOTE =     k.VK_CLOSE_BRACKET;
+            jp.DEAD =          [ k.VK_JP_BACKSLASH, k.VK_RCONTROL, k.VK_END ];
+            jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
+            jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
+            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_JP_CIRCUMFLEX.c | wmsx.DOMKeys.ALT, n: [ "Alt", "^" ] } ];
+            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
     }
 
     wmsx.BuiltInKeyboards = {
         all: [ "en-US", "pt-BR", "ja-JP" ],
         "en-US": us,
         "pt-BR": br,
-        "ja-JP": us
+        "ja-JP": jp
     };
 
 })();

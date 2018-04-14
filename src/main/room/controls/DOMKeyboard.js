@@ -258,8 +258,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         availableKeyboards = wmsx.BuiltInKeyboards.all.slice(0);
         availableKeyboards = availableKeyboards.concat(Object.keys(customKeyboards));
 
-        var keyboard = WMSX.userPreferences.current.keyboard;                   // undefined = auto
-        if (keyboard) this.setKeyboard(keyboard, false);
+        var keyboard = WMSX.userPreferences.current.keyboard;                                // undefined = auto
+        if (availableKeyboards.indexOf(keyboard) >= 0) this.setKeyboard(keyboard, false);    // use default if not found or not set
         else setDefaultKeyboard();
     };
 
