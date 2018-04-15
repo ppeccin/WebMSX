@@ -4,8 +4,7 @@
 
 wmsx.DOMKeys = {};
 
-wmsx.DOMKeys.MOD_SHIFT = 16;
-wmsx.DOMKeys.LOC_SHIFT = 24;
+wmsx.DOMKeys.LOC_BIT_SHIFT = 24;
 
 wmsx.DOMKeys.SHIFT =   0x10000;
 wmsx.DOMKeys.CONTROL = 0x20000;
@@ -234,10 +233,10 @@ wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
 
     // Ignore modifiers for modifier keys SHIFT, CONTROL, ALT, META
     if (this.isModifierKeyCode(code))
-        return (code & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_SHIFT);
+        return (code & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_BIT_SHIFT);
 
     return code
-        | (e.location << this.LOC_SHIFT)
+        | (e.location << this.LOC_BIT_SHIFT)
         | (e.shiftKey ? this.SHIFT : 0)
         | (e.ctrlKey ? this.CONTROL : 0)
         | (e.altKey  ? this.ALT : 0)

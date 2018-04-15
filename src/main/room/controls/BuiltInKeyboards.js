@@ -63,7 +63,7 @@
         F3             : k.VK_F3,
         F4             : k.VK_F4,
         F5             : k.VK_F5,
-        ESCAPE         : [ k.VK_ESCAPE, k.VK_ALTERNATE_ESC ],
+        ESCAPE         : [ k.VK_ESCAPE, { c: k.VK_F1.c | wmsx.DOMKeys.ALT, n: [ "Alt", "F1" ] } ],
         TAB            : k.VK_TAB,
         STOP           : [ k.VK_PAUSE, k.VK_BREAK, k.VK_F9 ],
         BACKSPACE      : k.VK_BACKSPACE,
