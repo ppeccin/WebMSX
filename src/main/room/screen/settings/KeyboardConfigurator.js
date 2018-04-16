@@ -42,6 +42,13 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
         mouseLeaveKey();
     };
 
+    this.clearControlEditing = function() {
+        if (!msxKeyEditing) return;
+        domKeyboard.clearKey(msxKeyEditing);
+        self.refresh();
+        updatePopup();
+    };
+
     function setupKeyboard() {
         keyboardNameElement = document.getElementById("wmsx-inputs-keyboard-name");
         keyboardNameElement.addEventListener("click", function() { controllersHub.toggleKeyboardLayout(); });

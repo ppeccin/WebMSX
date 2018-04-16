@@ -71,13 +71,14 @@ wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             e.stopPropagation();
+            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
             // Confirm
-            if (e.keyCode === CONFIRM_KEY && e.ctrlKey) {
+            if (keyCode === CONFIRM_KEY && e.ctrlKey) {
                 e.preventDefault();
                 self.hide(true);
             }
             // Abort
-            if (e.keyCode === ABORT_KEY || (e.keyCode === TOGGLE_KEY && e.altKey)) {
+            if (keyCode === ABORT_KEY || (keyCode === TOGGLE_KEY && e.altKey)) {
                 e.preventDefault();
                 self.hide(false);
             }

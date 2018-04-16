@@ -162,13 +162,14 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlo
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
+            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
             // Abort
-            if (e.keyCode === ESC_KEY) hideAbort();
+            if (keyCode === ESC_KEY) hideAbort();
             // Confirm
-            else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
+            else if (CONFIRM_KEYS.indexOf(keyCode) >= 0) hideConfirm();
             // Select
-            else if (SELECT_KEYS[e.keyCode]) {
-                optionSelected += SELECT_KEYS[e.keyCode];
+            else if (SELECT_KEYS[keyCode]) {
+                optionSelected += SELECT_KEYS[keyCode];
                 if (optionSelected < 0) optionSelected = 0; else if (optionSelected >= userFormatOptions.length) optionSelected = userFormatOptions.length - 1;
                 refreshListSelection();
             }

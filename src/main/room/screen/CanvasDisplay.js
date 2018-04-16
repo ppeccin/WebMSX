@@ -1448,27 +1448,28 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // Block keys and respond to some
         barMenu.addEventListener("keydown", function(e) {
+            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
             // Hide
-            if (MENU_CLOSE_KEYS[e.keyCode]) hideBarMenu();
+            if (MENU_CLOSE_KEYS[keyCode]) hideBarMenu();
             // Execute
-            else if (barMenuItemActive && MENU_EXEC_KEYS[e.keyCode & ~KEY_SHIFT_MASK & ~KEY_CTRL_MASK]) barMenuItemFireActive(e.shiftKey, e.ctrlKey);
+            else if (barMenuItemActive && MENU_EXEC_KEYS[keyCode & ~KEY_SHIFT_MASK & ~KEY_CTRL_MASK]) barMenuItemFireActive(e.shiftKey, e.ctrlKey);
             // Select Menu
-            else if (MENU_SELECT_KEYS[e.keyCode]) {
+            else if (MENU_SELECT_KEYS[keyCode]) {
                 if (!barMenuActive) return;
                 var newMenuIndex = barMenuActive.wmsxMenuIndex;
                 do {
-                    newMenuIndex = (barMenus.length + newMenuIndex + MENU_SELECT_KEYS[e.keyCode]) % barMenus.length;
+                    newMenuIndex = (barMenus.length + newMenuIndex + MENU_SELECT_KEYS[keyCode]) % barMenus.length;
                     var newMenu = barMenus[newMenuIndex];
                 } while(!newMenu || newMenu.wmsxHidden);    // barMenus has gaps === null
                 showBarMenu(newMenu, true);
             }
             // Select Item
-            else if (MENU_ITEM_SELECT_KEYS[e.keyCode]) {
+            else if (MENU_ITEM_SELECT_KEYS[keyCode]) {
                 var items = barMenu.wmsxItems;
                 var newItem = barMenuItemActive ? barMenuItemActive.wmsxItemIndex : -1;
                 var tries = BAR_MENU_MAX_ITEMS + 1;
                 do {
-                    newItem = (newItem + items.length + MENU_ITEM_SELECT_KEYS[e.keyCode]) % items.length;
+                    newItem = (newItem + items.length + MENU_ITEM_SELECT_KEYS[keyCode]) % items.length;
                 } while (--tries >= 0 && !items[newItem].wmsxMenuOption);
                 if (tries >= 0) barMenuItemSetActive(items[newItem]);
             }

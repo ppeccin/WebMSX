@@ -98,13 +98,14 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
+            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
             // Abort
-            if (e.keyCode === ESC_KEY) hideAbort();
+            if (keyCode === ESC_KEY) hideAbort();
             // Confirm
-            else if (CONFIRM_KEYS.indexOf(e.keyCode) >= 0) hideConfirm();
+            else if (CONFIRM_KEYS.indexOf(keyCode) >= 0) hideConfirm();
             // Select
-            else if (SELECT_KEYS[e.keyCode]) {
-                var idx = machines.indexOf(machineSelected) + SELECT_KEYS[e.keyCode];
+            else if (SELECT_KEYS[keyCode]) {
+                var idx = machines.indexOf(machineSelected) + SELECT_KEYS[keyCode];
                 var newMachine = machines[idx];
                 if (newMachine && WMSX.MACHINES_CONFIG[newMachine].type) {      // Exclude EMPTY and AUTO options
                     machineSelected = newMachine;

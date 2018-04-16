@@ -185,6 +185,16 @@ wmsx.DOMKeysNew.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeysNew.SHIFT | wmsx.DOMKe
     k.VK_JP_KANA = {c: 242, n: "Kana" };
 */
 
+    // Define additional collections for key identification
+    k.keysByCode = {};
+    k.keysByLegacyCode = {};
+    for (var key in k) {
+        var code = k[key].d;
+        var legCode = k[key].c;
+        if (code) k.keysByCode[code] = k[key];
+        if (legCode > 0) k.keysByLegacyCode[legCode] = k[key];
+    }
+
 })(wmsx.DOMKeysNew, wmsx.DOMKeysNew.LOCLEFT, wmsx.DOMKeysNew.LOCRIGHT, wmsx.DOMKeysNew.LOCNUM);
 
 wmsx.DOMKeysNew.forcedNames = {
@@ -215,16 +225,17 @@ wmsx.DOMKeysNew.forcedNames = {
     39:  "Right"
 };
 
-wmsx.DOMKeysNew.isModifierKeyCode = function(keyCode) {
+wmsx.DOMKeysNew.isModifierKey = function(e) {
+    var keyCode = e.keyCode;
     return keyCode === 16 || keyCode === 17 || keyCode === 18 || keyCode === 91;
 };
 
 wmsx.DOMKeysNew.codeForKeyboardEvent = function(e) {
     var code = e.keyCode;
 
-    // Ignore modifiers for modifier keys SHIFT, CONTROL, ALT, META
-    if (this.isModifierKeyCode(code))
-        return (code & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_BIT_SHIFT);
+    // Does not return modifiers for modifier keys SHIFT, CONTROL, ALT, META
+    if (this.isModifierKey(e))
+        return code | (e.location << this.LOC_BIT_SHIFT);
 
     return code
         | (e.location << this.LOC_BIT_SHIFT)

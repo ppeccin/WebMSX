@@ -239,7 +239,8 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             // Exit
-            if (EXIT_KEYS.indexOf(e.keyCode) >= 0) self.hide();
+            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            if (EXIT_KEYS.indexOf(keyCode) >= 0) self.hide();
             return wmsx.Util.blockEvent(e);
         });
 

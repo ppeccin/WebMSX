@@ -12,7 +12,7 @@ wmsx.ControlMappingPopup = function() {
         controller = pController;
         controlEditing = pControlEditing;
         portEditing = pPortEditing;
-        modifPending = null;
+        modifKeyCodePending = null;
         popupHeading.innerHTML = heading;
         popupFooter.innerHTML = footer;
         popup.classList.toggle("wmsx-locked", !!locked);
@@ -36,17 +36,22 @@ wmsx.ControlMappingPopup = function() {
         popupFooter = document.getElementById("wmsx-control-mapping-popup-footer");
         popup.tabIndex = -1;
 
-        popup.addEventListener("mousedown", wmsx.Util.blockEvent);
+        popup.addEventListener("mousedown", mouseDown);
         popup.addEventListener("keydown", keyDown);
         popup.addEventListener("keyup", keyUp);
+    }
+
+    function mouseDown(e) {
+        wmsx.Util.blockEvent(e);
+        if (e.which === 3) controller.clearControlEditing();
     }
 
     function keyDown(e) {
         if (!controlEditing) return;
 
         // Modifier keys are accepted only on release
-        if (wmsx.DOMKeys.isModifierKeyCode(e.keyCode))
-            modifPending = e.keyCode;
+        if (wmsx.DOMKeys.isModifierKey(e))
+            modifKeyCodePending = wmsx.DOMKeys.codeForKeyboardEvent(e);
         else
             customizeControlKeyEvent(e);
 
@@ -59,7 +64,8 @@ wmsx.ControlMappingPopup = function() {
         if (!controlEditing) return;
 
         // Modifier keys are accepted only on release, and only the last one depressed
-        if (modifPending === e.keyCode) customizeControlKeyEvent(e);
+        var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        if (modifKeyCodePending === keyCode) customizeControlKeyEvent(e);
 
         e.stopPropagation();
         e.preventDefault();
@@ -91,7 +97,7 @@ wmsx.ControlMappingPopup = function() {
     function customizeControlKeyEvent(e) {
         var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
         controller.customizeControl(controlEditing, portEditing, mapping);
-        modifPending = null;
+        modifKeyCodePending = null;
         update();
     }
 
@@ -128,7 +134,7 @@ wmsx.ControlMappingPopup = function() {
 
 
     var posX = 0, posY = 0;
-    var controller = null, controlEditing = null, portEditing, modifPending = null;
+    var controller = null, controlEditing = null, portEditing, modifKeyCodePending = null;
 
     var popup, popupHeading, popupMapping, popupFooter;
     var POPUP_DIST = 14;

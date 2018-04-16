@@ -54,6 +54,13 @@ wmsx.PortsConfigurator = function(controllersHub, peripheralControls, returnFocu
         this.refresh();
     };
 
+    this.clearControlEditing = function() {
+        if (!joyButtonEditing) return;
+        controllersHub.clearControl(joyButtonEditing, portEditing);
+        self.refresh();
+        updatePopup();
+    };
+
     function setup() {
         // Set mode fields
         mouseModeElement = document.getElementById("wmsx-ports-mouse-mode");

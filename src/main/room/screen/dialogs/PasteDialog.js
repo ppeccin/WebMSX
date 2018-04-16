@@ -54,14 +54,15 @@ wmsx.PasteDialog = function(mainElement, screen, machineControls) {
         // Close the modal with ESC or ALT-V/Ins. Ignore common keys like SPACE, ENTER, ARROWS, etc
         cover.addEventListener("keydown", function (e) {
             e.stopPropagation();
+            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
             // Close
-            if (e.keyCode === ESC_KEY || ((e.keyCode === EXIT_KEY || e.keyCode === EXIT_KEY2) && e.altKey && !e.ctrlKey && !e.shiftKey)) {
+            if (keyCode === ESC_KEY || ((keyCode === EXIT_KEY || keyCode === EXIT_KEY2) && e.altKey && !e.ctrlKey && !e.shiftKey)) {
                 e.preventDefault();
                 self.hide();
                 return;
             }
            // Block default
-           if (ALLOW_DEFAULT_KEYS.indexOf(e.keyCode) < 0) e.preventDefault();
+           if (ALLOW_DEFAULT_KEYS.indexOf(keyCode) < 0) e.preventDefault();
         });
 
         // Capture the paste event

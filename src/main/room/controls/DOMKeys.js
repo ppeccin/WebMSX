@@ -224,16 +224,17 @@ wmsx.DOMKeys.forcedNames = {
     39:  "Right"
 };
 
-wmsx.DOMKeys.isModifierKeyCode = function(keyCode) {
+wmsx.DOMKeys.isModifierKey = function(e) {
+    var keyCode = e.keyCode;
     return keyCode === 16 || keyCode === 17 || keyCode === 18 || keyCode === 91;
 };
 
 wmsx.DOMKeys.codeForKeyboardEvent = function(e) {
     var code = e.keyCode;
 
-    // Ignore modifiers for modifier keys SHIFT, CONTROL, ALT, META
-    if (this.isModifierKeyCode(code))
-        return (code & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_BIT_SHIFT);
+    // Does not return modifiers for modifier keys SHIFT, CONTROL, ALT, META
+    if (this.isModifierKey(e))
+        return code | (e.location << this.LOC_BIT_SHIFT);
 
     return code
         | (e.location << this.LOC_BIT_SHIFT)
