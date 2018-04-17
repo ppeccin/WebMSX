@@ -1448,7 +1448,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // Block keys and respond to some
         barMenu.addEventListener("keydown", function(e) {
-            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var keyCode = domKeys.codeNewForKeyboardEvent(e);
             // Hide
             if (MENU_CLOSE_KEYS[keyCode]) hideBarMenu();
             // Execute
@@ -1828,15 +1828,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var NARROW_WIDTH = 450;
 
-    var k = wmsx.DOMKeys;
-    var KEY_CTRL_MASK  =  k.CONTROL;
-    var KEY_ALT_MASK   =  k.ALT;
-    var KEY_SHIFT_MASK =  k.SHIFT;
+    var domKeys = wmsx.DOMKeysNew;
 
-    var MENU_CLOSE_KEYS = {}; MENU_CLOSE_KEYS[k.VK_ESCAPE.c] = 1; MENU_CLOSE_KEYS[k.VK_CONTEXT.c] = 1;
-    var MENU_EXEC_KEYS = {}; MENU_EXEC_KEYS[k.VK_ENTER.c] = 1; MENU_EXEC_KEYS[k.VK_SPACE.c] = 1;
-    var MENU_SELECT_KEYS = {}; MENU_SELECT_KEYS[k.VK_LEFT.c] = -1; MENU_SELECT_KEYS[k.VK_RIGHT.c] = 1;
-    var MENU_ITEM_SELECT_KEYS = {}; MENU_ITEM_SELECT_KEYS[k.VK_UP.c] = -1; MENU_ITEM_SELECT_KEYS[k.VK_DOWN.c] = 1;
+    var KEY_CTRL_MASK  =  domKeys.CONTROL;
+    var KEY_ALT_MASK   =  domKeys.ALT;
+    var KEY_SHIFT_MASK =  domKeys.SHIFT;
+
+    var MENU_CLOSE_KEYS = {}; MENU_CLOSE_KEYS[domKeys.VK_ESCAPE.wc] = 1; MENU_CLOSE_KEYS[domKeys.VK_CONTEXT.wc] = 1;
+    var MENU_EXEC_KEYS = {}; MENU_EXEC_KEYS[domKeys.VK_ENTER.wc] = 1; MENU_EXEC_KEYS[domKeys.VK_SPACE.wc] = 1;
+    var MENU_SELECT_KEYS = {}; MENU_SELECT_KEYS[domKeys.VK_LEFT.wc] = -1; MENU_SELECT_KEYS[domKeys.VK_RIGHT.wc] = 1;
+    var MENU_ITEM_SELECT_KEYS = {}; MENU_ITEM_SELECT_KEYS[domKeys.VK_UP.wc] = -1; MENU_ITEM_SELECT_KEYS[domKeys.VK_DOWN.wc] = 1;
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 

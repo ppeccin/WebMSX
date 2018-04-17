@@ -11,7 +11,6 @@ wmsx.DOMKeys.CONTROL = 0x20000;
 wmsx.DOMKeys.ALT =     0x40000;
 wmsx.DOMKeys.META =    0x80000;
 
-wmsx.DOMKeys.LOCNONE =  0x0000000;
 wmsx.DOMKeys.LOCLEFT =  0x1000000;
 wmsx.DOMKeys.LOCRIGHT = 0x2000000;
 wmsx.DOMKeys.LOCNUM =   0x3000000;

@@ -184,7 +184,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
     }
 
     function processKeyEvent(e, press) {
-        var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        var code = domKeys.codeNewForKeyboardEvent(e);
         if (press && code === KEY_ESC) {
             self.hide();
             return wmsx.Util.blockEvent(e);
@@ -198,7 +198,9 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
 
     var keyboardConfigurator, portsConfigurator;
 
-    var KEY_ESC = wmsx.DOMKeys.VK_ESCAPE.c;
+    var domKeys = wmsx.DOMKeysNew;
+
+    var KEY_ESC = domKeys.VK_ESCAPE.wc;
 
 };
 

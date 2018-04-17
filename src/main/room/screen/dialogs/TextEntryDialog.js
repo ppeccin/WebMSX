@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Why top padding and top hidden on the textarea?
 wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
     "use strict";
 
@@ -71,14 +72,14 @@ wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             e.stopPropagation();
-            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var keyCode = domKeys.codeNewForKeyboardEvent(e);
             // Confirm
-            if (keyCode === CONFIRM_KEY && e.ctrlKey) {
+            if (keyCode === CONFIRM_KEY) {
                 e.preventDefault();
                 self.hide(true);
             }
             // Abort
-            if (keyCode === ABORT_KEY || (keyCode === TOGGLE_KEY && e.altKey)) {
+            if (keyCode === ABORT_KEY || keyCode === TOGGLE_KEY) {
                 e.preventDefault();
                 self.hide(false);
             }
@@ -98,8 +99,9 @@ wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
     var visible = false;
     var dialog, topbar, input, ok, cancel;
 
-    var k = wmsx.DOMKeys;
-    var ABORT_KEY = k.VK_ESCAPE.c, TOGGLE_KEY = k.VK_B.c;
-    var CONFIRM_KEY = k.VK_ENTER.c;
+    var domKeys = wmsx.DOMKeysNew;
+
+    var ABORT_KEY = domKeys.VK_ESCAPE.wc, TOGGLE_KEY = domKeys.VK_B.wc | domKeys.ALT;
+    var CONFIRM_KEY = domKeys.VK_ENTER.wc | domKeys.CONTROL;
 
 };

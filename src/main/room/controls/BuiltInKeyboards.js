@@ -3,7 +3,7 @@
 (function() {
 
     // Base mapping (en-US)
-    var k = wmsx.DOMKeys;
+    var k = wmsx.DOMKeysNew;
     var base = {
         D0             : k.VK_0,
         D1             : k.VK_1,
@@ -63,20 +63,20 @@
         F3             : k.VK_F3,
         F4             : k.VK_F4,
         F5             : k.VK_F5,
-        ESCAPE         : [ k.VK_ESCAPE, { c: k.VK_F1.c | wmsx.DOMKeys.ALT, n: [ "Alt", "F1" ] } ],
+        ESCAPE         : [ k.VK_ESCAPE, { c: k.VK_F1.c | k.ALT, n: [ "Alt", "F1" ] } ],
         TAB            : k.VK_TAB,
         STOP           : [ k.VK_PAUSE, k.VK_BREAK, k.VK_F9 ],
         BACKSPACE      : k.VK_BACKSPACE,
         SELECT         : [ k.VK_SCROLL_LOCK, k.VK_F10 ],
         ENTER          : [ k.VK_ENTER, k.VK_NUM_ENTER ],
         SPACE          : k.VK_SPACE,
-        HOME           : [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_EQUALS.c | wmsx.DOMKeys.ALT, n: [ "Alt", "=" ] } ],
-        INSERT         : [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ],
-        DELETE         : [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_CLOSE_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "]" ] } ],
-        UP             : [ k.VK_UP, k.VK_NUM_UP ],
-        DOWN           : [ k.VK_DOWN, k.VK_NUM_DOWN ],
-        RIGHT          : [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
-        LEFT           : [ k.VK_LEFT, k.VK_NUM_LEFT ],
+        HOME           : [ k.VK_HOME, { c: k.VK_EQUALS.c | k.ALT, n: [ "Alt", "=" ] } ],
+        INSERT         : [ k.VK_INSERT, { c: k.VK_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ],
+        DELETE         : [ k.VK_DELETE, { c: k.VK_CLOSE_BRACKET.c | k.ALT, n: [ "Alt", "]" ] } ],
+        UP             : k.VK_UP,
+        DOWN           : k.VK_DOWN,
+        RIGHT          : k.VK_RIGHT,
+        LEFT           : k.VK_LEFT,
         NUM_MULTIPLY   : k.VK_NUM_MULTIPLY,
         NUM_PLUS       : k.VK_NUM_PLUS,
         NUM_DIVIDE     : k.VK_NUM_DIVIDE,
@@ -97,14 +97,16 @@
         NO             : k.VK_VOID
     };
 
+/*
     // Apply browser differences to BASE (en-US)
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
             base.MINUS =     k.VK_FF_MINUS;
             base.EQUAL =     k.VK_FF_EQUALS;
-            base.HOME =      [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_EQUALS.c | wmsx.DOMKeys.ALT, n: [ "Alt", "=" ] } ];
+            base.HOME =      [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_EQUALS.c | k.ALT, n: [ "Alt", "=" ] } ];
             base.SEMICOLON = k.VK_FF_SEMICOLON;
     }
+*/
 
     // Define built-in keyboards
 
@@ -115,6 +117,7 @@
     // pt-BR
     var br = {};
     for (key in base) br[key] = base[key];
+/*
     // pt-BR specific keys and browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
@@ -129,13 +132,15 @@
             br.SLASH =         k.VK_BR_SLASH;
             br.BACKSLASH =     k.VK_BR_BACKSLASH;
             br.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
-            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_BR_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
-            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_BR_CLOSE_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "]" ] } ];
+            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_BR_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ];
+            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_BR_CLOSE_BRACKET.c | k.ALT, n: [ "Alt", "]" ] } ];
     }
+*/
 
     // ja-JP
     var jp = {};
     for (key in base) jp[key] = base[key];
+/*
     // ja-JP specific keys and browser differences
     switch (wmsx.Util.browserInfo().name) {
         case "FIREFOX":
@@ -148,8 +153,8 @@
             jp.DEAD =          [ k.VK_RCONTROL, k.VK_END ];                 // Japanese IntlRo bug: key code is the same as IntlYen, so do not use
             jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
             jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
-            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_JP_CIRCUMFLEX.c | wmsx.DOMKeys.ALT, n: [ "Alt", "^" ] } ];
-            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
+            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_JP_CIRCUMFLEX.c | k.ALT, n: [ "Alt", "^" ] } ];
+            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ];
             break;
         default:
             jp.EQUAL =         k.VK_JP_CIRCUMFLEX;
@@ -161,9 +166,10 @@
             jp.DEAD =          [ k.VK_JP_BACKSLASH, k.VK_RCONTROL, k.VK_END ];
             jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
             jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
-            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_JP_CIRCUMFLEX.c | wmsx.DOMKeys.ALT, n: [ "Alt", "^" ] } ];
-            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | wmsx.DOMKeys.ALT, n: [ "Alt", "[" ] } ];
+            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_JP_CIRCUMFLEX.c | k.ALT, n: [ "Alt", "^" ] } ];
+            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ];
     }
+*/
 
     wmsx.BuiltInKeyboards = {
         all: [ "en-US", "pt-BR", "ja-JP" ],

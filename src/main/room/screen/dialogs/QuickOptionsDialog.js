@@ -107,7 +107,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             // Exit
-            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var keyCode = domKeys.codeNewForKeyboardEvent(e);
             if (EXIT_KEYS.indexOf(keyCode) >= 0) self.hide();
             return wmsx.Util.blockEvent(e);
         });
@@ -118,7 +118,8 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
     var dialog, list;
     var items, controlsItems = [];
 
-    var k = wmsx.DOMKeys;
-    var EXIT_KEYS = [ k.VK_ESCAPE.c, k.VK_ENTER.c, k.VK_SPACE.c ];
+    var domKeys = wmsx.DOMKeysNew;
+
+    var EXIT_KEYS = [ domKeys.VK_ESCAPE.wc ];
 
 };

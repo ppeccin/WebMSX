@@ -54,9 +54,9 @@ wmsx.PasteDialog = function(mainElement, screen, machineControls) {
         // Close the modal with ESC or ALT-V/Ins. Ignore common keys like SPACE, ENTER, ARROWS, etc
         cover.addEventListener("keydown", function (e) {
             e.stopPropagation();
-            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var keyCode = domKeys.codeNewForKeyboardEvent(e);
             // Close
-            if (keyCode === ESC_KEY || ((keyCode === EXIT_KEY || keyCode === EXIT_KEY2) && e.altKey && !e.ctrlKey && !e.shiftKey)) {
+            if (keyCode === ESC_KEY || keyCode === EXIT_KEY1 || keyCode === EXIT_KEY2) {
                 e.preventDefault();
                 self.hide();
                 return;
@@ -83,10 +83,14 @@ wmsx.PasteDialog = function(mainElement, screen, machineControls) {
     var cover, box;
     var visible = false;
 
-    var k = wmsx.DOMKeys;
+    var domKeys = wmsx.DOMKeysNew;
+
+    // TODO Check code values together with e.shiftKey and modifiers
+
     var ALLOW_DEFAULT_KEYS = [
-        k.VK_V.c, k.VK_INSERT.c
+        // Ctrl V, Shift Ins, Shift Num-Ins
+        domKeys.VK_V.wc | domKeys.CONTROL, domKeys.VK_INSERT.wc | domKeys.SHIFT, domKeys.VK_NUM_0.wc | domKeys.SHIFT
     ];
-    var ESC_KEY = k.VK_ESCAPE.c, EXIT_KEY = k.VK_V.c, EXIT_KEY2 = k.VK_INSERT.c;
+    var ESC_KEY = domKeys.VK_ESCAPE.wc, EXIT_KEY1 = domKeys.VK_V.wc | domKeys.ALT, EXIT_KEY2 = domKeys.VK_INSERT.wc | domKeys.ALT;
 
 };

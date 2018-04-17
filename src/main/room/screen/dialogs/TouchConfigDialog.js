@@ -166,7 +166,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var keyCode = domKeys.codeNewForKeyboardEvent(e);
             // Exit
             if (EXIT_KEYS.indexOf(keyCode) >= 0) self.hide();
             // Select
@@ -209,10 +209,11 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
     var prefs = WMSX.userPreferences.current.touch;
     var touchControls = controllersHub.getTouchControls();
 
-    var k = wmsx.DOMKeys;
-    var EXIT_KEYS = [ k.VK_ESCAPE.c, k.VK_ENTER.c, k.VK_SPACE.c ];
+    var domKeys = wmsx.DOMKeysNew;
+
+    var EXIT_KEYS = [ domKeys.VK_ESCAPE.wc, domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];
     var SELECT_KEYS = {};
-    SELECT_KEYS[k.VK_LEFT.c] = -1;
-    SELECT_KEYS[k.VK_RIGHT.c] = 1;
+    SELECT_KEYS[domKeys.VK_LEFT.wc] = -1;
+    SELECT_KEYS[domKeys.VK_RIGHT.wc] = 1;
 
 };

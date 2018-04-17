@@ -327,7 +327,7 @@ wmsx.DOMPeripheralControls = function(room) {
     this.mediaChangeDisabledWarning = mediaChangeDisabledWarning;
 
     var initKeys = function() {
-        var k = wmsx.DOMKeys;
+        var k = domKeys;
 
         keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = pc.AUTO_LOAD_FILE;
         keyCodeMap[KEY_MACHINE_POWER | k.CONTROL | k.ALT] = pc.AUTO_LOAD_URL;
@@ -443,61 +443,63 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var netControlsToSend = new Array(100); netControlsToSend.length = 0;     // pre allocate empty Array
 
-    var EXCLUDE_SHIFT_MASK = ~wmsx.DOMKeys.SHIFT;
-    var INCLUDE_SHIFT_MASK = wmsx.DOMKeys.SHIFT;
+    var domKeys = wmsx.DOMKeysNew;
+
+    var EXCLUDE_SHIFT_MASK = ~domKeys.SHIFT;
+    var INCLUDE_SHIFT_MASK = domKeys.SHIFT;
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
 
-    var KEY_LEFT    = wmsx.DOMKeys.VK_LEFT.c;
-    var KEY_UP      = wmsx.DOMKeys.VK_UP.c;
-    var KEY_RIGHT   = wmsx.DOMKeys.VK_RIGHT.c;
-    var KEY_DOWN    = wmsx.DOMKeys.VK_DOWN.c;
+    var KEY_LEFT    = domKeys.VK_LEFT.wc;
+    var KEY_UP      = domKeys.VK_UP.wc;
+    var KEY_RIGHT   = domKeys.VK_RIGHT.wc;
+    var KEY_DOWN    = domKeys.VK_DOWN.wc;
 
-    var KEY_MENU      = wmsx.DOMKeys.VK_CONTEXT.c;
-    var KEY_DEFAULTS  = wmsx.DOMKeys.VK_BACKSPACE.c;
+    var KEY_MENU      = domKeys.VK_CONTEXT.wc;
+    var KEY_DEFAULTS  = domKeys.VK_BACKSPACE.wc;
 
-    var KEY_COPY   = wmsx.DOMKeys.VK_C.c;
-    var KEY_PASTE   = wmsx.DOMKeys.VK_V.c;
-    var KEY_PASTE2  = wmsx.DOMKeys.VK_INSERT.c;
-    var KEY_ENTER_STRING = wmsx.DOMKeys.VK_B.c;
+    var KEY_COPY   = domKeys.VK_C.wc;
+    var KEY_PASTE   = domKeys.VK_V.wc;
+    var KEY_PASTE2  = domKeys.VK_INSERT.wc;
+    var KEY_ENTER_STRING = domKeys.VK_B.wc;
 
-    var KEY_CAPTURE_SCREEN  = wmsx.DOMKeys.VK_G.c;
+    var KEY_CAPTURE_SCREEN  = domKeys.VK_G.wc;
 
-    var KEY_SPEAKER_BUFFER  = wmsx.DOMKeys.VK_A.c;
+    var KEY_SPEAKER_BUFFER  = domKeys.VK_A.wc;
 
-    var KEY_DISK   = wmsx.DOMKeys.VK_F6.c;
-    var KEY_CART   = wmsx.DOMKeys.VK_F7.c;
-    var KEY_HARDDISK = wmsx.DOMKeys.VK_F8.c;      // Share same key
-    var KEY_TAPE   = wmsx.DOMKeys.VK_F8.c;        // Share same key, sec slot or HardDisk inactive
-    var KEY_TAPE_RUN  = wmsx.DOMKeys.VK_F12.c;
+    var KEY_DISK   = domKeys.VK_F6.wc;
+    var KEY_CART   = domKeys.VK_F7.wc;
+    var KEY_HARDDISK = domKeys.VK_F8.wc;      // Share same key
+    var KEY_TAPE   = domKeys.VK_F8.wc;        // Share same key, sec slot or HardDisk inactive
+    var KEY_TAPE_RUN  = domKeys.VK_F12.wc;
 
-    var KEY_TAPE_REW   = wmsx.DOMKeys.VK_HOME.c;
-    var KEY_TAPE_END   = wmsx.DOMKeys.VK_END.c;
-    var KEY_TAPE_BCK   = wmsx.DOMKeys.VK_PAGE_UP.c;
-    var KEY_TAPE_FWD   = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+    var KEY_TAPE_REW   = domKeys.VK_HOME.wc;
+    var KEY_TAPE_END   = domKeys.VK_END.wc;
+    var KEY_TAPE_BCK   = domKeys.VK_PAGE_UP.wc;
+    var KEY_TAPE_FWD   = domKeys.VK_PAGE_DOWN.wc;
 
-    var KEY_DISK_SELECT  = wmsx.DOMKeys.VK_HOME.c;
-    var KEY_DISK_SELECT2 = wmsx.DOMKeys.VK_END.c;
-    var KEY_DISK_PREV    = wmsx.DOMKeys.VK_PAGE_UP.c;
-    var KEY_DISK_NEXT    = wmsx.DOMKeys.VK_PAGE_DOWN.c;
+    var KEY_DISK_SELECT  = domKeys.VK_HOME.wc;
+    var KEY_DISK_SELECT2 = domKeys.VK_END.wc;
+    var KEY_DISK_PREV    = domKeys.VK_PAGE_UP.wc;
+    var KEY_DISK_NEXT    = domKeys.VK_PAGE_DOWN.wc;
 
-    var KEY_KEYBOARD_TOGGLE       = wmsx.DOMKeys.VK_L.c;
-    var KEY_JOYSTICKS_TOGGLE      = wmsx.DOMKeys.VK_J.c;
-    var KEY_JOYKEYS_TOGGLE        = wmsx.DOMKeys.VK_K.c;
-    var KEY_MOUSE_TOGGLE          = wmsx.DOMKeys.VK_M.c;
-    var KEY_TOUCH_TOGGLE          = wmsx.DOMKeys.VK_N.c;
-    var KEY_TURBO_FIRE_TOGGLE     = wmsx.DOMKeys.VK_H.c;
+    var KEY_KEYBOARD_TOGGLE       = domKeys.VK_L.wc;
+    var KEY_JOYSTICKS_TOGGLE      = domKeys.VK_J.wc;
+    var KEY_JOYKEYS_TOGGLE        = domKeys.VK_K.wc;
+    var KEY_MOUSE_TOGGLE          = domKeys.VK_M.wc;
+    var KEY_TOUCH_TOGGLE          = domKeys.VK_N.wc;
+    var KEY_TURBO_FIRE_TOGGLE     = domKeys.VK_H.wc;
 
-    var KEY_CRT_FILTER    = wmsx.DOMKeys.VK_E.c;
-    var KEY_CRT_MODE      = wmsx.DOMKeys.VK_R.c;
-    //var KEY_SETTINGS      = wmsx.DOMKeys.VK_Y.c;
-    var KEY_QUICK_OPTIONS = wmsx.DOMKeys.VK_U.c;
-    var KEY_TOUCH_CONFIG  = wmsx.DOMKeys.VK_I.c;
+    var KEY_CRT_FILTER    = domKeys.VK_E.wc;
+    var KEY_CRT_MODE      = domKeys.VK_R.wc;
+    //var KEY_SETTINGS      = wmsx.DOMKeys.VK_Y.wc;
+    var KEY_QUICK_OPTIONS = domKeys.VK_U.wc;
+    var KEY_TOUCH_CONFIG  = domKeys.VK_I.wc;
 
-    var KEY_FULLSCREEN  = wmsx.DOMKeys.VK_ENTER.c;
+    var KEY_FULLSCREEN  = domKeys.VK_ENTER.wc;
 
-    var KEY_MACHINE_POWER  = wmsx.DOMKeys.VK_F11.c;
-    var KEY_STATE_FILE     = wmsx.DOMKeys.VK_F12.c;
+    var KEY_MACHINE_POWER  = domKeys.VK_F11.wc;
+    var KEY_STATE_FILE     = domKeys.VK_F12.wc;
 
     var SCREEN_FIXED_SIZE = WMSX.SCREEN_RESIZE_DISABLED;
 

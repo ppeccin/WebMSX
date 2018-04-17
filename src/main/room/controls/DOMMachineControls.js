@@ -66,7 +66,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     };
 
     var initKeys = function() {
-        var k = wmsx.DOMKeys;
+        var k = domKeys;
 
         keyCodeMap[KEY_POWER]                   = mc.POWER;
         keyCodeMap[KEY_POWER | k.ALT]           = mc.POWER;
@@ -159,6 +159,8 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     };
 
 
+    var domKeys = wmsx.DOMKeysNew;
+
     var mc = wmsx.MachineControls;
 
     var machineControlsSocket;
@@ -174,43 +176,43 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
 
     // Default Key Values
 
-    var KEY_POWER            = wmsx.DOMKeys.VK_F11.c;
+    var KEY_POWER            = domKeys.VK_F11.wc;
 
-    var KEY_SPEED            = wmsx.DOMKeys.VK_F12.c;
+    var KEY_SPEED            = domKeys.VK_F12.wc;
 
-    var KEY_INC_SPEED        = wmsx.DOMKeys.VK_UP.c;
-    var KEY_DEC_SPEED        = wmsx.DOMKeys.VK_DOWN.c;
-    var KEY_NORMAL_SPEED     = wmsx.DOMKeys.VK_RIGHT.c;
-    var KEY_MIN_SPEED        = wmsx.DOMKeys.VK_LEFT.c;
+    var KEY_INC_SPEED        = domKeys.VK_UP.wc;
+    var KEY_DEC_SPEED        = domKeys.VK_DOWN.wc;
+    var KEY_NORMAL_SPEED     = domKeys.VK_RIGHT.wc;
+    var KEY_MIN_SPEED        = domKeys.VK_LEFT.wc;
 
-    var KEY_PAUSE            = wmsx.DOMKeys.VK_P.c;
-    var KEY_FRAME            = wmsx.DOMKeys.VK_O.c;
-    var KEY_FRAMEa           = wmsx.DOMKeys.VK_F.c;
+    var KEY_PAUSE            = domKeys.VK_P.wc;
+    var KEY_FRAME            = domKeys.VK_O.wc;
+    var KEY_FRAMEa           = domKeys.VK_F.wc;
 
-    var KEY_TRACE            = wmsx.DOMKeys.VK_Q.c;
-    var KEY_DEBUG            = wmsx.DOMKeys.VK_D.c;
-    var KEY_SPRITE_MODE      = wmsx.DOMKeys.VK_S.c;
-    var KEY_VIDEO_STANDARD   = wmsx.DOMKeys.VK_Q.c;
-    var KEY_VSYNCH           = wmsx.DOMKeys.VK_W.c;
-    var KEY_CPU_TURBO        = wmsx.DOMKeys.VK_T.c;
-    var KEY_VDP_TURBO        = wmsx.DOMKeys.VK_Y.c;
+    var KEY_TRACE            = domKeys.VK_Q.wc;
+    var KEY_DEBUG            = domKeys.VK_D.wc;
+    var KEY_SPRITE_MODE      = domKeys.VK_S.wc;
+    var KEY_VIDEO_STANDARD   = domKeys.VK_Q.wc;
+    var KEY_VSYNCH           = domKeys.VK_W.wc;
+    var KEY_CPU_TURBO        = domKeys.VK_T.wc;
+    var KEY_VDP_TURBO        = domKeys.VK_Y.wc;
 
-    var KEY_STATE_0          = wmsx.DOMKeys.VK_QUOTE.c;
-    var KEY_STATE_0a         = wmsx.DOMKeys.VK_BACKQUOTE.c;
-    var KEY_STATE_1          = wmsx.DOMKeys.VK_1.c;
-    var KEY_STATE_2          = wmsx.DOMKeys.VK_2.c;
-    var KEY_STATE_3          = wmsx.DOMKeys.VK_3.c;
-    var KEY_STATE_4          = wmsx.DOMKeys.VK_4.c;
-    var KEY_STATE_5          = wmsx.DOMKeys.VK_5.c;
-    var KEY_STATE_6          = wmsx.DOMKeys.VK_6.c;
-    var KEY_STATE_7          = wmsx.DOMKeys.VK_7.c;
-    var KEY_STATE_8          = wmsx.DOMKeys.VK_8.c;
-    var KEY_STATE_9          = wmsx.DOMKeys.VK_9.c;
-    var KEY_STATE_10         = wmsx.DOMKeys.VK_0.c;
-    var KEY_STATE_11         = wmsx.DOMKeys.VK_MINUS.c;
-    var KEY_STATE_11a        = wmsx.DOMKeys.VK_FF_MINUS.c;
-    var KEY_STATE_12         = wmsx.DOMKeys.VK_EQUALS.c;
-    var KEY_STATE_12a        = wmsx.DOMKeys.VK_FF_EQUALS.c;
+    var KEY_STATE_0          = domKeys.VK_QUOTE.wc;
+    var KEY_STATE_0a         = domKeys.VK_BACKQUOTE.wc;
+    var KEY_STATE_1          = domKeys.VK_1.wc;
+    var KEY_STATE_2          = domKeys.VK_2.wc;
+    var KEY_STATE_3          = domKeys.VK_3.wc;
+    var KEY_STATE_4          = domKeys.VK_4.wc;
+    var KEY_STATE_5          = domKeys.VK_5.wc;
+    var KEY_STATE_6          = domKeys.VK_6.wc;
+    var KEY_STATE_7          = domKeys.VK_7.wc;
+    var KEY_STATE_8          = domKeys.VK_8.wc;
+    var KEY_STATE_9          = domKeys.VK_9.wc;
+    var KEY_STATE_10         = domKeys.VK_0.wc;
+    var KEY_STATE_11         = domKeys.VK_MINUS.wc;
+    var KEY_STATE_11a        = domKeys.VK_FF_MINUS.wc;
+    var KEY_STATE_12         = domKeys.VK_EQUALS.wc;
+    var KEY_STATE_12a        = domKeys.VK_FF_EQUALS.wc;
 
     var quickOptionsControls = new Set([
         mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE, mc.VSYNCH

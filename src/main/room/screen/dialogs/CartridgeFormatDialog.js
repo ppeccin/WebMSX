@@ -162,7 +162,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlo
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var keyCode = domKeys.codeNewForKeyboardEvent(e);
             // Abort
             if (keyCode === ESC_KEY) hideAbort();
             // Confirm
@@ -192,11 +192,12 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlo
 
     var userROMFormats = WMSX.userROMFormats;
 
-    var k = wmsx.DOMKeys;
-    var ESC_KEY = k.VK_ESCAPE.c;
-    var CONFIRM_KEYS = [ k.VK_ENTER.c, k.VK_SPACE.c ];
+    var domKeys = wmsx.DOMKeysNew;
+
+    var ESC_KEY = domKeys.VK_ESCAPE.wc;
+    var CONFIRM_KEYS = [ domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];
     var SELECT_KEYS = {};
-    SELECT_KEYS[k.VK_UP.c] = -1;
-    SELECT_KEYS[k.VK_DOWN.c] = 1;
+    SELECT_KEYS[domKeys.VK_UP.wc] = -1;
+    SELECT_KEYS[domKeys.VK_DOWN.wc] = 1;
 
 };

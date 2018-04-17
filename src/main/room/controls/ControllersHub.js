@@ -260,9 +260,10 @@ wmsx.ControllersHub = function(room, machineControls) {
         e.preventDefault();
         e.stopPropagation();
 
-        // console.log("Key " + (press ? "Press" : "Release") + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", codeName: " + e.code + ", key: " + e.key);
+        var code = domKeys.codeNewForKeyboardEvent(e);
 
-        var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        console.log("Key " + (press ? "Press" : "Release") + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", codeName: " + e.code + ", wc: " + code + ", key: " + e.key);
+
         joykeysControls.processKey(code, press);
 
         return false;
@@ -418,6 +419,8 @@ wmsx.ControllersHub = function(room, machineControls) {
         if (s.h !== undefined) hapticFeedbackEnabled = s.h && hapticFeedbackCapable;
     };
 
+
+    var domKeys = wmsx.DOMKeysNew;
 
     var controllerAtPort = [ null, null ];
 

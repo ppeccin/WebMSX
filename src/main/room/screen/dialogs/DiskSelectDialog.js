@@ -119,7 +119,7 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, fil
 
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
-            var code = wmsx.DOMKeys.codeForKeyboardEvent(e);
+            var code = domKeys.codeNewForKeyboardEvent(e);
             // Abort
             if (code === ESC_KEY) hideAbort();
             // Confirm
@@ -202,16 +202,17 @@ wmsx.DiskSelectDialog = function(mainElement, diskDrive, peripheralControls, fil
 
     var diskMoveFrom, diskMoveTo;
 
-    var k = wmsx.DOMKeys;
-    var ESC_KEY = k.VK_ESCAPE.c;
-    var CONFIRM_KEYS =   [ k.VK_ENTER.c, k.VK_SPACE.c ];
-    var DISK_CONTROL_KEY = k.VK_F6.c;
-    var SELECT_KEYS = {};
-        SELECT_KEYS[k.VK_UP.c] = -1;
-        SELECT_KEYS[k.VK_PAGE_UP.c] = -1;
-        SELECT_KEYS[k.VK_DOWN.c] = 1;
-        SELECT_KEYS[k.VK_PAGE_DOWN.c] = 1;
+    var domKeys = wmsx.DOMKeysNew;
 
-    var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
+    var ESC_KEY = domKeys.VK_ESCAPE.wc;
+    var CONFIRM_KEYS =   [ domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];
+    var DISK_CONTROL_KEY = domKeys.VK_F6.wc;
+    var SELECT_KEYS = {};
+        SELECT_KEYS[domKeys.VK_UP.wc] = -1;
+        SELECT_KEYS[domKeys.VK_PAGE_UP.wc] = -1;
+        SELECT_KEYS[domKeys.VK_DOWN.wc] = 1;
+        SELECT_KEYS[domKeys.VK_PAGE_DOWN.wc] = 1;
+
+    var IGNORE_ALL_MODIFIERS_MASK = domKeys.IGNORE_ALL_MODIFIERS_MASK;
 
 };

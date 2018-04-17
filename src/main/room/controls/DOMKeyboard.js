@@ -130,7 +130,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     this.customizeKey = function (key, vk) {
         // Ignore if key is already mapped
-        if (keyCodeMap[vk.c] === key) return;
+        if (keyCodeMap[vk.wc] === key) return;
 
         if (!customKeyboards[currentKeyboard]) makeCustomKeyboard();
 
@@ -139,7 +139,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
             var map = mapping[k];
             if (map.length === 0) continue;
             var i;
-            while ((i = wmsx.Util.arrayFindIndex(map, function(aVK) { return aVK.c === vk.c; })) >= 0)
+            while ((i = wmsx.Util.arrayFindIndex(map, function(aVK) { return aVK.wc === vk.wc; })) >= 0)
                 map.splice(i, 1);
         }
 
@@ -222,7 +222,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         keyCodeMap = {};
         for (var k in mapping) {
             if (mapping[k].length === 0) continue;
-            for (var i = 0; i < mapping[k].length; ++i) keyCodeMap[mapping[k][i].c] = k;
+            for (var i = 0; i < mapping[k].length; ++i) keyCodeMap[mapping[k][i].wc] = k;
         }
     };
 
@@ -311,6 +311,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
 
     var msxKeys = wmsx.KeyboardKeys;
+    var domKeys = wmsx.DOMKeysNew;
 
     var availableKeyboards;
     var customKeyboards;
@@ -336,9 +337,9 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     var netMatrixChangesToSend = new Array(100); netMatrixChangesToSend.length = 0;     // pre allocate empty Array
 
-    var RAltKeyCode = wmsx.DOMKeys.VK_RALT.c;       // Used for special case on Portuguese AltGr key
+    var RAltKeyCode = domKeys.VK_RALT.wc;       // Used for special case on Portuguese AltGr key
 
-    var IGNORE_ALL_MODIFIERS_MASK = wmsx.DOMKeys.IGNORE_ALL_MODIFIERS_MASK;
+    var IGNORE_ALL_MODIFIERS_MASK = domKeys.IGNORE_ALL_MODIFIERS_MASK;
     var MAX_KEYS_MAPPED = 4;
 
     var BOOT_KEY_NAME_SYMNS = { "CTRL": "CONTROL", "ESC": "ESCAPE", "CAPS": "CAPSLOCK", "KANA": "CODE", "RETURN": "ENTER", "RET": "ENTER",
