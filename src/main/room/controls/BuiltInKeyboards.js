@@ -117,25 +117,16 @@
     // pt-BR
     var br = {};
     for (key in base) br[key] = base[key];
-/*
-    // pt-BR specific keys and browser differences
-    switch (wmsx.Util.browserInfo().name) {
-        case "FIREFOX":
-            br.DEAD =          [ k.VK_FF_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
-            break;
-        default:
-            br.QUOTE =         k.VK_BR_QUOTE;
-            br.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
-            br.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
-            br.BACKQUOTE =     k.VK_BR_ACUTE;
-            br.SEMICOLON =     k.VK_BR_SEMICOLON;
-            br.SLASH =         k.VK_BR_SLASH;
-            br.BACKSLASH =     k.VK_BR_BACKSLASH;
-            br.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
-            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { wc: k.VK_BR_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
-            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { wc: k.VK_BR_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
-    }
-*/
+
+    // pt-BR specific keys positions
+    br.QUOTE =         k.VK_BACKQUOTE;
+    br.OPEN_BRACKET =  k.VK_CLOSE_BRACKET;
+    br.CLOSE_BRACKET = k.VK_BACKSLASH;
+    br.BACKQUOTE =     k.VK_OPEN_BRACKET;
+    br.SEMICOLON =     k.VK_SLASH;
+    br.SLASH =         k.VK_INT_RO;
+    br.BACKSLASH =     k.VK_INT_BACKSLASH;
+    br.DEAD =          [ k.VK_QUOTE, k.VK_RCONTROL, k.VK_END ];
 
     // ja-JP
     var jp = {};

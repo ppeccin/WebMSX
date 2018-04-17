@@ -492,7 +492,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_CRT_FILTER    = domKeys.VK_E.wc;
     var KEY_CRT_MODE      = domKeys.VK_R.wc;
-    //var KEY_SETTINGS      = wmsx.DOMKeys.VK_Y.wc;
+    //var KEY_SETTINGS      = domKeys.VK_Y.wc;
     var KEY_QUICK_OPTIONS = domKeys.VK_U.wc;
     var KEY_TOUCH_CONFIG  = domKeys.VK_I.wc;
 

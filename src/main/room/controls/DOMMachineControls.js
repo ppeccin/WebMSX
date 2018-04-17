@@ -109,9 +109,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_STATE_9 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_9;
         keyCodeMap[KEY_STATE_10 | k.CONTROL | k.ALT]  = mc.SAVE_STATE_10;
         keyCodeMap[KEY_STATE_11 | k.CONTROL | k.ALT]  = mc.SAVE_STATE_11;
-        keyCodeMap[KEY_STATE_11a | k.CONTROL | k.ALT] = mc.SAVE_STATE_11;
         keyCodeMap[KEY_STATE_12 | k.CONTROL | k.ALT]  = mc.SAVE_STATE_12;
-        keyCodeMap[KEY_STATE_12a | k.CONTROL | k.ALT] = mc.SAVE_STATE_12;
 
         keyCodeMap[KEY_STATE_0 | k.ALT]   = mc.LOAD_STATE_0;
         keyCodeMap[KEY_STATE_0a | k.ALT]  = mc.LOAD_STATE_0;
@@ -126,9 +124,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_STATE_9 | k.ALT]   = mc.LOAD_STATE_9;
         keyCodeMap[KEY_STATE_10 | k.ALT]  = mc.LOAD_STATE_10;
         keyCodeMap[KEY_STATE_11 | k.ALT]  = mc.LOAD_STATE_11;
-        keyCodeMap[KEY_STATE_11a | k.ALT] = mc.LOAD_STATE_11;
         keyCodeMap[KEY_STATE_12 | k.ALT]  = mc.LOAD_STATE_12;
-        keyCodeMap[KEY_STATE_12a | k.ALT] = mc.LOAD_STATE_12;
     };
 
 
@@ -210,9 +206,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var KEY_STATE_9          = domKeys.VK_9.wc;
     var KEY_STATE_10         = domKeys.VK_0.wc;
     var KEY_STATE_11         = domKeys.VK_MINUS.wc;
-    var KEY_STATE_11a        = domKeys.VK_FF_MINUS.wc;
     var KEY_STATE_12         = domKeys.VK_EQUALS.wc;
-    var KEY_STATE_12a        = domKeys.VK_FF_EQUALS.wc;
 
     var quickOptionsControls = new Set([
         mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE, mc.VSYNCH
