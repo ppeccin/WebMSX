@@ -18,7 +18,7 @@ wmsx.DOMKeysNew.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeysNew.SHIFT | wmsx.DOMKe
 
 (function(k, left, right, num) {
 
-    // Common keys (US)
+    // All known Web keys
 
     k.VK_1 = { wc: 1,  d: "Digit1", c: 49, n: "1" };
     k.VK_2 = { wc: 2,  d: "Digit2", c: 50, n: "2" };
@@ -143,46 +143,6 @@ wmsx.DOMKeysNew.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeysNew.SHIFT | wmsx.DOMKe
     k.VK_NUM_0 =        { wc: 430, d: "Numpad0",        c: 96 | num,  n: "Num 0" };
 
     k.VK_VOID = { wc: -1, d: "", c: -1, n: "Unbound" };
-
-    // TODO Remove
-
-    // FireFox specific codes (US)
-    k.VK_FF_MINUS = k.VK_VOID;
-    k.VK_FF_EQUALS = k.VK_VOID;
-    k.VK_FF_SEMICOLON = k.VK_VOID;
-
-/*
-    // BR alternate codes
-    k.VK_BR_QUOTE = k.VK_VOID;
-    k.VK_BR_OPEN_BRACKET = k.VK_VOID;
-    k.VK_BR_CLOSE_BRACKET = k.VK_VOID;
-    k.VK_BR_SEMICOLON = k.VK_VOID;
-    k.VK_BR_SLASH = k.VK_VOID;
-    k.VK_BR_BACKSLASH = k.VK_VOID;
-    // BR additional keys
-    k.VK_BR_CEDILLA = k.VK_VOID;
-    k.VK_BR_TILDE = k.VK_VOID;
-    k.VK_BR_ACUTE = k.VK_VOID;
-    k.VK_FF_BR_TILDE = k.VK_VOID;
-    //k.VK_FF_BR_CEDILLA = k.VK_VOID;
-
-    // JP alternate codes
-    k.VK_JP_CIRCUMFLEX = k.VK_VOID;
-    k.VK_JP_ARROBA = k.VK_VOID;
-    k.VK_JP_OPEN_BRACKET = k.VK_VOID;
-    k.VK_JP_SEMICOLLON = k.VK_VOID;
-    k.VK_JP_COLLON = k.VK_VOID;
-    k.VK_JP_BACKSLASH = k.VK_VOID;
-    k.VK_JP_CAPS_LOCK = k.VK_VOID;
-    k.VK_FF_JP_CIRCUMFLEX = k.VK_VOID;
-    k.VK_FF_JP_ARROBA = k.VK_VOID;
-    k.VK_FF_JP_SEMICOLLON = k.VK_VOID;
-    k.VK_FF_JP_COLLON = k.VK_VOID;
-    // JP additional keys
-    k.VK_JP_NOCONV = k.VK_VOID;
-    k.VK_JP_CONV = k.VK_VOID;
-    k.VK_JP_KANA = k.VK_VOID;
-*/
 
     // Define additional collections for key identification
     k.keysByCode = {};

@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Migration (Keyboards, new keys scheme)
 WMSX.userPreferences = { };
 
 WMSX.userPreferences.currentVersion = 1;
@@ -11,7 +12,7 @@ WMSX.userPreferences.defaults = function() {
     var m = wmsx.KeyboardKeys;
     var j = wmsx.JoystickButtons;
 
-    var k = wmsx.DOMKeys;
+    var k = wmsx.DOMKeysNew;
     var g = wmsx.GamepadButtons;
 
     return {
@@ -38,10 +39,10 @@ WMSX.userPreferences.defaults = function() {
                 virtualButtonsKeys: {
                     J_X:         [ ],
                     J_Y:         [ ],
-                    J_L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
+                    J_L:         [ { wc: k.VK_F12.wc | k.SHIFT, n: [ "Shift", "F12" ] } ],
                     J_R:         [ k.VK_F12 ],
                     J_BACK:      [ k.VK_ESCAPE ],
-                    J_START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
+                    J_START:     [ { wc: k.VK_P.wc | k.ALT, n: [ "Alt", "P" ] } ]
                 },
                 settings: {
                     device:    -1,  // -1 = auto
@@ -70,10 +71,10 @@ WMSX.userPreferences.defaults = function() {
                 virtualButtonsKeys: {
                     J_X:         [ ],
                     J_Y:         [ ],
-                    J_L:         [ { c: k.VK_F12.c | k.SHIFT, n: [ "Shift", "F12" ] } ],
+                    J_L:         [ { wc: k.VK_F12.wc | k.SHIFT, n: [ "Shift", "F12" ] } ],
                     J_R:         [ k.VK_F12 ],
                     J_BACK:      [ k.VK_ESCAPE ],
-                    J_START:     [ { c: k.VK_P.c | k.ALT, n: [ "Alt", "P" ] } ]
+                    J_START:     [ { wc: k.VK_P.wc | k.ALT, n: [ "Alt", "P" ] } ]
                 },
                 settings: {
                     device:    -1,  // -1 = auto
@@ -89,10 +90,10 @@ WMSX.userPreferences.defaults = function() {
         joykeys: [
             {
                 buttons: {
-                    J_UP:        [ k.VK_UP, k.VK_NUM_UP ],
-                    J_DOWN:      [ k.VK_DOWN, k.VK_NUM_DOWN ],
-                    J_LEFT:      [ k.VK_LEFT, k.VK_NUM_LEFT ],
-                    J_RIGHT:     [ k.VK_RIGHT, k.VK_NUM_RIGHT ],
+                    J_UP:        [ k.VK_UP ],
+                    J_DOWN:      [ k.VK_DOWN ],
+                    J_LEFT:      [ k.VK_LEFT ],
+                    J_RIGHT:     [ k.VK_RIGHT ],
                     J_A:         [ k.VK_SPACE, k.VK_LSHIFT, k.VK_INSERT ],
                     J_B:         [ k.VK_M, k.VK_LCONTROL, k.VK_DELETE  ]        // had k.VK_LALT also
                 }

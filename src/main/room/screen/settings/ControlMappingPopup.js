@@ -50,8 +50,8 @@ wmsx.ControlMappingPopup = function() {
         if (!controlEditing) return;
 
         // Modifier keys are accepted only on release
-        if (wmsx.DOMKeys.isModifierKey(e))
-            modifKeyCodePending = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        if (domKeys.isModifierKey(e))
+            modifKeyCodePending = domKeys.codeNewForKeyboardEvent(e);
         else
             customizeControlKeyEvent(e);
 
@@ -64,7 +64,7 @@ wmsx.ControlMappingPopup = function() {
         if (!controlEditing) return;
 
         // Modifier keys are accepted only on release, and only the last one depressed
-        var keyCode = wmsx.DOMKeys.codeForKeyboardEvent(e);
+        var keyCode = domKeys.codeNewForKeyboardEvent(e);
         if (modifKeyCodePending === keyCode) customizeControlKeyEvent(e);
 
         e.stopPropagation();
@@ -95,7 +95,7 @@ wmsx.ControlMappingPopup = function() {
     }
 
     function customizeControlKeyEvent(e) {
-        var mapping = {c: wmsx.DOMKeys.codeForKeyboardEvent(e), n: wmsx.DOMKeys.nameForKeyboardEvent(e)};
+        var mapping = { wc: domKeys.codeNewForKeyboardEvent(e), n: domKeys.nameForKeyboardEvent(e)};
         controller.customizeControl(controlEditing, portEditing, mapping);
         modifKeyCodePending = null;
         update();
@@ -122,7 +122,7 @@ wmsx.ControlMappingPopup = function() {
                 var names = !mapping.n || mapping.n.constructor !== Array ? [mapping.n] : mapping.n;
                 str = "";
                 for (var k = 0, len = names.length; k < len; ++k) {
-                    var cla = mapping.c ? "wmsx-key" : mapping.n.length > 1 ? "wmsx-joy-button wmsx-square" : "wmsx-joy-button";
+                    var cla = mapping.wc ? "wmsx-key" : mapping.n.length > 1 ? "wmsx-joy-button wmsx-square" : "wmsx-joy-button";
                     if (k > 0) str += (k === (len - 1)) ? "&nbsp;+&nbsp;" : "&nbsp;";
                     str += '<DIV class = "' + cla + '">' + names[k] + '</DIV>';
                 }
@@ -132,6 +132,8 @@ wmsx.ControlMappingPopup = function() {
         return res;
     }
 
+
+    var domKeys = wmsx.DOMKeysNew;
 
     var posX = 0, posY = 0;
     var controller = null, controlEditing = null, portEditing, modifKeyCodePending = null;

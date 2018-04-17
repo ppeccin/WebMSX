@@ -167,13 +167,13 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
     this.customizeControl = function (button, port, mapping) {
         var mappings;
         // Key or Button
-        if (mapping.c) {
+        if (mapping.wc) {
             // Ignore if mapping a key to non-virtual button
-            if (mapping.c && joystickButtons[button].mask) return;
+            if (mapping.wc && joystickButtons[button].mask) return;
             mappings = joyPrefs[port ^ swappedMode].virtualButtonsKeys[button];
             // Ignore if key already mapped
             if (wmsx.Util.arrayFind(mappings, function(map) {
-                    return map.c === mapping.c;
+                    return map.wc === mapping.wc;
                 })) return;
         } else {
             mappings = joyPrefs[port ^ swappedMode].buttons[button];
@@ -258,7 +258,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
                         // Virtual button
                         var keys = prefs.virtualButtonsKeys[b];
                         if (keys) for (var k = 0; k < keys.length; ++k)
-                            keyboard.processKey(keys[k].c, state);
+                            keyboard.processKey(keys[k].wc, state);
                     } else {
                         // Real MSX button
                         if (state) joyState.portValue &= ~joystickButtons[b].mask;

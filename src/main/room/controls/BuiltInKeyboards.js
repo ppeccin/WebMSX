@@ -63,16 +63,16 @@
         F3             : k.VK_F3,
         F4             : k.VK_F4,
         F5             : k.VK_F5,
-        ESCAPE         : [ k.VK_ESCAPE, { c: k.VK_F1.c | k.ALT, n: [ "Alt", "F1" ] } ],
+        ESCAPE         : [ k.VK_ESCAPE, { wc: k.VK_F1.wc | k.ALT, n: [ "Alt", "F1" ] } ],
         TAB            : k.VK_TAB,
         STOP           : [ k.VK_PAUSE, k.VK_BREAK, k.VK_F9 ],
         BACKSPACE      : k.VK_BACKSPACE,
         SELECT         : [ k.VK_SCROLL_LOCK, k.VK_F10 ],
         ENTER          : [ k.VK_ENTER, k.VK_NUM_ENTER ],
         SPACE          : k.VK_SPACE,
-        HOME           : [ k.VK_HOME, { c: k.VK_EQUALS.c | k.ALT, n: [ "Alt", "=" ] } ],
-        INSERT         : [ k.VK_INSERT, { c: k.VK_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ],
-        DELETE         : [ k.VK_DELETE, { c: k.VK_CLOSE_BRACKET.c | k.ALT, n: [ "Alt", "]" ] } ],
+        HOME           : [ k.VK_HOME, { wc: k.VK_EQUALS.wc | k.ALT, n: [ "Alt", "=" ] } ],
+        INSERT         : [ k.VK_INSERT, { wc: k.VK_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ],
+        DELETE         : [ k.VK_DELETE, { wc: k.VK_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ],
         UP             : k.VK_UP,
         DOWN           : k.VK_DOWN,
         RIGHT          : k.VK_RIGHT,
@@ -103,7 +103,7 @@
         case "FIREFOX":
             base.MINUS =     k.VK_FF_MINUS;
             base.EQUAL =     k.VK_FF_EQUALS;
-            base.HOME =      [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_EQUALS.c | k.ALT, n: [ "Alt", "=" ] } ];
+            base.HOME =      [ k.VK_HOME, k.VK_NUM_HOME, { wc: k.VK_FF_EQUALS.wc | k.ALT, n: [ "Alt", "=" ] } ];
             base.SEMICOLON = k.VK_FF_SEMICOLON;
     }
 */
@@ -132,8 +132,8 @@
             br.SLASH =         k.VK_BR_SLASH;
             br.BACKSLASH =     k.VK_BR_BACKSLASH;
             br.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
-            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_BR_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ];
-            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { c: k.VK_BR_CLOSE_BRACKET.c | k.ALT, n: [ "Alt", "]" ] } ];
+            br.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { wc: k.VK_BR_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
+            br.DELETE =        [ k.VK_DELETE, k.VK_NUM_DELETE, { wc: k.VK_BR_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
     }
 */
 
@@ -153,8 +153,8 @@
             jp.DEAD =          [ k.VK_RCONTROL, k.VK_END ];                 // Japanese IntlRo bug: key code is the same as IntlYen, so do not use
             jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
             jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
-            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_FF_JP_CIRCUMFLEX.c | k.ALT, n: [ "Alt", "^" ] } ];
-            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ];
+            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { wc: k.VK_FF_JP_CIRCUMFLEX.wc | k.ALT, n: [ "Alt", "^" ] } ];
+            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { wc: k.VK_JP_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
             break;
         default:
             jp.EQUAL =         k.VK_JP_CIRCUMFLEX;
@@ -166,8 +166,8 @@
             jp.DEAD =          [ k.VK_JP_BACKSLASH, k.VK_RCONTROL, k.VK_END ];
             jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
             jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
-            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { c: k.VK_JP_CIRCUMFLEX.c | k.ALT, n: [ "Alt", "^" ] } ];
-            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { c: k.VK_JP_OPEN_BRACKET.c | k.ALT, n: [ "Alt", "[" ] } ];
+            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { wc: k.VK_JP_CIRCUMFLEX.wc | k.ALT, n: [ "Alt", "^" ] } ];
+            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { wc: k.VK_JP_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
     }
 */
 

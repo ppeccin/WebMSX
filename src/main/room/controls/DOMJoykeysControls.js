@@ -135,7 +135,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
 
     this.customizeControl = function (button, port, mapping) {
         // Ignore if key is already mapped
-        if (keyCodeMap[mapping.c] && wmsx.Util.arrayFind(keyCodeMap[mapping.c], function(map) {
+        if (keyCodeMap[mapping.wc] && wmsx.Util.arrayFind(keyCodeMap[mapping.wc], function(map) {
                 return map.b === button && map.p === port;
             })) return;
 
@@ -165,8 +165,8 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     function updateCodeMapJoykeys(mappings, port) {
         for (var b in mappings) {
             for (var i = 0; i < mappings[b].length; ++i) {
-                if (!keyCodeMap[mappings[b][i].c]) keyCodeMap[mappings[b][i].c] = [];
-                keyCodeMap[mappings[b][i].c].push({ b: b, p: port });
+                if (!keyCodeMap[mappings[b][i].wc]) keyCodeMap[mappings[b][i].wc] = [];
+                keyCodeMap[mappings[b][i].wc].push({ b: b, p: port });
             }
         }
     }
