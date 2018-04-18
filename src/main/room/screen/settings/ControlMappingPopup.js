@@ -49,6 +49,9 @@ wmsx.ControlMappingPopup = function() {
     function keyDown(e) {
         if (!controlEditing) return;
 
+        var code = domKeys.codeNewForKeyboardEvent(e);
+        console.log("Key Press, code: " + e.code + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", wc: " + code + ", key: " + e.key);
+
         // Modifier keys are accepted only on release
         if (domKeys.isModifierKey(e))
             modifKeyCodePending = domKeys.codeNewForKeyboardEvent(e);
@@ -95,7 +98,10 @@ wmsx.ControlMappingPopup = function() {
     }
 
     function customizeControlKeyEvent(e) {
-        var mapping = { wc: domKeys.codeNewForKeyboardEvent(e), n: domKeys.nameForKeyboardEvent(e)};
+        var name = domKeys.nameForKeyboardEvent(e);
+        if (!name) return;  // Unidentifiable key, do not accept
+
+        var mapping = { wc: domKeys.codeNewForKeyboardEvent(e), n: name};
         controller.customizeControl(controlEditing, portEditing, mapping);
         modifKeyCodePending = null;
         update();

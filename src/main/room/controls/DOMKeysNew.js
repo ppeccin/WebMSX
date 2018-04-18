@@ -2,19 +2,32 @@
 
 // General, immutable info about host keys on different browsers and keyboard languages/layouts
 
-wmsx.DOMKeysNew = {};
+wmsx.DOMKeysNew = {
+    keys: {},
+    keysByCode: {},
+    keysByLegacyCode: {},
 
-wmsx.DOMKeysNew.SHIFT =     0x10000;
-wmsx.DOMKeysNew.CONTROL =   0x20000;
-wmsx.DOMKeysNew.ALT =       0x40000;
-wmsx.DOMKeysNew.META =      0x80000;
+    SHIFT:     0x10000,
+    CONTROL:   0x20000,
+    ALT:       0x40000,
+    META:      0x80000,
 
-wmsx.DOMKeysNew.LOCLEFT =  0x100000;
-wmsx.DOMKeysNew.LOCRIGHT = 0x200000;
-wmsx.DOMKeysNew.LOCNUM =   0x300000;
+    LOCLEFT:   0x100000,
+    LOCRIGHT:  0x200000,
+    LOCNUM:    0x300000,
+    LOC_BIT_SHIFT: 20,
+
+    nextCustomCode: 10001
+};
 
 wmsx.DOMKeysNew.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeysNew.SHIFT | wmsx.DOMKeysNew.CONTROL | wmsx.DOMKeysNew.ALT | wmsx.DOMKeysNew.META);
 
+wmsx.DOMKeysNew.addKeyToIdentification = function(k) {
+    if (!k.wc || k.a) return;            // additional key not added
+    this.keys[k.wc] = k;
+    if (k.d) this.keysByCode[k.d] = k;
+    if (k.c > 0) this.keysByLegacyCode[k.c] = k;
+};
 
 (function(k, left, right, num) {
 
@@ -71,57 +84,57 @@ wmsx.DOMKeysNew.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeysNew.SHIFT | wmsx.DOMKe
     k.VK_N = { wc: 125, d: "KeyN", c: 78, n: "N" };
     k.VK_M = { wc: 126, d: "KeyM", c: 77, n: "M" };
 
-    k.VK_ESCAPE =    { wc: 201, d: "Escape",      c: 27,  n: "Esc" };
-    k.VK_BACKSPACE = { wc: 202, d: "Backspace",   c: 8,   n: "BackSpc" };
-    k.VK_TAB =       { wc: 203, d: "Tab",         c: 9,   n: "Tab" };
-    k.VK_ENTER =     { wc: 204, d: "Enter",       c: 13,  n: "Enter" };
-    k.VK_SPACE =     { wc: 205, d: "Space",       c: 32,  n: "Space" };
+    k.VK_ESCAPE =    { wc: 201, d: "Escape",      c: 27,  n: "Esc",     fn: true };
+    k.VK_BACKSPACE = { wc: 202, d: "Backspace",   c: 8,   n: "BackSpc", fn: true };
+    k.VK_TAB =       { wc: 203, d: "Tab",         c: 9,   n: "Tab",     fn: true };
+    k.VK_ENTER =     { wc: 204, d: "Enter",       c: 13,  n: "Enter",   fn: true };
+    k.VK_SPACE =     { wc: 205, d: "Space",       c: 32,  n: "Space",   fn: true };
 
     k.VK_BACKQUOTE =     { wc: 221, d: "Backquote",     c: 192, n: "`" };
     k.VK_MINUS =         { wc: 222, d: "Minus",         c: 189, n: "-" };
     k.VK_EQUALS =        { wc: 223, d: "Equal",         c: 187, n: "=" };
-    k.VK_INT_YEN =       { wc: 224, d: "IntlYen",       c: 0,   n: "¥" };
+    k.VK_INT_YEN =       { wc: 224, d: "IntlYen",       c: -1,  n: "Int ¥" };
     k.VK_OPEN_BRACKET =  { wc: 225, d: "BracketLeft",   c: 219, n: "[" };
     k.VK_CLOSE_BRACKET = { wc: 226, d: "BracketRight",  c: 221, n: "]" };
     k.VK_SEMICOLON =     { wc: 227, d: "Semicolon",     c: 186, n: ";" };
     k.VK_QUOTE =         { wc: 228, d: "Quote",         c: 222, n: "'" };
     k.VK_BACKSLASH =     { wc: 229, d: "Backslash",     c: 220, n: "\\" };
-    k.VK_INT_BACKSLASH = { wc: 230, d: "IntlBackslash", c: 226, n: "L-\\" };
+    k.VK_INT_BACKSLASH = { wc: 230, d: "IntlBackslash", c: 226, n: "Int \\" };
     k.VK_COMMA =         { wc: 231, d: "Comma",         c: 188, n: "," };
     k.VK_PERIOD =        { wc: 232, d: "Period",        c: 190, n: "." };
     k.VK_SLASH =         { wc: 233, d: "Slash",         c: 191, n: "/" };
-    k.VK_INT_RO =        { wc: 234, d: "IntlRo",        c: 193, n: "ろ" };
+    k.VK_INT_RO =        { wc: 234, d: "IntlRo",        c: 193, n: "Int ろ" };
 
-    k.VK_INSERT =    { wc: 251, d: "Insert",   c: 45, n: "Ins" };
-    k.VK_DELETE =    { wc: 252, d: "Delete",   c: 46, n: "Del" };
-    k.VK_HOME =      { wc: 253, d: "Home",     c: 36, n: "Home" };
-    k.VK_END =       { wc: 254, d: "End",      c: 35, n: "End" };
-    k.VK_PAGE_UP =   { wc: 255, d: "PageUp",   c: 33, n: "PgUp" };
-    k.VK_PAGE_DOWN = { wc: 256, d: "PageDown", c: 34, n: "PgDown" };
+    k.VK_INSERT =    { wc: 251, d: "Insert",   c: 45, n: "Ins",    fn: true };
+    k.VK_DELETE =    { wc: 252, d: "Delete",   c: 46, n: "Del",    fn: true };
+    k.VK_HOME =      { wc: 253, d: "Home",     c: 36, n: "Home",   fn: true };
+    k.VK_END =       { wc: 254, d: "End",      c: 35, n: "End",    fn: true };
+    k.VK_PAGE_UP =   { wc: 255, d: "PageUp",   c: 33, n: "PgUp",   fn: true };
+    k.VK_PAGE_DOWN = { wc: 256, d: "PageDown", c: 34, n: "PgDown", fn: true };
 
-    k.VK_UP =    { wc: 271, d: "ArrowUp",    c: 38, n: "Up" };
-    k.VK_DOWN =  { wc: 272, d: "ArrowDown",  c: 40, n: "Down" };
-    k.VK_LEFT =  { wc: 273, d: "ArrowLeft",  c: 37, n: "Left" };
-    k.VK_RIGHT = { wc: 274, d: "ArrowRight", c: 39, n: "Right" };
+    k.VK_UP =    { wc: 271, d: "ArrowUp",    c: 38, n: "Up",    fn: true };
+    k.VK_DOWN =  { wc: 272, d: "ArrowDown",  c: 40, n: "Down",  fn: true };
+    k.VK_LEFT =  { wc: 273, d: "ArrowLeft",  c: 37, n: "Left",  fn: true };
+    k.VK_RIGHT = { wc: 274, d: "ArrowRight", c: 39, n: "Right", fn: true };
 
-    k.VK_PRINT_SCREEN = { wc: 281, d: "PrintScreen", c: 44,  n: "PrtScr" };
-    k.VK_SCROLL_LOCK =  { wc: 282, d: "ScrollLock",  c: 145, n: "ScrLck" };
-    k.VK_PAUSE =        { wc: 283, d: "Pause",       c: 19,  n: "Pause" };
-    k.VK_BREAK =        { wc: 284, d: "",            c: 3,   n: "Break" };
-    k.VK_CONTEXT =      { wc: 285, d: "ContextMenu", c: 93,  n: "Context" };
+    k.VK_PRINT_SCREEN = { wc: 281, d: "PrintScreen", c: 44,  n: "PrtScr",  fn: true };
+    k.VK_SCROLL_LOCK =  { wc: 282, d: "ScrollLock",  c: 145, n: "ScrLck",  fn: true };
+    k.VK_PAUSE =        { wc: 283, d: "Pause",       c: 19,  n: "Pause",   fn: true };
+    k.VK_BREAK =        { wc: 284, d: "",            c: 3,   n: "Break",   fn: true };
+    k.VK_CONTEXT =      { wc: 285, d: "ContextMenu", c: 93,  n: "Context", fn: true };
 
-    k.VK_LSHIFT =      { wc: 301, d: "ShiftLeft",    c: 16 | left,  n: "L-Shift" };
-    k.VK_LCONTROL =    { wc: 302, d: "ControlLeft",  c: 17 | left,  n: "L-Control" };
-    k.VK_LALT =        { wc: 303, d: "AltLeft",      c: 18 | left,  n: "L-Alt" };
-    k.VK_LMETA =       { wc: 304, d: "MetaLeft",     c: 91 | left,  n: "L-Meta" };
-    k.VK_RSHIFT =      { wc: 305, d: "ShiftRight",   c: 16 | right, n: "R-Shift" };
-    k.VK_RCONTROL =    { wc: 306, d: "ControlRight", c: 17 | right, n: "R-Control" };
-    k.VK_RALT =        { wc: 307, d: "AltRight",     c: 18 | right, n: "R-Alt" };
-    k.VK_RMETA =       { wc: 308, d: "MetaRight",    c: 91 | right, n: "R-Meta" };
-    k.VK_CAPS_LOCK =   { wc: 309, d: "CapsLock",     c: 20,         n: "CapsLock" };
-    k.VK_NON_CONVERT = { wc: 310, d: "NonConvert",   c: 29,         n: "NonConvert" };
-    k.VK_CONVERT =     { wc: 311, d: "Convert",      c: 28,         n: "Convert" };
-    k.VK_KANA =        { wc: 312, d: "KanaMode",     c: 0,          n: "Kana" };
+    k.VK_LSHIFT =      { wc: 301, d: "ShiftLeft",    c: 16 | left,  n: "L-Shift",    fn: true };
+    k.VK_LCONTROL =    { wc: 302, d: "ControlLeft",  c: 17 | left,  n: "L-Control",  fn: true };
+    k.VK_LALT =        { wc: 303, d: "AltLeft",      c: 18 | left,  n: "L-Alt",      fn: true };
+    k.VK_LMETA =       { wc: 304, d: "MetaLeft",     c: 91 | left,  n: "L-Meta",     fn: true };
+    k.VK_RSHIFT =      { wc: 305, d: "ShiftRight",   c: 16 | right, n: "R-Shift",    fn: true };
+    k.VK_RCONTROL =    { wc: 306, d: "ControlRight", c: 17 | right, n: "R-Control",  fn: true };
+    k.VK_RALT =        { wc: 307, d: "AltRight",     c: 18 | right, n: "R-Alt",      fn: true };
+    k.VK_RMETA =       { wc: 308, d: "MetaRight",    c: 91 | right, n: "R-Meta",     fn: true };
+    k.VK_CAPS_LOCK =   { wc: 309, d: "CapsLock",     c: 20,         n: "CapsLock",   fn: true };
+    k.VK_NON_CONVERT = { wc: 310, d: "NonConvert",   c: 29,         n: "NonConvert", fn: true };
+    k.VK_CONVERT =     { wc: 311, d: "Convert",      c: 28,         n: "Convert",    fn: true };
+    k.VK_KANA =        { wc: 312, d: "KanaMode",     c: -1,          n: "Kana",      fn: true };
 
     k.VK_NUMLOCK =      { wc: 401, d: "NumLock",        c: 144,       n: "NumLock" };
     k.VK_NUM_COMMA =    { wc: 402, d: "NumpadComma",    c: 110 | num, n: "Num ," };
@@ -129,60 +142,43 @@ wmsx.DOMKeysNew.IGNORE_ALL_MODIFIERS_MASK = ~(wmsx.DOMKeysNew.SHIFT | wmsx.DOMKe
     k.VK_NUM_MULTIPLY = { wc: 404, d: "NumpadMultiply", c: 106 | num, n: "Num *" };
     k.VK_NUM_MINUS =    { wc: 405, d: "NumpadSubtract", c: 109 | num, n: "Num -" };
     k.VK_NUM_PLUS =     { wc: 406, d: "NumpadAdd",      c: 107 | num, n: "Num +" };
-    k.VK_NUM_PERIOD =   { wc: 407, d: "NumpadDecimal",  c: 194 | num, n: "Num ." };
-    k.VK_NUM_ENTER =    { wc: 408, d: "NumpadEnter",    c: 13 | num,  n: "Num Enter" };
-    k.VK_NUM_1 =        { wc: 421, d: "Numpad1",        c: 97 | num,  n: "Num 1" };
-    k.VK_NUM_2 =        { wc: 422, d: "Numpad2",        c: 98 | num,  n: "Num 2" };
-    k.VK_NUM_3 =        { wc: 423, d: "Numpad3",        c: 99 | num,  n: "Num 3" };
-    k.VK_NUM_4 =        { wc: 424, d: "Numpad4",        c: 100 | num, n: "Num 4" };
-    k.VK_NUM_5 =        { wc: 425, d: "Numpad5",        c: 101 | num, n: "Num 5" };
-    k.VK_NUM_6 =        { wc: 426, d: "Numpad6",        c: 102 | num, n: "Num 6" };
-    k.VK_NUM_7 =        { wc: 427, d: "Numpad7",        c: 103 | num, n: "Num 7" };
-    k.VK_NUM_8 =        { wc: 428, d: "Numpad8",        c: 104 | num, n: "Num 8" };
-    k.VK_NUM_9 =        { wc: 429, d: "Numpad9",        c: 105 | num, n: "Num 9" };
-    k.VK_NUM_0 =        { wc: 430, d: "Numpad0",        c: 96 | num,  n: "Num 0" };
+    k.VK_NUM_ENTER =    { wc: 407, d: "NumpadEnter",    c: 13 | num,  n: "Num Enter", fn: true };
+    k.VK_NUM_PERIOD =   { wc: 408, d: "NumpadDecimal",  c: 194 | num, n: "Num .", fn: true };
+    k.VK_NUM_1 =        { wc: 421, d: "Numpad1",        c: 97 | num,  n: "Num 1", fn: true };
+    k.VK_NUM_2 =        { wc: 422, d: "Numpad2",        c: 98 | num,  n: "Num 2", fn: true };
+    k.VK_NUM_3 =        { wc: 423, d: "Numpad3",        c: 99 | num,  n: "Num 3", fn: true };
+    k.VK_NUM_4 =        { wc: 424, d: "Numpad4",        c: 100 | num, n: "Num 4", fn: true };
+    k.VK_NUM_5 =        { wc: 425, d: "Numpad5",        c: 101 | num, n: "Num 5", fn: true };
+    k.VK_NUM_6 =        { wc: 426, d: "Numpad6",        c: 102 | num, n: "Num 6", fn: true };
+    k.VK_NUM_7 =        { wc: 427, d: "Numpad7",        c: 103 | num, n: "Num 7", fn: true };
+    k.VK_NUM_8 =        { wc: 428, d: "Numpad8",        c: 104 | num, n: "Num 8", fn: true };
+    k.VK_NUM_9 =        { wc: 429, d: "Numpad9",        c: 105 | num, n: "Num 9", fn: true };
+    k.VK_NUM_0 =        { wc: 430, d: "Numpad0",        c: 96 | num,  n: "Num 0", fn: true };
 
-    k.VK_VOID = { wc: -1, d: "", c: -1, n: "Unbound" };
+    k.VK_VOID = { wc: -1, d: "", c: -1, n: "Unbound", fn: true };
 
-    // Define additional collections for key identification
-    k.keysByCode = {};
-    k.keysByLegacyCode = {};
-    for (var key in k) {
-        var code = k[key].d;
-        var legCode = k[key].c;
-        if (code) k.keysByCode[code] = k[key];
-        if (legCode > 0) k.keysByLegacyCode[legCode] = k[key];
-    }
+    // Additional keys used by built-in keyboards
+    // Brazilian
+    k.VK_BR_QUOTE =         { wc: 221, d: "Backquote",     c: 192, n: "'", a: "BR" };
+    k.VK_BR_ACUTE =         { wc: 225, d: "BracketLeft",   c: 219, n: "´", a: "BR" };
+    k.VK_BR_OPEN_BRACKET =  { wc: 226, d: "BracketRight",  c: 221, n: "[", a: "BR" };
+    k.VK_BR_CEDILLA =       { wc: 227, d: "Semicolon",     c: 186, n: "Ç", a: "BR" };
+    k.VK_BR_TILDE =         { wc: 228, d: "Quote",         c: 222, n: "~", a: "BR" };
+    k.VK_BR_CLOSE_BRACKET = { wc: 229, d: "Backslash",     c: 220, n: "]", a: "BR" };
+    k.VK_BR_SEMICOLON =     { wc: 233, d: "Slash",         c: 191, n: ";", a: "BR" };
+    k.VK_BR_SLASH =         { wc: 234, d: "IntlRo",        c: 193, n: "/", a: "BR" };
+    // Japanese
+    k.VK_JP_CIRCUMFLEX =    { wc: 223, d: "Equal",         c: 187, n: "^", a: "JP" };
+    k.VK_JP_ARROBA =        { wc: 225, d: "BracketLeft",   c: 219, n: "@", a: "JP" };
+    k.VK_JP_OPEN_BRACKET =  { wc: 226, d: "BracketRight",  c: 221, n: "[", a: "JP" };
+    k.VK_JP_COLLON =        { wc: 228, d: "Quote",         c: 222, n: ":", a: "JP" };
+    k.VK_JP_CLOSE_BRACKET = { wc: 229, d: "Backslash",     c: 220, n: "]", a: "JP" };
+
+    // Define additional collections for key identification. Additional international keys not included
+    for (var key in k) k.addKeyToIdentification(k[key]);
 
 })(wmsx.DOMKeysNew, wmsx.DOMKeysNew.LOCLEFT, wmsx.DOMKeysNew.LOCRIGHT, wmsx.DOMKeysNew.LOCNUM);
 
-wmsx.DOMKeysNew.forcedNames = {
-    27:  "Esc",
-    13:  "Enter",
-    32:  "Space",
-    9:   "Tab",
-    8:   "BackSpc",
-    16:  "Shift",
-    17:  "Control",
-    18:  "Alt",
-    91:  "Meta",
-    93:  "Context",
-    20:  "CapsLock",
-    44:  "PrtScr",
-    145: "ScrLck",
-    19:  "Pause",
-    3:   "Break",
-    45:  "Ins",
-    46:  "Del",
-    36:  "Home",
-    35:  "End",
-    33:  "PgUp",
-    34:  "PgDown",
-    38:  "Up",
-    40:  "Down",
-    37:  "Left",
-    39:  "Right"
-};
 
 wmsx.DOMKeysNew.isModifierKey = function(e) {
     var keyCode = e.keyCode;
@@ -190,9 +186,8 @@ wmsx.DOMKeysNew.isModifierKey = function(e) {
 };
 
 wmsx.DOMKeysNew.codeNewForKeyboardEvent = function(e) {
-    // TODO Custom New Keys
-    var key = this.keysByCode[e.code] || this.keysByLegacyCode[e.keyCode];
-    if (!key) return -1;
+    var key = this.keysByCode[e.code] || this.keysByLegacyCode[e.keyCode | (e.location << this.LOC_BIT_SHIFT)];
+    if (!key) return 0;
 
     // Does not return modifiers for modifier keys SHIFT, CONTROL, ALT, META
     if (this.isModifierKey(e))
@@ -206,25 +201,43 @@ wmsx.DOMKeysNew.codeNewForKeyboardEvent = function(e) {
 };
 
 wmsx.DOMKeysNew.nameForKeyboardEvent = function(e) {
+    var wc = this.codeNewForKeyboardEvent(e);
+    var key = this.keys[wc];
+
+    // Unidentifiable key, ignore!
+    if (!key && !e.code && !(e.keyCode > 0)) return;
+
     var keyCode = e.keyCode;
-    var name = this.forcedNames[keyCode] || e.key;
-    var nameUp = name && name.toUpperCase();
-    if (!nameUp || nameUp === "UNIDENTIFIED" || nameUp === "UNDEFINED" || nameUp === "UNKNOWN") name = "#" + keyCode;
-    else if (nameUp === "DEAD") name = "Dead#" + keyCode;
+    var name = e.key;
 
-    if (name.length === 1) name = name.toUpperCase();                           // For normal letters
-    else if (name.length > 12) name = name.substr(0, 12);                       // Limit size
+    if (key && key.fn) {
+        name = key.n;
+    } else {
+        var nameUp = name && name.toUpperCase();
+        if (!nameUp || nameUp === "UNIDENTIFIED" || nameUp === "UNDEFINED" || nameUp === "UNKNOWN") name = e.code || ("#" + keyCode);
+        else if (nameUp === "DEAD") name = "Dead#" + keyCode;
 
-    // Add locaiton info
-    switch(e.location) {
-        case 1: name = "L-" + name; break;
-        case 2: name = "R-" + name; break;
-        case 3: name = "Num " + name;
+        if (name.length === 1) name = name.toUpperCase();                           // For normal letters
+        else if (name.length > 12) name = name.substr(0, 12);                       // Limit size
+
+        // Add locaiton info
+        switch(e.location) {
+            case 1: name = "L-" + name; break;
+            case 2: name = "R-" + name; break;
+            case 3: name = "Num " + name;
+        }
     }
 
+    // Creates a new VK_KEY if unknown key
+    if (!key) {
+        wmsx.Util.warning("New Host Key discovered:", e);
+        key = { wc: this.nextCustomCode++, d: e.code || "", c: e.code ? 0 : e.keyCode | (e.location << this.LOC_BIT_SHIFT), n: name };
+        this.addKeyToIdentification(key);
+    }
+
+    // Add modifiers info for final mapping name
     if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
         name = [ name ];
-        // Add modifiers info
         if (e.metaKey) name.unshift("Meta");
         if (e.altKey) name.unshift("Alt");
         if (e.ctrlKey) name.unshift("Ctrl");

@@ -17,7 +17,7 @@
         D9             : k.VK_9,
         MINUS          : k.VK_MINUS,
         EQUAL          : k.VK_EQUALS,
-        BACKSLASH      : k.VK_BACKSLASH,
+        BACKSLASH      : [ k.VK_BACKSLASH, k.VK_INT_BACKSLASH ],
         OPEN_BRACKET   : k.VK_OPEN_BRACKET,
         CLOSE_BRACKET  : k.VK_CLOSE_BRACKET,
         SEMICOLON      : k.VK_SEMICOLON,
@@ -26,7 +26,7 @@
         COMMA          : k.VK_COMMA,
         PERIOD         : k.VK_PERIOD,
         SLASH          : k.VK_SLASH,
-        DEAD           : [ k.VK_RCONTROL, k.VK_END ],
+        DEAD           : [ k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ],
         A              : k.VK_A,
         B              : k.VK_B,
         C              : k.VK_C,
@@ -119,49 +119,30 @@
     for (key in base) br[key] = base[key];
 
     // pt-BR specific keys positions
-    br.QUOTE =         k.VK_BACKQUOTE;
-    br.OPEN_BRACKET =  k.VK_CLOSE_BRACKET;
-    br.CLOSE_BRACKET = k.VK_BACKSLASH;
-    br.BACKQUOTE =     k.VK_OPEN_BRACKET;
-    br.SEMICOLON =     k.VK_SLASH;
-    br.SLASH =         k.VK_INT_RO;
     br.BACKSLASH =     k.VK_INT_BACKSLASH;
-    br.DEAD =          [ k.VK_QUOTE, k.VK_RCONTROL, k.VK_END ];
+    br.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
+    br.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
+    br.SEMICOLON =     k.VK_BR_SEMICOLON;
+    br.QUOTE =         k.VK_BR_QUOTE;
+    br.BACKQUOTE =     k.VK_BR_ACUTE;
+    br.SLASH =         k.VK_BR_SLASH;
+    br.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
 
     // ja-JP
     var jp = {};
     for (key in base) jp[key] = base[key];
-/*
-    // ja-JP specific keys and browser differences
-    switch (wmsx.Util.browserInfo().name) {
-        case "FIREFOX":
-            jp.EQUAL =         k.VK_FF_JP_CIRCUMFLEX;
-            jp.OPEN_BRACKET =  k.VK_FF_JP_ARROBA;
-            jp.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
-            jp.SEMICOLON =     k.VK_FF_JP_SEMICOLLON;
-            jp.QUOTE =         k.VK_FF_JP_COLLON;
-            jp.BACKQUOTE =     k.VK_CLOSE_BRACKET;
-            jp.DEAD =          [ k.VK_RCONTROL, k.VK_END ];                 // Japanese IntlRo bug: key code is the same as IntlYen, so do not use
-            jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
-            jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
-            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { wc: k.VK_FF_JP_CIRCUMFLEX.wc | k.ALT, n: [ "Alt", "^" ] } ];
-            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { wc: k.VK_JP_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
-            break;
-        default:
-            jp.EQUAL =         k.VK_JP_CIRCUMFLEX;
-            jp.OPEN_BRACKET =  k.VK_JP_ARROBA;
-            jp.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
-            jp.SEMICOLON =     k.VK_JP_SEMICOLLON;
-            jp.QUOTE =         k.VK_JP_COLLON;
-            jp.BACKQUOTE =     k.VK_CLOSE_BRACKET;
-            jp.DEAD =          [ k.VK_JP_BACKSLASH, k.VK_RCONTROL, k.VK_END ];
-            jp.CAPSLOCK =      [ k.VK_JP_NOCONV, k.VK_JP_CAPS_LOCK ];
-            jp.CODE =          [ k.VK_JP_CONV, k.VK_JP_KANA, k.VK_RALT, k.VK_PAGE_DOWN ];
-            jp.HOME =          [ k.VK_HOME, k.VK_NUM_HOME, { wc: k.VK_JP_CIRCUMFLEX.wc | k.ALT, n: [ "Alt", "^" ] } ];
-            jp.INSERT =        [ k.VK_INSERT, k.VK_NUM_INSERT, { wc: k.VK_JP_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
-    }
-*/
 
+    // ja-JP specific keys positions
+    jp.EQUAL =         k.VK_JP_CIRCUMFLEX;
+    jp.BACKSLASH =     [ k.VK_INT_YEN, k.VK_INT_BACKSLASH ];
+    jp.OPEN_BRACKET =  k.VK_JP_ARROBA;
+    jp.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
+    jp.QUOTE =         k.VK_JP_COLLON;
+    jp.BACKQUOTE =     k.VK_JP_CLOSE_BRACKET;
+    jp.DEAD =          k.VK_INT_RO;
+
+
+    // Available Keyboards
     wmsx.BuiltInKeyboards = {
         all: [ "en-US", "pt-BR", "ja-JP" ],
         "en-US": us,
