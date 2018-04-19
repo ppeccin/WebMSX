@@ -27,7 +27,7 @@ wmsx.Z80 = function() {
 
     this.clockPulses = function(quant) {
         var turboQuant = quant * turboClockMulti;
-        for (var i = turboQuant; i > 0; --i) {
+        for (var t = turboQuant; t > 0; --t) {
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T > 0) {
                 instruction.operation();
@@ -39,6 +39,22 @@ wmsx.Z80 = function() {
         }
         busCycles += quant;                          // Quantized bus cycle reporting in original clock (no turbo). Lower precision, better performance
     };
+
+    // this.clockPulsesPrecise = function(quant) {
+    //     for (var q = quant; q > 0; --q) {
+    //         for (var t = turboClockMulti; t > 0; --t) {
+    //             if (--T > 1) continue;               // Still counting cycles of current instruction
+    //             if (T > 0) {
+    //                 instruction.operation();
+    //             } else {
+    //                 ++R;                             // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+    //                 if (ackINT) acknowledgeINT();
+    //                 else fetchNextInstruction();
+    //             }
+    //         }
+    //         ++busCycles;                             // Precise bus cycle reporting in original clock (no turbo). Higher precision, worse performance
+    //     }
+    // };
 
     this.connectBus = function(aBus) {
         bus = aBus;

@@ -414,6 +414,9 @@ wmsx.VDP = function(machine, cpu) {
                 break;
             case 27:
                 if (isV9958) rightScrollPixels = val & 0x07;             // H02-H01
+
+                // logInfo("Reg17 - Right Scroll set: " + val);
+
                 break;
             case 44:
                 commandProcessor.cpuWrite(val);
@@ -572,12 +575,11 @@ wmsx.VDP = function(machine, cpu) {
         }
     }
 
-    // Total line clocks: VDP: 1368, CPU: 228 CPU, PSG 7.125 PSG
+    // Total line clocks: VDP: 1368, CPU: 228, PSG 7.125
     // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
-    // This implementation starts each scanline at the Beginning of the Right Border, and ends with the Ending of the Visible Display
     function lineEvents() {
         // Start of line
-        //debugLineStartCPUCycles = cpu.getCycles();
+        // debugLineStartBUSCycles = cpu.getBUSCycles();
 
         // Page blinking per line (undocumented CDR bit set)
         if (blinkPerLine && blinkPageDuration > 0)
@@ -2402,7 +2404,7 @@ wmsx.VDP = function(machine, cpu) {
 
     var debugBackdropValue    = 0xff2a2a2a;
 
-    var debugLineStartCPUCycles = 0;
+    var debugLineStartBUSCycles = 0;
 
 
     // Connections
@@ -2478,7 +2480,9 @@ wmsx.VDP = function(machine, cpu) {
 
 
     function logInfo(text) {
-        wmsx.Util.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", cpuCycle: " + (cpu.getBUSCycles() - debugLineStartCPUCycles));
+        var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
+        var vdpLineCycles = busLineCycles * 6;
+        wmsx.Util.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", x: " + ((vdpLineCycles - 258) / 4) + ", vdpCycle:" + vdpLineCycles + ", cpuCycle: " + busLineCycles);
     }
     this.logInfo = logInfo;
 
