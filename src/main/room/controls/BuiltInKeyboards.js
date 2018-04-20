@@ -63,7 +63,7 @@
         F3             : k.VK_F3,
         F4             : k.VK_F4,
         F5             : k.VK_F5,
-        ESCAPE         : [ k.VK_ESCAPE, { wc: k.VK_F1.wc | k.ALT, n: [ "Alt", "F1" ] } ],
+        ESCAPE         : [ k.VK_ESCAPE, { wc: k.VK_BACKQUOTE.wc | k.ALT, n: [ "Alt", "`" ] } ],
         TAB            : k.VK_TAB,
         STOP           : [ k.VK_PAUSE, k.VK_BREAK, k.VK_F9 ],
         BACKSPACE      : k.VK_BACKSPACE,
@@ -119,6 +119,7 @@
     for (key in base) br[key] = base[key];
 
     // pt-BR specific keys positions
+    br.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ],
     br.BACKSLASH =     k.VK_INT_BACKSLASH;
     br.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
     br.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;

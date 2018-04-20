@@ -503,7 +503,7 @@ wmsx.SettingsGUI.html = function() {
                                 L
                             </div>
                         </div>
-                        <div class="wmsx-desc">Toggle Keyboard Layout</div>
+                        <div class="wmsx-desc">Toggle Host Keyboard Layout</div>
                     </div>
                     <div class="wmsx-right" >
                         <div id="wmsx-inputs-keyboard-name" class="wmsx-hotkey wmsx-link" >

@@ -159,8 +159,8 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
     this.getMappingPopupText = function(button, port) {
         var virtual = !joystickButtons[button].mask;
         return {
-            heading: virtual ? "Virtual Button mapping:" : "Button mapped to:",
-            footer: virtual ? "Press new button / new key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
+            heading: virtual ? "Virtual Button mapping:" : "Button mapped to host buttons:",
+            footer: virtual ? "Press new button / key.<br>(right-click to clear)" : "Press new button.<br>(right-click to clear)"
         };
     };
 

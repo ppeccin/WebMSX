@@ -85,8 +85,6 @@ wmsx.PasteDialog = function(mainElement, screen, machineControls) {
 
     var domKeys = wmsx.DOMKeysNew;
 
-    // TODO Check code values together with e.shiftKey and modifiers
-
     var ALLOW_DEFAULT_KEYS = [
         // Ctrl V, Shift Ins, Shift Num-Ins
         domKeys.VK_V.wc | domKeys.CONTROL, domKeys.VK_INSERT.wc | domKeys.SHIFT, domKeys.VK_NUM_0.wc | domKeys.SHIFT

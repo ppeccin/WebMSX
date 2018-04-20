@@ -16,7 +16,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
     };
 
     this.refresh = function() {
-        keyboardNameElement.innerHTML = "Current Keyboard:&nbsp;&nbsp;" + domKeyboard.getCurrentKeyboardDesc();
+        keyboardNameElement.innerHTML = "Host Layout:&nbsp;&nbsp;" + domKeyboard.getCurrentKeyboardDesc();
         refreshUnmappedIndicator();
     };
 
@@ -133,8 +133,8 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
 
     var popup = wmsx.ControlMappingPopup.get();
 
-    var POPUP_HEADING = "Key mapped to:";
-    var POPUP_FOOTER = "Press new key.<br>(right-click to clear)";
+    var POPUP_HEADING = "Key mapped to host keys:";
+    var POPUP_FOOTER = "Press new key.<br>(click to lock, right-click to clear)";
 
 
     init();

@@ -7,7 +7,7 @@ wmsx.ControlMappingPopup = function() {
         setup();
     }
 
-    this.show = function(pController, pControlEditing, pPortEditing, x, y, heading, footer, locked) {
+    this.show = function(pController, pControlEditing, pPortEditing, x, y, heading, footer, pLocked) {
         posX = x; posY = y;
         controller = pController;
         controlEditing = pControlEditing;
@@ -15,7 +15,8 @@ wmsx.ControlMappingPopup = function() {
         modifKeyCodePending = null;
         popupHeading.innerHTML = heading;
         popupFooter.innerHTML = footer;
-        popup.classList.toggle("wmsx-locked", !!locked);
+        locked = !!pLocked;
+        popup.classList.toggle("wmsx-locked", locked);
         update();
     };
 
@@ -50,7 +51,9 @@ wmsx.ControlMappingPopup = function() {
         if (!controlEditing) return;
 
         var code = domKeys.codeNewForKeyboardEvent(e);
-        console.log("Key Press, code: " + e.code + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", wc: " + code + ", key: " + e.key);
+        // console.log("Key Press, code: " + e.code + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", wc: " + code + ", key: " + e.key);
+
+        if (!locked && code === wmsx.DOMKeysNew.VK_ESCAPE.wc) return;
 
         // Modifier keys are accepted only on release
         if (domKeys.isModifierKey(e))
@@ -66,9 +69,10 @@ wmsx.ControlMappingPopup = function() {
     function keyUp(e) {
         if (!controlEditing) return;
 
+        var code = domKeys.codeNewForKeyboardEvent(e);
+
         // Modifier keys are accepted only on release, and only the last one depressed
-        var keyCode = domKeys.codeNewForKeyboardEvent(e);
-        if (modifKeyCodePending === keyCode) customizeControlKeyEvent(e);
+        if (modifKeyCodePending === code) customizeControlKeyEvent(e);
 
         e.stopPropagation();
         e.preventDefault();
@@ -144,7 +148,7 @@ wmsx.ControlMappingPopup = function() {
     var posX = 0, posY = 0;
     var controller = null, controlEditing = null, portEditing, modifKeyCodePending = null;
 
-    var popup, popupHeading, popupMapping, popupFooter;
+    var popup, popupHeading, popupMapping, popupFooter, locked;
     var POPUP_DIST = 14;
 
 

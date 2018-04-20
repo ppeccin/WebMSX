@@ -202,7 +202,7 @@ wmsx.DOMKeysNew.codeNewForKeyboardEvent = function(e) {
 
 wmsx.DOMKeysNew.nameForKeyboardEvent = function(e) {
     var wc = this.codeNewForKeyboardEvent(e);
-    var key = this.keys[wc];
+    var key = this.keys[wc & this.IGNORE_ALL_MODIFIERS_MASK];
 
     // Unidentifiable key, ignore!
     if (!key && !e.code && !(e.keyCode > 0)) return;
@@ -231,8 +231,11 @@ wmsx.DOMKeysNew.nameForKeyboardEvent = function(e) {
     // Creates a new VK_KEY if unknown key
     if (!key) {
         wmsx.Util.warning("New Host Key discovered:", e);
-        key = { wc: this.nextCustomCode++, d: e.code || "", c: e.code ? 0 : e.keyCode | (e.location << this.LOC_BIT_SHIFT), n: name };
+        wc = WMSX.userPreferences.current.customKeys.nextCode++;
+        key = { wc: wc, d: e.code || "", c: e.code ? 0 : ( e.keyCode & this.IGNORE_ALL_MODIFIERS_MASK) | (e.location << this.LOC_BIT_SHIFT), n: name };
         this.addKeyToIdentification(key);
+        WMSX.userPreferences.current.customKeys.keys.push(key);
+        WMSX.userPreferences.setDirty();        // Must to be saved externally
     }
 
     // Add modifiers info for final mapping name
@@ -245,4 +248,9 @@ wmsx.DOMKeysNew.nameForKeyboardEvent = function(e) {
     }
 
     return name;
+};
+
+wmsx.DOMKeysNew.initPreferences = function() {
+    var customKeys = WMSX.userPreferences.current.customKeys.keys;
+    for (var i = 0, len = customKeys.length; i < len; ++i) this.addKeyToIdentification(customKeys[i]);
 };

@@ -130,7 +130,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     };
 
     this.getMappingPopupText = function(button, port) {
-        return { heading: "Button mapped to:", footer: "Press new key.<br>(right-click to clear)" };
+        return { heading: "Button mapped to host keys:", footer: "Press new key.<br>(right-click to clear)" };
     };
 
     this.customizeControl = function (button, port, mapping) {

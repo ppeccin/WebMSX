@@ -18,7 +18,11 @@ WMSX.userPreferences.defaults = function() {
     return {
 
         keyboard: undefined,        // auto
-        customKeyboards: { },
+        customKeyboards: {},
+        customKeys: {
+            nextCode: 1001,
+            keys: []
+        },
 
         joysticks: [
             {
@@ -170,6 +174,9 @@ WMSX.userPreferences.load = function() {
     prefs.prefsVersion = WMSX.userPreferences.currentVersion;
 
     WMSX.userPreferences.current = prefs;
+
+    // Init other static components that need current preferences
+    wmsx.DOMKeysNew.initPreferences();
 };
 
 WMSX.userPreferences.save = function() {
