@@ -3,8 +3,8 @@
 // TODO Migration (Keyboards, new keys scheme)
 WMSX.userPreferences = { };
 
-WMSX.userPreferences.currentVersion = 1;
-WMSX.userPreferences.compatibleVersions = new Set([ 1 ]);
+WMSX.userPreferences.currentVersion = 50;
+WMSX.userPreferences.compatibleVersions = new Set([ 50 ]);
 
 WMSX.userPreferences.defaults = function() {
 "use strict";
@@ -17,9 +17,9 @@ WMSX.userPreferences.defaults = function() {
 
     return {
 
-        keyboard: undefined,        // auto
-        customKeyboards: {},
-        customKeys: {
+        hostKeyboard: { en: undefined, ja: undefined },        // auto
+        customHostKeyboards: { en: {}, ja: {} },
+        customHostKeys: {
             nextCode: 1001,
             keys: []
         },
@@ -158,11 +158,7 @@ WMSX.userPreferences.load = function() {
         // Create new empty preferences and keep settings as possible
         var oldPrefs = prefs;
         prefs = {};
-        if (oldPrefs) {
-            // Migration from version < 1 to version 1: Keep only keyboard settings
-            prefs.keyboard = oldPrefs.keyboard;
-            prefs.customKeyboards = oldPrefs.customKeyboards;
-        }
+        // No migrations...
     }
 
     // Fill missing properties with defaults

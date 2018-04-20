@@ -9,7 +9,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         self.applyPreferences();
     }
 
-    this.connect = function(pBIOSSocket) {
+    this.connect = function(pMachineTypeSocket, pBIOSSocket) {
+        machineTypeSocket = pMachineTypeSocket,
         biosSocket = pBIOSSocket;
     };
 
@@ -94,8 +95,8 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         if (screen) screen.keyboardSettingsStateUpdate();
 
         var prefValue = auto ? undefined : keyboard;
-        if (WMSX.userPreferences.current.keyboard !== prefValue) {
-            WMSX.userPreferences.current.keyboard = prefValue;
+        if (WMSX.userPreferences.current.hostKeyboard[lang] !== prefValue) {
+            WMSX.userPreferences.current.hostKeyboard[lang] = prefValue;
             WMSX.userPreferences.setDirty();
             WMSX.userPreferences.save();
         }
@@ -212,7 +213,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     var updateMapping = function() {
-        var map = customKeyboards[currentKeyboard] || wmsx.BuiltInKeyboards[currentKeyboard];
+        var map = customKeyboards[currentKeyboard] || builtInKeyboards[currentKeyboard];
         for (var msxKey in msxKeys)
             mapping[msxKey] = !map[msxKey] ? [] : map[msxKey].constructor === Array ? map[msxKey] : [ map[msxKey] ];
         updateCodeMap();
@@ -245,7 +246,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
             availableKeyboards.push(customName);
         }
 
-        // Redefine mappings based on current
+        // Init mappings based on current
         var custom = customKeyboards[customName];
         for (var k in mapping)
             custom[k] = mapping[k].slice(0);
@@ -254,12 +255,12 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     }
 
     this.applyPreferences = function() {
-        customKeyboards = WMSX.userPreferences.current.customKeyboards || {};
-        availableKeyboards = wmsx.BuiltInKeyboards.all.slice(0);
-        availableKeyboards = availableKeyboards.concat(Object.keys(customKeyboards));
+        builtInKeyboards = wmsx.BuiltInKeyboards[lang] || {};
+        customKeyboards = WMSX.userPreferences.current.customHostKeyboards[lang] || {};
+        availableKeyboards = Object.keys(builtInKeyboards).concat(Object.keys(customKeyboards));
 
-        var keyboard = WMSX.userPreferences.current.keyboard;                                // undefined = auto
-        if (availableKeyboards.indexOf(keyboard) >= 0) this.setKeyboard(keyboard, false);    // use default if not found or not set
+        var keyboard = WMSX.userPreferences.current.hostKeyboard[lang];                         // undefined = auto
+        if (availableKeyboards.indexOf(keyboard) >= 0) this.setKeyboard(keyboard, false);       // use default if not found or not set
         else setDefaultKeyboard();
     };
 
@@ -313,12 +314,15 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var msxKeys = wmsx.KeyboardKeys;
     var domKeys = wmsx.DOMKeysNew;
 
-    var availableKeyboards;
-    var customKeyboards;
+    var availableKeyboards = [];
+    var builtInKeyboards = {}, customKeyboards = {};
     var currentKeyboard, currentIsAuto;
 
+    var machineTypeSocket;
     var biosSocket;
     var screen;
+
+    var lang = "en";    // default
 
     var keyStateMap = {};
 
@@ -330,7 +334,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var bootKeysCountdown = 0;
 
     var mapping = {};
-    var keyCodeMap;
+    var keyCodeMap = {};
 
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
     var turboKeyPressed = false;

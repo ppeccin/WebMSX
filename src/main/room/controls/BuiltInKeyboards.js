@@ -111,44 +111,46 @@
     // Define built-in keyboards
 
     // English Machine, Host keyboard: en-US (default)
-    var enUS = {};
-    for (var key in base) enUS[key] = base[key];
+    var en_US = {};
+    for (var key in base) en_US[key] = base[key];
 
     // English Machine, Host keyboard: pt-BR
-    var enBR = {};
-    for (key in base) enBR[key] = base[key];
-
-    // English pt-BR specific keys positions
-    enBR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ];
-    enBR.BACKSLASH =     k.VK_INT_BACKSLASH;
-    enBR.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
-    enBR.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
-    enBR.SEMICOLON =     k.VK_BR_SEMICOLON;
-    enBR.QUOTE =         k.VK_BR_QUOTE;
-    enBR.BACKQUOTE =     k.VK_BR_ACUTE;
-    enBR.SLASH =         k.VK_BR_SLASH;
-    enBR.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
+    var en_BR = {};
+    for (key in base) en_BR[key] = base[key];
+    en_BR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ];
+    en_BR.BACKSLASH =     k.VK_INT_BACKSLASH;
+    en_BR.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
+    en_BR.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
+    en_BR.SEMICOLON =     k.VK_BR_SEMICOLON;
+    en_BR.QUOTE =         k.VK_BR_QUOTE;
+    en_BR.BACKQUOTE =     k.VK_BR_ACUTE;
+    en_BR.SLASH =         k.VK_BR_SLASH;
+    en_BR.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
 
     // Japanese Machine, Host keyboard: ja-JP
-    var jpJP = {};
-    for (key in base) jpJP[key] = base[key];
-
-    // English ja-JP specific keys positions
-    jpJP.EQUAL =         k.VK_JP_CIRCUMFLEX;
-    jpJP.BACKSLASH =     [ k.VK_INT_YEN, k.VK_INT_BACKSLASH ];
-    jpJP.OPEN_BRACKET =  k.VK_JP_ARROBA;
-    jpJP.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
-    jpJP.QUOTE =         k.VK_JP_COLLON;
-    jpJP.BACKQUOTE =     k.VK_JP_CLOSE_BRACKET;
-    jpJP.DEAD =          k.VK_INT_RO;
+    var ja_JP = {};
+    for (key in base) ja_JP[key] = base[key];
+    ja_JP.EQUAL =         k.VK_JP_CIRCUMFLEX;
+    ja_JP.BACKSLASH =     [ k.VK_INT_YEN, k.VK_INT_BACKSLASH ];
+    ja_JP.OPEN_BRACKET =  k.VK_JP_ARROBA;
+    ja_JP.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
+    ja_JP.QUOTE =         k.VK_JP_COLLON;
+    ja_JP.BACKQUOTE =     k.VK_JP_CLOSE_BRACKET;
+    ja_JP.DEAD =          k.VK_INT_RO;
 
 
     // Available Keyboards
     wmsx.BuiltInKeyboards = {
-        all: [ "en-US", "pt-BR", "ja-JP" ],
-        "en-US": enUS,
-        "pt-BR": enBR,
-        "ja-JP": jpJP
+        en: {
+            "en-US": en_US,
+            "pt-BR": en_BR,
+            "ja-JP": ja_JP
+        },
+        ja: {
+            "en-US": en_US,
+            "pt-BR": en_BR,
+            "ja-JP": ja_JP
+        }
     };
 
 })();

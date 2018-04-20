@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
+// TODO Unmapped arrow does not show black
 wmsx.VirtualKeyboard = {
 
     create: function(mainElement, keysCallback, shift, lang) {

@@ -5,9 +5,9 @@ wmsx.ControllersHub = function(room, machineControls) {
 
     var self = this;
 
-    this.connect = function(machineControlsSocket, controllersSocket, biosSocket) {
+    this.connect = function(machineTypeSocket, machineControlsSocket, controllersSocket, biosSocket) {
         controllersSocket.connectControls(this);
-        keyboard.connect(biosSocket);
+        keyboard.connect(machineTypeSocket, biosSocket);
         mouseControls.connect(controllersSocket);
         touchControls.connect(machineControlsSocket);
     };
