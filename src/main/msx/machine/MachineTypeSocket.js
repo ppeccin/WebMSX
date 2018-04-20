@@ -10,11 +10,7 @@ wmsx.MachineTypeSocket = function(machine) {
     };
 
     this.isJapaneseMachine = function() {
-        return WMSX.MACHINES_CONFIG[machine.machineName].japanese === true;
-    };
-
-    this.isMSX1JapaneseMachine = function() {
-        return this.isJapaneseMachine() && WMSX.MACHINES_CONFIG[machine.machineName].type === 1;
+        return WMSX.MACHINES_CONFIG[machine.machineName].lang === "ja";
     };
 
     this.changeMachine = function (name) {

@@ -134,7 +134,7 @@ wmsx.DOMKeysNew.addKeyToIdentification = function(k) {
     k.VK_CAPS_LOCK =   { wc: 309, d: "CapsLock",     c: 20,         n: "CapsLock",   fn: true };
     k.VK_NON_CONVERT = { wc: 310, d: "NonConvert",   c: 29,         n: "NonConvert", fn: true };
     k.VK_CONVERT =     { wc: 311, d: "Convert",      c: 28,         n: "Convert",    fn: true };
-    k.VK_KANA =        { wc: 312, d: "KanaMode",     c: -1,          n: "Kana",      fn: true };
+    k.VK_KANA =        { wc: 312, d: "KanaMode",     c: -1,         n: "Kana",       fn: true };
 
     k.VK_NUMLOCK =      { wc: 401, d: "NumLock",        c: 144,       n: "NumLock" };
     k.VK_NUM_COMMA =    { wc: 402, d: "NumpadComma",    c: 110 | num, n: "Num ," };

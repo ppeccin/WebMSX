@@ -103,18 +103,18 @@ WMSX.MACHINES_CONFIG = {
     MSX2P:   { desc: "MSX2+ Auto Detect",      autoType: 3 },
     MSX2:    { desc: "MSX2 Auto Detect",       autoType: 2 },
     MSX1:    { desc: "MSX Auto Detect",        autoType: 1 },
-    MSX2PPA: { desc: "MSX2++ America (NTSC)",  type: 4, presets: "_MSX2PPA"},
-    MSX2PPE: { desc: "MSX2++ Europe (PAL)",    type: 4, presets: "_MSX2PPE"},
-    MSX2PPJ: { desc: "MSX2++ Japan (NTSC)",    type: 4, presets: "_MSX2PPJ", japanese: true },
-    MSX2PA:  { desc: "MSX2+ America (NTSC)",   type: 3, presets: "_MSX2PA"},
-    MSX2PE:  { desc: "MSX2+ Europe (PAL)",     type: 3, presets: "_MSX2PE"},
-    MSX2PJ:  { desc: "MSX2+ Japan (NTSC)",     type: 3, presets: "_MSX2PJ", japanese: true },
-    MSX2A:   { desc: "MSX2 America (NTSC)",    type: 2, presets: "_MSX2A"},
-    MSX2E:   { desc: "MSX2 Europe (PAL)",      type: 2, presets: "_MSX2E"},
-    MSX2J:   { desc: "MSX2 Japan (NTSC)",      type: 2, presets: "_MSX2J",  japanese: true },
-    MSX1A:   { desc: "MSX America (NTSC)",     type: 1, presets: "_MSX1A"},
-    MSX1E:   { desc: "MSX Europe (PAL)",       type: 1, presets: "_MSX1E"},
-    MSX1J:   { desc: "MSX Japan (NTSC)",       type: 1, presets: "_MSX1J",  japanese: true }
+    MSX2PPA: { desc: "MSX2++ America (NTSC)",  type: 4, presets: "_MSX2PPA", lang: "en" },
+    MSX2PPE: { desc: "MSX2++ Europe (PAL)",    type: 4, presets: "_MSX2PPE", lang: "en" },
+    MSX2PPJ: { desc: "MSX2++ Japan (NTSC)",    type: 4, presets: "_MSX2PPJ", lang: "ja" },
+    MSX2PA:  { desc: "MSX2+ America (NTSC)",   type: 3, presets: "_MSX2PA",  lang: "en" },
+    MSX2PE:  { desc: "MSX2+ Europe (PAL)",     type: 3, presets: "_MSX2PE",  lang: "en" },
+    MSX2PJ:  { desc: "MSX2+ Japan (NTSC)",     type: 3, presets: "_MSX2PJ",  lang: "ja" },
+    MSX2A:   { desc: "MSX2 America (NTSC)",    type: 2, presets: "_MSX2A",   lang: "en" },
+    MSX2E:   { desc: "MSX2 Europe (PAL)",      type: 2, presets: "_MSX2E",   lang: "en" },
+    MSX2J:   { desc: "MSX2 Japan (NTSC)",      type: 2, presets: "_MSX2J",   lang: "ja" },
+    MSX1A:   { desc: "MSX America (NTSC)",     type: 1, presets: "_MSX1A",   lang: "en" },
+    MSX1E:   { desc: "MSX Europe (PAL)",       type: 1, presets: "_MSX1E",   lang: "en" },
+    MSX1J:   { desc: "MSX Japan (NTSC)",       type: 1, presets: "_MSX1J",   lang: "ja" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
