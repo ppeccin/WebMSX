@@ -9,8 +9,8 @@ wmsx.MachineTypeSocket = function(machine) {
         return machine.machineName;
     };
 
-    this.isJapaneseMachine = function() {
-        return WMSX.MACHINES_CONFIG[machine.machineName].lang === "ja";
+    this.getMachineLang = function() {
+        return WMSX.MACHINES_CONFIG[machine.machineName].lang;
     };
 
     this.changeMachine = function (name) {

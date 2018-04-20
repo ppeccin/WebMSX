@@ -174,7 +174,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
 
     function refreshInputsPage() {
         if (!keyboardConfigurator) keyboardConfigurator = new wmsx.KeyboardConfigurator(controllersHub, modal, machineTypeSocket);
-        keyboardConfigurator.refreshForJapanese();
+        keyboardConfigurator.refreshLang();
         keyboardConfigurator.refresh();
     }
 

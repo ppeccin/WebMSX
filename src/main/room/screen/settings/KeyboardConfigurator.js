@@ -7,7 +7,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
     var self = this;
 
     function init() {
-        japanese = machineTypeSocket.isJapaneseMachine();
+        lang = machineTypeSocket.getMachineLang();
         setupKeyboard();
     }
 
@@ -20,11 +20,11 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
         refreshUnmappedIndicator();
     };
 
-    this.refreshForJapanese = function() {
-        var jap = machineTypeSocket.isJapaneseMachine();
-        if (jap !== japanese) {
-            japanese = jap;
-            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, japanese);
+    this.refreshLang = function() {
+        var newLang = machineTypeSocket.getMachineLang();
+        if (newLang !== lang) {
+            lang = newLang;
+            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, lang);
         }
     };
 
@@ -61,7 +61,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
             if (keyElement.wmsxKey) keyElements.push(keyElement);
             keyElement.addEventListener("mouseenter", mouseEnterKey);
             keyElement.addEventListener("mouseleave", mouseLeaveKey);
-        }, false, japanese);
+        }, false, lang);
     }
 
     function mouseDownModal(e) {
@@ -129,7 +129,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
     var keyElementEditing = null, msxKeyEditing = null, keyEditingLocked = false;
     var keyboardNameElement;
 
-    var japanese = false;
+    var lang = "en";
 
     var popup = wmsx.ControlMappingPopup.get();
 

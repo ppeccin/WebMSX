@@ -7,14 +7,14 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
 
     function init() {
         machineTypeSocket.addMachineTypeStateListener(self);
-        keyElements = wmsx.VirtualKeyboard.create(mainElement, setKeyEvents, shift, japanese);
+        keyElements = wmsx.VirtualKeyboard.create(mainElement, setKeyEvents, shift, lang);
     }
 
     this.machineTypeStateUpdate = function() {
-        var jap = machineTypeSocket.isJapaneseMachine();
-        if (jap !== japanese) {
-            japanese = jap;
-            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, japanese);
+        var newLang = machineTypeSocket.getMachineLang();
+        if (newLang !== lang) {
+            lang = newLang;
+            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, lang);
         }
     };
 
@@ -47,7 +47,7 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
         var shf = keyboard.isShiftPressed();
         if (shf !== shift) {
             shift = shf;
-            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, japanese);
+            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, lang);
         }
     }
 
@@ -58,7 +58,7 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
 
 
     var keyElements;
-    var shift = false, japanese = false;
+    var shift = false, lang = "en";
 
     init();
 

@@ -455,7 +455,7 @@ wmsx.DOMTouchControls.styleDirectionalMapping = function(elem, mapping) {
 };
 
 wmsx.DOMTouchControls.styleButtonMapping = function(elem, mapping) {
-    elem.innerHTML = mapping ? mapping.n || mapping.sn : "";
+    elem.innerHTML = mapping ? mapping.n || mapping.c_en : "";
     if (!mapping) {
         elem.classList.add("wmsx-touch-button-none");
         elem.classList.remove("wmsx-touch-button-joy", "wmsx-touch-button-key");

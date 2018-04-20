@@ -2,7 +2,7 @@
 
 wmsx.VirtualKeyboard = {
 
-    create: function(mainElement, keysCallback, shift, japanese) {
+    create: function(mainElement, keysCallback, shift, lang) {
         "use strict";
 
         var inner = document.createElement("div");
@@ -46,18 +46,17 @@ wmsx.VirtualKeyboard = {
             }
         }
 
-        this.updateKeysLabels(keyElements, shift, japanese);
+        this.updateKeysLabels(keyElements, shift, lang);
         return keyElements;
     },
 
-    updateKeysLabels: function(keyElements, shift, japanese) {
+    updateKeysLabels: function(keyElements, shift, lang) {
+        var sl = (shift ? "ns_" : "n_") + lang, sd = (shift ? "cs_en" : "c_en"), d = "c_en";
         "use strict";
         for (var k = keyElements.length - 1; k >= 0; --k) {
             var keyElement = keyElements[k];
             if (this.blankKeys.has(keyElement.wmsxKeyID)) continue;
-            var label = shift
-                ? (japanese && (wmsx.KeyboardKeys[keyElement.wmsxKey].jsn || wmsx.KeyboardKeys[keyElement.wmsxKey].jn)) || wmsx.KeyboardKeys[keyElement.wmsxKey].ssn || wmsx.KeyboardKeys[keyElement.wmsxKey].sn
-                : (japanese && wmsx.KeyboardKeys[keyElement.wmsxKey].jn) || wmsx.KeyboardKeys[keyElement.wmsxKey].sn;
+            var label = wmsx.KeyboardKeys[keyElement.wmsxKey][sl] || wmsx.KeyboardKeys[keyElement.wmsxKey][sd] || wmsx.KeyboardKeys[keyElement.wmsxKey][d];
             label = this.finalLabels[label] || label;
             if (keyElement.wmsxLabel !== label) {
                 keyElement.wmsxLabel = label;
