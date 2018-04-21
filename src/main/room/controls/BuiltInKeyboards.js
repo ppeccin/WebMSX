@@ -70,9 +70,9 @@
         SELECT         : [ k.VK_SCROLL_LOCK, k.VK_F10 ],
         ENTER          : [ k.VK_ENTER, k.VK_NUM_ENTER ],
         SPACE          : k.VK_SPACE,
-        HOME           : [ k.VK_HOME, { wc: k.VK_EQUALS.wc | k.ALT, n: [ "Alt", "=" ] } ],
-        INSERT         : [ k.VK_INSERT, { wc: k.VK_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ],
-        DELETE         : [ k.VK_DELETE, { wc: k.VK_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ],
+        HOME           : [ k.VK_HOME, { wc: k.VK_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ],
+        INSERT         : [ k.VK_INSERT, { wc: k.VK_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ],
+        DELETE         : [ k.VK_DELETE, { wc: k.VK_BACKSLASH.wc | k.ALT, n: [ "Alt", "\\" ] } ],
         UP             : k.VK_UP,
         DOWN           : k.VK_DOWN,
         RIGHT          : k.VK_RIGHT,
@@ -118,25 +118,73 @@
     var en_BR = {};
     for (key in base) en_BR[key] = base[key];
     en_BR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ];
-    en_BR.BACKSLASH =     k.VK_INT_BACKSLASH;
+    en_BR.BACKSLASH =     k.VK_BR_BACKSLASH;
     en_BR.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
     en_BR.CLOSE_BRACKET = k.VK_BR_CLOSE_BRACKET;
     en_BR.SEMICOLON =     k.VK_BR_SEMICOLON;
     en_BR.QUOTE =         k.VK_BR_QUOTE;
     en_BR.BACKQUOTE =     k.VK_BR_ACUTE;
     en_BR.SLASH =         k.VK_BR_SLASH;
-    en_BR.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
+    en_BR.DEAD =          [ k.VK_BR_TILDE, k.VK_BR_CEDILLA, k.VK_RCONTROL, k.VK_END ];
+    en_BR.HOME =          [ k.VK_HOME, { wc: k.VK_BR_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
+    en_BR.INSERT =        [ k.VK_INSERT, { wc: k.VK_BR_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
+    en_BR.DELETE =        [ k.VK_DELETE, { wc: k.VK_BR_SLASH.wc | k.ALT, n: [ "Alt", "/" ] } ];
+
+    // English Machine, Host keyboard: ja-JP
+    var en_JP = {};
+    for (key in base) en_JP[key] = base[key];
+    en_JP.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_JP_YEN.wc | k.ALT, n: [ "Alt", "¥" ] } ];
+    en_JP.EQUAL =         k.VK_JP_CIRCUMFLEX;
+    en_JP.BACKSLASH =     [ k.VK_JP_YEN, k.VK_INT_BACKSLASH ];
+    en_JP.OPEN_BRACKET =  k.VK_JP_OPEN_BRACKET;
+    en_JP.CLOSE_BRACKET = k.VK_JP_CLOSE_BRACKET;
+    en_JP.QUOTE =         k.VK_JP_COLLON;
+    en_JP.BACKQUOTE =     k.VK_JP_ARROBA;
+    en_JP.DEAD =          k.VK_JP_RO;
+    en_JP.CAPSLOCK =      k.VK_JP_NON_CONVERT;
+    en_JP.HOME =          [ k.VK_HOME, { wc: k.VK_JP_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
+    en_JP.INSERT =        [ k.VK_INSERT, { wc: k.VK_JP_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
+    en_JP.DELETE =        [ k.VK_DELETE, { wc: k.VK_JP_RO.wc | k.ALT, n: [ "Alt", "\\ ろ" ] } ];
+
+
+    // Japanese Machine, Host keyboard: en-US
+    var ja_US = {};
+    for (key in base) ja_US[key] = base[key];
+    ja_US.OPEN_BRACKET =  k.VK_BACKQUOTE;
+    ja_US.CLOSE_BRACKET = k.VK_OPEN_BRACKET;
+    ja_US.BACKQUOTE =     k.VK_CLOSE_BRACKET;
+
+    // Japanese Machine, Host keyboard: pt-BR
+    var ja_BR = {};
+    for (key in base) ja_BR[key] = base[key];
+    ja_BR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ];
+    ja_BR.BACKSLASH =     k.VK_BR_BACKSLASH;
+    ja_BR.OPEN_BRACKET =  [ k.VK_BR_QUOTE, k.VK_BR_ACUTE ];
+    ja_BR.CLOSE_BRACKET = k.VK_BR_OPEN_BRACKET;
+    ja_BR.SEMICOLON =     k.VK_BR_SEMICOLON;
+    ja_BR.QUOTE =         k.VK_BR_CEDILLA;
+    ja_BR.BACKQUOTE =     k.VK_BR_CLOSE_BRACKET;
+    ja_BR.SLASH =         k.VK_BR_SLASH;
+    ja_BR.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
+    ja_BR.HOME =          [ k.VK_HOME, { wc: k.VK_BR_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
+    ja_BR.INSERT =        [ k.VK_INSERT, { wc: k.VK_BR_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
+    ja_BR.DELETE =        [ k.VK_DELETE, { wc: k.VK_BR_SLASH.wc | k.ALT, n: [ "Alt", "/" ] } ];
 
     // Japanese Machine, Host keyboard: ja-JP
     var ja_JP = {};
     for (key in base) ja_JP[key] = base[key];
+    ja_JP.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_JP_YEN.wc | k.ALT, n: [ "Alt", "¥" ] } ];
     ja_JP.EQUAL =         k.VK_JP_CIRCUMFLEX;
-    ja_JP.BACKSLASH =     [ k.VK_INT_YEN, k.VK_INT_BACKSLASH ];
+    ja_JP.BACKSLASH =     [ k.VK_JP_YEN, k.VK_INT_BACKSLASH ];
     ja_JP.OPEN_BRACKET =  k.VK_JP_ARROBA;
     ja_JP.CLOSE_BRACKET = k.VK_JP_OPEN_BRACKET;
     ja_JP.QUOTE =         k.VK_JP_COLLON;
     ja_JP.BACKQUOTE =     k.VK_JP_CLOSE_BRACKET;
-    ja_JP.DEAD =          k.VK_INT_RO;
+    ja_JP.DEAD =          k.VK_JP_RO;
+    ja_JP.CAPSLOCK =      k.VK_JP_NON_CONVERT;
+    ja_JP.HOME =          [ k.VK_HOME, { wc: k.VK_JP_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
+    ja_JP.INSERT =        [ k.VK_INSERT, { wc: k.VK_JP_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
+    ja_JP.DELETE =        [ k.VK_DELETE, { wc: k.VK_JP_RO.wc | k.ALT, n: [ "Alt", "\\ ろ" ] } ];
 
 
     // Available Keyboards
@@ -144,11 +192,11 @@
         en: {
             "en-US": en_US,
             "pt-BR": en_BR,
-            "ja-JP": ja_JP
+            "ja-JP": en_JP
         },
         ja: {
-            "en-US": en_US,
-            "pt-BR": en_BR,
+            "en-US": ja_US,
+            "pt-BR": ja_BR,
             "ja-JP": ja_JP
         }
     };

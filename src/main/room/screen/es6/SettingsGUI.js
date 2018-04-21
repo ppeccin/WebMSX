@@ -506,6 +506,9 @@ wmsx.SettingsGUI.html = function() {
                         <div class="wmsx-desc">Toggle Host Keyboard Layout</div>
                     </div>
                     <div class="wmsx-right" >
+                        <div id="wmsx-inputs-msx-lang" class="wmsx-heading" >
+                            MSX Language: English
+                        </div>
                         <div id="wmsx-inputs-keyboard-name" class="wmsx-hotkey wmsx-link" >
                             Keyboard: Default
                         </div>
@@ -996,7 +999,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-inputs {
     left: 1200px;
-    padding: 26px 0 0 33px;
+    padding: 22px 0 0 33px;
 }
 
 #wmsx-inputs .wmsx-left {
@@ -1009,7 +1012,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 13px;
+    margin-top: 3px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
@@ -1023,6 +1026,9 @@ wmsx.SettingsGUI.css = function() {
     text-align: right;
 }
 
+#wmsx-inputs #wmsx-inputs-msx-lang {
+    padding: 0 5px 5px 0;
+}
 #wmsx-inputs #wmsx-inputs-keyboard-name {
     width: initial;
 }
@@ -1042,7 +1048,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports {
     left: 1800px;
-    padding: 26px 0 0 27px;
+    padding: 23px 0 0 27px;
 }
 
 #wmsx-ports .wmsx-left {

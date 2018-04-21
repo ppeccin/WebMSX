@@ -1,3 +1,4 @@
+/*
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // General, immutable info about host keys on different browsers and keyboard languages/layouts
@@ -271,3 +272,4 @@ wmsx.DOMKeys.nameForKeyboardEvent = function(e) {
 
     return name;
 };
+*/

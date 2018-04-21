@@ -166,13 +166,17 @@ wmsx.DOMKeysNew.addKeyToIdentification = function(k) {
     k.VK_BR_TILDE =         { wc: 228, d: "Quote",         c: 222, n: "~", a: "BR" };
     k.VK_BR_CLOSE_BRACKET = { wc: 229, d: "Backslash",     c: 220, n: "]", a: "BR" };
     k.VK_BR_SEMICOLON =     { wc: 233, d: "Slash",         c: 191, n: ";", a: "BR" };
+    k.VK_BR_BACKSLASH =     { wc: 230, d: "IntlBackslash", c: 226, n: "\\" };
     k.VK_BR_SLASH =         { wc: 234, d: "IntlRo",        c: 193, n: "/", a: "BR" };
     // Japanese
     k.VK_JP_CIRCUMFLEX =    { wc: 223, d: "Equal",         c: 187, n: "^", a: "JP" };
+    k.VK_JP_YEN =           { wc: 224, d: "IntlYen",       c: -1,  n: "¥" };
     k.VK_JP_ARROBA =        { wc: 225, d: "BracketLeft",   c: 219, n: "@", a: "JP" };
     k.VK_JP_OPEN_BRACKET =  { wc: 226, d: "BracketRight",  c: 221, n: "[", a: "JP" };
     k.VK_JP_COLLON =        { wc: 228, d: "Quote",         c: 222, n: ":", a: "JP" };
     k.VK_JP_CLOSE_BRACKET = { wc: 229, d: "Backslash",     c: 220, n: "]", a: "JP" };
+    k.VK_JP_RO =            { wc: 234, d: "IntlRo",        c: 193, n: "\\ ろ" };
+    k.VK_JP_NON_CONVERT =   { wc: 310, d: "NonConvert",    c: 29,  n: "NonConvert", fn: true };
 
     // Define additional collections for key identification. Additional international keys not included
     for (var key in k) k.addKeyToIdentification(k[key]);

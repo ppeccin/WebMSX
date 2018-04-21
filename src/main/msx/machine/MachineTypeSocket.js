@@ -40,10 +40,10 @@ wmsx.MachineTypeSocket = function(machine) {
         ).start();      // Synchronous since all loaded files are Embedded
     };
 
-    this.addMachineTypeStateListener = function (listener) {
+    this.addMachineTypeStateListener = function (listener, skipUpdate) {
         if (listeners.indexOf(listener) < 0) {
             listeners.push(listener);
-            listener.machineTypeStateUpdate();
+            if (!skipUpdate) listener.machineTypeStateUpdate();
         }
     };
 

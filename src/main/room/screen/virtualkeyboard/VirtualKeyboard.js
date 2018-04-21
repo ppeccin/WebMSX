@@ -52,7 +52,7 @@ wmsx.VirtualKeyboard = {
     },
 
     updateKeysLabels: function(keyElements, shift, lang) {
-        var sl = (shift ? "ns_" : "n_") + lang, sd = (shift ? "cs_en" : "c_en"), d = "c_en";
+        var sl = (shift ? "cs_" : "c_") + lang, sd = (shift ? "cs_en" : "c_en"), d = "c_en";
         "use strict";
         for (var k = keyElements.length - 1; k >= 0; --k) {
             var keyElement = keyElements[k];

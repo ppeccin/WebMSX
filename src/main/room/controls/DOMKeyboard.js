@@ -5,12 +5,9 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     var self = this;
 
-    function init() {
-        self.applyPreferences();
-    }
-
     this.connect = function(pMachineTypeSocket, pBIOSSocket) {
-        machineTypeSocket = pMachineTypeSocket,
+        machineTypeSocket = pMachineTypeSocket;
+        machineTypeSocket.addMachineTypeStateListener(self, true);      // true = skip immediate update
         biosSocket = pBIOSSocket;
     };
 
@@ -21,6 +18,14 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     this.resetControllers = function() {
         this.releaseControllers();
         if (bootKeysAlways) startBootKeysCountdown();
+    };
+
+    this.machineTypeStateUpdate = function() {
+        var newLang = machineTypeSocket.getMachineLang();
+        if (newLang !== lang) {
+            lang = newLang;
+            applyPreferences();
+        }
     };
 
     this.powerOn = function() {
@@ -254,15 +259,17 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         self.setKeyboard(customName, false);
     }
 
-    this.applyPreferences = function() {
+    function applyPreferences() {
+        // console.log("KEYBOARD LANG: " + lang);
+
         builtInKeyboards = wmsx.BuiltInKeyboards[lang] || {};
         customKeyboards = WMSX.userPreferences.current.customHostKeyboards[lang] || {};
         availableKeyboards = Object.keys(builtInKeyboards).concat(Object.keys(customKeyboards));
 
         var keyboard = WMSX.userPreferences.current.hostKeyboard[lang];                         // undefined = auto
-        if (availableKeyboards.indexOf(keyboard) >= 0) this.setKeyboard(keyboard, false);       // use default if not found or not set
+        if (availableKeyboards.indexOf(keyboard) >= 0) self.setKeyboard(keyboard, false);       // use default if not found or not set
         else setDefaultKeyboard();
-    };
+    }
 
 
     // NetPlay  -------------------------------------------
@@ -322,7 +329,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var biosSocket;
     var screen;
 
-    var lang = "en";    // default
+    var lang = (WMSX.MACHINES_CONFIG[WMSX.MACHINE] && WMSX.MACHINES_CONFIG[WMSX.MACHINE].lang) || "en";
 
     var keyStateMap = {};
 
@@ -350,6 +357,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         "0": "D0", "1": "D1", "2": "D2", "3": "D3", "4": "D4", "5": "D5", "6": "D6", "7": "D7", "8": "D8", "9": "D9"
     };
 
-    init();
+
+    applyPreferences();
 
 };

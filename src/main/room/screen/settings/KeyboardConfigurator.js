@@ -16,6 +16,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
     };
 
     this.refresh = function() {
+        msxLanguageElement.innerHTML = "MSX Language: " + (lang === "ja" ? "Japanese" : "English");
         keyboardNameElement.innerHTML = "Host Layout:&nbsp;&nbsp;" + domKeyboard.getCurrentKeyboardDesc();
         refreshUnmappedIndicator();
     };
@@ -51,6 +52,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
     };
 
     function setupKeyboard() {
+        msxLanguageElement = document.getElementById("wmsx-inputs-msx-lang");
         keyboardNameElement = document.getElementById("wmsx-inputs-keyboard-name");
         keyboardNameElement.addEventListener("click", function() { controllersHub.toggleKeyboardLayout(); });
 
@@ -127,7 +129,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
 
     var keyElements = [];
     var keyElementEditing = null, msxKeyEditing = null, keyEditingLocked = false;
-    var keyboardNameElement;
+    var keyboardNameElement, msxLanguageElement;
 
     var lang = "en";
 
