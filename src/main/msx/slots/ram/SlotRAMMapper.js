@@ -93,7 +93,7 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
 
-    var page0Offset, page1Offset, page2Offset, page3Offset;
+    var page0Offset = 0, page1Offset = 0, page2Offset = 0, page3Offset = 0;
     var pageMask = 0;
     var pageReadBackOR = 0;
 

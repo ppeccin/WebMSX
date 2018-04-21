@@ -37,11 +37,15 @@ wmsx.ExtensionsSocket = function(machine) {
         return !regFlag || WMSX[regFlag];
     };
 
-    this.toggleExtension = function (ext, altPower, secOp) {
+    this.activateExtension = function(ext, altPower, op2, skipMessage) {
+        if (!this.isActiveOnSlot(ext, op2)) this.toggleExtension(ext, altPower, op2, skipMessage);
+    };
+
+    this.toggleExtension = function (ext, altPower, secOp, skipMessage) {
         if (config[ext] === undefined) return;
         var hasOp2 = !!config[ext].OP2;
         var both = hasOp2 && !config[ext].toggle;
-        secOp = secOp && hasOp2;        // Alternate toggling focused on op2
+        secOp = secOp && hasOp2;
 
         var newOp = 0;
 
@@ -49,13 +53,23 @@ wmsx.ExtensionsSocket = function(machine) {
 
         switch (WMSX.EXTENSIONS[ext] || 0) {
             case 0: newOp = secOp ? 2 : 1; break;
-            case 1: newOp = hasOp2 ? secOp && both ? 3 : 2 : 0; break;
-            case 2: newOp = both ? secOp || !both ? 0 : 3 : 0; break;
-            case 3: newOp = secOp ? 1 : 0; break;
+            case 1: newOp = secOp ? both ? 3 : 2 : 0; break;
+            case 2: newOp = secOp ? 0 : both ? 3 : 1; break;
+            case 3: newOp = secOp ? 1 : 2; break;
         }
 
-        updateExtensionOnConf(ext, (newOp & 1) !== 0, false);
-        if (hasOp2) updateExtensionOnConf(ext, (newOp & 2) !== 0, true);
+        if (hasOp2) {
+            // Must remove first then add
+            if ((newOp & 1) === 0) {
+                updateExtensionOnConf(ext, false, false);
+                updateExtensionOnConf(ext, (newOp & 2) !== 0, true);
+            } else {
+                updateExtensionOnConf(ext, (newOp & 2) !== 0, true);
+                updateExtensionOnConf(ext, true, false);
+            }
+        } else {
+            updateExtensionOnConf(ext, (newOp & 1) !== 0, false);
+        }
 
         var powerWasOn = machine.powerIsOn;
         if (!altPower && powerWasOn) machine.powerOff();
@@ -64,7 +78,7 @@ wmsx.ExtensionsSocket = function(machine) {
         this.refreshSlotsFromConfig(function(changed) {
             if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
-            if (changed) {
+            if (changed && !skipMessage) {
                 var mes = config[ext].desc + " Extension " + (newOp ? "enabled at " + (newOp === 3 ? "both slots" : "slot " + machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2 : config[ext].OP1)) : "disabled");
                 machine.showOSD(mes, true);
                 wmsx.Util.log(mes);

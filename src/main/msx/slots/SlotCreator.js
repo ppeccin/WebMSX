@@ -140,6 +140,7 @@ wmsx.SlotCreator = function () {
         if (info.f) i.f = info.f;
         if (info.t) i.t = info.t;
         if (info.l) i.l = info.l;
+        if (info.e) i.e = info.e;
         return i;
     }
 

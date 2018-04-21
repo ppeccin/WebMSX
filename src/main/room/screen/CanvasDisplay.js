@@ -1084,8 +1084,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function barButtonTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
-        // Only touch, left or middle button
-        if (barMenuItemActive && !(e.button > 1)) barMenuItemFireActive(e.shiftKey, e.button === 1 || e.ctrlKey);
+        if (barMenuItemActive) barMenuItemFireActive(e.shiftKey || e.button === 2, e.ctrlKey);
     }
 
     function barMenuItemTapOrMouseDown(elem, e) {
@@ -1102,8 +1101,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function barMenuItemTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
-        // Only touch, left or middle button
-        if (barMenuItemActive) barMenuItemFireActive(e.shiftKey, e.button >= 1 || e.ctrlKey);
+        if (barMenuItemActive) barMenuItemFireActive(e.shiftKey || e.button === 2, e.ctrlKey);
     }
 
     function barMenuItemFireActive(secSlot, altPower) {
@@ -1113,7 +1111,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             if (option.extension) {
                 if (!extensionChangeDisabledWarning()) peripheralControls.processControlActivated(wmsx.PeripheralControls.EXTENSION_TOGGLE, altPower, secSlot, option.extension);
             } else if (option.control) {
-                secSlot |= option.secSlot;
+                secSlot = option.secSlot;
                 closeAllOverlays();
                 peripheralControls.processControlActivated(option.control, altPower, secSlot);
             }

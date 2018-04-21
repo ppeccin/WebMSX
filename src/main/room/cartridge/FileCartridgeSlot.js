@@ -3,8 +3,9 @@
 wmsx.FileCartridgeSlot = function(room) {
 "use strict";
 
-    this.connect = function(pCartridgeSocket) {
+    this.connect = function(pCartridgeSocket, pExtensionsSocket) {
         cartridgeSocket = pCartridgeSocket;
+        extensionsSocket = pExtensionsSocket;
     };
 
     this.connectPeripherals = function(pDownloader) {
@@ -14,12 +15,18 @@ wmsx.FileCartridgeSlot = function(room) {
     this.insertCartridge = function (cartridge, port, altPower, skipMessage) {
         cartridgeSocket.insertCartridge(cartridge, port, altPower, skipMessage);
 
+        // Auto activate extensions if asked by ROM info
+        if (cartridge && cartridge.rom.info.e) {
+            var ext = cartridge.rom.info.e.replace( /\d+/g, "");
+            if (ext && WMSX.EXTENSIONS_CONFIG[ext]) extensionsSocket.activateExtension(ext, true, port === 0, true);    // altPower and skipMessage
+        }
+
         if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 0, c: cartridge.saveState(), p: port, a: altPower });
     };
 
     this.insertSerializedCartridge = function (cartridgeContent, port, altPower) {
         var cart = wmsx.SlotCreator.recreateFromSaveState(cartridgeContent, cartridgeSocket.cartridgeInserted(port));
-        cartridgeSocket.insertCartridge(cart, port, altPower);
+        this.insertCartridge(cart, port, altPower);
     };
 
     this.loadCartridgeData = function (port, name, arrContent) {
@@ -49,6 +56,7 @@ wmsx.FileCartridgeSlot = function(room) {
 
 
     var cartridgeSocket;
+    var extensionsSocket;
     var fileDownloader;
 
 };

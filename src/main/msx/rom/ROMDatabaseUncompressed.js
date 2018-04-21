@@ -5,7 +5,7 @@ wmsx.ROMDatabaseUncompressed = {
 
 uncompress: function() {},
 
-version: 20180404,
+version: 20180421,
 
 // Entries from Vampier's file
 
@@ -1770,14 +1770,16 @@ version: 20180404,
 
 // Added entries for newer titles/versions
 
+"CB42BEBED357FC949577BCA39680F766533F4C65":{n:"Gradius - Nemesis - Enhanced SCC - Voice",f:"KonamiSCC",e:"SCC2"},
+"C1A41B603DA044AB34F85DC77E86C9C2F2D86222":{n:"Salamander - Operation X - Enhanced - Voice",f:"KonamiSCC",e:"SCC2"},
+"695FF5039DA0B51B7EA5529151B1AF3C6C465DB3":{n:"Nemesis 3 - Enhanced - Voice",f:"KonamiSCC",e:"SCC2"},
+"F3D58B98600C71251AE59C464692A0348723EF70":{n:"Nemesis 3 - Enhanced - Voice - WebMSX",f:"KonamiSCC",e:"SCC2"},
+
 "82CF4CAA78571A750403E592E3AC87C249AC4604":{n:"The Sword of Ianna",f:"ASCII16"},
 "47EBF2AB6DBC424F7CD5179F09614DB7BA6D8D75":{n:"Meikyushinwa - Eggerland Mystery 2 - SCC",f:"KonamiSCC"},
 "E20D2576C2EF0EDB33CAE2796DBB14D5C4AB1E94":{n:"Gyruss","f":"KonamiSCC"},
 "AF5A2CE25333113D2FD3BC99CDA76B2EA37DA109":{n:"Hinotori - Firebird - UK",f:"Konami"},
-"CB42BEBED357FC949577BCA39680F766533F4C65":{n:"Gradius - Nemesis - Enhanced SCC",f:"KonamiSCC"},
-"C1A41B603DA044AB34F85DC77E86C9C2F2D86222":{n:"Salamander - Operation X - Enhanced",f:"KonamiSCC"},
 "3100405865911AB0582E8BEC4767F4D501682003":{n:"Treasure Of Usas, The - Enhanced",f:"KonamiSCC"},
-
 "F8741D82531D2F80EE34FA8BB50C674858EB73C8":{n:"Vampire Killer - SCC",f:"KonamiSCC"},
 "2F41AFB1599349F3C1F35F68F5DE997DEDECFFE2":{n:"Antarctic Adventue - SCC",f:"KonamiSCCI"},
 "E692FE39337DBD10DBF35E90F7AFC8B21DA20AA2":{n:"Astro Marine Corps - EN",f:"ASCII16"},

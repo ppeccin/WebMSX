@@ -348,7 +348,7 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                     <div class="wmsx-hotkey wmsx-clear">
                         <div class="wmsx-desc">
-                            Right-Drag / Right-Click: No Auto-Reset
+                            Right-Drag / Ctrl-Click: No Auto-Reset
                         </div>
                     </div>
                 </div>
