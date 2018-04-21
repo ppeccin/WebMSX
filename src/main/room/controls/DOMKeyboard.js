@@ -319,7 +319,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
 
     var msxKeys = wmsx.KeyboardKeys;
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var availableKeyboards = [];
     var builtInKeyboards = {}, customKeyboards = {};

@@ -1828,7 +1828,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var NARROW_WIDTH = 450;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var KEY_CTRL_MASK  =  domKeys.CONTROL;
     var KEY_ALT_MASK   =  domKeys.ALT;

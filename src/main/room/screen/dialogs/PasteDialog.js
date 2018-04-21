@@ -83,7 +83,7 @@ wmsx.PasteDialog = function(mainElement, screen, machineControls) {
     var cover, box;
     var visible = false;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var ALLOW_DEFAULT_KEYS = [
         // Ctrl V, Shift Ins, Shift Num-Ins

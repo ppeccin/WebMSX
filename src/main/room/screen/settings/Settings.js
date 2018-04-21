@@ -198,7 +198,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
 
     var keyboardConfigurator, portsConfigurator;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var KEY_ESC = domKeys.VK_ESCAPE.wc;
 

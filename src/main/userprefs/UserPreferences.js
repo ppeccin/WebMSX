@@ -12,7 +12,7 @@ WMSX.userPreferences.defaults = function() {
     var m = wmsx.KeyboardKeys;
     var j = wmsx.JoystickButtons;
 
-    var k = wmsx.DOMKeysNew;
+    var k = wmsx.DOMKeys;
     var g = wmsx.GamepadButtons;
 
     return {
@@ -172,7 +172,7 @@ WMSX.userPreferences.load = function() {
     WMSX.userPreferences.current = prefs;
 
     // Init other static components that need current preferences
-    wmsx.DOMKeysNew.initPreferences();
+    wmsx.DOMKeys.initPreferences();
 };
 
 WMSX.userPreferences.save = function() {

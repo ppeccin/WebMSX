@@ -146,7 +146,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         { d: "File",   load: p.MACHINE_LOAD_STATE_FILE, save: p.MACHINE_SAVE_STATE_FILE, peripheral: true }
     ];
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var ESC_KEY = domKeys.VK_ESCAPE.wc;
     var CONFIRM_KEYS = [ domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];

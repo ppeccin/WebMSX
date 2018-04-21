@@ -124,7 +124,7 @@ wmsx.NewHardDiskDialog = function(mainElement, peripheralControls) {
     var c = wmsx.MachineControls;
     var p = wmsx.PeripheralControls;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var ESC_KEY = domKeys.VK_ESCAPE.wc;
     var CONFIRM_KEYS = [ domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];

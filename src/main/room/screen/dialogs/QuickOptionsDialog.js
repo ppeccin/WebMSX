@@ -118,7 +118,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
     var dialog, list;
     var items, controlsItems = [];
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var EXIT_KEYS = [ domKeys.VK_ESCAPE.wc ];
 

@@ -99,7 +99,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
     var visible = false;
     var dialog, topbar, input, ok, cancel;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var ABORT_KEY = domKeys.VK_ESCAPE.wc, TOGGLE_KEY = domKeys.VK_B.wc | domKeys.ALT;
     var CONFIRM_KEY = domKeys.VK_ENTER.wc | domKeys.CONTROL;

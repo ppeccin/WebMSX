@@ -124,7 +124,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
     var listItems = [];
     var visible = false;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var ESC_KEY = domKeys.VK_ESCAPE.wc;
     var CONFIRM_KEYS = [ domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];

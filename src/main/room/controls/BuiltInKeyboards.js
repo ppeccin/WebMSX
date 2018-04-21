@@ -3,7 +3,7 @@
 (function() {
 
     // Base mapping. English Machine, Host Keyboard: en-US
-    var k = wmsx.DOMKeysNew;
+    var k = wmsx.DOMKeys;
     var base = {
         D0             : k.VK_0,
         D1             : k.VK_1,

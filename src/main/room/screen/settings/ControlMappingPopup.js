@@ -53,7 +53,7 @@ wmsx.ControlMappingPopup = function() {
         var code = domKeys.codeNewForKeyboardEvent(e);
         // console.log("Key Press, code: " + e.code + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", wc: " + code + ", key: " + e.key);
 
-        if (!locked && code === wmsx.DOMKeysNew.VK_ESCAPE.wc) return;
+        if (!locked && code === domKeys.VK_ESCAPE.wc) return;
 
         // Modifier keys are accepted only on release
         if (domKeys.isModifierKey(e))
@@ -143,7 +143,7 @@ wmsx.ControlMappingPopup = function() {
     }
 
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var posX = 0, posY = 0;
     var controller = null, controlEditing = null, portEditing, modifKeyCodePending = null;

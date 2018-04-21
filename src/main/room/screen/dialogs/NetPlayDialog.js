@@ -297,7 +297,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
 
     var prefs = WMSX.userPreferences.current;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var EXIT_KEYS = [ domKeys.VK_ESCAPE.wc ];
 

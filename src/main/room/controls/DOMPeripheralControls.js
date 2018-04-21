@@ -443,7 +443,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var netControlsToSend = new Array(100); netControlsToSend.length = 0;     // pre allocate empty Array
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var EXCLUDE_SHIFT_MASK = ~domKeys.SHIFT;
     var INCLUDE_SHIFT_MASK = domKeys.SHIFT;

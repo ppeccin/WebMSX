@@ -209,7 +209,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
     var prefs = WMSX.userPreferences.current.touch;
     var touchControls = controllersHub.getTouchControls();
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var EXIT_KEYS = [ domKeys.VK_ESCAPE.wc, domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];
     var SELECT_KEYS = {};

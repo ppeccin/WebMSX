@@ -192,7 +192,7 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlo
 
     var userROMFormats = WMSX.userROMFormats;
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var ESC_KEY = domKeys.VK_ESCAPE.wc;
     var CONFIRM_KEYS = [ domKeys.VK_ENTER.wc, domKeys.VK_SPACE.wc ];

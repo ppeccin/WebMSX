@@ -155,7 +155,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     };
 
 
-    var domKeys = wmsx.DOMKeysNew;
+    var domKeys = wmsx.DOMKeys;
 
     var mc = wmsx.MachineControls;
 
