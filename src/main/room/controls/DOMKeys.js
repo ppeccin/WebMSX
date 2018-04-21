@@ -188,6 +188,18 @@ wmsx.DOMKeys.addKeyToIdentification = function(k) {
     k.VK_ES_CEDILLA =       { wc: 229, d: "Backslash",     c: 220, n: "Ç", a: "ES" };
     k.VK_ES_LESSER =        { wc: 230, d: "IntlBackslash", c: 226, n: "<", a: "ES" };
     k.VK_ES_MINUS =         { wc: 233, d: "Slash",         c: 191, n: "-", a: "ES" };
+    // Dutch
+    k.VK_NL_ARROBA =        { wc: 221, d: "Backquote",     c: 192, n: "@", a: "NL" };
+    k.VK_NL_SLASH =         { wc: 222, d: "Minus",         c: 189, n: "/", a: "NL" };
+    k.VK_NL_NUMBER =        { wc: 223, d: "Equal",         c: 187, n: "°", a: "NL" };
+    k.VK_NL_UMLAUT =        { wc: 225, d: "BracketLeft",   c: 219, n: "¨", a: "NL" };
+    k.VK_NL_STAR =          { wc: 226, d: "BracketRight",  c: 221, n: "*", a: "NL" };
+    k.VK_NL_PLUS =          { wc: 227, d: "Semicolon",     c: 186, n: "+", a: "NL" };
+    k.VK_NL_ACUTE =         { wc: 228, d: "Quote",         c: 222, n: "´", a: "NL" };
+    k.VK_NL_LESSER =        { wc: 229, d: "Backslash",     c: 220, n: "<", a: "NL" };
+    k.VK_NL_CLOSE_BRACKET = { wc: 230, d: "IntlBackslash", c: 226, n: "]", a: "NL" };
+    k.VK_NL_MINUS =         { wc: 233, d: "Slash",         c: 191, n: "-", a: "NL" };
+
 
 
     // Define additional collections for key identification. Additional international keys not included
