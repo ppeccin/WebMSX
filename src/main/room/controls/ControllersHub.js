@@ -262,7 +262,7 @@ wmsx.ControllersHub = function(room, machineControls) {
 
         var code = domKeys.codeNewForKeyboardEvent(e);
 
-        // console.log("Key " + (press ? "Press" : "Release") + ", code: " + e.code + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", wc: " + code + ", key: " + e.key);
+        console.log("Key " + (press ? "Press" : "Release") + ", code: " + e.code + ", keyCode: " + e.keyCode /*.toString(16)*/ + ", wc: " + code + ", key: " + e.key);
 
         joykeysControls.processKey(code, press);
 

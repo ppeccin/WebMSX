@@ -166,17 +166,29 @@ wmsx.DOMKeys.addKeyToIdentification = function(k) {
     k.VK_BR_TILDE =         { wc: 228, d: "Quote",         c: 222, n: "~", a: "BR" };
     k.VK_BR_CLOSE_BRACKET = { wc: 229, d: "Backslash",     c: 220, n: "]", a: "BR" };
     k.VK_BR_SEMICOLON =     { wc: 233, d: "Slash",         c: 191, n: ";", a: "BR" };
-    k.VK_BR_BACKSLASH =     { wc: 230, d: "IntlBackslash", c: 226, n: "\\" };
+    k.VK_BR_BACKSLASH =     { wc: 230, d: "IntlBackslash", c: 226, n: "\\", a: "BR" };
     k.VK_BR_SLASH =         { wc: 234, d: "IntlRo",        c: 193, n: "/", a: "BR" };
     // Japanese
     k.VK_JP_CIRCUMFLEX =    { wc: 223, d: "Equal",         c: 187, n: "^", a: "JP" };
-    k.VK_JP_YEN =           { wc: 224, d: "IntlYen",       c: -1,  n: "¥" };
+    k.VK_JP_YEN =           { wc: 224, d: "IntlYen",       c: -1,  n: "¥", a: "JP" };
     k.VK_JP_ARROBA =        { wc: 225, d: "BracketLeft",   c: 219, n: "@", a: "JP" };
     k.VK_JP_OPEN_BRACKET =  { wc: 226, d: "BracketRight",  c: 221, n: "[", a: "JP" };
     k.VK_JP_COLLON =        { wc: 228, d: "Quote",         c: 222, n: ":", a: "JP" };
     k.VK_JP_CLOSE_BRACKET = { wc: 229, d: "Backslash",     c: 220, n: "]", a: "JP" };
-    k.VK_JP_RO =            { wc: 234, d: "IntlRo",        c: 193, n: "\\ ろ" };
+    k.VK_JP_RO =            { wc: 234, d: "IntlRo",        c: 193, n: "\\ ろ", a: "JP" };
     k.VK_JP_NON_CONVERT =   { wc: 310, d: "NonConvert",    c: 29,  n: "NonConvert", fn: true };
+    // Spanish
+    k.VK_ES_NUMBER =        { wc: 221, d: "Backquote",     c: 192, n: "º", a: "ES" };
+    k.VK_ES_QUOTE =         { wc: 222, d: "Minus",         c: 189, n: "'", a: "ES" };
+    k.VK_ES_JOTA =          { wc: 223, d: "Equal",         c: 187, n: "¡", a: "ES" };
+    k.VK_ES_GRAVE =         { wc: 225, d: "BracketLeft",   c: 219, n: "`", a: "ES" };
+    k.VK_ES_PLUS =          { wc: 226, d: "BracketRight",  c: 221, n: "+", a: "ES" };
+    k.VK_ES_ENE =           { wc: 227, d: "Semicolon",     c: 186, n: "Ñ", a: "ES" };
+    k.VK_ES_ACUTE =         { wc: 228, d: "Quote",         c: 222, n: "´", a: "ES" };
+    k.VK_ES_CEDILLA =       { wc: 229, d: "Backslash",     c: 220, n: "Ç", a: "ES" };
+    k.VK_ES_LESSER =        { wc: 230, d: "IntlBackslash", c: 226, n: "<", a: "ES" };
+    k.VK_ES_MINUS =         { wc: 233, d: "Slash",         c: 191, n: "-", a: "ES" };
+
 
     // Define additional collections for key identification. Additional international keys not included
     for (var key in k) k.addKeyToIdentification(k[key]);

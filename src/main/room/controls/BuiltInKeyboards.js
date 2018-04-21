@@ -146,6 +146,21 @@
     en_JP.INSERT =        [ k.VK_INSERT, { wc: k.VK_JP_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
     en_JP.DELETE =        [ k.VK_DELETE, { wc: k.VK_JP_RO.wc | k.ALT, n: [ "Alt", "\\ ろ" ] } ];
 
+    // English Machine, Host keyboard: es-ES
+    var en_ES = {};
+    for (key in base) en_ES[key] = base[key];
+    en_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_NUMBER.wc | k.ALT, n: [ "Alt", "º" ] } ];
+    en_ES.MINUS =         k.VK_ES_MINUS;
+    en_ES.EQUAL =         k.VK_ES_JOTA;
+    en_ES.BACKSLASH =     k.VK_ES_NUMBER;
+    en_ES.OPEN_BRACKET =  k.VK_ES_GRAVE;
+    en_ES.CLOSE_BRACKET = k.VK_ES_PLUS;
+    en_ES.SEMICOLON =     k.VK_ES_ENE;
+    en_ES.QUOTE =         k.VK_ES_QUOTE;
+    en_ES.BACKQUOTE =     k.VK_ES_ACUTE;
+    en_ES.SLASH =         [ k.VK_ES_LESSER, k.VK_INT_RO ];
+    en_ES.DEAD =          k.VK_ES_CEDILLA;
+
 
     // Japanese Machine, Host keyboard: en-US
     var ja_US = {};
@@ -186,18 +201,35 @@
     ja_JP.INSERT =        [ k.VK_INSERT, { wc: k.VK_JP_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
     ja_JP.DELETE =        [ k.VK_DELETE, { wc: k.VK_JP_RO.wc | k.ALT, n: [ "Alt", "\\ ろ" ] } ];
 
+    // Japanese Machine, Host keyboard: es-ES
+    var ja_ES = {};
+    for (key in base) ja_ES[key] = base[key];
+    ja_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_NUMBER.wc | k.ALT, n: [ "Alt", "º" ] } ];
+    ja_ES.MINUS =         k.VK_ES_MINUS;
+    ja_ES.EQUAL =         k.VK_ES_JOTA;
+    ja_ES.BACKSLASH =     k.VK_ES_NUMBER;
+    ja_ES.OPEN_BRACKET =  k.VK_ES_QUOTE;
+    ja_ES.CLOSE_BRACKET = k.VK_ES_GRAVE;
+    ja_ES.SEMICOLON =     k.VK_ES_ENE;
+    ja_ES.QUOTE =         k.VK_ES_ACUTE;
+    ja_ES.BACKQUOTE =     k.VK_ES_PLUS;
+    ja_ES.SLASH =         [ k.VK_ES_LESSER, k.VK_INT_RO ];
+    ja_ES.DEAD =          k.VK_ES_CEDILLA;
+
 
     // Available Keyboards
     wmsx.BuiltInKeyboards = {
         en: {
             "en-US": en_US,
             "pt-BR": en_BR,
-            "ja-JP": en_JP
+            "ja-JP": en_JP,
+            "es-ES": en_ES
         },
         ja: {
             "en-US": ja_US,
             "pt-BR": ja_BR,
-            "ja-JP": ja_JP
+            "ja-JP": ja_JP,
+            "es-ES": ja_ES
         }
     };
 
