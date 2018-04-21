@@ -160,6 +160,9 @@
     en_ES.BACKQUOTE =     k.VK_ES_ACUTE;
     en_ES.SLASH =         k.VK_ES_LESSER;
     en_ES.DEAD =          [ k.VK_ES_CEDILLA, k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ];
+    en_ES.HOME =          [ k.VK_HOME, { wc: k.VK_ES_GRAVE.wc | k.ALT, n: [ "Alt", "`" ] } ];
+    en_ES.INSERT =        [ k.VK_INSERT, { wc: k.VK_ES_PLUS.wc | k.ALT, n: [ "Alt", "+" ] } ];
+    en_ES.DELETE =        [ k.VK_DELETE, { wc: k.VK_ES_CEDILLA.wc | k.ALT, n: [ "Alt", "Ç" ] } ];
 
     // English Machine, Host keyboard: nl-NL
     var en_NL = {};
@@ -175,6 +178,27 @@
     en_NL.BACKQUOTE =     k.VK_NL_ARROBA;
     en_NL.SLASH =         k.VK_NL_SLASH;
     en_NL.DEAD =          [ k.VK_NL_LESSER, k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ];
+    en_NL.HOME =          [ k.VK_HOME, { wc: k.VK_NL_UMLAUT.wc | k.ALT, n: [ "Alt", "¨" ] } ];
+    en_NL.INSERT =        [ k.VK_INSERT, { wc: k.VK_NL_STAR.wc | k.ALT, n: [ "Alt", "*" ] } ];
+    en_NL.DELETE =        [ k.VK_DELETE, { wc: k.VK_NL_LESSER.wc | k.ALT, n: [ "Alt", "<" ] } ];
+
+    // English Machine, Host keyboard: it-IT
+    var en_IT = {};
+    for (key in base) en_IT[key] = base[key];
+    en_IT.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_IT_BACKSLASH.wc | k.ALT, n: [ "Alt", "\\" ] } ];
+    en_IT.MINUS =         k.VK_IT_MINUS;
+    en_IT.EQUAL =         k.VK_IT_GRAVE_I;
+    en_IT.BACKSLASH =     [ k.VK_IT_BACKSLASH, k.VK_INT_YEN ];
+    en_IT.OPEN_BRACKET =  k.VK_IT_GRAVE_E;
+    en_IT.CLOSE_BRACKET = k.VK_IT_PLUS;
+    en_IT.SEMICOLON =     k.VK_IT_GRAVE_O;
+    en_IT.QUOTE =         k.VK_IT_QUOTE;
+    en_IT.BACKQUOTE =     k.VK_IT_GRAVE_A;
+    en_IT.SLASH =         k.VK_IT_LESSER;
+    en_IT.DEAD =          [ k.VK_IT_GRAVE_U, k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ];
+    en_IT.HOME =          [ k.VK_HOME, { wc: k.VK_IT_GRAVE_E.wc | k.ALT, n: [ "Alt", "è" ] } ];
+    en_IT.INSERT =        [ k.VK_INSERT, { wc: k.VK_IT_PLUS.wc | k.ALT, n: [ "Alt", "+" ] } ];
+    en_IT.DELETE =        [ k.VK_DELETE, { wc: k.VK_IT_GRAVE_U.wc | k.ALT, n: [ "Alt", "ù" ] } ];
 
 
     // Japanese Machine, Host keyboard: en-US
@@ -230,6 +254,9 @@
     ja_ES.BACKQUOTE =     k.VK_ES_PLUS;
     ja_ES.SLASH =         k.VK_ES_LESSER;
     ja_ES.DEAD =          [ k.VK_ES_CEDILLA, k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ];
+    ja_ES.HOME =          [ k.VK_HOME, { wc: k.VK_ES_GRAVE.wc | k.ALT, n: [ "Alt", "`" ] } ];
+    ja_ES.INSERT =        [ k.VK_INSERT, { wc: k.VK_ES_PLUS.wc | k.ALT, n: [ "Alt", "+" ] } ];
+    ja_ES.DELETE =        [ k.VK_DELETE, { wc: k.VK_ES_CEDILLA.wc | k.ALT, n: [ "Alt", "Ç" ] } ];
 
     // Japanese Machine, Host keyboard: nl-NL
     var ja_NL = {};
@@ -245,6 +272,27 @@
     ja_NL.BACKQUOTE =     k.VK_NL_STAR;
     ja_NL.SLASH =         k.VK_NL_SLASH;
     ja_NL.DEAD =          [ k.VK_NL_LESSER, k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ];
+    ja_NL.HOME =          [ k.VK_HOME, { wc: k.VK_NL_UMLAUT.wc | k.ALT, n: [ "Alt", "¨" ] } ];
+    ja_NL.INSERT =        [ k.VK_INSERT, { wc: k.VK_NL_STAR.wc | k.ALT, n: [ "Alt", "*" ] } ];
+    ja_NL.DELETE =        [ k.VK_DELETE, { wc: k.VK_NL_LESSER.wc | k.ALT, n: [ "Alt", "<" ] } ];
+
+    // Japanese Machine, Host keyboard: es-ES
+    var ja_IT = {};
+    for (key in base) ja_IT[key] = base[key];
+    ja_IT.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_IT_BACKSLASH.wc | k.ALT, n: [ "Alt", "\\" ] } ];
+    ja_IT.MINUS =         k.VK_IT_MINUS;
+    ja_IT.EQUAL =         k.VK_IT_GRAVE_I;
+    ja_IT.BACKSLASH =     [ k.VK_IT_BACKSLASH, k.VK_INT_YEN ];
+    ja_IT.OPEN_BRACKET =  k.VK_IT_QUOTE;
+    ja_IT.CLOSE_BRACKET = k.VK_IT_GRAVE_E;
+    ja_IT.SEMICOLON =     k.VK_IT_GRAVE_O;
+    ja_IT.QUOTE =         k.VK_IT_GRAVE_A;
+    ja_IT.BACKQUOTE =     k.VK_IT_PLUS;
+    ja_IT.SLASH =         k.VK_IT_LESSER;
+    ja_IT.DEAD =          [ k.VK_IT_GRAVE_U, k.VK_INT_RO, k.VK_RCONTROL, k.VK_END ];
+    ja_IT.HOME =          [ k.VK_HOME, { wc: k.VK_IT_GRAVE_E.wc | k.ALT, n: [ "Alt", "è" ] } ];
+    ja_IT.INSERT =        [ k.VK_INSERT, { wc: k.VK_IT_PLUS.wc | k.ALT, n: [ "Alt", "+" ] } ];
+    ja_IT.DELETE =        [ k.VK_DELETE, { wc: k.VK_IT_GRAVE_U.wc | k.ALT, n: [ "Alt", "ù" ] } ];
 
 
     // Available Keyboards
@@ -254,14 +302,16 @@
             "pt-BR": en_BR,
             "ja-JP": en_JP,
             "es-ES": en_ES,
-            "nl-NL": en_NL
+            "nl-NL": en_NL,
+            "it-IT": en_IT
         },
         ja: {
             "en-US": ja_US,
             "pt-BR": ja_BR,
             "ja-JP": ja_JP,
             "es-ES": ja_ES,
-            "nl-NL": ja_NL
+            "nl-NL": ja_NL,
+            "it-IT": ja_IT
         }
     };
 

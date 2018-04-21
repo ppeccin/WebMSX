@@ -199,8 +199,17 @@ wmsx.DOMKeys.addKeyToIdentification = function(k) {
     k.VK_NL_LESSER =        { wc: 229, d: "Backslash",     c: 220, n: "<", a: "NL" };
     k.VK_NL_CLOSE_BRACKET = { wc: 230, d: "IntlBackslash", c: 226, n: "]", a: "NL" };
     k.VK_NL_MINUS =         { wc: 233, d: "Slash",         c: 191, n: "-", a: "NL" };
-
-
+    // Italian
+    k.VK_IT_BACKSLASH =     { wc: 221, d: "Backquote",     c: 192, n: "\\", a: "IT" };
+    k.VK_IT_QUOTE =         { wc: 222, d: "Minus",         c: 189, n: "'", a: "IT" };
+    k.VK_IT_GRAVE_I =       { wc: 223, d: "Equal",         c: 187, n: "ì", a: "IT" };
+    k.VK_IT_GRAVE_E =       { wc: 225, d: "BracketLeft",   c: 219, n: "è", a: "IT" };
+    k.VK_IT_PLUS =          { wc: 226, d: "BracketRight",  c: 221, n: "+", a: "IT" };
+    k.VK_IT_GRAVE_O =       { wc: 227, d: "Semicolon",     c: 186, n: "ò", a: "IT" };
+    k.VK_IT_GRAVE_A =       { wc: 228, d: "Quote",         c: 222, n: "à", a: "IT" };
+    k.VK_IT_GRAVE_U =       { wc: 229, d: "Backslash",     c: 220, n: "ù", a: "IT" };
+    k.VK_IT_LESSER =        { wc: 230, d: "IntlBackslash", c: 226, n: "<", a: "IT" };
+    k.VK_IT_MINUS =         { wc: 233, d: "Slash",         c: 191, n: "-", a: "IT" };
 
     // Define additional collections for key identification. Additional international keys not included
     for (var key in k) k.addKeyToIdentification(k[key]);
