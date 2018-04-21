@@ -178,12 +178,12 @@ wmsx.DOMKeys.addKeyToIdentification = function(k) {
     k.VK_JP_RO =            { wc: 234, d: "IntlRo",        c: 193, n: "\\ ろ", a: "JP" };
     k.VK_JP_NON_CONVERT =   { wc: 310, d: "NonConvert",    c: 29,  n: "NonConvert", fn: true };
     // Spanish
-    k.VK_ES_NUMBER =        { wc: 221, d: "Backquote",     c: 192, n: "º", a: "ES" };
+    k.VK_ES_ORDINAL =       { wc: 221, d: "Backquote",     c: 192, n: "º", a: "ES" };
     k.VK_ES_QUOTE =         { wc: 222, d: "Minus",         c: 189, n: "'", a: "ES" };
-    k.VK_ES_JOTA =          { wc: 223, d: "Equal",         c: 187, n: "¡", a: "ES" };
+    k.VK_ES_INV_EXCLA =     { wc: 223, d: "Equal",         c: 187, n: "¡", a: "ES" };
     k.VK_ES_GRAVE =         { wc: 225, d: "BracketLeft",   c: 219, n: "`", a: "ES" };
     k.VK_ES_PLUS =          { wc: 226, d: "BracketRight",  c: 221, n: "+", a: "ES" };
-    k.VK_ES_ENE =           { wc: 227, d: "Semicolon",     c: 186, n: "Ñ", a: "ES" };
+    k.VK_ES_ENNE =          { wc: 227, d: "Semicolon",     c: 186, n: "Ñ", a: "ES" };
     k.VK_ES_ACUTE =         { wc: 228, d: "Quote",         c: 222, n: "´", a: "ES" };
     k.VK_ES_CEDILLA =       { wc: 229, d: "Backslash",     c: 220, n: "Ç", a: "ES" };
     k.VK_ES_LESSER =        { wc: 230, d: "IntlBackslash", c: 226, n: "<", a: "ES" };
@@ -191,7 +191,7 @@ wmsx.DOMKeys.addKeyToIdentification = function(k) {
     // Dutch
     k.VK_NL_ARROBA =        { wc: 221, d: "Backquote",     c: 192, n: "@", a: "NL" };
     k.VK_NL_SLASH =         { wc: 222, d: "Minus",         c: 189, n: "/", a: "NL" };
-    k.VK_NL_NUMBER =        { wc: 223, d: "Equal",         c: 187, n: "°", a: "NL" };
+    k.VK_NL_ORDINAL =       { wc: 223, d: "Equal",         c: 187, n: "°", a: "NL" };
     k.VK_NL_UMLAUT =        { wc: 225, d: "BracketLeft",   c: 219, n: "¨", a: "NL" };
     k.VK_NL_STAR =          { wc: 226, d: "BracketRight",  c: 221, n: "*", a: "NL" };
     k.VK_NL_PLUS =          { wc: 227, d: "Semicolon",     c: 186, n: "+", a: "NL" };

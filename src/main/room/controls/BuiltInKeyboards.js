@@ -149,13 +149,13 @@
     // English Machine, Host keyboard: es-ES
     var en_ES = {};
     for (key in base) en_ES[key] = base[key];
-    en_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_NUMBER.wc | k.ALT, n: [ "Alt", "º" ] } ];
+    en_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_ORDINAL.wc | k.ALT, n: [ "Alt", "º" ] } ];
     en_ES.MINUS =         k.VK_ES_MINUS;
-    en_ES.EQUAL =         k.VK_ES_JOTA;
-    en_ES.BACKSLASH =     [ k.VK_ES_NUMBER, k.VK_INT_YEN ];
+    en_ES.EQUAL =         k.VK_ES_INV_EXCLA;
+    en_ES.BACKSLASH =     [ k.VK_ES_ORDINAL, k.VK_INT_YEN ];
     en_ES.OPEN_BRACKET =  k.VK_ES_GRAVE;
     en_ES.CLOSE_BRACKET = k.VK_ES_PLUS;
-    en_ES.SEMICOLON =     k.VK_ES_ENE;
+    en_ES.SEMICOLON =     k.VK_ES_ENNE;
     en_ES.QUOTE =         k.VK_ES_QUOTE;
     en_ES.BACKQUOTE =     k.VK_ES_ACUTE;
     en_ES.SLASH =         k.VK_ES_LESSER;
@@ -169,7 +169,7 @@
     for (key in base) en_NL[key] = base[key];
     en_NL.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_NL_ARROBA.wc | k.ALT, n: [ "Alt", "@" ] } ];
     en_NL.MINUS =         k.VK_NL_MINUS;
-    en_NL.EQUAL =         k.VK_NL_NUMBER;
+    en_NL.EQUAL =         k.VK_NL_ORDINAL;
     en_NL.BACKSLASH =     [ k.VK_NL_CLOSE_BRACKET, k.VK_INT_YEN ];
     en_NL.OPEN_BRACKET =  k.VK_NL_UMLAUT;
     en_NL.CLOSE_BRACKET = k.VK_NL_STAR;
@@ -243,13 +243,13 @@
     // Japanese Machine, Host keyboard: es-ES
     var ja_ES = {};
     for (key in base) ja_ES[key] = base[key];
-    ja_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_NUMBER.wc | k.ALT, n: [ "Alt", "º" ] } ];
+    ja_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_ORDINAL.wc | k.ALT, n: [ "Alt", "º" ] } ];
     ja_ES.MINUS =         k.VK_ES_MINUS;
-    ja_ES.EQUAL =         k.VK_ES_JOTA;
-    ja_ES.BACKSLASH =     [ k.VK_ES_NUMBER, k.VK_INT_YEN ];
+    ja_ES.EQUAL =         k.VK_ES_INV_EXCLA;
+    ja_ES.BACKSLASH =     [ k.VK_ES_ORDINAL, k.VK_INT_YEN ];
     ja_ES.OPEN_BRACKET =  k.VK_ES_QUOTE;
     ja_ES.CLOSE_BRACKET = k.VK_ES_GRAVE;
-    ja_ES.SEMICOLON =     k.VK_ES_ENE;
+    ja_ES.SEMICOLON =     k.VK_ES_ENNE;
     ja_ES.QUOTE =         k.VK_ES_ACUTE;
     ja_ES.BACKQUOTE =     k.VK_ES_PLUS;
     ja_ES.SLASH =         k.VK_ES_LESSER;
@@ -263,7 +263,7 @@
     for (key in base) ja_NL[key] = base[key];
     ja_NL.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_NL_ARROBA.wc | k.ALT, n: [ "Alt", "@" ] } ];
     ja_NL.MINUS =         k.VK_NL_MINUS;
-    ja_NL.EQUAL =         k.VK_NL_NUMBER;
+    ja_NL.EQUAL =         k.VK_NL_ORDINAL;
     ja_NL.BACKSLASH =     [ k.VK_NL_CLOSE_BRACKET, k.VK_INT_YEN ];
     ja_NL.OPEN_BRACKET =  k.VK_NL_ARROBA;
     ja_NL.CLOSE_BRACKET = k.VK_NL_UMLAUT;

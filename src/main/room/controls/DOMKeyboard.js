@@ -233,14 +233,18 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     };
 
     function setDefaultKeyboard() {
-        var keyboard = availableKeyboards[0];
-        var hostLang = wmsx.Util.userLanguage();
+        var hostLang = (wmsx.Util.userLanguage() || "en-US").toUpperCase() ;
+        // Try to find exact language-country match
         for (var k = 0; k < availableKeyboards.length; ++k)
-            if (hostLang.indexOf(availableKeyboards[k]) === 0) {
-                keyboard = availableKeyboards[k];
-                break;
-            }
-        self.setKeyboard(keyboard, true);        // auto
+            if (availableKeyboards[k].toUpperCase().indexOf(hostLang) === 0)
+                return self.setKeyboard(availableKeyboards[k], true);       // true = auto
+        // Try to find only language match
+        hostLang = hostLang.substr(0, 2);
+        for (k = 0; k < availableKeyboards.length; ++k)
+            if (availableKeyboards[k].toUpperCase().indexOf(hostLang) === 0)
+                return self.setKeyboard(availableKeyboards[k], true);       // true = auto
+        // Not found, use default
+        self.setKeyboard(availableKeyboards[0], true);               // true = auto
     }
 
     function makeCustomKeyboard() {
