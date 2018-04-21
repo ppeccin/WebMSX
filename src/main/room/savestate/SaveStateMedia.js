@@ -136,7 +136,7 @@ wmsx.SaveStateMedia = function(room) {
         localPersistence = new wmsx.LocalStoragePersistence();
         indexedPesistence = new wmsx.IndexedDBPersistence();
 
-        indexedPesistence.open(1, then, function onError() {     // DB version = 1
+        indexedPesistence.open(INDEXED_DB_VERSION, then, function onError() {
             indexedPesistence = null;
             then();
         });
@@ -159,5 +159,7 @@ wmsx.SaveStateMedia = function(room) {
     var SAVE_STATE_IDENTIFIER = String.fromCharCode(0, 0) + "wmsx" + String.fromCharCode(0, 0) + "state!";     // char 0 so browsers like Safari think the file is binary...  :-(
     var SAVE_STATE_IDENTIFIER_OLD = "wmsxsavestate!";
     var SAVE_STATE_FILE_EXTENSION = ".wst";
+
+    var INDEXED_DB_VERSION = 1;
 
 };

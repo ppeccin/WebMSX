@@ -70,7 +70,6 @@ wmsx.IndexedDBPersistence = function() {
         readReq.onerror = onError;
     };
 
-
     this.clear = function (onSuccess, onError) {
         var openReq = indexedDB.deleteDatabase("WebMSX");
         openReq.onsuccess = onSuccess;

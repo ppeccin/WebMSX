@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-// TODO Accept ESC only when Locked
 wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSocket) {
 "use strict";
 
@@ -25,7 +24,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
         var newLang = machineTypeSocket.getMachineLang();
         if (newLang !== lang) {
             lang = newLang;
-            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, lang);
+            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, lang, true);
         }
     };
 
@@ -63,7 +62,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
             if (keyElement.wmsxKey) keyElements.push(keyElement);
             keyElement.addEventListener("mouseenter", mouseEnterKey);
             keyElement.addEventListener("mouseleave", mouseLeaveKey);
-        }, false, lang);
+        }, false, lang, true);
     }
 
     function mouseDownModal(e) {

@@ -994,17 +994,29 @@ html.wmsx-full-screen #wmsx-logo-image {
     border-bottom: 5px solid white;
     border-top-width: 0;
 }
+.wmsx-keyboard-up.wmsx-keyboard-key-unmapped::after {
+    border-bottom-color: black;
+}
 .wmsx-keyboard-down::after {
     border-top: 5px solid white;
     border-bottom-width: 0;
+}
+.wmsx-keyboard-down.wmsx-keyboard-key-unmapped::after {
+    border-top-color: black;
 }
 .wmsx-keyboard-left::after {
     border-right: 5px solid white;
     border-left-width: 0;
 }
+.wmsx-keyboard-left.wmsx-keyboard-key-unmapped::after {
+    border-right-color: black;
+}
 .wmsx-keyboard-right::after {
     border-left: 5px solid white;
     border-right-width: 0;
+}
+.wmsx-keyboard-right.wmsx-keyboard-key-unmapped::after {
+    border-left-color: black;
 }
 
 .wmsx-keyboard-narrow .wmsx-keyboard-num {

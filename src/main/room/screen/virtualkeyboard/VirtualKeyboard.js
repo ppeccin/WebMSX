@@ -1,9 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file./**
 
-// TODO Unmapped arrow does not show black
 wmsx.VirtualKeyboard = {
 
-    create: function(mainElement, keysCallback, shift, lang) {
+    create: function(mainElement, keysCallback, shift, lang, noShift) {
         "use strict";
 
         var inner = document.createElement("div");
@@ -47,17 +46,20 @@ wmsx.VirtualKeyboard = {
             }
         }
 
-        this.updateKeysLabels(keyElements, shift, lang);
+        this.updateKeysLabels(keyElements, shift, lang, noShift);
         return keyElements;
     },
 
-    updateKeysLabels: function(keyElements, shift, lang) {
-        var sl = (shift ? "cs_" : "c_") + lang, sd = (shift ? "cs_en" : "c_en"), d = "c_en";
+    updateKeysLabels: function(keyElements, shift, lang, noShift) {
+        var a, b, c;
+        if (noShift) { a = "cns_" + lang; b = "c_" + lang; c = "c_en"; }
+        else         { a = (shift ? "cs_" : "c_") + lang; b = (shift ? "cs_en" : "c_en"); c = "c_en"; }
+
         "use strict";
         for (var k = keyElements.length - 1; k >= 0; --k) {
             var keyElement = keyElements[k];
             if (this.blankKeys.has(keyElement.wmsxKeyID)) continue;
-            var label = wmsx.KeyboardKeys[keyElement.wmsxKey][sl] || wmsx.KeyboardKeys[keyElement.wmsxKey][sd] || wmsx.KeyboardKeys[keyElement.wmsxKey][d];
+            var label = wmsx.KeyboardKeys[keyElement.wmsxKey][a] || wmsx.KeyboardKeys[keyElement.wmsxKey][b] || wmsx.KeyboardKeys[keyElement.wmsxKey][c];
             label = this.finalLabels[label] || label;
             if (keyElement.wmsxLabel !== label) {
                 keyElement.wmsxLabel = label;
