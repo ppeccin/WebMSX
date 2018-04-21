@@ -1772,8 +1772,10 @@ version: 20180421,
 
 "CB42BEBED357FC949577BCA39680F766533F4C65":{n:"Gradius - Nemesis - Enhanced SCC - Voice",f:"KonamiSCC",e:"SCC2"},
 "C1A41B603DA044AB34F85DC77E86C9C2F2D86222":{n:"Salamander - Operation X - Enhanced - Voice",f:"KonamiSCC",e:"SCC2"},
-"695FF5039DA0B51B7EA5529151B1AF3C6C465DB3":{n:"Nemesis 3 - Enhanced - Voice",f:"KonamiSCC",e:"SCC2"},
-"F3D58B98600C71251AE59C464692A0348723EF70":{n:"Nemesis 3 - Enhanced - Voice - WebMSX",f:"KonamiSCC",e:"SCC2"},
+"695FF5039DA0B51B7EA5529151B1AF3C6C465DB3":{n:"Nemesis 3 - Enhanced 1.02 - Voice",f:"KonamiSCC",e:"SCC2"},
+"D9DBB20259BB9B540D79958B07FB6894964AAC22":{n:"Nemesis 3 - Enhanced 1.03 - Voice",f:"KonamiSCC",e:"SCC2"},
+"F3D58B98600C71251AE59C464692A0348723EF70":{n:"Nemesis 3 - Enhanced 1.02 - Voice - WebMSX",f:"KonamiSCC",e:"SCC2"},
+"02FA314BBD82F05061B5CAE1213871DBC59EA7FF":{n:"Nemesis 3 - Enhanced 1.03 - Voice - WebMSX",f:"KonamiSCC",e:"SCC2"},
 
 "82CF4CAA78571A750403E592E3AC87C249AC4604":{n:"The Sword of Ianna",f:"ASCII16"},
 "47EBF2AB6DBC424F7CD5179F09614DB7BA6D8D75":{n:"Meikyushinwa - Eggerland Mystery 2 - SCC",f:"KonamiSCC"},
