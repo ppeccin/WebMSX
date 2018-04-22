@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Load state x fastboot
 wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls, stateMedia) {
 "use strict";
 
@@ -95,12 +96,12 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         });
 
         // Select with tap or mousedown (UIG)
-        wmsx.Util.onTapOrMouseDownWithBlockUIG(dialog, function(e) {
+        wmsx.Util.onTapOrMouseDownWithBlockUIG(dialog, function(e, uigStart) {
             if (e.target.wmsxSlot >= 0) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 slotSelected = e.target.wmsxSlot;
                 refreshListSelection();
-                setTimeout(hideConfirm, 120);
+                if (!uigStart) setTimeout(hideConfirm, 120);  // UIG
             }
         });
 

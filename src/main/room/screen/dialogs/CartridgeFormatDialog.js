@@ -142,8 +142,8 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlo
             dialog.focus();
         });
 
-        // Select with tap or mousedown (UIG)
-        wmsx.Util.onTapOrMouseDownWithBlockUIG(dialog, function(e) {
+        // Select with tap or mousedown
+        wmsx.Util.onTapOrMouseDownWithBlock(dialog, function(e) {
             if (e.target.wmsxIndex >= 0) {
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 optionSelected = e.target.wmsxIndex;
