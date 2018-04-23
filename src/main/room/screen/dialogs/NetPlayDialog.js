@@ -17,7 +17,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         dialog.classList.add("wmsx-show");
         dialog.focus();
 
-        wmsx.Util.scaleToFitParentHeight(dialog, mainElement, wmsx.ScreenGUI.BAR_HEIGHT);
+        wmsx.Util.scaleToFitParentWidth(dialog, mainElement, 12);
     };
 
     this.hide = function() {

@@ -1173,7 +1173,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     box-sizing: initial;
     text-shadow: 1px 1px 1px black;
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
-    transform-origin: center center;
+    transform-origin: left center;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     cursor: auto;

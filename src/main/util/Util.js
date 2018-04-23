@@ -548,6 +548,7 @@ wmsx.Util = new function() {
         // console.log("SCALE availHeight: " + availHeight + ", height: " + height + ", final: " + height * scale);
     };
 
+    // TODO Test on other browsers
     this.scaleToFitParentWidth = function(element, parent, horizMargin) {
         var availWidth = parent.clientWidth - (horizMargin * 2 | 0);      //  margins
         var width = element.clientWidth;
@@ -555,6 +556,7 @@ wmsx.Util = new function() {
         var finaWidth = (width * scale) | 0;
         var left = Math.floor((availWidth - finaWidth) / 2 + horizMargin);
         element.style.left = "" + left + "px";
+        element.style.right = "initial";
         element.style.transform = "scale(" + scale.toFixed(4) + ")";
 
         // console.log("SCALE availWidth: " + availWidth + ", width: " + width + ", final: " + width * scale + ", left: " + left);
