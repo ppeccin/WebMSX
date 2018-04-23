@@ -33,7 +33,7 @@ wmsx.Machine = function() {
         extensionsSocket.refreshConfigFromSlots();
     };
 
-    this.powerOn = function() {
+    this.powerOn = function(fromState) {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();
         if (syf) syf.powerOn();
@@ -42,7 +42,7 @@ wmsx.Machine = function() {
         psg.powerOn();
         vdp.powerOn();
         cpu.powerOn();
-        this.reset();
+        this.reset(fromState);
         this.powerIsOn = true;
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
     };
@@ -61,7 +61,7 @@ wmsx.Machine = function() {
         else machineControlsSocket.firePowerAndUserPauseStateUpdate();
     };
 
-    this.reset = function() {
+    this.reset = function(fromState) {
         videoStandardSoft = null;
         if (videoStandardIsAuto) setVideoStandardAuto();
         controllersSocket.resetControllers();
@@ -73,9 +73,18 @@ wmsx.Machine = function() {
         bus.reset();
         audioSocket.flushAllSignals();
         if (fastBootFrames > 0) {
-            fastBootCountdown = fastBootFrames;
-            alternateSpeed = SPEED_FAST;
-            videoClockUpdateSpeed();
+            if (!fromState) {
+                // Init fast speed
+                fastBootCountdown = fastBootFrames;
+                alternateSpeed = SPEED_FAST;
+                videoClockUpdateSpeed();
+            } else {
+                // Cancel fast speed
+                if (fastBootCountdown > 0) {
+                    alternateSpeed = null;
+                    videoClockUpdateSpeed();
+                }
+            }
         }
     };
 
@@ -415,7 +424,7 @@ wmsx.Machine = function() {
     function loadState(s) {
         // Extended
         if (s.vy !== undefined) setVSynchMode(s.vy, true);  // force update
-        if (s.pw !== undefined && self.powerIsOn !== s.pw) s.pw ? self.powerOn() : self.powerOff();
+        if (s.pw !== undefined && self.powerIsOn !== s.pw) s.pw ? self.powerOn(true) : self.powerOff();    // true = powerOn from state
         if (s.up !== undefined) self.userPause(s.up);
         if (s.upf !== undefined) userPauseMoreFrames = s.upf;
 
@@ -1089,7 +1098,8 @@ wmsx.Machine = function() {
                     self.showOSD("State " + slot + " load failed. State version too old!", true, true);
                 } else {
                     wmsx.Configurator.upgradeForState(state);
-                    if (!self.powerIsOn) self.powerOn();
+                    if (self.powerIsOn) self.reset(true);
+                    else self.powerOn(true);    // true = powerOn from state
                     loadState(state);
                     self.showOSD("State " + slot + " loaded", true);
                 }
@@ -1115,7 +1125,8 @@ wmsx.Machine = function() {
                 self.showOSD("State File load failed. State version too old!", true, true);
             } else {
                 wmsx.Configurator.upgradeForState(state);
-                if (!self.powerIsOn) self.powerOn();
+                if (self.powerIsOn) self.reset(true);
+                else self.powerOn(true);    // true = powerOn from state
                 loadState(state);
                 self.showOSD("State File loaded", true);
             }

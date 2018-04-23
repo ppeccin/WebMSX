@@ -4,6 +4,8 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
+// TODO Reset long press for extensions timer on menuLine change
+
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
