@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
-// TODO Reset long press for extensions timer on menuLine change
-
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
@@ -1092,7 +1090,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function barMenuItemTapOrMouseDown(elem, e, uigEnd) {
         if (uigEnd) return;
         barMenuItemSetActive(elem, e.type === "touchstart");
-        barMenuItemTouchActivation = e.type === "touchstart" ? wmsx.Util.performanceNow() : undefined;
     }
 
     function barMenuItemHoverOver(elem, e) {
@@ -1106,7 +1103,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function barMenuItemTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
         var secSlot = e.shiftKey || e.button === 2;
-        if (barMenuItemTouchActivation && (wmsx.Util.performanceNow() - barMenuItemTouchActivation) > TOUCH_SLOT2_TIME) secSlot |= true;
+        if (barMenuItemTouchActivation && (wmsx.Util.performanceNow() - barMenuItemTouchActivation) > TOUCH_EXT_SLOT2_TIME) secSlot |= true;
         if (barMenuItemActive) barMenuItemFireActive(secSlot, e.ctrlKey);
     }
 
@@ -1124,15 +1121,17 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     }
 
-    function barMenuItemSetActive(element, haptic) {
+    function barMenuItemSetActive(element, touch) {
         if (element === barMenuItemActive) return;
         if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
         if (element && element.wmsxMenuOption) {
             barMenuItemActive = element;
-            if (haptic) controllersHub.hapticFeedback();
+            if (touch) controllersHub.hapticFeedback();
             barMenuItemActive.classList.add("wmsx-hover");
         } else
             barMenuItemActive = null;
+        // Init time counting for long-press Extensions activation on Op2
+        barMenuItemTouchActivation = touch && barMenuItemActive ? wmsx.Util.performanceNow() : undefined;
     }
 
     function barElementTapOrMouseDown(e, uigStart, uigEnd) {
@@ -1835,7 +1834,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var domKeys = wmsx.DOMKeys;
 
-    var TOUCH_SLOT2_TIME = 800;
+    var TOUCH_EXT_SLOT2_TIME = 650;
 
     var KEY_CTRL_MASK  =  domKeys.CONTROL;
     var KEY_ALT_MASK   =  domKeys.ALT;
