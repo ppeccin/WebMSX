@@ -1008,10 +1008,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return but;
     }
 
-    function barButtonTapOrMousedown(elem, e, uigStart) {
+    function barButtonTapOrMousedown(elem, e, uigStart, uigEnd) {
+        if (!uigEnd) controllersHub.hapticFeedbackOnTouch(e);
         if (logoMessageActive || uigStart) return;
-
-        controllersHub.hapticFeedbackOnTouch(e);
 
         var prevActiveMenu = barMenuActive;
         closeAllOverlays();
@@ -1087,6 +1086,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (barMenuItemActive) barMenuItemFireActive(e.shiftKey || e.button === 2, e.ctrlKey);
     }
 
+    // TODO Test on other browsers
     function barMenuItemTapOrMouseDown(elem, e, uigEnd) {
         if (uigEnd) return;
         barMenuItemSetActive(elem, e.type === "touchstart");
@@ -1136,7 +1136,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function barElementTapOrMouseDown(e, uigStart, uigEnd) {
         cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
         var elem = e.target;
-        if (elem.wmsxBarElementType === 1) barButtonTapOrMousedown(elem, e, uigStart);
+        if (elem.wmsxBarElementType === 1) barButtonTapOrMousedown(elem, e, uigStart, uigEnd);
         else if (elem.wmsxBarElementType === 2) barMenuItemTapOrMouseDown(elem, e, uigEnd);
         else hideBarMenu();
     }
@@ -1516,9 +1516,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         updateLogo();
     }
 
-    function closeLogoMessage(e, uigStart) {
+    function closeLogoMessage(e, uigStart, uigEnd) {
+        if (!uigEnd) controllersHub.hapticFeedbackOnTouch(e);
         if (uigStart) return;
-        controllersHub.hapticFeedbackOnTouch(e);
         fsElement.classList.remove("wmsx-logo-message-active");
         logoMessageActive = false;
         if (afterMessageAction) {

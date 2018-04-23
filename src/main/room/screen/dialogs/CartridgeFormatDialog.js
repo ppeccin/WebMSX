@@ -139,18 +139,35 @@ wmsx.CartridgeFormatDialog = function(screen, mainElement, machine, cartridgeSlo
 
         // Do not close with taps or clicks inside
         wmsx.Util.onTapOrMouseDownWithBlock(dialog, function() {
-            dialog.focus();
+            list.focus();
         });
 
-        // Select with tap or mousedown
-        wmsx.Util.onTapOrMouseDownWithBlock(dialog, function(e) {
+        // Allow touch scrolls and touch clicks to happen
+        wmsx.Util.addEventsListener(list, "touchstart touchmove touchend", function(e) {
+            e.stopPropagation();
+        });
+
+        // Only select with mousedown
+        wmsx.Util.addEventsListener(list, "mousedown", function(e) {
+            e.stopPropagation();
+            wmsx.ControllersHub.hapticFeedbackOnTouch(e);
+            if (e.target.wmsxIndex >= 0) selectLineElement(e.target.wmsxIndex);
+        });
+
+        // Confirm on click
+        wmsx.Util.addEventsListener(list, "click", function(e) {
+            wmsx.Util.blockEvent(e);
             if (e.target.wmsxIndex >= 0) {
-                wmsx.ControllersHub.hapticFeedbackOnTouch(e);
-                optionSelected = e.target.wmsxIndex;
-                refreshListSelection();
-                setTimeout(hideConfirm, 120);
+                var sameWasSelected = e.target.wmsxIndex === optionSelected;
+                selectLineElement(e.target.wmsxIndex);
+                setTimeout(hideConfirm, sameWasSelected ? 0 : 120);
             }
         });
+
+        function selectLineElement(line) {
+            optionSelected = line;
+            refreshListSelection();
+        }
 
         // Toggle Save Format option with tap or mousedown
         wmsx.Util.onTapOrMouseDownWithBlock(saveButton, function(e) {
