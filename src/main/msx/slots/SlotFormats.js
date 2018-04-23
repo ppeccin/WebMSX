@@ -188,7 +188,7 @@ wmsx.SlotFormats = {
             return rom.content.length <= 131072 ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeSCCIExpansion(rom, false);      // Start in SCC compatibility mode (default for SCC-I cartridges)
+            return new wmsx.CartridgeSCCIExpansion(rom, this, false);      // Start in SCC compatibility mode (default for SCC-I cartridges)
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);
@@ -391,7 +391,7 @@ wmsx.SlotFormats = {
             return rom.content.length > 0 && rom.content.length <= 131072 ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeSCCIExpansion(rom, true);     // Start in SCC-I mode. Special format!
+            return new wmsx.CartridgeSCCIExpansion(rom, this, true);     // Start in SCC-I mode. Special format!
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeSCCIExpansion.recreateFromSaveState(state, previousSlot);

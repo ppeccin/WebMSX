@@ -6,7 +6,7 @@
 // Controls an internal SCC-I sound chip (in SCC or SCC-I mode)
 // 0x4000 - 0xbfff
 
-wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
+wmsx.CartridgeSCCIExpansion = function(rom, format, startInSCCI) {
 "use strict";
 
     function init(self) {
@@ -21,6 +21,11 @@ wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
         }
         startingMode = startInSCCI ? 0x20 : 0x00;      // Start in SCC-I mode for special format KonamiSCCI. Start in SCC compatibility mode for format SCCIExpansion
     }
+
+    this.reinsertROMContent = function() {
+        if (this.rom.content) return;
+        this.rom.content = this.bytes ? this.bytes.slice(0, this.preLoadedContentSize) : [];
+    };
 
     this.connect = function(machine) {
         scc.setAudioSocket(machine.getAudioSocket());
@@ -145,7 +150,7 @@ wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
     var sccConnected = false;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.SCCIExpansion;
+    this.format = format;
     this.preLoadedContentSize = 0;
 
 
@@ -171,6 +176,7 @@ wmsx.CartridgeSCCIExpansion = function(rom, startInSCCI) {
     };
 
     this.loadState = function(s) {
+        this.format = wmsx.SlotFormats[s.f];
         this.rom = wmsx.ROM.loadState(s.r);
         this.preLoadedContentSize = s.pcs || 0;
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);

@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Alternate ESC key
 (function() {
 
     // Base mapping. English Machine, Host Keyboard: en-US
