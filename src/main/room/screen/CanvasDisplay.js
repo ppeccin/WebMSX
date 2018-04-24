@@ -1086,7 +1086,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (barMenuItemActive) barMenuItemFireActive(e.shiftKey || e.button === 2, e.ctrlKey);
     }
 
-    // TODO Test on other browsers
     function barMenuItemTapOrMouseDown(elem, e, uigEnd) {
         if (uigEnd) return;
         barMenuItemSetActive(elem, e.type === "touchstart");

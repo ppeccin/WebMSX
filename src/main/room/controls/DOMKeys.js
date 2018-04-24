@@ -2,7 +2,6 @@
 
 // General, immutable info about host keys on different browsers and keyboard languages/layouts
 
-// TODO Test on other browsers
 wmsx.DOMKeys = {
     keys: {},
     keysByCode: {},

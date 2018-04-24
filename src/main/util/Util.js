@@ -548,7 +548,6 @@ wmsx.Util = new function() {
         // console.log("SCALE availHeight: " + availHeight + ", height: " + height + ", final: " + height * scale);
     };
 
-    // TODO Test on other browsers
     this.scaleToFitParentWidth = function(element, parent, horizMargin) {
         var availWidth = parent.clientWidth - (horizMargin * 2 | 0);      //  margins
         var width = element.clientWidth;

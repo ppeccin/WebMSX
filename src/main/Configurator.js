@@ -232,7 +232,7 @@ wmsx.Configurator = {
         var lang = wmsx.Util.userLanguage();
         var langSuffix = "A";                                 // Default American machine
         if (lang.indexOf("ja") === 0) langSuffix = "J";       // Japanese machine
-                                                              // TODO Detect other countries/locations?
+
         var typePreffix;
         switch (type) {
             case 4: typePreffix = "MSX2PP"; break;
