@@ -4,7 +4,7 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
-// TODO Turbo indicator and widths
+// TODO Turbo indicator and widths, NetPlat indicator and widths
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
@@ -544,6 +544,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.roomNetPlayStatusChangeUpdate = function(oldMode) {
         if (!netPlayDialog || !netPlayDialog.isVisible()) closeAllOverlays();
         if (netPlayDialog) netPlayDialog.roomNetPlayStatusChangeUpdate(oldMode);
+        netplayButton.classList.toggle("wmsx-hidden", room.netPlayMode < 1);
     };
 
     this.quickOptionsControlsStateUpdate = function () {
@@ -881,7 +882,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, false, "System Power", null, menu, "System");
         barMenuSystem = menu;
 
+        netplayButton  = addPeripheralControlButton("wmsx-bar-netplay", -1, -91, false, "NetPlay!", wmsx.PeripheralControls.SCREEN_OPEN_NETPLAY);
+        netplayButton.classList.add("wmsx-hidden");
+
         mediaIconsContainer = document.createElement("div");
+        mediaIconsContainer.id = "wmsx-bar-media-icons";
         mediaIconsContainer.style.display = "inline-block";
         buttonsBarInner.appendChild(mediaIconsContainer);
 
@@ -982,7 +987,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
-        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -37, true, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
+        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -68, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
         turboButton.classList.add("wmsx-narrow-hidden");
 
@@ -1821,6 +1826,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var tapeButton;
     var logoButton;
     var turboButton;
+    var netplayButton;
     var scaleDownButton;
     var scaleUpButton;
     var fullscreenButton;

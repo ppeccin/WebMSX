@@ -266,7 +266,10 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 */
 
 #wmsx-bar-power {
-    margin: 0 12px 0 6px;
+    margin-left: 6px;
+}
+#wmsx-bar-media-icons {
+    margin-left: 10px;
 }
 #wmsx-bar-settings, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
     float: right;
@@ -313,7 +316,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 47px;
     margin: 0 auto;
     padding: 7px 0 0 26px;
-    color: hsl(0, 96%, 58%);
+    color: hsl(0, 98%, 61%);
     font-weight: bold;
     font-size: 14px;
     line-height: 14px;
