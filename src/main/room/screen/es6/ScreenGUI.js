@@ -307,7 +307,20 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 52px;
     margin: 0 auto;
 }
-
+#wmsx-bar-turbo {
+    position: absolute;
+    left: 118px; right: 0;
+    width: 47px;
+    margin: 0 auto;
+    padding: 7px 0 0 26px;
+    color: hsl(0, 96%, 58%);
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 14px;
+    text-shadow: 2px 2px 0 black;
+    vertical-align: top;
+    box-sizing: border-box;
+}
 
 #wmsx-bar-menu {
     position: absolute;

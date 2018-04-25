@@ -736,6 +736,7 @@ wmsx.Machine = function() {
         };
         this.setMachineTurboModesStateListener = function(list) {
             machineTurboModesListener = list;
+            machineTurboModesListener.machineTurboModesStateUpdate();
         };
         this.fireMachineTurboModesStateUpdate = function() {
             if (machineTurboModesListener) machineTurboModesListener.machineTurboModesStateUpdate();

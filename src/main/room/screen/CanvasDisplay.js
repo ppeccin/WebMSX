@@ -4,6 +4,8 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
+// TODO Turbo indicator and widths
+
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
@@ -550,6 +552,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.machineTurboModesStateUpdate = function() {
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
+        var multi = machine.cpu.getCPUTurboMulti();
+        turboButton.classList.toggle("wmsx-hidden", multi < 2);
+        if (multi > 1) turboButton.textContent = "" + multi + "x";
     };
 
     this.setLoading = function(state) {
@@ -976,6 +981,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -25, false, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
         logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
+
+        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -37, true, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
+        turboButton.classList.add("wmsx-hidden");
+        turboButton.classList.add("wmsx-narrow-hidden");
 
         // Events for BarButtons and also MenuItems
         wmsx.Util.onTapOrMouseDownWithBlockUIG(buttonsBar, barElementTapOrMouseDown);
@@ -1811,6 +1820,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var cartridge2Button;
     var tapeButton;
     var logoButton;
+    var turboButton;
     var scaleDownButton;
     var scaleUpButton;
     var fullscreenButton;
