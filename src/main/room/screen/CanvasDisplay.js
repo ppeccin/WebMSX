@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
-// TODO Turbo indicator and widths, NetPlat indicator and widths
-
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
@@ -1845,7 +1843,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
-    var NARROW_WIDTH = 450;
+    var NARROW_WIDTH = 504;
 
     var domKeys = wmsx.DOMKeys;
 
