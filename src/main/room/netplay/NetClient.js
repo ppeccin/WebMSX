@@ -89,7 +89,7 @@ wmsx.NetClient = function(room) {
     }
 
     function onSessionMessage(event) {
-        const message = JSON.parse(event.data);
+        var message = JSON.parse(event.data);
 
         if (message.wmsxUpdate)
             return onServerNetUpdate(JSON.parse(message.wmsxUpdate));

@@ -139,7 +139,7 @@ wmsx.NetServer = function(room) {
     }
 
     function onSessionMessage(event) {
-        const message = JSON.parse(event.data);
+        var message = JSON.parse(event.data);
 
         if (message.wmsxUpdate) {
             var client = clients[event.clientNick];

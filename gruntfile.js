@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         clean: {
-            init: ["temp", "release/stable/4.0"],
+            init: ["temp", "release/alpha/5.0"],
             finish: ["temp"]
         },
 
@@ -34,8 +34,10 @@ module.exports = function (grunt) {
                     "src/main/msx/miscdevices/RTC.js",
                     "src/main/msx/miscdevices/SystemFlags.js",
                     "src/main/msx/miscdevices/ImageCassetteDriver.js",
+                    "src/main/msx/miscdevices/TurboDriver.js",
                     "src/main/msx/miscdevices/BIOSKeyboardExtension.js",
                     "src/main/msx/miscdevices/ImageDiskDriver.js",
+                    "src/main/msx/miscdevices/ImageNextorDeviceDriver.js",
                     "src/main/msx/rom/ROM.js",
                     "src/main/msx/rom/ROMDatabase.js",
                     "src/main/msx/slots/SlotCreator.js",
@@ -64,6 +66,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/CartridgeSuperLodeRunner.js",
                     "src/main/msx/slots/cartridges/CartridgeDooly.js",
                     "src/main/msx/slots/cartridges/special/disk/CartridgeDiskPatched.js",
+                    "src/main/msx/slots/cartridges/special/disk/CartridgeNextorPatched.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeSCCExpansion.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeSCCIExpansion.js",
@@ -81,13 +84,15 @@ module.exports = function (grunt) {
                     "src/main/msx/machine/MachineTypeSocket.js",
                     "src/main/msx/machine/ExtensionsSocket.js",
                     "src/main/msx/machine/DeviceMissing.js",
-                    "src/main/msx/machine/Clock.js",
                     "src/main/msx/machine/BUS.js",
                     "src/main/msx/machine/Machine.js",
                     "src/main/msx/controls/KeyboardKeys.js",
                     "src/main/msx/controls/JoystickButtons.js",
                     "src/main/msx/controls/MachineControls.js",
                     "src/main/images/Images.js",
+                    "src/main/userprefs/UserPreferences.js",
+                    "src/main/userprefs/UserROMFormats.js",
+                    "src/main/room/clock/Clock.js",
                     "src/main/room/files/FileLoader.js",
                     "src/main/room/files/FileDownloader.js",
                     "src/main/room/controls/DOMKeys.js",
@@ -114,19 +119,26 @@ module.exports = function (grunt) {
                     "src/main/room/screen/dialogs/PasteDialog.js",
                     "src/main/room/screen/dialogs/TextEntryDialog.js",
                     "src/main/room/screen/dialogs/SaveStateDialog.js",
+                    "src/main/room/screen/dialogs/CartridgeFormatDialog.js",
                     "src/main/room/screen/dialogs/DiskSelectDialog.js",
+                    "src/main/room/screen/dialogs/NewHardDiskDialog.js",
                     "src/main/room/screen/dialogs/MachineSelectDialog.js",
                     "src/main/room/screen/dialogs/TouchConfigDialog.js",
                     "src/main/room/screen/dialogs/QuickOptionsDialog.js",
+                    "src/main/room/screen/dialogs/NetPlayDialog.js",
                     "src/main/room/speaker/WebAudioSpeaker.js",
                     "src/main/room/savestate/SaveStateMedia.js",
+                    "src/main/room/savestate/LocalStoragePersistence.js",
+                    "src/main/room/savestate/IndexedDBPersistence.js",
+                    "src/main/room/cartridge/FileCartridgeSlot.js",
                     "src/main/room/cassette/FileCassetteDeck.js",
                     "src/main/room/disk/DiskImages.js",
                     "src/main/room/disk/FileDiskDrive.js",
                     "src/main/room/controls/PeripheralControls.js",
                     "src/main/room/controls/DOMPeripheralControls.js",
+                    "src/main/room/netplay/NetServer.js",
+                    "src/main/room/netplay/NetClient.js",
                     "src/main/room/Room.js",
-                    "src/main/userprefs/UserPreferences.js",
                     "src/runtime/images/EmbeddedImages.js",
                     "src/runtime/sysfiles/CompressedSystemFiles.js",
                     "src/runtime/sysfiles/EmbeddedSystemFiles.js",
@@ -158,10 +170,10 @@ module.exports = function (grunt) {
                     maxLineLen: 7900,
                     mangle: {
                         toplevel: true,
-                        screw_ie8: true
+                        // screw_ie8: true
                     },
                     compress: {
-                        screw_ie8: true,
+                        // screw_ie8: true,
                         sequences: true,
                         dead_code: true,
                         drop_debugger: true,
@@ -174,7 +186,7 @@ module.exports = function (grunt) {
                         if_return: true,
                         hoist_funs: true,
                         join_vars: true,
-                        cascade: true,
+                        // cascade: true,
                         unsafe: false
                     }
                 },
@@ -187,17 +199,17 @@ module.exports = function (grunt) {
         copy: {
             standalone: {
                 files: [
-                    {src: "temp/index.html", dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/standalone/cache.manifest", dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/stable/4.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/stable/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/stable/4.0/standalone/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: "temp/index.html", dest: "release/alpha/5.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/cache.manifest", dest: "release/alpha/5.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/alpha/5.0/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/alpha/5.0/standalone/images", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/alpha/5.0/standalone/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             },
             embedded: {
                 files: [
-                    {src: "src/runtime/embedded/index.html", dest: "release/stable/4.0/embedded", expand: true, flatten: true, filter: "isFile"},
-                    {src: "temp/wmsx.js", dest: "release/stable/4.0/embedded", expand: true, flatten: true, filter: "isFile"}
+                    {src: "src/runtime/embedded/index.html", dest: "release/alpha/5.0/embedded", expand: true, flatten: true, filter: "isFile"},
+                    {src: "temp/wmsx.js", dest: "release/alpha/5.0/embedded", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         }

@@ -562,7 +562,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 /* Firefox-specific rules */
 @-moz-document url-prefix() {
-    /* Try to hide scrollbar, since we can't style it :-( */
+    /* Try to hide scrollbar, since we cant style it :-( */
     #wmsx-cartridge-format.wmsx-select-dialog > ul {
         width: 304px;
     }
@@ -1759,7 +1759,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     margin: 11px auto 7px;
     width: 41px;
     height: 36px;
-    background: url("../src/runtime/images/files/sprites.png");
+    background: url("` + wmsx.Images.urls.sprites + `");
     background-size: 568px 206px;
     vertical-align: bottom;
 }

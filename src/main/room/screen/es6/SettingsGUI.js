@@ -387,7 +387,7 @@ wmsx.SettingsGUI.html = function() {
                                 Alt
                             </div>
                         </div>
-                        <div class="wmsx-desc">Don't expand ZIP Contents
+                        <div class="wmsx-desc">Don&apos;t expand ZIP Contents
                         </div>
                     </div>
                 </div>
