@@ -5,7 +5,16 @@ const WebSocket = require("ws");
 wmsx.WSSever = function() {
 
     this.start = function(httpServer) {
-        this.wss = new WebSocket.Server({ server: httpServer, perMessageDeflate: true });
+        this.wss = new WebSocket.Server({ server: httpServer,
+            zlibDeflateOptions: {
+                chunkSize: 1024,
+                memLevel: 7,
+                level: 3,
+            },
+            zlibInflateOptions: {
+                chunkSize: 10 * 1024
+            }
+        });
         this.wss.on("connection", ws => this.onWSConnection(ws));
     };
 
