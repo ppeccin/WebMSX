@@ -6,14 +6,6 @@ wmsx.WSSever = function() {
 
     this.start = function(httpServer) {
         this.wss = new WebSocket.Server({ server: httpServer, perMessageDeflate: {
-                zlibDeflateOptions: {
-                    chunkSize: 1024,
-                    memLevel: 7,
-                    level: 3,
-                },
-                zlibInflateOptions: {
-                    chunkSize: 10 * 1024
-                },
                 threshold: 1024000
             }
         });
