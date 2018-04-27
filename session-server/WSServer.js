@@ -5,7 +5,7 @@ const WebSocket = require("ws");
 wmsx.WSSever = function() {
 
     this.start = function(httpServer) {
-        this.wss = new WebSocket.Server({ server: httpServer, perMessageDeflate: false });
+        this.wss = new WebSocket.Server({ server: httpServer, perMessageDeflate: true });
         this.wss.on("connection", ws => this.onWSConnection(ws));
     };
 
