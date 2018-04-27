@@ -5,10 +5,11 @@ const WebSocket = require("ws");
 wmsx.WSSever = function() {
 
     this.start = function(httpServer) {
-        this.wss = new WebSocket.Server({ server: httpServer, perMessageDeflate: {
-                threshold: 1024000
-            }
-        });
+        this.wss = new WebSocket.Server({ server: httpServer });
+        // this.wss = new WebSocket.Server({ server: httpServer, perMessageDeflate: {
+        //         threshold: 1024000
+        //     }
+        // });
         this.wss.on("connection", ws => this.onWSConnection(ws));
     };
 
