@@ -82,6 +82,10 @@ wmsx.Configurator = {
             WMSX.BOOT_DURATION_AUTO |= 0;
             WMSX.FAST_BOOT |= 0;
             WMSX.SPEED |= 0;
+            WMSX.JOYSTICKS_MODE |= 0;
+            WMSX.JOYKEYS_MODE |= 0;
+            WMSX.MOUSE_MODE |= 0;
+            WMSX.TOUCH_MODE |= 0;
         }
     },
 

@@ -109,7 +109,7 @@ if (window.applicationCache) {
     else window.applicationCache.addEventListener("updateready", onUpdateReady);
 }
 
-WMSX.VERSION = "5.0.99";
+WMSX.VERSION = "5.0.98";
 
 // Start pre-loading images right away
 WMSX.preLoadImagesAndStart();
