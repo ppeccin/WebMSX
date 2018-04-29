@@ -68,6 +68,13 @@ It uses a specialized P2P protocol, and tries to use STUN to traverse NATs/route
 To make all this work seamlessly, WebMSX uses modern Web technologies including WebRTC, which are supported by all major browsers and platforms.
 Unfortunately, those technologies are still not available on Apple iOS, so NetPlay! will not work on iOS devices. Sorry but there is not much we can do about it, until Apple feels it should allow its customers to access those technologies.
 
+## About the Nextor Hard Disk Drive
+
+To make the Hard Disk Drive available, you must first activate the Hard Drive Extension, through the Extensions Menu on the user interface, or by using the respective Presets.
+The Hard Disk device may be placed "before" the Floppy Drives, so it will appear on the system as Drive A, or "after" the Floppy Drives, so it will appear as Drive C. The position depends on which Slot the Extension is activated on.
+If using Presets, there are two available: `HARDDISK` will place the device as Drive A, and `HARDDISKC` will place it as Drive C.
+On the Hard Drive menu (HD icon), there are options to automatically create Empty and Boot disks of several sizes. You can also load DSK images, Files or ZIPs normally.
+
 ## WebMSX Configuration and Launch Options
 
 Several parameters are available for customizing the emulator. They can be changed either directly in Javascript if you are hosting the emulator in your own page, or via URL Query Parameters if you are creating links or bookmarks to open the emulator, or just using it in your browser.
@@ -88,7 +95,7 @@ WMSX.PRESETS = "RAM128, NODISK";         or           http://webmsx.org?PRESETS=
 
 ## Media Loading
 
-The emulator can be set to automatically load files like ROMs, DSK and CAS images. Additionally, normal "loose" files can be loaded and automatically put in a Disk image. Image files may be compressed in ZIP or GZIP formats. If several Disk images are found in a ZIP file, all of them (up to 10) will be loaded in the Drive Stack. Available parameters:
+The emulator can be set to automatically load files like ROMs, DSK and CAS images. Additionally, files can be loaded and automatically injected into any of the Disks Drives, without having to first create an image. Image files may be compressed in ZIP or GZIP formats. If several Disk images are found in a ZIP file, all of them (up to 10) will be loaded in the Drive Stack. Available parameters:
 
 | Parameter | Function | Shortcut for URL form
 | --- | --- | ---
@@ -100,7 +107,7 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 | `DISKB_URL`          | URL of Disk image file to load in Drive B:           | `DISKB`
 | `HARDDISK_URL`       | URL of Disk image file to load in the Hard Drive     | `HARDDISK`
 | `DISKA_FILES_URL`    | URL of file or ZIP (for several files) to load in Drive A:   | `DISK_FILES`, `DISKA_FILES`
-| `DISKB_FILES_URL`    | URL of file or ZIP (for several files) to load in Drive A:   | `DISKB_FILES`
+| `DISKB_FILES_URL`    | URL of file or ZIP (for several files) to load in Drive B:   | `DISKB_FILES`
 | `HARDDISK_FILES_URL` | URL of file or ZIP (for several files) to load in Hard Drive | `HARDDISK_FILES`
 | `TAPE_URL`           | URL of Tape image file to load                       | `TAPE`
 | `STATE_URL`          | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
@@ -119,11 +126,11 @@ The emulator supports several Extensions, or optional components that can be tur
 
 | Extension | Default in Machine | Presets
 | --- | :---: | ---
-| Disk interface with 2 drives          | ALL                  | `DISK`, `NODISK`
+| Hard Disk interface (Nextor)          | MSX2++               | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
+| Floppy Disk interface with 2 drives   | ALL                  | `DISK`, `NODISK`
 | Standard RAM Mapper, adjustable size  | MSX2, MSX2+          | `RAM128`..`RAM4096`, `NORAMMAPPER`
 | MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+          | `MSXMUSIC`, `NOMSXMUSIC`
 | Support for Kanji Characters          | Japanese MSX2, MSX2+ | `KANJI`, `NOKANJI`
-| MSX-DOS 2 ROM Cartridge               | --                   | `DOS2`
 | SCC-I Sound Cartridge with 128K RAM   | --                   | `SCCI`, `SCCI2` (in Slot 2)
 | SCC Sound Cartridge                   | --                   | `SCC`, `SCC2` (in Slot 2)
 | PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 2)
