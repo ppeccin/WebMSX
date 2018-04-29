@@ -33,8 +33,8 @@ WMSX = {
     BASIC_LOAD:                     "",
     BASIC_BRUN:                     "",
     BASIC_BLOAD:                    "",
-    BASIC_ENTER:                    "",
     BASIC_TYPE:                     "",
+    BASIC_ENTER:                    "",
 
     // Boot Options
     BOOT_KEYS:                      "",                         // Keys to keep pressed at every boot, comma separated
@@ -58,7 +58,7 @@ WMSX = {
     // General options
     SPEED:                          100,                        // Default emulation speed (in %)
     AUTO_START:                     true,
-    AUTO_POWER_ON_DELAY:            1600,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
+    AUTO_POWER_ON_DELAY:            1200,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
     MEDIA_CHANGE_DISABLED:          false,
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",
@@ -81,11 +81,11 @@ WMSX = {
     CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
     VDP_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: VDP Command Engine clock multiplier; 9: instantaneous
     CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
-    VDP_SOFT_TURBO_MULTI:           4,                          // 1..8 VDP Command Engine clock multiplier when in AUTO mode and activated by software
+    VDP_SOFT_TURBO_MULTI:           4,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
-    ROM_MAX_HASH_SIZE_KB:           3072,                       // Maximum ROM size for MD5 calculation
+    ROM_MAX_HASH_SIZE_KB:           3072,                       // Maximum ROM size for Hash calculation
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
