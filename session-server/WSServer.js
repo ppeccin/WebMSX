@@ -11,6 +11,7 @@ wmsx.WSSever = function() {
         //     }
         // });
         this.wss.on("connection", ws => this.onWSConnection(ws));
+        this.wss.on("error", err => this.onWSError(err));
     };
 
     this.setClientConnectedListener = function(listener) {
@@ -19,6 +20,10 @@ wmsx.WSSever = function() {
 
     this.setClientDisconnectedListener = function(listener) {
         this.clientDisconnectedListener = listener;
+    };
+
+    this.onWSError = function(err) {
+        console.error("WSServer >>> ERROR: " + err);
     };
 
     this.onWSConnection = function(ws) {
