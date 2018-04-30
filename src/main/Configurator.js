@@ -306,6 +306,8 @@ wmsx.Configurator = {
         JOYKEYS: "JOYKEYS_MODE",
         MOUSE: "MOUSE_MODE",
         TURBO: "CPU_TURBO_MODE",
+        CPU_TURBO: "CPU_TURBO_MODE",
+        VDP_TURBO: "VDP_TURBO_MODE",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
     }
 

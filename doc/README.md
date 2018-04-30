@@ -3,6 +3,7 @@
 **WebMSX**, or simply **WMSX**, is a new cross platform MSX emulator designed for the Web.
 
 WebMSX is great for displaying MSX software running inside webpages. You can launch the emulator and load ROMs, DSK and CAS images with a single link.
+Join friends in multiplayer games or pair programming sessions with the new NetPlay! function.
 
 Please go to **http://webmsx.org** to enjoy it online!
 

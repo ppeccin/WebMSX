@@ -16,10 +16,9 @@ wmsx.SlotBIOS = function(rom) {
     }
 
     this.connect = function(machine) {
-        keyboardExtension = new wmsx.BIOSKeyboardExtension(machine.bus);
+        keyboardExtension.connect(machine);
         cassetteDriver = new wmsx.ImageCassetteDriver();
         cassetteDriver.connect(this, machine);
-        turboDriver = new wmsx.TurboDriver();
         turboDriver.connect(this, machine);
         machine.setBIOS(this);
     };
@@ -76,6 +75,10 @@ wmsx.SlotBIOS = function(rom) {
     var bytes;
     this.bytes = null;
 
+    var cassetteDriver;
+    var keyboardExtension = new wmsx.BIOSKeyboardExtension();
+    var turboDriver = new wmsx.TurboDriver();
+
     this.rom = null;
     this.format = wmsx.SlotFormats.BIOS;
 
@@ -103,11 +106,6 @@ wmsx.SlotBIOS = function(rom) {
         if (state.ke) keyboardExtension.loadState(state.ke);
         turboDriver.loadState(state.td);
     };
-
-
-    var cassetteDriver;
-    var turboDriver;
-    var keyboardExtension;
 
 
     if (rom) init(this);

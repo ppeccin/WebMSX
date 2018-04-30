@@ -1,7 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.BIOSKeyboardExtension = function(bus) {
+wmsx.BIOSKeyboardExtension = function() {
 "use strict";
+
+    this.connect = function(machine) {
+        bus = machine.bus;
+    };
 
     // ADDS string to the type sequence
     this.typeString = function(str) {
@@ -64,6 +68,8 @@ wmsx.BIOSKeyboardExtension = function(bus) {
         typeFromPosition = state.p;
     };
 
+
+    var bus;
 
     var stringToType;
     var typeFromPosition = 0;
