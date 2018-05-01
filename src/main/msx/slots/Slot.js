@@ -58,6 +58,8 @@ wmsx.Slot = function() {
 
 
     this.format = undefined;
+    this.rom = undefined;
+    this.bytes = undefined;
 
 
     this.dumpBytes = function(from, chunk, quant) {

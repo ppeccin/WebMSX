@@ -449,7 +449,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 .wmsx-select-dialog.wmsx-show {
     display: block;
 }
-.wmsx-select-dialog .wmsx-footer {
+.wmsx-select-dialog > .wmsx-footer {
     position: absolute;
     width: 100%;
     bottom: 7px;

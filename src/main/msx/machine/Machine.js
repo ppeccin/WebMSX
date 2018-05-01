@@ -44,7 +44,7 @@ wmsx.Machine = function() {
         cpu.powerOn();
         this.reset(fromState);
         this.powerIsOn = true;
-        machineControlsSocket.firePowerAndUserPauseStateUpdate();
+        if (!fromState) machineControlsSocket.firePowerAndUserPauseStateUpdate();       // loadState will fire it
     };
 
     this.powerOff = function() {
@@ -1100,7 +1100,7 @@ wmsx.Machine = function() {
                 } else {
                     wmsx.Configurator.upgradeForState(state);
                     if (self.powerIsOn) self.reset(true);
-                    else self.powerOn(true);    // true = powerOn from state
+                    else self.powerOn(true);    // true = powerOn from state loading
                     loadState(state);
                     self.showOSD("State " + slot + " loaded", true);
                 }

@@ -1415,7 +1415,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             item.wmsxMenuOption = null;
         }
 
-        var height = fsElementCenter.clientHeight - wmsx.ScreenGUI.BAR_HEIGHT - 8;      // bar + borders + tolerance
+        var height = fsElementCenter.clientHeight - wmsx.ScreenGUI.BAR_HEIGHT - 12;      // bar + borders + tolerance
         var scale = h < height ? 1 : height / h;
         if (barMenu) barMenu.style.transform = "scale(" + scale.toFixed(4) + ")";
 

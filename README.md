@@ -254,3 +254,4 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
 | `ROM_MAX_HASH_SIZE_KB`          |  3072               |  Maximum ROM size for Hash calculation
 | `HARDDISK_MIN_SIZE_KB`          |  720                |  Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+| `PAGE_BACK_CSS`                 |  --                 |  CSS to modify page background color. Applied to the body element
