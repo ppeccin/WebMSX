@@ -40,19 +40,19 @@ wmsx.ImageCassetteDriver = function() {
 
     this.cpuExtensionBegin = function(s) {
         switch (s.extNum) {
-            case 0:
+            case 0xe0:
                 return TAPION(s.F);
-            case 1:
+            case 0xe1:
                 return TAPIN(s.F);
-            case 2:
+            case 0xe2:
                 return TAPIOF();
-            case 3:
+            case 0xe3:
                 return TAPOON(s.A, s.F);
-            case 4:
+            case 0xe4:
                 return TAPOUT(s.A, s.F);
-            case 5:
+            case 0xe5:
                 return TAPOOF();
-            case 6:
+            case 0xe6:
                 return STMOTR(s.A);
         }
     };

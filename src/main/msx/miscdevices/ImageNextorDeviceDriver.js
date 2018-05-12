@@ -8,9 +8,11 @@ wmsx.ImageNextorDeviceDriver = function() {
         drive = machine.getDiskDriveSocket().getDrive();
         bus = machine.bus;
         patchNextorKernel(kernel);
+        bus.setFixedCpuExtensionHandler(this);
     };
 
     this.disconnect = function(kernel, machine) {
+        machine.bus.setFixedCpuExtensionHandler(undefined);
     };
 
     this.powerOff = function() {
@@ -18,18 +20,29 @@ wmsx.ImageNextorDeviceDriver = function() {
 
     this.cpuExtensionBegin = function(s) {
         switch (s.extNum) {
-            case 0x0:
+            // Nextor Device Driver
+            case 0xe0:
                 return DRV_VERSION();
-            case 0x1:
+            case 0xe1:
                 return DRV_INIT(s.A, s.B, s.HL);
-            case 0x8:
+            case 0xe8:
                 return DEV_RW(s.F, s.A, s.B, s.C, s.DE, s.HL);
-            case 0x9:
+            case 0xe9:
                 return DEV_INFO(s.A, s.B, s.HL);
-            case 0xa:
+            case 0xea:
                 return DEV_STATUS(s.A, s.B);
-            case 0xb:
+            case 0xeb:
                 return LUN_INFO(s.A, s.B, s.HL);
+
+            // SymbOS Device Driver
+            case 0xf0:
+                return console.log("EXT F0");
+            case 0xf1:
+                return console.log("EXT F1");
+            case 0xf2:
+                return SYMBOS_DRVACT(s.F, s.A);
+            case 0xf3:
+                return console.log("EXT F3");
         }
     };
 
@@ -232,6 +245,16 @@ wmsx.ImageNextorDeviceDriver = function() {
         // Success
         return { A: 0 };
     }
+
+    function SYMBOS_DRVACT(F, A) {
+        wmsx.Util.log("SYMBOS_DRVACT: " + wmsx.Util.toHex2(A));
+
+        // Only 1 device (device 0) available
+        return A === 0
+            ? { F: F & ~1, A: 0 }    // OK!
+            : { F: F | 1, A: 14 }    // Error
+    }
+
 
 
     var drive;

@@ -60,11 +60,6 @@ wmsx.Z80 = function() {
         bus = aBus;
     };
 
-    this.setExtensionHandler = function(codes, handler) {
-        for (var i = 0; i < codes.length; i++)
-            extensionHandlers[codes[i]] = handler;
-    };
-
     this.reset = function() {
         busCycles = 0;
         T = -1; opcode = null; ackINT = false;
@@ -112,7 +107,6 @@ wmsx.Z80 = function() {
     var turboClockMulti = 1;
 
     // Extension Handling
-    var extensionHandlers = [];
     var extensionCurrentlyRunning = null;
     var extensionExtraIterations = 0;
 
@@ -1442,14 +1436,13 @@ wmsx.Z80 = function() {
 
     function newpEXT(num) {
         return function pEXT() {
-            if (!extensionHandlers[num]) return;
             // Check for extraIterations of last extension instruction. No new instruction until iterations end
             if (extensionCurrentlyRunning !== null) {
                 if (extensionExtraIterations > 0) {         // Need more iterations?
                     extensionExtraIterations--;
                     PC -= 2;
                 } else {                                    // End of iterations, perform finish operation
-                    var finish = extensionHandlers[num].cpuExtensionFinish(extractCPUState(num));
+                    var finish = bus.cpuExtensionFinish(extractCPUState(num));
                     reinsertCPUState(finish);
                     extensionCurrentlyRunning = null;
                 }
@@ -1457,7 +1450,7 @@ wmsx.Z80 = function() {
             }
             // New extension instruction may happen now
             extensionCurrentlyRunning = num; extensionExtraIterations = 0;
-            var init = extensionHandlers[num].cpuExtensionBegin(extractCPUState(num));
+            var init = bus.cpuExtensionBegin(extractCPUState(num));
             reinsertCPUState(init);
             // Recur to finish the process
             pEXT();
@@ -1494,9 +1487,7 @@ wmsx.Z80 = function() {
             if (state.IM !== undefined)    IM = state.IM;
             if (state.extraIterations > 0) extensionExtraIterations = state.extraIterations;
         }
-
     }
-
 
 
     // Testing pseudo instructions
@@ -2529,12 +2520,11 @@ wmsx.Z80 = function() {
         instr = uOUTC0;
         defineInstruction(null, 0xed, opcode, 8, instr, "OUT (C), 0", true);
 
-        // Extension pseudo Instructions (ED E0 to ED EF)
+        // Extension pseudo Instructions (ED E0 to ED FF)
 
-        for (i = 0x00; i <= 0x0f; i++) {
-            opcode = 0xe0 + i;
-            instr = newpEXT(i);
-            defineInstruction(null, 0xed, opcode, 4, instr, "EXT " + i.toString(16), true);
+        for (opcode = 0xe0; opcode <= 0xff; opcode++) {
+            instr = newpEXT(opcode);
+            defineInstruction(null, 0xed, opcode, 4, instr, "EXT " + opcode.toString(16), true);
         }
 
         // 2 bytes, 2M, 8T: - uNOP              All ED extended instructions not yet defined are NOPs

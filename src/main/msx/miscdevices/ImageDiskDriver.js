@@ -20,21 +20,21 @@ wmsx.ImageDiskDriver = function() {
 
     this.cpuExtensionBegin = function(s) {
         switch (s.extNum) {
-            case 0x8:
+            case 0xe8:
                 return INIHRD();
-            case 0x9:
+            case 0xe9:
                 return DRIVES(s.F, s.HL);
-            case 0xa:
+            case 0xea:
                 return DSKIO(s.F, s.A, s.B, s.C, s.DE, s.HL);
-            case 0xb:
+            case 0xeb:
                 return DSKCHG(s.F, s.A, s.B, s.C, s.HL);
-            case 0xc:
+            case 0xec:
                 return GETDPB(s.A, s.B, s.C, s.HL);
-            case 0xd:
+            case 0xed:
                 return CHOICE();
-            case 0xe:
+            case 0xee:
                 return DSKFMT(s.F, s.A, s.DE);
-            case 0xf:
+            case 0xef:
                 return MTOFF();
         }
     };

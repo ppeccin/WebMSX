@@ -37,9 +37,9 @@ wmsx.TurboDriver = function() {
     this.cpuExtensionBegin = function(s) {
         if (machine.machineType <= 1) return;           // Only for MSX2 or better, safety
         switch (s.extNum) {
-            case 8:
+            case 0xe8:
                 return CHGCPU(s.A);
-            case 9:
+            case 0xe9:
                 return GETCPU();
         }
     };

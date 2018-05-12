@@ -53,12 +53,12 @@ wmsx.SlotBIOS = function(rom) {
 
     this.cpuExtensionBegin = function(s) {
         // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
-        return s.extNum < 8 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);
+        return s.extNum < 0xe8 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
         // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
-        return s.extNum < 8 ? cassetteDriver.cpuExtensionFinish(s) : turboDriver.cpuExtensionFinish(s);
+        return s.extNum < 0xe8 ? cassetteDriver.cpuExtensionFinish(s) : turboDriver.cpuExtensionFinish(s);
     };
 
     this.setVideoStandardForced = function(forcedVideoStandard) {

@@ -108,13 +108,21 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.cpuExtensionBegin = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction
-        return getSlotForAddress(s.extPC).cpuExtensionBegin(s);
+        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to fixed set handler for F0 - FF exts
+        return s.extNum < 0xf0
+            ? getSlotForAddress(s.extPC).cpuExtensionBegin(s)
+            : fixedCpuExtensionHandler ? fixedCpuExtensionHandler.cpuExtensionBegin(s) : undefined;
     };
 
     this.cpuExtensionFinish = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction
-        return getSlotForAddress(s.extPC).cpuExtensionFinish(s);
+        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to fixed set handler for F0 - FF exts
+        return s.extNum < 0xf0
+            ? getSlotForAddress(s.extPC).cpuExtensionFinish(s)
+            : fixedCpuExtensionHandler ? fixedCpuExtensionHandler.cpuExtensionFinish(s) : undefined;
+    };
+
+    this.setFixedCpuExtensionHandler = function(handler) {
+        fixedCpuExtensionHandler = handler;
     };
 
     this.connectInputDevice = function(port, handler) {
@@ -147,14 +155,12 @@ wmsx.BUS = function(machine, cpu) {
         devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceInputMissing);
         devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceOutputMissing);
 
-        // Receive all CPU Extensions
-        cpu.setExtensionHandler([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], self);
-
         // Debug
         self.slots = slots;
         self.devicesInputPorts = devicesInputPorts;
         self.devicesOutputPorts = devicesOutputPorts;
     }
+
 
     var slots;
     var slot0, slot1, slot2, slot3;
@@ -168,6 +174,9 @@ wmsx.BUS = function(machine, cpu) {
     var devicesOutputPorts;
 
     var writeMonitor;
+
+    var fixedCpuExtensionHandler;
+
 
     // Savestate  -------------------------------------------
 
