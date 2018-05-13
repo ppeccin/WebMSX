@@ -36,13 +36,16 @@ wmsx.ImageNextorDeviceDriver = function() {
 
             // SymbOS Device Driver
             case 0xf0:
-                return console.log("EXT F0");
+                console.log("EXT F0");
+                return;
             case 0xf1:
-                return console.log("EXT F1");
+                console.log("EXT F1");
+                return;
             case 0xf2:
-                return SYMBOS_DRVACT(s.F, s.A);
+                return SYMBOS_DRVACT(s.F, s.A, s.HL);
             case 0xf3:
-                return console.log("EXT F3");
+                console.log("EXT F3");
+                return;
         }
     };
 
@@ -246,15 +249,30 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { A: 0 };
     }
 
-    function SYMBOS_DRVACT(F, A) {
-        wmsx.Util.log("SYMBOS_DRVACT: " + wmsx.Util.toHex2(A));
+    function SYMBOS_DRVACT(F, A, HL) {
+        wmsx.Util.log("SYMBOS_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        // Only 1 device (device 0) available
-        return A === 0
-            ? { F: F & ~1, A: 0 }    // OK!
-            : { F: F | 1, A: 14 }    // Error
+        // Only Device 0 Supported
+        // if (A > 0) return { F: F | 1, A: 0 };   // CF = 1, Device Not Available Error
+
+        var stat = bus.read(HL + 0);
+        console.log("Status: " + wmsx.Util.toHex2(stat));
+
+        var cha = bus.read(HL + 26);
+        console.log("Channel: " + wmsx.Util.toHex2(cha));
+
+        // Set Symbos Device registers on memory
+        bus.write(HL + 0, 1);            // stodatsta <- stotypoky,  Device Status = Ready
+        bus.write(HL + 1, 17);           // stodattyp <- stomedsdc,  Device Tyoe = SD Card
+        bus.write(HL + 12+0, 0);         // stodatbeg <- 0,          Starting Sector = 0
+        bus.write(HL + 12+1, 0);
+        bus.write(HL + 12+2, 0);
+        bus.write(HL + 12+3, 0);
+        bus.write(HL + 31, 0);           // stodatflg <- 0,          Device Flags = 0
+
+        // OK
+        return { F: 0, A: 0 };     // CF = 0
     }
-
 
 
     var drive;

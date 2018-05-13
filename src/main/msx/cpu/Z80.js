@@ -136,7 +136,7 @@ wmsx.Z80 = function() {
     var R = 0;
 
     // Interrupt flags and mode
-    var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Alwaus the same as IFF1
+    var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Always the same as IFF1
     var IM = 0;
 
     // Status Bits references
