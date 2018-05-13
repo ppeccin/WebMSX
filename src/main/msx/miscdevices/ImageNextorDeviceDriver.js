@@ -36,8 +36,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
             // SymbOS Device Driver
             case 0xf0:
-                console.log("EXT F0");
-                return;
+                return SYMBOS_DRVINP(s.F, s.A, s.B, s.DE, s.IX, s.IY);
             case 0xf1:
                 console.log("EXT F1");
                 return;
@@ -252,26 +251,51 @@ wmsx.ImageNextorDeviceDriver = function() {
     function SYMBOS_DRVACT(F, A, HL) {
         wmsx.Util.log("SYMBOS_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
+        console.log("Pri: " + wmsx.Util.toHex2(bus.getPrimarySlotConfig()));
+        console.log("Slot2: " + wmsx.Util.toHex2(bus.slots[2].getSecondarySlotConfig()));
+        console.log("Slot3: " + wmsx.Util.toHex2(bus.slots[3].getSecondarySlotConfig()));
+
         // Only Device 0 Supported
         // if (A > 0) return { F: F | 1, A: 0 };   // CF = 1, Device Not Available Error
 
         var stat = bus.read(HL + 0);
-        console.log("Status: " + wmsx.Util.toHex2(stat));
+        console.log("Status Pre: " + wmsx.Util.toHex2(stat));
 
         var cha = bus.read(HL + 26);
-        console.log("Channel: " + wmsx.Util.toHex2(cha));
+        console.log("Channel Pre: " + wmsx.Util.toHex2(cha));
 
         // Set Symbos Device registers on memory
         bus.write(HL + 0, 1);            // stodatsta <- stotypoky,  Device Status = Ready
-        bus.write(HL + 1, 17);           // stodattyp <- stomedsdc,  Device Tyoe = SD Card
+        bus.write(HL + 1, 17);           // stodattyp <- stomedsdc,  Device Type = SD Card
         bus.write(HL + 12+0, 0);         // stodatbeg <- 0,          Starting Sector = 0
         bus.write(HL + 12+1, 0);
         bus.write(HL + 12+2, 0);
         bus.write(HL + 12+3, 0);
         bus.write(HL + 31, 0);           // stodatflg <- 0,          Device Flags = 0
 
+/*
+        // Set buffer memory
+        var prevMemMap = bus.input(0xfe);
+        var memMap = bus.read(0x202);
+        bus.output(0xfe, memMap);
+
+        var bufAddr = bus.read(0x212) | (bus.read(0x212 + 1) << 8);
+        console.log("Buffer: " + wmsx.Util.toHex2(bufAddr));
+        // drive.readSectorsToSlot(2, 0, 1, bus, bufAddr);
+
+        // Return memory config
+        bus.output(0xfe, prevMemMap);
+*/
+
         // OK
         return { F: 0, A: 0 };     // CF = 0
+    }
+
+    function SYMBOS_DRVINP(F, A, B, DE, IX, IY) {
+        wmsx.Util.log("SYMBOS_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", DE: " + wmsx.Util.toHex4(DE) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        // OK
+        return { F: 1, A: 3 };     // CF = 0
     }
 
 
