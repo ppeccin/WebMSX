@@ -1,51 +1,69 @@
-
 // Used to generate the WebMSX Nextor SymbOS HD Driver (-HDWMSX.DRV)
 
-// Header
+// Constants
+
+    stobnkx equ #202    ;memory mapping, when low level routines read/write sector data
+    bnkmonx equ #203    ;set special memory mapping during mass storage access (show destination/source memory block at #8000), HL=address; will be corrected from #0000-#ffff to #8000-#bfff
+    bnkmofx equ #206    ;reset special memory mapping during mass storage access (show OS memory at #8000)
+    bnkdofx equ #209    ;hide mass storage device rom (switch back to memory mapper slot config at #4000)
+    stoadrx equ #20c    ;get device data record
+    stobufx equ #212    ;address of 512byte buffer
+
+
+// Header - starts at 0x1000 - 32
+
             0fe0    "SMD2"          ; db 4 ID
-            0fe4    30 00           ; dw code length (END - START)
+            0fe4    50 00           ; dw code length (END - START)
             0fe6    04 00           ; dw number of relocate table entries
             0fe8    00 x8           ; ds 8 reserved
             0ff0    00 05 02        ; db Version Minor, Version Major, Type (-1=NUL, 0=FDC, 1=IDE, 2=SD, 3=SCSI, 4=VIRTUAL?)
             0ff3    "WebMSX HD    " ; db 13 comment
 
-// Jump table for Main Routines
+// Jump table for Main Routines - starts at 0x1000
 
 START       1000    20 10           ; DRVIMP address
-            1002    23 10           ; DRVOUT address
-            1004    26 10           ; DRVACT address
-            1006    29 10           ; DRVMOF address
+            1002    30 10           ; DRVOUT address
+            1004    40 10           ; DRVACT address
+            1006    08 10           ; DRVMOF address
 
-// Strange section
+// Driver info section?
 
-            1008    c9 00 00        ; ds 3 (?) Appears to be a jump instruction not address. Using a RET
-            100b    88              ; bit[0-4] = driver ID (8=WebMSX), bit[5-7] = storage type (4=VIRTUAL?)
+            1008    c9 00 00        ; ds 3 (?) Appears to be DRVMOF routine. Using just a RET
+            100b    47              ; bit[0-4] = driver ID (7=megasd), bit[5-7] = storage type (2=SD)
             100c    00 x4           ; ds 4 (?)
-            1010    00 x3           ; ds 3 (?)
-            1013    00 x13          ; empty space
+            1010    00 x3           ; ds 3 slot config for switching device rom at #4000. Not used
+            1013    00 x13          ; filler space
 
 // Main Routines
 
-DRVIMP      1020    ed              ; Ext F0
-            1021    f0
-            1022    c9
-DRVOUT      1023    ed              ; Ext F1
-            1024    f1
-            1025    c9
-DRVACT      1026    ed              ; Ext F2
-            1027    f2
-            1028    c9
-DRVMOF      1029    ed              ; Ext F3
-            102a    f3
-            102b    c9
+DRVIMP      1020    3a 02 02        ; ld a,(stobnkx)
+            1023    eb              ; ex de, hl
+            1024    cd 03 02        ; call bnkmonx
+            1027    ed f0           ; EXT F0
+            1029    cd 06 02        ; call bnkmofx
+            102c    c9              ; RET
+            102d    00 00 00        ; filler
 
-            102c    00 4x           ; empty space
+DRVOUT      1030    3a 02 02        ; ld a,(stobnkx)
+            1033    eb              ; ex de, hl
+            1034    cd 03 02        ; call bnkmonx
+            1037    ed f1           ; EXT F1
+            1039    cd 06 02        ; call bnkmofx
+            103c    c9              ; RET
+            103d    00 00 00        ; filler
+
+DRVACT      1040    f5              ; push af
+            1041    cd 0c 02        ; call stoadrx
+            1044    f1              ; pop af
+            1045    ed f2           ; EXT F2
+            1047    c9              ; RET
+            1048    00 x8           ; filler
+
 
 // Relocation Table ( 4 entries)
 
 END
-REL_TAB     1030    00 10
-            1032    02 10
-            1034    04 10
-            1036    06 10
-
+REL_TAB     1050    00 10
+            1052    02 10
+            1054    04 10
+            1056    06 10

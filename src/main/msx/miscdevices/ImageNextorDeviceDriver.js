@@ -36,15 +36,11 @@ wmsx.ImageNextorDeviceDriver = function() {
 
             // SymbOS Device Driver
             case 0xf0:
-                return SYMBOS_DRVINP(s.F, s.A, s.B, s.DE, s.IX, s.IY);
+                return SYMBOS_DRVINP(s.F, s.A, s.B, s.HL, s.IX, s.IY);
             case 0xf1:
-                console.log("EXT F1");
-                return;
+                return SYMBOS_DRVOUT(s.F, s.A, s.B, s.HL, s.IX, s.IY);
             case 0xf2:
                 return SYMBOS_DRVACT(s.F, s.A, s.HL);
-            case 0xf3:
-                console.log("EXT F3");
-                return;
         }
     };
 
@@ -141,13 +137,13 @@ wmsx.ImageNextorDeviceDriver = function() {
     function DEV_RW(F, A, B, C, DE, HL) {
         // Invalid Device or Logical Unit
         if (A !== 1 || C !== 1)
-            return { A: IDEVL, B: 0 };
+            return { A: NEXTOR_IDEVL, B: 0 };
 
         drive.motorFlash(2);
 
         // Not Ready error if Disk not present
         if (!drive.isDiskInserted(2))
-            return { A: NRDY, B: 0 };
+            return { A: NEXTOR_NRDY, B: 0 };
 
         if (F & 1) return DEV_RW_Write(F, A, B, C, DE, HL);
         else return DEV_RW_Read(F, A, B, C, DE, HL);
@@ -162,7 +158,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Not Ready error if can't read
         if (!suc)
-            return { A: NRDY, B: 0 };
+            return { A: NEXTOR_NRDY, B: 0 };
 
         // Success
         return { A: 0 };
@@ -173,7 +169,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Disk Write Protected
         //if (drive.diskWriteProtected(1))
-        //    return { A: WPROT, B: 0 };
+        //    return { A: NEXTOR_WPROT, B: 0 };
 
         var initialSector = bus.read(DE) | (bus.read(DE+1) << 8) | (bus.read(DE+2) << 16) | (bus.read(DE+3) << 24);
 
@@ -181,7 +177,7 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Not Ready error if can't write
         if (!suc)
-            return { A: NRDY, B: 0 };
+            return { A: NEXTOR_NRDY, B: 0 };
 
         // Success
         return { A: 0 };
@@ -248,21 +244,22 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { A: 0 };
     }
 
+
+    // SymboOS Driver
+
     function SYMBOS_DRVACT(F, A, HL) {
         wmsx.Util.log("SYMBOS_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        console.log("Pri: " + wmsx.Util.toHex2(bus.getPrimarySlotConfig()));
-        console.log("Slot2: " + wmsx.Util.toHex2(bus.slots[2].getSecondarySlotConfig()));
-        console.log("Slot3: " + wmsx.Util.toHex2(bus.slots[3].getSecondarySlotConfig()));
+        // HL points to device information
 
         // Only Device 0 Supported
-        // if (A > 0) return { F: F | 1, A: 0 };   // CF = 1, Device Not Available Error
+        if (A > 0) return { F: F | 1, A: 0 };           // CF = 1, A = Device not available Error
 
-        var stat = bus.read(HL + 0);
-        console.log("Status Pre: " + wmsx.Util.toHex2(stat));
+        // Only Channel 0 Supported
+        var channel = bus.read(HL + 26);
+        if (channel > 0) return { F: F | 1, A: 32 };    // CF = 1, A = Device channel not available Error
 
-        var cha = bus.read(HL + 26);
-        console.log("Channel Pre: " + wmsx.Util.toHex2(cha));
+        drive.motorFlash(2);
 
         // Set Symbos Device registers on memory
         bus.write(HL + 0, 1);            // stodatsta <- stotypoky,  Device Status = Ready
@@ -271,40 +268,57 @@ wmsx.ImageNextorDeviceDriver = function() {
         bus.write(HL + 12+1, 0);
         bus.write(HL + 12+2, 0);
         bus.write(HL + 12+3, 0);
-        bus.write(HL + 31, 0);           // stodatflg <- 0,          Device Flags = 0
-
-/*
-        // Set buffer memory
-        var prevMemMap = bus.input(0xfe);
-        var memMap = bus.read(0x202);
-        bus.output(0xfe, memMap);
-
-        var bufAddr = bus.read(0x212) | (bus.read(0x212 + 1) << 8);
-        console.log("Buffer: " + wmsx.Util.toHex2(bufAddr));
-        // drive.readSectorsToSlot(2, 0, 1, bus, bufAddr);
-
-        // Return memory config
-        bus.output(0xfe, prevMemMap);
-*/
+        bus.write(HL + 31, 0);           // stodatflg <- 00,         SD Slot, not SHDC
 
         // OK
-        return { F: 0, A: 0 };     // CF = 0
+        return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_DRVINP(F, A, B, DE, IX, IY) {
-        wmsx.Util.log("SYMBOS_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", DE: " + wmsx.Util.toHex4(DE) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_DRVINP(F, A, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        // OK
-        return { F: 1, A: 3 };     // CF = 0
+        // Error if no disk
+        if (!drive.isDiskInserted(2))
+            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+
+        drive.motorFlash(2);
+
+        var suc = drive.readSectorsToSlot(2, (IY << 16) | IX, B, bus, HL);
+
+        // Error if can't read
+        if (!suc)
+            return { F: F | 1, A: 9 };        // CF = 1, A = Unknown disk Error
+
+        // Success
+        return { F: F & ~1 };     // CF = 0
+    }
+
+    function SYMBOS_DRVOUT(F, A, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        // Error if no disk
+        if (!drive.isDiskInserted(2))
+            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+
+        drive.motorFlash(2);
+
+        var suc = drive.writeSectorsFromSlot(2, (IY << 16) | IX, B, bus, HL);
+
+        // Error if can't write
+        if (!suc)
+            return { F: F | 1, A: 9 };        // CF = 1, A = Unknown disk Error
+
+        // Success
+        return { F: F & ~1 };     // CF = 0
     }
 
 
     var drive;
     var bus;
 
-    var  NRDY =  0xFC,
-         WPROT = 0xF8,
-         IDEVL = 0xB5;
+    var  NEXTOR_NRDY =  0xFC,
+         NEXTOR_WPROT = 0xF8,
+         NEXTOR_IDEVL = 0xB5;
 
 };
 
