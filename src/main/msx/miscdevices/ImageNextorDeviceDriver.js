@@ -255,9 +255,18 @@ wmsx.ImageNextorDeviceDriver = function() {
         // Only Device 0 Supported
         if (A > 0) return { F: F | 1, A: 0 };           // CF = 1, A = Device not available Error
 
+        // Error if no disk
+        if (!drive.isDiskInserted(2))
+            return { F: F | 1, A: 26 };                 // CF = 1, A = Device not ready Error
+
+        // Channel and Partition info
+        var chaPart = bus.read(HL + 26) >> 4;           // Bit[0-3] -> 0=nicht partitioniert, 1-4=Primäre, 5-15=Erweiterte), Bit[4-7] -> Kanal (0=Master, 1=Slave bzw. 0-15)
+
         // Only Channel 0 Supported
-        var channel = bus.read(HL + 26);
+        var channel = chaPart >> 4;
         if (channel > 0) return { F: F | 1, A: 32 };    // CF = 1, A = Device channel not available Error
+
+        var partition = chaPart & 0xf;
 
         drive.motorFlash(2);
 
