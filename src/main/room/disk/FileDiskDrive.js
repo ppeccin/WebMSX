@@ -487,6 +487,15 @@ wmsx.FileDiskDrive = function(room) {
         return position >= dContent.length ? null : dContent[position];
     };
 
+    this.readDWord = function(drive, position) {
+        if (!this.isDiskInserted(drive)) return null;
+        var dContent = getCurrentDisk(drive).content;
+        // Disk boundary check
+        return position + 3 >= dContent.length
+            ? null
+            : dContent[position] | ( dContent[position+1] << 8) | ( dContent[position+2] << 16) | ( dContent[position+3] << 24);
+    };
+
     this.readSectorsToSlot = function(drive, logicalSector, quantSectors, slot, address) {
         if (!this.isDiskInserted(drive)) return false;
         var dContent = getCurrentDisk(drive).content;

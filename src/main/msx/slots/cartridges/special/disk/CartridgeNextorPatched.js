@@ -79,7 +79,8 @@ wmsx.CartridgeNextorPatched = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            b1: bankOffset
+            b1: bankOffset,
+            d: driver && driver.saveState()
         };
     };
 
@@ -88,6 +89,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
         bankOffset = s.b1;
+        if (driver) driver.loadState(s.d);
     };
 
 

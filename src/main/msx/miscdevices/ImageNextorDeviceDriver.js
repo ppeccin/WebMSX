@@ -248,51 +248,75 @@ wmsx.ImageNextorDeviceDriver = function() {
     // SymboOS Driver
 
     function SYMBOS_DRVACT(F, A, HL) {
-        wmsx.Util.log("SYMBOS_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
         // Only Device 0 Supported
-        if (A > 0) return { F: F | 1, A: 0 };           // CF = 1, A = Device not available Error
+        if (A !== 0) return { F: F | 1, A: 0 };                         // CF = 1, A = Device not available Error
+
+        symbOSPartitionOffset = -1;     // Set as uninitialized
 
         // Error if no disk
-        if (!drive.isDiskInserted(2))
-            return { F: F | 1, A: 26 };                 // CF = 1, A = Device not ready Error
+        if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         // Channel and Partition info
-        var chaPart = bus.read(HL + 26) >> 4;           // Bit[0-3] -> 0=nicht partitioniert, 1-4=Primäre, 5-15=Erweiterte), Bit[4-7] -> Kanal (0=Master, 1=Slave bzw. 0-15)
+        var chaPart = bus.read(HL + 26);                // Bit[0-3] -> 0=nicht partitioniert, 1-4=Primäre, 5-15=Erweiterte), Bit[4-7] -> Kanal (0=Master, 1=Slave bzw. 0-15)
 
         // Only Channel 0 Supported
         var channel = chaPart >> 4;
-        if (channel > 0) return { F: F | 1, A: 32 };    // CF = 1, A = Device channel not available Error
-
-        var partition = chaPart & 0xf;
+        if (channel !== 0) return { F: F | 1, A: 32 };                  // CF = 1, A = Device channel not available Error
 
         drive.motorFlash(2);
 
+        var mbrSig = (drive.readByte(2, 510) << 8) | drive.readByte(2, 511);
+        var isPartitioned = mbrSig === 0x55AA;
+
+        var partition = chaPart & 0xf;
+        var partOffset;
+
+        // Partition asked?
+        if (partition > 0) {
+            // Disk not partitioned?
+            if (!isPartitioned) return { F: F | 1, A: 4 };              // CF = 1, A = Partition does not exist Error
+            // Get Partition data and offset
+            var partData = 0x1be + (16 * (partition - 1));
+            var partType = drive.readByte(2, partData + 4);
+            partOffset =  drive.readDWord(2, partData + 8);
+            // Partition not found or invalid?
+            if (!partOffset || !partType) return { F: F | 1, A: 4 };    // CF = 1, A = Partition does not exist Error
+        } else {
+            // Disk partitioned?
+            if (isPartitioned) return { F: F | 1, A: 4 };               // CF = 1, A = Partition does not exist Error
+            // No offset
+            partOffset = 0;
+        }
+
         // Set Symbos Device registers on memory
-        bus.write(HL + 0, 1);            // stodatsta <- stotypoky,  Device Status = Ready
-        bus.write(HL + 1, 17);           // stodattyp <- stomedsdc,  Device Type = SD Card
-        bus.write(HL + 12+0, 0);         // stodatbeg <- 0,          Starting Sector = 0
-        bus.write(HL + 12+1, 0);
-        bus.write(HL + 12+2, 0);
-        bus.write(HL + 12+3, 0);
-        bus.write(HL + 31, 0);           // stodatflg <- 00,         SD Slot, not SHDC
+        bus.write(HL + 0, 1);                               // stodatsta <- stotypoky,  Device Status = Ready
+        bus.write(HL + 1, 17);                              // stodattyp <- stomedsdc,  Device Type = SD Card
+        bus.write(HL + 12+0, partOffset & 0xff);            // stodatbeg <- 0,          Starting Sector = 0
+        bus.write(HL + 12+1, (partOffset >> 8) & 0xff);
+        bus.write(HL + 12+2, (partOffset >> 16) & 0xff);
+        bus.write(HL + 12+3, (partOffset >> 24) & 0xff);
+        bus.write(HL + 31, 0);                              // stodatflg <- 00,         SD Slot (always 0), not SHDC
+
+        symbOSPartitionOffset = partOffset;                 // Remember for later disk accesses
 
         // OK
         return { F: F & ~1 };     // CF = 0
     }
 
     function SYMBOS_DRVINP(F, A, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        // Error if no disk
-        if (!drive.isDiskInserted(2))
+        // Error if no disk or not initialized
+        if (!drive.isDiskInserted(2) || symbOSPartitionOffset < 0)
             return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(2);
 
-        var suc = drive.readSectorsToSlot(2, (IY << 16) | IX, B, bus, HL);
+        var suc = drive.readSectorsToSlot(2, symbOSPartitionOffset + (IY << 16) + IX, B, bus, HL);
 
         // Error if can't read
         if (!suc)
@@ -303,15 +327,15 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function SYMBOS_DRVOUT(F, A, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        // Error if no disk
-        if (!drive.isDiskInserted(2))
+        // Error if no disk or not initialized
+        if (!drive.isDiskInserted(2) || symbOSPartitionOffset < 0)
             return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(2);
 
-        var suc = drive.writeSectorsFromSlot(2, (IY << 16) | IX, B, bus, HL);
+        var suc = drive.writeSectorsFromSlot(2, symbOSPartitionOffset + (IY << 16) + IX, B, bus, HL);
 
         // Error if can't write
         if (!suc)
@@ -321,6 +345,19 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { F: F & ~1 };     // CF = 0
     }
 
+
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return { so: symbOSPartitionOffset };
+    };
+
+    this.loadState = function(s) {
+        symbOSPartitionOffset = (s && s.so) !== undefined ? s.so : -1;
+    };
+
+
+    var symbOSPartitionOffset = -1;
 
     var drive;
     var bus;
