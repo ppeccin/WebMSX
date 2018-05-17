@@ -108,21 +108,21 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.cpuExtensionBegin = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to fixed set handler for F0 - FF exts
-        return s.extNum < 0xf0
-            ? getSlotForAddress(s.extPC).cpuExtensionBegin(s)
-            : fixedCpuExtensionHandler ? fixedCpuExtensionHandler.cpuExtensionBegin(s) : undefined;
+        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to set handlers for F0 - FF exts
+        if (s.extNum < 0xf0) return getSlotForAddress(s.extPC).cpuExtensionBegin(s);
+        var handler = cpuExtensionHandlers[s.extNum];
+        if (handler) handler.cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to fixed set handler for F0 - FF exts
-        return s.extNum < 0xf0
-            ? getSlotForAddress(s.extPC).cpuExtensionFinish(s)
-            : fixedCpuExtensionHandler ? fixedCpuExtensionHandler.cpuExtensionFinish(s) : undefined;
+        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to set handlers for F0 - FF exts
+        if (s.extNum < 0xf0) return getSlotForAddress(s.extPC).cpuExtensionFinish(s);
+        var handler = cpuExtensionHandlers[s.extNum];
+        if (handler) handler.cpuExtensionFinish(s);
     };
 
-    this.setFixedCpuExtensionHandler = function(handler) {
-        fixedCpuExtensionHandler = handler;
+    this.setCpuExtensionHandler = function(num, handler) {
+        cpuExtensionHandlers[num] = handler;
     };
 
     this.connectInputDevice = function(port, handler) {
@@ -175,7 +175,7 @@ wmsx.BUS = function(machine, cpu) {
 
     var writeMonitor;
 
-    var fixedCpuExtensionHandler;
+    var cpuExtensionHandlers = {};
 
 
     // Savestate  -------------------------------------------

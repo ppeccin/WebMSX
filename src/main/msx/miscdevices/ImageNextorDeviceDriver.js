@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Nextor Device-based Driver for disk images. Implements driver public calls using the CPU extension protocol
+// Nextor Device-based and SymbOS Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageNextorDeviceDriver = function() {
 "use strict";
 
@@ -8,11 +8,17 @@ wmsx.ImageNextorDeviceDriver = function() {
         drive = machine.getDiskDriveSocket().getDrive();
         bus = machine.bus;
         patchNextorKernel(kernel);
-        bus.setFixedCpuExtensionHandler(this);
+        // SymbOS HD Driver
+        bus.setCpuExtensionHandler(0xf0, this);
+        bus.setCpuExtensionHandler(0xf1, this);
+        bus.setCpuExtensionHandler(0xf2, this);
     };
 
     this.disconnect = function(kernel, machine) {
-        machine.bus.setFixedCpuExtensionHandler(undefined);
+        // SymbOS HD Driver
+        machine.bus.setCpuExtensionHandler(0xf0, undefined);
+        machine.bus.setCpuExtensionHandler(0xf1, undefined);
+        machine.bus.setCpuExtensionHandler(0xf2, undefined);
     };
 
     this.powerOff = function() {
@@ -34,13 +40,13 @@ wmsx.ImageNextorDeviceDriver = function() {
             case 0xeb:
                 return LUN_INFO(s.A, s.B, s.HL);
 
-            // SymbOS Device Driver
+            // SymbOS HD Driver
             case 0xf0:
-                return SYMBOS_DRVINP(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_HD_DRVINP(s.F, s.A, s.B, s.HL, s.IX, s.IY);
             case 0xf1:
-                return SYMBOS_DRVOUT(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_HD_DRVOUT(s.F, s.A, s.B, s.HL, s.IX, s.IY);
             case 0xf2:
-                return SYMBOS_DRVACT(s.F, s.A, s.HL);
+                return SYMBOS_HD_DRVACT(s.F, s.A, s.HL);
         }
     };
 
@@ -247,32 +253,29 @@ wmsx.ImageNextorDeviceDriver = function() {
 
     // SymboOS Driver
 
-    function SYMBOS_DRVACT(F, A, HL) {
-        // wmsx.Util.log("SYMBOS_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_HD_DRVACT(F, A, HL) {
+        wmsx.Util.log("SYMBOS_HD_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
-        // Only Device 0 Supported
-        if (A !== 0) return { F: F | 1, A: 0 };                         // CF = 1, A = Device not available Error
-
         symbOSPartitionOffset = -1;     // Set as uninitialized
+
+        // Channel and Partition info
+        var chaPart = bus.read(HL + 26);                // bit [0-3] -> 0 = not partitioned, 1-4 = primary, 5-15 = extended, bit [4-7] -> channel (0 = master, 1 = slave or 0-15)
+        var channel = chaPart >> 4;
+        var partition = chaPart & 0xf;
+
+        // Only Channel 0 Supported  TOTO Set as status not error
+        if (channel !== 0) return { F: F | 1, A: 32 };                  // CF = 1, A = Device channel not available Error
 
         // Error if no disk
         if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
-
-        // Channel and Partition info
-        var chaPart = bus.read(HL + 26);                // Bit[0-3] -> 0=nicht partitioniert, 1-4=Primäre, 5-15=Erweiterte), Bit[4-7] -> Kanal (0=Master, 1=Slave bzw. 0-15)
-
-        // Only Channel 0 Supported
-        var channel = chaPart >> 4;
-        if (channel !== 0) return { F: F | 1, A: 32 };                  // CF = 1, A = Device channel not available Error
 
         drive.motorFlash(2);
 
         var mbrSig = (drive.readByte(2, 510) << 8) | drive.readByte(2, 511);
         var isPartitioned = mbrSig === 0x55AA;
 
-        var partition = chaPart & 0xf;
         var partOffset;
 
         // Partition asked?
@@ -307,8 +310,10 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_DRVINP(F, A, B, HL, IX, IY) {
-        // wmsx.Util.log("SYMBOS_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_HD_DRVINP(F, A, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_HD_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        // Channel (SD Slot) fixed at 0
 
         // Error if no disk or not initialized
         if (!drive.isDiskInserted(2) || symbOSPartitionOffset < 0)
@@ -326,8 +331,10 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_DRVOUT(F, A, B, HL, IX, IY) {
-        // wmsx.Util.log("SYMBOS_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_HD_DRVOUT(F, A, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_HD_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        // Channel (SD Slot) fixed at 0
 
         // Error if no disk or not initialized
         if (!drive.isDiskInserted(2) || symbOSPartitionOffset < 0)

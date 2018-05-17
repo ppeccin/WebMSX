@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// MSX-DOS 1 Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
+// MSX-DOS and SymbOS Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
 wmsx.ImageDiskDriver = function() {
 "use strict";
 
@@ -8,10 +8,18 @@ wmsx.ImageDiskDriver = function() {
         drive = machine.getDiskDriveSocket().getDrive();
         bus = machine.bus;
         patchDiskBIOS(diskBIOS);
+        // SymbOS FD Driver
+        bus.setCpuExtensionHandler(0xf3, this);
+        bus.setCpuExtensionHandler(0xf4, this);
+        bus.setCpuExtensionHandler(0xf5, this);
     };
 
     this.disconnect = function(diskBIOS, machine) {
         drive.allMotorsOff();
+        // SymbOS FD Driver
+        bus.setCpuExtensionHandler(0xf3, undefined);
+        bus.setCpuExtensionHandler(0xf4, undefined);
+        bus.setCpuExtensionHandler(0xf5, undefined);
     };
 
     this.powerOff = function() {
@@ -20,6 +28,7 @@ wmsx.ImageDiskDriver = function() {
 
     this.cpuExtensionBegin = function(s) {
         switch (s.extNum) {
+            // Normal Floppy Disk Driver
             case 0xe8:
                 return INIHRD();
             case 0xe9:
@@ -36,6 +45,14 @@ wmsx.ImageDiskDriver = function() {
                 return DSKFMT(s.F, s.A, s.DE);
             case 0xef:
                 return MTOFF();
+
+            // SymbOS FD Driver
+            case 0xf3:
+                return SYMBOS_FD_DRVINP(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+            case 0xf4:
+                return SYMBOS_FD_DRVOUT(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+            case 0xf5:
+                return SYMBOS_FD_DRVACT(s.F, s.A, s.HL);
         }
     };
 
@@ -238,6 +255,81 @@ wmsx.ImageDiskDriver = function() {
             if (slot.isExpanded()) slot = slot.getSubSlotForAddress(address);
         }
         return slot;
+    }
+
+
+    // SymboOS Driver
+
+    function SYMBOS_FD_DRVACT(F, A, HL) {
+        wmsx.Util.log("SYMBOS_FD_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        // HL points to device information
+
+        // Drive info
+        var drvInfo = bus.read(HL + 26);          // bit [0-1] -> drive (0 = A, 1 = B, 2 = C, 3 = D), bit [2] -> head, bit [3] = DoubleStep, bit [4-7] - > SectorOffset (only after STOACT)
+        var driveNum = drvInfo & 0x03;
+        var head = (drvInfo >> 2) & 1;
+
+        console.log("Drive: " + driveNum + ", Head: " + head);
+
+        // Only Drives 0, 1 Supported (A:, B:)
+        var ready = driveNum <= 1;
+
+        // Set Symbos Device registers on memory (all default except Status)
+        bus.write(HL + 0, ready ? 1 : 0);                   // stodatsta <- stotypoky,  Device Status = Ready (1) or Unavailable (0)
+        bus.write(HL + 1, 0x82);                            // stodattyp <- stomedfdd,  Device Type = FDD FAT 12 Double Head, removable
+        bus.write(HL + 12+0, 0);                            // stodatbeg <- 0 (dword),  Starting Sector = 0
+        bus.write(HL + 12+1, 0);
+        bus.write(HL + 12+2, 0);
+        bus.write(HL + 12+3, 0);
+        bus.write(HL + 28, 9);                              // stodatspt <- 9 (word),   Number of sectors per track (max.256)
+        bus.write(HL + 29, 0);
+        bus.write(HL + 30, 2);                              // stodathed <- 2,          Number of heads (max.16)
+
+        // OK
+        return { F: F & ~1 };     // CF = 0
+    }
+
+    function SYMBOS_FD_DRVINP(F, A, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_FD_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        var driveNum = 0;
+
+        // Error if no disk
+        if (!drive.isDiskInserted(driveNum))
+            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+
+        drive.motorFlash(driveNum);
+
+        var suc = drive.readSectorsToSlot(driveNum,  (IY << 16) + IX, B, bus, HL);
+
+        // Error if can't read
+        if (!suc)
+            return { F: F | 1, A: 6 };        // CF = 1, A = Unknown disk Error
+
+        // Success
+        return { F: F & ~1 };     // CF = 0
+    }
+
+    function SYMBOS_FD_DRVOUT(F, A, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_FD_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        var driveNum = 0;
+
+        // Error if no disk
+        if (!drive.isDiskInserted(driveNum))
+            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+
+        drive.motorFlash(driveNum);
+
+        var suc = drive.writeSectorsFromSlot(driveNum, (IY << 16) + IX, B, bus, HL);
+
+        // Error if can't write
+        if (!suc)
+            return { F: F | 1, A: 6 };        // CF = 1, A = Unknown disk Error
+
+        // Success
+        return { F: F & ~1 };     // CF = 0
     }
 
 

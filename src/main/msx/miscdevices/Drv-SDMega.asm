@@ -7,7 +7,6 @@
 ;@                                                                            @
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-;todo
 ;- multiple sector writes (currently always "single" writes)
 
 
