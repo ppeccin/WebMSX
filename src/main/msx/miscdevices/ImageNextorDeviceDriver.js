@@ -258,53 +258,57 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // HL points to device information
 
-        symbOSPartitionOffset = -1;     // Set as uninitialized
-
         // Channel and Partition info
         var chaPart = bus.read(HL + 26);                // bit [0-3] -> 0 = not partitioned, 1-4 = primary, 5-15 = extended, bit [4-7] -> channel (0 = master, 1 = slave or 0-15)
         var channel = chaPart >> 4;
         var partition = chaPart & 0xf;
 
-        // Only Channel 0 Supported  TOTO Set as status not error
-        if (channel !== 0) return { F: F | 1, A: 32 };                  // CF = 1, A = Device channel not available Error
+        // Only Channel 0 Supported
+        var available = channel === 0;
+        var partOffset = 0;
 
-        // Error if no disk
-        if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        if (available) {
+            // Error if no disk
+            if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };           // CF = 1, A = Device not ready Error
 
-        drive.motorFlash(2);
+            drive.motorFlash(2);
 
-        var mbrSig = (drive.readByte(2, 510) << 8) | drive.readByte(2, 511);
-        var isPartitioned = mbrSig === 0x55AA;
+            var mbrSig = (drive.readByte(2, 510) << 8) | drive.readByte(2, 511);
 
-        var partOffset;
+            // Error if could not read
+            if (mbrSig === null) return { F: F | 1, A: 26 };                    // CF = 1, A = Device not ready Error
 
-        // Partition asked?
-        if (partition > 0) {
-            // Disk not partitioned?
-            if (!isPartitioned) return { F: F | 1, A: 4 };              // CF = 1, A = Partition does not exist Error
-            // Get Partition data and offset
-            var partData = 0x1be + (16 * (partition - 1));
-            var partType = drive.readByte(2, partData + 4);
-            partOffset =  drive.readDWord(2, partData + 8);
-            // Partition not found or invalid?
-            if (!partOffset || !partType) return { F: F | 1, A: 4 };    // CF = 1, A = Partition does not exist Error
-        } else {
-            // Disk partitioned?
-            if (isPartitioned) return { F: F | 1, A: 4 };               // CF = 1, A = Partition does not exist Error
-            // No offset
-            partOffset = 0;
+            var isPartitioned = mbrSig === 0x55AA;
+
+            // Partition asked?
+            if (partition > 0) {
+                // Disk not partitioned?
+                if (!isPartitioned) return { F: F | 1, A: 4 };                  // CF = 1, A = Partition does not exist Error
+                // Get Partition data and offset
+                var partData = 0x1be + (16 * (partition - 1));
+                var partType = drive.readByte(2, partData + 4);
+                partOffset = drive.readDWord(2, partData + 8);
+                // Error if could not read
+                if (partType === null || partOffset === null) return { F: F | 1, A: 26 };  // Device not ready Error
+                // Partition not found or invalid?
+                if (!partOffset || !partType) return { F: F | 1, A: 4 };        // CF = 1, A = Partition does not exist Error
+            } else {
+                // Disk partitioned?
+                if (isPartitioned) return { F: F | 1, A: 4 };                   // CF = 1, A = Partition does not exist Error
+                // No offset
+            }
         }
 
         // Set Symbos Device registers on memory
-        bus.write(HL + 0, 1);                               // stodatsta <- stotypoky,  Device Status = Ready
-        bus.write(HL + 1, 17);                              // stodattyp <- stomedsdc,  Device Type = SD Card
+        bus.write(HL + 0, available ? 1 : 0);               // stodatsta <- stotypoky,  Device Status = Ready (1) or Unavailable (0)
+        bus.write(HL + 1, 0x91);                            // stodattyp <- stomedsdc,  Device Type = SD Card, Removable
         bus.write(HL + 12+0, partOffset & 0xff);            // stodatbeg <- 0,          Starting Sector = 0
         bus.write(HL + 12+1, (partOffset >> 8) & 0xff);
         bus.write(HL + 12+2, (partOffset >> 16) & 0xff);
         bus.write(HL + 12+3, (partOffset >> 24) & 0xff);
         bus.write(HL + 31, 0);                              // stodatflg <- 00,         SD Slot (always 0), not SHDC
 
-        symbOSPartitionOffset = partOffset;                 // Remember for later disk accesses
+        symbOSPartitionOffset = partOffset;                 // Remember for later disk accesses   TODO Remember offset for device number
 
         // OK
         return { F: F & ~1 };     // CF = 0
@@ -315,17 +319,15 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Channel (SD Slot) fixed at 0
 
-        // Error if no disk or not initialized
-        if (!drive.isDiskInserted(2) || symbOSPartitionOffset < 0)
-            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        // Error if no disk
+        if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Init Error or Device not ready Error
 
         drive.motorFlash(2);
 
         var suc = drive.readSectorsToSlot(2, symbOSPartitionOffset + (IY << 16) + IX, B, bus, HL);
 
         // Error if can't read
-        if (!suc)
-            return { F: F | 1, A: 9 };        // CF = 1, A = Unknown disk Error
+        if (!suc) return { F: F | 1, A: 9 };                            // CF = 1, A = Unknown disk Error
 
         // Success
         return { F: F & ~1 };     // CF = 0
@@ -336,17 +338,15 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Channel (SD Slot) fixed at 0
 
-        // Error if no disk or not initialized
-        if (!drive.isDiskInserted(2) || symbOSPartitionOffset < 0)
-            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        // Error if no disk
+        if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(2);
 
         var suc = drive.writeSectorsFromSlot(2, symbOSPartitionOffset + (IY << 16) + IX, B, bus, HL);
 
         // Error if can't write
-        if (!suc)
-            return { F: F | 1, A: 9 };        // CF = 1, A = Unknown disk Error
+        if (!suc) return { F: F | 1, A: 9 };                            // CF = 1, A = Unknown disk Error
 
         // Success
         return { F: F & ~1 };     // CF = 0
@@ -360,11 +360,11 @@ wmsx.ImageNextorDeviceDriver = function() {
     };
 
     this.loadState = function(s) {
-        symbOSPartitionOffset = (s && s.so) !== undefined ? s.so : -1;
+        symbOSPartitionOffset = (s && s.so) !== undefined ? s.so : 0;
     };
 
 
-    var symbOSPartitionOffset = -1;
+    var symbOSPartitionOffset = 0;
 
     var drive;
     var bus;

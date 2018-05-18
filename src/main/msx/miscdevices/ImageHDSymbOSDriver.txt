@@ -1,4 +1,4 @@
-// Used to generate the WebMSX Nextor SymbOS HD Driver (-HDWMSX.DRV)
+// Used to generate the WebMSX SymbOS HD Driver (-HDWMSX.DRV)
 
 // Constants
 
@@ -16,7 +16,7 @@
             0fe4    50 00           ; dw code length (END - START)
             0fe6    04 00           ; dw number of relocate table entries
             0fe8    00 x8           ; ds 8 reserved
-            0ff0    00 05 02        ; db Version Minor, Version Major, Type (-1=NUL, 0=FDC, 1=IDE, 2=SD, 3=SCSI, 4=VIRTUAL?)
+            0ff0    00 05 02        ; db Version Minor, Version Major, Type (-1=NUL, 0=FDC, 1=IDE, 2=SD, 3=SCSI)
             0ff3    "WebMSX HD    " ; db 13 comment
 
 // Jump table for Main Routines - starts at 0x1000
@@ -36,21 +36,25 @@ START       1000    20 10           ; DRVIMP address
 
 // Main Routines
 
-DRVIMP      1020    3a 02 02        ; ld a,(stobnkx)
-            1023    eb              ; ex de, hl
-            1024    cd 03 02        ; call bnkmonx
-            1027    ed f0           ; EXT F0
-            1029    cd 06 02        ; call bnkmofx
-            102c    c9              ; RET
-            102d    00 00 00        ; filler
+DRVIMP      1020    f5              ; push af
+            1021    3a 02 02        ; ld a,(stobnkx)
+            1024    eb              ; ex de, hl
+            1025    cd 03 02        ; call bnkmonx
+            1028    f1              ; pop af
+            1029    ed f0           ; EXT F0
+            102b    cd 06 02        ; call bnkmofx
+            102e    c9              ; RET
+            102f    00              ; filler
 
-DRVOUT      1030    3a 02 02        ; ld a,(stobnkx)
-            1033    eb              ; ex de, hl
-            1034    cd 03 02        ; call bnkmonx
-            1037    ed f1           ; EXT F1
-            1039    cd 06 02        ; call bnkmofx
-            103c    c9              ; RET
-            103d    00 00 00        ; filler
+DRVOUT      1030    f5              ; push af
+            1031    3a 02 02        ; ld a,(stobnkx)
+            1034    eb              ; ex de, hl
+            1035    cd 03 02        ; call bnkmonx
+            1038    f1              ; pop af
+            1039    ed f1           ; EXT F1
+            103b    cd 06 02        ; call bnkmofx
+            103e    c9              ; RET
+            103f    00              ; filler
 
 DRVACT      1040    f5              ; push af
             1041    cd 0c 02        ; call stoadrx

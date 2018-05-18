@@ -111,14 +111,14 @@ wmsx.BUS = function(machine, cpu) {
         // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to set handlers for F0 - FF exts
         if (s.extNum < 0xf0) return getSlotForAddress(s.extPC).cpuExtensionBegin(s);
         var handler = cpuExtensionHandlers[s.extNum];
-        if (handler) handler.cpuExtensionBegin(s);
+        if (handler) return handler.cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
         // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to set handlers for F0 - FF exts
         if (s.extNum < 0xf0) return getSlotForAddress(s.extPC).cpuExtensionFinish(s);
         var handler = cpuExtensionHandlers[s.extNum];
-        if (handler) handler.cpuExtensionFinish(s);
+        if (handler) return handler.cpuExtensionFinish(s);
     };
 
     this.setCpuExtensionHandler = function(num, handler) {

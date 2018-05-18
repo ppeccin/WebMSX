@@ -266,24 +266,27 @@ wmsx.ImageDiskDriver = function() {
         // HL points to device information
 
         // Drive info
-        var drvInfo = bus.read(HL + 26);          // bit [0-1] -> drive (0 = A, 1 = B, 2 = C, 3 = D), bit [2] -> head, bit [3] = DoubleStep, bit [4-7] - > SectorOffset (only after STOACT)
-        var driveNum = drvInfo & 0x03;
+        var drvInfo = bus.read(HL + 26);            // bit [0-1] -> drive (0 = A, 1 = B, 2 = C, 3 = D), bit [2] -> head, bit [3] = DoubleStep, bit [4-7] - > SectorOffset (only after STOACT)
+        var driveNum = drvInfo & 0x03;              // TODO Remember drive for device number
         var head = (drvInfo >> 2) & 1;
 
-        console.log("Drive: " + driveNum + ", Head: " + head);
+        // Only Drives 0, 1 Supported (A:, B:), Head 0
+        var available = driveNum <= 1 && head === 0;
 
-        // Only Drives 0, 1 Supported (A:, B:)
-        var ready = driveNum <= 1;
+        if (available) {
+            // Error if no disk
+            if (!drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };        // CF = 1, A = Device not ready Error
+        }
 
         // Set Symbos Device registers on memory (all default except Status)
-        bus.write(HL + 0, ready ? 1 : 0);                   // stodatsta <- stotypoky,  Device Status = Ready (1) or Unavailable (0)
+        bus.write(HL + 0, available ? 1 : 0);               // stodatsta <- stotypoky,  Device Status = Ready (1) or Unavailable (0)
         bus.write(HL + 1, 0x82);                            // stodattyp <- stomedfdd,  Device Type = FDD FAT 12 Double Head, removable
         bus.write(HL + 12+0, 0);                            // stodatbeg <- 0 (dword),  Starting Sector = 0
         bus.write(HL + 12+1, 0);
         bus.write(HL + 12+2, 0);
         bus.write(HL + 12+3, 0);
         bus.write(HL + 28, 9);                              // stodatspt <- 9 (word),   Number of sectors per track (max.256)
-        bus.write(HL + 29, 0);
+        bus.write(HL + 29, 0);                              // TODO Store geometry
         bus.write(HL + 30, 2);                              // stodathed <- 2,          Number of heads (max.16)
 
         // OK
@@ -296,16 +299,14 @@ wmsx.ImageDiskDriver = function() {
         var driveNum = 0;
 
         // Error if no disk
-        if (!drive.isDiskInserted(driveNum))
-            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        if (!drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(driveNum);
 
         var suc = drive.readSectorsToSlot(driveNum,  (IY << 16) + IX, B, bus, HL);
 
         // Error if can't read
-        if (!suc)
-            return { F: F | 1, A: 6 };        // CF = 1, A = Unknown disk Error
+        if (!suc) return { F: F | 1, A: 6 };                                    // CF = 1, A = Unknown disk Error
 
         // Success
         return { F: F & ~1 };     // CF = 0
@@ -317,16 +318,14 @@ wmsx.ImageDiskDriver = function() {
         var driveNum = 0;
 
         // Error if no disk
-        if (!drive.isDiskInserted(driveNum))
-            return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        if (!drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(driveNum);
 
         var suc = drive.writeSectorsFromSlot(driveNum, (IY << 16) + IX, B, bus, HL);
 
         // Error if can't write
-        if (!suc)
-            return { F: F | 1, A: 6 };        // CF = 1, A = Unknown disk Error
+        if (!suc) return { F: F | 1, A: 6 };                                    // CF = 1, A = Unknown disk Error
 
         // Success
         return { F: F & ~1 };     // CF = 0

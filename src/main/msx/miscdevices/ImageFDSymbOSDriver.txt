@@ -1,0 +1,128 @@
+// Used to generate the WebMSX SymbOS FD Driver (-FDWMSX.DRV)
+
+// Constants
+
+    stobnkx equ #202    ;memory mapping, when low level routines read/write sector data
+    bnkmonx equ #203    ;set special memory mapping during mass storage access (show destination/source memory block at #8000), HL=address; will be corrected from #0000-#ffff to #8000-#bfff
+    bnkmofx equ #206    ;reset special memory mapping during mass storage access (show OS memory at #8000)
+    bnkdofx equ #209    ;hide mass storage device rom (switch back to memory mapper slot config at #4000)
+    stoadrx equ #20c    ;get device data record
+    stobufx equ #212    ;address of 512byte buffer
+
+
+// Header - starts at 0x1000 - 32
+
+            0fe0    "SMD2"          ; db 4 ID
+            0fe4    50 00           ; dw code length (END - START)
+            0fe6    04 00           ; dw number of relocate table entries
+            0fe8    00 x8           ; ds 8 reserved
+            0ff0    00 05 00        ; db Version Minor, Version Major, Type (-1=NUL, 0=FDC, 1=IDE, 2=SD, 3=SCSI)
+            0ff3    "WebMSX FD    " ; db 13 comment
+
+// Jump table for Main Routines - starts at 0x1000
+
+START       1000    20 10           ; DRVIMP address
+            1002    30 10           ; DRVOUT address
+            1004    40 10           ; DRVACT address
+            1006    08 10           ; DRVMOF address
+
+// Driver info section?
+
+            1008    c9 00 00        ; ds 3 (?) Appears to be DRVMOF routine. Using just a RET
+            100b    01              ; bit[0-4] = driver ID (1=philips), bit[5-7] = storage type (0=FD)
+            100c    00 x4           ; ds 4 (?)
+            1010    00 x3           ; ds 3 slot config for switching device rom at #4000. Not used
+            1013    00 x13          ; filler space
+
+// Main Routines
+
+DRVIMP      1020    f5              ; push af
+            1021    3a 02 02        ; ld a,(stobnkx)
+            1024    eb              ; ex de, hl
+            1025    cd 03 02        ; call bnkmonx
+            1028    f1              ; pop af
+            1029    ed f3           ; EXT F3
+            102b    cd 06 02        ; call bnkmofx
+            102e    c9              ; RET
+            102f    00              ; filler
+
+DRVOUT      1030    f5              ; push af
+            1031    3a 02 02        ; ld a,(stobnkx)
+            1034    eb              ; ex de, hl
+            1035    cd 03 02        ; call bnkmonx
+            1038    f1              ; pop af
+            1039    ed f4           ; EXT F4
+            103b    cd 06 02        ; call bnkmofx
+            103e    c9              ; RET
+            103f    00              ; filler
+
+DRVACT      1040    f5              ; push af
+            1041    cd 0c 02        ; call stoadrx
+            1044    f1              ; pop af
+            1045    ed f5           ; EXT F5
+            1047    c9              ; RET
+            1048    00 x8           ; filler
+
+// Relocation Table ( 4 entries)
+
+END
+REL_TAB     1050    00 10
+            1052    02 10
+            1054    04 10
+            1056    06 10
+
+
+
+
+// Main Routines Complex version
+
+DRVIMP      1020    f5              ; push af
+            1021    c5              ; push bc
+            1022    dd e5           ; push ix
+            1024    fd e5           ; push iy
+            1026    d5              ; push de
+            1027    cd 0c 02        ; call stoadrx
+            102a    d1              ; pop de
+            102b    e5              ; push hl
+            102c    eb              ; ex de, hl
+            102d    3a 02 02        ; ld a,(stobnkx)
+            1030    cd 03 02        ; call bnkmonx
+            1033    eb              ; ex de, hl
+            1034    e1              ; pop hl
+            1035    fd e1           ; pop iy
+            1037    dd e1           ; pop ix
+            1039    c1              ; pop bc
+            103a    f1              ; pop af
+            103b    ed f3           ; EXT F3
+            103d    cd 06 02        ; call bnkmofx
+            1040    c9              ; RET
+            1041    00 x15          ; filler
+
+DRVOUT      1050    f5              ; push af
+            1051    c5              ; push bc
+            1052    dd e5           ; push ix
+            1054    fd e5           ; push iy
+            1056    d5              ; push de
+            1057    cd 0c 02        ; call stoadrx
+            105a    d1              ; pop de
+            105b    e5              ; push hl
+            105c    eb              ; ex de, hl
+            105d    3a 02 02        ; ld a,(stobnkx)
+            1060    cd 03 02        ; call bnkmonx
+            1063    eb              ; ex de, hl
+            1064    e1              ; pop hl
+            1065    fd e1           ; pop iy
+            1067    dd e1           ; pop ix
+            1069    c1              ; pop bc
+            106a    f1              ; pop af
+            106b    ed f4           ; EXT F4
+            106d    cd 06 02        ; call bnkmofx
+            1070    c9              ; RET
+            1071    00 x15          ; filler
+
+DRVACT      1080    f5              ; push af
+            1081    cd 0c 02        ; call stoadrx
+            1084    f1              ; pop af
+            1085    ed f5           ; EXT F5
+            1087    c9              ; RET
+            1088    00 x8           ; filler
