@@ -261,17 +261,19 @@ wmsx.ImageDiskDriver = function() {
     // SymboOS Driver
 
     function SYMBOS_FD_DRVACT(F, A, HL) {
-        wmsx.Util.log("SYMBOS_FD_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_FD_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
+        delete symbOSDeviceDrive[A];                // Set device as not initialized
+
         // Drive info
         var drvInfo = bus.read(HL + 26);            // bit [0-1] -> drive (0 = A, 1 = B, 2 = C, 3 = D), bit [2] -> head, bit [3] = DoubleStep, bit [4-7] - > SectorOffset (only after STOACT)
-        var driveNum = drvInfo & 0x03;              // TODO Remember drive for device number
-        var head = (drvInfo >> 2) & 1;
+        var driveNum = drvInfo & 0x03;
+        // Ignore head
 
-        // Only Drives 0, 1 Supported (A:, B:), Head 0
-        var available = driveNum <= 1 && head === 0;
+        // Only Drives 0, 1 Supported (A:, B:)
+        var available = driveNum <= 1;
 
         if (available) {
             // Error if no disk
@@ -289,36 +291,38 @@ wmsx.ImageDiskDriver = function() {
         bus.write(HL + 29, 0);                              // TODO Store geometry
         bus.write(HL + 30, 2);                              // stodathed <- 2,          Number of heads (max.16)
 
+        symbOSDeviceDrive[A] = driveNum;                   // Remember for later device accesses
+
         // OK
         return { F: F & ~1 };     // CF = 0
     }
 
     function SYMBOS_FD_DRVINP(F, A, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_FD_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_FD_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        var driveNum = 0;
+        var driveNum = symbOSDeviceDrive[A];
 
-        // Error if no disk
-        if (!drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        // Error if no disk or Device not initialized
+        if (driveNum === undefined || !drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(driveNum);
 
         var suc = drive.readSectorsToSlot(driveNum,  (IY << 16) + IX, B, bus, HL);
 
         // Error if can't read
-        if (!suc) return { F: F | 1, A: 6 };                                    // CF = 1, A = Unknown disk Error
+        if (!suc) return { F: F | 1, A: 6 };        // CF = 1, A = Unknown disk Error
 
         // Success
         return { F: F & ~1 };     // CF = 0
     }
 
     function SYMBOS_FD_DRVOUT(F, A, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_FD_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_FD_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        var driveNum = 0;
+        var driveNum = symbOSDeviceDrive[A];
 
-        // Error if no disk
-        if (!drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
+        // Error if no disk or Device not initialized
+        if (driveNum === undefined || !drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
 
         drive.motorFlash(driveNum);
 
@@ -332,11 +336,24 @@ wmsx.ImageDiskDriver = function() {
     }
 
 
+    // Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return { sd: symbOSDeviceDrive };
+    };
+
+    this.loadState = function(s) {
+        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };
+    };
+
+
+    var symbOSDeviceDrive = { };            // Stores Drive Letter (A: 1, B: 2, ...) for each SymbOS device (0..7)
+
     var drive;
     var bus;
 
 
-    var BYTES_PER_SECTOR = 512;                 // Fixed for now, for all disks
+    var BYTES_PER_SECTOR = 512;             // Fixed for now, for all disks
 
     var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 720KB, Double Sided\r\n2) 360KB, Single Sided\r\n\0";
     var CHOICE_STRING_ADDRESS = 0x8040;
