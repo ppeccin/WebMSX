@@ -3,6 +3,7 @@
 // MSX2 Standard RAM Mapper. Supports sizes from 128KB to 4MB
 // 0x0000 - 0xffff
 
+// TODO Mapper size set via JS and Machine setting bug
 wmsx.SlotRAMMapper = function(rom) {
 "use strict";
 
@@ -15,6 +16,8 @@ wmsx.SlotRAMMapper = function(rom) {
         self.bytes = bytes;
         pageMask = (bytes.length >> 14) - 1;
         pageReadBackOR = 0xff & ~pageMask;
+
+        // console.log("RAMMApper init: " + size);
     }
 
     this.connect = function(machine) {
@@ -26,6 +29,11 @@ wmsx.SlotRAMMapper = function(rom) {
         machine.bus.connectOutputDevice(0xfd, this.outputFD);
         machine.bus.connectOutputDevice(0xfe, this.outputFE);
         machine.bus.connectOutputDevice(0xff, this.outputFF);
+    };
+
+    this.refreshConnect = function() {
+        // Updates size if necessary
+        if (WMSX.RAMMAPPER_SIZE * 1024 !== bytes.length) init(self);
     };
 
     this.disconnect = function(machine) {

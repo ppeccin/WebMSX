@@ -47,7 +47,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         switch (room.netPlayMode) {
             case 0:
                 status.textContent = "STANDALONE";
-                start.textContent = "HOST";
+                start.textContent = "START";
                 join.textContent = "JOIN";
                 start.disabled = false;
                 join.disabled = false;
@@ -74,7 +74,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
             case 2:
                 var netClient = room.getNetClient();
                 status.textContent = "JOINED Session: " + netClient.getSessionID();
-                start.textContent = "HOST";
+                start.textContent = "START";
                 join.textContent = "LEAVE";
                 start.disabled = true;
                 join.disabled = false;
@@ -100,7 +100,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
                     join.disabled = true;
                     sessionName.setAttribute("placeholder", "Automatic");
                 } else {
-                    start.textContent = "HOST";
+                    start.textContent = "START";
                     join.textContent = "CANCEL";
                     start.disabled = true;
                     join.disabled = false;
@@ -190,7 +190,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         start.id = "wmsx-netplay-start";
         start.wmsxCommand = true;
         start.classList.add("wmsx-netplay-button");
-        start.textContent = "HOST";
+        start.textContent = "START";
         sessionBox.appendChild(start);
 
         sessionName = document.createElement("input");

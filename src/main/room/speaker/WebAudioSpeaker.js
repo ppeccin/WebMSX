@@ -3,6 +3,7 @@
 // Accepts multiple AudioSignals with different sampling rates
 // Mixes all signals performing per-signal resampling as needed
 
+// TODO Verify creation on gesture only?
 wmsx.WebAudioSpeaker = function(mainElement) {
 "use strict";
 

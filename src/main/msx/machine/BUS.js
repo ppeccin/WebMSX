@@ -25,6 +25,10 @@ wmsx.BUS = function(machine, cpu) {
         for (var i = 0; i < 4; i++) slots[i].reset();
     };
 
+    this.refreshConnect = function() {
+        for (var s = 0; s < 4; ++s) slots[s].refreshConnect();
+    };
+
     this.insertSlot = function(slot, slotNumber) {
         slot = slot || slotEmpty;
         if (slots[slotNumber] === slot) return;

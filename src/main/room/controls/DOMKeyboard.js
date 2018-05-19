@@ -234,6 +234,10 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
 
     function setDefaultKeyboard() {
         var hostLang = (wmsx.Util.userLanguage() || "en-US").toUpperCase() ;
+
+        // Netherlands use en-US keyboard by default
+        if (hostLang.substr(0, 2) === "nl") hostLang = "en-US";
+
         // Try to find exact language-country match
         for (var k = 0; k < availableKeyboards.length; ++k)
             if (availableKeyboards[k].toUpperCase().indexOf(hostLang) === 0)

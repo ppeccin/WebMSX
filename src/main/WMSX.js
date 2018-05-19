@@ -206,9 +206,9 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 165
     },
     _MSX2PPBASE: {
-        _INCLUDE:           "HARDDISK",
-        CPU_TURBO_MODE:     3,
-        VDP_TURBO_MODE:     4
+        _INCLUDE:           "HARDDISK, RAM1024",
+        M_CPU_TURBO_MODE:   3,
+        M_VDP_TURBO_MODE:   4
     },
 
     // MSX2+ Machine Presets. Do not use directly
@@ -257,7 +257,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC",
+        _INCLUDE:           "_BASE, RAM512, MSXMUSIC",
         MSX2:               true
     },
 
@@ -287,8 +287,8 @@ WMSX.PRESETS_CONFIG = {
 
     _BASE: {
         _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
-        CPU_TURBO_MODE:     0,
-        VDP_TURBO_MODE:     0,
+        M_CPU_TURBO_MODE:   0,
+        M_VDP_TURBO_MODE:   0,
         MSX2:               false,
         MSX2P:              false
     }

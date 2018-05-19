@@ -54,7 +54,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 WebMSX 5.0 brings NetPlay!, in which any number of users may connect and control the same virtual MSX machine.
 To access the feature, open the NetPlay! control dialog available on the System Menu (Power button).
 
-One user must be the "Server" and start a NetPlay! Session. Just choose a name for the Session, or let the emulator generate it randomly, then hit "HOST".
+One user must be the "Server" and start a NetPlay! Session. Just choose a name for the Session, or let the emulator generate it randomly, then hit "START".
 Once the Session is started and active, other users may join the Session simply by entering the same Session name and hitting "JOIN".
 All users connected have complete control over the machine, except that only the Server user may load/change media files (ROMs, Disks, etc). All features of the emulator work during NetPlay!
 Any Client user may leave the Session at any time, but only the Server user may end the Session completely.

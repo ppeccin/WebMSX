@@ -24,9 +24,15 @@ wmsx.Machine = function() {
         vdp.setMachineType(this.machineType);
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
-        cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;
-        vdpTurboMode = WMSX.VDP_TURBO_MODE;
+        cpuTurboMode = WMSX.CPU_TURBO_MODE !== 0
+            ? WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE                   // Use value defined
+            : WMSX.M_CPU_TURBO_MODE !== undefined ? WMSX.M_CPU_TURBO_MODE : 0;      // Use Machine config value, or AUTO
+        vdpTurboMode = WMSX.VDP_TURBO_MODE !== 0
+            ? WMSX.VDP_TURBO_MODE
+            : WMSX.M_VDP_TURBO_MODE !== undefined ? WMSX.M_VDP_TURBO_MODE : 0;
         biosSocket.turboDriverTurboModesUpdate();
+        bus.refreshConnect();
+        // TODO New parameters values on Machine change NetPlay bug
     };
 
     this.preStart = function() {

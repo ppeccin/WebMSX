@@ -9,6 +9,9 @@ wmsx.Slot = function() {
     this.connect = function(machine) {
     };
 
+    this.refreshConnect = function(machine) {
+    };
+
     this.disconnect = function(machine) {
     };
 

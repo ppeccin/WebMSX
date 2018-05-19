@@ -18,11 +18,15 @@ wmsx.SlotExpanded = function() {
 
     this.connect = function(pMachine) {
         machine = pMachine;
-        for (var s = 0; s < 4; s++) subSlots[s].connect(machine);
+        for (var s = 0; s < 4; ++s) subSlots[s].connect(machine);
+    };
+
+    this.refreshConnect = function() {
+        for (var s = 0; s < 4; ++s) subSlots[s].refreshConnect();
     };
 
     this.disconnect = function(pMachine) {
-        for (var s = 0; s < 4; s++) subSlots[s].disconnect(pMachine);
+        for (var s = 0; s < 4; ++s) subSlots[s].disconnect(pMachine);
         machine = null;
     };
 

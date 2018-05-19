@@ -39,7 +39,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         peripheralControls = pPeripheralControls;
         controllersHub = pControllersHub;
         controllersHub.setKeyInputElement(fsElement);
-        controllersHub.setMouseInputElement(fsElement);
+        controllersHub.setMouseInputElement(canvas);
         diskDrive = pDiskDrive;
         stateMedia = pStateMedia;
     };
