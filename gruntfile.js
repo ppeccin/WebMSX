@@ -211,6 +211,11 @@ module.exports = function (grunt) {
                     {src: "src/runtime/embedded/index.html", dest: "release/stable/5.0/embedded", expand: true, flatten: true, filter: "isFile"},
                     {src: "temp/wmsx.js", dest: "release/stable/5.0/embedded", expand: true, flatten: true, filter: "isFile"}
                 ]
+            },
+            symbos: {
+                files: [
+                    {src: "src/runtime/symbos/*", dest: "release/stable/5.0/symbos/", expand: true, flatten: true, filter: "isFile"}
+                ]
             }
         }
     });
@@ -227,6 +232,7 @@ module.exports = function (grunt) {
         "concat:standalone",
         "copy:standalone",
         "copy:embedded",
+        "copy:symbos",
         "clean:finish"
     ]);
 
