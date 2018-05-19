@@ -120,18 +120,31 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     function registerUnlockOnTouchIfNeeded() {
-        // iOS needs unlocking of the AudioContext on user interaction!
+        // iOS and now Chrome need unlocking of the AudioContext on user interaction!
         if (processor && (!audioContext.state || audioContext.state === "suspended")) {
-            mainElement.addEventListener("touchend", function unlockAudioContextOnTouch() {
-                mainElement.removeEventListener("touchend", unlockAudioContextOnTouch, true);
+            mainElement.addEventListener("touchend", unlockAudioContext, true);
+            mainElement.addEventListener("mousedown", unlockAudioContext, true);
+            wmsx.Util.log("Speaker Audio Context resume event registered");
+        }
 
-                var source = audioContext.createBufferSource();
-                source.buffer = audioContext.createBuffer(1, 1, 22050);
-                source.connect(audioContext.destination);
-                source.start(0);
-                wmsx.Util.log("Audio Context unlocked, " + audioContext.state);
-            }, true);
-            wmsx.Util.log("Audio Context unlock on touch registered");
+        function unlockAudioContext() {
+            mainElement.removeEventListener("touchend", unlockAudioContext, true);
+            mainElement.removeEventListener("mousedown", unlockAudioContext, true);
+
+            var ex;
+            try {
+                audioContext.resume().then(function () {
+                    wmsx.Util.log('Speaker Audio Context resumed!');
+                });
+            } catch (e) {
+                ex = e;
+            }
+
+            var source = audioContext.createBufferSource();
+            source.buffer = audioContext.createBuffer(1, 1, 22050);
+            source.connect(audioContext.destination);
+            source.start(0);
+            if (ex) wmsx.Util.log("Audio Context unlocked!");
         }
     }
 
