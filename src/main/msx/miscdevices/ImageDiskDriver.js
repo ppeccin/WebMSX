@@ -261,7 +261,7 @@ wmsx.ImageDiskDriver = function() {
     // SymboOS Driver
 
     function SYMBOS_FD_DRVACT(F, C, HL) {
-        wmsx.Util.log("SYMBOS_FD_DRVACT. C (device): " + wmsx.Util.toHex2(C) + ", HL (info addr): " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_FD_DRVACT. C (device): " + wmsx.Util.toHex2(C) + ", HL (info addr): " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
@@ -298,7 +298,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function SYMBOS_FD_DRVINP(F, C, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_FD_DRVINP. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_FD_DRVINP. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         var driveNum = symbOSDeviceDrive[C];
 
@@ -317,7 +317,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function SYMBOS_FD_DRVOUT(F, C, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_FD_DRVOUT. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_FD_DRVOUT. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         var driveNum = symbOSDeviceDrive[C];
 

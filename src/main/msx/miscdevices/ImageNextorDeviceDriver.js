@@ -254,7 +254,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     // SymboOS Driver
 
     function SYMBOS_HD_DRVACT(F, C, HL) {
-        wmsx.Util.log("SYMBOS_HD_DRVACT. C (device): " + wmsx.Util.toHex2(C) + ", HL (info addr): " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_HD_DRVACT. C (device): " + wmsx.Util.toHex2(C) + ", HL (info addr): " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
@@ -317,7 +317,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function SYMBOS_HD_DRVINP(F, C, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_HD_DRVINP. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_HD_DRVINP. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // Channel (SD Slot) fixed at 0
 
@@ -338,7 +338,7 @@ wmsx.ImageNextorDeviceDriver = function() {
     }
 
     function SYMBOS_HD_DRVOUT(F, C, B, HL, IX, IY) {
-        wmsx.Util.log("SYMBOS_HD_DRVOUT. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+        // wmsx.Util.log("SYMBOS_HD_DRVOUT. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // Channel (SD Slot) fixed at 0
 
