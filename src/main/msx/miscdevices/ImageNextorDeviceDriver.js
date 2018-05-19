@@ -270,10 +270,10 @@ wmsx.ImageNextorDeviceDriver = function() {
         var partOffset = 0;
 
         if (available) {
+            drive.motorFlash(2);
+
             // Error if no disk
             if (!drive.isDiskInserted(2)) return { F: F | 1, A: 26 };           // CF = 1, A = Device not ready Error
-
-            drive.motorFlash(2);
 
             var mbrSig = (drive.readByte(2, 510) << 8) | drive.readByte(2, 511);
 
@@ -323,10 +323,10 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         var partOffset = symbOSDevicePartOffset[C];
 
+        if (partOffset >= 0) drive.motorFlash(2);
+
         // Error if no disk or Device not initialized
         if (partOffset === undefined || !drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
-
-        drive.motorFlash(2);
 
         var suc = drive.readSectorsToSlot(2, partOffset + (IY << 16) + IX, B, bus, HL);
 
@@ -344,10 +344,10 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         var partOffset = symbOSDevicePartOffset[C];
 
+        if (partOffset >= 0) drive.motorFlash(2);
+
         // Error if no disk or Device not initialized
         if (partOffset === undefined || !drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
-
-        drive.motorFlash(2);
 
         var suc = drive.writeSectorsFromSlot(2, partOffset + (IY << 16) + IX, B, bus, HL);
 

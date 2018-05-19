@@ -276,6 +276,8 @@ wmsx.ImageDiskDriver = function() {
         var available = driveNum <= 1;
 
         if (available) {
+            drive.motorFlash(driveNum);
+
             // Error if no disk
             if (!drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };        // CF = 1, A = Device not ready Error
         }
@@ -302,10 +304,10 @@ wmsx.ImageDiskDriver = function() {
 
         var driveNum = symbOSDeviceDrive[C];
 
+        if (driveNum >= 0) drive.motorFlash(driveNum);
+
         // Error if no disk or Device not initialized
         if (driveNum === undefined || !drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
-
-        drive.motorFlash(driveNum);
 
         var suc = drive.readSectorsToSlot(driveNum,  (IY << 16) + IX, B, bus, HL);
 
@@ -321,10 +323,10 @@ wmsx.ImageDiskDriver = function() {
 
         var driveNum = symbOSDeviceDrive[C];
 
+        if (driveNum >= 0) drive.motorFlash(driveNum);
+
         // Error if no disk or Device not initialized
         if (driveNum === undefined || !drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
-
-        drive.motorFlash(driveNum);
 
         var suc = drive.writeSectorsFromSlot(driveNum, (IY << 16) + IX, B, bus, HL);
 
