@@ -42,11 +42,11 @@ wmsx.ImageNextorDeviceDriver = function() {
 
             // SymbOS HD Driver
             case 0xf0:
-                return SYMBOS_HD_DRVINP(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_HD_DRVINP(s.F, s.C, s.B, s.HL, s.IX, s.IY);
             case 0xf1:
-                return SYMBOS_HD_DRVOUT(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_HD_DRVOUT(s.F, s.C, s.B, s.HL, s.IX, s.IY);
             case 0xf2:
-                return SYMBOS_HD_DRVACT(s.F, s.A, s.HL);
+                return SYMBOS_HD_DRVACT(s.F, s.C, s.HL);
         }
     };
 
@@ -253,12 +253,12 @@ wmsx.ImageNextorDeviceDriver = function() {
 
     // SymboOS Driver
 
-    function SYMBOS_HD_DRVACT(F, A, HL) {
-        // wmsx.Util.log("SYMBOS_HD_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_HD_DRVACT(F, C, HL) {
+        wmsx.Util.log("SYMBOS_HD_DRVACT. C (device): " + wmsx.Util.toHex2(C) + ", HL (info addr): " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
-        delete symbOSDevicePartOffset[A];               // Set device as not initialized
+        delete symbOSDevicePartOffset[C];               // Set device as not initialized
 
         // Channel and Partition info
         var chaPart = bus.read(HL + 26);                // bit [0-3] -> 0 = not partitioned, 1-4 = primary, 5-15 = extended, bit [4-7] -> channel (0 = master, 1 = slave or 0-15)
@@ -310,18 +310,18 @@ wmsx.ImageNextorDeviceDriver = function() {
         bus.write(HL + 12+3, (partOffset >> 24) & 0xff);
         bus.write(HL + 31, 0);                              // stodatflg <- 00,         SD Slot (always 0), not SHDC
 
-        symbOSDevicePartOffset[A] = partOffset;             // Remember for later device accesses
+        symbOSDevicePartOffset[C] = partOffset;             // Remember for later device accesses
 
         // OK
         return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_HD_DRVINP(F, A, B, HL, IX, IY) {
-        // wmsx.Util.log("SYMBOS_HD_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_HD_DRVINP(F, C, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_HD_DRVINP. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // Channel (SD Slot) fixed at 0
 
-        var partOffset = symbOSDevicePartOffset[A];
+        var partOffset = symbOSDevicePartOffset[C];
 
         // Error if no disk or Device not initialized
         if (partOffset === undefined || !drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
@@ -337,12 +337,12 @@ wmsx.ImageNextorDeviceDriver = function() {
         return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_HD_DRVOUT(F, A, B, HL, IX, IY) {
-        // wmsx.Util.log("SYMBOS_HD_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_HD_DRVOUT(F, C, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_HD_DRVOUT. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // Channel (SD Slot) fixed at 0
 
-        var partOffset = symbOSDevicePartOffset[A];
+        var partOffset = symbOSDevicePartOffset[C];
 
         // Error if no disk or Device not initialized
         if (partOffset === undefined || !drive.isDiskInserted(2)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error

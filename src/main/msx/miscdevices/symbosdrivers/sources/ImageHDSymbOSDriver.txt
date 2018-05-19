@@ -13,7 +13,7 @@
 // Header - starts at 0x1000 - 32
 
             0fe0    "SMD2"          ; db 4 ID
-            0fe4    50 00           ; dw code length (END - START)
+            0fe4    70 00           ; dw code length (END - START)
             0fe6    04 00           ; dw number of relocate table entries
             0fe8    00 x8           ; ds 8 reserved
             0ff0    00 05 02        ; db Version Minor, Version Major, Type (-1=NUL, 0=FDC, 1=IDE, 2=SD, 3=SCSI)
@@ -22,8 +22,8 @@
 // Jump table for Main Routines - starts at 0x1000
 
 START       1000    20 10           ; DRVIMP address
-            1002    30 10           ; DRVOUT address
-            1004    40 10           ; DRVACT address
+            1002    40 10           ; DRVOUT address
+            1004    60 10           ; DRVACT address
             1006    08 10           ; DRVMOF address
 
 // Driver info section?
@@ -41,28 +41,36 @@ DRVIMP      1020    f5              ; push af
             1024    eb              ; ex de, hl
             1025    cd 03 02        ; call bnkmonx
             1028    f1              ; pop af
-            1029    ed f0           ; EXT F0
-            102b    cd 06 02        ; call bnkmofx
-            102e    c9              ; RET
-            102f    00              ; filler
+            1029    4f              ; ld c, a
+            102a    af              ; xor a         ( A = 0 Device Unavailable )
+            102b    37              ; scf           ( Error if EXT not processed )
+            102c    ed f0           ; EXT F0        ( Enters with C=device (0-7), IY,IX=logical sector number, B=number of sectors, HL=dest address )
+            102e    cd 06 02        ; call bnkmofx
+            1031    c9              ; RET
+            1032    00 x14          ; filler
 
-DRVOUT      1030    f5              ; push af
-            1031    3a 02 02        ; ld a,(stobnkx)
-            1034    eb              ; ex de, hl
-            1035    cd 03 02        ; call bnkmonx
-            1038    f1              ; pop af
-            1039    ed f1           ; EXT F1
-            103b    cd 06 02        ; call bnkmofx
-            103e    c9              ; RET
-            103f    00              ; filler
+DRVOUT      1040    f5              ; push af
+            1041    3a 02 02        ; ld a,(stobnkx)
+            1044    eb              ; ex de, hl
+            1045    cd 03 02        ; call bnkmonx
+            1048    f1              ; pop af
+            1049    4f              ; ld c, a
+            104a    af              ; xor a         ( A = 0 Device Unavailable )
+            104b    37              ; scf           ( Error if EXT not processed )
+            104c    ed f1           ; EXT F1        ( Enters with C=device (0-7), IY,IX=logical sector number, B=number of sectors, HL=source address )
+            104e    cd 06 02        ; call bnkmofx
+            1051    c9              ; RET
+            1052    00 x14          ; filler
 
-DRVACT      1040    f5              ; push af
-            1041    cd 0c 02        ; call stoadrx
-            1044    f1              ; pop af
-            1045    ed f2           ; EXT F2
-            1047    c9              ; RET
-            1048    00 x8           ; filler
-
+DRVACT      1060    f5              ; push af
+            1061    cd 0c 02        ; call stoadrx
+            1064    f1              ; pop af
+            1065    4f              ; ld c, a
+            106a    af              ; xor a         ( A = 0 Device Unavailable )
+            106b    37              ; scf           ( Error if EXT not processed )
+            1068    ed f2           ; EXT F2        ( Enters with C=device (0-7), HL=device info block address )
+            106a    c9              ; RET
+            106b    00 x4           ; filler
 
 // Relocation Table ( 4 entries)
 
@@ -71,3 +79,4 @@ REL_TAB     1050    00 10
             1052    02 10
             1054    04 10
             1056    06 10
+

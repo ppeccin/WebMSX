@@ -48,11 +48,11 @@ wmsx.ImageDiskDriver = function() {
 
             // SymbOS FD Driver
             case 0xf3:
-                return SYMBOS_FD_DRVINP(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_FD_DRVINP(s.F, s.C, s.B, s.HL, s.IX, s.IY);
             case 0xf4:
-                return SYMBOS_FD_DRVOUT(s.F, s.A, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_FD_DRVOUT(s.F, s.C, s.B, s.HL, s.IX, s.IY);
             case 0xf5:
-                return SYMBOS_FD_DRVACT(s.F, s.A, s.HL);
+                return SYMBOS_FD_DRVACT(s.F, s.C, s.HL);
         }
     };
 
@@ -260,12 +260,12 @@ wmsx.ImageDiskDriver = function() {
 
     // SymboOS Driver
 
-    function SYMBOS_FD_DRVACT(F, A, HL) {
-        // wmsx.Util.log("SYMBOS_FD_DRVACT. A: " + wmsx.Util.toHex2(A) + ", HL: " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_FD_DRVACT(F, C, HL) {
+        wmsx.Util.log("SYMBOS_FD_DRVACT. C (device): " + wmsx.Util.toHex2(C) + ", HL (info addr): " + wmsx.Util.toHex4(HL) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         // HL points to device information
 
-        delete symbOSDeviceDrive[A];                // Set device as not initialized
+        delete symbOSDeviceDrive[C];                // Set device as not initialized
 
         // Drive info
         var drvInfo = bus.read(HL + 26);            // bit [0-1] -> drive (0 = A, 1 = B, 2 = C, 3 = D), bit [2] -> head, bit [3] = DoubleStep, bit [4-7] - > SectorOffset (only after STOACT)
@@ -288,19 +288,19 @@ wmsx.ImageDiskDriver = function() {
         bus.write(HL + 12+2, 0);
         bus.write(HL + 12+3, 0);
         bus.write(HL + 28, 9);                              // stodatspt <- 9 (word),   Number of sectors per track (max.256)
-        bus.write(HL + 29, 0);                              // TODO Store geometry
+        bus.write(HL + 29, 0);
         bus.write(HL + 30, 2);                              // stodathed <- 2,          Number of heads (max.16)
 
-        symbOSDeviceDrive[A] = driveNum;                   // Remember for later device accesses
+        symbOSDeviceDrive[C] = driveNum;                   // Remember for later device accesses
 
         // OK
         return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_FD_DRVINP(F, A, B, HL, IX, IY) {
-        // wmsx.Util.log("SYMBOS_FD_DRVINP. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_FD_DRVINP(F, C, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_FD_DRVINP. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        var driveNum = symbOSDeviceDrive[A];
+        var driveNum = symbOSDeviceDrive[C];
 
         // Error if no disk or Device not initialized
         if (driveNum === undefined || !drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
@@ -316,10 +316,10 @@ wmsx.ImageDiskDriver = function() {
         return { F: F & ~1 };     // CF = 0
     }
 
-    function SYMBOS_FD_DRVOUT(F, A, B, HL, IX, IY) {
-        // wmsx.Util.log("SYMBOS_FD_DRVOUT. A: " + wmsx.Util.toHex2(A) + ", B: " + wmsx.Util.toHex2(B) + ", HL: " + wmsx.Util.toHex4(HL) + ", IX: " + wmsx.Util.toHex4(IX) + ", IY: " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+    function SYMBOS_FD_DRVOUT(F, C, B, HL, IX, IY) {
+        wmsx.Util.log("SYMBOS_FD_DRVOUT. C (device): " + wmsx.Util.toHex2(C) + ", B (quant): " + wmsx.Util.toHex2(B) + ", HL (dest): " + wmsx.Util.toHex4(HL) + ", IX (sectorL): " + wmsx.Util.toHex4(IX) + ", IY (sectorH): " + wmsx.Util.toHex4(IY) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        var driveNum = symbOSDeviceDrive[A];
+        var driveNum = symbOSDeviceDrive[C];
 
         // Error if no disk or Device not initialized
         if (driveNum === undefined || !drive.isDiskInserted(driveNum)) return { F: F | 1, A: 26 };       // CF = 1, A = Device not ready Error
