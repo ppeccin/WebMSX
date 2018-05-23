@@ -17,13 +17,12 @@ wmsx.CartridgeNextorPatched = function(rom) {
     }
 
     this.connect = function(machine) {
-        driver = new wmsx.ImageNextorDeviceDriver();
         driver.connect(this, machine);
         machine.getDiskDriveSocket().hardDiskInterfaceConnected(this);
     };
 
     this.disconnect = function(machine) {
-        if (driver) driver.disconnect(this, machine);
+        driver.disconnect(this, machine);
         machine.getDiskDriveSocket().hardDiskInterfaceDisconnected(this);
     };
 
@@ -32,7 +31,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
     };
 
     this.powerOff = function() {
-        if (driver) driver.powerOff();
+        driver.powerOff();
     };
 
     this.reset = function() {
@@ -69,7 +68,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.Nextor16Patch;
 
-    var driver;
+    var driver = new wmsx.ImageNextorDeviceDriver();
 
 
     // Savestate  -------------------------------------------
@@ -80,7 +79,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             b1: bankOffset,
-            d: driver && driver.saveState()
+            d: driver.saveState()
         };
     };
 
@@ -89,7 +88,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
         bankOffset = s.b1;
-        if (driver) driver.loadState(s.d);
+        driver.loadState(s.d);
     };
 
 

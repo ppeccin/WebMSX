@@ -15,18 +15,17 @@ wmsx.CartridgeDiskPatched = function(rom) {
     }
 
     this.connect = function(machine) {
-        driver = new wmsx.ImageDiskDriver();
         driver.connect(this, machine);
         machine.getDiskDriveSocket().diskInterfaceConnected(this);
     };
 
     this.disconnect = function(machine) {
-        if (driver) driver.disconnect(this, machine);
+        driver.disconnect(this, machine);
         machine.getDiskDriveSocket().diskInterfaceDisconnected(this);
     };
 
     this.powerOff = function() {
-        if (driver) driver.powerOff();
+        driver.powerOff();
     };
 
     this.read = function(address) {
@@ -45,13 +44,14 @@ wmsx.CartridgeDiskPatched = function(rom) {
         return driver.cpuExtensionFinish(s);
     };
 
+
     var bytes;
     this.bytes = null;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.DiskPatch;
 
-    var driver;
+    var driver = new wmsx.ImageDiskDriver();
 
 
     // Savestate  -------------------------------------------
@@ -60,7 +60,8 @@ wmsx.CartridgeDiskPatched = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            d: driver.saveState()
         };
     };
 
@@ -68,6 +69,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
+        driver.loadState(s.d);
     };
 
 
