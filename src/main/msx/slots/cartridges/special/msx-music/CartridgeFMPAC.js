@@ -40,7 +40,7 @@ wmsx.CartridgeFMPAC = function(rom) {
     };
 
     this.disconnect = function(machine) {
-        fm.disconnect(machine);
+        opll.disconnect(machine);
     };
 
     this.dataModified = function() {
@@ -48,12 +48,12 @@ wmsx.CartridgeFMPAC = function(rom) {
     };
 
     this.powerOn = function() {
-        fm.powerOn();
+        opll.powerOn();
         this.reset();
     };
 
     this.powerOff = function() {
-        fm.powerOff();
+        opll.powerOff();
     };
 
     this.reset = function() {
@@ -61,16 +61,16 @@ wmsx.CartridgeFMPAC = function(rom) {
         bankOffset = -0x4000;
         fmEnable = 0;                  // FM starts disabled
         updateFMEnable();
-        fm.reset();
+        opll.reset();
     };
 
     this.write = function(address, value) {
         switch (address) {
             case 0x7ff4:                                            // FM port writes
-                fm.output7C(value);
+                opll.output7C(value);
                 break;
             case 0x7ff5:
-                fm.output7D(value);
+                opll.output7D(value);
                 break;
             case 0x7ff6:                                            // FM enable/disable
                 fmEnable = value & 0x11;
@@ -117,8 +117,8 @@ wmsx.CartridgeFMPAC = function(rom) {
 
     function updateFMEnable() {
         if (machine) {
-            if (fmEnable & 1) fm.connect(machine);        // bit 0 switches FM on/off
-            else fm.disconnect(machine);
+            if (fmEnable & 1) opll.connect(machine);        // bit 0 switches FM on/off
+            else opll.disconnect(machine);
         }
     }
 
@@ -149,8 +149,8 @@ wmsx.CartridgeFMPAC = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.FMPAC;
 
-    var fm = new wmsx.YM2413Audio("FM-PAC");
-    this.fm = fm;
+    var opll = new wmsx.YM2413Audio("FM-PAC");
+    this.opll = opll;
 
 
     // Savestate  -------------------------------------------
@@ -165,7 +165,7 @@ wmsx.CartridgeFMPAC = function(rom) {
             sa: sramActive,
             s: wmsx.Util.compressInt8BitArrayToStringBase64(sram),
             sn: sramContentName,
-            fm: fm.saveState(),
+            fm: opll.saveState(),
             d: sramModif
         };
     };
@@ -179,7 +179,7 @@ wmsx.CartridgeFMPAC = function(rom) {
         sramActive = s.sa;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
         sramContentName = s.sn;
-        fm.loadState(s.fm);
+        opll.loadState(s.fm);
         sramModif = !!s.d;
         updateFMEnable();
     };

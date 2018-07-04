@@ -6,7 +6,7 @@ wmsx.SlotFormats = {
         name: "Empty",
         desc: "Empty Slot",
         priority: 1001,
-        internal : true,
+        internal: true,
         embeddedURL: "@[Empty].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -24,7 +24,7 @@ wmsx.SlotFormats = {
         name: "Expanded",
         desc: "Expanded Slot",
         priority: 1002,
-        internal : true,
+        internal: true,
         priorityForRom: function (rom) {
             // Not Possible to load Expanded Slots
             return null;
@@ -39,7 +39,7 @@ wmsx.SlotFormats = {
         name: "ExpandedS",
         desc: "Special System Expanded Slot",
         priority: 1003,
-        internal : true,
+        internal: true,
         priorityForRom: function (rom) {
             // Not Possible to load Expanded Slots
             return null;
@@ -54,7 +54,7 @@ wmsx.SlotFormats = {
         name: "BIOS",
         desc: "Main BIOS",
         priority: 201,
-        internal : true,
+        internal: true,
         priorityForRom: function (rom) {
             // Any 16K or 32K content starting with "F3 C3" (DI; JP) or "F3 18" (DI; JR)
             return ((rom.content.length === 16384 || rom.content.length === 32768) && rom.content[0x0000] === 0xF3
@@ -72,7 +72,7 @@ wmsx.SlotFormats = {
         name: "MSX2BIOSExt",
         desc: "MSX2/2+ BIOS Extension",
         priority: 202,
-        internal : true,
+        internal: true,
         priorityForRom: function (rom) {
             // Any multiple of 16K content starting with the BIOS Extension identifier "CD"
             return ((rom.content.length & 0x3fff) === 0 && rom.content[0] === 67 && rom.content[1] === 68) ? this.priority : null;
@@ -89,7 +89,7 @@ wmsx.SlotFormats = {
         name: "RAMNormal",
         desc: "Normal RAM 64K",
         priority: 1011,
-        internal : true,
+        internal: true,
         embeddedURL: "@[RAMNormal].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -107,7 +107,7 @@ wmsx.SlotFormats = {
         name: "RAMMapper",
         desc: "Standard RAM Mapper",
         priority: 1012,
-        internal : true,
+        internal: true,
         embeddedURL: "@[RAMMapper].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -127,7 +127,7 @@ wmsx.SlotFormats = {
         name: "DiskPatch",
         desc: "Generic Patched Disk BIOS",
         priority: 1301,
-        internal : true,
+        internal: true,
         embeddedURL: "@[DiskPatch].rom",
         priorityForRom: function (rom) {
             // Only DiskPatched 16K content. Must be selected via info format hint
@@ -145,7 +145,7 @@ wmsx.SlotFormats = {
         name: "Nextor16Patch",
         desc: "Nextor ASCII-16 Patched Kernel",
         priority: 1302,
-        internal : true,
+        internal: true,
         embeddedURL: "@[Nextor16Patch].rom",
         priorityForRom: function (rom) {
             // Only Nextor16Patch 128K content. Must be selected via info format hint
@@ -163,7 +163,7 @@ wmsx.SlotFormats = {
         name: "SCCExpansion",
         desc: "Konami SCC Sound Cartridge",
         priority: 1501,
-        internal : true,
+        internal: true,
         embeddedURL: "@[SCCExpansion].rom",
         priorityForRom: function (rom) {
             // Only 0K content. Must be selected via info format hint
@@ -181,7 +181,7 @@ wmsx.SlotFormats = {
         name: "SCCIExpansion",
         desc: "Konami SCC+ Sound Mapper Cartridge",
         priority: 1502,
-        internal : true,
+        internal: true,
         embeddedURL: "@[SCCIExpansion].rom",
         priorityForRom: function (rom) {
             // 0K, or any <= 128K content. Must be selected via info format hint
@@ -199,7 +199,7 @@ wmsx.SlotFormats = {
         name: "MSXMUSIC",
         desc: "MSX-MUSIC Sound Extension",
         priority: 1503,
-        internal : true,
+        internal: true,
         embeddedURL: "@[MSXMUSIC].rom",
         priorityForRom: function (rom) {
             // Only 16K content. Must be selected via info format hint
@@ -217,7 +217,7 @@ wmsx.SlotFormats = {
         name: "PACExpansion",
         desc: "PAC SRAM Cartridge",
         priority: 1505,
-        internal : true,
+        internal: true,
         embeddedURL: "@[PACExpansion].rom",
         priorityForRom: function (rom, insertedCartridge) {
             // Only 0K content selected via info format hint
@@ -240,7 +240,7 @@ wmsx.SlotFormats = {
         name: "Kanji1",
         desc: "Kanji Font Driver",
         priority: 1506,
-        internal : true,
+        internal: true,
         embeddedURL: "@[Kanji1].rom",
         priorityForRom: function (rom) {
             // 128K or 256K content. Must be selected via info format hint
@@ -251,6 +251,24 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeKanjiFont.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "MoonSound": {
+        name: "MoonSound",
+        desc: "MoonSound OPL4 Sound Cartridge",
+        priority: 1507,
+        internal: true,
+        embeddedURL: "@[MoonSound].rom",
+        priorityForRom: function (rom) {
+            // Only 2048K content. Must be selected via info format hint
+            return (rom.content.length === 2048 * 1024) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeMoonSound(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeMoonSound.recreateFromSaveState(state, previousSlot);
         }
     },
 

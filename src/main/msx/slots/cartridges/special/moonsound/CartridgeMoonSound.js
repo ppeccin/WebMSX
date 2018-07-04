@@ -4,7 +4,7 @@
 // Controls a YM2413 FM sound chip
 // 0x4000 - 0x7fff
 
-wmsx.CartridgeMSXMUSIC = function(rom) {
+wmsx.CartridgeMoonSound = function(rom) {
 "use strict";
 
     function init(self) {
@@ -14,24 +14,24 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     }
 
     this.connect = function(machine) {
-        opll.connect(machine);
+        opl4.connect(machine);
     };
 
     this.disconnect = function(machine) {
-        opll.disconnect(machine);
+        opl4.disconnect(machine);
     };
 
     this.powerOn = function() {
-        opll.powerOn();
+        opl4.powerOn();
         this.reset();
     };
 
     this.powerOff = function() {
-        opll.powerOff();
+        opl4.powerOff();
     };
 
     this.reset = function() {
-        opll.reset();
+        opl4.reset();
     };
 
     this.read = function(address) {
@@ -45,10 +45,10 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.MSXMUSIC;
+    this.format = wmsx.SlotFormats.MoonSound;
 
-    var opll = new wmsx.YM2413Audio("MSX-MUSIC");
-    this.opll = opll;
+    var opl4 = new wmsx.OPL4Audio("MoonSound");
+    this.opl4 = opl4;
 
 
     // Savestate  -------------------------------------------
@@ -58,7 +58,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            fm: opll.saveState()
+            opl4: opl4.saveState()
         };
     };
 
@@ -66,7 +66,7 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
-        opll.loadState(s.fm);
+        opl4.loadState(s.opl4);
     };
 
 
@@ -74,10 +74,10 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
 
 };
 
-wmsx.CartridgeMSXMUSIC.prototype = wmsx.Slot.base;
+wmsx.CartridgeMoonSound.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeMSXMUSIC.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeMSXMUSIC();
+wmsx.CartridgeMoonSound.recreateFromSaveState = function(state, previousSlot) {
+    var cart = previousSlot || new wmsx.CartridgeMoonSound();
     cart.loadState(state);
     return cart;
 };

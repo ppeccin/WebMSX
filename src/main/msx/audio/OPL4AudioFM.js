@@ -1,20 +1,19 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// YM2413 FM Sound Chip
+// OPL4 FM Sound Chip
 // Implementation based on the excellent findings and measurements by Wouter Vermaelen
 // http://forums.submarine.org.uk/phpBB/viewforum.php?f=9&sid=802b327ed9853a591025be31c2ed58a2
 // https://docs.google.com/document/d/18IGx18NQY_Q1PJVZ-bHywao9bhsDoAqoIn1rIm42nwo/edit
-// Instrument settings based on Okazaki's and Burczynski's
 
 // TODO How changes in parameters affect envelopes in progress
 
-wmsx.YM2413Audio = function(pName) {
+wmsx.OPL4AudioFM = function(pName) {
 "use strict";
 
     var self = this;
 
     function init() {
-        name = pName || "YM2413";
+        name = pName || "OPL4";
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
@@ -28,29 +27,25 @@ wmsx.YM2413Audio = function(pName) {
     }
 
     this.connect = function(machine) {
-        machine.bus.connectInputDevice( 0x7c, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.connectInputDevice( 0x7d, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.connectOutputDevice(0x7c, this.output7C);
-        machine.bus.connectOutputDevice(0x7d, this.output7D);
-        audioSocket = machine.getAudioSocket();
-        if (audioConnected) connectAudio();
+        machine.bus.connectInputDevice( 0xc4, this.inputC4);
+        machine.bus.connectOutputDevice(0xc4, this.outputC4);
+        machine.bus.connectInputDevice( 0xc5, this.inputC5);
+        machine.bus.connectOutputDevice(0xc5, this.outputC5);
+        machine.bus.connectInputDevice( 0xc6, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0xc6, this.outputC6);
+        machine.bus.connectInputDevice( 0xc7, this.inputC5);
+        machine.bus.connectOutputDevice(0xc7, this.outputC5);
     };
 
     this.disconnect = function(machine) {
-        machine.bus.disconnectInputDevice( 0x7c, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.disconnectInputDevice( 0x7d, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.disconnectOutputDevice(0x7c, this.output7C);
-        machine.bus.disconnectOutputDevice(0x7d, this.output7D);
-        disconnectAudio();
-        audioSocket = null;
-    };
-
-    this.powerOn = function() {
-        this.reset();
-    };
-
-    this.powerOff = function() {
-        disconnectAudio();
+        machine.bus.disconnectInputDevice( 0xc4, this.inputC4);
+        machine.bus.disconnectOutputDevice(0xc4, this.outputC4);
+        machine.bus.disconnectInputDevice( 0xc5, this.inputC5);
+        machine.bus.disconnectOutputDevice(0xc5, this.outputC5);
+        machine.bus.disconnectInputDevice( 0xc6, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.disconnectOutputDevice(0xc6, this.outputC6);
+        machine.bus.disconnectInputDevice( 0xc7, this.inputC5);
+        machine.bus.disconnectOutputDevice(0xc7, this.outputC5);
     };
 
     this.reset = function() {
@@ -102,17 +97,36 @@ wmsx.YM2413Audio = function(pName) {
         wmsx.Util.arrayFill(fbLastMod2, 0);
         wmsx.Util.arrayFill(phaseInc, 0);
         wmsx.Util.arrayFill(phaseCounter, 0);
-
-        // Start with audio disconnected
-        disconnectAudio();
     };
 
-    this.output7C = function (val) {
-        registerAddress = val & 0x3f;
+    this.inputC4 = function() {
+        console.log("FM Status Register READ: ");
+
+        return 0x02;
     };
 
-    this.output7D = function (val) {
+    this.outputC4 = function (val) {
+        // console.log("FM Register Address: " + val.toString(16));
+
+        registerAddress = val;
+    };
+
+    this.inputC5 = function() {
+        var res = register[registerAddress];
+
+        console.log("FM Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
+
+        return res;
+    };
+
+    this.outputC5 = function (val) {
         registerWrite(registerAddress, val);
+    };
+
+    this.outputC6 = function (val) {
+        // console.log("FM Register Address: " + (0x100 | val).toString(16));
+
+        registerAddress = 0x100 | val;
     };
 
     this.nextSample = function() {
@@ -223,20 +237,11 @@ wmsx.YM2413Audio = function(pName) {
     };
 
     function connectAudio() {
-        if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, SAMPLE_RATE, VOLUME);
-            audioSocket.connectAudioSignal(audioSignal);
-            audioConnected = true;
-        }
-    }
-
-    function disconnectAudio() {
-        if (audioSocket && audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
-        audioConnected = false;
+        // TODO Route audio through parent
     }
 
     function registerWrite(reg, val) {
-        //console.log("Register: " + reg.toString(16) + " write: " + val);
+        console.log("FM Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
         var chan = reg & 0xf;
         if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
@@ -697,10 +702,8 @@ wmsx.YM2413Audio = function(pName) {
 
     var sineTable, halfSineTable, expTable, instrumentsParameters, multiFactors, vibValues, kslValues, rateAttackDurTable, rateDecayDurTable;
 
-    var audioSocket, audioSignal;
 
     var VOLUME = 0.65 * (1.55 / 9 / 256);                               // 9 channels, samples -256..+ 256
-    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
 
     // Savestate  -------------------------------------------
@@ -767,8 +770,6 @@ wmsx.YM2413Audio = function(pName) {
 
         fbLastMod1 = wmsx.Util.restoreStringBase64ToSignedInt16BitArray(s.fb1, fbLastMod1);
         fbLastMod2 = wmsx.Util.restoreStringBase64ToSignedInt16BitArray(s.fb2, fbLastMod2);
-
-        if (audioConnected) connectAudio();
     };
 
 
