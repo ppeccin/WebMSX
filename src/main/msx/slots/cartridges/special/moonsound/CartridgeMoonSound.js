@@ -1,15 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// MSX-MUSIC Expansion with 16K ROM
-// Controls a YM2413 FM sound chip
-// 0x4000 - 0x7fff
+// MoonSound OPL4 Music Cartridge with 2M ROM + 2M SRAM
+// Controls a YMF278B sound chip
+// ROM and RAM here will be accessed by the OPL4 directly, not mapped to MSX memory space
 
 wmsx.CartridgeMoonSound = function(rom) {
 "use strict";
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.asNormalArray(rom.content);
+        bytes = wmsx.Util.asNormalArray(rom.content, 0, 0x400000);
+        wmsx.Util.arrayFill(bytes, 0, 0x200000);
         self.bytes = bytes;
     }
 
@@ -34,10 +35,14 @@ wmsx.CartridgeMoonSound = function(rom) {
         opl4.reset();
     };
 
-    this.read = function(address) {
-        if (address >= 0x4000 && address < 0x8000)      // page 1 only
-            return bytes[address - 0x4000];
-        return 0xff;
+    this.opl4ReadMemory = function(address) {
+        return bytes[address & 0x3fffff];
+    };
+
+    this.opl4WriteMemory = function(address, val) {
+        if ((address & 0x3fffff) < 0x200000) return;    // ROM
+
+        bytes[address & 0x3fffff] = val;                // RAM
     };
 
 
@@ -47,7 +52,7 @@ wmsx.CartridgeMoonSound = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.MoonSound;
 
-    var opl4 = new wmsx.OPL4Audio("MoonSound");
+    var opl4 = new wmsx.OPL4Audio("MoonSound", this);
     this.opl4 = opl4;
 
 

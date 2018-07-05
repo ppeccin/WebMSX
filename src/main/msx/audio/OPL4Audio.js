@@ -2,15 +2,15 @@
 
 // OPL4 FM/Wave Sound Chip
 
-wmsx.OPL4Audio = function(pName) {
+wmsx.OPL4Audio = function(pName, cart) {
 "use strict";
 
     var self = this;
 
-    function init() {
+    function init(self) {
         name = pName || "OPL4";
-        fm = new wmsx.OPL4AudioFM();
-        wave = new wmsx.OPL4AudioWave();
+        fm = new wmsx.OPL4AudioFM(self);
+        wave = new wmsx.OPL4AudioWave(self);
     }
 
     this.connect = function(machine) {
@@ -42,6 +42,10 @@ wmsx.OPL4Audio = function(pName) {
         fm.reset();
         wave.reset();
     };
+
+    this.memoryRead = cart.opl4ReadMemory;
+
+    this.memoryWrite = cart.opl4WriteMemory;
 
     function connectAudio() {
         if (audioSocket) {
@@ -80,7 +84,7 @@ wmsx.OPL4Audio = function(pName) {
     };
 
 
-    init();
+    init(this);
 
     this.eval = function(str) {
         return eval(str);

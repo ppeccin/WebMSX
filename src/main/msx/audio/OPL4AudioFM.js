@@ -7,13 +7,12 @@
 
 // TODO How changes in parameters affect envelopes in progress
 
-wmsx.OPL4AudioFM = function(pName) {
+wmsx.OPL4AudioFM = function(opl4) {
 "use strict";
 
     var self = this;
 
     function init() {
-        name = pName || "OPL4";
         var tabs = new wmsx.YM2413Tables();
         sineTable = tabs.getFullSineTable();
         halfSineTable = tabs.getHalfSineTable();
@@ -100,9 +99,9 @@ wmsx.OPL4AudioFM = function(pName) {
     };
 
     this.inputC4 = function() {
-        console.log("FM Status Register READ: ");
+        // console.log("Status READ: ");
 
-        return 0x02;
+        return 0x00;
     };
 
     this.outputC4 = function (val) {
@@ -587,7 +586,6 @@ wmsx.OPL4AudioFM = function(pName) {
     }
 
 
-    var name;
     var audioConnected = false;
 
     // Constants
@@ -710,7 +708,6 @@ wmsx.OPL4AudioFM = function(pName) {
 
     this.saveState = function() {
         return {
-            n: name,
             ac: audioConnected,
 
             ra: registerAddress,
@@ -743,7 +740,6 @@ wmsx.OPL4AudioFM = function(pName) {
     this.loadState = function(s) {
         this.reset();
 
-        name = s.n;
         audioConnected = s.ac;
 
         registerAddress = s.ra;

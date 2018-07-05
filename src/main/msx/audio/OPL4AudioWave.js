@@ -2,7 +2,7 @@
 
 // OPL4 Wave Sound Chip
 
-wmsx.OPL4AudioWave = function() {
+wmsx.OPL4AudioWave = function(opl4) {
 "use strict";
 
     var self = this;
@@ -37,7 +37,12 @@ wmsx.OPL4AudioWave = function() {
     this.reset = function() {
         // Zero all registers
         registerAddress = 0;
+        memoryAddress = 0;
         wmsx.Util.arrayFill(register, 0);
+
+        // -----------------------------------------
+
+
         wmsx.Util.arrayFill(instrumentsParameters[0], 0);   // Reset custom instrument
         // Global controls
         clock = 0;
@@ -90,11 +95,7 @@ wmsx.OPL4AudioWave = function() {
     };
 
     this.input7F = function() {
-        var res = register[registerAddress];
-
-        console.log("Wave Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
-
-        return res;
+        return registerRead(registerAddress);
     };
 
     this.output7F = function (val) {
@@ -213,7 +214,7 @@ wmsx.OPL4AudioWave = function() {
     }
 
     function registerWrite(reg, val) {
-        console.log("Wave Register WRITE: " + reg.toString(16) + " : " + val);
+        // console.log("Wave Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
         var chan = reg & 0xf;
         if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
@@ -223,6 +224,19 @@ wmsx.OPL4AudioWave = function() {
         register[reg] = val;
 
         switch(reg) {
+            case 0x05:
+                memoryAddress = ((register[0x03] & 0x3f) << 16) | (register[0x04] << 8) | register[0x05];
+                break;
+            case 0x06:
+                opl4.memoryWrite(memoryAddress, val);
+                if (++memoryAddress >= 0x400000) memoryAddress = 0;
+                break;
+        }
+
+        return;
+
+        switch(reg) {
+
             case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
                 if (mod) {
                     instrumentsParameters[0][reg] = val;
@@ -278,6 +292,25 @@ wmsx.OPL4AudioWave = function() {
                 }
                 break;
         }
+    }
+
+    function registerRead(reg) {
+        var res;
+        switch(reg) {
+            case 0x02:
+                res = 0x20;            // Device ID
+                break;
+            case 0x06:
+                res = opl4.memoryRead(memoryAddress);
+                if (++memoryAddress >= 0x400000) memoryAddress = 0;
+                break;
+            default:
+                res = register[registerAddress];
+        }
+
+        console.log("Wave Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
+
+        return res;
     }
 
     function clockNoise() {
@@ -559,8 +592,17 @@ wmsx.OPL4AudioWave = function() {
     }
 
 
-    var name;
     var audioConnected = false;
+
+
+    // Global settings
+    var registerAddress;
+    var memoryAddress;
+    var register = new Array(0xff);
+
+
+    // -----------------------------------------
+
 
     // Constants
 
@@ -573,8 +615,6 @@ wmsx.OPL4AudioWave = function() {
     var vibPhase;
 
     // Global settings
-    var registerAddress;
-    var register = new Array(0x38);
     var rhythmMode;
 
     // Settings per channel(9) / operator(18)
@@ -682,7 +722,6 @@ wmsx.OPL4AudioWave = function() {
 
     this.saveState = function() {
         return {
-            n: name,
             ac: audioConnected,
 
             ra: registerAddress,
@@ -715,7 +754,6 @@ wmsx.OPL4AudioWave = function() {
     this.loadState = function(s) {
         this.reset();
 
-        name = s.n;
         audioConnected = s.ac;
 
         registerAddress = s.ra;
