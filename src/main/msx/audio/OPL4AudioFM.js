@@ -125,7 +125,7 @@ wmsx.OPL4AudioFM = function(opl4) {
     this.inputC5 = function() {
         var res = register[registerAddress];
 
-        console.log("FM Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
+        // console.log("FM Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
 
         return res;
     };
@@ -287,7 +287,7 @@ wmsx.OPL4AudioFM = function(opl4) {
     }
 
     function registerWrite(reg, val) {
-        console.log("FM Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
+        // console.log("FM Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
         var mod = register[reg] ^ val;
 
