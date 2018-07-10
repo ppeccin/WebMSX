@@ -216,10 +216,6 @@ wmsx.OPL4AudioWave = function(opl4) {
     function registerWrite(reg, val) {
         // console.log("Wave Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
-        var chan = reg & 0xf;
-        if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
-        var m = chan << 1, c = m + 1;
-
         var mod = register[reg] ^ val;
         register[reg] = val;
 
@@ -234,6 +230,10 @@ wmsx.OPL4AudioWave = function(opl4) {
         }
 
         return;
+
+        var chan = reg & 0xf;
+        if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
+        var m = chan << 1, c = m + 1;
 
         switch(reg) {
 
@@ -308,7 +308,7 @@ wmsx.OPL4AudioWave = function(opl4) {
                 res = register[registerAddress];
         }
 
-        console.log("Wave Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
+        // console.log("Wave Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
 
         return res;
     }

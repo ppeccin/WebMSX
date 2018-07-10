@@ -26,6 +26,7 @@ wmsx.OPL4AudioFM = function(opl4) {
     }
 
     this.connect = function(machine) {
+        cpu = machine.cpu;
         machine.bus.connectInputDevice( 0xc4, this.inputC4);
         machine.bus.connectOutputDevice(0xc4, this.outputC4);
         machine.bus.connectInputDevice( 0xc5, this.inputC5);
@@ -49,11 +50,22 @@ wmsx.OPL4AudioFM = function(opl4) {
 
     this.reset = function() {
         // Zero all registers
+        status = 0;
         registerAddress = 0;
         wmsx.Util.arrayFill(register, 0);
+        clock = 0;
+
+        timer1Preset = timer2Preset = 0;
+        timer1Counter = timer2Counter = 0;
+        timer1Active = timer2Active = false;
+        timer1Masked = timer2Masked = 0;
+
+
+        // -----------------------------------------
+
+
         wmsx.Util.arrayFill(instrumentsParameters[0], 0);   // Reset custom instrument
         // Global controls
-        clock = 0;
         noiseRegister = 0xffff; noiseOutput = 0;
         amLevel = 0; amLevelInc = -1; vibPhase = 0;
         rhythmMode = false;
@@ -99,9 +111,9 @@ wmsx.OPL4AudioFM = function(opl4) {
     };
 
     this.inputC4 = function() {
-        // console.log("Status READ: ");
+        // console.log("Status READ: " + status.toString(16));
 
-        return 0x00;
+        return status;
     };
 
     this.outputC4 = function (val) {
@@ -129,6 +141,14 @@ wmsx.OPL4AudioFM = function(opl4) {
     };
 
     this.nextSample = function() {
+        // if ((clock & 0xffff) === 0) console.log("FM clock:", clock);
+
+        ++clock;
+        clockTimers();
+
+
+        return;
+
         var amChanged, vibChanged = false;
         var m, c, mPh, cPh, mod;
 
@@ -235,6 +255,33 @@ wmsx.OPL4AudioFM = function(opl4) {
         return sample;
     };
 
+    function clockTimers() {
+        // console.log("FM Clock Timers");
+
+        if (timer1Active && (clock & 0x03) === 0)
+            if (++timer1Counter > 255) {
+                timer1Counter = timer1Preset;
+                if (!timer1Masked) {
+                    status |= 0xc0;
+                    updateIRQ();
+                }
+            }
+        if (timer2Active && (clock & 0x0f) === 0)
+            if (++timer2Counter > 255) {
+                timer2Counter = timer2Preset;
+                if (!timer2Masked) {
+                    status |= 0xa0;
+                    updateIRQ();
+                }
+            }
+    }
+
+    function updateIRQ() {
+        cpu.setINTChannel(1, (status & 0x80) === 0);        // Using fixed channel 1 for now. TODO Multiple OPL4 connected?
+
+        // console.log("FM update IRQ:", (status & 0x80) === 0);
+    }
+
     function connectAudio() {
         // TODO Route audio through parent
     }
@@ -242,12 +289,45 @@ wmsx.OPL4AudioFM = function(opl4) {
     function registerWrite(reg, val) {
         console.log("FM Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
+        var mod = register[reg] ^ val;
+
+        // Special case for setting RST: 1. Other bits are ignored and not set. RST becomes 0
+        if ((mod & 0x80) && (val & 0x80)) {
+            // console.log("FM RESET flags");
+            register[4] &= ~0x80;
+            status = 0;
+            updateIRQ();
+            return;
+        }
+
+        register[reg] = val;
+
+        switch(reg) {
+            case 0x02:
+                timer1Preset = val;
+                break;
+            case 0x03:
+                timer2Preset = val;
+                break;
+            case 0x04:
+                if (mod & 0x01) {                                                       // ST1
+                    timer1Active = (val & 0x01) !== 0;
+                    if (timer1Active) timer1Counter = timer1Preset;
+                }
+                if (mod & 0x02) {                                                       // ST2
+                    timer2Active = (val & 0x02) !== 0;
+                    if (timer2Active) timer2Counter = timer2Preset;
+                }
+                if (mod & 0x40) timer1Masked = (val & 0x40) !== 0;                      // MT1
+                if (mod & 0x20) timer2Masked = (val & 0x42) !== 0;                      // MT2
+                break;
+        }
+
+        return;
+
         var chan = reg & 0xf;
         if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
         var m = chan << 1, c = m + 1;
-
-        var mod = register[reg] ^ val;
-        register[reg] = val;
 
         switch(reg) {
             case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
@@ -586,7 +666,24 @@ wmsx.OPL4AudioFM = function(opl4) {
     }
 
 
+    var cpu;
+
     var audioConnected = false;
+
+
+    // Global settings
+    var status = 0;
+    var registerAddress = 0;
+    var register = new Array(0x38);
+
+    var timer1Preset = 0, timer2Preset = 0;
+    var timer1Counter = 0, timer2Counter = 0;
+    var timer1Active = false, timer2Active = false;
+    var timer1Masked = false, timer2Masked = false;
+
+
+    // -----------------------------------------
+
 
     // Constants
 
@@ -599,8 +696,6 @@ wmsx.OPL4AudioFM = function(opl4) {
     var vibPhase;
 
     // Global settings
-    var registerAddress;
-    var register = new Array(0x38);
     var rhythmMode;
 
     // Settings per channel(9) / operator(18)

@@ -125,6 +125,39 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_STATE_10 | k.ALT]  = mc.LOAD_STATE_10;
         keyCodeMap[KEY_STATE_11 | k.ALT]  = mc.LOAD_STATE_11;
         keyCodeMap[KEY_STATE_12 | k.ALT]  = mc.LOAD_STATE_12;
+
+        // Alternate controls for Savestates with SHIFT pressed
+
+        keyCodeMap[KEY_STATE_0 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_0;
+        keyCodeMap[KEY_STATE_0a | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_0;
+        keyCodeMap[KEY_STATE_1 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_1;
+        keyCodeMap[KEY_STATE_2 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_2;
+        keyCodeMap[KEY_STATE_3 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_3;
+        keyCodeMap[KEY_STATE_4 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_4;
+        keyCodeMap[KEY_STATE_5 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_5;
+        keyCodeMap[KEY_STATE_6 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_6;
+        keyCodeMap[KEY_STATE_7 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_7;
+        keyCodeMap[KEY_STATE_8 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_8;
+        keyCodeMap[KEY_STATE_9 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_9;
+        keyCodeMap[KEY_STATE_10 | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_10;
+        keyCodeMap[KEY_STATE_11 | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_11;
+        keyCodeMap[KEY_STATE_12 | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_12;
+
+        keyCodeMap[KEY_STATE_0  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_0;
+        keyCodeMap[KEY_STATE_0a | k.SHIFT | k.ALT]  = mc.LOAD_STATE_0;
+        keyCodeMap[KEY_STATE_1  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_1;
+        keyCodeMap[KEY_STATE_2  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_2;
+        keyCodeMap[KEY_STATE_3  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_3;
+        keyCodeMap[KEY_STATE_4  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_4;
+        keyCodeMap[KEY_STATE_5  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_5;
+        keyCodeMap[KEY_STATE_6  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_6;
+        keyCodeMap[KEY_STATE_7  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_7;
+        keyCodeMap[KEY_STATE_8  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_8;
+        keyCodeMap[KEY_STATE_9  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_9;
+        keyCodeMap[KEY_STATE_10 | k.SHIFT | k.ALT]  = mc.LOAD_STATE_10;
+        keyCodeMap[KEY_STATE_11 | k.SHIFT | k.ALT]  = mc.LOAD_STATE_11;
+        keyCodeMap[KEY_STATE_12 | k.SHIFT | k.ALT]  = mc.LOAD_STATE_12;
+
     };
 
 

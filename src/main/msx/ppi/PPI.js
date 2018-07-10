@@ -64,7 +64,7 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket) {
     }
 
     function updateCassetteSignal() {
-        if (keyClickSignal === ((registerC & 0x20) > 0)) return;
+        if (casseteSignal === ((registerC & 0x20) > 0)) return;
         casseteSignal = !casseteSignal;
         psgAudioChannel.setPulseSignal(casseteSignal);
     }

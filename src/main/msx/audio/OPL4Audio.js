@@ -8,9 +8,12 @@ wmsx.OPL4Audio = function(pName, cart) {
     var self = this;
 
     function init(self) {
+
+        window.OPL4 = self;
+
         name = pName || "OPL4";
-        fm = new wmsx.OPL4AudioFM(self);
-        wave = new wmsx.OPL4AudioWave(self);
+        self.fm = fm = new wmsx.OPL4AudioFM(self);
+        self.wave = wave = new wmsx.OPL4AudioWave(self);
     }
 
     this.connect = function(machine) {
@@ -37,10 +40,16 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     this.reset = function() {
         // Start with audio disconnected
-        disconnectAudio();
+        connectAudio();
 
         fm.reset();
         wave.reset();
+    };
+
+    this.nextSample = function() {
+        fm.nextSample();
+
+        return 0;
     };
 
     this.memoryRead = cart.opl4ReadMemory;
@@ -75,11 +84,18 @@ wmsx.OPL4Audio = function(pName, cart) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        return {};
+        return {
+            n: name,
+            ac: audioConnected
+        };
     };
 
     this.loadState = function(s) {
         this.reset();
+
+        name = s.n;
+        audioConnected = s.ac;
+
         if (audioConnected) connectAudio();
     };
 

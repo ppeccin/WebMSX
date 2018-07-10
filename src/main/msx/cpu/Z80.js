@@ -18,7 +18,7 @@ wmsx.Z80 = function() {
         toAF(0xfffd); toBC(0xffff); DE = 0xffff; HL = 0xffff;
         AF2 = 0xfffd; BC2 = 0xffff; DE2 = 0xffff; HL2 = 0xffff;
         toIX(0xffff); toIY(0xffff); SP = 0xffff;
-        this.setINT(1);
+        setINT(0xff);
         this.reset();
     };
 
@@ -68,12 +68,17 @@ wmsx.Z80 = function() {
         extensionCurrentlyRunning = null; extensionExtraIterations = 0;
     };
 
-    this.setINT = function(val) {
+    this.setINTChannel = function(chan, state) {
+        var val = state ? INT | (1 << chan) : INT & ~(1 << chan);
+        setINT(val);
+    };
+
+    function setINT(val) {
         if (INT !== val) {
             INT = val;
-            ackINT = val === 0 && IFF1 && prefix === 0;
+            ackINT = val !== 0xff && IFF1 && prefix === 0;
         }
-    };
+    }
 
     this.getBUSCycles = function() {
         return busCycles;
@@ -112,7 +117,7 @@ wmsx.Z80 = function() {
 
     // Interfaces
     var bus;
-    var INT = 1;
+    var INT = 0xff; // 8 parallel INT channels. OR behavior (any bit set to 0 triggers INT)
 
     // Registers
     var PC = 0;     // 16 bits
@@ -202,7 +207,7 @@ wmsx.Z80 = function() {
             instruction = instructions[opcode];                                            // always found
         } else {
             instruction = instructionsByPrefix[prefix][opcode] || instructions[opcode];    // if nothing found, ignore prefix
-            if (INT === 0 && IFF1) ackINT = true;
+            if (INT !== 0xff && IFF1) ackINT = true;
             prefix = 0;
         }
     }
@@ -2631,7 +2636,7 @@ wmsx.Z80 = function() {
     this.saveState = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
-            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT,
+            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extensionCurrentlyRunning, eei: extensionExtraIterations,
             tcm: turboClockMulti
@@ -2640,7 +2645,8 @@ wmsx.Z80 = function() {
 
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
-        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1; this.setINT(s.INT);
+        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1;
+        setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
         busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
         turboClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
@@ -2658,7 +2664,7 @@ wmsx.Z80 = function() {
             "  IX: " + wmsx.Util.toHex2(IX) + "  IY: " + wmsx.Util.toHex2(IY) + "       SP: " + wmsx.Util.toHex2(SP) +  "\n\n" +
             "Flags: " + (F & bS ? "S " : "- ") + (F & bZ ? "Z " : "- ") + (F & bF5 ? "5 " : "- ") + (F & bH ? "H " : "- ") +
             (F & bF3 ? "3 " : "- ") + (F & bPV ? "P " : "- ") + (F & bN ? "N " : "- ") + (F & bC ? "C" : "-") +
-            "            IFF: " + IFF1 + "     INT: " + INT + "     prefix: " + prefix;
+            "            IFF: " + IFF1 + "     INT: " + wmsx.Util.toHex2(INT) + "     prefix: " + prefix;
     };
 
     //this.trace = false;
