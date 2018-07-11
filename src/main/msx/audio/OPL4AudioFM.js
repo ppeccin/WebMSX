@@ -146,8 +146,8 @@ wmsx.OPL4AudioFM = function(opl4) {
         ++clock;
         clockTimers();
 
+        return 0;
 
-        return;
 
         var amChanged, vibChanged = false;
         var m, c, mPh, cPh, mod;

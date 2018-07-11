@@ -49,7 +49,7 @@ wmsx.OPL4Audio = function(pName, cart) {
     this.nextSample = function() {
         fm.nextSample();
 
-        return 0;
+        return fm.nextSample() + wave.nextSample();
     };
 
     this.memoryRead = cart.opl4ReadMemory;
@@ -77,7 +77,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.65 * (1.55 / 9 / 256);                               // 9 channels, samples -256..+ 256
+    var VOLUME = 0.65 * (1.55 / 24 / 256);                               // X channels, samples -32768 .. +32768
     var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
 
 
