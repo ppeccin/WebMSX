@@ -171,7 +171,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         dataBits[cha] = val >> 6;
         startAddress[cha] = ((val & 0x3f) << 16) | (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);
         loopPosition[cha] = (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);      // delta from start in samples
-        endPosition[cha] =  (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);      // delta from start in samples
+        endPosition[cha] =  ~((opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++)) & 0xffff;      // delta from start in samples
         registerWrite(0x80 + cha, opl4.memoryRead(address++));
         registerWrite(0x98 + cha, opl4.memoryRead(address++));
         registerWrite(0xb0 + cha, opl4.memoryRead(address++));
@@ -201,6 +201,11 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29: case 0x2a: case 0x2b:
             case 0x2c: case 0x2d: case 0x2e: case 0x2f: case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
+                cha = reg - 0x20;
+                if (mod & 0xfe) {
+                    fNum[cha] = (val >> 1) | (((register[0x38 + cha]) & 0x07) << 7);                    // FNUM
+                    updateFrequency(cha);
+                }
                 break;
             case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f: case 0x40: case 0x41: case 0x42: case 0x43:
             case 0x44: case 0x45: case 0x46: case 0x47: case 0x48: case 0x49: case 0x4a: case 0x4b: case 0x4c: case 0x4d: case 0x4e: case 0x4f:
@@ -208,7 +213,8 @@ wmsx.OPL4AudioWave = function(opl4) {
                 if (mod & 0x07)
                     fNum[cha] = ((val & 0x07) << 8) | (register[0x20 + cha] >> 1);                      // FNUM
                 if (mod & 0xf0)
-                    octave[cha] = val;   // signed 4 bits                                               // OCTAVE
+                    // signed 4 bits to decimal -8 .. 7
+                    octave[cha] = val & 0x80 ? (val >> 4) - 0x10 : val >> 4;                            // OCTAVE
                 if (mod & 0xf7) updateFrequency(cha);
                 break;
             case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f: case 0x70: case 0x71: case 0x72: case 0x73:
@@ -377,10 +383,13 @@ wmsx.OPL4AudioWave = function(opl4) {
             // 12 bits per sample
             off = (samplePos[cha] >> 1) * 3;
             bin = samplePos[cha] & 1
-                ? (opl4.memoryRead(start + off + 2) | (opl4.memoryRead(start + off + 1) & 0x0f)) << 8       // up tp 16 bits
-                : (opl4.memoryRead(start + off) | (opl4.memoryRead(start + off + 1) & 0xf0)) << 4;
+                ? (opl4.memoryRead(start + off + 2) << 4) | (opl4.memoryRead(start + off + 1) & 0x0f)      // up tp 16 bits
+                : (opl4.memoryRead(start + off) << 4) | (opl4.memoryRead(start + off + 1) >> 4)
+            ;
+            bin <<= 4;
         }
         return sampleValue[cha] = bin & 0x8000 ? bin - 0x10000 : bin;  // to signed -32768 .. 32767
+        // return sampleValue[cha] = bin - 32768;
     }
 
     function setRhythmKeyOnOp(op, on) {
@@ -516,7 +525,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     function updateFrequency(cha) {
         var vibVal = 0; vib[cha] ? vibValues[fNum[cha] >> 6][vibPhase] : 0;
-        phaseInc[cha] = (0x10000 + fNum[cha] + vibVal) << 8 >> (8 - octave[cha] + 1);
+        phaseInc[cha] = ((1 << 10) + fNum[cha] + vibVal) << 8 >> (8 - octave[cha] + 1);
         updateKSLAttenuation(cha);
         updateKSROffset(cha);
 

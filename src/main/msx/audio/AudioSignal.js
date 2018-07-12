@@ -14,6 +14,9 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
             case 72:
                 self.audioClockPulse = audioClockPulse72x;
                 break;
+            case 81.2734693877551:  // 44100 Hz approximation
+                self.audioClockPulse = audioClockPulse80x;
+                break;
             default:
                 throw new Error("Unsupported AudioSignal Sample Rate CPU clock multiple: " + multi);
         }
@@ -124,6 +127,13 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
         audioClockPulse32x();
     }
 
+    function audioClockPulse80x() {
+        // Verify if this clock should be missed. Perform only 2 clocks out of each 5 clock32x
+        --clock80xCountDown;
+        if (clock80xCountDown & 1) audioClockPulse32x();
+        if (clock80xCountDown === 0) clock80xCountDown = 5;
+    }
+
     function generateNextSample() {
         samples[nextSampleToGenerate] = source.nextSample() * volume;
         if (++nextSampleToGenerate >= maxSamples) nextSampleToGenerate = 0;          // Circular Buffer
@@ -143,7 +153,8 @@ wmsx.AudioSignal = function(name, source, sampleRate, volume) {
 
     this.name = name;
 
-    var clock72xCountDown = 9;              // 4 clocks out of 9 32x clocks. Count from 9 to 0 and misses every odd and the 8th clock
+    var clock72xCountDown = 9;              // 4 clocks out of 9 32x clocks. Count from 8 to 0 and misses every odd and the 8th clock
+    var clock80xCountDown = 5;              // 2 clocks out of 5 32x clocks. Count from 4 to 0 and misses every even clock
 
     var nextSampleToGenerate = 0;
     var nextSampleToRetrieve = 0;

@@ -144,7 +144,7 @@ wmsx.OPL4AudioFM = function(opl4) {
         // if ((clock & 0xffff) === 0) console.log("FM clock:", clock);
 
         ++clock;
-        clockTimers();
+        if ((clock & 0x03) === 0) clockTimers();
 
         return 0;
 
@@ -258,7 +258,7 @@ wmsx.OPL4AudioFM = function(opl4) {
     function clockTimers() {
         // console.log("FM Clock Timers");
 
-        if (timer1Active && (clock & 0x03) === 0)
+        if (timer1Active)
             if (++timer1Counter > 255) {
                 timer1Counter = timer1Preset;
                 if (!timer1Masked) {
@@ -289,10 +289,8 @@ wmsx.OPL4AudioFM = function(opl4) {
     function registerWrite(reg, val) {
         // console.log("FM Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
-        var mod = register[reg] ^ val;
-
-        // Special case for setting RST: 1. Other bits are ignored and not set. RST becomes 0
-        if ((mod & 0x80) && (val & 0x80)) {
+        // Special case for setting RST = 1. Other bits are ignored and not set. RST becomes 0
+        if (reg === 4 && (val & 0x80)) {
             // console.log("FM RESET flags");
             register[4] &= ~0x80;
             status = 0;
@@ -300,6 +298,7 @@ wmsx.OPL4AudioFM = function(opl4) {
             return;
         }
 
+        var mod = register[reg] ^ val;
         register[reg] = val;
 
         switch(reg) {
@@ -319,7 +318,7 @@ wmsx.OPL4AudioFM = function(opl4) {
                     if (timer2Active) timer2Counter = timer2Preset;
                 }
                 if (mod & 0x40) timer1Masked = (val & 0x40) !== 0;                      // MT1
-                if (mod & 0x20) timer2Masked = (val & 0x42) !== 0;                      // MT2
+                if (mod & 0x20) timer2Masked = (val & 0x20) !== 0;                      // MT2
                 break;
         }
 
