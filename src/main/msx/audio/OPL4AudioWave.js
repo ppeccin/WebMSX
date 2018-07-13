@@ -139,7 +139,7 @@ wmsx.OPL4AudioWave = function(opl4) {
             // }
 
             // Update ADSR envelopes
-            clockEnvelope(cha);
+            // clockEnvelope(cha);
 
             // Update phase (0..1023)
             phase = phaseCounter[cha];
@@ -160,23 +160,26 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function setWaveNumber(cha) {
-        var num = ((register[0x20 + cha] & 1) << 8) + register[0x08 + cha];
+        var num = ((register[0x20 + cha] & 1) << 8) | register[0x08 + cha];
         waveNumber[cha] = num;
 
-        var waveHeader = (register[2] >> 2) & 0x03;
-        var address = waveNumber < 384 ? 0 : waveHeader === 0 ? 0 : waveHeader << 19;
-        address += num * 12;
+        var waveHeader = (register[2] >> 2) & 0x07;
+        var address = num < 384 || waveHeader === 0 ? num * 12 : (waveHeader << 19) + (num - 384) * 12;
+
+        // console.log(cha, waveHeader, num, address);
 
         var val = opl4.memoryRead(address++);
         dataBits[cha] = val >> 6;
         startAddress[cha] = ((val & 0x3f) << 16) | (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);
         loopPosition[cha] = (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);      // delta from start in samples
-        endPosition[cha] =  ~((opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++)) & 0xffff;      // delta from start in samples
+        endPosition[cha] = ~((opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++)) & 0xffff;      // delta from start in samples
         registerWrite(0x80 + cha, opl4.memoryRead(address++));
         registerWrite(0x98 + cha, opl4.memoryRead(address++));
         registerWrite(0xb0 + cha, opl4.memoryRead(address++));
         registerWrite(0xc8 + cha, opl4.memoryRead(address++));
         registerWrite(0xe0 + cha, opl4.memoryRead(address++));
+
+        // console.log("Wave Number", cha, ":", num);
     }
 
     function registerWrite(reg, val) {
@@ -219,8 +222,8 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f: case 0x70: case 0x71: case 0x72: case 0x73:
             case 0x74: case 0x75: case 0x76: case 0x77: case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
-                if (mod & 0x10) setKeyOn(reg - 0x68, val >> 7);                                         // KEY ON
-                break
+                if (mod & 0x80) setKeyOn(reg - 0x68, val >> 7);                                         // KEY ON
+                break;
         }
 
         return;
@@ -351,7 +354,9 @@ wmsx.OPL4AudioWave = function(opl4) {
             startSample(cha);
             setEnvStep(cha, DAMP);
         } else
-            if (envStep[cha] !== IDLE) setEnvStep(cha, RELEASE);
+            if (envStep[cha] !== IDLE)
+                setEnvStep(cha, IDLE);
+            // setEnvStep(cha, RELEASE);
     }
 
     function startSample(cha) {
@@ -368,28 +373,31 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateSampleValue(cha) {
-        var off, bin;
+        var addr, bin;
         var start = startAddress[cha];
         var bits = dataBits[cha];
-        if (bits === 0) {
-            // 8 bits per sample
-            off = samplePos[cha];
-            bin = opl4.memoryRead(start + off) << 8;    // up to 16 bits
+        if (bits === 1) {
+            // 12 bits per sample
+            addr = start + (samplePos[cha] >> 1) * 3;
+            bin = samplePos[cha] & 1
+                ? ((opl4.memoryRead(addr + 2) << 4) | (opl4.memoryRead(addr + 1) & 0x0f))
+                : (opl4.memoryRead(addr) << 4) | (opl4.memoryRead(addr + 1) >> 4);
+            bin = (bin << 4) | ((bin & 0x7ff) >> 7);        // scale up to 16 bits
+            // bin = (bin << 4);
         } else if (bits === 2) {
             // 16 bits per sample
-            off = samplePos[cha] << 1;
-            bin = (opl4.memoryRead(start + off) << 8) | opl4.memoryRead(start + off + 1);
+            addr = start + (samplePos[cha] << 1);
+            bin = (opl4.memoryRead(addr) << 8) | opl4.memoryRead(addr + 1);
+        } else if (bits === 0) {
+            // 8 bits per sample
+            addr = start + samplePos[cha];
+            bin = opl4.memoryRead(addr);
+            bin = (bin << 8) | ((bin & 0x7f) << 1);         // scale up to 16 bits
+            // bin = (bin << 8);
         } else {
-            // 12 bits per sample
-            off = (samplePos[cha] >> 1) * 3;
-            bin = samplePos[cha] & 1
-                ? (opl4.memoryRead(start + off + 2) << 4) | (opl4.memoryRead(start + off + 1) & 0x0f)      // up tp 16 bits
-                : (opl4.memoryRead(start + off) << 4) | (opl4.memoryRead(start + off + 1) >> 4)
-            ;
-            bin <<= 4;
+            bin = 0;
         }
-        return sampleValue[cha] = bin & 0x8000 ? bin - 0x10000 : bin;  // to signed -32768 .. 32767
-        // return sampleValue[cha] = bin - 32768;
+        return sampleValue[cha] = bin & 0x8000 ? bin - 0x10000 : bin;       // to signed -32768 .. 32767
     }
 
     function setRhythmKeyOnOp(op, on) {
@@ -529,7 +537,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         updateKSLAttenuation(cha);
         updateKSROffset(cha);
 
-        // console.log("Wave UpdateFrequency", cha, ":", phaseInc[cha]);
+        // console.log("Wave UpdateFrequency", cha, ":", octave[cha], fNum[cha], phaseInc[cha].toString(16));
     }
 
     function updateKSROffset(chan) {
