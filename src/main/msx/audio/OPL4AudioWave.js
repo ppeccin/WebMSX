@@ -353,6 +353,9 @@ wmsx.OPL4AudioWave = function(opl4) {
         if (on) {
             startSample(cha);
             setEnvStep(cha, DAMP);
+
+            // console.log("Note:", cha, waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16));
+
         } else
             if (envStep[cha] !== IDLE)
                 setEnvStep(cha, IDLE);
@@ -798,6 +801,10 @@ wmsx.OPL4AudioWave = function(opl4) {
 
 
     init();
+
+    window.S = sineTable;
+    window.E = expTable;
+
 
     this.eval = function(str) {
         return eval(str);
