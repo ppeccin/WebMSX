@@ -75,7 +75,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.65 * (3 / 24 / 32768);                             // X channels, samples -32768 .. +32768
+    var VOLUME = 0.65 * (3 / 24 / 4096);                             // X channels, samples -32768 .. +32768
     var SAMPLE_RATE = 44100;    // wmsx.Machine.BASE_CPU_CLOCK / 72;        // Main CPU clock / 81.2734693877551 = 44100Hz
 
 
@@ -84,7 +84,9 @@ wmsx.OPL4Audio = function(pName, cart) {
     this.saveState = function() {
         return {
             n: name,
-            ac: audioConnected
+            ac: audioConnected,
+            fm: fm.saveState(),
+            wv: wave.saveState()
         };
     };
 
@@ -93,6 +95,9 @@ wmsx.OPL4Audio = function(pName, cart) {
 
         name = s.n;
         audioConnected = s.ac;
+
+        fm.loadState(s.fm);
+        wave.loadState(s.wv);
 
         if (audioConnected) connectAudio();
     };

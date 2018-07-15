@@ -55,7 +55,6 @@ wmsx.OPL4AudioFM = function(opl4) {
         wmsx.Util.arrayFill(register, 0);
         clock = 0;
 
-        timer1Preset = timer2Preset = 0;
         timer1Counter = timer2Counter = 0;
         timer1Active = timer2Active = false;
         timer1Masked = timer2Masked = 0;
@@ -260,7 +259,7 @@ wmsx.OPL4AudioFM = function(opl4) {
 
         if (timer1Active)
             if (++timer1Counter > 255) {
-                timer1Counter = timer1Preset;
+                timer1Counter = register[2];
                 if (!timer1Masked) {
                     status |= 0xc0;
                     updateIRQ();
@@ -268,7 +267,7 @@ wmsx.OPL4AudioFM = function(opl4) {
             }
         if (timer2Active && (clock & 0x0f) === 0)
             if (++timer2Counter > 255) {
-                timer2Counter = timer2Preset;
+                timer2Counter = register[3];
                 if (!timer2Masked) {
                     status |= 0xa0;
                     updateIRQ();
@@ -302,20 +301,14 @@ wmsx.OPL4AudioFM = function(opl4) {
         register[reg] = val;
 
         switch(reg) {
-            case 0x02:
-                timer1Preset = val;
-                break;
-            case 0x03:
-                timer2Preset = val;
-                break;
             case 0x04:
                 if (mod & 0x01) {                                                       // ST1
                     timer1Active = (val & 0x01) !== 0;
-                    if (timer1Active) timer1Counter = timer1Preset;
+                    if (timer1Active) timer1Counter = register[2];
                 }
                 if (mod & 0x02) {                                                       // ST2
                     timer2Active = (val & 0x02) !== 0;
-                    if (timer2Active) timer2Counter = timer2Preset;
+                    if (timer2Active) timer2Counter = register[3];
                 }
                 if (mod & 0x40) timer1Masked = (val & 0x40) !== 0;                      // MT1
                 if (mod & 0x20) timer2Masked = (val & 0x20) !== 0;                      // MT2
@@ -675,7 +668,6 @@ wmsx.OPL4AudioFM = function(opl4) {
     var registerAddress = 0;
     var register = new Array(0x38);
 
-    var timer1Preset = 0, timer2Preset = 0;
     var timer1Counter = 0, timer2Counter = 0;
     var timer1Active = false, timer2Active = false;
     var timer1Masked = false, timer2Masked = false;
@@ -804,12 +796,17 @@ wmsx.OPL4AudioFM = function(opl4) {
         return {
             ac: audioConnected,
 
+            s: status,
             ra: registerAddress,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
 
             c: clock,
             nr: noiseRegister, no: noiseOutput,
             al: amLevel, ai: amLevelInc, vp: vibPhase,
+
+            t1c: timer1Counter, t2c: timer2Counter,
+            t1a: timer1Active, t2a: timer2Active,
+            t1m: timer1Masked, t2m: timer2Masked,
 
             amt: wmsx.Util.storeInt16BitArrayToStringBase64(amAtt),
             evt: wmsx.Util.storeInt16BitArrayToStringBase64(envAtt),
@@ -836,6 +833,7 @@ wmsx.OPL4AudioFM = function(opl4) {
 
         audioConnected = s.ac;
 
+        status = s.s;
         registerAddress = s.ra;
         var regs = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
         for (var r = 0; r < regs.length; r++) registerWrite(r, regs[r]);
@@ -843,6 +841,10 @@ wmsx.OPL4AudioFM = function(opl4) {
         clock = s.c;
         noiseRegister = s.nr; noiseOutput = s.no;
         amLevel = s.al; amLevelInc = s.ai; vibPhase = s.vp;
+
+        timer1Counter = s.t1c; timer2Counter = s.t2c;
+        timer1Active = s.t1a; timer2Active = s.t2a;
+        timer1Masked = s.t1m; timer2Masked = s.t2m;
 
         amAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.amt, amAtt);
         envAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.evt, envAtt);
