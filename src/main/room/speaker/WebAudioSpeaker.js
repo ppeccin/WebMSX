@@ -53,7 +53,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     this.unpauseAudio = function () {
-        if (processor) processor.connect(audioContext.destination);
+        if (processor) processor.connect(filter);
     };
 
     this.toggleBufferBaseSize = function() {
@@ -112,6 +112,16 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             processor.onaudioprocess = onAudioProcess;
             bufferSize = processor.bufferSize;
             updateResamplingFactors();
+
+            filter = audioContext.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.frequency.value = 22050;
+            //filter.Q.value = 100;
+
+            filter.connect(audioContext.destination);
+
+            window.F = filter;
+
             wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         } catch(ex) {
             wmsx.Util.error("Could not create ScriptProcessorNode. Audio DISABLED!\n" + ex);
@@ -221,6 +231,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     var audioContext;
     var bufferSize;
     var processor;
+    var filter;
 
     var mute = false;
 
