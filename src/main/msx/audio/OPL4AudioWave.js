@@ -141,14 +141,13 @@ wmsx.OPL4AudioWave = function(opl4) {
         return sample;
     };
 
-    function updateWaveNumber(cha) {
-        var num = ((register[0x20 + cha] & 1) << 8) | register[0x08 + cha];
-        waveNumber[cha] = num;
+    function readWaveHeader(cha) {
+        var num = waveNumber[cha];
 
-        var waveHeader = (register[2] >> 2) & 0x07;
-        var address = num < 384 || waveHeader === 0 ? num * 12 : (waveHeader << 19) + (num - 384) * 12;
+        var waveTableHeader = (register[2] >> 2) & 0x07;
+        var address = num < 384 || waveTableHeader === 0 ? num * 12 : (waveTableHeader << 19) + (num - 384) * 12;
 
-        // console.log(cha, waveHeader, num, address);
+        // console.log(cha, waveTableHeader, num, address);
 
         var val = opl4.memoryRead(address++);
         dataBits[cha] = val >> 6;
@@ -182,7 +181,9 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f: case 0x10: case 0x11: case 0x12: case 0x13:
             case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-                updateWaveNumber(reg - 0x08);
+                cha = reg - 0x08;
+                waveNumber[cha] = ((register[0x20 + cha] & 1) << 8) | val;
+                readWaveHeader(cha);
                 break;
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29: case 0x2a: case 0x2b:
             case 0x2c: case 0x2d: case 0x2e: case 0x2f: case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
@@ -327,7 +328,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         } else {
             bin = 0;
         }
-        return sampleValue[cha] = linearTable[bin];       // to log signed -4096 .. 4095
+        return sampleValue[cha] = linearTable[bin];       // to log signed -4096 .. 4095, signal in bit 14
     }
 
     function updateSampleValue16bits(cha) {
@@ -588,13 +589,17 @@ wmsx.OPL4AudioWave = function(opl4) {
     this.saveState = function() {
         return {
             ra: registerAddress,
-            r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
             ma: memoryAddress,
+            r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
 
             c: clock,
             al: amLevel, ai: amLevelInc, vp: vibPhase,
 
             wn: wmsx.Util.storeInt16BitArrayToStringBase64(waveNumber),
+            db: wmsx.Util.storeInt8BitArrayToStringBase64(dataBits),
+            sa: wmsx.Util.storeInt32BitArrayToStringBase64(startAddress),
+            lp: wmsx.Util.storeInt16BitArrayToStringBase64(loopPosition),
+            ep: wmsx.Util.storeInt16BitArrayToStringBase64(endPosition),
 
             pc: wmsx.Util.storeInt32BitArrayToStringBase64(phaseCounter),
             sp: wmsx.Util.storeInt32BitArrayToStringBase64(samplePos),
@@ -623,14 +628,18 @@ wmsx.OPL4AudioWave = function(opl4) {
         registerAddress = s.ra;
         var reg = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r);
         for (var r = 0x02; r < 0x06; r++) registerWrite(r, reg[r]);
-        for (    r = 0x08; r < 0x20; r++) register[r] = reg[r];         // Wave Numbers are set differently below
+        for (    r = 0x08; r < 0x20; r++) register[r] = reg[r];         // Reading Wave Header data not necessary
         for (    r = 0x20; r < 0xfa; r++) registerWrite(r, reg[r]);
+        memoryAddress = s.ma;
 
         clock = s.c;
         amLevel = s.al; amLevelInc = s.ai; vibPhase = s.vp;
 
         waveNumber = wmsx.Util.restoreStringBase64ToInt16BitArray(s.wn, waveNumber);
-        for (r = 0; r < 24; r++) updateWaveNumber(r);
+        dataBits = wmsx.Util.restoreStringBase64ToInt8BitArray(s.db, dataBits);
+        startAddress = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sa, startAddress);
+        loopPosition = wmsx.Util.restoreStringBase64ToInt16BitArray(s.lp, loopPosition);
+        endPosition = wmsx.Util.restoreStringBase64ToInt16BitArray(s.ep, endPosition);
 
         phaseCounter = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pc, phaseCounter);
         samplePos = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sp, samplePos);
