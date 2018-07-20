@@ -48,11 +48,12 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(endPosition, 0);
         wmsx.Util.arrayFill(samplePos, 0);
         wmsx.Util.arrayFill(sampleValue, 0);
-        wmsx.Util.arrayFill(phaseInc, 0);
+        wmsx.Util.arrayFill(phaseInc, 0x200);   // Correct value for Octave = 0 and fNum = 0
         wmsx.Util.arrayFill(phaseCounter, 0);
 
         wmsx.Util.arrayFill(fNum, 0);
         wmsx.Util.arrayFill(octave, 0);
+        wmsx.Util.arrayFill(reverb, 0);
         wmsx.Util.arrayFill(keyOn, 0);
         wmsx.Util.arrayFill(ar, 0);
         wmsx.Util.arrayFill(d1r, 0);
@@ -60,10 +61,8 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(d2r, 0);
         wmsx.Util.arrayFill(rr, 0);
         wmsx.Util.arrayFill(volume, 0);
-        wmsx.Util.arrayFill(sustain, 0);
         wmsx.Util.arrayFill(am, 0);
         wmsx.Util.arrayFill(vib, 0);
-        wmsx.Util.arrayFill(envType, 0);
         wmsx.Util.arrayFill(rc, 0);
         wmsx.Util.arrayFill(ksl, 0);
 
@@ -196,12 +195,14 @@ wmsx.OPL4AudioWave = function(opl4) {
             case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f: case 0x40: case 0x41: case 0x42: case 0x43:
             case 0x44: case 0x45: case 0x46: case 0x47: case 0x48: case 0x49: case 0x4a: case 0x4b: case 0x4c: case 0x4d: case 0x4e: case 0x4f:
                 cha = reg - 0x38;
-                if (mod & 0x07)
-                    fNum[cha] = ((val & 0x07) << 7) | (register[0x20 + cha] >> 1);                      // FNUM
                 if (mod & 0xf0)
                     // signed 4 bits to decimal -8 .. 7
                     octave[cha] = val & 0x80 ? (val >> 4) - 0x10 : val >> 4;                            // OCTAVE
+                if (mod & 0x07)
+                    fNum[cha] = ((val & 0x07) << 7) | (register[0x20 + cha] >> 1);                      // FNUM
                 if (mod & 0xf7) updateFrequency(cha);
+                if (mod & 0x08)
+                    reverb[cha] = (val & 0x08) >> 3;                                                    // PSEUDO REVERB
                 break;
             case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f: case 0x70: case 0x71: case 0x72: case 0x73:
             case 0x74: case 0x75: case 0x76: case 0x77: case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
@@ -278,10 +279,6 @@ wmsx.OPL4AudioWave = function(opl4) {
         }
     }
 
-    function setSustain(chan, on) {
-        sustain[chan] = on;
-    }
-
     function setKeyOn(cha, on) {
         keyOn[cha] = on;
         // Define ADSR phase
@@ -290,11 +287,12 @@ wmsx.OPL4AudioWave = function(opl4) {
 
             // console.log("Note:", cha, waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16));
         } else
-            if (envStep[cha] !== IDLE) setEnvStep(cha, RELEASE);
+            if (envStep[cha] !== IDLE && envStep[cha] !== REVERB) setEnvStep(cha, RELEASE);
     }
 
     function startSample(cha) {
         samplePos[cha] = 0;
+        phaseCounter[cha] = 0;
         return updateSampleValue12bitsLog(cha);
     }
 
@@ -379,32 +377,40 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = d1r[cha] === 0 ? 0 : rateDecayDurTable[d1r[cha] + rcOffset[cha]];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                envStepNextAtLevel[cha] = dl[cha] << 3;
-                envStepNext[cha] = DECAY2;
+                if (reverb[cha]) {
+                    envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                    envStepNext[cha] = REVERB;
+                } else {
+                    envStepNextAtLevel[cha] = dl[cha] << 3;
+                    envStepNext[cha] = DECAY2;
+                }
                 break;
             case DECAY2:
-                if (envType[cha]) {
-                    envStepLevelIncClock[cha] = envStepLevelDur[cha] = 0;     // Never
-                    envStepLevelInc[cha] = 0;
-                    envStepNextAtLevel[cha] = 255;   // Never
-                    envStepNext[cha] = DECAY2;
+                envStepLevelDur[cha] = d2r[cha] === 0 ? 0 : rateDecayDurTable[d2r[cha] + rcOffset[cha]];
+                envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
+                envStepLevelInc[cha] = 1;
+                if (reverb[cha] && envLevel[cha] < 24) {
+                    envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                    envStepNext[cha] = REVERB;
                 } else {
-                    envStepLevelDur[cha] = d2r[cha] === 0 ? 0 : rateDecayDurTable[d2r[cha] + rcOffset[cha]];
-                    envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
-                    envStepLevelInc[cha] = 1;
                     envStepNextAtLevel[cha] = 128;
                     envStepNext[cha] = IDLE;
                 }
                 break;
             case RELEASE:
-                var rate;
-
-                // rate = envType[cha]
-                //     ? sustain[cha >> 1] ? 5 : rr[cha]     // Sustained tone
-                //     : sustain[cha >> 1] ? 5 : 7;         // Percussive tone
-
-                rate = rr[cha];
-                envStepLevelDur[cha] = rate === 0 ? 0 : rateDecayDurTable[rate + rcOffset[cha]];
+                envStepLevelDur[cha] = rr[cha] === 0 ? 0 : rateDecayDurTable[rr[cha] + rcOffset[cha]];
+                envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
+                envStepLevelInc[cha] = 1;
+                if (reverb[cha] && envLevel[cha] < 24) {
+                    envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                    envStepNext[cha] = REVERB;
+                } else {
+                    envStepNextAtLevel[cha] = 128;
+                    envStepNext[cha] = IDLE;
+                }
+                break;
+            case REVERB:
+                envStepLevelDur[cha] = rateDecayDurTable[5 << 2];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
                 envStepNextAtLevel[cha] = 128;
@@ -437,7 +443,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     function updateRateCorrOffset(cha) {
         // TODO: Fix : May get wrong rates (<0) from table since it can be < 0 because of octave.
-        // rcOffset[cha] = rc[cha] === 15 ? 0 : ((rc[cha] + octave[cha]) << 1) + (fNum[cha] >> 8) ;
+        rcOffset[cha] = rc[cha] === 15 ? 0 : ((rc[cha] + octave[cha]) << 1) + (fNum[cha] >> 8) ;
     }
 
     function updateAMAttenuation(cha) {
@@ -455,7 +461,8 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateEnvAttenuation(cha) {
-        envAtt[cha] = (envLevel[cha] === 128 ? 256 : envLevel[cha]) << 5;         // Higher attenuation in case of minimum level to produce silence
+        envAtt[cha] = envLevel[cha] << 5;
+        // envAtt[cha] = (envLevel[cha] === 128 ? 256 : envLevel[cha]) << 5;         // Higher attenuation in case of minimum level to produce silence
         updateTotalAttenuation(cha);
     }
 
@@ -495,6 +502,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     var fNum =   new Array(24);
     var octave = new Array(24);
+    var reverb = new Array(24);
     var keyOn =  new Array(24);
     var ar =     new Array(24);
     var d1r =    new Array(24);
@@ -503,10 +511,8 @@ wmsx.OPL4AudioWave = function(opl4) {
     var rc =     new Array(24);
     var rr =     new Array(24);
 
-    var sustain =  new Array(24);
     var am =       new Array(24);
     var vib =      new Array(24);
-    var envType =  new Array(24);
     var ksl =      new Array(24);
     var volume =   new Array(24);
 
@@ -530,7 +536,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Constants
 
-    var IDLE = 255, DAMP = 0, ATTACK = 1, DECAY1 = 2, DECAY2 = 3, RELEASE = 4;       // Envelope steps
+    var IDLE = 255, DAMP = 0, ATTACK = 1, DECAY1 = 2, DECAY2 = 3, RELEASE = 4, REVERB = 5;       // Envelope steps
 
 
     // Debug vars
@@ -538,7 +544,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     //this.register = register;
 
     //this.keyOn = keyOn;
-    //this.sustain = sustain;
+    //this.reverb = reverb;
     //this.fNum = fNum;
     //this.octave = octave;
     //this.instr = instr;

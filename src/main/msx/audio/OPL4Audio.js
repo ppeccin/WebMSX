@@ -75,7 +75,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.65 * (3 / 24 / 4096);                             // X channels, samples -32768 .. +32768
+    var VOLUME = 0.75 * (3 / 24 / 4096);                             // X channels, samples -4096 .. +4096
     var SAMPLE_RATE = 44100;    // wmsx.Machine.BASE_CPU_CLOCK / 72;        // Main CPU clock / 81.2734693877551 = 44100Hz
 
 
