@@ -15,7 +15,7 @@ wmsx.SCCIAudio = function() {
     };
 
     this.connectAudio = function() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, SAMPLE_RATE, VOLUME);
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, VOLUME, SAMPLE_RATE);
         if (audioSocket) audioSocket.connectAudioSignal(audioSignal);
     };
 
@@ -268,7 +268,7 @@ wmsx.SCCIAudio = function() {
     var CHANNEL_VOLUME_CURVE_POWER = 3;         // Sounds more linear than the normal PSG channels
 
     var VOLUME = 0.65;
-    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // main cpu clock / 32 = 112005hz
+    var SAMPLE_RATE = 112005;                   // main cpu clock / 32 = 112005 Hz
 
 
     // Savestate  -------------------------------------------

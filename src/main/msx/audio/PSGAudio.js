@@ -163,7 +163,7 @@ wmsx.PSGAudio = function(audioSocket) {
     };
 
     function connectAudio() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG", self, SAMPLE_RATE, VOLUME);
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG", self, VOLUME, SAMPLE_RATE);
         audioSocket.connectAudioSignal(audioSignal);
     }
 
@@ -244,7 +244,7 @@ wmsx.PSGAudio = function(audioSocket) {
     var CHANNEL_VOLUME_CURVE_POWER = 30;
 
     var VOLUME = 0.68;
-    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // Main CPU clock / 32 = 112005Hz
+    var SAMPLE_RATE = 112005;   // Main CPU clock / 32 = 112005 Hz
 
 
     // Savestate  -------------------------------------------

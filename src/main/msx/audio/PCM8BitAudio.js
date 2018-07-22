@@ -10,7 +10,7 @@ wmsx.PCM8BitAudio = function() {
     };
 
     this.connectAudio = function() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("PCM 8 bit", this, SAMPLE_RATE, VOLUME);
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("PCM 8 bit", this, VOLUME, SAMPLE_RATE);
         if (audioSocket) audioSocket.connectAudioSignal(audioSignal);
     };
 
@@ -36,10 +36,10 @@ wmsx.PCM8BitAudio = function() {
     var audioSignal;
     var audioSocket;
 
-    var CHANNEL_MAX_VOLUME = 0.25 / 128;                       // Sample values in the range -128..+127
+    var CHANNEL_MAX_VOLUME = 0.25 / 128;              // Sample values in the range -128..+127
 
     var VOLUME = 0.65;
-    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 32;       // Same as PSG Audio. Main cpu clock / 32 = 112005hz
+    var SAMPLE_RATE = 112005;                         // Same as PSG Audio. Main cpu clock / 32 = 112005 Hz
 
 
     // Savestate  -------------------------------------------

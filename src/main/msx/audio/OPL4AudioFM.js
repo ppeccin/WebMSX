@@ -139,14 +139,15 @@ wmsx.OPL4AudioFM = function(opl4) {
         registerAddress = 0x100 | val;
     };
 
-    this.nextSample = function() {
+    this.audioClockPulse = function() {
         // if ((clock & 0xffff) === 0) console.log("FM clock:", clock);
 
         ++clock;
         if ((clock & 0x03) === 0) clockTimers();
+    };
 
+    this.nextSample = function() {
         return 0;
-
 
         var amChanged, vibChanged = false;
         var m, c, mPh, cPh, mod;

@@ -224,7 +224,7 @@ wmsx.YM2413Audio = function(pName) {
 
     function connectAudio() {
         if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, SAMPLE_RATE, VOLUME);
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE);
             audioSocket.connectAudioSignal(audioSignal);
             audioConnected = true;
         }
@@ -699,8 +699,8 @@ wmsx.YM2413Audio = function(pName) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.65 * (1.55 / 9 / 256);                               // 9 channels, samples -256..+ 256
-    var SAMPLE_RATE = wmsx.Machine.BASE_CPU_CLOCK / 72;                 // Main CPU clock / 72 = 49780hz
+    var VOLUME = 0.65 * (1.55 / 9 / 256);       // 9 channels, samples -256..+ 256
+    var SAMPLE_RATE = 49780;                    // Main CPU clock / 72 = 49780 Hz
 
 
     // Savestate  -------------------------------------------

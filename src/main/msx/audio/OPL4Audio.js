@@ -46,8 +46,13 @@ wmsx.OPL4Audio = function(pName, cart) {
         wave.reset();
     };
 
+    this.audioClockPulse = function() {
+        fm.audioClockPulse();
+        wave.audioClockPulse();
+    };
+
     this.nextSample = function() {
-        return fm.nextSample() + wave.nextSample();
+        return wave.nextSample();
     };
 
     this.memoryRead = cart.opl4ReadMemory;
@@ -56,7 +61,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     function connectAudio() {
         if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, SAMPLE_RATE, VOLUME);
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE, CLOCK);
             audioSocket.connectAudioSignal(audioSignal);
             audioConnected = true;
         }
@@ -75,9 +80,9 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.75 * (3 / 24 / 4096);                             // X channels, samples -4096 .. +4096
-    var SAMPLE_RATE = 44100;    // wmsx.Machine.BASE_CPU_CLOCK / 72;        // Main CPU clock / 81.2734693877551 = 44100Hz
-
+    var VOLUME = 0.85 * (3 / 24 / 4096);      // X channels, samples -4096 .. +4096
+    var SAMPLE_RATE = 44100;                  // Main CPU clock / 81.2734693877551 = 44100 Hz
+    var CLOCK = 49780;                        // Main CPU clock / 72 = 49780 Hz
 
     // Savestate  -------------------------------------------
 

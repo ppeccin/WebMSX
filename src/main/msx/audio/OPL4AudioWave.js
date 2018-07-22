@@ -95,10 +95,8 @@ wmsx.OPL4AudioWave = function(opl4) {
         registerWrite(registerAddress, val);
     };
 
-    this.nextSample = function() {
+    this.audioClockPulse = function() {
         var amChanged, vibChanged = false;
-        var m, c, phase, newPhase, delta;
-        var sample = 0;
 
         ++clock;
 
@@ -120,6 +118,15 @@ wmsx.OPL4AudioWave = function(opl4) {
 
             // Update ADSR envelopes
             clockEnvelope(cha);
+        }
+    };
+
+    this.nextSample = function() {
+        var phase, newPhase, delta;
+        var sample = 0;
+
+        for (var cha = 23; cha >= 0; --cha) {
+            if (envStep[cha] === IDLE) continue;
 
             // Update phase (0..1023)
             phase = phaseCounter[cha];
@@ -377,25 +384,25 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = d1r[cha] === 0 ? 0 : rateDecayDurTable[d1r[cha] + rcOffset[cha]];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                // if (reverb[cha]) {
-                //     envStepNextAtLevel[cha] = 24;   // ~ 18 dB
-                //     envStepNext[cha] = REVERB;
-                // } else {
+                 if (reverb[cha]) {
+                     envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                     envStepNext[cha] = REVERB;
+                 } else {
                     envStepNextAtLevel[cha] = dl[cha] << 3;
                     envStepNext[cha] = DECAY2;
-                // }
+                 }
                 break;
             case DECAY2:
-                // envStepLevelDur[cha] = d2r[cha] === 0 ? 0 : rateDecayDurTable[d2r[cha] + rcOffset[cha]];
-                // envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
-                // envStepLevelInc[cha] = 1;
-                // if (reverb[cha] && envLevel[cha] < 24) {
-                //     envStepNextAtLevel[cha] = 24;   // ~ 18 dB
-                //     envStepNext[cha] = REVERB;
-                // } else {
+                 envStepLevelDur[cha] = d2r[cha] === 0 ? 0 : rateDecayDurTable[d2r[cha] + rcOffset[cha]];
+                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
+                 envStepLevelInc[cha] = 1;
+                 if (reverb[cha] && envLevel[cha] < 24) {
+                     envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                     envStepNext[cha] = REVERB;
+                 } else {
                     envStepNextAtLevel[cha] = 128;
                     envStepNext[cha] = IDLE;
-                // }
+                 }
                 break;
             case RELEASE:
                 envStepLevelDur[cha] = rr[cha] === 0 ? 0 : rateDecayDurTable[rr[cha] + rcOffset[cha]];
