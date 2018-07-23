@@ -369,7 +369,7 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = 1; // rateDecayDurTable[(14 << 2)];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                envStepNextAtLevel[cha] = 128;
+                envStepNextAtLevel[cha] = 256;
                 envStepNext[cha] = ATTACK;
                 break;
             case ATTACK:
@@ -385,7 +385,7 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
                  if (reverb[cha]) {
-                     envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                     envStepNextAtLevel[cha] = 6 << 3;   // ~ 18 dB
                      envStepNext[cha] = REVERB;
                  } else {
                     envStepNextAtLevel[cha] = dl[cha] << 3;
@@ -396,11 +396,11 @@ wmsx.OPL4AudioWave = function(opl4) {
                  envStepLevelDur[cha] = d2r[cha] === 0 ? 0 : rateDecayDurTable[d2r[cha] + rcOffset[cha]];
                  envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                  envStepLevelInc[cha] = 1;
-                 if (reverb[cha] && envLevel[cha] < 24) {
-                     envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                 if (reverb[cha] && envLevel[cha] < (6 << 3)) {
+                     envStepNextAtLevel[cha] = 6 << 3;   // ~ 18 dB
                      envStepNext[cha] = REVERB;
                  } else {
-                    envStepNextAtLevel[cha] = 128;
+                    envStepNextAtLevel[cha] = 256;
                     envStepNext[cha] = IDLE;
                  }
                 break;
@@ -408,11 +408,11 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = rr[cha] === 0 ? 0 : rateDecayDurTable[rr[cha] + rcOffset[cha]];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                if (reverb[cha] && envLevel[cha] < 24) {
-                    envStepNextAtLevel[cha] = 24;   // ~ 18 dB
+                if (reverb[cha] && envLevel[cha] < (6 << 3)) {
+                    envStepNextAtLevel[cha] = 6 << 3;   // ~ 18 dB
                     envStepNext[cha] = REVERB;
                 } else {
-                    envStepNextAtLevel[cha] = 128;
+                    envStepNextAtLevel[cha] = 256;
                     envStepNext[cha] = IDLE;
                 }
                 break;
@@ -420,12 +420,12 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = rateDecayDurTable[5 << 2];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                envStepNextAtLevel[cha] = 128;
+                envStepNextAtLevel[cha] = 256;
                 envStepNext[cha] = IDLE;
                 break;
             case IDLE:
             default:
-                envLevel[cha] = 128;
+                envLevel[cha] = 256;
                 envStepLevelIncClock[cha] = envStepLevelDur[cha] = 0;     // Never
                 envStepLevelInc[cha] = 0;
                 envStepNextAtLevel[cha] = 255;   // Never
@@ -468,7 +468,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateEnvAttenuation(cha) {
-        envAtt[cha] = envLevel[cha] << 5;
+        envAtt[cha] = envLevel[cha] << 4;
         // envAtt[cha] = (envLevel[cha] === 128 ? 256 : envLevel[cha]) << 5;         // Higher attenuation in case of minimum level to produce silence
         updateTotalAttenuation(cha);
     }
