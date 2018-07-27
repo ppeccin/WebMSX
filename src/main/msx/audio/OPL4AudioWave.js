@@ -15,6 +15,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
+        envAttackCurve = tabs.getEnvAttackCurve();
     }
 
     this.connect = function(machine) {
@@ -60,24 +61,24 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(dl, 0);
         wmsx.Util.arrayFill(d2r, 0);
         wmsx.Util.arrayFill(rr, 0);
-        wmsx.Util.arrayFill(volume, 0);
+        wmsx.Util.arrayFill(volume, 0x7f);
         wmsx.Util.arrayFill(am, 0);
         wmsx.Util.arrayFill(vib, 0);
         wmsx.Util.arrayFill(rc, 0);
 
         // Dynamic values
 
-        wmsx.Util.arrayFill(volumeAtt, 0);
+        wmsx.Util.arrayFill(volumeAtt, 0x7f << 4);
         wmsx.Util.arrayFill(amAtt, 0);
-        wmsx.Util.arrayFill(envAtt, 0);
-        wmsx.Util.arrayFill(totalAtt, 0);
+        wmsx.Util.arrayFill(envAtt, 0x100 << 4);
+        wmsx.Util.arrayFill(totalAtt, 0x100 << 4);
         wmsx.Util.arrayFill(envStep, IDLE);
         wmsx.Util.arrayFill(envStepLevelDur, 0);
         wmsx.Util.arrayFill(envStepLevelIncClock, 0);
         wmsx.Util.arrayFill(envStepLevelInc, 0);
         wmsx.Util.arrayFill(envStepNext, IDLE);
         wmsx.Util.arrayFill(envStepNextAtLevel, 0);
-        wmsx.Util.arrayFill(envLevel, 0);
+        wmsx.Util.arrayFill(envLevel, 256);
         wmsx.Util.arrayFill(rcOffset, 0);
     };
 
@@ -449,7 +450,7 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envLevel[cha] = 256;
                 envStepLevelIncClock[cha] = envStepLevelDur[cha] = 0;     // Never
                 envStepLevelInc[cha] = 0;
-                envStepNextAtLevel[cha] = 255;   // Never
+                envStepNextAtLevel[cha] = 257;   // Never
                 envStepNext[cha] = IDLE;
                 break;
         }
@@ -476,14 +477,12 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateEnvAttenuation(cha) {
-        envAtt[cha] = envLevel[cha] << 4;
-        // envAtt[cha] = (envLevel[cha] === 128 ? 256 : envLevel[cha]) << 5;         // Higher attenuation in case of minimum level to produce silence
+        envAtt[cha] = (envStep[cha] === ATTACK ? envAttackCurve[envLevel[cha]] : envLevel[cha]) << 4;
         updateTotalAttenuation(cha);
     }
 
     function updateVolumeAttenuation(cha) {
         volumeAtt[cha] = volume[cha] << 4;
-        // volumeAtt[cha] = (volume[cha] === 15 ? 30 : volume[cha]) << 7;            // Higher attenuation in case of minimum volume to produce silence
         updateTotalAttenuation(cha);
     }
 
@@ -555,7 +554,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Pre calculated tables, factors, values
 
-    var linearTable, expTable, vibValues, kslValues, rateAttackDurTable, rateDecayDurTable;
+    var linearTable, expTable, vibValues, kslValues, rateAttackDurTable, rateDecayDurTable, envAttackCurve;
 
 
     // Savestate  -------------------------------------------
