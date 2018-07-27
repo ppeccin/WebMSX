@@ -221,6 +221,8 @@ wmsx.OPL4AudioWave = function(opl4) {
             case 0x74: case 0x75: case 0x76: case 0x77: case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
                 cha = reg - 0x68;
                 if (mod & 0x80) setKeyOn(cha, val >> 7);                                                // KEY ON
+                if (mod & 0x40)
+                    if (val & 0x40) setEnvStep(cha, DAMP_END);                                          // DAMP
                 break;
             case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f: case 0xa0: case 0xa1: case 0xa2: case 0xa3:
             case 0xa4: case 0xa5: case 0xa6: case 0xa7: case 0xa8: case 0xa9: case 0xaa: case 0xab: case 0xac: case 0xad: case 0xae: case 0xaf:
@@ -296,7 +298,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         keyOn[cha] = on;
         // Define ADSR phase
         if (on) {
-            setEnvStep(cha, DAMP);
+            setEnvStep(cha, DAMP_START);
 
             // console.log("Note:", cha, waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16));
         } else
@@ -370,9 +372,10 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     function setEnvStep(cha, step) {
         envStep[cha] = step;
-        var reverbEnvLevel = 6 << 3;
+        var reverbEnvLevel = 6 << 3;   //  -18 dB
+        var nextLevel;
         switch (step) {
-            case DAMP:
+            case DAMP_START:
                 envStepLevelDur[cha] = 1; // rateDecayDurTable[(14 << 2)];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
@@ -391,11 +394,13 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = d1r[cha] === 0 ? 0 : rateDecayDurTable[d1r[cha] + rcOffset[cha]];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                envStepNextAtLevel[cha] = dl[cha] << 3;
-                envStepNext[cha] = DECAY2;
-                if (reverb[cha] && envStepNextAtLevel[cha] >= reverbEnvLevel) {
-                    envStepNextAtLevel[cha] = reverbEnvLevel;   // ~ 18 dB
+                nextLevel = dl[cha] << 3;
+                if (reverb[cha] && nextLevel >= reverbEnvLevel) {
+                    envStepNextAtLevel[cha] = reverbEnvLevel;
                     envStepNext[cha] = REVERB;
+                } else {
+                    envStepNextAtLevel[cha] = nextLevel;
+                    envStepNext[cha] = DECAY2;
                 }
                 break;
             case DECAY2:
@@ -403,7 +408,7 @@ wmsx.OPL4AudioWave = function(opl4) {
                  envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                  envStepLevelInc[cha] = 1;
                  if (reverb[cha] && envLevel[cha] < reverbEnvLevel) {
-                     envStepNextAtLevel[cha] = reverbEnvLevel;   // ~ 18 dB
+                     envStepNextAtLevel[cha] = reverbEnvLevel;
                      envStepNext[cha] = REVERB;
                  } else {
                      envStepNextAtLevel[cha] = 256;
@@ -414,9 +419,12 @@ wmsx.OPL4AudioWave = function(opl4) {
                 envStepLevelDur[cha] = rr[cha] === 0 ? 0 : rateDecayDurTable[rr[cha] + rcOffset[cha]];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
-                if (reverb[cha] && envLevel[cha] < reverbEnvLevel) {
-                    envStepNextAtLevel[cha] = reverbEnvLevel;   // ~ 18 dB
-                    envStepNext[cha] = REVERB;
+                if (reverb[cha]) {
+                    if (envLevel[cha] < reverbEnvLevel) {
+                        envStepNextAtLevel[cha] = reverbEnvLevel;
+                        envStepNext[cha] = REVERB;
+                    } else
+                        setEnvStep(cha, REVERB);
                 } else {
                     envStepNextAtLevel[cha] = 256;
                     envStepNext[cha] = IDLE;
@@ -424,6 +432,13 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case REVERB:
                 envStepLevelDur[cha] = rateDecayDurTable[5 << 2];
+                envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
+                envStepLevelInc[cha] = 1;
+                envStepNextAtLevel[cha] = 256;
+                envStepNext[cha] = IDLE;
+                break;
+            case DAMP_END:
+                envStepLevelDur[cha] = rateDecayDurTable[(14 << 2)];
                 envStepLevelIncClock[cha] = clock + envStepLevelDur[cha];
                 envStepLevelInc[cha] = 1;
                 envStepNextAtLevel[cha] = 256;
@@ -535,7 +550,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Constants
 
-    var IDLE = 255, DAMP = 0, ATTACK = 1, DECAY1 = 2, DECAY2 = 3, RELEASE = 4, REVERB = 5;       // Envelope steps
+    var IDLE = 255, DAMP_START = 0, ATTACK = 1, DECAY1 = 2, DECAY2 = 3, RELEASE = 4, REVERB = 5, DAMP_END = 6;       // Envelope steps
 
 
     // Pre calculated tables, factors, values
