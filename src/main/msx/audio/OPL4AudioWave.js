@@ -299,7 +299,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         keyOn[cha] = on;
         // Define ADSR phase
         if (on) {
-            setEnvStep(cha, DAMP_START);
+            setEnvStep(cha, ATTACK);
 
             // console.log("Note:", cha, waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16));
         } else
@@ -587,8 +587,8 @@ wmsx.OPL4AudioWave = function(opl4) {
             evc: envStepLevelIncClock,
             evi: wmsx.Util.storeInt8BitArrayToStringBase64(envStepLevelInc),
             evn: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNext),
-            evl: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNextAtLevel),
-            eve: wmsx.Util.storeInt8BitArrayToStringBase64(envLevel),
+            evl: wmsx.Util.storeInt16BitArrayToStringBase64(envStepNextAtLevel),
+            eve: wmsx.Util.storeInt16BitArrayToStringBase64(envLevel),
 
             kso: wmsx.Util.storeInt8BitArrayToStringBase64(rcOffset)
         }
@@ -626,8 +626,8 @@ wmsx.OPL4AudioWave = function(opl4) {
         envStepLevelIncClock = s.evc;
         envStepLevelInc = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.evi, envStepLevelInc);
         envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
-        envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evl, envStepNextAtLevel);
-        envLevel = wmsx.Util.restoreStringBase64ToInt8BitArray(s.eve, envLevel);
+        envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.evl, envStepNextAtLevel);
+        envLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.eve, envLevel);
         rcOffset = wmsx.Util.restoreStringBase64ToInt8BitArray(s.kso, rcOffset);
     };
 

@@ -8,7 +8,9 @@ wmsx.OPL4WaveTables = function() {
         tab[0] = 0;
         tab[256] = 256;
         for (var i = 1; i < 256; ++i)
-            tab[i] = 256 - Math.floor((Math.log(((256 - i)/256) + 0.0188) / 4 + 0.995) * 256);
+            tab[i] = -Math.floor((Math.log(((256 - i)/256) + 0.00001) / 12) * 256);
+            // tab[i] = -Math.floor((Math.log(((256 - i)/256) + 0.0025) / 6) * 256);
+            // tab[i] = 256 - Math.floor((Math.log(((256 - i)/256) + 0.0188) / 4 + 0.995) * 256);
         return tab;
     };
 
@@ -44,7 +46,7 @@ wmsx.OPL4WaveTables = function() {
         var tab = new Array(76);
         for (var i = 0; i < 64; ++i) {
             var dur = this.RATE_ATTACK_DURATIONS[i];
-            tab[i] = dur >= 0 ? Math.max(1, Math.round(dur / 1000 * 49780 / 256)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
+            tab[i] = dur >= 0 ? Math.max(1, Math.round(dur / 2.2 / 1000 * 49780 / 256)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
         }
         // Repeat last value for exceeding rates (> 63), possible when Rate = 15 and KSR offset > 3, as (Rate x 4 + KSROffset) can be > 63!
         for (i = 64; i < 60 + 16; ++i)
