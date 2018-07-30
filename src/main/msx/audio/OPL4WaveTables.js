@@ -38,10 +38,6 @@ wmsx.OPL4WaveTables = function() {
         return this.VIB_VALUES;
     };
 
-    this.getKSLValues = function() {
-        return this.KSL_VALUES;
-    };
-
     this.getRateAttackDurations = function() {
         var tab = new Array(76);
         for (var i = 0; i < 64; ++i) {
@@ -66,6 +62,10 @@ wmsx.OPL4WaveTables = function() {
             tab[i] = tab[63];
 
         return tab;
+    };
+
+    this.getPanPotValues = function() {
+        return this.PANPOT_VALUES;
     };
 
     this.VIB_VALUES = [
@@ -116,5 +116,12 @@ wmsx.OPL4WaveTables = function() {
                  10.08,           8.71,           7.23,              6.21,
                   5.44,           5.44,           5.44,              5.44
     ];
+
+    this.PANPOT_VALUES =  [
+        // -3 .. -18 dB. Min = -96 dB
+        [ 0, 1, 2, 3, 4, 5, 6, 32, 32,   0, 0, 0, 0, 0, 0, 0 ],     // L
+        [ 0, 0, 0, 0, 0, 0, 0,   0, 32, 32, 6, 5, 4, 3, 2, 1 ]      // R
+    ]
+
 
 };

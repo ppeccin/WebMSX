@@ -70,7 +70,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     function connectAudio() {
         if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE, CLOCK);
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE, true, CLOCK);
             audioSocket.connectAudioSignal(audioSignal);
             audioConnected = true;
         }

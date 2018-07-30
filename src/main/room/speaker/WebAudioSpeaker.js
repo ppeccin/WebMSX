@@ -53,7 +53,8 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     this.unpauseAudio = function () {
-        if (processor) processor.connect(filter);
+        if (processor) processor.connect(audioContext.destination);
+        //if (processor) processor.connect(filter);
     };
 
     this.toggleBufferBaseSize = function() {
@@ -108,19 +109,18 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             // If not specified, calculate buffer size based on baseSize and host audio sampling rate. Ex: for a baseSize = 1 then 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
             var baseSize = bufferBaseSize === -1 ? determineAutoBufferBaseSize() : bufferBaseSize === 0 ? determineBrowserDefaultBufferBaseSize() : bufferBaseSize;
             var totalSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : baseSize > 0 ? wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(baseSize - 1) * 256 : 0;
-            processor = audioContext.createScriptProcessor(totalSize, 1, 1);
+            processor = audioContext.createScriptProcessor(totalSize, 2, 2);
             processor.onaudioprocess = onAudioProcess;
             bufferSize = processor.bufferSize;
             updateResamplingFactors();
 
-            filter = audioContext.createBiquadFilter();
-            filter.type = "lowpass";
-            filter.frequency.value = 22050;
+            //filter = audioContext.createBiquadFilter();
+            //filter.type = "lowpass";
+            //filter.frequency.value = 22050;
             //filter.Q.value = 100;
+            //filter.connect(audioContext.destination);
 
-            filter.connect(audioContext.destination);
-
-            window.F = filter;
+            //window.F = filter;
 
             wmsx.Util.log("Audio Processor buffer size: " + processor.bufferSize);
         } catch(ex) {
@@ -177,14 +177,16 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         //    lastOnAudioProcessTime = now;
         //}
 
-        // Assumes there is only one output channel
-        var outputBuffer = event.outputBuffer.getChannelData(0);
-        var outputBufferSize = outputBuffer.length;
+        // Assumes there are 2 output channels
+        var outputBuffer0 = event.outputBuffer.getChannelData(0);
+        var outputBuffer1 = event.outputBuffer.getChannelData(1);
+        // Assumes L & R buffers will always have the same size
+        var outputBufferSize = outputBuffer0.length;
 
         //if (outputBufferSize !== bufferSize) bufferSizeProblem = outputBufferSize;
 
-        // Clear output buffer
-        for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer[j] = 0;
+        // Clear output buffers
+        for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer0[j] = outputBuffer1[j] = 0;
 
         if (audioSignal.length === 0) return;
 
@@ -192,26 +194,32 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         for (var i = audioSignal.length - 1; i >= 0; i = i - 1) {
             var resampFactor = resamplingFactor[i];
             var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
-            var inputBuffer = input.buffer;
+            var inputBuffer0 = input.buffer0;
+            var inputBuffer1 = input.buffer1;
             var inputBufferSize = input.bufferSize;
 
             // Copy to output performing basic re-sampling
             // Same as Util.arrayCopyCircularSourceWithStep, but optimized with local code
             var s = input.start + resamplingLeftOver[i];
             var d = 0;
-            while (d < outputBufferSize) {
-                outputBuffer[d] += inputBuffer[s | 0];   // source position as integer
 
-                //COUNTER--; if (COUNTER < 0) {
-                //    COUNTER = 160;
-                //    SIGNAL = -SIGNAL;
-                //}
-                //outputBuffer[d] = SIGNAL * 0.4;
+            // Optimized loop for mono or stereo signals
+            if (input.stereo)
+                while (d < outputBufferSize) {
+                    outputBuffer0[d] = inputBuffer0[s | 0];   // source position as integer
+                    outputBuffer1[d] = inputBuffer1[s | 0];
+                    ++d;
+                    s += resampFactor;
+                    if (s >= inputBufferSize) s -= inputBufferSize;
+                }
+            else
+                while (d < outputBufferSize) {
+                    outputBuffer0[d] = outputBuffer1[d] = inputBuffer0[s | 0];   // source position as integer
+                    ++d;
+                    s += resampFactor;
+                    if (s >= inputBufferSize) s -= inputBufferSize;
+                }
 
-                d = d + 1;
-                s = s + resampFactor;
-                if (s >= inputBufferSize) s = s - inputBufferSize;
-            }
             resamplingLeftOver[i] = s - (s | 0);        // fractional part
         }
 
