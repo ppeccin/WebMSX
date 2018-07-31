@@ -16,6 +16,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         rateDecayDurTable = tabs.getRateDecayDurations();
         envAttackCurve = tabs.getEnvAttackCurve();
         panpotValues = tabs.getPanPotValues();
+        volumeTable = tabs.getVolumeTable();
     }
 
     this.connect = function(machine) {
@@ -61,17 +62,19 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(dl, 0);
         wmsx.Util.arrayFill(d2r, 0);
         wmsx.Util.arrayFill(rr, 0);
-        wmsx.Util.arrayFill(volume, 0x7f);
         wmsx.Util.arrayFill(am, 0);
         wmsx.Util.arrayFill(vib, 0);
         wmsx.Util.arrayFill(rc, 0);
+        wmsx.Util.arrayFill(volume, 0x7f);
+        wmsx.Util.arrayFill(panpotL, 0);
+        wmsx.Util.arrayFill(panpotR, 0);
 
         // Dynamic values
 
         wmsx.Util.arrayFill(amAtt, 0);
-        wmsx.Util.arrayFill(envAtt, 0x100 << 4);
-        wmsx.Util.arrayFill(totalAttL, 0x100 << 4);
-        wmsx.Util.arrayFill(totalAttR, 0x100 << 4);
+        wmsx.Util.arrayFill(envAtt, 256);
+        wmsx.Util.arrayFill(totalAttL, 1024);
+        wmsx.Util.arrayFill(totalAttR, 1024);
         wmsx.Util.arrayFill(envStep, IDLE);
         wmsx.Util.arrayFill(envStepLevelDur, 0);
         wmsx.Util.arrayFill(envStepLevelIncClock, 0);
@@ -135,11 +138,11 @@ wmsx.OPL4AudioWave = function(opl4) {
 
             if (delta > 0) {
                 sample = advanceSample(cha, delta);
-                sampleL += expTable[sample + totalAttL[cha]];
-                sampleR += expTable[sample + totalAttR[cha]];
+                sampleL += sample * volumeTable[totalAttL[cha]];
+                sampleR += sample * volumeTable[totalAttR[cha]];
             } else {
-                sampleL += expTable[sampleValue[cha] + totalAttL[cha]];
-                sampleR += expTable[sampleValue[cha] + totalAttR[cha]];
+                sampleL += sampleValue[cha] * volumeTable[totalAttL[cha]];
+                sampleR += sampleValue[cha] * volumeTable[totalAttR[cha]];
             }
 
             // if (delta > 0) sampleL += advanceSample(cha, delta); else sampleL += sampleValue[cha];
@@ -319,7 +322,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     function startSample(cha) {
         samplePos[cha] = 0;
         phaseCounter[cha] = 0;
-        return updateSampleValue12bitsLog(cha);
+        return updateSampleValue16bits(cha);
     }
 
     function advanceSample(cha, quant) {
@@ -327,7 +330,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         samplePos[cha] = newPos > endPosition[cha]
             ? loopPosition[cha] + (newPos - endPosition[cha]) - 1
             : newPos;
-        return updateSampleValue12bitsLog(cha);
+        return updateSampleValue16bits(cha);
     }
 
     function updateSampleValue12bitsLog(cha) {
@@ -492,8 +495,8 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateTotalAttenuation(cha) {
-        totalAttL[cha] = amAtt[cha] + (envAtt[cha] << 4) + (volume[cha] << 4) + (panpotL[cha] << 7);
-        totalAttR[cha] = amAtt[cha] + (envAtt[cha] << 4) + (volume[cha] << 4) + (panpotR[cha] << 7);
+        totalAttL[cha] = amAtt[cha] + (envAtt[cha] << 0) + (volume[cha] << 0) + (panpotL[cha] << 3);
+        totalAttR[cha] = amAtt[cha] + (envAtt[cha] << 0) + (volume[cha] << 0) + (panpotR[cha] << 3);
     }
 
 
@@ -559,7 +562,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Pre calculated tables, factors, values
 
-    var linearTable, expTable, vibValues, rateAttackDurTable, rateDecayDurTable, envAttackCurve, panpotValues;
+    var volumeTable, linearTable, expTable, vibValues, rateAttackDurTable, rateDecayDurTable, envAttackCurve, panpotValues;
     var sampleResult = [ 0, 0 ];
 
 

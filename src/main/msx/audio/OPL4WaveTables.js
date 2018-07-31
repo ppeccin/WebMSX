@@ -68,6 +68,14 @@ wmsx.OPL4WaveTables = function() {
         return this.PANPOT_VALUES;
     };
 
+    this.getVolumeTable = function() {
+        var v = new Array(1025);
+        for (var i = 0; i < 1024; ++i) v[i] = Math.pow(10, -0.375 * i / 20);
+        v[1024] = 0;
+        return v;
+    };
+
+
     this.VIB_VALUES = [
         [ 0, 0, 0, 0, 0,  0,  0,  0 ],      // According to fNum >> 6 (one line for each value)
         [ 0, 0, 1, 0, 0,  0, -1,  0 ],      // Half these values must be added to fNum BEFORE multi
@@ -121,7 +129,6 @@ wmsx.OPL4WaveTables = function() {
         // -3 .. -18 dB. Min = -96 dB
         [ 0, 1, 2, 3, 4, 5, 6, 32, 32,   0, 0, 0, 0, 0, 0, 0 ],     // L
         [ 0, 0, 0, 0, 0, 0, 0,   0, 32, 32, 6, 5, 4, 3, 2, 1 ]      // R
-    ]
-
+    ];
 
 };
