@@ -15,6 +15,7 @@ module.exports = function (grunt) {
                     "src/main/util/Util.js",
                     "src/main/util/SHA1.js",
                     "src/main/util/ZIP.js",
+                    "src/main/util/LHA.js",
                     "src/main/util/EmbeddedFiles.js",
                     "src/main/util/MultiDownloader.js",
                     "src/main/util/MultiFileReader.js",
