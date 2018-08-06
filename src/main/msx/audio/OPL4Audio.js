@@ -49,8 +49,8 @@ wmsx.OPL4Audio = function(pName, cart) {
     this.audioClockPulse = function() {
         try {
             fm.audioClockPulse();
-            wave.audioClockPulse();
         } catch (e) {
+            window.E = e;
             console.error(e);
         }
     };
@@ -59,6 +59,7 @@ wmsx.OPL4Audio = function(pName, cart) {
         try {
             return wave.nextSample();
         } catch (e) {
+            window.E = e;
             console.error(e);
             return 0;
         }

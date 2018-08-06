@@ -69,9 +69,9 @@ wmsx.OPL4WaveTables = function() {
     };
 
     this.getVolumeTable = function() {
-        var v = new Array(1025);
-        for (var i = 0; i < 1024; ++i) v[i] = Math.pow(10, -0.375 * i / 20);
-        v[1024] = 0;
+        var v = new Array(1536);
+        for (var i = 0; i < 1536; ++i) v[i] = Math.pow(10, -0.1875 * i / 20);
+        v[1535] = 0;
         return v;
     };
 
@@ -127,54 +127,55 @@ wmsx.OPL4WaveTables = function() {
 
     this.PANPOT_VALUES =  [
         // -3 .. -18 dB. Min = -96 dB
-        [ 0, 1, 2, 3, 4, 5, 6, 32, 32,   0, 0, 0, 0, 0, 0, 0 ],     // L
-        [ 0, 0, 0, 0, 0, 0, 0,   0, 32, 32, 6, 5, 4, 3, 2, 1 ]      // R
-    ];
-
-
-    this.CACA = [
-        // For Rate 4 .. 59
-
-        // Decay inc
-        1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 2, 1, 1, 1, 2,
-        1, 2, 1, 2, 1, 2, 1, 2,
-        1, 2, 2, 2, 1, 2, 2, 2,
-
-        // Attack dec shift
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 2, 3, 3, 3, 2,
-        3, 2, 3, 2, 3, 2, 3, 2,
-        3, 2, 2, 2, 3, 2, 2, 2,
-
-
-        // For Rate 60 .. 63
-
-        // Decay inc
-        2, 2, 2, 2, 2, 2, 2, 2,
-
-        // Attack dec shift
-        2, 2, 2, 2, 2, 2, 2, 2
+        [ 0, 16, 32, 48, 64, 80, 96, 512, 512,   0,  0,  0,  0,  0,  0,  0 ],     // L
+        [ 0,  0,  0,  0,  0,  0,  0,   0, 512, 512, 96, 80, 64, 48, 32, 16 ]      // R
     ];
 
     this.rateDecayInc = [
-        //
+        // One step per clock from Rate 52 on
+
+        // 0 .. 3
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
 
+        // 4 .. 55
+        0, 1, 0, 1, 0, 1, 0, 1,
+        0, 1, 0, 1, 1, 0, 1, 1,
+        0, 1, 1, 1, 0, 1, 1, 1,
+        0, 1, 1, 1, 1, 1, 1, 1,
+
+        // 56 .. 60
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 2, 1, 1, 1, 2,
         1, 2, 1, 2, 1, 2, 1, 2,
         1, 2, 2, 2, 1, 2, 2, 2,
 
-        1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 2, 1, 1, 1, 2,
-        1, 2, 1, 2, 1, 2, 1, 2,
-        1, 2, 2, 2, 1, 2, 2, 2,
+        // 61 .. 63
+        2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2
+    ];
 
-        // Attack dec shift
+    this.rateAttackDecShift = [
+        // Zero
+        // One step per clock from Rate 52 on
+
+        // 0 .. 3
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+
+        // 4 .. 55
+        0, 3, 0, 3, 0, 3, 0, 3,
+        0, 3, 0, 3, 3, 0, 3, 3,
+        0, 3, 3, 3, 0, 3, 3, 3,
+        0, 3, 3, 3, 3, 3, 3, 3,
+
+        // 56 .. 60
         3, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 2, 3, 3, 3, 2,
         3, 2, 3, 2, 3, 2, 3, 2,
@@ -182,12 +183,24 @@ wmsx.OPL4WaveTables = function() {
 
 
         // For Rate 60 .. 63
-
-        // Decay inc
         2, 2, 2, 2, 2, 2, 2, 2,
-
-        // Attack dec shift
-        2, 2, 2, 2, 2, 2, 2, 2
+        2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2,
+        0, 0, 0, 0, 0, 0, 0, 0
     ];
+
+    this.getRateDecayClocks = function() {
+        var tab = new Array(76);
+        for (var i = 0; i < 64; ++i) {
+            var dur = this.RATE_DECAY_DURATIONS[i];
+            // Duration in clocks for entire range. 16 fractional bits
+            tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 512)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
+        }
+        // Repeat last value for exceeding rates (> 63)
+        for (i = 64; i < 128; ++i)
+            tab[i] = tab[63];
+
+        return tab;
+    };
 
 };
