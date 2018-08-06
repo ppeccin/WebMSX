@@ -103,7 +103,7 @@ wmsx.OPL4WaveTables = function() {
                   3.04,           2.49,           2.13,           1.90,
                   1.72,           1.41,           1.18,           1.04,
                   0.91,           0.73,           0.59,           0.50,
-                  0.45,           0.45,           0.45,           0.00      // instantaneous, will be 1 clock (the next clock)
+                  0.45,           0.45,           0.45,           0.45      // instantaneous, will be 1 clock (the next clock)
     ];
 
     this.RATE_DECAY_DURATIONS = [
@@ -195,6 +195,20 @@ wmsx.OPL4WaveTables = function() {
             var dur = this.RATE_DECAY_DURATIONS[i];
             // Duration in clocks for entire range. 16 fractional bits
             tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 512)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
+        }
+        // Repeat last value for exceeding rates (> 63)
+        for (i = 64; i < 128; ++i)
+            tab[i] = tab[63];
+
+        return tab;
+    };
+
+    this.getRateAttackClocks = function() {
+        var tab = new Array(76);
+        for (var i = 0; i < 64; ++i) {
+            var dur = this.RATE_ATTACK_DURATIONS[i];
+            // Duration in clocks for entire range. 16 fractional bits
+            tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 32)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
         }
         // Repeat last value for exceeding rates (> 63)
         for (i = 64; i < 128; ++i)
