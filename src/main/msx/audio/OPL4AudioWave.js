@@ -290,7 +290,8 @@ wmsx.OPL4AudioWave = function(opl4) {
 
         oldLevel = envLevel[cha];
         if (envStep[cha] === ATTACK) {
-            newLevel = oldLevel + (~oldLevel >> (4 - (delta > 4 ? 4 : delta)));
+            // newLevel = oldLevel + (~oldLevel >> (4 - (delta > 4 ? 4 : delta)));
+            newLevel = oldLevel + (~oldLevel >> 3);
             if (newLevel <= 0) {
                 setEnvStep(cha, DECAY1);
                 updateTotalAttenuation(cha);

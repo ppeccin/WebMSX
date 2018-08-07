@@ -208,7 +208,7 @@ wmsx.OPL4WaveTables = function() {
         for (var i = 0; i < 64; ++i) {
             var dur = this.RATE_ATTACK_DURATIONS[i];
             // Duration in clocks for entire range. 16 fractional bits
-            tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 32)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
+            tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 35)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
         }
         // Repeat last value for exceeding rates (> 63)
         for (i = 64; i < 128; ++i)
