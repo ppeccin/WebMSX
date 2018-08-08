@@ -9,8 +9,6 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     function init() {
         var tabs = new wmsx.OPL4WaveTables();
-        linearTable = tabs.getLinearTable12Bits();
-        expTable = tabs.getExpTable();
         vibValues = tabs.getVIBValues();
         rateClocks = tabs.getRateDecayClocks();
         panpotValues = tabs.getPanPotValues();
@@ -538,7 +536,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Pre calculated tables, factors, values
 
-    var volumeTable, linearTable, expTable, vibValues, rateClocks, panpotValues;
+    var volumeTable, vibValues, rateClocks, panpotValues;
     var sampleResult = [ 0, 0 ];
 
 

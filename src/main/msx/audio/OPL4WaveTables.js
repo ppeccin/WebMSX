@@ -3,37 +3,6 @@
 wmsx.OPL4WaveTables = function() {
 "use strict";
 
-    this.getEnvAttackCurve = function() {
-        var tab = new Array(257);
-        tab[0] = 0;
-        tab[256] = 256;
-        for (var i = 1; i < 256; ++i)
-            tab[i] = -Math.floor((Math.log(((256 - i)/256) + 0.00001) / 12) * 256);
-            // tab[i] = -Math.floor((Math.log(((256 - i)/256) + 0.0025) / 6) * 256);
-            // tab[i] = 256 - Math.floor((Math.log(((256 - i)/256) + 0.0188) / 4 + 0.995) * 256);
-        return tab;
-    };
-
-
-    this.getLinearTable12Bits = function() {
-        // Complete table for all possible values (4096 entries). -255 .. 255 values, sign in bit 14
-        var tab = new Array(4096);
-        for (var i = 0; i < 4096; ++i)
-            tab[i] = i < 2048 ? Math.round(-wmsx.Util.log2((i + 0.1) / 2047) * 256) : 0x4000 | Math.round(-wmsx.Util.log2((4095 - i + 0.1) / 2047) * 256);
-        return tab;
-    };
-
-    this.getExpTable = function() {
-        // Complete table for all possible values (32768 entries). Input sign in bit 14
-        var tab = new Array(32768);
-        for (var i = 0; i < 32768; ++i) {
-            var v = (Math.round(wmsx.Util.exp2(((i & 255) ^ 255) / 256) * 1024) << 1) >> Math.min((i & 0x3F00) >> 8, 31);
-            if (i & 0x4000) v = -v;
-            tab[i] = v;
-        }
-        return tab;
-    };
-
     this.getVIBValues = function() {
         return this.VIB_VALUES;
     };
@@ -131,62 +100,49 @@ wmsx.OPL4WaveTables = function() {
         [ 0,  0,  0,  0,  0,  0,  0,   0, 512, 512, 96, 80, 64, 48, 32, 16 ]      // R
     ];
 
-    this.rateDecayInc = [
-        // One step per clock from Rate 52 on
+    this.rateDecayIncs = [
+        // Full Envelope is 480 steps... Matches with 480 clocks at Rate 56
+        // So Rate 56 increments 1 step per clock, each 4 rates doubles clocks
 
-        // 0 .. 3
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-
-        // 4 .. 55
+        // Rates (0*4 + 0) .. (13*4 + 3) = 0 .. 55
         0, 1, 0, 1, 0, 1, 0, 1,
         0, 1, 0, 1, 1, 0, 1, 1,
         0, 1, 1, 1, 0, 1, 1, 1,
         0, 1, 1, 1, 1, 1, 1, 1,
 
-        // 56 .. 60
+        // Rates (14*4 + 0) .. (14*4 + 3) = 56 .. 59
         1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 2, 1, 1, 1, 2,
         1, 2, 1, 2, 1, 2, 1, 2,
         1, 2, 2, 2, 1, 2, 2, 2,
 
-        // 61 .. 63
+        // Rates (15*4 + 0) .. (15*4 + 3) = 60 .. 63
         2, 2, 2, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2,
-        2, 2, 2, 2, 2, 2, 2, 2
+        2, 2, 2, 4, 2, 2, 2, 4,
+        2, 4, 2, 4, 2, 4, 2, 4,
+        2, 4, 4, 4, 2, 4, 4, 4
     ];
 
-    this.rateAttackDecShift = [
-        // Zero
-        // One step per clock from Rate 52 on
+    this.rateAtackShifts = [
+        // Same as Delay, but up to Rate 56 each step does Level = Level 0 -(Level/8) - 1  (exp increase)
 
-        // 0 .. 3
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-
-        // 4 .. 55
-        0, 3, 0, 3, 0, 3, 0, 3,
-        0, 3, 0, 3, 3, 0, 3, 3,
-        0, 3, 3, 3, 0, 3, 3, 3,
-        0, 3, 3, 3, 3, 3, 3, 3,
-
-        // 56 .. 60
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 2, 3, 3, 3, 2,
+        // Rates (0*4 + 0) .. (13*4 + 3) = 0 .. 55
+        3, 3, 3, 3, 3, 3, 3, 3,         // 3 means divide by 8
+        3, 3, 3, 2, 3, 3, 3, 2,         // 2 means divide by 4
         3, 2, 3, 2, 3, 2, 3, 2,
         3, 2, 2, 2, 3, 2, 2, 2,
 
+        // Rates (0*4 + 0) .. (14*4 + 3) = 0 .. 59
+        3, 3, 3, 3, 3, 3, 3, 3,         // 3 means divide by 8
+        3, 3, 3, 2, 3, 3, 3, 2,         // 2 means divide by 4
+        3, 2, 3, 2, 3, 2, 3, 2,
+        3, 2, 2, 2, 3, 2, 2, 2,
 
-        // For Rate 60 .. 63
+        // Rates (15*4 + 0) .. (15*4 + 3) = 60 .. 63
         2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 2, 2,
-        0, 0, 0, 0, 0, 0, 0, 0
+        0, 0, 0, 0, 0, 0, 0, 0          // 0 means divide by 1 = instantaneous
     ];
 
     this.getRateDecayClocks = function() {
@@ -203,16 +159,14 @@ wmsx.OPL4WaveTables = function() {
         return tab;
     };
 
-    this.getRateAttackClocks = function() {
-        var tab = new Array(76);
-        for (var i = 0; i < 64; ++i) {
-            var dur = this.RATE_ATTACK_DURATIONS[i];
-            // Duration in clocks for entire range. 16 fractional bits
-            tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 35)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
+    this.getRateClocks = function() {
+        var tab = new Array(128);
+        for (var r = 14; r >= 0; --r) {
+            tab[r] = 1 << (14 - (r >> 4));
         }
         // Repeat last value for exceeding rates (> 63)
-        for (i = 64; i < 128; ++i)
-            tab[i] = tab[63];
+        for (r = 64; r < 128; ++r)
+            tab[r] = tab[63];
 
         return tab;
     };
