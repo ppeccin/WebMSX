@@ -15,14 +15,14 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     this.connectAudioSignal = function(pAudioSignal) {
-        if (audioSignal.indexOf(pAudioSignal) >= 0) return;        // Add only once
-        wmsx.Util.arrayAdd(audioSignal, pAudioSignal);
+        if (audioSignals.indexOf(pAudioSignal) >= 0) return;        // Add only once
+        wmsx.Util.arrayAdd(audioSignals, pAudioSignal);
         updateResamplingFactors();
     };
 
     this.disconnectAudioSignal = function(pAudioSignal) {
-        if (audioSignal.indexOf(pAudioSignal) < 0) return;         // Not present
-        wmsx.Util.arrayRemoveAllElement(audioSignal, pAudioSignal);
+        if (audioSignals.indexOf(pAudioSignal) < 0) return;         // Not present
+        wmsx.Util.arrayRemoveAllElement(audioSignals, pAudioSignal);
         updateResamplingFactors();
     };
 
@@ -161,12 +161,12 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         //if (bufferSizeProblem !== undefined) console.error("+++++++ buffer size problem: " + bufferSizeProblem);
 
         if (!processor) return;
-        resamplingFactor.length = audioSignal.length;
-        resamplingLeftOver.length = audioSignal.length;
-        for (var i = 0; i < audioSignal.length; i++) {
-            resamplingFactor[i] = audioSignal[i].getSampleRate() / audioContext.sampleRate;
+        resamplingFactor.length = audioSignals.length;
+        resamplingLeftOver.length = audioSignals.length;
+        for (var i = 0; i < audioSignals.length; i++) {
+            resamplingFactor[i] = audioSignals[i].getSampleRate() / audioContext.sampleRate;
             resamplingLeftOver[i] = 0;
-            audioSignal[i].setAudioMonitorBufferSize((resamplingFactor[i] * bufferSize) | 0);
+            audioSignals[i].setAudioMonitorBufferSize((resamplingFactor[i] * bufferSize) | 0);
         }
     }
 
@@ -188,12 +188,12 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         // Clear output buffers
         for (var j = outputBufferSize - 1; j >= 0; j = j - 1) outputBuffer0[j] = outputBuffer1[j] = 0;
 
-        if (audioSignal.length === 0) return;
+        if (audioSignals.length === 0) return;
 
         // Mix all signals, performing resampling on-the-fly
-        for (var i = audioSignal.length - 1; i >= 0; i = i - 1) {
+        for (var i = audioSignals.length - 1; i >= 0; i = i - 1) {
             var resampFactor = resamplingFactor[i];
-            var input = audioSignal[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
+            var input = audioSignals[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
             var inputBuffer0 = input.buffer0;
             var inputBuffer1 = input.buffer1;
             var inputBufferSize = input.bufferSize;
@@ -206,15 +206,16 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             // Optimized loop for mono or stereo signals
             if (input.stereo)
                 while (d < outputBufferSize) {
-                    outputBuffer0[d] = inputBuffer0[s | 0];   // source position as integer
-                    outputBuffer1[d] = inputBuffer1[s | 0];
+                    outputBuffer0[d] += inputBuffer0[s | 0];   // source position as integer
+                    outputBuffer1[d] += inputBuffer1[s | 0];
                     ++d;
                     s += resampFactor;
                     if (s >= inputBufferSize) s -= inputBufferSize;
                 }
             else
                 while (d < outputBufferSize) {
-                    outputBuffer0[d] = outputBuffer1[d] = inputBuffer0[s | 0];   // source position as integer
+                    outputBuffer0[d] += inputBuffer0[s | 0];   // source position as integer
+                    outputBuffer1[d] += inputBuffer0[s | 0];
                     ++d;
                     s += resampFactor;
                     if (s >= inputBufferSize) s -= inputBufferSize;
@@ -223,15 +224,15 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             resamplingLeftOver[i] = s - (s | 0);        // fractional part
         }
 
-        //var str = ""; for (var i = 0; i < audioSignal.length; i++) str = str + audioSignal[i].name + " ";
+        //var str = ""; for (var i = 0; i < audioSignals.length; i++) str = str + audioSignals[i].name + " ";
         //console.log("AudioProcess: " + str);
     }
 
 
     var screen;
 
-    var audioSignal = [];
-    this.signals = audioSignal;
+    var audioSignals = [];
+    this.signals = audioSignals;
     var resamplingFactor = [];
     var resamplingLeftOver = [];
     var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE === -3 ? WMSX.userPreferences.current.audioBufferBase : WMSX.AUDIO_MONITOR_BUFFER_BASE;
