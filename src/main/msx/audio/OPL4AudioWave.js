@@ -10,7 +10,8 @@ wmsx.OPL4AudioWave = function(opl4) {
     function init() {
         var tabs = new wmsx.OPL4WaveTables();
         vibValues = tabs.getVIBValues();
-        rateClocks = tabs.getRateDecayClocks();
+        rateAttackPatterns = tabs.getRateAttackPatterns();
+        rateDecayPatterns = tabs.getRateDecayPatterns();
         panpotValues = tabs.getPanPotValues();
         volumeTable = tabs.getVolumeTable();
     }
@@ -71,10 +72,10 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(totalAttL, 1024);
         wmsx.Util.arrayFill(totalAttR, 1024);
         wmsx.Util.arrayFill(envStep, IDLE);
-        wmsx.Util.arrayFill(envStepCounterInc, 0);
-        wmsx.Util.arrayFill(envStepCounter, 0);
         wmsx.Util.arrayFill(envStepNext, IDLE);
         wmsx.Util.arrayFill(envStepNextAtLevel, 0);
+        wmsx.Util.arrayFill(envStepLevelDur, 0);
+        wmsx.Util.arrayFill(envStepLevelChangeClock, 0);
         wmsx.Util.arrayFill(envLevel, 512);
         wmsx.Util.arrayFill(rcOffset, 0);
     };
@@ -274,38 +275,30 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function clockEnvelope(cha) {
-        var counter, newCounter, delta, newLevel, oldLevel;
-
-        counter = envStepCounter[cha];
-        newCounter = counter + envStepCounterInc[cha];
-        envStepCounter[cha] = newCounter & 0xffffff;
-        delta = (newCounter >> 16) - (counter >> 16);
-
-        //console.log(delta);
-
-        if (delta <= 0) return;
-
-
-        oldLevel = envLevel[cha];
         if (envStep[cha] === ATTACK) {
-            // newLevel = oldLevel + (~oldLevel >> (4 - (delta > 4 ? 4 : delta)));
-            newLevel = oldLevel + (~oldLevel >> 3);
-            if (newLevel <= 0) {
+            if (envLevel[cha] <= 0) {
                 setEnvStep(cha, DECAY1);
-                updateTotalAttenuation(cha);
-                return;
+            } else {
+                if (clock === envStepLevelChangeClock[cha]) {
+                    envStepLevelChangeClock[cha] += envStepLevelDur[cha];
+                    var shift = envStepLevelChangePatt[cha][envStepLevelPattCounter[cha]++ & 7];
+                    if (shift >= 0) {
+                        envLevel[cha] -= 1 + (envLevel[cha] >> shift);
+                        updateTotalAttenuation(cha);
+                    }
+                }
             }
         } else {
-            newLevel = oldLevel + delta;
-            if (newLevel >= envStepNextAtLevel[cha]) {
+            if (envLevel[cha] >= envStepNextAtLevel[cha]) {
                 setEnvStep(cha, envStepNext[cha]);
-                updateTotalAttenuation(cha);
-                return;
+            } else {
+                if (clock === envStepLevelChangeClock[cha]) {
+                    envStepLevelChangeClock[cha] += envStepLevelDur[cha];
+                    envLevel[cha] += envStepLevelChangePatt[cha][envStepLevelPattCounter[cha]++ & 7];
+                    updateTotalAttenuation(cha);
+                }
             }
         }
-
-        envLevel[cha] = newLevel;
-        updateTotalAttenuation(cha);
     }
 
     function setKeyOn(cha, on) {
@@ -386,20 +379,23 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     function setEnvStep(cha, step) {
         envStep[cha] = step;
-        var reverbEnvLevel = 6 << 4;   //  -18 dB
-        var nextLevel;
+        var nextLevel, rate;
         switch (step) {
             case ATTACK:
-                envStepCounterInc[cha] = ar[cha] === 0 ? 0 : rateClocks[ar[cha] + rcOffset[cha]];
+                rate = ar[cha] === 0 ? 0 : ar[cha] + rcOffset[cha];
+                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
+                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 startSample(cha);
                 break;
             case DECAY1:
                 envLevel[cha] = 0;
                 nextLevel = dl[cha] << 4;
                 if (nextLevel === 0) return setEnvStep(cha, DECAY2);
-                envStepCounterInc[cha] = d1r[cha] === 0 ? 0 : rateClocks[d1r[cha] + rcOffset[cha]];
-                if (reverb[cha] && nextLevel >= reverbEnvLevel) {
-                    envStepNextAtLevel[cha] = reverbEnvLevel;
+                rate = d1r[cha] === 0 ? 0 : d1r[cha] + rcOffset[cha];
+                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
+                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
+                if (reverb[cha] && nextLevel >= REVERB_ENV_LEVEL) {
+                    envStepNextAtLevel[cha] = REVERB_ENV_LEVEL;
                     envStepNext[cha] = REVERB;
                 } else {
                     envStepNextAtLevel[cha] = nextLevel;
@@ -407,9 +403,11 @@ wmsx.OPL4AudioWave = function(opl4) {
                 }
                 break;
             case DECAY2:
-                envStepCounterInc[cha] = d2r[cha] === 0 ? 0 : rateClocks[d2r[cha] + rcOffset[cha]];
-                if (reverb[cha] && envLevel[cha] < reverbEnvLevel) {
-                    envStepNextAtLevel[cha] = reverbEnvLevel;
+                rate = d2r[cha] === 0 ? 0 : d2r[cha] + rcOffset[cha];
+                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
+                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
+                if (reverb[cha] && envLevel[cha] < REVERB_ENV_LEVEL) {
+                    envStepNextAtLevel[cha] = REVERB_ENV_LEVEL;
                     envStepNext[cha] = REVERB;
                 } else {
                     envStepNextAtLevel[cha] = 512;
@@ -417,10 +415,12 @@ wmsx.OPL4AudioWave = function(opl4) {
                 }
                 break;
             case RELEASE:
-                envStepCounterInc[cha] = rr[cha] === 0 ? 0 : rateClocks[rr[cha] + rcOffset[cha]];
+                rate = rr[cha] === 0 ? 0 : rr[cha] + rcOffset[cha];
+                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
+                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 if (reverb[cha]) {
-                    if (envLevel[cha] < reverbEnvLevel) {
-                        envStepNextAtLevel[cha] = reverbEnvLevel;
+                    if (envLevel[cha] < REVERB_ENV_LEVEL) {
+                        envStepNextAtLevel[cha] = REVERB_ENV_LEVEL;
                         envStepNext[cha] = REVERB;
                     } else
                         return setEnvStep(cha, REVERB);
@@ -430,24 +430,32 @@ wmsx.OPL4AudioWave = function(opl4) {
                 }
                 break;
             case REVERB:
-                envStepCounterInc[cha] = rateClocks[5 << 2];
+                rate = REVERB_RATE;
+                envStepLevelDur[cha] = 1 << (13 - (rate >> 2));
+                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 envStepNextAtLevel[cha] = 512;
                 envStepNext[cha] = IDLE;
                 break;
             case DAMP:
-                envStepCounterInc[cha] = rateClocks[(14 << 2)];
+                rate = DAMP_RATE;
+                envStepLevelDur[cha] = 1;
+                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 envStepNextAtLevel[cha] = 512;
                 envStepNext[cha] = IDLE;
                 break;
             case IDLE:
             default:
+                rate = 0;
                 envLevel[cha] = 512;
-                envStepCounter[cha] = 0;
-                envStepCounterInc[cha] = 0;
+                envStepLevelDur[cha] = 0;
+                envStepLevelChangeClock[cha] = 0;      // Never
                 envStepNextAtLevel[cha] = 1024;   // Never
                 envStepNext[cha] = IDLE;
                 break;
         }
+        envStepLevelChangePatt[cha] = envStep[cha] === ATTACK ? rateAttackPatterns[rate] : rateDecayPatterns[rate];
+        envStepLevelPattCounter[cha] = 0;
+        updateTotalAttenuation(cha);
     }
 
     function updateFrequency(cha) {
@@ -459,8 +467,9 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateRateCorrOffset(cha) {
-        // TODO: Fix : May get wrong rates (<0) from table since it can be < 0 because of octave.
-        rcOffset[cha] = rc[cha] === 15 ? 0 : ((rc[cha] + octave[cha]) << 1) + (fNum[cha] >> 9) ;
+        if (rc[cha] === 15) return rcOffset[cha] = 0;
+        var corr = ((rc[cha] + octave[cha]) << 1) + (fNum[cha] >> 9);
+        rcOffset[cha] = corr >= 0 ? corr : 0;
     }
 
     function updateAMAttenuation(cha) {
@@ -519,12 +528,14 @@ wmsx.OPL4AudioWave = function(opl4) {
     var totalAttL = new Array(24);
     var totalAttR = new Array(24);
 
-    var envStep =              new Array(24);
-    var envStepCounter =       new Array(24);
-    var envStepCounterInc =    new Array(24);
-    var envStepNext =          new Array(24);
-    var envStepNextAtLevel =   new Array(24);
-    var envLevel =             new Array(24);
+    var envStep =                  new Array(24);
+    var envStepNext =              new Array(24);
+    var envStepNextAtLevel =       new Array(24);
+    var envStepLevelDur =          new Array(24);
+    var envStepLevelChangeClock =  new Array(24);
+    var envStepLevelChangePatt =   new Array(24);
+    var envStepLevelPattCounter =  new Array(24);
+    var envLevel =                 new Array(24);
 
     var rcOffset =  new Array(24);
 
@@ -533,10 +544,13 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     var IDLE = 255, ATTACK = 1, DECAY1 = 2, DECAY2 = 3, RELEASE = 4, REVERB = 5, DAMP = 6;       // Envelope steps
 
+    var REVERB_ENV_LEVEL = 6 << 4;   //  -18 dB
+    var REVERB_RATE = 5 << 2;
+    var DAMP_RATE = 14 << 2;
 
     // Pre calculated tables, factors, values
 
-    var volumeTable, vibValues, rateClocks, panpotValues;
+    var volumeTable, vibValues, panpotValues, rateAttackPatterns, rateDecayPatterns;
     var sampleResult = [ 0, 0 ];
 
 
@@ -566,8 +580,6 @@ wmsx.OPL4AudioWave = function(opl4) {
             totR: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttR),
 
             evs: wmsx.Util.storeInt8BitArrayToStringBase64(envStep),
-            evc: wmsx.Util.storeInt32BitArrayToStringBase64(envStepCounter),
-            evi: wmsx.Util.storeInt32BitArrayToStringBase64(envStepCounterInc),
             evn: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNext),
             evl: wmsx.Util.storeInt16BitArrayToStringBase64(envStepNextAtLevel),
             eve: wmsx.Util.storeInt16BitArrayToStringBase64(envLevel),
@@ -604,8 +616,6 @@ wmsx.OPL4AudioWave = function(opl4) {
         totalAttR = wmsx.Util.restoreStringBase64ToInt16BitArray(s.totR, totalAttR);
 
         envStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evs, envStep);
-        envStepCounter = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evc, envStepCounter);
-        envStepCounterInc = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evi, envStepCounterInc);
         envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
         envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.evl, envStepNextAtLevel);
         envLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.eve, envLevel);
@@ -641,8 +651,6 @@ wmsx.OPL4AudioWave = function(opl4) {
     this.totalAttR = totalAttR;
 
     this.envStep = envStep;
-    this.envStepLevelInc = envStepCounterInc;
-    this.envStepLevelCounter = envStepCounter;
     this.envStepNext = envStepNext;
     this.envStepNextAtLevel = envStepNextAtLevel;
     this.envLevel = envLevel;
