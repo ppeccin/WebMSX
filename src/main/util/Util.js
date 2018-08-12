@@ -348,16 +348,12 @@ wmsx.Util = new function() {
     };
 
     this.checkContentIsLHA = function (content) {
-        console.log('UtilcheckContentIsLHA');
         var cmp = content.slice(2, 7);
         var cmpStr = String.fromCharCode.apply(this, cmp);
-        console.log('compression method ' + cmpStr);
         if (content && /-lh.-/.exec(cmpStr)) {
             try {
-                console.log('returning JSLHA');
                 return new JSLha(content);
             } catch (ez) {
-                console.log('OOPS! ' + ez);
                 // Error decompressing files. Abort
             }
         }
@@ -365,10 +361,7 @@ wmsx.Util = new function() {
     };
 
     this.getLHAFilesSorted = function (lha) {
-        console.log('getLHAFilesSorted');
         var files = lha.file(/.+/);
-        console.log(files);
-        // FIXME: need to have name
         files.sort(sortByName);
         return files;
     };
