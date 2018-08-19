@@ -18,20 +18,6 @@ wmsx.OPL4WaveTables = function() {
         return v;
     };
 
-    this.getRateDecayClocks = function() {
-        var tab = new Array(76);
-        for (var i = 0; i < 64; ++i) {
-            var dur = this.RATE_DECAY_DURATIONS[i];
-            // Duration in clocks for entire range. 16 fractional bits
-            tab[i] = dur >= 0 ? Math.round(65536 / (dur * 44100 / 1000 / 512)) : 0;      // Valid Durations are at least 1 clock. 0 = infinite
-        }
-        // Repeat last value for exceeding rates (> 63)
-        for (i = 64; i < 128; ++i)
-            tab[i] = tab[63];
-
-        return tab;
-    };
-
     this.getRateAttackPatterns = function() {
         // Rates form 0 to 60 + 43 (rate correction) = 103 max
         var tab = new Array(104);
@@ -108,12 +94,13 @@ wmsx.OPL4WaveTables = function() {
         // Full Envelope is 480 steps... Matches with 480 clocks at Rate 56
         // So Rate 56 increments 1 step per clock, each 4 rates doubles clocks
         // Start from 0 and increase linearly, when at 480 jump to 512
+        // -1 means don't change
 
         // Rates (0*4 + 0) .. (13*4 + 3) = 0 .. 55       (Rate 52 is 1 clock per step)
-        [ 0, 1, 0, 1, 0, 1, 0, 1 ],
-        [ 0, 1, 0, 1, 1, 0, 1, 1 ],
-        [ 0, 1, 1, 1, 0, 1, 1, 1 ],
-        [ 0, 1, 1, 1, 1, 1, 1, 1 ],
+        [ -1,  1, -1,  1, -1,  1, -1,  1 ],
+        [ -1,  1, -1,  1,  1, -1,  1,  1 ],
+        [ -1,  1,  1,  1, -1,  1,  1,  1 ],
+        [ -1,  1,  1,  1,  1,  1,  1,  1 ],
 
         // Rates (14*4 + 0) .. (14*4 + 3) = 56 .. 59     (Rate 56 is 1 clock per step)
         [ 1, 1, 1, 1, 1, 1, 1, 1 ],
