@@ -151,6 +151,9 @@ wmsx.OPL4AudioWave = function(opl4) {
         registerWrite(0xc8 + cha, opl4.memoryRead(address++));
         registerWrite(0xe0 + cha, opl4.memoryRead(address++));
 
+        if (envStep[cha] !== IDLE) startSample(cha);
+        // if (envStep[cha] !== IDLE) setEnvStep(cha, DAMP);
+
         // console.log("Wave Number", cha, ":", num);
     }
 
@@ -207,9 +210,7 @@ wmsx.OPL4AudioWave = function(opl4) {
             case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f: case 0x70: case 0x71: case 0x72: case 0x73:
             case 0x74: case 0x75: case 0x76: case 0x77: case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
                 cha = reg - 0x68;
-                if (mod & 0x80) setKeyOn(cha, val >> 7);                                                // KEY ON
-                if (mod & 0x40)
-                    if (val & 0x40) setEnvStep(cha, DAMP);                                              // DAMP
+                if (mod & 0xc0) setKeyOnAndDamp(cha, val & 0x80, val & 0x40);                           // KEY ON, DAMP
                 if (mod & 0x0f) {
                     panpotL[cha] = panpotValues[0][val & 0x0f];                                         // PANPOT
                     panpotR[cha] = panpotValues[1][val & 0x0f];
@@ -294,21 +295,26 @@ wmsx.OPL4AudioWave = function(opl4) {
         envStepLevelChangeClock[cha] += envStepLevelDur[cha];
     }
 
-    function setKeyOn(cha, on) {
+    function setKeyOnAndDamp(cha, on, damp) {
+        // if (cha === 0) console.log("Note:", cha, "env: " + envStep[cha], "lev: " + envLevel[cha], on ? "ON" : "OFF", damp ? "DAMP" : "NO-DAMP", waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16), "clock: " + clock);
+
         keyOn[cha] = on;
         // Define ADSR phase
-        if (on) {
-            setEnvStep(cha, ATTACK);
-
-            // console.log("Note:", cha, waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16));
-        } else
-            if (envStep[cha] !== IDLE && envStep[cha] !== REVERB && envStep[cha] !== DAMP) setEnvStep(cha, RELEASE);
+        if (damp) {
+            if (envStep[cha] !== IDLE && envStep[cha] !== DAMP) setEnvStep(cha, DAMP);
+        } else {
+            if (on) {
+                startSample(cha);
+                setEnvStep(cha, ATTACK);
+            } else
+               if (envStep[cha] !== IDLE && envStep[cha] !== REVERB && envStep[cha] !== DAMP) setEnvStep(cha, RELEASE);
+        }
     }
 
     function startSample(cha) {
         samplePos[cha] = 0;
         phaseCounter[cha] = 0;
-        return updateSampleValue16bits(cha);
+        return updateSampleValue(cha);
     }
 
     function advanceSample(cha, quant) {
@@ -316,35 +322,10 @@ wmsx.OPL4AudioWave = function(opl4) {
         samplePos[cha] = newPos > endPosition[cha]
             ? loopPosition[cha] + (newPos - endPosition[cha]) - 1
             : newPos;
-        return updateSampleValue16bits(cha);
+        return updateSampleValue(cha);
     }
 
-    function updateSampleValue12bitsLog(cha) {
-        var addr, bin;
-        var start = startAddress[cha];
-        var bits = dataBits[cha];
-        if (bits === 1) {
-            // 12 bits per sample
-            addr = start + (samplePos[cha] >> 1) * 3;
-            bin = samplePos[cha] & 1
-                ? ((opl4.memoryRead(addr + 2) << 4) | (opl4.memoryRead(addr + 1) & 0x0f))
-                : (opl4.memoryRead(addr) << 4) | (opl4.memoryRead(addr + 1) >> 4);
-        } else if (bits === 2) {
-            // 16 bits per sample
-            addr = start + (samplePos[cha] << 1);
-            bin = ((opl4.memoryRead(addr) << 8) | opl4.memoryRead(addr + 1)) >> 4;  // scale down to 12 bits
-        } else if (bits === 0) {
-            // 8 bits per sample
-            addr = start + samplePos[cha];
-            bin = opl4.memoryRead(addr);
-            bin = (bin << 4) | ((bin & 0x70) >> 3);         // scale up to 12 bits
-        } else {
-            bin = 0;
-        }
-        return sampleValue[cha] = linearTable[bin];       // to log signed -4096 .. 4095, signal in bit 14
-    }
-
-    function updateSampleValue16bits(cha) {
+    function updateSampleValue(cha) {
         var addr, bin;
         var start = startAddress[cha];
         var bits = dataBits[cha];
@@ -375,7 +356,6 @@ wmsx.OPL4AudioWave = function(opl4) {
         switch (step) {
             case ATTACK:
                 rate = ar[cha] === 0 ? 0 : ar[cha] + rcOffset[cha];
-                startSample(cha);
                 break;
             case DECAY1:
                 envLevel[cha] = 0;
