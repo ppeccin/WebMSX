@@ -86,6 +86,12 @@ wmsx.Configurator = {
             WMSX.JOYKEYS_MODE |= 0;
             WMSX.MOUSE_MODE |= 0;
             WMSX.TOUCH_MODE |= 0;
+
+            if (typeof WMSX.BIOS_SLOT === "string") WMSX.BIOS_SLOT = JSON.parse(WMSX.BIOS_SLOT);
+            if (typeof WMSX.BIOSEXT_SLOT === "string") WMSX.BIOSEXT_SLOT = JSON.parse(WMSX.BIOSEXT_SLOT);
+            if (typeof WMSX.CARTRIDGE1_SLOT === "string") WMSX.CARTRIDGE1_SLOT = JSON.parse(WMSX.CARTRIDGE1_SLOT);
+            if (typeof WMSX.CARTRIDGE2_SLOT === "string") WMSX.CARTRIDGE2_SLOT = JSON.parse(WMSX.CARTRIDGE2_SLOT);
+            if (typeof WMSX.EXPANSION_SLOTS === "string") WMSX.EXPANSION_SLOTS = JSON.parse(WMSX.EXPANSION_SLOTS);
         }
     },
 
