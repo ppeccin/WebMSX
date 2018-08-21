@@ -225,7 +225,7 @@ wmsx.OPL4AudioWave = function(opl4) {
             case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7: case 0xb8: case 0xb9: case 0xba: case 0xbb:
             case 0xbc: case 0xbd: case 0xbe: case 0xbf: case 0xc0: case 0xc1: case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7:
                 cha = reg - 0xb0;
-                if (mod & 0xf0) dl[cha] = val >> 4;                                                     // DL
+                if (mod & 0xf0) dl[cha] = (val >= 0xf0 ? 31 : val >> 4) << 4;                           // DL (15 becomes -93 dB)
                 if (mod & 0x0f) d2r[cha] = (val & 0x0f) === 15 ? 63 : (val & 0x0f) << 2;                // D2R  x 4 (15 becomes 63)
                 break;
             case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf: case 0xd0: case 0xd1: case 0xd2: case 0xd3:
@@ -275,30 +275,23 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function clockEnvelope(cha) {
-        if (envStep[cha] === ATTACK) {
-            if (envLevel[cha] <= 0) {
-                setEnvStep(cha, DECAY1);
+        if (clock !== envStepLevelChangeClock[cha]) return;
+
+        var change = envStepLevelChangePatt[cha][envStepLevelPattCounter[cha]++ & 7];
+        if (change >= 0) {
+            if (envStep[cha] === ATTACK) {
+                envLevel[cha] -= 1 + (envLevel[cha] >> change);
+                if (envLevel[cha] <= 0)
+                    return setEnvStep(cha, DECAY1);
             } else {
-                if (clock === envStepLevelChangeClock[cha]) {
-                    envStepLevelChangeClock[cha] += envStepLevelDur[cha];
-                    var shift = envStepLevelChangePatt[cha][envStepLevelPattCounter[cha]++ & 7];
-                    if (shift >= 0) {
-                        envLevel[cha] -= 1 + (envLevel[cha] >> shift);
-                        updateTotalAttenuation(cha);
-                    }
-                }
+                envLevel[cha] += change;
+                if (envLevel[cha] >= envStepNextAtLevel[cha])
+                    return setEnvStep(cha, envStepNext[cha]);
             }
-        } else {
-            if (envLevel[cha] >= envStepNextAtLevel[cha]) {
-                setEnvStep(cha, envStepNext[cha]);
-            } else {
-                if (clock === envStepLevelChangeClock[cha]) {
-                    envStepLevelChangeClock[cha] += envStepLevelDur[cha];
-                    envLevel[cha] += envStepLevelChangePatt[cha][envStepLevelPattCounter[cha]++ & 7];
-                    updateTotalAttenuation(cha);
-                }
-            }
+            updateTotalAttenuation(cha);
         }
+
+        envStepLevelChangeClock[cha] += envStepLevelDur[cha];
     }
 
     function setKeyOn(cha, on) {
@@ -378,22 +371,18 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function setEnvStep(cha, step) {
-        envStep[cha] = step;
         var nextLevel, rate;
         switch (step) {
             case ATTACK:
                 rate = ar[cha] === 0 ? 0 : ar[cha] + rcOffset[cha];
-                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
-                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 startSample(cha);
                 break;
             case DECAY1:
                 envLevel[cha] = 0;
-                nextLevel = dl[cha] << 4;
-                if (nextLevel === 0) return setEnvStep(cha, DECAY2);
+                nextLevel = dl[cha];
+                if (nextLevel === 0)
+                    return setEnvStep(cha, DECAY2);
                 rate = d1r[cha] === 0 ? 0 : d1r[cha] + rcOffset[cha];
-                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
-                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 if (reverb[cha] && nextLevel >= REVERB_ENV_LEVEL) {
                     envStepNextAtLevel[cha] = REVERB_ENV_LEVEL;
                     envStepNext[cha] = REVERB;
@@ -404,8 +393,6 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case DECAY2:
                 rate = d2r[cha] === 0 ? 0 : d2r[cha] + rcOffset[cha];
-                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
-                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 if (reverb[cha] && envLevel[cha] < REVERB_ENV_LEVEL) {
                     envStepNextAtLevel[cha] = REVERB_ENV_LEVEL;
                     envStepNext[cha] = REVERB;
@@ -416,8 +403,6 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case RELEASE:
                 rate = rr[cha] === 0 ? 0 : rr[cha] + rcOffset[cha];
-                envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
-                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 if (reverb[cha]) {
                     if (envLevel[cha] < REVERB_ENV_LEVEL) {
                         envStepNextAtLevel[cha] = REVERB_ENV_LEVEL;
@@ -431,15 +416,11 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case REVERB:
                 rate = REVERB_RATE;
-                envStepLevelDur[cha] = 1 << (13 - (rate >> 2));
-                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 envStepNextAtLevel[cha] = 512;
                 envStepNext[cha] = IDLE;
                 break;
             case DAMP:
                 rate = DAMP_RATE;
-                envStepLevelDur[cha] = 1;
-                envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
                 envStepNextAtLevel[cha] = 512;
                 envStepNext[cha] = IDLE;
                 break;
@@ -447,13 +428,14 @@ wmsx.OPL4AudioWave = function(opl4) {
             default:
                 rate = 0;
                 envLevel[cha] = 512;
-                envStepLevelDur[cha] = 0;
-                envStepLevelChangeClock[cha] = 0;      // Never
-                envStepNextAtLevel[cha] = 1024;   // Never
+                envStepNextAtLevel[cha] = 1024;         // Never
                 envStepNext[cha] = IDLE;
                 break;
         }
-        envStepLevelChangePatt[cha] = envStep[cha] === ATTACK ? rateAttackPatterns[rate] : rateDecayPatterns[rate];
+        envStep[cha] = step;
+        envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
+        envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
+        envStepLevelChangePatt[cha] = step === ATTACK ? rateAttackPatterns[rate] : rateDecayPatterns[rate];
         envStepLevelPattCounter[cha] = 0;
         updateTotalAttenuation(cha);
     }
