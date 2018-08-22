@@ -135,6 +135,8 @@ wmsx.OPL4AudioWave = function(opl4) {
     function readWaveHeader(cha) {
         var num = waveNumber[cha];
 
+        // if (cha === 20) console.log("Reading Wave Header:", num);
+
         var waveTableHeader = (register[2] >> 2) & 0x07;
         var address = num < 384 || waveTableHeader === 0 ? num * 12 : (waveTableHeader << 19) + (num - 384) * 12;
 
@@ -296,7 +298,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function setKeyOnAndDamp(cha, on, damp) {
-        // if (cha === 0) console.log("Note:", cha, "env: " + envStep[cha], "lev: " + envLevel[cha], on ? "ON" : "OFF", damp ? "DAMP" : "NO-DAMP", waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16), "clock: " + clock);
+        // if (cha === 20 || cha === 19) console.log("Note:", cha, "env: " + envStep[cha], "lev: " + envLevel[cha], "vol: " + volume[cha], on ? "ON" : "OFF", damp ? "DAMP" : "NO-DAMP", waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16), "clock: " + clock);
 
         keyOn[cha] = on;
         // Define ADSR phase

@@ -155,6 +155,18 @@ wmsx.OPL4WaveTables = function() {
     ];
 */
 
+    this.LFO_FREQS = [
+        // In Hz
+        0.168,
+        2.019,
+        3.196,
+        4.206,
+        5.215,
+        5.888,
+        6.224,
+        7.066
+    ];
+
     this.VIB_DEPTHS = [
             0,      //  0 fNum
         3.378,      //  2 fNum
