@@ -2,16 +2,18 @@
 
 // OPL4 Wave Sound Chip
 
-wmsx.OPL4AudioWave = function(opl4) {
+wmsx.OPL4AudioWave = function(opl4, fm) {
 "use strict";
 
     var self = this;
 
     function init() {
         var tabs = new wmsx.OPL4WaveTables();
-        vibValues = tabs.getVIBValues();
         rateAttackPatterns = tabs.getRateAttackPatterns();
         rateDecayPatterns = tabs.getRateDecayPatterns();
+        lfoStepClocks = tabs.getLFOStepClocks();
+        vibStepOffsets = tabs.getVIBOffsets();
+        amStepOffsets = tabs.getAMOffsets();
         panpotValues = tabs.getPanPotValues();
         volumeTable = tabs.getVolumeTable();
     }
@@ -36,7 +38,8 @@ wmsx.OPL4AudioWave = function(opl4) {
         memoryAddress = 0;
         registerAddress = 0;
         wmsx.Util.arrayFill(register, 0);
-        amLevel = 0; amLevelInc = -1; vibPhase = 0;
+        for (var r = 0x50; r < 0x68; ++r) register[r] = 0xfe;
+        for (    r = 0x68; r < 0x80; ++r) register[r] = 0x20;
 
         // Settings per Channel
 
@@ -53,22 +56,23 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(fNum, 0);
         wmsx.Util.arrayFill(octave, 0);
         wmsx.Util.arrayFill(reverb, 0);
-        wmsx.Util.arrayFill(keyOn, 0);
         wmsx.Util.arrayFill(ar, 0);
         wmsx.Util.arrayFill(d1r, 0);
         wmsx.Util.arrayFill(dl, 0);
         wmsx.Util.arrayFill(d2r, 0);
         wmsx.Util.arrayFill(rr, 0);
-        wmsx.Util.arrayFill(am, 0);
-        wmsx.Util.arrayFill(vib, 0);
         wmsx.Util.arrayFill(rc, 0);
+        wmsx.Util.arrayFill(rcOffset, 0);
         wmsx.Util.arrayFill(volume, 0xfe);
         wmsx.Util.arrayFill(panpotL, 0);
         wmsx.Util.arrayFill(panpotR, 0);
 
+        wmsx.Util.arrayFill(lfoStepDur, 0);
+        wmsx.Util.arrayFill(vibDepth, 0);
+        wmsx.Util.arrayFill(amDepth, 0);
+
         // Dynamic values
 
-        wmsx.Util.arrayFill(amAtt, 0);
         wmsx.Util.arrayFill(totalAttL, 1024);
         wmsx.Util.arrayFill(totalAttR, 1024);
         wmsx.Util.arrayFill(envStep, IDLE);
@@ -77,10 +81,15 @@ wmsx.OPL4AudioWave = function(opl4) {
         wmsx.Util.arrayFill(envStepLevelDur, 0);
         wmsx.Util.arrayFill(envStepLevelChangeClock, 0);
         wmsx.Util.arrayFill(envLevel, 512);
-        wmsx.Util.arrayFill(rcOffset, 0);
+
+        wmsx.Util.arrayFill(lfoStep, 0);
+        wmsx.Util.arrayFill(lfoStepChangeClock, 0);
+        wmsx.Util.arrayFill(vibOffset, 0);
+        wmsx.Util.arrayFill(amOffset, 0);
     };
 
     this.output7E = function (val) {
+        // fm.setBusyCycles(88);
         registerAddress = val;
     };
 
@@ -89,23 +98,29 @@ wmsx.OPL4AudioWave = function(opl4) {
     };
 
     this.output7F = function (val) {
+        // fm.setBusyCycles(88);
         registerWrite(registerAddress, val);
     };
 
     this.nextSample = function() {
+        var newLfoStep;
         var phase, newPhase, delta;
-        var amChanged, vibChanged = false;
         var cha, sample = 0, sampleL = 0, sampleR = 0;
 
         ++clock;
 
-        // amChanged = clockAM();
-        // if (amChanged) vibChanged = clockVIB();
-
         for (cha = 23; cha >= 0; --cha) {
+
+            // Clock and update LFO effects
+            newLfoStep = clockLFO(cha);
+            if (newLfoStep >= 0) {
+                if (vibDepth[cha]) updateVIBOffset(cha, newLfoStep);
+                if (amDepth[cha])  updateAMOffset(cha, newLfoStep);
+            }
+
             if (envStep[cha] === IDLE) continue;
 
-            // Update ADSR envelopes
+            // Clock and update ADSR envelopes
             clockEnvelope(cha);
 
             // Update phase (0..1023)
@@ -213,10 +228,20 @@ wmsx.OPL4AudioWave = function(opl4) {
             case 0x74: case 0x75: case 0x76: case 0x77: case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
                 cha = reg - 0x68;
                 if (mod & 0xc0) setKeyOnAndDamp(cha, val & 0x80, val & 0x40);                           // KEY ON, DAMP
+                if (mod & 0x20) setLFOReset(cha, val & 0x20);                                           // LFO RST
                 if (mod & 0x0f) {
                     panpotL[cha] = panpotValues[0][val & 0x0f];                                         // PANPOT
                     panpotR[cha] = panpotValues[1][val & 0x0f];
                     updateTotalAttenuation(cha);
+                }
+                break;
+            case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87: case 0x88: case 0x89: case 0x8a: case 0x8b:
+            case 0x8c: case 0x8d: case 0x8e: case 0x8f: case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
+                cha = reg - 0x80;
+                if (mod & 0x38) lfoStepDur[cha] = lfoStepClocks[(val & 0x38) >> 3];                     // LFO (step duration in clocks)
+                if (mod & 0x07) {                                                                       // VIB
+                    vibDepth[cha] = val & 0x07;
+                    updateVIBOffset(cha, lfoStep[cha]);
                 }
                 break;
             case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f: case 0xa0: case 0xa1: case 0xa2: case 0xa3:
@@ -240,6 +265,14 @@ wmsx.OPL4AudioWave = function(opl4) {
                 }
                 if (mod & 0x0f) rr[cha] = (val & 0x0f) === 15 ? 63 : (val & 0x0f) << 2;                 // RR  x 4 (15 becomes 63)
                 break;
+            case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7: case 0xe8: case 0xe9: case 0xea: case 0xeb:
+            case 0xec: case 0xed: case 0xee: case 0xef: case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
+                cha = reg - 0xe0;
+                if (mod & 0x07) {                                                                       // AM
+                    amDepth[cha] = val & 0x07;
+                    updateAMOffset(cha, lfoStep[cha]);
+                }
+                break;
         }
     }
 
@@ -254,27 +287,35 @@ wmsx.OPL4AudioWave = function(opl4) {
                 if (++memoryAddress >= 0x400000) memoryAddress = 0;
                 break;
             default:
-                res = register[registerAddress];
+                res = register[reg];
         }
 
-        // console.log("Wave Register READ: " + registerAddress.toString(16) + " = " + res.toString(16));
+        // console.log("Wave Register READ: " + reg.toString(16) + " = " + res.toString(16));
 
         return res;
     }
 
-    function clockAM() {
-        if (clock & 511) return false;        // Only change once each 512 clocks
+    function clockLFO(cha) {
+        if (clock !== lfoStepChangeClock[cha]) return -1;
 
-        if (amLevel === 0 || amLevel === 13) amLevelInc = -amLevelInc;
-        amLevel += amLevelInc;
-        return true;
+        lfoStepChangeClock[cha] += lfoStepDur[cha];
+        return lfoStep[cha] = (lfoStep[cha] + 1) & 0x7f;
     }
 
-    function clockVIB() {
-        if (clock & 1023) return false;        // Only change once each 1024 clocks
+    function updateVIBOffset(cha, step) {
+        var newOffset = vibStepOffsets[(vibDepth[cha] << 7) | step];
+        if (vibOffset[cha] !== newOffset) {
+            vibOffset[cha] = newOffset;
+            updateFrequency(cha);
+        }
+    }
 
-        vibPhase = (clock >> 10) & 0x7;
-        return true;
+    function updateAMOffset(cha, step) {
+        var newOffset = amStepOffsets[(amDepth[cha] << 7) | step];
+        if (amOffset[cha] !== newOffset) {
+            amOffset[cha] = newOffset;
+            updateTotalAttenuation(cha);
+        }
     }
 
     function clockEnvelope(cha) {
@@ -293,14 +334,12 @@ wmsx.OPL4AudioWave = function(opl4) {
             }
             updateTotalAttenuation(cha);
         }
-
         envStepLevelChangeClock[cha] += envStepLevelDur[cha];
     }
 
     function setKeyOnAndDamp(cha, on, damp) {
         // if (cha === 20 || cha === 19) console.log("Note:", cha, "env: " + envStep[cha], "lev: " + envLevel[cha], "vol: " + volume[cha], on ? "ON" : "OFF", damp ? "DAMP" : "NO-DAMP", waveNumber[cha], octave[cha], fNum[cha], phaseInc[cha].toString(16), "clock: " + clock);
 
-        keyOn[cha] = on;
         // Define ADSR phase
         if (damp) {
             if (envStep[cha] !== IDLE && envStep[cha] !== DAMP) setEnvStep(cha, DAMP);
@@ -311,6 +350,22 @@ wmsx.OPL4AudioWave = function(opl4) {
             } else
                if (envStep[cha] !== IDLE && envStep[cha] !== REVERB && envStep[cha] !== DAMP) setEnvStep(cha, RELEASE);
         }
+    }
+
+    function setLFOReset(cha, reset) {
+        if (reset) {
+            lfoStep[cha] = 0;
+            lfoStepChangeClock[cha] = 0;
+            if (vibOffset[cha] !== 0) {
+                vibOffset[cha] = 0;
+                updateFrequency(cha);
+            }
+            if (amOffset[cha] !== 0) {
+                amOffset[cha] = 0;
+                updateTotalAttenuation(cha);
+            }
+        } else
+            lfoStepChangeClock[cha] = clock + lfoStepDur[cha];
     }
 
     function startSample(cha) {
@@ -423,8 +478,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function updateFrequency(cha) {
-        var vibVal = 0; vib[cha] ? vibValues[fNum[cha] >> 6][vibPhase] : 0;
-        phaseInc[cha] = ((1 << 10) + fNum[cha] + vibVal) << 8 >> (8 - octave[cha] + 1);
+        phaseInc[cha] = ((((1 << 10) + fNum[cha]) << 8) + (vibOffset[cha] * 256)) >> (8 - octave[cha] + 1);     // vibOffset can be negative!
         updateRateCorrOffset(cha);
 
         // console.log("Wave UpdateFrequency", cha, ":", octave[cha], fNum[cha], phaseInc[cha].toString(16));
@@ -436,16 +490,9 @@ wmsx.OPL4AudioWave = function(opl4) {
         rcOffset[cha] = corr >= 0 ? corr : 0;
     }
 
-    function updateAMAttenuation(cha) {
-        return;
-
-        amAtt[cha] = am[cha] ? amLevel << 4 : 0;
-        updateTotalAttenuation(cha);
-    }
-
     function updateTotalAttenuation(cha) {
-        totalAttL[cha] = amAtt[cha] + envLevel[cha] + volume[cha] + panpotL[cha];
-        totalAttR[cha] = amAtt[cha] + envLevel[cha] + volume[cha] + panpotR[cha];
+        totalAttL[cha] = amOffset[cha] + envLevel[cha] + volume[cha] + panpotL[cha];
+        totalAttR[cha] = amOffset[cha] + envLevel[cha] + volume[cha] + panpotR[cha];
     }
 
 
@@ -456,8 +503,6 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Dynamic global values. Change as time passes
     var clock;
-    var amLevel, amLevelInc;
-    var vibPhase;
 
     // Settings Per Channel
     var waveNumber =   new Array(24);
@@ -470,25 +515,27 @@ wmsx.OPL4AudioWave = function(opl4) {
     var phaseInc =     new Array(24);
     var phaseCounter = new Array(24);
 
-    var fNum =   new Array(24);
-    var octave = new Array(24);
-    var reverb = new Array(24);
-    var keyOn =  new Array(24);
-    var ar =     new Array(24);
-    var d1r =    new Array(24);
-    var dl =     new Array(24);
-    var d2r =    new Array(24);
-    var rc =     new Array(24);
-    var rr =     new Array(24);
+    var fNum =     new Array(24);
+    var octave =   new Array(24);
+    var reverb =   new Array(24);
+    var ar =       new Array(24);
+    var d1r =      new Array(24);
+    var dl =       new Array(24);
+    var d2r =      new Array(24);
+    var rc =       new Array(24);
+    var rr =       new Array(24);
+    var rcOffset = new Array(24);
 
-    var am =      new Array(24);
-    var vib =     new Array(24);
     var volume =  new Array(24);
     var panpotL = new Array(24);
     var panpotR = new Array(24);
 
+    var lfoStepDur = new Array(24);
+    var vibDepth =   new Array(24);
+    var amDepth =    new Array(24);
+
+
     // Dynamic values per Channel. May change as time passes without being set by software
-    var amAtt =     new Array(24);
     var totalAttL = new Array(24);
     var totalAttR = new Array(24);
 
@@ -501,7 +548,10 @@ wmsx.OPL4AudioWave = function(opl4) {
     var envStepLevelPattCounter =  new Array(24);
     var envLevel =                 new Array(24);
 
-    var rcOffset =  new Array(24);
+    var lfoStep =                  new Array(24);
+    var lfoStepChangeClock =       new Array(24);
+    var vibOffset =                new Array(24);
+    var amOffset =                 new Array(24);
 
 
     // Constants
@@ -510,11 +560,11 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     var REVERB_ENV_LEVEL = 6 << 4;   //  -18 dB
     var REVERB_RATE = 5 << 2;
-    var DAMP_RATE = 14 << 2;
+    var DAMP_RATE = 15 << 2;
 
     // Pre calculated tables, factors, values
 
-    var volumeTable, vibValues, panpotValues, rateAttackPatterns, rateDecayPatterns;
+    var rateAttackPatterns, rateDecayPatterns, lfoStepClocks, vibStepOffsets, amStepOffsets, panpotValues, volumeTable;
     var sampleResult = [ 0, 0 ];
 
 
@@ -527,7 +577,6 @@ wmsx.OPL4AudioWave = function(opl4) {
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
 
             c: clock,
-            al: amLevel, ai: amLevelInc, vp: vibPhase,
 
             wn: wmsx.Util.storeInt16BitArrayToStringBase64(waveNumber),
             db: wmsx.Util.storeInt8BitArrayToStringBase64(dataBits),
@@ -539,7 +588,6 @@ wmsx.OPL4AudioWave = function(opl4) {
             sp: wmsx.Util.storeInt32BitArrayToStringBase64(samplePos),
             sv: wmsx.Util.storeInt32BitArrayToStringBase64(sampleValue),
 
-            amt: wmsx.Util.storeInt16BitArrayToStringBase64(amAtt),
             totL: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttL),
             totR: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttR),
 
@@ -563,7 +611,6 @@ wmsx.OPL4AudioWave = function(opl4) {
         memoryAddress = s.ma;
 
         clock = s.c;
-        amLevel = s.al; amLevelInc = s.ai; vibPhase = s.vp;
 
         waveNumber = wmsx.Util.restoreStringBase64ToInt16BitArray(s.wn, waveNumber);
         dataBits = wmsx.Util.restoreStringBase64ToInt8BitArray(s.db, dataBits);
@@ -575,7 +622,6 @@ wmsx.OPL4AudioWave = function(opl4) {
         samplePos = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sp, samplePos);
         sampleValue = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sv, sampleValue);
 
-        amAtt = wmsx.Util.restoreStringBase64ToInt16BitArray(s.amt, amAtt);
         totalAttL = wmsx.Util.restoreStringBase64ToInt16BitArray(s.totL, totalAttL);
         totalAttR = wmsx.Util.restoreStringBase64ToInt16BitArray(s.totR, totalAttR);
 
@@ -594,14 +640,11 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     this.register = register;
 
-    this.keyOn = keyOn;
     this.reverb = reverb;
     this.fNum = fNum;
     this.octave = octave;
     this.volume = volume;
 
-    this.am = am;
-    this.vib = vib;
     this.rc = rc;
     this.ar = ar;
     this.d1r = d1r;
@@ -610,7 +653,6 @@ wmsx.OPL4AudioWave = function(opl4) {
     this.rr = rr;
     this.rcOffset = rcOffset;
 
-    this.amAtt = amAtt;
     this.totalAttL = totalAttL;
     this.totalAttR = totalAttR;
 

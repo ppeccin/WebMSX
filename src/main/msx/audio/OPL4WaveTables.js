@@ -3,10 +3,6 @@
 wmsx.OPL4WaveTables = function() {
 "use strict";
 
-    this.getVIBValues = function() {
-        return this.VIB_VALUES;
-    };
-
     this.getPanPotValues = function() {
         return this.PANPOT_VALUES;
     };
@@ -42,17 +38,43 @@ wmsx.OPL4WaveTables = function() {
         return tab;
     };
 
+    this.getLFOStepClocks = function() {
+        // 128 steps
+        var c = new Array(8);
+        for (var i = 0; i < 8; ++i) c[i] = Math.round(44100 / this.LFO_FREQS[i] / 128);
+        return c;
+    };
 
-    this.VIB_VALUES = [
-        [ 0, 0, 0, 0, 0,  0,  0,  0 ],      // According to fNum >> 6 (one line for each value)
-        [ 0, 0, 1, 0, 0,  0, -1,  0 ],      // Half these values must be added to fNum BEFORE multi
-        [ 0, 1, 2, 1, 0, -1, -2, -1 ],
-        [ 0, 1, 3, 1, 0, -1, -3, -1 ],
-        [ 0, 2, 4, 2, 0, -2, -4, -2 ],
-        [ 0, 2, 5, 2, 0, -2, -5, -2 ],
-        [ 0, 3, 6, 3, 0, -3, -6, -3 ],
-        [ 0, 3, 7, 3, 0, -3, -7, -3 ]
-    ];
+    this.getVIBOffsets = function() {
+        // 128 steps per depth, 32 levels (0 .. +32 .. 0 .. -32 .. 0)
+        var vibs = new Array(8 * 128);
+        for (var d = 0; d < 8; ++d) {
+            var depth = this.VIB_DEPTHS[d];
+            for (var s = 0; s < 128; ++s) {
+                vibs[d * 128 + s] = Math.round(
+                    s < 32 ? (s / 32) * depth
+                    : (s < 96) ? ((64 - s) / 32) * depth
+                    : ((s - 128) / 32) * depth
+                );
+            }
+        }
+        return vibs;
+    };
+
+    this.getAMOffsets = function() {
+        // 128 steps per depth, 64 levels (0 .. 64 .. 0)
+        var ams = new Array(8 * 128);
+        for (var d = 0; d < 8; ++d) {
+            var depth = this.AM_DEPTHS[d] / 0.1875;
+            for (var s = 0; s < 128; ++s) {
+                ams[d * 128 + s] = Math.round(
+                    s < 64 ? (s / 64) * depth
+                    : ((128 - s) / 64) * depth
+                );
+            }
+        }
+        return ams;
+    };
 
     this.PANPOT_VALUES =  [
         // -3 .. -18 dB. Min = -96 dB
@@ -156,38 +178,39 @@ wmsx.OPL4WaveTables = function() {
 */
 
     this.LFO_FREQS = [
-        // In Hz
-        0.168,
-        2.019,
-        3.196,
-        4.206,
-        5.215,
-        5.888,
-        6.224,
-        7.066
+        // In Hz        in samples
+        0.168,      //  262500
+        2.019,      //   21842.496285289744
+        3.196,      //   13798.498122653316
+        4.206,      //   10485.021398002853
+        5.215,      //    8456.375838926175
+        5.888,      //    7488.679245283019
+        6.224,      //    7085.475578406169
+        7.066       //    6241.154825926975
     ];
 
     this.VIB_DEPTHS = [
-            0,      //  0 fNum
-        3.378,      //  2 fNum
-        5.065,      //  3 fNum
-        6.750,      //  4 fNum
-       10.114,      //  6 fNum
-       20.170,      // 12 fNum
-       40.108,      // 24 fNum
-       79.307       // 48 fNum
+        // in fNum     in cents
+         0,         //  0
+         2,         //  3.378
+         3,         //  5.065
+         4,         //  6.750
+         6,         // 10.114
+        12,         // 20.170
+        24,         // 40.108
+        48          // 79.307
     ];
 
-    this.TREMOLO_DEPTHS = [
-        // In units of -0.09375 dB
-            0,      //   0  0x00  (0..0)
-        1.781,      //  20  0x14  (0..19)
-        2.906,      //  32  0x20  (0..31)
-        3.656,      //  40  0x28  (0..39)
-        4.406,      //  48  0x30  (0..47)
-        5.906,      //  64  0x40  (0..63)
-        7.406,      //  80  0x50  (0..79)
-       11.910       // 128  0x80  (0..127)
+    this.AM_DEPTHS = [
+        // In -dB       in units of -0.09375 dB
+             0,     //   0  0x00  (0..0)
+         1.781,     //  20  0x14  (0..19)
+         2.906,     //  32  0x20  (0..31)
+         3.656,     //  40  0x28  (0..39)
+         4.406,     //  48  0x30  (0..47)
+         5.906,     //  64  0x40  (0..63)
+         7.406,     //  80  0x50  (0..79)
+        11.910      // 128  0x80  (0..127)
     ];
 
 };

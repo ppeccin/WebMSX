@@ -54,6 +54,7 @@ wmsx.OPL4AudioFM = function(opl4) {
         registerAddress = 0;
         wmsx.Util.arrayFill(register, 0);
         clock = 0;
+        busyUntilBUSCycle = 0;
 
         timer1Counter = timer2Counter = 0;
         timer1Active = timer2Active = false;
@@ -110,14 +111,18 @@ wmsx.OPL4AudioFM = function(opl4) {
     };
 
     this.inputC4 = function() {
-        // console.log("Status READ: " + status.toString(16));
+        var res = status;
+        // var res = cpu.getBUSCycles() < busyUntilBUSCycle ? status | 1 : status;
 
-        return status;
+        // if (res & 1) console.log("Status READ: " + res.toString(16));
+
+        return res;
     };
 
     this.outputC4 = function (val) {
         // console.log("FM Register Address: " + val.toString(16));
 
+        // self.setBusyCycles(56);
         registerAddress = val;
     };
 
@@ -130,12 +135,14 @@ wmsx.OPL4AudioFM = function(opl4) {
     };
 
     this.outputC5 = function (val) {
+        // self.setBusyCycles(56);
         registerWrite(registerAddress, val);
     };
 
     this.outputC6 = function (val) {
         // console.log("FM Register Address: " + (0x100 | val).toString(16));
 
+        // self.setBusyCycles(56);
         registerAddress = 0x100 | val;
     };
 
@@ -144,6 +151,10 @@ wmsx.OPL4AudioFM = function(opl4) {
 
         ++clock;
         if ((clock & 0x03) === 0) clockTimers();
+    };
+
+    this.setBusyCycles = function(cycles) {
+        // if (cpu) busyUntilBUSCycle = cpu.getBUSCycles() + (cycles / 9.45);      // OPL4 master clock is ~9.45 times BUS clock
     };
 
     this.nextSample = function() {
@@ -660,6 +671,7 @@ wmsx.OPL4AudioFM = function(opl4) {
 
 
     var cpu;
+    var busyUntilBUSCycle;
 
     var audioConnected = false;
 
