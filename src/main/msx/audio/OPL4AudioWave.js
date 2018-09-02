@@ -491,8 +491,9 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     }
 
     function updateTotalAttenuation(cha) {
-        totalAttL[cha] = amOffset[cha] + envLevel[cha] + volume[cha] + panpotL[cha];
-        totalAttR[cha] = amOffset[cha] + envLevel[cha] + volume[cha] + panpotR[cha];
+        var baseAtt = amOffset[cha] + envLevel[cha] + volume[cha];
+        totalAttL[cha] = baseAtt + panpotL[cha];
+        totalAttR[cha] = baseAtt + panpotR[cha];
     }
 
 
@@ -571,6 +572,7 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
+        // TODO OPL4 Implement
         return {
             ra: registerAddress,
             ma: memoryAddress,
@@ -636,36 +638,8 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
 
     init();
 
-    // Debug vars
 
-    this.register = register;
-
-    this.reverb = reverb;
-    this.fNum = fNum;
-    this.octave = octave;
-    this.volume = volume;
-
-    this.rc = rc;
-    this.ar = ar;
-    this.d1r = d1r;
-    this.dl = dl;
-    this.d2r = d2r;
-    this.rr = rr;
-    this.rcOffset = rcOffset;
-
-    this.totalAttL = totalAttL;
-    this.totalAttR = totalAttR;
-
-    this.envStep = envStep;
-    this.envStepNext = envStepNext;
-    this.envStepNextAtLevel = envStepNextAtLevel;
-    this.envLevel = envLevel;
-
-    this.phaseInc = phaseInc;
-    this.phaseCounter = phaseCounter;
-
-    window.T = new wmsx.OPL4WaveTables();
-
+    // Debug
 
     this.eval = function(str) {
         return eval(str);
