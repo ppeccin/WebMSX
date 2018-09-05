@@ -16,24 +16,28 @@ wmsx.OPL4WaveTables = function() {
 
     this.getRateAttackPatterns = function() {
         // Rates form 0 to 60 + 43 (rate correction) = 103 max
-        var tab = new Array(104);
+        // 8 steps per rate
+        var tab = new Array(104 * 8);
         for (var r = 0; r < 64; ++r)
-            tab[r] = r < 52 ? this.RATE_ATTACK_SHIFTS[r & 3] : this.RATE_ATTACK_SHIFTS[r - 52 + 4];
+            for (var s = 0; s < 8; ++s)
+                tab[r * 8 + s] = r < 52 ? this.RATE_ATTACK_SHIFTS[r & 3][s] : this.RATE_ATTACK_SHIFTS[r - 52 + 4][s];
 
         // Repeat last value for exceeding rates (> 63)
-        for (r = 64; r < 104; ++r) tab[r] = tab[63];
+        for (s = 64 * 8; s < 104 * 8; ++s) tab[s] = 0;
 
         return tab;
     };
 
     this.getRateDecayPatterns = function() {
         // Rates form 0 to 60 + 43 (rate correction) = 103 max
-        var tab = new Array(104);
+        // 8 steps per rate
+        var tab = new Array(104 * 8);
         for (var r = 0; r < 64; ++r)
-            tab[r] = r < 56 ? this.RATE_DECAY_INCS[r & 3] : this.RATE_DECAY_INCS[r - 56 + 4];
+            for (var s = 0; s < 8; ++s)
+                tab[r * 8 + s] = r < 56 ? this.RATE_DECAY_INCS[r & 3][s] : this.RATE_DECAY_INCS[r - 56 + 4][s];
 
         // Repeat last value for exceeding rates (> 63)
-        for (r = 64; r < 104; ++r) tab[r] = tab[63];
+        for (s = 64 * 8; s < 104 * 8; ++s) tab[s] = 2;
 
         return tab;
     };

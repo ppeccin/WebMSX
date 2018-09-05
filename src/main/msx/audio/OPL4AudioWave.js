@@ -33,25 +33,22 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     };
 
     this.reset = function() {
-        // Zero all registers
         clock = 0;
         memoryAddress = 0;
         registerAddress = 0;
+
+        // Init all registers
         wmsx.Util.arrayFill(register, 0);
         for (var r = 0x50; r < 0x68; ++r) register[r] = 0xfe;
         for (    r = 0x68; r < 0x80; ++r) register[r] = 0x20;
 
         // Settings per Channel
 
-        wmsx.Util.arrayFill(waveNumber, 0);
         wmsx.Util.arrayFill(dataBits, 0);
         wmsx.Util.arrayFill(startAddress, 0);
         wmsx.Util.arrayFill(loopPosition, 0);
         wmsx.Util.arrayFill(endPosition, 0);
-        wmsx.Util.arrayFill(samplePos, 0);
-        wmsx.Util.arrayFill(sampleValue, 0);
         wmsx.Util.arrayFill(phaseInc, 0x200);   // Correct value for Octave = 0 and fNum = 0
-        wmsx.Util.arrayFill(phaseCounter, 0);
 
         wmsx.Util.arrayFill(fNum, 0);
         wmsx.Util.arrayFill(octave, 0);
@@ -73,19 +70,26 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
 
         // Dynamic values
 
-        wmsx.Util.arrayFill(totalAttL, 1024);
-        wmsx.Util.arrayFill(totalAttR, 1024);
+        wmsx.Util.arrayFill(samplePos, 0);
+        wmsx.Util.arrayFill(sampleValue, 0);
+        wmsx.Util.arrayFill(phaseCounter, 0);
+
         wmsx.Util.arrayFill(envStep, IDLE);
         wmsx.Util.arrayFill(envStepNext, IDLE);
         wmsx.Util.arrayFill(envStepNextAtLevel, 0);
+        wmsx.Util.arrayFill(envStepRate, 0);
         wmsx.Util.arrayFill(envStepLevelDur, 0);
         wmsx.Util.arrayFill(envStepLevelChangeClock, 0);
+        wmsx.Util.arrayFill(envStepLevelPattCounter, 0);
         wmsx.Util.arrayFill(envLevel, 512);
 
         wmsx.Util.arrayFill(lfoStep, 0);
         wmsx.Util.arrayFill(lfoStepChangeClock, 0);
         wmsx.Util.arrayFill(vibOffset, 0);
         wmsx.Util.arrayFill(amOffset, 0);
+
+        wmsx.Util.arrayFill(totalAttL, 1024);
+        wmsx.Util.arrayFill(totalAttR, 1024);
     };
 
     this.output7E = function (val) {
@@ -147,33 +151,6 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
         return sampleResult;
     };
 
-    function readWaveHeader(cha) {
-        var num = waveNumber[cha];
-
-        // if (cha === 20) console.log("Reading Wave Header:", num);
-
-        var waveTableHeader = (register[2] >> 2) & 0x07;
-        var address = num < 384 || waveTableHeader === 0 ? num * 12 : (waveTableHeader << 19) + (num - 384) * 12;
-
-        // console.log(cha, waveTableHeader, num, address);
-
-        var val = opl4.memoryRead(address++);
-        dataBits[cha] = val >> 6;
-        startAddress[cha] = ((val & 0x3f) << 16) | (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);
-        loopPosition[cha] = (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);                 // delta from start in samples
-        endPosition[cha] = ~((opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++)) & 0xffff;      // delta from start in samples
-        registerWrite(0x80 + cha, opl4.memoryRead(address++));
-        registerWrite(0x98 + cha, opl4.memoryRead(address++));
-        registerWrite(0xb0 + cha, opl4.memoryRead(address++));
-        registerWrite(0xc8 + cha, opl4.memoryRead(address++));
-        registerWrite(0xe0 + cha, opl4.memoryRead(address++));
-
-        if (envStep[cha] !== IDLE) startSample(cha);
-        // if (envStep[cha] !== IDLE) setEnvStep(cha, DAMP);
-
-        // console.log("Wave Number", cha, ":", num);
-    }
-
     function registerWrite(reg, val) {
         // console.log("Wave Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
@@ -193,8 +170,7 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
             case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f: case 0x10: case 0x11: case 0x12: case 0x13:
             case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
                 cha = reg - 0x08;
-                waveNumber[cha] = ((register[0x20 + cha] & 1) << 8) | val;
-                readWaveHeader(cha);
+                readWaveHeader(cha, ((register[0x20 + cha] & 1) << 8) | val);                           // WAVE HEADER
                 break;
             case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29: case 0x2a: case 0x2b:
             case 0x2c: case 0x2d: case 0x2e: case 0x2f: case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
@@ -295,6 +271,31 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
         return res;
     }
 
+    function readWaveHeader(cha, num) {
+        // console.log("Reading Wave Header:", num);
+
+        var waveTableHeader = (register[2] >> 2) & 0x07;
+        var address = num < 384 || waveTableHeader === 0 ? num * 12 : (waveTableHeader << 19) + (num - 384) * 12;
+
+        // console.log(cha, waveTableHeader, num, address);
+
+        var val = opl4.memoryRead(address++);
+        dataBits[cha] = val >> 6;
+        startAddress[cha] = ((val & 0x3f) << 16) | (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);
+        loopPosition[cha] = (opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++);                 // delta from start in samples
+        endPosition[cha] = ~((opl4.memoryRead(address++) << 8) | opl4.memoryRead(address++)) & 0xffff;      // delta from start in samples
+        registerWrite(0x80 + cha, opl4.memoryRead(address++));
+        registerWrite(0x98 + cha, opl4.memoryRead(address++));
+        registerWrite(0xb0 + cha, opl4.memoryRead(address++));
+        registerWrite(0xc8 + cha, opl4.memoryRead(address++));
+        registerWrite(0xe0 + cha, opl4.memoryRead(address++));
+
+        if (envStep[cha] !== IDLE) startSample(cha);
+        // if (envStep[cha] !== IDLE) setEnvStep(cha, DAMP);
+
+        // console.log("Wave Number", cha, ":", num);
+    }
+
     function clockLFO(cha) {
         if (clock !== lfoStepChangeClock[cha]) return -1;
 
@@ -321,18 +322,23 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     function clockEnvelope(cha) {
         if (clock !== envStepLevelChangeClock[cha]) return;
 
-        var change = envStepLevelChangePatt[cha][envStepLevelPattCounter[cha]++ & 7];
-        if (change >= 0) {
-            if (envStep[cha] === ATTACK) {
+        var changePattPos = envStepLevelPattCounter[cha] = (envStepLevelPattCounter[cha] + 1) & 7;
+        if (envStep[cha] === ATTACK) {
+            var change = rateAttackPatterns[(envStepRate[cha] << 3) | changePattPos];
+            if (change >= 0) {
                 envLevel[cha] -= 1 + (envLevel[cha] >> change);
                 if (envLevel[cha] <= 0)
                     return setEnvStep(cha, DECAY1);
-            } else {
+                updateTotalAttenuation(cha);
+            }
+        } else {
+            change = rateDecayPatterns[(envStepRate[cha] << 3) | changePattPos];
+            if (change >= 0) {
                 envLevel[cha] += change;
                 if (envLevel[cha] >= envStepNextAtLevel[cha])
                     return setEnvStep(cha, envStepNext[cha]);
+                updateTotalAttenuation(cha);
             }
-            updateTotalAttenuation(cha);
         }
         envStepLevelChangeClock[cha] += envStepLevelDur[cha];
     }
@@ -470,9 +476,9 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
                 break;
         }
         envStep[cha] = step;
+        envStepRate[cha] = rate;
         envStepLevelDur[cha] = rate < 4 ? 0 : rate >= 52 ? 1 : 1 << (13 - (rate >> 2));
         envStepLevelChangeClock[cha] = clock + envStepLevelDur[cha];
-        envStepLevelChangePatt[cha] = step === ATTACK ? rateAttackPatterns[rate] : rateDecayPatterns[rate];
         envStepLevelPattCounter[cha] = 0;
         updateTotalAttenuation(cha);
     }
@@ -506,7 +512,6 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     var clock;
 
     // Settings Per Channel
-    var waveNumber =   new Array(24);
     var dataBits  =    new Array(24);
     var startAddress = new Array(24);
     var loopPosition = new Array(24);
@@ -537,15 +542,13 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
 
 
     // Dynamic values per Channel. May change as time passes without being set by software
-    var totalAttL = new Array(24);
-    var totalAttR = new Array(24);
 
     var envStep =                  new Array(24);
     var envStepNext =              new Array(24);
     var envStepNextAtLevel =       new Array(24);
+    var envStepRate =              new Array(24);
     var envStepLevelDur =          new Array(24);
     var envStepLevelChangeClock =  new Array(24);
-    var envStepLevelChangePatt =   new Array(24);
     var envStepLevelPattCounter =  new Array(24);
     var envLevel =                 new Array(24);
 
@@ -553,6 +556,9 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     var lfoStepChangeClock =       new Array(24);
     var vibOffset =                new Array(24);
     var amOffset =                 new Array(24);
+
+    var totalAttL = new Array(24);
+    var totalAttR = new Array(24);
 
 
     // Constants
@@ -574,31 +580,36 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
     this.saveState = function() {
         // TODO OPL4 Implement
         return {
+            c: clock,
             ra: registerAddress,
             ma: memoryAddress,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
 
-            c: clock,
-
-            wn: wmsx.Util.storeInt16BitArrayToStringBase64(waveNumber),
             db: wmsx.Util.storeInt8BitArrayToStringBase64(dataBits),
             sa: wmsx.Util.storeInt32BitArrayToStringBase64(startAddress),
             lp: wmsx.Util.storeInt16BitArrayToStringBase64(loopPosition),
             ep: wmsx.Util.storeInt16BitArrayToStringBase64(endPosition),
 
+            sp: wmsx.Util.storeInt16BitArrayToStringBase64(samplePos),
+            sv: wmsx.Util.storeInt16BitArrayToStringBase64(sampleValue),
             pc: wmsx.Util.storeInt32BitArrayToStringBase64(phaseCounter),
-            sp: wmsx.Util.storeInt32BitArrayToStringBase64(samplePos),
-            sv: wmsx.Util.storeInt32BitArrayToStringBase64(sampleValue),
-
-            totL: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttL),
-            totR: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttR),
 
             evs: wmsx.Util.storeInt8BitArrayToStringBase64(envStep),
+            evr: wmsx.Util.storeInt8BitArrayToStringBase64(envStepRate),
+            evd: wmsx.Util.storeInt32BitArrayToStringBase64(envStepLevelDur),
+            evc: envStepLevelChangeClock,
             evn: wmsx.Util.storeInt8BitArrayToStringBase64(envStepNext),
             evl: wmsx.Util.storeInt16BitArrayToStringBase64(envStepNextAtLevel),
+            epc: wmsx.Util.storeInt8BitArrayToStringBase64(envStepLevelPattCounter),
             eve: wmsx.Util.storeInt16BitArrayToStringBase64(envLevel),
 
-            kso: wmsx.Util.storeInt8BitArrayToStringBase64(rcOffset)
+            lfs: wmsx.Util.storeInt8BitArrayToStringBase64(lfoStep),
+            lfc: lfoStepChangeClock,
+            vio: wmsx.Util.storeInt8BitArrayToStringBase64(vibOffset),
+            amo: wmsx.Util.storeInt8BitArrayToStringBase64(amOffset),
+
+            totL: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttL),
+            totR: wmsx.Util.storeInt16BitArrayToStringBase64(totalAttR)
         }
     };
 
@@ -614,25 +625,31 @@ wmsx.OPL4AudioWave = function(opl4, fm) {
 
         clock = s.c;
 
-        waveNumber = wmsx.Util.restoreStringBase64ToInt16BitArray(s.wn, waveNumber);
         dataBits = wmsx.Util.restoreStringBase64ToInt8BitArray(s.db, dataBits);
         startAddress = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sa, startAddress);
         loopPosition = wmsx.Util.restoreStringBase64ToInt16BitArray(s.lp, loopPosition);
         endPosition = wmsx.Util.restoreStringBase64ToInt16BitArray(s.ep, endPosition);
 
         phaseCounter = wmsx.Util.restoreStringBase64ToInt32BitArray(s.pc, phaseCounter);
-        samplePos = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sp, samplePos);
-        sampleValue = wmsx.Util.restoreStringBase64ToInt32BitArray(s.sv, sampleValue);
+        samplePos = wmsx.Util.restoreStringBase64ToInt16BitArray(s.sp, samplePos);
+        sampleValue = wmsx.Util.restoreStringBase64ToSignedInt16BitArray(s.sv, sampleValue);
+
+        envStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evs, envStep);
+        envStepRate = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evr, envStepRate);
+        envStepLevelDur = wmsx.Util.restoreStringBase64ToInt32BitArray(s.evd, envStepLevelDur);
+        envStepLevelChangeClock = s.evc;
+        envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
+        envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.evl, envStepNextAtLevel);
+        envStepLevelPattCounter = wmsx.Util.restoreStringBase64ToInt16BitArray(s.epc, envStepLevelPattCounter);
+        envLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.eve, envLevel);
+
+        lfoStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.lfs, lfoStep);
+        lfoStepChangeClock = s.lfc;
+        vibOffset = wmsx.Util.restoreStringBase64ToSignedInt8BitArray(s.vio, vibOffset);
+        amOffset = wmsx.Util.restoreStringBase64ToInt8BitArray(s.amo, amOffset);
 
         totalAttL = wmsx.Util.restoreStringBase64ToInt16BitArray(s.totL, totalAttL);
         totalAttR = wmsx.Util.restoreStringBase64ToInt16BitArray(s.totR, totalAttR);
-
-        envStep = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evs, envStep);
-        envStepNext = wmsx.Util.restoreStringBase64ToInt8BitArray(s.evn, envStepNext);
-        envStepNextAtLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.evl, envStepNextAtLevel);
-        envLevel = wmsx.Util.restoreStringBase64ToInt16BitArray(s.eve, envLevel);
-
-        rcOffset = wmsx.Util.restoreStringBase64ToInt8BitArray(s.kso, rcOffset);
     };
 
 
