@@ -74,6 +74,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
         wmsx.Util.arrayFill(samplePos, 0);
         wmsx.Util.arrayFill(sampleValue, 0);
+        wmsx.Util.arrayFill(sampleValue2, 0);
         wmsx.Util.arrayFill(phaseCounter, 0);
 
         wmsx.Util.arrayFill(envStep, IDLE);
@@ -132,19 +133,22 @@ wmsx.OPL4AudioWave = function(opl4) {
             clockEnvelope(cha);
 
             // Update phase (0..1023)
+
             phase = phaseCounter[cha];
             newPhase = phaseCounter[cha] = (phase + phaseInc[cha]) & 0x7fffffff;
 
             delta = (newPhase >> 10) - (phase >> 10);
+            if (delta > 0) advanceSample(cha, delta);
 
-            if (delta > 0) {
-                sample = advanceSample(cha, delta);
-                sampleL += sample * dynamicLevelL[cha];
-                sampleR += sample * dynamicLevelR[cha];
-            } else {
-                sampleL += sampleValue[cha] * dynamicLevelL[cha];
-                sampleR += sampleValue[cha] * dynamicLevelR[cha];
-            }
+            sample = (
+                sampleValue[cha] * (1023 - (newPhase & 1023))
+                + sampleValue2[cha] * (newPhase & 1023)
+            ) / 1024;
+
+            // sample = sampleValue[cha];
+
+            sampleL += sample * dynamicLevelL[cha];
+            sampleR += sample * dynamicLevelR[cha];
 
             // if (delta > 0) sampleL += advanceSample(cha, delta); else sampleL += sampleValue[cha];
             // if (sampleL > (24 * 4096) || sampleL < (24 * -4096)) console.log("Wave overflow: " + sampleL);
@@ -388,41 +392,47 @@ wmsx.OPL4AudioWave = function(opl4) {
     function startSample(cha) {
         samplePos[cha] = 0;
         phaseCounter[cha] = 0;
-        return updateSampleValue(cha);
+        sampleValue[cha] = sampleValue2[cha] = readSample(cha, 0);
     }
 
     function advanceSample(cha, quant) {
-        var newPos = samplePos[cha] + quant;
-        samplePos[cha] = newPos > endPosition[cha]
-            ? loopPosition[cha] + (newPos - endPosition[cha]) - 1
-            : newPos;
-        return updateSampleValue(cha);
+        samplePos[cha] = advancedSamplePos(cha, quant);
+        sampleValue2[cha] = readSample(cha, advancedSamplePos(cha, 1));
+        sampleValue[cha] = readSample(cha, samplePos[cha]);
     }
 
-    function updateSampleValue(cha) {
+    function advancedSamplePos(cha, quant) {
+        var newPos = samplePos[cha] + quant;
+        return newPos > endPosition[cha]
+            ? loopPosition[cha] + (newPos - endPosition[cha]) - 1
+            : newPos;
+    }
+
+    // Assumes no loop possible between 2 consecutive reads. Assumes data is aligned
+    function readSample(cha, pos) {
         var addr, bin;
         var start = startAddress[cha];
         var bits = dataBits[cha];
         if (bits === 1) {
             // 12 bits per sample
-            addr = start + (samplePos[cha] >> 1) * 3;
-            bin = samplePos[cha] & 1
+            addr = start + (pos >> 1) * 3;
+            bin = pos & 1
                 ? ((opl4.memoryRead(addr + 2) << 4) | (opl4.memoryRead(addr + 1) & 0x0f))
                 : (opl4.memoryRead(addr) << 4) | (opl4.memoryRead(addr + 1) >> 4);
             bin = (bin << 4) | ((bin & 0x7ff) >> 7);        // scale up to 16 bits
         } else if (bits === 2) {
             // 16 bits per sample
-            addr = start + (samplePos[cha] << 1);
+            addr = start + (pos << 1);
             bin = (opl4.memoryRead(addr) << 8) | opl4.memoryRead(addr + 1);
         } else if (bits === 0) {
             // 8 bits per sample
-            addr = start + samplePos[cha];
+            addr = start + pos;
             bin = opl4.memoryRead(addr);
             bin = (bin << 8) | ((bin & 0x7f) << 1);         // scale up to 16 bits
         } else {
             bin = 0;
         }
-        return sampleValue[cha] = bin & 0x8000 ? bin - 0x10000 : bin;       // to signed -32768 .. 32767
+        return bin & 0x8000 ? bin - 0x10000 : bin;       // to signed -32768 .. 32767
     }
 
     function setEnvStep(cha, step) {
@@ -535,6 +545,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     var endPosition =  new Array(24);
     var samplePos =    new Array(24);
     var sampleValue =  new Array(24);
+    var sampleValue2 =  new Array(24);
     var phaseInc =     new Array(24);
     var phaseCounter = new Array(24);
 
