@@ -13,7 +13,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
         name = pName || "OPL4";
         self.fm = fm = new wmsx.OPL4AudioFM(self);
-        self.wave = wave = new wmsx.OPL4AudioWave(self, fm);
+        self.wave = wave = new wmsx.OPL4AudioWave(self);
     }
 
     this.connect = function(machine) {
