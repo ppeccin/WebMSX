@@ -9,7 +9,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     function init(self) {
 
-        window.OPL4 = self;
+        window.OPL4 = self;     // TODO Debug, remove
 
         name = pName || "OPL4";
         self.fm = fm = new wmsx.OPL4AudioFM(self);
@@ -90,7 +90,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     var audioSocket, audioSignal;
 
-    var VOLUME = 0.65 * (7 / 24 / 32768);     // 24 channels, samples -32768 .. +32768
+    var VOLUME = 0.65 * (7 / 24 / 32768);     // 24 channels, samples -32768 .. +32767
     var SAMPLE_RATE = 44100;                  // Main CPU clock / 81.2734693877551 = 44100 Hz
     var CLOCK = 49780;                        // Main CPU clock / 72 = 49780 Hz
 
@@ -120,6 +120,9 @@ wmsx.OPL4Audio = function(pName, cart) {
 
 
     init(this);
+
+
+    // Debug
 
     this.eval = function(str) {
         return eval(str);

@@ -39,8 +39,11 @@ wmsx.OPL4AudioWave = function(opl4) {
 
         // Init all registers
         wmsx.Util.arrayFill(register, 0);
-        for (var r = 0x50; r < 0x68; ++r) register[r] = 0xfe;
-        for (    r = 0x68; r < 0x80; ++r) register[r] = 0x20;
+        register[0x02] = 0x02;  // DEVICE ID
+        register[0xf8] = 0x1b;  // FM MIX CONTROL
+        register[0x00] = register[0x01] = register[0x07] =
+        register[0xfa] = register[0xfb] = register[0xfc] =
+        register[0xfd] = register[0xfe] = register[0xff] = 0xff;      // LSI TEST, INVALID
 
         // Settings per Channel
 
@@ -140,18 +143,12 @@ wmsx.OPL4AudioWave = function(opl4) {
             delta = (newPhase >> 10) - (phase >> 10);
             if (delta > 0) advanceSample(cha, delta);
 
-            sample = (
-                sampleValue[cha] * (1023 - (newPhase & 1023))
-                + sampleValue2[cha] * (newPhase & 1023)
-            ) / 1024;
-
-            // sample = sampleValue[cha];
+            // Sample smoothing: mix 2 samples weighting by phase, scale to 1024, then divide by 1024
+            sample = (sampleValue[cha] * (1024 - (newPhase & 1023)) + sampleValue2[cha] * (newPhase & 1023)) >> 10;
 
             sampleL += sample * dynamicLevelL[cha];
             sampleR += sample * dynamicLevelR[cha];
 
-            // if (delta > 0) sampleL += advanceSample(cha, delta); else sampleL += sampleValue[cha];
-            // if (sampleL > (24 * 4096) || sampleL < (24 * -4096)) console.log("Wave overflow: " + sampleL);
         }
 
         sampleResult[0] = sampleL;
@@ -259,7 +256,7 @@ wmsx.OPL4AudioWave = function(opl4) {
                 break;
             case 0xf9:
                 if (mod & 0x3f) {
-                    mixerAttL = (val & 0x07) === 0x07 ? 512 : (val & 0x07) << 4;                       // MIX CONTROL (7 becomes -96 dB)
+                    mixerAttL = (val & 0x07) === 0x07 ? 512 : (val & 0x07) << 4;                       // PCM MIX CONTROL (7 becomes -96 dB)
                     mixerAttR = (val & 0x38) === 0x38 ? 512 : (val & 0x38) << 1;
                     for (cha = 23; cha >= 0; --cha) updateSettingsAttenuation(cha);
                 }
@@ -270,15 +267,12 @@ wmsx.OPL4AudioWave = function(opl4) {
     function registerRead(reg) {
         var res;
         switch(reg) {
-            case 0x02:
-                res = 0x20;                                                 // DEVICE ID
-                break;
             case 0x06:
                 res = opl4.memoryRead(memoryAddress);                       // MEMORY READ
                 if (++memoryAddress >= 0x400000) memoryAddress = 0;
                 break;
             default:
-                res = register[reg];                                        // REGISTER READ
+                res = register[reg];                                        // NORMAL REGISTER READ
         }
 
         // console.log("Wave Register READ: " + reg.toString(16) + " = " + res.toString(16));
@@ -287,12 +281,10 @@ wmsx.OPL4AudioWave = function(opl4) {
     }
 
     function readWaveHeader(cha, num) {
-        // console.log("Reading Wave Header:", num);
+        // console.log("Reading Wave Header:", cha, ":", num);
 
         var waveTableHeader = (register[2] >> 2) & 0x07;
         var address = num < 384 || waveTableHeader === 0 ? num * 12 : (waveTableHeader << 19) + (num - 384) * 12;
-
-        // console.log(cha, waveTableHeader, num, address);
 
         var val = opl4.memoryRead(address++);
         dataBits[cha] = val >> 6;
@@ -306,9 +298,6 @@ wmsx.OPL4AudioWave = function(opl4) {
         registerWrite(0xe0 + cha, opl4.memoryRead(address++));
 
         if (envStep[cha] !== IDLE) startSample(cha);
-        // if (envStep[cha] !== IDLE) setEnvStep(cha, DAMP);
-
-        // console.log("Wave Number", cha, ":", num);
     }
 
     function clockLFO(cha) {
@@ -392,17 +381,19 @@ wmsx.OPL4AudioWave = function(opl4) {
     function startSample(cha) {
         samplePos[cha] = 0;
         phaseCounter[cha] = 0;
-        sampleValue[cha] = sampleValue2[cha] = readSample(cha, 0);
+        sampleValue[cha] = readSample(cha, 0);
+        sampleValue2[cha] = readSample(cha, advancedSamplePos(cha, 0, 1));      // read next sample for smoothing
     }
 
     function advanceSample(cha, quant) {
-        samplePos[cha] = advancedSamplePos(cha, quant);
-        sampleValue2[cha] = readSample(cha, advancedSamplePos(cha, 1));
-        sampleValue[cha] = readSample(cha, samplePos[cha]);
+        var pos = advancedSamplePos(cha, samplePos[cha], quant);
+        samplePos[cha] = pos;
+        sampleValue[cha] = readSample(cha, pos);
+        sampleValue2[cha] = readSample(cha, advancedSamplePos(cha, pos, 1));    // read next sample for smoothing
     }
 
-    function advancedSamplePos(cha, quant) {
-        var newPos = samplePos[cha] + quant;
+    function advancedSamplePos(cha, pos, quant) {
+        var newPos = pos + quant;
         return newPos > endPosition[cha]
             ? loopPosition[cha] + (newPos - endPosition[cha]) - 1
             : newPos;
@@ -432,7 +423,7 @@ wmsx.OPL4AudioWave = function(opl4) {
         } else {
             bin = 0;
         }
-        return bin & 0x8000 ? bin - 0x10000 : bin;       // to signed -32768 .. 32767
+        return bin & 0x8000 ? bin - 0x10000 : bin;          // to signed -32768 .. 32767
     }
 
     function setEnvStep(cha, step) {
