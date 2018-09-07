@@ -213,12 +213,12 @@ wmsx.AudioSignal = function (name, source, volume, sampleRate, stereo, clock) {
     var maxSamples = 0;
     var availSamples = 0, maxAvailSamples = 0;
     var samples0 = wmsx.Util.arrayFill(new Array(maxSamples), 0);
-    var samples1 = wmsx.Util.arrayFill(new Array(maxSamples), 0);
+    var samples1 = stereo ? wmsx.Util.arrayFill(new Array(maxSamples), 0) : samples0;
 
     var monitorBufferSize = 0;
 
     var retrieveResult = {
-        stereo: !!stereo,
+        stereo: stereo,
         buffer0: samples0,
         buffer1: samples1,
         bufferSize: maxSamples,

@@ -203,23 +203,13 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             var s = input.start + resamplingLeftOver[i];
             var d = 0;
 
-            // Optimized loop for mono or stereo signals
-            if (input.stereo)
-                while (d < outputBufferSize) {
-                    outputBuffer0[d] += inputBuffer0[s | 0];   // source position as integer
-                    outputBuffer1[d] += inputBuffer1[s | 0];
-                    ++d;
-                    s += resampFactor;
-                    if (s >= inputBufferSize) s -= inputBufferSize;
-                }
-            else
-                while (d < outputBufferSize) {
-                    outputBuffer0[d] += inputBuffer0[s | 0];   // source position as integer
-                    outputBuffer1[d] += inputBuffer0[s | 0];
-                    ++d;
-                    s += resampFactor;
-                    if (s >= inputBufferSize) s -= inputBufferSize;
-                }
+            while (d < outputBufferSize) {
+                outputBuffer0[d] += inputBuffer0[s | 0];   // source position as integer
+                outputBuffer1[d] += inputBuffer1[s | 0];
+                ++d;
+                s += resampFactor;
+                if (s >= inputBufferSize) s -= inputBufferSize;
+            }
 
             resamplingLeftOver[i] = s - (s | 0);        // fractional part
         }
