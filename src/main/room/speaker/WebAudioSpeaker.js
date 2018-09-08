@@ -161,11 +161,12 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         //if (bufferSizeProblem !== undefined) console.error("+++++++ buffer size problem: " + bufferSizeProblem);
 
         if (!processor) return;
-        resamplingFactor.length = audioSignals.length;
-        resamplingLeftOver.length = audioSignals.length;
+        resamplingFactor.length = resamplingLeftOver.length =
+        prevSample0.length = prevSample1.length = prevFracPart.length = audioSignals.length;
         for (var i = 0; i < audioSignals.length; i++) {
             resamplingFactor[i] = audioSignals[i].getSampleRate() / audioContext.sampleRate;
             resamplingLeftOver[i] = 0;
+            prevSample0[i] = prevSample1[i] = prevFracPart[i] = 0;
             audioSignals[i].setAudioMonitorBufferSize((resamplingFactor[i] * bufferSize) | 0);
         }
     }
@@ -193,25 +194,41 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         // Mix all signals, performing resampling on-the-fly
         for (var i = audioSignals.length - 1; i >= 0; i = i - 1) {
             var resampFactor = resamplingFactor[i];
-            var input = audioSignals[i].retrieveSamples((outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0, mute);
+            var quantSamplesRetrived = (outputBufferSize * resampFactor + resamplingLeftOver[i]) | 0;
+            var input = audioSignals[i].retrieveSamples(quantSamplesRetrived, mute);
             var inputBuffer0 = input.buffer0;
             var inputBuffer1 = input.buffer1;
             var inputBufferSize = input.bufferSize;
 
             // Copy to output performing basic re-sampling
             // Same as Util.arrayCopyCircularSourceWithStep, but optimized with local code
-            var s = input.start + resamplingLeftOver[i];
-            var d = 0;
+            var pFracPart = prevFracPart[i];
+            var start = input.start;
+            var s = start + resamplingLeftOver[i];
 
-            while (d < outputBufferSize) {
-                outputBuffer0[d] += inputBuffer0[s | 0];   // source position as integer
-                outputBuffer1[d] += inputBuffer1[s | 0];
-                ++d;
+            for (var d = 0; d < outputBufferSize; ++d) {
+
+                outputBuffer0[d] += prevSample0[i] * (1 - pFracPart);
+                outputBuffer1[d] += prevSample1[i] * (1 - pFracPart);
+
                 s += resampFactor;
                 if (s >= inputBufferSize) s -= inputBufferSize;
+
+                prevSample0[i] = inputBuffer0[(s | 0)];
+                prevSample1[i] = inputBuffer1[(s | 0)];
+
+                outputBuffer0[d] += prevSample0[i] * pFracPart;
+                outputBuffer1[d] += prevSample1[i] * pFracPart;
+
+                pFracPart = s - (s | 0);
+
+                // outputBuffer0[d] += inputBuffer0[s | 0];
+                // outputBuffer1[d] += inputBuffer1[s | 0];
             }
 
-            resamplingLeftOver[i] = s - (s | 0);        // fractional part
+            if (s < start) s += inputBufferSize;
+            resamplingLeftOver[i] = s - (start + quantSamplesRetrived);
+            prevFracPart[i] = pFracPart;
         }
 
         //var str = ""; for (var i = 0; i < audioSignals.length; i++) str = str + audioSignals[i].name + " ";
@@ -225,6 +242,9 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     this.signals = audioSignals;
     var resamplingFactor = [];
     var resamplingLeftOver = [];
+    var prevSample0 = [];
+    var prevSample1 = [];
+    var prevFracPart = [];
     var bufferBaseSize = WMSX.AUDIO_MONITOR_BUFFER_BASE === -3 ? WMSX.userPreferences.current.audioBufferBase : WMSX.AUDIO_MONITOR_BUFFER_BASE;
 
     var audioContext;
