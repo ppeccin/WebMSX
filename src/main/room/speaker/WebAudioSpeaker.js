@@ -200,8 +200,6 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             var inputBuffer1 = input.buffer1;
             var inputBufferSize = input.bufferSize;
 
-            // Copy to output performing basic re-sampling
-            // Same as Util.arrayCopyCircularSourceWithStep, but optimized with local code
             var pSample0 = prevSample0[i];
             var pSample1 = prevSample1[i];
             var pFracPart = prevFracPart[i];
@@ -209,24 +207,22 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             var start = input.start;
             var s = start + resamplingLeftOver[i];
 
-            for (var d = 0; d < outputBufferSize; ++d) {
-
-                outputBuffer0[d] += pSample0 * (1 - pFracPart);
-                outputBuffer1[d] += pSample1 * (1 - pFracPart);
-
-                s += resampFactor;
+            for (var d = 0; d < outputBufferSize; ++d, s += resampFactor) {
                 if (s >= inputBufferSize) s -= inputBufferSize;
 
-                pSample0 = inputBuffer0[(s | 0)];
-                pSample1 = inputBuffer1[(s | 0)];
+                // outputBuffer0[d] += pSample0 * (1 - pFracPart);
+                // outputBuffer1[d] += pSample1 * (1 - pFracPart);
+                //
+                // pSample0 = inputBuffer0[s | 0];
+                // pSample1 = inputBuffer1[s | 0];
+                //
+                // outputBuffer0[d] += pSample0 * pFracPart;
+                // outputBuffer1[d] += pSample1 * pFracPart;
+                //
+                // pFracPart = s - (s | 0);
 
-                outputBuffer0[d] += pSample0 * pFracPart;
-                outputBuffer1[d] += pSample1 * pFracPart;
-
-                pFracPart = s - (s | 0);
-
-                // outputBuffer0[d] += inputBuffer0[s | 0];
-                // outputBuffer1[d] += inputBuffer1[s | 0];
+                outputBuffer0[d] += inputBuffer0[s | 0];
+                outputBuffer1[d] += inputBuffer1[s | 0];
             }
 
             if (s < start) s += inputBufferSize;
@@ -236,7 +232,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             prevSample1[i] = pSample1;
             prevFracPart[i] = pFracPart;
 
-            // if (i!==10 && (pFracPart >= 1 || pFracPart < 0)) console.log(pFracPart);
+            // if (i === 1 /*&& !(resamplingLeftOver[i] >= 1 || resamplingLeftOver[i] < 0)*/) console.log(resamplingLeftOver[i]);
         }
 
         //var str = ""; for (var i = 0; i < audioSignals.length; i++) str = str + audioSignals[i].name + " ";

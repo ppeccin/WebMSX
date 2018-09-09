@@ -87,7 +87,7 @@ wmsx.AudioSignal = function (name, source, volume, sampleRate, stereo, clock) {
         if (missing > 0) {
             if (missing > availSamples) missing = availSamples;
             generateMissingSamples(missing, mute);
-            //wmsx.Util.log(">>> Missing samples generated: " + missing);
+            // if (stereo) wmsx.Util.log(">>> Missing samples generated: " + missing);
         } else {
             //wmsx.Util.log(">>> No missing samples");
         }
