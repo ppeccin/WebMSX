@@ -84,10 +84,11 @@ wmsx.AudioSignal = function (name, source, volume, sampleRate, stereo, clock) {
 
         var missing = quant - generated;
 
-        if (missing > 0) {
-            if (missing > availSamples) missing = availSamples;
-            generateMissingSamples(missing, mute);
-            // if (stereo) wmsx.Util.log(">>> Missing samples generated: " + missing);
+        // -4 means: if generated samples not available with at least 4 spare, lets generate extra samples +4 to accommodate any re-sampling overflow
+        if (missing > -4) {
+            if (missing + 4 > availSamples) missing = availSamples - 4;
+            generateMissingSamples(missing + 4, mute);
+            // if (stereo) wmsx.Util.log(">>> Missing samples generated: " + missing + " -> " + quant + " -> " + maxSamples);
         } else {
             //wmsx.Util.log(">>> No missing samples");
         }
@@ -116,7 +117,7 @@ wmsx.AudioSignal = function (name, source, volume, sampleRate, stereo, clock) {
     };
 
     function updateBufferSize() {
-        var size = (monitorBufferSize * WMSX.AUDIO_SIGNAL_BUFFER_RATIO + samplesPerFrame * WMSX.AUDIO_SIGNAL_ADD_FRAMES) | 0;
+        var size = (monitorBufferSize * WMSX.AUDIO_SIGNAL_BUFFER_RATIO + samplesPerFrame * WMSX.AUDIO_SIGNAL_ADD_FRAMES) & ~0x07;   // Multiple of 8
         samples0.length = size;
         if (size > maxSamples) wmsx.Util.arrayFill(samples0, 0, maxSamples, size);
         if (stereo) {

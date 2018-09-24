@@ -109,6 +109,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             // If not specified, calculate buffer size based on baseSize and host audio sampling rate. Ex: for a baseSize = 1 then 22050Hz = 256, 44100 = 512, 48000 = 512, 96000 = 1024, 192000 = 2048, etc
             var baseSize = bufferBaseSize === -1 ? determineAutoBufferBaseSize() : bufferBaseSize === 0 ? determineBrowserDefaultBufferBaseSize() : bufferBaseSize;
             var totalSize = WMSX.AUDIO_MONITOR_BUFFER_SIZE > 0 ? WMSX.AUDIO_MONITOR_BUFFER_SIZE : baseSize > 0 ? wmsx.Util.exp2(wmsx.Util.log2((audioContext.sampleRate + 14000) / 22050) | 0) * wmsx.Util.exp2(baseSize - 1) * 256 : 0;
+            totalSize = totalSize < 256 ? 256 : totalSize > 16384 ? 16384 : totalSize;
             processor = audioContext.createScriptProcessor(totalSize, 2, 2);
             processor.onaudioprocess = onAudioProcess;
             bufferSize = processor.bufferSize;
@@ -200,39 +201,52 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             var inputBuffer1 = input.buffer1;
             var inputBufferSize = input.bufferSize;
 
-            var pSample0 = prevSample0[i];
-            var pSample1 = prevSample1[i];
-            var pFracPart = prevFracPart[i];
-
             var start = input.start;
             var s = start + resamplingLeftOver[i];
 
-            for (var d = 0; d < outputBufferSize; ++d, s += resampFactor) {
-                if (s >= inputBufferSize) s -= inputBufferSize;
+            // Customized resampling algorithms for factors < 1 or >= 1
+            if (resampFactor < 1) {
 
-                // outputBuffer0[d] += pSample0 * (1 - pFracPart);
-                // outputBuffer1[d] += pSample1 * (1 - pFracPart);
-                //
-                // pSample0 = inputBuffer0[s | 0];
-                // pSample1 = inputBuffer1[s | 0];
-                //
-                // outputBuffer0[d] += pSample0 * pFracPart;
-                // outputBuffer1[d] += pSample1 * pFracPart;
-                //
-                // pFracPart = s - (s | 0);
+                // Restore previous sample data
+                var pSample0 = prevSample0[i];
+                var pSample1 = prevSample1[i];
+                var pFracPart = prevFracPart[i];
 
-                outputBuffer0[d] += inputBuffer0[s | 0];
-                outputBuffer1[d] += inputBuffer1[s | 0];
+                for (var d = 0; d < outputBufferSize; ++d, s += resampFactor) {
+                    if (s >= inputBufferSize) s -= inputBufferSize;
+
+                    // Mix previous with current sample applying simple interpolation
+                    outputBuffer0[d] += pSample0 * (1 - pFracPart);
+                    outputBuffer1[d] += pSample1 * (1 - pFracPart);
+                    pSample0 = inputBuffer0[s | 0];
+                    pSample1 = inputBuffer1[s | 0];
+                    outputBuffer0[d] += pSample0 * pFracPart;
+                    outputBuffer1[d] += pSample1 * pFracPart;
+
+                    pFracPart = s - (s | 0);
+                }
+
+                // Store previous sample data
+                prevSample0[i] = pSample0;
+                prevSample1[i] = pSample1;
+                prevFracPart[i] = pFracPart;
+
+            } else {
+
+                for (d = 0; d < outputBufferSize; ++d, s += resampFactor) {
+                    if (s >= inputBufferSize) s -= inputBufferSize;
+
+                    // No samples mixing
+                    outputBuffer0[d] += inputBuffer0[s | 0];
+                    outputBuffer1[d] += inputBuffer1[s | 0];
+                }
+
             }
 
             if (s < start) s += inputBufferSize;
             resamplingLeftOver[i] = s - (start + quantSamplesRetrived);
 
-            prevSample0[i] = pSample0;
-            prevSample1[i] = pSample1;
-            prevFracPart[i] = pFracPart;
-
-            // if (i === 1 /*&& !(resamplingLeftOver[i] >= 1 || resamplingLeftOver[i] < 0)*/) console.log(resamplingLeftOver[i]);
+            // if (input.stereo && (resamplingLeftOver[i] >= 1 || resamplingLeftOver[i] < 0)) console.log(resamplingLeftOver[i]);
         }
 
         //var str = ""; for (var i = 0; i < audioSignals.length; i++) str = str + audioSignals[i].name + " ";
