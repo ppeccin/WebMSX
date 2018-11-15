@@ -1,10 +1,12 @@
 module.exports = function (grunt) {
 
+    var releasePath = "alpha/5.1";
+
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
 
         clean: {
-            init: ["temp", "release/stable/5.0"],
+            init: ["temp", "release/" + releasePath],
             finish: ["temp"]
         },
 
@@ -31,6 +33,10 @@ module.exports = function (grunt) {
                     "src/main/msx/audio/SCCIAudio.js",
                     "src/main/msx/audio/YM2413Tables.js",
                     "src/main/msx/audio/YM2413Audio.js",
+                    "src/main/msx/audio/OPL4WaveTables.js",
+                    "src/main/msx/audio/OPL4Audio.js",
+                    "src/main/msx/audio/OPL4AudioFM.js",
+                    "src/main/msx/audio/OPL4AudioWave.js",
                     "src/main/msx/miscdevices/RTC.js",
                     "src/main/msx/miscdevices/SystemFlags.js",
                     "src/main/msx/miscdevices/ImageCassetteDriver.js",
@@ -75,6 +81,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/special/sram/CartridgePAC.js",
                     "src/main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js",
                     "src/main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js",
+                    "src/main/msx/slots/cartridges/special/moonsound/CartridgeMoonSound.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeASCII8KSRAM.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeASCII16KSRAM.js",
@@ -140,7 +147,7 @@ module.exports = function (grunt) {
                     "src/main/room/netplay/NetClient.js",
                     "src/main/room/Room.js",
                     "src/runtime/images/EmbeddedImages.js",
-                    "src/runtime/sysfiles/CompressedSystemFiles.js",
+                    "src/runtime/sysfiles/CompressedSystemFilesOPL4.js",
                     "src/runtime/sysfiles/EmbeddedSystemFiles.js",
                     "src/main/Configurator.js",
                     "src/main/Launcher.js"
@@ -199,22 +206,22 @@ module.exports = function (grunt) {
         copy: {
             standalone: {
                 files: [
-                    {src: "temp/index.html", dest: "release/stable/5.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/standalone/cache.manifest", dest: "release/stable/5.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/stable/5.0/standalone", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/stable/5.0/standalone/images", expand: true, flatten: true, filter: "isFile"},
-                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/stable/5.0/standalone/images", expand: true, flatten: true, filter: "isFile"}
+                    {src: "temp/index.html", dest: "release/" + releasePath + "/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/cache.manifest", dest: "release/" + releasePath + "/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/standalone/manifest.webapp", dest: "release/" + releasePath + "/standalone", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon192.png", dest: "release/" + releasePath + "/standalone/images", expand: true, flatten: true, filter: "isFile"},
+                    {src: "src/runtime/images/files/logo-icon512.png", dest: "release/" + releasePath + "/standalone/images", expand: true, flatten: true, filter: "isFile"}
                 ]
             },
             embedded: {
                 files: [
-                    {src: "src/runtime/embedded/index.html", dest: "release/stable/5.0/embedded", expand: true, flatten: true, filter: "isFile"},
-                    {src: "temp/wmsx.js", dest: "release/stable/5.0/embedded", expand: true, flatten: true, filter: "isFile"}
+                    {src: "src/runtime/embedded/index.html", dest: "release/" + releasePath + "/embedded", expand: true, flatten: true, filter: "isFile"},
+                    {src: "temp/wmsx.js", dest: "release/" + releasePath + "/embedded", expand: true, flatten: true, filter: "isFile"}
                 ]
             },
             symbos: {
                 files: [
-                    {src: "src/runtime/symbos/*", dest: "release/stable/5.0/symbos/", expand: true, flatten: true, filter: "isFile"}
+                    {src: "src/runtime/symbos/*", dest: "release/" + releasePath + "/symbos/", expand: true, flatten: true, filter: "isFile"}
                 ]
             }
         }

@@ -1,4 +1,4 @@
-// WebMSX version 5.0.4
+// WebMSX version 5.1.99
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
@@ -123,6 +123,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 mutual: "RAMNORMAL" },
     RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 mutual: "RAMMAPPER" },
     MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [3, 2] },
+    OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1: [2, 2] }, // Check ALTSLOTCONFIG
     KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [2, 1] },
     SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0 } },
     SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0 } },
