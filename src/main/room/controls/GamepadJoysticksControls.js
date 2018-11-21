@@ -371,8 +371,8 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
         this.getStickDirection = function() {           // CENTER: -1, NORTH: 0, NORTHEAST: 1, EAST: 2, SOUTHEAST: 3, SOUTH: 4, SOUTHWEST: 5, WEST: 6, NORTHWEST: 7
             var x = gamepad.axes[xAxis];
             var y = gamepad.axes[yAxis];
-            if ((x < 0 ? -x : x) < deadzone) x = 0; else x *= xAxisSig;
-            if ((y < 0 ? -y : y) < deadzone) y = 0; else y *= yAxisSig;
+            if (isNaN(x) || ((x < 0 ? -x : x) < deadzone)) x = 0; else x *= xAxisSig;
+            if (isNaN(y) || ((y < 0 ? -y : y) < deadzone)) y = 0; else y *= yAxisSig;
             if (x === 0 && y === 0) return -1;
             var dir = (1 - Math.atan2(x, y) / Math.PI) / 2;
             dir += 1/16; if (dir >= 1) dir -= 1;
