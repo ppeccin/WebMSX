@@ -302,7 +302,13 @@ wmsx.VDP = function(machine, cpu) {
 
                 //if (mod) logInfo("Register0: " + val.toString(16));
 
-                if (mod & 0x10) updateIRQ();                             // IE1
+                if (mod & 0x10) {                                        // IE1
+                    // Clear FH bit immediately when IE becomes 0? Not as per https://www.mail-archive.com/msx@stack.nl/msg13886.html
+                    // We clear it only at the beginning of the next line if IE === 0
+                    // Laydock2 has glitches on WebMSX with Turbo and also on a real Expert3 at 10MHz
+                    // if (((val & 0x10) === 0) && (status[1] & 0x01)) status[1] &= ~0x01;
+                    updateIRQ();
+                }
                 if (mod & 0x0e) updateMode();                            // Mx
                 break;
             case 1:
