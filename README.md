@@ -1,5 +1,4 @@
-
-# NOTICE
+# ** IMPORTANT NOTICE **
 WebMSX upgrade on Dec 15th - Old Savestates need to be saved to file now!
 
 Soon WebMSX and Javatari will be upgraded to HTTPS. This will make old SaveStates stored on the browser inaccessible.
