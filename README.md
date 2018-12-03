@@ -1,3 +1,10 @@
+
+# NOTICE
+WebMSX upgrade on Dec 15th - Old Savestates need to be saved to file now!
+
+Soon WebMSX and Javatari will be upgraded to HTTPS. This will make old SaveStates stored on the browser inaccessible.
+If you have any saves that you want to keep, please go and save them to a file on your computer before the upgrade, so you can restore them later.
+
 # WebMSX
 
 **WebMSX**, or simply **WMSX**, is a new cross platform MSX emulator designed for the Web.
