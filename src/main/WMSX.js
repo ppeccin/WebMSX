@@ -1,4 +1,4 @@
-// WebMSX version 5.1.98
+// WebMSX version 5.1.97
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
@@ -127,7 +127,8 @@ WMSX.EXTENSIONS_CONFIG = {
     KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [2, 1] },
     SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0 } },
     SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } }
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } },
+    EXTRAPSG:  { desc: "Extra PSG" ,    format: "ExtraPSG",      OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
@@ -167,6 +168,9 @@ WMSX.PRESETS_CONFIG = {
 
     PAC:  { "EXTENSIONS.PAC": 1 },
     PAC2: { "EXTENSIONS.PAC": 2 },
+
+    EXTRAPSG:  { "EXTENSIONS.EXTRAPSG": 1 },
+    EXTRAPSG2: { "EXTENSIONS.EXTRAPSG": 2 },
 
     // Configuration Helper Presets
 

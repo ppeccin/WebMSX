@@ -478,7 +478,7 @@ wmsx.Machine = function() {
     function mainComponentsCreate() {
         self.cpu = cpu = new wmsx.Z80();
         self.vdp = vdp = new wmsx.VDP(self, cpu);
-        self.psg = psg = new wmsx.PSG(audioSocket, controllersSocket);
+        self.psg = psg = new wmsx.PSG(controllersSocket, false);
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket);
         self.rtc = rtc = new wmsx.RTC();
         self.syf = syf = new wmsx.SystemFlags();
@@ -486,6 +486,7 @@ wmsx.Machine = function() {
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);
+        psg.setAudioSocket(audioSocket);
         psg.connectBus(bus);
         rtc.connectBus(bus);
         syf.connectBus(bus);

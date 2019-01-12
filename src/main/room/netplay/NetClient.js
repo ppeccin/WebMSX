@@ -27,7 +27,7 @@ wmsx.NetClient = function(room) {
         room.enterNetPendingMode(this);
 
         if (!ws) {
-            ws = new WebSocket("ws://" + WMSX.WEB_EXTENSIONS_SERVER);
+            ws = new WebSocket("wss://" + WMSX.WEB_EXTENSIONS_SERVER);
             ws.onmessage = onSessionMessage;
             ws.onopen = onSessionServerConnected;
             ws.onclose = onSessionServerDisconnected;

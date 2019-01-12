@@ -109,6 +109,7 @@
         <script src="../src/main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js"></script>
         <script src="../src/main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js"></script>
         <script src="../src/main/msx/slots/cartridges/special/moonsound/CartridgeMoonSound.js"></script>
+        <script src="../src/main/msx/slots/cartridges/special/psg/CartridgeExtraPSG.js"></script>
         <script src="../src/main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js"></script>
         <script src="../src/main/msx/slots/cartridges/special/sram/CartridgeASCII8KSRAM.js"></script>
         <script src="../src/main/msx/slots/cartridges/special/sram/CartridgeASCII16KSRAM.js"></script>
@@ -186,6 +187,8 @@
         <script>
 
             WMSX.AUTO_POWER_ON_DELAY = 0;
+
+            WMSX.WEB_EXTENSIONS_PROXY_SERVER = WMSX.WEB_EXTENSIONS_SERVER;
 
             // WMSX.CPU_TURBO_MODE = 5;
 

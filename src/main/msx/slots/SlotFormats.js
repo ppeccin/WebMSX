@@ -272,6 +272,24 @@ wmsx.SlotFormats = {
         }
     },
 
+    "ExtraPSG": {
+        name: "ExtraPSG",
+        desc: "Extra PSG Sound Chip",
+        priority: 1508,
+        internal: true,
+        embeddedURL: "@[ExtraPSG].rom",
+        priorityForRom: function (rom) {
+            // Only 0K content. Must be selected via info format hint
+            return (rom.content.length === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeExtraPSG(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeExtraPSG.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     // Common formats used in titles
 
     "Normal": {

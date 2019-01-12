@@ -22,6 +22,8 @@ wmsx.DeviceMissing = {
 
     IGNORED_PORTS: new Set([
 
+        0x10, 0x11, 0x12,                   // Second PSG
+
         0x90, 0x91, 0x93,                   // Printer
         0xb8, 0xb9, 0xba, 0xbb,             // Card Reader?
 

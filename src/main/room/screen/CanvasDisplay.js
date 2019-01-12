@@ -57,7 +57,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.powerOff = function() {
-        document.documentElement.remove("wmsx-started");
+        document.documentElement.classList.remove("wmsx-started");
     };
 
     this.start = function(startAction) {

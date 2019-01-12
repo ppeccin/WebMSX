@@ -82,6 +82,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js",
                     "src/main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js",
                     "src/main/msx/slots/cartridges/special/moonsound/CartridgeMoonSound.js",
+                    "src/main/msx/slots/cartridges/special/psg/CartridgeExtraPSG.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeASCII8KSRAM.js",
                     "src/main/msx/slots/cartridges/special/sram/CartridgeASCII16KSRAM.js",
@@ -161,7 +162,7 @@ module.exports = function (grunt) {
                 ],
                 dest: "temp/wmsx.js"
             },
-           standalone: {
+            standalone: {
                 src: [
                     "src/runtime/standalone/index.part1.html",
                     "temp/wmsx.js",

@@ -2,7 +2,7 @@
 
 // Controls the 3 PSG Audio Channels and Pulse Signal Channel
 
-wmsx.PSGAudio = function(audioSocket) {
+wmsx.PSGAudio = function(secondary) {
 "use strict";
 
     var self = this;
@@ -11,13 +11,17 @@ wmsx.PSGAudio = function(audioSocket) {
         createVolumeCurve();
     }
 
+    this.setAudioSocket = function(pAudioSocket) {
+        audioSocket = pAudioSocket;
+    };
+
     this.powerOn = function() {
         this.reset();
-        connectAudio();
+        this.connectAudio();
     };
 
     this.powerOff = function() {
-        disconnectAudio();
+        this.disconnectAudio();
     };
 
     this.reset = function() {
@@ -162,14 +166,20 @@ wmsx.PSGAudio = function(audioSocket) {
         pulseSignal = boo;
     };
 
-    function connectAudio() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG", self, VOLUME, SAMPLE_RATE);
-        audioSocket.connectAudioSignal(audioSignal);
-    }
+    this.connectAudio = function() {
+        // console.error("PSG connect Audio:", audioSocket);
 
-    function disconnectAudio() {
-        if (audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
-    }
+        if (audioSocket) {
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG" + (secondary ? "2" : ""), self, VOLUME, SAMPLE_RATE);
+            audioSocket.connectAudioSignal(audioSignal);
+        }
+    };
+
+    this.disconnectAudio = function() {
+        // console.error("PSG disconnect Audio:", audioSocket);
+
+        if (audioSocket && audioSignal) audioSocket.disconnectAudioSignal(audioSignal);
+    };
 
     function cycleEnvelope(alternate, hold) {
         if (alternate ^ hold) attackE = !attackE;
@@ -239,6 +249,7 @@ wmsx.PSGAudio = function(audioSocket) {
     var volumeCurve = new Array(16);
 
     var audioSignal;
+    var audioSocket;
 
     var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;

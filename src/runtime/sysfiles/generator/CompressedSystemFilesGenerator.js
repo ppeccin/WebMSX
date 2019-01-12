@@ -67,5 +67,6 @@ wmsx.CompressedSystemFilesGenerator.fileList = [
     "Disk128MHeader.dat",
     "DOS1Boot.zip",
     "NextorBoot.zip",
-    "[MoonSound].rom"
+    "[MoonSound].rom",
+    "[ExtraPSG].rom"
 ];
