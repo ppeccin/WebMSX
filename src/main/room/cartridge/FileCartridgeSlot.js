@@ -17,7 +17,7 @@ wmsx.FileCartridgeSlot = function(room) {
 
         // Auto activate extensions if asked by ROM info
         if (cartridge && cartridge.rom.info.e) {
-            var ext = cartridge.rom.info.e.replace( /\d+/g, "");
+            var ext = cartridge.rom.info.e;
             if (ext && WMSX.EXTENSIONS_CONFIG[ext]) extensionsSocket.activateExtension(ext, true, port === 0, true);    // altPower and skipMessage
         }
 

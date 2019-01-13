@@ -130,16 +130,18 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     function registerUnlockOnTouchIfNeeded() {
-        // iOS and now Chrome need unlocking of the AudioContext on user interaction!
+        // Browser may require unlocking of the AudioContext on user interaction!
         if (processor && (!audioContext.state || audioContext.state === "suspended")) {
             mainElement.addEventListener("touchend", unlockAudioContext, true);
             mainElement.addEventListener("mousedown", unlockAudioContext, true);
+            mainElement.addEventListener("keydown", unlockAudioContext, true);
             wmsx.Util.log("Speaker Audio Context resume event registered");
         }
 
         function unlockAudioContext() {
             mainElement.removeEventListener("touchend", unlockAudioContext, true);
             mainElement.removeEventListener("mousedown", unlockAudioContext, true);
+            mainElement.removeEventListener("keydown", unlockAudioContext, true);
 
             var ex;
             try {

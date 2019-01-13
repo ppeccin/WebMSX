@@ -51,7 +51,7 @@ WMSX = {
     BIOSEXT_SLOT:                   [3, 1],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
-    EXPANSION_SLOTS:                [[2, 2], [2, 3]],
+    EXPANSION_SLOTS:                [[2, 1], [2, 2]],
     RAMMAPPER_SIZE:                 512,
     EXTENSIONS:                     { },
 
@@ -122,13 +122,13 @@ WMSX.EXTENSIONS_CONFIG = {
     DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 3], OP2: [3, 3], toggle: "HARDDISK" },
     RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 mutual: "RAMNORMAL" },
     RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 mutual: "RAMMAPPER" },
+    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [4, 0] },
     MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [3, 2] },
-    OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1: [2, 2] }, // Check ALTSLOTCONFIG
-    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [2, 1] },
+    OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1: [4, 1] },
+    DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      OP1: [4, 2] },
     SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0 } },
     SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } },
-    EXTRAPSG:  { desc: "Extra PSG" ,    format: "ExtraPSG",      OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } }
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
@@ -154,9 +154,11 @@ WMSX.PRESETS_CONFIG = {
     KANJI:   { "EXTENSIONS.KANJI":  1 },
     NOKANJI: { "EXTENSIONS.KANJI":  0 },
 
-    // MSX Music
+    // Sound Devices
     MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
+    DOUBLEPSG:  { "EXTENSIONS.DOUBLEPSG": 1 },
+    OPL4:       { "EXTENSIONS.OPL4": 1 },
 
     // Other Cartridge extensions
 
@@ -168,9 +170,6 @@ WMSX.PRESETS_CONFIG = {
 
     PAC:  { "EXTENSIONS.PAC": 1 },
     PAC2: { "EXTENSIONS.PAC": 2 },
-
-    EXTRAPSG:  { "EXTENSIONS.EXTRAPSG": 1 },
-    EXTRAPSG2: { "EXTENSIONS.EXTRAPSG": 2 },
 
     // Configuration Helper Presets
 
@@ -192,7 +191,6 @@ WMSX.PRESETS_CONFIG = {
         BIOSEXT_SLOT:                      [2, 1],
         EXPANSION_SLOTS:                   [[3, 2], [3, 3]],
         "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [2, 2],
-        "EXTENSIONS_CONFIG.KANJI.OP1":     [3, 1],
         "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
     },
 

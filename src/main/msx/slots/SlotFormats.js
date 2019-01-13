@@ -50,6 +50,21 @@ wmsx.SlotFormats = {
         }
     },
 
+    "ExpandedM": {
+        name: "ExpandedM",
+        desc: "Special System Expanded Slot for Modules (Device-only Slots)",
+        priority: 1004,
+        internal: true,
+        priorityForRom: function (rom) {
+            // Not Possible to load Expanded Slots
+            return null;
+        },
+        createFromROM: null,
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotExpandedModules.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "BIOS": {
         name: "BIOS",
         desc: "Main BIOS",

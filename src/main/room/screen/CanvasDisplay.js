@@ -427,6 +427,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             }
         }
         if (diskSelectDialog) diskSelectDialog.diskDrivesMediaStateUpdate(drive);
+
+        if (stack.length > 1) {
+            var diskNum = diskDrive.getCurrentDiskNum(drive) + 1;
+            button.wmsxMenu.wmsxTitle = diskDrive.getDriveName(drive) + "&nbsp;&nbsp;(" + diskNum + "/" + stack.length + ")";
+        } else {
+            button.wmsxMenu.wmsxTitle = diskDrive.getDriveName(drive);
+        }
     };
 
     this.diskDrivesMotorStateUpdate = function (diskA, diskAMotor, diskAModif, diskB, diskBMotor, diskBModif, diskN, diskNMotor, diskNModif) {
@@ -892,45 +899,45 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         barMenus.push(null);
 
         menu = [
-            { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
-            { label: "Add Image Files",                control: wmsx.PeripheralControls.DISK_ADD_FILES, needsUIG: true },
+            { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
+            { label: "Add Disk Images",                control: wmsx.PeripheralControls.DISK_ADD_FILES, needsUIG: true },
             { label: "Add Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY },
             { label: "Add Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT },
-            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
-            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
+            { label: "Import Files to Disk",           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
+            { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, disabled: true },
-            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
+            { label: "Save Disk Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true }
         ];
         diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -72, true, "Drive A", null, menu, "Drive A", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image Files",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
-            { label: "Add Image Files",                control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, needsUIG: true },
+            { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
+            { label: "Add Disk Images",                control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, needsUIG: true },
             { label: "Add Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true },
             { label: "Add Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT, secSlot: true },
-            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true, needsUIG: true },
-            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true, needsUIG: true },
+            { label: "Import Files to Disk",           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true, needsUIG: true },
+            { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true, needsUIG: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, secSlot: true, disabled: true },
-            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
+            { label: "Save Disk Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true }
         ];
         diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -194, -72, true, "Drive B", null, menu, "Drive B", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.HARDDISK_LOAD_FILE, needsUIG: true },
+            { label: "Load Disk Image",    clickModif: 0, control: wmsx.PeripheralControls.HARDDISK_LOAD_FILE, needsUIG: true },
             { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.HARDDISK_CHOOSE_EMPTY },
             { label: "New Boot Disk",                  control: wmsx.PeripheralControls.HARDDISK_CHOOSE_BOOT },
-            { label: "Add Files to Disk",              control: wmsx.PeripheralControls.HARDDISK_LOAD_FILES_AS_DISK, needsUIG: true },
-            { label: "Add ZIP to Disk",                control: wmsx.PeripheralControls.HARDDISK_LOAD_ZIP_AS_DISK, needsUIG: true },
-            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_SAVE_FILE, disabled: true, needsUIG: true },
+            { label: "Import Files to Disk",           control: wmsx.PeripheralControls.HARDDISK_LOAD_FILES_AS_DISK, needsUIG: true },
+            { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.HARDDISK_LOAD_ZIP_AS_DISK, needsUIG: true },
+            { label: "Save Disk Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_SAVE_FILE, disabled: true, needsUIG: true },
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_REMOVE, disabled: true }
         ];                                                      /* -223 -252*/
         diskHButton = addPeripheralControlButton("wmsx-bar-diskh", -252, -72, true, "Hard Drive", null, menu, "Hard Drive", mediaIconsContainer);
         diskHButton.classList.add("wmsx-hidden");
 
         menu = [
-            { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
+            { label: "Load ROM Image",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
             { label: "Set ROM Format",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT },
             { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true, needsUIG: true },
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
@@ -939,7 +946,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -78, -72, true, "Cartridge 1", null, menu, "Cartridge 1", mediaIconsContainer);
 
         menu = [
-            { label: "Load ROM File",      clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "Load ROM Image",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: true, needsUIG: true },
             { label: "Set ROM Format",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT, secSlot: true },
             { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
             { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: true, disabled: true, needsUIG: true },
@@ -948,14 +955,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cartridge2Button = addPeripheralControlButton("wmsx-bar-cart2", -107, -72, true, "Cartridge 2", null, menu, "Cartridge 2", mediaIconsContainer);
 
         menu = [
-            { label: "Load Image File",    clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, secSlot: true, needsUIG: true },
+            { label: "Load Tape Image",    clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, secSlot: true, needsUIG: true },
             { label: "New Blank Tape",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY, secSlot: true },
-            { label: "Rewind Tape",                 control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true, secSlot: true },
+            { label: "Rewind Tape",                    control: wmsx.PeripheralControls.TAPE_REWIND, disabled: true, secSlot: true },
             { label: "Run Program",        clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, secSlot: true, disabled: true },
-            { label: "Save Image File",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, secSlot: true, needsUIG: true },
+            { label: "Save Tape Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_SAVE_FILE, disabled: true, secSlot: true, needsUIG: true },
             { label: "Remove Tape",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_REMOVE, disabled: true, secSlot: true }
         ];
-        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -136, -72, true, "Cassette Tape", null, menu, "Cassette Tape", mediaIconsContainer);
+        tapeButton = addPeripheralControlButton("wmsx-bar-tape", -136, -72, true, "Cassette", null, menu, "Cassette", mediaIconsContainer);
 
         menu = createSettingsMenuOptions();
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings");

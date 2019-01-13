@@ -90,12 +90,12 @@ wmsx.PSG = function(controllersSocket, secondary) {
     };
 
     this.inputA2 = function() {
-        if (registerAddress !== 14 || !controllersSocket) return register[registerAddress];
+        if (registerAddress !== 14) return register[registerAddress];
 
         // External port mapped to register 14. Port 0 or 1 defined by register 15 bit 6
         var port = (register[15] >> 6) & 1;
 
-        return controllersSocket.readControllerPort(port);
+        return controllersSocket ? controllersSocket.readControllerPort(port): 0x3f;
     };
 
 

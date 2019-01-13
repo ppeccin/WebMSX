@@ -312,7 +312,7 @@ wmsx.Machine = function() {
 
     function getSlotDesc(slotPos) {
         var pri = typeof slotPos === "number" ? slotPos : slotPos[0];
-        return pri.toString() + (bus.getSlot(pri).isExpanded() ? "-" + (slotPos[1] || 0) : "");
+        return pri > 3 ? undefined : pri.toString() + (bus.getSlot(pri).isExpanded() ? "-" + (slotPos[1] || 0) : "");
     }
 
     function insertSlot(slot, slotPos) {
@@ -327,8 +327,9 @@ wmsx.Machine = function() {
         if (sec >= 0) {
             if (!curPriSlot.isExpanded()) {
                 var oldPriSlot = curPriSlot;
-                // Automatically insert an ExpandedSlot if not present. SpecialExpandedSlot for primary slot 2
-                curPriSlot = pri === 2 ? new wmsx.SlotExpandedSpecial() : new wmsx.SlotExpanded();
+                // Automatically insert an ExpandedSlot if not present
+                // ExpandedSlotSpecial for primary slot 2. SlotExpandedModules for extra slot 4
+                curPriSlot = pri === 2 ? new wmsx.SlotExpandedSpecial() : pri === 4 ? new wmsx.SlotExpandedModules() : new wmsx.SlotExpanded();
                 bus.insertSlot(curPriSlot, pri);
                 if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
             }
@@ -1127,10 +1128,13 @@ wmsx.Machine = function() {
             if (!media) return false;
             self.showOSD("Loading State File", true);
             var state = media.loadStateFile(data);
-            if (!state) return false;
+            if (!state) {
+                self.showOSD(null, true);           // Clear "Loading" message
+                return false;
+            }
             wmsx.Util.log("State file loaded");
             if (!VERSIONS_ACCEPTED[state.v]) {
-                self.showOSD("State File load failed. State version too old!", true, true);
+                self.showOSD("State File load failed. State version incompatible!", true, true);
             } else {
                 wmsx.Configurator.upgradeForState(state);
                 if (self.powerIsOn) self.reset(true);
@@ -1144,8 +1148,8 @@ wmsx.Machine = function() {
             media.externalStateChange();
         };
         var media;
-        var VERSION = 50;
-        var VERSIONS_ACCEPTED = { 9: true, 50: true };
+        var VERSION = 51;
+        var VERSIONS_ACCEPTED = { 9: true, 50: true, 51: true };
     }
 
 

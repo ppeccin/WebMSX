@@ -28,7 +28,8 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.isActiveOnSlot = function(ext, op2) {
-        var loaded = slotSocket.slotInserted(op2 ? config[ext].OP2 : config[ext].OP1);
+        var hasOp2 = !!config[ext].OP2;
+        var loaded = slotSocket.slotInserted(op2 && hasOp2 ? config[ext].OP2 : config[ext].OP1);
         return !!loaded && loaded.format.name === config[ext].format;
     };
 
@@ -79,7 +80,8 @@ wmsx.ExtensionsSocket = function(machine) {
             if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed && !skipMessage) {
-                var mes = config[ext].desc + " Extension " + (newOp ? "enabled at " + (newOp === 3 ? "both slots" : "slot " + machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2 : config[ext].OP1)) : "disabled");
+                var slotDesc = machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2 : config[ext].OP1);
+                var mes = config[ext].desc + " Extension " + (newOp ? "enabled" + (newOp === 3 ? " at both slots" : (slotDesc ? " at slot " + slotDesc : "")) : "disabled");
                 machine.showOSD(mes, true);
                 wmsx.Util.log(mes);
             }

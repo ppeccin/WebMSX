@@ -263,19 +263,28 @@ wmsx.Configurator = {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 2];
             WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 2];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1    = [3, 1];
-            WMSX.BIOSEXT_SLOT =    [2, 1];
-            WMSX.EXPANSION_SLOTS = [[3, 2], [3, 3]];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1 =    [3, 1];
+            WMSX.BIOSEXT_SLOT =                   [2, 1];
+            WMSX.EXPANSION_SLOTS =                [[3, 2], [3, 3]];
             WMSX.OLD_EXTENSION_CONFIG = true;
-        }
-        // Adapt Extensions Config. Revert old config to the new Config again
-        if (WMSX.OLD_EXTENSION_CONFIG && state.v >= 50) {
+        } else if (state.v < 51) {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 3];
             WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 3];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1    = [2, 1];
-            WMSX.BIOSEXT_SLOT =    [3, 1];
-            WMSX.EXPANSION_SLOTS = [[2, 2], [2, 3]];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1 =    [2, 1];
+            WMSX.BIOSEXT_SLOT =                   [3, 1];
+            WMSX.EXPANSION_SLOTS =                [[2, 2], [2, 3]];
+            WMSX.OLD_EXTENSION_CONFIG = true;
+        }
+
+        // Revert old config to the new Config again
+        if (WMSX.OLD_EXTENSION_CONFIG && state.v >= 51) {
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1 =    [4, 0];
+            WMSX.BIOSEXT_SLOT =                   [3, 1];
+            WMSX.EXPANSION_SLOTS =                [[2, 1], [2, 2]];
             WMSX.OLD_EXTENSION_CONFIG = false;
         }
     },

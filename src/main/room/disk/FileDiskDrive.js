@@ -123,7 +123,7 @@ wmsx.FileDiskDrive = function(room) {
         }
 
         if (curDisk) {
-            screen.showOSD(driveName[drive] + " " + filesWrittenDesc + " added to disk", true);
+            screen.showOSD(driveName[drive] + ": " + filesWrittenDesc + " added to disk", true);
             curDisk.content = content;
             curDisk.modified = true;
             replaceCurrentDisk(drive, curDisk, true);     // true = send net operation
@@ -241,6 +241,10 @@ wmsx.FileDiskDrive = function(room) {
 
     this.getCurrentDiskNumDesc = function(drive) {
         return currentDiskNumDesc(drive);
+    };
+
+    this.getDriveName = function(drive) {
+        return driveName[drive];
     };
 
     function checkFileHasValidImages(file, hardDisk, anyContent, stopRecursion) {
@@ -418,7 +422,7 @@ wmsx.FileDiskDrive = function(room) {
     function currentDiskDesc(drive) {
         var disk = getCurrentDisk(drive);
         var numDesc = currentDiskNumDesc(drive);
-        return driveName[drive] + " " + (numDesc ? numDesc + " " : "") + (disk ? disk.name : "");
+        return driveName[drive] + ": " + (numDesc ? numDesc + " " : "") + (disk ? disk.name : "");
     }
 
     function currentDiskNumDesc(drive) {
@@ -625,7 +629,7 @@ wmsx.FileDiskDrive = function(room) {
     var driveMotor          = [ false, false, false ];
     var driveMotorOffTimer  = [ null, null, null ];
 
-    var driveName = [ "Drive A:", "Drive B:", "Hard Drive:" ];
+    var driveName = [ "Drive A", "Drive B", "Hard Drive" ];
 
     var BYTES_PER_SECTOR = 512;                         // Fixed for now, for all disks
 
