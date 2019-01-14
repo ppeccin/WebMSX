@@ -9,7 +9,7 @@ wmsx.OPL4Audio = function(pName, cart) {
 
     function init(self) {
 
-        window.OPL4 = self;     // TODO Debug, remove
+        // window.OPL4 = self;
 
         name = pName || "OPL4";
         self.fm = fm = new wmsx.OPL4AudioFM(self);

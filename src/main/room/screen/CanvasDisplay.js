@@ -288,7 +288,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             osd.style.color = error ? "rgb(255, 60, 40)" : "rgb(0, 255, 0)";
         }
         osd.style.transition = "none";
-        osd.style.top = "15px";
+        osd.style.top = "12px";
         osd.style.opacity = 1;
         osdShowing = true;
 
@@ -563,6 +563,17 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (multi > 1) turboButton.textContent = "" + multi + "x";
     };
 
+    this.speakerUnlockStateUpdate = function(state) {
+        unmuteMessage.classList.toggle("wmsx-show", !state);
+
+        if (!state) {
+            var availWidth = canvasOuter.clientWidth - 30;      //  message width - borders
+            var width = unmuteMessage.clientWidth;
+            var scale = width < availWidth ? 1 : availWidth / width;
+            unmuteMessage.style.transform = "translate(-50%, 0) scale(" + scale.toFixed(4) + ")";
+        }
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
         updateLoading();
@@ -805,6 +816,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         logoMessageOK = document.getElementById("wmsx-logo-message-ok");
         logoMessageOKText = document.getElementById("wmsx-logo-message-ok-text");
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
+        unmuteMessage = document.getElementById("wmsx-unmute-message");
 
         suppressContextMenu(mainElement);
         preventDrag(logoImage);
@@ -1774,6 +1786,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var pasteDialog;
     var textEntryDialog;
     var copyTextArea;
+    var unmuteMessage;
 
     var fsElement, fsElementCenter;
 

@@ -136,6 +136,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             mainElement.addEventListener("mousedown", unlockAudioContext, true);
             mainElement.addEventListener("keydown", unlockAudioContext, true);
             wmsx.Util.log("Speaker Audio Context resume event registered");
+            screen.speakerUnlockStateUpdate(false);
         }
 
         function unlockAudioContext() {
@@ -157,6 +158,7 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             source.connect(audioContext.destination);
             source.start(0);
             if (ex) wmsx.Util.log("Audio Context unlocked!");
+            screen.speakerUnlockStateUpdate(true);
         }
     }
 

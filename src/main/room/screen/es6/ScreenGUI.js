@@ -30,6 +30,7 @@ wmsx.ScreenGUI.html = function() {
                 <div id="wmsx-screen-canvas-outer">
                     <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
                     <img id="wmsx-canvas-loading-icon" draggable="false" src="` + wmsx.Images.urls.loading + `">
+                    <div id="wmsx-unmute-message"></div>
                     <div id="wmsx-logo">
                         <div id="wmsx-logo-center">
                             <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
@@ -612,6 +613,45 @@ html.wmsx-full-screen #wmsx-logo-image {
     max-width: initial;
 }
 
+#wmsx-unmute-message {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    height: 30px;
+    padding: 0 10px;
+    margin: 0 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 30px;
+    color: rgb(210, 210, 210);
+    background: rgba(0, 0, 0, 0.7);
+    transform-origin: bottom center;
+    transform: translate(-50%, 0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+#wmsx-unmute-message::before {
+    content: "";
+    display: inline-block;
+    width: 24px;
+    height: 20px;
+    margin: 5px 9px 0 0;
+    background-image: url("` + wmsx.Images.urls.muteIcon + `");
+    background-repeat: no-repeat;
+    background-size: 24px 20px;
+    vertical-align: top;
+}
+#wmsx-unmute-message::after {
+    content: "Audio is muted. Click to unmute";
+}
+#wmsx-unmute-message.wmsx-show {
+    display: inline-block;
+}
+
 #wmsx-logo-loading-icon, #wmsx-canvas-loading-icon {
     display: none;
     position: absolute;
@@ -678,13 +718,13 @@ html.wmsx-full-screen #wmsx-logo-image {
     text-overflow: ellipsis;
     white-space: nowrap;
     top: -29px;
-    right: 16px;
-    height: 29px;
-    padding: 0 12px;
+    right: 19px;
+    height: 28px;
+    padding: 0 10px;
     margin: 0;
     font-weight: bold;
     font-size: 15px;
-    line-height: 29px;
+    line-height: 28px;
     color: rgb(0, 255, 0);
     background: rgba(0, 0, 0, 0.7);
     transform-origin: top right;
