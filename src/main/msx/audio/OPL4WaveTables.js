@@ -10,7 +10,7 @@ wmsx.OPL4WaveTables = function() {
     this.getVolumeTable = function() {
         var v = new Array(2048);
         for (var i = 0; i < 1024; ++i) v[i] = Math.pow(10, -0.1875 * i / 20);   // Decreasing volume in steps of -0.1875 dB
-        for (i = 1024;  i < 2048; ++i) v[i] = 0;                                // Silence
+        for ( i = 1024; i < 2048; ++i) v[i] = 0;                                // Silence
         return v;
     };
 

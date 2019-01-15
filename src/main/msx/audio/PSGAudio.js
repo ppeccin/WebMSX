@@ -9,6 +9,7 @@ wmsx.PSGAudio = function(secondary) {
 
     function init() {
         createVolumeCurve();
+        setupVolPan();
     }
 
     this.setAudioSocket = function(pAudioSocket) {
@@ -80,10 +81,26 @@ wmsx.PSGAudio = function(secondary) {
         }
 
         // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
-        return (amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA)
-             + (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB)
-             + (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC)
-             + (pulseSignal ? CHANNEL_MAX_VOLUME : 0);
+
+        if (volPan) {
+            // Complete path (VOL/PAN)
+            var sampleA = amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA;
+            var sampleB = amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB;
+            var sampleC = amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC;
+            var sampleP = pulseSignal ? CHANNEL_MAX_VOLUME : 0;
+
+            sampleResult[0] = sampleA * volPanL[0] + sampleB * volPanL[1] + sampleC * volPanL[2] + sampleP * volPanL[3];
+            sampleResult[1] = sampleA * volPanR[0] + sampleB * volPanR[1] + sampleC * volPanR[2] + sampleP * volPanR[3];
+        } else {
+            // Simple path (no VOL/PAN)
+            sampleResult[0] = sampleResult[1] =
+                (amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA) +
+                (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB) +
+                (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC) +
+                (pulseSignal ? CHANNEL_MAX_VOLUME : 0);
+        }
+
+        return sampleResult;
     };
 
     this.setPeriodA = function(newPeriod) {
@@ -170,7 +187,7 @@ wmsx.PSGAudio = function(secondary) {
         // console.error("PSG connect Audio:", audioSocket);
 
         if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG" + (secondary ? "2" : ""), self, VOLUME, SAMPLE_RATE);
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal("PSG" + (secondary ? "2" : ""), self, BASE_VOLUME, SAMPLE_RATE, true);
             audioSocket.connectAudioSignal(audioSignal);
         }
     };
@@ -202,6 +219,24 @@ wmsx.PSGAudio = function(secondary) {
     function createVolumeCurve() {
         for (var v = 0; v < 16; v++)
             volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
+    }
+
+    function setupVolPan() {
+        if (VOL === "F" && PAN === "8") return;     // Simple no VOL/PAN path
+
+        volPan = true;                              // Complete VOL/PAN path
+
+        var volTable = wmsx.AudioTables.getVolPanVolumeTable();
+        var v = wmsx.AudioTables.VOL_VALUES;
+        var p = wmsx.AudioTables.PAN_VALUES;
+
+        for (var c = 0; c < 4; ++c) {
+            var cv = Number("0x" + (VOL.length === 1 ? VOL[0] : VOL.length > c ? VOL[c] : "f"));
+            var cp = Number("0x" + (PAN.length === 1 ? PAN[0] : PAN.length > c ? PAN[c] : "8"));
+
+            volPanL[c] = volTable[v[cv] + p[0][cp]];
+            volPanR[c] = volTable[v[cv] + p[1][cp]];
+        }
     }
 
 
@@ -246,7 +281,12 @@ wmsx.PSGAudio = function(secondary) {
 
     var lfsr = 0x1fffe;                        // Noise generator. 17-bit Linear Feedback Shift Register
 
+    var sampleResult = [ 0, 0 ];
+
     var volumeCurve = new Array(16);
+
+    var volPanL =  new Array(4);
+    var volPanR =  new Array(4);
 
     var audioSignal;
     var audioSocket;
@@ -254,8 +294,12 @@ wmsx.PSGAudio = function(secondary) {
     var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;
 
-    var VOLUME = 0.68;
+    var BASE_VOLUME = 0.68;
     var SAMPLE_RATE = 112005;   // Main CPU clock / 32 = 112005 Hz
+
+    var VOL = ((secondary && WMSX.PSG2_VOL) || WMSX.PSG_VOL || "f").toUpperCase();
+    var PAN = ((secondary && WMSX.PSG2_PAN) || WMSX.PSG_PAN || "0").toUpperCase();
+    var volPan = false;
 
 
     // Savestate  -------------------------------------------

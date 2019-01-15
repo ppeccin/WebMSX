@@ -26,6 +26,7 @@ module.exports = function (grunt) {
                     "src/main/msx/video/VDPCommandProcessor.js",
                     "src/main/msx/video/VideoSignal.js",
                     "src/main/msx/video/VideoStandard.js",
+                    "src/main/msx/audio/AudioTables.js",
                     "src/main/msx/audio/PSG.js",
                     "src/main/msx/audio/AudioSignal.js",
                     "src/main/msx/audio/PSGAudio.js",

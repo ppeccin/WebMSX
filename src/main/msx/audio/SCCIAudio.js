@@ -7,6 +7,7 @@ wmsx.SCCIAudio = function() {
 
     function init(self) {
         createVolumeCurve();
+        setupVolPan();
         self.setSCCIMode(false);        // Default in SCC mode for compatibility
     }
 
@@ -15,7 +16,7 @@ wmsx.SCCIAudio = function() {
     };
 
     this.connectAudio = function() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, VOLUME, SAMPLE_RATE);
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, BASE_VOLUME, SAMPLE_RATE, true);
         if (audioSocket) audioSocket.connectAudioSignal(audioSignal);
     };
 
@@ -50,11 +51,11 @@ wmsx.SCCIAudio = function() {
     };
 
     this.nextSample = function() {
-        var sample = 0;
+        var sample1 = 0, sample2 = 0, sample3 = 0, sample4 = 0, sample5 = 0;
 
         // Update values only if needed
         if (period1 > 0) {
-            if (channel1) sample += currentSample1 * amplitude1;
+            if (channel1) sample1 = currentSample1 * amplitude1;
             period1Count += 32;
             while (period1Count >= period1) {
                 period1Count -= period1;
@@ -63,7 +64,7 @@ wmsx.SCCIAudio = function() {
             }
         }
         if (period2 > 0) {
-            if (channel2) sample += currentSample2 * amplitude2;
+            if (channel2) sample2 = currentSample2 * amplitude2;
             period2Count += 32;
             while (period2Count >= period2) {
                 period2Count -= period2;
@@ -72,7 +73,7 @@ wmsx.SCCIAudio = function() {
             }
         }
         if (period3 > 0) {
-            if (channel3) sample += currentSample3 * amplitude3;
+            if (channel3) sample3 = currentSample3 * amplitude3;
             period3Count += 32;
             while (period3Count >= period3) {
                 period3Count -= period3;
@@ -81,7 +82,7 @@ wmsx.SCCIAudio = function() {
             }
         }
         if (period4 > 0) {
-            if (channel4) sample += currentSample4 * amplitude4;
+            if (channel4) sample4 = currentSample4 * amplitude4;
             period4Count += 32;
             while (period4Count >= period4) {
                 period4Count -= period4;
@@ -90,7 +91,7 @@ wmsx.SCCIAudio = function() {
             }
         }
         if (period5 > 0) {
-            if (channel5) sample += currentSample5 * amplitude5;
+            if (channel5) sample5 = currentSample5 * amplitude5;
             period5Count += 32;
             while (period5Count >= period5) {
                 period5Count -= period5;
@@ -99,7 +100,16 @@ wmsx.SCCIAudio = function() {
             }
         }
 
-        return sample;
+        if (volPan) {
+            // Complete path (VOL/PAN)
+            sampleResult[0] = sample1 * volPanL[0] + sample2 * volPanL[1] + sample3 * volPanL[2] + sample4 * volPanL[3] + sample5 * volPanL[4];
+            sampleResult[1] = sample1 * volPanR[0] + sample2 * volPanR[1] + sample3 * volPanR[2] + sample4 * volPanR[3] + sample5 * volPanR[4];
+        } else {
+            // Simple path (no VOL/PAN)
+            sampleResult[0] = sampleResult[1] = sample1 + sample2 + sample3 + sample4 + sample5;
+        }
+
+        return sampleResult;
     };
 
     function writeSCC(address, value) {
@@ -214,6 +224,24 @@ wmsx.SCCIAudio = function() {
             volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
     }
 
+    function setupVolPan() {
+        if (VOL === "F" && PAN === "8") return;     // Simple no VOL/PAN path
+
+        volPan = true;                              // Complete VOL/PAN path
+
+        var volTable = wmsx.AudioTables.getVolPanVolumeTable();
+        var v = wmsx.AudioTables.VOL_VALUES;
+        var p = wmsx.AudioTables.PAN_VALUES;
+
+        for (var c = 0; c < 5; ++c) {
+            var cv = Number("0x" + (VOL.length === 1 ? VOL[0] : VOL.length > c ? VOL[c] : "f"));
+            var cp = Number("0x" + (PAN.length === 1 ? PAN[0] : PAN.length > c ? PAN[c] : "8"));
+
+            volPanL[c] = volTable[v[cv] + p[0][cp]];
+            volPanR[c] = volTable[v[cv] + p[1][cp]];
+        }
+    }
+
 
     var scciMode;
 
@@ -259,7 +287,12 @@ wmsx.SCCIAudio = function() {
 
     var channelSamples = [ channel1Samples, channel2Samples, channel3Samples, channel4Samples, channel5Samples ];
 
+    var sampleResult = [ 0, 0 ];
+
     var volumeCurve = new Array(16);
+
+    var volPanL =  new Array(5);
+    var volPanR =  new Array(5);
 
     var audioSignal;
     var audioSocket;
@@ -267,8 +300,12 @@ wmsx.SCCIAudio = function() {
     var CHANNEL_MAX_VOLUME = 0.23 / 128;        // Sample values in the range -128..+127
     var CHANNEL_VOLUME_CURVE_POWER = 3;         // Sounds more linear than the normal PSG channels
 
-    var VOLUME = 0.65;
+    var BASE_VOLUME = 0.65;
     var SAMPLE_RATE = 112005;                   // main cpu clock / 32 = 112005 Hz
+
+    var VOL = (WMSX.SCC_VOL || "f").toUpperCase();
+    var PAN = (WMSX.SCC_PAN || "8").toUpperCase();
+    var volPan = false;
 
 
     // Savestate  -------------------------------------------

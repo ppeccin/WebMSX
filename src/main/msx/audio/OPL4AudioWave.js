@@ -536,7 +536,7 @@ wmsx.OPL4AudioWave = function(opl4) {
     var endPosition =  new Array(24);
     var samplePos =    new Array(24);
     var sampleValue =  new Array(24);
-    var sampleValue2 =  new Array(24);
+    var sampleValue2 = new Array(24);
     var phaseInc =     new Array(24);
     var phaseCounter = new Array(24);
 
