@@ -1,9 +1,8 @@
-// WebMSX version 5.1.96
+// WebMSX version 5.1.0
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
-// May be overridden dynamically by URL query parameters, if ALLOW_URL_PARAMETERS = true.
-// Machine type, Components and Extensions are defined by Configuration Presets.
+// May be overridden dynamically by URL query parameters
 
 WMSX = {
 
@@ -56,6 +55,7 @@ WMSX = {
     EXTENSIONS:                     { },
 
     // General options
+    VOL:                            1.0,                        // Master Volume factor
     SPEED:                          100,                        // Default emulation speed (in %)
     AUTO_START:                     true,
     AUTO_POWER_ON_DELAY:            1200,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
@@ -92,6 +92,8 @@ WMSX = {
     PSG_PAN:                        "8",                        // 0..f (hex digit): PSG PanPot adjust. Set for each channel (4 values)
     SCC_VOL:                        "f",                        // 0..f (hex digit): SCC Volume adjust. Set globally or for each channel (5 values)
     SCC_PAN:                        "8",                        // 0..f (hex digit): SCC PanPot adjust. Set for each channel (5 values)
+    OPLL_VOL:                       "f",                        // 0..f (hex digit): OPLL Volume adjust. Set globally or for each channel (9 values)
+    OPLL_PAN:                       "8",                        // 0..f (hex digit): OPLL PanPot adjust. Set for each channel (9 values)
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
     PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
@@ -192,11 +194,13 @@ WMSX.PRESETS_CONFIG = {
 
     PSG_STEREO:     { PSG_PAN: "4c8" },
     PSG_STEREO2:    { PSG_PAN: "8c4" },
-
     SCC_STEREO:     { SCC_PAN: "8c4c4" },
     SCC_STEREO2:    { PSG_PAN: "4c4c8" },
+    OPLL_STEREO:    { OPLL_PAN: "4c4c4c4c488888" },
+    ALL_STEREO:     { _INCLUDE: "PSG_STEREO,  SCC_STEREO,  OPLL_STEREO" },
+    ALL_STEREO2:    { _INCLUDE: "PSG_STEREO2, SCC_STEREO2, OPLL_STEREO" },
 
-    // Alternate Slot Configuration: Expanded Slot 2 (on Cartridge2), try to keep RAM alone on Slot 3
+    // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 
     ALTSLOTCONFIG: {
         BIOSEXT_SLOT:                      [2, 1],
@@ -309,4 +313,4 @@ WMSX.PRESETS_CONFIG = {
 
 };
 
-wmsx = window.wmsx || {};           // Namespace for all classes and objects
+wmsx = window.wmsx || {};           // Namespace

@@ -6,6 +6,7 @@ wmsx.AudioSignal = function (name, source, volume, sampleRate, stereo, clock) {
     var self = this;
 
     function init() {
+        volume = volume * 1.1 * WMSX.VOL;
         generateNextSample = stereo ? generateNextSampleStereo : generateNextSampleMono;
         generateNextSampleMute = stereo ? generateNextSampleStereoMute : generateNextSampleMonoMute;
         var multi = Math.floor(wmsx.Machine.BASE_CPU_CLOCK / sampleRate);

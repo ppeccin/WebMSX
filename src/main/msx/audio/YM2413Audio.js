@@ -25,6 +25,7 @@ wmsx.YM2413Audio = function(pName) {
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
+        if (VOLPAN) wmsx.AudioTables.setupVolPan(14, VOL, PAN, volPanL, volPanR);
     }
 
     this.connect = function(machine) {
@@ -123,7 +124,7 @@ wmsx.YM2413Audio = function(pName) {
         amChanged = clockAM();
         if (amChanged) vibChanged = clockVIB();
 
-        var sample = 0;
+        var sample = 0, sampleL = 0, sampleR = 0, sampleM = 0;
         var topMelodyChan = rhythmMode ? 5 : 8;
 
         // Melody channels
@@ -160,7 +161,13 @@ wmsx.YM2413Audio = function(pName) {
             }
 
             // Modulated Carrier, final sample value
-            sample += expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+            sample = expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+
+            if (VOLPAN) {
+                sampleL += sample * volPanL[chan];
+                sampleR += sample * volPanR[chan];
+            } else
+                sampleM += sample;
         }
 
         // Rhythm channels (no AM, VIB, KSR, KSL, DC/DM, FB)
@@ -176,7 +183,12 @@ wmsx.YM2413Audio = function(pName) {
                 mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
                 cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
                 mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
-                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
+                sample = expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
+                if (VOLPAN) {
+                    sampleL += sample * volPanL[9];
+                    sampleR += sample * volPanR[9];
+                } else
+                    sampleM += sample;
             }
 
             // Snare Drum, 1 op + noise
@@ -184,7 +196,12 @@ wmsx.YM2413Audio = function(pName) {
             if (envStep[c] !== IDLE) {
                 clockEnvelope(c);
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 130 : noiseOutput ? 0 : 1023 - 130] + totalAtt[c]] >> 3;
+                sample = expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 130 : noiseOutput ? 0 : 1023 - 130] + totalAtt[c]] >> 3;
+                if (VOLPAN) {
+                    sampleL += sample * volPanL[10];
+                    sampleR += sample * volPanR[10];
+                } else
+                    sampleM += sample;
             }
 
             // Tom Tom, 1op, no noise
@@ -192,7 +209,12 @@ wmsx.YM2413Audio = function(pName) {
             if (envStep[c] !== IDLE) {
                 clockEnvelope(c);
                 cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+                sample = expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+                if (VOLPAN) {
+                    sampleL += sample * volPanL[11];
+                    sampleR += sample * volPanR[11];
+                } else
+                    sampleM += sample;
             }
 
             // Cymbal & HiHat
@@ -207,24 +229,42 @@ wmsx.YM2413Audio = function(pName) {
                 c = 17;
                 if (envStep[c] !== IDLE) {
                     clockEnvelope(c);
-                    sample += expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 3;
+                    sample = expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 3;
+                    if (VOLPAN) {
+                        sampleL += sample * volPanL[12];
+                        sampleR += sample * volPanR[12];
+                    } else
+                        sampleM += sample;
                 }
 
                 // HiHat, 1op + noise
                 c = 14;
                 if (envStep[c] !== IDLE) {
                     clockEnvelope(c);
-                    sample += expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 3;
+                    sample = expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 3;
+                    if (VOLPAN) {
+                        sampleL += sample * volPanL[13];
+                        sampleR += sample * volPanR[13];
+                    } else
+                        sampleM += sample;
                 }
             }
         }
 
-        return sample;
+        if (VOLPAN) {
+            // Complete Stereo path (VOL/PAN)
+            sampleResult[0] = sampleL;
+            sampleResult[1] = sampleR;
+            return sampleResult;
+        } else {
+            // Simple Mono path (no VOL/PAN)
+            return sampleM;
+        }
     };
 
     function connectAudio() {
         if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE);
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE, VOLPAN);
             audioSocket.connectAudioSignal(audioSignal);
             audioConnected = true;
         }
@@ -645,7 +685,8 @@ wmsx.YM2413Audio = function(pName) {
 
     var phaseInc =     new Array(18);
     var phaseCounter = new Array(18);
-
+    var volPanL =  new Array(14);
+    var volPanR =  new Array(14);
 
     // Debug vars
 
@@ -699,8 +740,14 @@ wmsx.YM2413Audio = function(pName) {
 
     var audioSocket, audioSignal;
 
+    var sampleResult = [ 0, 0 ];
+
     var VOLUME = 0.65 * (1.55 / 9 / 256);       // 9 channels, samples -256..+ 256
     var SAMPLE_RATE = 49780;                    // Main CPU clock / 72 = 49780 Hz
+
+    var VOL = (WMSX.OPLL_VOL || "f").toUpperCase();
+    var PAN = (WMSX.OPLL_PAN || "8").toUpperCase();
+    var VOLPAN = (VOL !== "F" || PAN !== "8");
 
 
     // Savestate  -------------------------------------------

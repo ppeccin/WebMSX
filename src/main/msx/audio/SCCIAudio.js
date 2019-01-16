@@ -7,7 +7,7 @@ wmsx.SCCIAudio = function() {
 
     function init(self) {
         createVolumeCurve();
-        setupVolPan();
+        if (VOLPAN) wmsx.AudioTables.setupVolPan(5, VOL, PAN, volPanL, volPanR);
         self.setSCCIMode(false);        // Default in SCC mode for compatibility
     }
 
@@ -16,7 +16,7 @@ wmsx.SCCIAudio = function() {
     };
 
     this.connectAudio = function() {
-        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, BASE_VOLUME, SAMPLE_RATE, true);
+        if (!audioSignal) audioSignal = new wmsx.AudioSignal("SCC", this, BASE_VOLUME, SAMPLE_RATE, VOLPAN);
         if (audioSocket) audioSocket.connectAudioSignal(audioSignal);
     };
 
@@ -100,16 +100,15 @@ wmsx.SCCIAudio = function() {
             }
         }
 
-        if (volPan) {
-            // Complete path (VOL/PAN)
+        if (VOLPAN) {
+            // Complete Stereo path (VOL/PAN)
             sampleResult[0] = sample1 * volPanL[0] + sample2 * volPanL[1] + sample3 * volPanL[2] + sample4 * volPanL[3] + sample5 * volPanL[4];
             sampleResult[1] = sample1 * volPanR[0] + sample2 * volPanR[1] + sample3 * volPanR[2] + sample4 * volPanR[3] + sample5 * volPanR[4];
+            return sampleResult;
         } else {
-            // Simple path (no VOL/PAN)
-            sampleResult[0] = sampleResult[1] = sample1 + sample2 + sample3 + sample4 + sample5;
+            // Simple Mono path (no VOL/PAN)
+            return sample1 + sample2 + sample3 + sample4 + sample5;
         }
-
-        return sampleResult;
     };
 
     function writeSCC(address, value) {
@@ -224,24 +223,6 @@ wmsx.SCCIAudio = function() {
             volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
     }
 
-    function setupVolPan() {
-        if (VOL === "F" && PAN === "8") return;     // Simple no VOL/PAN path
-
-        volPan = true;                              // Complete VOL/PAN path
-
-        var volTable = wmsx.AudioTables.getVolPanVolumeTable();
-        var v = wmsx.AudioTables.VOL_VALUES;
-        var p = wmsx.AudioTables.PAN_VALUES;
-
-        for (var c = 0; c < 5; ++c) {
-            var cv = Number("0x" + (VOL.length === 1 ? VOL[0] : VOL.length > c ? VOL[c] : "f"));
-            var cp = Number("0x" + (PAN.length === 1 ? PAN[0] : PAN.length > c ? PAN[c] : "8"));
-
-            volPanL[c] = volTable[v[cv] + p[0][cp]];
-            volPanR[c] = volTable[v[cv] + p[1][cp]];
-        }
-    }
-
 
     var scciMode;
 
@@ -305,7 +286,7 @@ wmsx.SCCIAudio = function() {
 
     var VOL = (WMSX.SCC_VOL || "f").toUpperCase();
     var PAN = (WMSX.SCC_PAN || "8").toUpperCase();
-    var volPan = false;
+    var VOLPAN = (VOL !== "F" || PAN !== "8");
 
 
     // Savestate  -------------------------------------------

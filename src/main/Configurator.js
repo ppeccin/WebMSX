@@ -86,6 +86,7 @@ wmsx.Configurator = {
             WMSX.JOYKEYS_MODE |= 0;
             WMSX.MOUSE_MODE |= 0;
             WMSX.TOUCH_MODE |= 0;
+            WMSX.VOL = Number(WMSX.VOL) || 1;
 
             if (typeof WMSX.BIOS_SLOT === "string") WMSX.BIOS_SLOT = JSON.parse(WMSX.BIOS_SLOT);
             if (typeof WMSX.BIOSEXT_SLOT === "string") WMSX.BIOSEXT_SLOT = JSON.parse(WMSX.BIOSEXT_SLOT);
