@@ -88,12 +88,12 @@ WMSX = {
     ROM_MAX_HASH_SIZE_KB:           3072,                       // Maximum ROM size for Hash calculation
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
 
-    PSG_VOL:                        "f",                        // 0..f (hex digit): PSG Volume adjust. Set globally or for each channel (4 values)
-    PSG_PAN:                        "8",                        // 0..f (hex digit): PSG PanPot adjust. Set for each channel (4 values)
-    SCC_VOL:                        "f",                        // 0..f (hex digit): SCC Volume adjust. Set globally or for each channel (5 values)
-    SCC_PAN:                        "8",                        // 0..f (hex digit): SCC PanPot adjust. Set for each channel (5 values)
-    OPLL_VOL:                       "f",                        // 0..f (hex digit): OPLL Volume adjust. Set globally or for each channel (9 values)
-    OPLL_PAN:                       "8",                        // 0..f (hex digit): OPLL PanPot adjust. Set for each channel (9 values)
+    PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
+    PSG_PAN:                        "8",                        // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
+    SCC_VOL:                        "f",                        // SCC Volume adjust. Same as above (5 values)
+    SCC_PAN:                        "8",                        // SCC PanPot adjust. Same as above (5 values)
+    OPLL_VOL:                       "f",                        // OPLL Volume adjust. Same as above (14 values)
+    OPLL_PAN:                       "8",                        // OPLL PanPot adjust. Same as above (14 values)
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
     PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
