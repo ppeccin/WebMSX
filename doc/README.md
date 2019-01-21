@@ -5,10 +5,18 @@
 WebMSX is great for displaying MSX software running inside webpages. You can launch the emulator and load ROMs, DSK and CAS images with a single link.
 Join friends in multiplayer games or pair programming sessions with the new NetPlay! function.
 
-Please go to **http://webmsx.org** to enjoy it online!
+Please go to **https://webmsx.org** to enjoy it online!
 
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
+
+#### New in Version 5.1
+
+- OPL4 Wave Sound (no FM yet)
+- Double PSG Extension
+- Master Volume control
+- PSG/SCC/OPLL Stereo simulation
+- PSG/SCC/OPLL Volume and Panning control (global or for each channel)
 
 #### New in Version 5.0
 
@@ -27,7 +35,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 ### Features
 
 - 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
-- PSG, SCC, SCC-I, FM-PAC, PCM and MSX-MUSIC sound
+- PSG, SCC, SCC-I, FM-PAC, PCM, MSX-MUSIC and OPL4-Wave sound
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox/Safari
 - Finally enjoy MSX games on your iPhone/iPad
 - Customizable Touch Controls/Virtual Keyboard for mobile devices (iOS, Android)
@@ -83,7 +91,7 @@ Several parameters are available for customizing the emulator. They can be chang
 All parameters are in the form of properties in the global object `WMSX`. Just set these object properties in Javascript, or use URL Query parameter/value pairs. For example:
 
 ```
-WMSX.ROM = "files/Game.rom";      is the same as      http://webmsx.org?ROM=files/Game.rom
+WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=files/Game.rom
 ```
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
@@ -91,7 +99,7 @@ WMSX.ROM = "files/Game.rom";      is the same as      http://webmsx.org?ROM=file
 Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` parameter, with a comma separated list of the Preset names to apply. For example:
 
 ```
-WMSX.PRESETS = "RAM128, NODISK";         or           http://webmsx.org?PRESETS=RAM128,NODISK
+WMSX.PRESETS = "RAM128, NODISK";         or           https://webmsx.org?PRESETS=RAM128,NODISK
 ```
 
 ## Media Loading
@@ -130,11 +138,16 @@ The emulator supports several Extensions, or optional components that can be tur
 | Hard Disk interface (Nextor)          | MSX2++               | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
 | Floppy Disk interface with 2 drives   | ALL                  | `DISK`, `NODISK`
 | Standard RAM Mapper, adjustable size  | MSX2, MSX2+          | `RAM128`..`RAM4096`, `NORAMMAPPER`
-| MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+          | `MSXMUSIC`, `NOMSXMUSIC`
 | Support for Kanji Characters          | Japanese MSX2, MSX2+ | `KANJI`, `NOKANJI`
+| MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+          | `MSXMUSIC`, `NOMSXMUSIC`
+| OPL4 Wave sound                       | --                   | `OPL4`
+| Double PSG                            | --                   | `DOUBLEPSG`
 | SCC-I Sound Cartridge with 128K RAM   | --                   | `SCCI`, `SCCI2` (in Slot 2)
 | SCC Sound Cartridge                   | --                   | `SCC`, `SCC2` (in Slot 2)
 | PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 2)
+| PSG Stereo simulation (defaults)      | --                   | `PSG_STEREO`
+| SCC Stereo simulation (defaults)      | --                   | `SCC_STEREO`
+| OPLL Stereo simulation (defaults)     | --                   | `OPLL_STEREO`
 
 ## Loading BASIC files and Typing commands after launch
 
@@ -179,15 +192,15 @@ WebMSX is great for displaying MSX software in the web. With a simple URL, you c
 
 - To load a game in ROM format:
 ```
-http://webmsx.org?ROM=http://gamesarchive.org/Goonies.rom
+https://webmsx.org?ROM=https://gamesarchive.org/Goonies.rom
 ```
 - To load a game in a ZIPped Disk Image and insert a SCC+ Sound Cartridge:
 ```
-http://webmsx.org?DISK=http://gamesarchive.org/SDSnatcher.zip&PRESETS=SCCI
+https://webmsx.org?DISK=https://gamesarchive.org/SDSnatcher.zip&PRESETS=SCCI
 ```
 - To launch an European MSX1 machine, loading a Disk image and then run a BASIC program:
 ```
-http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=Bubbles.bas
+https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RUN=Bubbles.bas
 ```
 
 ## Parameters Reference
@@ -222,6 +235,7 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `BOOT_KEYS_FRAMES`              |  -1                 |  Number of frames for Boot Keys. -1: auto; > 0: frames
 | `FAST_BOOT`                     |  0                  |  Number of frames for Fast Boot. 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames
 | `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size. 128, 256, 512 .. 4096, if enabled
+| `VOL`                           |  1.0                |  Master Volume factor
 | `SPEED`                         |  100                |  Default emulation speed (in %)
 | `SCREEN_ELEMENT_ID`             |  "wmsx-screen"      |  HTML Element ID to place the Emulator Screen
 | `ALLOW_URL_PARAMETERS`          |  true               |  Allows overriding any parameters via URL query parameters
@@ -254,4 +268,10 @@ http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
 | `ROM_MAX_HASH_SIZE_KB`          |  3072               |  Maximum ROM size for Hash calculation
 | `HARDDISK_MIN_SIZE_KB`          |  720                |  Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+| `PSG_VOL`                       |  "f"                |  PSG Volume adjust: 0..f (hex digit). Set globally or for each channel (4 values)
+| `PSG_PAN`                       |  "8"                |  PSG PanPot adjust: 0; 1..8..f (hex digit). Set globally or for each channel (4 values)
+| `SCC_VOL`                       |  "f"                |  SCC Volume adjust. Same as above (5 values)
+| `SCC_PAN`                       |  "8"                |  SCC PanPot adjust. Same as above (5 values)
+| `OPLL_VOL`                      |  "f"                |  OPLL Volume adjust. Same as above (14 values)
+| `OPLL_PAN`                      |  "8"                |  OPLL PanPot adjust. Same as above (14 values)
 | `PAGE_BACK_CSS`                 |  --                 |  CSS to modify page background color. Applied to the body element

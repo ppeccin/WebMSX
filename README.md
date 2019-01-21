@@ -5,7 +5,7 @@
 WebMSX is great for displaying MSX software running inside webpages. You can launch the emulator and load ROMs, DSK and CAS images with a single link.
 Join friends in multiplayer games or pair programming sessions with the new NetPlay! function.
 
-Please go to **http://webmsx.org** to enjoy it online!
+Please go to **https://webmsx.org** to enjoy it online!
 
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
@@ -91,7 +91,7 @@ Several parameters are available for customizing the emulator. They can be chang
 All parameters are in the form of properties in the global object `WMSX`. Just set these object properties in Javascript, or use URL Query parameter/value pairs. For example:
 
 ```
-WMSX.ROM = "files/Game.rom";      is the same as      http://webmsx.org?ROM=files/Game.rom
+WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=files/Game.rom
 ```
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
@@ -99,7 +99,7 @@ WMSX.ROM = "files/Game.rom";      is the same as      http://webmsx.org?ROM=file
 Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` parameter, with a comma separated list of the Preset names to apply. For example:
 
 ```
-WMSX.PRESETS = "RAM128, NODISK";         or           http://webmsx.org?PRESETS=RAM128,NODISK
+WMSX.PRESETS = "RAM128, NODISK";         or           https://webmsx.org?PRESETS=RAM128,NODISK
 ```
 
 ## Media Loading
@@ -192,15 +192,15 @@ WebMSX is great for displaying MSX software in the web. With a simple URL, you c
 
 - To load a game in ROM format:
 ```
-http://webmsx.org?ROM=http://gamesarchive.org/Goonies.rom
+https://webmsx.org?ROM=https://gamesarchive.org/Goonies.rom
 ```
 - To load a game in a ZIPped Disk Image and insert a SCC+ Sound Cartridge:
 ```
-http://webmsx.org?DISK=http://gamesarchive.org/SDSnatcher.zip&PRESETS=SCCI
+https://webmsx.org?DISK=https://gamesarchive.org/SDSnatcher.zip&PRESETS=SCCI
 ```
 - To launch an European MSX1 machine, loading a Disk image and then run a BASIC program:
 ```
-http://webmsx.org?MACHINE=MSX1E&DISK=http://basicmuseum.org/Demos.dsk&BASIC_RUN=Bubbles.bas
+https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RUN=Bubbles.bas
 ```
 
 ## Parameters Reference
