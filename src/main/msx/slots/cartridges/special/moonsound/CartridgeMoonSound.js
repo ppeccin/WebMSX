@@ -81,6 +81,8 @@ wmsx.CartridgeMoonSound = function(rom) {
         }
         this.bytes = bytes;
         opl4.loadState(s.opl4);
+
+        //console.log("MoonSound LoadState length:", JSON.stringify(s).length);
     };
 
 
