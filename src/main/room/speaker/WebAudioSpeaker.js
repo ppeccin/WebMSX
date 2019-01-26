@@ -140,6 +140,8 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         }
 
         function unlockAudioContext() {
+            // TODO Not working if first interaction is modifier keys like Shift, Alt
+
             mainElement.removeEventListener("touchend", unlockAudioContext, true);
             mainElement.removeEventListener("mousedown", unlockAudioContext, true);
             mainElement.removeEventListener("keydown", unlockAudioContext, true);
