@@ -183,24 +183,26 @@ wmsx.Util = new function() {
         return this.byteStringToSignedInt8BitArray(atob(str), dest);
     };
 
-    this.compressInt8BitArrayToStringBase64 = function(arr, length) {
+    this.compressInt8BitArrayToStringBase64 = function(arr, length, from) {
         if (arr === null || arr === undefined) return arr;
         if (arr.length === 0) return "";
-        if (length < arr.length)
-            return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr.slice(0, length))));
+        if (!length) length = arr.length;
+        from |= 0;
+        if (from || length < arr.length)
+            return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr.slice(from, from + length))));
         else
             return btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(arr)));
     };
 
-    this.uncompressStringBase64ToInt8BitArray = function(str, dest, diffSize, constr) {
+    this.uncompressStringBase64ToInt8BitArray = function(str, dest, diffSize, constr, destPos) {
         if (str === null || str === undefined) return str;
         if (str == "null") return null; if (str == "undefined") return undefined;
         if (str == "") return [];
         var res = JSZip.compressions.DEFLATE.uncompress(atob(str));
         if (dest && (diffSize || dest.length === res.length))
-            return this.arrayCopy(res, 0, dest);                                                                    // Preserve dest
+            return this.arrayCopy(res, 0, dest, destPos);                                                                    // Preserve dest
         else
-            return this.arrayCopy(res, 0, new (constr ? constr : dest ? dest.constructor : Array)(res.length));     // Use constr or preserve dest type
+            return this.arrayCopy(res, 0, new (constr ? constr : dest ? dest.constructor : Array)(res.length), destPos);     // Use constr or preserve dest type
     };
 
     this.storeInt16BitArrayToStringBase64 = function(arr) {

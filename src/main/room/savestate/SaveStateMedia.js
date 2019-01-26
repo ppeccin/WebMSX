@@ -124,6 +124,8 @@ wmsx.SaveStateMedia = function(room) {
             else
                 stateData = wmsx.Util.int8BitArrayToByteString(data, SAVE_STATE_IDENTIFIER.length);
 
+            //console.log("State length:", stateData.length);
+
             return stateData && JSON.parse(stateData);
         } catch(ex) {
             wmsx.Util.error(ex);
