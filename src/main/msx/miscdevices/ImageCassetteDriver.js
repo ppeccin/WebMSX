@@ -10,7 +10,6 @@ wmsx.ImageCassetteDriver = function() {
         machine.getCassetteSocket().connectDriver(this);
         deck = machine.getCassetteSocket().getDeck();
         keyboardExtension = bios.getKeyboardExtension();
-        patchBIOS(bios);
     };
 
     this.disconnect = function(bios, machine) {
@@ -61,9 +60,7 @@ wmsx.ImageCassetteDriver = function() {
         // No Finish operation
     };
 
-    function patchBIOS(bios) {
-        var bytes = bios.bytes;
-
+    this.patchBIOS = function(bytes) {
         // TAPION routine (EXT 0)
         bytes[0x00e1] = 0xed;
         bytes[0x00e2] = 0xe0;
@@ -98,7 +95,7 @@ wmsx.ImageCassetteDriver = function() {
         bytes[0x00f3] = 0xed;
         bytes[0x00f4] = 0xe6;
         bytes[0x00f5] = 0xc9;
-    }
+    };
 
     function TAPION(F) {
         deck.motor(true);

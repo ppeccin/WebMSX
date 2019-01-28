@@ -7,7 +7,6 @@ wmsx.ImageDiskDriver = function() {
     this.connect = function(diskBIOS, machine) {
         drive = machine.getDiskDriveSocket().getDrive();
         bus = machine.bus;
-        patchDiskBIOS(diskBIOS);
         // SymbOS FD Driver
         bus.setCpuExtensionHandler(0xf3, this);
         bus.setCpuExtensionHandler(0xf4, this);
@@ -60,9 +59,7 @@ wmsx.ImageDiskDriver = function() {
         drive.allMotorsOff();
     };
 
-    function patchDiskBIOS(bios) {
-        var bytes = bios.bytes;
-
+    this.patchDiskBIOS = function(bytes) {
         // DOS kernel places where Driver routines with no jump table are called
         // Starting with offset 0x4000
 
@@ -105,9 +102,10 @@ wmsx.ImageDiskDriver = function() {
         // It seem the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
         // So we must put the message in the same slot and make that memory region readable
         // Lets use a memory space in page 2 of this same slot and hope it works
+        wmsx.Util.arrayFill(bytes, 0xff, 0x4000);   // 256 bytes additional space over ROM
         for (var i = 0; i < CHOICE_STRING.length; i++)
             bytes[CHOICE_STRING_ADDRESS - 0x4000 + i] = CHOICE_STRING.charCodeAt(i);
-    }
+    };
 
     function INIHRD(F, HL) {
         // wmsx.Util.log("INIHRD");

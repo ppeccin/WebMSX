@@ -13,7 +13,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
         self.rom = rom;
         bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
-        // 8 banks
+        driver.patchNextorKernel(bytes);
     }
 
     this.connect = function(machine) {
@@ -77,7 +77,7 @@ wmsx.CartridgeNextorPatched = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             b1: bankOffset,
             d: driver.saveState()
         };
@@ -85,7 +85,13 @@ wmsx.CartridgeNextorPatched = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        if (s.b)
+            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        else {
+            this.rom.reloadEmbeddedContent();
+            bytes = wmsx.Util.asNormalArray(this.rom.content);
+            driver.patchNextorKernel(bytes);
+        }
         this.bytes = bytes;
         bankOffset = s.b1;
         driver.loadState(s.d);

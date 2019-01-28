@@ -8,10 +8,10 @@ wmsx.CartridgeDiskPatched = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = new Array(0x4100);
+        bytes = new Array(0x4100);      // Additional 0x100 bytes for CHOICE string
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
-        wmsx.Util.arrayFill(bytes, 0xff, 0x4000);
         self.bytes = bytes;
+        driver.patchDiskBIOS(bytes);
     }
 
     this.connect = function(machine) {
@@ -60,14 +60,21 @@ wmsx.CartridgeDiskPatched = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             d: driver.saveState()
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        if (s.b)
+            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        else {
+            this.rom.reloadEmbeddedContent();
+            if (!bytes) bytes = new Array(0x4100);
+            wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
+            driver.patchDiskBIOS(bytes);
+        }
         this.bytes = bytes;
         driver.loadState(s.d);
     };

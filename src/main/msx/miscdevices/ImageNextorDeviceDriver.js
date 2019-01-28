@@ -7,7 +7,6 @@ wmsx.ImageNextorDeviceDriver = function() {
     this.connect = function(kernel, machine) {
         drive = machine.getDiskDriveSocket().getDrive();
         bus = machine.bus;
-        patchNextorKernel(kernel);
         // SymbOS HD Driver
         bus.setCpuExtensionHandler(0xf0, this);
         bus.setCpuExtensionHandler(0xf1, this);
@@ -54,9 +53,7 @@ wmsx.ImageNextorDeviceDriver = function() {
         // nothing
     };
 
-    function patchNextorKernel(kernel) {
-        var bytes = kernel.bytes;
-
+    this.patchNextorKernel = function(bytes) {
         // Driver Header  --------------------------------------------
 
         // DRV_SIGN already correct on base kernel
@@ -126,7 +123,7 @@ wmsx.ImageNextorDeviceDriver = function() {
         bytes[0x1c169] = 0xed;
         bytes[0x1c16a] = 0xeb;
         bytes[0x1c16b] = 0xc9;
-    }
+    };
 
     function DRV_VERSION() {
         // wmsx.Util.log("DRV_VERSION");

@@ -106,7 +106,7 @@ wmsx.CartridgeKanjiFont = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             c1: charToRead1, r1: readAddress1,
             c2: charToRead2, r2: readAddress2,
             j2: jis2
@@ -115,7 +115,12 @@ wmsx.CartridgeKanjiFont = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        if (s.b)
+            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        else {
+            this.rom.reloadEmbeddedContent();
+            bytes = wmsx.Util.asNormalArray(this.rom.content);
+        }
         this.bytes = bytes;
         charToRead1 = s.c1; readAddress1 = s.r1;
         charToRead2 = s.c2; readAddress2 = s.r2;

@@ -59,6 +59,10 @@ wmsx.Slot = function() {
         this.rom.content = this.bytes || [];
     };
 
+    this.lightState = function() {
+        return WMSX.LIGHT_STATES && wmsx.EmbeddedFiles.isEmbeddedURL(this.rom.source);
+    };
+
 
     this.format = undefined;
     this.rom = undefined;

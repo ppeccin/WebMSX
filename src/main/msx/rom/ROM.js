@@ -18,15 +18,10 @@ wmsx.ROM = function(source, content, info, formatHint) {
     };
 
     this.reloadEmbeddedContent = function() {
-        if (this.content) return true;
-        if (!wmsx.EmbeddedFiles.isEmbeddedURL(this.source)) return false;
+        if (this.content || !wmsx.EmbeddedFiles.isEmbeddedURL(this.source)) return;
         var emb = wmsx.EmbeddedFiles.get(this.source);
-        if (!emb) return false;
-        this.content = emb.content;
-        return true;
+        this.content = emb && emb.content;
     };
-
-
 
 };
 

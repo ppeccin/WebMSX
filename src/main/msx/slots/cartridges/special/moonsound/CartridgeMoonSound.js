@@ -59,12 +59,12 @@ wmsx.CartridgeMoonSound = function(rom) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        var emb = wmsx.EmbeddedFiles.isEmbeddedURL(this.rom.source);
+        var light = this.lightState();
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: emb ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),                          // ROM + RAM
-            ra: !emb ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes, 0x200000, 0x200000),    // only RAM
+            b: light ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),                          // ROM + RAM
+            ra: !light ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes, 0x200000, 0x200000),    // only RAM
             opl4: opl4.saveState()
         };
     };
@@ -74,9 +74,9 @@ wmsx.CartridgeMoonSound = function(rom) {
         if (s.b)
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);                           // ROM + RAM
         else {
+            this.rom.reloadEmbeddedContent();
             if (!bytes) bytes = new Array(0x400000);
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.ra, bytes, true, null, 0x200000);    // RAM
-            this.rom.reloadEmbeddedContent();
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);                                              // ROM
         }
         this.bytes = bytes;

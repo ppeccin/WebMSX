@@ -13,11 +13,11 @@ wmsx.SlotBIOS = function(rom) {
         wmsx.Util.arrayFill(bytes, 0xff, rom.content.length);
         self.bytes = bytes;
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
+        cassetteDriver.patchBIOS(bytes);
     }
 
     this.connect = function(machine) {
         keyboardExtension.connect(machine);
-        cassetteDriver = new wmsx.ImageCassetteDriver();
         cassetteDriver.connect(this, machine);
         turboDriver.connect(this, machine);
         machine.setBIOS(this);
@@ -75,7 +75,7 @@ wmsx.SlotBIOS = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var cassetteDriver;
+    var cassetteDriver = new wmsx.ImageCassetteDriver();
     var keyboardExtension = new wmsx.BIOSKeyboardExtension();
     var turboDriver = new wmsx.TurboDriver();
 
@@ -92,19 +92,31 @@ wmsx.SlotBIOS = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             v: this.originalVideoStandard.name,
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             ke: keyboardExtension.saveState(),
             td: turboDriver.saveState()
         };
     };
 
-    this.loadState = function(state) {
-        this.rom = wmsx.ROM.loadState(state.r);
-        this.originalVideoStandard = wmsx.VideoStandard[state.v];
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
+    this.loadState = function(s) {
+        this.rom = wmsx.ROM.loadState(s.r);
+        this.originalVideoStandard = wmsx.VideoStandard[s.v];
+        if (s.b)
+            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        else {
+            this.rom.reloadEmbeddedContent();
+            if (this.rom.content.length === 0x8000)
+                bytes = wmsx.Util.asNormalArray(this.rom.content);
+            else {
+                if (!bytes) bytes = new Array(0x8000);
+                wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
+                wmsx.Util.arrayFill(bytes, 0xff, rom.content.length);
+            }
+            cassetteDriver.patchBIOS(bytes);
+        }
         this.bytes = bytes;
-        if (state.ke) keyboardExtension.loadState(state.ke);
-        turboDriver.loadState(state.td);
+        if (s.ke) keyboardExtension.loadState(s.ke);
+        turboDriver.loadState(s.td);
     };
 
 
