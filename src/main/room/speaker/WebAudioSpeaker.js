@@ -135,33 +135,38 @@ wmsx.WebAudioSpeaker = function(mainElement) {
             mainElement.addEventListener("touchend", unlockAudioContext, true);
             mainElement.addEventListener("mousedown", unlockAudioContext, true);
             mainElement.addEventListener("keydown", unlockAudioContext, true);
-            wmsx.Util.log("Speaker Audio Context resume event registered");
+            audioContext.addEventListener("statechange", audioContextStateChange);
             screen.speakerUnlockStateUpdate(false);
+
+            wmsx.Util.log("Speaker Audio Context resume event registered");
+        }
+    }
+
+    function unlockAudioContext() {
+        try {
+            audioContext.resume();
+        } catch (e) {
+            return;
         }
 
-        function unlockAudioContext() {
-            // TODO Not working if first interaction is modifier keys like Shift, Alt
+        var source = audioContext.createBufferSource();
+        source.buffer = audioContext.createBuffer(1, 1, 22050);
+        source.connect(audioContext.destination);
+        source.start(0);
 
-            mainElement.removeEventListener("touchend", unlockAudioContext, true);
-            mainElement.removeEventListener("mousedown", unlockAudioContext, true);
-            mainElement.removeEventListener("keydown", unlockAudioContext, true);
+        if (audioContext.state === "running") audioContextStateChange();
+    }
 
-            var ex;
-            try {
-                audioContext.resume().then(function () {
-                    wmsx.Util.log('Speaker Audio Context resumed!');
-                });
-            } catch (e) {
-                ex = e;
-            }
+    function audioContextStateChange() {
+        if (audioContext.state !== "running") return;
 
-            var source = audioContext.createBufferSource();
-            source.buffer = audioContext.createBuffer(1, 1, 22050);
-            source.connect(audioContext.destination);
-            source.start(0);
-            if (ex) wmsx.Util.log("Audio Context unlocked!");
-            screen.speakerUnlockStateUpdate(true);
-        }
+        mainElement.removeEventListener("touchend", unlockAudioContext, true);
+        mainElement.removeEventListener("mousedown", unlockAudioContext, true);
+        mainElement.removeEventListener("keydown", unlockAudioContext, true);
+        audioContext.removeEventListener("statechange", audioContextStateChange);
+        screen.speakerUnlockStateUpdate(true);
+
+        wmsx.Util.log('Speaker Audio Context restablished!');
     }
 
     function updateResamplingFactors() {
