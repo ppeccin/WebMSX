@@ -542,7 +542,7 @@ wmsx.FileLoader = function(room) {
     var INPUT_ACCEPT = {
         ROM:    ".bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
         DISK:   ".bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
-        TAPE:   ".bin..BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
+        TAPE:   ".bin,.BIN,.cas,.CAS,.tape,.TAPE,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP",
         STATE:  ".wst,.WST",
         CART_DATA: ".pac,.PAC,.dat,.DAT,.sram,.SRAM",
         FILES_AS_DISK: "",

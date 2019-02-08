@@ -1,4 +1,4 @@
-// WebMSX version 5.1.0
+// WebMSX version 5.2.99
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
@@ -193,13 +193,13 @@ WMSX.PRESETS_CONFIG = {
     VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },
     VSYNCHON:       { SCREEN_VSYNCH_MODE: 1 },
 
-    PSG_STEREO:     { PSG_PAN: "4c8" },
-    PSG_STEREO2:    { PSG_PAN: "8c4" },
-    SCC_STEREO:     { SCC_PAN: "8c4c4" },
-    SCC_STEREO2:    { PSG_PAN: "4c4c8" },
-    OPLL_STEREO:    { OPLL_PAN: "4c4c4c4c488888" },
-    ALL_STEREO:     { _INCLUDE: "PSG_STEREO,  SCC_STEREO,  OPLL_STEREO" },
-    ALL_STEREO2:    { _INCLUDE: "PSG_STEREO2, SCC_STEREO2, OPLL_STEREO" },
+    PSGSTEREO:     { PSG_PAN: "4c8" },
+    PSGSTEREO2:    { PSG_PAN: "8c4" },
+    SCCSTEREO:     { SCC_PAN: "8c4c4" },
+    SCCSTEREO2:    { PSG_PAN: "4c4c8" },
+    OPLLSTEREO:    { OPLL_PAN: "4c4c4c4c488888" },
+    ALLSTEREO:     { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
+    ALLSTEREO2:    { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
 
     // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 

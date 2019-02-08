@@ -145,9 +145,9 @@ The emulator supports several Extensions, or optional components that can be tur
 | SCC-I Sound Cartridge with 128K RAM   | --                   | `SCCI`, `SCCI2` (in Slot 2)
 | SCC Sound Cartridge                   | --                   | `SCC`, `SCC2` (in Slot 2)
 | PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 2)
-| PSG Stereo simulation (defaults)      | --                   | `PSG_STEREO`
-| SCC Stereo simulation (defaults)      | --                   | `SCC_STEREO`
-| OPLL Stereo simulation (defaults)     | --                   | `OPLL_STEREO`
+| PSG Stereo simulation (defaults)      | --                   | `PSGSTEREO`
+| SCC Stereo simulation (defaults)      | --                   | `SCCSTEREO`
+| OPLL Stereo simulation (defaults)     | --                   | `OPLLSTEREO`
 
 ## Loading BASIC files and Typing commands after launch
 

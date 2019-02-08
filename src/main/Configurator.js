@@ -105,7 +105,7 @@ wmsx.Configurator = {
 
     applyPreset: function(presetName, silent) {
         if (!presetName) return;
-        var presetPars = WMSX.PRESETS_CONFIG[presetName];
+        var presetPars = WMSX.PRESETS_CONFIG[presetName] || WMSX.PRESETS_CONFIG[presetName.replace(/(.)_+/g, "$1")];       // Ignore any "_" except first one
         if (presetPars) {
             if (!silent) wmsx.Util.log("Applying preset: " + presetName);
             for (var par in presetPars) {

@@ -1148,8 +1148,8 @@ wmsx.Machine = function() {
             media.externalStateChange();
         };
         var media;
-        var VERSION = 511;
-        var VERSIONS_ACCEPTED = { 9: true, 50: true, 51: true, 511: true };
+        var VERSION = 520;
+        var VERSIONS_ACCEPTED = { 9: true, 50: true, 51: true, 511: true, 520: true };
     }
 
 

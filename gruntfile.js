@@ -1,6 +1,6 @@
 module.exports = function (grunt) {
 
-    var releasePath = "stable/5.1";
+    var releasePath = "alpha/5.2";
 
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
