@@ -192,6 +192,8 @@ wmsx.Z80 = function() {
     // Internal operations
 
     function fetchNextInstruction() {
+        // if (DEBUG && DEBUG--) console.log(PC.toString(16));
+
         opcode = fromN();           // Will inc PC
         selectInstruction();
         T = instruction.remainCycles;
@@ -2711,6 +2713,7 @@ wmsx.Z80 = function() {
     //    this.testPrint += charac;
     //};
 
+    // var DEBUG = 0;
 
     this.eval = function(str) {
         return eval(str);

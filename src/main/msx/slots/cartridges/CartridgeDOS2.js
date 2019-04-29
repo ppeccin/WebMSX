@@ -55,19 +55,14 @@ wmsx.CartridgeDOS2 = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: /* this.lightState() ? null : */ wmsx.Util.compressInt8BitArrayToStringBase64(bytes),        // Not Embedded anymore!
             b1: bankOffset
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        if (s.b)
-            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
-        else {
-            this.rom.reloadEmbeddedContent();
-            bytes = wmsx.Util.asNormalArray(this.rom.content);
-        }
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
         bankOffset = s.b1;
     };
