@@ -3,6 +3,21 @@
 wmsx.OPL4WaveTables = function() {
 "use strict";
 
+    this.getRegisterWriteMasks = function() {
+        var i;
+        var mask = wmsx.Util.arrayFill(new Array(256), 0xff);
+        mask[0] = mask[1] = 0;                              // LSI TEST
+        mask[2] = 0x1d;                                     // DEVICE ID, MEMORY TYPE
+        mask[3] = 0x3f;                                     // MEM ADDRESS HIGHER BITS
+        mask[7] = 0;                                        // UNUSED
+        for (i = 0x80; i <= 0x97; ++i) mask[i] = 0x3f;      // LFO, VIB
+        for (i = 0xe0; i <= 0xf7; ++i) mask[i] = 0x07;      // AM
+        mask[0xf8] = mask[0xf9] = 0x3f;                     // MIXER
+        for (i = 0xfa; i <= 0xff; ++i) mask[i] = 0;         // UNUSED
+
+        return mask;
+    };
+
     this.getPanPotValues = function() {
         return this.PANPOT_VALUES;
     };

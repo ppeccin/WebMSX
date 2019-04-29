@@ -9,6 +9,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     function init() {
         var tabs = new wmsx.OPL4WaveTables();
+        regWriteMasks = tabs.getRegisterWriteMasks();
         rateAttackPatterns = tabs.getRateAttackPatterns();
         rateDecayPatterns = tabs.getRateDecayPatterns();
         lfoStepClocks = tabs.getLFOStepClocks();
@@ -39,8 +40,8 @@ wmsx.OPL4AudioWave = function(opl4) {
 
         // Init all registers
         wmsx.Util.arrayFill(register, 0);
-        register[0x02] = 0x02;  // DEVICE ID
-        register[0xf8] = 0x1b;  // FM MIX CONTROL
+        register[0x02] = 0x022;     // DEVICE ID, MEMORY TYPE
+        register[0xf8] = 0x1b;      // FM MIX CONTROL
         register[0x00] = register[0x01] = register[0x07] =
         register[0xfa] = register[0xfb] = register[0xfc] =
         register[0xfd] = register[0xfe] = register[0xff] = 0xff;      // LSI TEST, INVALID
@@ -160,9 +161,10 @@ wmsx.OPL4AudioWave = function(opl4) {
         // console.log("Wave Register WRITE: " + reg.toString(16) + " : " + val.toString(16));
 
         var cha;
-
         var mod = register[reg] ^ val;
-        register[reg] = val;
+
+        var mask = regWriteMasks[reg];
+        register[reg] = (register[reg] & ~mask) | (val & mask);
 
         switch(reg) {
             case 0x05:
@@ -595,7 +597,7 @@ wmsx.OPL4AudioWave = function(opl4) {
 
     // Pre calculated tables, factors, values
 
-    var rateAttackPatterns, rateDecayPatterns, lfoStepClocks, vibStepOffsets, amStepOffsets, panpotValues, volumeTable;
+    var regWriteMasks, rateAttackPatterns, rateDecayPatterns, lfoStepClocks, vibStepOffsets, amStepOffsets, panpotValues, volumeTable;
     var sampleResult = [ 0, 0 ];
 
 
