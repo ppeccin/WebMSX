@@ -26,7 +26,7 @@ wmsx.Z80 = function() {
     };
 
     this.clockPulses = function(quant) {
-        var turboQuant = quant * turboClockMulti;
+        var turboQuant = (quant * turboClockMulti) | 0;
         for (var t = turboQuant; t > 0; --t) {
             if (--T > 1) continue;                   // Still counting cycles of current instruction
             if (T > 0) {
@@ -87,7 +87,7 @@ wmsx.Z80 = function() {
     this.setCPUTurboMulti = function(multi) {
         // console.log("SET CPU MULTI:" + multi);
 
-        turboClockMulti = multi < 1 ? 1 : multi > 8 ? 8 : multi;    // 1..8
+        turboClockMulti = multi < 0 ? 1 : multi > 8 ? 8 : multi;    // (0..8]
     };
 
     this.getCPUTurboMulti = function() {
@@ -95,16 +95,18 @@ wmsx.Z80 = function() {
     };
 
     this.getCPUTurboFreqDesc = function() {
-        switch (turboClockMulti) {
-            case 1: return "3.58 MHz";
-            case 2: return "7.16 MHz";
-            case 3: return "10.7 MHz";
-            case 4: return "14.3 MHz";
-            case 5: return "17.9 MHz";
-            case 6: return "21.5 MHz";
-            case 7: return "25.1 MHz";
-            case 8: return "28.6 MHz";
-        }
+        return "" + (3.58 * turboClockMulti).toFixed(2) + " MHz";
+
+        // switch (turboClockMulti) {
+        //     case 1:   return "3.58 MHz";
+        //     case 2:   return "7.16 MHz";
+        //     case 3:   return "10.7 MHz";
+        //     case 4:   return "14.3 MHz";
+        //     case 5:   return "17.9 MHz";
+        //     case 6:   return "21.5 MHz";
+        //     case 7:   return "25.1 MHz";
+        //     case 8:   return "28.6 MHz";
+        // }
     };
 
 

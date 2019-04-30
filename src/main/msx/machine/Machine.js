@@ -242,13 +242,16 @@ wmsx.Machine = function() {
         setVSynchMode(mode, true);  // force
     };
 
-    this.toggleCPUTurboMode = function() {
-        this.setCPUTurboMode(cpuTurboMode + 1);
+    this.toggleCPUTurboMode = function(inc) {
+        if (inc !== false)
+            this.setCPUTurboMode(cpuTurboMode === 0 ? 1.5 : cpuTurboMode < 1 ? 0 : cpuTurboMode < 1.5 ? 1.5 : (cpuTurboMode | 0) + 1);
+        else
+            this.setCPUTurboMode(cpuTurboMode < 0 ? 8 : cpuTurboMode === 0 ? -1 : cpuTurboMode <= 1.5 ? 0 : cpuTurboMode <= 2 ? 1.5 : (cpuTurboMode | 0) - 1);
         this.showCPUTurboModeMessage();
     };
 
     this.setCPUTurboMode = function(mode) {
-        cpuTurboMode = mode > 8 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..8
+        cpuTurboMode = mode < 0 || mode > 8 ? -1 : mode === 1 ? 2 : mode;        // -1, 0..8
         biosSocket.turboDriverTurboModesUpdate();
     };
 
@@ -263,17 +266,20 @@ wmsx.Machine = function() {
     this.getCPUTurboModeDesc = function() {
         var desc = cpuTurboMode < 0 ? "OFF " : cpuTurboMode === 0 ? "Auto " : "";
         var multi = cpu.getCPUTurboMulti();
-        desc += (multi > 1 ? "" + multi + "x " : "") + "(" + cpu.getCPUTurboFreqDesc() + ")";
+        desc += (multi !== 1 ? "" + multi + "x " : "") + "(" + cpu.getCPUTurboFreqDesc() + ")";
         return desc;
     };
 
-    this.toggleVDPTurboMode = function() {
-        this.setVDPTurboMode(vdpTurboMode + 1);
+    this.toggleVDPTurboMode = function(inc) {
+        if (inc !== false)
+            this.setVDPTurboMode(vdpTurboMode + 1);
+        else
+            this.setVDPTurboMode(vdpTurboMode < 0 ? 9 : vdpTurboMode === 2 ? 0 : vdpTurboMode - 1);
         self.showOSD("VDP Engine Turbo: " + this.getVDPTurboModeDesc(), true);
     };
 
     this.setVDPTurboMode = function(mode) {
-        vdpTurboMode = mode > 9 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..9
+        vdpTurboMode = mode < 0 || mode > 9 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..9
         biosSocket.turboDriverTurboModesUpdate();
     };
 
@@ -682,10 +688,16 @@ wmsx.Machine = function() {
                 vSynchModeToggle();
                 break;
             case controls.CPU_TURBO_MODE:
-                self.toggleCPUTurboMode();
+                self.toggleCPUTurboMode(true);
+                break;
+            case controls.CPU_TURBO_MODE_DEC:
+                self.toggleCPUTurboMode(false);
                 break;
             case controls.VDP_TURBO_MODE:
-                self.toggleVDPTurboMode();
+                self.toggleVDPTurboMode(true);
+                break;
+            case controls.VDP_TURBO_MODE_DEC:
+                self.toggleVDPTurboMode(false);
                 break;
             case controls.PALETTE:
                 vdp.togglePalettes();
@@ -1059,7 +1071,7 @@ wmsx.Machine = function() {
                     return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
                 case controls.CPU_TURBO_MODE:
                     var multi = cpu.getCPUTurboMulti();
-                    var desc = cpuTurboMode < 0 ? "OFF" : cpuTurboMode === 0 ? "Auto" + (multi > 1 ? " " + multi + "x" : "") : "" + multi + "x" ;
+                    var desc = cpuTurboMode < 0 ? "OFF" : cpuTurboMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : "" + multi + "x" ;
                     return { label: desc, active: multi > 1 };
                 case controls.VDP_TURBO_MODE:
                     multi = vdp.getVDPTurboMulti();

@@ -25,10 +25,10 @@ wmsx.TurboDriver = function() {
         var cpuMode = machine.getCPUTurboMode();
         var vdpMode = machine.getVDPTurboMode();
 
-        if (cpuMode === -1 || msx1) unPatchBIOS();
+        if (cpuMode < 0 || msx1) unPatchBIOS();
         else patchBIOS();
 
-        machine.cpu.setCPUTurboMulti(cpuMode === 0 && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode > 1 ? cpuMode : 1);
+        machine.cpu.setCPUTurboMulti(cpuMode === 0 && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode <= 0 ? 1 : cpuMode);
         machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 1 ? vdpMode : 1);
 
         biosSocket.fireMachineTurboModesStateUpdate();

@@ -559,8 +559,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.machineTurboModesStateUpdate = function() {
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
         var multi = machine.cpu.getCPUTurboMulti();
-        turboButton.classList.toggle("wmsx-hidden", multi < 2);
-        if (multi > 1) turboButton.textContent = "" + multi + "x";
+        turboButton.classList.toggle("wmsx-hidden", multi === 1);
+        if (multi !== 1) turboButton.textContent = "" + multi + "x";
     };
 
     this.speakerUnlockStateUpdate = function(state) {

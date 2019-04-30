@@ -78,7 +78,7 @@ WMSX = {
     JOYKEYS_MODE:                   -1,                         // -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
     MOUSE_MODE:                     -1,                         // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-    CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
+    CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); (0..8]: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
     VDP_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: VDP Command Engine clock multiplier; 9: instantaneous
     CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
     VDP_SOFT_TURBO_MULTI:           4,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software
@@ -226,8 +226,10 @@ WMSX.PRESETS_CONFIG = {
     },
     _MSX2PPBASE: {
         _INCLUDE:           "HARDDISK, RAM1024",
-        M_CPU_TURBO_MODE:   3,
-        M_VDP_TURBO_MODE:   4
+        M_CPU_TURBO_MODE:   4,
+        CPU_SOFT_TURBO_MULTI: 4,
+        M_VDP_TURBO_MODE:   4,
+        VDP_SOFT_TURBO_MULTI: 4
     },
 
     // MSX2+ Machine Presets. Do not use directly
