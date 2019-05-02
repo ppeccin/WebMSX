@@ -123,7 +123,9 @@ WMSX.userPreferences.defaults = function() {
                 T_D: m.ESCAPE,
                 T_E: m.SPACE,
                 T_F: m.F1,
-                T_G: m.ENTER
+                T_G: m.ENTER,
+                T_X: null,
+                T_Y: null
             }
         },
 

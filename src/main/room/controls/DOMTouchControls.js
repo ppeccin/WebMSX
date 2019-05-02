@@ -127,16 +127,20 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
         var pause = document.createElement('div');
         pause.id = "wmsx-touch-pause";
         pause.addEventListener("touchstart", pauseTouchStart);
+        pause.addEventListener("mousedown", pauseTouchStart);
         speedControls.appendChild(pause);
         var ff = document.createElement('div');
         ff.id = "wmsx-touch-fast";
         ff.addEventListener("touchstart", fastTouchStart);
         ff.addEventListener("touchend", fastTouchEnd);
+        ff.addEventListener("mousedown", fastTouchStart);
+        ff.addEventListener("mouseup", fastTouchEnd);
         speedControls.appendChild(ff);
         mainElement.appendChild(speedControls);
 
         var group = document.createElement('div');
         group.id = "wmsx-touch-left";
+        createButton(group, wmsx.TouchControls.buttonsLeftSide[0]);
         dirElement = wmsx.DOMTouchControls.createDirectional();
         dirElement.addEventListener("touchstart", dirTouchStart);
         dirElement.addEventListener("touchmove", dirTouchMove);
@@ -144,11 +148,12 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
         dirElement.addEventListener("touchcancel", dirTouchEnd);
         dirElement.addEventListener("mousedown", dirMouseDown);        // Only for button detection
         group.appendChild(dirElement);
+        createButton(group, wmsx.TouchControls.buttonsLeftSide[1]);
         mainElement.appendChild(group);
 
         group = document.createElement('div');
         group.id = "wmsx-touch-right";
-        var buts = wmsx.TouchControls.buttons;
+        var buts = wmsx.TouchControls.buttonsRightSide;
         for (var b in buts) createButton(group, buts[b]);
         mainElement.appendChild(group);
 

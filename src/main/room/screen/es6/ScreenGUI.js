@@ -1498,6 +1498,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 
 .wmsx-touch-dir {
+    position: relative;
     width: 130px;
     height: 130px;
     color: hsl(0, 0%, 75%);
@@ -1695,6 +1696,8 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 #wmsx-touch-T_E { z-index: 3 }
 #wmsx-touch-T_F { z-index: 2 }
 #wmsx-touch-T_G { z-index: 1 }
+#wmsx-touch-T_X { z-index: 1 }
+#wmsx-touch-T_Y { z-index: 1 }
 
 #wmsx-touch-pause, #wmsx-touch-fast {
     float: left;
