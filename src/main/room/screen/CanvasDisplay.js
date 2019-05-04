@@ -328,8 +328,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         scaleYBeforeUserFullscreen = 0;
     };
 
-    this.crtFilterToggle = function() {
-        var newLevel = crtFilter + 1; if (newLevel > 3) newLevel = -2;
+    this.crtFilterToggle = function(dec) {
+        var newLevel;
+        if (dec) { newLevel = crtFilter - 1; if (newLevel < -2) newLevel = 3; }
+        else     { newLevel = crtFilter + 1; if (newLevel > 3) newLevel = -2; }
+
         setCRTFilter(newLevel);
         var levelDesc = crtFilterEffective === null ? "browser default" : crtFilterEffective < 1 ? "OFF" : "level " + crtFilterEffective;
         this.showOSD("CRT filter: " + (crtFilter === -1 ? "AUTO (" + levelDesc + ")" : levelDesc), true);
@@ -347,8 +350,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         setCRTFilter(WMSX.SCREEN_FILTER_MODE !== -3 ? WMSX.SCREEN_FILTER_MODE : user !== null && user > -3 ? user : -1);
     };
 
-    this.crtModeToggle = function() {
-        var newMode = crtMode + 1; if (newMode > 1) newMode = -1;
+    this.crtModeToggle = function(dec) {
+        var newMode;
+        if (dec) { newMode = crtMode - 1; if (newMode < -1) newMode = 1; }
+        else     { newMode = crtMode + 1; if (newMode > 1) newMode = -1; }
+
         setCRTMode(newMode);
         var effectDesc = crtModeEffective === 1 ? "Phosphor" : "OFF";
         this.showOSD("CRT mode: " + (crtMode === -1 ? "AUTO (" + effectDesc + ")" : effectDesc), true);

@@ -47,17 +47,19 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
     };
 
     this.controllersClockPulse = function() {
-        if (port >=0 && turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
+        if (port >= 0 && turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
-    this.toggleMode = function(skipAuto) {
+    this.toggleMode = function(skipAuto, dec) {
         if (!isTouchDevice) {
             hub.showErrorMessage("Touch Controls unavailable. Not a touch device!");
             return;
         }
 
-        var newMode = skipAuto ? (port === 0 ? 1 : mode === -2 ? 0 : mode + 1 ) : mode + 1;
-        if (newMode > 1) newMode = -2;
+        var newMode;
+        if (dec) { newMode = skipAuto ? (port < 0 ? 1 : port === 0 ? -2 : mode - 1 ) : mode - 1; if (newMode < -2) newMode = 1; }
+        else     { newMode = skipAuto ? (port === 0 ? 1 : mode === -2 ? 0 : mode + 1 ) : mode + 1; if (newMode > 1) newMode = -2; }
+
         this.setMode(newMode);
         hub.showStatusMessage("Touch Controls " + this.getModeDesc());
     };

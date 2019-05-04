@@ -35,9 +35,10 @@ wmsx.DOMMouseControls = function(room, hub) {
         updateConnectionsToHub();
     };
 
-    this.toggleMode = function() {
-        var newMode = mode + 1;
-        if (newMode > 1) newMode = -2;
+    this.toggleMode = function(dec) {
+        var newMode;
+        if (dec) { newMode = mode - 1; if (newMode < -2) newMode = 1; }
+        else     { newMode = mode + 1; if (newMode > 1) newMode = -2; }
         this.setMode(newMode);
         showStatusMessage("Mouse " + this.getModeDesc());
     };

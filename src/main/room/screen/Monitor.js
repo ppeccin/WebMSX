@@ -39,12 +39,12 @@ wmsx.Monitor = function(display) {
         display.setDebugMode(boo);
     };
 
-    this.crtModeToggle = function() {
-        display.crtModeToggle();
+    this.crtModeToggle = function(dec) {
+        display.crtModeToggle(dec);
     };
 
-    this.crtFilterToggle = function() {
-        display.crtFilterToggle();
+    this.crtFilterToggle = function(dec) {
+        display.crtFilterToggle(dec);
     };
 
     this.fullscreenToggle = function() {

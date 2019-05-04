@@ -82,10 +82,13 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
         return bootKeysCountdown > 0 ? keyboardMatrix[row] & keyboardMatrixBootKeys[row] : keyboardMatrix[row];
     };
 
-    this.toggleKeyboardLayout = function() {
-        var next = currentIsAuto ? 0 : (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
-        if (next >= availableKeyboards.length) setDefaultKeyboard();
-        else this.setKeyboard(availableKeyboards[next], false);
+    this.toggleKeyboardLayout = function(dec) {
+        var index;
+        if (dec) index = currentIsAuto ? availableKeyboards.length - 1 : (availableKeyboards.indexOf(currentKeyboard) - 1) || 0;
+        else     index = currentIsAuto ? 0 : (availableKeyboards.indexOf(currentKeyboard) + 1) || 0;
+
+        if (index < 0 || index >= availableKeyboards.length) setDefaultKeyboard();
+        else this.setKeyboard(availableKeyboards[index], false);
         screen.showOSD("Host Keyboard: " + this.getCurrentKeyboardDesc(), true);
     };
 

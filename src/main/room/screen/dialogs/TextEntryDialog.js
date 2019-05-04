@@ -27,7 +27,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
         dialog.classList.remove("wmsx-show");
         visible = false;
         WMSX.room.screen.focus();
-        if (confirm) machineControls.processControlState(wmsx.MachineControls.TYPE_STRING, true, input.value);
+        if (confirm) machineControls.processControlState(wmsx.MachineControls.TYPE_STRING, true, false, input.value);
     };
 
     function create() {

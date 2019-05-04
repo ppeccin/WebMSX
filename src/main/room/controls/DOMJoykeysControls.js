@@ -45,8 +45,8 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
         if (mode >=0 && turboFireClocks && (--turboFireClockCount <= 0)) turboFireClockCount = turboFireClocks;
     };
 
-    this.toggleMode = function() {
-        var newMode = (room.netPlayMode === 2 && !netServerSwapped ? NET_CLIENT_SWAP_MODE_SEQ : NORMAL_MODE_SEQ)[mode + 1];  // mode starts from -1 so +1
+    this.toggleMode = function(dec) {
+        var newMode = (room.netPlayMode === 2 && !netServerSwapped ? NET_CLIENT_SWAP_MODE_SEQS : NORMAL_MODE_SEQS)[dec ? 1 : 0][mode + 1];  // mode starts from -1 so +1
         this.setMode(newMode);
         hub.showStatusMessage("Joykeys " + this.getModeDesc());
     };
@@ -211,8 +211,8 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
 
     var netServerSwapped = false;
 
-    var NORMAL_MODE_SEQ =          [ 0, 1, 2, 3, -1];
-    var NET_CLIENT_SWAP_MODE_SEQ = [ 1, 3, 0, -1, 2];
+    var NORMAL_MODE_SEQS =          [ [ 0, 1, 2, 3, -1 ], [ 3, -1, 0, 1, 2 ] ];       // [ incs ], [ decs ]
+    var NET_CLIENT_SWAP_MODE_SEQS = [ [ 1, 3, 0, -1, 2 ], [ 2, 1, -1, 3, 0 ] ];
 
     var TYPE = wmsx.ControllersHub.JOYKEYS;
 

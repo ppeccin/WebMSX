@@ -79,11 +79,10 @@ wmsx.DOMPeripheralControls = function(room) {
         var port = secPort ? 1 : 0;
         switch(control) {
             case pc.MACHINE_POWER_TOGGLE:           // MACHINE_ Controls called directly by Screen, no keys here
-                if (altPower) return machineControls.processControlState(wmsx.MachineControls.RESET, true);
-                machineControls.processControlState(wmsx.MachineControls.POWER, true);
+                machineControls.processControlState(wmsx.MachineControls.POWER, true, altPower);    // AltPower is AltFunc = RESET
                 break;
             case pc.MACHINE_POWER_RESET:
-                machineControls.processControlState(wmsx.MachineControls.RESET, true);
+                machineControls.processControlState(wmsx.MachineControls.POWER, true, true);        // AltFunc = RESET
                 break;
             case pc.MACHINE_LOAD_STATE_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.STATE, false, 0, false);
@@ -236,9 +235,9 @@ wmsx.DOMPeripheralControls = function(room) {
                 }
                 break;
             case pc.SCREEN_CRT_MODE:
-                monitor.crtModeToggle(); break;
+                monitor.crtModeToggle(secPort); break;                  // secPort for dec
             case pc.SCREEN_CRT_FILTER:
-                monitor.crtFilterToggle(); break;
+                monitor.crtFilterToggle(secPort); break;                // secPort for dec
             case pc.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(); break;
             case pc.SCREEN_DEFAULTS:
@@ -274,19 +273,19 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openNetPlayDialog();
                 break;
             case pc.KEYBOARD_TOGGLE_HOST_LAYOUT:
-                controllersHub.toggleKeyboardLayout(); break;
+                controllersHub.toggleKeyboardLayout(secPort); break;                // secPort for dec
             case pc.JOYSTICKS_TOGGLE_MODE:
-                controllersHub.toggleJoystickMode(); break;
+                controllersHub.toggleJoystickMode(secPort); break;                  // secPort for dec
             case pc.JOYKEYS_TOGGLE_MODE:
-                controllersHub.toggleJoykeysMode(); break;
+                controllersHub.toggleJoykeysMode(secPort); break;                   // secPort for dec
             case pc.MOUSE_TOGGLE_MODE:
-                controllersHub.toggleMouseMode(); break;
+                controllersHub.toggleMouseMode(secPort); break;                     // secPort for dec
             case pc.TOUCH_TOGGLE_MODE:
-                controllersHub.toggleTouchControlsMode(altPower); break;       // altPower for skip auto option
+                controllersHub.toggleTouchControlsMode(altPower, secPort); break;   // altPower for skip auto option, secPort for dec
             case pc.TOUCH_TOGGLE_DIR_BIG:
                 controllersHub.getTouchControls().toggleDirBig(); break;
             case pc.TURBO_FIRE_TOGGLE:
-                controllersHub.toggleTurboFireSpeed(); break;
+                controllersHub.toggleTurboFireSpeed(secPort); break;                // secPort for dec
             case pc.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 controllersHub.toggleHapticFeedback(); break;
             case pc.COPY_STRING:
@@ -298,7 +297,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.CAPTURE_SCREEN:
                 screen.saveScreenCapture(); break;
             case pc.SPEAKER_BUFFER_TOGGLE:
-                speaker.toggleBufferBaseSize(); break;
+                speaker.toggleBufferBaseSize(secPort); break;                       // secPort for dec
         }
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {

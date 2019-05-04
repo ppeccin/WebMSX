@@ -242,11 +242,9 @@ wmsx.Machine = function() {
         setVSynchMode(mode, true);  // force
     };
 
-    this.toggleCPUTurboMode = function(inc) {
-        if (inc !== false)
-            this.setCPUTurboMode(cpuTurboMode === 0 ? 1.5 : cpuTurboMode < 1 ? 0 : cpuTurboMode < 1.5 ? 1.5 : (cpuTurboMode | 0) + 1);
-        else
-            this.setCPUTurboMode(cpuTurboMode < 0 ? 8 : cpuTurboMode === 0 ? -1 : cpuTurboMode <= 1.5 ? 0 : cpuTurboMode <= 2 ? 1.5 : (cpuTurboMode | 0) - 1);
+    this.toggleCPUTurboMode = function(dec) {
+        if (dec) this.setCPUTurboMode(cpuTurboMode < 0 ? 8 : cpuTurboMode === 0 ? -1 : cpuTurboMode <= 1.5 ? 0 : cpuTurboMode <= 2 ? 1.5 : (cpuTurboMode | 0) - 1);
+        else     this.setCPUTurboMode(cpuTurboMode === 0 ? 1.5 : cpuTurboMode < 1 ? 0 : cpuTurboMode < 1.5 ? 1.5 : (cpuTurboMode | 0) + 1);
         this.showCPUTurboModeMessage();
     };
 
@@ -270,11 +268,9 @@ wmsx.Machine = function() {
         return desc;
     };
 
-    this.toggleVDPTurboMode = function(inc) {
-        if (inc !== false)
-            this.setVDPTurboMode(vdpTurboMode + 1);
-        else
-            this.setVDPTurboMode(vdpTurboMode < 0 ? 9 : vdpTurboMode === 2 ? 0 : vdpTurboMode - 1);
+    this.toggleVDPTurboMode = function(dec) {
+        if (dec) this.setVDPTurboMode(vdpTurboMode < 0 ? 9 : vdpTurboMode === 2 ? 0 : vdpTurboMode - 1);
+        else     this.setVDPTurboMode(vdpTurboMode + 1);
         self.showOSD("VDP Engine Turbo: " + this.getVDPTurboModeDesc(), true);
     };
 
@@ -600,11 +596,11 @@ wmsx.Machine = function() {
 
     var controls = wmsx.MachineControls;
 
-    function controlStateChanged(control, state, data) {
+    function controlStateChanged(control, state, altFunc, data) {
         if (isLoading) return;
 
         // Normal state controls
-        if (control === controls.FAST_SPEED) {
+        if (control === controls.FAST_SPEED && !altFunc) {
             if (state && alternateSpeed !== SPEED_FAST) {
                 alternateSpeed = SPEED_FAST;
                 videoClockUpdateSpeed();
@@ -616,7 +612,7 @@ wmsx.Machine = function() {
             }
             return;
         }
-        if (control === controls.SLOW_SPEED) {
+        if (control === controls.FAST_SPEED && altFunc) {
             if (state && alternateSpeed !== SPEED_SLOW) {
                 alternateSpeed = SPEED_SLOW;
                 videoClockUpdateSpeed();
@@ -632,22 +628,19 @@ wmsx.Machine = function() {
         if (!state) return;
         switch (control) {
             case controls.POWER:
-                if (self.powerIsOn) self.powerOff();
-                else self.userPowerOn(false);
-                break;
-            case controls.RESET:
-                if (self.powerIsOn) self.reset();
+                if (!altFunc) {
+                    if (self.powerIsOn) self.powerOff();
+                    else self.userPowerOn(false);
+                } else {
+                    if (self.powerIsOn) self.reset();
+                }
                 break;
             case controls.POWER_OFF:
                 if (self.powerIsOn) self.powerOff();
                 break;
             case controls.PAUSE:
-                self.userPause(!userPaused, false);
-                self.getVideoOutput().showOSD(userPaused ? "PAUSE" : "RESUME", true);
-                return;
-            case controls.PAUSE_AUDIO_ON:
-                self.userPause(!userPaused, true);
-                self.getVideoOutput().showOSD(userPaused ? "PAUSE with AUDIO ON" : "RESUME", true);
+                self.userPause(!userPaused, altFunc);
+                self.getVideoOutput().showOSD(userPaused ? "PAUSE" + (altFunc ? " with AUDIO ON" : "") : "RESUME", true);
                 return;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;
@@ -680,34 +673,25 @@ wmsx.Machine = function() {
                 break;
             case controls.VIDEO_STANDARD:
                 self.showOSD(null, true);	// Prepares for the upcoming "AUTO" OSD to always show
-                if (videoStandardIsAuto) setVideoStandardForced(wmsx.VideoStandard.NTSC);
-                else if (videoStandard == wmsx.VideoStandard.NTSC) setVideoStandardForced(wmsx.VideoStandard.PAL);
-                else setVideoStandardAuto();
+                if (videoStandardIsAuto) setVideoStandardForced(altFunc ? wmsx.VideoStandard.PAL : wmsx.VideoStandard.NTSC);
+                else if (videoStandard == wmsx.VideoStandard.NTSC) altFunc ? setVideoStandardAuto() : setVideoStandardForced(wmsx.VideoStandard.PAL);
+                else altFunc ? setVideoStandardForced(wmsx.VideoStandard.NTSC) : setVideoStandardAuto();
                 break;
             case controls.VSYNCH:
                 vSynchModeToggle();
                 break;
             case controls.CPU_TURBO_MODE:
-                self.toggleCPUTurboMode(true);
-                break;
-            case controls.CPU_TURBO_MODE_DEC:
-                self.toggleCPUTurboMode(false);
+                self.toggleCPUTurboMode(altFunc);
                 break;
             case controls.VDP_TURBO_MODE:
-                self.toggleVDPTurboMode(true);
-                break;
-            case controls.VDP_TURBO_MODE_DEC:
-                self.toggleVDPTurboMode(false);
-                break;
-            case controls.PALETTE:
-                vdp.togglePalettes();
+                self.toggleVDPTurboMode(altFunc);
                 break;
             case controls.DEBUG:
                 var resultingMode = vdp.toggleDebugModes();
                 wmsx.DeviceMissing.setDebugMode(resultingMode);
                 break;
             case controls.SPRITE_MODE:
-                vdp.toggleSpriteDebugModes();
+                vdp.toggleSpriteDebugModes(altFunc);
                 break;
             case controls.DEFAULTS:
                 self.setDefaults();
@@ -1053,8 +1037,8 @@ wmsx.Machine = function() {
     // MachineControls Socket  -----------------------------------------
 
     function MachineControlsSocket() {
-        this.controlStateChanged = function(control, state, data) {
-            controlStateChanged(control, state, data);
+        this.controlStateChanged = function(control, state, altFunc, data) {
+            controlStateChanged(control, state, altFunc, data);
         };
         this.addPowerAndUserPauseStateListener = function(listener) {
             if (powerAndUserPauseStateListeners.indexOf(listener) >= 0) return;

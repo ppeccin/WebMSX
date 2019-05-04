@@ -45,12 +45,12 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
          ((atPort === 1) ^ swappedMode ? joy2State : joy1State).pin8Value = val;
      };
 
-    this.toggleMode = function() {
+    this.toggleMode = function(dec) {
         if (!supported) {
             hub.showErrorMessage("Joysticks unavailable (not supported by browser)");
             return;
         }
-        var newMode = (room.netPlayMode === 2 && !netServerSwapped ? NET_CLIENT_SWAP_MODE_SEQ : NORMAL_MODE_SEQ)[mode + 2];      // mode starts from -2 so +2
+        var newMode = (room.netPlayMode === 2 && !netServerSwapped ? NET_CLIENT_SWAP_MODE_SEQS : NORMAL_MODE_SEQS)[dec ? 1 : 0][mode + 2];      // mode starts from -2 so +2
         this.setMode(newMode);
         hub.showStatusMessage("Joysticks " + this.getModeDesc());
     };
@@ -320,8 +320,8 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
 
     var netServerSwapped = false;
 
-    var NORMAL_MODE_SEQ =          [ -1, 0, -2];
-    var NET_CLIENT_SWAP_MODE_SEQ = [ 0, -2, -1];
+    var NORMAL_MODE_SEQS =          [ [ -1, 0, -2 ], [ 0, -2, -1 ] ];        // [ incs ], [ decs ]
+    var NET_CLIENT_SWAP_MODE_SEQS = [ [ 0, -2, -1 ], [ -1, 0, -2 ] ];
 
     var TYPE = wmsx.ControllersHub.JOYSTICK;
 

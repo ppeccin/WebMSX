@@ -201,10 +201,6 @@ wmsx.VDP = function(machine, cpu) {
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
     };
 
-    this.togglePalettes = function() {
-        // videoSignal.showOSD("Color Mode not supported in v2.0 yet!", true, true);    // Verify: Implement?
-    };
-
     this.toggleDebugModes = function() {
         setDebugMode(debugMode + 1);
         videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": "
@@ -213,8 +209,8 @@ wmsx.VDP = function(machine, cpu) {
         return debugMode;
     };
 
-    this.toggleSpriteDebugModes = function() {
-        setSpriteDebugMode(spriteDebugMode + 1);
+    this.toggleSpriteDebugModes = function(dec) {
+        setSpriteDebugMode(spriteDebugMode + (dec ? -1 : 1));
         videoSignal.showOSD("Sprites Mode" + (spriteDebugMode > 0 ? " " + spriteDebugMode : "") + ": "
             + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     };
@@ -539,7 +535,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function setSpriteDebugMode(mode) {
-        spriteDebugMode = mode % 4;
+        spriteDebugMode = mode >= 0 ? mode % 4 : 4 + mode;
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
         spriteDebugModeCollisions = spriteDebugMode < 2;
     }

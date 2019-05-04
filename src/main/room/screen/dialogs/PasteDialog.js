@@ -73,7 +73,7 @@ wmsx.PasteDialog = function(mainElement, screen, machineControls) {
                 var str = e.clipboardData.getData("text/plain");
                 if (str) {
                     self.hide();
-                    machineControls.processControlState(wmsx.MachineControls.TYPE_STRING, true, str);
+                    machineControls.processControlState(wmsx.MachineControls.TYPE_STRING, true, false, str);
                 }
             }
         });

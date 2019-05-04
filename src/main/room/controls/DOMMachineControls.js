@@ -23,34 +23,35 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     };
 
     this.processKey = function(code, press) {
-        var control = keyCodeMap[code];
-        if (!control) return peripheralControls.processKey(code, press);        // Next in chain
+        var codeNoShift = code & EXCLUDE_SHIFT_MASK;
+        var control = keyCodeMap[codeNoShift];
+        if (!control || keyCodeNoShiftRefuse[code]) return peripheralControls.processKey(code, press);        // Next in chain
 
-        if (press === keyStateMap[code]) return true;
-        keyStateMap[code] = press;
+        if (press === keyStateMap[codeNoShift]) return true;
+        keyStateMap[codeNoShift] = press;
 
-        processControlState(control, press);
+        processControlState(control, press, codeNoShift !== code);      // AltFunc if SHIFT is pressed
         return true;
     };
 
-    function processControlState(control, press, data) {
+    function processControlState(control, press, altFunc, data) {
         // Check for NetPlay blocked controls
         if (room.netPlayMode === 2 && (netServerOnlyControls.has(control) || netClientBlockedControls.has(control)))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
 
         // Store changes to be sent to peers
         if (!(room.netPlayMode === 1 && netServerOnlyControls.has(control)))
-            netControlsToSend.push({ c: (control << 4) | press, d: data });       // binary encoded
+            netControlsToSend.push({ c: (control << 4) | (altFunc << 1) | press, d: data });       // binary encoded
 
         // Do not apply control now if Client
         if (room.netPlayMode === 2) return;
 
-        applyControlState(control, press, data);
+        applyControlState(control, press, altFunc, data);
     }
     this.processControlState = processControlState;
 
-    function applyControlState(control, press, data) {
-        machineControlsSocket.controlStateChanged(control, press, data);
+    function applyControlState(control, press, altFunc, data) {
+        machineControlsSocket.controlStateChanged(control, press, altFunc, data);
 
         if (quickOptionsControls.has(control)) screen.quickOptionsControlsStateUpdate();
     }
@@ -71,21 +72,20 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_POWER]                   = mc.POWER;
         keyCodeMap[KEY_POWER | k.ALT]           = mc.POWER;
 
-        keyCodeMap[KEY_POWER | k.SHIFT]         = mc.RESET;
-        keyCodeMap[KEY_POWER | k.SHIFT | k.ALT] = mc.RESET;
-
         keyCodeMap[KEY_SPEED]                   = mc.FAST_SPEED;
         keyCodeMap[KEY_SPEED | k.ALT]           = mc.FAST_SPEED;
-        keyCodeMap[KEY_SPEED | k.SHIFT]         = mc.SLOW_SPEED;
-        keyCodeMap[KEY_SPEED | k.SHIFT | k.ALT] = mc.SLOW_SPEED;
 
-        keyCodeMap[KEY_INC_SPEED | k.SHIFT | k.ALT]    = mc.INC_SPEED;
-        keyCodeMap[KEY_DEC_SPEED | k.SHIFT | k.ALT]    = mc.DEC_SPEED;
-        keyCodeMap[KEY_NORMAL_SPEED | k.SHIFT | k.ALT] = mc.NORMAL_SPEED;
-        keyCodeMap[KEY_MIN_SPEED | k.SHIFT | k.ALT]    = mc.MIN_SPEED;
+        keyCodeMap[KEY_INC_SPEED | k.ALT]    = mc.INC_SPEED;
+        keyCodeMap[KEY_DEC_SPEED | k.ALT]    = mc.DEC_SPEED;
+        keyCodeMap[KEY_NORMAL_SPEED | k.ALT] = mc.NORMAL_SPEED;
+        keyCodeMap[KEY_MIN_SPEED | k.ALT]    = mc.MIN_SPEED;
+        keyCodeNoShiftRefuse[KEY_INC_SPEED | k.ALT]    = true;
+        keyCodeNoShiftRefuse[KEY_DEC_SPEED | k.ALT]    = true;
+        keyCodeNoShiftRefuse[KEY_NORMAL_SPEED | k.ALT] = true;
+        keyCodeNoShiftRefuse[KEY_MIN_SPEED | k.ALT]    = true;
+
 
         keyCodeMap[KEY_PAUSE | k.ALT]               = mc.PAUSE;
-        keyCodeMap[KEY_PAUSE | k.SHIFT | k.ALT]     = mc.PAUSE_AUDIO_ON;
         keyCodeMap[KEY_FRAME | k.ALT]               = mc.FRAME;
         keyCodeMap[KEY_FRAMEa | k.ALT]              = mc.FRAME;
         keyCodeMap[KEY_TRACE | k.ALT]               = mc.TRACE;
@@ -94,9 +94,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]      = mc.VIDEO_STANDARD;
         keyCodeMap[KEY_VSYNCH | k.ALT]              = mc.VSYNCH;
         keyCodeMap[KEY_CPU_TURBO | k.ALT]           = mc.CPU_TURBO_MODE;
-        keyCodeMap[KEY_CPU_TURBO | k.SHIFT | k.ALT] = mc.CPU_TURBO_MODE_DEC;
         keyCodeMap[KEY_VDP_TURBO | k.ALT]           = mc.VDP_TURBO_MODE;
-        keyCodeMap[KEY_VDP_TURBO | k.SHIFT | k.ALT] = mc.VDP_TURBO_MODE_DEC;
 
         keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_0;
         keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = mc.SAVE_STATE_0;
@@ -128,38 +126,6 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_STATE_11 | k.ALT]  = mc.LOAD_STATE_11;
         keyCodeMap[KEY_STATE_12 | k.ALT]  = mc.LOAD_STATE_12;
 
-        // Alternate controls for Savestates with SHIFT pressed
-
-        keyCodeMap[KEY_STATE_0 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_0;
-        keyCodeMap[KEY_STATE_0a | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_0;
-        keyCodeMap[KEY_STATE_1 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_1;
-        keyCodeMap[KEY_STATE_2 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_2;
-        keyCodeMap[KEY_STATE_3 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_3;
-        keyCodeMap[KEY_STATE_4 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_4;
-        keyCodeMap[KEY_STATE_5 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_5;
-        keyCodeMap[KEY_STATE_6 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_6;
-        keyCodeMap[KEY_STATE_7 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_7;
-        keyCodeMap[KEY_STATE_8 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_8;
-        keyCodeMap[KEY_STATE_9 | k.CONTROL |  k.SHIFT | k.ALT]   = mc.SAVE_STATE_9;
-        keyCodeMap[KEY_STATE_10 | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_10;
-        keyCodeMap[KEY_STATE_11 | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_11;
-        keyCodeMap[KEY_STATE_12 | k.CONTROL | k.SHIFT | k.ALT]  = mc.SAVE_STATE_12;
-
-        keyCodeMap[KEY_STATE_0  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_0;
-        keyCodeMap[KEY_STATE_0a | k.SHIFT | k.ALT]  = mc.LOAD_STATE_0;
-        keyCodeMap[KEY_STATE_1  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_1;
-        keyCodeMap[KEY_STATE_2  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_2;
-        keyCodeMap[KEY_STATE_3  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_3;
-        keyCodeMap[KEY_STATE_4  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_4;
-        keyCodeMap[KEY_STATE_5  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_5;
-        keyCodeMap[KEY_STATE_6  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_6;
-        keyCodeMap[KEY_STATE_7  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_7;
-        keyCodeMap[KEY_STATE_8  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_8;
-        keyCodeMap[KEY_STATE_9  | k.SHIFT | k.ALT]   = mc.LOAD_STATE_9;
-        keyCodeMap[KEY_STATE_10 | k.SHIFT | k.ALT]  = mc.LOAD_STATE_10;
-        keyCodeMap[KEY_STATE_11 | k.SHIFT | k.ALT]  = mc.LOAD_STATE_11;
-        keyCodeMap[KEY_STATE_12 | k.SHIFT | k.ALT]  = mc.LOAD_STATE_12;
-
     };
 
 
@@ -178,14 +144,14 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
             var change = changes[i];
             // Store changes to be sent to Clients?
             if (!netServerOnlyControls.has(change.c >> 4)) netControlsToSend.push(change);
-            applyControlState(change.c >> 4, change.c & 0x01, change.d);      // binary encoded, with data
+            applyControlState(change.c >> 4, change.c & 0x01, change.c & 0x02, change.d);      // binary encoded, with data
         }
     };
 
     this.netClientApplyControlsChanges = function(changes) {
         for (var i = 0, len = changes.length; i < len; ++i) {
             var change = changes[i];
-            applyControlState(change.c >> 4, change.c & 0x01, change.d);      // binary encoded, with data
+            applyControlState(change.c >> 4, change.c & 0x01, change.c & 0x02, change.d);      // binary encoded, with data
         }
     };
 
@@ -199,6 +165,8 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
 
     var keyCodeMap = {};
     var keyStateMap = {};
+
+    var keyCodeNoShiftRefuse = {};
 
     var controlStateMap =  {};
 
@@ -242,6 +210,8 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var KEY_STATE_10         = domKeys.VK_0.wc;
     var KEY_STATE_11         = domKeys.VK_MINUS.wc;
     var KEY_STATE_12         = domKeys.VK_EQUALS.wc;
+
+    var EXCLUDE_SHIFT_MASK = ~domKeys.SHIFT;
 
     var quickOptionsControls = new Set([
         mc.VIDEO_STANDARD, mc.CPU_TURBO_MODE, mc.VDP_TURBO_MODE, mc.SPRITE_MODE, mc.VSYNCH

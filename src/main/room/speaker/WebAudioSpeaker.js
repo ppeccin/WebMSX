@@ -57,10 +57,12 @@ wmsx.WebAudioSpeaker = function(mainElement) {
         //if (processor) processor.connect(filter);
     };
 
-    this.toggleBufferBaseSize = function() {
+    this.toggleBufferBaseSize = function(dec) {
         if (!audioContext) return screen.showOSD("Audio is DISABLED", true, true);
 
-        bufferBaseSize = ((bufferBaseSize + 2) % 8) - 1;  // -1..6
+        if (dec) { --bufferBaseSize; if (bufferBaseSize < -1) bufferBaseSize = 6; }
+        else     { ++bufferBaseSize; if (bufferBaseSize > 6) bufferBaseSize = -1; }
+
         this.pauseAudio();
         createProcessor();
         this.unpauseAudio();

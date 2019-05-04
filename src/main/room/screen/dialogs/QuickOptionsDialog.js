@@ -96,10 +96,10 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 var item = e.target.wmsxControlItem;
                 if (item.peripheral) {
-                    peripheralControls.processControlActivated(item.control, false, false);
+                    peripheralControls.processControlActivated(item.control, false, false);     // TODO Offer AltFunc
                     refresh();
                 } else
-                    machineControls.processControlState(item.control, true);    // will receive update notification and auto refresh
+                    machineControls.processControlState(item.control, true, false);    // TODO Offer AltFunc // will receive update notification and auto refresh
             } else
                 dialog.focus();
         });

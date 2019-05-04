@@ -97,24 +97,24 @@ wmsx.ControllersHub = function(room, machineControls) {
         else if(room.netPlayMode === 2) netClientUpdateMergedPortValues();
     };
 
-    this.toggleKeyboardLayout = function() {
-        keyboard.toggleKeyboardLayout();
+    this.toggleKeyboardLayout = function(dec) {
+        keyboard.toggleKeyboardLayout(dec);
     };
 
-    this.toggleJoystickMode = function() {
-        joystickControls.toggleMode();
+    this.toggleJoystickMode = function(dec) {
+        joystickControls.toggleMode(dec);
     };
 
-    this.toggleJoykeysMode = function() {
-        joykeysControls.toggleMode();
+    this.toggleJoykeysMode = function(dec) {
+        joykeysControls.toggleMode(dec);
     };
 
-    this.toggleMouseMode = function() {
-        mouseControls.toggleMode();
+    this.toggleMouseMode = function(dec) {
+        mouseControls.toggleMode(dec);
     };
 
-    this.toggleTouchControlsMode = function(skipAuto) {
-        touchControls.toggleMode(skipAuto);
+    this.toggleTouchControlsMode = function(skipAuto, dec) {
+        touchControls.toggleMode(skipAuto, dec);
     };
 
     this.toggleHapticFeedback = function() {
@@ -126,8 +126,9 @@ wmsx.ControllersHub = function(room, machineControls) {
             this.showErrorMessage("Haptic Feedback not available");
     };
 
-    this.toggleTurboFireSpeed = function() {
-        turboFireSpeed = (turboFireSpeed + 1) % 11;
+    this.toggleTurboFireSpeed = function(dec) {
+        turboFireSpeed = turboFireSpeed + (dec ? -1 : 1);
+        turboFireSpeed = turboFireSpeed >= 0 ? turboFireSpeed % 11 : 11 + turboFireSpeed;
         var turboClocks = turboFireSpeed ? (60 / turboFirePerSecond[turboFireSpeed]) | 0 : 0;
         keyboard.setTurboFireClocks(turboClocks);
         joystickControls.setTurboFireClocks(turboClocks);
