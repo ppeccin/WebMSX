@@ -41,7 +41,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
             var report = item.peripheral ? peripheralControls.getControlReport(item.control) : machineControls.getControlReport(item.control);
             item.value = report.label;
             item.selected = report.active;
-            controlsItems[i].innerHTML = item.value;
+            controlsItems[i].wmsxText.innerText = item.value;
             controlsItems[i].classList.toggle("wmsx-selected", !!item.selected);
         }
     }
@@ -76,7 +76,18 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
             li.appendChild(label);
             var control = document.createElement("div");
             control.classList.add("wmsx-control");
-            control.wmsxControlItem = items[i];
+            var b = document.createElement("button");
+            b.wmsxControlItem = items[i];
+            b.wmsxDec = true;
+            b.classList.add("wmsx-control-dec");
+            control.appendChild(b);
+            var text = document.createElement("span");
+            control.wmsxText = text;
+            control.appendChild(text);
+            b = document.createElement("button");
+            b.wmsxControlItem = items[i];
+            b.classList.add("wmsx-control-inc");
+            control.appendChild(b);
             li.appendChild(control);
             list.appendChild(li);
             controlsItems.push(control);
@@ -96,10 +107,10 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
                 wmsx.ControllersHub.hapticFeedbackOnTouch(e);
                 var item = e.target.wmsxControlItem;
                 if (item.peripheral) {
-                    peripheralControls.processControlActivated(item.control, false, false);     // TODO Offer AltFunc
+                    peripheralControls.processControlActivated(item.control, false, e.target.wmsxDec);
                     refresh();
                 } else
-                    machineControls.processControlState(item.control, true, false);    // TODO Offer AltFunc // will receive update notification and auto refresh
+                    machineControls.processControlState(item.control, true, e.target.wmsxDec);    // will receive update notification and auto refresh
             } else
                 dialog.focus();
         });

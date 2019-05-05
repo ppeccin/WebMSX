@@ -1,7 +1,6 @@
   Ideas / Requests
 =====================
 
-* Decrease hotkey for toggles like CPU/VDP Turbo, TurboFire, etc
 * Left side touch buttons
 * MegaRAM
 * Auto Mouse grab when in full screen

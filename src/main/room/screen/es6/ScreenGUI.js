@@ -560,6 +560,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-cartridge-format .wmsx-control {
     width: 52px;
     line-height: 24px;
+    cursor: pointer;
 }
 /* Firefox-specific rules */
 @-moz-document url-prefix() {
@@ -1159,14 +1160,46 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     box-sizing: border-box;
 }
 .wmsx-quick-options-list .wmsx-control {
+    position: relative;
     float: right;
-    width: 86px;
+    width: 126px;
     font-size: 15px;
     line-height: 25px;
     color: hsl(0, 0%, 70%);
     background: black;
     text-align: center;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+}
+.wmsx-quick-options-list .wmsx-control > button {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 22px;
+    background: rgb(70, 70, 70);
+    border: none;
+    outline: none;
     cursor: pointer;
+}
+.wmsx-quick-options-list .wmsx-control > button::after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    border: 6px solid transparent;
+}
+.wmsx-quick-options-list .wmsx-control .wmsx-control-dec {
+    left: 0;
+    border-right: 1px solid black;
+}
+.wmsx-quick-options-list .wmsx-control .wmsx-control-dec::after {
+    left: 1px;
+    border-right-color: #c0c0c0;
+}
+.wmsx-quick-options-list .wmsx-control .wmsx-control-inc {
+    right: 0;
+    border-left: 1px solid black;
+}
+.wmsx-quick-options-list .wmsx-control .wmsx-control-inc::after {
+    right: 1px;
+    border-left-color: #c0c0c0;
 }
 .wmsx-quick-options-list .wmsx-control.wmsx-selected {
     color: white;
@@ -1185,7 +1218,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 206px;
+    width: 248px;
     height: 316px;
     margin: auto;
     padding: 14px 15px 0;
@@ -1382,7 +1415,7 @@ input#wmsx-netplay-link-text {
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 246px;
+    width: 290px;
     height: 269px;
     margin: auto;
     padding: 0 16px;
@@ -1422,43 +1455,42 @@ input#wmsx-netplay-link-text {
 #wmsx-touch-config-minus, #wmsx-touch-config-plus {
     position: absolute;
     top: 46px;
-    width: 60px;
+    width: 72px;
     height: 68px;
     cursor: pointer;
 }
 #wmsx-touch-config-minus {
-    left: 16px;
+    left: 19px;
 }
 #wmsx-touch-config-plus {
-    right: 16px;
+    right: 19px;
 }
-
 #wmsx-touch-config-minus::after, #wmsx-touch-config-plus::after {
     content: "";
     position: absolute;
-    top: 22px;
-    border: 12px solid transparent;
+    top: 20px;
+    border: 14px solid transparent;
 }
 #wmsx-touch-config-minus::after {
-    left: 0;
-    border-right: 23px solid hsl(0, 0%, 80%);
+    left: 9px;
+    border-right: 18px solid #c0c0c0;
 }
 #wmsx-touch-config-minus.wmsx-disabled::after {
-    border-right-color: hsl(0, 0%, 40%);
+    border-right-color: #404040;
 }
 #wmsx-touch-config-plus::after {
-    right: 0;
-    border-left: 23px solid hsl(0, 0%, 80%);
+    right: 9px;
+    border-left: 18px solid #c0c0c0;
 }
 #wmsx-touch-config-plus.wmsx-disabled::after {
-    border-left-color: hsl(0, 0%, 40%);
+    border-left-color: #404040;
 }
 
 #wmsx-touch-config-dir {
     display: none;
     position: absolute;
     top: 15px;
-    left: 57px;
+    left: 79px;
     transform: scale(.70);
 }
 #wmsx-touch-config-dir.wmsx-show {
@@ -1472,7 +1504,7 @@ input#wmsx-netplay-link-text {
     display: none;
     position: absolute;
     top: 46px;
-    right: 87px;
+    right: 109px;
     text-shadow: none;
 }
 #wmsx-touch-config-button.wmsx-show {
@@ -1483,7 +1515,7 @@ input#wmsx-netplay-link-text {
     margin-top: 11px;
 }
 #wmsx-touch-config .wmsx-control {
-    width: 62px;
+    width: 106px;
 }
 
 

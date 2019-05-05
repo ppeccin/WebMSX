@@ -68,17 +68,17 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         var state = controllersHub.getSettingsState();
         var port = state.touchPortSet;
         var active = state.touchActive;
-        optionsItems[0].innerHTML = port === 0 ? "Port 1" : port === 1 ? "Port 2" : "OFF";
+        optionsItems[0].wmsxText.innerText = port === 0 ? "Port 1" : port === 1 ? "Port 2" : "OFF";
         optionsItems[0].classList.toggle("wmsx-selected", port >= 0);
         optionsItems[0].classList.toggle("wmsx-inactive", !active);
 
-        for (var i = 1; i < optionsItems.length; ++i) {
-            var item = optionsItems[i].wmsxControlItem;
-            var report = peripheralControls.getControlReport(item.control);
-            item.value = report.label;
-            item.selected = report.active;
-            optionsItems[i].innerHTML = item.value;
-            optionsItems[i].classList.toggle("wmsx-selected", !!item.selected);
+        for (var i = 1; i < options.length; ++i) {
+            var option = options[i];
+            var report = peripheralControls.getControlReport(option.control);
+            option.value = report.label;
+            option.selected = report.active;
+            optionsItems[i].wmsxText.innerText = option.value;
+            optionsItems[i].classList.toggle("wmsx-selected", !!option.selected);
         }
     }
 
@@ -102,9 +102,9 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         dialog.appendChild(button);
 
         // Options and modes
-        var items = [
-            { label: "Touch Controller",                  control: wmsx.PeripheralControls.TOUCH_TOGGLE_MODE },     // TODO Offer AltFunc
-            { label: "Turbo Fire",                        control: wmsx.PeripheralControls.TURBO_FIRE_TOGGLE },     // TODO Offer AltFunc
+        options = [
+            { label: "Touch Controller",                  control: wmsx.PeripheralControls.TOUCH_TOGGLE_MODE },
+            { label: "Turbo Fire",                        control: wmsx.PeripheralControls.TURBO_FIRE_TOGGLE },
             { label: "&#128190;&nbsp; Big Directionals",  control: wmsx.PeripheralControls.TOUCH_TOGGLE_DIR_BIG },
             { label: "&#128190;&nbsp; Haptic Feedback",   control: wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE }
         ];
@@ -113,14 +113,25 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         var list = document.createElement('ul');
         list.classList.add("wmsx-quick-options-list");
 
-        for (var i = 0; i < items.length; ++i) {
+        for (var i = 0; i < options.length; ++i) {
             var li = document.createElement("li");
             var label = document.createElement("div");
-            label.innerHTML = items[i].label;
+            label.innerHTML = options[i].label;
             li.appendChild(label);
             var control = document.createElement("div");
             control.classList.add("wmsx-control");
-            control.wmsxControlItem = items[i];
+            var b = document.createElement("button");
+            b.wmsxControlItem = options[i];
+            b.wmsxDec = true;
+            b.classList.add("wmsx-control-dec");
+            control.appendChild(b);
+            var text = document.createElement("span");
+            control.wmsxText = text;
+            control.appendChild(text);
+            b = document.createElement("button");
+            b.wmsxControlItem = options[i];
+            b.classList.add("wmsx-control-inc");
+            control.appendChild(b);
             li.appendChild(control);
             list.appendChild(li);
             optionsItems.push(control);
@@ -157,7 +168,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         // Do not close with taps or clicks inside, select options buttons
         wmsx.Util.onTapOrMouseDownWithBlock(dialog, function(e) {
             if (e.target.wmsxControlItem) {
-                peripheralControls.processControlActivated(e.target.wmsxControlItem.control, true);     // true = skip auto in TouchControls mode
+                peripheralControls.processControlActivated(e.target.wmsxControlItem.control, true, e.target.wmsxDec);     // true = skip auto in TouchControls mode
                 controllersHub.hapticFeedbackOnTouch(e);
                 refreshOptions();
             } else
@@ -200,7 +211,7 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
 
     var visible = false;
     var dialog, directional, button, minus, plus;
-    var optionsItems = [];
+    var options, optionsItems = [];
 
     var editing, editingSequence, editingSeqIndex;
     var modifyKeyTimeout, modifyKeyInterval;
