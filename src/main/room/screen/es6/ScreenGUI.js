@@ -1535,6 +1535,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     height: 130px;
     color: hsl(0, 0%, 75%);
     border-radius: 100%;
+    z-index: 2
 }
 .wmsx-touch-dir::before {
     content: "";
@@ -1884,16 +1885,30 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 }
 
 
-
 @media only screen and (orientation: landscape) {    /* Landscape */
     #wmsx-touch-left {
         left: calc(-6px - ` + this.TOUCH_CONTROLS_LEFT_WIDTH + `px);
         bottom: 50%;
         transform: translateY(50%);
+        --touch-left-button-vert-margin: 10px;
     }
-    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big  #wmsx-touch-left {
+    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big #wmsx-touch-left {
         left: calc(-6px - ` + this.TOUCH_CONTROLS_LEFT_WIDTH_BIG + `px);
-        transform: translateY(50%) scale(1.2);
+        --touch-left-button-vert-margin: 20px;
+    }
+
+    #wmsx-touch-left .wmsx-touch-button {
+        margin-left: 11px;
+    }
+    #wmsx-touch-T_X {
+        margin-bottom: var(--touch-left-button-vert-margin);
+    }
+    #wmsx-touch-T_Y {
+        margin-top: var(--touch-left-button-vert-margin);
+    }
+
+    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big #wmsx-touch-left .wmsx-touch-dir {
+        transform: scale(1.2);
         transform-origin: left center;
     }
 
@@ -1908,8 +1923,8 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         left: -106px;
         top: 8px;
     }
-    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big  #wmsx-touch-speed {
-        left: -118px;
+    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big #wmsx-touch-speed {
+        left: -130px;
     }
 
     /* Adjust centered elements leaving space to the touch controls on both sides */
@@ -1920,17 +1935,48 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big #wmsx-screen-fs-center {
         left: ` + this.TOUCH_CONTROLS_LEFT_WIDTH_BIG + `px;
     }
+
 }
 
-@media only screen and (orientation: landscape) and (max-height: 511px) {    /* Medium Landscape */
+@media only screen and (orientation: landscape) and (max-height: 511px) {    /* Medium/Large Landscape */
+
+    #wmsx-touch-left {
+        --touch-left-button-vert-margin: 10px  !important;
+    }
+
     #wmsx-touch-T_F, #wmsx-touch-T_G {
         display: none;
     }
+
+    #wmsx-touch-speed {
+        top: 2px;
+    }
+
+}
+
+@media only screen and (orientation: landscape) and (max-height: 410px) {    /* Medium Landscape */
+
+    #wmsx-touch-left {
+        --touch-left-button-vert-margin: -2px  !important;
+    }
+
 }
 
 @media only screen and (orientation: landscape) and (max-height: 359px) {    /* Short Landscape */
+
+    #wmsx-touch-left {
+        --touch-left-button-vert-margin: 6px  !important;
+    }
+
     #wmsx-touch-T_E {
         display: none;
+    }
+    #wmsx-touch-T_X {
+        visibility: hidden;
+    }
+
+    #wmsx-touch-speed {
+        top: 8px;
     }
 }
 
@@ -1940,7 +1986,7 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         left: 2px;
         bottom: 182px;
     }
-    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big  #wmsx-touch-left {
+    html.wmsx-full-screen.wmsx-touch-active.wmsx-dir-big #wmsx-touch-left .wmsx-touch-dir {
         transform: scale(1.2);
         transform-origin: left center;
     }
@@ -1954,41 +2000,22 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 
     #wmsx-touch-speed {
         position: absolute;
-        left: 21px;
-        bottom: ` + (this.BAR_HEIGHT + 18) + `px;
+        left: 19px;
+        bottom: ` + (this.BAR_HEIGHT + 10) + `px;
     }
 
     .wmsx-touch-button {
         position: absolute;
     }
-    #wmsx-touch-T_A {
-        bottom: 75%;
-        right: 50%;
-    }
-    #wmsx-touch-T_B {
-        bottom: 100%;
-        right: 0%;
-    }
-    #wmsx-touch-T_C {
-        bottom: 50%;
-        right: 100%;
-    }
-    #wmsx-touch-T_D {
-        bottom: 25%;
-        right: 50%;
-    }
-    #wmsx-touch-T_E {
-        bottom: 50%;
-        right: 0%;
-    }
-    #wmsx-touch-T_F {
-        bottom: 0%;
-        right: 100%;
-    }
-    #wmsx-touch-T_G {
-        bottom: 0%;
-        right: 0%;
-    }
+    #wmsx-touch-T_A { bottom: 75%; right: 50%; }
+    #wmsx-touch-T_B { bottom: 100%; right: 0%; }
+    #wmsx-touch-T_C { bottom: 50%; right: 100%; }
+    #wmsx-touch-T_D { bottom: 25%; right: 50%; }
+    #wmsx-touch-T_E { bottom: 50%; right: 0%; }
+    #wmsx-touch-T_F { bottom: 0%; right: 100%; }
+    #wmsx-touch-T_G { bottom: 0%; right: 0%; }
+    #wmsx-touch-T_X { left: 4px; bottom: -88px; }
+    #wmsx-touch-T_Y { display: none; }
 
     html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
         display: none;
@@ -1998,24 +2025,17 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
 
 @media only screen and (orientation: portrait) and (max-device-height: 638px) {    /* Medium Portrait. Like iPhone 5 */
 
-    #wmsx-touch-T_F, #wmsx-touch-T_G {
-        display: none;
-    }
-
-    #wmsx-touch-left {
-        bottom: 154px;
-    }
     #wmsx-touch-right {
         bottom: -18px;
+    }
+
+    #wmsx-touch-T_F, #wmsx-touch-T_G {
+        display: none;
     }
 
 }
 
 @media only screen and (orientation: portrait) and (max-device-height: 518px) {    /* Short Portrait. Like iPhone 4 */
-
-    #wmsx-touch-T_E {
-        display: none;
-    }
 
     #wmsx-touch-left {
         bottom: 98px;
@@ -2024,10 +2044,11 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
         bottom: -74px;
     }
 
-    #wmsx-touch-T_D {
-        bottom: 50%;
-        right: 0%;
+    #wmsx-touch-T_E, #wmsx-touch-T_X {
+        display: none;
     }
+    #wmsx-touch-T_D { bottom: 50%; right: 0%; }
+
 }`;
 
 };

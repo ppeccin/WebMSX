@@ -1,7 +1,6 @@
   Ideas / Requests
 =====================
 
-* Left side touch buttons
 * MegaRAM
 * Auto Mouse grab when in full screen
 * JoyMega
@@ -14,3 +13,4 @@
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
+* FullScreen Windowed mode

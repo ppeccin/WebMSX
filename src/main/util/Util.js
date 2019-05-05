@@ -466,7 +466,8 @@ wmsx.Util = new function() {
     };
 
     this.isTouchDevice = function() {
-        return ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+        // Touch Device detected or Touch Mode forced
+        return WMSX.TOUCH_MODE > 0 || ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
     };
 
     this.isMobileDevice = function() {
