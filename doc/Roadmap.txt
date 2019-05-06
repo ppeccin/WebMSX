@@ -2,15 +2,14 @@
 =====================
 
 * MegaRAM
-* Auto Mouse grab when in full screen
 * JoyMega
 * Trackball, Arkanoid Vaus paddle, Touchpad, Light-pen, Light-gun
-* Auto tuned Turbo to maintain constant framerate
 * Auto detection of controller type software is trying to read
+* Auto Mouse grab when in full screen
+* Auto tuned Turbo to maintain constant framerate
 * Scanlines
 * PAR 1.15
 * FM Volume review
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
-* FullScreen Windowed mode

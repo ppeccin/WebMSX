@@ -47,8 +47,8 @@ wmsx.Monitor = function(display) {
         display.crtFilterToggle(dec);
     };
 
-    this.fullscreenToggle = function() {
-        display.displayToggleFullscreen();
+    this.fullscreenToggle = function(windowed) {
+        display.displayToggleFullscreen(windowed);
     };
 
     this.displayAspectDecrease = function() {

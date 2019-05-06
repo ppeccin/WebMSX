@@ -1524,8 +1524,13 @@ input#wmsx-netplay-link-text {
     position: absolute;
     z-index: 1;
 }
+#wmsx-touch-speed {
+    display: none;
+}
 
-html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-right {
+html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left,
+html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-right,
+html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-speed {
     display: block;
 }
 
@@ -1585,7 +1590,6 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-left, html.wmsx-full-screen.
     box-shadow:  inset 0 0 2px hsl(0, 0%, 22%), inset 1px 2px 3px 1px hsl(0, 0%, 26%), inset -1px -2px 1px hsl(0, 0%, 64%);
     z-index: 2;
 }
-
 
 .wmsx-touch-dir-key .wmsx-touch-dir-up, .wmsx-touch-dir-key .wmsx-touch-dir-left, .wmsx-touch-dir-key .wmsx-touch-dir-down, .wmsx-touch-dir-key .wmsx-touch-dir-right {
     position: absolute;

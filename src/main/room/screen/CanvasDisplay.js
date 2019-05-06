@@ -369,28 +369,37 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return { label: crtFilter === -2 ? "Browser" : crtFilter === -1 ? "Auto" : crtFilter === 0 ? "OFF" : "Level " + crtFilter, active: crtFilter >= 0 };
     };
 
-    this.displayToggleFullscreen = function() {                 // Only and Always user initiated
+    this.displayToggleFullscreen = function(windowed) {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -2) return;
 
         // Save scale before Fullscreen
         if (!isFullscreen && !isMobileDevice) scaleYBeforeUserFullscreen = scaleY;
 
-        // If FullScreenAPI supported but not active, enter full screen by API regardless of previous state
-        if (fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
-            enterFullScreenByAPI();
-            return;
-        }
+        // If we think we are in FullScreen but FullScreenAPI supported and not active, enter full screen by API regardless of previous state
+        // Sometimes mobile browsers can exit full screen API without firing the notification event
+        //if (!windowed && isFullscreen && fullscreenAPIEnterMethod && !isFullScreenByAPI()) {
+        //    enterFullScreenByAPI();
+        //    return;
+        //}
 
         // If not, toggle complete full screen state
-        this.setFullscreen(!isFullscreen);
+        this.setFullscreen(!isFullscreen, windowed);
     };
 
-    this.setFullscreen = function(mode) {
-        if (fullscreenAPIEnterMethod) {
-            if (mode) enterFullScreenByAPI();
-            else exitFullScreenByAPI();
-        } else
-            setFullscreenState(mode)
+    this.setFullscreen = function(mode, windowed) {
+        if (mode) {
+            if (!windowed && fullscreenAPIEnterMethod) enterFullScreenByAPI();
+            else setFullscreenState(true);
+        } else {
+            if (isFullScreenByAPI()) exitFullScreenByAPI();
+            else setFullscreenState(false);
+        }
+
+        //if (fullscreenAPIEnterMethod) {
+        //    if (mode) enterFullScreenByAPI();
+        //    else exitFullScreenByAPI();
+        //} else
+        //    setFullscreenState(mode)
     };
 
     this.focus = function() {
@@ -594,7 +603,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.requestReadjust = function(now) {
-        if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
         if (now)
             readjustAll(true);
         else {
@@ -851,11 +859,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
-        window.addEventListener("orientationchange", function orientationChanged() {
+        function windowChanged() {
             closeAllOverlays();
             if (signalIsOn) hideCursorAndBar();
             else showCursorAndBar();
             self.requestReadjust();
+        }
+
+        window.addEventListener("orientationchange", windowChanged);
+        window.addEventListener("resize", function windowResized() {
+            if (isFullscreen) windowChanged();
         });
 
         mainElement.addEventListener("drop", closeAllOverlays, false);
@@ -920,7 +933,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
             { label: "Add Disk Images",                control: wmsx.PeripheralControls.DISK_ADD_FILES, needsUIG: true },
             { label: "Add Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY },
-            { label: "Add Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT },
+            { label: "Add Boot Disk",      clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT },
             { label: "Import Files to Disk",           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
             { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, disabled: true },
@@ -933,7 +946,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
             { label: "Add Disk Images",                control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: true, needsUIG: true },
             { label: "Add Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: true },
-            { label: "Add Boot Disk",      clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT, secSlot: true },
+            { label: "Add Boot Disk",      clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT, secSlot: true },
             { label: "Import Files to Disk",           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: true, needsUIG: true },
             { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: true, needsUIG: true },
             { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, secSlot: true, disabled: true },
@@ -945,7 +958,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         menu = [
             { label: "Load Disk Image",    clickModif: 0, control: wmsx.PeripheralControls.HARDDISK_LOAD_FILE, needsUIG: true },
             { label: "New Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.HARDDISK_CHOOSE_EMPTY },
-            { label: "New Boot Disk",                  control: wmsx.PeripheralControls.HARDDISK_CHOOSE_BOOT },
+            { label: "New Boot Disk",      clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.HARDDISK_CHOOSE_BOOT },
             { label: "Import Files to Disk",           control: wmsx.PeripheralControls.HARDDISK_LOAD_FILES_AS_DISK, needsUIG: true },
             { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.HARDDISK_LOAD_ZIP_AS_DISK, needsUIG: true },
             { label: "Save Disk Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_SAVE_FILE, disabled: true, needsUIG: true },
@@ -1052,16 +1065,17 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var prevActiveMenu = barMenuActive;
         closeAllOverlays();
 
-        // Single option, only left click
+        var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
+
+        // Single option. Only leftClick and middleClick
         if (elem.wmsxControl) {
-            if (!e.button) peripheralControls.processControlActivated(elem.wmsxControl);
+            if (!e.button || e.button === 2)
+                peripheralControls.processControlActivated(elem.wmsxControl, false, e.button === 2 || modifs === KEY_SHIFT_MASK);    // secPort for rightClick or SHIFT
             return;
         }
 
         var menu = elem.wmsxMenu;
         if (!menu) return;
-
-        var modifs = 0 | (e.altKey && KEY_ALT_MASK) | (e.ctrlKey && KEY_CTRL_MASK) | (e.shiftKey && KEY_SHIFT_MASK);
 
         // Open/close menu with left-click if no modifiers
         if (modifs === 0 && !e.button) {
@@ -1079,15 +1093,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 peripheralControls.processControlActivated(menu[i].control, e.button === 1, menu[i].secSlot);         // altPower for middleClick (button === 1)
                 return;
             }
-        // If no direct shortcut found with modifiers used, use SHIFT as secSlot modifier and try again
-        // if (modifs & KEY_SHIFT_MASK) {
-        //     modifs &= ~KEY_SHIFT_MASK;
-        //     for (i = 0; i < menu.length; ++i)
-        //         if (menu[i].clickModif === modifs) {
-        //             peripheralControls.processControlActivated(menu[i].control, e.button === 1, true);               // altPower for middleClick (button === 1)
-        //             return;
-        //         }
-        // }
     }
 
     function barButtonLongTouchStart(e) {

@@ -239,7 +239,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.SCREEN_CRT_FILTER:
                 monitor.crtFilterToggle(secPort); break;                // secPort for dec
             case pc.SCREEN_FULLSCREEN:
-                monitor.fullscreenToggle(); break;
+                monitor.fullscreenToggle(secPort); break;               // secPort for Windowed mode
             case pc.SCREEN_DEFAULTS:
                 machineControls.processControlState(wmsx.MachineControls.DEFAULTS, true);
                 monitor.setDefaults();
