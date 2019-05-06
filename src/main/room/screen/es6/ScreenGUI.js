@@ -1162,7 +1162,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 .wmsx-quick-options-list .wmsx-control {
     position: relative;
     float: right;
-    width: 126px;
+    width: 134px;
     font-size: 15px;
     line-height: 25px;
     color: hsl(0, 0%, 70%);
@@ -1173,7 +1173,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
 .wmsx-quick-options-list .wmsx-control > button {
     position: absolute;
     top: 0; bottom: 0;
-    width: 22px;
+    width: 26px;
     background: rgb(70, 70, 70);
     border: none;
     outline: none;
@@ -1190,7 +1190,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     border-right: 1px solid black;
 }
 .wmsx-quick-options-list .wmsx-control .wmsx-control-dec::after {
-    left: 1px;
+    left: 2px;
     border-right-color: #c0c0c0;
 }
 .wmsx-quick-options-list .wmsx-control .wmsx-control-inc {
@@ -1198,7 +1198,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     border-left: 1px solid black;
 }
 .wmsx-quick-options-list .wmsx-control .wmsx-control-inc::after {
-    right: 1px;
+    right: 2px;
     border-left-color: #c0c0c0;
 }
 .wmsx-quick-options-list .wmsx-control.wmsx-selected {
@@ -1218,7 +1218,7 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 248px;
+    width: 256px;
     height: 316px;
     margin: auto;
     padding: 14px 15px 0;
@@ -1415,7 +1415,7 @@ input#wmsx-netplay-link-text {
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 290px;
+    width: 294px;
     height: 269px;
     margin: auto;
     padding: 0 16px;
@@ -1515,7 +1515,7 @@ input#wmsx-netplay-link-text {
     margin-top: 11px;
 }
 #wmsx-touch-config .wmsx-control {
-    width: 106px;
+    width: 110px;
 }
 
 
