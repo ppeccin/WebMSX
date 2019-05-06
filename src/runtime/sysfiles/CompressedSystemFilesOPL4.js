@@ -42,6 +42,8 @@ wmsx.CompressedSystemFiles = {
 
    "[PACExpansion].rom": "",
 
+   "[MegaRAM].rom": "",
+
    "Disk16MHeader.dat": "e/1vgp9rRIh/kJEBA5MCIwNTAcO6+g/MDBAgIRfm7xPv6cKwZdOtFog6BSM9AwU3xxBDIwUFhQtvg6sPCFYcKFYuEmw4wMd/tvazzSklB0EGRj4pIFuRkUGp74Aigz1IUv0qUOQinwCQPMzAmHHgLAPDYSUHBt/gCBf/YAWF4MhghlFAdwAA",
 
    "Disk32MHeader.dat": "e/1vgp9rRIh/kJEBA5MAIwNTAUPC/w88DBAgIRfm7xPv6cLwaNqEFog6BSM9AwU3xxBDIwUFhQtvg6sPCFYcKFYuEmw4wMd/tvazzSklB0EGRj4pIFuRkUGp74Aigz1IUv0qUOQinwCQPMzAmHHgLAPDYSUHBt/gCBf/YAWF4MhghlFAdwAA",

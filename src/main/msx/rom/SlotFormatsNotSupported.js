@@ -12,7 +12,6 @@ wmsx.SlotFormatsNotSupported = {
     "MSXAUDIO": 0,                  // Make Support?                                  System ROM
     "SuperPierrot": 0,              // Make Support?                                  1 game, no alts.
     "KonamiUltimateCollection": 0,  // Make Support?                                  1 cart                     Special flash cart with built-in utils
-    "MegaRAM": 0,                   // Make Support?                                  ?                          Special flash cart
     "Generic16k": 0,                // Make Support?                                  ?
 
     "Manbow2_2": 0,                 // Points to Manbow2                              1 game, has alts.          Can't find ROM. Same mapper as Manbow2? (MegaFlash SCC)

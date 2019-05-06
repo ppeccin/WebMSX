@@ -73,6 +73,7 @@ module.exports = function (grunt) {
                     "src/main/msx/slots/cartridges/CartridgeZemina126.js",
                     "src/main/msx/slots/cartridges/CartridgeSuperLodeRunner.js",
                     "src/main/msx/slots/cartridges/CartridgeDooly.js",
+                    "src/main/msx/slots/cartridges/CartridgeMegaRAM.js",
                     "src/main/msx/slots/cartridges/special/disk/CartridgeDiskPatched.js",
                     "src/main/msx/slots/cartridges/special/disk/CartridgeNextorPatched.js",
                     "src/main/msx/slots/cartridges/special/scc/CartridgeKonamiSCC.js",

@@ -61,6 +61,7 @@ wmsx.CompressedSystemFilesGenerator.fileList = [
     "[SCCExpansion].rom",
     "[SCCIExpansion].rom",
     "[PACExpansion].rom",
+    "[MegaRAM].rom",
     "Disk16MHeader.dat",
     "Disk32MHeader.dat",
     "Disk64MHeader.dat",

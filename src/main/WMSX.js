@@ -134,9 +134,10 @@ WMSX.EXTENSIONS_CONFIG = {
     MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [3, 2] },
     OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1: [4, 1] },
     DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      OP1: [4, 2] },
-    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0 } },
-    SCC:       { desc: "Konami SCC",    format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCC:  0, SCCI: 0 } }
+    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0, MEGARAM: 0 } },
+    SCC:       {                        format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0, MEGARAM: 0 } },
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCCI:  0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1: [1],    OP2: [2], change: { SCCI:  0, SCC: 0, PAC: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
@@ -170,14 +171,19 @@ WMSX.PRESETS_CONFIG = {
 
     // Other Cartridge extensions
 
+    SCC:   { "EXTENSIONS.SCCI": 1 },
     SCCI:  { "EXTENSIONS.SCCI": 1 },
+    SCC2:  { "EXTENSIONS.SCCI": 2 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
 
-    SCC:  { "EXTENSIONS.SCC": 1 },
-    SCC2: { "EXTENSIONS.SCC": 2 },
+    SCCS:  { "EXTENSIONS.SCC": 1 },
+    SCCS2: { "EXTENSIONS.SCC": 2 },
 
     PAC:  { "EXTENSIONS.PAC": 1 },
     PAC2: { "EXTENSIONS.PAC": 2 },
+
+    MEGARAM:  { "EXTENSIONS.MEGARAM": 1 },
+    MEGARAM2: { "EXTENSIONS.MEGARAM": 2 },
 
     // Configuration Helper Presets
 
