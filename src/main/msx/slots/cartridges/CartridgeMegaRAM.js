@@ -10,9 +10,9 @@ wmsx.CartridgeMegaRAM = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        numBanks = (bytes.length / 8192) | 0;
         bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
+        numBanks = (bytes.length / 8192) | 0;
     }
 
     this.connect = function(machine) {
@@ -87,11 +87,10 @@ wmsx.CartridgeMegaRAM = function(rom) {
     var numBanks;
     var writeMode = false;
 
-    var sizes = [ 32, 64, 64, 128, 128, 128, 128, 256 ];
-
-
     this.rom = null;
     this.format = wmsx.SlotFormats.MegaRAM;
+
+    var SIZES = [ 32, 64, 64, 128, 128, 128, 128, 256 ];    // In number of banks
 
 
     // Savestate  -------------------------------------------
