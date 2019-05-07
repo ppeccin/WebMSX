@@ -148,12 +148,10 @@ The emulator supports several Extensions, or optional components that can be tur
 | MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+          | `MSXMUSIC`, `NOMSXMUSIC`
 | OPL4 Wave sound                       | --                   | `OPL4`
 | Double PSG                            | --                   | `DOUBLEPSG`
-| SCC-I Sound Cartridge with 128K RAM   | --                   | `SCCI`, `SCCI2` (in Slot 2)
-| SCC Sound Cartridge                   | --                   | `SCC`, `SCC2` (in Slot 2)
+| SCC-I Sound Cartridge with 128K RAM   | --                   | `SCC, SCCI`, `SCC2, SCCI2` (in Slot 2)
+| SCC Sound Cartridge                   | --                   | `SCCS`, `SCCS2` (in Slot 2)
 | PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 2)
-| PSG Stereo simulation (defaults)      | --                   | `PSGSTEREO`
-| SCC Stereo simulation (defaults)      | --                   | `SCCSTEREO`
-| OPLL Stereo simulation (defaults)     | --                   | `OPLLSTEREO`
+| MegaRAM Cartridge                     | --                   | `MEGARAM`, `MEGARAM2` (in Slot 2)
 
 ## Loading BASIC files and Typing commands after launch
 
@@ -208,6 +206,17 @@ https://webmsx.org?DISK=https://gamesarchive.org/SDSnatcher.zip&PRESETS=SCCI
 ```
 https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RUN=Bubbles.bas
 ```
+
+## Presets Reference
+
+| Presets | Description
+| --- | ---
+| `ALLSTEREO`, `ALLSTEREO2`       |  Stereo simulation for all devices (default, alternate)
+| `PSGSTEREO`, `PSGSTEREO2`       |  PSG Stereo simulation (default, alternate)
+| `SCCSTEREO`, `SCCSTEREO2`       |  SCC Stereo simulation (default, alternate)
+| `OPLLSTEREO`, `OPLLSTEREO2`     |  OPLL Stereo simulation (default, alternate)
+
+
 
 ## Parameters Reference
 
@@ -274,6 +283,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
 | `ROM_MAX_HASH_SIZE_KB`          |  3072               |  Maximum ROM size for Hash calculation
 | `HARDDISK_MIN_SIZE_KB`          |  720                |  Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+| `MEGARAM_SIZE`                  |  2048               |  MegaRAM size in KB
 | `PSG_VOL`                       |  "f"                |  PSG Volume adjust: 0..f (hex digit). Set globally or for each channel (4 values)
 | `PSG_PAN`                       |  "8"                |  PSG PanPot adjust: 0; 1..8..f (hex digit). Set globally or for each channel (4 values)
 | `SCC_VOL`                       |  "f"                |  SCC Volume adjust. Same as above (5 values)

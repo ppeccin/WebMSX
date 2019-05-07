@@ -51,7 +51,7 @@ WMSX = {
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
     EXPANSION_SLOTS:                [[2, 1], [2, 2]],
-    RAMMAPPER_SIZE:                 512,
+    RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB
     EXTENSIONS:                     { },
 
     // General options
@@ -87,6 +87,7 @@ WMSX = {
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
     ROM_MAX_HASH_SIZE_KB:           3072,                       // Maximum ROM size for Hash calculation
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+    MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     LIGHT_STATES:                   true,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
@@ -194,6 +195,11 @@ WMSX.PRESETS_CONFIG = {
     RAM2048:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
     RAM4096:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
     NORAMMAPPER: { _INCLUDE: "RAMNORMAL"},
+
+    MEGARAM256:  { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 256 },
+    MEGARAM512:  { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 512 },
+    MEGARAM1024: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 1024 },
+    MEGARAM2048: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 2048 },
 
     VSYNCHDISABLED: { SCREEN_VSYNCH_MODE: -1 },
     VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },

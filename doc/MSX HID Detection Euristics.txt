@@ -1,0 +1,50 @@
+
+By FRS / SD Snatcher
+
+Heuristics for emulators to detect what HID device an MSX software intends to read from a joystick port
+
+Note: This heuristic is written in pseudo-code and simplified to make the life of the emulator user easier. It's not intended for very specific device detection.
+
+Assume that, as soon as a dev/joyport pair is set, the function quits.
+
+if GTPAD is called; then
+	switch reg_A
+		case	0:	dev=Touchpad; joyport=1;
+		case	4:	dev=Touchpad; joyport=2;
+		case	12:	dev=mouse; joyport=1;
+		case	16:	dev=mouse; joyport=2;
+	endswitch
+endif
+
+ID=CH*2+JP.
+if GTTRIG is called; then
+	switch sets_per_frame_of(reg_A)
+		case	5:	dev=MSX-paddle; joyport=1
+		case	6:	dev=MSX-paddle; joyport=2
+		case	3,5:	dev=DA15 joystick adapter; joyport=1
+		case	4,6:	dev=DA15 joystick adapter; joyport=2
+		case	5,7:	dev=Atari-2600 dual paddle; joyport=1
+		case	6,8:	dev=Atari-2600 dual paddle; joyport=2
+		case	1,3,5:	dev=Dual-axis analog joystickl joyport=1
+		case	2,4,6:	dev=Dual-axis analog joystickl joyport=1
+	endswitch
+endif
+
+if GTPDL is called; then
+	switch reg_A
+		case	0:	dev=joystick2btn; joyport=1
+		case	2:	dev=joystick2btn; joyport=1
+		case	3:	dev=joystick2btn; joyport=2
+		case	4:	dev=joystick2btn; joyport=2
+	endswitch
+endif
+
+
+if RDPSG_A=14 is called && joypad_pin8=0
+	dev=joystick2btn, joyport=(PSG_REG15 % 0x40)
+else
+	dev=joymega, joyport=(PSG_REG15 % 0x40)
+
+endif
+(Note: Instead of RDPSG/WRTPSG, it might also be direct I/O)
+

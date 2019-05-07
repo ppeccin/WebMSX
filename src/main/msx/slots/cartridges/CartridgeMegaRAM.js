@@ -10,10 +10,25 @@ wmsx.CartridgeMegaRAM = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.asNormalArray(rom.content);
+        var content = rom.content;
+        if (!content || !content.length) numBanks = EMPTY_SIZE;
+        else {
+            // Choose minimal MegaRAM size for content: 256K, 512K, 1024K, 2048K
+            numBanks = Math.ceil(content.length / 8192);
+            var i = 0;
+            while (VALID_SIZES[i] < numBanks) ++i;
+            numBanks = VALID_SIZES[i];
+        }
+        bytes = new Array(numBanks * 8192);
+        wmsx.Util.arrayCopy(content, 0, bytes);
+        wmsx.Util.arrayFill(bytes, 0, content.length);
         self.bytes = bytes;
-        numBanks = (bytes.length / 8192) | 0;
     }
+
+    this.reinsertROMContent = function() {
+        if (this.rom.content && this.rom.content.length) return;
+        this.rom.content = this.bytes.slice(0, this.bytes.length);
+    };
 
     this.connect = function(machine) {
         machine.bus.connectInputDevice( 0x8e, this.input8E);
@@ -30,16 +45,16 @@ wmsx.CartridgeMegaRAM = function(rom) {
     };
 
     this.reset = function() {
-        bank1Offset = -0x4000; bank2Offset = -0x6000; bank3Offset = -0x8000; bank4Offset = -0xa000;
-        var writeMode = false;
+        writeMode = false;
     };
 
     this.input8E = function () {
-        var writeMode = true;
+        writeMode = true;
+        return 0xff;
     };
 
     this.output8E = function (val) {
-        var writeMode = false;
+        writeMode = false;
     };
 
     this.write = function(address, value) {
@@ -80,17 +95,18 @@ wmsx.CartridgeMegaRAM = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var bank1Offset;
-    var bank2Offset;
-    var bank3Offset;
-    var bank4Offset;
+    var bank1Offset = -0x4000;
+    var bank2Offset = -0x4000;
+    var bank3Offset = -0x4000;
+    var bank4Offset = -0x4000;
     var numBanks;
     var writeMode = false;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.MegaRAM;
 
-    var SIZES = [ 32, 64, 64, 128, 128, 128, 128, 256 ];    // In number of banks
+    var EMPTY_SIZE = Math.min(WMSX.MEGARAM_SIZE / 8, 256);    // MegaRAM empty size in banks
+    var VALID_SIZES = [ 32, 64, 128, 256 ];                   // MegaRAM valid sizes, in banks (256K - 2048K)
 
 
     // Savestate  -------------------------------------------

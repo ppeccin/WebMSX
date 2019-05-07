@@ -309,7 +309,6 @@ wmsx.SlotFormats = {
         name: "MegaRAM",
         desc: "MegaRAM Mapper Cartridge",
         priority: 1509,
-        internal: true,
         embeddedURL: "@[MegaRAM].rom",
         priorityForRom: function (rom) {
             // 0K, or any <= 2M content. Must be selected via info format hint
@@ -908,6 +907,7 @@ wmsx.SlotFormatsUserOptions = [
     "ASCII8SRAM8",
     "ASCII16SRAM2",
     "ASCII16SRAM8",
+    "MegaRAM",
     "GameMaster2",
     "AlQuran",
     "AlQuranDecoded",
