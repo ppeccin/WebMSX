@@ -125,12 +125,14 @@ wmsx.FileLoader = function(room) {
     };
 
     this.loadFromFile = function(file, openType, port, altPower, asExpansion, format) {
-        var zip, mes;
+        var zip, lha, mes;
         // If As-Disk forced
         if (openType === OPEN_TYPE.AUTO_AS_DISK || openType === OPEN_TYPE.FILES_AS_DISK || openType === OPEN_TYPE.ZIP_AS_DISK) {
             try {
                 if (openType === OPEN_TYPE.FILES_AS_DISK) {
                     if (tryLoadFilesAsDisk([file], port, altPower, asExpansion)) return;     // throws
+                } else if (lha = wmsx.Util.checkContentIsLHA(file.content)) {
+                    if (tryLoadLhaAsDisk(removeFileNameExtention(file.name), lha, port, altPower, asExpansion)) return;
                 } else {
                     zip = wmsx.Util.checkContentIsZIP(file.content);
                     if (zip) {
@@ -147,8 +149,18 @@ wmsx.FileLoader = function(room) {
             showError("Error loading " + TYPE_DESC[openType] + (mes ?  ": " + mes : ""));
         } else {
             // As-Disk NOT forced
-            zip = wmsx.Util.checkContentIsZIP(file.content);
-            if (zip) {
+            if (lha = wmsx.Util.checkContentIsLHA(file.content)) {
+                try {
+                    // Try normal loading from files
+                    var files = wmsx.Util.getLHAFilesSorted(lha);
+                    if (tryLoadFilesAsMedia(files, openType, port, altPower, asExpansion, format, true)) return;
+                    // Try Zip-as-Disk if allowed   TODO Really allow any files to be loaded here, even when not specifying FILES/ZIP as Disk?
+                    if (openType === OPEN_TYPE.AUTO)
+                        if (tryLoadLhaAsDisk(removeFileNameExtention(file.name), lha, port, altPower, asExpansion)) return;     // throws
+                } catch(ez) {
+                    wmsx.Util.error(ez);      // Error decompressing files. Abort
+                }
+            } else if (zip = wmsx.Util.checkContentIsZIP(file.content)) {
                 try {
                     // Try normal loading from files
                     var files = wmsx.Util.getZIPFilesSorted(zip);
@@ -207,6 +219,10 @@ wmsx.FileLoader = function(room) {
 
     function tryLoadZipAsDisk(name, zip, port, altPower, asExpansion) {     // throws
         return diskDrive.loadAsDiskFromFiles(port, name, self.createTreeFromZip(zip), altPower, asExpansion);    // throws
+    }
+
+    function tryLoadLhaAsDisk(name, lha, port, altPower, asExpansion) {     // throws
+        return diskDrive.loadAsDiskFromFiles(port, name, self.createTreeFromZip(lha), altPower, asExpansion);    // throws
     }
 
     function tryLoadFilesAsDisk (files, port, altPower, asExpansion) {      // throws

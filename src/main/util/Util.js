@@ -349,7 +349,26 @@ wmsx.Util = new function() {
         return files;
     };
 
-    this.checkContentIsGZIP = function(content) {
+    this.checkContentIsLHA = function (content) {
+        var cmp = content.slice(2, 7);
+        var cmpStr = String.fromCharCode.apply(this, cmp);
+        if (content && /-lh.-/.exec(cmpStr)) {
+            try {
+                return new JSLha(content);
+            } catch (ez) {
+                // Error decompressing files. Abort
+            }
+        }
+        return null;
+    };
+
+    this.getLHAFilesSorted = function (lha) {
+        var files = lha.file(/.+/);
+        files.sort(sortByName);
+        return files;
+    };
+
+    this.checkContentIsGZIP = function (content) {
         if (!content || content[0] !== 0x1f || content[1] !== 0x8b || content[2] !== 0x08) return null;      // GZ Deflate signature
 
         try {
