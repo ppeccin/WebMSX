@@ -5,7 +5,7 @@ wmsx.ROMDatabaseUncompressed = {
 
 uncompress: function() {},
 
-version: 20190115,
+version: 20190509,
 
 // Entries from Vampier's file
 
@@ -1770,16 +1770,18 @@ version: 20190115,
 
 // Added entries for newer titles/versions
 
-"CB42BEBED357FC949577BCA39680F766533F4C65":{n:"Gradius - Nemesis - Enhanced SCC - Voice",f:"KonamiSCC",e:"SCC"},
-"C1A41B603DA044AB34F85DC77E86C9C2F2D86222":{n:"Salamander - Operation X - Enhanced - Voice",f:"KonamiSCC",e:"SCC"},
-"695FF5039DA0B51B7EA5529151B1AF3C6C465DB3":{n:"Nemesis 3 - Enhanced 1.02 - Voice",f:"KonamiSCC",e:"SCC"},
-"D9DBB20259BB9B540D79958B07FB6894964AAC22":{n:"Nemesis 3 - Enhanced 1.03 - Voice",f:"KonamiSCC",e:"SCC"},
-"F3D58B98600C71251AE59C464692A0348723EF70":{n:"Nemesis 3 - Enhanced 1.02 - Voice - WebMSX",f:"KonamiSCC",e:"SCC"},
-"02FA314BBD82F05061B5CAE1213871DBC59EA7FF":{n:"Nemesis 3 - Enhanced 1.03 - Voice - WebMSX",f:"KonamiSCC",e:"SCC"},
+"CB42BEBED357FC949577BCA39680F766533F4C65":{n:"Gradius - Nemesis - Enhanced SCC - Voice",f:"KonamiSCC",e:"SCCI"},
+"C1A41B603DA044AB34F85DC77E86C9C2F2D86222":{n:"Salamander - Operation X - Enhanced - Voice",f:"KonamiSCC",e:"SCCI"},
+"695FF5039DA0B51B7EA5529151B1AF3C6C465DB3":{n:"Nemesis 3 - Enhanced 1.02 - Voice",f:"KonamiSCC",e:"SCCI"},
+"D9DBB20259BB9B540D79958B07FB6894964AAC22":{n:"Nemesis 3 - Enhanced 1.03 - Voice",f:"KonamiSCC",e:"SCCI"},
+"F3D58B98600C71251AE59C464692A0348723EF70":{n:"Nemesis 3 - Enhanced 1.02 - Voice - WebMSX",f:"KonamiSCC",e:"SCCI"},
+"02FA314BBD82F05061B5CAE1213871DBC59EA7FF":{n:"Nemesis 3 - Enhanced 1.03 - Voice - WebMSX",f:"KonamiSCC",e:"SCCI"},
 "9B220EE0BCE147CCDD466295AC3D3BEFD3EB8897":{n:"Zanac EX - Enhanced 1.02 - OPLL Double PSG",f:"ASCII16",e:"DOUBLEPSG"},
 "1BA9DC66BA69FCCCABB778D73D290CB86B3009B0":{n:"Zanac EX - Enhanced 1.02 - OPLL Double PSG (Forced)",f:"ASCII16",e:"DOUBLEPSG"},
 "E16F0A8F9D6BA826BF97E7ED36BEBCA8D60D84B9":{n:"Zanac EX - Enhanced 1.03",f:"ASCII16",e:"DOUBLEPSG"},
 
+"7C6538F1406723F032938AEE79588615B5CA8F3E":{n:"Barbarian",f:"ASCII16"},
+"EB12BCE5E11AB7DA7D21235113471BD0C0CE33D0":{n:"Children of the Night",f:"Konami"},
 "82CF4CAA78571A750403E592E3AC87C249AC4604":{n:"The Sword of Ianna",f:"ASCII16"},
 "47EBF2AB6DBC424F7CD5179F09614DB7BA6D8D75":{n:"Meikyushinwa - Eggerland Mystery 2 - SCC",f:"KonamiSCC"},
 "E20D2576C2EF0EDB33CAE2796DBB14D5C4AB1E94":{n:"Gyruss","f":"KonamiSCC"},

@@ -102,7 +102,7 @@ WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=fil
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
 
-Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or short version `P`) parameter, with a comma separated list of the Preset names to apply. For example:
+Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or `P` for short) parameter, with a comma separated list of the Preset names to apply. For example:
 
 ```
 WMSX.PRESETS = "RAM128, NODISK";         or           https://webmsx.org?P=RAM128,NODISK
@@ -133,7 +133,7 @@ The ROM Format is auto-detected. To force a format, set the `CARTRIDGE1_FORMAT` 
 You can also put the format specification in the ROM file name, between brackets. Example: `Game [KonamiSCC].rom`
 
 #### Valid Formats
-`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`
+`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `MegaRAM`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`
 
 ## Enabling Extensions
 
@@ -211,7 +211,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Preset | Description
 | --- | ---
-| `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at primary slot 3
+| `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at Primary Slot 3
 | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`                   |  Hard Drive Extension
 | `DISK`, `DISKA`, `NODISK`                               |  Floppy Drives Extension
 | `RAMMAPPER`, `RAM128` - `RAM4096`, `RAMNORMAL`          |  RAM Mapper Extension & sizes
