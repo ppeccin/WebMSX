@@ -102,10 +102,10 @@ WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=fil
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
 
-Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` parameter, with a comma separated list of the Preset names to apply. For example:
+Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or short version `P`) parameter, with a comma separated list of the Preset names to apply. For example:
 
 ```
-WMSX.PRESETS = "RAM128, NODISK";         or           https://webmsx.org?PRESETS=RAM128,NODISK
+WMSX.PRESETS = "RAM128, NODISK";         or           https://webmsx.org?P=RAM128,NODISK
 ```
 
 ## Media Loading
@@ -143,15 +143,15 @@ The emulator supports several Extensions, or optional components that can be tur
 | --- | :---: | ---
 | Hard Disk interface (Nextor)          | MSX2++               | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
 | Floppy Disk interface with 2 drives   | ALL                  | `DISK`, `NODISK`
-| Standard RAM Mapper, adjustable size  | MSX2, MSX2+          | `RAM128`..`RAM4096`, `NORAMMAPPER`
+| Standard RAM Mapper, adjustable size  | MSX2, MSX2+          | `RAM128`..`RAM4096`, `RAMNORMAL`
 | Support for Kanji Characters          | Japanese MSX2, MSX2+ | `KANJI`, `NOKANJI`
 | MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+          | `MSXMUSIC`, `NOMSXMUSIC`
 | OPL4 Wave sound                       | --                   | `OPL4`
 | Double PSG                            | --                   | `DOUBLEPSG`
-| SCC-I Sound Cartridge with 128K RAM   | --                   | `SCC, SCCI`, `SCC2, SCCI2` (in Slot 2)
-| SCC Sound Cartridge                   | --                   | `SCCS`, `SCCS2` (in Slot 2)
-| PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 2)
-| MegaRAM Cartridge                     | --                   | `MEGARAM`, `MEGARAM2` (in Slot 2)
+| SCC-I Sound Cartridge with 128K RAM   | --                   | `SCCI`, `SCCI2` (in Slot 1/2)
+| SCC Sound Cartridge                   | --                   | `SCC`, `SCC2` (in Slot 1/2)
+| PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 1/2)
+| MegaRAM Cartridge                     | --                   | `MEGARAM`, `MEGARAM2` (in Slot 1/2)
 
 ## Loading BASIC files and Typing commands after launch
 
@@ -209,22 +209,22 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 ## Presets Reference
 
-| Presets | Description
+| Preset | Description
 | --- | ---
-| `ALTSLOTCONFIG`                                         |  Alternate Slots Config. RAM at primary slot 3
+| `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at primary slot 3
 | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`                   |  Hard Drive Extension
 | `DISK`, `DISKA`, `NODISK`                               |  Floppy Drives Extension
 | `RAMMAPPER`, `RAM128` - `RAM4096`, `RAMNORMAL`          |  RAM Mapper Extension & sizes
 | `KANJI`, `NOKANJI`                                      |  Kanji ROM Extension
 | `MSXMUSIC`, `NOMSXMUSIC`, `DOUBLEPSG`, `OPL4`           |  Sound Devices Extensions
-| `SCCI`, `SCCI2`, `SCC`, `SCC2`                          |  SCC+/SCC Cartridge in slot 1/2
-| `PAC`, `PAC2`                                           |  PAC SRAM Cartridge in slot 1/2
-| `MEGARAM`, `MEGARAM2`, `MEGARAM256` - `MEGARAM2048`     |  MegaRam Cartridge in slot 1/2 & sizes
+| `SCCI`, `SCCI2`, `SCC`, `SCC2`                          |  SCC+/SCC Cartridge (in Slot 1/2)
+| `PAC`, `PAC2`                                           |  PAC SRAM Cartridge (in Slot 1/2)
+| `MEGARAM`, `MEGARAM2`, `MEGARAM256` - `MEGARAM2048`     |  MegaRam Cartridge (in Slot 1/2) & sizes
 | `VSYNCON`, `VSYNCOFF`, `VSYNCDISABLED`                  |  VSync options
-| `ALLSTEREO`, `ALLSTEREO2`                               |  Stereo simulation for all devices (default, variation)
-| `PSGSTEREO`, `PSGSTEREO2`                               |  PSG Stereo simulation (default, variation)
-| `SCCSTEREO`, `SCCSTEREO2`                               |  SCC Stereo simulation (default, variation)
-| `OPLLSTEREO`, `OPLLSTEREO2`                             |  OPLL Stereo simulation (default, variation)
+| `ALLSTEREO`, `ALLSTEREO2`                               |  Stereo simulation for all devices (default/variation)
+| `PSGSTEREO`, `PSGSTEREO2`                               |  PSG Stereo simulation (default/variation)
+| `SCCSTEREO`, `SCCSTEREO2`                               |  SCC Stereo simulation (default/variation)
+| `OPLLSTEREO`, `OPLLSTEREO2`                             |  OPLL Stereo simulation (default/variation)
 
 ## Parameters Reference
 
