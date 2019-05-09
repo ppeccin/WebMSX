@@ -194,12 +194,21 @@ wmsx.Z80 = function() {
     // Internal operations
 
     function fetchNextInstruction() {
-        // if (DEBUG && DEBUG--) console.log(PC.toString(16));
+        // if (DEBUG_PC_LOCATIONS[PC]) console.log("LOCATION: " + DEBUG_PC_LOCATIONS[PC]);
 
         opcode = fromN();           // Will inc PC
         selectInstruction();
         T = instruction.remainCycles;
+
         // if (self.trace) self.breakpoint("TRACE");
+
+        // if (DEBUG_LOOP) {
+        //     var pc = PC- 1;
+        //     console.log((pc).toString(16) + ":", instruction.opcodeString);
+        //
+        //     if (pc > 0x2200 && DEBUG_LOOP_PCS[pc] >= 2) DEBUG_LOOP = 0;
+        //     else DEBUG_LOOP_PCS[pc] = (DEBUG_LOOP_PCS[pc] | 0) + 1;
+        // }
     }
 
     function acknowledgeINT() {
@@ -790,6 +799,9 @@ wmsx.Z80 = function() {
     function INAn() {
         var port = fromN();
         A = bus.input((A << 8) | port);
+
+        // if (DEBUG_LOOP) console.log("IN", ((A << 8) | port).toString(16), "=", A.toString(16));
+        // A = res;
     }
 
     function INI() {
@@ -834,8 +846,10 @@ wmsx.Z80 = function() {
     }
 
     function OUTnA() {
-        var val = fromN();
-        bus.output((A << 8) | val, A);
+        var port = fromN();
+        bus.output((A << 8) | port, A);
+
+        // if (DEBUG_LOOP) console.log("OUT", ((A << 8) | port).toString(16), ":", A.toString(16));
     }
 
     function OUTI() {
@@ -2715,7 +2729,23 @@ wmsx.Z80 = function() {
     //    this.testPrint += charac;
     //};
 
-    // var DEBUG = 0;
+    // this.DEBUG = 0;
+    // var DEBUG_LOOP = 0;
+    // var DEBUG_LOOP_PCS = {};
+
+    // var DEBUG_PC_LOCATIONS = {
+    //     0x0144: "PHYDIO",
+    //     0x6055: "AFTER H.PHYD",
+    //     0x576f: "INIHRD",
+    //     0x5850: "DRIVES",
+    //     0x4010: "DSKIO",
+    //     0x4013: "DSKCHG",
+    //     // 0x4016: "GETDPB",
+    //     // 0x401f: "MTOFF",
+    //     0xffa7: "H.PHYD",
+    //     0xffcf: "H.BGFD",
+    //     0xffd4: "H.ENFD"
+    // };
 
     this.eval = function(str) {
         return eval(str);

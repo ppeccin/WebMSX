@@ -211,10 +211,10 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Presets | Description
 | --- | ---
-| `ALLSTEREO`, `ALLSTEREO2`       |  Stereo simulation for all devices (default, alternate)
-| `PSGSTEREO`, `PSGSTEREO2`       |  PSG Stereo simulation (default, alternate)
-| `SCCSTEREO`, `SCCSTEREO2`       |  SCC Stereo simulation (default, alternate)
-| `OPLLSTEREO`, `OPLLSTEREO2`     |  OPLL Stereo simulation (default, alternate)
+| `ALLSTEREO`, `ALLSTEREO2`       |  Stereo simulation for all devices (default, variation)
+| `PSGSTEREO`, `PSGSTEREO2`       |  PSG Stereo simulation (default, variation)
+| `SCCSTEREO`, `SCCSTEREO2`       |  SCC Stereo simulation (default, variation)
+| `OPLLSTEREO`, `OPLLSTEREO2`     |  OPLL Stereo simulation (default, variation)
 
 
 

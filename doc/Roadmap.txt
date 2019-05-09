@@ -13,3 +13,9 @@
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
+
+
+  BUGS
+=========
+
+Baltak demo freezes

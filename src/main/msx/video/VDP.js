@@ -122,7 +122,13 @@ wmsx.VDP = function(machine, cpu) {
                 commandProcessor.updateStatus();
                 res = status[2];
 
-                //if ((res & 0x81) !== 0) logInfo("Reading Command Status NOT READY: " + res.toString(16));
+                // var deb = cpu.DEBUG;
+                // if (deb) console.log(res.toString(16));
+                // if (deb &&                                   (res & 0x81) !== 0) logInfo("Reading Command Status NOT READY: " + res.toString(16));
+                // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x81) console.log("Reading Command Status PROGRESS and Transfer READY");
+                // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x01) console.log("Reading Command Status PROGRESS and Transfer NOT READY");
+                // if (deb &&                                   (res & 0x81) === 0x00) console.log("Reading Command Status IDLE and Transfer NOT READY");
+                // if (deb &&                                   (res & 0x81) === 0x80) console.log("Reading Command Status IDLE and Transfer READY");
 
                 break;
             case 3: case 4: case 6:
@@ -2437,7 +2443,7 @@ wmsx.VDP = function(machine, cpu) {
         };
         if (extended) {
             s.dm = debugMode;
-            s.sm = spriteDebugMode;
+            s.sd = spriteDebugMode;
         }
         return s;
     };
@@ -2474,7 +2480,7 @@ wmsx.VDP = function(machine, cpu) {
 
         // Extended
         if (s.dm !== undefined) setDebugMode(s.dm);
-        if (s.sm !== undefined) setSpriteDebugMode(s.sm);
+        if (s.sd !== undefined) setSpriteDebugMode(s.sd);
     };
 
 

@@ -198,7 +198,7 @@ wmsx.VDPCommandProcessor = function() {
             CX = 0; CY = CY + 1;
             if (CY >= ENY) {
                 finish();
-                TR = 0;
+                // SDSnatcher Melancholia fix: TR not reset when command ends
             }
             else destPos += DIY * layoutLineBytes;
         } else {
@@ -383,7 +383,7 @@ wmsx.VDPCommandProcessor = function() {
             CX = 0; CY = CY + 1; DY += DIY;
             if (CY >= ENY) {
                 finish();
-                TR = 0;
+                // SDSnatcher Melancholia fix: TR not reset when command ends
             }
         } else {
             DX += DIX;
@@ -659,7 +659,7 @@ wmsx.VDPCommandProcessor = function() {
         //console.log("STOP: " + writeHandler);
 
         finish();
-        TR = 0;
+        // SDSnatcher Melancholia fix: TR not reset when command ends
     }
 
     function normalPGET(x, y) {
