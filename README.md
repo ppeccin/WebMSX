@@ -10,33 +10,15 @@ Please go to **https://webmsx.org** to enjoy it online!
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-#### New in Version 5.2
+#### Coming soon in Version 5.3
 
-- Intelligent Savestates
-- Much smaller state files, faster operation
-- Improved audio handling
-
-#### New in Version 5.1
-
-- OPL4 Wave Sound (no FM yet)
-- Double PSG Extension
-- Master Volume control
-- PSG/SCC/OPLL Stereo simulation
-- PSG/SCC/OPLL Volume and Panning control (global or for each channel)
-
-#### New in Version 5.0
-
-- NetPlay! Connect several users on the same Virtual MSX machine over the internet
-- Enjoy multiplayer games, join programming sessions, anything is possible
-- P2P connection with automatic network discovery, no worries with IPs and ports
-- Nextor mass storage device with built-in image creation and dynamic files import
-- CPU and VDP Turbo modes up to 8x, with manual or software activation
-- Improved Keyboard mapping features with 6 built-in host layouts (languages)
-- New advanced drag & drop interface for easy loading of any type of media
-- Improved Savestate feature with virtually no size limits
-- New URL parameters for fast Booting, pressing keys during boot
-- User interface for selecting Cartridge Mapper type
-- Several improvements and fixes
+- Additional 5.37MHz (1.5x) CPU Turbo speed
+- Left-side Touch Control buttons
+- Full Windowed mode (Shift + Alt + Enter)
+- Improved Quick Options with increase/decrease values
+- Hotkeys + Shift modifier: decrease values
+- MegaRAM Extension (256KB - 2MB)
+- Several fixes. SD Snatcher Melancholia now works
 
 ### Features
 
@@ -44,12 +26,14 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - PSG, SCC, SCC-I, FM-PAC, PCM, MSX-MUSIC and OPL4-Wave sound
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox/Safari
 - Finally enjoy MSX games on your iPhone/iPad
+- NetPlay! Connect several users on the same Virtual MSX machine over the internet
 - Customizable Touch Controls/Virtual Keyboard for mobile devices (iOS, Android)
+- CPU and VDP Turbo modes up to 8x, with manual or software activation
 - Install as a WebApp, then run offline
 - Open files from local storage, iCloud, Google Drive, Dropbox, web links
 - Put games or any MSX software in webpages easily
 - Show MSX software running with a single link to the WebMSX page
-- Play Cartridge ROMs, Disk and Tape images
+- Play Cartridge ROMs, HardDisk (Nextor), Disk and Tape images
 - Powerful Drag & Drop system for loading media files
 - Load several disks at once and easily switch disks
 - Dynamically import files to any MSX disk drive, automatic image creation
@@ -57,10 +41,11 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Fully customizable Keyboard, Joysticks, Joykeys, Mouse and Touch controllers
 - Joykeys support. Emulate MSX Joysticks using Host Keyboard
 - Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys
-- Easily toggle extensions like SCC, PAC, Nextor, etc.
+- Easily toggle extensions like SCC+, SCC, PAC, MegaRAM, Nextor, DoublePSG, etc.
 - Adjustable speed, Pause and Frame-by-frame advance
+- PSG/SCC/OPLL Stereo Sound simulation, configurable
 - Copy & Paste text, Screen Capture, Debug modes
-- Resizable Screen, Full Screen mode
+- Resizable Screen, Full Screen, Full Window modes
 - Javascript API for loading media and machine control
 
 ## About the NetPlay! feature
