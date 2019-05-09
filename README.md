@@ -211,12 +211,20 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Presets | Description
 | --- | ---
-| `ALLSTEREO`, `ALLSTEREO2`       |  Stereo simulation for all devices (default, alternate)
-| `PSGSTEREO`, `PSGSTEREO2`       |  PSG Stereo simulation (default, alternate)
-| `SCCSTEREO`, `SCCSTEREO2`       |  SCC Stereo simulation (default, alternate)
-| `OPLLSTEREO`, `OPLLSTEREO2`     |  OPLL Stereo simulation (default, alternate)
-
-
+| `ALTSLOTCONFIG`                                         |  Alternate Slots Config. RAM at primary slot 3
+| `HARDDISK`, `HARDDISKC`, `NOHARDDISK`                   |  Hard Drive Extension
+| `DISK`, `DISKA`, `NODISK`                               |  Floppy Drives Extension
+| `RAMMAPPER`, `RAM128` - `RAM4096`, `RAMNORMAL`          |  RAM Mapper Extension & sizes
+| `KANJI`, `NOKANJI`                                      |  Kanji ROM Extension
+| `MSXMUSIC`, `NOMSXMUSIC`, `DOUBLEPSG`, `OPL4`           |  Sound Devices Extensions
+| `SCCI`, `SCCI2`, `SCC`, `SCC2`                          |  SCC+/SCC Cartridge in slot 1/2
+| `PAC`, `PAC`                                            |  PAC SRAM Cartridge in slot 1/2
+| `MEGARAM`, `MEGARAM2`, `MEGARAM256` - `MEGARAM2048`     |  MegaRam Cartridge in slot 1/2 & sizes
+| `VSYNCON`, `VSYNCOFF`, `VSYNCDISABLED`                  |  VSync options
+| `ALLSTEREO`, `ALLSTEREO2`                               |  Stereo simulation for all devices (default, variation)
+| `PSGSTEREO`, `PSGSTEREO2`                               |  PSG Stereo simulation (default, variation)
+| `SCCSTEREO`, `SCCSTEREO2`                               |  SCC Stereo simulation (default, variation)
+| `OPLLSTEREO`, `OPLLSTEREO2`                             |  OPLL Stereo simulation (default, variation)
 
 ## Parameters Reference
 
@@ -265,7 +273,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `SCREEN_DEFAULT_ASPECT`         |  1.1                |  Screen aspect ratio (width) in 0.1 steps
 | `SCREEN_CONTROL_BAR`            |  1                  |  Screen Bottom Bar controls. 0: on hover; 1: always
 | `SCREEN_FORCE_HOST_NATIVE_FPS`  |  -1                 |  Force host native video frequency. -1: auto-detect. Don't change! :-)
-| `SCREEN_VSYNCH_MODE`            |  -2                 |  V-Synch mode. -2: user set(default on); -1: disabled; 0: off; 1: on
+| `SCREEN_VSYNC_MODE`             |  -2                 |  VSync mode. -2: user set(default on); -1: disabled; 0: off; 1: on
 | `AUDIO_MONITOR_BUFFER_BASE`     |  -3                 |  Audio buffer base size. -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
 | `AUDIO_MONITOR_BUFFER_SIZE`     |  -1                 |  Audio buffer size. -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size. More buffer = more delay. Don't change! :-)
 | `AUDIO_SIGNAL_BUFFER_RATIO`     |  2                  |  Internal Audio Signal buffer based on Monitor buffer
