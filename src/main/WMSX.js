@@ -69,7 +69,7 @@ WMSX = {
     SCREEN_DEFAULT_ASPECT:          1.1,                        // in 0.05 steps
     SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
-    SCREEN_VSYNCH_MODE:             -2,                         // -2: user set(default on); -1: disabled; 0: off; 1: on
+    SCREEN_VSYNC_MODE:              -2,                         // -2: user set(default on); -1: disabled; 0: off; 1: on
     AUDIO_MONITOR_BUFFER_BASE:      -3,                         // -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
     AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
     AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Internal Audio Signal buffer based on Monitor buffer
@@ -135,10 +135,10 @@ WMSX.EXTENSIONS_CONFIG = {
     MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [3, 2] },
     OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1: [4, 1] },
     DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      OP1: [4, 2] },
-    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC:  0, MEGARAM: 0 } },
-    SCC:       {                        format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC:  0, MEGARAM: 0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCCI:  0, SCC: 0, MEGARAM: 0 } },
-    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1: [1],    OP2: [2], change: { SCCI:  0, SCC: 0, PAC: 0 } }
+    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC: 0, MEGARAM: 0 } },
+    SCC:       {                        format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1: [1],    OP2: [2], change: { SCCI: 0, SCC: 0, PAC: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
@@ -172,13 +172,11 @@ WMSX.PRESETS_CONFIG = {
 
     // Other Cartridge extensions
 
-    SCC:   { "EXTENSIONS.SCCI": 1 },
     SCCI:  { "EXTENSIONS.SCCI": 1 },
-    SCC2:  { "EXTENSIONS.SCCI": 2 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
 
-    SCCS:  { "EXTENSIONS.SCC": 1 },
-    SCCS2: { "EXTENSIONS.SCC": 2 },
+    SCC:  { "EXTENSIONS.SCC": 1 },
+    SCC2: { "EXTENSIONS.SCC": 2 },
 
     PAC:  { "EXTENSIONS.PAC": 1 },
     PAC2: { "EXTENSIONS.PAC": 2 },
@@ -201,17 +199,17 @@ WMSX.PRESETS_CONFIG = {
     MEGARAM1024: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 1024 },
     MEGARAM2048: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 2048 },
 
-    VSYNCHDISABLED: { SCREEN_VSYNCH_MODE: -1 },
-    VSYNCHOFF:      { SCREEN_VSYNCH_MODE: 0 },
-    VSYNCHON:       { SCREEN_VSYNCH_MODE: 1 },
+    VSYNCDISABLED: { SCREEN_VSYNC_MODE: -1 },
+    VSYNCOFF:      { SCREEN_VSYNC_MODE: 0 },
+    VSYNCON:       { SCREEN_VSYNC_MODE: 1 },
 
-    PSGSTEREO:     { PSG_PAN: "4c8" },
-    PSGSTEREO2:    { PSG_PAN: "8c4" },
-    SCCSTEREO:     { SCC_PAN: "8c4c4" },
-    SCCSTEREO2:    { PSG_PAN: "4c4c8" },
-    OPLLSTEREO:    { OPLL_PAN: "4c4c4c4c488888" },
-    ALLSTEREO:     { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
-    ALLSTEREO2:    { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
+    PSGSTEREO:  { PSG_PAN: "4c8" },
+    PSGSTEREO2: { PSG_PAN: "8c4" },
+    SCCSTEREO:  { SCC_PAN: "8c4c4" },
+    SCCSTEREO2: { PSG_PAN: "4c4c8" },
+    OPLLSTEREO: { OPLL_PAN: "4c4c4c4c488888" },
+    ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
+    ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
 
     // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 

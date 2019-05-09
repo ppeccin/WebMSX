@@ -96,7 +96,7 @@ wmsx.SettingsGUI.html = function() {
                                 W
                             </div>
                         </div>
-                        <div class="wmsx-desc">V-Synch Modes</div>
+                        <div class="wmsx-desc">V-Sync Modes</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
