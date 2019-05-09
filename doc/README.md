@@ -218,7 +218,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `KANJI`, `NOKANJI`                                      |  Kanji ROM Extension
 | `MSXMUSIC`, `NOMSXMUSIC`, `DOUBLEPSG`, `OPL4`           |  Sound Devices Extensions
 | `SCCI`, `SCCI2`, `SCC`, `SCC2`                          |  SCC+/SCC Cartridge in slot 1/2
-| `PAC`, `PAC`                                            |  PAC SRAM Cartridge in slot 1/2
+| `PAC`, `PAC2`                                           |  PAC SRAM Cartridge in slot 1/2
 | `MEGARAM`, `MEGARAM2`, `MEGARAM256` - `MEGARAM2048`     |  MegaRam Cartridge in slot 1/2 & sizes
 | `VSYNCON`, `VSYNCOFF`, `VSYNCDISABLED`                  |  VSync options
 | `ALLSTEREO`, `ALLSTEREO2`                               |  Stereo simulation for all devices (default, variation)
