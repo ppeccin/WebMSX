@@ -120,7 +120,8 @@ wmsx.CartridgeMegaRAM = function(rom) {
             b2: bank2Offset,
             b3: bank3Offset,
             b4: bank4Offset,
-            n: numBanks
+            n: numBanks,
+            m: writeMode
         };
     };
 
@@ -133,6 +134,7 @@ wmsx.CartridgeMegaRAM = function(rom) {
         bank3Offset = s.b3;
         bank4Offset = s.b4;
         numBanks = s.n;
+        writeMode = s.m;
     };
 
 

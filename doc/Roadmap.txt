@@ -1,7 +1,6 @@
   Ideas / Requests
 =====================
 
-* MegaRAM
 * JoyMega
 * Trackball, Arkanoid Vaus paddle, Touchpad, Light-pen, Light-gun
 * Auto detection of controller type software is trying to read
