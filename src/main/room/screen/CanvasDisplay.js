@@ -52,7 +52,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         this.focus();
         if (WMSXFullScreenSetup.shouldStartInFullScreen()) {
             setFullscreenState(true);
-            setEnterFullscreenByAPIOnFirstTouch();
+            if (FULLSCREEN_MODE === 1) setEnterFullscreenByAPIOnFirstTouch();       // Not if mode = 2 (Windowed)
         }
     };
 
@@ -1016,11 +1016,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             textButton.classList.add("wmsx-mobile");
         }
 
-        var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -83, -25, false, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
-        keyboardButton.classList.add("wmsx-full-screen-only");
+        if (isTouchDevice) {
+            var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -83, -25, false, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
+            keyboardButton.classList.add("wmsx-full-screen-only");
+        }
 
-        logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -25, false, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
-        logoButton.classList.add("wmsx-full-screen-hidden");
+        var logoButton = addPeripheralControlButton("wmsx-bar-logo", -8, -25, false, "About WebMSX", wmsx.PeripheralControls.SCREEN_OPEN_ABOUT);
+        if (isTouchDevice) logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
         turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -68, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
@@ -1854,7 +1856,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var cartridge1Button;
     var cartridge2Button;
     var tapeButton;
-    var logoButton;
     var turboButton;
     var netplayButton;
     var scaleDownButton;
@@ -1875,7 +1876,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
-    var NARROW_WIDTH = 504;
+    var NARROW_WIDTH = 500;
 
     var domKeys = wmsx.DOMKeys;
 

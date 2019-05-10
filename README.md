@@ -251,7 +251,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `AUTO_POWER_ON_DELAY`           |  1200               |  Auto-Power-ON after specified msecs. -1: no Auto-Power-ON
 | `MEDIA_CHANGE_DISABLED`         |  false              |  Block user from changing Media (Cartridges, Disks, etc)
 | `SCREEN_RESIZE_DISABLED`        |  false              |  Block user from changing Sreen size
-| `SCREEN_FULLSCREEN_MODE`        |  -1                 |  FullScreen mode. -2: disabled; -1: auto; 0: off; 1: on
+| `SCREEN_FULLSCREEN_MODE`        |  -1                 |  FullScreen mode. -2: disabled; -1: auto; 0: off; 1: on (Full Screen); 2: on (Full Windowed)
 | `SCREEN_FILTER_MODE`            |  -3                 |  Screen CRT Filter level. -3: user set (default auto); -2: browser default; -1: auto; 0..3: smoothing level
 | `SCREEN_CRT_MODE`               |  0                  |  Screen CRT Phosphor Effect. -1: auto; 0: off; 1: on
 | `SCREEN_DEFAULT_SCALE`          |  -1                 |  Screen size. -1: auto; 0.5..N in 0.1 steps

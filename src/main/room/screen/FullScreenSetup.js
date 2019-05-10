@@ -15,7 +15,7 @@ WMSXFullScreenSetup = {
     },
     shouldStartInFullScreen: function () {
         return window.WMSX
-            ? WMSX.SCREEN_FULLSCREEN_MODE === 1 || (WMSX.SCREEN_FULLSCREEN_MODE === -1 && this.isBrowserStandaloneMode())
+            ? WMSX.SCREEN_FULLSCREEN_MODE >= 1 || (WMSX.SCREEN_FULLSCREEN_MODE === -1 && this.isBrowserStandaloneMode())
             : this.isBrowserStandaloneMode();
     },
     isBrowserStandaloneMode: function () {
