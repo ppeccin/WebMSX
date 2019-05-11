@@ -57,12 +57,12 @@ wmsx.Monitor = function(display) {
     };
 
     this.displayAspectDecrease = function() {
-        this.displayScale(normalizeAspectX(displayAspectX - wmsx.Monitor.SCALE_STEP), displayScaleY);
+        this.displayScale(normalizeAspectX(displayAspectX - wmsx.Monitor.ASPECT_STEP), displayScaleY);
         this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayAspectIncrease = function() {
-        this.displayScale(normalizeAspectX(displayAspectX + wmsx.Monitor.SCALE_STEP), displayScaleY);
+        this.displayScale(normalizeAspectX(displayAspectX + wmsx.Monitor.ASPECT_STEP), displayScaleY);
         this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
@@ -88,7 +88,7 @@ wmsx.Monitor = function(display) {
 
     function normalizeAspectX(aspectX) {
         var ret = aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
-        return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
+        return Math.round(ret / wmsx.Monitor.ASPECT_STEP) * wmsx.Monitor.ASPECT_STEP;
     }
 
     function normalizeScaleY(scaleY) {
@@ -105,5 +105,6 @@ wmsx.Monitor = function(display) {
 };
 
 wmsx.Monitor.SCALE_STEP = 0.05;
+wmsx.Monitor.ASPECT_STEP = 0.01;
 
 

@@ -6,7 +6,7 @@
 * Auto detection of controller type software is trying to read
 * Auto Mouse grab when in full screen
 * Auto tuned Turbo to maintain constant framerate
-* Scanlines
+* PAR 1.15
 * PAR 1.15
 * FM Volume review
 * Nextor update
@@ -18,3 +18,4 @@
 =========
 
 Baltak demo freezes
+MegaRAM & Select ROM Format

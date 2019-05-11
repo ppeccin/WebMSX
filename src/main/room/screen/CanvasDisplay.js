@@ -97,8 +97,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             0, 0, canvas.width, canvas.height
         );
 
-        // Put Scanlines on top
-        if (crtScanlines && !debugMode)
+        // Put Scanlines on top. Only if not in Debug and Signal is not Interlaced
+        if (crtScanlines && pixelHeight > 1 && !debugMode)
             canvasContext.drawImage(
                 scanlinesImage,
                   0, 0, 1, sourceHeight * 2,
@@ -315,7 +315,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         //console.error(">>> Parent width: " + maxWidth);
 
-        return maxWidth >= 660 ? 1.1 : maxWidth >= 540 ? 0.9 : maxWidth >= 420 ? 0.7 : maxWidth >= 320 ? 0.55 : 0.5;
+        return crtScanlines
+            ? maxWidth >= 660 ? 1.0 : maxWidth >= 420 ? 0.75 : 0.5
+            : maxWidth >= 660 ? 1.1 : maxWidth >= 540 ? 0.9 : maxWidth >= 420 ? 0.7 : maxWidth >= 320 ? 0.55 : 0.5;
     }
 
     function hideOSD() {
@@ -362,6 +364,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var newLevel;
         if (dec) { newLevel = crtScanlines - 1; if (newLevel < 0) newLevel = 10; }
         else     { newLevel = crtScanlines + 1; if (newLevel > 10) newLevel = 0; }
+
+        // Set scale to the nearest lower sweet spot
+        if (!crtScanlines && newLevel) {
+            var spots = [ 0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5 ];
+            var i = 0; while (i < spots.length - 1 && scaleY >= spots[i]) ++i;
+            monitor.displayScale(aspectX, spots[i - 1]);
+        }
 
         setCRTScanlines(newLevel);
         this.showOSD("CRT Scanlines: " + (crtScanlines === 0 ? "OFF" : "" + (crtScanlines * 10) + "%"), true);
@@ -871,7 +880,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         // Scanlines
         scanlinesImage = document.createElement('canvas');
         scanlinesImage.width = 1;
-        scanlinesImage.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 * 2;
+        scanlinesImage.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
         suppressContextMenu(mainElement);
         preventDrag(logoImage);
@@ -1884,7 +1893,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var isLoading = false;
 
     var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
-    var scaleY = 1.1;
+    var scaleY = 1.0;
     var scaleYBeforeUserFullscreen = 0;
     var pixelWidth = 1, pixelHeight = 1;
 

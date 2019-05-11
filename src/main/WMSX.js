@@ -67,7 +67,7 @@ WMSX = {
     SCREEN_CRT_SCANLINES:           -1,                         // -1: user set (default off); 0: off; 1..10: level
     SCREEN_CRT_PHOSPHOR:            -1,                         // -1: auto; 0: off; 1: on
     SCREEN_DEFAULT_SCALE:           -1,                         // -1: auto; 0.5..N in 0.05 steps: scale
-    SCREEN_DEFAULT_ASPECT:          1.1,                        // in 0.05 steps
+    SCREEN_DEFAULT_ASPECT:          1.13,                       // in 0.01 steps
     SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
     SCREEN_VSYNC_MODE:              -2,                         // -2: user set(default on); -1: disabled; 0: off; 1: on
