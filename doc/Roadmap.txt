@@ -7,7 +7,6 @@
 * Auto detection of controller type software is trying to read
 * Auto Mouse grab when in full screen
 * Auto tuned Turbo to maintain constant framerate
-* FM Volume review
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack

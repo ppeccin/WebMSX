@@ -274,7 +274,7 @@ wmsx.PSGAudio = function(secondary) {
     var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;
 
-    var BASE_VOLUME = 0.68;
+    var BASE_VOLUME = 0.66;
     var SAMPLE_RATE = 112005;   // Main CPU clock / 32 = 112005 Hz
 
     var VOL = ((secondary && WMSX.PSG2_VOL) || WMSX.PSG_VOL || "f").toUpperCase();

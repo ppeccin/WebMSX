@@ -742,7 +742,7 @@ wmsx.YM2413Audio = function(pName) {
 
     var sampleResult = [ 0, 0 ];
 
-    var VOLUME = 0.65 * (1.55 / 9 / 256);       // 9 channels, samples -256..+ 256
+    var VOLUME = 0.68 * (1.58 / 9 / 256);       // 9 channels, samples -256..+ 256
     var SAMPLE_RATE = 49780;                    // Main CPU clock / 72 = 49780 Hz
 
     var VOL = (WMSX.OPLL_VOL || "f").toUpperCase();
