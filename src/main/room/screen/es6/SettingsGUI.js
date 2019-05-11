@@ -730,7 +730,7 @@ wmsx.SettingsGUI.css = function() {
 #wmsx-modal.wmsx-show {
     transform: scale(1);
     transition: visibility .2s ease-out, opacity .2s ease-out, transform .2s ease-out;
-    height: 456px;
+    height: 440px;
     visibility: visible;
     opacity: 1;
 }
@@ -795,7 +795,7 @@ wmsx.SettingsGUI.css = function() {
 
 .wmsx-footer {
     position: absolute;
-    bottom: 21px;
+    bottom: 13px;
     width: 543px;
     margin-top: 16px;
     text-align: center;
@@ -901,7 +901,7 @@ wmsx.SettingsGUI.css = function() {
     position: relative;
     left: 0;
     width: 3000px;
-    height: 378px;
+    height: 362px;
     background: rgb(218, 218, 218);
     transition: left 0.3s ease-in-out
 }
@@ -914,7 +914,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-general {
-    padding-top: 21px;
+    padding-top: 13px;
     padding-left: 36px;
 }
 
@@ -940,7 +940,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-media {
-    padding-top: 16px;
+    padding-top: 8px;
     padding-left: 32px;
 }
 
@@ -999,7 +999,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-inputs {
     left: 1200px;
-    padding: 22px 0 0 33px;
+    padding: 12px 0 0 33px;
 }
 
 #wmsx-inputs .wmsx-left {
@@ -1048,7 +1048,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports {
     left: 1800px;
-    padding: 23px 0 0 27px;
+    padding: 13px 0 0 27px;
 }
 
 #wmsx-ports .wmsx-left {

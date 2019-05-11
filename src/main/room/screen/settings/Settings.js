@@ -91,10 +91,10 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
 
         if (w < 600) w -= 2;
         if (WMSX.SCREEN_CONTROL_BAR) {
-            if (h >= 456 + wmsx.ScreenGUI.BAR_HEIGHT) h -= wmsx.ScreenGUI.BAR_HEIGHT + 3;
-            else h += 8;
+            if (h >= 440 + wmsx.ScreenGUI.BAR_HEIGHT) h -= wmsx.ScreenGUI.BAR_HEIGHT + 3;
+            // else h += 8;
         }
-        modal.style.top =  "" + (((h - 456) / 2) | 0) + "px";
+        modal.style.top =  "" + (((h - 440) / 2) | 0) + "px";
         modal.style.left = "" + (((w - 600) / 2) | 0) + "px";
 
         return true;
