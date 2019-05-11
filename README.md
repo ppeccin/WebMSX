@@ -17,6 +17,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - MegaRAM Extension (256KB - 2MB)
 - Left-side Touch Control buttons
 - Full Windowed mode (Shift + Alt + Enter)
+- Screen Scale (Pixel Aspect Ratio) changed to 1.14
 - Improved Quick Options with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
 - Several fixes. SD Snatcher Melancholia now works

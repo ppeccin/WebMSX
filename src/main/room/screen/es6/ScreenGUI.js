@@ -719,7 +719,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     text-overflow: ellipsis;
     white-space: nowrap;
     top: -29px;
-    right: 19px;
+    right: 20px;
     height: 28px;
     padding: 0 10px;
     margin: 0;
