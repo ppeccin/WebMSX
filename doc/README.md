@@ -17,7 +17,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - MegaRAM Extension (256KB - 2MB)
 - Left-side Touch Control buttons
 - Full Windowed mode (Shift + Alt + Enter)
-- Screen Scale (Pixel Aspect Ratio) changed to 1.14
+- Screen Aspect (Pixel Aspect Ratio) changed to 1.14
 - Improved Quick Options with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
 - Several fixes. SD Snatcher Melancholia now works
@@ -255,7 +255,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `SCREEN_CRT_SCANLINES`          |  -1                 |  Screen CRT Scanlines. -1: user set (default off); 0: off; 1..10: level
 | `SCREEN_CRT_PHOSPHOR`           |  -1                 |  Screen CRT Phosphor Effect. -1: auto (off); 0: off; 1: on
 | `SCREEN_DEFAULT_SCALE`          |  -1                 |  Screen size. -1: auto; 0.5..N in 0.1 steps
-| `SCREEN_DEFAULT_ASPECT`         |  1.1                |  Screen aspect ratio (width) in 0.1 steps
+| `SCREEN_DEFAULT_ASPECT`         |  1.14               |  Screen Aspect Ratio (width) in 0.1 steps
 | `SCREEN_CONTROL_BAR`            |  1                  |  Screen Bottom Bar controls. 0: on hover; 1: always
 | `SCREEN_FORCE_HOST_NATIVE_FPS`  |  -1                 |  Force host native video frequency. -1: auto-detect. Don't change! :-)
 | `SCREEN_VSYNC_MODE`             |  -2                 |  VSync mode. -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
