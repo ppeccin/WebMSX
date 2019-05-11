@@ -389,7 +389,7 @@ wmsx.Machine = function() {
             return self.showOSD("VSync is disabled / unsupported", true, true);
 
         setVSynchMode(vSynchMode + 1);
-        self.showOSD("VSync: " + (vSynchMode === 1 ? "ON" : vSynchMode === 0 ? "OFF" : "DISABLED"), true);
+        self.showOSD("VSync: " + (vSynchMode === 1 ? "Auto (" + (videoClockSocket.isVSynchActive() ? "ON" : "OFF") + ")" : vSynchMode === 0 ? "OFF" : "DISABLED"), true);
 
         // Persist
         WMSX.userPreferences.current.vSynch = vSynchMode;
@@ -715,6 +715,9 @@ wmsx.Machine = function() {
         };
         this.setFrequency = function(freq, div) {
             videoClock.setFrequency(freq, div);
+        };
+        this.isVSynchActive = function() {
+            return videoClock.isVSynchActive();
         };
         var videoClock;
     }
@@ -1064,7 +1067,7 @@ wmsx.Machine = function() {
                     desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };
                 case controls.VSYNCH:
-                    return { label: vSynchMode < 0 ? "DISABL" : vSynchMode ? "ON" : "OFF", active: vSynchMode === 1 };
+                    return { label: vSynchMode < 0 ? "DISABL" : vSynchMode ? "Auto" : "OFF", active: vSynchMode === 0 };
             }
             return { label: "Unknown", active: false };
         };

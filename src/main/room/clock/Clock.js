@@ -66,6 +66,10 @@ wmsx.Clock = function(clockPulse) {
         vSynchAltNativeFrequency = freq;
     };
 
+    this.isVSynchActive = function() {
+        return useRequestAnimationFrame;
+    };
+
     var internalSetFrequency = function(freq, div) {
         cyclesPerSecond = freq;
         cycleTimeMs = 1000 / freq;
