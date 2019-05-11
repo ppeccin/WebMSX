@@ -13,11 +13,12 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 #### Coming soon in Version 5.3
 
 - Additional 5.37MHz (1.5x) CPU Turbo speed
+- CRT Scanlines simulation 
+- MegaRAM Extension (256KB - 2MB)
 - Left-side Touch Control buttons
 - Full Windowed mode (Shift + Alt + Enter)
 - Improved Quick Options with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
-- MegaRAM Extension (256KB - 2MB)
 - Several fixes. SD Snatcher Melancholia now works
 
 ### Features
@@ -25,27 +26,24 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
 - PSG, SCC, SCC-I, FM-PAC, PCM, MSX-MUSIC and OPL4-Wave sound
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox/Safari
-- Finally enjoy MSX games on your iPhone/iPad
-- NetPlay! Connect several users on the same Virtual MSX machine over the internet
-- Customizable Touch Controls/Virtual Keyboard for mobile devices (iOS, Android)
-- CPU and VDP Turbo modes up to 8x, with manual or software activation
-- Install as a WebApp, then run offline
+- Show MSX software running on any webpage, or with a link to the WebMSX page
+- Finally enjoy MSX games on your iPhone/iPad! Installs as a WebApp, runs offline
 - Open files from local storage, iCloud, Google Drive, Dropbox, web links
-- Put games or any MSX software in webpages easily
-- Show MSX software running with a single link to the WebMSX page
-- Play Cartridge ROMs, HardDisk (Nextor), Disk and Tape images
+- NetPlay! Connect several users on the same Virtual MSX machine over the internet
+- CPU and VDP Turbo modes up to 8x, with manual or software activation
+- Load Cartridge ROMs, HardDisk (Nextor), Disk and Tape images
 - Powerful Drag & Drop system for loading media files
-- Load several disks at once and easily switch disks
 - Dynamically import files to any MSX disk drive, automatic image creation
-- Savestates support. Export and share Savestate files
-- Fully customizable Keyboard, Joysticks, Joykeys, Mouse and Touch controllers
-- Joykeys support. Emulate MSX Joysticks using Host Keyboard
-- Virtual buttons. Map Host Joystick buttons to MSX Keyboard keys
+- Savestates support. Export and share Savestate files and links
+- Cuitomizable Keyboard, Joysticks, Joykeys, and Mouse controllers
+- Customizable Touch Controls/Virtual Keyboard for mobile devices (iOS, Android)
+- Joykeys support. Emulates MSX Joysticks using Host Keyboard
+- Virtual buttons. Maps Host Joystick buttons to MSX Keyboard keys
 - Easily toggle extensions like SCC+, SCC, PAC, MegaRAM, Nextor, DoublePSG, etc.
 - Adjustable speed, Pause and Frame-by-frame advance
 - PSG/SCC/OPLL Stereo Sound simulation, configurable
 - Copy & Paste text, Screen Capture, Debug modes
-- Resizable Screen, Full Screen, Full Window modes
+- CRT Scanlines, resizable Screen, Full Screen and Full Windowed modes
 - Javascript API for loading media and machine control
 
 ## About the NetPlay! feature
