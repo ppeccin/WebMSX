@@ -394,8 +394,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.getControlReport = function(control) {
-        // Only CRT Filter for now
-        return { label: crtFilter === -2 ? "Browser" : crtFilter === -1 ? "Auto" : crtFilter === 0 ? "OFF" : "Level " + crtFilter, active: crtFilter >= 0 };
+        switch (control) {
+            case wmsx.PeripheralControls.SCREEN_CRT_FILTER:
+                return { label: crtFilter === -2 ? "Browser" : crtFilter === -1 ? "Auto" : crtFilter === 0 ? "OFF" : "Level " + crtFilter, active: crtFilter >= 0 };
+            case wmsx.PeripheralControls.SCREEN_CRT_SCANLINES:
+                return { label: crtScanlines === 0 ? "OFF" : "" + (crtScanlines * 10) + "%", active: crtScanlines > 0 };
+        }
+        return { label: "Unknown", active: false };
     };
 
     this.displayToggleFullscreen = function(windowed) {                 // Only and Always user initiated
@@ -1872,7 +1877,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var cursorShowing = true;
     var cursorHideFrameCountdown = -1;
     var signalIsOn = false;
-    var crtFilter = -2, crtFilterEffective = null;
+    var crtFilter = -1, crtFilterEffective = null;
     var crtScanlines = 0;
     var crtPhosphor = -1, crtPhosphorEffective = 0;
     var debugMode = false;

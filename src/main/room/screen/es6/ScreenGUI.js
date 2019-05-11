@@ -1218,8 +1218,8 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     position: absolute;
     top: 0; bottom: 0;
     left: 0; right: 0;
-    width: 256px;
-    height: 316px;
+    width: 270px;
+    height: 351px;
     margin: auto;
     padding: 14px 15px 0;
     color: white;

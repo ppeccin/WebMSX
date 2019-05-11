@@ -34,6 +34,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 return controllersHub.getControlReport(control);
             case pc.SCREEN_CRT_FILTER:
+            case pc.SCREEN_CRT_SCANLINES:
                 return screen.getControlReport(control);
             case pc.SPEAKER_BUFFER_TOGGLE:
                 return speaker.getControlReport(control);
