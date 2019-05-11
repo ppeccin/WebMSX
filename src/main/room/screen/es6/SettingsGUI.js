@@ -116,7 +116,7 @@ wmsx.SettingsGUI.html = function() {
                                 R
                             </div>
                         </div>
-                        <div class="wmsx-desc">CRT Modes</div>
+                        <div class="wmsx-desc">CRT Scanlines</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">

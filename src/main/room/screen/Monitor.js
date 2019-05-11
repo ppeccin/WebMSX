@@ -29,7 +29,8 @@ wmsx.Monitor = function(display) {
     };
 
     this.setDefaults = function() {
-        display.crtModeSetDefault();
+        display.crtPhosphorSetDefault();
+        display.crtScanlinesSetDefault();
         display.crtFilterSetDefault();
         display.aspectAndScaleSetDefault();
         display.requestReadjust(true);
@@ -39,12 +40,16 @@ wmsx.Monitor = function(display) {
         display.setDebugMode(boo);
     };
 
-    this.crtModeToggle = function(dec) {
-        display.crtModeToggle(dec);
-    };
-
     this.crtFilterToggle = function(dec) {
         display.crtFilterToggle(dec);
+    };
+
+    this.crtScanlinesToggle = function(dec) {
+        display.crtScanlinesToggle(dec);
+    };
+
+    this.crtPhosphorToggle = function(dec) {
+        display.crtPhosphorToggle(dec);
     };
 
     this.fullscreenToggle = function(windowed) {

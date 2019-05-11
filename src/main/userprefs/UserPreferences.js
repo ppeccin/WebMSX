@@ -131,6 +131,7 @@ WMSX.userPreferences.defaults = function() {
 
         vSynch: 1,                          // on
         crtFilter: -1,                      // auto
+        crtScanlines: 0,                    // off
 
         hapticFeedback: true,
 

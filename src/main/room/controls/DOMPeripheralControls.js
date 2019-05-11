@@ -234,10 +234,12 @@ wmsx.DOMPeripheralControls = function(room) {
                     fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, autoPort, false);
                 }
                 break;
-            case pc.SCREEN_CRT_MODE:
-                monitor.crtModeToggle(secPort); break;                  // secPort for dec
             case pc.SCREEN_CRT_FILTER:
                 monitor.crtFilterToggle(secPort); break;                // secPort for dec
+            case pc.SCREEN_CRT_SCANLINES:
+                monitor.crtScanlinesToggle(secPort); break;              // secPort for dec
+            case pc.SCREEN_CRT_PHOSPHOR:
+                monitor.crtPhosphorToggle(secPort); break;              // secPort for dec
             case pc.SCREEN_FULLSCREEN:
                 monitor.fullscreenToggle(secPort); break;               // secPort for Windowed mode
             case pc.SCREEN_DEFAULTS:
@@ -367,7 +369,8 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = pc.TURBO_FIRE_TOGGLE;
 
         keyCodeMap[KEY_CRT_FILTER | k.ALT]      = pc.SCREEN_CRT_FILTER;
-        keyCodeMap[KEY_CRT_MODE | k.ALT] 	    = pc.SCREEN_CRT_MODE;
+        keyCodeMap[KEY_CRT_SCANLINES | k.ALT]   = pc.SCREEN_CRT_SCANLINES;
+        //keyCodeMap[KEY_CRT_PHOSPHOR | k.ALT]  = pc.SCREEN_CRT_PHOSPHOR;
         //keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
         keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= pc.SCREEN_OPEN_QUICK_OPTIONS;
         keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= pc.SCREEN_OPEN_TOUCH_CONFIG;
@@ -489,11 +492,12 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_TOUCH_TOGGLE          = domKeys.VK_N.wc;
     var KEY_TURBO_FIRE_TOGGLE     = domKeys.VK_H.wc;
 
-    var KEY_CRT_FILTER    = domKeys.VK_E.wc;
-    var KEY_CRT_MODE      = domKeys.VK_R.wc;
-    //var KEY_SETTINGS      = domKeys.VK_Y.wc;
-    var KEY_QUICK_OPTIONS = domKeys.VK_U.wc;
-    var KEY_TOUCH_CONFIG  = domKeys.VK_I.wc;
+    var KEY_CRT_FILTER     = domKeys.VK_E.wc;
+    var KEY_CRT_SCANLINES  = domKeys.VK_R.wc;
+    //var KEY_CRT_PHOSPHOR = domKeys.VK_R.wc;
+    //var KEY_SETTINGS     = domKeys.VK_Y.wc;
+    var KEY_QUICK_OPTIONS  = domKeys.VK_U.wc;
+    var KEY_TOUCH_CONFIG   = domKeys.VK_I.wc;
 
     var KEY_FULLSCREEN  = domKeys.VK_ENTER.wc;
 
@@ -528,7 +532,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_ASPECT_PLUS, pc.SCREEN_ASPECT_MINUS,
         pc.SCREEN_SCALE_PLUS, pc.SCREEN_SCALE_MINUS,
         pc.SCREEN_FULLSCREEN,
-        pc.SCREEN_CRT_FILTER, pc.SCREEN_CRT_MODE,
+        pc.SCREEN_CRT_FILTER, pc.SCREEN_CRT_SCANLINES, pc.SCREEN_CRT_PHOSPHOR,
         pc.SCREEN_TOGGLE_MENU,
         pc.SCREEN_OPEN_HELP,
         pc.SCREEN_OPEN_ABOUT,

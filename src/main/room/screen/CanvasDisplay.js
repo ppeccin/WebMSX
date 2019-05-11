@@ -94,8 +94,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         canvasContext.drawImage(
             image,
             0, 0, sourceWidth, sourceHeight,
-            0, 0, targetWidth, targetHeight
+            0, 0, canvas.width, canvas.height
         );
+
+        // Put Scanlines on top
+        if (crtScanlines && !debugMode)
+            canvasContext.drawImage(
+                scanlinesImage,
+                  0, 0, 1, sourceHeight * 2,
+                  0, 0, canvas.width, canvas.height
+            );
 
         //console.log("" + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
     };
@@ -335,7 +343,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         setCRTFilter(newLevel);
         var levelDesc = crtFilterEffective === null ? "browser default" : crtFilterEffective < 1 ? "OFF" : "level " + crtFilterEffective;
-        this.showOSD("CRT filter: " + (crtFilter === -1 ? "AUTO (" + levelDesc + ")" : levelDesc), true);
+        this.showOSD("CRT Filter: " + (crtFilter === -1 ? "AUTO (" + levelDesc + ")" : levelDesc), true);
 
         // Persist
         if (WMSX.userPreferences.current.crtFilter !== crtFilter) {
@@ -350,18 +358,39 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         setCRTFilter(WMSX.SCREEN_FILTER_MODE !== -3 ? WMSX.SCREEN_FILTER_MODE : user !== null && user > -3 ? user : -1);
     };
 
-    this.crtModeToggle = function(dec) {
-        var newMode;
-        if (dec) { newMode = crtMode - 1; if (newMode < -1) newMode = 1; }
-        else     { newMode = crtMode + 1; if (newMode > 1) newMode = -1; }
+    this.crtScanlinesToggle = function(dec) {
+        var newLevel;
+        if (dec) { newLevel = crtScanlines - 1; if (newLevel < 0) newLevel = 10; }
+        else     { newLevel = crtScanlines + 1; if (newLevel > 10) newLevel = 0; }
 
-        setCRTMode(newMode);
-        var effectDesc = crtModeEffective === 1 ? "Phosphor" : "OFF";
-        this.showOSD("CRT mode: " + (crtMode === -1 ? "AUTO (" + effectDesc + ")" : effectDesc), true);
+        setCRTScanlines(newLevel);
+        this.showOSD("CRT Scanlines: " + (crtScanlines === 0 ? "OFF" : "" + (crtScanlines * 10) + "%"), true);
+
+        // Persist
+        if (WMSX.userPreferences.current.crtScanlines !== crtScanlines) {
+            WMSX.userPreferences.current.crtScanlines = crtScanlines;
+            WMSX.userPreferences.setDirty();
+            WMSX.userPreferences.save();
+        }
     };
 
-    this.crtModeSetDefault = function() {
-        setCRTMode(WMSX.SCREEN_CRT_MODE);
+    this.crtScanlinesSetDefault = function() {
+        var user = WMSX.userPreferences.current.crtScanlines;
+        setCRTScanlines(WMSX.SCREEN_CRT_SCANLINES !== -1 ? WMSX.SCREEN_CRT_SCANLINES : user !== null && user > -1 ? user : 0);
+    };
+
+    this.crtPhosphorToggle = function(dec) {
+        var newMode;
+        if (dec) { newMode = crtPhosphor - 1; if (newMode < -1) newMode = 1; }
+        else     { newMode = crtPhosphor + 1; if (newMode > 1) newMode = -1; }
+
+        setCRTPhosphor(newMode);
+        var effectDesc = crtPhosphorEffective === 1 ? "ON" : "OFF";
+        this.showOSD("CRT Phosphor: " + (crtPhosphor === -1 ? "AUTO (" + effectDesc + ")" : effectDesc), true);
+    };
+
+    this.crtPhosphorSetDefault = function() {
+        setCRTPhosphor(WMSX.SCREEN_CRT_PHOSPHOR);
     };
 
     this.getControlReport = function(control) {
@@ -727,7 +756,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function updateCanvasContentSize() {
         canvas.width = targetWidth;
-        canvas.height = targetHeight;
+        canvas.height = crtScanlines ? targetHeight * 2 : targetHeight;      // Double Vertical definition when in Scnalines mode so we can blend lines properly
         canvasContext = null;
     }
 
@@ -744,14 +773,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return isMobileDevice && !isIOSDevice && browserName === "FIREFOX" ? 2 : 1;
     }
 
-    function setCRTMode(mode) {
-        crtMode = mode;
-        crtModeEffective = crtMode === -1 ? crtModeAutoValue() : crtMode;
+    function setCRTScanlines(level) {
+        crtScanlines = level;
+        if (crtScanlines) updateScanlines();
         canvasContext = null;
     }
 
-    function crtModeAutoValue() {
-        return isMobileDevice ? 0 : 1;
+    function setCRTPhosphor(mode) {
+        crtPhosphor = mode;
+        crtPhosphorEffective = crtPhosphor === -1 ? 0 : crtPhosphor;
+        canvasContext = null;
     }
 
     function updateLogo() {
@@ -778,9 +809,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateImageComposition() {
-        if (crtModeEffective > 0 && !debugMode) {
+        if (!debugMode && (crtPhosphorEffective || crtScanlines)) {
             canvasContext.globalCompositeOperation = "source-over";
-            canvasContext.globalAlpha = 0.8;
+            canvasContext.globalAlpha = crtPhosphorEffective ? 0.8 : 1;
         } else {
             canvasContext.globalCompositeOperation = "copy";
             canvasContext.globalAlpha = 1;
@@ -832,6 +863,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
         unmuteMessage = document.getElementById("wmsx-unmute-message");
 
+        // Scanlines
+        scanlinesImage = document.createElement('canvas');
+        scanlinesImage.width = 1;
+        scanlinesImage.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 * 2;
+
         suppressContextMenu(mainElement);
         preventDrag(logoImage);
         preventDrag(logoLoadingIcon);
@@ -848,7 +884,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             case "SAFARI":  canvasImageRenderingValue = "-webkit-optimize-contrast"; break;
             default:        canvasImageRenderingValue = "pixelated";
         }
+
         setupMainEvents();
+    }
+
+    function updateScanlines() {
+        var ctx = scanlinesImage.getContext("2d", { alpha: true, antialias: false });
+        ctx.clearRect(0, 0, 1, scanlinesImage.height);
+        ctx.fillStyle = 'black';
+        ctx.globalAlpha = crtScanlines / 10;
+        for (var y = 1, h = scanlinesImage.height; y < h; y += 2) ctx.fillRect(0, y, 1, 1);
     }
 
     function setupMainEvents() {
@@ -1806,6 +1851,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var canvas, canvasOuter, canvasLoadingIcon;
     var canvasContext;
     var canvasImageRenderingValue;
+    var scanlinesImage;
 
     var touchControlsActive = false, touchControlsDirBig = false;
     var virtualKeyboardMode = 0;
@@ -1827,7 +1873,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var cursorHideFrameCountdown = -1;
     var signalIsOn = false;
     var crtFilter = -2, crtFilterEffective = null;
-    var crtMode = -1, crtModeEffective = 0;
+    var crtScanlines = 0;
+    var crtPhosphor = -1, crtPhosphorEffective = 0;
     var debugMode = false;
     var isLoading = false;
 
