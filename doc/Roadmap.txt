@@ -10,6 +10,9 @@
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
+* Set machine type (1/2/2+) from URL
+* Set extensions parameters from URL
+* Allow patching any Disk ROM
 
 
   BUGS
