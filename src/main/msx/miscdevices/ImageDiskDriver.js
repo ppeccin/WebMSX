@@ -59,52 +59,51 @@ wmsx.ImageDiskDriver = function() {
         drive.allMotorsOff();
     };
 
-    this.patchDiskBIOS = function(bytes) {
+    this.patchDiskBIOS = function(bytes, startAddress) {
         // DOS kernel places where Driver routines with no jump table are called
-        // Starting with offset 0x4000
 
         // INIHRD routine (EXT 8)
-        bytes[0x176F] = 0xed;
-        bytes[0x1770] = 0xe8;
-        bytes[0x1771] = 0x00;   // NOP
+        bytes[startAddress + 0x176F] = 0xed;
+        bytes[startAddress + 0x1770] = 0xe8;
+        bytes[startAddress + 0x1771] = 0x00;   // NOP
         // DRIVES routine (EXT 9)
-        bytes[0x1850] = 0xed;
-        bytes[0x1851] = 0xe9;
-        bytes[0x1852] = 0x00;   // NOP
+        bytes[startAddress + 0x1850] = 0xed;
+        bytes[startAddress + 0x1851] = 0xe9;
+        bytes[startAddress + 0x1852] = 0x00;   // NOP
 
         // DOS Kernel jump table for Driver routines
 
         // DSKIO routine (EXT A)
-        bytes[0x0010] = 0xed;
-        bytes[0x0011] = 0xea;
-        bytes[0x0012] = 0xc9;
+        bytes[startAddress + 0x0010] = 0xed;
+        bytes[startAddress + 0x0011] = 0xea;
+        bytes[startAddress + 0x0012] = 0xc9;
         // DSKCHG routine (EXT B)
-        bytes[0x0013] = 0xed;
-        bytes[0x0014] = 0xeb;
-        bytes[0x0015] = 0xc9;
+        bytes[startAddress + 0x0013] = 0xed;
+        bytes[startAddress + 0x0014] = 0xeb;
+        bytes[startAddress + 0x0015] = 0xc9;
         // GETDPB routine (EXT C)
-        bytes[0x0016] = 0xed;
-        bytes[0x0017] = 0xec;
-        bytes[0x0018] = 0xc9;
+        bytes[startAddress + 0x0016] = 0xed;
+        bytes[startAddress + 0x0017] = 0xec;
+        bytes[startAddress + 0x0018] = 0xc9;
         // CHOICE routine (EXT D)
-        bytes[0x0019] = 0xed;
-        bytes[0x001a] = 0xed;
-        bytes[0x001b] = 0xc9;
+        bytes[startAddress + 0x0019] = 0xed;
+        bytes[startAddress + 0x001a] = 0xed;
+        bytes[startAddress + 0x001b] = 0xc9;
         // DSKFMT routine (EXT E)
-        bytes[0x001c] = 0xed;
-        bytes[0x001d] = 0xee;
-        bytes[0x001e] = 0xc9;
+        bytes[startAddress + 0x001c] = 0xed;
+        bytes[startAddress + 0x001d] = 0xee;
+        bytes[startAddress + 0x001e] = 0xc9;
         // MTOFF routine (EXT F)
-        bytes[0x001f] = 0xed;
-        bytes[0x0020] = 0xef;
-        bytes[0x0021] = 0xc9;
+        bytes[startAddress + 0x001f] = 0xed;
+        bytes[startAddress + 0x0020] = 0xef;
+        bytes[startAddress + 0x0021] = 0xc9;
 
-        // It seem the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
+        // It seems the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
         // So we must put the message in the same slot and make that memory region readable
         // Lets use a memory space in page 2 of this same slot and hope it works
-        wmsx.Util.arrayFill(bytes, 0xff, 0x4000);   // 256 bytes additional space over ROM
+        wmsx.Util.arrayFill(bytes, 0xff, startAddress + 0x4000);   // 256 bytes additional space over ROM
         for (var i = 0; i < CHOICE_STRING.length; i++)
-            bytes[CHOICE_STRING_ADDRESS - 0x4000 + i] = CHOICE_STRING.charCodeAt(i);
+            bytes[startAddress + CHOICE_STRING_ADDRESS - 0x4000 + i] = CHOICE_STRING.charCodeAt(i);
     };
 
     function INIHRD(F, HL) {

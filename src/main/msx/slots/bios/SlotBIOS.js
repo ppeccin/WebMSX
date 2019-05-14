@@ -1,17 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// 16K or 32K Main BIOS ROM
-// 0x0000 - 0x7fff,
+// Main BIOS ROM content >= 16K & <= 64K, starting at 0x0000. Can be bundled with other BIOS/ROMs
+// 0x0000 - ????
 
 wmsx.SlotBIOS = function(rom) {
 "use strict";
 
     function init(self) {
         self.rom = rom;
-        bytes = new Array(0x8000);
-        wmsx.Util.arrayCopy(rom.content, 0, bytes);
-        wmsx.Util.arrayFill(bytes, 0xff, rom.content.length);
+        bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
+        topAddress = bytes.length;
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
         cassetteDriver.patchBIOS(bytes);
     }
@@ -45,7 +44,7 @@ wmsx.SlotBIOS = function(rom) {
     };
 
     this.read = function(address) {
-        if (address < 0x8000)
+        if (address < topAddress)
             return bytes[address];
         else
             return 0xff;
@@ -74,6 +73,8 @@ wmsx.SlotBIOS = function(rom) {
 
     var bytes;
     this.bytes = null;
+
+    var topAddress;
 
     var cassetteDriver = new wmsx.ImageCassetteDriver();
     var keyboardExtension = new wmsx.BIOSKeyboardExtension();
@@ -105,16 +106,12 @@ wmsx.SlotBIOS = function(rom) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         else {
             this.rom.reloadEmbeddedContent();
-            if (this.rom.content.length === 0x8000)
-                bytes = wmsx.Util.asNormalArray(this.rom.content);
-            else {
-                if (!bytes) bytes = new Array(0x8000);
-                wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-                wmsx.Util.arrayFill(bytes, 0xff, rom.content.length);
-            }
+            if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
+            wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
             cassetteDriver.patchBIOS(bytes);
         }
         this.bytes = bytes;
+        topAddress = bytes.length;
         if (s.ke) keyboardExtension.loadState(s.ke);
         turboDriver.loadState(s.td);
     };

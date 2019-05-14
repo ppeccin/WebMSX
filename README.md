@@ -277,6 +277,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `ROM_MAX_HASH_SIZE_KB`          |  3072               |  Maximum ROM size for Hash calculation
 | `HARDDISK_MIN_SIZE_KB`          |  720                |  Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
 | `MEGARAM_SIZE`                  |  2048               |  MegaRAM size in KB
+| `DISK_ROM_START_PAGE`           |  0                  |  Change starting page for ROMs > 16KB when format is DiskPatch. 0..1
 | `PSG_VOL`                       |  "f"                |  PSG Volume adjust: 0..f (hex digit). Set globally or for each channel (4 values)
 | `PSG_PAN`                       |  "8"                |  PSG PanPot adjust: 0; 1..8..f (hex digit). Set globally or for each channel (4 values)
 | `SCC_VOL`                       |  "f"                |  SCC Volume adjust. Same as above (5 values)

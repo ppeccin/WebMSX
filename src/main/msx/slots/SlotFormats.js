@@ -71,9 +71,9 @@ wmsx.SlotFormats = {
         priority: 201,
         internal: true,
         priorityForRom: function (rom) {
-            // Any 16K or 32K content starting with "F3 C3" (DI; JP) or "F3 18" (DI; JR)
-            return ((rom.content.length === 16384 || rom.content.length === 32768) && rom.content[0x0000] === 0xF3
-                    && (rom.content[0x0001] === 0xC3 || rom.content[0x0001] === 0x18)) ? this.priority : null;
+            // Any >= 16K & <= 64K content starting with "F3 C3" (DI; JP) or "F3 18" (DI; JR)
+            return rom.content.length >= 16384 && rom.content.length <= 65536
+                && rom.content[0x0000] === 0xF3 && (rom.content[0x0001] === 0xC3 || rom.content[0x0001] === 0x18) ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.SlotBIOS(rom);
@@ -89,8 +89,9 @@ wmsx.SlotFormats = {
         priority: 202,
         internal: true,
         priorityForRom: function (rom) {
-            // Any multiple of 16K content starting with the BIOS Extension identifier "CD"
-            return ((rom.content.length & 0x3fff) === 0 && rom.content[0] === 67 && rom.content[1] === 68) ? this.priority : null;
+            // Any >= 16K & <= 64K content starting with the BIOS Extension identifier "CD"
+            return rom.content.length >= 16384 && rom.content.length <= 65536
+                && rom.content[0] === 67 && rom.content[1] === 68 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.SlotMSX2BIOSExt(rom);
@@ -145,8 +146,8 @@ wmsx.SlotFormats = {
         internal: true,
         embeddedURL: "@[DiskPatch].rom",
         priorityForRom: function (rom) {
-            // Only DiskPatched 16K content. Must be selected via info format hint
-            return (rom.content.length === 16384 && rom.content[0] === 65 && rom.content[1] === 66) ? this.priority : null;
+            // Any >= 16K & <= 64K content. Disk ROM pacthed depending on starting page (DISK_ROM_START_PAGE param), page 1 default. Must be selected via info format hint
+            return rom.content.length >= 16384 && rom.content.length <= 65536 ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeDiskPatched(rom);

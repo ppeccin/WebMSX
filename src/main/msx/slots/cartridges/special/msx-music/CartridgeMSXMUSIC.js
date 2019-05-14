@@ -68,7 +68,8 @@ wmsx.CartridgeMSXMUSIC = function(rom) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         else {
             this.rom.reloadEmbeddedContent();
-            bytes = wmsx.Util.asNormalArray(this.rom.content);
+            if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
+            wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
         }
         this.bytes = bytes;
         opll.loadState(s.fm);

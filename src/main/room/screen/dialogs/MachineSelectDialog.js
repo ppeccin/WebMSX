@@ -62,7 +62,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
         var height = 43;
 
         for (var i = 0; i < machines.length; ++i) {
-            if (!WMSX.MACHINES_CONFIG[machines[i]].type) continue;       // Exclude EMPTY and AUTO options from list
+            if (!WMSX.MACHINES_CONFIG[machines[i]].presets) continue;       // Exclude EMPTY and AUTO options from list
             var li = document.createElement("li");
             li.classList.add("wmsx-visible");
             li.style.textAlign = "center";
@@ -107,7 +107,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
             else if (SELECT_KEYS[keyCode]) {
                 var idx = machines.indexOf(machineSelected) + SELECT_KEYS[keyCode];
                 var newMachine = machines[idx];
-                if (newMachine && WMSX.MACHINES_CONFIG[newMachine].type) {      // Exclude EMPTY and AUTO options
+                if (newMachine && WMSX.MACHINES_CONFIG[newMachine].presets) {      // Exclude EMPTY and AUTO options
                     machineSelected = newMachine;
                     refresh();
                 }

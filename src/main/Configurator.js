@@ -55,10 +55,9 @@ wmsx.Configurator = {
         }
 
         function normalizeParameterTypes() {
+            // Numeric parameters
             WMSX.RAMMAPPER_SIZE |= 0;
             WMSX.AUTO_POWER_ON_DELAY |= 0;
-            WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
-            WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
             WMSX.SCREEN_FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE |= 0;
             WMSX.SCREEN_FILTER_MODE |= 0;
             WMSX.SCREEN_CRT_SCANLINES |= 0;
@@ -93,6 +92,12 @@ wmsx.Configurator = {
             WMSX.HARDDISK_MIN_SIZE_KB |= 0;
             WMSX.MEGARAM_SIZE |= 0;
 
+            // Boolean parameters
+            WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
+            WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
+            WMSX.LIGHT_STATES = WMSX.LIGHT_STATES === true || WMSX.LIGHT_STATES == "true";
+
+            // Array parameters
             if (typeof WMSX.BIOS_SLOT === "string") WMSX.BIOS_SLOT = JSON.parse(WMSX.BIOS_SLOT);
             if (typeof WMSX.BIOSEXT_SLOT === "string") WMSX.BIOSEXT_SLOT = JSON.parse(WMSX.BIOSEXT_SLOT);
             if (typeof WMSX.CARTRIDGE1_SLOT === "string") WMSX.CARTRIDGE1_SLOT = JSON.parse(WMSX.CARTRIDGE1_SLOT);

@@ -10,7 +10,7 @@ wmsx.MachineTypeSocket = function(machine) {
     };
 
     this.getMachineLang = function() {
-        return WMSX.MACHINES_CONFIG[machine.machineName].lang;
+        return WMSX.MACHINES_CONFIG[machine.machineName].lang || "en";
     };
 
     this.changeMachine = function (name) {
