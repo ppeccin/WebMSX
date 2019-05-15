@@ -23,13 +23,13 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.isActiveOnConf = function(ext, op2) {
-        var op = config[ext].OP2 && op2 ? 2 : 1;
+        var op = config[ext].OP2_SLOT && op2 ? 2 : 1;
         return (WMSX.EXTENSIONS[ext] & op) !== 0;
     };
 
     this.isActiveOnSlot = function(ext, op2) {
-        var hasOp2 = !!config[ext].OP2;
-        var loaded = slotSocket.slotInserted(op2 && hasOp2 ? config[ext].OP2 : config[ext].OP1);
+        var hasOp2 = !!config[ext].OP2_SLOT;
+        var loaded = slotSocket.slotInserted(op2 && hasOp2 ? config[ext].OP2_SLOT : config[ext].OP1_SLOT);
         return !!loaded && loaded.format.name === config[ext].format;
     };
 
@@ -44,7 +44,7 @@ wmsx.ExtensionsSocket = function(machine) {
 
     this.toggleExtension = function (ext, altPower, secOp, skipMessage) {
         if (config[ext] === undefined) return;
-        var hasOp2 = !!config[ext].OP2;
+        var hasOp2 = !!config[ext].OP2_SLOT;
         var both = hasOp2 && !config[ext].toggle;
         secOp = secOp && hasOp2;
 
@@ -80,7 +80,7 @@ wmsx.ExtensionsSocket = function(machine) {
             if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed && !skipMessage) {
-                var slotDesc = machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2 : config[ext].OP1);
+                var slotDesc = machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].OP2_SLOT : config[ext].OP1_SLOT);
                 var mes = config[ext].desc + " Extension " + (newOp ? "enabled" + (newOp === 3 ? " at both slots" : (slotDesc ? " at slot " + slotDesc : "")) : "disabled");
                 machine.showOSD(mes, true);
                 wmsx.Util.log(mes);
@@ -92,7 +92,7 @@ wmsx.ExtensionsSocket = function(machine) {
         var loaderUrlSpecs = [];
         for (var ext in config) {
             if (WMSX.EXTENSIONS[ext] & 1) loaderUrlSpecs.push(makeLoaderUrlSpec(ext, false));
-            if (config[ext].OP2 && (WMSX.EXTENSIONS[ext] & 2)) loaderUrlSpecs.push(makeLoaderUrlSpec(ext, true));
+            if (config[ext].OP2_SLOT && (WMSX.EXTENSIONS[ext] & 2)) loaderUrlSpecs.push(makeLoaderUrlSpec(ext, true));
         }
         return loaderUrlSpecs;
     };
@@ -110,13 +110,13 @@ wmsx.ExtensionsSocket = function(machine) {
             if (WMSX.EXTENSIONS[ext] & 1) {
                 if (!self.isActiveOnSlot(ext, false)) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext, false));
             } else {
-                if (self.isActiveOnSlot(ext, false)) toRemoveSlots.push(conf.OP1);
+                if (self.isActiveOnSlot(ext, false)) toRemoveSlots.push(conf.OP1_SLOT);
             }
-            if (conf.OP2) {
+            if (conf.OP2_SLOT) {
                 if (WMSX.EXTENSIONS[ext] & 2) {
                     if (!self.isActiveOnSlot(ext, true)) toLoadUrlSpecs.push(makeLoaderUrlSpec(ext, true));
                 } else {
-                    if (self.isActiveOnSlot(ext, true)) toRemoveSlots.push(conf.OP2);
+                    if (self.isActiveOnSlot(ext, true)) toRemoveSlots.push(conf.OP2_SLOT);
                 }
             }
         }
@@ -143,13 +143,13 @@ wmsx.ExtensionsSocket = function(machine) {
     this.refreshConfigFromSlots = function(){
         for (var ext in config) {
             var state = self.isActiveOnSlot(ext, false) ? 1 : 0;
-            state |= (config[ext].OP2 && self.isActiveOnSlot(ext, true)) ? 2 : 0;
+            state |= (config[ext].OP2_SLOT && self.isActiveOnSlot(ext, true)) ? 2 : 0;
             WMSX.EXTENSIONS[ext] = state;
         }
     };
 
     function updateExtensionOnConf(ext, val, op2, stopRecursion) {
-        op2 = op2 && !!config[ext].OP2;
+        op2 = op2 && !!config[ext].OP2_SLOT;
         if (self.isActiveOnConf(ext, op2) === val) return;
 
         //console.log("Update ext: ", ext, val, "op2:", op2);
@@ -189,7 +189,7 @@ wmsx.ExtensionsSocket = function(machine) {
         return {
             url: wmsx.SlotFormats[config[ext].format].embeddedURL || "",
             onSuccess: function (res) {
-                fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].OP2 : config[ext].OP1, true, true);     // internal
+                fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].OP2_SLOT : config[ext].OP1_SLOT, true, true);     // internal
             }
         };
     }

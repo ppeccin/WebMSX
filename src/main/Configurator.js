@@ -93,16 +93,21 @@ wmsx.Configurator = {
             WMSX.MEGARAM_SIZE |= 0;
 
             // Boolean parameters
-            WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED == "true";
-            WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED == "true";
-            WMSX.LIGHT_STATES = WMSX.LIGHT_STATES === true || WMSX.LIGHT_STATES == "true";
+            WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";
+            WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED === "true";
+            WMSX.LIGHT_STATES = WMSX.LIGHT_STATES === true || WMSX.LIGHT_STATES === "true";
 
-            // Array parameters
-            if (typeof WMSX.BIOS_SLOT === "string") WMSX.BIOS_SLOT = JSON.parse(WMSX.BIOS_SLOT);
-            if (typeof WMSX.BIOSEXT_SLOT === "string") WMSX.BIOSEXT_SLOT = JSON.parse(WMSX.BIOSEXT_SLOT);
-            if (typeof WMSX.CARTRIDGE1_SLOT === "string") WMSX.CARTRIDGE1_SLOT = JSON.parse(WMSX.CARTRIDGE1_SLOT);
-            if (typeof WMSX.CARTRIDGE2_SLOT === "string") WMSX.CARTRIDGE2_SLOT = JSON.parse(WMSX.CARTRIDGE2_SLOT);
-            if (typeof WMSX.EXPANSION_SLOTS === "string") WMSX.EXPANSION_SLOTS = JSON.parse(WMSX.EXPANSION_SLOTS);
+            // Slot parameters (arrays with numbers)
+            for (var p in WMSX) if (wmsx.Util.stringEndsWith(p, "_SLOT")) normalizeNumberArray(WMSX, p, WMSX[p]);
+            for (var e in WMSX.EXTENSIONS_CONFIG)
+                for (p in WMSX.EXTENSIONS_CONFIG[e]) if (wmsx.Util.stringEndsWith(p, "_SLOT")) normalizeNumberArray(WMSX.EXTENSIONS_CONFIG[e], p, WMSX.EXTENSIONS_CONFIG[e][p]);
+
+            function normalizeNumberArray(obj, prop, value) {
+                if (value.constructor === Array) return;
+                var nums = ("" + value).match(/[0-9]/g);
+                if (!nums) return;
+                obj[prop] = nums.map(function(strNum) { return strNum | 0; });
+            }
         }
     },
 
@@ -133,10 +138,8 @@ wmsx.Configurator = {
         else {
             var obj = WMSX;
             var parts = name.split('.');
-            for (var p = 0; p < parts.length - 1; ++p) {
-                obj = obj[parts[p]];
-            }
-            obj[parts[parts.length - 1]] = value;
+            for (var p = 0; p < parts.length - 1; ++p) obj = obj && obj[parts[p]];
+            if (obj) obj[parts[parts.length - 1]] = value;
         }
     },
 
@@ -153,10 +156,10 @@ wmsx.Configurator = {
         if (WMSX.BIOS_URL) addSpec(WMSX.BIOS_URL, WMSX.BIOS_SLOT);
         if (WMSX.BIOSEXT_URL) addSpec(WMSX.BIOSEXT_URL, WMSX.BIOSEXT_SLOT);
 
-        // Any URL specified in the format SLOT_N_N_URL
+        // Any URL specified in the format SLOTN_N_URL
         for (var key in WMSX) {
-            if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "URL")) {
-                var nums = key.match(/[0-9]+/g);
+            if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "_URL")) {
+                var nums = key.match(/[0-9]/g);
                 if (nums) {
                     var pos = nums.map(function(strNum) { return strNum | 0; });
                     addSpec(WMSX[key], pos);
@@ -271,31 +274,31 @@ wmsx.Configurator = {
     upgradeForState: function(state) {
         // Adapt Extensions Config. Make current Config compatible with old State
         if (state.v < 50) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 2];
-            WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 2];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1 =    [3, 1];
-            WMSX.BIOSEXT_SLOT =                   [2, 1];
-            WMSX.EXPANSION_SLOTS =                [[3, 2], [3, 3]];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 2];
+            WMSX.EXTENSIONS_CONFIG.DISK.OP1_SLOT =     [2, 2];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1_SLOT =    [3, 1];
+            WMSX.BIOSEXT_SLOT =                        [2, 1];
+            WMSX.EXPANSION_SLOTS =                     [[3, 2], [3, 3]];
             WMSX.OLD_EXTENSION_CONFIG = true;
         } else if (state.v < 51) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1 =    [2, 1];
-            WMSX.BIOSEXT_SLOT =                   [3, 1];
-            WMSX.EXPANSION_SLOTS =                [[2, 2], [2, 3]];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.OP1_SLOT =     [2, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT = [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1_SLOT =    [2, 1];
+            WMSX.BIOSEXT_SLOT =                        [3, 1];
+            WMSX.EXPANSION_SLOTS =                     [[2, 2], [2, 3]];
             WMSX.OLD_EXTENSION_CONFIG = true;
         }
 
         // Revert old config to the new Config again
         if (WMSX.OLD_EXTENSION_CONFIG && state.v >= 51) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1 = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.DISK.OP1 =     [2, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1 = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1 =    [4, 0];
-            WMSX.BIOSEXT_SLOT =                   [3, 1];
-            WMSX.EXPANSION_SLOTS =                [[2, 1], [2, 2]];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.OP1_SLOT =     [2, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT = [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.OP1_SLOT =    [4, 0];
+            WMSX.BIOSEXT_SLOT =                        [3, 1];
+            WMSX.EXPANSION_SLOTS =                     [[2, 1], [2, 2]];
             WMSX.OLD_EXTENSION_CONFIG = false;
         }
     },

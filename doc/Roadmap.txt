@@ -10,18 +10,14 @@
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
-* Set machine type (1/2/2+) from URL
-* Set extensions parameters from URL
-* Allow patching any Disk ROM
 
 
   BUGS
 =========
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
-* Parse Array-type URL params correctly
 
 
 Custom Machine example:
 
-http://localhost:4000/WebMSX/test/index.html?m=empty2&slot_0_0_url=yis805.rom&slot_3_0_url=yis805painter.rom&slot_3_1_url=yis805sub[DiskPatch].rom&slot_3_2_url=@[RAMMapper].rom
+http://localhost:4000/WebMSX/test/index.html?m=empty2&slot00_url=yis805.rom&slot30_url=yis805painter.rom&slot31_url=yis805sub[DiskPatch].rom&slot32_url=@[RAMMapper].rom

@@ -132,18 +132,18 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    HARDDISK:  { desc: "Hard Drive",    format: "Nextor16Patch", OP1: [2, 3], OP2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
-    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1: [2, 3], OP2: [3, 3], toggle: "HARDDISK" },
-    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1: [3],                 mutual: "RAMNORMAL" },
-    RAMNORMAL: {                        format: "RAMNormal",     OP1: [3],                 mutual: "RAMMAPPER" },
-    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1: [4, 0] },
-    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1: [3, 2] },
-    OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1: [4, 1] },
-    DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      OP1: [4, 2] },
-    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1: [1],    OP2: [2], change: { SCC:  0, PAC: 0, MEGARAM: 0 } },
-    SCC:       {                        format: "SCCExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1: [1],    OP2: [2], change: { SCCI: 0, SCC: 0, MEGARAM: 0 } },
-    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1: [1],    OP2: [2], change: { SCCI: 0, SCC: 0, PAC: 0 } }
+    HARDDISK:  { desc: "Hard Drive",    format: "Nextor16Patch", OP1_SLOT: [2, 3], OP2_SLOT: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
+    DISK:      { desc: "Floppy Drives", format: "DiskPatch",     OP1_SLOT: [2, 3], OP2_SLOT: [3, 3], toggle: "HARDDISK" },
+    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1_SLOT: [3],                      mutual: "RAMNORMAL" },
+    RAMNORMAL: {                        format: "RAMNormal",     OP1_SLOT: [3],                      mutual: "RAMMAPPER" },
+    KANJI:     { desc: "KANJI Fonts",   format: "Kanji1",        OP1_SLOT: [4, 0] },
+    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1_SLOT: [3, 2] },
+    OPL4:      { desc: "OPL4 Wave",     format: "MoonSound",     OP1_SLOT: [4, 1] },
+    DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      OP1_SLOT: [4, 2] },
+    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCC:  0, PAC: 0, MEGARAM: 0 } },
+    SCC:       {                        format: "SCCExpansion",  OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCCI: 0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCCI: 0, SCC: 0, PAC: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
@@ -219,10 +219,10 @@ WMSX.PRESETS_CONFIG = {
     // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 
     ALTSLOTCONFIG: {
-        BIOSEXT_SLOT:                      [2, 1],
-        EXPANSION_SLOTS:                   [[3, 2], [3, 3]],
-        "EXTENSIONS_CONFIG.MSXMUSIC.OP1":  [2, 2],
-        "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
+        BIOSEXT_SLOT:                           [2, 1],
+        EXPANSION_SLOTS:                        [[3, 2], [3, 3]],
+        "EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT":  [2, 2],
+        "PRESETS_CONFIG.DISK":                  { "EXTENSIONS.DISK": 1 }
     },
 
     // MSX2++ Machine Presets. Do not use directly

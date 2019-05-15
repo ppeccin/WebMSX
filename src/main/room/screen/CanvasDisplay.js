@@ -1301,7 +1301,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             if (opt.extension) {
                 opt.hidden = !extensionsSocket.isValid(opt.extension);
                 opt.checkedOp = WMSX.EXTENSIONS[opt.extension];
-                opt.noOp2 = !WMSX.EXTENSIONS_CONFIG[opt.extension].OP2;
+                opt.noOp2 = !WMSX.EXTENSIONS_CONFIG[opt.extension].OP2_SLOT;
             }
         }
         if (barMenuActive === menu) refreshBarMenu(menu);
