@@ -254,7 +254,7 @@ wmsx.VDP = function(machine, cpu) {
         initRegisters();
         initColorPalette();
         commandProcessor.reset();
-        updateSignalMetrics();
+        updateSignalMetrics(true);
         updateIRQ();
         updateMode();
         updateSpritesConfig();
@@ -371,7 +371,7 @@ wmsx.VDP = function(machine, cpu) {
                 if (mod & 0x02) updateSpritesConfig();                   // SPD
                 break;
             case 9:
-                if (mod & 0x80) updateSignalMetrics();                   // LN
+                if (mod & 0x80) updateSignalMetrics(false);              // LN
                 if (mod & 0x08) updateRenderMetrics(false);              // IL
                 if (mod & 0x04) updateLayoutTableAddressMask();          // EO
                 if (mod & 0x02) updateVideoStandardSoft();               // NT
@@ -392,13 +392,13 @@ wmsx.VDP = function(machine, cpu) {
                 if (mod & 0x0f) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
                 if (mod & 0xf0) {
                     verticalAdjust = -7 + ((val >>> 4) ^ 0x07);
-                    updateSignalMetrics();
+                    updateSignalMetrics(false);
                 }
                 break;
             case 19:
                 horizontalIntLine = (val - register[23]) & 255;
 
-                //logInfo("Line Interrupt set: " + val);
+                // logInfo("Line Interrupt set: " + val + ", reg23: " + register[23]);
 
                 break;
             case 23:
@@ -595,7 +595,7 @@ wmsx.VDP = function(machine, cpu) {
 
         // Verify and change sections of the screen
         if (currentScanline === startingActiveScanline) enterActiveDisplay();
-        else if (currentScanline === startingVisibleBottomBorderScanline) enterBorderDisplay();
+        else if (currentScanline - frameStartingActiveScanline === signalActiveHeight) setBorderDisplay();
 
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
@@ -606,9 +606,10 @@ wmsx.VDP = function(machine, cpu) {
 
         if (blankingChangePending) updateLineActiveType();
 
-        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
         if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
-        if (currentScanline === startingVisibleBottomBorderScanline) triggerVerticalInterrupt();    // VR = 1, F = 1 at the first Bottom Border line
+        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
+        else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
+            triggerVerticalInterrupt();
 
         cpuClockPulses(10);
 
@@ -633,7 +634,7 @@ wmsx.VDP = function(machine, cpu) {
         // Right erase: 27 clocks
 
         status[2] |= 0x20;                                                                          // HR = 1
-        if (currentScanline - startingActiveScanline === horizontalIntLine)
+        if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();                                                           // FH = 1
 
         cpuClockPulses(15); audioClockPulse32();
@@ -760,26 +761,27 @@ wmsx.VDP = function(machine, cpu) {
         //logInfo("VDP VideoStandard: " + (pal ? "PAL" : "NTSC"));
     }
 
-    function updateSignalMetrics() {
-        var activeHeight, addBorder;
+    function updateSignalMetrics(force) {
+        var addBorder;
 
         // Fixed metrics for V9918
         if (isV9918) {
-            activeHeight = 192; addBorder = 0;
+            signalActiveHeight = 192; addBorder = 0;
         } else {
-            if (register[9] & 0x80) { activeHeight = 212; addBorder = 0; }             // LN
-            else { activeHeight = 192; addBorder = 10; }
+            if (register[9] & 0x80) { signalActiveHeight = 212; addBorder = 0; }             // LN
+            else { signalActiveHeight = 192; addBorder = 10; }
         }
 
         // UX decision: Visible border height with LN = 1 and no Vertical Adjust is 8
-        startingScanline = 0;
         startingVisibleTopBorderScanline = 16 - 8;                                                              // Minimal Border left invisible (NTSC with LN = 0)
         startingActiveScanline = startingVisibleTopBorderScanline + 8 + addBorder + verticalAdjust;
-        startingVisibleBottomBorderScanline = startingActiveScanline + activeHeight;
+        var startingVisibleBottomBorderScanline = startingActiveScanline + signalActiveHeight;
         startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 + addBorder - verticalAdjust;       // Remaining Bottom border and other parts left invisible
         finishingScanline = frameVideoStandard.totalHeight;
 
-        //logInfo("Update Signal Metrics, reg9: " + register[9].toString(16));
+        if (force || currentScanline < startingActiveScanline) frameStartingActiveScanline = startingActiveScanline;
+
+        // logInfo("Update Signal Metrics: " + force + ", activeHeight: " + signalActiveHeight);
     }
 
     function updateRenderMetrics(force) {
@@ -826,15 +828,18 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function enterActiveDisplay() {
-        renderLine = renderLineActive;
+        setActiveDisplay();
+        frameStartingActiveScanline = currentScanline;
 
-        //logInfo("Active Display");
+        // logInfo("Enter Active Display");
     }
 
-    function enterBorderDisplay() {
-        renderLine = renderLineBorders;
+    function setActiveDisplay() {
+        renderLine = renderLineActive;
+    }
 
-        //logInfo("Border Display");
+    function setBorderDisplay() {
+        renderLine = renderLineBorders;
     }
 
     function updateLineActiveType() {
@@ -932,12 +937,16 @@ wmsx.VDP = function(machine, cpu) {
         renderLineBorders();
     }
 
+    function getRealLine() {
+        return (currentScanline - frameStartingActiveScanline + register[23]) & 255;
+    }
+
     // V9958: Only Left Masking and Right Pixel Scroll supported. Left Char Scroll and Scroll Pages not supported
     function renderLineModeT1() {                                           // Text (Screen 0 width 40)
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var colorCode = register[7];                                        // fixed text color for all line
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var on =  colorPalette[colorCode >>> 4];
@@ -969,7 +978,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var name, pattern, colorCode, on, off;
 
@@ -1015,7 +1024,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var extraPatPos = patternTableAddress + (((realLine >>> 3) & 0x03) << 1) + ((realLine >>> 2) & 0x01);    // (pattern line % 4) * 2
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
@@ -1048,7 +1057,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = patternTableAddress + (realLine & 0x07);
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
@@ -1081,7 +1090,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
@@ -1116,7 +1125,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInColor = colorTableAddress + (realLine & 0x07);
         var lineInPattern = patternTableAddress + (realLine & 0x07);
         var blockExtra = (realLine & 0xc0) << 2;                            // + 0x100 for each third block of the screen (8 pattern lines)
@@ -1151,7 +1160,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 2);
@@ -1189,7 +1198,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop32Tiled(bufferPosition); paintBackdrop32Tiled(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
 
         var pixelsPosBase = layoutTableAddress + (realLine << 7);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 2);
@@ -1259,7 +1268,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1307,7 +1316,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var alpha = debugModeSpriteHighlight ? DEBUG_DIM_ALPHA_MASK : 0xffffffff;
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
@@ -1342,7 +1351,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop20(bufferPosition); paintBackdrop16(bufferPosition + 256 + 4);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels + 4;    // In YJK modes, the screen is shifted 4 pixels to the rignt
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1394,7 +1403,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop20(bufferPosition); paintBackdrop16(bufferPosition + 256 + 4);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels + 4;    // In YJK modes, the screen is shifted 4 pixels to the rignt
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
 
         var pixelsPosBase = layoutTableAddress + (realLine << 8);
         var pixelsPos = pixelsPosBase + (leftScrollCharsInPage << 3);
@@ -1458,7 +1467,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = realLine & 0x07;
 
         var namePos = layoutTableAddress + ((realLine >>> 3) * 40);
@@ -1492,7 +1501,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 512);
 
         var bufferPos = bufferPosition + 16 + ((horizontalAdjust + rightScrollPixels) << 1);
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = realLine & 0x07;
         var name, pattern, on;
 
@@ -1553,7 +1562,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
 
         var namePosBase = layoutTableAddress + ((realLine >>> 3) << 5);
         var namePos = namePosBase + leftScrollCharsInPage;
@@ -1582,7 +1591,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = realLine & 0x07;
         var pattern, on, off;
 
@@ -1626,7 +1635,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
         var pattern, on, off;
@@ -1672,7 +1681,7 @@ wmsx.VDP = function(machine, cpu) {
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 256);
 
         var bufferPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        var realLine = (currentScanline - startingActiveScanline + register[23]) & 255;
+        var realLine = getRealLine();
         var lineInPattern = realLine & 0x07;
         var blockExtra = (realLine & 0xc0) << 2;
         var pattern, on, off;
@@ -2139,10 +2148,10 @@ wmsx.VDP = function(machine, cpu) {
         if (framePulldown !== pulldown) {
             frameVideoStandard = videoStandard;
             framePulldown = pulldown;
-            updateSignalMetrics();
+            updateSignalMetrics(true);
         }
 
-        currentScanline = startingScanline;
+        currentScanline = 0;
 
         if (renderMetricsChangePending) updateRenderMetrics(true);
 
@@ -2307,11 +2316,10 @@ wmsx.VDP = function(machine, cpu) {
 
     var cycles, lastBUSCyclesComputed;
 
-    var startingScanline;
+    var signalActiveHeight;
     var finishingScanline;
-    var startingActiveScanline;
+    var startingActiveScanline, frameStartingActiveScanline;
     var startingVisibleTopBorderScanline;
-    var startingVisibleBottomBorderScanline;
     var startingInvisibleScanline;
 
     var frameVideoStandard, framePulldown;                  // Delays VideoStandard change until next frame
@@ -2428,6 +2436,7 @@ wmsx.VDP = function(machine, cpu) {
             mt: machineType,
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
+            fs: frameStartingActiveScanline,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
             vp: vramPointer, d: dataFirstWrite, dr: dataPreRead, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
@@ -2456,7 +2465,7 @@ wmsx.VDP = function(machine, cpu) {
         paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
-        if (s.ad) enterActiveDisplay(); else enterBorderDisplay();
+        if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
         vramPointer = s.vp; dataFirstWrite = s.d; dataPreRead = s.dr || 0; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
@@ -2469,7 +2478,8 @@ wmsx.VDP = function(machine, cpu) {
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         frameVideoStandard = videoStandard; framePulldown = pulldown;
-        updateSignalMetrics();
+        updateSignalMetrics(true);
+        if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
         updateIRQ();
         updateMode();
         updateSpritesConfig();
@@ -2486,11 +2496,18 @@ wmsx.VDP = function(machine, cpu) {
 
     init();
 
+    // this.TEST = 0;
 
     function logInfo(text) {
         var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
         var vdpLineCycles = busLineCycles * 6;
-        wmsx.Util.log(text + ". Frame: " + frame + ", activeLine: " + (currentScanline - startingActiveScanline) + ", x: " + ((vdpLineCycles - 258) / 4) + ", vdpCycle:" + vdpLineCycles + ", cpuCycle: " + busLineCycles);
+        console.log("" + text
+            // + ". Frame: " + frame
+            + ", currentScanLine: " + currentScanline
+            + ", activeRenderScanline: " + (currentScanline - frameStartingActiveScanline)
+            + ", activeHeigh: " + signalActiveHeight
+            // + ", x: " + ((vdpLineCycles - 258) / 4) + ", vdpCycle:" + vdpLineCycles + ", cpuCycle: " + busLineCycles
+        );
     }
     this.logInfo = logInfo;
 
