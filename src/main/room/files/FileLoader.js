@@ -266,6 +266,7 @@ wmsx.FileLoader = function(room) {
             var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format), cartridgeSlot.cartridgeInserted(port));
             if (slot) {
                 if (slot.format === wmsx.SlotFormats.BIOS) biosSocket.insertBIOS(slot, altPower);
+                else if (slot.format === wmsx.SlotFormats.MSX2BIOSExt) biosSocket.insertBIOSEXT(slot, altPower);
                 else if (asExpansion) expansionSocket.insertExpansion(slot, port, altPower);
                 else cartridgeSlot.insertCartridge(slot, port, altPower);
                 return true;

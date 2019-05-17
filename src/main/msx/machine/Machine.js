@@ -583,6 +583,7 @@ wmsx.Machine = function() {
     var vdpTurboMode = 0;
 
     var BIOS_SLOT = WMSX.BIOS_SLOT;
+    var BIOSEXT_SLOT = WMSX.BIOSEXT_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
     var CARTRIDGE1_SLOT = WMSX.CARTRIDGE2_SLOT;
     var EXPANSIONS_SLOTS = WMSX.EXPANSION_SLOTS;
@@ -729,8 +730,8 @@ wmsx.Machine = function() {
         this.insertBIOS = function (bios, altPower) {
             slotSocket.insertSlot(bios, BIOS_SLOT, altPower);
         };
-        this.biosInserted = function () {
-            return bios;
+        this.insertBIOSEXT = function (biosExt, altPower) {
+            slotSocket.insertSlot(biosExt, BIOSEXT_SLOT, altPower);
         };
         this.keyboardExtensionTypeString = function(str) {
             if (bios) bios.getKeyboardExtension().typeString(str);

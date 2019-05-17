@@ -594,7 +594,7 @@ wmsx.VDP = function(machine, cpu) {
             if (clockPageBlinking()) updateLayoutTableAddressMask();
 
         // Verify and change sections of the screen
-        if (currentScanline === startingActiveScanline) enterActiveDisplay();
+        if (currentScanline === startingActiveScanline) setActiveDisplay();
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight) setBorderDisplay();
 
         // Sync signal: 100 clocks
@@ -651,7 +651,7 @@ wmsx.VDP = function(machine, cpu) {
             updateIRQ();
         }
 
-        //logInfo("Vertical Frame Int reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
+        // logInfo("Vertical Frame Int reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
     }
 
     function triggerHorizontalInterrupt() {
@@ -660,7 +660,7 @@ wmsx.VDP = function(machine, cpu) {
             updateIRQ();
         }
 
-        //logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
+        // logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
     }
 
     function updateIRQ() {
@@ -779,7 +779,7 @@ wmsx.VDP = function(machine, cpu) {
         startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 + addBorder - verticalAdjust;       // Remaining Bottom border and other parts left invisible
         finishingScanline = frameVideoStandard.totalHeight;
 
-        if (force || currentScanline < startingActiveScanline) frameStartingActiveScanline = startingActiveScanline;
+        if (force) frameStartingActiveScanline = startingActiveScanline;
 
         // logInfo("Update Signal Metrics: " + force + ", activeHeight: " + signalActiveHeight);
     }
@@ -825,13 +825,6 @@ wmsx.VDP = function(machine, cpu) {
         if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
 
         //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
-    }
-
-    function enterActiveDisplay() {
-        setActiveDisplay();
-        frameStartingActiveScanline = currentScanline;
-
-        // logInfo("Enter Active Display");
     }
 
     function setActiveDisplay() {
@@ -2148,10 +2141,11 @@ wmsx.VDP = function(machine, cpu) {
         if (framePulldown !== pulldown) {
             frameVideoStandard = videoStandard;
             framePulldown = pulldown;
-            updateSignalMetrics(true);
+            updateSignalMetrics(false);
         }
 
         currentScanline = 0;
+        frameStartingActiveScanline = startingActiveScanline;
 
         if (renderMetricsChangePending) updateRenderMetrics(true);
 
