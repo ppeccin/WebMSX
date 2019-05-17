@@ -688,7 +688,7 @@ wmsx.Machine = function() {
                 self.toggleVDPTurboMode(altFunc);
                 break;
             case controls.DEBUG:
-                var resultingMode = vdp.toggleDebugModes();
+                var resultingMode = vdp.toggleDebugModes(altFunc);
                 wmsx.DeviceMissing.setDebugMode(resultingMode);
                 break;
             case controls.SPRITE_MODE:

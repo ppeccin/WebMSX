@@ -207,8 +207,8 @@ wmsx.VDP = function(machine, cpu) {
         if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
     };
 
-    this.toggleDebugModes = function() {
-        setDebugMode(debugMode + 1);
+    this.toggleDebugModes = function(dec) {
+        setDebugMode(debugMode + (dec ? -1 : 1));
         videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": "
             + [ "OFF", "Sprites Highlighted", "Sprite Numbers", "Sprite Names",
                 "Sprites Hidden", "Pattern Bits", "Pattern Color Blocks", "Pattern Names"][debugMode], true);
@@ -521,7 +521,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function setDebugMode(mode) {
-        debugMode = mode % 8;
+        debugMode = (mode + 8) % 8;
         var oldDebugModeSpriteHighlight = debugModeSpriteHighlight;
         debugModeSpriteHighlight = debugMode >= 1 && debugMode <= 3;
         debugModeSpriteInfo = debugMode === 2 || debugMode === 3;
