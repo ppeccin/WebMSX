@@ -1,7 +1,7 @@
-// WebMSX version 5.2.0
+// WebMSX C-BIOS version 5.3.0
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Main Emulator parameters for C-BIOS variation. No HardDrive, FloppyDrive, Kanji and Moonsound support
+// Main Emulator parameters for C-BIOS variation. No FloppyDrive, Kanji and Moonsound support. Experimental HardDrive support.
 // May be overridden dynamically by URL query parameters
 
 WMSX = {
