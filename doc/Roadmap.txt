@@ -10,6 +10,7 @@
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
+& CBios machines
 
 
   BUGS

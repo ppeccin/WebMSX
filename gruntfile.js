@@ -151,7 +151,7 @@ module.exports = function (grunt) {
                     "src/main/room/netplay/NetClient.js",
                     "src/main/room/Room.js",
                     "src/runtime/images/EmbeddedImages.js",
-                    "src/runtime/sysfiles/CompressedSystemFilesOPL4.js",
+                    "src/runtime/sysfiles/CompressedSystemFiles.js",
                     "src/runtime/sysfiles/EmbeddedSystemFiles.js",
                     "src/main/Configurator.js",
                     "src/main/Launcher.js"
