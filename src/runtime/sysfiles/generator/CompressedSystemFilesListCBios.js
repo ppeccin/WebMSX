@@ -14,12 +14,19 @@ wmsx.CompressedSystemFilesList = [
     "cbios/cbios_logo_msx2+.rom",
     "cbios/cbios_sub.rom",
     "cbios/cbios_music[MSXMUSIC].rom",
-    "[Empty].rom",
+    "[Nextor16Patch].rom",
     "[RAMNormal].rom",
     "[RAMMapper].rom",
     "[ExtraPSG].rom",
     "[SCCExpansion].rom",
     "[SCCIExpansion].rom",
     "[PACExpansion].rom",
-    "[MegaRAM].rom"
+    "[MegaRAM].rom",
+    "[Empty].rom",
+    "Disk16MHeader.dat",
+    "Disk32MHeader.dat",
+    "Disk64MHeader.dat",
+    "Disk128MHeader.dat",
+    "DOS1Boot.zip",
+    "NextorBoot.zip"
 ];

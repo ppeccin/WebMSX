@@ -241,9 +241,9 @@ WMSX.PRESETS_CONFIG = {
     },
     _MSX2PPBASE: {
         _INCLUDE:           "HARDDISK, RAM1024",
-        M_CPU_TURBO_MODE:   4,
+        M_CPU_TURBO_MODE:     4,
         CPU_SOFT_TURBO_MULTI: 4,
-        M_VDP_TURBO_MODE:   4,
+        M_VDP_TURBO_MODE:     4,
         VDP_SOFT_TURBO_MULTI: 4
     },
 

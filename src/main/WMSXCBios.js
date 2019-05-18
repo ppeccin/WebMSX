@@ -132,19 +132,26 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1_SLOT: [3, 2],                   mutual: "RAMNORMAL" },
-    RAMNORMAL: {                        format: "RAMNormal",     OP1_SLOT: [3],                      mutual: "RAMMAPPER" },
+    HARDDISK:  {                        format: "Nextor16Patch", OP1_SLOT: [1], OP2_SLOT: [2],  change: { RAMMAPPER: 1, SCCI: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
+    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     OP1_SLOT: [3, 2],              mutual: "RAMNORMAL" },
+    RAMNORMAL: {                        format: "RAMNormal",     OP1_SLOT: [3],                 mutual: "RAMMAPPER" },
     MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      OP1_SLOT: [3, 1] },
     DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      OP1_SLOT: [4, 2] },
-    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCC:  0, PAC: 0, MEGARAM: 0 } },
-    SCC:       {                        format: "SCCExpansion",  OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCCI: 0, SCC: 0, MEGARAM: 0 } },
-    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1_SLOT: [1],    OP2_SLOT: [2], change: { SCCI: 0, SCC: 0, PAC: 0 } }
+    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", OP1_SLOT: [1], OP2_SLOT: [2],  change: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
+    SCC:       {                        format: "SCCExpansion",  OP1_SLOT: [1], OP2_SLOT: [2],  change: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
+    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  OP1_SLOT: [1], OP2_SLOT: [2],  change: { HARDDISK: 0, SCCI: 0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       OP1_SLOT: [1], OP2_SLOT: [2],  change: { HARDDISK: 0, SCCI: 0, SCC: 0, PAC: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
 
     // Extensions Options Presets. Should be specified in this order
+
+    // Hard Disk: Nextor Removable Device
+    HARDDISK:   { "EXTENSIONS.HARDDISK": 2, _INCLUDE: "RAMMAPPER" },
+    HARDDISK1:  { "EXTENSIONS.HARDDISK": 1, _INCLUDE: "RAMMAPPER" },
+    DOS2:       { "EXTENSIONS.HARDDISK": 2, _INCLUDE: "RAMMAPPER" },
+    NOHARDDISK: { "EXTENSIONS.HARDDISK": 0 },
 
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
@@ -200,10 +207,11 @@ WMSX.PRESETS_CONFIG = {
 
     ALTSLOTCONFIG: {
         BIOSEXT_SLOT:                           [2, 1],
-        EXPANSION_SLOTS:                        [[2, 3], [3, 3]],
+        EXPANSION_SLOTS:                        [[3, 2], [3, 3]],
+        "EXTENSIONS_CONFIG.MSXMUSIC.HARDDISK":  [2, 3],
+        "EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT":  [2, 2],
         "EXTENSIONS_CONFIG.RAMMapper.OP1_SLOT": [3],
-        "EXTENSIONS_CONFIG.RAMNormal.OP1_SLOT": [3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT":  [2, 2]
+        "EXTENSIONS_CONFIG.RAMNormal.OP1_SLOT": [3]
     },
 
     // MSX2++ Machine Presets. Do not use directly

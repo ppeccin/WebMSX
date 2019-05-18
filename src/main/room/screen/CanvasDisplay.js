@@ -518,8 +518,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         hdMenu.wmsxHidden = !hasHardDiskInterface;
         // Order of icons and menus
         var hdFirst = diskDrive.isHardDriveFirst();
-        diskHButton.style.float = hdFirst ? "left" : "none";
-        diskHButton.wmsxDropTarget.style.float = hdFirst ? "left" : "none";
+        diskHButton.classList.toggle("wmsx-hd-first", !!hdFirst);
+        diskHButton.wmsxDropTarget.classList.toggle("wmsx-hd-first", !!hdFirst);
         var pos = hdFirst ? 1 : 4;
         barMenus[1] = pos === 1 ? hdMenu : null;
         barMenus[4] = pos === 4 ? hdMenu : null;
@@ -1000,6 +1000,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true }
         ];
         diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -72, true, "Drive A", null, menu, "Drive A", mediaIconsContainer);
+        if (!WMSX.EXTENSIONS.DISK) diskAButton.classList.add("wmsx-hidden");    // starting visibility
 
         menu = [
             { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: true, needsUIG: true },
@@ -1013,6 +1014,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: true, disabled: true }
         ];
         diskBButton = addPeripheralControlButton("wmsx-bar-diskb", -194, -72, true, "Drive B", null, menu, "Drive B", mediaIconsContainer);
+        if (!WMSX.EXTENSIONS.DISK) diskBButton.classList.add("wmsx-hidden");    // starting visibility
 
         menu = [
             { label: "Load Disk Image",    clickModif: 0, control: wmsx.PeripheralControls.HARDDISK_LOAD_FILE, needsUIG: true },
@@ -1024,7 +1026,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.HARDDISK_REMOVE, disabled: true }
         ];                                                      /* -223 -252*/
         diskHButton = addPeripheralControlButton("wmsx-bar-diskh", -252, -72, true, "Hard Drive", null, menu, "Hard Drive", mediaIconsContainer);
-        diskHButton.classList.add("wmsx-hidden");
+        if (!WMSX.EXTENSIONS.HARDDISK) diskHButton.classList.add("wmsx-hidden");    // starting visibility
+        if (WMSX.EXTENSIONS.HARDDISK !== 2) diskHButton.classList.add("wmsx-hd-first");
 
         menu = [
             { label: "Load ROM Image",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },

@@ -19,7 +19,7 @@ wmsx.CompressedSystemFilesGenerator = {
                 for (i = 0; i < specs.length; ++i) {
                     console.log("Packing: " + specs[i].url);
                     if (!first) romsFile += ",";
-                    romsFile += '\n\n   "' + specs[i].originalFilename + '": "' + wmsx.Util.compressInt8BitArrayToStringBase64(specs[i].content) + '"';
+                    romsFile += '\n\n    "' + specs[i].originalFilename + '": "' + wmsx.Util.compressInt8BitArrayToStringBase64(specs[i].content) + '"';
                     first = false;
                 }
 

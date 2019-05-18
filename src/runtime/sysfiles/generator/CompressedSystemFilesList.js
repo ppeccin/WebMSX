@@ -12,23 +12,23 @@ wmsx.CompressedSystemFilesList = [
     "MSX2PEXT_JAP.bios",
     "[KanjiBasic].bios",        // Must be concatenated with all MSX2P_EXTs. Optional for MSX2_EXTs. Invalid for MSX1
     "[Kanji1].rom",
-    "[DiskPatch].rom",
     "[Nextor16Patch].rom",
+    "[DiskPatch].rom",
     "[MSXMUSIC].rom",
     // "[MSXDOS2]v22.rom",      // No more since Nextor support
-    "[Empty].rom",
     "[RAMNormal].rom",
     "[RAMMapper].rom",
+    "[MoonSound].rom",
+    "[ExtraPSG].rom",
     "[SCCExpansion].rom",
     "[SCCIExpansion].rom",
     "[PACExpansion].rom",
     "[MegaRAM].rom",
+    "[Empty].rom",
     "Disk16MHeader.dat",
     "Disk32MHeader.dat",
     "Disk64MHeader.dat",
     "Disk128MHeader.dat",
     "DOS1Boot.zip",
-    "NextorBoot.zip",
-    "[MoonSound].rom",
-    "[ExtraPSG].rom"
+    "NextorBoot.zip"
 ];

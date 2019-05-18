@@ -1784,6 +1784,10 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-speed {
     display: none;
 }
 
+.wmsx-hd-first {
+    float: left;
+}
+
 #wmsx-drop-area {
     position: absolute;
     display: none;
