@@ -13,14 +13,15 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 ### Coming soon in Version 5.3
 
 - Additional 5.37MHz (1.5x) CPU Turbo speed
+- Light version with C-BIOS Machines
 - CRT Scanlines simulation 
 - MegaRAM Extension (256KB - 2MB)
 - Left-side Touch Control buttons
 - Full Windowed mode (Shift + Alt + Enter)
 - Screen Aspect (Pixel Aspect Ratio) changed to 1.14
-- Improved Quick Options with increase/decrease values
+- Improved Settings with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
-- Several fixes. SD Snatcher Melancholia now works
+- Bugfixes: SD Snatcher Melancholia and Matra games now work
 
 ### Features
 

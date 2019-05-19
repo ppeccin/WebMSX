@@ -17,7 +17,3 @@
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
 
-
-Custom Machine example:
-
-http://localhost:4000/WebMSX/test/index.html?m=empty2&slot00_url=yis805.rom&slot30_url=yis805painter.rom&slot31_url=yis805sub[DiskPatch].rom&slot32_url=@[RAMMapper].rom
