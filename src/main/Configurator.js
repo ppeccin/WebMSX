@@ -272,6 +272,9 @@ wmsx.Configurator = {
     },
 
     upgradeForState: function(state) {
+        // No adaptation made if not Main Variation
+        if (WMSX.VARIATION) return;
+
         // Adapt Extensions Config. Make current Config compatible with old State
         if (state.v < 50) {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 2];

@@ -6,6 +6,8 @@
 
 WMSX = {
 
+    VARIATION:                       1,                         // 1: C-BIOS Emulator Variation
+
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
 
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
@@ -103,6 +105,9 @@ WMSX = {
     PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
 
     WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay
+
+    STATE_VERSION:                  5301,
+    STATE_VERSIONS_ACCEPTED:        { 5301: true },
 
     ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
 

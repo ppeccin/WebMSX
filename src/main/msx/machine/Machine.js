@@ -1104,7 +1104,7 @@ wmsx.Machine = function() {
                 if (!state) {
                     self.showOSD("State " + slot + " not found!", true, true);
                 } else if (!VERSIONS_ACCEPTED[state.v]) {
-                    self.showOSD("State " + slot + " load failed. State version too old!", true, true);
+                    self.showOSD("State " + slot + " load failed. State version incompatible!", true, true);
                 } else {
                     wmsx.Configurator.upgradeForState(state);
                     if (self.powerIsOn) self.reset(true);
@@ -1148,8 +1148,8 @@ wmsx.Machine = function() {
             media.externalStateChange();
         };
         var media;
-        var VERSION = 520;
-        var VERSIONS_ACCEPTED = { 9: true, 50: true, 51: true, 511: true, 520: true };
+        var VERSION = WMSX.STATE_VERSION;
+        var VERSIONS_ACCEPTED = WMSX.STATE_VERSIONS_ACCEPTED;
     }
 
 
