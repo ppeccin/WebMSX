@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# Version 5.3.99
+# Stable
+
+CACHE:
+manifest.webapp
+images/logo-icon192.png
+images/logo-icon512.png
+
+NETWORK:
+*
+
