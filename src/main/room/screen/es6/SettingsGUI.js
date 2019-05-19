@@ -493,7 +493,6 @@ wmsx.SettingsGUI.html = function() {
                         <div class="wmsx-desc">Open Text Input box</div>
                     </div>
                 </div>
-                <div class="wmsx-full-divider"></div>
                 <div class="wmsx-bottom">
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -509,9 +508,9 @@ wmsx.SettingsGUI.html = function() {
                         <div id="wmsx-inputs-msx-lang" class="wmsx-heading" >
                             MSX Language: English
                         </div>
-                        <div id="wmsx-inputs-keyboard-name" class="wmsx-hotkey wmsx-link" >
-                            Keyboard: Default
-                        </div>
+                        <ul class="wmsx-quick-options-list">
+                            <li><div> </div><div id="wmsx-inputs-keyboard-name" class="wmsx-control"><button class="wmsx-control-dec"></button><span>AUTO</span><button class="wmsx-control-inc"></button></div></li>
+                        </ul>
                     </div>
                     <div id="wmsx-keyboard"></div>
                 </div>
@@ -529,7 +528,6 @@ wmsx.SettingsGUI.html = function() {
                                 J
                             </div>
                         </div>
-                        <div class="wmsx-desc">Toggle Joysticks</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -539,7 +537,6 @@ wmsx.SettingsGUI.html = function() {
                                 K
                             </div>
                         </div>
-                        <div class="wmsx-desc">Toggle Joykeys</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -549,7 +546,6 @@ wmsx.SettingsGUI.html = function() {
                                 M
                             </div>
                         </div>
-                        <div class="wmsx-desc">Toggle Mouse</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -559,15 +555,16 @@ wmsx.SettingsGUI.html = function() {
                                 H
                             </div>
                         </div>
-                        <div class="wmsx-desc">Adjust Turbo Fire speed</div>
                     </div>
                 </div>
                 <div class="wmsx-right">
-                    <div id="wmsx-ports-joysticks-mode" class="wmsx-hotkey wmsx-link wmsx-joystick-device">Joysticks Mode: AUTO</div>
-                    <div id="wmsx-ports-joykeys-mode" class="wmsx-hotkey wmsx-link wmsx-joykeys-device">Joykeys Mode: DISABLED</div>
-                    <div id="wmsx-ports-mouse-mode" class="wmsx-hotkey wmsx-link wmsx-mouse-device">Mouse Mode: AUTO</div>
+                    <ul class="wmsx-quick-options-list">
+                        <li><div>Toggle Joysticks mode</div><div id="wmsx-ports-joysticks-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>AUTO</span><button class="wmsx-control-inc"></button></div></li>
+                        <li><div>Toggle Joykeys mode</div><div id="wmsx-ports-joykeys-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>DISABLED</span><button class="wmsx-control-inc"></button></div></li>                        
+                        <li><div>Toggle Mouse mode</div><div id="wmsx-ports-mouse-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>AUTO</span><button class="wmsx-control-inc"></button></div></li>                        
+                        <li><div>Adjust Turbo Fire speed</div><div id="wmsx-ports-turbofire-speed" class="wmsx-control"><button class="wmsx-control-dec"></button><span>OFF</span><button class="wmsx-control-inc"></button></div></li>                        
+                    </ul>
                 </div>
-                <div class="wmsx-full-divider"></div>
                 <div class="wmsx-bottom">
                     <div class="wmsx-bottom-left">
                         PORT 1
@@ -725,6 +722,7 @@ wmsx.SettingsGUI.css = function() {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    cursor: auto;
     z-index: 9;
 }
 #wmsx-modal.wmsx-show {
@@ -799,6 +797,41 @@ wmsx.SettingsGUI.css = function() {
     width: 543px;
     margin-top: 16px;
     text-align: center;
+}
+
+#wmsx-modal .wmsx-quick-options-list {
+    margin: 1px 0 0;
+    color: inherit;
+}
+#wmsx-modal .wmsx-quick-options-list > li {
+    margin: 0;
+}
+#wmsx-modal .wmsx-quick-options-list > li > * {
+    height: 25px;
+    line-height: 25px;
+    font-size: inherit;
+}
+#wmsx-modal .wmsx-control {
+    width: 180px;
+    font-weight: bold;
+    background: rgb(243, 243, 243);
+    border-radius: 3px;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, .27)
+}
+#wmsx-modal .wmsx-control > button {
+    background: white;
+    border-color: hsl(0, 0%, 80%);
+}
+#wmsx-modal .wmsx-control > button::after {
+    top: 6px;
+}
+#wmsx-modal .wmsx-control > button.wmsx-control-dec::after {
+    left: 3px;
+    border-right-color: hsl(0, 0%, 55%);
+}
+#wmsx-modal .wmsx-control > button.wmsx-control-inc::after {
+    right: 3px;
+    border-left-color: hsl(0, 0%, 55%);
 }
 
 #wmsx-menu {
@@ -974,11 +1007,11 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-media .wmsx-top-left .wmsx-command {
-    width: 105px;
+    width: 101px;
 }
 
 #wmsx-media .wmsx-top-right .wmsx-command {
-    width: 100px;
+    width: 96px;
 }
 
 #wmsx-media .wmsx-middle-right .wmsx-command {
@@ -1008,29 +1041,36 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-inputs .wmsx-command {
-    width: 91px;
+    width: 85px;
 }
 
 #wmsx-inputs .wmsx-bottom {
-    margin-top: 3px;
+    margin-top: 18px;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-hotkey {
     display: inline-block;
-    width: 255px;
+    width: 280px;
+    margin-bottom: 2px;
+    vertical-align: bottom;
 }
 
 #wmsx-inputs .wmsx-bottom .wmsx-right {
     display: inline-block;
-    width: 275px;
+    width: 251px;
     text-align: right;
 }
-
+#wmsx-inputs .wmsx-bottom .wmsx-heading {
+    display: inline-block;
+    width: 180px;
+    margin-bottom: 2px;
+    text-align: center;
+}
 #wmsx-inputs #wmsx-inputs-msx-lang {
     padding: 0 5px 5px 0;
 }
-#wmsx-inputs #wmsx-inputs-keyboard-name {
-    width: initial;
+#wmsx-inputs-keyboard-name {
+    color: hsl(228, 90%, 40%);
 }
 
 #wmsx-keyboard {
@@ -1053,27 +1093,34 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-ports .wmsx-left {
     float: left;
-    width: 295px;
-    padding-left: 26px;
+    width: 126px;
+    padding-left: 32px;
+}
+#wmsx-ports .wmsx-command {
+    width: 91px;
+}
+#wmsx-ports .wmsx-hotkey {
+    height: 31px;
 }
 
 #wmsx-ports .wmsx-right {
     float: left;
+    width: 375px;
 }
-
-#wmsx-ports .wmsx-command {
-    width: 91px;
+#wmsx-ports .wmsx-right .wmsx-quick-options-list > li {
+    margin: 0 0 6px;
 }
 
 #wmsx-ports .wmsx-bottom {
     width: 546px;
     text-align: center;
+    clear: both;
 }
 
 #wmsx-ports .wmsx-bottom-left, #wmsx-ports .wmsx-bottom-right {
     display: inline-block;
     height: 162px;
-    margin-top: 2px;
+    margin-top: 15px;
     vertical-align: top;
     text-align: center;
     font-size: 14px;
@@ -1083,7 +1130,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-ports .wmsx-device-title {
-    margin-top: 14px;
+    margin-top: 11px;
     height: 12px;
     font-size: 12px;
     line-height: 12px;
@@ -1105,14 +1152,17 @@ wmsx.SettingsGUI.css = function() {
     display: block;
 }
 
-#wmsx-ports .wmsx-mouse-device, #wmsx-ports .wmsx-mouse-device .wmsx-device-title {
-    color: hsl(120, 100%, 30%);
-}
-#wmsx-ports .wmsx-joystick-device, #wmsx-ports .wmsx-joystick-device .wmsx-device-title {
+#wmsx-ports-joysticks-mode, #wmsx-ports .wmsx-joystick-device .wmsx-device-title {
     color: hsl(228, 90%, 40%)
 }
-#wmsx-ports .wmsx-joykeys-device, #wmsx-ports .wmsx-joykeys-device .wmsx-device-title {
+#wmsx-ports-joykeys-mode, #wmsx-ports .wmsx-joykeys-device .wmsx-device-title {
     color: hsl(0, 90%, 43%);
+}
+#wmsx-ports-mouse-mode, #wmsx-ports .wmsx-mouse-device .wmsx-device-title {
+    color: hsl(120, 100%, 30%);
+}
+#wmsx-ports-turbofire-speed {
+    color: hsl(0, 0%, 30%);
 }
 #wmsx-ports .wmsx-touch-device, #wmsx-ports .wmsx-touch-device .wmsx-device-title {
     color: hsl(167, 100%, 31%);

@@ -134,6 +134,7 @@ wmsx.ControllersHub = function(room, machineControls) {
         joystickControls.setTurboFireClocks(turboClocks);
         joykeysControls.setTurboFireClocks(turboClocks);
         touchControls.setTurboFireClocks(turboClocks);
+        screen.controllersSettingsStateUpdate();
         screen.showOSD("Turbo Fire" + (turboFireSpeed ? " speed: " + this.getTurboFireSpeedDesc() : ": OFF"), true);
     };
 
@@ -221,6 +222,7 @@ wmsx.ControllersHub = function(room, machineControls) {
         settingsStateRet.touchActive = controllerAtPort[0] === touchControls || controllerAtPort[1] === touchControls;
         settingsStateRet.ports[0] = mousePresent[0] || joystickPresent[0] || joykeysPresent[0] || touchPresent[0] || wmsx.ControllersHub.NONE;
         settingsStateRet.ports[1] = mousePresent[1] || joystickPresent[1] || joykeysPresent[1] || touchPresent[1] || wmsx.ControllersHub.NONE;
+        settingsStateRet.turboFireSpeedDesc = this.getTurboFireSpeedDesc();
         return settingsStateRet;
     };
 

@@ -15,9 +15,10 @@ wmsx.PortsConfigurator = function(controllersHub, peripheralControls, returnFocu
 
     this.refresh = function() {
         var state = controllersHub.getSettingsState();
-        mouseModeElement.innerHTML = "Mouse Mode: " + state.mouseModeDesc;
-        joysticksModeElement.innerHTML = "Joysticks Mode: " + state.joysticksModeDesc;
-        joykeysModeElement.innerHTML = "Joykeys Mode: " + state.joykeysModeDesc;
+        joysticksModeElement.wmsxText.textContent = state.joysticksModeDesc;
+        joykeysModeElement.wmsxText.textContent = state.joykeysModeDesc;
+        mouseModeElement.wmsxText.textContent = state.mouseModeDesc;
+        turboFireSpeedElement.wmsxText.textContent = state.turboFireSpeedDesc;
 
         for (var p = 0; p < 2; ++p) {
             var device = state.ports[p];
@@ -63,12 +64,32 @@ wmsx.PortsConfigurator = function(controllersHub, peripheralControls, returnFocu
 
     function setup() {
         // Set mode fields
-        mouseModeElement = document.getElementById("wmsx-ports-mouse-mode");
-        mouseModeElement.addEventListener("click", function() { peripheralControls.processControlActivated(wmsx.PeripheralControls.MOUSE_TOGGLE_MODE); });
         joysticksModeElement = document.getElementById("wmsx-ports-joysticks-mode");
-        joysticksModeElement.addEventListener("click", function() { peripheralControls.processControlActivated(wmsx.PeripheralControls.JOYSTICKS_TOGGLE_MODE); });
+        joysticksModeElement.wmsxControl = wmsx.PeripheralControls.JOYSTICKS_TOGGLE_MODE;
+        joysticksModeElement.wmsxText = joysticksModeElement.querySelector(":scope > span");
+        joysticksModeElement.querySelector(":scope > button").wmsxDec = true;
         joykeysModeElement = document.getElementById("wmsx-ports-joykeys-mode");
-        joykeysModeElement.addEventListener("click", function() { peripheralControls.processControlActivated(wmsx.PeripheralControls.JOYKEYS_TOGGLE_MODE); });
+        joykeysModeElement.wmsxControl = wmsx.PeripheralControls.JOYKEYS_TOGGLE_MODE;
+        joykeysModeElement.wmsxText = joykeysModeElement.querySelector(":scope > span");
+        joykeysModeElement.querySelector(":scope > button").wmsxDec = true;
+        mouseModeElement = document.getElementById("wmsx-ports-mouse-mode");
+        mouseModeElement.wmsxControl = wmsx.PeripheralControls.MOUSE_TOGGLE_MODE;
+        mouseModeElement.wmsxText = mouseModeElement.querySelector(":scope > span");
+        mouseModeElement.querySelector(":scope > button").wmsxDec = true;
+        turboFireSpeedElement = document.getElementById("wmsx-ports-turbofire-speed");
+        turboFireSpeedElement.wmsxControl = wmsx.PeripheralControls.TURBO_FIRE_TOGGLE;
+        turboFireSpeedElement.wmsxText = turboFireSpeedElement.querySelector(":scope > span");
+        turboFireSpeedElement.querySelector(":scope > button").wmsxDec = true;
+
+        // Mode events
+        function controlClicked(e) {
+            if (e.target.tagName === "BUTTON") peripheralControls.processControlActivated(e.currentTarget.wmsxControl, false, e.target.wmsxDec);
+        }
+        joysticksModeElement.addEventListener("click", controlClicked);
+        joykeysModeElement.addEventListener("click", controlClicked);
+        mouseModeElement.addEventListener("click", controlClicked);
+        turboFireSpeedElement.addEventListener("click", controlClicked);
+
 
         // Set device and buttons elements
         for (var p = 1; p <= 2; ++p) {
@@ -137,7 +158,7 @@ wmsx.PortsConfigurator = function(controllersHub, peripheralControls, returnFocu
 
 
 
-    var mouseModeElement, joysticksModeElement, joykeysModeElement;
+    var mouseModeElement, joysticksModeElement, joykeysModeElement, turboFireSpeedElement;
     var deviceElements = [], deviceTitleElements = [], buttonElements = [];
 
     var buttonElementEditing = null, joyButtonEditing = null, portEditing = null;
