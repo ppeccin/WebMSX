@@ -93,16 +93,6 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                W
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">V-Sync Modes</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                 E
                             </div>
                         </div>
@@ -137,6 +127,14 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                         </div>
                         <div class="wmsx-desc">Sprite Modes</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            + <div class="wmsx-key">
+                                Shift
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Go back Modes</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
@@ -752,7 +750,7 @@ wmsx.SettingsGUI.css = function() {
     position: relative;
     display: inline-block;
     font-weight: 600;
-    color: hsl(0, 0%, 48%);
+    color: hsl(0, 0%, 43%);
 }
 
 .wmsx-hotkey {

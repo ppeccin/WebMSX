@@ -10,6 +10,7 @@
 * Nextor update
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
+* Make default turbo 1.5x?
 
 
   BUGS

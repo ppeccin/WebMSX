@@ -22,6 +22,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Improved Settings with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
 - New features for easier setup of custom machines
+- New Environment concept. Isolate savestates, configs, preferences
 - Bugfixes: SD Snatcher Melancholia and overscan games now work
 
 ### Features
