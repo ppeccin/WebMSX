@@ -6,6 +6,8 @@
 
 WMSX = {
 
+    ENVIRONMENT:                     0,                         // 0: Default Emulator Environment. 1..99: Custom User Environment
+
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
 
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration

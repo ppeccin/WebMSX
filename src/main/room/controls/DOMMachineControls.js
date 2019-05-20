@@ -88,11 +88,11 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_PAUSE | k.ALT]               = mc.PAUSE;
         keyCodeMap[KEY_FRAME | k.ALT]               = mc.FRAME;
         keyCodeMap[KEY_FRAMEa | k.ALT]              = mc.FRAME;
-        keyCodeMap[KEY_TRACE | k.ALT]               = mc.TRACE;
+        //keyCodeMap[KEY_TRACE | k.ALT]               = mc.TRACE;
         keyCodeMap[KEY_DEBUG | k.ALT]               = mc.DEBUG;
         keyCodeMap[KEY_SPRITE_MODE | k.ALT]         = mc.SPRITE_MODE;
         keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]      = mc.VIDEO_STANDARD;
-        keyCodeMap[KEY_VSYNCH | k.ALT]              = mc.VSYNCH;
+        //keyCodeMap[KEY_VSYNCH | k.ALT]              = mc.VSYNCH;
         keyCodeMap[KEY_CPU_TURBO | k.ALT]           = mc.CPU_TURBO_MODE;
         keyCodeMap[KEY_VDP_TURBO | k.ALT]           = mc.VDP_TURBO_MODE;
 
@@ -188,11 +188,11 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var KEY_FRAME            = domKeys.VK_O.wc;
     var KEY_FRAMEa           = domKeys.VK_F.wc;
 
-    var KEY_TRACE            = domKeys.VK_Q.wc;
+    //var KEY_TRACE            = domKeys.VK_Q.wc;
     var KEY_DEBUG            = domKeys.VK_D.wc;
     var KEY_SPRITE_MODE      = domKeys.VK_S.wc;
     var KEY_VIDEO_STANDARD   = domKeys.VK_Q.wc;
-    var KEY_VSYNCH           = domKeys.VK_W.wc;
+    //var KEY_VSYNCH           = domKeys.VK_W.wc;
     var KEY_CPU_TURBO        = domKeys.VK_T.wc;
     var KEY_VDP_TURBO        = domKeys.VK_Y.wc;
 

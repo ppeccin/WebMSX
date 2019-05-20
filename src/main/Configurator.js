@@ -56,6 +56,7 @@ wmsx.Configurator = {
 
         function normalizeParameterTypes() {
             // Numeric parameters
+            WMSX.ENVIRONMENT |= 0;
             WMSX.RAMMAPPER_SIZE |= 0;
             WMSX.AUTO_POWER_ON_DELAY |= 0;
             WMSX.SCREEN_FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE |= 0;
@@ -272,8 +273,8 @@ wmsx.Configurator = {
     },
 
     upgradeForState: function(state) {
-        // No adaptation made if not Main Variation
-        if (WMSX.VARIATION) return;
+        // No adaptation made if not Main Variation (no old savestates possible!)
+        if (WMSX.ENVIRONMENT) return;
 
         // Adapt Extensions Config. Make current Config compatible with old State
         if (state.v < 50) {
@@ -307,8 +308,10 @@ wmsx.Configurator = {
     },
 
     abbreviations: {
-        P: "PRESETS",
+        E: "ENVIRONMENT",
+        ENV: "ENVIRONMENT",
         M: "MACHINE",
+        P: "PRESETS",
         PRESET: "PRESETS",
         ROM: "CARTRIDGE1_URL",
         CART: "CARTRIDGE1_URL",

@@ -3,13 +3,6 @@
 WMSX.start = function (machinePowerOn) {
 "use strict";
 
-    // Emulator can only be started once
-    delete WMSX.start;
-    delete WMSX.preLoadImagesAndStart;
-
-    // Init preferences
-    WMSX.userPreferences.load();
-
     // Get container elements
     if (!WMSX.screenElement) {
         WMSX.screenElement = document.getElementById(WMSX.SCREEN_ELEMENT_ID);
@@ -18,8 +11,15 @@ WMSX.start = function (machinePowerOn) {
             'HTML document is missing screen element with id "' + WMSX.SCREEN_ELEMENT_ID + '"');
     }
 
+    // Emulator can only be started once
+    delete WMSX.start;
+    delete WMSX.preLoadImagesAndStart;
+
     // Apply Configuration, including Machine Type and URL Parameters if allowed
     wmsx.Configurator.applyConfig();
+
+    // Init preferences
+    WMSX.userPreferences.load();
 
     // Build and start emulator
     if (machinePowerOn === undefined) machinePowerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;

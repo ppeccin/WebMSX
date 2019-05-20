@@ -393,7 +393,7 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_ENTER_STRING | k.ALT]   = pc.OPEN_ENTER_STRING;
         keyCodeMap[KEY_CAPTURE_SCREEN | k.ALT] = pc.CAPTURE_SCREEN;
 
-        keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = pc.SPEAKER_BUFFER_TOGGLE;
+        //keyCodeMap[KEY_SPEAKER_BUFFER | k.ALT] = pc.SPEAKER_BUFFER_TOGGLE;
     };
 
 
@@ -468,7 +468,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_CAPTURE_SCREEN  = domKeys.VK_G.wc;
 
-    var KEY_SPEAKER_BUFFER  = domKeys.VK_A.wc;
+    //var KEY_SPEAKER_BUFFER  = domKeys.VK_A.wc;
 
     var KEY_DISK   = domKeys.VK_F6.wc;
     var KEY_CART   = domKeys.VK_F7.wc;

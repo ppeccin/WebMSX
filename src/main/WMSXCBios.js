@@ -6,7 +6,7 @@
 
 WMSX = {
 
-    VARIATION:                       1,                         // 1: C-BIOS Emulator Variation
+    ENVIRONMENT:                   101,                         // 101: C-BIOS Built-in Emulator Environment
 
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
 
@@ -106,8 +106,8 @@ WMSX = {
 
     WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay
 
-    STATE_VERSION:                  5301,
-    STATE_VERSIONS_ACCEPTED:        { 5301: true },
+    STATE_VERSION:                  530,
+    STATE_VERSIONS_ACCEPTED:        { 530: true },
 
     ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
 

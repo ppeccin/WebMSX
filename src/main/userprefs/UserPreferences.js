@@ -129,7 +129,7 @@ WMSX.userPreferences.defaults = function() {
             }
         },
 
-        vSynch: 1,                          // on
+        vSynch: 1,                          // auto
         crtFilter: -1,                      // auto
         crtScanlines: 0,                    // off
 
@@ -148,7 +148,7 @@ WMSX.userPreferences.load = function() {
 
     // Load from Local Storage
     try {
-        prefs = JSON.parse(localStorage.wmsxprefs || "{}");
+        prefs = JSON.parse(localStorage["wmsxprefs" + this.getEnvSuffix()] || "{}");
         // Migrations from old to new version control fields
         if (prefs.version) delete prefs.version;
     } catch(e) {
@@ -182,13 +182,18 @@ WMSX.userPreferences.save = function() {
 
     try {
         WMSX.userPreferences.current.wmsxVersion = WMSX.VERSION;
-        localStorage.wmsxprefs = JSON.stringify(WMSX.userPreferences.current);
+        localStorage["wmsxprefs" + this.getEnvSuffix()] = JSON.stringify(WMSX.userPreferences.current);
         delete WMSX.userPreferences.isDirty;
 
         wmsx.Util.log("Preferences saved!");
     } catch (e) {
         // give up
     }
+};
+
+WMSX.userPreferences.getEnvSuffix = function() {
+    if (this.envSuffix === undefined) this.envSuffix = WMSX.ENVIRONMENT ? "_" + WMSX.ENVIRONMENT : "";
+    return this.envSuffix;
 };
 
 WMSX.userPreferences.setDirty = function() {

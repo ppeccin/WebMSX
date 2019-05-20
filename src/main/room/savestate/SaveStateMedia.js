@@ -12,18 +12,18 @@ wmsx.SaveStateMedia = function(room) {
     };
 
     this.isSlotUsed = function(slot) {
-        return localStorage["wmsxsave" + slot + "u"] !== undefined || localStorage["wmsxsave" + slot] !== undefined;
+        return localStorage["wmsxsave" + slot + ENV_SUFFIX + "u"] !== undefined || localStorage["wmsxsave" + slot + ENV_SUFFIX] !== undefined;
     };
 
     // ASSYNC!
     this.persistState = function(slot, state, then) {
         var data = buildDataFromState(state);
-        saveToPersistence("save" + slot, data, then);
+        saveToPersistence("save" + slot + ENV_SUFFIX, data, then);
     };
 
     // ASSYNC!
     this.retrieveState = function(slot, then) {
-        loadFromPersistence("save" + slot, function retrieved(data) {
+        loadFromPersistence("save" + slot + ENV_SUFFIX, function retrieved(data) {
             then(data && buildStateFromData(data));
         });
     };
@@ -47,6 +47,7 @@ wmsx.SaveStateMedia = function(room) {
             if (indexedPesistence) {
                 indexedPesistence.store(entry, data,
                     function onSuccess() {
+                        localStorage["wmsx" + entry + "u"] = "Y";     // Used slot mark
                         then(true);
                     },
                     function onerror(e) {
@@ -60,6 +61,7 @@ wmsx.SaveStateMedia = function(room) {
         function saveToLocalPersistence() {
             localPersistence.store(entry, data,
                 function onSuccess() {
+                    localStorage["wmsx" + entry + "u"] = "Y";     // Used slot mark
                     then(true);
                 },
                 function onerror(e) {
@@ -163,5 +165,7 @@ wmsx.SaveStateMedia = function(room) {
     var SAVE_STATE_FILE_EXTENSION = ".wst";
 
     var INDEXED_DB_VERSION = 1;
+
+    var ENV_SUFFIX = WMSX.ENVIRONMENT ? "_" + WMSX.ENVIRONMENT : "";
 
 };

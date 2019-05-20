@@ -21,7 +21,8 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Screen Aspect (Pixel Aspect Ratio) changed to 1.14
 - Improved Settings with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
-- Bugfixes: SD Snatcher Melancholia and Matra games now work
+- New features for easier setup of custom machines
+- Bugfixes: SD Snatcher Melancholia and overscan games now work
 
 ### Features
 
@@ -37,7 +38,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Powerful Drag & Drop system for loading media files
 - Dynamically import files to any MSX disk drive, automatic image creation
 - Savestates support. Export and share Savestate files and links
-- Cuitomizable Keyboard, Joysticks, Joykeys, and Mouse controllers
+- Customizable Keyboard, Joysticks, Joykeys, and Mouse controllers
 - Customizable Touch Controls/Virtual Keyboard for mobile devices (iOS, Android)
 - Joykeys support. Emulates MSX Joysticks using Host Keyboard
 - Virtual buttons. Maps Host Joystick buttons to MSX Keyboard keys

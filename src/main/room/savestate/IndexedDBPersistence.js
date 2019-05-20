@@ -48,7 +48,6 @@ wmsx.IndexedDBPersistence = function() {
             var writeReq = store.put(value, key);
 
             writeReq.onsuccess = function() {
-                localStorage["wmsx" + key + "u"] = "Y";     // Used slot mark
                 onSuccess();
             };
             writeReq.onerror = onError;

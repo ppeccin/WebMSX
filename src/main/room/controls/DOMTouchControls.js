@@ -425,7 +425,7 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
             // Backward compatibility. Update MSX key mappings character texts
             for (var b in prefs.buttons) {
                 var m = prefs.buttons[b];
-                if (m.sn && !m.c_en) m.c_en = m.sn;
+                if (m && m.sn && !m.c_en) m.c_en = m.sn;
             }
             if (dirElement) updateMappings();
         }
