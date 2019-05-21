@@ -5,41 +5,11 @@ wmsx.Configurator = {
     applyConfig: function() {
 
         var urlParams = {};
-
-        // Override parameters with values set in URL, if allowed
         if (WMSX.ALLOW_URL_PARAMETERS) {
             urlParams = parseURLParams();
-            // First override base MACHINE and PRESETS parameters
-            if (urlParams.MACHINE) { this.applyParam("MACHINE", urlParams.MACHINE); delete urlParams.MACHINE; }
-            if (urlParams.PRESETS) { this.applyParam("PRESETS", urlParams.PRESETS); delete urlParams.PRESETS; }
         }
 
-        // Apply Alternate Slot Configuration first if asked
-        this.applyAltConfigPreset();
-
-        // Apply main Machine configuration
-        WMSX.MACHINE = (WMSX.MACHINE || "").trim().toUpperCase();
-        if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
-        if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
-        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
-
-        // Apply additional presets over Machine configuration
-        this.applyPresets(WMSX.PRESETS);
-
-        // Apply additional single parameter overrides
-        for (var param in urlParams) this.applyParam(param, urlParams[param]);
-
-        // Ensure the correct types of the parameters
-        normalizeParameterTypes();
-
-        // Apply user asked page CSS
-        if(WMSX.PAGE_BACK_CSS) document.body.style.background = WMSX.PAGE_BACK_CSS;
-
-        // Auto activate HardDrive Extension if not active and user trying to load HardDisk file
-        if ((WMSX.HARDDISK_URL || WMSX.HARDDISK_FILES_URL) && !WMSX.EXTENSIONS.HARDDISK) {
-            WMSX.EXTENSIONS.HARDDISK = 1;
-            if (WMSX.EXTENSIONS.DISK) WMSX.EXTENSIONS.DISK = 2;
-        }
+        this.applyConfigCont(urlParams);
 
         function parseURLParams() {
             var search = (window.location.search || "").split('+').join(' ');
@@ -52,6 +22,39 @@ wmsx.Configurator = {
                 parameters[parName] = decodeURIComponent(tokens[2]).trim();
             }
             return parameters;
+        }
+    },
+
+    applyConfigCont: function(params) {
+        // First set base MACHINE and PRESETS parameters
+        if (params.MACHINE) { this.applyParam("MACHINE", params.MACHINE); delete params.MACHINE; }
+        if (params.PRESETS) { this.applyParam("PRESETS", params.PRESETS); delete params.PRESETS; }
+
+        // Apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
+        this.applyPresetsConfigModifications();
+
+        // Apply Presets from Machine configuration chosen
+        WMSX.MACHINE = (WMSX.MACHINE || "").trim().toUpperCase();
+        if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
+        if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
+        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
+
+        // Apply additional Presets over Machine configuration chosen
+        this.applyPresets(WMSX.PRESETS);
+
+        // Apply additional single parameters
+        for (var par in params) this.applyParam(par, params[par]);
+
+        // Ensure the correct types of the parameters after all settings applied
+        normalizeParameterTypes();
+
+        // Apply user asked page CSS
+        if(WMSX.PAGE_BACK_CSS) document.body.style.background = WMSX.PAGE_BACK_CSS;
+
+        // Auto activate HardDrive Extension if not active and user trying to load HardDisk file
+        if ((WMSX.HARDDISK_URL || WMSX.HARDDISK_FILES_URL) && !WMSX.EXTENSIONS.HARDDISK) {
+            WMSX.EXTENSIONS.HARDDISK = 1;
+            if (WMSX.EXTENSIONS.DISK) WMSX.EXTENSIONS.DISK = 2;
         }
 
         function normalizeParameterTypes() {
@@ -93,15 +96,23 @@ wmsx.Configurator = {
             WMSX.HARDDISK_MIN_SIZE_KB |= 0;
             WMSX.MEGARAM_SIZE |= 0;
 
-            // Boolean parameters
+            // Boolean parameters (only single parameters known)
             WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";
             WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED === "true";
             WMSX.LIGHT_STATES = WMSX.LIGHT_STATES === true || WMSX.LIGHT_STATES === "true";
 
-            // Slot parameters (arrays with numbers)
-            for (var p in WMSX) if (wmsx.Util.stringEndsWith(p, "_SLOT")) normalizeNumberArray(WMSX, p, WMSX[p]);
-            for (var e in WMSX.EXTENSIONS_CONFIG)
-                for (p in WMSX.EXTENSIONS_CONFIG[e]) if (wmsx.Util.stringEndsWith(p, "_SLOT")) normalizeNumberArray(WMSX.EXTENSIONS_CONFIG[e], p, WMSX.EXTENSIONS_CONFIG[e][p]);
+            // Slot parameters (arrays with numbers). Any parameter ending with "SLOT" or "SLOT2"
+            deepNormalizeSlotParams(WMSX);
+
+            function deepNormalizeSlotParams(obj) {
+                if (!obj || obj.constructor !== Object) return false;
+                for (var p in obj) {
+                    var innerObj = obj[p];
+                    if (deepNormalizeSlotParams(innerObj)) continue;
+                    if (wmsx.Util.stringEndsWith(p, "SLOT") || wmsx.Util.stringEndsWith(p, "SLOT2")) normalizeNumberArray(obj, p, innerObj);
+                }
+                return true;
+            }
 
             function normalizeNumberArray(obj, prop, value) {
                 if (value.constructor === Array) return;
@@ -144,7 +155,8 @@ wmsx.Configurator = {
         }
     },
 
-    applyAltConfigPreset: function() {
+    applyPresetsConfigModifications: function() {
+        // Apply Alternate Slot Config Preset (special case, modifies other presets)
         if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
         this.applyPreset("ALTSLOTCONFIG");
         WMSX.PRESETS = WMSX.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
@@ -278,31 +290,34 @@ wmsx.Configurator = {
 
         // Adapt Extensions Config. Make current Config compatible with old State
         if (state.v < 50) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 2];
-            WMSX.EXTENSIONS_CONFIG.DISK.OP1_SLOT =     [2, 2];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1_SLOT =    [3, 1];
-            WMSX.BIOSEXT_SLOT =                        [2, 1];
-            WMSX.EXPANSION_SLOTS =                     [[3, 2], [3, 3]];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 2];
+            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 2];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [3, 1];
+            WMSX.BIOSEXT_SLOT =                    [2, 1];
+            WMSX.EXPANSION1_SLOT =                 [3, 2];
+            WMSX.EXPANSION2_SLOT =                 [3, 3];
             WMSX.OLD_EXTENSION_CONFIG = true;
         } else if (state.v < 51) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.DISK.OP1_SLOT =     [2, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1_SLOT =    [2, 1];
-            WMSX.BIOSEXT_SLOT =                        [3, 1];
-            WMSX.EXPANSION_SLOTS =                     [[2, 2], [2, 3]];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [2, 1];
+            WMSX.BIOSEXT_SLOT =                    [3, 1];
+            WMSX.EXPANSION1_SLOT =                 [2, 2];
+            WMSX.EXPANSION2_SLOT =                 [2, 3];
             WMSX.OLD_EXTENSION_CONFIG = true;
         }
 
         // Revert old config to the new Config again
         if (WMSX.OLD_EXTENSION_CONFIG && state.v >= 51) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.OP1_SLOT = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.DISK.OP1_SLOT =     [2, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.OP1_SLOT = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.OP1_SLOT =    [4, 0];
-            WMSX.BIOSEXT_SLOT =                        [3, 1];
-            WMSX.EXPANSION_SLOTS =                     [[2, 1], [2, 2]];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [4, 0];
+            WMSX.BIOSEXT_SLOT =                    [3, 1];
+            WMSX.EXPANSION1_SLOT =                 [2, 1];
+            WMSX.EXPANSION2_SLOT =                 [2, 2];
             WMSX.OLD_EXTENSION_CONFIG = false;
         }
     },

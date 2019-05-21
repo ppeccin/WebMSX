@@ -586,7 +586,7 @@ wmsx.Machine = function() {
     var BIOSEXT_SLOT = WMSX.BIOSEXT_SLOT;
     var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
     var CARTRIDGE1_SLOT = WMSX.CARTRIDGE2_SLOT;
-    var EXPANSIONS_SLOTS = WMSX.EXPANSION_SLOTS;
+    var EXPANSIONS_SLOTS = [ WMSX.EXPANSION1_SLOT, WMSX.EXPANSION2_SLOT ];
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
     var SPEEDS = [ 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 5, 10 ];
