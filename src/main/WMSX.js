@@ -261,7 +261,7 @@ WMSX.PRESETS_CONFIG = {
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
         BIOS_URL:           "@MSX2P_NTSC.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @[KanjiBasic].bios",
+        BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
@@ -273,7 +273,7 @@ WMSX.PRESETS_CONFIG = {
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
         BIOS_URL:           "@MSX2P_JAP.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @[KanjiBasic].bios",
+        BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
@@ -297,7 +297,7 @@ WMSX.PRESETS_CONFIG = {
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
         BIOS_URL:           "@MSX2_JAP.bios",
-        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @[KanjiBasic].bios",
+        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {

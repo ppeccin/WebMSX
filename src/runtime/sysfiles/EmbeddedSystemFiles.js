@@ -43,7 +43,7 @@ wmsx.EmbeddedSystemFiles = {
             0x2c63: [ 0x00 ]                                            // reg9 NTSC init
         }},
 
-        "KanjiBasic_PAL.bios": { based: "@[KanjiBasic].bios", diffs: {
+        "KanjiBasic_PAL.bios": { based: "@KanjiBasic.bios", diffs: {
             0x3c9b: [ 0x02 ]                                            // reg9 PAL init
         }}
 

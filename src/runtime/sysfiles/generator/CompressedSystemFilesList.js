@@ -10,7 +10,7 @@ wmsx.CompressedSystemFilesList = [
     "MSX2P_JAP.bios",
     "MSX2P_PAL.bios",
     "MSX2PEXT_JAP.bios",
-    "[KanjiBasic].bios",        // Must be concatenated with all MSX2P_EXTs. Optional for MSX2_EXTs. Invalid for MSX1
+    "KanjiBasic.bios",        // Must be concatenated with all MSX2P_EXTs. Optional for MSX2_EXTs. Invalid for MSX1
     "[Kanji1].rom",
     "[Nextor16Patch].rom",
     "[DiskPatch].rom",
