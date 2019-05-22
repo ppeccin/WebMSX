@@ -15,50 +15,52 @@ WMSX.start = function (machinePowerOn) {
     delete WMSX.start;
     delete WMSX.preLoadImagesAndStart;
 
-    // Apply Configuration, including Machine Type and URL Parameters if allowed
-    wmsx.Configurator.applyConfig();
+    // Apply Configuration, including Machine Type and URL Parameters if allowed. Assync continue after reading Config file if asked
+    wmsx.Configurator.applyConfig(function applyConfigAfterFile() {
 
-    // Init preferences
-    WMSX.userPreferences.load();
+        // Init preferences
+        WMSX.userPreferences.load();
 
-    // Build and start emulator
-    if (machinePowerOn === undefined) machinePowerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;
-    WMSX.room = new wmsx.Room(WMSX.screenElement, machinePowerOn);
-    WMSX.room.powerOn();
-    wmsx.Util.log("version " + WMSX.VERSION + " started");
+        // Build and start emulator
+        if (machinePowerOn === undefined) machinePowerOn = WMSX.AUTO_POWER_ON_DELAY >= 0;
+        WMSX.room = new wmsx.Room(WMSX.screenElement, machinePowerOn);
+        WMSX.room.powerOn();
+        wmsx.Util.log("version " + WMSX.VERSION + " started");
 
-    // Prepare ROM Database
-    wmsx.ROMDatabase.uncompress();
+        // Prepare ROM Database
+        wmsx.ROMDatabase.uncompress();
 
-    // NetPlay! auto-join Session?
-    var joinSession = WMSX.NETPLAY_JOIN;
+        // NetPlay! auto-join Session?
+        var joinSession = WMSX.NETPLAY_JOIN;
 
-    // Auto-load BIOS, Expansions, State, Cartridges, Disks and Tape files if specified and downloadable
-    if (!joinSession && WMSX.STATE_URL) {
-        // Machine State loading, Machine will Auto Power on
-        new wmsx.MultiDownloader(
-            [{ url: WMSX.STATE_URL }],
-            function onAllSuccess(urls) {
-                WMSX.room.start(function() {
-                    WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
-                });
-            }
-        ).start();      // Asynchronous
-    } else {
-        // Normal media loading. Power Machine on only after all files are loaded and inserted, then join Session if needed
-        var slotURLs = wmsx.Configurator.slotURLSpecs();
-        var extensionsURLs = wmsx.Configurator.extensionsInitialURLSpecs();
-        var mediaURLs = joinSession ? [] : wmsx.Configurator.mediaURLSpecs();       // Skip media loading if joining Session
-        new wmsx.MultiDownloader(
-            slotURLs.concat(mediaURLs).concat(extensionsURLs),
-            function onAllSuccess() {
-                WMSX.room.start(joinSession
-                    ? function() { WMSX.room.getNetClient().joinSession(joinSession, WMSX.NETPLAY_NICK); }
-                    : undefined
-                );
-            }
-        ).start();      // Asynchronous if there are media to load, otherwise Synchronous
-    }
+        // Auto-load BIOS, Expansions, State, Cartridges, Disks and Tape files if specified and downloadable
+        if (!joinSession && WMSX.STATE_URL) {
+            // Machine State loading, Machine will Auto Power on
+            new wmsx.MultiDownloader(
+                [{ url: WMSX.STATE_URL }],
+                function onAllSuccess(urls) {
+                    WMSX.room.start(function() {
+                        WMSX.room.fileLoader.loadFromContent(urls[0].url, urls[0].content, wmsx.FileLoader.OPEN_TYPE.STATE, 0, false);
+                    });
+                }
+            ).start();      // Asynchronous
+        } else {
+            // Normal media loading. Power Machine on only after all files are loaded and inserted, then join Session if needed
+            var slotURLs = wmsx.Configurator.slotURLSpecs();
+            var extensionsURLs = wmsx.Configurator.extensionsInitialURLSpecs();
+            var mediaURLs = joinSession ? [] : wmsx.Configurator.mediaURLSpecs();       // Skip media loading if joining Session
+            new wmsx.MultiDownloader(
+                slotURLs.concat(mediaURLs).concat(extensionsURLs),
+                function onAllSuccess() {
+                    WMSX.room.start(joinSession
+                        ? function() { WMSX.room.getNetClient().joinSession(joinSession, WMSX.NETPLAY_NICK); }
+                        : undefined
+                    );
+                }
+            ).start();      // Asynchronous if there are media to load, otherwise Synchronous
+        }
+
+    });
 
     WMSX.shutdown = function () {
         if (WMSX.room) WMSX.room.powerOff();

@@ -2,30 +2,28 @@
 
 wmsx.Configurator = {
 
-    applyConfig: function() {
+    applyConfig: function(then) {
+        var urlParams = WMSX.ALLOW_URL_PARAMETERS ? this.parseURLParams() : {};
 
-        var urlParams = {};
-        if (WMSX.ALLOW_URL_PARAMETERS) {
-            urlParams = parseURLParams();
-        }
-
-        this.applyConfigCont(urlParams);
-
-        function parseURLParams() {
-            var search = (window.location.search || "").split('+').join(' ');
-            var reg = /[?&]?([^=]+)=([^&]*)/g;
-            var tokens;
-            var parameters = {};
-            while (tokens = reg.exec(search)) {
-                var parName = decodeURIComponent(tokens[1]).trim().toUpperCase();
-                parName = wmsx.Configurator.abbreviations[parName] || parName;
-                parameters[parName] = decodeURIComponent(tokens[2]).trim();
-            }
-            return parameters;
-        }
+        // Process Config file if asked
+        if (urlParams.CONFIG_URL) this.readThenApplyConfigFile(urlParams.CONFIG_URL, urlParams, then);
+        else this.applyConfigDetails(urlParams, then);
     },
 
-    applyConfigCont: function(params) {
+    readThenApplyConfigFile: function(configUrl, urlParams, then) {
+        var self = this;
+        new wmsx.MultiDownloader(
+            [{ url: configUrl.trim() }],
+            function onAllSuccess(urls) {
+                self.applyConfigFile(urls[0].content, urlParams, then);
+            },
+            function onAnyError(urls) {
+                return wmsx.Util.message("Error loading Configuration file: " + configUrl);
+            }
+        ).start();      // Probably Asynchronous since URL is probably not an Embedded file
+    },
+
+    applyConfigDetails: function(params, then) {
         // Apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
         this.applyPresetsConfigModifications(params);
 
@@ -46,7 +44,7 @@ wmsx.Configurator = {
         for (var par in params) this.applyParam(par, params[par]);
 
         // Ensure the correct types of the parameters after all settings applied
-        normalizeParameterTypes();
+        this.normalizeParameterTypes();
 
         // Apply user asked page CSS
         if(WMSX.PAGE_BACK_CSS) document.body.style.background = WMSX.PAGE_BACK_CSS;
@@ -57,76 +55,7 @@ wmsx.Configurator = {
             if (WMSX.EXTENSIONS.DISK) WMSX.EXTENSIONS.DISK = 2;
         }
 
-        function normalizeParameterTypes() {
-            // Object parameters
-            var obj, p;
-            obj = WMSX.MACHINES_CONFIG = WMSX.MACHINES_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
-            obj = WMSX.EXTENSIONS_CONFIG = WMSX.EXTENSIONS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
-            obj = WMSX.PRESETS_CONFIG = WMSX.PRESETS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
-
-            // Numeric parameters
-            WMSX.ENVIRONMENT |= 0;
-            WMSX.RAMMAPPER_SIZE |= 0;
-            WMSX.AUTO_POWER_ON_DELAY |= 0;
-            WMSX.SCREEN_FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE |= 0;
-            WMSX.SCREEN_FILTER_MODE |= 0;
-            WMSX.SCREEN_CRT_SCANLINES |= 0;
-            WMSX.SCREEN_CRT_PHOSPHOR |= 0;
-            WMSX.SCREEN_DEFAULT_SCALE = parseFloat(WMSX.SCREEN_DEFAULT_SCALE);
-            WMSX.SCREEN_DEFAULT_ASPECT = parseFloat(WMSX.SCREEN_DEFAULT_ASPECT);
-            WMSX.SCREEN_CONTROL_BAR |= 0;
-            WMSX.SCREEN_MSX1_COLOR_MODE |= 0;
-            WMSX.SCREEN_FORCE_HOST_NATIVE_FPS |= 0;
-            WMSX.SCREEN_VSYNC_MODE |= 0;
-            WMSX.AUDIO_MONITOR_BUFFER_BASE |= 0;
-            WMSX.AUDIO_MONITOR_BUFFER_SIZE |= 0;
-            WMSX.AUDIO_SIGNAL_BUFFER_RATIO = parseFloat(WMSX.AUDIO_SIGNAL_BUFFER_RATIO);
-            WMSX.AUDIO_SIGNAL_ADD_FRAMES |= 0;
-            var turboMulti = Number.parseFloat(WMSX.CPU_TURBO_MODE);
-            WMSX.CPU_TURBO_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
-            turboMulti = Number.parseFloat(WMSX.CPU_SOFT_TURBO_MULTI);
-            WMSX.CPU_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 2 : Number.parseFloat(turboMulti.toFixed(2));
-            WMSX.VDP_TURBO_MODE |= 0;
-            WMSX.VDP_SOFT_TURBO_MULTI |= 0;
-            WMSX.DEBUG_MODE |= 0;
-            WMSX.SPRITES_DEBUG_MODE |= 0;
-            WMSX.BOOT_KEYS_FRAMES |= 0;
-            WMSX.BOOT_DURATION_AUTO |= 0;
-            WMSX.FAST_BOOT |= 0;
-            WMSX.SPEED |= 0;
-            WMSX.JOYSTICKS_MODE |= 0;
-            WMSX.JOYKEYS_MODE |= 0;
-            WMSX.MOUSE_MODE |= 0;
-            WMSX.TOUCH_MODE |= 0;
-            WMSX.VOL = Number(WMSX.VOL) || 1;
-            WMSX.HARDDISK_MIN_SIZE_KB |= 0;
-            WMSX.MEGARAM_SIZE |= 0;
-
-            // Boolean parameters (only single parameters known)
-            WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";
-            WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED === "true";
-            WMSX.LIGHT_STATES = WMSX.LIGHT_STATES === true || WMSX.LIGHT_STATES === "true";
-
-            // Slot parameters (arrays with numbers). Any parameter ending with "SLOT" or "SLOT2"
-            deepNormalizeSlotParams(WMSX);
-
-            function deepNormalizeSlotParams(obj) {
-                if (!obj || obj.constructor !== Object) return false;
-                for (var p in obj) {
-                    var innerObj = obj[p];
-                    if (deepNormalizeSlotParams(innerObj)) continue;
-                    if (wmsx.Util.stringEndsWith(p, "SLOT") || wmsx.Util.stringEndsWith(p, "SLOT2")) normalizeNumberArray(obj, p, innerObj);
-                }
-                return true;
-            }
-
-            function normalizeNumberArray(obj, prop, value) {
-                if (value.constructor === Array) return;
-                var nums = ("" + value).match(/[0-9]/g);
-                if (!nums) return;
-                obj[prop] = nums.map(function(strNum) { return strNum | 0; });
-            }
-        }
+        then();
     },
 
     applyPresets: function(presetList, silent) {
@@ -169,6 +98,102 @@ wmsx.Configurator = {
         if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
         this.applyPreset("ALTSLOTCONFIG");
         WMSX.PRESETS = WMSX.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
+    },
+
+    applyConfigFile: function(configString, urlParams, then) {
+        try {
+            var config = JSON.parse(wmsx.Util.int8BitArrayToByteString(configString));
+        } catch (e) {
+            return wmsx.Util.message("Invalid Configuration file format:\n" + e);
+        }
+
+        for (var p in config) this.applyParam(p, config[p]);
+
+        this.applyConfigDetails(urlParams, then);
+    },
+
+    parseURLParams: function() {
+        var search = (window.location.search || "").split('+').join(' ');
+        var reg = /[?&]?([^=]+)=([^&]*)/g;
+        var tokens;
+        var parameters = {};
+        while (tokens = reg.exec(search)) {
+            var parName = decodeURIComponent(tokens[1]).trim().toUpperCase();
+            parName = wmsx.Configurator.abbreviations[parName] || parName;
+            parameters[parName] = decodeURIComponent(tokens[2]).trim();
+        }
+        return parameters;
+    },
+
+    normalizeParameterTypes: function() {
+        // Object parameters
+        var obj, p;
+        obj = WMSX.MACHINES_CONFIG = WMSX.MACHINES_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+        obj = WMSX.EXTENSIONS_CONFIG = WMSX.EXTENSIONS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+        obj = WMSX.PRESETS_CONFIG = WMSX.PRESETS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+
+        // Numeric parameters
+        WMSX.ENVIRONMENT |= 0;
+        WMSX.RAMMAPPER_SIZE |= 0;
+        WMSX.AUTO_POWER_ON_DELAY |= 0;
+        WMSX.SCREEN_FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE |= 0;
+        WMSX.SCREEN_FILTER_MODE |= 0;
+        WMSX.SCREEN_CRT_SCANLINES |= 0;
+        WMSX.SCREEN_CRT_PHOSPHOR |= 0;
+        WMSX.SCREEN_DEFAULT_SCALE = parseFloat(WMSX.SCREEN_DEFAULT_SCALE);
+        WMSX.SCREEN_DEFAULT_ASPECT = parseFloat(WMSX.SCREEN_DEFAULT_ASPECT);
+        WMSX.SCREEN_CONTROL_BAR |= 0;
+        WMSX.SCREEN_MSX1_COLOR_MODE |= 0;
+        WMSX.SCREEN_FORCE_HOST_NATIVE_FPS |= 0;
+        WMSX.SCREEN_VSYNC_MODE |= 0;
+        WMSX.AUDIO_MONITOR_BUFFER_BASE |= 0;
+        WMSX.AUDIO_MONITOR_BUFFER_SIZE |= 0;
+        WMSX.AUDIO_SIGNAL_BUFFER_RATIO = parseFloat(WMSX.AUDIO_SIGNAL_BUFFER_RATIO);
+        WMSX.AUDIO_SIGNAL_ADD_FRAMES |= 0;
+        var turboMulti = Number.parseFloat(WMSX.CPU_TURBO_MODE);
+        WMSX.CPU_TURBO_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
+        turboMulti = Number.parseFloat(WMSX.CPU_SOFT_TURBO_MULTI);
+        WMSX.CPU_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 2 : Number.parseFloat(turboMulti.toFixed(2));
+        WMSX.VDP_TURBO_MODE |= 0;
+        WMSX.VDP_SOFT_TURBO_MULTI |= 0;
+        WMSX.DEBUG_MODE |= 0;
+        WMSX.SPRITES_DEBUG_MODE |= 0;
+        WMSX.BOOT_KEYS_FRAMES |= 0;
+        WMSX.BOOT_DURATION_AUTO |= 0;
+        WMSX.FAST_BOOT |= 0;
+        WMSX.SPEED |= 0;
+        WMSX.JOYSTICKS_MODE |= 0;
+        WMSX.JOYKEYS_MODE |= 0;
+        WMSX.MOUSE_MODE |= 0;
+        WMSX.TOUCH_MODE |= 0;
+        WMSX.VOL = Number(WMSX.VOL) || 1;
+        WMSX.HARDDISK_MIN_SIZE_KB |= 0;
+        WMSX.MEGARAM_SIZE |= 0;
+
+        // Boolean parameters (only single parameters known)
+        WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";
+        WMSX.SCREEN_RESIZE_DISABLED = WMSX.SCREEN_RESIZE_DISABLED === true || WMSX.SCREEN_RESIZE_DISABLED === "true";
+        WMSX.LIGHT_STATES = WMSX.LIGHT_STATES === true || WMSX.LIGHT_STATES === "true";
+
+        // Slot parameters (arrays with numbers). Any parameter ending with "SLOT" or "SLOT2"
+        deepNormalizeSlotParams(WMSX);
+
+        function deepNormalizeSlotParams(obj) {
+            if (!obj || obj.constructor !== Object) return false;
+            for (var p in obj) {
+                var innerObj = obj[p];
+                if (deepNormalizeSlotParams(innerObj)) continue;
+                if (wmsx.Util.stringEndsWith(p, "SLOT") || wmsx.Util.stringEndsWith(p, "SLOT2")) normalizeNumberArray(obj, p, innerObj);
+            }
+            return true;
+        }
+
+        function normalizeNumberArray(obj, prop, value) {
+            if (value.constructor === Array) return;
+            var nums = ("" + value).match(/[0-9]/g);
+            if (!nums) return;
+            obj[prop] = nums.map(function(strNum) { return strNum | 0; });
+        }
     },
 
     slotURLSpecs: function() {

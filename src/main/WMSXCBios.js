@@ -8,6 +8,8 @@ WMSX = {
 
     ENVIRONMENT:                   101,                         // 101: C-BIOS Built-in Emulator Environment
 
+    CONFIG_URL:                     "",                         // Configuration file. Processed before URL parameters
+
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
 
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
