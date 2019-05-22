@@ -26,20 +26,20 @@ wmsx.Configurator = {
     },
 
     applyConfigCont: function(params) {
-        // First set base MACHINE and PRESETS parameters
-        if (params.MACHINE) { this.applyParam("MACHINE", params.MACHINE); delete params.MACHINE; }
-        if (params.PRESETS) { this.applyParam("PRESETS", params.PRESETS); delete params.PRESETS; }
-
         // Apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
-        this.applyPresetsConfigModifications();
+        this.applyPresetsConfigModifications(params);
 
         // Apply Presets from Machine configuration chosen
-        WMSX.MACHINE = (WMSX.MACHINE || "").trim().toUpperCase();
+        if (params.MACHINE) this.applyParam("MACHINE", params.MACHINE);
+        WMSX.MACHINE = WMSX.MACHINE.trim().toUpperCase();
+
         if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
         if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
         this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
+        delete params.MACHINE;
 
         // Apply additional Presets over Machine configuration chosen
+        if (params.PRESETS) this.applyParam("PRESETS", params.PRESETS);
         this.applyPresets(WMSX.PRESETS);
 
         // Apply additional single parameters
@@ -58,6 +58,12 @@ wmsx.Configurator = {
         }
 
         function normalizeParameterTypes() {
+            // Object parameters
+            var obj, p;
+            obj = WMSX.MACHINES_CONFIG = WMSX.MACHINES_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+            obj = WMSX.EXTENSIONS_CONFIG = WMSX.EXTENSIONS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+            obj = WMSX.PRESETS_CONFIG = WMSX.PRESETS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+
             // Numeric parameters
             WMSX.ENVIRONMENT |= 0;
             WMSX.RAMMAPPER_SIZE |= 0;
@@ -145,7 +151,7 @@ wmsx.Configurator = {
     },
 
     applyParam: function(name, value) {
-        if (name.indexOf(".") < 0)
+        if (name.indexOf(".") < 1)
             WMSX[name] = value;
         else {
             var obj = WMSX;
@@ -155,8 +161,11 @@ wmsx.Configurator = {
         }
     },
 
-    applyPresetsConfigModifications: function() {
-        // Apply Alternate Slot Config Preset (special case, modifies other presets)
+    applyPresetsConfigModifications: function(params) {
+        // Apply Presets modifications
+        for (var p in params) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, params[p]);
+
+        // Apply Alternate Slot Config Preset if asked (special case, also modifies other presets)
         if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
         this.applyPreset("ALTSLOTCONFIG");
         WMSX.PRESETS = WMSX.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
@@ -270,15 +279,11 @@ wmsx.Configurator = {
         var langSuffix = "A";                                 // Default American machine
         if (lang.indexOf("ja") === 0) langSuffix = "J";       // Japanese machine
 
-        var typePreffix;
-        switch (type) {
-            case 4: typePreffix = "MSX2PP"; break;
-            case 3: typePreffix = "MSX2P"; break;
-            case 2: typePreffix = "MSX2"; break;
-            case 1: typePreffix = "MSX1"; break;
-        }
+        var machine = "" + WMSX.MACHINE + langSuffix;
 
-        var machine = typePreffix + langSuffix;
+        // If Machine not found, get the first <= type (trust enumeration order)
+        if (!WMSX.MACHINES_CONFIG[machine])
+            for (machine in WMSX.MACHINES_CONFIG) if (WMSX.MACHINES_CONFIG[machine].type <= type) break;
 
         wmsx.Util.log("Machine auto-detection: " + machine);
         return machine;

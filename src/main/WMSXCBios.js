@@ -134,7 +134,7 @@ WMSX.MACHINES_CONFIG = {
     EMPTY2PP: { desc: "MSX2++ Barebone",        type: 4 },
     EMPTY2P:  { desc: "MSX2+ Barebone",         type: 3 },
     EMPTY2:   { desc: "MSX2 Barebone",          type: 2 },
-    EMPTY:    { desc: "MSX Barebone",           type: 1 }
+    EMPTY1:   { desc: "MSX Barebone",           type: 1 }
 };
 
 WMSX.EXTENSIONS_CONFIG = {

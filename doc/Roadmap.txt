@@ -17,4 +17,5 @@
 =========
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
+* iOS: Quick Options looking bad :-)
 
