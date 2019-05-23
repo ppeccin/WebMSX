@@ -117,38 +117,38 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSX2PP:   { desc: "MSX2++ Auto Detect",     autoType: 4 },
-    MSX2P:    { desc: "MSX2+ Auto Detect",      autoType: 3 },
-    MSX2:     { desc: "MSX2 Auto Detect",       autoType: 2 },
-    MSX1:     { desc: "MSX Auto Detect",        autoType: 1 },
-    MSX2PPA:  { desc: "MSX2++ America (NTSC)",  type: 4, presets: "_MSX2PPA", lang: "en" },
-    MSX2PPE:  { desc: "MSX2++ Europe (PAL)",    type: 4, presets: "_MSX2PPE", lang: "en" },
-    MSX2PPJ:  { desc: "MSX2++ Japan (NTSC)",    type: 4, presets: "_MSX2PPJ", lang: "ja" },
-    MSX2PA:   { desc: "MSX2+ America (NTSC)",   type: 3, presets: "_MSX2PA",  lang: "en" },
-    MSX2PE:   { desc: "MSX2+ Europe (PAL)",     type: 3, presets: "_MSX2PE",  lang: "en" },
-    MSX2PJ:   { desc: "MSX2+ Japan (NTSC)",     type: 3, presets: "_MSX2PJ",  lang: "ja" },
-    MSX2A:    { desc: "MSX2 America (NTSC)",    type: 2, presets: "_MSX2A",   lang: "en" },
-    MSX2E:    { desc: "MSX2 Europe (PAL)",      type: 2, presets: "_MSX2E",   lang: "en" },
-    MSX2J:    { desc: "MSX2 Japan (NTSC)",      type: 2, presets: "_MSX2J",   lang: "ja" },
-    MSX1A:    { desc: "MSX America (NTSC)",     type: 1, presets: "_MSX1A",   lang: "en" },
-    MSX1E:    { desc: "MSX Europe (PAL)",       type: 1, presets: "_MSX1E",   lang: "en" },
-    MSX1J:    { desc: "MSX Japan (NTSC)",       type: 1, presets: "_MSX1J",   lang: "ja" },
-    EMPTY2PP: { desc: "MSX2++ Barebone",        type: 4 },
-    EMPTY2P:  { desc: "MSX2+ Barebone",         type: 3 },
-    EMPTY2:   { desc: "MSX2 Barebone",          type: 2 },
-    EMPTY1:   { desc: "MSX Barebone",           type: 1 }
+    MSX2PP:   { desc: "MSX2++ Auto Detect",    autoType: 4 },
+    MSX2P:    { desc: "MSX2+ Auto Detect",     autoType: 3 },
+    MSX2:     { desc: "MSX2 Auto Detect",      autoType: 2 },
+    MSX1:     { desc: "MSX Auto Detect",       autoType: 1 },
+    MSX2PPA:  { desc: "MSX2++ America (NTSC)", type: 4, presets: "_MSX2PPA", lang: "en" },
+    MSX2PPE:  { desc: "MSX2++ Europe (PAL)",   type: 4, presets: "_MSX2PPE", lang: "en" },
+    MSX2PPJ:  { desc: "MSX2++ Japan (NTSC)",   type: 4, presets: "_MSX2PPJ", lang: "ja" },
+    MSX2PA:   { desc: "MSX2+ America (NTSC)",  type: 3, presets: "_MSX2PA",  lang: "en" },
+    MSX2PE:   { desc: "MSX2+ Europe (PAL)",    type: 3, presets: "_MSX2PE",  lang: "en" },
+    MSX2PJ:   { desc: "MSX2+ Japan (NTSC)",    type: 3, presets: "_MSX2PJ",  lang: "ja" },
+    MSX2A:    { desc: "MSX2 America (NTSC)",   type: 2, presets: "_MSX2A",   lang: "en" },
+    MSX2E:    { desc: "MSX2 Europe (PAL)",     type: 2, presets: "_MSX2E",   lang: "en" },
+    MSX2J:    { desc: "MSX2 Japan (NTSC)",     type: 2, presets: "_MSX2J",   lang: "ja" },
+    MSX1A:    { desc: "MSX America (NTSC)",    type: 1, presets: "_MSX1A",   lang: "en" },
+    MSX1E:    { desc: "MSX Europe (PAL)",      type: 1, presets: "_MSX1E",   lang: "en" },
+    MSX1J:    { desc: "MSX Japan (NTSC)",      type: 1, presets: "_MSX1J",   lang: "ja" },
+    EMPTY2PP: { desc: "MSX2++ Barebone",       type: 4 },
+    EMPTY2P:  { desc: "MSX2+ Barebone",        type: 3 },
+    EMPTY2:   { desc: "MSX2 Barebone",         type: 2 },
+    EMPTY1:   { desc: "MSX Barebone",          type: 1 }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    HARDDISK:  {                        format: "Nextor16Patch", SLOT: [1], SLOT2: [2],  change: { RAMMAPPER: 1, SCCI: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
-    RAMMAPPER: { desc: "RAM Mapper",    format: "RAMMapper",     SLOT: [3, 2],           mutual: "RAMNORMAL" },
-    RAMNORMAL: {                        format: "RAMNormal",     SLOT: [3],              mutual: "RAMMAPPER" },
-    MSXMUSIC:  { desc: "MSX-MUSIC",     format: "MSXMUSIC",      SLOT: [3, 1] },
-    DOUBLEPSG: { desc: "Double PSG",    format: "ExtraPSG",      SLOT: [4, 2] },
-    SCCI:      { desc: "Konami SCC+",   format: "SCCIExpansion", SLOT: [1], SLOT2: [2],  change: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
-    SCC:       {                        format: "SCCExpansion",  SLOT: [1], SLOT2: [2],  change: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
-    PAC:       { desc: "PAC SRAM",      format: "PACExpansion",  SLOT: [1], SLOT2: [2],  change: { HARDDISK: 0, SCCI: 0, SCC: 0, MEGARAM: 0 } },
-    MEGARAM:   { desc: "MegaRAM",       format: "MegaRAM",       SLOT: [1], SLOT2: [2],  change: { HARDDISK: 0, SCCI: 0, SCC: 0, PAC: 0 } }
+    HARDDISK:  {                      url: "@[Nextor16Patch].rom", SLOT: [1], SLOT2: [2], change: { RAMMAPPER: 1, SCCI: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
+    RAMMAPPER: { desc: "RAM Mapper",  url: "@[RAMMapper].rom",     SLOT: [3, 2],          mutual: "RAMNORMAL" },
+    RAMNORMAL: {                      url: "@[RAMNormal].rom",     SLOT: [3, 2],          mutual: "RAMMAPPER" },
+    MSXMUSIC:  { desc: "MSX-MUSIC",   url: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 1] },
+    DOUBLEPSG: { desc: "Double PSG",  url: "@[ExtraPSG].rom",      SLOT: [4, 2] },
+    SCCI:      { desc: "Konami SCC+", url: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
+    SCC:       {                      url: "@[SCCExpansion].rom",  SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
+    PAC:       { desc: "PAC SRAM",    url: "@[PACExpansion].rom",  SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCCI: 0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM:   { desc: "MegaRAM",     url: "@[MegaRAM].rom",       SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCCI: 0, SCC: 0, PAC: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
@@ -214,13 +214,13 @@ WMSX.PRESETS_CONFIG = {
     // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 
     ALTSLOTCONFIG: {
-        BIOSEXT_SLOT:                           [2, 1],
-        EXPANSION1_SLOT:                        [3, 2],
-        EXPANSION2_SLOT:                        [3, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.HARDDISK":  [2, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":      [2, 2],
-        "EXTENSIONS_CONFIG.RAMMapper.SLOT":     [3],
-        "EXTENSIONS_CONFIG.RAMNormal.SLOT":     [3]
+        BIOSEXT_SLOT:                          [2, 1],
+        EXPANSION1_SLOT:                       [3, 2],
+        EXPANSION2_SLOT:                       [3, 3],
+        "EXTENSIONS_CONFIG.MSXMUSIC.HARDDISK": [2, 3],
+        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":     [2, 2],
+        "EXTENSIONS_CONFIG.RAMMapper.SLOT":    [3],
+        "EXTENSIONS_CONFIG.RAMNormal.SLOT":    [3]
     },
 
     // MSX2++ Machine Presets. Do not use directly
@@ -238,7 +238,6 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 165
     },
     _MSX2PPBASE: {
-        _INCLUDE:           "RAM1024",
         M_CPU_TURBO_MODE:     4,
         CPU_SOFT_TURBO_MULTI: 4,
         M_VDP_TURBO_MODE:     4,
@@ -290,7 +289,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAM512, MSXMUSIC"
+        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC"
     },
 
     // MSX1 Machine Presets. Do not use directly

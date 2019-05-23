@@ -568,13 +568,29 @@ wmsx.Util = new function() {
         return Math.log(x) / Math.log(2);
     };
 
-    this.exp2 = function(x) {
-        return Math.pow(2, x);
+    this.exp2 = function(y) {
+        return Math.pow(2, y);
     };
 
     this.performanceNow = function() {
         return this.performanceNow.startOffset ? Date.now() - this.performanceNow.startOffset : window.performance.now();
     };
+
+    this.applyPatchObject = function(obj, patch) {
+        if (!obj || obj.constructor !== Object || patch.constructor !== Object) return patch;
+
+        if (patch["_redef"]) obj = {};
+
+        for (var p in patch) {
+            if (p === "_redef") continue;
+            var val = patch[p];
+
+            if (val === null) delete obj[p];
+            else obj[p] = this.applyPatchObject(obj[p], val);
+        }
+
+        return obj;
+    }
 
 };
 

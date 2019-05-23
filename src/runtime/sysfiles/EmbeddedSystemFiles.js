@@ -45,6 +45,10 @@ wmsx.EmbeddedSystemFiles = {
 
         "KanjiBasic_PAL.bios": { based: "@KanjiBasic.bios", diffs: {
             0x3c9b: [ 0x02 ]                                            // reg9 PAL init
+        }},
+
+        "[KanjiBasic].bios": { based: "@KanjiBasic.bios", diffs: {
+            // Just an alias for old file name referenced in savestates
         }}
 
     }

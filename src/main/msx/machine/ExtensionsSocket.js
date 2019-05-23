@@ -23,14 +23,18 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.isActiveOnConf = function(ext, op2) {
+        if (!config[ext]) return false;
         var op = config[ext].SLOT2 && op2 ? 2 : 1;
         return (WMSX.EXTENSIONS[ext] & op) !== 0;
     };
 
     this.isActiveOnSlot = function(ext, op2) {
-        var hasOp2 = !!config[ext].SLOT2;
-        var loaded = slotSocket.slotInserted(op2 && hasOp2 ? config[ext].SLOT2 : config[ext].SLOT);
-        return !!loaded && loaded.format.name === config[ext].format;
+        var conf = config[ext];
+        if (!conf) return false;
+
+        var hasOp2 = !!conf.SLOT2;
+        var loaded = slotSocket.slotInserted(op2 && hasOp2 ? conf.SLOT2 : conf.SLOT);
+        return !!loaded && loaded.rom.source === conf.url;
     };
 
     this.activateExtension = function(ext, altPower, op2, skipMessage) {
@@ -38,9 +42,11 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.toggleExtension = function (ext, altPower, secOp, skipMessage) {
-        if (config[ext] === undefined) return;
-        var hasOp2 = !!config[ext].SLOT2;
-        var both = hasOp2 && !config[ext].toggle;
+        var conf = config[ext];
+        if (!conf) return;
+
+        var hasOp2 = !!conf.SLOT2;
+        var both = hasOp2 && !conf.toggle;
         secOp = secOp && hasOp2;
 
         var newOp = 0;
@@ -75,8 +81,8 @@ wmsx.ExtensionsSocket = function(machine) {
             if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed && !skipMessage) {
-                var slotDesc = machine.getSlotSocket().getSlotDesc(newOp & 2 ? config[ext].SLOT2 : config[ext].SLOT);
-                var mes = config[ext].desc + " Extension " + (newOp ? "enabled" + (newOp === 3 ? " at both slots" : (slotDesc ? " at slot " + slotDesc : "")) : "disabled");
+                var slotDesc = machine.getSlotSocket().getSlotDesc(newOp & 2 ? conf.SLOT2 : conf.SLOT);
+                var mes = conf.desc + " Extension " + (newOp ? "enabled" + (newOp === 3 ? " at both slots" : (slotDesc ? " at slot " + slotDesc : "")) : "disabled");
                 machine.showOSD(mes, true);
                 wmsx.Util.log(mes);
             }
@@ -144,6 +150,7 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     function updateExtensionOnConf(ext, val, op2, stopRecursion) {
+        if (!config[ext]) return;
         op2 = op2 && !!config[ext].SLOT2;
         if (self.isActiveOnConf(ext, op2) === val) return;
 
@@ -182,7 +189,7 @@ wmsx.ExtensionsSocket = function(machine) {
 
     function makeLoaderUrlSpec(ext, op2) {
         return {
-            url: wmsx.SlotFormats[config[ext].format].embeddedURL || "",
+            url: config[ext].url || "",
             onSuccess: function (res) {
                 fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].SLOT2 : config[ext].SLOT, true, true);     // internal
             }

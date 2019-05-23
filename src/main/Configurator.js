@@ -95,9 +95,9 @@ wmsx.Configurator = {
         for (var p in params) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, params[p]);
 
         // Apply Alternate Slot Config Preset if asked (special case, also modifies other presets)
-        if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
+        if ((params.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
         this.applyPreset("ALTSLOTCONFIG");
-        WMSX.PRESETS = WMSX.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
+        params.PRESETS = params.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
     },
 
     applyConfigFile: function(configString, urlParams, then) {
@@ -107,7 +107,7 @@ wmsx.Configurator = {
             return wmsx.Util.message("Invalid Configuration file format:\n" + e);
         }
 
-        for (var p in config) this.applyParam(p, config[p]);
+        wmsx.Util.applyPatchObject(WMSX, config);
 
         this.applyConfigDetails(urlParams, then);
     },

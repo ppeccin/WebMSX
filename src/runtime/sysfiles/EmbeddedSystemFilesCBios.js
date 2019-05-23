@@ -37,5 +37,3 @@ wmsx.EmbeddedSystemFiles = {
 };
 
 wmsx.EmbeddedSystemFiles.embedFiles();
-
-wmsx.SlotFormats.MSXMUSIC.embeddedURL = "@cbios_music[MSXMUSIC].rom";
