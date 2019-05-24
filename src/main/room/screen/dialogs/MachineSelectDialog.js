@@ -11,6 +11,8 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
             return setTimeout(self.show, 0);
         }
 
+        if (!listItems.length) defineList();
+
         visible = true;
         machineSelected = machineTypeSocket.getMachine();
         dialog.classList.add("wmsx-show");
@@ -39,6 +41,10 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
         refresh();
     };
 
+    this.configurationStateUpdate = function() {
+        listItems.length = 0;
+    };
+
     function refresh() {
         for (var i = 0; i < listItems.length; ++i) {
             var li = listItems[i];
@@ -56,28 +62,34 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
         var header = document.createTextNode("Select Machine");
         dialog.appendChild(header);
 
-        // Define list
-        list = document.createElement('ul');
-        list.style.width = "80%";
-        var height = 43;
+        // List
+        listElement = document.createElement('ul');
+        listElement.style.width = "80%";
+        dialog.appendChild(listElement);
 
+        defineList();
+
+        setupEvents();
+
+        mainElement.appendChild(dialog);
+    }
+
+    function defineList() {
+        listElement.innerHTML = "";
+        var machines = Object.keys(WMSX.MACHINES_CONFIG);
+        var height = 43;
         for (var i = 0; i < machines.length; ++i) {
             if (!WMSX.MACHINES_CONFIG[machines[i]].presets) continue;       // Exclude EMPTY and AUTO options from list
             var li = document.createElement("li");
             li.classList.add("wmsx-visible");
             li.style.textAlign = "center";
-            li.innerHTML = WMSX.MACHINES_CONFIG[machines[i]].desc;
+            li.textContent = WMSX.MACHINES_CONFIG[machines[i]].desc;
             li.wmsxMachine = machines[i];
             listItems.push(li);
-            list.appendChild(li);
+            listElement.appendChild(li);
             height += 33;
         }
         dialog.style.height = "" + height + "px";
-        dialog.appendChild(list);
-
-        setupEvents();
-
-        mainElement.appendChild(dialog);
     }
 
     function setupEvents() {
@@ -105,6 +117,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
             else if (CONFIRM_KEYS.indexOf(keyCode) >= 0) hideConfirm();
             // Select
             else if (SELECT_KEYS[keyCode]) {
+                var machines = Object.keys(WMSX.MACHINES_CONFIG);
                 var idx = machines.indexOf(machineSelected) + SELECT_KEYS[keyCode];
                 var newMachine = machines[idx];
                 if (newMachine && WMSX.MACHINES_CONFIG[newMachine].presets) {      // Exclude EMPTY and AUTO options
@@ -117,11 +130,11 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
     }
 
 
-    var machines = Object.keys(WMSX.MACHINES_CONFIG);
     var machineSelected;
 
     var dialog, list;
     var listItems = [];
+    var listElement;
     var visible = false;
 
     var domKeys = wmsx.DOMKeys;

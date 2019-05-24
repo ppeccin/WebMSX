@@ -399,6 +399,7 @@ wmsx.Machine = function() {
 
     function saveState(extended) {
         var s = {
+            cfg: wmsx.Configurator.saveState(),
             mn: self.machineName,
             mt: self.machineType,
             b:  bus.saveState(),
@@ -431,6 +432,9 @@ wmsx.Machine = function() {
     this.saveState = saveState;
 
     function loadState(s) {
+        // Configuration
+        wmsx.Configurator.loadState(s, s.cfg);
+
         // Extended
         if (s.vy !== undefined) setVSynchMode(s.vy, true);  // force update
         if (s.pw !== undefined && self.powerIsOn !== s.pw) s.pw ? self.powerOn(true) : self.powerOff();    // true = powerOn from state
@@ -1106,7 +1110,6 @@ wmsx.Machine = function() {
                 } else if (!VERSIONS_ACCEPTED[state.v]) {
                     self.showOSD("State " + slot + " load failed. State version incompatible!", true, true);
                 } else {
-                    wmsx.Configurator.upgradeForState(state);
                     if (self.powerIsOn) self.reset(true);
                     else self.powerOn(true);    // true = powerOn from state loading
                     loadState(state);
@@ -1136,7 +1139,6 @@ wmsx.Machine = function() {
             if (!VERSIONS_ACCEPTED[state.v]) {
                 self.showOSD("State File load failed. State version incompatible!", true, true);
             } else {
-                wmsx.Configurator.upgradeForState(state);
                 if (self.powerIsOn) self.reset(true);
                 else self.powerOn(true);    // true = powerOn from state
                 loadState(state);

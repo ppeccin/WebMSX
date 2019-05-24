@@ -5,6 +5,10 @@ wmsx.ExtensionsSocket = function(machine) {
 
     var self = this;
 
+    function init() {
+        wmsx.Configurator.addConfigurationStateListener(self);
+    }
+
     this.connectFileLoader = function(pFileLoader) {
         fileLoader = pFileLoader;
     };
@@ -20,6 +24,10 @@ wmsx.ExtensionsSocket = function(machine) {
     this.cartridgesStateUpdate = function() {
         this.refreshConfigFromSlots();
         this.fireExtensionsAndCartridgesStateUpdate();
+    };
+
+    this.configurationStateUpdate = function() {
+        config = WMSX.EXTENSIONS_CONFIG;
     };
 
     this.isActiveOnConf = function(ext, op2) {
@@ -203,5 +211,8 @@ wmsx.ExtensionsSocket = function(machine) {
     var fileLoader;
 
     var listeners = [];
+
+
+    init();
 
 };

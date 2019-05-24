@@ -2,17 +2,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
-// May be overridden dynamically by URL query parameters
+// May be overridden dynamically by external Config File or URL query parameters
 
 WMSX = {
 
-    ENVIRONMENT:                     0,                         // 0: Default Emulator Environment. 1..99: Custom User Environment
-
+    // Main Setup
     CONFIG_URL:                     "",                         // Configuration file. Processed before URL parameters
-
+    ENVIRONMENT:                     0,                         // 0: Default Emulator Environment. 1..99: Custom User Environment
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
-
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
+    EXTENSIONS:                     { },                        // Extensions to apply. See Extensions Configuration
 
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
@@ -57,7 +56,6 @@ WMSX = {
     EXPANSION1_SLOT:                [2, 1],
     EXPANSION2_SLOT:                [2, 2],
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB
-    EXTENSIONS:                     { },
 
     // General options
     VOL:                            1.0,                        // Master Volume factor

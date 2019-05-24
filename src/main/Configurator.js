@@ -3,6 +3,9 @@
 wmsx.Configurator = {
 
     applyConfig: function(then) {
+        this.backupOriginalConfig();
+
+        // Read URL parameters
         var urlParams = WMSX.ALLOW_URL_PARAMETERS ? this.parseURLParams() : {};
 
         // Process Config file if asked
@@ -20,7 +23,7 @@ wmsx.Configurator = {
             function onAnyError(urls) {
                 return wmsx.Util.message("Error loading Configuration file: " + configUrl);
             }
-        ).start();      // Probably Asynchronous since URL is probably not an Embedded file
+        ).start();      // Asynchronous since URL is not an Embedded file
     },
 
     applyConfigDetails: function(params, then) {
@@ -30,7 +33,6 @@ wmsx.Configurator = {
         // Apply Presets from Machine configuration chosen
         if (params.MACHINE) this.applyParam("MACHINE", params.MACHINE);
         WMSX.MACHINE = WMSX.MACHINE.trim().toUpperCase();
-
         if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
         if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
         this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
@@ -314,12 +316,31 @@ wmsx.Configurator = {
         return machine;
     },
 
-    upgradeForState: function(state) {
-        // No adaptation made if not Main Variation (no old savestates possible!)
-        if (WMSX.ENVIRONMENT) return;
+    saveState: function() {
+        return {
+            mc: WMSX.MACHINES_CONFIG,
+            ec: WMSX.EXTENSIONS_CONFIG,
+            pc: WMSX.PRESETS_CONFIG
+        }
+    },
 
-        // Adapt Extensions Config. Make current Config compatible with old State
-        if (state.v < 50) {
+    loadState: function(s, cfg) {
+        // Backward compatibility. For State versions < 530, cfg will be null, so restore original config
+        if (cfg) {
+            WMSX.MACHINES_CONFIG = cfg.mc;
+            WMSX.EXTENSIONS_CONFIG = cfg.ec;
+            WMSX.PRESETS_CONFIG = cfg.pc;
+        } else
+            this.adaptForOldState(s);
+        for (var i = 0; i < this.listeners.length; ++i) this.listeners[i].configurationStateUpdate();
+    },
+
+    adaptForOldState: function(s) {
+        // Make config compatible with old State
+        WMSX.MACHINES_CONFIG = JSON.parse(this.originalConfig.MACHINES_CONFIG);
+        WMSX.EXTENSIONS_CONFIG = JSON.parse(this.originalConfig.EXTENSIONS_CONFIG);
+        WMSX.PRESETS_CONFIG = JSON.parse(this.originalConfig.PRESETS_CONFIG);
+        if (s.v < 50) {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 2];
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 2];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [2, 3];
@@ -327,8 +348,7 @@ wmsx.Configurator = {
             WMSX.BIOSEXT_SLOT =                    [2, 1];
             WMSX.EXPANSION1_SLOT =                 [3, 2];
             WMSX.EXPANSION2_SLOT =                 [3, 3];
-            WMSX.OLD_EXTENSION_CONFIG = true;
-        } else if (state.v < 51) {
+        } else if (s.v < 51) {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 3];
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 3];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [3, 2];
@@ -336,21 +356,23 @@ wmsx.Configurator = {
             WMSX.BIOSEXT_SLOT =                    [3, 1];
             WMSX.EXPANSION1_SLOT =                 [2, 2];
             WMSX.EXPANSION2_SLOT =                 [2, 3];
-            WMSX.OLD_EXTENSION_CONFIG = true;
-        }
-
-        // Revert old config to the new Config again
-        if (WMSX.OLD_EXTENSION_CONFIG && state.v >= 51) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [4, 0];
-            WMSX.BIOSEXT_SLOT =                    [3, 1];
-            WMSX.EXPANSION1_SLOT =                 [2, 1];
-            WMSX.EXPANSION2_SLOT =                 [2, 2];
-            WMSX.OLD_EXTENSION_CONFIG = false;
         }
     },
+
+    backupOriginalConfig: function () {
+        this.originalConfig.MACHINES_CONFIG = JSON.stringify(WMSX.MACHINES_CONFIG);
+        this.originalConfig.EXTENSIONS_CONFIG = JSON.stringify(WMSX.EXTENSIONS_CONFIG);
+        this.originalConfig.PRESETS_CONFIG = JSON.stringify(WMSX.PRESETS_CONFIG);
+    },
+
+    addConfigurationStateListener: function(listener) {
+        if (this.listeners.indexOf(listener) >= 0) return;
+        this.listeners.push(listener);
+    },
+
+    listeners: [],
+
+    originalConfig: {},
 
     abbreviations: {
         E: "ENVIRONMENT",

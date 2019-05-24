@@ -579,10 +579,10 @@ wmsx.Util = new function() {
     this.applyPatchObject = function(obj, patch) {
         if (!obj || obj.constructor !== Object || patch.constructor !== Object) return patch;
 
-        if (patch["_redef"]) obj = {};
+        if (patch["_clear"]) obj = {};
 
         for (var p in patch) {
-            if (p === "_redef") continue;
+            if (p === "_clear") continue;
             var val = patch[p];
 
             if (val === null) delete obj[p];

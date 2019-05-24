@@ -632,10 +632,17 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
+    this.configurationStateUpdate = function() {
+        closeAllOverlays();
+        if (machineSelectDialog) machineSelectDialog.configurationStateUpdate();
+        defineSettingsMenuExtensions();
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
         updateLoading();
         if (!state) {
+            wmsx.Configurator.addConfigurationStateListener(this);
             machine.getMachineControlsSocket().addPowerAndUserPauseStateListener(this);
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
@@ -1059,6 +1066,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = createSettingsMenuOptions();
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings");
+        defineSettingsMenuExtensions();
 
         if (FULLSCREEN_MODE !== -2) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, false, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
@@ -1270,16 +1278,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function createSettingsMenuOptions() {
         var menu = [ ];
 
-        var extConfig = WMSX.EXTENSIONS_CONFIG;
-        for (var ext in extConfig) {
-            var conf = extConfig[ext];
-            if (conf.desc) {            // Only show extensions with descriptions
-                var opt = { label: conf.desc, extension: ext, toggle: true, checkedOp: 0 };
-                menu.push(opt);
-            }
-        }
-        menu.push({ label: "",               divider: true });
-
         menu.push({ label: "Select Machine", clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OPEN_MACHINE_SELECT });
 
         if (!isMobileDevice) {
@@ -1295,6 +1293,24 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         menu.push({ label: "Defaults",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.SCREEN_DEFAULTS/*,          fullScreenHidden: true*/ });
 
         return menu;
+    }
+
+    function defineSettingsMenuExtensions() {
+        var menu = settingsButton.wmsxMenu;
+        while (menu[0].extension) menu.shift();
+        if (!menu[0].divider) menu.unshift({ label: "", divider: true });
+
+        var extConfig = WMSX.EXTENSIONS_CONFIG;
+        var extNames = Object.keys(extConfig).reverse();
+        for (var i = 0; i < extNames.length; ++i) {
+            var ext = extNames[i];
+            var conf = extConfig[ext];
+            if (conf.desc) {            // Only show extensions with descriptions
+                var opt = {label: conf.desc, extension: ext, toggle: true, checkedOp: 0};
+                menu.unshift(opt);
+            }
+        }
+        if (menu[0].divider) menu.shift();
     }
 
     function refreshSettingsMenuForExtensions() {
@@ -1935,7 +1951,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE;
 
     var BAR_AUTO_HIDE = WMSX.SCREEN_CONTROL_BAR === 0;
-    var BAR_MENU_MAX_ITEMS = Math.max(6, Object.keys(WMSX.EXTENSIONS_CONFIG).length) + 1 + 5;
+    var BAR_MENU_MAX_ITEMS = 25;
 
     var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
