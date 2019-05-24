@@ -1305,8 +1305,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         for (var i = 0; i < extNames.length; ++i) {
             var ext = extNames[i];
             var conf = extConfig[ext];
-            if (conf.desc) {            // Only show extensions with descriptions
-                var opt = {label: conf.desc, extension: ext, toggle: true, checkedOp: 0};
+            if (conf.DESC) {            // Only show extensions with descriptions
+                var opt = {label: conf.DESC, extension: ext, toggle: true, checkedOp: 0};
                 menu.unshift(opt);
             }
         }
@@ -1327,7 +1327,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function refreshSettingsMenuForMachineType() {
         var menu = settingsButton.wmsxMenu;
-        menu.wmsxTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].desc.split("(")[0] || "Settings").trim();
+        menu.wmsxTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].DESC.split("(")[0] || "Settings").trim();
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
 
@@ -1918,7 +1918,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var mousePointerLocked = false;
 
     var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
-    var targetHeight = WMSX.MACHINES_CONFIG[WMSX.MACHINE].type === 1
+    var targetHeight = WMSX.MACHINES_CONFIG[WMSX.MACHINE].TYPE === 1
         ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2
         : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 

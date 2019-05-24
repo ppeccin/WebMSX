@@ -10,7 +10,7 @@ wmsx.MachineTypeSocket = function(machine) {
     };
 
     this.getMachineLang = function() {
-        return WMSX.MACHINES_CONFIG[machine.machineName].lang || "en";
+        return WMSX.MACHINES_CONFIG[machine.machineName].LANG || "en";
     };
 
     this.changeMachine = function (name) {
@@ -20,7 +20,7 @@ wmsx.MachineTypeSocket = function(machine) {
         var machineConfig = WMSX.MACHINES_CONFIG[name];
         if (!machineConfig) return;
 
-        wmsx.Configurator.applyPresets(machineConfig.presets);
+        wmsx.Configurator.applyPresets(machineConfig.PRESETS);
 
         var wasOn = machine.powerIsOn;
         machine.powerOff();
@@ -33,7 +33,7 @@ wmsx.MachineTypeSocket = function(machine) {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
-                    machine.showOSD(machineConfig.desc + " machine activated", true);
+                    machine.showOSD(machineConfig.DESC + " machine activated", true);
                     self.fireMachineTypeStateUpdate();
                 });
             }

@@ -42,7 +42,7 @@ wmsx.ExtensionsSocket = function(machine) {
 
         var hasOp2 = !!conf.SLOT2;
         var loaded = slotSocket.slotInserted(op2 && hasOp2 ? conf.SLOT2 : conf.SLOT);
-        return !!loaded && loaded.rom.source === conf.url;
+        return !!loaded && loaded.rom.source === conf.URL;
     };
 
     this.activateExtension = function(ext, altPower, op2, skipMessage) {
@@ -54,7 +54,7 @@ wmsx.ExtensionsSocket = function(machine) {
         if (!conf) return;
 
         var hasOp2 = !!conf.SLOT2;
-        var both = hasOp2 && !conf.toggle;
+        var both = hasOp2 && !conf.TOGGLE;
         secOp = secOp && hasOp2;
 
         var newOp = 0;
@@ -90,7 +90,7 @@ wmsx.ExtensionsSocket = function(machine) {
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed && !skipMessage) {
                 var slotDesc = machine.getSlotSocket().getSlotDesc(newOp & 2 ? conf.SLOT2 : conf.SLOT);
-                var mes = conf.desc + " Extension " + (newOp ? "enabled" + (newOp === 3 ? " at both slots" : (slotDesc ? " at slot " + slotDesc : "")) : "disabled");
+                var mes = conf.DESC + " Extension " + (newOp ? "enabled" + (newOp === 3 ? " at both slots" : (slotDesc ? " at slot " + slotDesc : "")) : "disabled");
                 machine.showOSD(mes, true);
                 wmsx.Util.log(mes);
             }
@@ -169,14 +169,14 @@ wmsx.ExtensionsSocket = function(machine) {
         if (stopRecursion) return;
 
         var conf = config[ext];
-        if (conf.mutual) updateExtensionOnConf(conf.mutual, !val, op2, true);
+        if (conf.MUTUAL) updateExtensionOnConf(conf.MUTUAL, !val, op2, true);
         if (val) {
             // Activate or Deactivate on same op
-            if (conf.change)
-                for (var c in conf.change) updateExtensionOnConf(c, !!conf.change[c], op2, true);
+            if (conf.CHANGE)
+                for (var c in conf.CHANGE) updateExtensionOnConf(c, !!conf.CHANGE[c], op2, true);
             // Toggle options with partner extension if activated
-            if (conf.toggle) {
-                c = conf.toggle;
+            if (conf.TOGGLE) {
+                c = conf.TOGGLE;
                 if (self.isActiveOnConf(c, op2)) {
                     updateExtensionOnConf(c, false, op2, true);
                     if (!self.isActiveOnConf(ext, !op2)) updateExtensionOnConf(c, true, !op2, true);     // only if we are not there too!
@@ -197,7 +197,7 @@ wmsx.ExtensionsSocket = function(machine) {
 
     function makeLoaderUrlSpec(ext, op2) {
         return {
-            url: config[ext].url || "",
+            url: config[ext].URL || "",
             onSuccess: function (res) {
                 fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].SLOT2 : config[ext].SLOT, true, true);     // internal
             }

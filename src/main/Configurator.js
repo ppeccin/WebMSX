@@ -34,8 +34,8 @@ wmsx.Configurator = {
         if (params.MACHINE) this.applyParam("MACHINE", params.MACHINE);
         WMSX.MACHINE = WMSX.MACHINE.trim().toUpperCase();
         if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
-        if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) WMSX.MACHINE = this.detectDefaultMachine();
-        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].presets);
+        if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].AUTO_TYPE) WMSX.MACHINE = this.detectDefaultMachine();
+        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].PRESETS);
         delete params.MACHINE;
 
         // Apply additional Presets over Machine configuration chosen
@@ -300,7 +300,7 @@ wmsx.Configurator = {
     },
 
     detectDefaultMachine: function() {
-        var type = (WMSX.MACHINES_CONFIG[WMSX.MACHINE] && WMSX.MACHINES_CONFIG[WMSX.MACHINE].autoType) || 3;
+        var type = (WMSX.MACHINES_CONFIG[WMSX.MACHINE] && WMSX.MACHINES_CONFIG[WMSX.MACHINE].AUTO_TYPE) || 3;
 
         var lang = wmsx.Util.userLanguage();
         var langSuffix = "A";                                 // Default American machine
@@ -310,7 +310,7 @@ wmsx.Configurator = {
 
         // If Machine not found, get the first <= type (trust enumeration order)
         if (!WMSX.MACHINES_CONFIG[machine])
-            for (machine in WMSX.MACHINES_CONFIG) if (WMSX.MACHINES_CONFIG[machine].type <= type) break;
+            for (machine in WMSX.MACHINES_CONFIG) if (WMSX.MACHINES_CONFIG[machine].TYPE <= type) break;
 
         wmsx.Util.log("Machine auto-detection: " + machine);
         return machine;

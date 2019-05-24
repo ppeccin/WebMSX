@@ -115,41 +115,41 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSX2PP:   { desc: "MSX2++ Auto Detect",    autoType: 4 },
-    MSX2P:    { desc: "MSX2+ Auto Detect",     autoType: 3 },
-    MSX2:     { desc: "MSX2 Auto Detect",      autoType: 2 },
-    MSX1:     { desc: "MSX Auto Detect",       autoType: 1 },
-    MSX2PPA:  { desc: "MSX2++ America (NTSC)", type: 4, presets: "_MSX2PPA", lang: "en" },
-    MSX2PPE:  { desc: "MSX2++ Europe (PAL)",   type: 4, presets: "_MSX2PPE", lang: "en" },
-    MSX2PPJ:  { desc: "MSX2++ Japan (NTSC)",   type: 4, presets: "_MSX2PPJ", lang: "ja" },
-    MSX2PA:   { desc: "MSX2+ America (NTSC)",  type: 3, presets: "_MSX2PA",  lang: "en" },
-    MSX2PE:   { desc: "MSX2+ Europe (PAL)",    type: 3, presets: "_MSX2PE",  lang: "en" },
-    MSX2PJ:   { desc: "MSX2+ Japan (NTSC)",    type: 3, presets: "_MSX2PJ",  lang: "ja" },
-    MSX2A:    { desc: "MSX2 America (NTSC)",   type: 2, presets: "_MSX2A",   lang: "en" },
-    MSX2E:    { desc: "MSX2 Europe (PAL)",     type: 2, presets: "_MSX2E",   lang: "en" },
-    MSX2J:    { desc: "MSX2 Japan (NTSC)",     type: 2, presets: "_MSX2J",   lang: "ja" },
-    MSX1A:    { desc: "MSX America (NTSC)",    type: 1, presets: "_MSX1A",   lang: "en" },
-    MSX1E:    { desc: "MSX Europe (PAL)",      type: 1, presets: "_MSX1E",   lang: "en" },
-    MSX1J:    { desc: "MSX Japan (NTSC)",      type: 1, presets: "_MSX1J",   lang: "ja" },
-    EMPTY2PP: { desc: "MSX2++ Barebone",       type: 4 },
-    EMPTY2P:  { desc: "MSX2+ Barebone",        type: 3 },
-    EMPTY2:   { desc: "MSX2 Barebone",         type: 2 },
-    EMPTY1:   { desc: "MSX Barebone",          type: 1 }
+    MSX2PP:   { DESC: "MSX2++ Auto Detect",    AUTO_TYPE: 4 },
+    MSX2P:    { DESC: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
+    MSX2:     { DESC: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
+    MSX1:     { DESC: "MSX Auto Detect",       AUTO_TYPE: 1 },
+    MSX2PPA:  { DESC: "MSX2++ America (NTSC)", TYPE: 4, PRESETS: "_MSX2PPA", LANG: "en" },
+    MSX2PPE:  { DESC: "MSX2++ Europe (PAL)",   TYPE: 4, PRESETS: "_MSX2PPE", LANG: "en" },
+    MSX2PPJ:  { DESC: "MSX2++ Japan (NTSC)",   TYPE: 4, PRESETS: "_MSX2PPJ", LANG: "ja" },
+    MSX2PA:   { DESC: "MSX2+ America (NTSC)",  TYPE: 3, PRESETS: "_MSX2PA",  LANG: "en" },
+    MSX2PE:   { DESC: "MSX2+ Europe (PAL)",    TYPE: 3, PRESETS: "_MSX2PE",  LANG: "en" },
+    MSX2PJ:   { DESC: "MSX2+ Japan (NTSC)",    TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
+    MSX2A:    { DESC: "MSX2 America (NTSC)",   TYPE: 2, PRESETS: "_MSX2A",   LANG: "en" },
+    MSX2E:    { DESC: "MSX2 Europe (PAL)",     TYPE: 2, PRESETS: "_MSX2E",   LANG: "en" },
+    MSX2J:    { DESC: "MSX2 Japan (NTSC)",     TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
+    MSX1A:    { DESC: "MSX America (NTSC)",    TYPE: 1, PRESETS: "_MSX1A",   LANG: "en" },
+    MSX1E:    { DESC: "MSX Europe (PAL)",      TYPE: 1, PRESETS: "_MSX1E",   LANG: "en" },
+    MSX1J:    { DESC: "MSX Japan (NTSC)",      TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
+    EMPTY2PP: { DESC: "MSX2++ Barebone",       TYPE: 4 },
+    EMPTY2P:  { DESC: "MSX2+ Barebone",        TYPE: 3 },
+    EMPTY2:   { DESC: "MSX2 Barebone",         TYPE: 2 },
+    EMPTY1:   { DESC: "MSX Barebone",          TYPE: 1 }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    HARDDISK:  { desc: "Hard Drive",    url: "@[Nextor16Patch].rom", SLOT: [2, 3], SLOT2: [3, 3], toggle: "DISK", change: { RAMMAPPER: 1 } },
-    DISK:      { desc: "Floppy Drives", url: "@[DiskPatch].rom",     SLOT: [2, 3], SLOT2: [3, 3], toggle: "HARDDISK" },
-    RAMMAPPER: { desc: "RAM Mapper",    url: "@[RAMMapper].rom",     SLOT: [3],                   mutual: "RAMNORMAL" },
-    RAMNORMAL: {                        url: "@[RAMNormal].rom",     SLOT: [3],                   mutual: "RAMMAPPER" },
-    KANJI:     { desc: "KANJI Fonts",   url: "@[Kanji1].rom",        SLOT: [4, 0] },
-    MSXMUSIC:  { desc: "MSX-MUSIC",     url: "@[MSXMUSIC].rom",      SLOT: [3, 2] },
-    OPL4:      { desc: "OPL4 Wave",     url: "@[MoonSound].rom",     SLOT: [4, 1] },
-    DOUBLEPSG: { desc: "Double PSG",    url: "@[ExtraPSG].rom",      SLOT: [4, 2] },
-    SCCI:      { desc: "Konami SCC+",   url: "@[SCCIExpansion].rom", SLOT: [1],    SLOT2: [2], change: { SCC:  0, PAC: 0, MEGARAM: 0 } },
-    SCC:       {                        url: "@[SCCExpansion].rom",  SLOT: [1],    SLOT2: [2], change: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
-    PAC:       { desc: "PAC SRAM",      url: "@[PACExpansion].rom",  SLOT: [1],    SLOT2: [2], change: { SCCI: 0, SCC: 0, MEGARAM: 0 } },
-    MEGARAM:   { desc: "MegaRAM",       url: "@[MegaRAM].rom",       SLOT: [1],    SLOT2: [2], change: { SCCI: 0, SCC: 0, PAC: 0 } }
+    HARDDISK:  { DESC: "Hard Drive",    URL: "@[Nextor16Patch].rom", SLOT: [2, 3], SLOT2: [3, 3], TOGGLE: "DISK", CHANGE: { RAMMAPPER: 1 } },
+    DISK:      { DESC: "Floppy Drives", URL: "@[DiskPatch].rom",     SLOT: [2, 3], SLOT2: [3, 3], TOGGLE: "HARDDISK" },
+    RAMMAPPER: { DESC: "RAM Mapper",    URL: "@[RAMMapper].rom",     SLOT: [3],                   MUTUAL: "RAMNORMAL" },
+    RAMNORMAL: {                        URL: "@[RAMNormal].rom",     SLOT: [3],                   MUTUAL: "RAMMAPPER" },
+    KANJI:     { DESC: "KANJI Fonts",   URL: "@[Kanji1].rom",        SLOT: [4, 0] },
+    MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 2] },
+    OPL4:      { DESC: "OPL4 Wave",     URL: "@[MoonSound].rom",     SLOT: [4, 1] },
+    DOUBLEPSG: { DESC: "Double PSG",    URL: "@[ExtraPSG].rom",      SLOT: [4, 2] },
+    SCCI:      { DESC: "Konami SCC+",   URL: "@[SCCIExpansion].rom", SLOT: [1],    SLOT2: [2], CHANGE: { SCC:  0, PAC: 0, MEGARAM: 0 } },
+    SCC:       {                        URL: "@[SCCExpansion].rom",  SLOT: [1],    SLOT2: [2], CHANGE: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
+    PAC:       { DESC: "PAC SRAM",      URL: "@[PACExpansion].rom",  SLOT: [1],    SLOT2: [2], CHANGE: { SCCI: 0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM:   { DESC: "MegaRAM",       URL: "@[MegaRAM].rom",       SLOT: [1],    SLOT2: [2], CHANGE: { SCCI: 0, SCC: 0, PAC: 0 } }
 };
 
 WMSX.PRESETS_CONFIG = {
