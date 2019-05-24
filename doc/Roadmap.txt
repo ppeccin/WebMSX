@@ -17,6 +17,5 @@
 =========
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
-* Savestates + AltSlotConfig make Extensions state calculation wrong
 * iOS: Quick Options looking bad :-)
 

@@ -7,11 +7,10 @@
 WMSX = {
 
     // Main Setup
-    CONFIG_URL:                     "",                         // Configuration file. Processed before URL parameters
     ENVIRONMENT:                   101,                         // 101: C-BIOS Built-in Emulator Environment
+    CONFIG_URL:                     "",                         // Configuration file to merge. Processed before URL parameters
     MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
-    EXTENSIONS:                     { },                        // Extensions to apply. See Extensions Configuration
 
     // Full or relative URL of Media files to load
     CARTRIDGE1_URL:                 "",
@@ -56,6 +55,7 @@ WMSX = {
     EXPANSION1_SLOT:                [3, 3],
     EXPANSION2_SLOT:                [2, 3],
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB
+    EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
 
     // General options
     VOL:                            1.0,                        // Master Volume factor

@@ -217,6 +217,8 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Parameter | Default | Description
 | --- | :---: | ---
+| `ENVIRONMENT`                   |  0                  |  Emulator Environment. Isolate Savestates & Preferences. 1..99
+| `CONFIG_URL`                    |  --                 |  Configuration file to merge. Processed before URL parameters
 | `MACHINE`                       |  --                 |  Machine Type. Leave blank for auto-detection
 | `PRESETS`                       |  --                 |  Configuration Presets names to apply, comma separated
 | `CARTRIDGE1_URL`                |  --                 |  URL of ROM image file to load in Slot 1 
