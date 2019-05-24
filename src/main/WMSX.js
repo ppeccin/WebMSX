@@ -154,7 +154,7 @@ WMSX.EXTENSIONS_CONFIG = {
 
 WMSX.PRESETS_CONFIG = {
 
-    // Extensions Options Presets. Should be specified in this order
+    // Extensions Options Presets. Must be specified in this order
 
     // Hard Disk: Nextor Removable Device
     HARDDISK:   { "EXTENSIONS.HARDDISK": 1, "EXTENSIONS.DISK": 2, _INCLUDE: "RAMMAPPER" },

@@ -50,11 +50,11 @@ WMSX = {
 
     // Internal Machine configuration
     BIOS_SLOT:                      [0],
-    BIOSEXT_SLOT:                   [3, 0],
+    BIOSEXT_SLOT:                   [3, 1],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
-    EXPANSION1_SLOT:                [2, 1],
-    EXPANSION2_SLOT:                [2, 2],
+    EXPANSION1_SLOT:                [3, 3],
+    EXPANSION2_SLOT:                [2, 3],
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB
 
     // General options
@@ -138,11 +138,11 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    HARDDISK:  {                      url: "@[Nextor16Patch].rom", SLOT: [1], SLOT2: [2], change: { RAMMAPPER: 1, SCCI: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
-    RAMMAPPER: { desc: "RAM Mapper",  url: "@[RAMMapper].rom",     SLOT: [3, 2],          mutual: "RAMNORMAL" },
-    RAMNORMAL: {                      url: "@[RAMNormal].rom",     SLOT: [3, 2],          mutual: "RAMMAPPER" },
-    MSXMUSIC:  { desc: "MSX-MUSIC",   url: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 1] },
-    DOUBLEPSG: { desc: "Double PSG",  url: "@[ExtraPSG].rom",      SLOT: [4, 2] },
+    HARDDISK:  {                      url: "@[Nextor16Patch].rom", SLOT: [2],             change: { RAMMAPPER: 1, SCCI: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
+    RAMMAPPER: { desc: "RAM Mapper",  url: "@[RAMMapper].rom",     SLOT: [3],             mutual: "RAMNORMAL" },
+    RAMNORMAL: {                      url: "@[RAMNormal].rom",     SLOT: [3],             mutual: "RAMMAPPER" },
+    MSXMUSIC:  { desc: "MSX-MUSIC",   url: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 2] },
+    DOUBLEPSG: { desc: "Double PSG",  url: "@[ExtraPSG].rom",      SLOT: [4, 0] },
     SCCI:      { desc: "Konami SCC+", url: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
     SCC:       {                      url: "@[SCCExpansion].rom",  SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
     PAC:       { desc: "PAC SRAM",    url: "@[PACExpansion].rom",  SLOT: [1], SLOT2: [2], change: { HARDDISK: 0, SCCI: 0, SCC: 0, MEGARAM: 0 } },
@@ -151,12 +151,10 @@ WMSX.EXTENSIONS_CONFIG = {
 
 WMSX.PRESETS_CONFIG = {
 
-    // Extensions Options Presets. Should be specified in this order
+    // Extensions Options Presets. Must be specified in this order
 
     // Hard Disk: Nextor Removable Device
-    HARDDISK:   { "EXTENSIONS.HARDDISK": 2, _INCLUDE: "RAMMAPPER" },
-    HARDDISK1:  { "EXTENSIONS.HARDDISK": 1, _INCLUDE: "RAMMAPPER" },
-    DOS2:       { "EXTENSIONS.HARDDISK": 2, _INCLUDE: "RAMMAPPER" },
+    HARDDISK:   { "EXTENSIONS.HARDDISK": 1, _INCLUDE: "RAMMAPPER" },
     NOHARDDISK: { "EXTENSIONS.HARDDISK": 0 },
 
     // RAM type
@@ -213,12 +211,9 @@ WMSX.PRESETS_CONFIG = {
 
     ALTSLOTCONFIG: {
         BIOSEXT_SLOT:                          [2, 1],
-        EXPANSION1_SLOT:                       [3, 2],
+        EXPANSION1_SLOT:                       [2, 3],
         EXPANSION2_SLOT:                       [3, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.HARDDISK": [2, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":     [2, 2],
-        "EXTENSIONS_CONFIG.RAMMapper.SLOT":    [3],
-        "EXTENSIONS_CONFIG.RAMNormal.SLOT":    [3]
+        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":     [2, 2]
     },
 
     // MSX2++ Machine Presets. Do not use directly
