@@ -2024,8 +2024,8 @@ html.wmsx-full-screen.wmsx-touch-active #wmsx-touch-speed {
     #wmsx-touch-T_E { bottom: 50%; right: 0%; }
     #wmsx-touch-T_F { bottom: 0%; right: 100%; }
     #wmsx-touch-T_G { bottom: 0%; right: 0%; }
-    #wmsx-touch-T_X { left: 4px; bottom: -88px; }
-    #wmsx-touch-T_Y { display: none; }
+    #wmsx-touch-T_X { display: none; }
+    #wmsx-touch-T_Y { left: 4px; bottom: -88px; }
 
     html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-left, html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-touch-right {
         display: none;

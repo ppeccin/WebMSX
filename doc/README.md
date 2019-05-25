@@ -94,16 +94,22 @@ WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=fil
 To load an external Configuration File, set the `CONFIG_URL` parameter. The config file must be a valir JSON object. This object's properties will be **merged** with the standard configuration properties. For example:
 
 ```
-https://webmsx.org?CONFIG_URL=files/CustomMachines.json
+WMSX.CONFIG_URL = "files/CustomMachines.json";      or      https://webmsx.org?CONFIG_URL=files/CustomMachines.json
+```
+
+All emulator Savestates, Settings and Preferences can be stored in multiple isolated spaces, using the **Environments** feature. Just set the `ENVIRONMENT` (or `E` for short) parameter to any number in the 1..99 range. For example:
+
+```
+WMSX.ENVIRONMENT = 2;      or      https://webmsx.org?E=2
+```
+
+Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or `P` for short) parameter with a comma separated list of the Preset names to apply. For example:
+
+```
+WMSX.PRESETS = "RAM128, NODISK";      or      https://webmsx.org?P=RAM128,NODISK
 ```
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
-
-Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or `P` for short) parameter, with a comma separated list of the Preset names to apply. For example:
-
-```
-WMSX.PRESETS = "RAM128, NODISK";         or           https://webmsx.org?P=RAM128,NODISK
-```
 
 ## Media Loading
 
