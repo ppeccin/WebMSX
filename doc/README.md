@@ -10,7 +10,7 @@ Please go to **https://webmsx.org** to enjoy it online!
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-### Coming soon in Version 5.3
+### Coming soon in Release 5.3
 
 - Additional 5.37MHz (1.5x) CPU Turbo speed
 - Light version with C-BIOS Machines
@@ -22,7 +22,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Improved Settings with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
 - New External Config File. Easier setup of custom Machines and Extensions
-- New Environment concept. Isolate savestates, configs, preferences
+- New Environment concept. Isolated savestates, configs, preferences
 - Bugfixes: SD Snatcher Melancholia and overscan games now work
 
 ### Features
@@ -50,9 +50,9 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - CRT Scanlines, resizable Screen, Full Screen and Full Windowed modes
 - Javascript API for loading media and machine control
 
-## About the light C-BIOS vesion
+## About the light C-BIOS version
 
-The light version with only C-BIOS ROMs can be found at: [**https://webmsx.org/cbios**](https://webmsx.org/cbios)
+The light version with only C-BIOS ROMs will be found at: [**https://webmsx.org/cbios**](https://webmsx.org/cbios)
 
 ## About the NetPlay! feature
 
@@ -94,19 +94,19 @@ WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=fil
 To load an external Configuration File, set the `CONFIG_URL` parameter. The config file must be a valir JSON object. This object's properties will be **merged** with the standard configuration properties. For example:
 
 ```
-WMSX.CONFIG_URL = "files/CustomMachines.json";      or      https://webmsx.org?CONFIG_URL=files/CustomMachines.json
+WMSX.CONFIG_URL = "files/CustomMachines.json";     or     https://webmsx.org?CONFIG_URL=files/CustomMachines.json
 ```
 
 All emulator Savestates, Settings and Preferences can be stored in multiple isolated spaces, using the **Environments** feature. Just set the `ENVIRONMENT` (or `E` for short) parameter to any number in the 1..99 range. For example:
 
 ```
-WMSX.ENVIRONMENT = 2;      or      https://webmsx.org?E=2
+WMSX.ENVIRONMENT = 2;     or     https://webmsx.org?E=2
 ```
 
 Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or `P` for short) parameter with a comma separated list of the Preset names to apply. For example:
 
 ```
-WMSX.PRESETS = "RAM128, NODISK";      or      https://webmsx.org?P=RAM128,NODISK
+WMSX.PRESETS = "RAM128, NODISK";     or     https://webmsx.org?P=RAM128,NODISK
 ```
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
