@@ -21,7 +21,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Screen Aspect (Pixel Aspect Ratio) changed to 1.14
 - Improved Settings with increase/decrease values
 - Hotkeys + Shift modifier: decrease values
-- New features for easier setup of custom machines
+- New External Config File. Easier setup of custom Machines and Extensions
 - New Environment concept. Isolate savestates, configs, preferences
 - Bugfixes: SD Snatcher Melancholia and overscan games now work
 
@@ -49,6 +49,10 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Copy & Paste text, Screen Capture, Debug modes
 - CRT Scanlines, resizable Screen, Full Screen and Full Windowed modes
 - Javascript API for loading media and machine control
+
+## About the light C-BIOS vesion
+
+The light version with only C-BIOS ROMs can be found at: [**https://webmsx.org/cbios**](https://webmsx.org/cbios)
 
 ## About the NetPlay! feature
 
@@ -79,12 +83,18 @@ On the Hard Drive menu (HD icon), there are options to automatically create Empt
 
 ## WebMSX Configuration and Launch Options
 
-Several parameters are available for customizing the emulator. They can be changed either directly in Javascript if you are hosting the emulator in your own page, or via URL Query Parameters if you are creating links or bookmarks to open the emulator, or just using it in your browser.
+Several parameters are available for customizing the emulator. They can be changed either directly in Javascript if you are hosting the emulator in your own page, by loading a Configuration File, or via URL Query Parameters if you are creating links or bookmarks to open the emulator, or just using it in your browser.
 
 All parameters are in the form of properties in the global object `WMSX`. Just set these object properties in Javascript, or use URL Query parameter/value pairs. For example:
 
 ```
 WMSX.ROM = "files/Game.rom";      is the same as      https://webmsx.org?ROM=files/Game.rom
+```
+
+To load an external Configuration File, set the `CONFIG_URL` parameter. The config file must be a valir JSON object. This object's properties will be **merged** with the standard configuration properties. For example:
+
+```
+https://webmsx.org?CONFIG_URL=files/CustomMachines.json
 ```
 
 **IMPORTANT:** Any parameter setting via Javascript must be done AFTER importing the `webmsx.js` file.
@@ -115,12 +125,28 @@ The emulator can be set to automatically load files like ROMs, DSK and CAS image
 | `STATE_URL`          | URL of SaveState file to load                        | `STATE`, `SAVESTATE`
 | `AUTODETECT_URL`     | URL of file to load with media auto-detection        | `AUTODETECT`, `AUTO`, `ANY`
 
-### ROM Format (or Mapper Type)
+#### ROM Format (or Mapper Type)
 The ROM Format is auto-detected. To force a format, set the `CARTRIDGE1_FORMAT` and `CARTRIDGE2_FORMAT` parameters, or access the User Interface.
 You can also put the format specification in the ROM file name, between brackets. Example: `Game [KonamiSCC].rom`
 
 #### Valid Formats
 `Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `MegaRAM`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`
+
+## Choosing a Machine
+
+There are 9 different generic machines to choose from. The default machine is the MSX2+, and the emulator will try to auto-detect your region. You can ask for a specific machine by setting the `MACHINE` parameter with the respective Machine ID:
+
+| Machine | Machine ID | Specific Machine | Machine ID 
+| --- | :---: | --- | :---: 
+| MSX2+ Auto-detection   | `MSX2P` | MSX2+ American (NTSC 60Hz)  |  `MSX2PA`                
+|                        |         | MSX2+ European (PAL 50Hz)   |  `MSX2PE`
+|                        |         | MSX2+ Japanese (NTSC 60Hz)  |  `MSX2PJ`
+| MSX2  Auto-detection   | `MSX2`  | MSX2  American (NTSC 60Hz)  |  `MSX2A`          
+|                        |         | MSX2  European (PAL 50Hz)   |  `MSX2E`
+|                        |         | MSX2  Japanese (NTSC 60Hz)  |  `MSX2J`
+| MSX1  Auto-detection   | `MSX1`  | MSX1  American (NTSC 60Hz)  |  `MSX1A`          
+|                        |         | MSX1  European (PAL 50Hz)   |  `MSX1E`
+|                        |         | MSX1  Japanese (NTSC 60Hz)  |  `MSX1J`
 
 ## Enabling Extensions
 
@@ -160,22 +186,6 @@ The emulator can be set to automatically Run/Load BASIC programs after launch, o
 | `BOOT_KEYS`        |  Keys to keep pressed at every boot, comma separated
 | `BOOT_KEYS_ONCE`   |  Same as above, but only on first boot (do not use both)
 | `BOOT_KEYS_FRAMES` |  Optional number of frames for Boot Keys
-
-## Choosing a Machine
-
-There are 9 different generic machines to choose from. The default machine is the MSX2+, and the emulator will try to auto-detect your region. You can ask for a specific machine by setting the `MACHINE` parameter with the respective Machine ID:
-
-| Machine | Machine ID | Specific Machine | Machine ID 
-| --- | :---: | --- | :---: 
-| MSX2+ Auto-detection   | `MSX2P` | MSX2+ American (NTSC 60Hz)  |  `MSX2PA`                
-|                        |         | MSX2+ European (PAL 50Hz)   |  `MSX2PE`
-|                        |         | MSX2+ Japanese (NTSC 60Hz)  |  `MSX2PJ`
-| MSX2  Auto-detection   | `MSX2`  | MSX2  American (NTSC 60Hz)  |  `MSX2A`          
-|                        |         | MSX2  European (PAL 50Hz)   |  `MSX2E`
-|                        |         | MSX2  Japanese (NTSC 60Hz)  |  `MSX2J`
-| MSX1  Auto-detection   | `MSX1`  | MSX1  American (NTSC 60Hz)  |  `MSX1A`          
-|                        |         | MSX1  European (PAL 50Hz)   |  `MSX1E`
-|                        |         | MSX1  Japanese (NTSC 60Hz)  |  `MSX1J`
 
 ## Launch URL Examples
 
