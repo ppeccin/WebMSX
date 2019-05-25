@@ -85,11 +85,10 @@ wmsx.PortsConfigurator = function(controllersHub, peripheralControls, returnFocu
         function controlClicked(e) {
             if (e.target.tagName === "BUTTON") peripheralControls.processControlActivated(e.currentTarget.wmsxControl, false, e.target.wmsxDec);
         }
-        joysticksModeElement.addEventListener("click", controlClicked);
-        joykeysModeElement.addEventListener("click", controlClicked);
-        mouseModeElement.addEventListener("click", controlClicked);
-        turboFireSpeedElement.addEventListener("click", controlClicked);
-
+        wmsx.Util.onTapOrMouseDownWithBlock(joysticksModeElement, controlClicked);
+        wmsx.Util.onTapOrMouseDownWithBlock(joykeysModeElement, controlClicked);
+        wmsx.Util.onTapOrMouseDownWithBlock(mouseModeElement, controlClicked);
+        wmsx.Util.onTapOrMouseDownWithBlock(turboFireSpeedElement, controlClicked);
 
         // Set device and buttons elements
         for (var p = 1; p <= 2; ++p) {

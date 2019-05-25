@@ -56,7 +56,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
         keyboardNameElement.wmsxText = keyboardNameElement.querySelector(":scope > span");
         keyboardNameElement.querySelector(":scope > button").wmsxDec = true;
 
-        keyboardNameElement.addEventListener("click", function(e) {
+        wmsx.Util.onTapOrMouseDownWithBlock(keyboardNameElement, function(e) {
             if (e.target.tagName === "BUTTON") controllersHub.toggleKeyboardLayout(e.target.wmsxDec);
         });
 

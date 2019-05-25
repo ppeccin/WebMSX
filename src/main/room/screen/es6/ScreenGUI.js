@@ -1174,10 +1174,12 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     position: absolute;
     top: 0; bottom: 0;
     width: 26px;
+    height: 100%;
     background: rgb(70, 70, 70);
     border: none;
     outline: none;
     cursor: pointer;
+    -webkit-appearance: none;
 }
 .wmsx-quick-options-list .wmsx-control > button::after {
     content: "";
