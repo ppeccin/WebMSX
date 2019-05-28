@@ -45,7 +45,7 @@ module.exports = function (grunt) {
         "src/main/msx/slots/SlotExpandedSpecial.js",
         "src/main/msx/slots/SlotExpandedModules.js",
         "src/main/msx/slots/SlotNormal.js",
-        "src/main/msx/slots/ram/SlotRAM64K.js",
+        "src/main/msx/slots/ram/SlotRAMNormal.js",
         "src/main/msx/slots/ram/SlotRAMMapper.js",
         "src/main/msx/slots/bios/SlotBIOS.js",
         "src/main/msx/slots/bios/SlotMSX2BIOSExt.js",

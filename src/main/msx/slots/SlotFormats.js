@@ -112,10 +112,10 @@ wmsx.SlotFormats = {
             return (rom.content.length === 0) ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.SlotRAM64K(rom);
+            return new wmsx.SlotRAMNormal(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.SlotRAM64K.recreateFromSaveState(state, previousSlot);
+            return wmsx.SlotRAMNormal.recreateFromSaveState(state, previousSlot);
         }
     },
 

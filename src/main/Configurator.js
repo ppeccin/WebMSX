@@ -137,6 +137,7 @@ wmsx.Configurator = {
         // Numeric parameters
         WMSX.ENVIRONMENT |= 0;
         WMSX.RAMMAPPER_SIZE |= 0;
+        WMSX.RAMNORMAL_SIZE |= 0;
         WMSX.AUTO_POWER_ON_DELAY |= 0;
         WMSX.SCREEN_FULLSCREEN_MODE = WMSX.SCREEN_FULLSCREEN_MODE |= 0;
         WMSX.SCREEN_FILTER_MODE |= 0;
@@ -202,16 +203,19 @@ wmsx.Configurator = {
         var urlSpecs = [];
 
         // BIOS AND BIOS Extension URLs
-        if (WMSX.BIOS_URL) addSpec(WMSX.BIOS_URL, WMSX.BIOS_SLOT);
-        if (WMSX.BIOSEXT_URL) addSpec(WMSX.BIOSEXT_URL, WMSX.BIOSEXT_SLOT);
+        if (WMSX.BIOS_URL !== null && WMSX.BIOS_URL !== undefined)       addSpec(WMSX.BIOS_URL || "@[Empty].rom",    WMSX.BIOS_SLOT);
+        if (WMSX.BIOSEXT_URL !== null && WMSX.BIOSEXT_URL !== undefined) addSpec(WMSX.BIOSEXT_URL || "@[Empty].rom", WMSX.BIOSEXT_SLOT);
 
         // Any URL specified in the format SLOTN_N_URL
         for (var key in WMSX) {
             if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "_URL")) {
-                var nums = key.match(/[0-9]/g);
-                if (nums) {
-                    var pos = nums.map(function(strNum) { return strNum | 0; });
-                    addSpec(WMSX[key], pos);
+                var url = WMSX[key];
+                if (url !== null && url !== undefined) {
+                    var nums = key.match(/[0-9]/g);
+                    if (nums) {
+                        var pos = nums.map(function(strNum) { return strNum | 0; });
+                        addSpec(url || "@[Empty].rom", pos);
+                    }
                 }
             }
         }
@@ -397,6 +401,7 @@ wmsx.Configurator = {
         HARDDISK: "HARDDISK_URL",
         HARDDISK_FILES: "HARDDISK_FILES_URL",
         TAPE: "TAPE_URL",
+        RAM_SIZE: "RAMNORMAL_SIZE",
         ANY: "AUTODETECT_URL",
         AUTO: "AUTODETECT_URL",
         AUTODETECT: "AUTODETECT_URL",

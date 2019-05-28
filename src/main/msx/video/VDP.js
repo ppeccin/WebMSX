@@ -27,11 +27,10 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     this.setMachineType = function(type) {
-        machineType = type;
         isV9918 = type <= 1;
         isV9938 = type === 2;
         isV9958 = type >= 3;
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+        refreshDisplayMetrics();
     };
 
     this.connectBus = function(bus) {
@@ -2184,6 +2183,10 @@ wmsx.VDP = function(machine, cpu) {
         beginFrame();
     }
 
+    function refreshDisplayMetrics() {
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+    }
+
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
@@ -2292,7 +2295,7 @@ wmsx.VDP = function(machine, cpu) {
     var frameContextUsingAlpha = false;
 
 
-    var machineType, isV9918, isV9938, isV9958;
+    var isV9918, isV9938, isV9958;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
@@ -2427,7 +2430,6 @@ wmsx.VDP = function(machine, cpu) {
 
     this.saveState = function(extended) {
         var s = {
-            mt: machineType,
             v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             fs: frameStartingActiveScanline,
@@ -2452,8 +2454,8 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.loadState = function(s) {
-        this.setMachineType(s.mt);
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
+        refreshDisplayMetrics();
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
         paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);

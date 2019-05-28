@@ -262,7 +262,8 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `BOOT_KEYS_ONCE`                |  --                 |  Same as above, but only on first boot (do not use both)
 | `BOOT_KEYS_FRAMES`              |  -1                 |  Number of frames for Boot Keys. -1: auto; > 0: frames
 | `FAST_BOOT`                     |  0                  |  Number of frames for Fast Boot. 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames
-| `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size. 128, 256, 512 .. 4096, if enabled
+| `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size when active. 64, 128, 256, 512, 1024, 2048, 4096, in KB 
+| `RAMNORMAL_SIZE`                |  64                 |  Normal RAM size when active. 16..64, in KB
 | `VOL`                           |  1.0                |  Master Volume factor
 | `SPEED`                         |  100                |  Default emulation speed (in %)
 | `SCREEN_ELEMENT_ID`             |  "wmsx-screen"      |  HTML Element ID to place the Emulator Screen

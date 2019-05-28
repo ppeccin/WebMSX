@@ -6,7 +6,7 @@ wmsx.SystemFlags = function() {
 "use strict";
 
     this.setMachineType = function(type) {
-        isMSX2P = type >= 3;
+        active = type >= 3;     // Only for MSX2+ or better
     };
 
     this.connectBus = function(bus) {
@@ -37,23 +37,23 @@ wmsx.SystemFlags = function() {
     };
 
     this.inputF3 = function() {
-        return isMSX2P ? vdpFlags : 0xff;
+        return active ? vdpFlags : 0xff;
     };
 
     this.outputF3 = function(val) {
-        if (isMSX2P) vdpFlags = val;
+        if (active) vdpFlags = val;
     };
 
     this.inputF4 = function() {
-        return isMSX2P ? bootFlags : 0xff;
+        return active ? bootFlags : 0xff;
     };
 
     this.outputF4 = function(val) {
-        if (isMSX2P) bootFlags = val;
+        if (active) bootFlags = val;
     };
 
 
-    var isMSX2P;
+    var active;
 
     var BOOT_FLAGS_POWERON = 0xff;
     var VDP_FLAGS_POWERON = 0x00;
@@ -66,14 +66,14 @@ wmsx.SystemFlags = function() {
 
     this.saveState = function() {
         return {
-            m2p: isMSX2P,
+            a: active,
             bf: bootFlags,
             vf: vdpFlags
         };
     };
 
     this.loadState = function(s) {
-        isMSX2P = s.m2p;
+        active = s.a !== undefined ? s.a : s.m2p;    // Backward compatibility
         bootFlags = s.bf;
         vdpFlags = s.vf;
     };

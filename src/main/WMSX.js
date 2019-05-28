@@ -54,7 +54,8 @@ WMSX = {
     CARTRIDGE2_SLOT:                [2],
     EXPANSION1_SLOT:                [2, 1],
     EXPANSION2_SLOT:                [2, 2],
-    RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB
+    RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
+    RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
 
     // General options
@@ -131,10 +132,10 @@ WMSX.MACHINES_CONFIG = {
     MSX1A:    { DESC: "MSX America (NTSC)",    TYPE: 1, PRESETS: "_MSX1A",   LANG: "en" },
     MSX1E:    { DESC: "MSX Europe (PAL)",      TYPE: 1, PRESETS: "_MSX1E",   LANG: "en" },
     MSX1J:    { DESC: "MSX Japan (NTSC)",      TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
-    EMPTY2PP: { DESC: "MSX2++ Barebone",       TYPE: 4 },
-    EMPTY2P:  { DESC: "MSX2+ Barebone",        TYPE: 3 },
-    EMPTY2:   { DESC: "MSX2 Barebone",         TYPE: 2 },
-    EMPTY1:   { DESC: "MSX Barebone",          TYPE: 1 }
+    EMPTY2PP: { DESC: "MSX2++ Empty",          TYPE: 4, PRESETS: "_EMPTY" },
+    EMPTY2P:  { DESC: "MSX2+ Empty",           TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2:   { DESC: "MSX2 Empty",            TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1:   { DESC: "MSX Empty",             TYPE: 1, PRESETS: "_EMPTY" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -170,6 +171,7 @@ WMSX.PRESETS_CONFIG = {
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
     RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
+    NORAM:     { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 0 },
 
     // Japanese character support
     KANJI:   { "EXTENSIONS.KANJI":  1 },
@@ -299,7 +301,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC"
+        _INCLUDE:           "_MSX1BASE, RAMMAPPER, MSXMUSIC"
     },
 
     // MSX1 Machine Presets. Do not use directly
@@ -320,14 +322,15 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, NOMSXMUSIC, NOHARDDISK",
-        BIOSEXT_URL:        "@[Empty].rom"
+        _INCLUDE:           "_EMPTY, RAMNORMAL, DISK"
     },
 
-    // Base Machines Presets. Do not use directly
+    // Base Machines Preset. Do not use directly
 
-    _BASE: {
-        _INCLUDE:           "RAMNORMAL, DISK, NOKANJI",
+    _EMPTY: {
+        _INCLUDE:           "NORAM, NODISK, NOHARDDISK, NOMSXMUSIC, NOKANJI",
+        BIOS_URL:           "",
+        BIOSEXT_URL:        "",
         M_CPU_TURBO_MODE:   0,
         M_VDP_TURBO_MODE:   0
     }

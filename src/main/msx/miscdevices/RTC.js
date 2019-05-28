@@ -7,8 +7,8 @@ wmsx.RTC = function() {
 "use strict";
 
     this.setMachineType = function(type) {
-        isMSX2 = type >= 2;
-        wmsx.Util.arrayFill(ram[0], 0); wmsx.Util.arrayFill(ram[1], 0);     // clear RAM
+        active = type >= 2;     // Only for MSX2 or better
+        if (active) wmsx.Util.arrayFill(ram[0], 0); wmsx.Util.arrayFill(ram[1], 0);     // clear RAM
     };
 
     this.connectBus = function(bus) {
@@ -42,11 +42,11 @@ wmsx.RTC = function() {
     };
 
     this.outputB4 = function(val) {
-        if (isMSX2) regAddress = val & 0xf;
+        if (active) regAddress = val & 0xf;
     };
 
     this.outputB5 = function(val) {
-        if (!isMSX2) return;
+        if (!active) return;
 
         val &= 0xf;
         if (regAddress < 0xd) {
@@ -78,7 +78,7 @@ wmsx.RTC = function() {
     };
 
     this.inputB5 = function() {
-        if (!isMSX2) return 0xff;
+        if (!active) return 0xff;
 
         var res;
         if (regAddress < 0xd) {
@@ -187,7 +187,7 @@ wmsx.RTC = function() {
     }
 
 
-    var isMSX2;
+    var active;
 
     var mode = 0;
     var time = Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000;
@@ -211,7 +211,7 @@ wmsx.RTC = function() {
 
     this.saveState = function() {
         return {
-            m2: isMSX2,
+            a: active,
             m: mode,
             i: time,
             c: clockRunning,
@@ -224,11 +224,11 @@ wmsx.RTC = function() {
     };
 
     this.loadState = function(s) {
-        isMSX2 = s.m2;
+        active = s.a !== undefined ? s.a : s.m2;    // Backward compatibility
         mode = s.m;
         clockRunning = s.c;
-        time = s.i ? s.i : s.co + s.t;      // Backward compatibility
-        date = undefined;                   // Clear cached date
+        time = s.i ? s.i : s.co + s.t;              // Backward compatibility
+        date = undefined;                           // Clear cached date
         regClock = wmsx.Util.restoreStringBase64ToInt8BitArray(s.rc, regClock);
         regAlarm = wmsx.Util.restoreStringBase64ToInt8BitArray(s.rm, regAlarm);
         ram[0] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r0, ram[0]);

@@ -3,14 +3,22 @@
 // Standard 64K RAM Slot
 // 0x0000 - 0xffff
 
-wmsx.SlotRAM64K = function(rom) {
+wmsx.SlotRAMNormal = function(rom) {
 "use strict";
 
     function init(self) {
         self.rom = rom;
-        bytes = wmsx.Util.arrayFill(new Array(65536), 0x00);
+        var size = WMSX.RAMNORMAL_SIZE;
+        if (size < 1) size = 1; else if (size > 64) size = 64;          // Spec says minimum is 16K, but we will allow less
+        bytes = wmsx.Util.arrayFill(new Array(size * 1024), 0x00);
+        baseAddress = 65536 - bytes.length;
         self.bytes = bytes;
     }
+
+    this.refreshConnect = function() {
+        // Updates size if necessary
+        if (WMSX.RAMNORMAL_SIZE * 1024 !== bytes.length) init(self);
+    };
 
     this.powerOff = function() {
         // Lose content
@@ -19,17 +27,22 @@ wmsx.SlotRAM64K = function(rom) {
 
     this.read = function(address) {
         //wmsx.Util.log ("RAM read: " + address.toString(16) + ", " + bytes[address].toString(16));
-        return bytes[address];
+        return address >= baseAddress
+            ? bytes[address - baseAddress]
+            : 0xff;
     };
 
     this.write = function(address, value) {
         //wmsx.Util.log ("RAM write: " + address.toString(16) + ", " + value.toString(16));
-        bytes[address] = value;
+        if (address >= baseAddress) bytes[address - baseAddress] = value;
     };
+
 
 
     var bytes;
     this.bytes = null;
+
+    var baseAddress = 0;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.RAMNormal;
@@ -49,6 +62,7 @@ wmsx.SlotRAM64K = function(rom) {
         this.rom = wmsx.ROM.loadState(state.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
         this.bytes = bytes;
+        baseAddress = 65536 - bytes.length;
     };
 
 
@@ -56,10 +70,10 @@ wmsx.SlotRAM64K = function(rom) {
 
 };
 
-wmsx.SlotRAM64K.prototype = wmsx.Slot.base;
+wmsx.SlotRAMNormal.prototype = wmsx.Slot.base;
 
-wmsx.SlotRAM64K.recreateFromSaveState = function(state, previousSlot) {
-    var ram = previousSlot || new wmsx.SlotRAM64K();
+wmsx.SlotRAMNormal.recreateFromSaveState = function(state, previousSlot) {
+    var ram = previousSlot || new wmsx.SlotRAMNormal();
     ram.loadState(state);
     return ram;
 };

@@ -15,6 +15,8 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         if (!urlSpec) return;
 
         var url = urlSpec.url.trim();
+        if (!url) return loadError(urlSpec, "Empty URL");
+
         var urls = wmsx.EmbeddedFiles.isEmbeddedURL(url)
             ? [ url ]                             // Ignore any divider, will be treated by EmbeddedFiles
             : url.split(/\s*\|\s*/);              // Special "|" divider (several files to concat). TODO Find a better way since "|" is allowed in Linux file names

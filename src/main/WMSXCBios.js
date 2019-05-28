@@ -54,7 +54,8 @@ WMSX = {
     CARTRIDGE2_SLOT:                [2],
     EXPANSION1_SLOT:                [3, 3],
     EXPANSION2_SLOT:                [2, 3],
-    RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB
+    RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
+    RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
 
     // General options
