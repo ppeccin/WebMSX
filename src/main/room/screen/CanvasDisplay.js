@@ -1327,7 +1327,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function refreshSettingsMenuForMachineType() {
         var menu = settingsButton.wmsxMenu;
-        menu.wmsxTitle = (WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()].DESC.split("(")[0] || "Settings").trim();
+        var conf = WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()];
+        menu.wmsxTitle = ((conf.DESC || conf.DESCX).split("(")[0] || "Settings").trim();
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
 

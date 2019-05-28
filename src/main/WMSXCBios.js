@@ -116,26 +116,26 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSX2PP:   { DESC: "MSX2++ Auto Detect",    AUTO_TYPE: 4 },
-    MSX2P:    { DESC: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
-    MSX2:     { DESC: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
-    MSX1:     { DESC: "MSX Auto Detect",       AUTO_TYPE: 1 },
-    MSX2PPA:  { DESC: "MSX2++ America (NTSC)", TYPE: 4, PRESETS: "_MSX2PPA", LANG: "en" },
-    MSX2PPE:  { DESC: "MSX2++ Europe (PAL)",   TYPE: 4, PRESETS: "_MSX2PPE", LANG: "en" },
-    MSX2PPJ:  { DESC: "MSX2++ Japan (NTSC)",   TYPE: 4, PRESETS: "_MSX2PPJ", LANG: "ja" },
-    MSX2PA:   { DESC: "MSX2+ America (NTSC)",  TYPE: 3, PRESETS: "_MSX2PA",  LANG: "en" },
-    MSX2PE:   { DESC: "MSX2+ Europe (PAL)",    TYPE: 3, PRESETS: "_MSX2PE",  LANG: "en" },
-    MSX2PJ:   { DESC: "MSX2+ Japan (NTSC)",    TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
-    MSX2A:    { DESC: "MSX2 America (NTSC)",   TYPE: 2, PRESETS: "_MSX2A",   LANG: "en" },
-    MSX2E:    { DESC: "MSX2 Europe (PAL)",     TYPE: 2, PRESETS: "_MSX2E",   LANG: "en" },
-    MSX2J:    { DESC: "MSX2 Japan (NTSC)",     TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
-    MSX1A:    { DESC: "MSX America (NTSC)",    TYPE: 1, PRESETS: "_MSX1A",   LANG: "en" },
-    MSX1E:    { DESC: "MSX Europe (PAL)",      TYPE: 1, PRESETS: "_MSX1E",   LANG: "en" },
-    MSX1J:    { DESC: "MSX Japan (NTSC)",      TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
-    EMPTY2PP: { DESC: "MSX2++ Barebone",       TYPE: 4 },
-    EMPTY2P:  { DESC: "MSX2+ Barebone",        TYPE: 3 },
-    EMPTY2:   { DESC: "MSX2 Barebone",         TYPE: 2 },
-    EMPTY1:   { DESC: "MSX Barebone",          TYPE: 1 }
+    MSX2PP:   { DESCX: "MSX2++ Auto Detect",    AUTO_TYPE: 4 },
+    MSX2P:    { DESCX: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
+    MSX2:     { DESCX: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
+    MSX1:     { DESCX: "MSX Auto Detect",       AUTO_TYPE: 1 },
+    MSX2PPA:  { DESC:  "MSX2++ America (NTSC)", TYPE: 4, PRESETS: "_MSX2PPA", LANG: "en" },
+    MSX2PPE:  { DESC:  "MSX2++ Europe (PAL)",   TYPE: 4, PRESETS: "_MSX2PPE", LANG: "en" },
+    MSX2PPJ:  { DESC:  "MSX2++ Japan (NTSC)",   TYPE: 4, PRESETS: "_MSX2PPJ", LANG: "ja" },
+    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",  TYPE: 3, PRESETS: "_MSX2PA",  LANG: "en" },
+    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",    TYPE: 3, PRESETS: "_MSX2PE",  LANG: "en" },
+    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",    TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
+    MSX2A:    { DESC:  "MSX2 America (NTSC)",   TYPE: 2, PRESETS: "_MSX2A",   LANG: "en" },
+    MSX2E:    { DESC:  "MSX2 Europe (PAL)",     TYPE: 2, PRESETS: "_MSX2E",   LANG: "en" },
+    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",     TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
+    MSX1A:    { DESC:  "MSX America (NTSC)",    TYPE: 1, PRESETS: "_MSX1A",   LANG: "en" },
+    MSX1E:    { DESC:  "MSX Europe (PAL)",      TYPE: 1, PRESETS: "_MSX1E",   LANG: "en" },
+    MSX1J:    { DESC:  "MSX Japan (NTSC)",      TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
+    EMPTY2PP: { DESCX: "MSX2++ Empty (NTSC)",   TYPE: 4, PRESETS: "_EMPTY" },
+    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",    TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",     TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1:   { DESCX: "MSX Empty (NTSC)",      TYPE: 1, PRESETS: "_EMPTY" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {

@@ -79,11 +79,12 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
         var machines = Object.keys(WMSX.MACHINES_CONFIG);
         var height = 43;
         for (var i = 0; i < machines.length; ++i) {
-            if (!WMSX.MACHINES_CONFIG[machines[i]].PRESETS) continue;       // Exclude EMPTY and AUTO options from list
+            var conf = WMSX.MACHINES_CONFIG[machines[i]];
+            if (!conf.DESC) continue;       // Exclude Machines that are not user selectable
             var li = document.createElement("li");
             li.classList.add("wmsx-visible");
             li.style.textAlign = "center";
-            li.textContent = WMSX.MACHINES_CONFIG[machines[i]].DESC;
+            li.textContent = conf.DESC;
             li.wmsxMachine = machines[i];
             listItems.push(li);
             listElement.appendChild(li);
@@ -120,7 +121,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
                 var machines = Object.keys(WMSX.MACHINES_CONFIG);
                 var idx = machines.indexOf(machineSelected) + SELECT_KEYS[keyCode];
                 var newMachine = machines[idx];
-                if (newMachine && WMSX.MACHINES_CONFIG[newMachine].PRESETS) {      // Exclude EMPTY and AUTO options
+                if (newMachine && WMSX.MACHINES_CONFIG[newMachine].DESC) {      // Exclude Machines that are not user selectable
                     machineSelected = newMachine;
                     refresh();
                 }
@@ -132,7 +133,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
 
     var machineSelected;
 
-    var dialog, list;
+    var dialog;
     var listItems = [];
     var listElement;
     var visible = false;

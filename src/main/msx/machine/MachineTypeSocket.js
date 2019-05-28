@@ -33,7 +33,7 @@ wmsx.MachineTypeSocket = function(machine) {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
-                    machine.showOSD(machineConfig.DESC + " machine activated", true);
+                    machine.showOSD((machineConfig.DESC || machineConfig.DESCX) + " machine activated", true);
                     self.fireMachineTypeStateUpdate();
                 });
             }
