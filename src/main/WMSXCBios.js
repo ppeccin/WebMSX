@@ -48,7 +48,7 @@ WMSX = {
     NETPLAY_NICK:                   "",                         // NetPlay! Nickname, optional
 
     // Internal Machine configuration
-    BIOS_SLOT:                      [0],
+    BIOS_SLOT:                      [0],                        // Slot to use when loading ROM of type
     BIOSEXT_SLOT:                   [3, 1],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
@@ -57,6 +57,8 @@ WMSX = {
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
     RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
+    VDP_TYPE:                       -1,                         // -1: auto; 1: V9918; 2: V9938; 3: V9958
+    RTC_ACTIVE:                     -1,                         // -1: auto; 0: not present; 1: present
 
     // General options
     VOL:                            1.0,                        // Master Volume factor
@@ -86,7 +88,7 @@ WMSX = {
     CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); (0..8]: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
     VDP_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: VDP Command Engine clock multiplier; 9: instantaneous
     CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software
-    VDP_SOFT_TURBO_MULTI:           4,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software
+    VDP_SOFT_TURBO_MULTI:           2,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
@@ -232,10 +234,8 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 165
     },
     _MSX2PPBASE: {
-        M_CPU_TURBO_MODE:     4,
-        CPU_SOFT_TURBO_MULTI: 4,
-        M_VDP_TURBO_MODE:     4,
-        VDP_SOFT_TURBO_MULTI: 4
+        CPU_TURBO_MODE:     4,
+        VDP_TURBO_MODE:     4
     },
 
     // MSX2+ Machine Presets. Do not use directly
@@ -283,7 +283,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC"
+        _INCLUDE:           "_BASE, RAMMAPPER, DISK, MSXMUSIC"
     },
 
     // MSX1 Machine Presets. Do not use directly
@@ -304,16 +304,22 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, NOMSXMUSIC",
-        BIOSEXT_URL:        "@[Empty].rom"
+        _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC"
     },
 
     // Base Machines Presets. Do not use directly
 
+    _EMPTY: {
+        _INCLUDE:           "_BASE, NORAM, NODISK, NOHARDDISK, NOMSXMUSIC"
+    },
+
     _BASE: {
-        _INCLUDE:           "RAMNORMAL",
-        M_CPU_TURBO_MODE:   0,
-        M_VDP_TURBO_MODE:   0
+        BIOS_URL:           "",
+        BIOSEXT_URL:        "",
+        VDP_TYPE:           -1,
+        RTC_ACTIVE:         -1,
+        CPU_TURBO_MODE:     0,
+        VDP_TURBO_MODE:     0
     }
 
 };

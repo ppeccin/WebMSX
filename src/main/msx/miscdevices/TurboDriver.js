@@ -21,11 +21,11 @@ wmsx.TurboDriver = function() {
     };
 
     this.turboModesUpdate = function() {
-        var msx1 = machine.machineType < 2;
+        var softTurbo = machine.machineType >= 2;         // auto: Only for MSX2 or better, CHGCPU active
         var cpuMode = machine.getCPUTurboMode();
         var vdpMode = machine.getVDPTurboMode();
 
-        if (cpuMode < 0 || msx1) unPatchBIOS();
+        if (cpuMode < 0 || !softTurbo) unPatchBIOS();
         else patchBIOS();
 
         machine.cpu.setCPUTurboMulti(cpuMode === 0 && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode <= 0 ? 1 : cpuMode);
@@ -125,7 +125,7 @@ wmsx.TurboDriver = function() {
     var bios;
     var biosSocket;
     var machine;
-    var softTurboON = false;
     var chgCpuValue = 0;
+    var softTurboON = false;
 
 };

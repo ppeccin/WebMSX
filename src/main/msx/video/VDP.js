@@ -26,7 +26,8 @@ wmsx.VDP = function(machine, cpu) {
         commandProcessor.setVDPModeData(modeData);
     }
 
-    this.setMachineType = function(type) {
+    this.setMachineType = function(machineType) {
+        var type = WMSX.VDP_TYPE > 0 ? WMSX.VDP_TYPE : machineType;     // auto: According to Machine Type
         isV9918 = type <= 1;
         isV9938 = type === 2;
         isV9958 = type >= 3;

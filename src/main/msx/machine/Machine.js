@@ -24,12 +24,8 @@ wmsx.Machine = function() {
         vdp.setMachineType(this.machineType);
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
-        cpuTurboMode = WMSX.CPU_TURBO_MODE !== 0
-            ? WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE                   // Use value defined
-            : WMSX.M_CPU_TURBO_MODE !== undefined ? WMSX.M_CPU_TURBO_MODE : 0;      // Use Machine config value, or AUTO
-        vdpTurboMode = WMSX.VDP_TURBO_MODE !== 0
-            ? WMSX.VDP_TURBO_MODE
-            : WMSX.M_VDP_TURBO_MODE !== undefined ? WMSX.M_VDP_TURBO_MODE : 0;
+        cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;    // backward compatibility
+        vdpTurboMode = WMSX.VDP_TURBO_MODE;
         biosSocket.turboDriverTurboModesUpdate();
         bus.refreshConnect();
         // TODO New parameters values on Machine change NetPlay bug
@@ -586,11 +582,6 @@ wmsx.Machine = function() {
     var cpuTurboMode = 0;
     var vdpTurboMode = 0;
 
-    var BIOS_SLOT = WMSX.BIOS_SLOT;
-    var BIOSEXT_SLOT = WMSX.BIOSEXT_SLOT;
-    var CARTRIDGE0_SLOT = WMSX.CARTRIDGE1_SLOT;
-    var CARTRIDGE1_SLOT = WMSX.CARTRIDGE2_SLOT;
-    var EXPANSIONS_SLOTS = [ WMSX.EXPANSION1_SLOT, WMSX.EXPANSION2_SLOT ];
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
     var SPEEDS = [ 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 5, 10 ];
@@ -732,10 +723,10 @@ wmsx.Machine = function() {
 
     function BIOSSocket() {
         this.insertBIOS = function (bios, altPower) {
-            slotSocket.insertSlot(bios, BIOS_SLOT, altPower);
+            slotSocket.insertSlot(bios, WMSX.BIOS_SLOT, altPower);
         };
         this.insertBIOSEXT = function (biosExt, altPower) {
-            slotSocket.insertSlot(biosExt, BIOSEXT_SLOT, altPower);
+            slotSocket.insertSlot(biosExt, WMSX.BIOSEXT_SLOT, altPower);
         };
         this.keyboardExtensionTypeString = function(str) {
             if (bios) bios.getKeyboardExtension().typeString(str);
@@ -761,14 +752,14 @@ wmsx.Machine = function() {
 
     function ExpansionSocket() {
         this.insertExpansion = function (expansion, port, altPower) {
-            var slot = EXPANSIONS_SLOTS[port || 0];
-            if (expansion == slotSocket.slotInserted(slot)) return;
+            var slot = port ? WMSX.EXPANSION2_SLOT : WMSX.EXPANSION1_SLOT;
+            if (expansion === slotSocket.slotInserted(slot)) return;
             slotSocket.insertSlot(expansion, slot, altPower);
             cartridgeSocket.fireCartridgesStateUpdate();
             self.showOSD("Expansion " + (port === 1 ? "2" : "1") + " (slot " + getSlotDesc(slot) + "): " + (expansion ? expansion.rom.source : "EMPTY"), true);
         };
         this.expansionInserted = function (port) {
-            return slotSocket.slotInserted(EXPANSIONS_SLOTS[port || 0]);
+            return slotSocket.slotInserted(port ? WMSX.EXPANSION2_SLOT : WMSX.EXPANSION1_SLOT);
         };
     }
 
@@ -777,13 +768,13 @@ wmsx.Machine = function() {
 
     function CartridgeSocket() {
         this.insertCartridge = function (cartridge, port, altPower, skipMessage) {
-            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var slotPos = port === 1 ? WMSX.CARTRIDGE2_SLOT : WMSX.CARTRIDGE1_SLOT;
             slotSocket.insertSlot(cartridge, slotPos, altPower, true);  // internal
             this.fireCartridgesStateUpdate();
             if (!skipMessage) self.showOSD("Cartridge " + (port === 1 ? "2" : "1") + ": " + (cartridge ? cartridge.rom.source : "EMPTY"), true);
         };
         this.removeCartridge = function (port, altPower) {
-            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var slotPos = port === 1 ? WMSX.CARTRIDGE2_SLOT : WMSX.CARTRIDGE1_SLOT;
             if (slotSocket.slotInserted(slotPos) === null) {
                 self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
                 return false;
@@ -794,10 +785,10 @@ wmsx.Machine = function() {
             return true;
         };
         this.cartridgeInserted = function (port) {
-            return slotSocket.slotInserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
+            return slotSocket.slotInserted(port === 1 ? WMSX.CARTRIDGE2_SLOT : WMSX.CARTRIDGE1_SLOT);
         };
         this.dataOperationNotSupportedMessage = function(port, operation, silent) {
-            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var slotPos = port === 1 ? WMSX.CARTRIDGE2_SLOT : WMSX.CARTRIDGE1_SLOT;
             var cart = slotSocket.slotInserted(slotPos);
             if (cart === null) {
                 if (!silent) self.showOSD("No Cartridge in Slot " + (port === 1 ? "2" : "1"), true, true);
@@ -810,7 +801,7 @@ wmsx.Machine = function() {
             return false;
         };
         this.loadCartridgeData = function (port, name, arrContent) {
-            var slotPos = port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT;
+            var slotPos = port === 1 ? WMSX.CARTRIDGE2_SLOT : WMSX.CARTRIDGE1_SLOT;
             var cart = slotSocket.slotInserted(slotPos);
             if (!cart) return;
             if (!cart.loadData(wmsx.Util.leafFilename(name), arrContent)) return;
@@ -819,7 +810,7 @@ wmsx.Machine = function() {
         };
         this.getCartridgeData = function (port) {
             if (this.dataOperationNotSupportedMessage(port, true, false)) return;
-            var cart = slotSocket.slotInserted(port === 1 ? CARTRIDGE1_SLOT : CARTRIDGE0_SLOT);
+            var cart = slotSocket.slotInserted(port === 1 ? WMSX.CARTRIDGE2_SLOT : WMSX.CARTRIDGE1_SLOT);
             return cart.getDataToSave();
         };
         this.fireCartridgesStateUpdate = function () {
@@ -828,7 +819,7 @@ wmsx.Machine = function() {
         };
         this.fireCartridgesModifiedStateUpdate = function () {
             if (modifiedListener)
-                modifiedListener.cartridgesModifiedStateUpdate(slotSocket.slotInserted(CARTRIDGE0_SLOT), slotSocket.slotInserted(CARTRIDGE1_SLOT));
+                modifiedListener.cartridgesModifiedStateUpdate(slotSocket.slotInserted(WMSX.CARTRIDGE1_SLOT), slotSocket.slotInserted(WMSX.CARTRIDGE2_SLOT));
         };
         this.addCartridgesStateListener = function (listener, silent) {
             if (listeners.indexOf(listener) < 0) {
@@ -841,7 +832,7 @@ wmsx.Machine = function() {
             this.fireCartridgesModifiedStateUpdate();
         };
         this.hasAnyMediaInserted = function() {
-            return slotSocket.slotInserted(CARTRIDGE0_SLOT) || slotSocket.slotInserted(CARTRIDGE1_SLOT);
+            return slotSocket.slotInserted(WMSX.CARTRIDGE1_SLOT) || slotSocket.slotInserted(WMSX.CARTRIDGE2_SLOT);
         };
         var listeners = [];
         var modifiedListener;

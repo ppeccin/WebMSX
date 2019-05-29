@@ -7,7 +7,7 @@ wmsx.RTC = function() {
 "use strict";
 
     this.setMachineType = function(type) {
-        active = type >= 2;     // Only for MSX2 or better
+        active = WMSX.RTC_ACTIVE >= 0 ? !!WMSX.RTC_ACTIVE : type >= 2;                  // auto: Only for MSX2 or better
         if (active) wmsx.Util.arrayFill(ram[0], 0); wmsx.Util.arrayFill(ram[1], 0);     // clear RAM
     };
 

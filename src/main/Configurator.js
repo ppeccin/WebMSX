@@ -6,19 +6,19 @@ wmsx.Configurator = {
         this.backupOriginalConfig();
 
         // Read URL parameters
-        var urlParams = WMSX.ALLOW_URL_PARAMETERS ? this.parseURLParams() : {};
+        if (WMSX.ALLOW_URL_PARAMETERS) this.parseURLParams();
 
         // Process Config file if asked
-        if (urlParams.CONFIG_URL) this.readThenApplyConfigFile(urlParams.CONFIG_URL, urlParams, then);
-        else this.applyConfigDetails(urlParams, then);
+        if (this.parameters.CONFIG_URL) this.readThenApplyConfigFile(this.parameters.CONFIG_URL, then);
+        else this.applyConfigDetails(then);
     },
 
-    readThenApplyConfigFile: function(configUrl, urlParams, then) {
+    readThenApplyConfigFile: function(configUrl, then) {
         var self = this;
         new wmsx.MultiDownloader(
             [{ url: configUrl.trim() }],
             function onAllSuccess(urls) {
-                self.applyConfigFile(urls[0].content, urlParams, then);
+                self.applyConfigFile(urls[0].content, then);
             },
             function onAnyError(urls) {
                 return wmsx.Util.message("Error loading Configuration file: " + configUrl);
@@ -26,27 +26,21 @@ wmsx.Configurator = {
         ).start();      // Asynchronous since URL is not an Embedded file
     },
 
-    applyConfigDetails: function(params, then) {
-        // Apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
-        this.applyPresetsConfigModifications(params);
+    applyConfigDetails: function(then) {
+        // First apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
+        this.applyPresetsConfigModifications();
+        if (this.parameters.PRESETS) this.applyParam("PRESETS", this.parameters.PRESETS);
+        delete this.parameters.PRESETS;
 
-        // Apply Presets from Machine configuration chosen
-        if (params.MACHINE) this.applyParam("MACHINE", params.MACHINE);
+        // Define Machine
+        if (this.parameters.MACHINE) this.applyParam("MACHINE", this.parameters.MACHINE);
         WMSX.MACHINE = WMSX.MACHINE.trim().toUpperCase();
         if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
         if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].AUTO_TYPE) WMSX.MACHINE = this.detectDefaultMachine();
-        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].PRESETS);
-        delete params.MACHINE;
+        delete this.parameters.MACHINE;
 
-        // Apply additional Presets over Machine configuration chosen
-        if (params.PRESETS) this.applyParam("PRESETS", params.PRESETS);
-        this.applyPresets(WMSX.PRESETS);
-
-        // Apply additional single parameters
-        for (var par in params) this.applyParam(par, params[par]);
-
-        // Ensure the correct types of the parameters after all settings applied
-        this.normalizeParameterTypes();
+        // Apply all parameters from Machine, Presets and Single Parameters from URL
+        this.applyFinalConfig();
 
         // Apply user asked page CSS
         if(WMSX.PAGE_BACK_CSS) document.body.style.background = WMSX.PAGE_BACK_CSS;
@@ -58,6 +52,17 @@ wmsx.Configurator = {
         }
 
         then();
+    },
+
+    applyFinalConfig: function () {
+        // Apply Presets from Machine configuration
+        this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].PRESETS);
+        // Apply additional Presets over Machine configuration
+        this.applyPresets(WMSX.PRESETS);
+        // Apply additional Single Parameters from URL
+        for (var par in this.parameters) this.applyParam(par, this.parameters[par]);
+        // Ensure the correct types of the parameters after all settings applied
+        this.normalizeParameterTypes();
     },
 
     applyPresets: function(presetList, silent) {
@@ -92,17 +97,17 @@ wmsx.Configurator = {
         }
     },
 
-    applyPresetsConfigModifications: function(params) {
+    applyPresetsConfigModifications: function() {
         // Apply Presets modifications
-        for (var p in params) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, params[p]);
+        for (var p in this.parameters) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, this.parameters[p]);
 
         // Apply Alternate Slot Config Preset if asked (special case, also modifies other presets)
-        if ((params.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
+        if ((this.parameters.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
         this.applyPreset("ALTSLOTCONFIG");
-        params.PRESETS = params.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
+        this.parameters.PRESETS = this.parameters.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
     },
 
-    applyConfigFile: function(configString, urlParams, then) {
+    applyConfigFile: function(configString, then) {
         try {
             var config = JSON.parse(wmsx.Util.int8BitArrayToByteString(configString));
         } catch (e) {
@@ -111,20 +116,18 @@ wmsx.Configurator = {
 
         wmsx.Util.applyPatchObject(WMSX, config);
 
-        this.applyConfigDetails(urlParams, then);
+        this.applyConfigDetails(then);
     },
 
     parseURLParams: function() {
         var search = (window.location.search || "").split('+').join(' ');
         var reg = /[?&]?([^=]+)=([^&]*)/g;
         var tokens;
-        var parameters = {};
         while (tokens = reg.exec(search)) {
             var parName = decodeURIComponent(tokens[1]).trim().toUpperCase();
             parName = wmsx.Configurator.abbreviations[parName] || parName;
-            parameters[parName] = decodeURIComponent(tokens[2]).trim();
+            this.parameters[parName] = decodeURIComponent(tokens[2]).trim();
         }
-        return parameters;
     },
 
     normalizeParameterTypes: function() {
@@ -206,7 +209,7 @@ wmsx.Configurator = {
         if (WMSX.BIOS_URL !== null && WMSX.BIOS_URL !== undefined)       addSpec(WMSX.BIOS_URL || "@[Empty].rom",    WMSX.BIOS_SLOT);
         if (WMSX.BIOSEXT_URL !== null && WMSX.BIOSEXT_URL !== undefined) addSpec(WMSX.BIOSEXT_URL || "@[Empty].rom", WMSX.BIOSEXT_SLOT);
 
-        // Any URL specified in the format SLOTN_N_URL
+        // Any URL specified in the format SLOTXY_URL, where X = primary slot number and Y = secondary slot number (optional)
         for (var key in WMSX) {
             if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "_URL")) {
                 var url = WMSX[key];
@@ -377,6 +380,8 @@ wmsx.Configurator = {
     listeners: [],
 
     originalConfig: {},
+
+    parameters: {},
 
     abbreviations: {
         E: "ENVIRONMENT",

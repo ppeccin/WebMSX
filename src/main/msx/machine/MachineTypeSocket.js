@@ -20,7 +20,8 @@ wmsx.MachineTypeSocket = function(machine) {
         var machineConfig = WMSX.MACHINES_CONFIG[name];
         if (!machineConfig) return;
 
-        wmsx.Configurator.applyPresets(machineConfig.PRESETS);
+        WMSX.MACHINE = name;
+        wmsx.Configurator.applyFinalConfig();
 
         var wasOn = machine.powerIsOn;
         machine.powerOff();
@@ -37,7 +38,7 @@ wmsx.MachineTypeSocket = function(machine) {
                     self.fireMachineTypeStateUpdate();
                 });
             }
-        ).start();      // Synchronous since all loaded files are Embedded
+        ).start();      // May be asynchronous if custom machine set using ROMs not embedded. TODO Fix Netplay: cannot be executed locally on the Client
     };
 
     this.addMachineTypeStateListener = function (listener, skipUpdate) {

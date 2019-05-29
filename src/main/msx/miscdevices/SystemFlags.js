@@ -6,7 +6,7 @@ wmsx.SystemFlags = function() {
 "use strict";
 
     this.setMachineType = function(type) {
-        active = type >= 3;     // Only for MSX2+ or better
+        active = type >= 3;     // auto: Only for MSX2+ or better
     };
 
     this.connectBus = function(bus) {
