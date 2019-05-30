@@ -35,6 +35,10 @@ wmsx.DOMMouseControls = function(room, hub) {
         updateConnectionsToHub();
     };
 
+    this.screenFullscreenStateUpdate = function(state) {
+        fsAutoPointerLockEngaged = state && !pointerLocked;
+    };
+
     this.toggleMode = function(dec) {
         var newMode;
         if (dec) { newMode = mode - 1; if (newMode < -2) newMode = 1; }
@@ -159,6 +163,7 @@ wmsx.DOMMouseControls = function(room, hub) {
     };
 
     function lockPointer() {
+        fsAutoPointerLockEngaged = false;
         if (port < 0)
             return screen.showOSD("Mouse Pointer Locking only when MOUSE is ENABLED!", true, true);
         var func = inputElement.requestPointerLock || inputElement.mozRequestPointerLock || inputElement.webkitRequestPointerLock;
@@ -166,6 +171,7 @@ wmsx.DOMMouseControls = function(room, hub) {
     }
 
     function unlockPointer() {
+        fsAutoPointerLockEngaged = false;
         var func = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
         if (func) func.apply(document);
     }
@@ -231,16 +237,25 @@ wmsx.DOMMouseControls = function(room, hub) {
     }
 
     function mouseButtonEvent(e) {
-        if (port >= 0) {
-            // e.preventDefault();  was preventing return of focus
-            mouseLocalState.buttons = e.buttons & 3;
-            if (!netClientMode) updatePortButtonsValue();
-            netMouseStateToSend = mouseLocalState;
-        }
-
+        // Middle button toggles pointer lock
         if (e.buttons & 4) {
             e.preventDefault();
             self.togglePointerLock();
+        }
+
+        if (port >= 0) {
+            // e.preventDefault();  was preventing return of focus
+
+            // First left-click when in FullScreen mode does automatic pointer lock. All other buttons disengage feature
+            if (fsAutoPointerLockEngaged && e.buttons) {
+                if ((e.buttons & 1) && !pointerLocked) lockPointer();
+                fsAutoPointerLockEngaged = false;
+                return;
+            }
+
+            mouseLocalState.buttons = e.buttons & 3;
+            if (!netClientMode) updatePortButtonsValue();
+            netMouseStateToSend = mouseLocalState;
         }
     }
 
@@ -352,6 +367,7 @@ wmsx.DOMMouseControls = function(room, hub) {
     var inputElement;
     var lastMoveEvent;
     var pointerLocked = false;
+    var fsAutoPointerLockEngaged = false;
 
     var controllersSocket, screen;
 

@@ -172,6 +172,10 @@ wmsx.ControllersHub = function(room, machineControls) {
         touchControls.screenReadjustedUpdate();
     };
 
+    this.screenFullscreenStateUpdate = function(state) {
+        mouseControls.screenFullscreenStateUpdate(state);
+    };
+
     this.keyDown = function(e) {
         return processKeyEvent(e, true);
     };

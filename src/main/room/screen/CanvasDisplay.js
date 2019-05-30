@@ -1400,6 +1400,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         closeAllOverlays();
         self.requestReadjust();
+        controllersHub.screenFullscreenStateUpdate(isFullscreen);
     }
 
     function tryToFixSafariBugOnFullScreenChange() {
