@@ -113,6 +113,10 @@ wmsx.ControllersHub = function(room, machineControls) {
         mouseControls.toggleMode(dec);
     };
 
+    this.toggleMouseLock = function() {
+        mouseControls.togglePointerLock();
+    };
+
     this.toggleTouchControlsMode = function(skipAuto, dec) {
         touchControls.toggleMode(skipAuto, dec);
     };

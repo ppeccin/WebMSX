@@ -143,11 +143,11 @@ wmsx.DOMMouseControls = function(room, hub) {
     };
 
     this.getMappingForControl = function(button, port) {
-        return "Lock / Unlock pointer";
+        return [ { wc: 999999, n: [ "Alt", "CapsLock" ] } ];
     };
 
     this.getMappingPopupText = function(button, port) {
-        return { heading: "Middle Button:", footer: "" };
+        return { heading: "Lock / Unlock pointer:", footer: "or click Middle Button" };
     };
 
     this.customizeControl = function (button, port, mapping) {

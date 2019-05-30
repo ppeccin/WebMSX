@@ -283,6 +283,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 controllersHub.toggleJoykeysMode(secPort); break;                   // secPort for dec
             case pc.MOUSE_TOGGLE_MODE:
                 controllersHub.toggleMouseMode(secPort); break;                     // secPort for dec
+            case pc.MOUSE_TOGGLE_LOCK:
+                controllersHub.toggleMouseLock(); break;
             case pc.TOUCH_TOGGLE_MODE:
                 controllersHub.toggleTouchControlsMode(altPower, secPort); break;   // altPower for skip auto option, secPort for dec
             case pc.TOUCH_TOGGLE_DIR_BIG:
@@ -366,6 +368,7 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_JOYSTICKS_TOGGLE | k.ALT]      = pc.JOYSTICKS_TOGGLE_MODE;
         keyCodeMap[KEY_JOYKEYS_TOGGLE | k.ALT]        = pc.JOYKEYS_TOGGLE_MODE;
         keyCodeMap[KEY_MOUSE_TOGGLE | k.ALT]          = pc.MOUSE_TOGGLE_MODE;
+        keyCodeMap[KEY_MOUSE_LOCK | k.ALT]            = pc.MOUSE_TOGGLE_LOCK;
         keyCodeMap[KEY_TOUCH_TOGGLE | k.ALT]          = pc.TOUCH_TOGGLE_MODE;
         keyCodeMap[KEY_TURBO_FIRE_TOGGLE | k.ALT]     = pc.TURBO_FIRE_TOGGLE;
 
@@ -490,6 +493,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_JOYSTICKS_TOGGLE      = domKeys.VK_J.wc;
     var KEY_JOYKEYS_TOGGLE        = domKeys.VK_K.wc;
     var KEY_MOUSE_TOGGLE          = domKeys.VK_M.wc;
+    var KEY_MOUSE_LOCK            = domKeys.VK_CAPS_LOCK.wc;
     var KEY_TOUCH_TOGGLE          = domKeys.VK_N.wc;
     var KEY_TURBO_FIRE_TOGGLE     = domKeys.VK_H.wc;
 
