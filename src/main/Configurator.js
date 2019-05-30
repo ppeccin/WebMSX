@@ -136,6 +136,7 @@ wmsx.Configurator = {
         obj = WMSX.MACHINES_CONFIG = WMSX.MACHINES_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
         obj = WMSX.EXTENSIONS_CONFIG = WMSX.EXTENSIONS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
         obj = WMSX.PRESETS_CONFIG = WMSX.PRESETS_CONFIG || {}; for (p in obj) if (!obj[p]) delete obj[p];
+        obj = WMSX.EXTENSIONS = WMSX.EXTENSIONS || {};
 
         // Numeric parameters
         WMSX.ENVIRONMENT |= 0;
@@ -205,19 +206,16 @@ wmsx.Configurator = {
     slotURLSpecs: function() {
         var urlSpecs = [];
 
-        // BIOS AND BIOS Extension URLs
-        if (WMSX.BIOS_URL !== null && WMSX.BIOS_URL !== undefined)       addSpec(WMSX.BIOS_URL || "@[Empty].rom",    WMSX.BIOS_SLOT);
-        if (WMSX.BIOSEXT_URL !== null && WMSX.BIOSEXT_URL !== undefined) addSpec(WMSX.BIOSEXT_URL || "@[Empty].rom", WMSX.BIOSEXT_SLOT);
-
-        // Any URL specified in the format SLOTXY_URL, where X = primary slot number and Y = secondary slot number (optional)
+        // Any URL specified in the format SLOTXY_URL, where X = primary slot number and Y = secondary slot number (optional) or P (force primary)
         for (var key in WMSX) {
             if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "_URL")) {
                 var url = WMSX[key];
+                delete WMSX[key];
                 if (url !== null && url !== undefined) {
-                    var nums = key.match(/[0-9]/g);
+                    var nums = key.match(/[0-9P]/g);
                     if (nums) {
-                        var pos = nums.map(function(strNum) { return strNum | 0; });
-                        addSpec(url || "@[Empty].rom", pos);
+                        var pos = nums.map(function(strNum) { return strNum === "P" ? -1 : strNum | 0; });
+                        if (pos[0] >= 0) addSpec(url || "@[Empty].rom", pos);
                     }
                 }
             }
@@ -352,7 +350,6 @@ wmsx.Configurator = {
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 2];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [2, 3];
             WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [3, 1];
-            WMSX.BIOSEXT_SLOT =                    [2, 1];
             WMSX.EXPANSION1_SLOT =                 [3, 2];
             WMSX.EXPANSION2_SLOT =                 [3, 3];
         } else if (s.v < 51) {
@@ -360,7 +357,6 @@ wmsx.Configurator = {
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 3];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [3, 2];
             WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [2, 1];
-            WMSX.BIOSEXT_SLOT =                    [3, 1];
             WMSX.EXPANSION1_SLOT =                 [2, 2];
             WMSX.EXPANSION2_SLOT =                 [2, 3];
         }

@@ -12,15 +12,16 @@ wmsx.Machine = function() {
     }
 
     this.socketsConnected = function() {
-        self.setMachine(WMSX.MACHINE);
+        self.updateMachineType();
         self.setCPUTurboMode(cpuTurboMode);
         self.setVDPTurboMode(vdpTurboMode);
         self.setDefaults();
     };
 
-    this.setMachine = function(name) {
-        this.machineName = name;
-        this.machineType = WMSX.MACHINES_CONFIG[name].TYPE || 3;
+    // TODO New parameters values on Machine change NetPlay bug. Must send complete state
+    this.updateMachineType = function() {
+        this.machineName = WMSX.MACHINE;
+        this.machineType = WMSX.MACHINES_CONFIG[this.machineName].TYPE || 3;
         vdp.setMachineType(this.machineType);
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
@@ -28,7 +29,7 @@ wmsx.Machine = function() {
         vdpTurboMode = WMSX.VDP_TURBO_MODE;
         biosSocket.turboDriverTurboModesUpdate();
         bus.refreshConnect();
-        // TODO New parameters values on Machine change NetPlay bug
+        machineTypeSocket.fireMachineTypeStateUpdate();
     };
 
     this.preStart = function() {
@@ -317,7 +318,7 @@ wmsx.Machine = function() {
         if (typeof slotPos === "number") slotPos = [slotPos];
 
         var isEmpty = !slot || slot === EMPTY_SLOT;
-        if (isEmpty && (getSlot(slotPos) || EMPTY_SLOT) === EMPTY_SLOT) return;
+        if (isEmpty && sec !== -1 && (getSlot(slotPos) || EMPTY_SLOT) === EMPTY_SLOT) return;
 
         var pri = slotPos[0], sec = slotPos[1];
 
@@ -332,15 +333,15 @@ wmsx.Machine = function() {
                 if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
             }
             curPriSlot.insertSubSlot(slot, sec);
-            // Demotes an Expanded slot to a normal slot if all empty
+            // Demotes an Expanded slot to a normal Empty slot if all empty
             if (isEmpty && curPriSlot.isAllEmpty()) bus.insertSlot(slot, pri);
         } else {
-            if (curPriSlot.isExpanded()) {
+            if (curPriSlot.isExpanded() && sec !== -1) {
                 curPriSlot.insertSubSlot(slot, 0);
-                // Demotes an Expanded slot to a normal slot if all empty
+                // Demotes an Expanded slot to a normal Empty slot if all empty
                 if (isEmpty && curPriSlot.isAllEmpty()) bus.insertSlot(slot, pri);
             } else
-                bus.insertSlot(slot, pri);
+                bus.insertSlot(slot, pri);      // will remove any ExpandedSlot present if sec = -1
         }
     }
 

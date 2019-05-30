@@ -14,28 +14,28 @@ wmsx.MachineTypeSocket = function(machine) {
     };
 
     this.changeMachine = function (name) {
-        if (machine.machineName == name) return;
+        if (machine.machineName === name) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);
 
         var machineConfig = WMSX.MACHINES_CONFIG[name];
         if (!machineConfig) return;
 
-        WMSX.MACHINE = name;
-        wmsx.Configurator.applyFinalConfig();
-
         var wasOn = machine.powerIsOn;
         machine.powerOff();
         var wasPaused = machine.systemPause(true);
-        machine.setMachine(name);
+
+        WMSX.MACHINE = name;
+        wmsx.Configurator.applyFinalConfig();
+
+        machine.updateMachineType();
 
         new wmsx.MultiDownloader(
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
+                    machine.showOSD((machineConfig.DESC || machineConfig.DESCX) + " machine activated", true);
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
-                    machine.showOSD((machineConfig.DESC || machineConfig.DESCX) + " machine activated", true);
-                    self.fireMachineTypeStateUpdate();
                 });
             }
         ).start();      // May be asynchronous if custom machine set using ROMs not embedded. TODO Fix Netplay: cannot be executed locally on the Client

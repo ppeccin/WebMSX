@@ -49,11 +49,11 @@ WMSX = {
 
     // Internal Machine configuration
     BIOS_SLOT:                      [0],                        // Slot to use when loading ROM of type
-    BIOSEXT_SLOT:                   [3, 1],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
     EXPANSION1_SLOT:                [3, 3],
     EXPANSION2_SLOT:                [2, 3],
+    BIOSEXT_SLOT:                   [3, 1],
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
     RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
@@ -213,7 +213,6 @@ WMSX.PRESETS_CONFIG = {
     // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 
     ALTSLOTCONFIG: {
-        BIOSEXT_SLOT:                          [2, 1],
         EXPANSION1_SLOT:                       [2, 3],
         EXPANSION2_SLOT:                       [3, 3],
         "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":     [2, 2]
@@ -242,20 +241,20 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
-        BIOS_URL:           "@cbios_main_msx2+.rom | @cbios_logo_msx2+.rom",
-        BIOSEXT_URL:        "@cbios_sub.rom",
+        SLOT0_URL:          "@cbios_main_msx2+.rom | @cbios_logo_msx2+.rom",
+        SLOT31_URL:         "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
-        BIOS_URL:           "@cbios_main_msx2+_eu.rom | @cbios_logo_msx2+.rom",
-        BIOSEXT_URL:        "@cbios_sub.rom",
+        SLOT0_URL:          "@cbios_main_msx2+_eu.rom | @cbios_logo_msx2+.rom",
+        SLOT31_URL:         "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 395
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE",
-        BIOS_URL:           "@cbios_main_msx2+_jp.rom | @cbios_logo_msx2+.rom",
-        BIOSEXT_URL:        "@cbios_sub.rom",
+        SLOT0_URL:          "@cbios_main_msx2+_jp.rom | @cbios_logo_msx2+.rom",
+        SLOT31_URL:         "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
@@ -266,20 +265,20 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
-        BIOS_URL:           "@cbios_main_msx2.rom | @cbios_logo_msx2.rom",
-        BIOSEXT_URL:        "@cbios_sub.rom",
+        SLOT0_URL:          "@cbios_main_msx2.rom | @cbios_logo_msx2.rom",
+        SLOT31_URL:         "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 385
     },
     _MSX2E: {
         _INCLUDE:           "_MSX2BASE",
-        BIOS_URL:           "@cbios_main_msx2_eu.rom | @cbios_logo_msx2.rom",
-        BIOSEXT_URL:        "@cbios_sub.rom",
+        SLOT0_URL:          "@cbios_main_msx2_eu.rom | @cbios_logo_msx2.rom",
+        SLOT31_URL:         "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 400
     },
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE",
-        BIOS_URL:           "@cbios_main_msx2_jp.rom | @cbios_logo_msx2.rom",
-        BIOSEXT_URL:        "@cbios_sub.rom",
+        SLOT0_URL:          "@cbios_main_msx2_jp.rom | @cbios_logo_msx2.rom",
+        SLOT31_URL:         "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
@@ -290,34 +289,37 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@cbios_main_msx1.rom | @cbios_logo_msx1.rom",
+        SLOT0_URL:          "@cbios_main_msx1.rom | @cbios_logo_msx1.rom",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1E: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@cbios_main_msx1_eu.rom | @cbios_logo_msx1.rom",
+        SLOT0_URL:          "@cbios_main_msx1_eu.rom | @cbios_logo_msx1.rom",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1J: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@cbios_main_msx1_jp.rom | @cbios_logo_msx1.rom",
+        SLOT0_URL:          "@cbios_main_msx1_jp.rom | @cbios_logo_msx1.rom",
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC"
+        _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC",
+        SLOT31_URL :        ""      // MSX1 has no BIOS Extension
     },
 
     // Base Machines Presets. Do not use directly
 
     _EMPTY: {
-        _INCLUDE:           "_BASE, NORAM, NODISK, NOHARDDISK, NOMSXMUSIC"
+        _INCLUDE:           "_BASE",
+        EXTENSIONS:         null,
+        SLOT0P_URL:         "",
+        SLOT1P_URL:         "",
+        SLOT2P_URL:         "",
+        SLOT3P_URL:         "",
+        SLOT4P_URL:         ""      // Special Device I/O only slot
     },
 
     _BASE: {
-        BIOS_URL:           "",
-        BIOSEXT_URL:        "",
-        VDP_TYPE:           -1,
-        RTC_ACTIVE:         -1,
         CPU_TURBO_MODE:     0,
         VDP_TURBO_MODE:     0
     }

@@ -49,11 +49,11 @@ WMSX = {
 
     // Internal Machine configuration
     BIOS_SLOT:                      [0],                        // Slot to use when loading ROM of type
-    BIOSEXT_SLOT:                   [3, 1],
     CARTRIDGE1_SLOT:                [1],
     CARTRIDGE2_SLOT:                [2],
     EXPANSION1_SLOT:                [2, 1],
     EXPANSION2_SLOT:                [2, 2],
+    BIOSEXT_SLOT:                   [3, 1],
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
     RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
@@ -229,7 +229,6 @@ WMSX.PRESETS_CONFIG = {
     // Alternate Slot Configuration: try to keep RAM alone on Slot 3
 
     ALTSLOTCONFIG: {
-        BIOSEXT_SLOT:                      [2, 1],
         EXPANSION1_SLOT:                   [3, 2],
         EXPANSION2_SLOT:                   [3, 3],
         "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2],
@@ -260,20 +259,20 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
-        BIOS_URL:           "@MSX2P_NTSC.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_NTSC.bios | @KanjiBasic.bios",
+        SLOT0_URL:          "@MSX2P_NTSC.bios",
+        SLOT31_URL:         "@MSX2PEXT_NTSC.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
-        BIOS_URL:           "@MSX2P_PAL.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios",
+        SLOT0_URL:          "@MSX2P_PAL.bios",
+        SLOT31_URL:         "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios",
         BOOT_DURATION_AUTO: 395
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
-        BIOS_URL:           "@MSX2P_JAP.bios",
-        BIOSEXT_URL:        "@MSX2PEXT_JAP.bios | @KanjiBasic.bios",
+        SLOT0_URL:          "@MSX2P_JAP.bios",
+        SLOT31_URL:         "@MSX2PEXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
@@ -284,20 +283,20 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
-        BIOS_URL:           "@MSX2_NTSC.bios",
-        BIOSEXT_URL:        "@MSX2EXT_NTSC.bios",
+        SLOT0_URL:          "@MSX2_NTSC.bios",
+        SLOT31_URL:         "@MSX2EXT_NTSC.bios",
         BOOT_DURATION_AUTO: 385
     },
     _MSX2E: {
         _INCLUDE:           "_MSX2BASE",
-        BIOS_URL:           "@MSX2_PAL.bios",
-        BIOSEXT_URL:        "@MSX2EXT_PAL.bios",
+        SLOT0_URL:          "@MSX2_PAL.bios",
+        SLOT31_URL:         "@MSX2EXT_PAL.bios",
         BOOT_DURATION_AUTO: 400
     },
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
-        BIOS_URL:           "@MSX2_JAP.bios",
-        BIOSEXT_URL:        "@MSX2EXT_JAP.bios | @KanjiBasic.bios",
+        SLOT0_URL:          "@MSX2_JAP.bios",
+        SLOT31_URL:         "@MSX2EXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
@@ -308,34 +307,37 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@MSX1_NTSC.bios",
+        SLOT0_URL:          "@MSX1_NTSC.bios",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1E: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@MSX1_PAL.bios",
+        SLOT0_URL:          "@MSX1_PAL.bios",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1J: {
         _INCLUDE:           "_MSX1BASE",
-        BIOS_URL:           "@MSX1_JAP.bios",
+        SLOT0_URL:          "@MSX1_JAP.bios",
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC, NOKANJI"
+        _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC, NOKANJI",
+        SLOT31_URL :        ""      // MSX1 has no BIOS Extension
     },
 
-    // Base Machines Preset. Do not use directly
+    // Base Machines Presets. Do not use directly
 
     _EMPTY: {
-        _INCLUDE:           "_BASE, NORAM, NODISK, NOHARDDISK, NOMSXMUSIC, NOKANJI"
+        _INCLUDE:           "_BASE",
+        EXTENSIONS:         null,
+        SLOT0P_URL:         "",
+        SLOT1P_URL:         "",
+        SLOT2P_URL:         "",
+        SLOT3P_URL:         "",
+        SLOT4P_URL:         ""      // Special Device I/O only slot
     },
 
     _BASE: {
-        BIOS_URL:           "",
-        BIOSEXT_URL:        "",
-        VDP_TYPE:           -1,
-        RTC_ACTIVE:         -1,
         CPU_TURBO_MODE:     0,
         VDP_TURBO_MODE:     0
     }

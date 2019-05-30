@@ -103,7 +103,7 @@ wmsx.SlotFormats = {
 
     "RAMNormal": {
         name: "RAMNormal",
-        desc: "Normal RAM 64K",
+        desc: "Normal RAM (unmapped)",
         priority: 1011,
         internal: true,
         embeddedURL: "@[RAMNormal].rom",
