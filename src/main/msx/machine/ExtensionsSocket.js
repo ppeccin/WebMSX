@@ -200,7 +200,7 @@ wmsx.ExtensionsSocket = function(machine) {
         return {
             url: config[ext].URL || "",
             onSuccess: function (res) {
-                fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].SLOT2 : config[ext].SLOT, true, true);     // internal
+                fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].SLOT2 : config[ext].SLOT, true, null, true);     // internal
             }
         };
     }

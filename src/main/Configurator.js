@@ -207,6 +207,7 @@ wmsx.Configurator = {
         var urlSpecs = [];
 
         // Any URL specified in the format SLOTXY_URL, where X = primary slot number and Y = secondary slot number (optional) or P (force primary)
+        // Also consider as ROM Format Hint any parameter in the format SLOTXY_FORMAT
         for (var key in WMSX) {
             if (wmsx.Util.stringStartsWith(key, "SLOT") && wmsx.Util.stringEndsWith(key, "_URL")) {
                 var url = WMSX[key];
@@ -215,17 +216,20 @@ wmsx.Configurator = {
                     var nums = key.match(/[0-9P]/g);
                     if (nums) {
                         var pos = nums.map(function(strNum) { return strNum === "P" ? -1 : strNum | 0; });
-                        if (pos[0] >= 0) addSpec(url || "@[Empty].rom", pos);
+                        if (pos[0] >= 0) {
+                            var format = url ? WMSX["SLOT" + nums[0] + (nums[1] || "") + "_FORMAT"] : null;
+                            addSpec(url || "@[Empty].rom", pos, format);
+                        }
                     }
                 }
             }
         }
 
-        function addSpec(url, pos) {
+        function addSpec(url, pos, format) {
             urlSpecs[urlSpecs.length] = {
                 url: url,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true, true);      // internal
+                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true, format, true);      // internal
                 }
             };
         }
