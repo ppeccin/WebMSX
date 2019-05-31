@@ -18,7 +18,7 @@
         "_YIS805": {
             "SLOT0_URL":  "examples/yis805.rom",
             "SLOT30_URL": "examples/yis805painter.rom",
-            "SLOT31_URL": "examples/yis805sub.rom | examples/yis805disk[DiskPatch].rom",
+            "SLOT31_URL": "examples/yis805sub.rom", "SLOT31_FORMAT": "DiskPatch",
             "SLOT32_URL": "@[RAMMapper].rom",
             "RAMMAPPER_SIZE": 128,
             "VDP_TYPE": 3
