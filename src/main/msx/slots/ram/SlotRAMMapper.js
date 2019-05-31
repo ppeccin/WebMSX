@@ -3,7 +3,6 @@
 // MSX2 Standard RAM Mapper. Supports sizes from 128KB to 4MB
 // 0x0000 - 0xffff
 
-// TODO Mapper size set via JS and Machine setting bug
 wmsx.SlotRAMMapper = function(rom) {
 "use strict";
 

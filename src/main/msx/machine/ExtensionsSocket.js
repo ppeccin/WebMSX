@@ -146,7 +146,7 @@ wmsx.ExtensionsSocket = function(machine) {
                 self.fireExtensionsAndCartridgesStateUpdate();
                 then(true);
             }
-        ).start();      // Synchronous since all loaded files are Embedded
+        ).start();      // May be asynchronous if Extensions use ROMs not embedded. TODO Netplay: Extensions not embedded (async loading) will break determinism
     };
 
     this.refreshConfigFromSlots = function(){

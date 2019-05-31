@@ -38,7 +38,7 @@ wmsx.MachineTypeSocket = function(machine) {
                     if (wasOn) machine.powerOn();
                 });
             }
-        ).start();      // May be asynchronous if custom machine set using ROMs not embedded. TODO Fix Netplay: cannot be executed locally on the Client
+        ).start();      // May be asynchronous if Machine uses ROMs not embedded. TODO Netplay: Machines not embedded (async loading) will break determinism
     };
 
     this.addMachineTypeStateListener = function (listener, skipUpdate) {

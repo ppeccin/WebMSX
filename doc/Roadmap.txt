@@ -5,7 +5,6 @@
 * JoyMega
 * Trackball, Arkanoid Vaus paddle, Touchpad, Light-pen, Light-gun
 * Auto detection of controller type software is trying to read
-* Auto Mouse grab when in full screen
 * Auto tuned Turbo to maintain constant framerate
 * Nextor update
 * LHZ support
