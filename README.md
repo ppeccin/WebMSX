@@ -10,7 +10,7 @@ Please go to **https://webmsx.org** to enjoy it online!
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-### Coming soon in Release 5.3
+### New in Release 5.3
 
 - Additional 5.37MHz (1.5x) CPU Turbo speed
 - Light version with C-BIOS Machines
@@ -53,7 +53,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 
 ## About the light C-BIOS version
 
-The light version with only C-BIOS ROMs will be found at: [**https://webmsx.org/cbios**](https://webmsx.org/cbios)
+The light version with only C-BIOS ROMs can be found at: [**https://webmsx.org/cbios**](https://webmsx.org/cbios)
 
 ## About the NetPlay! feature
 
