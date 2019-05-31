@@ -1,4 +1,4 @@
-// WebMSX C-BIOS version 5.3.98
+// WebMSX C-BIOS version 5.3.97
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters for C-BIOS variation. No FloppyDrive, Kanji and Moonsound support. Experimental HardDrive support.
@@ -108,7 +108,7 @@ WMSX = {
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
     PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
 
-    WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay
+    WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay!
 
     STATE_VERSION:                  530,
     STATE_VERSIONS_ACCEPTED:        { 530: true },
@@ -210,7 +210,7 @@ WMSX.PRESETS_CONFIG = {
     ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
     ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
 
-    // Alternate Slot Configuration: try to keep RAM alone on Slot 3
+    // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
 
     ALTSLOTCONFIG: {
         EXPANSION1_SLOT:                       [2, 3],

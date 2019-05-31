@@ -23,6 +23,7 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 - Hotkeys + Shift modifier: decrease values
 - New External Config File. Easier setup of custom Machines and Extensions
 - New Environment concept. Isolated savestates, configs, preferences
+- Mouse pointer auto-lock in Fullscreen modes
 - Bugfixes: SD Snatcher Melancholia and overscan games now work
 
 ### Features
