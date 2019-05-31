@@ -98,13 +98,13 @@ To load an external Configuration File, set the `CONFIG_URL` parameter. The conf
 WMSX.CONFIG_URL = "files/CustomMachines.json";     or     https://webmsx.org?CONFIG_URL=files/CustomMachines.json
 ```
 
-All emulator Savestates, Settings and Preferences can be stored in multiple isolated spaces, using the **Environments** feature. Just set the `ENVIRONMENT` (or `E` for short) parameter to any number in the 1..99 range. For example:
+All emulator Savestates, Settings and Preferences can be stored in multiple isolated spaces, using the **Environments** feature. Just set the `ENVIRONMENT` parameter (or `E` for short) to any number in the 1..99 range. For example:
 
 ```
 WMSX.ENVIRONMENT = 2;     or     https://webmsx.org?E=2
 ```
 
-Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` (or `P` for short) parameter with a comma separated list of the Preset names to apply. For example:
+Another important concept is the use of configuration **Presets**. Some configurations are a bit complicated and may require setting various parameters in conjunction. For those cases, its easier to use a Preset that will automatically set all the relevant parameters for a specific task. You may specify any number of Presets to be used by setting the `PRESETS` parameter (or `P` for short) with a comma separated list of the Preset names to apply. For example:
 
 ```
 WMSX.PRESETS = "RAM128, NODISK";     or     https://webmsx.org?P=RAM128,NODISK
@@ -141,7 +141,7 @@ You can also put the format specification in the ROM file name, between brackets
 
 ## Choosing a Machine
 
-There are 9 different generic machines to choose from. The default machine is the MSX2+, and the emulator will try to auto-detect your region. You can ask for a specific machine by setting the `MACHINE` parameter with the respective Machine ID:
+There are 9 different generic machines. The default machine is the MSX2+, and the emulator will try to auto-detect your region. You can ask for a specific machine by setting the `MACHINE` parameter (or `M` for short) with the respective Machine ID:
 
 | Machine | Machine ID | Specific Machine | Machine ID 
 | --- | :---: | --- | :---: 
