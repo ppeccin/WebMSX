@@ -155,6 +155,8 @@ There are 9 different generic machines to choose from. The default machine is th
 |                        |         | MSX1  European (PAL 50Hz)   |  `MSX1E`
 |                        |         | MSX1  Japanese (NTSC 60Hz)  |  `MSX1J`
 
+It's possible to define additional Custom Machines, by loading an external Configuration File (`CONFIG_URL` parameter). Contact the author for details! 
+
 ## Enabling Extensions
 
 The emulator supports several Extensions, or optional components that can be turned on/off. Some are in the form of expansion cartridges that can be inserted in either Slot 1 or 2. We use Presets to make configuring Extensions easier:
@@ -251,6 +253,10 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `TAPE_URL`                      |  --                 |  URL of Tape image file to load
 | `STATE_URL`                     |  --                 |  URL of SaveState file to load
 | `AUTODETECT_URL`                |  --                 |  URL of file to load with media auto-detection
+| `SLOTXY_URL`                    |  --                 |  URL of ROM file to load in Slot X-Y (X,Y are numbers). Omit Y for primary slot
+| `SLOTXY_FORMAT`                 |  --                 |  ROM Format for Slot X-Y loaded above
+| `VDP_TYPE`                      |  --                 |  VDP Chip. -1: auto; 1: V9918; 2: V9938; 3: V9958
+| `RTC_ACTIVE`                    |  --                 |  RTC Chip. -1: auto; 0: not present; 1: present
 | `NETPLAY_JOIN`                  |  --                 |  Join NetPlay! Session automatically
 | `NETPLAY_NICK`                  |  --                 |  NetPlay! Nickname, optional
 | `BASIC_RUN`                     |  --                 |  Run the specified file name
