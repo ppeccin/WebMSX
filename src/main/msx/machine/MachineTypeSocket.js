@@ -33,12 +33,13 @@ wmsx.MachineTypeSocket = function(machine) {
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
+                    machine.getSavestateSocket().externalStateChange();
                     machine.showOSD((machineConfig.DESC || machineConfig.DESCX) + " machine activated", true);
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
                 });
             }
-        ).start();      // May be asynchronous if Machine uses ROMs not embedded. TODO Netplay: Machines not embedded (async loading) will break determinism
+        ).start();      // May be asynchronous if Machine uses ROMs not embedded
     };
 
     this.addMachineTypeStateListener = function (listener, skipUpdate) {

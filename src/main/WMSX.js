@@ -339,7 +339,9 @@ WMSX.PRESETS_CONFIG = {
 
     _BASE: {
         CPU_TURBO_MODE:     0,
-        VDP_TURBO_MODE:     0
+        VDP_TURBO_MODE:     0,
+        VDP_TYPE:           -1,
+        RTC_ACTIVE:         -1
     }
 
 };

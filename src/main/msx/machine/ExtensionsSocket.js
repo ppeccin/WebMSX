@@ -45,11 +45,11 @@ wmsx.ExtensionsSocket = function(machine) {
         return !!loaded && loaded.rom.source === conf.URL;
     };
 
-    this.activateExtension = function(ext, altPower, op2, skipMessage) {
-        if (!this.isActiveOnSlot(ext, op2)) this.toggleExtension(ext, altPower, op2, skipMessage);
+    this.activateExtension = function(ext, altPower, op2, skipMessage, internal) {
+        if (!this.isActiveOnSlot(ext, op2)) this.toggleExtension(ext, altPower, op2, skipMessage, internal);
     };
 
-    this.toggleExtension = function (ext, altPower, secOp, skipMessage) {
+    this.toggleExtension = function (ext, altPower, secOp, skipMessage, internal) {
         var conf = config[ext];
         if (!conf) return;
 
@@ -86,6 +86,7 @@ wmsx.ExtensionsSocket = function(machine) {
         var wasPaused = machine.systemPause(true);
 
         this.refreshSlotsFromConfig(function(changed) {
+            if (!internal) machine.getSavestateSocket().externalStateChange();
             if (!wasPaused) machine.systemPause(false);
             if (!altPower && powerWasOn) machine.userPowerOn(false);
             if (changed && !skipMessage) {
@@ -146,7 +147,7 @@ wmsx.ExtensionsSocket = function(machine) {
                 self.fireExtensionsAndCartridgesStateUpdate();
                 then(true);
             }
-        ).start();      // May be asynchronous if Extensions use ROMs not embedded. TODO Netplay: Extensions not embedded (async loading) will break determinism
+        ).start();      // May be asynchronous if Extensions use ROMs not embedded
     };
 
     this.refreshConfigFromSlots = function(){

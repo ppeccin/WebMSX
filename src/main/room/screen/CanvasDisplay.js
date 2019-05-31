@@ -1329,6 +1329,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var menu = settingsButton.wmsxMenu;
         var conf = WMSX.MACHINES_CONFIG[machineTypeSocket.getMachine()];
         menu.wmsxTitle = ((conf.DESC || conf.DESCX).split("(")[0] || "Settings").trim();
+        settingsButton.wmsxMenu[settingsButton.wmsxMenu.length - 5].disabled = room.netPlayMode === 2;
+
         if (barMenuActive === menu) refreshBarMenu(menu);
     }
 

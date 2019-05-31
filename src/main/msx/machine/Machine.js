@@ -18,7 +18,6 @@ wmsx.Machine = function() {
         self.setDefaults();
     };
 
-    // TODO New parameters values on Machine change NetPlay bug. Must send complete state
     this.updateMachineType = function() {
         this.machineName = WMSX.MACHINE;
         this.machineType = WMSX.MACHINES_CONFIG[this.machineName].TYPE || 3;

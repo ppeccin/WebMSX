@@ -514,6 +514,8 @@ wmsx.DOMPeripheralControls = function(room) {
     // User can issue control only on Server. Not sent to Client over network
     var netServerOnlyControls = new Set([
         pc.MACHINE_LOAD_STATE_FILE, pc.MACHINE_SAVE_STATE_FILE, pc.MACHINE_LOAD_STATE_MENU, pc.MACHINE_SAVE_STATE_MENU,
+        pc.MACHINE_SELECT, pc.SCREEN_OPEN_MACHINE_SELECT,
+        pc.EXTENSION_TOGGLE,
 
         pc.DISK_LOAD_FILES, pc.DISK_ADD_FILES, pc.DISK_LOAD_URL, pc.DISK_LOAD_FILES_AS_DISK, pc.DISK_LOAD_ZIP_AS_DISK, pc.DISK_SAVE_FILE,
         pc.DISK_EMPTY, pc.DISK_BOOT, pc.DISK_SELECT, pc.DISK_PREVIOUS, pc.DISK_NEXT,
@@ -544,7 +546,6 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OPEN_SETTINGS,
         pc.SCREEN_OPEN_QUICK_OPTIONS,
         pc.SCREEN_OPEN_TOUCH_CONFIG,
-        pc.SCREEN_OPEN_MACHINE_SELECT,
         pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD,
         pc.SCREEN_DEFAULTS,
 
