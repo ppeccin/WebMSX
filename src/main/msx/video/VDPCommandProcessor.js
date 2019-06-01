@@ -551,18 +551,24 @@ wmsx.VDPCommandProcessor = function() {
         if (maj === 0) {
             for (var n = 0; n <= nx; n = n + 1) {
                 logicalPSET(dx, dy, co, op);
-                dx += dix; e += ny;
-                if ((e << 1) >= nx) {
-                    dy += diy; e -= nx; nMinor = nMinor + 1;
+                dx += dix;
+                if (ny > 0) {
+                    e += ny;
+                    if ((e << 1) >= nx) {
+                        dy += diy; e -= nx; nMinor = nMinor + 1;
+                    }
                 }
                 if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit
             }
         } else {
             for (n = 0; n <= nx; n = n + 1) {
                 logicalPSET(dx, dy, co, op);
-                dy += diy; e += ny;
-                if ((e << 1) >= nx) {
-                    dx += dix; e -= nx; nMinor = nMinor + 1;
+                dy += diy;
+                if (ny > 0) {
+                    e += ny;
+                    if ((e << 1) >= nx) {
+                        dx += dix; e -= nx; nMinor = nMinor + 1;
+                    }
                 }
                 if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit
             }
