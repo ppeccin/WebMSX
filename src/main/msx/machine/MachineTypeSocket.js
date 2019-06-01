@@ -38,6 +38,9 @@ wmsx.MachineTypeSocket = function(machine) {
                     if (!wasPaused) machine.systemPause(false);
                     if (wasOn) machine.powerOn();
                 });
+            },
+            function onAnyError(urls) {
+                wmsx.Util.message(urls[0].errorMessage);
             }
         ).start();      // May be asynchronous if Machine uses ROMs not embedded
     };

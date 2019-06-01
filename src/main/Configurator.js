@@ -217,7 +217,9 @@ wmsx.Configurator = {
                     if (nums) {
                         var pos = nums.map(function(strNum) { return strNum === "P" ? -1 : strNum | 0; });
                         if (pos[0] >= 0) {
-                            var format = url ? WMSX["SLOT" + nums[0] + (nums[1] || "") + "_FORMAT"] : null;
+                            var formatParam = "SLOT" + nums[0] + (nums[1] || "") + "_FORMAT";
+                            var format = url ? WMSX[formatParam] : null;
+                            delete WMSX[formatParam];
                             addSpec(url || "@[Empty].rom", pos, format);
                         }
                     }

@@ -68,9 +68,10 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
     }
 
     function loadError(urlSpec, error) {
+        var mes = "Could not load file: " + urlSpec.url + "\nError: " + error;
         urlSpec.success = false;
         urlSpec.error = error;
-        var mes = "Could not load file: " + urlSpec.url + "\nError: " + error;
+        urlSpec.errorMessage = mes;
         if (urlSpec.onError) {
             wmsx.Util.error(mes);
             urlSpec.onError(urlSpec);

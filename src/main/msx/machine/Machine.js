@@ -329,7 +329,7 @@ wmsx.Machine = function() {
                 // ExpandedSlotSpecial for primary slot 2. SlotExpandedModules for extra slot 4
                 curPriSlot = pri === 2 ? new wmsx.SlotExpandedSpecial() : pri === 4 ? new wmsx.SlotExpandedModules() : new wmsx.SlotExpanded();
                 bus.insertSlot(curPriSlot, pri);
-                if (oldPriSlot !== EMPTY_SLOT) curPriSlot.insertSubSlot(oldPriSlot, sec === 0 ? 1 : 0);
+                if (oldPriSlot !== EMPTY_SLOT && sec > 0) curPriSlot.insertSubSlot(oldPriSlot, 0);
             }
             curPriSlot.insertSubSlot(slot, sec);
             // Demotes an Expanded slot to a normal Empty slot if all empty

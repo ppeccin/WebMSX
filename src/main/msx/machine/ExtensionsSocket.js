@@ -146,6 +146,9 @@ wmsx.ExtensionsSocket = function(machine) {
             function onAllSuccess() {
                 self.fireExtensionsAndCartridgesStateUpdate();
                 then(true);
+            },
+            function onAnyError(urls) {
+                wmsx.Util.message(urls[0].errorMessage);
             }
         ).start();      // May be asynchronous if Extensions use ROMs not embedded
     };

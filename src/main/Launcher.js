@@ -56,6 +56,9 @@ WMSX.start = function (machinePowerOn) {
                         ? function() { WMSX.room.getNetClient().joinSession(joinSession, WMSX.NETPLAY_NICK); }
                         : undefined
                     );
+                },
+                function onAnyError(urls) {
+                    wmsx.Util.message(urls[0].errorMessage);
                 }
             ).start();      // Asynchronous if there are media to load, otherwise Synchronous
         }
