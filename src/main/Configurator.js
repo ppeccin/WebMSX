@@ -9,19 +9,20 @@ wmsx.Configurator = {
         if (WMSX.ALLOW_URL_PARAMETERS) this.parseURLParams();
 
         // Process Config file if asked
-        if (this.parameters.CONFIG_URL) this.readThenApplyConfigFile(this.parameters.CONFIG_URL, then);
+        if (this.parameters.CONFIG_URL) this.applyParam("CONFIG_URL", this.parameters.CONFIG_URL);
+        if (WMSX.CONFIG_URL) this.readThenApplyConfigFile(then);
         else this.applyConfigDetails(then);
     },
 
-    readThenApplyConfigFile: function(configUrl, then) {
+    readThenApplyConfigFile: function(then) {
         var self = this;
         new wmsx.MultiDownloader(
-            [{ url: configUrl.trim() }],
+            [{ url: WMSX.CONFIG_URL.trim() }],
             function onAllSuccess(urls) {
                 self.applyConfigFile(urls[0].content, then);
             },
             function onAnyError(urls) {
-                return wmsx.Util.message("Error loading Configuration file: " + configUrl);
+                return wmsx.Util.message("Error loading Configuration file: " + WMSX.CONFIG_URL);
             }
         ).start();      // Asynchronous since URL is not an Embedded file
     },
@@ -29,8 +30,6 @@ wmsx.Configurator = {
     applyConfigDetails: function(then) {
         // First apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
         this.applyPresetsConfigModifications();
-        if (this.parameters.PRESETS) this.applyParam("PRESETS", this.parameters.PRESETS);
-        delete this.parameters.PRESETS;
 
         // Define Machine
         if (this.parameters.MACHINE) this.applyParam("MACHINE", this.parameters.MACHINE);
@@ -98,13 +97,16 @@ wmsx.Configurator = {
     },
 
     applyPresetsConfigModifications: function() {
+        if (this.parameters.PRESETS) this.applyParam("PRESETS", this.parameters.PRESETS);
+        delete this.parameters.PRESETS;
+
         // Apply Presets modifications
         for (var p in this.parameters) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, this.parameters[p]);
 
         // Apply Alternate Slot Config Preset if asked (special case, also modifies other presets)
-        if ((this.parameters.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
+        if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
         this.applyPreset("ALTSLOTCONFIG");
-        this.parameters.PRESETS = this.parameters.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
+        WMSX.PRESETS = WMSX.PRESETS.replace(/ALTSLOTCONFIG/gi, "");      // remove from list
     },
 
     applyConfigFile: function(configString, then) {

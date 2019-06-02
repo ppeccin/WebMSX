@@ -92,7 +92,7 @@ wmsx.KeyboardKeys = {
     NUM_COMMA      : { m: [ 10, 6 ], key: "NUM_COMMA",     c_en: "," },
     NUM_PERIOD     : { m: [ 10, 7 ], key: "NUM_PERIOD",    c_en: "." },
     YES            : { m: [ 11, 1 ], key: "YES",           c_en: "YES",                 c_ja: "HAI",    cs_ja: "HAI" },
-    NO             : { m: [ 11, 3 ], key: "NO",            c_en: "NO",                  c_ja: "IIE",    cs_ja: "HAI" }
+    NO             : { m: [ 11, 3 ], key: "NO",            c_en: "NO",                  c_ja: "IIE",    cs_ja: "IIE" }
 
 };
 
