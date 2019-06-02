@@ -21,8 +21,8 @@ wmsx.Configurator = {
             function onAllSuccess(urls) {
                 self.applyConfigFile(urls[0].content, then);
             },
-            function onAnyError(urls) {
-                return wmsx.Util.message("Error loading Configuration file: " + WMSX.CONFIG_URL);
+            function onAnyError(url) {
+                return wmsx.Util.message(url.errorMessage);
             }
         ).start();      // Asynchronous since URL is not an Embedded file
     },

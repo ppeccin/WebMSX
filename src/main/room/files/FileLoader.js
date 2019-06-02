@@ -95,8 +95,8 @@ wmsx.FileLoader = function(room) {
                 self.loadFromFile(aFile, openType, port, altPower, asExpansion);
                 if (then) then(true);
             },
-            function onAnyError(urls) {
-                showError("URL reading error: " + urls[0].error);
+            function onAnyError(url) {
+                showError("URL reading error: " + url.error);
                 if (then) then(false);
             }
         ).start();      // Probably Asynchronous since URL is probably not an Embedded file

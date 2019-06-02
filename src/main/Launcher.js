@@ -57,8 +57,8 @@ WMSX.start = function (machinePowerOn) {
                         : undefined
                     );
                 },
-                function onAnyError(urls) {
-                    wmsx.Util.message(urls[0].errorMessage);
+                function onAnyError(url) {
+                    wmsx.Util.message(url.errorMessage);
                 }
             ).start();      // Asynchronous if there are media to load, otherwise Synchronous
         }

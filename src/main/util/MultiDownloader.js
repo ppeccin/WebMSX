@@ -92,7 +92,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
         // All urls have a definition, check for errors
         for (i = 0; i < urlSpecs.length; i++)
             if (urlSpecs[i] && !urlSpecs[i].success) {
-                if (onAnyError) onAnyError(urlSpecs);
+                if (onAnyError) onAnyError(urlSpecs[i]);
                 return;
             }
 
