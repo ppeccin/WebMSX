@@ -249,7 +249,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.saveScreenCapture = function() {
         var cap = this.getScreenCapture();
-        if (cap) fileDownloader.startDownloadURL("WMSX Screen", cap, "Screen Capture");
+        if (cap) fileDownloader.startDownloadURL("WMSX Screen.png", cap, "WebMSX Screen Capture");
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {
