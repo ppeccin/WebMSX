@@ -16,6 +16,3 @@
 =========
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
-* First Video Standard OSD is wrong when launching PAL machine
-* Include other chars in filename separators, like "/", "\", ":", "?"
-

@@ -273,7 +273,7 @@ wmsx.FileDiskDrive = function(room) {
         // Normal File
         var quant = checkContentIsValidImages(file.content, hardDisk, anyContent);
         if (quant) {
-            var name = file.name.split("/").pop();
+            var name = wmsx.Util.leafFilename(file.name);
             if (quant === 1) return [{ name: name, content: file.content }];    // Using content directly now. Was: wmsx.Util.asNormalArray(file.content)
 
             var disks = new Array(quant);

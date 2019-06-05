@@ -378,7 +378,14 @@ wmsx.Util = new function() {
     };
 
     this.leafFilename = function(fileName) {
-        return (((fileName && fileName.indexOf("/") >= 0) ? fileName.split("/").pop() : fileName) || "").trim();
+        if (!fileName) return "";
+
+        var parts = fileName.split(WMSX.FILE_SEPARATOR_REGEX);
+        for (var i = parts.length - 1; i >= 0; --i) {
+            var part = parts[i].trim();
+            if (part) return part;
+        }
+        return "";
     };
 
     this.leafFilenameNoExtension = function(fileName) {
@@ -573,7 +580,7 @@ wmsx.Util = new function() {
     };
 
     this.performanceNow = function() {
-        return this.performanceNow.startOffset ? Date.now() - this.performanceNow.startOffset : window.performance.now();
+        return performanceNowStartOffset ? Date.now() - performanceNowStartOffset : window.performance.now();
     };
 
     this.applyPatchObject = function(obj, patch) {
@@ -590,8 +597,9 @@ wmsx.Util = new function() {
         }
 
         return obj;
-    }
+    };
+
+    var performanceNowStartOffset = (!window.performance || !window.performance.now) ? Date.now() : undefined;
 
 };
 
-if (!window.performance || !window.performance.now) wmsx.Util.performanceNow.startOffset = Date.now();

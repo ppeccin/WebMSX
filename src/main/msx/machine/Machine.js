@@ -187,7 +187,7 @@ wmsx.Machine = function() {
 
     this.setVideoStandardSoft = function(pVideoStandard) {
         videoStandardSoft = pVideoStandard;
-        if (videoStandardIsAuto && videoStandard !== pVideoStandard) setVideoStandard(pVideoStandard);
+        if (videoStandardIsAuto && videoStandard !== pVideoStandard) setVideoStandard(pVideoStandard, false, true);     // force OSD
         else if (!videoStandardIsAuto && videoStandard !== pVideoStandard)
                 self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true, true);
     };
@@ -287,7 +287,7 @@ wmsx.Machine = function() {
     };
 
     this.setDefaults = function() {
-        setVideoStandardAuto();
+        setVideoStandardAuto(false);        // no OSD
         vdp.setDefaults();
         speedControl = defaultSpeed;
         alternateSpeed = null;
@@ -344,8 +344,8 @@ wmsx.Machine = function() {
         }
     }
 
-    function setVideoStandard(pVideoStandard, forceUpdate) {
-        self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, false);
+    function setVideoStandard(pVideoStandard, forceUpdate, osdMode) {
+        if (osdMode !== false) self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, !!osdMode);
         if (!forceUpdate && videoStandard === pVideoStandard) return;
 
         videoStandard = pVideoStandard;
@@ -353,7 +353,7 @@ wmsx.Machine = function() {
         videoClockUpdateSpeed();
     }
 
-    function setVideoStandardAuto() {
+    function setVideoStandardAuto(osdMode) {
         videoStandardIsAuto = true;
         var newStandard = wmsx.VideoStandard.NTSC;          // Default in case we can't discover it
         if (videoStandardSoft) {
@@ -364,13 +364,13 @@ wmsx.Machine = function() {
                 newStandard = bios.originalVideoStandard;
             }
         }
-        setVideoStandard(newStandard, true);
+        setVideoStandard(newStandard, true, osdMode);
     }
 
     function setVideoStandardForced(forcedVideoStandard) {
         videoStandardIsAuto = false;
         if (bios) bios.setVideoStandardForced(forcedVideoStandard);
-        setVideoStandard(forcedVideoStandard);
+        setVideoStandard(forcedVideoStandard, false, true);     // force OSD
     }
 
     function setVSynchMode(mode, force) {
@@ -668,10 +668,10 @@ wmsx.Machine = function() {
                 biosSocket.keyboardExtensionTypeString(data);
                 break;
             case controls.VIDEO_STANDARD:
-                self.showOSD(null, true);	// Prepares for the upcoming "AUTO" OSD to always show
+                // always force OSD
                 if (videoStandardIsAuto) setVideoStandardForced(altFunc ? wmsx.VideoStandard.PAL : wmsx.VideoStandard.NTSC);
-                else if (videoStandard == wmsx.VideoStandard.NTSC) altFunc ? setVideoStandardAuto() : setVideoStandardForced(wmsx.VideoStandard.PAL);
-                else altFunc ? setVideoStandardForced(wmsx.VideoStandard.NTSC) : setVideoStandardAuto();
+                else if (videoStandard == wmsx.VideoStandard.NTSC) altFunc ? setVideoStandardAuto(true) : setVideoStandardForced(wmsx.VideoStandard.PAL);
+                else altFunc ? setVideoStandardForced(wmsx.VideoStandard.NTSC) : setVideoStandardAuto(true);
                 break;
             case controls.VSYNCH:
                 vSynchModeToggle();

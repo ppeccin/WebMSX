@@ -106,6 +106,7 @@ WMSX = {
     OPLL_PAN:                       "8",                        // OPLL PanPot adjust. Same as above (14 values)
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
+    FILE_SEPARATOR_REGEX:           /[\\/?:]/,
     PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
 
     WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay!
