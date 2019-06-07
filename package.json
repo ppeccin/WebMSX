@@ -1,7 +1,7 @@
 {
   "name": "WebMSX",
   "title": "WebMSX - The online MSX emulator",
-  "version": "5.3.3",
+  "version": "5.3.4",
   "devDependencies": {
     "grunt": "",
     "grunt-contrib-clean": "",
