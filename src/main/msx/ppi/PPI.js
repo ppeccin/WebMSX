@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.PPI = function(psgAudioChannel, controllersSocket) {
+wmsx.PPI = function(psgAudioChannel, controllersSocket, ledsSocket) {
 "use strict";
 
     this.connectBus = function(pBus) {
@@ -16,9 +16,17 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket) {
     };
 
     this.powerOn = function() {
+        this.reset();
     };
 
     this.powerOff = function() {
+    };
+
+    this.reset = function() {
+        registerC = 0x50;              // Everything OFF. Motor and CapsLed = 1 means OFF
+        keyboardRowSelected = 0;
+        updatePulseSignal();
+        updateCapsLed();
     };
 
     this.inputA8 = function() {
@@ -38,45 +46,41 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket) {
     };
 
     this.outputAA = function(val) {
-        if (registerC === val) return;
-        registerC  = val;
-        updateKeyboardConfig();
-        updateCassetteSignal();
+        var mod = registerC ^ val;
+        if (!mod) return;
+        registerC = val;
+        if (mod & 0x0f) updateKeyboardConfig();
+        if (mod & 0xa0) updatePulseSignal();
+        if (mod & 0x40) updateCapsLed();
     };
 
     this.outputAB = function(val) {
-        if ((val & 0x01) === 0) registerC &= ~(1 << ((val & 0x0e) >>> 1));
-        else registerC |= (1 << ((val & 0x0e) >>> 1));
-
         var bit = (val & 0x0e) >>> 1;
-        if (bit <= 3 || bit === 7) {
-            updateKeyboardConfig();
-        } else if (bit === 5) {
-            updateCassetteSignal();
-        }
+        if ((val & 0x01) === 0) registerC &= ~(1 << bit);
+        else registerC |= 1 << bit;
+
+        if (bit <= 3) updateKeyboardConfig();
+        else if (bit === 5 || bit === 7) updatePulseSignal();
+        else if (bit === 6) updateCapsLed();
     };
 
     function updateKeyboardConfig() {
         keyboardRowSelected = registerC & 0x0f;
-        if (keyClickSignal === ((registerC & 0x80) > 0)) return;
-        keyClickSignal = !keyClickSignal;
-        psgAudioChannel.setPulseSignal(keyClickSignal);
     }
 
-    function updateCassetteSignal() {
-        if (casseteSignal === ((registerC & 0x20) > 0)) return;
-        casseteSignal = !casseteSignal;
-        psgAudioChannel.setPulseSignal(casseteSignal);
+    function updatePulseSignal() {
+        psgAudioChannel.setPulseSignal((registerC & 0xa0) > 0);     // Cassette or KeyClick
     }
 
+    function updateCapsLed() {
+        ledsSocket.ledStateChanged(0, (registerC & 0x40) === 0);
+    }
 
-    var registerC = 0;
-    var keyClickSignal = false;
-    var casseteSignal = false;
-
-    var keyboardRowSelected = 0;
 
     var bus;
+
+    var registerC = 0x50;              // Everything OFF. Motor and CapsLed = 1 means OFF
+    var keyboardRowSelected = 0;
 
 
     // Savestate  -------------------------------------------
@@ -89,8 +93,9 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket) {
 
     this.loadState = function(s) {
         registerC = s.c || 0;
-        updateKeyboardConfig(registerC);
-        updateCassetteSignal(registerC);
+        updateKeyboardConfig();
+        updatePulseSignal();
+        updateCapsLed();
     };
 
 };

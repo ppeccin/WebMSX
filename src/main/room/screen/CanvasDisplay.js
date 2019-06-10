@@ -638,6 +638,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         defineSettingsMenuExtensions();
     };
 
+    this.ledsStateUpdate = function(caps, kana) {
+        capsLed.textContent = caps ? "CAPS" : "";
+        kanaLed.textContent = kana ? WMSX.CODE_KEY : "";
+    };
+
     this.setLoading = function(state) {
         isLoading = state;
         updateLoading();
@@ -649,6 +654,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             machine.getDiskDriveSocket().setInterfacesChangeListener(this);
             machine.getBIOSSocket().setMachineTurboModesStateListener(this);
             machine.getCartridgeSocket().setCartridgesModifiedStateListener(this);
+            machine.getLedsSocket().setLedsStateListener(this);
         }
     };
 
@@ -1098,6 +1104,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -68, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
         turboButton.classList.add("wmsx-narrow-hidden");
+
+        capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);
+        capsLed.classList.add("wmsx-narrow-hidden");
+
+        kanaLed  = addPeripheralControlButton("wmsx-bar-kana", 0, 0);
+        kanaLed.classList.add("wmsx-narrow-hidden");
 
         // Events for BarButtons and also MenuItems
         wmsx.Util.onTapOrMouseDownWithBlockUIG(buttonsBar, barElementTapOrMouseDown);
@@ -1940,6 +1952,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var cartridge2Button;
     var tapeButton;
     var turboButton;
+    var capsLed;
+    var kanaLed;
     var netplayButton;
     var scaleDownButton;
     var scaleUpButton;

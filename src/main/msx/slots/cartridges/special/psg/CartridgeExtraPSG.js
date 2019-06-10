@@ -32,7 +32,7 @@ wmsx.CartridgeExtraPSG = function(rom) {
     };
 
 
-    var psg = new wmsx.PSG(null, true);     // No controllers, secondary
+    var psg = new wmsx.PSG(null, null, true);     // No controllers, no leds, secondary
 
     this.rom = null;
     this.format = wmsx.SlotFormats.ExtraPSG;

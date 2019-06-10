@@ -69,6 +69,7 @@ wmsx.Machine = function() {
         controllersSocket.resetControllers();
         if (syf) syf.reset();
         if (rtc) rtc.reset();
+        ppi.reset();
         psg.reset();
         vdp.reset();
         cpu.reset();
@@ -179,6 +180,10 @@ wmsx.Machine = function() {
 
     this.getDiskDriveSocket = function() {
         return diskDriveSocket;
+    };
+
+    this.getLedsSocket = function() {
+        return ledsSocket;
     };
 
     this.showOSD = function(message, overlap, error) {
@@ -481,8 +486,8 @@ wmsx.Machine = function() {
     function mainComponentsCreate() {
         self.cpu = cpu = new wmsx.Z80();
         self.vdp = vdp = new wmsx.VDP(self, cpu);
-        self.psg = psg = new wmsx.PSG(controllersSocket, false);
-        self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket);
+        self.psg = psg = new wmsx.PSG(controllersSocket, ledsSocket, false);
+        self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
         self.rtc = rtc = new wmsx.RTC();
         self.syf = syf = new wmsx.SystemFlags();
         self.bus = bus = new wmsx.BUS(self, cpu);
@@ -509,6 +514,7 @@ wmsx.Machine = function() {
         audioSocket = new AudioSocket();
         diskDriveSocket = new DiskDriveSocket();
         machineControlsSocket = new MachineControlsSocket();
+        ledsSocket = new LedsSocket();
     }
 
     function computeBasicAutoRunCommandParameters() {
@@ -568,6 +574,7 @@ wmsx.Machine = function() {
     var machineControlsSocket;
     var controllersSocket;
     var audioSocket;
+    var ledsSocket;
 
     var bios;
     var videoStandard;
@@ -1068,6 +1075,26 @@ wmsx.Machine = function() {
             return { label: "Unknown", active: false };
         };
         var powerAndUserPauseStateListeners = [];
+    }
+
+
+    // Leds Socket  -----------------------------------------
+
+    function LedsSocket() {
+        this.ledStateChanged = function(led, state) {
+            if (ledsState[led] === state) return;
+            ledsState[led] = state;
+            this.fireLedsStateUpdate();
+        };
+        this.setLedsStateListener = function(listener) {
+            ledsStateListener = listener;
+            this.fireLedsStateUpdate();
+        };
+        this.fireLedsStateUpdate = function() {
+            if (ledsStateListener) ledsStateListener.ledsStateUpdate(ledsState[0], ledsState[1]);
+        };
+        var ledsState = [ false, false ];   // Caps, Kana
+        var ledsStateListener;
     }
 
 

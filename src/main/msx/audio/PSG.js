@@ -2,7 +2,7 @@
 
 // PSGs AY-3-8910/YM2149 supported
 
-wmsx.PSG = function(controllersSocket, secondary) {
+wmsx.PSG = function(controllersSocket, ledsSocket, secondary) {
 "use strict";
 
     this.connectBus = function(bus) {
@@ -32,9 +32,9 @@ wmsx.PSG = function(controllersSocket, secondary) {
     };
 
     this.powerOn = function() {
+        this.reset();
         powerIsOn = true;
         audioChannel.powerOn();
-        register[15] = 0x0f;
     };
 
     this.powerOff = function() {
@@ -43,6 +43,9 @@ wmsx.PSG = function(controllersSocket, secondary) {
     };
 
     this.reset = function() {
+        wmsx.Util.arrayFill(register, 0);
+        register[15] = 0x8f;
+        updateKanaLed();
         audioChannel.reset();
     };
 
@@ -85,6 +88,7 @@ wmsx.PSG = function(controllersSocket, secondary) {
                     controllersSocket.writeControllerPin8Port(0, (val & 0x10) >> 4);
                     controllersSocket.writeControllerPin8Port(1, (val & 0x20) >> 5);
                 }
+                updateKanaLed();
                 break;
         }
     };
@@ -97,6 +101,10 @@ wmsx.PSG = function(controllersSocket, secondary) {
 
         return controllersSocket ? controllersSocket.readControllerPort(port): 0x3f;
     };
+
+    function updateKanaLed() {
+        if (ledsSocket) ledsSocket.ledStateChanged(1, (register[15] & 0x80) === 0);
+    }
 
 
     var powerIsOn = false;
@@ -122,6 +130,7 @@ wmsx.PSG = function(controllersSocket, secondary) {
         powerIsOn = s.p !== undefined ? s.p : true;
         registerAddress = s.ra;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
+        updateKanaLed();
         audioChannel.loadState(s.ac);
     };
 

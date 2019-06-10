@@ -311,20 +311,23 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 52px;
     margin: 0 auto;
 }
-#wmsx-bar-turbo {
+#wmsx-bar-turbo, #wmsx-bar-caps, #wmsx-bar-kana {
     position: absolute;
-    left: 118px; right: 0;
+    left: 0; right: 0;
     width: 47px;
     margin: 0 auto;
-    padding: 7px 0 0 26px;
+    padding: 8px 0 0 0;
     color: hsl(0, 98%, 61%);
     font-weight: bold;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 14px;
     text-shadow: 2px 2px 0 black;
     vertical-align: top;
     box-sizing: border-box;
 }
+#wmsx-bar-turbo     { left: 109px; padding-left: 25px }
+#wmsx-bar-caps      { left: 219px; height: 29px; background: none; }
+#wmsx-bar-kana      { left: 300px; height: 29px; background: none; }
 
 #wmsx-bar-menu {
     position: absolute;
