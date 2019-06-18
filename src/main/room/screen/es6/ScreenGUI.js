@@ -326,8 +326,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
 }
 #wmsx-bar-turbo     { left: 109px; padding-left: 25px }
-#wmsx-bar-caps      { left: 219px; height: 29px; background: none; }
-#wmsx-bar-kana      { left: 300px; height: 29px; background: none; }
+#wmsx-bar-caps      { left: calc(166px + 10%); height: 29px; background: none; }
+#wmsx-bar-kana      { left: calc(170px + 25%); height: 29px; background: none; }
 
 #wmsx-bar-menu {
     position: absolute;
