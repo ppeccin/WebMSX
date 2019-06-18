@@ -96,7 +96,7 @@ WMSX = {
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
     MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
-    CODE_KEY:                       "CODE",
+    CODE_KEY_LABEL:                 "CODE",
     LIGHT_STATES:                   true,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
@@ -276,7 +276,7 @@ WMSX.PRESETS_CONFIG = {
         SLOT0_URL:          "@MSX2P_JAP.bios",
         SLOT31_URL:         "@MSX2PEXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380,
-        CODE_KEY:           "KANA"
+        CODE_KEY_LABEL:     "KANA"
     },
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE"
@@ -301,7 +301,7 @@ WMSX.PRESETS_CONFIG = {
         SLOT0_URL:          "@MSX2_JAP.bios",
         SLOT31_URL:         "@MSX2EXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 360,
-        CODE_KEY:           "KANA"
+        CODE_KEY_LABEL:     "KANA"
     },
     _MSX2BASE: {
         _INCLUDE:           "_BASE, RAMMAPPER, DISK, MSXMUSIC, NOKANJI"
@@ -323,12 +323,11 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "_MSX1BASE",
         SLOT0_URL:          "@MSX1_JAP.bios",
         BOOT_DURATION_AUTO: 230,
-        CODE_KEY:           "KANA"
+        CODE_KEY_LABEL:     "KANA"
     },
     _MSX1BASE: {
         _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC, NOKANJI",
-        SLOT31_URL :        "",      // MSX1 has no BIOS Extension
-        CODE_KEY:           "CODE"
+        SLOT31_URL :        ""       // MSX1 has no BIOS Extension
     },
 
     // Base Machines Presets. Do not use directly
@@ -347,7 +346,8 @@ WMSX.PRESETS_CONFIG = {
         CPU_TURBO_MODE:     0,
         VDP_TURBO_MODE:     0,
         VDP_TYPE:           -1,
-        RTC_ACTIVE:         -1
+        RTC_ACTIVE:         -1,
+        CODE_KEY_LABEL:     "CODE"
     }
 
 };

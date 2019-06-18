@@ -160,110 +160,110 @@ wmsx.OPL4AudioFM = function(opl4) {
     this.nextSample = function() {
         return 0;
 
-        var amChanged, vibChanged = false;
-        var m, c, mPh, cPh, mod;
-
-        ++clock;
-        amChanged = clockAM();
-        if (amChanged) vibChanged = clockVIB();
-
-        var sample = 0;
-        var topMelodyChan = rhythmMode ? 5 : 8;
-
-        // Melody channels
-        for (var chan = topMelodyChan; chan >= 0; --chan) {
-            m = chan << 1; c = m + 1;
-            if (envStep[c] === IDLE) continue;
-
-            // Update AM and VIB
-            if (amChanged) {
-                if (am[m]) updateAMAttenuationOp(m);
-                if (am[c]) updateAMAttenuationOp(c);
-                if (vibChanged) {
-                    if (vib[m]) updateFrequencyOp(m);
-                    if (vib[c]) updateFrequencyOp(c);
-                }
-            }
-
-            // Update ADSR envelopes
-            if (envStep[m] !== IDLE) clockEnvelope(m);
-            clockEnvelope(c);
-
-            // Update operators phase (0..1023)
-            mPh = (phaseCounter[m] += phaseInc[m]) >> 9;
-            cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-
-            // Modulator and Feedback
-            if (fbShift[chan]) {
-                mPh += (fbLastMod1[chan] + fbLastMod2[chan]) >> fbShift[chan];
-                mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
-                fbLastMod2[chan] = fbLastMod1[chan] >> 1;
-                fbLastMod1[chan] = mod >> 1;
-            } else {
-                mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
-            }
-
-            // Modulated Carrier, final sample value
-            sample += expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
-        }
-
-        // Rhythm channels (no AM, VIB, KSR, KSL, DC/DM, FB)
-        if (rhythmMode) {
-            clockNoise();
-
-            // Bass Drum, 2 ops, normal channel
-            c = 13;
-            if (envStep[c] !== IDLE) {
-                m = 12;
-                clockEnvelope(m);
-                clockEnvelope(c);
-                mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
-                cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
-                mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
-                sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
-            }
-
-            // Snare Drum, 1 op + noise
-            c = 15;
-            if (envStep[c] !== IDLE) {
-                clockEnvelope(c);
-                cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 130 : noiseOutput ? 0 : 1023 - 130] + totalAtt[c]] >> 3;
-            }
-
-            // Tom Tom, 1op, no noise
-            c = 16;
-            if (envStep[c] !== IDLE) {
-                clockEnvelope(c);
-                cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
-                sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
-            }
-
-            // Cymbal & HiHat
-            if (envStep[17] !== IDLE || envStep[14] !== IDLE) {
-                // Both share the same phase calculation
-                var ph14 = (phaseCounter[14] += phaseInc[14]) >> 9;
-                var ph17 = (phaseCounter[17] += phaseInc[17]) >> 9;
-                var hhCymPh = (((ph17 & 0x4) !== 0) && ((ph17 & 0x10) === 0)) !==
-                                ((((ph14 & 0x02) !== 0) !== ((ph14 & 0x100) !== 0)) || ((ph14 & 0x04) !== 0));
-
-                // Cymbal, 1 op, no noise
-                c = 17;
-                if (envStep[c] !== IDLE) {
-                    clockEnvelope(c);
-                    sample += expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 3;
-                }
-
-                // HiHat, 1op + noise
-                c = 14;
-                if (envStep[c] !== IDLE) {
-                    clockEnvelope(c);
-                    sample += expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 3;
-                }
-            }
-        }
-
-        return sample;
+        // var amChanged, vibChanged = false;
+        // var m, c, mPh, cPh, mod;
+        //
+        // ++clock;
+        // amChanged = clockAM();
+        // if (amChanged) vibChanged = clockVIB();
+        //
+        // var sample = 0;
+        // var topMelodyChan = rhythmMode ? 5 : 8;
+        //
+        // // Melody channels
+        // for (var chan = topMelodyChan; chan >= 0; --chan) {
+        //     m = chan << 1; c = m + 1;
+        //     if (envStep[c] === IDLE) continue;
+        //
+        //     // Update AM and VIB
+        //     if (amChanged) {
+        //         if (am[m]) updateAMAttenuationOp(m);
+        //         if (am[c]) updateAMAttenuationOp(c);
+        //         if (vibChanged) {
+        //             if (vib[m]) updateFrequencyOp(m);
+        //             if (vib[c]) updateFrequencyOp(c);
+        //         }
+        //     }
+        //
+        //     // Update ADSR envelopes
+        //     if (envStep[m] !== IDLE) clockEnvelope(m);
+        //     clockEnvelope(c);
+        //
+        //     // Update operators phase (0..1023)
+        //     mPh = (phaseCounter[m] += phaseInc[m]) >> 9;
+        //     cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+        //
+        //     // Modulator and Feedback
+        //     if (fbShift[chan]) {
+        //         mPh += (fbLastMod1[chan] + fbLastMod2[chan]) >> fbShift[chan];
+        //         mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
+        //         fbLastMod2[chan] = fbLastMod1[chan] >> 1;
+        //         fbLastMod1[chan] = mod >> 1;
+        //     } else {
+        //         mod = expTable[(halfWave[m] ? halfSineTable : sineTable)[mPh & 1023] + totalAtt[m]];
+        //     }
+        //
+        //     // Modulated Carrier, final sample value
+        //     sample += expTable[(halfWave[c] ? halfSineTable : sineTable)[(cPh + mod) & 1023] + totalAtt[c]] >> 4;
+        // }
+        //
+        // // Rhythm channels (no AM, VIB, KSR, KSL, DC/DM, FB)
+        // if (rhythmMode) {
+        //     clockNoise();
+        //
+        //     // Bass Drum, 2 ops, normal channel
+        //     c = 13;
+        //     if (envStep[c] !== IDLE) {
+        //         m = 12;
+        //         clockEnvelope(m);
+        //         clockEnvelope(c);
+        //         mPh = ((phaseCounter[m] += phaseInc[m]) >> 9) - 1;
+        //         cPh =  (phaseCounter[c] += phaseInc[c]) >> 9;
+        //         mod = expTable[sineTable[mPh & 1023] + totalAtt[m]];
+        //         sample += expTable[sineTable[(cPh + mod) & 1023] + totalAtt[c]] >> 3;
+        //     }
+        //
+        //     // Snare Drum, 1 op + noise
+        //     c = 15;
+        //     if (envStep[c] !== IDLE) {
+        //         clockEnvelope(c);
+        //         cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+        //         sample += expTable[sineTable[cPh & 0x100 ? noiseOutput ? 0 : 130 : noiseOutput ? 0 : 1023 - 130] + totalAtt[c]] >> 3;
+        //     }
+        //
+        //     // Tom Tom, 1op, no noise
+        //     c = 16;
+        //     if (envStep[c] !== IDLE) {
+        //         clockEnvelope(c);
+        //         cPh = (phaseCounter[c] += phaseInc[c]) >> 9;
+        //         sample += expTable[sineTable[cPh & 1023] + totalAtt[c]] >> 3;
+        //     }
+        //
+        //     // Cymbal & HiHat
+        //     if (envStep[17] !== IDLE || envStep[14] !== IDLE) {
+        //         // Both share the same phase calculation
+        //         var ph14 = (phaseCounter[14] += phaseInc[14]) >> 9;
+        //         var ph17 = (phaseCounter[17] += phaseInc[17]) >> 9;
+        //         var hhCymPh = (((ph17 & 0x4) !== 0) && ((ph17 & 0x10) === 0)) !==
+        //                         ((((ph14 & 0x02) !== 0) !== ((ph14 & 0x100) !== 0)) || ((ph14 & 0x04) !== 0));
+        //
+        //         // Cymbal, 1 op, no noise
+        //         c = 17;
+        //         if (envStep[c] !== IDLE) {
+        //             clockEnvelope(c);
+        //             sample += expTable[sineTable[hhCymPh ? 200 : 1023 - 200] + totalAtt[c]] >> 3;
+        //         }
+        //
+        //         // HiHat, 1op + noise
+        //         c = 14;
+        //         if (envStep[c] !== IDLE) {
+        //             clockEnvelope(c);
+        //             sample += expTable[sineTable[hhCymPh ? noiseOutput ? 40 : 10 : noiseOutput ? 1023 - 40 : 1023 - 10] + totalAtt[c]] >> 3;
+        //         }
+        //     }
+        // }
+        //
+        // return sample;
     };
 
     function clockTimers() {
@@ -327,68 +327,66 @@ wmsx.OPL4AudioFM = function(opl4) {
                 break;
         }
 
-        return;
-
-        var chan = reg & 0xf;
-        if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
-        var m = chan << 1, c = m + 1;
-
-        switch(reg) {
-            case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-                if (mod) {
-                    instrumentsParameters[0][reg] = val;
-                    updateCustomInstrChannels();
-                }
-                break;
-            case 0x0e:
-                if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
-                if (rhythmMode) {
-                    if (mod & 0x30) {                                            // Bass Drum    (2 ops, like a melody channel)
-                        setRhythmKeyOnOp(12, (val & 0x10) >> 4);
-                        setRhythmKeyOnOp(13, (val & 0x10) >> 4);
-                    }
-                    if (mod & 0x28) setRhythmKeyOnOp(15, (val & 0x08) >> 3);     // Snare Drum   (1 op)
-                    if (mod & 0x24) setRhythmKeyOnOp(16, (val & 0x04) >> 2);     // Tom Tom      (1 op)
-                    if (mod & 0x22) setRhythmKeyOnOp(17, (val & 0x02) >> 1);     // Top Cymbal   (1 op)
-                    if (mod & 0x21) setRhythmKeyOnOp(14,  val & 0x01);           // HiHat        (1 op)
-                }
-                break;
-            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
-            case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-                if (mod) {
-                    fNum[m] = (fNum[m] & ~0xff) | val;
-                    fNum[c] = fNum[m];
-                    updateFrequency(chan);
-                }
-                break;
-            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
-            case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
-                if (mod & 0x20) setSustain(chan, (val & 0x20) >> 5);
-                if ((mod & 0x10) && !(rhythmMode && chan > 5)) setKeyOn(chan, (val & 0x10) >> 4);
-                if (mod & 0x01) {
-                    fNum[m] = (fNum[m] & ~0x100) | ((val & 1) << 8);
-                    fNum[c] = fNum[m];
-                }
-                if (mod & 0x0e) {
-                    block[m] = (val >> 1) & 0x7;
-                    block[c] = block[m];
-                }
-                if (mod & 0x0f) updateFrequency(chan);
-                break;
-            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
-            case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-                if (rhythmMode && chan > 5) {
-                    if ((mod & 0xf0) && chan > 6) setVolumeOp(m, val >>> 4);        // BD has a normal modulator
-                    if (mod & 0x0f) setVolumeOp(c, val & 0xf);
-                } else {
-                    if (mod & 0xf0) {
-                        if (!audioConnected) connectAudio();
-                        setInstr(chan, val >>> 4);
-                    }
-                    if (mod & 0x0f) setVolumeOp(c, val & 0xf);
-                }
-                break;
-        }
+        // var chan = reg & 0xf;
+        // if (chan > 8) chan -= 9;                       // Regs X9 - Xf are the same as X0 - X6
+        // var m = chan << 1, c = m + 1;
+        //
+        // switch(reg) {
+        //     case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
+        //         if (mod) {
+        //             instrumentsParameters[0][reg] = val;
+        //             updateCustomInstrChannels();
+        //         }
+        //         break;
+        //     case 0x0e:
+        //         if (mod & 0x20) setRhythmMode((val & 0x20) !== 0);
+        //         if (rhythmMode) {
+        //             if (mod & 0x30) {                                            // Bass Drum    (2 ops, like a melody channel)
+        //                 setRhythmKeyOnOp(12, (val & 0x10) >> 4);
+        //                 setRhythmKeyOnOp(13, (val & 0x10) >> 4);
+        //             }
+        //             if (mod & 0x28) setRhythmKeyOnOp(15, (val & 0x08) >> 3);     // Snare Drum   (1 op)
+        //             if (mod & 0x24) setRhythmKeyOnOp(16, (val & 0x04) >> 2);     // Tom Tom      (1 op)
+        //             if (mod & 0x22) setRhythmKeyOnOp(17, (val & 0x02) >> 1);     // Top Cymbal   (1 op)
+        //             if (mod & 0x21) setRhythmKeyOnOp(14,  val & 0x01);           // HiHat        (1 op)
+        //         }
+        //         break;
+        //     case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
+        //     case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
+        //         if (mod) {
+        //             fNum[m] = (fNum[m] & ~0xff) | val;
+        //             fNum[c] = fNum[m];
+        //             updateFrequency(chan);
+        //         }
+        //         break;
+        //     case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
+        //     case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
+        //         if (mod & 0x20) setSustain(chan, (val & 0x20) >> 5);
+        //         if ((mod & 0x10) && !(rhythmMode && chan > 5)) setKeyOn(chan, (val & 0x10) >> 4);
+        //         if (mod & 0x01) {
+        //             fNum[m] = (fNum[m] & ~0x100) | ((val & 1) << 8);
+        //             fNum[c] = fNum[m];
+        //         }
+        //         if (mod & 0x0e) {
+        //             block[m] = (val >> 1) & 0x7;
+        //             block[c] = block[m];
+        //         }
+        //         if (mod & 0x0f) updateFrequency(chan);
+        //         break;
+        //     case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37: case 0x38:
+        //     case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
+        //         if (rhythmMode && chan > 5) {
+        //             if ((mod & 0xf0) && chan > 6) setVolumeOp(m, val >>> 4);        // BD has a normal modulator
+        //             if (mod & 0x0f) setVolumeOp(c, val & 0xf);
+        //         } else {
+        //             if (mod & 0xf0) {
+        //                 if (!audioConnected) connectAudio();
+        //                 setInstr(chan, val >>> 4);
+        //             }
+        //             if (mod & 0x0f) setVolumeOp(c, val & 0xf);
+        //         }
+        //         break;
+        // }
     }
 
     function clockNoise() {

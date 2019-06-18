@@ -640,7 +640,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.ledsStateUpdate = function(caps, kana) {
         capsLed.textContent = caps ? "CAPS" : "";
-        kanaLed.textContent = kana ? WMSX.CODE_KEY : "";
+        kanaLed.textContent = kana ? (WMSX.CODE_KEY_LABEL || "CODE") : "";
     };
 
     this.setLoading = function(state) {
