@@ -13,6 +13,10 @@ wmsx.MachineTypeSocket = function(machine) {
         return WMSX.MACHINES_CONFIG[machine.machineName].LANG || "en";
     };
 
+    this.getCodeKeyLabel = function() {
+        return WMSX.MACHINES_CONFIG[machine.machineName].CODE_LABEL || "CODE";
+    };
+
     this.changeMachine = function (name) {
         if (machine.machineName === name) return;
         if (WMSX.MEDIA_CHANGE_DISABLED) return name.showOSD("Machine change is disabled!", true, true);

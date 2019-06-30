@@ -340,7 +340,7 @@ wmsx.DOMKeyboard = function (hub, room, machineControls) {
     var biosSocket;
     var screen;
 
-    var lang = (WMSX.MACHINES_CONFIG[WMSX.MACHINE] && WMSX.MACHINES_CONFIG[WMSX.MACHINE].LANG) || "en";
+    var lang = "en";
 
     var keyStateMap = {};
 

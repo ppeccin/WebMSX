@@ -22,9 +22,11 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
 
     this.refreshLang = function() {
         var newLang = machineTypeSocket.getMachineLang();
-        if (newLang !== lang) {
+        var newCodeLabel = machineTypeSocket.getCodeKeyLabel();
+        if (newLang !== lang || newCodeLabel !== codeLabel) {
             lang = newLang;
-            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, lang, true);
+            codeLabel = newCodeLabel;
+            wmsx.VirtualKeyboard.updateKeysLabels(keysElements, false, lang, codeLabel, true);
         }
     };
 
@@ -67,7 +69,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
             if (keyElement.wmsxKey) keyElements.push(keyElement);
             keyElement.addEventListener("mouseenter", mouseEnterKey);
             keyElement.addEventListener("mouseleave", mouseLeaveKey);
-        }, false, lang, true);
+        }, false, lang, codeLabel, true);
     }
 
     function mouseDownModal(e) {
@@ -136,6 +138,7 @@ wmsx.KeyboardConfigurator = function(controllersHub, modalElement, machineTypeSo
     var keyboardNameElement, msxLanguageElement;
 
     var lang = "en";
+    var codeLabel = "CODE";
 
     var popup = wmsx.ControlMappingPopup.get();
 

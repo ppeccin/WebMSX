@@ -104,13 +104,17 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                   0, 0, 1, sourceHeight * 2,
                   0, 0, canvas.width, canvas.height
             );
-
         //console.log("" + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
+
+        // Update Leds if necessary
+        if (ledsUpdatePending >= 0) updateLeds();
     };
 
     this.videoSignalOff = function() {
         signalIsOn = false;
+        ledsUpdatePending = 0;
         showCursorAndBar();
+        updateLeds();
         updateLogo();
     };
 
@@ -639,8 +643,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.ledsStateUpdate = function(caps, kana) {
-        capsLed.textContent = caps ? "CAPS" : "";
-        kanaLed.textContent = kana ? (WMSX.CODE_KEY_LABEL || "CODE") : "";
+        ledsUpdatePending = (kana ? 2 : 0) | (caps ? 1 : 0);
     };
 
     this.setLoading = function(state) {
@@ -858,6 +861,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             canvasContext.mozImageSmoothingEnabled = smoothing;
             canvasContext.msImageSmoothingEnabled = smoothing;
         }
+    }
+
+    function updateLeds() {
+        capsLed.textContent = (ledsUpdatePending & 1) ? "CAPS" : "";
+        kanaLed.textContent = (ledsUpdatePending & 2) ? machineTypeSocket.getCodeKeyLabel() : "";
+        ledsUpdatePending = -1
     }
 
     function suppressContextMenu(element) {
@@ -1925,6 +1934,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var crtPhosphor = -1, crtPhosphorEffective = 0;
     var debugMode = false;
     var isLoading = false;
+    var ledsUpdatePending = -1;
 
     var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
     var scaleY = 1.0;

@@ -2,7 +2,7 @@
 
 wmsx.VirtualKeyboard = {
 
-    create: function(mainElement, keysCallback, shift, lang, noShift) {
+    create: function(mainElement, keysCallback, shift, lang, codeLabel, noShift) {
         "use strict";
 
         var inner = document.createElement("div");
@@ -46,12 +46,12 @@ wmsx.VirtualKeyboard = {
             }
         }
 
-        this.updateKeysLabels(keyElements, shift, lang, noShift);
+        this.updateKeysLabels(keyElements, shift, lang, codeLabel, noShift);
         return keyElements;
     },
 
-    updateKeysLabels: function(keyElements, shift, lang, noShift) {
-        this.finalLabels.COD = WMSX.CODE_KEY_LABEL || "CODE";
+    updateKeysLabels: function(keyElements, shift, lang, codeLabel, noShift) {
+        this.finalLabels.COD = codeLabel || "CODE";
 
         var a, b, c;
         if (noShift) { a = "cns_" + lang; b = "c_" + lang; c = "c_en"; }

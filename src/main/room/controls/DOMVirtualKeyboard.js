@@ -7,14 +7,16 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
 
     function init() {
         machineTypeSocket.addMachineTypeStateListener(self);
-        keyElements = wmsx.VirtualKeyboard.create(mainElement, setKeyEvents, shift, lang);
+        keyElements = wmsx.VirtualKeyboard.create(mainElement, setKeyEvents, shift, lang, codeLabel);
     }
 
     this.machineTypeStateUpdate = function() {
         var newLang = machineTypeSocket.getMachineLang();
-        if (newLang !== lang) {
+        var newCodeLabel = machineTypeSocket.getCodeKeyLabel();
+        if (newLang !== lang || newCodeLabel !== codeLabel) {
             lang = newLang;
-            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, lang);
+            codeLabel = newCodeLabel;
+            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, lang, codeLabel);
         }
     };
 
@@ -47,7 +49,7 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
         var shf = keyboard.isShiftPressed();
         if (shf !== shift) {
             shift = shf;
-            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, lang);
+            if (keyElements) wmsx.VirtualKeyboard.updateKeysLabels(keyElements, shift, lang, codeLabel);
         }
     }
 
@@ -58,7 +60,10 @@ wmsx.DOMVirtualKeyboard = function(mainElement, keyboard, machineTypeSocket) {
 
 
     var keyElements;
-    var shift = false, lang = "en";
+    var shift = false;
+    var lang = "en";
+    var codeLabel = "CODE";
+
 
     init();
 

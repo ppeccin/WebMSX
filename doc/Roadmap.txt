@@ -17,4 +17,3 @@
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
 * Text on touch buttons is a little down on Android
-* Kana label incorrect after load state or machine change
