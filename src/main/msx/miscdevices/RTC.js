@@ -115,7 +115,7 @@ wmsx.RTC = function() {
         if (clockRunning === enabled) return;
 
         if (enabled) {
-            clockFromRegistersToTime();               // Compute offset from registers then unfreeze
+            clockFromRegistersToTime();               // Compute time from registers then unfreeze
             clockRunning = true;
         } else {
             clockRunning = false;                     // Freeze then transfer to registers
@@ -186,11 +186,18 @@ wmsx.RTC = function() {
         }
     }
 
+    function updateTimeFromHost() {
+        var newTime = Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000;
+        if (newTime <= time) return;
+        time = newTime;
+        if (!clockRunning) clockFromTimeToRegisters();
+    }
+
 
     var active;
 
     var mode = 0;
-    var time = Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000;
+    var time = 0;
     var date = undefined;       // Cached Date for stopped clock
     var clockRunning = true;
 
@@ -223,7 +230,7 @@ wmsx.RTC = function() {
         };
     };
 
-    this.loadState = function(s) {
+    this.loadState = function(s, updateTime) {
         active = s.a !== undefined ? s.a : s.m2;    // Backward compatibility
         mode = s.m;
         clockRunning = s.c;
@@ -234,6 +241,11 @@ wmsx.RTC = function() {
         ram[0] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r0, ram[0]);
         ram[1] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r1, ram[1]);
         regAddress = s.ra;
+
+        if (updateTime) updateTimeFromHost();
     };
+
+
+    updateTimeFromHost();
 
 };

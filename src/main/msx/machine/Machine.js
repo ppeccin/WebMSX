@@ -38,8 +38,8 @@ wmsx.Machine = function() {
     this.powerOn = function(fromState) {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();
-        if (syf) syf.powerOn();
-        if (rtc) rtc.powerOn();
+        syf.powerOn();
+        rtc.powerOn();
         ppi.powerOn();
         psg.powerOn();
         vdp.powerOn();
@@ -54,8 +54,8 @@ wmsx.Machine = function() {
         vdp.powerOff();
         psg.powerOff();
         ppi.powerOff();
-        if (rtc) rtc.powerOff();
-        if (syf) syf.powerOff();
+        rtc.powerOff();
+        syf.powerOff();
         bus.powerOff();
         controllersSocket.resetControllers();
         this.powerIsOn = false;
@@ -67,8 +67,8 @@ wmsx.Machine = function() {
         videoStandardSoft = null;
         if (videoStandardIsAuto) setVideoStandardAuto();
         controllersSocket.resetControllers();
-        if (syf) syf.reset();
-        if (rtc) rtc.reset();
+        syf.reset();
+        rtc.reset();
         ppi.reset();
         psg.reset();
         vdp.reset();

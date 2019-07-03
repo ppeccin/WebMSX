@@ -10,7 +10,7 @@
 * LHZ support
 * Include WebMSX drivers on SymbOS pack
 * Make default turbo 1.5x?
-
+* Option to sync to host time on Power ON / Load State
 
   BUGS
 =========
