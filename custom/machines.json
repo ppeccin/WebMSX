@@ -4,8 +4,8 @@
     "MACHINES_CONFIG": {
         "_clear": true,
 
-        "AX370":  { "DESC": "Al Alamiah AX-370", "TYPE": 2, "PRESETS": "_AX370" },
-        "YIS805": { "DESC": "Yamaha YIS-805/R2", "TYPE": 2, "PRESETS": "_YIS805R2" }
+        "AX370":  { "DESC": "Al Alamiah AX-370", "TYPE": 2, "PRESETS": "_AX370",    "CODE_LABEL": "ARAB" },
+        "YIS805": { "DESC": "Yamaha YIS-805/R2", "TYPE": 2, "PRESETS": "_YIS805R2", "CODE_LABEL": "P\u0423C" }
     },
 
     "EXTENSIONS_CONFIG": {
