@@ -10,7 +10,14 @@ Please go to **https://webmsx.org** to enjoy it online!
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
-### New in Release 5.3
+### New in Release 5.4
+
+- CapsLock and Kana leds on screen
+- Configurable Code key label and led for custom machines
+- Option to sync time with host when loading States
+- Option to flip Touch Controls horizontally 
+
+#### New in Release 5.3
 
 - Additional 5.37MHz (1.5x) CPU Turbo speed
 - Light version with C-BIOS Machines
