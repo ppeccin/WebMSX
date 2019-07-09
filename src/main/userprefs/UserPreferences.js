@@ -116,6 +116,7 @@ WMSX.userPreferences.defaults = function() {
         touch: {
             directional: "JOYSTICK",       // JOYSTICK, KEYBOARD
             directionalBig: false,
+            mirrored: false,
             buttons: {
                 T_A: j.J_A,
                 T_B: j.J_B,

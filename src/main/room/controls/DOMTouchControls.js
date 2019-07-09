@@ -99,8 +99,19 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
         this.controllersSettingsStateUpdate();
     };
 
+    this.toggleMirrored = function() {
+        mirror = !mirror;
+        prefs.mirrored = mirror;
+        WMSX.userPreferences.setDirty();
+        this.controllersSettingsStateUpdate();
+    };
+
     this.isDirBig = function() {
         return dirBig;
+    };
+
+    this.isMirrored = function() {
+        return mirror;
     };
 
     this.getPortActive = function() {
@@ -207,7 +218,8 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
         var active = !!hub.getSettingsState().touchActive;
         document.documentElement.classList.toggle("wmsx-touch-active", active);
         document.documentElement.classList.toggle("wmsx-dir-big", dirBig);
-        screen.touchControlsActiveUpdate(active, dirBig);
+        document.documentElement.classList.toggle("wmsx-touch-mirror", mirror);
+        screen.touchControlsActiveUpdate(active, dirBig, mirror);
     };
 
     this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
@@ -370,6 +382,7 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
     function applyPreferences() {
         prefs = WMSX.userPreferences.current.touch;
         dirBig = !!prefs.directionalBig;
+        mirror = !!prefs.mirrored;
     }
 
 
@@ -382,6 +395,7 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
     var port = -1;
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
     var dirBig = false;
+    var mirror = false;
 
     var dirElement = null, dirTouchID = null, dirTouchCenterX, dirTouchCenterY, dirCurrentDir = -1, dirDeadZone = 0;
     var buttonElements = { };
@@ -421,6 +435,7 @@ wmsx.DOMTouchControls = function(room, hub, keyboard, machineControls) {
         resetStates();
         if (s.p) {
             delete s.p.directionalBig;        // Does not consider in savestates
+            delete s.p.mirrored;              // Does not consider in savestates
             for (var pref in s.p) prefs[pref] = s.p[pref];
             // Backward compatibility. Update MSX key mappings character texts
             for (var b in prefs.buttons) {

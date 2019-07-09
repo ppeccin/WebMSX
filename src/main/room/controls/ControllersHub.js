@@ -151,6 +151,9 @@ wmsx.ControllersHub = function(room, machineControls) {
             case wmsx.PeripheralControls.TOUCH_TOGGLE_DIR_BIG:
                 var dirBig = touchControls.isDirBig();
                 return { label: dirBig ? "ON" : "OFF", active: dirBig };
+            case wmsx.PeripheralControls.TOUCH_TOGGLE_MIRRORED:
+                var mirror = touchControls.isMirrored();
+                return { label: mirror ? "ON" : "OFF", active: mirror };
             case wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 return { label: hapticFeedbackEnabled ? "ON" : "OFF", active: !!hapticFeedbackEnabled };
             case wmsx.PeripheralControls.TURBO_FIRE_TOGGLE:

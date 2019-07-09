@@ -77,7 +77,7 @@ wmsx.MachineSelectDialog = function(mainElement, machineTypeSocket, peripheralCo
     function defineList() {
         listElement.innerHTML = "";
         var machines = Object.keys(WMSX.MACHINES_CONFIG);
-        var height = 43;
+        var height = 40;
         for (var i = 0; i < machines.length; ++i) {
             var conf = WMSX.MACHINES_CONFIG[machines[i]];
             if (!conf.DESC) continue;       // Exclude Machines that are not user selectable

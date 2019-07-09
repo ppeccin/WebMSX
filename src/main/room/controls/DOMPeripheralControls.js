@@ -30,6 +30,7 @@ wmsx.DOMPeripheralControls = function(room) {
     this.getControlReport = function(control) {
         switch (control) {
             case pc.TOUCH_TOGGLE_DIR_BIG:
+            case pc.TOUCH_TOGGLE_MIRRORED:
             case pc.TURBO_FIRE_TOGGLE:
             case pc.HAPTIC_FEEDBACK_TOGGLE_MODE:
                 return controllersHub.getControlReport(control);
@@ -289,6 +290,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 controllersHub.toggleTouchControlsMode(altPower, secPort); break;   // altPower for skip auto option, secPort for dec
             case pc.TOUCH_TOGGLE_DIR_BIG:
                 controllersHub.getTouchControls().toggleDirBig(); break;
+            case pc.TOUCH_TOGGLE_MIRRORED:
+                controllersHub.getTouchControls().toggleMirrored(); break;
             case pc.TURBO_FIRE_TOGGLE:
                 controllersHub.toggleTurboFireSpeed(secPort); break;                // secPort for dec
             case pc.HAPTIC_FEEDBACK_TOGGLE_MODE:
@@ -553,8 +556,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         pc.MACHINE_POWER_TOGGLE, pc.MACHINE_POWER_RESET,
 
-        pc.KEYBOARD_TOGGLE_HOST_LAYOUT, pc.JOYSTICKS_TOGGLE_MODE, pc.JOYKEYS_TOGGLE_MODE, pc.TOUCH_TOGGLE_MODE, pc.TOUCH_TOGGLE_DIR_BIG, pc.TURBO_FIRE_TOGGLE,
-        pc.HAPTIC_FEEDBACK_TOGGLE_MODE,
+        pc.KEYBOARD_TOGGLE_HOST_LAYOUT, pc.JOYSTICKS_TOGGLE_MODE, pc.JOYKEYS_TOGGLE_MODE, pc.TOUCH_TOGGLE_MODE, pc.TOUCH_TOGGLE_DIR_BIG, pc.TOUCH_TOGGLE_MIRRORED,
+        pc.HAPTIC_FEEDBACK_TOGGLE_MODE, pc.TURBO_FIRE_TOGGLE,
 
         pc.COPY_STRING, pc.OPEN_PASTE_STRING, pc.OPEN_ENTER_STRING, pc.CAPTURE_SCREEN,
 

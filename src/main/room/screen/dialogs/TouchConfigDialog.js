@@ -105,7 +105,8 @@ wmsx.TouchConfigDialog = function(fsElement, mainElement, controllersHub, periph
         options = [
             { label: "Touch Controller",                  control: wmsx.PeripheralControls.TOUCH_TOGGLE_MODE },
             { label: "Turbo Fire",                        control: wmsx.PeripheralControls.TURBO_FIRE_TOGGLE },
-            { label: "&#128190;&nbsp; Big Directionals",  control: wmsx.PeripheralControls.TOUCH_TOGGLE_DIR_BIG },
+            { label: "&#128190;&nbsp; Big Directional",   control: wmsx.PeripheralControls.TOUCH_TOGGLE_DIR_BIG },
+            { label: "&#128190;&nbsp; Right Directional", control: wmsx.PeripheralControls.TOUCH_TOGGLE_MIRRORED },
             { label: "&#128190;&nbsp; Haptic Feedback",   control: wmsx.PeripheralControls.HAPTIC_FEEDBACK_TOGGLE_MODE }
         ];
 

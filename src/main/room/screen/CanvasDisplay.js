@@ -598,10 +598,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         showCursorAndBar();
     };
 
-    this.touchControlsActiveUpdate = function(active, dirBig) {
-        if (touchControlsActive === active && touchControlsDirBig === dirBig) return;
+    this.touchControlsActiveUpdate = function(active, dirBig, mirror) {
+        if (touchControlsActive === active && touchControlsDirBig === dirBig && touchControlsMirror === mirror) return;
         touchControlsActive = active;
         touchControlsDirBig = dirBig;
+        touchControlsMirror = mirror;
         if (isFullscreen) {
             if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
             this.requestReadjust(true);
@@ -1910,7 +1911,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var canvasImageRenderingValue;
     var scanlinesImage;
 
-    var touchControlsActive = false, touchControlsDirBig = false;
+    var touchControlsActive = false, touchControlsDirBig = false, touchControlsMirror = false;
     var virtualKeyboardMode = 0;
     var virtualKeyboardElement, virtualKeyboard;
 
