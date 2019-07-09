@@ -15,7 +15,8 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
 
         save = pSave;
         visible = true;
-        refreshList();
+        syncTime = WMSX.userPreferences.current.syncTimeLoadState;
+        refresh();
         dialog.classList.add("wmsx-show");
         dialog.focus();
 
@@ -35,7 +36,9 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
         }
     };
 
-    function refreshList() {
+    function refresh() {
+        dialog.classList.toggle("wmsx-load", !save);
+
         header.textContent = "Select Slot to " + (save ? "Save" : "Load");
         var prefix = save ? "Save to " : "Load from ";
         for (var i = 0; i < listItems.length; ++i) {
@@ -45,6 +48,7 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             li.classList.toggle("wmsx-toggle-checked", stateMedia.isSlotUsed(i + 1));
         }
         refreshListSelection();
+        refreshSyncTime();
     }
 
     function refreshListSelection() {
@@ -52,12 +56,15 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             listItems[i].classList.toggle("wmsx-selected", i === slotSelected);
     }
 
+    function refreshSyncTime() {
+        syncButton.textContent = syncTime ? "YES" : "NO";
+        syncButton.classList.toggle("wmsx-selected", syncTime);
+    }
+
     function create() {
         dialog = document.createElement("div");
         dialog.id = "wmsx-savestate";
         dialog.classList.add("wmsx-select-dialog");
-        dialog.style.width = "280px";
-        dialog.style.height = "" + (43 + 11 * 33) + "px";
         dialog.tabIndex = -1;
 
         header = document.createTextNode("Select Slot");
@@ -79,6 +86,22 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             list.appendChild(li);
         }
         dialog.appendChild(list);
+
+        // Define Sync Time to Host option
+        var wDiv = document.createElement('div');
+        var ul = document.createElement('ul');
+        ul.classList.add("wmsx-quick-options-list");
+        li = document.createElement('li');
+        var div = document.createElement('div');
+        div.innerHTML = "&#128190;&nbsp; Sync time to Host";
+        li.appendChild(div);
+        syncButton = document.createElement('div');
+        syncButton.innerHTML = "NO";
+        syncButton.classList.add("wmsx-control");
+        li.appendChild(syncButton);
+        ul.appendChild(li);
+        wDiv.appendChild(ul);
+        dialog.appendChild(wDiv);
 
         setupEvents();
 
@@ -104,6 +127,16 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
             }
         });
 
+        // Toggle Sync Time option with tap or mousedown
+        wmsx.Util.onTapOrMouseDownWithBlock(syncButton, function(e) {
+            wmsx.ControllersHub.hapticFeedbackOnTouch(e);
+            syncTime = !syncTime;
+            refreshSyncTime();
+            WMSX.userPreferences.current.syncTimeLoadState = syncTime;
+            WMSX.userPreferences.setDirty();
+            WMSX.userPreferences.save();
+        });
+
         // Trap keys, respond to some
         dialog.addEventListener("keydown", function(e) {
             var keyCode = domKeys.codeNewForKeyboardEvent(e);
@@ -125,10 +158,11 @@ wmsx.SaveStateDialog = function(mainElement, machineControls, peripheralControls
     var save = false;
     var slotSelected = 0;
 
-    var dialog, list;
+    var dialog, list, syncButton;
     var listItems = [];
     var visible = false;
     var header;
+    var syncTime = false;
 
     var c = wmsx.MachineControls;
     var p = wmsx.PeripheralControls;

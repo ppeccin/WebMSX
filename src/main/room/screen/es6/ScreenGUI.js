@@ -573,6 +573,30 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     }
 }
 
+#wmsx-savestate {
+    width: 280px;
+    height: 406px;
+}
+#wmsx-savestate.wmsx-load {
+    height: 438px;
+}
+#wmsx-savestate ul.wmsx-quick-options-list {
+    display: none;
+    width: 220px;
+    margin: 18px 0 0 30px;
+}
+#wmsx-savestate.wmsx-load ul.wmsx-quick-options-list {
+    display: block;
+}
+#wmsx-savestate ul.wmsx-quick-options-list li div {
+    height: 24px;
+    line-height: 24px;
+}
+#wmsx-savestate .wmsx-control {
+    width: 52px;
+    cursor: pointer;
+}
+
 #wmsx-logo {
     position: absolute;
     display: none;

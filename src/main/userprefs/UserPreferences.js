@@ -138,7 +138,9 @@ WMSX.userPreferences.defaults = function() {
         audioBufferBase: -1,                // auto
 
         netPlaySessionName: "",
-        netPlayNick: ""
+        netPlayNick: "",
+
+        syncTimeLoadState: false
 
     };
 };

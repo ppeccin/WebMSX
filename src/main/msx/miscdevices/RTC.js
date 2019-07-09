@@ -3,7 +3,7 @@
 // Real Time Clock chip. MSX2, MSX2+ and TurboR
 // Based on Host clock. Alarm and 16Hz/1Hz outputs not observable by MSX so not implemented
 
-wmsx.RTC = function() {
+wmsx.RTC = function(videoClockSocket) {
 "use strict";
 
     this.setMachineType = function(type) {
@@ -39,6 +39,13 @@ wmsx.RTC = function() {
     this.setFps = function(fps) {
         // Calculate increment in milliseconds for each VideoClock Pulse
         millisPerVideoClock = 1000 / fps;
+    };
+
+    this.syncTimeWithSource = function() {
+        var newTime = videoClockSocket.getRealTime();
+        if (newTime <= time) return;
+        time = newTime;
+        if (!clockRunning) clockFromTimeToRegisters();
     };
 
     this.outputB4 = function(val) {
@@ -186,13 +193,6 @@ wmsx.RTC = function() {
         }
     }
 
-    function updateTimeFromHost() {
-        var newTime = Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000;
-        if (newTime <= time) return;
-        time = newTime;
-        if (!clockRunning) clockFromTimeToRegisters();
-    }
-
 
     var active;
 
@@ -230,7 +230,7 @@ wmsx.RTC = function() {
         };
     };
 
-    this.loadState = function(s, updateTime) {
+    this.loadState = function(s) {
         active = s.a !== undefined ? s.a : s.m2;    // Backward compatibility
         mode = s.m;
         clockRunning = s.c;
@@ -241,11 +241,6 @@ wmsx.RTC = function() {
         ram[0] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r0, ram[0]);
         ram[1] = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r1, ram[1]);
         regAddress = s.ra;
-
-        if (updateTime) updateTimeFromHost();
     };
-
-
-    updateTimeFromHost();
 
 };

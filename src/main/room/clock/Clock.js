@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Clock Pulse generator. Intended to be synchronized with Host machine Video Frequency whenever possible
+// Also works as host time source for Machine RTC
 
 wmsx.Clock = function(clockPulse) {
 "use strict";
@@ -68,6 +69,10 @@ wmsx.Clock = function(clockPulse) {
 
     this.isVSynchActive = function() {
         return useRequestAnimationFrame;
+    };
+
+    this.getRealTime = function() {
+        return Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000;
     };
 
     var internalSetFrequency = function(freq, div) {

@@ -488,7 +488,7 @@ wmsx.Machine = function() {
         self.vdp = vdp = new wmsx.VDP(self, cpu);
         self.psg = psg = new wmsx.PSG(controllersSocket, ledsSocket, false);
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
-        self.rtc = rtc = new wmsx.RTC();
+        self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
@@ -709,6 +709,7 @@ wmsx.Machine = function() {
     function VideoClockSocket() {
         this.connectClock = function(clock) {
             videoClock = clock;
+            rtc.syncTimeWithSource();
         };
         this.getVSynchNativeFrequency = function() {
             return videoClock.getVSynchNativeFrequency();
@@ -721,6 +722,9 @@ wmsx.Machine = function() {
         };
         this.isVSynchActive = function() {
             return videoClock.isVSynchActive();
+        };
+        this.getRealTime = function() {
+            return videoClock.getRealTime();
         };
         var videoClock;
     }
@@ -1131,6 +1135,7 @@ wmsx.Machine = function() {
                     if (self.powerIsOn) self.reset(true);
                     else self.powerOn(true);    // true = powerOn from state loading
                     loadState(state);
+                    if (WMSX.userPreferences.current.syncTimeLoadState) rtc.syncTimeWithSource();
                     self.showOSD("State " + slot + " loaded", true);
                 }
                 if (!wasPaused) self.systemPause(false);
