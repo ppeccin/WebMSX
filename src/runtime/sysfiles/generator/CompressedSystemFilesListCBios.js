@@ -22,6 +22,7 @@ wmsx.CompressedSystemFilesList = [
     "[SCCIExpansion].rom",
     "[PACExpansion].rom",
     "[MegaRAM].rom",
+    "[V9990].rom",
     "[Empty].rom",
     "Disk16MHeader.dat",
     "Disk32MHeader.dat",

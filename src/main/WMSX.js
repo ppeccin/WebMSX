@@ -147,6 +147,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMMAPPER: { DESC: "RAM Mapper",    URL: "@[RAMMapper].rom",     SLOT: [3],                   MUTUAL: "RAMNORMAL" },
     RAMNORMAL: {                        URL: "@[RAMNormal].rom",     SLOT: [3],                   MUTUAL: "RAMMAPPER" },
     KANJI:     { DESC: "KANJI Fonts",   URL: "@[Kanji1].rom",        SLOT: [4, 0] },
+    V9990:     { DESC: "V9990 Video",   URL: "@[V9990].rom",         SLOT: [4, 3] },
     MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 2] },
     OPL4:      { DESC: "OPL4 Wave",     URL: "@[MoonSound].rom",     SLOT: [4, 1] },
     DOUBLEPSG: { DESC: "Double PSG",    URL: "@[ExtraPSG].rom",      SLOT: [4, 2] },

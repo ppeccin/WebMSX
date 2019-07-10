@@ -324,6 +324,24 @@ wmsx.SlotFormats = {
         }
     },
 
+    "V9990": {
+        name: "V9990",
+        desc: "V9990 Video Cartridge",
+        priority: 1510,
+        internal: true,
+        embeddedURL: "@[V9990].rom",
+        priorityForRom: function (rom) {
+            // Only 0K content. Must be selected via info format hint
+            return (rom.content.length === 0) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeV9990(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeV9990.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     // Common formats used in titles
 
     "Normal": {

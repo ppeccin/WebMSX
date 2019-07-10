@@ -1,11 +1,11 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// V9958/V9938/V9918 VDPs supported
+// V9990 VDPs supported
 // This implementation is line-accurate
-// Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
+// Digitize, Superimpose, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.VDP = function(machine, cpu) {
+wmsx.V9990 = function(machine, cpu) {
 "use strict";
 
     var self = this;
@@ -28,26 +28,49 @@ wmsx.VDP = function(machine, cpu) {
 
     this.setMachineType = function(machineType) {
         var type = WMSX.VDP_TYPE > 0 ? WMSX.VDP_TYPE : machineType;     // auto: According to Machine Type
-        isV9918 = type <= 1;
-        isV9938 = type === 2;
-        isV9958 = type >= 3;
         refreshDisplayMetrics();
     };
 
-    this.connectBus = function(bus) {
-        bus.connectInputDevice( 0x98, this.input98);
-        bus.connectOutputDevice(0x98, this.output98);
-        bus.connectInputDevice( 0x99, this.input99);
-        bus.connectOutputDevice(0x99, this.output99);
-        bus.connectInputDevice( 0x9a, wmsx.DeviceMissing.inputPortIgnored);
-        bus.connectOutputDevice(0x9a, this.output9a);
-        bus.connectInputDevice( 0x9b, wmsx.DeviceMissing.inputPortIgnored);
-        bus.connectOutputDevice(0x9b, this.output9b);
+    this.connect = function() {
+        machine.vdp.connectSlave(this);
+        machine.bus.connectInputDevice( 0x60, this.input60);
+        machine.bus.connectOutputDevice(0x60, this.output60);
+        machine.bus.connectInputDevice( 0x61, this.input61);
+        machine.bus.connectOutputDevice(0x61, this.output61);
+        machine.bus.connectInputDevice( 0x62, this.input62);
+        machine.bus.connectOutputDevice(0x62, this.output62);
+        machine.bus.connectInputDevice( 0x63, this.input63);
+        machine.bus.connectOutputDevice(0x63, this.output63);
+        machine.bus.connectInputDevice( 0x64, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0x64, this.output64);
+        machine.bus.connectInputDevice( 0x65, this.input65);
+        machine.bus.connectOutputDevice(0x65, wmsx.DeviceMissing.outputPortIgnored);
+        machine.bus.connectInputDevice( 0x66, this.input66);
+        machine.bus.connectOutputDevice(0x66, this.output66);
+        machine.bus.connectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0x67, this.output67);
+        // 0x68 - 0x6f not used
     };
 
-    this.connectSlave = function(pSlave) {
-        slave = pSlave;
-        if (slave) slave.setVideoStandard(videoStandard);
+    this.disconnect = function() {
+        machine.vdp.connectSlave(undefined);
+        machine.bus.disconnectInputDevice( 0x60, this.input60);
+        machine.bus.disconnectOutputDevice(0x60, this.output60);
+        machine.bus.disconnectInputDevice( 0x61, this.input61);
+        machine.bus.disconnectOutputDevice(0x61, this.output61);
+        machine.bus.disconnectInputDevice( 0x62, this.input62);
+        machine.bus.disconnectOutputDevice(0x62, this.output62);
+        machine.bus.disconnectInputDevice( 0x63, this.input63);
+        machine.bus.disconnectOutputDevice(0x63, this.output63);
+        machine.bus.disconnectInputDevice( 0x64, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.disconnectOutputDevice(0x64, this.output64);
+        machine.bus.disconnectInputDevice( 0x65, this.input65);
+        machine.bus.disconnectOutputDevice(0x65, wmsx.DeviceMissing.outputPortIgnored);
+        machine.bus.disconnectInputDevice( 0x66, this.input66);
+        machine.bus.disconnectOutputDevice(0x66, this.output66);
+        machine.bus.disconnectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.disconnectOutputDevice(0x67, this.output67);
+        // 0x68 - 0x6f not used
     };
 
     this.powerOn = function() {
@@ -61,8 +84,6 @@ wmsx.VDP = function(machine, cpu) {
     this.setVideoStandard = function(pVideoStandard) {
         videoStandard = pVideoStandard;
         updateSynchronization();
-
-        if (slave) slave.setVideoStandard(videoStandard);
 
         //logInfo("VideoStandard set: " + videoStandard.name);
     };
@@ -88,28 +109,75 @@ wmsx.VDP = function(machine, cpu) {
         if (refreshWidth) refresh();
     };
 
-    // VRAM Read
-    this.input98 = function() {
-        dataFirstWrite = null;
-        var res = dataPreRead;
-        dataPreRead = vram[vramPointer++];
-        checkVRAMPointerWrap();
+    // VRAM Data Read
+    this.input60 = function() {
+        var res = vramReadData;
+        if (vramReadPointerInc)
+            if (++vramReadPointer > VRAM_LIMIT) vramReadPointer &= VRAM_LIMIT ;
+        vramReadData = vram[vramReadPointer];
         return res;
     };
 
-    // VRAM Write
-    this.output98 = function(val) {
-        //if ((vramPointer >= spriteAttrTableAddress + 512) /* && (vramPointer <= spriteAttrTableAddress + 512 + 32 * 4) */)
-        //    logInfo("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
-
-        dataFirstWrite = null;
-        vram[vramPointer++] = dataPreRead = val;
-        checkVRAMPointerWrap();
+    // VRAM Data Write
+    this.output60 = function(val) {
+        vram[vramWritePointer] = val;
+        if (vramWritePointerInc)
+            if (++vramWritePointer > VRAM_LIMIT) vramWritePointer &= VRAM_LIMIT ;
     };
 
-    // Status Register Read
-    this.input99 = function() {
-        dataFirstWrite = null;
+    // Palette Data Read
+    this.input61 = function() {
+        if ((palettePointer & 0x03) === 3) {
+            // Dummy read and stay at same RGB entry
+            palettePointer &= 0xfc;
+            return 0;
+        }
+        var res = paletteData[palettePointer];
+        if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
+        else ++palettePointer;
+        return res;
+    };
+
+    // Palette Data Write
+    this.output61 = function(val) {
+        if ((palettePointer & 0x03) === 3) return palettePointer &= 0xfc;                   // Ignore write and stay at same RGB entry
+        paletteData[palettePointer] = val & 0x1f;                                           // 5 bits R/G/B, ignore YS bit for now
+        if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
+        else ++palettePointer;
+    };
+
+    // Command Data Read
+    this.input62 = function() {
+    };
+
+    // Command Data Write
+    this.output62 = function(val) {
+    };
+
+    // Register Data Read
+    this.input63 = function() {
+        var res = register[registerPointer];
+        if (registerReadPointerInc)
+            if (++registerPointer > 0x3f) registerPointer &= 0x3f;
+        return res;
+    };
+
+    // Register Data Write
+    this.output63 = function(val) {
+        registerWrite(registerPointer, val);
+        if (registerWritePointerInc)
+            if (++registerPointer > 0x3f) registerPointer &= 0x3f;
+    };
+
+    // Register Select Write
+    this.output64 = function(val) {
+        registerPointer = val &= 0x3f;
+        registerWritePointerInc = !(val & 0x80);
+        registerReadPointerInc = !(val & 0x40);
+    };
+
+    // Status Read
+    this.input65 = function() {
         var reg = register[15];
 
         var res;
@@ -162,56 +230,16 @@ wmsx.VDP = function(machine, cpu) {
         return res;
     };
 
-    // Register/VRAM Address write
-    this.output99 = function(val) {
-        if (dataFirstWrite === null) {
-            // First write. Data to write to register or VRAM Address Pointer low (A7-A0)
-            dataFirstWrite = val;
-            // On V9918, the VRAM pointer low gets written right away
-            if (isV9918) vramPointer = (vramPointer & ~0xff) | val;
-        } else {
-            // Second write
-            if (val & 0x80) {
-                // Register write
-                if (isV9918) {
-                    registerWrite(val & 0x07, dataFirstWrite);
-                    // On V9918, the VRAM pointer high gets also written when writing to registers
-                    vramPointer = (vramPointer & 0x1c0ff) | ((val & 0x3f) << 8);
-                } else {
-                    // On V9938 register write only if "WriteMode = 0"
-                    if ((val & 0x40) === 0) registerWrite(val & 0x3f, dataFirstWrite);
-                }
-            } else {
-                // VRAM Address Pointer middle (A13-A8). Finish VRAM Address Pointer setting
-                vramPointer = (vramPointer & 0x1c000) | ((val & 0x3f) << 8) | dataFirstWrite;
-                // Pre-read VRAM if "WriteMode = 0"
-                if ((val & 0x40) === 0) {
-                    dataPreRead = vram[vramPointer++];
-                    checkVRAMPointerWrap();
-                }
-            }
-            dataFirstWrite = null;
-        }
+    // Interrupt Flags Read
+    this.input66 = function() {
     };
 
-    // Palette Write
-    this.output9a = function(val) {
-        if (isV9918) return;
-        if (paletteFirstWrite === null) {
-            paletteFirstWrite = val;
-        } else {
-            paletteRegisterWrite(register[16], (val << 8) | paletteFirstWrite, false);
-            if (++register[16] > 15) register[16] = 0;
-            paletteFirstWrite = null;
-        }
+    // Interrupt Flags Write
+    this.output66 = function(val) {
     };
 
-    // Indirect Register Write
-    this.output9b = function(val) {
-        if (isV9918) return;
-        var reg = register[17] & 0x3f;
-        if (reg !== 17) registerWrite(reg, val);
-        if ((register[17] & 0x80) === 0) register[17] = (reg + 1) & 0x3f;       // Increment if needed
+    // System Control Write
+    this.output67 = function(val) {
     };
 
     this.toggleDebugModes = function(dec) {
@@ -247,7 +275,9 @@ wmsx.VDP = function(machine, cpu) {
 
     this.reset = function() {
         frame = cycles = lastBUSCyclesComputed = 0;
-        dataFirstWrite = null; dataPreRead = 0; vramPointer = 0; paletteFirstWrite = null;
+        vramReadData = 0; vramReadPointer = 0; vramWritePointer = 0; vramReadPointerInc = false; vramWritePointerInc = false;
+        registerPointer = 0; registerReadPointerInc = false; registerWritePointerInc = false;
+        palettePointer = 0;
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
@@ -297,29 +327,41 @@ wmsx.VDP = function(machine, cpu) {
         return linesStr.join("\n").replace(/[\x00\xff]/g, " ").replace(/\s+$/,"");      // right trim
     };
 
+    function updateVRAMReadPointer() {
+        vramReadPointer = ((register[5] << 16) | (register[4] << 8) | register[3]) & VRAM_LIMIT;
+        vramReadPointerInc = !(register[5] & 0x80);
+        vramReadData = vram[vramReadPointer];
+    }
+
+    function updateVRAMWritePointer() {
+        vramWritePointer = ((register[2] << 16) | (register[1] << 8) | register[0]) & VRAM_LIMIT;
+        vramWritePointerInc = !(register[2] & 0x80);
+    }
+
+    function updatePalettePointer() {
+        palettePointer = register[14];
+    }
+
     function registerWrite(reg, val) {
-        if (reg > 46) return;
+        if (reg > 54) return;
 
         var add;
         var mod = register[reg] ^ val;
         register[reg] = val;
 
-        //logInfo("Reg: " + reg + " = " + val.toString(16));
+        logInfo("Reg: " + reg + " = " + val.toString(16));
 
         switch (reg) {
-            case 0:
-
-                //if (mod) logInfo("Register0: " + val.toString(16));
-
-                if (mod & 0x10) {                                        // IE1
-                    // Clear FH bit immediately when IE becomes 0? Not as per https://www.mail-archive.com/msx@stack.nl/msg13886.html
-                    // We clear it only at the beginning of the next line if IE === 0
-                    // Laydock2 has glitches on WebMSX with Turbo and also on a real Expert3 at 10MHz
-                    // if (((val & 0x10) === 0) && (status[1] & 0x01)) status[1] &= ~0x01;
-                    updateIRQ();
-                }
-                if (mod & 0x0e) updateMode();                            // Mx
+            case 2:
+                updateVRAMWritePointer();
                 break;
+            case 5:
+                updateVRAMReadPointer();
+                break;
+            case 14:
+                updatePalettePointer();
+                break;
+
             case 1:
 
                 //if (mod) logInfo("Register1: " + val.toString(16));
@@ -333,9 +375,6 @@ wmsx.VDP = function(machine, cpu) {
                 if (mod & 0x18) updateMode();                            // Mx
                 if (mod & 0x04) updateBlinking();                        // CDR  (Undocumented, changes reg 13 timing to lines instead of frames)
                 if (mod & 0x03) updateSpritesConfig();                   // SI, MAG
-                break;
-            case 2:
-                if (mod & 0x7f) updateLayoutTableAddress();
                 break;
             case 10:
                 if ((mod & 0x07) === 0) break;
@@ -387,13 +426,10 @@ wmsx.VDP = function(machine, cpu) {
                 updateBlinking();                                        // Always, even with no change
                 break;
             case 14:
-                if (mod & 0x07) vramPointer = ((val & 0x07) << 14) | (vramPointer & 0x3fff);
+                if (mod & 0x07) vramWritePointer = ((val & 0x07) << 14) | (vramWritePointer & 0x3fff);
 
                 //console.log("Setting reg14: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16));
 
-                break;
-            case 16:
-                paletteFirstWrite = null;
                 break;
             case 18:
                 if (mod & 0x0f) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
@@ -415,20 +451,16 @@ wmsx.VDP = function(machine, cpu) {
 
                 break;
             case 25:
-                if (isV9958) {
-                    if (mod & 0x18) updateMode();                        // YJK, YAE
-                    leftMask = (val & 0x02) !== 0;                       // MSK
-                    leftScroll2Pages = (val & 0x01) !== 0;               // SP2
-                }
+                if (mod & 0x18) updateMode();                        // YJK, YAE
+                leftMask = (val & 0x02) !== 0;                       // MSK
+                leftScroll2Pages = (val & 0x01) !== 0;               // SP2
                 break;
             case 26:
-                if (isV9958) {
-                    leftScrollChars = val & 0x3f;                        // H08-H03
-                    leftScrollCharsInPage = leftScrollChars & 31;
-                }
+                leftScrollChars = val & 0x3f;                        // H08-H03
+                leftScrollCharsInPage = leftScrollChars & 31;
                 break;
             case 27:
-                if (isV9958) rightScrollPixels = val & 0x07;             // H02-H01
+                rightScrollPixels = val & 0x07;             // H02-H01
 
                 // logInfo("Reg17 - Right Scroll set: " + val);
 
@@ -497,20 +529,12 @@ wmsx.VDP = function(machine, cpu) {
         return res;                                 // Everything is cleared at this point (like status[0] == 0)
     }
 
-    function checkVRAMPointerWrap() {
-        if ((vramPointer & 0x3fff) === 0) {
-            //wmsx.Util.log("VRAM Read Wrapped, vramPointer: " + vramPointer.toString(16) + ", register14: " + register[14].toString(16));
-            if (modeData.isV9938) register[14] = (register[14] + 1) & 0x07;
-            vramPointer = register[14] << 14;
-        }
-    }
-
     function paletteRegisterWrite(reg, val, force) {
-        if (paletteRegister[reg] === val && !force) return;
+        if (paletteData[reg] === val && !force) return;
 
         //logInfo("Palette register " + reg + ": " + val);
 
-        paletteRegister[reg] = val;
+        paletteData[reg] = val;
 
         var value = colors512[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 11 bit GRB to 9 bit GRB
         colorPaletteReal[reg] = value;
@@ -554,10 +578,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function debugAdjustPalette() {
-        if (isV9918)
-            initColorPalette();
-        else
-            for (var reg = 0; reg < 16; reg++) paletteRegisterWrite(reg, paletteRegister[reg], true);
+        for (var reg = 0; reg < 16; reg++) paletteRegisterWrite(reg, paletteData[reg], true);
     }
 
     function updateSynchronization() {
@@ -639,7 +660,7 @@ wmsx.VDP = function(machine, cpu) {
 
         // End of Active Display
 
-        if (slave) slave.lineEventEndOfActiveDisplay();
+        if (slave) slave.lineTimeEndOfActiveDisplay();
 
         status[2] |= 0x20;                                                                          // HR = 1
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
@@ -654,6 +675,10 @@ wmsx.VDP = function(machine, cpu) {
 
         if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
     }
+
+    this.lineEventEndOfActiveDisplay = function() {
+        
+    };
 
     function triggerVerticalInterrupt() {
         status[2] |= 0x40;                  // VR = 1
@@ -693,9 +718,9 @@ wmsx.VDP = function(machine, cpu) {
 
     function vramEnterInterleaving() {
         var e = 0;
-        var o = VRAM_SIZE >> 1;
+        var o = VRAM_LIMIT >> 1;
         var aux = vram.slice(0, o);                 // Only first halt needs to be saved. Verify: Optimize slice?
-        for (var i = 0; i < VRAM_SIZE; i += 2) {
+        for (var i = 0; i < VRAM_LIMIT; i += 2) {
             vram[i] = aux[e++];
             vram[i + 1] = vram[o++];
         }
@@ -705,7 +730,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function vramExitInterleaving() {
-        var h = VRAM_SIZE >> 1;
+        var h = VRAM_LIMIT >> 1;
         var e = 0;
         var o = h;
         var aux = vram.slice(h);                    // Only last half needs to be saved. Verify: Optimize slice?
@@ -731,11 +756,11 @@ wmsx.VDP = function(machine, cpu) {
         var oldData = modeData;
 
         // All Mx bits. Ignore YAE, YJK. Ignore M4, M5 if V9918
-        var modeBits = (register[1] & 0x18) | ((register[0] & (isV9918 ? 0x02 : 0x0e)) >>> 1);
+        var modeBits = (register[1] & 0x18) | ((register[0] & 0x0e) >>> 1);
         commandProcessor.setVDPModeData(modes[modeBits]);       // Independent of YJK modes!
 
         // If YJK is set in any non-TEXT mode, modeData for rendering is determined by YAE, YJK only
-        if (isV9958 && (register[25] & 0x08) !== 0 && (modeBits & 0x10) === 0) modeBits = 0x20 | ((register[25] & 0x18) >> 3);
+        if ((register[25] & 0x08) !== 0 && (modeBits & 0x10) === 0) modeBits = 0x20 | ((register[25] & 0x18) >> 3);
         modeData = modes[modeBits];
 
         // Update Tables base addresses
@@ -775,13 +800,8 @@ wmsx.VDP = function(machine, cpu) {
     function updateSignalMetrics(force) {
         var addBorder;
 
-        // Fixed metrics for V9918
-        if (isV9918) {
-            signalActiveHeight = 192; addBorder = 0;
-        } else {
-            if (register[9] & 0x80) { signalActiveHeight = 212; addBorder = 0; }             // LN
-            else { signalActiveHeight = 192; addBorder = 10; }
-        }
+        if (register[9] & 0x80) { signalActiveHeight = 212; addBorder = 0; }             // LN
+        else { signalActiveHeight = 192; addBorder = 10; }
 
         // UX decision: Visible border height with LN = 1 and no Vertical Adjust is 8
         startingVisibleTopBorderScanline = 16 - 8;                                                              // Minimal Border left invisible (NTSC with LN = 0)
@@ -798,16 +818,10 @@ wmsx.VDP = function(machine, cpu) {
     function updateRenderMetrics(force) {
         var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false;
 
-        // Fixed metrics for V9918
-        if (isV9918) {
-            newRenderWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   newPixelWidth = 2;
-            newRenderHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; newPixelHeight = 2;
-        } else {
-            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }   // Mode
-            else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
-            if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
-            else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
-        }
+        if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }   // Mode
+        else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
+        if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
+        else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
 
         renderMetricsChangePending = false;
 
@@ -2196,18 +2210,14 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function refreshDisplayMetrics() {
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
     }
 
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
+        wmsx.Util.arrayFill(paletteData, 0);
         wmsx.Util.arrayFill(status, 0);
-        register[9] = videoStandard === wmsx.VideoStandard.PAL ? 0x02 : 0;      // NT (PAL mode bit)
-        status[1] = isV9958 ? 0x04 : 0x00;    // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
-        status[2] = 0x0c;                     // Fixed "1" bits
-        status[4] = 0xfe;                     // Fixed "1" bits
-        status[6] = 0xfc;                     // Fixed "1" bits
-        status[9] = 0xfe;                     // Fixed "1" bits
+        register[7] = videoStandard === wmsx.VideoStandard.PAL ? 0x08 : 0;      // PAL mode bit
     }
 
     function initFrameResources(useAlpha) {
@@ -2228,9 +2238,9 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function initColorPalette() {
-        var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
+        var colors = colorPaletteInitialV9938;
         for (var c = 0; c < 16; c = c + 1) {
-            paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
+            paletteData[c] = paletteRegisterInitialValuesV9938[c];
             var value = colors[c];
             colorPaletteReal[c] = value;
             if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
@@ -2291,8 +2301,8 @@ wmsx.VDP = function(machine, cpu) {
     var SPRITE_MAX_PRIORITY = 9000000000000000;
     var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
 
-    var VRAM_SIZE = wmsx.VDP.VRAM_LIMIT + 1;
-    var DEBUG_PAT_DIGI6_TABLE_ADDRESS = VRAM_SIZE;                                      // Debug pattern tables placed on top of normal VRAM
+    var VRAM_LIMIT = wmsx.VDP.VRAM_LIMIT + 1;
+    var DEBUG_PAT_DIGI6_TABLE_ADDRESS = VRAM_LIMIT;                                      // Debug pattern tables placed on top of normal VRAM
     var DEBUG_PAT_DIGI8_TABLE_ADDRESS = DEBUG_PAT_DIGI6_TABLE_ADDRESS + 256 * 8;
     var DEBUG_PAT_DIGI16_TABLE_ADDRESS = DEBUG_PAT_DIGI8_TABLE_ADDRESS + 256 * 8;
     var DEBUG_PAT_BLOCK_TABLE_ADDRESS = DEBUG_PAT_DIGI16_TABLE_ADDRESS + 256 * 8 * 4;
@@ -2305,9 +2315,6 @@ wmsx.VDP = function(machine, cpu) {
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
     var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
-
-
-    var isV9918, isV9938, isV9958;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
@@ -2337,8 +2344,8 @@ wmsx.VDP = function(machine, cpu) {
     var horizontalIntLine = 0;
 
     var status = new Array(10);
-    var register = new Array(47);
-    var paletteRegister = new Array(16);
+    var register = new Array(64);
+    var paletteData = new Array(256), palettePointer = 0;   // 64 entries x 3+1 bytes (R, G, B, unused)
 
     var modeData;
 
@@ -2354,9 +2361,9 @@ wmsx.VDP = function(machine, cpu) {
     var spritesLineColors = new Array(256);
     var spritesGlobalPriority;
 
-    var vramPointer = 0;
+    var vramReadData = 0, vramReadPointer = 0, vramWritePointer = 0, vramReadPointerInc = false, vramWritePointerInc = false;
+    var registerPointer = 0, registerReadPointerInc = false, registerWritePointerInc = false;
     var paletteFirstWrite;
-    var dataFirstWrite = null, dataPreRead = 0;
 
     var backdropColor;
     var backdropValue;
@@ -2444,19 +2451,18 @@ wmsx.VDP = function(machine, cpu) {
 
     this.saveState = function(extended) {
         var s = {
-            v1: isV9918, v3: isV9938, v5: isV9958,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             fs: frameStartingActiveScanline,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
-            vp: vramPointer, d: dataFirstWrite, dr: dataPreRead, pw: paletteFirstWrite,
+            vp: vramWritePointer,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
             bp: blinkEvenPage, bpd: blinkPageDuration, bpl: blinkPerLine,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
-            p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteRegister),
-            vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
+            p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteData),
+            vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_LIMIT),
             vrint: vramInterleaving,
             cp: commandProcessor.saveState()
         };
@@ -2468,16 +2474,15 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.loadState = function(s) {
-        isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
         refreshDisplayMetrics();
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
-        paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
+        paletteData = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteData);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
-        vramPointer = s.vp; dataFirstWrite = s.d; dataPreRead = s.dr || 0; paletteFirstWrite = s.pw;
+        vramWritePointer = s.vp;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
         leftScrollCharsInPage = leftScrollChars & 31;
@@ -2527,11 +2532,11 @@ wmsx.VDP = function(machine, cpu) {
 
 };
 
-wmsx.VDP.VRAM_LIMIT = 0x1ffff;      // 128K
+wmsx.V9990.VRAM_LIMIT = 0x7ffff;      // 512K
 
-wmsx.VDP.SIGNAL_MAX_WIDTH_V9938 = 512 + 16 * 2;
-wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
+wmsx.V9990.SIGNAL_MAX_WIDTH_V9938 = 512 + 16 * 2;
+wmsx.V9990.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
 
-wmsx.VDP.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
-wmsx.VDP.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
+wmsx.V9990.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
+wmsx.V9990.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
 
