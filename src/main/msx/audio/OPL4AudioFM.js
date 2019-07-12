@@ -288,7 +288,7 @@ wmsx.OPL4AudioFM = function(opl4) {
     }
 
     function updateIRQ() {
-        cpu.setINTChannel(1, (status & 0x80) === 0);        // Using fixed channel 1 for now. TODO Multiple OPL4 connected?
+        cpu.setINTChannel(2, (status & 0x80) === 0);        // OPL4 using fixed channel 2. TODO INT Multiple OPL4 connected?
 
         // console.log("FM update IRQ:", (status & 0x80) === 0);
     }

@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.VideoSignal = function(vdp) {
+wmsx.VideoSignal = function(name, source) {
 "use strict";
 
     this.connectMonitor = function(pMonitor) {
@@ -8,32 +8,35 @@ wmsx.VideoSignal = function(vdp) {
     };
 
     this.newFrame = function(image, sourceWidth, sourceHeight) {
-        monitor.newFrame(image, sourceWidth, sourceHeight);
+        monitor.newFrame(this, image, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
-        if (monitor) monitor.signalOff();
+        if (monitor) monitor.signalOff(this);
     };
 
     this.showOSD = function(message, overlap, error) {
-        if (monitor) monitor.showOSD(message, overlap, error);
+        if (monitor) monitor.showOSD(this, message, overlap, error);
     };
 
     this.setDisplayMetrics = function(targetWidth, targetHeight) {
-        if (monitor) monitor.setDisplayMetrics(targetWidth, targetHeight);
+        if (monitor) monitor.setDisplayMetrics(this, targetWidth, targetHeight);
     };
 
     this.setPixelMetrics = function(pixelWidth, pixelHeight) {
-        if (monitor) monitor.setPixelMetrics(pixelWidth, pixelHeight);
+        if (monitor) monitor.setPixelMetrics(this, pixelWidth, pixelHeight);
     };
 
     this.setDebugMode = function(boo) {
-        if (monitor) monitor.setDebugMode(boo);
+        if (monitor) monitor.setDebugMode(this, boo);
     };
 
     this.getScreenText = function() {
-        return vdp.getScreenText();
+        return source.getScreenText();
     };
+
+
+    this.name = name;
 
     var monitor;
 

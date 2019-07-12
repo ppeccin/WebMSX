@@ -276,6 +276,9 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.SCREEN_OPEN_NETPLAY:
                 screen.openNetPlayDialog();
                 break;
+            case pc.SCREEN_TOGGLE_SIGNAL:
+                screen.getMonitor().toggleActiveSignal();
+                break;
             case pc.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardLayout(secPort); break;                // secPort for dec
             case pc.JOYSTICKS_TOGGLE_MODE:
@@ -383,6 +386,8 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= pc.SCREEN_OPEN_TOUCH_CONFIG;
 
         keyCodeMap[KEY_FULLSCREEN | k.ALT]  = pc.SCREEN_FULLSCREEN;
+
+        keyCodeMap[KEY_TOGGLE_SIGNAL | k.ALT]  = pc.SCREEN_TOGGLE_SIGNAL;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;
         keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = pc.SCREEN_SCALE_PLUS;
@@ -509,6 +514,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_FULLSCREEN  = domKeys.VK_ENTER.wc;
 
+    var KEY_TOGGLE_SIGNAL  = domKeys.VK_Z.wc;
+
     var KEY_MACHINE_POWER  = domKeys.VK_F11.wc;
     var KEY_STATE_FILE     = domKeys.VK_F12.wc;
 
@@ -551,6 +558,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OPEN_TOUCH_CONFIG,
         pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD,
         pc.SCREEN_DEFAULTS,
+        pc.SCREEN_TOGGLE_SIGNAL,
 
         pc.SPEAKER_BUFFER_TOGGLE,
 

@@ -12,6 +12,7 @@ wmsx.Machine = function() {
     }
 
     this.socketsConnected = function() {
+        videoSocket.connectMainVideoSignal(vdp.getVideoSignal());
         self.updateMachineType();
         self.setCPUTurboMode(cpuTurboMode);
         self.setVDPTurboMode(vdpTurboMode);
@@ -94,7 +95,7 @@ wmsx.Machine = function() {
     this.userPowerOn = function(basicAutoRun) {
         if (isLoading) return;
         if (!bios) {
-            this.getVideoOutput().showOSD("Insert BIOS!", true, true);
+            this.showOSD("Insert BIOS!", true, true);
             return;
         }
         this.powerOn();
@@ -162,8 +163,8 @@ wmsx.Machine = function() {
         return controllersSocket;
     };
 
-    this.getVideoOutput = function() {
-        return vdp.getVideoOutput();
+    this.getVideoSocket = function() {
+        return videoSocket;
     };
 
     this.getAudioSocket = function() {
@@ -187,7 +188,7 @@ wmsx.Machine = function() {
     };
 
     this.showOSD = function(message, overlap, error) {
-        this.getVideoOutput().showOSD(message, overlap, error);
+        videoSocket.getMonitor().showOSDDirect(message, overlap, error);
     };
 
     this.setVideoStandardSoft = function(pVideoStandard) {
@@ -503,6 +504,7 @@ wmsx.Machine = function() {
     function socketsCreate() {
         machineTypeSocket = new wmsx.MachineTypeSocket(self);
         videoClockSocket = new VideoClockSocket();
+        videoSocket = new VideoSocket();
         slotSocket = new SlotSocket();
         biosSocket = new BIOSSocket();
         extensionsSocket = new wmsx.ExtensionsSocket(self);
@@ -563,6 +565,7 @@ wmsx.Machine = function() {
 
     var machineTypeSocket;
     var videoClockSocket;
+    var videoSocket;
     var slotSocket;
     var biosSocket;
     var extensionsSocket;
@@ -643,7 +646,7 @@ wmsx.Machine = function() {
                 break;
             case controls.PAUSE:
                 self.userPause(!userPaused, altFunc);
-                self.getVideoOutput().showOSD(userPaused ? "PAUSE" + (altFunc ? " with AUDIO ON" : "") : "RESUME", true);
+                self.showOSD(userPaused ? "PAUSE" + (altFunc ? " with AUDIO ON" : "") : "RESUME", true);
                 return;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;
@@ -869,6 +872,28 @@ wmsx.Machine = function() {
         this.getSlotDesc = function (slotPos) {
             return getSlotDesc(slotPos);
         }
+    }
+
+
+    // Video Socket  ---------------------------------------------
+
+    function VideoSocket() {
+        this.connectMonitor = function (pMonitor) {
+            monitor = pMonitor;
+        };
+        this.connectMainVideoSignal = function(signal) {
+            monitor.connectMainVideoSignal(signal);
+        };
+        this.connectSecVideoSignal = function(signal) {
+            monitor.connectSecVideoSignal(signal);
+        };
+        this.disconnectSecVideoSignal = function(signal) {
+            monitor.disconnectSecVideoSignal(signal);
+        };
+        this.getMonitor = function() {
+            return monitor;
+        };
+        var monitor;
     }
 
 

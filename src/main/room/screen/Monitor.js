@@ -3,28 +3,47 @@
 wmsx.Monitor = function(display) {
 "use strict";
 
-    this.connect = function(pVideoSignal) {
-        videoSignal = pVideoSignal;
-        videoSignal.connectMonitor(this);
+    this.connectMainVideoSignal = function(videoSignal) {
+        mainSignal = videoSignal;
+        mainSignal.connectMonitor(this);
+        activeSignal = mainSignal;
     };
 
-    this.newFrame = function(image, sourceWidth, sourceHeight) {
+    this.connectSecVideoSignal = function(videoSignal) {
+        secSignal = videoSignal;
+        secSignal.connectMonitor(this);
+    };
+
+    this.disconnectSecVideoSignal = function(videoSignal) {
+        if (secSignal === videoSignal) secSignal = undefined;
+    };
+
+    this.toggleActiveSignal = function() {
+        activeSignal = activeSignal === mainSignal ? secSignal : mainSignal;
+    };
+
+    this.newFrame = function(signal, image, sourceWidth, sourceHeight) {
+        if (!isActiveSignal(signal)) return;
         display.refresh(image, sourceWidth, sourceHeight);
     };
 
-    this.signalOff = function() {
+    this.signalOff = function(signal) {
         display.videoSignalOff();
     };
 
-    this.showOSD = function(message, overlap, error) {
+    this.showOSD = function(signal, message, overlap, error) {
+        this.showOSDDirect(message, overlap, error);
+    };
+
+    this.showOSDDirect = function(message, overlap, error) {
         display.showOSD(message, overlap, error);
     };
 
-    this.setDisplayMetrics = function(targetWidth, targetHeight) {
+    this.setDisplayMetrics = function(signal, targetWidth, targetHeight) {
         display.displayMetrics(targetWidth, targetHeight);
     };
 
-    this.setPixelMetrics = function(pixelWidth, pixelHeight) {
+    this.setPixelMetrics = function(signal, pixelWidth, pixelHeight) {
         display.displayPixelMetrics(pixelWidth, pixelHeight);
     };
 
@@ -36,7 +55,7 @@ wmsx.Monitor = function(display) {
         display.requestReadjust(true);
     };
 
-    this.setDebugMode = function(boo) {
+    this.setDebugMode = function(signal, boo) {
         display.setDebugMode(boo);
     };
 
@@ -58,26 +77,26 @@ wmsx.Monitor = function(display) {
 
     this.displayAspectDecrease = function() {
         this.displayScale(normalizeAspectX(displayAspectX - wmsx.Monitor.ASPECT_STEP), displayScaleY);
-        this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
+        this.showOSDDirect("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayAspectIncrease = function() {
         this.displayScale(normalizeAspectX(displayAspectX + wmsx.Monitor.ASPECT_STEP), displayScaleY);
-        this.showOSD("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
+        this.showOSDDirect("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
     };
 
     this.displayScaleDecrease = function() {
         this.displayScale(displayAspectX, normalizeScaleY(displayScaleY - wmsx.Monitor.SCALE_STEP));
-        this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
+        this.showOSDDirect("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.displayScaleIncrease = function() {
         this.displayScale(displayAspectX, normalizeScaleY(displayScaleY + wmsx.Monitor.SCALE_STEP));
-        this.showOSD("Display Size: " + displayScaleY.toFixed(2) + "x", true);
+        this.showOSDDirect("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.getScreenText = function() {
-        return videoSignal.getScreenText();
+        return mainSignal.getScreenText();
     };
 
     this.displayScale = function(aspectX, scaleY) {
@@ -96,8 +115,12 @@ wmsx.Monitor = function(display) {
         return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
     }
 
+    function isActiveSignal(signal) {
+        return signal === activeSignal;
+    }
 
-    var videoSignal;
+    var mainSignal, secSignal;
+    var activeSignal;
 
     var displayAspectX;
     var displayScaleY;

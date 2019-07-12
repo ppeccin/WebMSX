@@ -21,7 +21,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.connect = function(pMachine) {
         machine = pMachine;
-        monitor.connect(machine.getVideoOutput());
+        machine.getVideoSocket().connectMonitor(monitor);
         controllersSocket = machine.getControllersSocket();
         cartridgeSocket = machine.getCartridgeSocket();
         extensionsSocket = machine.getExtensionsSocket();

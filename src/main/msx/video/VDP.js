@@ -11,7 +11,7 @@ wmsx.VDP = function(machine, cpu) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VideoSignal(self);
+        videoSignal = new wmsx.VideoSignal("Internal VDP", self);
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources(false);
@@ -47,7 +47,9 @@ wmsx.VDP = function(machine, cpu) {
 
     this.connectSlave = function(pSlave) {
         slave = pSlave;
-        if (slave) slave.setVideoStandard(videoStandard);
+        if (slave) {
+            slave.setVideoStandard(videoStandard);
+        }
     };
 
     this.powerOn = function() {
@@ -72,7 +74,7 @@ wmsx.VDP = function(machine, cpu) {
         updateSynchronization();
     };
 
-    this.getVideoOutput = function() {
+    this.getVideoSignal = function() {
         return videoSignal;
     };
 
@@ -584,9 +586,6 @@ wmsx.VDP = function(machine, cpu) {
         for (var i = cycleLines; i > 0; i = i - 1) {
 
             lineEvents();
-            currentScanline = currentScanline + 1;
-
-            if (currentScanline >= finishingScanline) finishFrame();
         }
     }
 
@@ -639,20 +638,25 @@ wmsx.VDP = function(machine, cpu) {
 
         // End of Active Display
 
-        if (slave) slave.lineEventEndOfActiveDisplay();
-
         status[2] |= 0x20;                                                                          // HR = 1
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();                                                           // FH = 1
+
+        if (slave) slave.lineEventEndOfActiveDisplay();
 
         // Right border: 59 clocks
         // Right erase: 27 clocks
 
         cpuClockPulses(15); audioClockPulse32();
+        if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
 
         // End of line
 
-        if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
+        currentScanline = currentScanline + 1;
+        if (currentScanline >= finishingScanline) finishFrame();
+
+        if (slave) slave.lineEventEnd();
+
     }
 
     function triggerVerticalInterrupt() {
@@ -682,8 +686,8 @@ wmsx.VDP = function(machine, cpu) {
             cpu.setINTChannel(0, 1);
         }
 
-        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  INT VERTICAL");
-        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  INT HORIZONTAL");
+        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  VDP INT VERTICAL");
+        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  VDP INT HORIZONTAL");
     }
 
     function updateVRAMInterleaving() {
@@ -2143,6 +2147,8 @@ wmsx.VDP = function(machine, cpu) {
         // Send frame to monitor
         videoSignal.newFrame(frameCanvas, refreshWidth, refreshHeight);
         refreshWidth = refreshHeight = 0;
+
+        if (slave) slave.cycleEventRefresh();
 
         //logInfo("REFRESH. currentScanline: " + currentScanline);
     }

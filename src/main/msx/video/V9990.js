@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// V9990 VDPs supported
+// V9990 VDP
 // This implementation is line-accurate
 // Digitize, Superimpose, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
@@ -11,9 +11,7 @@ wmsx.V9990 = function(machine, cpu) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VideoSignal(self);
-        cpuClockPulses = cpu.clockPulses;
-        audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
+        videoSignal = new wmsx.VideoSignal("V9990", self);
         initFrameResources(false);
         initColorCaches();
         initDebugPatternTables();
@@ -22,7 +20,7 @@ wmsx.V9990 = function(machine, cpu) {
         pendingBackdropCacheUpdate = true;
         self.setDefaults();
         commandProcessor = new wmsx.VDPCommandProcessor();
-        commandProcessor.connectVDP(self, vram, register, status);
+        commandProcessor.connectVDP(self, vram, register, oldStatus);
         commandProcessor.setVDPModeData(modeData);
     }
 
@@ -31,7 +29,7 @@ wmsx.V9990 = function(machine, cpu) {
         refreshDisplayMetrics();
     };
 
-    this.connect = function() {
+    this.connect = function(machine) {
         machine.vdp.connectSlave(this);
         machine.bus.connectInputDevice( 0x60, this.input60);
         machine.bus.connectOutputDevice(0x60, this.output60);
@@ -52,7 +50,7 @@ wmsx.V9990 = function(machine, cpu) {
         // 0x68 - 0x6f not used
     };
 
-    this.disconnect = function() {
+    this.disconnect = function(machine) {
         machine.vdp.connectSlave(undefined);
         machine.bus.disconnectInputDevice( 0x60, this.input60);
         machine.bus.disconnectOutputDevice(0x60, this.output60);
@@ -93,7 +91,7 @@ wmsx.V9990 = function(machine, cpu) {
         updateSynchronization();
     };
 
-    this.getVideoOutput = function() {
+    this.getVideoSignal = function() {
         return videoSignal;
     };
 
@@ -112,17 +110,17 @@ wmsx.V9990 = function(machine, cpu) {
     // VRAM Data Read
     this.input60 = function() {
         var res = vramReadData;
-        if (vramReadPointerInc)
-            if (++vramReadPointer > VRAM_LIMIT) vramReadPointer &= VRAM_LIMIT ;
-        vramReadData = vram[vramReadPointer];
+        if (vramPointerReadInc)
+            if (++vramPointerRead > VRAM_LIMIT) vramPointerRead &= VRAM_LIMIT ;
+        vramReadData = vram[vramPointerRead];
         return res;
     };
 
     // VRAM Data Write
     this.output60 = function(val) {
-        vram[vramWritePointer] = val;
-        if (vramWritePointerInc)
-            if (++vramWritePointer > VRAM_LIMIT) vramWritePointer &= VRAM_LIMIT ;
+        vram[vramPointerWrite] = val;
+        if (vramPointerWriteInc)
+            if (++vramPointerWrite > VRAM_LIMIT) vramPointerWrite &= VRAM_LIMIT ;
     };
 
     // Palette Data Read
@@ -156,90 +154,44 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Register Data Read
     this.input63 = function() {
-        var res = register[registerPointer];
-        if (registerReadPointerInc)
-            if (++registerPointer > 0x3f) registerPointer &= 0x3f;
+        var res = register[registerSelect];
+        if (registerSelectReadInc)
+            if (++registerSelect > 0x3f) registerSelect &= 0x3f;
         return res;
     };
 
     // Register Data Write
     this.output63 = function(val) {
-        registerWrite(registerPointer, val);
-        if (registerWritePointerInc)
-            if (++registerPointer > 0x3f) registerPointer &= 0x3f;
+        registerWrite(registerSelect, val);
+        if (registerSelectWriteInc)
+            if (++registerSelect > 0x3f) registerSelect &= 0x3f;
     };
 
     // Register Select Write
     this.output64 = function(val) {
-        registerPointer = val &= 0x3f;
-        registerWritePointerInc = !(val & 0x80);
-        registerReadPointerInc = !(val & 0x40);
+        registerSelect = val &= 0x3f;
+        registerSelectWriteInc = !(val & 0x80);
+        registerSelectReadInc = !(val & 0x40);
     };
 
     // Status Read
     this.input65 = function() {
-        var reg = register[15];
-
-        var res;
-        switch(reg) {
-            case 0:
-                res = getStatus0();                     // Dynamic value. status[0] is never accurate
-                break;
-            case 1:
-                res = status[1];
-                status[1] &= ~0x80;                     // FL = 0
-                if ((register[0] & 0x10) && (status[1] & 0x01)) {
-                    status[1] &= ~0x01;                 // FH = 0, only if interrupts are enabled (IE1 = 1)
-                    updateIRQ();
-                }
-                break;
-            case 2:
-                commandProcessor.updateStatus();
-                res = status[2];
-
-                // var deb = cpu.DEBUG;
-                // if (deb) console.log(res.toString(16));
-                // if (deb &&                                   (res & 0x81) !== 0) logInfo("Reading Command Status NOT READY: " + res.toString(16));
-                // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x81) console.log("Reading Command Status PROGRESS and Transfer READY");
-                // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x01) console.log("Reading Command Status PROGRESS and Transfer NOT READY");
-                // if (deb &&                                   (res & 0x81) === 0x00) console.log("Reading Command Status IDLE and Transfer NOT READY");
-                // if (deb &&                                   (res & 0x81) === 0x80) console.log("Reading Command Status IDLE and Transfer READY");
-
-                break;
-            case 3: case 4: case 6:
-                res = status[reg];
-                break;
-            case 5:
-                res = status[5];
-                spritesCollisionX = spritesCollisionY = -1;             // Clear collision coordinates and status registers
-                status[3] = status[4] = status[5] = status[6] = 0;
-                break;
-            case 7:
-                res = status[7];
-                commandProcessor.cpuRead();
-                break;
-            case 8: case 9:
-                res = status[reg];
-                break;
-            default:
-                res = 0xff;                       // Invalid register
-        }
-
-        //logInfo("Reading status " + reg + ", " + res.toString(16));
-
-        return res;
+        return status;
     };
 
     // Interrupt Flags Read
     this.input66 = function() {
+        return interruptFlags;
     };
 
     // Interrupt Flags Write
     this.output66 = function(val) {
+        interruptFlags &= ~val;
     };
 
     // System Control Write
     this.output67 = function(val) {
+        systemControl = val;
     };
 
     this.toggleDebugModes = function(dec) {
@@ -274,10 +226,13 @@ wmsx.V9990 = function(machine, cpu) {
     };
 
     this.reset = function() {
-        frame = cycles = lastBUSCyclesComputed = 0;
-        vramReadData = 0; vramReadPointer = 0; vramWritePointer = 0; vramReadPointerInc = false; vramWritePointerInc = false;
-        registerPointer = 0; registerReadPointerInc = false; registerWritePointerInc = false;
+        status = 0; interruptFlags = 0; systemControl = 0;
+        registerSelect = 0; registerSelectReadInc = false; registerSelectWriteInc = false;
+        vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = false; vramPointerWriteInc = false; vramReadData = 0;
         palettePointer = 0;
+
+
+        frame = cycles = lastBUSCyclesComputed = 0;
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
@@ -328,14 +283,14 @@ wmsx.V9990 = function(machine, cpu) {
     };
 
     function updateVRAMReadPointer() {
-        vramReadPointer = ((register[5] << 16) | (register[4] << 8) | register[3]) & VRAM_LIMIT;
-        vramReadPointerInc = !(register[5] & 0x80);
-        vramReadData = vram[vramReadPointer];
+        vramPointerRead = ((register[5] << 16) | (register[4] << 8) | register[3]) & VRAM_LIMIT;
+        vramPointerReadInc = !(register[5] & 0x80);
+        vramReadData = vram[vramPointerRead];
     }
 
     function updateVRAMWritePointer() {
-        vramWritePointer = ((register[2] << 16) | (register[1] << 8) | register[0]) & VRAM_LIMIT;
-        vramWritePointerInc = !(register[2] & 0x80);
+        vramPointerWrite = ((register[2] << 16) | (register[1] << 8) | register[0]) & VRAM_LIMIT;
+        vramPointerWriteInc = !(register[2] & 0x80);
     }
 
     function updatePalettePointer() {
@@ -358,15 +313,21 @@ wmsx.V9990 = function(machine, cpu) {
             case 5:
                 updateVRAMReadPointer();
                 break;
+            case 9:
+                if (mod & 0x07) updateIRQ();                // IECE, IEH, IEV
+                break;
             case 14:
                 updatePalettePointer();
                 break;
+        }
+
+        return;
+
+        switch (reg) {
 
             case 1:
-
                 //if (mod) logInfo("Register1: " + val.toString(16));
 
-                if (mod & 0x20) updateIRQ();                             // IE0
                 if (mod & 0x40) {                                        // BL
                     blankingChangePending = true;      // only at next line
 
@@ -426,7 +387,7 @@ wmsx.V9990 = function(machine, cpu) {
                 updateBlinking();                                        // Always, even with no change
                 break;
             case 14:
-                if (mod & 0x07) vramWritePointer = ((val & 0x07) << 14) | (vramWritePointer & 0x3fff);
+                if (mod & 0x07) vramPointerWrite = ((val & 0x07) << 14) | (vramPointerWrite & 0x3fff);
 
                 //console.log("Setting reg14: " + val.toString(16) + ". VRAM Pointer: " + vramPointer.toString(16));
 
@@ -488,7 +449,7 @@ wmsx.V9990 = function(machine, cpu) {
     // Consider Alternative Page (EO and Blink)
     function updateLayoutTableAddressMask() {
         layoutTableAddressMask = layoutTableAddressMaskSetValue &
-            (blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? modeData.blinkPageMask : ~0);
+            (blinkEvenPage || ((register[9] & 0x04) && (oldStatus[2] & 0x02) === 0) ? modeData.blinkPageMask : ~0);
     }
 
     function updateSpritePatternTableAddress() {
@@ -497,36 +458,6 @@ wmsx.V9990 = function(machine, cpu) {
             : (register[6] << 11) & 0x1ffff;
 
         //logInfo("SpritePatTable: " + spritePatternTableAddress.toString(16));
-    }
-
-    function getStatus0() {
-        var res = 0;
-
-        // Vertical Int
-        if (verticalIntReached) {                   // F
-            res |= 0x80;
-            verticalIntReached = false;
-            updateIRQ();
-        }
-
-        // Collision
-        if (spritesCollided) {
-            res |= 0x20;                            // C
-            spritesCollided = false;
-        }
-
-        // Invalid Sprite, otherwise Greatest Sprite number drawn
-        if (spritesInvalid >= 0) {
-            res |= 0x40 | spritesInvalid;           // 5S, 5SN
-            spritesInvalid = -1;
-        } else
-            res |= spritesMaxComputed;              // 5SN
-
-        spritesMaxComputed = 0;
-
-        //console.log("Status0 read: " + res.toString(16));
-
-        return res;                                 // Everything is cleared at this point (like status[0] == 0)
     }
 
     function paletteRegisterWrite(reg, val, force) {
@@ -594,22 +525,9 @@ wmsx.V9990 = function(machine, cpu) {
         // console.log("Update Synchronization. Pulldown " + pulldown.standard + " " + pulldown.frequency);
     }
 
-    // Total frame lines: 262 for NTSC, 313 for PAL
-    // Total frame CPU clocks: 59736 for NTSC, 71364 for PAL
-    function cycleEvents() {
-        var cycleLines = framePulldown.linesPerCycle;
-
-        // Adjust pulldown cadence if necessary
-        if (pulldown.steps > 1 && (frame % pulldown.steps) === 0) cycleLines += pulldown.firstStepCycleLinesAdjust;
-
-        for (var i = cycleLines; i > 0; i = i - 1) {
-
-            lineEvents();
-            currentScanline = currentScanline + 1;
-
-            if (currentScanline >= finishingScanline) finishFrame();
-        }
-    }
+    this.cycleEventRefresh = function() {
+        refresh();
+    };
 
     // Total line clocks: VDP: 1368, CPU: 228, PSG 7.125
     // Timing should be different for mode T1 and T2 since borders are wider. Ignoring for now.
@@ -628,87 +546,75 @@ wmsx.V9990 = function(machine, cpu) {
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
 
-        cpuClockPulses(33); audioClockPulse32();
 
         // Left border: 56 clocks
 
         if (blankingChangePending) updateLineActiveType();
 
-        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
-        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
+        if ((oldStatus[1] & 0x01) && ((register[0] & 0x10) === 0))  oldStatus[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
+        if (currentScanline === startingActiveScanline - 1) oldStatus[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
             triggerVerticalInterrupt();
 
-        cpuClockPulses(10);
-
         // Active Display: 1024 clocks
 
-        status[2] &= ~0x20;                                                                         // HR = 0
+        oldStatus[2] &= ~0x20;                                                                         // HR = 0
 
-        cpuClockPulses(22); audioClockPulse32();
-        cpuClockPulses(33); audioClockPulse32();
-        cpuClockPulses(32); audioClockPulse32();
 
         // ~ Middle of Active Line
 
         if (currentScanline >= startingVisibleTopBorderScanline
             && currentScanline < startingInvisibleScanline) renderLine();                           // Only render if visible
 
-        cpuClockPulses(33); audioClockPulse32();
-        cpuClockPulses(32); audioClockPulse32();
-        cpuClockPulses(18);
 
         // End of Active Display
 
-        if (slave) slave.lineTimeEndOfActiveDisplay();
-
-        status[2] |= 0x20;                                                                          // HR = 1
+        oldStatus[2] |= 0x20;                                                                          // HR = 1
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();                                                           // FH = 1
 
         // Right border: 59 clocks
         // Right erase: 27 clocks
 
-        cpuClockPulses(15); audioClockPulse32();
-
         // End of line
-
-        if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
     }
 
     this.lineEventEndOfActiveDisplay = function() {
-        
+        oldStatus[2] |= 0x20;                                                                          // HR = 1
+        if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
+            triggerHorizontalInterrupt();
+        if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
+            triggerVerticalInterrupt();
+
+    };
+
+    this.lineEventEnd = function() {
+        currentScanline = currentScanline + 1;
+        if (currentScanline >= finishingScanline) finishFrame();
     };
 
     function triggerVerticalInterrupt() {
-        status[2] |= 0x40;                  // VR = 1
-        if (!verticalIntReached) {
-            verticalIntReached = true;      // Like F = 1
-            updateIRQ();
-        }
+        if (interruptFlags & 0x01) return;          // VI already == 1 ?
+        interruptFlags |= 0x01;                     // VI = 1
+        updateIRQ();
 
         // logInfo("Vertical Frame Int reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
     }
 
     function triggerHorizontalInterrupt() {
-        if ((status[1] & 0x01) === 0) {
-            status[1] |= 0x01;              // FH = 1
-            updateIRQ();
-        }
-
         // logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
     }
 
     function updateIRQ() {
-        if ((verticalIntReached && (register[1] & 0x20))            // Like F == 1 and IE0 == 1
-            || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH == 1 and IE1 == 1
-            cpu.setINTChannel(0, 0);    // VDP uses channel 0
-        } else {
-            cpu.setINTChannel(0, 1);
-        }
+        if ((register[9] & 0x01) && (interruptFlags & 0x01)) {      // IEV == 1 & VI == 1
+            cpu.setINTChannel(1, 0);    // V9990 using fixed channel 1. TODO INT Multiple V9990 connected?
 
-        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  INT VERTICAL");
-        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  INT HORIZONTAL");
+            // logInfo(">>>  V9990 INT ON");
+        } else {
+            cpu.setINTChannel(1, 1);
+
+            // logInfo(">>>  V9990 INT OFF");
+        }
     }
 
     function updateVRAMInterleaving() {
@@ -2119,10 +2025,10 @@ wmsx.V9990 = function(machine, cpu) {
         if (spritesCollisionX >= 0) return;                             // Only set if clear
         spritesCollisionX = x + 12; spritesCollisionY = y + 8;          // Additions as per spec
         if ((register[8] & 0xc0) === 0) {                               // Only report if Mouse (MS) and LightPen (LP) are disabled
-            status[3] = spritesCollisionX & 255;
-            status[4] = 0xfe | (spritesCollisionX >>> 8);
-            status[5] = spritesCollisionY & 255;
-            status[6] = 0xfc | (spritesCollisionY >>> 8);
+            oldStatus[3] = spritesCollisionX & 255;
+            oldStatus[4] = 0xfe | (spritesCollisionX >>> 8);
+            oldStatus[5] = spritesCollisionY & 255;
+            oldStatus[6] = 0xfc | (spritesCollisionY >>> 8);
         }
     }
 
@@ -2148,12 +2054,15 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function cleanFrameBuffer() {
-        wmsx.Util.arrayFill(frameBackBuffer, modeData.tiled ? 0xff000000 : backdropValue);
+        // wmsx.Util.arrayFill(frameBackBuffer, modeData.tiled ? 0xff000000 : backdropValue);
+        frameBackBuffer.fill(0xffe030e0);
 
         //logInfo("Clear Buffer");
     }
 
     function refresh() {
+        console.log("V9990 refresh");
+
         // Send frame to monitor
         videoSignal.newFrame(frameCanvas, refreshWidth, refreshHeight);
         refreshWidth = refreshHeight = 0;
@@ -2178,11 +2087,11 @@ wmsx.V9990 = function(machine, cpu) {
         if (!blinkPerLine && blinkPageDuration > 0) clockPageBlinking();
 
         // Field alternance
-        status[2] ^= 0x02;                    // Invert EO (Display Field flag)
+        oldStatus[2] ^= 0x02;                    // Invert EO (Display Field flag)
 
         // Interlace
         if (register[9] & 0x08) {                                       // IL
-            bufferPosition = (status[2] & 0x02) ? LINE_WIDTH : 0;       // EO
+            bufferPosition = (oldStatus[2] & 0x02) ? LINE_WIDTH : 0;       // EO
             bufferLineAdvance = LINE_WIDTH * 2;
         } else {
             bufferPosition = 0;
@@ -2216,12 +2125,12 @@ wmsx.V9990 = function(machine, cpu) {
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(paletteData, 0);
-        wmsx.Util.arrayFill(status, 0);
+        wmsx.Util.arrayFill(oldStatus, 0);
         register[7] = videoStandard === wmsx.VideoStandard.PAL ? 0x08 : 0;      // PAL mode bit
     }
 
     function initFrameResources(useAlpha) {
-        if (frameCanvas && (frameContextUsingAlpha || !useAlpha)) return;     // never go back to non alpha
+        if (frameCanvas && (frameContextUsingAlpha || !useAlpha)) return;       // never go back to non alpha
 
         frameContextUsingAlpha = !!useAlpha;
         frameCanvas = document.createElement('canvas');
@@ -2343,9 +2252,15 @@ wmsx.V9990 = function(machine, cpu) {
     var verticalIntReached = false;
     var horizontalIntLine = 0;
 
-    var status = new Array(10);
+    var oldStatus = new Array(10);
+
+    var status = 0, interruptFlags = 0, systemControl = 0;
+    var registerSelect = 0, registerSelectReadInc = false, registerSelectWriteInc = false;
+    var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = false, vramPointerWriteInc = false, vramReadData = 0;
+    var palettePointer = 0;
+
     var register = new Array(64);
-    var paletteData = new Array(256), palettePointer = 0;   // 64 entries x 3+1 bytes (R, G, B, unused)
+    var paletteData = new Array(256);   // 64 entries x 3+1 bytes (R, G, B, spare)
 
     var modeData;
 
@@ -2360,10 +2275,6 @@ wmsx.V9990 = function(machine, cpu) {
     var spritesLinePriorities = new Array(256);
     var spritesLineColors = new Array(256);
     var spritesGlobalPriority;
-
-    var vramReadData = 0, vramReadPointer = 0, vramWritePointer = 0, vramReadPointerInc = false, vramWritePointerInc = false;
-    var registerPointer = 0, registerReadPointerInc = false, registerWritePointerInc = false;
-    var paletteFirstWrite;
 
     var backdropColor;
     var backdropValue;
@@ -2442,7 +2353,6 @@ wmsx.V9990 = function(machine, cpu) {
     // Connections
 
     var videoSignal;
-    var cpuClockPulses, audioClockPulse32;
     var commandProcessor;
 
     var slave;
@@ -2454,13 +2364,13 @@ wmsx.V9990 = function(machine, cpu) {
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             fs: frameStartingActiveScanline,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
-            vp: vramWritePointer,
+            vp: vramPointerWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
             bp: blinkEvenPage, bpd: blinkPageDuration, bpl: blinkPerLine,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
             vi: verticalIntReached,
-            r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
+            r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(oldStatus),
             p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteData),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_LIMIT),
             vrint: vramInterleaving,
@@ -2476,13 +2386,13 @@ wmsx.V9990 = function(machine, cpu) {
     this.loadState = function(s) {
         refreshDisplayMetrics();
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
-        status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
+        oldStatus = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, oldStatus);
         paletteData = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteData);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
-        vramWritePointer = s.vp;
+        vramPointerWrite = s.vp;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
         leftScrollCharsInPage = leftScrollChars & 31;
@@ -2491,7 +2401,7 @@ wmsx.V9990 = function(machine, cpu) {
         verticalIntReached = s.vi;
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
-        commandProcessor.connectVDP(this, vram, register, status);
+        commandProcessor.connectVDP(this, vram, register, oldStatus);
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility

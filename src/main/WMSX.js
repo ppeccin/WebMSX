@@ -181,6 +181,9 @@ WMSX.PRESETS_CONFIG = {
     KANJI:   { "EXTENSIONS.KANJI":  1 },
     NOKANJI: { "EXTENSIONS.KANJI":  0 },
 
+    // V9990 Video
+    V9990: { "EXTENSIONS.V9990":  1 },
+
     // Sound Devices
     MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
