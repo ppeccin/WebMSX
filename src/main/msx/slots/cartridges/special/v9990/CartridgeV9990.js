@@ -26,7 +26,6 @@ wmsx.CartridgeV9990 = function(rom) {
 
     this.powerOn = function() {
         v9990.powerOn();
-        this.reset();
     };
 
     this.powerOff = function() {

@@ -632,6 +632,8 @@ wmsx.VDP = function(machine, cpu) {
         if (currentScanline >= startingVisibleTopBorderScanline
             && currentScanline < startingInvisibleScanline) renderLine();                           // Only render if visible
 
+        if (slave) slave.lineEventRenderLine();
+
         cpuClockPulses(33); audioClockPulse32();
         cpuClockPulses(32); audioClockPulse32();
         cpuClockPulses(18);
@@ -773,7 +775,7 @@ wmsx.VDP = function(machine, cpu) {
         var pal = (register[9] & 0x02);
         machine.setVideoStandardSoft(pal ? wmsx.VideoStandard.PAL : wmsx.VideoStandard.NTSC);
 
-        //logInfo("VDP VideoStandard: " + (pal ? "PAL" : "NTSC"));
+        //logInfo("VideoStandard soft: " + (pal ? "PAL" : "NTSC"));
     }
 
     function updateSignalMetrics(force) {
@@ -2517,7 +2519,7 @@ wmsx.VDP = function(machine, cpu) {
     function logInfo(text) {
         var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
         var vdpLineCycles = busLineCycles * 6;
-        console.log("" + text
+        console.log("VDP " + text
             // + ". Frame: " + frame
             + ", currentScanLine: " + currentScanline
             + ", activeRenderScanline: " + (currentScanline - frameStartingActiveScanline)
