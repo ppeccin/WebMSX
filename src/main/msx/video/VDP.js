@@ -19,7 +19,7 @@ wmsx.VDP = function(machine, cpu) {
         initDebugPatternTables();
         initSpritesConflictMap();
         modeData = modes[0];
-        pendingBackdropCacheUpdate = true;
+        backdropCacheUpdatePending = true;
         self.setDefaults();
         commandProcessor = new wmsx.VDPCommandProcessor();
         commandProcessor.connectVDP(self, vram, register, status);
@@ -526,7 +526,7 @@ wmsx.VDP = function(machine, cpu) {
             colorPalette[reg] = value;
 
         if (reg === backdropColor) updateBackdropValue();
-        else if (modeData.tiled && reg <= 3) pendingBackdropCacheUpdate = true;
+        else if (modeData.tiled && reg <= 3) backdropCacheUpdatePending = true;
     }
 
     function setDebugMode(mode) {
@@ -617,6 +617,8 @@ wmsx.VDP = function(machine, cpu) {
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
             triggerVerticalInterrupt();
 
+        if (slave) slave.lineEventStartLeftBorder();
+
         cpuClockPulses(10);
 
         // Active Display: 1024 clocks
@@ -644,7 +646,7 @@ wmsx.VDP = function(machine, cpu) {
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();                                                           // FH = 1
 
-        if (slave) slave.lineEventEndOfActiveDisplay();
+        if (slave) slave.lineEventEndActiveDisplay();
 
         // Right border: 59 clocks
         // Right erase: 27 clocks
@@ -759,7 +761,7 @@ wmsx.VDP = function(machine, cpu) {
 
         // Color modes
         if (modeData.bdPaletted !== oldData.bdPaletted) updateBackdropColor();
-        if (modeData.tiled !== oldData.tiled) pendingBackdropCacheUpdate = true;
+        if (modeData.tiled !== oldData.tiled) backdropCacheUpdatePending = true;
 
         updateVRAMInterleaving();
         updateLineActiveType();
@@ -894,24 +896,24 @@ wmsx.VDP = function(machine, cpu) {
         if (backdropValue === value) return;
         backdropValue = value;
         if (!color0Solid) colorPalette[0] = value;
-        pendingBackdropCacheUpdate = true;
+        backdropCacheUpdatePending = true;
 
         //logInfo("Backdrop Value: " + backdropValue.toString(16));
     }
 
-    function updateBackdropCache() {
+    function updateBackdropLineCache() {
         if (modeData.tiled && !debugModePatternInfo) {          // Special case for tiled mode (G5, Screen 6)
             var odd = colorPaletteSolid[backdropColor >>> 2]; var even = colorPaletteSolid[backdropColor & 0x03];
             for (var i = 0; i < LINE_WIDTH; i += 2) {
-                backdropFullLineCache[i] = odd; backdropFullLineCache[i + 1] = even;
+                backdropLineCache[i] = odd; backdropLineCache[i + 1] = even;
             }
             backdropTileOdd = odd; backdropTileEven = even;
         } else {
-            wmsx.Util.arrayFill(backdropFullLineCache, backdropValue);
+            wmsx.Util.arrayFill(backdropLineCache, backdropValue);
             if (modeData.tiled) backdropTileOdd = backdropTileEven = backdropValue;
         }
 
-        pendingBackdropCacheUpdate = false;
+        backdropCacheUpdatePending = false;
 
         //console.log("Update BackdropCaches");
     }
@@ -938,8 +940,8 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function renderLineBorders() {
-        if (pendingBackdropCacheUpdate) updateBackdropCache();
-        frameBackBuffer.set(backdropFullLineCache, bufferPosition);
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdropLineCache, bufferPosition);
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
@@ -2231,7 +2233,7 @@ wmsx.VDP = function(machine, cpu) {
         if (!frameImageData) {
             frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
             frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // One extra line
-            backdropFullLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
+            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
         }
     }
 
@@ -2311,7 +2313,7 @@ wmsx.VDP = function(machine, cpu) {
 
     // Frame as off screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
-    var backdropFullLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
+    var backdropLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
 
 
@@ -2354,7 +2356,7 @@ wmsx.VDP = function(machine, cpu) {
     var refreshWidth, refreshHeight;
 
     var blankingChangePending;
-    var pendingBackdropCacheUpdate;
+    var backdropCacheUpdatePending;
 
     var spritesEnabled, spritesSize, spritesMag;
     var spritesCollided, spritesInvalid, spritesMaxComputed, spritesCollisionX, spritesCollisionY;
