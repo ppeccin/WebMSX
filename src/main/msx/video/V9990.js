@@ -197,7 +197,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Interrupt Flags Read
     this.input66 = function() {
-        logInfo("Int Flags READ = " + interruptFlags.toString(16));
+        // logInfo("Int Flags READ = " + interruptFlags.toString(16));
 
         return interruptFlags;
     };
@@ -326,7 +326,7 @@ wmsx.V9990 = function(machine, cpu) {
         var mod = register[reg] ^ val;
         register[reg] = val;
 
-         //logInfo("Reg: " + reg + ": " + val.toString(16));
+         // logInfo("Reg: " + reg + ": " + val.toString(16));
 
         switch (reg) {
             case 0: case 1: case 2:
@@ -662,8 +662,9 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function updateMode() {
-        // MCS C25M DSPM1 DSPM0 DCKM1 DCKM0
-        var modeBits = ((systemControl & 0x01) << 5) | ((register[7] & 0x40) >> 2) | (register[6] >> 4);
+        // MCS C25M HSCN DSPM1 DSPM0 DCKM1 DCKM0
+        var modeBits = ((systemControl & 0x01) << 6) | ((register[7] & 0x40) >> 1) | ((register[7] & 0x01) << 4) | (register[6] >> 4);
+        if ((modeBits & 0x0c) === 0x0c) modeBits = 0x0c;    // Special case for Stand-by mode (ignore other bits)
 
         modeData = modes[modeBits] || modes[-1];
 
@@ -744,7 +745,8 @@ wmsx.V9990 = function(machine, cpu) {
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
-        renderLineActive = (register[8] & 0x80) === 0 ? renderLineBlanked           // DISP
+        renderLineActive = modeData.name === "SBY" ? renderLineStandBy              // Stand-by
+            : (register[8] & 0x80) === 0 ? renderLineBlanked                        // DISP
             // : debugModePatternInfo ? modeData.renderLinePatInfo
             : modeData.renderLine;
 
@@ -780,8 +782,7 @@ wmsx.V9990 = function(machine, cpu) {
     function updateBackdropValue() {
         var value = debugModePatternInfo ? debugBackdropValue : colorPaletteSolid[backdropColor];
         if (backdropValue === value) return;
-
-        //value = 0xff008f00;
+        // value = 0xff205020;
 
         backdropValue = value;
         colorPalette[0] = backdropValue;
@@ -819,6 +820,10 @@ wmsx.V9990 = function(machine, cpu) {
         return false;
     }
 
+    function renderLineBlanked() {
+        renderLineBorders();
+    }
+
     function renderLineBorders() {
         if (backdropCacheUpdatePending) updateBackdropLineCache();
         frameBackBuffer.set(backdropLineCache, bufferPosition);
@@ -827,8 +832,11 @@ wmsx.V9990 = function(machine, cpu) {
         //logInfo("renderLineBorders");
     }
 
-    function renderLineBlanked() {
-        renderLineBorders();
+    function renderLineStandBy() {
+        frameBackBuffer.set(standByLineCache, bufferPosition);
+        bufferPosition = bufferPosition + bufferLineAdvance;
+
+        //logInfo("renderLineStandBy");
     }
 
     function getRealLine() {
@@ -845,16 +853,17 @@ wmsx.V9990 = function(machine, cpu) {
 
         var lineInPattern = /*patternTableAddress +*/ (realLine & 0x07);
 
-        var namePosBase = /*layoutTableAddress*/ 0x7c000 + ((realLine >> 3) << 6 << 1);
-        var namePos = namePosBase /*+ leftScrollCharsInPage*/;
         //if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
         //var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
-        for (var c = 0; c < 32; ++c) {
-            var name = vram[namePos++] | (vram[namePos++] << 8);
-            var pattPixelPos = vram[0x00000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2)];
+        var namePosBase, namePos, name, pattPixelPos, pixels;
 
-            var pixels;
+        // Layer B
+        namePosBase = /*layoutTableAddress*/ 0x7e000 + ((realLine >> 3) << 6 << 1);
+        namePos = namePosBase /*+ leftScrollCharsInPage*/;
+        for (var c = 0; c < 32; ++c) {
+            name = vram[namePos++] | (vram[namePos++] << 8);
+            pattPixelPos = 0x40000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2);
             pixels = vram[pattPixelPos + 0 /*& layoutTableAddressMask*/];
             frameBackBuffer[bufferPos + 0] = colorPalette[pixels >> 4];
             frameBackBuffer[bufferPos + 1] = colorPalette[pixels & 0x0f];
@@ -869,6 +878,29 @@ wmsx.V9990 = function(machine, cpu) {
             frameBackBuffer[bufferPos + 7] = colorPalette[pixels & 0x0f];
             bufferPos += 8;
         }
+
+        // Layer A
+        bufferPos -= 256;
+        namePosBase = /*layoutTableAddress*/ 0x7c000 + ((realLine >> 3) << 6 << 1);
+        namePos = namePosBase /*+ leftScrollCharsInPage*/;
+        for (c = 0; c < 32; ++c) {
+            name = vram[namePos++] | (vram[namePos++] << 8);
+            pattPixelPos = 0x00000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2);
+            pixels = vram[pattPixelPos + 0 /*& layoutTableAddressMask*/];
+            frameBackBuffer[bufferPos + 0] = colorPalette[pixels >> 4];
+            frameBackBuffer[bufferPos + 1] = colorPalette[pixels & 0x0f];
+            pixels = vram[pattPixelPos + 1 /*& layoutTableAddressMask*/];
+            frameBackBuffer[bufferPos + 2] = colorPalette[pixels >> 4];
+            frameBackBuffer[bufferPos + 3] = colorPalette[pixels & 0x0f];
+            pixels = vram[pattPixelPos + 2 /*& layoutTableAddressMask*/];
+            frameBackBuffer[bufferPos + 4] = colorPalette[pixels >> 4];
+            frameBackBuffer[bufferPos + 5] = colorPalette[pixels & 0x0f];
+            pixels = vram[pattPixelPos + 3/*& layoutTableAddressMask*/];
+            frameBackBuffer[bufferPos + 6] = colorPalette[pixels >> 4];
+            frameBackBuffer[bufferPos + 7] = colorPalette[pixels & 0x0f];
+            bufferPos += 8;
+        }
+
         bufferPos -= rightScrollPixels + 256;
 
         if (renderWidth > 500) stretchCurrentLine();
@@ -2153,9 +2185,13 @@ wmsx.V9990 = function(machine, cpu) {
         frameContext = frameCanvas.getContext("2d", { alpha: frameContextUsingAlpha, antialias: false });
 
         if (!frameImageData) {
-            frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
-            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // One extra line
-            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
+            frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1 + 1);                                           // +1 extra line for Right-overflow, +1 for the Backdrop cache, , +1 for the Standby cache
+            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // Right-overflow extra line
+            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);       // Backdrop extra line
+            standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 2) * 4, frameCanvas.width);       // Standby extra line
+
+            // Fixed redish color for showing Standby mode
+            wmsx.Util.arrayFill(standByLineCache, 0xff000060);
         }
     }
 
@@ -2229,7 +2265,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Frame as off screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
-    var backdropLineCache;        // Cached full line backdrop values, will share the same buffer as the frame itself for fast copying
+    var backdropLineCache, standByLineCache;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
@@ -2308,15 +2344,18 @@ wmsx.V9990 = function(machine, cpu) {
 
     var modes = {};
 
-    modes[  -1] = { name: "BL", renderLine: renderLineBlanked };
-    modes[0x00] = { name: "P1", renderLine: renderLineModeP1  };
-    modes[0x05] = { name: "P2", renderLine: renderLineBlanked };
-    modes[0x08] = { name: "B1", renderLine: renderLineBlanked };
-    modes[0x28] = { name: "B2", renderLine: renderLineBlanked };
-    modes[0x09] = { name: "B3", renderLine: renderLineBlanked };
-    modes[0x2a] = { name: "B4", renderLine: renderLineBlanked };
-    modes[0x0a] = { name: "B5", renderLine: renderLineBlanked };
-    modes[0x1a] = { name: "B6", renderLine: renderLineBlanked };
+    modes[  -1] = { name: "NUL", renderLine: renderLineStandBy };
+    modes[0x0c] = { name: "SBY", renderLine: renderLineStandBy };
+    modes[0x00] = { name:  "P1", renderLine: renderLineModeP1  };
+    modes[0x05] = { name:  "P2", renderLine: renderLineStandBy };
+    modes[0x48] = { name: "B0*", renderLine: renderLineStandBy };       // Undocumented
+    modes[0x08] = { name:  "B1", renderLine: renderLineStandBy };
+    modes[0x49] = { name:  "B2", renderLine: renderLineStandBy };
+    modes[0x09] = { name:  "B3", renderLine: renderLineStandBy };
+    modes[0x4a] = { name:  "B4", renderLine: renderLineStandBy };
+    modes[0x1a] = { name:  "B5", renderLine: renderLineStandBy };
+    modes[0x3a] = { name:  "B6", renderLine: renderLineStandBy };
+    modes[0x0a] = { name: "B7*", renderLine: renderLineStandBy };       // Undocumented
 
     var modesOld = wmsx.Util.arrayFill(new Array(0x24),
                   { name: "NUL", isV9938: true,  layTBase:        0, colorTBase:        0, patTBase:        0, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine:   renderLineBlanked, renderLinePatInfo:       renderLineBlanked, ppb: 0, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true, textCols: 0 });
