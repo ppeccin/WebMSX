@@ -617,13 +617,13 @@ wmsx.VDP = function(machine, cpu) {
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
             triggerVerticalInterrupt();
 
-        if (slave) slave.lineEventStartLeftBorder();
-
         cpuClockPulses(10);
 
         // Active Display: 1024 clocks
 
         status[2] &= ~0x20;                                                                         // HR = 0
+
+        if (slave) slave.lineEventStartActiveDisplay();
 
         cpuClockPulses(22); audioClockPulse32();
         cpuClockPulses(33); audioClockPulse32();

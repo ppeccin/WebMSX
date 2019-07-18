@@ -169,7 +169,7 @@ wmsx.V9990 = function(machine, cpu) {
     this.input63 = function() {
         var res = register[registerSelect];
 
-        //logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
+        // logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
 
         if (registerSelectReadInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
@@ -192,6 +192,8 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Status Read
     this.input65 = function() {
+        // logInfo("Status READ = " + status.toString(16));
+
         return status;
     };
 
@@ -204,14 +206,22 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Interrupt Flags Write
     this.output66 = function(val) {
+        // logInfo("Int Flags WRITE : " + val.toString(16));
+
+        if (val === 0) return;
+
         interruptFlags &= ~val;
+        updateIRQ()
     };
 
     // System Control Write
     this.output67 = function(val) {
         var mod = systemControl ^ val;
         systemControl = val;
-        if (mod & 0x01) updateMode();       // MCS
+        if (mod & 0x01) {                              // MCS
+            status = (status & ~0x04) | ((systemControl & 0x01) << 2);
+            updateMode();
+        }
     };
 
     this.toggleDebugModes = function(dec) {
@@ -571,26 +581,34 @@ wmsx.V9990 = function(machine, cpu) {
         refresh();
     };
 
-    this.lineEventStartLeftBorder = function() {
+    this.lineEventStartActiveDisplay = function() {
+        status &= ~0x20;                                                                        // HR = 0
+
         // Verify and change sections of the screen
-        if (currentScanline === startingActiveScanline) setActiveDisplay();
-        else if (currentScanline - frameStartingActiveScanline === signalActiveHeight) setBorderDisplay();
+        if (currentScanline === startingActiveScanline) {
+            status &= ~0x40;                                                                    // VR = 0
+            setActiveDisplay();
+        } else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
+            setBorderDisplay();
 
         if (blankingChangePending) updateLineActiveType();
     };
 
     this.lineEventRenderLine = function() {
         if (currentScanline >= startingVisibleTopBorderScanline
-            && currentScanline < startingInvisibleScanline) renderLine();                           // Only render if visible
+            && currentScanline < startingInvisibleScanline) renderLine();                       // Only render if visible
     };
 
     this.lineEventEndActiveDisplay = function() {
-        oldStatus[2] |= 0x20;                                                                       // HR = 1
+        status |= 0x20;                                                                         // HR = 1
+
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();
-        if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
-            triggerVerticalInterrupt();
 
+        if (currentScanline - frameStartingActiveScanline === signalActiveHeight) {
+            status |= 0x40;                                                                     // VR = 1
+            triggerVerticalInterrupt();
+        }
     };
 
     this.lineEventEnd = function() {
@@ -614,11 +632,11 @@ wmsx.V9990 = function(machine, cpu) {
         if ((register[9] & 0x01) && (interruptFlags & 0x01)) {      // IEV == 1 & VI == 1
             cpu.setINTChannel(1, 0);                                // V9990 using fixed channel 1. TODO INT Multiple V9990 connected?
 
-             logInfo(">>>  INT ON");
+             // logInfo(">>>  INT ON");
         } else {
             cpu.setINTChannel(1, 1);
 
-             logInfo(">>>  INT OFF");
+             // logInfo(">>>  INT OFF");
         }
     }
 
@@ -740,14 +758,14 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function setBorderDisplay() {
-        renderLine = renderLineBorders;
+        renderLine = renderLineBackdrop;
     }
 
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
         renderLineActive = modeData.name === "SBY" ? renderLineStandBy              // Stand-by
-            : (register[8] & 0x80) === 0 ? renderLineBlanked                        // DISP
+            : (register[8] & 0x80) === 0 ? renderLineBackdrop                        // DISP
             // : debugModePatternInfo ? modeData.renderLinePatInfo
             : modeData.renderLine;
 
@@ -821,16 +839,8 @@ wmsx.V9990 = function(machine, cpu) {
         return false;
     }
 
-    function renderLineBlanked() {
-        renderLineBorders();
-    }
-
-    function renderLineBorders() {
-        if (backdropCacheUpdatePending) updateBackdropLineCache();
-        frameBackBuffer.set(backdropLineCache, bufferPosition);
-        bufferPosition = bufferPosition + bufferLineAdvance;
-
-        //logInfo("renderLineBorders");
+    function getRealLine() {
+        return (currentScanline - frameStartingActiveScanline /*+ register[23]*/) & 255;
     }
 
     function renderLineStandBy() {
@@ -840,11 +850,92 @@ wmsx.V9990 = function(machine, cpu) {
         //logInfo("renderLineStandBy");
     }
 
-    function getRealLine() {
-        return (currentScanline - frameStartingActiveScanline /*+ register[23]*/) & 255;
+    function renderLineBackdrop() {
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdropLineCache, bufferPosition);
+        bufferPosition = bufferPosition + bufferLineAdvance;
+        //logInfo("renderLineBorders");
+    }
+
+    function renderLineBackdropNoAdvance() {
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdropLineCache, bufferPosition);
     }
 
     function renderLineModeP1() {
+        var buffPos, realLine, lineInPattern, namePosA, namePosB, pattPosBaseA, pattPosBaseB, palOffA, palOffB, name, pattPosBase, pattPixelPos, pixels, v;
+
+        //logInfo("renderLineP1");
+
+        //if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
+        //var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
+
+        // Backdrop
+        renderLineBackdropNoAdvance();
+
+        // Layer B
+        buffPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
+        realLine = (currentScanline - frameStartingActiveScanline + ((register[21] | ((register[22] & 0x01) << 8)))) & 511;
+        lineInPattern = realLine & 0x07;
+        namePosB = 0x7e000 + ((realLine >> 3) << 6 << 1);
+        pattPosBaseB = 0x40000 | (lineInPattern << 7);
+        palOffB = (register[13] & 0x0c) << 2;
+        for (var c = 0; c < 32; ++c) {
+            name = vram[namePosB++] | (vram[namePosB++] << 8);
+            pattPixelPos = pattPosBaseB + ((name >> 5 << 10) | ((name & 0x1f) << 2));
+
+            pixels = vram[pattPixelPos + 0];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOffB | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOffB | v];
+            pixels = vram[pattPixelPos + 1];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOffB | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOffB | v];
+            pixels = vram[pattPixelPos + 2];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOffB | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOffB | v];
+            pixels = vram[pattPixelPos + 3];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOffB | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOffB | v];
+
+            buffPos += 8;
+        }
+
+        // Layer A
+        buffPos -= 256;
+        realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & 511;
+        lineInPattern = realLine & 0x07;
+        namePosA = 0x7c000 + ((realLine >> 3) << 6 << 1);
+        pattPosBaseA = 0x00000 | (lineInPattern << 7);
+        palOffA = (register[13] & 0x03) << 4;
+        for (c = 0; c < 32; ++c) {
+            name = vram[namePosA++] | (vram[namePosA++] << 8);
+            pattPixelPos = pattPosBaseA + ((name >> 5 << 10) | ((name & 0x1f) << 2));
+
+            pixels = vram[pattPixelPos + 0];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOffA | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOffA | v];
+            pixels = vram[pattPixelPos + 1];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOffA | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOffA | v];
+            pixels = vram[pattPixelPos + 2];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOffA | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOffA | v];
+            pixels = vram[pattPixelPos + 3];
+            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOffA | v];
+            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOffA | v];
+
+            buffPos += 8;
+        }
+
+        // Borders
+        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
+
+        if (renderWidth > 500) stretchCurrentLine();
+
+        bufferPosition = bufferPosition + bufferLineAdvance;
+    }
+
+    function renderLineModeP13() {
         //logInfo("renderLineP1");
 
         paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
@@ -903,14 +994,14 @@ wmsx.V9990 = function(machine, cpu) {
         else                  frameBackBuffer[bufferPos] = backdropValue;
     }
 
-    function paintPixelsOld(colorA, palOffA, colorB, palOffB, bufferPos) {
+    function paintPixels2(colorA, palOffA, colorB, palOffB, bufferPos) {
         frameBackBuffer[bufferPos] =
             (colorA) > 0 ? paletteValues[palOffA | (colorA)]
                 : (colorB) > 0 ? paletteValues[palOffB | (colorB)]
                 : backdropValue;
     }
 
-    function renderLineModeP1Old() {
+    function renderLineModeP12() {
         //logInfo("renderLineP1");
 
         paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
@@ -2199,7 +2290,7 @@ wmsx.V9990 = function(machine, cpu) {
         frameStartingActiveScanline = startingActiveScanline;
 
         if (renderMetricsChangePending) updateRenderMetrics(true);
-        else cleanFrameBuffer();
+        // else cleanFrameBuffer();
 
         // Page blinking per frame
         //if (!blinkPerLine && blinkPageDuration > 0) clockPageBlinking();
@@ -2432,7 +2523,7 @@ wmsx.V9990 = function(machine, cpu) {
     modes[0x0a] = { name: "B7*", renderLine: renderLineStandBy };       // Undocumented
 
     var modesOld = wmsx.Util.arrayFill(new Array(0x24),
-                  { name: "NUL", isV9938: true,  layTBase:        0, colorTBase:        0, patTBase:        0, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine:   renderLineBlanked, renderLinePatInfo:       renderLineBlanked, ppb: 0, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true, textCols: 0 });
+                  { name: "NUL", isV9938: true,  layTBase:        0, colorTBase:        0, patTBase:        0, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask:         ~0, blinkPageMask:         ~0, renderLine:   renderLineBackdrop, renderLinePatInfo:       renderLineBackdrop, ppb: 0, spriteMode: 0, tiled: false, vramInter:  null, bdPaletted:  true, textCols: 0 });
 
     modesOld[0x10] = { name:  "T1", isV9938: false, layTBase: -1 << 10, colorTBase:        0, patTBase: -1 << 11, sprAttrTBase:        0, width: 256, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT1, renderLinePatInfo: renderLineModeT1PatInfo, ppb: 0, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true, textCols: 40 };
     modesOld[0x12] = { name:  "T2", isV9938: true,  layTBase: -1 << 12, colorTBase: -1 <<  9, patTBase: -1 << 11, sprAttrTBase:        0, width: 512, layLineBytes:   0, evenPageMask: ~(1 << 15), blinkPageMask:         ~0, renderLine:    renderLineModeT2, renderLinePatInfo: renderLineModeT2PatInfo, ppb: 0, spriteMode: 0, tiled: false, vramInter: false, bdPaletted:  true, textCols: 80 };
