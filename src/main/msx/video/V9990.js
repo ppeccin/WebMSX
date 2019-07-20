@@ -169,7 +169,7 @@ wmsx.V9990 = function(machine, cpu) {
     this.input63 = function() {
         var res = register[registerSelect];
 
-        // logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
+        // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
 
         if (registerSelectReadInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
@@ -178,6 +178,8 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Register Data Write
     this.output63 = function(val) {
+        // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg Write " + registerSelect + " : " + val.toString(16));
+
         registerWrite(registerSelect, val);
         if (registerSelectWriteInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
@@ -188,11 +190,13 @@ wmsx.V9990 = function(machine, cpu) {
         registerSelect = val & 0x3f;
         registerSelectWriteInc = (val & 0x80) === 0;
         registerSelectReadInc =  (val & 0x40) === 0;
+
+        // logInfo("Register Select : " + val.toString(16));
     };
 
     // Status Read
     this.input65 = function() {
-        // logInfo("Status READ = " + status.toString(16));
+        // if (self.D) logInfo("Status READ = " + status.toString(16));
 
         return status;
     };
@@ -206,9 +210,9 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Interrupt Flags Write
     this.output66 = function(val) {
-        // logInfo("Int Flags WRITE : " + val.toString(16));
+        if ((val & 0x07) === 0) return;
 
-        if (val === 0) return;
+        // logInfo("Int Flags WRITE : " + val.toString(16));
 
         interruptFlags &= ~val;
         updateIRQ()
@@ -264,6 +268,7 @@ wmsx.V9990 = function(machine, cpu) {
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
+        dispEnabled = false; dispChangePending = false;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
         verticalIntReached = false; horizontalIntLine = 0;
         vramInterleaving = false;
@@ -354,7 +359,7 @@ wmsx.V9990 = function(machine, cpu) {
                 break;
             case 8:
                 if (mod & 0x80) {                            // DISP
-                    blankingChangePending = true;            // only at next line
+                    dispChangePending = true;                // only detected at VBLANK
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
                 break;
@@ -370,8 +375,18 @@ wmsx.V9990 = function(machine, cpu) {
             case 15:
                 if (mod & 0x3f) updateBackdropColor();      // BDC
                 break;
+            case 17: case 18:
+
+                // logInfo("ScrollYA : " + ((register[18] << 8) | register[17]).toString(16));
+
+                break;
             case 52:
                 logInfo("Command: " + val.toString(16));
+
+                status |= 0x80;
+                interruptFlags |= 0x40;
+                updateIRQ();
+
                 break;
         }
 
@@ -384,7 +399,7 @@ wmsx.V9990 = function(machine, cpu) {
                 //if (mod) logInfo("Register1: " + val.toString(16));
 
                 if (mod & 0x40) {                                        // BL
-                    blankingChangePending = true;      // only at next line
+                    dispChangePending = true;      // only at next line
 
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
@@ -587,11 +602,10 @@ wmsx.V9990 = function(machine, cpu) {
         // Verify and change sections of the screen
         if (currentScanline === startingActiveScanline) {
             status &= ~0x40;                                                                    // VR = 0
+            if (dispChangePending) updateDispEnabled();
             setActiveDisplay();
         } else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
             setBorderDisplay();
-
-        if (blankingChangePending) updateLineActiveType();
     };
 
     this.lineEventRenderLine = function() {
@@ -761,16 +775,23 @@ wmsx.V9990 = function(machine, cpu) {
         renderLine = renderLineBackdrop;
     }
 
+    function updateDispEnabled() {
+        if (dispEnabled !== ((register[8] & 0x80) !== 0)) {
+            dispEnabled = !dispEnabled;
+            updateLineActiveType();
+        }
+        dispChangePending = false;
+    }
+
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
         renderLineActive = modeData.name === "SBY" ? renderLineStandBy              // Stand-by
-            : (register[8] & 0x80) === 0 ? renderLineBackdrop                        // DISP
+            : !dispEnabled ? renderLineBackdrop                                     // DISP, but only detected at VBLANK
             // : debugModePatternInfo ? modeData.renderLinePatInfo
             : modeData.renderLine;
 
         if (wasActive) renderLine = renderLineActive;
-        blankingChangePending = false;
 
         //logInfo("Update Line Active Type: " + renderLineActive.name);
     }
@@ -863,7 +884,7 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function renderLineModeP1() {
-        var buffPos, realLine, lineInPattern, namePosA, namePosB, pattPosBaseA, pattPosBaseB, palOffA, palOffB, name, pattPosBase, pattPixelPos, pixels, v;
+        var buffPos, realLine, lineInPattern, scrollYMask, namePosA, namePosB, pattPosBaseA, pattPosBaseB, palOffA, palOffB, name, pattPosBase, pattPixelPos, pixels, v;
 
         //logInfo("renderLineP1");
 
@@ -873,9 +894,12 @@ wmsx.V9990 = function(machine, cpu) {
         // Backdrop
         renderLineBackdropNoAdvance();
 
+        // Both Layers
+        scrollYMask = (register[18] >> 6) * 256 - 1; if (scrollYMask > 511 || scrollYMask < 0) scrollYMask = 511;
+
         // Layer B
         buffPos = bufferPosition + 8 + horizontalAdjust + rightScrollPixels;
-        realLine = (currentScanline - frameStartingActiveScanline + ((register[21] | ((register[22] & 0x01) << 8)))) & 511;
+        realLine = (currentScanline - frameStartingActiveScanline + ((register[21] | ((register[22] & 0x01) << 8)))) & scrollYMask;
         lineInPattern = realLine & 0x07;
         namePosB = 0x7e000 + ((realLine >> 3) << 6 << 1);
         pattPosBaseB = 0x40000 | (lineInPattern << 7);
@@ -902,7 +926,7 @@ wmsx.V9990 = function(machine, cpu) {
 
         // Layer A
         buffPos -= 256;
-        realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & 511;
+        realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & scrollYMask;
         lineInPattern = realLine & 0x07;
         namePosA = 0x7c000 + ((realLine >> 3) << 6 << 1);
         pattPosBaseA = 0x00000 | (lineInPattern << 7);
@@ -2476,7 +2500,7 @@ wmsx.V9990 = function(machine, cpu) {
     var renderMetricsChangePending, renderWidth, renderHeight;
     var refreshWidth, refreshHeight;
 
-    var blankingChangePending;
+    var dispChangePending = false, dispEnabled = false;
     var backdropCacheUpdatePending;
 
     var spritesEnabled, spritesSize, spritesMag;
