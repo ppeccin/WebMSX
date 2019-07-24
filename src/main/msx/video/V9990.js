@@ -159,6 +159,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Command Data Read
     this.input62 = function() {
+        return 0;
     };
 
     // Command Data Write
@@ -222,6 +223,7 @@ wmsx.V9990 = function(machine, cpu) {
     this.output67 = function(val) {
         var mod = systemControl ^ val;
         systemControl = val;
+
         if (mod & 0x02) {                              // SRS
             logInfo("SOFT RESET: " + ((systemControl & 0x02) ? "ON" : "OFF"));
             if ((systemControl & 0x02) !== 0) self.reset();
@@ -272,7 +274,6 @@ wmsx.V9990 = function(machine, cpu) {
         verticalAdjust = horizontalAdjust = 0;
         backdropColor = backdropValue = 0; backdropCacheUpdatePending = true;
         dispEnabled = false; dispChangePending = false;
-        spritesInvalid = -1; spritesMaxComputed = 0;
         horizontalIntLine = 0;
         vramInterleaving = false;
         renderMetricsChangePending = false;
@@ -285,7 +286,6 @@ wmsx.V9990 = function(machine, cpu) {
         updateSignalMetrics(true);
         updateIRQ();
         updateMode();
-        updateSpritesConfig();
         updateBackdropColor();
         updateTransparency();
         updateSynchronization();
@@ -396,7 +396,7 @@ wmsx.V9990 = function(machine, cpu) {
                 }
                 if (mod & 0x18) updateMode();                            // Mx
                 // if (mod & 0x04) updateBlinking();                        // CDR  (Undocumented, changes reg 13 timing to lines instead of frames)
-                if (mod & 0x03) updateSpritesConfig();                   // SI, MAG
+                // if (mod & 0x03) updateSpritesConfig();                   // SI, MAG
                 break;
             case 10:
                 if ((mod & 0x07) === 0) break;
@@ -436,7 +436,7 @@ wmsx.V9990 = function(machine, cpu) {
                 break;
             case 8:
                 if (mod & 0x20) updateTransparency();                    // TP
-                if (mod & 0x02) updateSpritesConfig();                   // SPD
+                // if (mod & 0x02) updateSpritesConfig();                   // SPD
                 break;
             case 9:
                 if (mod & 0x80) updateSignalMetrics(false);              // LN
@@ -538,7 +538,6 @@ wmsx.V9990 = function(machine, cpu) {
         if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
         initFrameResources(debugModeSpriteHighlight);
         updateLineActiveType();
-        updateSpritesConfig();
         updateSpritePatternTableAddress();
         videoSignal.setDebugMode(debugMode > 0);
     }
@@ -770,14 +769,6 @@ wmsx.V9990 = function(machine, cpu) {
         //logInfo("Update Line Active Type: " + renderLineActive.name);
     }
 
-    function updateSpritesConfig() {
-        spritesEnabled = !debugModeSpritesHidden && (register[8] & 0x02) === 0;        // SPD
-        spritesSize = (register[1] & 0x02) ? 16 : 8;        // SI
-        spritesMag = register[1] & 0x01;                    // MAG
-
-        //logInfo("Sprites enabled: " + spritesEnabled + ", size: " + spritesSize + ", mag: " + spritesMag);
-    }
-
     function updateTransparency() {
         color0Solid = (register[8] & 0x20) !== 0;
         // paletteValues[0] = color0Solid ? paletteValuesSolid[0] : backdropValue;
@@ -909,6 +900,9 @@ wmsx.V9990 = function(machine, cpu) {
             buffPos += 8;
         }
 
+        // Sprites
+        renderSpritesLine(currentScanline - frameStartingActiveScanline, bufferPosition + 8);
+
         // Borders
         paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
 
@@ -917,57 +911,47 @@ wmsx.V9990 = function(machine, cpu) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderLineModeP13() {
-        //logInfo("renderLineP1");
+    function renderSpritesLine(line, bufferPos) {
+        if (debugModeSpritesHidden) return;    // No sprites to show!
 
-        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
+        var palOff, name, lineInPattern, pattern;
+        var drawn = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
+        spritesGlobalPriority -= 125;
 
-        var bufferPos = bufferPosition + 8 + horizontalAdjust;
-        var realLine = getRealLine();
+        var atrPos = 0x3fe00;
+        var pattTableAddress = register[25] << 14;
+        for (var sprite = 0; sprite < 125; ++sprite, atrPos += 4) {
+            info = vram[atrPos + 3];
+            if ((info & 0x10) !== 0) continue;                              // Sprite not shown, PR0 = 1
+            y = vram[atrPos];
+            spriteLine = (line - y - 1) & 255;
+            if (spriteLine >= 16) continue;                                 // Not visible at line
+            if (++drawn > 16)                                               // Max of 16 sprites drawn
+                if (spriteDebugModeLimit) return;
+            x = vram[atrPos + 2] | ((info & 0x03) << 8);
+            if (x > 255 && x < 1024 - 16) continue;                         // Not visible (out to the right, not wrapping)
+            palOff = (info & 0xc0) >> 2;
+            name = debugModeSpriteInfoNumbers ? sprite << 2 : vram[atrPos + 1];
+            pattPixelPos = pattTableAddress + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
 
-        var lineInPattern = /*patternTableAddress +*/ (realLine & 0x07);
-
-        //if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
-        //var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
-
-        var namePosA, namePosB, palOffA, palOffB, name, pattPosA, pattPosB, pixelsA, pixelsB, v;
-
-        namePosA = 0x7c000 + ((realLine >> 3) << 6 << 1);
-        palOffA = (register[13] & 0x03) << 4;
-
-        namePosB = 0x7e000 + ((realLine >> 3) << 6 << 1);
-        palOffB = (register[13] & 0x0c) << 2;
-
-        for (var c = 0; c < 32; ++c) {
-            name = vram[namePosA++] | (vram[namePosA++] << 8);
-            pattPosA = 0x00000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2);
-            name = vram[namePosB++] | (vram[namePosB++] << 8);
-            pattPosB = 0x40000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2);
-
-            pixelsA = vram[pattPosA + 0]; pixelsB = vram[pattPosB + 0];
-            paintPixels(pixelsA >> 4,   palOffA, pixelsB >> 4,   palOffB, bufferPos + 0);
-            paintPixels(pixelsA & 0x0f, palOffA, pixelsB & 0x0f, palOffB, bufferPos + 1);
-
-            pixelsA = vram[pattPosA + 1]; pixelsB = vram[pattPosB + 1];
-            paintPixels(pixelsA >> 4,   palOffA, pixelsB >> 4,   palOffB, bufferPos + 2);
-            paintPixels(pixelsA & 0x0f, palOffA, pixelsB & 0x0f, palOffB, bufferPos + 3);
-
-            pixelsA = vram[pattPosA + 2]; pixelsB = vram[pattPosB + 2];
-            paintPixels(pixelsA >> 4,   palOffA, pixelsB >> 4,   palOffB, bufferPos + 4);
-            paintPixels(pixelsA & 0x0f, palOffA, pixelsB & 0x0f, palOffB, bufferPos + 5);
-
-            pixelsA = vram[pattPosA + 3]; pixelsB = vram[pattPosB + 3];
-            paintPixels(pixelsA >> 4,   palOffA, pixelsB >> 4,   palOffB, bufferPos + 6);
-            paintPixels(pixelsA & 0x0f, palOffA, pixelsB & 0x0f, palOffB, bufferPos + 7);
-
-            bufferPos += 8;
+            s = x <= 1024 - 16 ? 0 : x - (1024 - 16);
+            f = x <= 256 - 16 ? 16 : 256 - x;
+            if (x > 255) x = 0;
+            paintSprite(x, bufferPos, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f, (s & 1) === 0);
         }
+    }
 
-        bufferPos -= 256;
-
-        if (renderWidth > 500) stretchCurrentLine();
-
-        bufferPosition = bufferPosition + bufferLineAdvance;
+    function paintSprite(x, bufferPos, spritePri, pattPixelPos, palOff, start, finish, odd) {
+        var c = 0;
+        for (var i = start; i < finish; ++i, ++x) {
+            if (odd) c = vram[pattPixelPos + (i >> 1)] >> 4;
+            else     c = vram[pattPixelPos + (i >> 1)] & 0x0f;
+            odd = !odd;
+            if (c === 0) continue;                                                          // Transparent pixel, ignore
+            if (spritesLinePriorities[x] < spritePri) continue;                             // Higher priority sprite already there
+            spritesLinePriorities[x] = spritePri;                                           // Register new priority
+            frameBackBuffer[bufferPos + x] = paletteValuesReal[palOff | c];                 // Paint
+        }
     }
 
     function paintPixels(colorA, palOffA, colorB, palOffB, bufferPos) {
@@ -981,80 +965,6 @@ wmsx.V9990 = function(machine, cpu) {
             (colorA) > 0 ? paletteValues[palOffA | (colorA)]
                 : (colorB) > 0 ? paletteValues[palOffB | (colorB)]
                 : backdropValue;
-    }
-
-    function renderLineModeP12() {
-        //logInfo("renderLineP1");
-
-        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
-
-        var bufferPos = bufferPosition + 8 + horizontalAdjust;
-        var realLine = getRealLine();
-
-        var lineInPattern = /*patternTableAddress +*/ (realLine & 0x07);
-
-        //if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
-        //var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
-
-        var namePosA, namePosB, palOffA, palOffB, name, pattPixelPos, pixels, v;
-
-        namePosA = 0x7c000 + ((realLine >> 3) << 6 << 1);
-        palOffA = (register[13] & 0x03) << 4;
-
-        namePosB = 0x7e000 + ((realLine >> 3) << 6 << 1);
-        palOffB = (register[13] & 0x0c) << 2;
-
-        for (var c = 0; c < 32; ++c) {
-            // Layer A
-            name = vram[namePosA++] | (vram[namePosA++] << 8);
-            pattPixelPos = 0x00000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2);
-            pixels = vram[pattPixelPos + 0];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[bufferPos + 0] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[bufferPos + 1] = paletteValues[palOffA | v];
-            pixels = vram[pattPixelPos + 1];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[bufferPos + 2] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[bufferPos + 3] = paletteValues[palOffA | v];
-            pixels = vram[pattPixelPos + 2];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[bufferPos + 4] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[bufferPos + 5] = paletteValues[palOffA | v];
-            pixels = vram[pattPixelPos + 3];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[bufferPos + 6] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[bufferPos + 7] = paletteValues[palOffA | v];
-
-            // Layer B
-            name = vram[namePosB++] | (vram[namePosB++] << 8);
-            pattPixelPos = 0x40000 + (name >> 5 << 10) | (lineInPattern << 7) | ((name & 0x1f) << 2);
-            pixels = vram[pattPixelPos + 0];
-            v = pixels >> 4;   if (v > 0 && frameBackBuffer[bufferPos + 0] === notPaintedValue) frameBackBuffer[bufferPos + 0] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0 && frameBackBuffer[bufferPos + 1] === notPaintedValue) frameBackBuffer[bufferPos + 1] = paletteValues[palOffB | v];
-            pixels = vram[pattPixelPos + 1];
-            v = pixels >> 4;   if (v > 0 && frameBackBuffer[bufferPos + 2] === notPaintedValue) frameBackBuffer[bufferPos + 2] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0 && frameBackBuffer[bufferPos + 3] === notPaintedValue) frameBackBuffer[bufferPos + 3] = paletteValues[palOffB | v];
-            pixels = vram[pattPixelPos + 2];
-            v = pixels >> 4;   if (v > 0 && frameBackBuffer[bufferPos + 4] === notPaintedValue) frameBackBuffer[bufferPos + 4] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0 && frameBackBuffer[bufferPos + 5] === notPaintedValue) frameBackBuffer[bufferPos + 5] = paletteValues[palOffB | v];
-            pixels = vram[pattPixelPos + 3];
-            v = pixels >> 4;   if (v > 0 && frameBackBuffer[bufferPos + 6] === notPaintedValue) frameBackBuffer[bufferPos + 6] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0 && frameBackBuffer[bufferPos + 7] === notPaintedValue) frameBackBuffer[bufferPos + 7] = paletteValues[palOffB | v];
-
-            // Backdrop
-            if (frameBackBuffer[bufferPos + 0] === notPaintedValue) frameBackBuffer[bufferPos + 0] = backdropValue;
-            if (frameBackBuffer[bufferPos + 1] === notPaintedValue) frameBackBuffer[bufferPos + 1] = backdropValue;
-            if (frameBackBuffer[bufferPos + 2] === notPaintedValue) frameBackBuffer[bufferPos + 2] = backdropValue;
-            if (frameBackBuffer[bufferPos + 3] === notPaintedValue) frameBackBuffer[bufferPos + 3] = backdropValue;
-            if (frameBackBuffer[bufferPos + 4] === notPaintedValue) frameBackBuffer[bufferPos + 4] = backdropValue;
-            if (frameBackBuffer[bufferPos + 5] === notPaintedValue) frameBackBuffer[bufferPos + 5] = backdropValue;
-            if (frameBackBuffer[bufferPos + 6] === notPaintedValue) frameBackBuffer[bufferPos + 6] = backdropValue;
-            if (frameBackBuffer[bufferPos + 7] === notPaintedValue) frameBackBuffer[bufferPos + 7] = backdropValue;
-
-            bufferPos += 8;
-        }
-
-        bufferPos -= 256;
-
-        if (renderWidth > 500) stretchCurrentLine();
-
-        bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
     function stretchCurrentLine() {
@@ -1223,7 +1133,6 @@ wmsx.V9990 = function(machine, cpu) {
 
     function initSpritesConflictMap() {
         wmsx.Util.arrayFill(spritesLinePriorities, SPRITE_MAX_PRIORITY);
-        wmsx.Util.arrayFill(spritesLineColors, 0);
         spritesGlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets and lasts for years!
     }
 
@@ -1290,19 +1199,13 @@ wmsx.V9990 = function(machine, cpu) {
 
     var dispChangePending = false, dispEnabled = false;
 
-    var spritesEnabled = false, spritesSize, spritesMag;
-    var spritesMaxComputed = 0, spritesInvalid = -1;
-    var spritesLinePriorities = new Array(256);
-    var spritesLineColors = new Array(256);
+    var spritesLinePriorities = new Array(512);
     var spritesGlobalPriority = SPRITE_MAX_PRIORITY;
 
     var backdropColor = 0;
     var backdropCacheUpdatePending = true;
 
     var verticalAdjust = 0, horizontalAdjust = 0;
-
-    var spriteAttrTableAddress;
-    var spritePatternTableAddress;
 
     var modes = {};
 
@@ -1365,7 +1268,6 @@ wmsx.V9990 = function(machine, cpu) {
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
             vp: vramPointerWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
-            si: spritesInvalid, sm: spritesMaxComputed,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
             p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteRAM),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
@@ -1389,7 +1291,6 @@ wmsx.V9990 = function(machine, cpu) {
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
         vramPointerWrite = s.vp;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
-        spritesInvalid = s.si; spritesMaxComputed = s.sm;
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, oldStatus);
@@ -1398,7 +1299,6 @@ wmsx.V9990 = function(machine, cpu) {
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
         updateIRQ();
         updateMode();
-        updateSpritesConfig();
         debugAdjustPalette();
         updateBackdropColor();
         updateTransparency();
