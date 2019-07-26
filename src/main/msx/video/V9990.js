@@ -17,7 +17,6 @@ wmsx.V9990 = function(machine, cpu) {
         initDebugPatternTables();
         initSpritesConflictMap();
         modeData = modes[-1];
-        backdropCacheUpdatePending = true;
         self.setDefaults();
         commandProcessor = new wmsx.VDPCommandProcessor();
         commandProcessor.connectVDP(self, vram, register, oldStatus);
@@ -92,18 +91,6 @@ wmsx.V9990 = function(machine, cpu) {
 
     this.getVideoSignal = function() {
         return videoSignal;
-    };
-
-    this.getDesiredVideoPulldown = function () {
-        return pulldown;
-    };
-
-    this.videoClockPulse = function() {
-        // Generate correct amount of lines per cycle, according to the current pulldown cadence
-        cycleEvents();
-
-        // Send updated image to Monitor if needed
-        if (refreshWidth) refresh();
     };
 
     // VRAM Data Read
@@ -181,7 +168,7 @@ wmsx.V9990 = function(machine, cpu) {
     this.output63 = function(val) {
         // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg Write " + registerSelect + " : " + val.toString(16));
 
-        registerWrite(registerSelect, val);
+        if (registerSelect < 53) registerWrite(registerSelect, val);
         if (registerSelectWriteInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
     };
@@ -234,24 +221,6 @@ wmsx.V9990 = function(machine, cpu) {
         }
     };
 
-    this.toggleDebugModes = function(dec) {
-        setDebugMode(debugMode + (dec ? -1 : 1));
-        videoSignal.showOSD("Debug Mode" + (debugMode > 0 ? " " + debugMode : "") + ": "
-            + [ "OFF", "Sprites Highlighted", "Sprite Numbers", "Sprite Names",
-                "Sprites Hidden", "Pattern Bits", "Pattern Color Blocks", "Pattern Names"][debugMode], true);
-        return debugMode;
-    };
-
-    this.toggleSpriteDebugModes = function(dec) {
-        setSpriteDebugMode(spriteDebugMode + (dec ? -1 : 1));
-        videoSignal.showOSD("Sprites Mode" + (spriteDebugMode > 0 ? " " + spriteDebugMode : "") + ": "
-            + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
-    };
-
-    this.getSpriteDebugModeQuickDesc = function() {
-        return ["Normal", "Unlimited", "No Collis.", "Both"][spriteDebugMode];
-    };
-
     this.setVDPTurboMulti = function(multi) {
         commandProcessor.setVDPTurboMulti(multi);
     };
@@ -261,8 +230,8 @@ wmsx.V9990 = function(machine, cpu) {
     };
 
     this.setDefaults = function() {
-        setDebugMode(STARTING_DEBUG_MODE);
-        setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
+        self.setDebugMode(STARTING_DEBUG_MODE);
+        self.setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
     this.reset = function() {
@@ -288,7 +257,6 @@ wmsx.V9990 = function(machine, cpu) {
         updateIRQ();
         updateMode();
         updateBackdropColor();
-        updateTransparency();
         updateSynchronization();
         beginFrame();
     };
@@ -327,8 +295,6 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function registerWrite(reg, val) {
-        if (reg > 54) return;
-
         var add;
         var mod = register[reg] ^ val;
         register[reg] = val;
@@ -436,7 +402,7 @@ wmsx.V9990 = function(machine, cpu) {
                 if (mod & (modeData.bdPaletted ? 0x0f : 0xff)) updateBackdropColor();  // BD
                 break;
             case 8:
-                if (mod & 0x20) updateTransparency();                    // TP
+                //if (mod & 0x20) updateTransparency();                    // TP
                 // if (mod & 0x02) updateSpritesConfig();                   // SPD
                 break;
             case 9:
@@ -510,7 +476,7 @@ wmsx.V9990 = function(machine, cpu) {
 
         var index = entry << 2;
         var r = paletteRAM[index];
-        var value = r & 0x80 ? superImposeValue : 0xff000000        // YS
+        var value = (r & 0x80) ? superImposeValue : 0xff000000        // YS
             | (color5to8bits[paletteRAM[index + 2]]) << 16
             | (color5to8bits[paletteRAM[index + 1]]) << 8
             | color5to8bits[r & 0x1f];
@@ -524,7 +490,7 @@ wmsx.V9990 = function(machine, cpu) {
         else if (entry !== 0) paletteValues[entry] = value;
     }
 
-    function setDebugMode(mode) {
+    this.setDebugMode = function (mode) {
         debugMode = (mode + 8) % 8;
         var oldDebugModeSpriteHighlight = debugModeSpriteHighlight;
         debugModeSpriteHighlight = debugMode >= 1 && debugMode <= 3;
@@ -540,17 +506,15 @@ wmsx.V9990 = function(machine, cpu) {
         initFrameResources(debugModeSpriteHighlight);
         updateLineActiveType();
         updateSpritePatternTableAddress();
-        videoSignal.setDebugMode(debugMode > 0);
-    }
+    };
 
-    function setSpriteDebugMode(mode) {
+    this.setSpriteDebugMode = function(mode) {
         spriteDebugMode = mode >= 0 ? mode % 4 : 4 + mode;
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
-        spriteDebugModeCollisions = spriteDebugMode < 2;
-    }
+    };
 
     function debugAdjustPalette() {
-        for (var entry = 0; entry < 16; entry++) updatePaletteValue(entry);
+        for (var entry = 0; entry < 64; entry++) updatePaletteValue(entry);
     }
 
     function updateSynchronization() {
@@ -770,13 +734,6 @@ wmsx.V9990 = function(machine, cpu) {
         //logInfo("Update Line Active Type: " + renderLineActive.name);
     }
 
-    function updateTransparency() {
-        color0Solid = (register[8] & 0x20) !== 0;
-        // paletteValues[0] = color0Solid ? paletteValuesSolid[0] : backdropValue;
-
-        //console.log("TP: " + color0Solid + ", currentLine: " + currentScanline);
-    }
-
     function updateBackdropColor() {
         backdropColor = register[15] & 0x3f;
 
@@ -803,10 +760,6 @@ wmsx.V9990 = function(machine, cpu) {
         backdropCacheUpdatePending = false;
 
         //console.log("Update BackdropCaches");
-    }
-
-    function getRealLine() {
-        return (currentScanline - frameStartingActiveScanline /*+ register[23]*/) & 255;
     }
 
     function renderLineStandBy() {
@@ -1239,12 +1192,11 @@ wmsx.V9990 = function(machine, cpu) {
     var superImposeValue = 0x80e030e0;
     var backdropValue =    0x00000000;
 
-    var color2to8bits = [ 0, 90, 172, 255 ];                        // 4 bit B values for 2 bit B colors
-    var color3to8bits = [ 0, 32, 74, 106, 148, 180, 222, 255 ];     // 4 bit R,G values for 3 bit R,G colors
-    var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];    // 4 bit R,G,B values for 5 bit R,G,B colors
+    var color2to8bits = [ 0, 90, 172, 255 ];                        // 8 bit B values for 2 bit B colors
+    var color3to8bits = [ 0, 32, 74, 106, 148, 180, 222, 255 ];     // 8 bit R,G values for 3 bit R,G colors
+    var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];    // 8 bit R,G,B values for 5 bit R,G,B colors
     var colors256Values = new Uint32Array(256);                     // 32 bit ABGR values for 8 bit BGR colors
 
-    var color0Solid = false;
     var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with transparency (backdropValue) pre-computed in position 0, dimmed when in debug
     var paletteValuesReal =  new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
 
@@ -1257,7 +1209,6 @@ wmsx.V9990 = function(machine, cpu) {
 
     var spriteDebugMode = 0;
     var spriteDebugModeLimit = true;
-    var spriteDebugModeCollisions = true;
 
     var debugBackdropValue    = 0xff2a2a2a;
 
@@ -1312,12 +1263,11 @@ wmsx.V9990 = function(machine, cpu) {
         updateMode();
         debugAdjustPalette();
         updateBackdropColor();
-        updateTransparency();
         updateRenderMetrics(true);
 
         // Extended
-        if (s.dm !== undefined) setDebugMode(s.dm);
-        if (s.sd !== undefined) setSpriteDebugMode(s.sd);
+        if (s.dm !== undefined) self.setDebugMode(s.dm);
+        if (s.sd !== undefined) self.setSpriteDebugMode(s.sd);
     };
 
 
@@ -1350,4 +1300,3 @@ wmsx.V9990.VRAM_LIMIT = 0x7ffff;      // 512K
 
 wmsx.V9990.SIGNAL_MAX_WIDTH =   512 + 16 * 2;
 wmsx.V9990.SIGNAL_MAX_HEIGHT = (212 + 8 * 2) * 2;
-

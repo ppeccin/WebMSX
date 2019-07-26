@@ -546,6 +546,9 @@ wmsx.VDP = function(machine, cpu) {
         updateLineActiveType();
         updateSpritesConfig();
         updateSpritePatternTableAddress();
+
+        if (slave) slave.setDebugMode(debugMode);
+
         videoSignal.setDebugMode(debugMode > 0);
     }
 
@@ -553,6 +556,8 @@ wmsx.VDP = function(machine, cpu) {
         spriteDebugMode = mode >= 0 ? mode % 4 : 4 + mode;
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
         spriteDebugModeCollisions = spriteDebugMode < 2;
+
+        if (slave) slave.setSpriteDebugMode(spriteDebugMode);
     }
 
     function debugAdjustPalette() {
