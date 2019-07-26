@@ -280,6 +280,7 @@ wmsx.V9990 = function(machine, cpu) {
         refreshWidth = refreshHeight = 0;
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         currentScanline = -1;
+        initVRAM();
         initRegisters();
         initColorPalette();
         commandProcessor.reset();
@@ -873,6 +874,9 @@ wmsx.V9990 = function(machine, cpu) {
             buffPos += 8;
         }
 
+        //// Sprites
+        //renderSpritesLine(currentScanline - frameStartingActiveScanline, bufferPosition + 8);
+
         // Layer A
         buffPos -= 256;
         realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & scrollYMask;
@@ -1057,6 +1061,13 @@ wmsx.V9990 = function(machine, cpu) {
 
     function refreshDisplayMetrics() {
         videoSignal.setDisplayMetrics(wmsx.V9990.SIGNAL_MAX_WIDTH, wmsx.V9990.SIGNAL_MAX_HEIGHT);
+    }
+
+    function initVRAM() {
+        for(var i = 0; i < VRAM_SIZE; i += 1024) {
+            wmsx.Util.arrayFill(vram, 0x00, i, i + 512);
+            wmsx.Util.arrayFill(vram, 0xff, i + 512, i + 1024);
+        }
     }
 
     function initRegisters() {

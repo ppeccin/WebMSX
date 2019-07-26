@@ -46,6 +46,10 @@ wmsx.SlotRAMMapper = function(rom) {
         machine.bus.disconnectOutputDevice(0xff, this.outputFF);
     };
 
+    this.powerOn = function() {
+        this.reset();
+    };
+
     this.powerOff = function() {
         // Lose content
         wmsx.Util.arrayFill(bytes, 0x00);

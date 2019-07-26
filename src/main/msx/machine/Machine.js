@@ -195,7 +195,7 @@ wmsx.Machine = function() {
         videoStandardSoft = pVideoStandard;
         if (videoStandardIsAuto && videoStandard !== pVideoStandard) setVideoStandard(pVideoStandard, false, true);     // force OSD
         else if (!videoStandardIsAuto && videoStandard !== pVideoStandard)
-                self.showOSD("Cannot change Video Standard. Its FORCED: " + videoStandard.desc, true, true);
+                self.showOSD("Cannot soft-change Video Standard. It's FORCED: " + videoStandard.desc, true, true);
     };
 
     this.setBIOS = function(pBIOS) {                    // Called by SlotBIOS on connection
