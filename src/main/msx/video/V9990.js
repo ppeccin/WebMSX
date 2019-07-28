@@ -787,7 +787,8 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function renderLineModeP1() {
-        var buffPos, realLine, lineInPattern, scrollYMask, namePosA, namePosB, pattPosBaseA, pattPosBaseB, palOffA, palOffB, name, pattPosBase, pattPixelPos, pixels, v;
+        var buffPos, realLine, lineInPattern, scrollYMask;
+        var namePosA, namePosB, pattPosBaseA, pattPosBaseB, palOffA, palOffB, name, pattPosBase, pattPixelPos, pixels, v;
 
         //logInfo("renderLineP1");
 
@@ -798,9 +799,9 @@ wmsx.V9990 = function(machine, cpu) {
         renderLineBackdropNoAdvance();
 
         // Both Layers
-        scrollYMask = (register[18] >> 6) * 256 - 1; if (scrollYMask > 511 || scrollYMask < 0) scrollYMask = 511;
+        scrollYMask = (register[18] & 0x80) ? 511 : 255;
 
-        // Layer B
+        // Plane B
         buffPos = bufferPosition + 8 + horizontalAdjust;
         realLine = (currentScanline - frameStartingActiveScanline + ((register[21] | ((register[22] & 0x01) << 8)))) & scrollYMask;
         lineInPattern = realLine & 0x07;
@@ -827,10 +828,10 @@ wmsx.V9990 = function(machine, cpu) {
             buffPos += 8;
         }
 
-        //// Sprites
-        //renderSpritesLine(currentScanline - frameStartingActiveScanline, bufferPosition + 8);
+        // Sprites A > SP > B, PR1 = 1 (0x20)
+        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, bufferPosition + 8);
 
-        // Layer A
+        // Plane A
         buffPos -= 256;
         realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & scrollYMask;
         lineInPattern = realLine & 0x07;
@@ -857,8 +858,8 @@ wmsx.V9990 = function(machine, cpu) {
             buffPos += 8;
         }
 
-        // Sprites
-        renderSpritesLine(currentScanline - frameStartingActiveScanline, bufferPosition + 8);
+        // Sprites SP > A > B, PR1 = 0
+        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, bufferPosition + 8);
 
         // Borders
         paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
@@ -868,42 +869,49 @@ wmsx.V9990 = function(machine, cpu) {
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
 
-    function renderSpritesLine(line, bufferPos) {
-        if (debugModeSpritesHidden) return;    // No sprites to show!
-
+    function renderSpritesLine(line, pr1, bufferPos) {
         var palOff, name, lineInPattern, pattern;
-        var drawn = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
+        var info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
+
         spritesGlobalPriority -= 125;
 
+        var limit = 16;
         var atrPos = 0x3fe00;
         var pattTableAddress = register[25] << 14;
+
         for (var sprite = 0; sprite < 125; ++sprite, atrPos += 4) {
             info = vram[atrPos + 3];
-            if ((info & 0x10) !== 0) continue;                              // Sprite not shown, PR0 = 1
+            if (info & 0x10) continue;                                      // PR0 = 1 : Sprite not shown
+
             y = vram[atrPos];
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= 16) continue;                                 // Not visible at line
-            if (++drawn > 16)                                               // Max of 16 sprites drawn
-                if (spriteDebugModeLimit) return;
-            x = vram[atrPos + 2] | ((info & 0x03) << 8);
-            if (x > 255 && x < 1024 - 16) continue;                         // Not visible (out to the right, not wrapping)
-            palOff = (info & 0xc0) >> 2;
-            name = debugModeSpriteInfoNumbers ? sprite << 2 : vram[atrPos + 1];
-            pattPixelPos = pattTableAddress + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
 
-            s = x <= 1024 - 16 ? 0 : x - (1024 - 16);
-            f = x <= 256 - 16 ? 16 : 256 - x;
-            if (x > 255) x = 0;
-            paintSprite(x, bufferPos, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f, (s & 1) === 0);
+            --limit;                                                        // Sprite already counts towards limit
+
+            if ((info & 0x20) === pr1) {                                    // PR1 === asked?
+                x = vram[atrPos + 2] | ((info & 0x03) << 8);
+                if (x <= 255 || x >= 1024 - 16) {                           // Only if not out to the right, or wrapping
+                    palOff = (info & 0xc0) >> 2;
+                    name = debugModeSpriteInfoNumbers ? sprite << 2 : vram[atrPos + 1];
+                    pattPixelPos = pattTableAddress + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
+
+                    s = x <= 1024 - 16 ? 0 : x - (1024 - 16);
+                    f = x <= 256 - 16 ? 16 : 256 - x;
+                    if (x > 255) x = 0;
+                    paintSprite(x, bufferPos, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f);
+                }
+            }
+
+            if (limit <= 0 && spriteDebugModeLimit) break;                  // Max number of sprites per line reached
         }
     }
 
-    function paintSprite(x, bufferPos, spritePri, pattPixelPos, palOff, start, finish, odd) {
+    function paintSprite(x, bufferPos, spritePri, pattPixelPos, palOff, start, finish) {
         var c = 0;
         for (var i = start; i < finish; ++i, ++x) {
-            if (odd) c = vram[pattPixelPos + (i >> 1)] >> 4;
-            else     c = vram[pattPixelPos + (i >> 1)] & 0x0f;
-            odd = !odd;
+            if (i & 1) c = vram[pattPixelPos + (i >> 1)] & 0x0f;
+            else       c = vram[pattPixelPos + (i >> 1)] >> 4;
             if (c === 0) continue;                                                          // Transparent pixel, ignore
             if (spritesLinePriorities[x] < spritePri) continue;                             // Higher priority sprite already there
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
@@ -1280,7 +1288,7 @@ wmsx.V9990 = function(machine, cpu) {
             // + ". Frame: " + frame
             + ", currentScanLine: " + currentScanline
             + ", activeRenderScanline: " + (currentScanline - frameStartingActiveScanline)
-            + ", activeHeigh: " + signalActiveHeight
+            // + ", activeHeigh: " + signalActiveHeight
             // + ", x: " + ((vdpLineCycles - 258) / 4) + ", vdpCycle:" + vdpLineCycles + ", cpuCycle: " + busLineCycles
         );
     }
