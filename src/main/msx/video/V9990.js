@@ -15,7 +15,6 @@ wmsx.V9990 = function(machine, cpu) {
         initFrameResources(false);
         initColorCaches();
         initDebugPatternTables();
-        initSpritesConflictMap();
         modeData = modes[-1];
         self.setDefaults();
         commandProcessor = new wmsx.VDPCommandProcessor();
@@ -462,6 +461,7 @@ wmsx.V9990 = function(machine, cpu) {
                 break;
         }
     }
+    this.registerWrite = registerWrite;
 
     function updateSpritePatternTableAddress() {
         // spritePatternTableAddress = debugModeSpriteInfo
@@ -671,10 +671,9 @@ wmsx.V9990 = function(machine, cpu) {
     function updateRenderMetrics(force) {
         var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false;
 
-        if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }   // Mode
-        else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
-        if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
-        else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
+        newRenderWidth = modeData.width + modeData.borderWidth * 2; newPixelWidth = modeData.pixelWidth;    // Mode
+        newRenderHeight = modeData.height + 8 * 2; newPixelHeight = 2;
+        //if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
 
         renderMetricsChangePending = false;
 
@@ -786,99 +785,163 @@ wmsx.V9990 = function(machine, cpu) {
         frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
     }
 
+    function paintBackdrop16(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+    }
+
     function renderLineModeP1() {
-        var buffPos, realLine, lineInPattern, scrollYMask;
-        var namePosA, namePosB, pattPosBaseA, pattPosBaseB, palOffA, palOffB, name, pattPosBase, pattPixelPos, pixels, v;
+        var buffPos, realLine, lineInPattern, imgMaxY, scrollX;
+        var namePosBase, namePos, pattPosBase, palOff, name, pattPixelPos, pixels, v;
 
         //logInfo("renderLineP1");
 
-        //if (leftScroll2Pages && leftScrollChars < 32) namePos &= modeData.evenPageMask;     // Start at even page
+        //if (leftScroll2Pages && leftScrollChars < 32) namePosBase &= modeData.evenPageMask;     // Start at even page
         //var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         // Backdrop
         renderLineBackdropNoAdvance();
 
-        // Both Layers
-        scrollYMask = (register[18] & 0x80) ? 511 : 255;
+        // Both Planes
+        imgMaxY = (register[18] & 0x80) ? 511 : 255;
 
         // Plane B
-        buffPos = bufferPosition + 8 + horizontalAdjust;
-        realLine = (currentScanline - frameStartingActiveScanline + ((register[21] | ((register[22] & 0x01) << 8)))) & scrollYMask;
-        lineInPattern = realLine & 0x07;
-        namePosB = 0x7e000 + ((realLine >> 3) << 6 << 1);
-        pattPosBaseB = 0x40000 | (lineInPattern << 7);
-        palOffB = (register[13] & 0x0c) << 2;
-        for (var c = 0; c < 32; ++c) {
-            name = vram[namePosB++] | (vram[namePosB++] << 8);
-            pattPixelPos = pattPosBaseB + ((name >> 5 << 10) | ((name & 0x1f) << 2));
+        if ((register[22] & 0x40) === 0) {                                                  // Plane B enabled? (undocumented)
+            scrollX = (register[23] | (register[24] << 3)) & 511;                           // Image max X = 511
+            buffPos = bufferPosition + 8 + horizontalAdjust - (scrollX & 7);
+            realLine = (currentScanline - frameStartingActiveScanline + ((register[21] | ((register[22] & 0x01) << 8)))) & imgMaxY;
+            lineInPattern = realLine & 7;
+            namePosBase = 0x7e000 + ((realLine >> 3) << 6 << 1);
+            namePos = scrollX >> 3 << 1;
+            pattPosBase = 0x40000 | (lineInPattern << 7);
+            palOff = (register[13] & 0x0c) << 2;
+            for (var c = (scrollX & 7) ? 33 : 32; c > 0; --c, namePos = (namePos + 2) & 0x7f) {
+                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
+                pattPixelPos = pattPosBase + ((name >> 5 << 10) | ((name & 0x1f) << 2));
 
-            pixels = vram[pattPixelPos + 0];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOffB | v];
-            pixels = vram[pattPixelPos + 1];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOffB | v];
-            pixels = vram[pattPixelPos + 2];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOffB | v];
-            pixels = vram[pattPixelPos + 3];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOffB | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOffB | v];
+                pixels = vram[pattPixelPos + 0];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 1];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 2];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 3];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOff | v];
 
-            buffPos += 8;
+                buffPos += 8;
+            }
+
+            // Sprites A > SP > B, PR1 = 1 (0x20)
+            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 256, 0x3fe00, register[25] >> 1 << 15, bufferPosition + 8);
         }
-
-        // Sprites A > SP > B, PR1 = 1 (0x20)
-        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, bufferPosition + 8);
 
         // Plane A
-        buffPos -= 256;
-        realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & scrollYMask;
-        lineInPattern = realLine & 0x07;
-        namePosA = 0x7c000 + ((realLine >> 3) << 6 << 1);
-        pattPosBaseA = 0x00000 | (lineInPattern << 7);
-        palOffA = (register[13] & 0x03) << 4;
-        for (c = 0; c < 32; ++c) {
-            name = vram[namePosA++] | (vram[namePosA++] << 8);
-            pattPixelPos = pattPosBaseA + ((name >> 5 << 10) | ((name & 0x1f) << 2));
+        if ((register[22] & 0x80) === 0) {                                                  // Plane A enabled? (undocumented)
+            scrollX = (register[19] | (register[20] << 3)) & 511;                           // Image max X = 511
+            buffPos = bufferPosition + 8 + horizontalAdjust - (scrollX & 7);
+            realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & imgMaxY;
+            lineInPattern = realLine & 7;
+            namePosBase = 0x7c000 + ((realLine >> 3) << 6 << 1);
+            namePos = scrollX >> 3 << 1;
+            pattPosBase = 0x00000 | (lineInPattern << 7);
+            palOff = (register[13] & 0x03) << 4;
+            for (c = (scrollX & 7) ? 33 : 32; c > 0; --c, namePos = (namePos + 2) & 0x7f) {
+                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
+                pattPixelPos = pattPosBase + ((name >> 5 << 10) | ((name & 0x1f) << 2));
 
-            pixels = vram[pattPixelPos + 0];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOffA | v];
-            pixels = vram[pattPixelPos + 1];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOffA | v];
-            pixels = vram[pattPixelPos + 2];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOffA | v];
-            pixels = vram[pattPixelPos + 3];
-            v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOffA | v];
-            v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOffA | v];
+                pixels = vram[pattPixelPos + 0];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 1];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 2];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 3];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOff | v];
 
-            buffPos += 8;
+                buffPos += 8;
+            }
+
+            // Sprites SP > A > B, PR1 = 0
+            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 256, 0x3fe00, register[25] >> 1 << 15, bufferPosition + 8);
         }
-
-        // Sprites SP > A > B, PR1 = 0
-        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, bufferPosition + 8);
 
         // Borders
         paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
 
         if (renderWidth > 500) stretchCurrentLine();
 
-        bufferPosition = bufferPosition + bufferLineAdvance;
+        bufferPosition += bufferLineAdvance;
     }
 
-    function renderSpritesLine(line, pr1, bufferPos) {
-        var palOff, name, lineInPattern, pattern;
-        var info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
+    function renderLineModeP2() {
+        var buffPos, realLine, lineInPattern, imgMaxY, scrollX;
+        var namePosBase, namePos, pattPosBase, palOff, name, pattPixelPos, pixels, v;
 
-        spritesGlobalPriority -= 125;
+        //logInfo("renderLineP2");
+
+        // Backdrop
+        renderLineBackdropNoAdvance();
+
+        // Sprites Plane > SP, PR1 = 1 (0x20)
+        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00, register[25] << 15, bufferPosition + 16);
+
+        // Plane
+        if ((register[22] & 0x80) === 0) {                                                  // Plane enabled? (undocumented)
+            scrollX = (register[19] | (register[20] << 3)) & 1023;                          // Image max X = 1023
+            buffPos = bufferPosition + 16 + (horizontalAdjust << 1) - (scrollX & 7);
+            imgMaxY = (register[18] & 0x80) ? 511 : 255;
+            realLine = (currentScanline - frameStartingActiveScanline + ((register[17] | ((register[18] & 0x1f) << 8)))) & imgMaxY;
+            lineInPattern = realLine & 7;
+            namePosBase = 0x7c000 + ((realLine >> 3) << 7 << 1);
+            namePos = scrollX >> 3 << 1;
+            pattPosBase = 0x00000 | (lineInPattern << 8);
+            palOff = (register[13] & 0x03) << 4;
+            for (var c = (scrollX & 7) ? 65 : 64; c > 0; --c, namePos = (namePos + 2) & 0xff) {
+                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
+                pattPixelPos = pattPosBase + ((name >> 6 << 11) | ((name & 0x3f) << 2));
+
+                pixels = vram[pattPixelPos + 0];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 1];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 2];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[palOff | v];
+                pixels = vram[pattPixelPos + 3];
+                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[palOff | v];
+                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[palOff | v];
+
+                buffPos += 8;
+            }
+
+            // Sprites SP > Plane, PR1 = 0
+            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00, register[25] << 15, bufferPosition + 16);
+        }
+
+        // Borders
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderSpritesLine(line, pr1, width, atrPos, pattAddr, bufferPos) {
+        var palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
+
+        spritesGlobalPriority -= 128;
 
         var limit = 16;
-        var atrPos = 0x3fe00;
-        var pattTableAddress = register[25] << 14;
-
         for (var sprite = 0; sprite < 125; ++sprite, atrPos += 4) {
             info = vram[atrPos + 3];
             if (info & 0x10) continue;                                      // PR0 = 1 : Sprite not shown
@@ -891,14 +954,15 @@ wmsx.V9990 = function(machine, cpu) {
 
             if ((info & 0x20) === pr1) {                                    // PR1 === asked?
                 x = vram[atrPos + 2] | ((info & 0x03) << 8);
-                if (x <= 255 || x >= 1024 - 16) {                           // Only if not out to the right, or wrapping
+                if (x < width || x >= 1024 - 16) {                          // Only if not out to the right, or wrapping
                     palOff = (info & 0xc0) >> 2;
                     name = debugModeSpriteInfoNumbers ? sprite << 2 : vram[atrPos + 1];
-                    pattPixelPos = pattTableAddress + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
+                    if (width === 256) pattPixelPos = pattAddr + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
+                    else               pattPixelPos = pattAddr + (spriteLine << 8) + ((name >> 5 << 12) | ((name & 0x1f) << 3));
 
                     s = x <= 1024 - 16 ? 0 : x - (1024 - 16);
-                    f = x <= 256 - 16 ? 16 : 256 - x;
-                    if (x > 255) x = 0;
+                    f = x <= width - 16 ? 16 : width - x;
+                    if (x >= width) x = 0;
                     paintSprite(x, bufferPos, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f);
                 }
             }
@@ -917,19 +981,6 @@ wmsx.V9990 = function(machine, cpu) {
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
             frameBackBuffer[bufferPos + x] = paletteValuesReal[palOff | c];                 // Paint
         }
-    }
-
-    function paintPixels(colorA, palOffA, colorB, palOffB, bufferPos) {
-        if ((colorA) > 0)     frameBackBuffer[bufferPos] = paletteValues[palOffA | (colorA)];
-        else if((colorB) > 0) frameBackBuffer[bufferPos] = paletteValues[palOffB | (colorB)];
-        else                  frameBackBuffer[bufferPos] = backdropValue;
-    }
-
-    function paintPixels2(colorA, palOffA, colorB, palOffB, bufferPos) {
-        frameBackBuffer[bufferPos] =
-            (colorA) > 0 ? paletteValues[palOffA | (colorA)]
-                : (colorB) > 0 ? paletteValues[palOffB | (colorB)]
-                : backdropValue;
     }
 
     function stretchCurrentLine() {
@@ -1103,11 +1154,6 @@ wmsx.V9990 = function(machine, cpu) {
         vram[posB + 1] = vram[posB + 2] = vram[posB + 3] = vram[posB + 4] = vram[posB + 5] = vram[posB + 6] = 0x7e;
     }
 
-    function initSpritesConflictMap() {
-        wmsx.Util.arrayFill(spritesLinePriorities, SPRITE_MAX_PRIORITY);
-        spritesGlobalPriority = SPRITE_MAX_PRIORITY;      // Decreasing value for sprite priority control. Never resets and lasts for years!
-    }
-
 
     var LINE_WIDTH = wmsx.V9990.SIGNAL_MAX_WIDTH;
     var SPRITE_MAX_PRIORITY = 9000000000000000;
@@ -1171,8 +1217,8 @@ wmsx.V9990 = function(machine, cpu) {
 
     var dispChangePending = false, dispEnabled = false;
 
-    var spritesLinePriorities = new Array(512);
-    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;
+    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
+    var spritesLinePriorities = wmsx.Util.arrayFill(new Array(LINE_WIDTH), SPRITE_MAX_PRIORITY);
 
     var backdropColor = 0;
     var backdropCacheUpdatePending = true;
@@ -1181,18 +1227,18 @@ wmsx.V9990 = function(machine, cpu) {
 
     var modes = {};
 
-    modes[  -1] = { name: "NUL", renderLine: renderLineStandBy };
-    modes[0x0c] = { name: "SBY", renderLine: renderLineStandBy };
-    modes[0x00] = { name:  "P1", renderLine: renderLineModeP1  };
-    modes[0x05] = { name:  "P2", renderLine: renderLineStandBy };
-    modes[0x48] = { name: "B0*", renderLine: renderLineStandBy };       // Undocumented
-    modes[0x08] = { name:  "B1", renderLine: renderLineStandBy };
-    modes[0x49] = { name:  "B2", renderLine: renderLineStandBy };
-    modes[0x09] = { name:  "B3", renderLine: renderLineStandBy };
-    modes[0x4a] = { name:  "B4", renderLine: renderLineStandBy };
-    modes[0x1a] = { name:  "B5", renderLine: renderLineStandBy };
-    modes[0x3a] = { name:  "B6", renderLine: renderLineStandBy };
-    modes[0x0a] = { name: "B7*", renderLine: renderLineStandBy };       // Undocumented
+    modes[  -1] = { name: "NUL", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x0c] = { name: "SBY", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x00] = { name:  "P1", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineModeP1  };
+    modes[0x05] = { name:  "P2", width: 512, height: 212, borderWidth: 16, pixelWidth: 1, renderLine: renderLineModeP2  };
+    modes[0x48] = { name: "B0*", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };       // Undocumented
+    modes[0x08] = { name:  "B1", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x49] = { name:  "B2", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x09] = { name:  "B3", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x4a] = { name:  "B4", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x1a] = { name:  "B5", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x3a] = { name:  "B6", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };
+    modes[0x0a] = { name: "B7*", width: 256, height: 212, borderWidth:  8, pixelWidth: 2, renderLine: renderLineStandBy };       // Undocumented
 
     var renderLine, renderLineActive;           // Update functions for current mode
 
