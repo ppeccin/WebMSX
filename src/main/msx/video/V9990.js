@@ -154,7 +154,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Register Data Read
     this.input63 = function() {
-        var res = register[registerSelect];
+        var res = register[registerSelect] | REG_READ_OR[registerSelect];
 
         // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
 
@@ -167,7 +167,7 @@ wmsx.V9990 = function(machine, cpu) {
     this.output63 = function(val) {
         // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg Write " + registerSelect + " : " + val.toString(16));
 
-        if (registerSelect < 53) registerWrite(registerSelect, val);
+        registerWrite(registerSelect, val);
         if (registerSelectWriteInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
     };
@@ -296,7 +296,7 @@ wmsx.V9990 = function(machine, cpu) {
     function registerWrite(reg, val) {
         var add;
         var mod = register[reg] ^ val;
-        register[reg] = val;
+        register[reg] = val & REG_WRITE_MASK[reg];
 
          // logInfo("Reg: " + reg + ": " + val.toString(16));
 
@@ -332,16 +332,11 @@ wmsx.V9990 = function(machine, cpu) {
             case 15:
                 if (mod & 0x3f) updateBackdropColor();      // BDC
                 break;
-            case 17: case 18:
-
-                // logInfo("ScrollYA : " + ((register[18] << 8) | register[17]).toString(16));
-
-                break;
             case 52:
-                logInfo("Command: " + val.toString(16));
+                logInfo("Command: " + register[52].toString(16));
 
                 status |= 0x80;
-                interruptFlags |= 0x40;
+                interruptFlags |= 0x04;
                 updateIRQ();
 
                 break;
@@ -581,8 +576,8 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function updateIRQ() {
-        if ((register[9] & 0x01) && (interruptFlags & 0x01)) {      // IEV == 1 & VI == 1
-            cpu.setINTChannel(1, 0);                                // V9990 using fixed channel 1. TODO INT Multiple V9990 connected?
+        if (register[9] & interruptFlags) {         // (IEV == 1 & VI == 1) || (IEH == 1 & HI == 1) || (IECE == 1 & CE == 1) all bits aligned
+            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1. TODO INT Multiple V9990 connected?
 
              // logInfo(">>>  INT ON");
         } else {
@@ -838,7 +833,7 @@ wmsx.V9990 = function(machine, cpu) {
             }
 
             // Sprites A > SP > B, PR1 = 1 (0x20)
-            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 256, 0x3fe00, register[25] >> 1 << 15, bufferPosition + 8);
+            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 256, 0x3fe00, (register[25] & 0x0e) << 14, bufferPosition + 8);
         }
 
         // Plane A
@@ -872,7 +867,7 @@ wmsx.V9990 = function(machine, cpu) {
             }
 
             // Sprites SP > A > B, PR1 = 0
-            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 256, 0x3fe00, register[25] >> 1 << 15, bufferPosition + 8);
+            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 256, 0x3fe00, (register[25] & 0x0e) << 14, bufferPosition + 8);
         }
 
         // Borders
@@ -893,7 +888,7 @@ wmsx.V9990 = function(machine, cpu) {
         renderLineBackdropNoAdvance();
 
         // Sprites Plane > SP, PR1 = 1 (0x20)
-        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00, register[25] << 15, bufferPosition + 16);
+        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00, (register[25] & 0x0f) << 15, bufferPosition + 16);
 
         // Plane
         if ((register[22] & 0x80) === 0) {                                                  // Plane enabled? (undocumented)
@@ -927,7 +922,7 @@ wmsx.V9990 = function(machine, cpu) {
             }
 
             // Sprites SP > Plane, PR1 = 0
-            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00, register[25] << 15, bufferPosition + 16);
+            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00, (register[25] & 0x0f) << 15, bufferPosition + 16);
         }
 
         // Borders
@@ -1170,7 +1165,49 @@ wmsx.V9990 = function(machine, cpu) {
     var STARTING_DEBUG_MODE = WMSX.DEBUG_MODE;
     var STARTING_SPRITES_DEBUG_MODE = WMSX.SPRITES_DEBUG_MODE;
 
-    // Frame as off screen canvas
+    var REG_WRITE_MASK = [                                  // * = undocumented mask (real mask in manual)
+        0xff, 0xff, 0x87, 0xff, 0xff, 0x87,                 // 00 - 05  VRAM Addresses
+        0xff, 0xff,                                         // 06 - 07  Screen Mode                     *07 (0x7f)
+        0xff,                                               // 08       Control
+        0x87, 0xff, 0x83, 0x0f,                             // 09 - 12  Interrupt                       *09 (0x07)
+        0xff, 0xff,                                         // 13 - 14  Palette Control/Pointer
+        0xff,                                               // 15       Backdrop Color                  *15 (0x3f)
+        0xff,                                               // 16       Display Adjust
+        0xff, 0xdf, 0x07, 0xff, 0xff, 0xc1, 0x07, 0x3f,     // 17 - 24  Scroll Control                  *22  0x01)
+        0xcf,                                               // 25       Sprite Pat Generator Address    *25 (0x0f)
+        0xff,                                               // 26       LCD Control                     *26 (0x1f)
+        0xff,                                               // 27       Priority Control                *27 (0x0f)
+        0x0f,                                               // 28       Sprite Palette Control
+        0x00, 0x00, 0x00,                                   // 29 - 31  Invalid
+        0xff, 0x07, 0xff, 0x0f, 0xff, 0x07, 0xff, 0x0f,     // 32 - 52  Command Write
+        0xff, 0x0f, 0xff, 0x0f, 0x0f, 0x1f, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff,
+        0x00, 0x00,                                         // 53 - 54  Command Read
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00      // 56 - 63  Invalid
+    ];
+
+    var REG_READ_OR = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff,                 // 00 - 05  VRAM Addresses
+        0x00, 0x00,                                         // 06 - 07  Screen Mode
+        0x00,                                               // 08       Control
+        0x00, 0x00, 0x00, 0x00,                             // 09 - 12  Interrupt
+        0xff, 0xff,                                         // 13 - 14  Palette Control/Pointer
+        0x00,                                               // 15       Backdrop Color
+        0x00,                                               // 16       Display Adjust
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // 17 - 24  Scroll Control
+        0x00,                                               // 25       Sprite Pat Generator Address
+        0x00,                                               // 26       LCD Control
+        0x00,                                               // 27       Priority Control
+        0xff,                                               // 28       Sprite Palette Control
+        0xff, 0xff, 0xff,                                   // 29 - 31  Invalid
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,     // 32 - 52  Command Write
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff,
+        0x00, 0x00,                                         // 53 - 54  Command Read
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff      // 56 - 63  Invalid
+    ];
+
+    // Frame as off-screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
     var backdropLineCache, standByLineCache;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
