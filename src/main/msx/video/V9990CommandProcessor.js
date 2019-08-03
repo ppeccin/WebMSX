@@ -110,7 +110,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getDX() {
-        return ((register[37] & 0x07) << 8) | register[36] & imageWidthMask;
+        return (((register[37] & 0x07) << 8) | register[36]) & imageWidthMask;
     }
 
     function getDY() {

@@ -1046,7 +1046,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     function renderLineModeB1() {
         // Line
-        renderLineColorBP4(bufferPosition + 8 + horizontalAdjust, 256);
+        typeData.renderLine(bufferPosition + 8 + horizontalAdjust, 256);
 
         // Borders
         paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
@@ -1056,7 +1056,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     function renderLineModeB3() {
         // Line
-        renderLineColorBP4(bufferPosition + 16 + (horizontalAdjust << 1), 512);
+        typeData.renderLine(bufferPosition + 16 + (horizontalAdjust << 1), 512);
 
         // Borders
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
@@ -1064,12 +1064,12 @@ wmsx.V9990 = function(machine, cpu) {
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineColorSBY(bufferPosition, quantPixels) {
+    function renderLineTypeSBY(bufferPosition, quantPixels) {
         for (var c = 0; c < quantPixels; ++c)
             frameBackBuffer[bufferPosition + c] = standByValue;
     }
 
-    function renderLineColorBP4(bufferPosition, quantPixels) {
+    function renderLineTypeBP4(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
         var bitmapYBase, bitmapXPos, pixels, v;
 
@@ -1393,19 +1393,19 @@ wmsx.V9990 = function(machine, cpu) {
     modes[  -1] = modes[0x0c];
 
     var types = {};
-    types[0xc0] = { name:   "SBY", bpp:  8, renderLine: renderLineColorSBY };
-    types[0x01] = { name:   "PP1", bpp:  4, renderLine: renderLineColorSBY };
-    types[0x41] = { name:   "PP2", bpp:  4, renderLine: renderLineColorSBY };
-    types[0xb2] = { name:  "BYUV", bpp:  8, renderLine: renderLineColorBP4 };
-    types[0xba] = { name: "BYUVP", bpp:  8, renderLine: renderLineColorBP4 };
-    types[0xa2] = { name:  "BYJK", bpp:  8, renderLine: renderLineColorBP4 };
-    types[0xaa] = { name: "BYJKP", bpp:  8, renderLine: renderLineColorBP4 };
-    types[0x83] = { name:  "BD16", bpp: 16, renderLine: renderLineColorBP4 };
-    types[0x92] = { name:   "BD8", bpp:  8, renderLine: renderLineColorBP4 };
-    types[0x82] = { name:   "BP6", bpp:  8, renderLine: renderLineColorBP4 };
-    types[0x81] = { name:   "BP4", bpp:  4, renderLine: renderLineColorBP4 };
-    types[0x80] = { name:   "BP2", bpp:  2, renderLine: renderLineColorBP4 };
-    types[  -1] = modes[0x0c];
+    types[0xc0] = { name:   "SBY", bpp:  4, renderLine: renderLineTypeBP4 };
+    types[0x01] = { name:   "PP1", bpp:  4, renderLine: renderLineTypeSBY };
+    types[0x41] = { name:   "PP2", bpp:  4, renderLine: renderLineTypeSBY };
+    types[0xb2] = { name:  "BYUV", bpp:  8, renderLine: renderLineTypeBP4 };
+    types[0xba] = { name: "BYUVP", bpp:  8, renderLine: renderLineTypeBP4 };
+    types[0xa2] = { name:  "BYJK", bpp:  8, renderLine: renderLineTypeBP4 };
+    types[0xaa] = { name: "BYJKP", bpp:  8, renderLine: renderLineTypeBP4 };
+    types[0x83] = { name:  "BD16", bpp: 16, renderLine: renderLineTypeBP4 };
+    types[0x92] = { name:   "BD8", bpp:  8, renderLine: renderLineTypeBP4 };
+    types[0x82] = { name:   "BP6", bpp:  8, renderLine: renderLineTypeBP4 };
+    types[0x81] = { name:   "BP4", bpp:  4, renderLine: renderLineTypeBP4 };
+    types[0x80] = { name:   "BP2", bpp:  2, renderLine: renderLineTypeBP4 };
+    types[  -1] = types[0xc0];
 
     var renderLine, renderLineActive;           // Update functions for current mode
 
