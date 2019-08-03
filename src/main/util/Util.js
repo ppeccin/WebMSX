@@ -411,9 +411,9 @@ wmsx.Util = new function() {
         for(var i = 0; i < quant; i++) {
             for(var c = 0; c < chunk; c++) {
                 var val = arr[p++];
-                res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+                res = res + (val != undefined ? this.toHex2(val) + " " : "?? ");
             }
-            res = res + "   ";
+            res = res + "\n";
         }
 
         console.log(res);
@@ -426,9 +426,9 @@ wmsx.Util = new function() {
         for(var i = 0; i < quant; i++) {
             for(var c = 0; c < chunk; c++) {
                 var val = slot.read(p++);
-                res = res + (val != undefined ? val.toString(16, 2) + " " : "? ");
+                res = res + (val != undefined ? this.toHex2(val) + " " : "?? ");
             }
-            res = res + "   ";
+            res = res + "\n";
         }
 
         console.log(res);

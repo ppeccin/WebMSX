@@ -16,10 +16,11 @@ wmsx.V9990 = function(machine, cpu) {
         initColorCaches();
         initDebugPatternTables();
         modeData = modes[-1];
+        typeData = types[-1];
         self.setDefaults();
-        commandProcessor = new wmsx.VDPCommandProcessor();
-        commandProcessor.connectVDP(self, vram, register, oldStatus);
-        commandProcessor.setVDPModeData(modeData);
+        commandProcessor = new wmsx.V9990CommandProcessor();
+        commandProcessor.connectV9990(self, vram, register, oldStatus);
+        commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
     this.setMachineType = function(machineType) {
@@ -317,8 +318,8 @@ wmsx.V9990 = function(machine, cpu) {
                 updateVRAMReadPointer();
                 break;
             case 6:
-                if (mod & 0xf0) updateMode();                // DSPM, DCKM  (will also update for XIMM, CLRM)
-                else if (mod & 0x03) updateColorMode();      // CLRM        (will also update for XIMM)
+                if (mod & 0xf0) updateMode();                // DSPM, DCKM (will also update Type)
+                else if (mod & 0xc3) updateType();           // DSPM, CLRM (will also update ImageSize)
                 else if (mod & 0x0c) updateImageSize();      // XIMM
                 break;
             case 7:
@@ -335,6 +336,7 @@ wmsx.V9990 = function(machine, cpu) {
                 if (mod & 0x07) updateIRQ();                // IECE, IEH, IEV
                 break;
             case 13:
+                if (mod & 0xe0) updateType();               // PLTM, YAE (will also update ImageSize)
                 if (mod & 0x10) updatePalettePointerInc();  // PLTAIH
                 if (mod & 0x0f) updatePaletteOffsets();     // PLTO5-2
                 break;
@@ -360,7 +362,7 @@ wmsx.V9990 = function(machine, cpu) {
                 updateSpritePattAddress();
                 break;
             case 52:
-                logInfo("Command: " + register[52].toString(16));
+                commandProcessor.startCommand(val);
 
                 status |= 0x80;
                 interruptFlags |= 0x04;
@@ -646,13 +648,13 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function updateMode() {
-        // MCS C25M HSCN DSPM DCKM
+        // 0 MCS C25M HSCN DSPM(2) DCKM(2)
         var modeBits = ((systemControl & 0x01) << 6) | ((register[7] & 0x40) >> 1) | ((register[7] & 0x01) << 4) | (register[6] >> 4);
         if ((modeBits & 0x0c) === 0x0c) modeBits = 0x0c;    // Special case for Stand-by mode (ignore other bits)
 
         modeData = modes[modeBits] || modes[-1];
 
-        updateColorMode();              // Also updateImageSize()
+        updateType();              // Also updateImageSize()
         updateSpritePattAddress();
         updateVRAMInterleaving();
         updateLineActiveType();
@@ -661,20 +663,28 @@ wmsx.V9990 = function(machine, cpu) {
         logInfo("Update Mode: " + modeData.name + ", modeBits: " + modeBits.toString(16));
     }
 
-    function updateColorMode() {
-        colorBits = 2 << (register[6] & 0x03);                      // CLRM
+    function updateType() {
+        // DSPM(2) PLTM(2) YAE 0 CLRM(2)
+        var typeBits = (register[6] & 0xc3) | (register[13] >> 5 << 3);
+        if ((typeBits & 0xc0) === 0xc0) typeBits = 0xc0;    // Special case for Stand-by mode (ignore other bits)
+
+        typeData = types[typeBits] || types[-1];
+
         updateImageSize();
+
+        logInfo("Update Type: " + typeData.name + ", typeBits: " + typeBits.toString(16));
     }
 
     function updateImageSize() {
-        if (modeData.name === "P1")      { imageWidth = 512;  imageHeight = 512 }
-        else if (modeData.name === "P2") { imageWidth = 1024; imageHeight = 512 }
+        if (modeData.name === "P1")      { imageWidth = 256; imageHeight = 1024 }       // Pattern Generator Bitmap configuration as per doc. Ignore XIMM
+        else if (modeData.name === "P2") { imageWidth = 512; imageHeight = 1024 }
         else {
             imageWidth = 256 << ((register[6] & 0x0c) >> 2);        // XIMM
-            imageHeight = 524288 / ((imageWidth * colorBits) >> 3);
+            imageHeight = VRAM_SIZE / ((imageWidth * typeData.bpp) >> 3);
         }
 
         updateScrollYMax();
+        commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
     function updateScroll() {
@@ -780,7 +790,7 @@ wmsx.V9990 = function(machine, cpu) {
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
-        renderLineActive = modeData.name === "SBY" ? renderLineStandBy              // Stand-by
+        renderLineActive = modeData.name === "SBY" ? renderLineModeSBY              // Stand-by
             : !dispEnabled ? renderLineBackdrop                                     // DISP, but only detected at VBLANK
             // : debugModePatternInfo ? modeData.renderLinePatInfo
             : modeData.renderLine;
@@ -818,7 +828,7 @@ wmsx.V9990 = function(machine, cpu) {
         //console.log("Update BackdropCaches");
     }
 
-    function renderLineStandBy() {
+    function renderLineModeSBY() {
         frameBackBuffer.set(standByLineCache, bufferPosition);
         bufferPosition = bufferPosition + bufferLineAdvance;
 
@@ -1034,30 +1044,50 @@ wmsx.V9990 = function(machine, cpu) {
         }
     }
 
-    function renderLineModeB() {
-        var buffPos, realLine, lineInPattern, scrollX;
-        var namePosBase, namePos, bitmapYBase, name, bitmapXPos, pixels, v;
+    function renderLineModeB1() {
+        // Line
+        renderLineColorBP4(bufferPosition + 8 + horizontalAdjust, 256);
 
-        //logInfo("renderLineB");
+        // Borders
+        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
 
-        var scrollXMax = imageWidth - 1;
-        scrollX = scrollXOffset & scrollXMax;
-        buffPos = bufferPosition + 16 + (horizontalAdjust << 1) - (scrollX & 0);
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
-        bitmapYBase = (realLine * imageWidth * colorBits) >> 3;
-        bitmapXPos = scrollX;
-        for (var c = 512; c > 0; c -= 2, bitmapXPos = (bitmapXPos + 2) & scrollXMax) {
-            pixels = vram[bitmapYBase + (bitmapXPos >> 1)];
-            v = pixels >> 4;   frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetB | v];
-            v = pixels & 0x0f; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetB | v];
+        bufferPosition += bufferLineAdvance;
+    }
 
-            buffPos += 2;
-        }
+    function renderLineModeB3() {
+        // Line
+        renderLineColorBP4(bufferPosition + 16 + (horizontalAdjust << 1), 512);
 
         // Borders
         paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
 
         bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineColorSBY(bufferPosition, quantPixels) {
+        for (var c = 0; c < quantPixels; ++c)
+            frameBackBuffer[bufferPosition + c] = standByValue;
+    }
+
+    function renderLineColorBP4(bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var bitmapYBase, bitmapXPos, pixels, v;
+
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        bitmapYBase = realLine * (imageWidth >> 1);             // 4 bpp
+        scrollXMaxBytes = (imageWidth >> 1) - 1;                // 4 bpp
+        bitmapXPos = (scrollXOffset >> 1) & scrollXMaxBytes;    // 4 bpp
+
+        extraByte = scrollXOffset & 1;                          // 4 bpp
+        quantBytes = (quantPixels >> 1) + extraByte;            // 4 bpp
+        buffPos = bufferPosition - extraByte;
+
+        for (var c = quantBytes; c > 0; --c, bitmapXPos = (bitmapXPos + 1) & scrollXMaxBytes) {
+            pixels = vram[bitmapYBase + bitmapXPos];
+            v = pixels >> 4;   frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetB | v];
+            v = pixels & 0x0f; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetB | v];
+            buffPos += 2;                                       // 4 bpp
+        }
     }
 
     function stretchCurrentLine() {
@@ -1182,8 +1212,7 @@ wmsx.V9990 = function(machine, cpu) {
             backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);       // Backdrop extra line
             standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 2) * 4, frameCanvas.width);       // Standby extra line
 
-            // Fixed redish color for showing Standby mode
-            wmsx.Util.arrayFill(standByLineCache, 0xff000060);
+            wmsx.Util.arrayFill(standByLineCache, standByValue);
         }
     }
 
@@ -1330,47 +1359,61 @@ wmsx.V9990 = function(machine, cpu) {
     var register = new Array(64);
     var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, spare)
 
-    var modeData;
-
-    var renderMetricsChangePending = false, renderWidth = 0, renderHeight = 0;
-    var refreshWidth = 0, refreshHeight = 0;
-
-    var dispChangePending = false, dispEnabled = false;
-
-    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
-    var spritesLinePriorities = wmsx.Util.arrayFill(new Array(LINE_WIDTH), SPRITE_MAX_PRIORITY);
+    var modeData, typeData;
 
     var backdropColor = 0;
     var backdropCacheUpdatePending = true;
 
-    var verticalAdjust = 0, horizontalAdjust = 0;
-
-    var imageWidth = 0, imageHeight = 0, colorBits = 0;
+    var imageWidth = 0, imageHeight = 0;
     var scrollXOffset = 0, scrollYOffset = 0, scrollXBOffset = 0, scrollYBOffset = 0, scrollYMax = 0;
     var planeAEnabled = true, planeBEnabled = true;
 
+    var verticalAdjust = 0, horizontalAdjust = 0;
+
     var spritePattAddress = 0;
+    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
+    var spritesLinePriorities = wmsx.Util.arrayFill(new Array(LINE_WIDTH), SPRITE_MAX_PRIORITY);
+
+    var dispChangePending = false, dispEnabled = false;
+    var renderMetricsChangePending = false, renderWidth = 0, renderHeight = 0;
+    var refreshWidth = 0, refreshHeight = 0;
 
     var modes = {};
-
-    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine: renderLineStandBy };
-    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine: renderLineModeP1  };
-    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, renderLine: renderLineModeP2  };
-    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, renderLine: renderLineStandBy };       // Undocumented, B1 Overscan?
-    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine: renderLineStandBy };
-    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, renderLine: renderLineStandBy };       // B1 Overscan
-    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, renderLine: renderLineModeB   };
-    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineStandBy };       // B3 Overscan
-    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineStandBy };
-    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineStandBy };
-    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, renderLine: renderLineStandBy };       // Undocumented, Weird!
+    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine: renderLineModeSBY };
+    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine:  renderLineModeP1 };
+    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, renderLine:  renderLineModeP2 };
+    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, renderLine: renderLineModeSBY };       // Undocumented, B1 Overscan?
+    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine:  renderLineModeB1 };
+    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, renderLine: renderLineModeSBY };       // B1 Overscan
+    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, renderLine:  renderLineModeB3 };
+    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineModeSBY };       // B3 Overscan
+    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineModeSBY };
+    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineModeSBY };
+    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, renderLine: renderLineModeSBY };       // Undocumented, Weird!
     modes[  -1] = modes[0x0c];
+
+    var types = {};
+    types[0xc0] = { name:   "SBY", bpp:  8, renderLine: renderLineColorSBY };
+    types[0x01] = { name:   "PP1", bpp:  4, renderLine: renderLineColorSBY };
+    types[0x41] = { name:   "PP2", bpp:  4, renderLine: renderLineColorSBY };
+    types[0xb2] = { name:  "BYUV", bpp:  8, renderLine: renderLineColorBP4 };
+    types[0xba] = { name: "BYUVP", bpp:  8, renderLine: renderLineColorBP4 };
+    types[0xa2] = { name:  "BYJK", bpp:  8, renderLine: renderLineColorBP4 };
+    types[0xaa] = { name: "BYJKP", bpp:  8, renderLine: renderLineColorBP4 };
+    types[0x83] = { name:  "BD16", bpp: 16, renderLine: renderLineColorBP4 };
+    types[0x92] = { name:   "BD8", bpp:  8, renderLine: renderLineColorBP4 };
+    types[0x82] = { name:   "BP6", bpp:  8, renderLine: renderLineColorBP4 };
+    types[0x81] = { name:   "BP4", bpp:  4, renderLine: renderLineColorBP4 };
+    types[0x80] = { name:   "BP2", bpp:  2, renderLine: renderLineColorBP4 };
+    types[  -1] = modes[0x0c];
 
     var renderLine, renderLineActive;           // Update functions for current mode
 
     var notPaintedValue  = 0xfff000f0;
     var superImposeValue = 0x80e030e0;
     var backdropValue =    0x00000000;
+    var standByValue =     0xff000060;          // Fixed redish color for showing Standby mode
+
 
     var color2to8bits = [ 0, 90, 172, 255 ];                        // 8 bit B values for 2 bit B colors
     var color3to8bits = [ 0, 32, 74, 106, 148, 180, 222, 255 ];     // 8 bit R,G values for 3 bit R,G colors
@@ -1435,7 +1478,7 @@ wmsx.V9990 = function(machine, cpu) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
-        commandProcessor.connectVDP(this, vram, register, oldStatus);
+        commandProcessor.connectV9990(this, vram, register, oldStatus);
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
