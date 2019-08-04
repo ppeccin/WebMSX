@@ -135,9 +135,9 @@ wmsx.V9990 = function(machine, cpu) {
             palettePointer &= ~0x03;
             return;
         }
-        val &= 0x1f;
+        val &= /*(palettePointer & 0x03) === 0 ? 0x9f : */ 0x1f;                                 // 5 bits R/G/B, YS bit for R only
         if (val !== paletteRAM[palettePointer]) {
-            paletteRAM[palettePointer] = val;                                               // 5 bits R/G/B, ignore YS bit for now
+            paletteRAM[palettePointer] = val;
             updatePaletteValue(palettePointer >> 2);
         }
         if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
