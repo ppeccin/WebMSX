@@ -115,11 +115,11 @@ wmsx.V9990 = function(machine, cpu) {
     this.input61 = function() {
         if ((palettePointer & 0x03) === 3) {
             // Dummy read and stay at same RGB entry
-            if (palletePointerInc) palettePointer &= 0xfc;
+            if (palettePointerReadInc) palettePointer &= 0xfc;
             return 0;
         }
         var res = paletteRAM[palettePointer];
-        if (palletePointerInc) {
+        if (palettePointerReadInc) {
             if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
             else ++palettePointer;
         }
@@ -128,20 +128,20 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Palette Data Write
     this.output61 = function(val) {
+        //logInfo("PaletteWrite " + palettePointer.toString(16) + ": " + val.toString(16));
+
         if ((palettePointer & 0x03) === 3) {
             // Ignore write and stay at same RGB entry
-            if (palletePointerInc) palettePointer &= ~0x03;
+            palettePointer &= ~0x03;
             return;
         }
         val &= 0x1f;
         if (val !== paletteRAM[palettePointer]) {
-            paletteRAM[palettePointer] = val;                                                  // 5 bits R/G/B, ignore YS bit for now
+            paletteRAM[palettePointer] = val;                                               // 5 bits R/G/B, ignore YS bit for now
             updatePaletteValue(palettePointer >> 2);
         }
-        if (palletePointerInc) {
-            if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
-            else ++palettePointer;
-        }
+        if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
+        else ++palettePointer;
     };
 
     // Command Data Read
@@ -237,14 +237,14 @@ wmsx.V9990 = function(machine, cpu) {
     this.reset = function() {
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
         vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = true; vramPointerWriteInc = true; vramReadData = 0;
-        palettePointer = 0; palletePointerInc = true;
+        palettePointer = 0; palettePointerReadInc = true;
         paletteOffsetA = 0; paletteOffsetB = 0; paletteOffsetFull = 0;
         scrollXOffset = 0; scrollYOffset = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYMax = 0;
         planeAEnabled = true; planeBEnabled = true;
 
         frame = cycles = lastBUSCyclesComputed = 0;
         verticalAdjust = horizontalAdjust = 0;
-        backdropColor = backdropValue = 0; backdropCacheUpdatePending = true;
+        backdropColor = 0; backdropValue = solidBlackValue; backdropCacheUpdatePending = true;
         dispEnabled = false; dispChangePending = false;
         horizontalIntLine = 0;
         vramInterleaving = false;
@@ -291,10 +291,12 @@ wmsx.V9990 = function(machine, cpu) {
 
     function updatePalettePointer() {
         palettePointer = register[14];
+
+        //logInfo("PalettePointer " + palettePointer.toString(16));
     }
 
-    function updatePalettePointerInc() {
-        palletePointerInc = (register[13] & 0x10) === 0;    // PLTAIH
+    function updatePalettePointerReadInc() {
+        palettePointerReadInc = (register[13] & 0x10) === 0;    // PLTAIH
     }
 
     function updatePaletteOffsets() {
@@ -318,42 +320,42 @@ wmsx.V9990 = function(machine, cpu) {
                 updateVRAMReadPointer();
                 break;
             case 6:
-                if (mod & 0xf0) updateMode();                // DSPM, DCKM (will also update Type)
-                else if (mod & 0xc3) updateType();           // DSPM, CLRM (will also update ImageSize)
-                else if (mod & 0x0c) updateImageSize();      // XIMM
+                if (mod & 0xf0) updateMode();                   // DSPM, DCKM (will also update Type)
+                else if (mod & 0xc3) updateType();              // DSPM, CLRM (will also update ImageSize)
+                else if (mod & 0x0c) updateImageSize();         // XIMM
                 break;
             case 7:
-                if (mod & 0x08) updateVideoStandardSoft();   // PAL
-                if (mod & 0x40) updateMode();                // C25M
+                if (mod & 0x08) updateVideoStandardSoft();      // PAL
+                if (mod & 0x40) updateMode();                   // C25M
                 break;
             case 8:
-                if (mod & 0x80) {                            // DISP
-                    dispChangePending = true;                // only detected at VBLANK
+                if (mod & 0x80) {                               // DISP
+                    dispChangePending = true;                   // only detected at VBLANK
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
                 break;
             case 9:
-                if (mod & 0x07) updateIRQ();                // IECE, IEH, IEV
+                if (mod & 0x07) updateIRQ();                    // IECE, IEH, IEV
                 break;
             case 13:
-                if (mod & 0xe0) updateType();               // PLTM, YAE (will also update ImageSize)
-                if (mod & 0x10) updatePalettePointerInc();  // PLTAIH
-                if (mod & 0x0f) updatePaletteOffsets();     // PLTO5-2
+                if (mod & 0xe0) updateType();                   // PLTM, YAE (will also update ImageSize)
+                if (mod & 0x10) updatePalettePointerReadInc();  // PLTAIH
+                if (mod & 0x0f) updatePaletteOffsets();         // PLTO5-2
                 break;
             case 14:
                 updatePalettePointer();
                 break;
             case 15:
-                if (mod & 0x3f) updateBackdropColor();      // BDC
+                if (mod & 0x3f) updateBackdropColor();          // BDC
                 break;
             case 18:
-                if (mod & 0xc0) updateScrollYMax();         // R512, R256
+                if (mod & 0xc0) updateScrollYMax();             // R512, R256
                 // fall through
             case 17: case 19: case 20:
                 updateScroll();
                 break;
             case 22:
-                if (mod & 0xc0) updatePlanesEnabled();      // *SDA, *SDB
+                if (mod & 0xc0) updatePlanesEnabled();          // *SDA, *SDB
                 // fall through
             case 21: case 23: case 24:
                 updateScrollB();
@@ -666,7 +668,8 @@ wmsx.V9990 = function(machine, cpu) {
     function updateType() {
         // DSPM(2) PLTM(2) YAE 0 CLRM(2)
         var typeBits = (register[6] & 0xc3) | (register[13] >> 5 << 3);
-        if ((typeBits & 0xc0) === 0xc0) typeBits = 0xc0;    // Special case for Stand-by mode (ignore other bits)
+        if ((typeBits & 0xc0) === 0xc0) typeBits = 0xc0;        // Special case for Stand-by mode (ignore other bits)
+        if ((typeBits & 0x30) < 0x20)   typeBits &= ~0x08;      // Special case for PLTM < 2, ignore YAE
 
         typeData = types[typeBits] || types[-1];
 
@@ -698,7 +701,8 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function updateScrollYMax() {
-        scrollYMax = (register[18] & 0x80) ? 511 : (register[18] & 0x40) ? 255 : imageHeight - 1;
+        scrollYMax = (register[18] & 0x80) ? 511 : (register[18] & 0x40) ? 255
+            : modeData.name === "P1" || modeData.name === "P2" ? 511 : imageHeight - 1;
     }
 
     function updatePlanesEnabled() {
@@ -814,7 +818,6 @@ wmsx.V9990 = function(machine, cpu) {
         // value = 0xff205020;
 
         backdropValue = value;
-        // paletteValues[0] = backdropValue;
         backdropCacheUpdatePending = true;
 
         //logInfo("Backdrop Value: " + backdropValue.toString(16));
@@ -1218,7 +1221,7 @@ wmsx.V9990 = function(machine, cpu) {
 
     function initColorPalette() {
         for (var c = 0; c < 64; ++c)
-            paletteValuesReal[c] = paletteValues[c] = 0;
+            paletteValuesReal[c] = paletteValues[c] = solidBlackValue;
     }
 
     function initColorCaches() {
@@ -1353,11 +1356,11 @@ wmsx.V9990 = function(machine, cpu) {
     var status = 0, interruptFlags = 0, systemControl = 0;
     var registerSelect = 0, registerSelectReadInc = true, registerSelectWriteInc = true;
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
-    var palettePointer = 0, palletePointerInc = true;
+    var palettePointer = 0, palettePointerReadInc = true;
     var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffsetFull = 0;
 
     var register = new Array(64);
-    var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, spare)
+    var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, unused)
 
     var modeData, typeData;
 
@@ -1409,10 +1412,11 @@ wmsx.V9990 = function(machine, cpu) {
 
     var renderLine, renderLineActive;           // Update functions for current mode
 
-    var notPaintedValue  = 0xfff000f0;
-    var superImposeValue = 0x80e030e0;
-    var backdropValue =    0x00000000;
-    var standByValue =     0xff000060;          // Fixed redish color for showing Standby mode
+    var solidBlackValue =  0xff000000;
+    var notPaintedValue  = 0xffff00ff;          // Pink
+    var superImposeValue = 0xff500000;          // Dark Blue
+    var standByValue =     0xff000060;          // Dark Red
+    var backdropValue =    solidBlackValue;
 
 
     var color2to8bits = [ 0, 90, 172, 255 ];                        // 8 bit B values for 2 bit B colors

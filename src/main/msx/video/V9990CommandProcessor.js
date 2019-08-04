@@ -121,11 +121,11 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getNX() {
-        return ((((register[41] & 0x07) << 8) | register[40]) || 2048) & imageWidthMask;
+        return ((((((register[41] & 0x07) << 8) | register[40]) || 2048) - 1) & imageWidthMask) + 1;
     }
 
     function getNY() {
-        return ((((register[43] & 0x0f) << 8) | register[42]) || 4096) & imageHeightMask;
+        return ((((((register[43] & 0x0f) << 8) | register[42]) || 4096) - 1) & imageHeightMask) + 1;
     }
     function setNY(val) {
         register[43] = (val >> 8) & 0x0f; register[42] = val & 0xff;
