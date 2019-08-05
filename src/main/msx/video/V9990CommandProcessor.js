@@ -148,7 +148,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getLOP() {
-        return LOGICAL_OPERATIONS[register[44] & 0x0f];
+        return LOGICAL_OPERATIONS[register[45] & 0x1f];
     }
 
     function getCLR() {
@@ -713,45 +713,137 @@ wmsx.V9990CommandProcessor = function() {
         vram[dPos & VRAM_LIMIT] = op(vram[dPos & VRAM_LIMIT], co, mask << dShift);
     }
 
-    function lopIMP(dest, src, mask) {
-        return (dest & ~mask) | src;
+
+
+    function lopNULL(dest, src, mask) {
+        return (dest & ~mask);
     }
 
-    function lopAND(dest, src, mask) {
-        return dest & (src | ~mask);
+    function lopNOR(dest, src, mask) {
+
     }
 
-    function lopOR(dest, src, mask) {
-        return dest | src;
+    function lopEXD(dest, src, mask) {
+
+    }
+
+    function lopNOTS(dest, src, mask) {
+        return (dest & ~mask) | (~src & mask);
+    }
+
+    function lopEXS(dest, src, mask) {
+
+    }
+
+    function lopNOTD(dest, src, mask) {
+
     }
 
     function lopXOR(dest, src, mask) {
         return dest ^ src;
     }
 
-    function lopNOT(dest, src, mask) {
-        return (dest & ~mask) | (~src & mask);
+    function lopNAND(dest, src, mask) {
+
     }
 
-    function lopTIMP(dest, src, mask) {
-        return src === 0 ? dest : (dest & ~mask) | src;
+    function lopAND(dest, src, mask) {
+        return dest & (src | ~mask);
     }
 
-    function lopTAND(dest, src, mask) {
-        return src === 0 ? dest : dest & (src | ~mask);
+    function lopEQV(dest, src, mask) {
+
     }
 
-    function lopTOR(dest, src, mask) {
-        return src === 0 ? dest : dest | src;
+    function lopD(dest, src, mask) {
+
+    }
+
+    function lopNEXS(dest, src, mask) {
+
+    }
+
+    function lopS(dest, src, mask) {
+        return (dest & ~mask) | src;
+    }
+
+    function lopNEXD(dest, src, mask) {
+
+    }
+
+    function lopOR(dest, src, mask) {
+        return dest | src;
+    }
+
+    function lopID(dest, src, mask) {
+        return (dest & ~mask) | (0xff & mask);
+    }
+
+
+    function lopTNULL(dest, src, mask) {
+
+    }
+
+    function lopTNOR(dest, src, mask) {
+
+    }
+
+    function lopTEXD(dest, src, mask) {
+
+    }
+
+    function lopTNOTS(dest, src, mask) {
+        return src === 0 ? dest : (dest & ~mask) | (~src & mask);
+    }
+
+    function lopTEXS(dest, src, mask) {
+
+    }
+
+    function lopTNOTD(dest, src, mask) {
+
     }
 
     function lopTXOR(dest, src, mask) {
         return dest ^ src;          // source === 0 doesn't matter since XOR 0 does not change bits
     }
 
-    function lopTNOT(dest, src, mask) {
-        return src === 0 ? dest : (dest & ~mask) | (~src & mask);
+    function lopTNAND(dest, src, mask) {
+
     }
+
+    function lopTAND(dest, src, mask) {
+        return src === 0 ? dest : dest & (src | ~mask);
+    }
+
+    function lopTEQV(dest, src, mask) {
+
+    }
+
+    function lopTD(dest, src, mask) {
+
+    }
+
+    function lopTNEXS(dest, src, mask) {
+
+    }
+
+    function lopTS(dest, src, mask) {
+        return src === 0 ? dest : (dest & ~mask) | src;
+    }
+
+    function lopTNEXD(dest, src, mask) {
+
+    }
+
+    function lopTOR(dest, src, mask) {
+        return src === 0 ? dest : dest | src;
+    }
+
+    function lopTID(dest, src, mask) {
+
+    }
+
 
     function min(a, b) {
         return a < b ? a : b;
@@ -820,7 +912,41 @@ wmsx.V9990CommandProcessor = function() {
     var VRAM_LIMIT = wmsx.V9990.VRAM_LIMIT;
     var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // Used for savestates
     var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
-    var LOGICAL_OPERATIONS = [ lopIMP, lopAND, lopOR, lopXOR, lopNOT, lopIMP, lopIMP, lopIMP, lopTIMP, lopTAND, lopTOR, lopTXOR, lopTNOT, lopIMP, lopIMP, lopIMP ];
+
+    var LOGICAL_OPERATIONS = [
+        lopNULL,           // 0000
+        lopNOR,            // 0001
+        lopEXD,            // 0010
+        lopNOTS,           // 0011
+        lopEXS,            // 0100
+        lopNOTD,           // 0101
+        lopXOR,            // 0110
+        lopNAND,           // 0111
+        lopAND,            // 1000
+        lopEQV,            // 1001
+        lopD,              // 1010
+        lopNEXS,           // 1011
+        lopS,              // 1100
+        lopNEXD,           // 1101
+        lopOR,             // 1110
+        lopID,             // 1111
+        lopTNULL,          // 0000 + T
+        lopTNOR,           // 0001 + T
+        lopTEXD,           // 0010 + T
+        lopTNOTS,          // 0011 + T
+        lopTEXS,           // 0100 + T
+        lopTNOTD,          // 0101 + T
+        lopTXOR,           // 0110 + T
+        lopTNAND,          // 0111 + T
+        lopTAND,           // 1000 + T
+        lopTEQV,           // 1001 + T
+        lopTD,             // 1010 + T
+        lopTNEXS,          // 1011 + T
+        lopTS,             // 1100 + T
+        lopTNEXD,          // 1101 + T
+        lopTOR,            // 1110 + T
+        lopTID             // 1111 + T
+];
 
     // Turbo
     var turboClockMulti = 1;

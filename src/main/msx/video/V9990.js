@@ -135,7 +135,7 @@ wmsx.V9990 = function(machine, cpu) {
             palettePointer &= ~0x03;
             return;
         }
-        val &= /*(palettePointer & 0x03) === 0 ? 0x9f : */ 0x1f;                                 // 5 bits R/G/B, YS bit for R only
+        val &= (palettePointer & 0x03) === 0 ? 0x9f : 0x1f;                                 // 5 bits R/G/B, YS bit for R only
         if (val !== paletteRAM[palettePointer]) {
             paletteRAM[palettePointer] = val;
             updatePaletteValue(palettePointer >> 2);
@@ -239,6 +239,7 @@ wmsx.V9990 = function(machine, cpu) {
         vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = true; vramPointerWriteInc = true; vramReadData = 0;
         palettePointer = 0; palettePointerReadInc = true;
         paletteOffsetA = 0; paletteOffsetB = 0; paletteOffsetFull = 0;
+        ysEnabled = false;
         scrollXOffset = 0; scrollYOffset = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYMax = 0;
         planeAEnabled = true; planeBEnabled = true;
 
@@ -305,12 +306,17 @@ wmsx.V9990 = function(machine, cpu) {
         paletteOffsetFull = (paletteOffsetB << 2) | paletteOffsetA;
     }
 
+    function updateYSEnabled() {
+        //ysEnabled = (register[8] & 0x20) !== 0;          // YSE
+        for (var e = 63; e >= 0; --e) updatePaletteValue(e);
+    }
+
     function registerWrite(reg, val) {
         var add;
         var mod = register[reg] ^ val;
         register[reg] = val & REG_WRITE_MASK[reg];
 
-         // logInfo("Reg: " + reg + ": " + val.toString(16));
+        // logInfo("Reg: " + reg + ": " + val.toString(16));
 
         switch (reg) {
             case 0: case 1: case 2:
@@ -333,6 +339,7 @@ wmsx.V9990 = function(machine, cpu) {
                     dispChangePending = true;                   // only detected at VBLANK
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
+                if (mod & 0x20) updateYSEnabled();              // YSE
                 break;
             case 9:
                 if (mod & 0x07) updateIRQ();                    // IECE, IEH, IEV
@@ -493,7 +500,7 @@ wmsx.V9990 = function(machine, cpu) {
 
         var index = entry << 2;
         var r = paletteRAM[index];
-        var value = (r & 0x80) ? superImposeValue : 0xff000000        // YS
+        var value = ysEnabled && (r & 0x80) ? superImposeValue : 0xff000000        // YS
             | (color5to8bits[paletteRAM[index + 2]]) << 16
             | (color5to8bits[paletteRAM[index + 1]]) << 8
             | color5to8bits[r & 0x1f];
@@ -504,7 +511,6 @@ wmsx.V9990 = function(machine, cpu) {
         paletteValues[entry] = value;
 
         if (entry === backdropColor) updateBackdropValue();
-        else if (entry !== 0) paletteValues[entry] = value;
     }
 
     this.setDebugMode = function (mode) {
@@ -1358,6 +1364,7 @@ wmsx.V9990 = function(machine, cpu) {
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
     var palettePointer = 0, palettePointerReadInc = true;
     var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffsetFull = 0;
+    var ysEnabled = false;
 
     var register = new Array(64);
     var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, unused)
