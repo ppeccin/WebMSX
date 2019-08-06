@@ -19,6 +19,16 @@ wmsx.V9990CommandProcessor = function() {
     this.startCommand = function(val) {
 
         switch (val & 0xf0) {
+            case 0x00:
+                STOP(); break;
+            case 0x10:
+                LMMC(); break;
+            case 0x20:
+                LMMV(); break;
+            case 0x30:
+                LMCM(); break;
+            case 0x40:
+                LMMM(); break;
             // case 0xf0:
             //     HMMC(); break;
             // case 0xe0:
@@ -27,14 +37,6 @@ wmsx.V9990CommandProcessor = function() {
             //     HMMM(); break;
             // case 0xc0:
             //     HMMV(); break;
-            // case 0xb0:
-            //     LMMC(); break;
-            // case 0xa0:
-            //     LMCM(); break;
-            case 0x40:
-                LMMM(); break;
-            // case 0x80:
-            //     LMMV(); break;
             // case 0x70:
             //     LINE(); break;
             // case 0x60:
@@ -43,8 +45,6 @@ wmsx.V9990CommandProcessor = function() {
             //     PSET(); break;
             // case 0x40:
             //     POINT(); break;
-            case 0x00:
-                STOP(); break;
             default:
                 console.log(">>>> V9990 Command: " + val.toString(16));
             //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
@@ -151,11 +151,140 @@ wmsx.V9990CommandProcessor = function() {
         return LOGICAL_OPERATIONS[register[45] & 0x1f];
     }
 
-    function getCLR() {
-        return register[44];
+    function getFC() {
+        return (register[49] << 8) | register[48];
     }
     function setCLR(val) {
         register[44] = val;
+    }
+
+    function LMMC() {
+        // Collect parameters
+        DX = getDX();
+        DY = getDY();
+        NX = getNX();
+        NY = getNY();
+        DIX = getDIX();
+        DIY = getDIY();
+        LOP = getLOP();
+
+        console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+
+        writeStart(LMMCNextWrite);
+    }
+
+    function LMMCNextWrite(cd) {
+        console.log("LMMC Write CX: " + CX + ", CY: " + CY);
+
+        logicalPSET(DX, DY, cd, LOP);
+
+        CX = CX + 1;
+        if (CX >= NX) {
+            DX -= DIX * (NX - 1);
+            CX = 0; CY = CY + 1; DY += DIY;
+            if (CY >= NY) {
+                finish();
+            }
+        } else {
+            DX += DIX;
+        }
+
+        // Set visible changed register state
+        // setDY(DY);
+        // setNY(NY - CY);
+    }
+
+    function LMMV() {
+        // Collect parameters
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var fc = getFC();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
+
+        console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
+
+        // Perform operation
+        for (var cy = ny; cy > 0; cy = cy - 1) {
+            for (var cx = nx; cx > 0; cx = cx - 1) {
+                logicalPSET(dx, dy, fc, op);
+                dx += dix;
+            }
+            dx -= dix * nx;
+            dy += diy;
+        }
+
+        // Final registers state
+        // setDY(dy);
+        // setNY(ny - ny);
+
+        start(nx * ny, 72 + 24, ny, 64);      // 72R 24W   64L
+    }
+
+    function LMCM() {
+        // Collect parameters
+        SX = getSX();
+        SY = getSY();
+        NX = getNX();
+        NY = getNY();
+        DIX = getDIX();
+        DIY = getDIY();
+
+        console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+
+        readStart(LMCMNextRead);
+    }
+
+    function LMCMNextRead() {
+        status[7] = normalPGET(SX, SY);
+
+        CX = CX + 1;
+        if (CX >= NX) {
+            SX -= DIX * (NX - 1);
+            CX = 0; CY = CY + 1; SY += DIY;
+            if (CY >= NY) finish();
+        } else {
+            SX += DIX;
+        }
+
+        // Set visible changed register state
+        setSY(SY);
+        setNY(NY - CY);
+    }
+
+    function LMMM() {
+        // Collect parameters
+        var sx = getSX();
+        var sy = register[33] & 0x02 ? getSY() : getSY();
+        var dx = getDX();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
+
+        console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
+
+        // Perform operation
+        for (var cy = ny; cy > 0; --cy) {
+            var esx = sx, edx = dx;
+            for (var cx = nx; cx > 0; --cx) {
+                logicalPCOPY(edx, dy, esx, sy, op);
+                esx = (esx + dix) & imageWidthMask; edx = (edx + dix) & imageWidthMask;
+            }
+            sy = (sy + diy) & imageHeightMask; dy = (dy + diy) & imageHeightMask;
+        }
+
+        // Final registers state
+        // setSY(sy);
+        // setDY(dy);
+        // setNY(0);
+
+        start(nx * ny, 64 + 32 + 24, ny, 64);      // 64R 32R 24W   64L
     }
 
     function HMMC() {
@@ -308,7 +437,7 @@ wmsx.V9990CommandProcessor = function() {
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
-        var co = getCLR();
+        var co = getFC();
         var dix = getDIX();
         var diy = getDIY();
 
@@ -347,179 +476,13 @@ wmsx.V9990CommandProcessor = function() {
         start(nx * eny, 48, eny, 56);     	//  48W   56L
     }
 
-    function LMMC() {
-        // Collect parameters
-        DX = getDX();
-        DY = getDY();
-        NX = getNX();
-        NY = getNY();
-        DIX = getDIX();
-        DIY = getDIY();
-        LOP = getLOP();
-
-        //console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
-
-        // Horizontal limits, wrap X and narrow to only 1 unit wide
-        if (DX >= imageWidth) {
-            DX &= imageWidth - 1; NX = 1;
-        } else {
-            NX = NX || imageWidth;                                            // max width if 0
-            NX = DIX === 1 ? min(NX, imageWidth - DX) : min(NX, DX + 1);      // limit width
-        }
-
-        // Vertical limit, top only
-        NY = NY || 1024;                                // max height if 0
-        ENY = DIY === 1 ? NY : min(NY, DY + 1);
-
-        writeStart(LMMCNextWrite);
-    }
-
-    function LMMCNextWrite(co) {
-        //console.log("LMMC Write CX: " + CX + ", CY: " + CY);
-
-        logicalPSET(DX, DY, co, LOP);
-
-        CX = CX + 1;
-        if (CX >= NX) {
-            DX -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1; DY += DIY;
-            if (CY >= ENY) {
-                finish();
-                // SDSnatcher Melancholia fix: TR not reset when command ends
-            }
-        } else {
-            DX += DIX;
-        }
-
-        // Set visible changed register state
-        setDY(DY);
-        setNY(NY - CY);
-    }
-
-    function LMCM() {
-        // Collect parameters
-        SX = getSX();
-        SY = getSY();
-        NX = getNX();
-        NY = getNY();
-        DIX = getDIX();
-        DIY = getDIY();
-
-        //console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
-
-        // Horizontal limits, wrap X and narrow to only 1 unit wide
-        if (SX >= imageWidth) {
-            SX &= imageWidth - 1; NX = 1;
-        } else {
-            NX = NX || imageWidth;                                            // max width if 0
-            NX = DIX === 1 ? min(NX, imageWidth - SX) : min(NX, SX + 1);      // limit width
-        }
-
-        // Vertical limit, top only
-        NY = NY || 1024;                                // max height if 0
-        ENY = DIY === 1 ? NY : min(NY, SY + 1);
-
-        readStart(LMCMNextRead);
-    }
-
-    function LMCMNextRead() {
-        status[7] = normalPGET(SX, SY);
-
-        CX = CX + 1;
-        if (CX >= NX) {
-            SX -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1; SY += DIY;
-            if (CY >= ENY) finish();
-        } else {
-            SX += DIX;
-        }
-
-        // Set visible changed register state
-        setSY(SY);
-        setNY(NY - CY);
-    }
-
-    function LMMM() {
-        // Collect parameters
-        var sx = getSX();
-        var sy = register[33] & 0x02 ? getSY() : getSY();
-        var dx = getDX();
-        var dy = getDY();
-        var nx = getNX();
-        var ny = getNY();
-        var dix = getDIX();
-        var diy = getDIY();
-        var op = getLOP();
-
-        console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
-
-        // Perform operation
-        for (var cy = ny; cy > 0; --cy) {
-            var esx = sx, edx = dx;
-            for (var cx = nx; cx > 0; --cx) {
-                logicalPCOPY(edx, dy, esx, sy, op);
-                esx = (esx + dix) & imageWidthMask; edx = (edx + dix) & imageWidthMask;
-            }
-            sy = (sy + diy) & imageHeightMask; dy = (dy + diy) & imageHeightMask;
-        }
-
-        // Final registers state
-        setSY(sy);
-        setDY(dy);
-        setNY(0);
-
-        start(nx * ny, 64 + 32 + 24, ny, 64);      // 64R 32R 24W   64L
-    }
-
-    function LMMV() {
-        // Collect parameters
-        var dx = getDX();
-        var dy = getDY();
-        var nx = getNX();
-        var ny = getNY();
-        var co = getCLR();
-        var dix = getDIX();
-        var diy = getDIY();
-        var op = getLOP();
-
-        //console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
-
-        // Horizontal limits, wrap X and narrow to only 1 unit wide
-        if (dx >= imageWidth) {
-            dx &= imageWidth - 1; nx = 1;
-        } else {
-            nx = nx || imageWidth;                                            // max width if 0
-            nx = dix === 1 ? min(nx, imageWidth - dx) : min(nx, dx + 1);      // limit width
-        }
-
-        // Vertical limit, top only
-        ny = ny || 1024;                                // max height if 0
-        var eny = diy === 1 ? ny : min(ny, dy + 1);
-
-        // Perform operation
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
-                logicalPSET(dx, dy, co, op);
-                dx += dix;
-            }
-            dx -= dix * nx;
-            dy += diy;
-        }
-
-        // Final registers state
-        setDY(dy);
-        setNY(ny - eny);
-
-        start(nx * eny, 72 + 24, eny, 64);      // 72R 24W   64L
-    }
-
     function LINE() {
         // Collect parameters
         var dx = getDX();
         var dy = getDY();
         var nx = getNX();             // Range 0 - 511.  Value 0 is OK
         var ny = getNY();             // Range 0 - 1023. Value 0 is OK
-        var co = getCLR();
+        var co = getFC();
         var dix = getDIX();
         var diy = getDIY();
         var maj = getMAJ();
@@ -574,7 +537,7 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var sx = getSX();
         var sy = getSY();
-        var co = getCLR();
+        var co = getFC();
         var dix = getDIX();
         var eq = getEQ();
 
@@ -616,7 +579,7 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var dx = getDX();
         var dy = getDY();
-        var co = getCLR();
+        var co = getFC();
         var op = getLOP();
 
         //console.log("PSET dx: " + dx + ", dy: " + dy);
@@ -720,11 +683,11 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopNOR(dest, src, mask) {
-
+        return (dest & ~mask) | (~(dest | src) & mask);
     }
 
     function lopEXD(dest, src, mask) {
-
+        return dest & (dest & ~src);
     }
 
     function lopNOTS(dest, src, mask) {
@@ -732,11 +695,11 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopEXS(dest, src, mask) {
-
+        return (dest & ~mask) | (src & ~dest);
     }
 
     function lopNOTD(dest, src, mask) {
-
+        return (dest & ~mask) | (~dest & mask);
     }
 
     function lopXOR(dest, src, mask) {
@@ -744,7 +707,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopNAND(dest, src, mask) {
-
+        return (dest & ~mask) | (~(dest & src) & mask);
     }
 
     function lopAND(dest, src, mask) {
@@ -752,15 +715,15 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopEQV(dest, src, mask) {
-
+        return (dest & ~mask) | (~(dest ^ src) & mask);
     }
 
     function lopD(dest, src, mask) {
-
+        return dest;
     }
 
     function lopNEXS(dest, src, mask) {
-
+        return (dest & ~mask) | ((~src | dest) & mask);
     }
 
     function lopS(dest, src, mask) {
@@ -768,7 +731,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopNEXD(dest, src, mask) {
-
+        return dest | ((~dest | src) & mask);
     }
 
     function lopOR(dest, src, mask) {
@@ -776,20 +739,19 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopID(dest, src, mask) {
-        return (dest & ~mask) | (0xff & mask);
+        return dest | mask;
     }
 
-
     function lopTNULL(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask);
     }
 
     function lopTNOR(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask) | (~(dest | src) & mask);
     }
 
     function lopTEXD(dest, src, mask) {
-
+        return src === 0 ? dest : dest & (dest & ~src);
     }
 
     function lopTNOTS(dest, src, mask) {
@@ -797,19 +759,19 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTEXS(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask) | (src & ~dest);
     }
 
     function lopTNOTD(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask) | (~dest & mask);
     }
 
     function lopTXOR(dest, src, mask) {
-        return dest ^ src;          // source === 0 doesn't matter since XOR 0 does not change bits
+        return src === 0 ? dest : dest ^ src;
     }
 
     function lopTNAND(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask) | (~(dest & src) & mask);
     }
 
     function lopTAND(dest, src, mask) {
@@ -817,15 +779,15 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTEQV(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask) | (~(dest ^ src) & mask);
     }
 
     function lopTD(dest, src, mask) {
-
+        return src === 0 ? dest : dest;
     }
 
     function lopTNEXS(dest, src, mask) {
-
+        return src === 0 ? dest : (dest & ~mask) | ((~src | dest) & mask);
     }
 
     function lopTS(dest, src, mask) {
@@ -833,7 +795,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTNEXD(dest, src, mask) {
-
+        return src === 0 ? dest : dest | ((~dest | src) & mask);
     }
 
     function lopTOR(dest, src, mask) {
@@ -841,8 +803,10 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTID(dest, src, mask) {
-
+        return src === 0 ? dest : dest | mask;
     }
+
+
 
 
     function min(a, b) {
@@ -882,7 +846,7 @@ wmsx.V9990CommandProcessor = function() {
 
         // Perform first iteration with last written data, only if available
         if (writeReady) {
-            writeHandler(getCLR());
+            writeHandler(getFC());
             writeReady = false;
         }
     }
