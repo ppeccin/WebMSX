@@ -5,7 +5,7 @@
 // Digitize, Superimpose, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 2147727 Hz which is 6x CPU clock
 
-wmsx.V9990 = function(machine, cpu) {
+wmsx.V9990 = function(machine, vdp, cpu) {
 "use strict";
 
     var self = this;
@@ -19,7 +19,7 @@ wmsx.V9990 = function(machine, cpu) {
         typeData = types[-1];
         self.setDefaults();
         commandProcessor = new wmsx.V9990CommandProcessor();
-        commandProcessor.connectV9990(self, vram, register, oldStatus);
+        commandProcessor.connectV9990(self, vram, register);
         commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
@@ -146,11 +146,12 @@ wmsx.V9990 = function(machine, cpu) {
 
     // Command Data Read
     this.input62 = function() {
-        return 0;
+        return commandProcessor.cpuRead();
     };
 
     // Command Data Write
     this.output62 = function(val) {
+        commandProcessor.cpuWrite(val);
     };
 
     // Register Data Read
@@ -266,17 +267,26 @@ wmsx.V9990 = function(machine, cpu) {
     };
 
     this.updateCycles = function() {
-        var busCycles = cpu.getBUSCycles();
-        if (busCycles === lastBUSCyclesComputed) return cycles;
-
-        var elapsed = (busCycles - lastBUSCyclesComputed) * 6;
-        lastBUSCyclesComputed = busCycles;
-        cycles += elapsed;
-
-        return cycles;
+        return vdp.updateCycles();
     };
 
     this.getScreenText = function() {
+    };
+
+    this.setStatusTR = function (val) {
+        if (val) status |= 0x80;
+        else status &= ~0x80;
+    };
+
+    this.setStatusBD = function (val) {
+        if (val) status |= 0x10;
+        else status &= ~0x10;
+    };
+
+    this.setStatusCE = function (val) {
+        // TODO V9990: Handle CE int flag and update IRQ
+        if (val) status |= 0x01;
+        else status &= ~0x01;
     };
 
     function updateVRAMReadPointer() {
@@ -685,8 +695,8 @@ wmsx.V9990 = function(machine, cpu) {
     }
 
     function updateImageSize() {
-        if (modeData.name === "P1")      { imageWidth = 256; imageHeight = 1024 }       // Pattern Generator Bitmap configuration as per doc. Ignore XIMM
-        else if (modeData.name === "P2") { imageWidth = 512; imageHeight = 1024 }
+        if (modeData.name === "P1")      { imageWidth = 256; imageHeight = 2048 }       // Pattern Generator Bitmap configuration as per doc. Ignore XIMM
+        else if (modeData.name === "P2") { imageWidth = 512; imageHeight = 2048 }
         else {
             imageWidth = 256 << ((register[6] & 0x0c) >> 2);        // XIMM
             imageHeight = VRAM_SIZE / ((imageWidth * typeData.bpp) >> 3);
@@ -1099,6 +1109,29 @@ wmsx.V9990 = function(machine, cpu) {
         }
     }
 
+    function renderLineTypeBD16(bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var bitmapYBase, bitmapXPos, pixelA, pixelB;
+
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        bitmapYBase = realLine * (imageWidth << 1);             // 16 bpp
+        scrollXMaxBytes = (imageWidth << 1) - 1;                // 16 bpp
+        bitmapXPos = (scrollXOffset << 1) & scrollXMaxBytes;    // 16 bpp
+
+        quantBytes = quantPixels << 1;                          // 16 bpp
+        buffPos = bufferPosition;
+
+        for (var c = quantBytes; c > 0; --c, bitmapXPos = (bitmapXPos + 2) & scrollXMaxBytes) {
+            pixelA = vram[bitmapYBase + bitmapXPos];
+            pixelB = vram[bitmapYBase + bitmapXPos + 1];
+            frameBackBuffer[buffPos] = 0xff000000
+                | (color5to8bits[pixelA & 0x1f] << 16)                      // B
+                | (color5to8bits[(pixelB >> 2)& 0x1f]) << 8                 // G
+                | color5to8bits[((pixelB << 3) | (pixelA >> 5)) & 0x1f];    // R
+            buffPos += 1;
+        }
+    }
+
     function stretchCurrentLine() {
         var end = 256 + 8*2;
         var s = bufferPosition + end - 1, d = bufferPosition + (end << 1) - 2;
@@ -1403,18 +1436,18 @@ wmsx.V9990 = function(machine, cpu) {
     modes[  -1] = modes[0x0c];
 
     var types = {};
-    types[0xc0] = { name:   "SBY", bpp:  4, renderLine: renderLineTypeBP4 };
-    types[0x01] = { name:   "PP1", bpp:  4, renderLine: renderLineTypeSBY };
-    types[0x41] = { name:   "PP2", bpp:  4, renderLine: renderLineTypeSBY };
-    types[0xb2] = { name:  "BYUV", bpp:  8, renderLine: renderLineTypeBP4 };
-    types[0xba] = { name: "BYUVP", bpp:  8, renderLine: renderLineTypeBP4 };
-    types[0xa2] = { name:  "BYJK", bpp:  8, renderLine: renderLineTypeBP4 };
-    types[0xaa] = { name: "BYJKP", bpp:  8, renderLine: renderLineTypeBP4 };
-    types[0x83] = { name:  "BD16", bpp: 16, renderLine: renderLineTypeBP4 };
-    types[0x92] = { name:   "BD8", bpp:  8, renderLine: renderLineTypeBP4 };
-    types[0x82] = { name:   "BP6", bpp:  8, renderLine: renderLineTypeBP4 };
-    types[0x81] = { name:   "BP4", bpp:  4, renderLine: renderLineTypeBP4 };
-    types[0x80] = { name:   "BP2", bpp:  2, renderLine: renderLineTypeBP4 };
+    types[0xc0] = { name:   "SBY", bpp:  4, ppb:  2, renderLine:  renderLineTypeBP4 };
+    types[0x01] = { name:   "PP1", bpp:  4, ppb:  2, renderLine:  renderLineTypeSBY };
+    types[0x41] = { name:   "PP2", bpp:  4, ppb:  2, renderLine:  renderLineTypeSBY };
+    types[0xb2] = { name:  "BYUV", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0xba] = { name: "BYUVP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0xa2] = { name:  "BYJK", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0xaa] = { name: "BYJKP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0x83] = { name:  "BD16", bpp: 16, ppb:  0, renderLine: renderLineTypeBD16 };
+    types[0x92] = { name:   "BD8", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0x82] = { name:   "BP6", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0x81] = { name:   "BP4", bpp:  4, ppb:  2, renderLine:  renderLineTypeBP4 };
+    types[0x80] = { name:   "BP2", bpp:  2, ppb:  4, renderLine:  renderLineTypeBP4 };
     types[  -1] = types[0xc0];
 
     var renderLine, renderLineActive;           // Update functions for current mode
@@ -1489,7 +1522,7 @@ wmsx.V9990 = function(machine, cpu) {
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
-        commandProcessor.connectV9990(this, vram, register, oldStatus);
+        commandProcessor.connectV9990(this, vram, register);
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility

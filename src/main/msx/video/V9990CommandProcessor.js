@@ -5,11 +5,10 @@
 wmsx.V9990CommandProcessor = function() {
 "use strict";
 
-    this.connectV9990 = function(pV9990, pVRAM, pRegister, pStatus) {
+    this.connectV9990 = function(pV9990, pVRAM, pRegister) {
         v9990 = pV9990;
         vram = pVRAM;
         register = pRegister;
-        status = pStatus;
     };
 
     this.reset = function() {
@@ -55,24 +54,26 @@ wmsx.V9990CommandProcessor = function() {
         if (writeHandler) writeHandler(val);
         else {
             writeReady = true;
-            TR = 0;
+            v9990.setStatusTR(0);
         }
-
         //else console.log("Write UNHANDLED: " + val.toString(16));
     };
 
     this.cpuRead = function() {
-        if (readHandler) readHandler();
-        else TR = 0;
+        var res = readData;
 
+        if (readHandler) readHandler();
+        else v9990.setStatusTR(0);
         //else console.log("Read UNHANDLED");
+
+        return res;
     };
 
     this.updateStatus = function() {
-        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || v9990.updateCycles() >= finishingCycle))
+        if (/*CE &&*/ finishingCycle >= 0 && (finishingCycle === 0 || v9990.updateCycles() >= finishingCycle))
             finish();
 
-        status[2] = (status[2] & ~0x81) | (TR << 7) | CE;
+        // status[2] = (status[2] & ~0x81) | (TR << 7) | CE;
     };
 
     this.setV9990ModeData = function(pModeData, pTypeData, pImageWidth, pImageHeight) {
@@ -83,18 +84,20 @@ wmsx.V9990CommandProcessor = function() {
         imageHeight = pImageHeight;
         imageHeightMask = pImageHeight - 1;
         imageWidthBytes = (imageWidth * typeData.bpp) >> 3;
-        colorPPB = 2;
+        colorPPB = typeData.ppb;
+
+        // ???
         colosPPBShift = colorPPB >> 1;
         colorPPBMask = ~0 << colosPPBShift;
     };
 
-    this.setVDPTurboMulti = function(multi) {
-        // console.log("SET VDP MULTI:" + multi);
+    this.setV9990TurboMulti = function(multi) {
+        // console.log("SET V9990 MULTI:" + multi);
 
         turboClockMulti = multi < 0 || multi > 8 ? 0 : multi;   // 0..8
     };
 
-    this.getVDPTurboMulti = function() {
+    this.getV9990TurboMulti = function() {
         return turboClockMulti;
     };
 
@@ -143,8 +146,8 @@ wmsx.V9990CommandProcessor = function() {
         return register[44] & 0x01;
     }
 
-    function getEQ() {
-        return (register[44] & 0x02) === 0;           // NEQ in doc
+    function getNEQ() {
+        return (register[44] & 0x02) !== 0;
     }
 
     function getLOP() {
@@ -154,8 +157,14 @@ wmsx.V9990CommandProcessor = function() {
     function getFC() {
         return (register[49] << 8) | register[48];
     }
-    function setCLR(val) {
-        register[44] = val;
+    function setFC(val) {
+        register[48] = val & 255;
+        register[49] = val >> 8;
+    }
+
+    function setBX(val) {
+        register[53] = val & 255;
+        register[54] = val >> 8;
     }
 
     function LMMC() {
@@ -170,23 +179,25 @@ wmsx.V9990CommandProcessor = function() {
 
         console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
+        EDX = DX;
+
         writeStart(LMMCNextWrite);
     }
 
     function LMMCNextWrite(cd) {
         console.log("LMMC Write CX: " + CX + ", CY: " + CY);
 
-        logicalPSET(DX, DY, cd, LOP);
+        logicalPSET(EDX, DY, cd, LOP);
 
         CX = CX + 1;
         if (CX >= NX) {
-            DX -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1; DY += DIY;
+            EDX = DX;
+            CX = 0; CY = CY + 1; DY = (DY + DIY) & imageHeightMask;
             if (CY >= NY) {
                 finish();
             }
         } else {
-            DX += DIX;
+            EDX = (EDX + DIX) & imageWidthMask;
         }
 
         // Set visible changed register state
@@ -208,13 +219,13 @@ wmsx.V9990CommandProcessor = function() {
         console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
 
         // Perform operation
-        for (var cy = ny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
-                logicalPSET(dx, dy, fc, op);
-                dx += dix;
+        for (var cy = ny; cy > 0; --cy) {
+            var edx = dx;
+            for (var cx = nx; cx > 0; --cx) {
+                logicalPSET(edx, dy, fc, op);
+                edx = (edx + dix) & imageWidthMask;
             }
-            dx -= dix * nx;
-            dy += diy;
+            dy = (dy + diy) & imageHeightMask;
         }
 
         // Final registers state
@@ -235,24 +246,26 @@ wmsx.V9990CommandProcessor = function() {
 
         console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
+        ESX = SX;
+
         readStart(LMCMNextRead);
     }
 
     function LMCMNextRead() {
-        status[7] = normalPGET(SX, SY);
+        readData = normalPGET(ESX, SY);
 
         CX = CX + 1;
         if (CX >= NX) {
-            SX -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1; SY += DIY;
+            ESX = SX;
+            CX = 0; CY = CY + 1; SY = (SY + DIY) & imageHeightMask;
             if (CY >= NY) finish();
         } else {
-            SX += DIX;
+            ESX = (ESX + DIX) & imageWidthMask;
         }
 
         // Set visible changed register state
-        setSY(SY);
-        setNY(NY - CY);
+        // setSY(SY);
+        // setNY(NY - CY);
     }
 
     function LMMM() {
@@ -437,11 +450,11 @@ wmsx.V9990CommandProcessor = function() {
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
-        var co = getFC();
+        var fc = getFC();
         var dix = getDIX();
         var diy = getDIY();
 
-        //console.log("HMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", co: " + co.toString(16));
+        //console.log("HMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
 
         // Adjust for whole-byte operation
         dx >>= colosPPBShift; nx >>= colosPPBShift;
@@ -463,7 +476,7 @@ wmsx.V9990CommandProcessor = function() {
         var yStride = -(dix * nx) + imageWidthBytes * diy;
         for (var cy = eny; cy > 0; cy = cy - 1) {
             for (var cx = nx; cx > 0; cx = cx - 1) {
-                vram[pos & VRAM_LIMIT] = co;
+                vram[pos & VRAM_LIMIT] = fc;
                 pos += dix;
             }
             pos += yStride;
@@ -482,7 +495,7 @@ wmsx.V9990CommandProcessor = function() {
         var dy = getDY();
         var nx = getNX();             // Range 0 - 511.  Value 0 is OK
         var ny = getNY();             // Range 0 - 1023. Value 0 is OK
-        var co = getFC();
+        var fc = getFC();
         var dix = getDIX();
         var diy = getDIY();
         var maj = getMAJ();
@@ -503,7 +516,7 @@ wmsx.V9990CommandProcessor = function() {
         var e = 0;
         if (maj === 0) {
             for (var n = 0; n <= nx; n = n + 1) {
-                logicalPSET(dx, dy, co, op);
+                logicalPSET(dx, dy, fc, op);
                 dx += dix;
                 if (ny > 0) {
                     e += ny;
@@ -515,7 +528,7 @@ wmsx.V9990CommandProcessor = function() {
             }
         } else {
             for (n = 0; n <= nx; n = n + 1) {
-                logicalPSET(dx, dy, co, op);
+                logicalPSET(dx, dy, fc, op);
                 dy += diy;
                 if (ny > 0) {
                     e += ny;
@@ -537,11 +550,11 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var sx = getSX();
         var sy = getSY();
-        var co = getFC();
+        var fc = getFC();
         var dix = getDIX();
-        var eq = getEQ();
+        var eq = !getNEQ();
 
-        //console.log("SRCH sx: " + sx + ", sy: " + sy + ", co: " + co + ", eq: " + eq + ", dix: " + dix);
+        //console.log("SRCH sx: " + sx + ", sy: " + sy + ", fc: " + fc + ", eq: " + eq + ", dix: " + dix);
 
         // Horizontal limits
         if (sx >= imageWidth) sx &= imageWidth - 1;
@@ -553,22 +566,21 @@ wmsx.V9990CommandProcessor = function() {
         var x = sx, found = false;
         if (eq)
             do {
-                if (normalPGET(x, sy) === co) {
+                if (normalPGET(x, sy) === fc) {
                     found = true; break;
                 }
                 x = x + dix;
             } while (x !== stopX);
         else
             do {
-                if (normalPGET(x, sy) !== co) {
+                if (normalPGET(x, sy) !== fc) {
                     found = true; break;
                 }
                 x = x + dix;
             } while (x !== stopX);
 
-        status[2] = (status[2] & ~0x10) | (found ? 0x10 : 0);
-        status[8] = x & 255;
-        status[9] = (x >> 8) & 1;
+        v9990.setStatusBD(found);
+        setBX(x);
 
         // No registers changed
 
@@ -579,7 +591,7 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var dx = getDX();
         var dy = getDY();
-        var co = getFC();
+        var fc = getFC();
         var op = getLOP();
 
         //console.log("PSET dx: " + dx + ", dy: " + dy);
@@ -587,7 +599,7 @@ wmsx.V9990CommandProcessor = function() {
         // Horizontal limits
         if (dx >= imageWidth) dx &= imageWidth - 1;
 
-        logicalPSET(dx, dy, co, op);
+        logicalPSET(dx, dy, fc, op);
 
         // No registers changed
 
@@ -604,20 +616,19 @@ wmsx.V9990CommandProcessor = function() {
         // Horizontal limits
         if (sx >= imageWidth) sx &= imageWidth - 1;
 
-        var co = normalPGET(sx, sy);
+        var cd = normalPGET(sx, sy);
 
         // Final registers state
-        setCLR(co);
-        status[7] = co;
+        readData = cd;
 
         start(0, 0, 1, 40);      // 40 total estimated
     }
 
     function STOP() {
 
-        console.log("STOP: " + writeHandler);
+        console.log("STOP: " + (writeHandler && writeHandler.name));
 
-        finish();
+        finish(true);
         // SDSnatcher Melancholia fix: TR not reset when command ends
     }
 
@@ -634,25 +645,35 @@ wmsx.V9990CommandProcessor = function() {
                 shift = 0; mask = 0xff;
         }
         // Perform operation
-        var pos = y * imageWidthBytes + x;
-        return (vram[pos & VRAM_LIMIT] & mask) >> shift;
+        var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+        return (vram[pos] & mask) >> shift;
     }
 
     function logicalPSET(x, y, co, op) {
         var shift, mask;
         switch (colorPPB) {
-            case 2:
+            case 0: // 16bbp
+                x <<= 1; mask = 0xffff;
+
+                // Perform operation
+                var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+                var val = op(vram[pos] | (vram[pos + 1] << 8), co, mask);
+                vram[pos] = val & 0xff;
+                vram[pos + 1] = val >> 8;
+                break;
+            case 2: // 4bpp
                 shift = (x & 0x1) ? 0 : 4;
                 x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
-            case 4:
+            case 4: // 2bpp
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            default:  // including 1
+            default: // including 1, 8bpp and 6bpp
                 mask = 0xff;
         }
+
         // Perform operation
-        var pos = y * imageWidthBytes + x;
-        vram[pos & VRAM_LIMIT] = op(vram[pos & VRAM_LIMIT], co, mask);
+        pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+        vram[pos] = op(vram[pos], co, mask);
     }
 
     function logicalPCOPY(dx, dy, sx, sy, op) {
@@ -670,10 +691,10 @@ wmsx.V9990CommandProcessor = function() {
         }
 
         // Perform operation
-        var sPos = sy * imageWidthBytes + sx;
-        var dPos = dy * imageWidthBytes + dx;
-        var co = ((vram[sPos & VRAM_LIMIT] >> sShift) & mask) << dShift;
-        vram[dPos & VRAM_LIMIT] = op(vram[dPos & VRAM_LIMIT], co, mask << dShift);
+        var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+        var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
+        var co = ((vram[sPos] >> sShift) & mask) << dShift;
+        vram[dPos] = op(vram[dPos], co, mask << dShift);
     }
 
 
@@ -818,7 +839,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
-        CE = 1;
+        v9990.setStatusCE(1);
         writeHandler = null;
         readHandler = null;
         estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite);
@@ -829,9 +850,14 @@ wmsx.V9990CommandProcessor = function() {
             finishingCycle = -1;    // infinite
         else if (turboClockMulti === 0) {
             finishingCycle = 0;     // instantaneous
+            finish();
         } else {
             var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) / turboClockMulti) | 0;
             finishingCycle = v9990.updateCycles() + duration;
+
+            // TODO V9990: Command duration. Instantaneous for now
+            finishingCycle = 0;
+            finish();
 
             //console.log ("+++++ Duration: " + duration);
         }
@@ -842,7 +868,7 @@ wmsx.V9990CommandProcessor = function() {
 
         CX = 0; CY = 0;
         writeHandler = handler;
-        TR = 1;
+        v9990.setStatusTR(1);
 
         // Perform first iteration with last written data, only if available
         if (writeReady) {
@@ -856,18 +882,17 @@ wmsx.V9990CommandProcessor = function() {
 
         CX = 0; CY = 0;
         readHandler = handler;
-        TR = 1;
+        v9990.setStatusTR(1);
 
         // Perform first iteration
         readHandler();
     }
 
-    function finish() {
-        CE = 0;
+    function finish(stop) {
+        v9990.setStatusCE(0);
         writeHandler = null;
         writeReady = false;
         readHandler = null;
-        register[46] &= ~0xf0;
 
         //console.log("FINISH");
     }
@@ -915,12 +940,11 @@ wmsx.V9990CommandProcessor = function() {
     // Turbo
     var turboClockMulti = 1;
 
-    // Main VDP connections
-    var v9990, vram, register, status;
+    // Main V9990 connections
+    var v9990, vram, register;
 
-    var CE = false, TR = false;
-    var SX = 0, SY = 0, DX = 0, DY = 0, NX = 0, NY = 0, ENY = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, destPos = 0, LOP;
-    var writeReady = false, writeHandler = null, readHandler = null;
+    var SX = 0, SY = 0, DX = 0, DY = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, destPos = 0, LOP;
+    var writeReady = false, readData = 0, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
     var modeData, typeData;
@@ -933,7 +957,6 @@ wmsx.V9990CommandProcessor = function() {
 
     this.saveState = function() {
         return {
-            ce: CE, tr: TR,
             wr: writeReady, wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
             SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
             DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP), dp: destPos,
@@ -942,7 +965,6 @@ wmsx.V9990CommandProcessor = function() {
     };
 
     this.loadState = function(s) {
-        CE = s.ce; TR = s.tr;
         writeReady = s.wr; writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
         SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
         DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined; destPos = s.dp;

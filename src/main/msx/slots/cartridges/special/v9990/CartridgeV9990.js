@@ -12,7 +12,7 @@ wmsx.CartridgeV9990 = function(rom) {
 
     this.connect = function(machine) {
         if (!v9990) {
-            v9990 = new wmsx.V9990(machine, machine.cpu);
+            v9990 = new wmsx.V9990(machine, machine.vdp, machine.cpu);
             this.v9990 = v9990;
         }
         v9990.connect(machine);
