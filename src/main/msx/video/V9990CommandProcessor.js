@@ -45,8 +45,8 @@ wmsx.V9990CommandProcessor = function() {
             // case 0x40:
             //     POINT(); break;
             default:
-                console.log(">>>> V9990 Command: " + val.toString(16));
-            //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
+                // console.log(">>>> V9990 Command: " + val.toString(16));
+                //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
         }
     };
 
@@ -177,7 +177,7 @@ wmsx.V9990CommandProcessor = function() {
         DIY = getDIY();
         LOP = getLOP();
 
-        console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         EDX = DX;
 
@@ -185,9 +185,14 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function LMMCNextWrite(cd) {
-        console.log("LMMC Write CX: " + CX + ", CY: " + CY);
+        // console.log("LMMC Write CX: " + CX + ", CY: " + CY);
 
-        logicalPSET(EDX, DY, cd, LOP);
+        if (writeDataPending === null) return writeDataPending = cd;
+
+        var sc = (cd << 8) | writeDataPending;
+        writeDataPending = null;
+
+        logicalPSET(EDX, DY, sc, LOP);
 
         CX = CX + 1;
         if (CX >= NX) {
@@ -216,7 +221,7 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
 
-        console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
+        // console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
@@ -280,7 +285,7 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
 
-        console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
+        // console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
@@ -653,11 +658,10 @@ wmsx.V9990CommandProcessor = function() {
         var shift, mask;
         switch (colorPPB) {
             case 0: // 16bbp
-                x <<= 1; mask = 0xffff;
-
+                x <<= 1;
                 // Perform operation
                 var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
-                var val = op(vram[pos] | (vram[pos + 1] << 8), co, mask);
+                var val = op(vram[pos] | (vram[pos + 1] << 8), co, 0xffff);
                 vram[pos] = val & 0xff;
                 vram[pos + 1] = val >> 8;
                 break;
@@ -679,22 +683,33 @@ wmsx.V9990CommandProcessor = function() {
     function logicalPCOPY(dx, dy, sx, sy, op) {
         var sShift, dShift, mask;
         switch (colorPPB) {
-            case 2:
+            case 0: // 16bbp
+                sx <<= 1; dx <<= 1;
+                // Perform operation
+                var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+                var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
+                var sc = vram[sPos] | (vram[sPos + 1] << 8);
+                var dc = vram[dPos] | (vram[dPos + 1] << 8);
+                var wc = op(dc, sc, 0xffff);
+                vram[dPos] = wc & 0xff;
+                vram[dPos + 1] = wc >> 8;
+                break;
+            case 2: // 4bpp
                 sShift = (sx & 0x1) ? 0 : 4; dShift = (dx & 0x1) ? 0 : 4;
                 sx >>>= 1; dx >>>= 1; mask = 0x0f; break;
-            case 4:
+            case 4: // 2bpp
                 sShift = (3 - (sx & 0x3)) * 2; dShift = (3 - (dx & 0x3)) * 2;
                 sx >>>= 2; dx >>>= 2; mask = 0x03; break;
-            default:  // including 1
+            default: // including 1, 8bpp and 6bpp
                 sShift = dShift = 0;
                 mask = 0xff;
         }
 
         // Perform operation
-        var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
-        var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
-        var co = ((vram[sPos] >> sShift) & mask) << dShift;
-        vram[dPos] = op(vram[dPos], co, mask << dShift);
+        sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+        dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
+        sc = ((vram[sPos] >> sShift) & mask) << dShift;
+        vram[dPos] = op(vram[dPos], sc, mask << dShift);
     }
 
 
@@ -868,6 +883,7 @@ wmsx.V9990CommandProcessor = function() {
 
         CX = 0; CY = 0;
         writeHandler = handler;
+        writeDataPending = null;
         v9990.setStatusTR(1);
 
         // Perform first iteration with last written data, only if available
@@ -892,6 +908,7 @@ wmsx.V9990CommandProcessor = function() {
         v9990.setStatusCE(0);
         writeHandler = null;
         writeReady = false;
+        writeDataPending = null;
         readHandler = null;
 
         //console.log("FINISH");
@@ -944,7 +961,7 @@ wmsx.V9990CommandProcessor = function() {
     var v9990, vram, register;
 
     var SX = 0, SY = 0, DX = 0, DY = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, destPos = 0, LOP;
-    var writeReady = false, readData = 0, writeHandler = null, readHandler = null;
+    var writeReady = false, readData = 0, writeDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
     var modeData, typeData;

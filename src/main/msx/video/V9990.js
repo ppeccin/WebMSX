@@ -23,10 +23,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
-    this.setMachineType = function(machineType) {
-        refreshDisplayMetrics();
-    };
-
     this.connect = function(machine) {
         machine.vdp.connectSlave(this);
         machine.bus.connectInputDevice( 0x60, this.input60);
@@ -239,7 +235,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
         vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = true; vramPointerWriteInc = true; vramReadData = 0;
         palettePointer = 0; palettePointerReadInc = true;
-        paletteOffsetA = 0; paletteOffsetB = 0; paletteOffsetFull = 0;
+        paletteOffsetA = 0; paletteOffsetB = 0; paletteOffset = 0;
         ysEnabled = false;
         scrollXOffset = 0; scrollYOffset = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYMax = 0;
         planeAEnabled = true; planeBEnabled = true;
@@ -289,6 +285,11 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         else status &= ~0x01;
     };
 
+    // Called by Master VDP
+    this.refreshDisplayMetrics = function() {
+        videoSignal.setDisplayMetrics(wmsx.V9990.SIGNAL_MAX_WIDTH, wmsx.V9990.SIGNAL_MAX_HEIGHT);
+    };
+
     function updateVRAMReadPointer() {
         vramPointerRead = ((register[5] << 16) | (register[4] << 8) | register[3]) & VRAM_LIMIT;
         vramPointerReadInc = (register[5] & 0x80) === 0;
@@ -313,7 +314,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function updatePaletteOffsets() {
         paletteOffsetA = (register[13] & 0x03) << 4;
         paletteOffsetB = (register[13] & 0x0c) << 2;
-        paletteOffsetFull = (paletteOffsetB << 2) | paletteOffsetA;
+        paletteOffset = (paletteOffsetB << 2) | paletteOffsetA;
     }
 
     function updateYSEnabled() {
@@ -342,7 +343,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 break;
             case 7:
                 if (mod & 0x08) updateVideoStandardSoft();      // PAL
-                if (mod & 0x40) updateMode();                   // C25M
+                if (mod & 0x40) updateMode();                   // C25M (will also update RenderMetrics)
+                else if (mod & 0x02) updateRenderMetrics();     // IL
                 break;
             case 8:
                 if (mod & 0x80) {                               // DISP
@@ -676,6 +678,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         updateSpritePattAddress();
         updateVRAMInterleaving();
         updateLineActiveType();
+        updateSignalMetrics(false);
         updateRenderMetrics(false);
 
         logInfo("Update Mode: " + modeData.name + ", modeBits: " + modeBits.toString(16));
@@ -738,13 +741,17 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateSignalMetrics(force) {
-        signalActiveHeight = 212;
+        signalActiveHeight = modeData.height;
 
-        // UX decision: Visible border height with LN = 1 and no Vertical Adjust is 8
-        startingVisibleTopBorderScanline = 16 - 8;                                                      // Minimal Border left invisible (NTSC with LN = 0)
-        startingActiveScanline = startingVisibleTopBorderScanline + 8 + verticalAdjust;
+        // Render starts at first Top Border line
+        // Total Vertical Border height is 16. UX decision: Visible top and bottom border height with no Vertical Adjust is 8. No Border in overscan modes
+        var border = modeData.hasBorders * 8;
+        var vertAdjust = modeData.hasBorders * verticalAdjust;
+
+        startingVisibleTopBorderScanline = 16 - (16 - border);                                      // 0-7 Top Border lines left invisible (NTSC no overscan)
+        startingActiveScanline = startingVisibleTopBorderScanline + border + vertAdjust;
         var startingVisibleBottomBorderScanline = startingActiveScanline + signalActiveHeight;
-        startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 - verticalAdjust;           // Remaining Bottom border and other parts left invisible
+        startingInvisibleScanline = startingVisibleBottomBorderScanline + border - vertAdjust;      // Remaining left invisible: Bottom border, Bottom Erase, Sync and Top Erase
         finishingScanline = frameVideoStandard.totalHeight;
 
         if (force) frameStartingActiveScanline = startingActiveScanline;
@@ -758,7 +765,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
         newRenderWidth = modeData.width + modeData.hasBorders * 8 * 2 * modeData.pixelWidthDiv;
 
-        pixelHeightDiv = 1;             // IL
+        pixelHeightDiv = (register[7] & 0x02) ? 2 : 1;            // IL
         newPixelHeight = 2 >> (pixelHeightDiv - 1);
         newRenderHeight = (modeData.height + modeData.hasBorders * 8 * 2) * pixelHeightDiv;
 
@@ -766,10 +773,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
 
-        // Only change width if before visible display (beginFrame), or if going to higher width
+        // Only change width if forced (loadState and beginFrame)
         if (newRenderWidth !== renderWidth) {
-            if (currentScanline < startingVisibleTopBorderScanline || newRenderWidth > renderWidth) {
-                if (currentScanline >= startingVisibleTopBorderScanline) stretchFromCurrentToTopScanline();
+            if (force) {
                 renderWidth = newRenderWidth;
                 changed = true;
             } else
@@ -849,7 +855,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function renderLineModeSBY() {
         frameBackBuffer.set(standByLineCache, bufferPosition);
-        bufferPosition = bufferPosition + bufferLineAdvance;
+        bufferPosition += bufferLineAdvance;
 
         //logInfo("renderLineStandBy");
     }
@@ -857,7 +863,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function renderLineBackdrop() {
         if (backdropCacheUpdatePending) updateBackdropLineCache();
         frameBackBuffer.set(backdropLineCache, bufferPosition);
-        bufferPosition = bufferPosition + bufferLineAdvance;
+        bufferPosition += bufferLineAdvance;
         //logInfo("renderLineBorders");
     }
 
@@ -878,15 +884,120 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
     }
 
+    function paintBackdrop32(bufferPos) {
+        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
+        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
+        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
+        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
+        frameBackBuffer[bufferPos + 24] = backdropValue; frameBackBuffer[bufferPos + 25] = backdropValue; frameBackBuffer[bufferPos + 26] = backdropValue; frameBackBuffer[bufferPos + 27] = backdropValue;
+        frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
+    }
 
     function renderLineModeP1() {
+        // Line
+        renderLineTypePP1(bufferPosition + 8);
+
+        // Borders
+        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeP2() {
+        // Line
+        renderLineTypePP2(bufferPosition + 16);
+
+        // Borders
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB0() {
+        // Line
+        typeData.renderLine(bufferPosition, 192);
+
+        // Overscan: No Borders
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB1() {
+        // Line
+        typeData.renderLine(bufferPosition + 8, 256);
+
+        // Borders
+        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB2() {
+        // Line
+        typeData.renderLine(bufferPosition , 384);
+
+        // Overscan: No Borders
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB3() {
+        // Line
+        typeData.renderLine(bufferPosition + 16, 512);
+
+        // Borders
+        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB4() {
+        // Line
+        typeData.renderLine(bufferPosition , 768);
+
+        // Overscan: No Borders
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB5() {
+        // Line
+        typeData.renderLine(bufferPosition , 640);
+
+        // No Borders
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB6() {
+        // Line
+        typeData.renderLine(bufferPosition , 640);
+
+        // No Borders
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineModeB7() {
+        // Line
+        typeData.renderLine(bufferPosition + 32, 1024);
+
+        // Borders
+        paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 32 + 1024);
+
+        bufferPosition += bufferLineAdvance;
+    }
+
+    function renderLineTypeSBY(bufferPosition, quantPixels) {
+        for (var c = 0; c < quantPixels; ++c)
+            frameBackBuffer[bufferPosition + c] = standByValue;
+    }
+
+    function renderLineTypePP1(bufferPosition) {
         var buffPos, realLine, lineInPattern, scrollX;
         var namePosBase, namePos, pattPosBase, name, pattPixelPos, pixels, v;
-
-        //logInfo("renderLineP1");
-
-        //if (leftScroll2Pages && leftScrollChars < 32) namePosBase &= modeData.evenPageMask;       // Start at even page
-        //var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
         // Backdrop
         renderLineBackdropNoAdvance();
@@ -894,7 +1005,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // Plane B
         if (planeBEnabled) {
             scrollX = scrollXBOffset & 511;                                                         // Image max X = 511
-            buffPos = bufferPosition + 8 + horizontalAdjust - (scrollX & 7);
+            buffPos = bufferPosition - (scrollX & 7);
             realLine = (currentScanline - frameStartingActiveScanline + scrollYBOffset) & scrollYMax;
             lineInPattern = realLine & 7;
             namePosBase = 0x7e000 + ((realLine >> 3) << 6 << 1);
@@ -921,13 +1032,13 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             }
 
             // Sprites A > SP > B, PR1 = 1 (0x20)
-            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 256, 0x3fe00, bufferPosition + 8);
+            renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x20, 256, 0x3fe00);
         }
 
         // Plane A
         if (planeAEnabled) {
             scrollX = scrollXOffset & 511;                                                          // Image max X = 511
-            buffPos = bufferPosition + 8 + horizontalAdjust - (scrollX & 7);
+            buffPos = bufferPosition - (scrollX & 7);
             realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
             lineInPattern = realLine & 7;
             namePosBase = 0x7c000 + ((realLine >> 3) << 6 << 1);
@@ -954,33 +1065,24 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             }
 
             // Sprites SP > A > B, PR1 = 0
-            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 256, 0x3fe00, bufferPosition + 8);
+            renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x00, 256, 0x3fe00);
         }
-
-        // Borders
-        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
-
-        if (renderWidth > 500) stretchCurrentLine();
-
-        bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeP2() {
+    function renderLineTypePP2(bufferPosition) {
         var buffPos, realLine, lineInPattern, scrollX;
         var namePosBase, namePos, pattPosBase, name, pattPixelPos, pixels, v;
-
-        //logInfo("renderLineP2");
 
         // Backdrop
         renderLineBackdropNoAdvance();
 
         // Sprites Plane > SP, PR1 = 1 (0x20)
-        renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00, bufferPosition + 16);
+        renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00);
 
         // Plane
         if (planeAEnabled) {
             scrollX = scrollXOffset & 1023;                                                         // Image max X = 1023
-            buffPos = bufferPosition + 16 + (horizontalAdjust << 1) - (scrollX & 7);
+            buffPos = bufferPosition - (scrollX & 7);
             realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
             lineInPattern = realLine & 7;
             namePosBase = 0x7c000 + ((realLine >> 3) << 7 << 1);
@@ -1007,16 +1109,11 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             }
 
             // Sprites SP > Plane, PR1 = 0
-            renderSpritesLine(currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00, bufferPosition + 16);
+            renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00);
         }
-
-        // Borders
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
-
-        bufferPosition += bufferLineAdvance;
     }
 
-    function renderSpritesLine(line, pr1, width, atrPos, bufferPos) {
+    function renderSpritesLine(bufferPosition, line, pr1, width, atrPos) {
         var palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
 
         spritesGlobalPriority -= 128;
@@ -1043,7 +1140,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                     s = x <= 1024 - 16 ? 0 : x - (1024 - 16);
                     f = x <= width - 16 ? 16 : width - x;
                     if (x >= width) x = 0;
-                    paintSprite(x, bufferPos, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f);
+                    paintSprite(bufferPosition, x, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f);
                 }
             }
 
@@ -1051,7 +1148,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
     }
 
-    function paintSprite(x, bufferPos, spritePri, pattPixelPos, palOff, start, finish) {
+    function paintSprite(bufferPosition, x, spritePri, pattPixelPos, palOff, start, finish) {
         var c = 0;
         for (var i = start; i < finish; ++i, ++x) {
             if (i & 1) c = vram[pattPixelPos + (i >> 1)] & 0x0f;
@@ -1059,76 +1156,118 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             if (c === 0) continue;                                                          // Transparent pixel, ignore
             if (spritesLinePriorities[x] < spritePri) continue;                             // Higher priority sprite already there
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
-            frameBackBuffer[bufferPos + x] = paletteValuesReal[palOff | c];                 // Paint
-        }
-    }
-
-    function renderLineModeB1() {
-        // Line
-        typeData.renderLine(bufferPosition + 8 + horizontalAdjust, 256);
-
-        // Borders
-        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
-
-        bufferPosition += bufferLineAdvance;
-    }
-
-    function renderLineModeB3() {
-        // Line
-        typeData.renderLine(bufferPosition + 16 + (horizontalAdjust << 1), 512);
-
-        // Borders
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
-
-        bufferPosition += bufferLineAdvance;
-    }
-
-    function renderLineTypeSBY(bufferPosition, quantPixels) {
-        for (var c = 0; c < quantPixels; ++c)
-            frameBackBuffer[bufferPosition + c] = standByValue;
-    }
-
-    function renderLineTypeBP4(bufferPosition, quantPixels) {
-        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
-        var bitmapYBase, bitmapXPos, pixels, v;
-
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
-        bitmapYBase = realLine * (imageWidth >> 1);             // 4 bpp
-        scrollXMaxBytes = (imageWidth >> 1) - 1;                // 4 bpp
-        bitmapXPos = (scrollXOffset >> 1) & scrollXMaxBytes;    // 4 bpp
-
-        extraByte = scrollXOffset & 1;                          // 4 bpp
-        quantBytes = (quantPixels >> 1) + extraByte;            // 4 bpp
-        buffPos = bufferPosition - extraByte;
-
-        for (var c = quantBytes; c > 0; --c, bitmapXPos = (bitmapXPos + 1) & scrollXMaxBytes) {
-            pixels = vram[bitmapYBase + bitmapXPos];
-            v = pixels >> 4;   frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetB | v];
-            v = pixels & 0x0f; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetB | v];
-            buffPos += 2;                                       // 4 bpp
+            frameBackBuffer[bufferPosition + x] = paletteValuesReal[palOff | c];            // Paint
         }
     }
 
     function renderLineTypeBD16(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
-        var bitmapYBase, bitmapXPos, pixelA, pixelB;
+        var byteYBase, byteXPos, pixelA, pixelB;
 
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
-        bitmapYBase = realLine * (imageWidth << 1);             // 16 bpp
-        scrollXMaxBytes = (imageWidth << 1) - 1;                // 16 bpp
-        bitmapXPos = (scrollXOffset << 1) & scrollXMaxBytes;    // 16 bpp
+        var stride = (register[7] & 0x02) && (register[7] & 0x04) ? 2 : 1;
+        var add = stride === 2 && (status & 0x02) ? 1 : 0;
 
-        quantBytes = quantPixels << 1;                          // 16 bpp
+        realLine = ((currentScanline - frameStartingActiveScanline + scrollYOffset) * stride + add) & scrollYMax;
+        byteYBase = realLine * (imageWidth << 1);               // 0.5 ppb (16 bpp)
+        scrollXMaxBytes = (imageWidth << 1) - 1;                // 0.5 ppb
+        byteXPos = (scrollXOffset << 1) & scrollXMaxBytes;      // 0.5 ppb
+
+        quantBytes = quantPixels << 1;                          // 0.5 ppb
         buffPos = bufferPosition;
 
-        for (var c = quantBytes; c > 0; --c, bitmapXPos = (bitmapXPos + 2) & scrollXMaxBytes) {
-            pixelA = vram[bitmapYBase + bitmapXPos];
-            pixelB = vram[bitmapYBase + bitmapXPos + 1];
+        for (var c = quantBytes; c > 0; c -= 2, byteXPos = (byteXPos + 2) & scrollXMaxBytes) {
+            pixelA = vram[byteYBase + byteXPos];
+            pixelB = vram[byteYBase + byteXPos + 1];
             frameBackBuffer[buffPos] = 0xff000000
                 | (color5to8bits[pixelA & 0x1f] << 16)                      // B
                 | (color5to8bits[(pixelB >> 2)& 0x1f]) << 8                 // G
                 | color5to8bits[((pixelB << 3) | (pixelA >> 5)) & 0x1f];    // R
-            buffPos += 1;
+            ++buffPos;
+        }
+    }
+
+    function renderLineTypeBD8(bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var byteYBase, byteXPos, pixel, pixelB;
+
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        byteYBase = realLine * imageWidth;                      // 1 ppb
+        scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
+        byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
+
+        quantBytes = quantPixels;                               // 1 ppb
+        buffPos = bufferPosition;
+
+        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            pixel = vram[byteYBase + byteXPos];
+            frameBackBuffer[buffPos] = 0xff000000
+                | (color2to8bits[pixel & 0x03] << 16)           // B
+                | (color3to8bits[(pixel >> 5) & 0x07]) << 8     // G
+                | color3to8bits[(pixel >> 2) & 0x07];           // R
+            ++buffPos;
+        }
+    }
+
+    function renderLineTypeBP6(bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var byteYBase, byteXPos, pixels, v;
+
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        byteYBase = realLine * imageWidth;                      // 1 ppb
+        scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
+        byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
+
+        quantBytes = quantPixels;                               // 1 ppb
+        buffPos = bufferPosition;
+
+        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            pixels = vram[byteYBase + byteXPos];
+            frameBackBuffer[buffPos] = paletteValues[pixels & 0x3f];
+            ++buffPos;
+        }
+    }
+
+    function renderLineTypeBP4(bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
+        var byteYBase, byteXPos, pixels, v;
+
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        byteYBase = realLine * (imageWidth >> 1);               // 2 ppb
+        scrollXMaxBytes = (imageWidth >> 1) - 1;                // 2 ppb
+        byteXPos = (scrollXOffset >> 1) & scrollXMaxBytes;      // 2 ppb
+
+        leftPixels = scrollXOffset & 1;                         // 2 ppb
+        quantBytes = (quantPixels >> 1) + leftPixels;           // 2 ppb
+        buffPos = bufferPosition - leftPixels;
+
+        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            pixels = vram[byteYBase + byteXPos];
+            v = pixels >> 4;   frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetB | v];
+            v = pixels & 0x0f; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetB | v];
+            buffPos += 2;
+        }
+    }
+
+    function renderLineTypeBP2(bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
+        var byteYBase, byteXPos, pixels, v;
+
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        byteYBase = realLine * (imageWidth >> 2);               // 4 ppb
+        scrollXMaxBytes = (imageWidth >> 2) - 1;                // 4 ppb
+        byteXPos = (scrollXOffset >> 2) & scrollXMaxBytes;      // 4 ppb
+
+        leftPixels = scrollXOffset & 3;                         // 4 ppb
+        quantBytes = (quantPixels >> 2) + (leftPixels ? 1 : 0); // 4 ppb
+        buffPos = bufferPosition - leftPixels;
+
+        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            pixels = vram[byteYBase + byteXPos];
+            v = pixels >> 6;          frameBackBuffer[buffPos + 0] = paletteValues[paletteOffset | v];
+            v = (pixels >> 4) & 0x03; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffset | v];
+            v = (pixels >> 2) & 0x03; frameBackBuffer[buffPos + 2] = paletteValues[paletteOffset | v];
+            v = pixels & 0x03;        frameBackBuffer[buffPos + 3] = paletteValues[paletteOffset | v];
+            buffPos += 4;
         }
     }
 
@@ -1182,23 +1321,17 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (renderMetricsChangePending) updateRenderMetrics(true);
         // else cleanFrameBuffer();
 
-        // Page blinking per frame
-        //if (!blinkPerLine && blinkPageDuration > 0) clockPageBlinking();
-
         // Field alternance
-        //oldStatus[2] ^= 0x02;                    // Invert EO (Display Field flag)
+        status ^= 0x02;                    // Invert EO (Display Field Status flag)
 
         // Interlace
-        //if (register[9] & 0x08) {                                           // IL
-        //    bufferPosition = (oldStatus[2] & 0x02) ? LINE_WIDTH : 0;       // EO
-        //    bufferLineAdvance = LINE_WIDTH * 2;
-        //} else {
-        //    bufferPosition = 0;
-        //    bufferLineAdvance = LINE_WIDTH;
-        //}
-
-        bufferPosition = 0;
-        bufferLineAdvance = LINE_WIDTH;
+        if (register[7] & 0x02) {                                     // IL
+           bufferPosition = (status & 0x02) ? LINE_WIDTH : 0;         // EO (Display Field Status flag)
+           bufferLineAdvance = LINE_WIDTH * 2;
+        } else {
+           bufferPosition = 0;
+           bufferLineAdvance = LINE_WIDTH;
+        }
 
         // Update mask to reflect correct page (Blink and EO)
         //updateLayoutTableAddressMask();
@@ -1220,10 +1353,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         beginFrame();
     }
 
-    function refreshDisplayMetrics() {
-        videoSignal.setDisplayMetrics(wmsx.V9990.SIGNAL_MAX_WIDTH, wmsx.V9990.SIGNAL_MAX_HEIGHT);
-    }
-
     function initVRAM() {
         for(var i = 0; i < VRAM_SIZE; i += 1024) {
             wmsx.Util.arrayFill(vram, 0x00, i, i + 512);
@@ -1243,7 +1372,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         frameContextUsingAlpha = !!useAlpha;
         frameCanvas = document.createElement('canvas');
-        // Maximum VPD resolution including borders
+        // Maximum V9990 resolution including borders
         frameCanvas.width = wmsx.V9990.SIGNAL_MAX_WIDTH;
         frameCanvas.height = wmsx.V9990.SIGNAL_MAX_HEIGHT;
         frameContext = frameCanvas.getContext("2d", { alpha: frameContextUsingAlpha, antialias: false });
@@ -1396,7 +1525,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var registerSelect = 0, registerSelectReadInc = true, registerSelectWriteInc = true;
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
     var palettePointer = 0, palettePointerReadInc = true;
-    var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffsetFull = 0;
+    var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffset = 0;
     var ysEnabled = false;
 
     var register = new Array(64);
@@ -1422,32 +1551,32 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var refreshWidth = 0, refreshHeight = 0;
 
     var modes = {};
-    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine: renderLineModeSBY };
-    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine:  renderLineModeP1 };
-    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, renderLine:  renderLineModeP2 };
-    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, renderLine: renderLineModeSBY };       // Undocumented, B1 Overscan?
-    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, renderLine:  renderLineModeB1 };
-    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, renderLine: renderLineModeSBY };       // B1 Overscan
-    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, renderLine:  renderLineModeB3 };
-    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineModeSBY };       // B3 Overscan
-    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineModeSBY };
-    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, renderLine: renderLineModeSBY };
-    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, renderLine: renderLineModeSBY };       // Undocumented, Weird!
+    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, renderLine: renderLineModeSBY };
+    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, renderLine:  renderLineModeP1 };
+    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, renderLine:  renderLineModeP2 };
+    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, renderLine:  renderLineModeB0 };       // Undocumented, B1 Overscan?
+    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, renderLine:  renderLineModeB1 };
+    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, renderLine:  renderLineModeB2 };       // B1 Overscan
+    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, renderLine:  renderLineModeB3 };
+    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, renderLine:  renderLineModeB4 };       // B3 Overscan
+    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, renderLine:  renderLineModeB5 };
+    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, renderLine:  renderLineModeB6 };
+    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, renderLine:  renderLineModeB7 };       // Undocumented, Weird!
     modes[  -1] = modes[0x0c];
 
     var types = {};
-    types[0xc0] = { name:   "SBY", bpp:  4, ppb:  2, renderLine:  renderLineTypeBP4 };
-    types[0x01] = { name:   "PP1", bpp:  4, ppb:  2, renderLine:  renderLineTypeSBY };
-    types[0x41] = { name:   "PP2", bpp:  4, ppb:  2, renderLine:  renderLineTypeSBY };
-    types[0xb2] = { name:  "BYUV", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
-    types[0xba] = { name: "BYUVP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
-    types[0xa2] = { name:  "BYJK", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
-    types[0xaa] = { name: "BYJKP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0xc0] = { name:   "SBY", bpp:  4, ppb:  2, renderLine:  renderLineTypeSBY };
+    types[0x01] = { name:   "PP1", bpp:  4, ppb:  2, renderLine:  renderLineTypePP1 };
+    types[0x41] = { name:   "PP2", bpp:  4, ppb:  2, renderLine:  renderLineTypePP2 };
+    types[0xb2] = { name:  "BYUV", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
+    types[0xba] = { name: "BYUVP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
+    types[0xa2] = { name:  "BYJK", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
+    types[0xaa] = { name: "BYJKP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
     types[0x83] = { name:  "BD16", bpp: 16, ppb:  0, renderLine: renderLineTypeBD16 };
-    types[0x92] = { name:   "BD8", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
-    types[0x82] = { name:   "BP6", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP4 };
+    types[0x92] = { name:   "BD8", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
+    types[0x82] = { name:   "BP6", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP6 };
     types[0x81] = { name:   "BP4", bpp:  4, ppb:  2, renderLine:  renderLineTypeBP4 };
-    types[0x80] = { name:   "BP2", bpp:  2, ppb:  4, renderLine:  renderLineTypeBP4 };
+    types[0x80] = { name:   "BP2", bpp:  2, ppb:  4, renderLine:  renderLineTypeBP2 };
     types[  -1] = types[0xc0];
 
     var renderLine, renderLineActive;           // Update functions for current mode
@@ -1511,7 +1640,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     this.loadState = function(s) {
-        refreshDisplayMetrics();
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         paletteRAM = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRAM);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);

@@ -47,9 +47,8 @@ wmsx.VDP = function(machine, cpu) {
 
     this.connectSlave = function(pSlave) {
         slave = pSlave;
-        if (slave) {
-            slave.setVideoStandard(videoStandard);
-        }
+        if (slave) slave.setVideoStandard(videoStandard);
+        refreshDisplayMetrics();
     };
 
     this.powerOn = function() {
@@ -796,11 +795,12 @@ wmsx.VDP = function(machine, cpu) {
             else { signalActiveHeight = 192; addBorder = 10; }
         }
 
-        // UX decision: Visible border height with LN = 1 and no Vertical Adjust is 8
-        startingVisibleTopBorderScanline = 16 - 8;                                                              // Minimal Border left invisible (NTSC with LN = 0)
+        // Render starts at first Top Border line
+        // Total Top border height is 16. UX decision: Visible top and bottom border height with no Vertical Adjust is 8
+        startingVisibleTopBorderScanline = 16 - 8;                                                              // 0-7 Top Border lines left invisible (NTSC with LN = 0)
         startingActiveScanline = startingVisibleTopBorderScanline + 8 + addBorder + verticalAdjust;
         var startingVisibleBottomBorderScanline = startingActiveScanline + signalActiveHeight;
-        startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 + addBorder - verticalAdjust;       // Remaining Bottom border and other parts left invisible
+        startingInvisibleScanline = startingVisibleBottomBorderScanline + 8 + addBorder - verticalAdjust;       // Remaining left invisible: Bottom border, Bottom Erase, Sync and Top Erase
         finishingScanline = frameVideoStandard.totalHeight;
 
         if (force) frameStartingActiveScanline = startingActiveScanline;
@@ -2211,7 +2211,8 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function refreshDisplayMetrics() {
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+        if (slave) slave.refreshDisplayMetrics();
+        else videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
     }
 
     function initRegisters() {
