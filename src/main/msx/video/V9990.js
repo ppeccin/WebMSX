@@ -239,6 +239,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         ysEnabled = false;
         scrollXOffset = 0; scrollYOffset = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYMax = 0;
         planeAEnabled = true; planeBEnabled = true;
+        vramEOLineShift = 0; vramEOLineAdd = 0;
 
         frame = cycles = lastBUSCyclesComputed = 0;
         verticalAdjust = horizontalAdjust = 0;
@@ -765,7 +766,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
         newRenderWidth = modeData.width + modeData.hasBorders * 8 * 2 * modeData.pixelWidthDiv;
 
-        pixelHeightDiv = (register[7] & 0x02) ? 2 : 1;            // IL
+        pixelHeightDiv = modeData.allowIL && (register[7] & 0x02) ? 2 : 1;            // IL
         newPixelHeight = 2 >> (pixelHeightDiv - 1);
         newRenderHeight = (modeData.height + modeData.hasBorders * 8 * 2) * pixelHeightDiv;
 
@@ -1164,13 +1165,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
         var byteYBase, byteXPos, pixelA, pixelB;
 
-        var stride = (register[7] & 0x02) && (register[7] & 0x04) ? 2 : 1;
-        var add = stride === 2 && (status & 0x02) ? 1 : 0;
-
-        realLine = ((currentScanline - frameStartingActiveScanline + scrollYOffset) * stride + add) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth << 1);               // 0.5 ppb (16 bpp)
         scrollXMaxBytes = (imageWidth << 1) - 1;                // 0.5 ppb
-        byteXPos = (scrollXOffset << 1) & scrollXMaxBytes;      // 0.5 ppb
+        byteXPos = modeData.width > 256
+            ? ((scrollXOffset & ~1) << 1) & scrollXMaxBytes     // 0.5 ppb, ignore bit 0
+            : (scrollXOffset << 1) & scrollXMaxBytes;           // 0.5 ppb
 
         quantBytes = quantPixels << 1;                          // 0.5 ppb
         buffPos = bufferPosition;
@@ -1190,7 +1190,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
         var byteYBase, byteXPos, pixel, pixelB;
 
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
@@ -1212,7 +1212,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
         var byteYBase, byteXPos, pixels, v;
 
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
@@ -1231,7 +1231,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, pixels, v;
 
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 1);               // 2 ppb
         scrollXMaxBytes = (imageWidth >> 1) - 1;                // 2 ppb
         byteXPos = (scrollXOffset >> 1) & scrollXMaxBytes;      // 2 ppb
@@ -1252,7 +1252,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, pixels, v;
 
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 2);               // 4 ppb
         scrollXMaxBytes = (imageWidth >> 2) - 1;                // 4 ppb
         byteXPos = (scrollXOffset >> 2) & scrollXMaxBytes;      // 4 ppb
@@ -1322,15 +1322,25 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // else cleanFrameBuffer();
 
         // Field alternance
-        status ^= 0x02;                    // Invert EO (Display Field Status flag)
+        status ^= 0x02;                    // Invert EO (Second Field Status flag)
 
         // Interlace
-        if (register[7] & 0x02) {                                     // IL
-           bufferPosition = (status & 0x02) ? LINE_WIDTH : 0;         // EO (Display Field Status flag)
-           bufferLineAdvance = LINE_WIDTH * 2;
+        if (modeData.allowIL && register[7] & 0x02) {                   // IL
+            bufferLineAdvance = LINE_WIDTH << 1;
+            var doubleRes = (register[7] & 0x04) !== 0;                 // EO (Double Resolution)
+            vramEOLineShift = doubleRes ? 1 : 0;
+            if (status & 0x02) {                                        // EO (Second Field Status flag)
+                bufferPosition = LINE_WIDTH;
+                vramEOLineAdd = doubleRes ? 1 : 0;
+            } else {
+                bufferPosition = 0;
+                vramEOLineAdd = 0;
+            }
         } else {
-           bufferPosition = 0;
-           bufferLineAdvance = LINE_WIDTH;
+            bufferLineAdvance = LINE_WIDTH;
+            bufferPosition = 0;
+            vramEOLineShift = 0;
+            vramEOLineAdd = 0;
         }
 
         // Update mask to reflect correct page (Blink and EO)
@@ -1550,6 +1560,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var renderMetricsChangePending = false, renderWidth = 0, renderHeight = 0;
     var refreshWidth = 0, refreshHeight = 0;
 
+    var vramEOLineShift = 0, vramEOLineAdd = 0;
+
     var modes = {};
     modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, renderLine: renderLineModeSBY };
     modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, renderLine:  renderLineModeP1 };
@@ -1586,7 +1598,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var superImposeValue = 0xff500000;          // Dark Blue
     var standByValue =     0xff000060;          // Dark Red
     var backdropValue =    solidBlackValue;
-
 
     var color2to8bits = [ 0, 90, 172, 255 ];                        // 8 bit B values for 2 bit B colors
     var color3to8bits = [ 0, 32, 74, 106, 148, 180, 222, 255 ];     // 8 bit R,G values for 3 bit R,G colors
