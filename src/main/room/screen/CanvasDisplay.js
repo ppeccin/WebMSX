@@ -78,7 +78,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    this.refresh = function(image, sourceWidth, sourceHeight) {
+    this.refresh = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
         // Hide mouse cursor if not moving for some time
         if (cursorHideFrameCountdown > 0)
             if (--cursorHideFrameCountdown <= 0) hideCursorAndBar();
@@ -93,7 +93,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!canvasContext) createCanvasContext();
         canvasContext.drawImage(
             image,
-            0, 0, sourceWidth, sourceHeight,
+            sourceX, sourceY, sourceWidth, sourceHeight,
             0, 0, canvas.width, canvas.height
         );
 

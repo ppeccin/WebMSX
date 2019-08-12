@@ -2154,7 +2154,7 @@ wmsx.VDP = function(machine, cpu) {
 
     function refresh() {
         // Send frame to monitor
-        videoSignal.newFrame(frameCanvas, refreshWidth, refreshHeight);
+        videoSignal.newFrame(frameCanvas, 0, 0, refreshWidth, refreshHeight);
         refreshWidth = refreshHeight = 0;
 
         if (slave) slave.cycleEventRefresh();
@@ -2239,7 +2239,7 @@ wmsx.VDP = function(machine, cpu) {
         if (!frameImageData) {
             frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                               // One extra line for right-overflow and one for the backdrop cache
             frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * (frameCanvas.height + 1));                             // One extra line
-            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Second extra line
+            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);       // Second extra line
         }
     }
 

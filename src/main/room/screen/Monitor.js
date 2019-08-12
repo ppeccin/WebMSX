@@ -22,9 +22,9 @@ wmsx.Monitor = function(display) {
         activeSignal = activeSignal === mainSignal ? secSignal : mainSignal;
     };
 
-    this.newFrame = function(signal, image, sourceWidth, sourceHeight) {
+    this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
         if (!isActiveSignal(signal)) return;
-        display.refresh(image, sourceWidth, sourceHeight);
+        display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function(signal) {

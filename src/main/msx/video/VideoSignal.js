@@ -7,8 +7,8 @@ wmsx.VideoSignal = function(name, source) {
         monitor = pMonitor;
     };
 
-    this.newFrame = function(image, sourceWidth, sourceHeight) {
-        monitor.newFrame(this, image, sourceWidth, sourceHeight);
+    this.newFrame = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
+        monitor.newFrame(this, image, sourceX, sourceY, sourceWidth, sourceHeight);
     };
 
     this.signalOff = function() {
