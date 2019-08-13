@@ -368,6 +368,14 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             case 15:
                 if (mod & 0x3f) updateBackdropColor();          // BDC
                 break;
+            case 16:
+                if (mod & 0x0f)
+                    horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
+                if (mod & 0xf0) {
+                    verticalAdjust = -7 + ((val >>> 4) ^ 0x07);
+                    updateSignalMetrics(false);
+                }
+                break;
             case 18:
                 if (mod & 0xc0) updateScrollYMax();             // R512, R256
                 // fall through
@@ -574,11 +582,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         status &= ~0x20;                                                                        // HR = 0
 
         // Verify and change sections of the screen
-        if (currentScanline === startingActiveScanline) {
-            status &= ~0x40;                                                                    // VR = 0
-            if (dispChangePending) updateDispEnabled();
-            setActiveDisplay();
-        } else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
+        if (currentScanline === frameStartingActiveScanline)
+            enterActiveDisplay();
+        else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
             setBorderDisplay();
     };
 
@@ -594,7 +600,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             triggerHorizontalInterrupt();
 
         if (currentScanline - frameStartingActiveScanline === signalActiveHeight) {
-            status |= 0x40;                                                                     // VR = 1
+            status |= 0x40;                                                                     // VR = 1       TODO V9990: Verify timing
             triggerVerticalInterrupt();
         }
     };
@@ -618,7 +624,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function updateIRQ() {
         if (register[9] & interruptFlags) {         // (IEV == 1 & VI == 1) || (IEH == 1 & HI == 1) || (IECE == 1 & CE == 1) all bits aligned
-            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1. TODO INT Multiple V9990 connected?
+            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1. TODO V9990: INT if multiple V9990s connected?
 
             // logInfo(">>>  INT ON");
         } else {
@@ -747,7 +753,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // Render starts at first Top Border line
         // Total Vertical Border height is 16. UX decision: Visible top and bottom border height with no Vertical Adjust is 8. No Border in overscan modes
         var border = modeData.hasBorders * 8;
-        var vertAdjust = modeData.hasBorders * verticalAdjust;
+        var vertAdjust = verticalAdjust;
 
         startingVisibleTopBorderScanline = 16 - (16 - border);                                      // 0-7 Top Border lines left invisible (NTSC no overscan)
         startingActiveScanline = startingVisibleTopBorderScanline + border + vertAdjust;
@@ -796,6 +802,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
 
         //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
+    }
+
+    function enterActiveDisplay() {
+        status &= ~0x40;                                                                    // VR = 0
+        if (dispChangePending) updateDispEnabled();
+        setActiveDisplay();
     }
 
     function setActiveDisplay() {
@@ -854,23 +866,11 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         //console.log("Update BackdropCaches");
     }
 
-    function renderLineModeSBY() {
-        frameBackBuffer.set(standByLineCache, bufferPosition);
-        bufferPosition += bufferLineAdvance;
-
-        //logInfo("renderLineStandBy");
-    }
-
     function renderLineBackdrop() {
         if (backdropCacheUpdatePending) updateBackdropLineCache();
         frameBackBuffer.set(backdropLineCache, bufferPosition);
         bufferPosition += bufferLineAdvance;
         //logInfo("renderLineBorders");
-    }
-
-    function renderLineBackdropNoAdvance() {
-        if (backdropCacheUpdatePending) updateBackdropLineCache();
-        frameBackBuffer.set(backdropLineCache, bufferPosition);
     }
 
     function paintBackdrop8(bufferPos) {
@@ -896,22 +896,44 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
     }
 
+    function paintBackdrop256(bufferPos) {
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdropLine256, bufferPos);
+    }
+
+    function paintBackdrop512(bufferPos) {
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdropLine512, bufferPos);
+    }
+
+    function paintBackdropFullLine(bufferPos) {
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdropLineCache, bufferPos);
+    }
+
+    function renderLineModeSBY() {
+        frameBackBuffer.set(standByLineCache, bufferPosition);
+        bufferPosition += bufferLineAdvance;
+
+        //logInfo("renderLineStandBy");
+    }
+
     function renderLineModeP1() {
         // Line
-        renderLineTypePP1(bufferPosition + 8);
+        renderLineTypePP1(bufferPosition + horizontalAdjust + 8);
 
         // Borders
-        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
+        paintBackdrop16(bufferPosition + horizontalAdjust - 8); paintBackdrop16(bufferPosition + horizontalAdjust + 8 + 256);
 
         bufferPosition += bufferLineAdvance;
     }
 
     function renderLineModeP2() {
         // Line
-        renderLineTypePP2(bufferPosition + 16);
+        renderLineTypePP2(bufferPosition + (horizontalAdjust << 1) + 16);
 
         // Borders
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
+        paintBackdrop32(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop32(bufferPosition + (horizontalAdjust << 1) + 16 + 512);
 
         bufferPosition += bufferLineAdvance;
     }
@@ -927,17 +949,17 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function renderLineModeB1() {
         // Line
-        typeData.renderLine(bufferPosition + 8, 256);
+        typeData.renderLine(bufferPosition + horizontalAdjust + 8, 256);
 
         // Borders
-        paintBackdrop8(bufferPosition); paintBackdrop8(bufferPosition + 8 + 256);
+        paintBackdrop16(bufferPosition + horizontalAdjust - 8); paintBackdrop16(bufferPosition + horizontalAdjust + 8 + 256);
 
         bufferPosition += bufferLineAdvance;
     }
 
     function renderLineModeB2() {
         // Line
-        typeData.renderLine(bufferPosition , 384);
+        typeData.renderLine(bufferPosition + horizontalAdjust, 384);
 
         // Overscan: No Borders
 
@@ -946,17 +968,17 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function renderLineModeB3() {
         // Line
-        typeData.renderLine(bufferPosition + 16, 512);
+        typeData.renderLine(bufferPosition + (horizontalAdjust << 1) + 16, 512);
 
         // Borders
-        paintBackdrop16(bufferPosition); paintBackdrop16(bufferPosition + 16 + 512);
+        paintBackdrop32(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop16(bufferPosition + (horizontalAdjust << 1) + 16 + 512);
 
         bufferPosition += bufferLineAdvance;
     }
 
     function renderLineModeB4() {
         // Line
-        typeData.renderLine(bufferPosition , 768);
+        typeData.renderLine(bufferPosition + (horizontalAdjust << 1), 768);
 
         // Overscan: No Borders
 
@@ -1001,7 +1023,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var namePosBase, namePos, pattPosBase, name, pattPixelPos, pixels, v;
 
         // Backdrop
-        renderLineBackdropNoAdvance();
+        paintBackdrop256(bufferPosition);
 
         // Plane B
         if (planeBEnabled) {
@@ -1075,7 +1097,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var namePosBase, namePos, pattPosBase, name, pattPixelPos, pixels, v;
 
         // Backdrop
-        renderLineBackdropNoAdvance();
+        paintBackdrop512(bufferPosition);
 
         // Sprites Plane > SP, PR1 = 1 (0x20)
         renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00);
@@ -1301,7 +1323,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function refresh() {
         // Send frame to monitor
-        videoSignal.newFrame(frameCanvas, 0, 1, refreshWidth, refreshHeight);         // Always paint from line 1, not 0 (Left-overflow line)
+        videoSignal.newFrame(frameCanvas, 0, 0, refreshWidth, refreshHeight);
         refreshWidth = refreshHeight = 0;
 
         //logInfo("V9990 REFRESH. currentScanline: " + currentScanline);
@@ -1314,9 +1336,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             framePulldown = pulldown;
             updateSignalMetrics(false);
         }
-
-        currentScanline = 0;
-        frameStartingActiveScanline = startingActiveScanline;
 
         if (renderMetricsChangePending) updateRenderMetrics(true);
         // else cleanFrameBuffer();
@@ -1343,8 +1362,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             vramEOLineAdd = 0;
         }
 
-        // Update mask to reflect correct page (Blink and EO)
-        //updateLayoutTableAddressMask();
+        currentScanline = 0;
+        frameStartingActiveScanline = startingActiveScanline;
+
+        if (currentScanline >= frameStartingActiveScanline) enterActiveDisplay();
     }
 
     function finishFrame() {
@@ -1355,7 +1376,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // Update frame image from backbuffer
         refreshWidth = renderWidth;
         refreshHeight = renderHeight;
-        frameContext.putImageData(frameImageData, 0, 0, 0, 0, refreshWidth, refreshHeight + 1);     // +1 line for top Left-overflow line
+        frameContext.putImageData(frameImageData, 0, -1, 0, 1, refreshWidth, refreshHeight);     // from line 1 of backBuffer
         frame = frame + 1;
 
         //logInfo("Finish Frame");
@@ -1383,16 +1404,18 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         frameContextUsingAlpha = !!useAlpha;
         frameCanvas = document.createElement('canvas');
         // Maximum V9990 resolution including borders and extra space for painting
-        // 32 pixels for Right-overflow, +1 extra line at the top for Left-overflow, +1 for the Backdrop cache, +1 for the Standby cache
-        frameCanvas.width = PAINT_WIDTH;
-        frameCanvas.height = wmsx.V9990.SIGNAL_MAX_HEIGHT + 1 + 1 + 1;
+        frameCanvas.width = PAINT_WIDTH;                            // 32 pixels for Right-overflow
+        frameCanvas.height = wmsx.V9990.SIGNAL_MAX_HEIGHT + 1;      // +1 extra line at the top for Left-overflow
         frameContext = frameCanvas.getContext("2d", { alpha: frameContextUsingAlpha, antialias: false });
 
         if (!frameImageData) {
-            frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height);
-            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * frameCanvas.height);                               // Contains Left-overflow extra line
-            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height - 2) * 4, frameCanvas.width);   // Backdrop extra line
-            standByLineCache =  new Uint32Array(frameImageData.data.buffer, PAINT_WIDTH * (frameCanvas.height - 1) * 4, frameCanvas.width);         // Standby extra line
+            frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                           // +1 line for the Backdrop cache, +1 for the Standby cache
+            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * frameCanvas.height);                               // Contains Left-overflow extra, not the other 2
+            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);         // Backdrop extra line
+            standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Standby extra line
+
+            backdropLine256 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 256);
+            backdropLine512 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 512);
 
             wmsx.Util.arrayFill(standByLineCache, standByValue);
         }
@@ -1504,7 +1527,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // Frame as off-screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
-    var backdropLineCache, standByLineCache;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
+    var backdropLineCache, standByLineCache, backdropLine256, backdropLine512;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
