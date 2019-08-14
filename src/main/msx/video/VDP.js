@@ -2329,7 +2329,7 @@ wmsx.VDP = function(machine, cpu) {
 
     var isV9918, isV9938, isV9958;
 
-    var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
+    var vram = new Uint8Array(VRAM_TOTAL_SIZE);   // wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
     var vramInterleaving;
 

@@ -1471,7 +1471,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var LINE_WIDTH = wmsx.V9990.SIGNAL_MAX_WIDTH;
     var PAINT_WIDTH = LINE_WIDTH + 32;                      // 32 additional pixels for Right-overflow during painting
 
-    var SPRITE_MAX_PRIORITY = 9000000000000000;
+    var SPRITE_MAX_PRIORITY = 9000000000000000;    // 0x3fffffff;   (v8 sint?)
     var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
 
     var VRAM_LIMIT = wmsx.V9990.VRAM_LIMIT;
@@ -1532,7 +1532,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var backdropLineCache, standByLineCache, backdrop64, backdrop256, backdrop512;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
 
-    var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
+    var vram = new Uint8Array(VRAM_TOTAL_SIZE);   // wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
     var vramInterleaving = false;
 
