@@ -871,26 +871,38 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function paintBackdrop8(bufferPos) {
-        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
-        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
+        frameBackBuffer[bufferPos]   = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+    }
+
+    function paintBackdrop8a(bufferPos) {
+        for (var i = 8; i > 0; --i, ++bufferPos) frameBackBuffer[bufferPos] = backdropValue;
     }
 
     function paintBackdrop16(bufferPos) {
-        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
-        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
-        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
-        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
+        frameBackBuffer[bufferPos]   = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+    }
+
+    function paintBackdrop16a(bufferPos) {
+        for (var i = 16; i > 0; --i, ++bufferPos) frameBackBuffer[bufferPos] = backdropValue;
     }
 
     function paintBackdrop32(bufferPos) {
-        frameBackBuffer[bufferPos]      = backdropValue; frameBackBuffer[bufferPos +  1] = backdropValue; frameBackBuffer[bufferPos +  2] = backdropValue; frameBackBuffer[bufferPos +  3] = backdropValue;
-        frameBackBuffer[bufferPos +  4] = backdropValue; frameBackBuffer[bufferPos +  5] = backdropValue; frameBackBuffer[bufferPos +  6] = backdropValue; frameBackBuffer[bufferPos +  7] = backdropValue;
-        frameBackBuffer[bufferPos +  8] = backdropValue; frameBackBuffer[bufferPos +  9] = backdropValue; frameBackBuffer[bufferPos + 10] = backdropValue; frameBackBuffer[bufferPos + 11] = backdropValue;
-        frameBackBuffer[bufferPos + 12] = backdropValue; frameBackBuffer[bufferPos + 13] = backdropValue; frameBackBuffer[bufferPos + 14] = backdropValue; frameBackBuffer[bufferPos + 15] = backdropValue;
-        frameBackBuffer[bufferPos + 16] = backdropValue; frameBackBuffer[bufferPos + 17] = backdropValue; frameBackBuffer[bufferPos + 18] = backdropValue; frameBackBuffer[bufferPos + 19] = backdropValue;
-        frameBackBuffer[bufferPos + 20] = backdropValue; frameBackBuffer[bufferPos + 21] = backdropValue; frameBackBuffer[bufferPos + 22] = backdropValue; frameBackBuffer[bufferPos + 23] = backdropValue;
-        frameBackBuffer[bufferPos + 24] = backdropValue; frameBackBuffer[bufferPos + 25] = backdropValue; frameBackBuffer[bufferPos + 26] = backdropValue; frameBackBuffer[bufferPos + 27] = backdropValue;
-        frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
+        frameBackBuffer[bufferPos]   = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+        frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
+    }
+
+    function paintBackdrop32a(bufferPos) {
+        for (var i = 32; i > 0; --i, ++bufferPos) frameBackBuffer[bufferPos] = backdropValue;
     }
 
     function paintBackdrop64(bufferPos) {
@@ -1021,13 +1033,13 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function renderLineTypeSBY(bufferPosition, quantPixels) {
-        for (var c = 0; c < quantPixels; ++c)
-            frameBackBuffer[bufferPosition + c] = standByValue;
+        for (var b = 0; b < quantPixels; ++b)
+            frameBackBuffer[bufferPosition + b] = standByValue;
     }
 
     function renderLineTypePP1(bufferPosition) {
         var buffPos, realLine, lineInPattern, scrollX;
-        var namePosBase, namePos, pattPosBase, name, pattPixelPos, pixels, v;
+        var namePosBase, namePos, pattPosBase, name, pattPixelPos, v, c;
 
         // Backdrop
         paintBackdrop256(bufferPosition);
@@ -1041,24 +1053,22 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             namePosBase = 0x7e000 + ((realLine >> 3) << 6 << 1);
             namePos = scrollX >> 3 << 1;
             pattPosBase = 0x40000 | (lineInPattern << 7);
-            for (var c = (scrollX & 7) ? 33 : 32; c > 0; --c, namePos = (namePos + 2) & 127) {      // 64 names * 2 bytes each
+            for (var b = (scrollX & 7) ? 33 : 32; b > 0; --b, namePos = (namePos + 2) & 127) {      // 64 names * 2 bytes each
                 name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
                 pattPixelPos = pattPosBase + ((name >> 5 << 10) | ((name & 0x1f) << 2));
 
-                pixels = vram[pattPixelPos + 0];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetB | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetB | v];
-                pixels = vram[pattPixelPos + 1];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[paletteOffsetB | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[paletteOffsetB | v];
-                pixels = vram[pattPixelPos + 2];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[paletteOffsetB | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[paletteOffsetB | v];
-                pixels = vram[pattPixelPos + 3];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[paletteOffsetB | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[paletteOffsetB | v];
-
-                buffPos += 8;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
             }
 
             // Sprites A > SP > B, PR1 = 1 (0x20)
@@ -1074,24 +1084,22 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             namePosBase = 0x7c000 + ((realLine >> 3) << 6 << 1);
             namePos = scrollX >> 3 << 1;
             pattPosBase = 0x00000 | (lineInPattern << 7);
-            for (c = (scrollX & 7) ? 33 : 32; c > 0; --c, namePos = (namePos + 2) & 127) {          // 64 names * 2 bytes each
+            for (b = (scrollX & 7) ? 33 : 32; b > 0; --b, namePos = (namePos + 2) & 127) {          // 64 names * 2 bytes each
                 name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
                 pattPixelPos = pattPosBase + ((name >> 5 << 10) | ((name & 0x1f) << 2));
 
-                pixels = vram[pattPixelPos + 0];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetA | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetA | v];
-                pixels = vram[pattPixelPos + 1];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[paletteOffsetA | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[paletteOffsetA | v];
-                pixels = vram[pattPixelPos + 2];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[paletteOffsetA | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[paletteOffsetA | v];
-                pixels = vram[pattPixelPos + 3];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[paletteOffsetA | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[paletteOffsetA | v];
-
-                buffPos += 8;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
             }
 
             // Sprites SP > A > B, PR1 = 0
@@ -1101,7 +1109,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function renderLineTypePP2(bufferPosition) {
         var buffPos, realLine, lineInPattern, scrollX;
-        var namePosBase, namePos, pattPosBase, name, pattPixelPos, pixels, v;
+        var namePosBase, namePos, pattPosBase, name, pattPixelPos, v, c;
 
         // Backdrop
         paintBackdrop512(bufferPosition);
@@ -1118,24 +1126,22 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             namePosBase = 0x7c000 + ((realLine >> 3) << 7 << 1);
             namePos = scrollX >> 3 << 1;
             pattPosBase = 0x00000 | (lineInPattern << 8);
-            for (var c = (scrollX & 7) ? 65 : 64; c > 0; --c, namePos = (namePos + 2) & 255) {      // 128 names * 2 bytes each
+            for (var b = (scrollX & 7) ? 65 : 64; b > 0; --b, namePos = (namePos + 2) & 255) {      // 128 names * 2 bytes each
                 name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
                 pattPixelPos = pattPosBase + ((name >> 6 << 11) | ((name & 0x3f) << 2));
 
-                pixels = vram[pattPixelPos + 0];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetA | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetA | v];
-                pixels = vram[pattPixelPos + 1];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 2] = paletteValues[paletteOffsetB | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 3] = paletteValues[paletteOffsetB | v];
-                pixels = vram[pattPixelPos + 2];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 4] = paletteValues[paletteOffsetA | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 5] = paletteValues[paletteOffsetA | v];
-                pixels = vram[pattPixelPos + 3];
-                v = pixels >> 4;   if (v > 0) frameBackBuffer[buffPos + 6] = paletteValues[paletteOffsetB | v];
-                v = pixels & 0x0f; if (v > 0) frameBackBuffer[buffPos + 7] = paletteValues[paletteOffsetB | v];
-
-                buffPos += 8;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetA | c]; ++buffPos;
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
+                c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValues[paletteOffsetB | c]; ++buffPos;
             }
 
             // Sprites SP > Plane, PR1 = 0
@@ -1167,12 +1173,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                     if (width === 256) pattPixelPos = spritePattAddress + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
                     else               pattPixelPos = spritePattAddress + (spriteLine << 8) + ((name >> 5 << 12) | ((name & 0x1f) << 3));
 
-                    s = x <= 1024 - 16 ? 0 : x - (1024 - 16);
-                    f = x <= width - 16 ? 16 : width - x;
-                    if (x >= width) x = 0;
-                    paintSprite(bufferPosition, x, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f);
-
-                    // paintSprite2(bufferPosition, x >= width ? x - 1024 : x, spritesGlobalPriority + sprite, pattPixelPos, palOff);
+                    if (x >= width) x -= 1024;
+                    paintSprite(bufferPosition, x, spritesGlobalPriority + sprite, pattPixelPos, palOff);
                 }
             }
 
@@ -1180,62 +1182,19 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
     }
 
-    function paintSprite(bufferPosition, x, spritePri, pattPixelPos, palOff, start, finish) {
-        var c = 0;
-        for (var i = start; i < finish; ++i, ++x) {
-            if (i & 1) c = vram[pattPixelPos + (i >> 1)] & 0x0f;
-            else       c = vram[pattPixelPos + (i >> 1)] >> 4;
-            if (c === 0) continue;                                                          // Transparent pixel, ignore
-            if (spritesLinePriorities[x] < spritePri) continue;                             // Higher priority sprite already there
-            spritesLinePriorities[x] = spritePri;                                           // Register new priority
-            frameBackBuffer[bufferPosition + x] = paletteValuesReal[palOff | c];            // Paint
-        }
-    }
-
-    function paintSprite2(bufferPosition, x, spritePri, pattPixelPos, palOff) {
+    function paintSprite(bufferPosition, x, spritePri, pattPixelPos, palOff) {
         var v = 0, c = 0, p = x + 16;
         var buffPos = bufferPosition + x;
-
         for (var i = 8; i > 0; --i, ++pattPixelPos) {
             v = vram[pattPixelPos];
-            ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-            ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+            c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; } ++p; ++buffPos;
+            c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; } ++p; ++buffPos;
         }
-    }
-
-    function paintSprite3(bufferPosition, x, spritePri, pattPixelPos, palOff) {
-        var v = 0, c = 0, p = x + 16;
-        var buffPos = bufferPosition + x;
-
-        v = vram[pattPixelPos];
-        c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        v = vram[++pattPixelPos];
-        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
-        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
     }
 
     function renderLineTypeBD16(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
-        var byteYBase, byteXPos, pixelA, pixelB;
+        var byteYBase, byteXPos, v;
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth << 1);               // 0.5 ppb (16 bpp)
@@ -1247,20 +1206,18 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = quantPixels << 1;                          // 0.5 ppb
         buffPos = bufferPosition;
 
-        for (var c = quantBytes; c > 0; c -= 2, byteXPos = (byteXPos + 2) & scrollXMaxBytes) {
-            pixelA = vram[byteYBase + byteXPos];
-            pixelB = vram[byteYBase + byteXPos + 1];
-            frameBackBuffer[buffPos] = 0xff000000
-                | (color5to8bits[pixelA & 0x1f] << 16)                      // B
-                | (color5to8bits[(pixelB >> 2)& 0x1f]) << 8                 // G
-                | color5to8bits[((pixelB << 3) | (pixelA >> 5)) & 0x1f];    // R
-            ++buffPos;
+        for (var b = quantBytes; b > 0; b -= 2, byteXPos = (byteXPos + 2) & scrollXMaxBytes) {
+            v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8);
+            frameBackBuffer[buffPos++] = 0xff000000
+                | (color5to8bits[v & 0x1f] << 16)               // B
+                | (color5to8bits[(v >> 10) & 0x1f]) << 8        // G
+                | color5to8bits[(v >> 5) & 0x1f];               // R
         }
     }
 
     function renderLineTypeBD8(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
-        var byteYBase, byteXPos, pixel, pixelB;
+        var byteYBase, byteXPos, v, pixelB;
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
@@ -1270,19 +1227,18 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = quantPixels;                               // 1 ppb
         buffPos = bufferPosition;
 
-        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            pixel = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos] = 0xff000000
-                | (color2to8bits[pixel & 0x03] << 16)           // B
-                | (color3to8bits[(pixel >> 5) & 0x07]) << 8     // G
-                | color3to8bits[(pixel >> 2) & 0x07];           // R
-            ++buffPos;
+        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            v = vram[byteYBase + byteXPos];
+            frameBackBuffer[buffPos++] = 0xff000000
+                | (color2to8bits[v & 0x03] << 16)               // B
+                | (color3to8bits[(v >> 5) & 0x07]) << 8         // G
+                | color3to8bits[(v >> 2) & 0x07];               // R
         }
     }
 
     function renderLineTypeBP6(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
-        var byteYBase, byteXPos, pixels, v;
+        var byteYBase, byteXPos, v;
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
@@ -1292,17 +1248,15 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = quantPixels;                               // 1 ppb
         buffPos = bufferPosition;
 
-        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            pixels = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos] = paletteValues[pixels & 0x3f];
-            ++buffPos;
+        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            v = vram[byteYBase + byteXPos];
+            frameBackBuffer[buffPos++] = paletteValues[v & 0x3f];
         }
     }
 
     function renderLineTypeBP4(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
-        var byteYBase, byteXPos, pixels, v;
-
+        var byteYBase, byteXPos, v;
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 1);               // 2 ppb
         scrollXMaxBytes = (imageWidth >> 1) - 1;                // 2 ppb
@@ -1312,18 +1266,16 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = (quantPixels >> 1) + leftPixels;           // 2 ppb
         buffPos = bufferPosition - leftPixels;
 
-        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            pixels = vram[byteYBase + byteXPos];
-            v = pixels >> 4;   frameBackBuffer[buffPos + 0] = paletteValues[paletteOffsetB | v];
-            v = pixels & 0x0f; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffsetB | v];
-            buffPos += 2;
+        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            v = vram[byteYBase + byteXPos];
+            frameBackBuffer[buffPos++] = paletteValues[paletteOffsetB | (v >> 4)];
+            frameBackBuffer[buffPos++] = paletteValues[paletteOffsetB | (v & 0x0f)];
         }
     }
 
     function renderLineTypeBP2(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
-        var byteYBase, byteXPos, pixels, v;
-
+        var byteYBase, byteXPos, v;
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 2);               // 4 ppb
         scrollXMaxBytes = (imageWidth >> 2) - 1;                // 4 ppb
@@ -1333,13 +1285,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = (quantPixels >> 2) + (leftPixels ? 1 : 0); // 4 ppb
         buffPos = bufferPosition - leftPixels;
 
-        for (var c = quantBytes; c > 0; --c, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            pixels = vram[byteYBase + byteXPos];
-            v = pixels >> 6;          frameBackBuffer[buffPos + 0] = paletteValues[paletteOffset | v];
-            v = (pixels >> 4) & 0x03; frameBackBuffer[buffPos + 1] = paletteValues[paletteOffset | v];
-            v = (pixels >> 2) & 0x03; frameBackBuffer[buffPos + 2] = paletteValues[paletteOffset | v];
-            v = pixels & 0x03;        frameBackBuffer[buffPos + 3] = paletteValues[paletteOffset | v];
-            buffPos += 4;
+        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
+            v = vram[byteYBase + byteXPos];
+            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | (v >> 6)];
+            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | ((v >> 4) & 0x03)];
+            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | ((v >> 2) & 0x03)];
+            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | (v & 0x03)];
         }
     }
 
