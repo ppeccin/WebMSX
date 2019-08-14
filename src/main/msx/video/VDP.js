@@ -48,6 +48,7 @@ wmsx.VDP = function(machine, cpu) {
     this.connectSlave = function(pSlave) {
         slave = pSlave;
         if (slave) slave.setVideoStandard(videoStandard);
+        updateSignalMetrics(false);
         refreshDisplayMetrics();
     };
 
@@ -571,7 +572,7 @@ wmsx.VDP = function(machine, cpu) {
         if (vSynchMode === 1) {    // ON
             // Will V-synch to host freq if detected and supported, or use optimal timer configuration)
             pulldown = videoStandard.pulldowns[machine.getVideoClockSocket().getVSynchNativeFrequency()] || videoStandard.pulldowns.TIMER;
-        } else {                        // OFF, DISABLED
+        } else {                   // OFF, DISABLED
             // No V-synch. Always use the optimal timer configuration)
             pulldown = videoStandard.pulldowns.TIMER;
         }
@@ -787,11 +788,11 @@ wmsx.VDP = function(machine, cpu) {
     function updateSignalMetrics(force) {
         var addBorder;
 
-        // Fixed metrics for V9918
-        if (isV9918) {
+        // Fixed metrics for V9918 with no slave (V9990)
+        if (isV9918 && !slave) {
             signalActiveHeight = 192; addBorder = 0;
         } else {
-            if (register[9] & 0x80) { signalActiveHeight = 212; addBorder = 0; }             // LN
+            if (!isV9918 && (register[9] & 0x80)) { signalActiveHeight = 212; addBorder = 0; }         // LN
             else { signalActiveHeight = 192; addBorder = 10; }
         }
 
@@ -811,14 +812,14 @@ wmsx.VDP = function(machine, cpu) {
     function updateRenderMetrics(force) {
         var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false;
 
-        // Fixed metrics for V9918
-        if (isV9918) {
+        // Fixed metrics for V9918 with no slave (V9990)
+        if (isV9918 && !slave) {
             newRenderWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   newPixelWidth = 2;
             newRenderHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; newPixelHeight = 2;
         } else {
-            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }   // Mode
+            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }                 // Mode
             else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
-            if (register[9] & 0x08) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
+            if (!isV9918 && (register[9] & 0x08)) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
             else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
         }
 
@@ -2182,7 +2183,7 @@ wmsx.VDP = function(machine, cpu) {
         status[2] ^= 0x02;                    // Invert EO (Display Field flag)
 
         // Interlace
-        if (register[9] & 0x08) {                                       // IL
+        if (!isV9918 && (register[9] & 0x08)) {                         // IL
             bufferPosition = (status[2] & 0x02) ? LINE_WIDTH : 0;       // EO
             bufferLineAdvance = LINE_WIDTH * 2;
         } else {
@@ -2211,8 +2212,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function refreshDisplayMetrics() {
-        if (slave) slave.refreshDisplayMetrics();
-        else videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 && !slave ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
     }
 
     function initRegisters() {
@@ -2333,7 +2333,7 @@ wmsx.VDP = function(machine, cpu) {
     var blinkEvenPage, blinkPageDuration, blinkPerLine;
 
     var vSynchMode;
-    var videoStandard, pulldown;
+    var videoStandard = wmsx.VideoStandard.NTSC, pulldown;
 
     var bufferPosition;
     var bufferLineAdvance;
@@ -2347,7 +2347,7 @@ wmsx.VDP = function(machine, cpu) {
     var startingVisibleTopBorderScanline;
     var startingInvisibleScanline;
 
-    var frameVideoStandard, framePulldown;                  // Delays VideoStandard change until next frame
+    var frameVideoStandard = videoStandard, framePulldown;                  // Delays VideoStandard change until next frame
 
     var verticalIntReached = false;
     var horizontalIntLine = 0;

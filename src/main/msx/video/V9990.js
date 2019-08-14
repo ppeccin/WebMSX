@@ -286,11 +286,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         else status &= ~0x01;
     };
 
-    // Called by Master VDP
-    this.refreshDisplayMetrics = function() {
-        videoSignal.setDisplayMetrics(wmsx.V9990.SIGNAL_MAX_WIDTH, wmsx.V9990.SIGNAL_MAX_HEIGHT);
-    };
-
     function updateVRAMReadPointer() {
         vramPointerRead = ((register[5] << 16) | (register[4] << 8) | register[3]) & VRAM_LIMIT;
         vramPointerReadInc = (register[5] & 0x80) === 0;
@@ -584,8 +579,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // Verify and change sections of the screen
         if (currentScanline === frameStartingActiveScanline)
             enterActiveDisplay();
-        else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)
-            setBorderDisplay();
     };
 
     this.lineEventRenderLine = function() {
@@ -599,10 +592,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();
 
-        if (currentScanline - frameStartingActiveScanline === signalActiveHeight) {
-            status |= 0x40;                                                                     // VR = 1       TODO V9990: Verify timing
-            triggerVerticalInterrupt();
-        }
+        if (currentScanline - frameStartingActiveScanline === signalActiveHeight - 1)
+            enterBorderDisplay();
     };
 
     this.lineEventEnd = function() {
@@ -814,6 +805,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         renderLine = renderLineActive;
     }
 
+    function enterBorderDisplay() {
+        status |= 0x40;                                                                     // VR = 1
+        setBorderDisplay();
+        triggerVerticalInterrupt();
+    }
+
     function setBorderDisplay() {
         renderLine = renderLineBackdrop;
     }
@@ -896,14 +893,19 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         frameBackBuffer[bufferPos + 28] = backdropValue; frameBackBuffer[bufferPos + 29] = backdropValue; frameBackBuffer[bufferPos + 30] = backdropValue; frameBackBuffer[bufferPos + 31] = backdropValue;
     }
 
+    function paintBackdrop64(bufferPos) {
+        if (backdropCacheUpdatePending) updateBackdropLineCache();
+        frameBackBuffer.set(backdrop64, bufferPos);
+    }
+
     function paintBackdrop256(bufferPos) {
         if (backdropCacheUpdatePending) updateBackdropLineCache();
-        frameBackBuffer.set(backdropLine256, bufferPos);
+        frameBackBuffer.set(backdrop256, bufferPos);
     }
 
     function paintBackdrop512(bufferPos) {
         if (backdropCacheUpdatePending) updateBackdropLineCache();
-        frameBackBuffer.set(backdropLine512, bufferPos);
+        frameBackBuffer.set(backdrop512, bufferPos);
     }
 
     function paintBackdropFullLine(bufferPos) {
@@ -918,7 +920,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         //logInfo("renderLineStandBy");
     }
 
-    function renderLineModeP1() {
+    function renderLineModeP1() {       // Normal pixel width
         // Line
         renderLineTypePP1(bufferPosition + horizontalAdjust + 8);
 
@@ -928,7 +930,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeP2() {
+    function renderLineModeP2() {       // Half pixel width
         // Line
         renderLineTypePP2(bufferPosition + (horizontalAdjust << 1) + 16);
 
@@ -938,16 +940,17 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB0() {
+    function renderLineModeB0() {       // Normal pixel width
         // Line
-        typeData.renderLine(bufferPosition, 192);
+        typeData.renderLine(bufferPosition + horizontalAdjust, 192);
 
-        // Overscan: No Borders
+        // Overscan: No Borders, only trimming
+        paintBackdrop8(bufferPosition + horizontalAdjust - 8); paintBackdrop8(bufferPosition + horizontalAdjust + 192);
 
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB1() {
+    function renderLineModeB1() {       // Normal pixel width
         // Line
         typeData.renderLine(bufferPosition + horizontalAdjust + 8, 256);
 
@@ -957,58 +960,62 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB2() {
+    function renderLineModeB2() {       // Normal pixel width
         // Line
         typeData.renderLine(bufferPosition + horizontalAdjust, 384);
 
-        // Overscan: No Borders
+        // Overscan: No Borders, only trimming
+        paintBackdrop8(bufferPosition + horizontalAdjust - 8); paintBackdrop8(bufferPosition + horizontalAdjust + 384);
 
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB3() {
+    function renderLineModeB3() {       // Half pixel width
         // Line
         typeData.renderLine(bufferPosition + (horizontalAdjust << 1) + 16, 512);
 
         // Borders
-        paintBackdrop32(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop16(bufferPosition + (horizontalAdjust << 1) + 16 + 512);
+        paintBackdrop32(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop32(bufferPosition + (horizontalAdjust << 1) + 16 + 512);
 
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB4() {
+    function renderLineModeB4() {       // Half pixel width
         // Line
         typeData.renderLine(bufferPosition + (horizontalAdjust << 1), 768);
 
-        // Overscan: No Borders
+        // Overscan: No Borders, only trimming
+        paintBackdrop16(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop16(bufferPosition + (horizontalAdjust << 1) + 768);
 
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB5() {
+    function renderLineModeB5() {       // Half pixel width
         // Line
-        typeData.renderLine(bufferPosition , 640);
+        typeData.renderLine(bufferPosition + (horizontalAdjust << 1), 640);
 
-        // No Borders
+        // No Borders, only trimming
+        paintBackdrop16(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop16(bufferPosition + (horizontalAdjust << 1) + 640);
 
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB6() {
+    function renderLineModeB6() {       // Half pixel width
         // Line
-        typeData.renderLine(bufferPosition , 640);
+        typeData.renderLine(bufferPosition + (horizontalAdjust << 1), 640);
 
-        // No Borders
+        // No Borders, only trimming
+        paintBackdrop16(bufferPosition + (horizontalAdjust << 1) - 16); paintBackdrop16(bufferPosition + (horizontalAdjust << 1) + 640);
 
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineModeB7() {
+    function renderLineModeB7() {       // Quarter pixel width
         // Line
-        typeData.renderLine(bufferPosition + 32, 1024);
+        typeData.renderLine(bufferPosition + (horizontalAdjust << 2) + 32, 1024);
 
         // Borders
-        paintBackdrop32(bufferPosition); paintBackdrop32(bufferPosition + 32 + 1024);
+        paintBackdrop64(bufferPosition + (horizontalAdjust << 2) - 32); paintBackdrop64(bufferPosition + (horizontalAdjust << 2) + 32 + 1024);
 
         bufferPosition += bufferLineAdvance;
     }
@@ -1414,8 +1421,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);         // Backdrop extra line
             standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Standby extra line
 
-            backdropLine256 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 256);
-            backdropLine512 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 512);
+            backdrop64 =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 64);
+            backdrop256 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 256);
+            backdrop512 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 512);
 
             wmsx.Util.arrayFill(standByLineCache, standByValue);
         }
@@ -1527,7 +1535,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // Frame as off-screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
-    var backdropLineCache, standByLineCache, backdropLine256, backdropLine512;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
+    var backdropLineCache, standByLineCache, backdrop64, backdrop256, backdrop512;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
 
     var vram = wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
@@ -1537,7 +1545,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var frame = 0;
 
     var vSynchMode = 0;
-    var videoStandard, pulldown;
+    var videoStandard = wmsx.VideoStandard.NTSC, pulldown;
 
     var bufferPosition = 0;
     var bufferLineAdvance = 0;
@@ -1551,7 +1559,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var startingVisibleTopBorderScanline = 0;
     var startingInvisibleScanline = 0;
 
-    var frameVideoStandard, framePulldown;                  // Delays VideoStandard change until next frame
+    var frameVideoStandard = videoStandard, framePulldown;                  // Delays VideoStandard change until next frame
 
     var horizontalIntLine = 0;
 
